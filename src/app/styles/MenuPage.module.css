@@ -33,6 +33,7 @@
   text-align: center;
   background-color: #fff;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: relative; /* For positioning image count */
 }
 
 .itemImage {
@@ -41,6 +42,23 @@
   object-fit: cover;
   border-radius: 5px;
   margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.imageCount {
+  position: absolute;
+  top: 1.8rem; /* Adjust based on padding */
+  right: 1.8rem; /* Adjust based on padding */
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+
+.enlargedItemImage {
+  /* transform: scale(1.05); */ 
 }
 
 .menuItem h3 {
@@ -53,13 +71,13 @@
   font-size: 0.9rem;
   color: #666;
   margin-bottom: 1rem;
-  min-height: 60px; /* Adjust as needed */
+  min-height: 60px;
 }
 
 .itemPrice {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #d9534f; /* Example color */
+  color: #d9534f;
   margin-bottom: 1rem;
 }
 
@@ -79,7 +97,7 @@
 }
 
 .addToOrderButton {
-  background-color: #5cb85c; /* Example success color */
+  background-color: #5cb85c;
   color: white;
   border: none;
   padding: 0.7rem 1.2rem;
@@ -87,11 +105,90 @@
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.3s ease;
+  margin-top: 0.5rem;
 }
 
 .addToOrderButton:hover {
   background-color: #4cae4c;
 }
+
+.feedbackButton {
+  background-color: #f0ad4e;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.feedbackButton:hover {
+  background-color: #ec971f;
+}
+
+.enlargedImageBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.enlargedImageModalContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The container will stretch to fit the image and provide space for buttons */
+  /* It can be slightly larger than the image itself if needed for button padding */
+  max-width: 98vw;
+  max-height: 98vh;
+}
+
+.enlargedImageModal {
+  /* Directly control the image size using viewport units */
+  max-width: 90vw;  /* Image can be up to 90% of viewport width */
+  max-height: 90vh; /* Image can be up to 90% of viewport height */
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1.8rem;
+  cursor: pointer;
+  border-radius: 5px;
+  z-index: 1001;
+  transition: background-color 0.3s ease;
+}
+
+.navButton:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.prevButton {
+  left: 10px;
+}
+
+.nextButton {
+  right: 10px;
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -121,6 +218,22 @@
   .itemPrice {
     font-size: 1.1rem;
   }
+  .feedbackButton {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  .navButton {
+    padding: 0.8rem 1.2rem;
+    font-size: 1.5rem;
+  }
+  .enlargedImageModalContainer {
+    max-width: 95vw; 
+    max-height: 95vh;
+  }
+  .enlargedImageModal {
+    max-width: 85vw; /* Adjust image size for tablets */
+    max-height: 85vh;
+  }
 }
 
 @media (max-width: 480px) {
@@ -131,11 +244,44 @@
     font-size: 1.5rem;
   }
   .itemsGrid {
-    grid-template-columns: 1fr; /* Stack items on very small screens */
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
   .menuItem h3 {
     font-size: 1.2rem;
   }
+  .addToOrderButton,
+  .feedbackButton {
+    width: calc(50% - 0.25rem);
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .addToOrderButton {
+    margin-right: 0.5rem;
+  }
+  .navButton {
+    padding: 0.5rem 1rem;
+    font-size: 1.2rem;
+  }
+  .prevButton {
+    left: 5px;
+  }
+  .nextButton {
+    right: 5px;
+  }
+  .imageCount {
+    top: 1.2rem;
+    right: 1.2rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+  }
+  .enlargedImageModalContainer {
+    /* Container can still be large for button placement */
+    max-width: 95vw; 
+    max-height: 95vh;
+  }
+  .enlargedImageModal {
+    max-width: 80vw; /* Adjust image size for very small screens */
+    max-height: 80vh;
+  }
 }
-

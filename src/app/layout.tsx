@@ -53,8 +53,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <header style={{ padding: "0.5rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", borderBottom: "1px solid var(--border-color)" }}>
                 <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Link href="/" style={{ textDecoration: "none", color: "var(--primary-color)", display: "flex", alignItems: "center" }}>
-                    <Image src="/rumi_logo.png" alt="RUMI Restaurant Logo" width={50} height={50} style={{ marginRight: "10px" }} />
-                    <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>RUMI Restaurant</span>
+                    <Image src="/rumi_logo.png" alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px" }} />
                   </Link>
                   <nav style={{display: "flex", gap: "1rem", alignItems: "center"}}>
                     <Link href="/" style={{color: "var(--text-color)"}}>Home</Link>

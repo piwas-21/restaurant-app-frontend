@@ -13,14 +13,15 @@ import Image from "next/image";
 import { ThemeProvider, useTheme } from "@/components/ThemeContext"; 
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { SnackbarProvider } from "notistack";
-import { usePathname } from "next/navigation"; // Import usePathname
+import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const { theme } = useTheme(); 
-  const pathname = usePathname(); // Get the current pathname
+  const pathname = usePathname();
+  const isHomePage = pathname === '/'; // Check if it's the home page
 
   useEffect(() => {
     setIsClient(true);
@@ -52,30 +53,38 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <I18nextProvider i18n={i18n}>
           <CartProvider>
             <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-              <header style={{ padding: "0.5rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", borderBottom: "1px solid var(--border-color)" }}>
-                <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Link href="/" style={{ textDecoration: "none", color: "var(--primary-color)", display: "flex", alignItems: "center" }}>
-                    <Image src="/rumi_logo.png" alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px" }} />
-                  </Link>
-                  <nav style={{display: "flex", gap: "1rem", alignItems: "center"}}>
-                    {/* Assign className to nav links for styling */}
-                    <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>Home</Link>
-                    <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`}>Menu</Link>
-                    <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}>Reservations</Link>
-                    <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`}>Cart</Link> 
-                    {/* LanguageSwitcher and ThemeSwitcher might need similar treatment if they are links */}
-                    {isClient && <LanguageSwitcher />}
-                    {isClient && <ThemeSwitcher />}
-                  </nav>
-                </div>
-              </header>
-              <main style={{padding: "1rem", maxWidth: "1200px", margin: "0 auto"}}>
+              {/* Conditionally render the standard header */}
+              {!isHomePage && (
+                <header style={{ padding: "0.5rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", borderBottom: "1px solid var(--border-color)" }}>
+                  <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Link href="/" style={{ textDecoration: "none", color: "var(--primary-color)", display: "flex", alignItems: "center" }}>
+                      <Image src="/rumi_logo.png" alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px" }} />
+                    </Link>
+                    <nav style={{display: "flex", gap: "1rem", alignItems: "center"}}>
+                      <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>Home</Link>
+                      <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`}>Menu</Link>
+                      <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}>Reservations</Link>
+                      <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`}>Cart</Link> 
+                      {isClient && <LanguageSwitcher />}
+                      {isClient && <ThemeSwitcher />}
+                    </nav>
+                  </div>
+                </header>
+              )}
+              {/* Adjust main padding based on whether the header is shown */}
+              <main style={{ 
+                  padding: isHomePage ? "0" : "1rem", // No padding on home page main as hero handles it 
+                  maxWidth: isHomePage ? "none" : "1200px", // Allow full width for hero
+                  margin: isHomePage ? "0" : "0 auto" // No margin on home page main
+              }}>
                   {children}
               </main>
-              <footer style={{ padding: "2rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", marginTop: "2rem", borderTop: "1px solid var(--border-color)" }}>
-                <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
-                <p>Rue de Berne 13, 1201 Genève, Switzerland</p>
-              </footer>
+              {!isHomePage && ( // Conditionally render footer if you don't want it on the full-screen hero page
+                <footer style={{ padding: "2rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", marginTop: "2rem", borderTop: "1px solid var(--border-color)" }}>
+                  <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
+                  <p>Rue de Berne 13, 1201 Genève, Switzerland</p>
+                </footer>
+              )}
             </SnackbarProvider>
           </CartProvider>
         </I18nextProvider>

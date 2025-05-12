@@ -1,28 +1,181 @@
 /* styles/HomePage.module.css */
 
-.heroSection {
-  background-color: var(--secondary-color);
-  padding: 4rem 2rem;
+.homeContainer {
+  /* Container for the whole page, mainly to handle structure */
+}
+
+.heroHeaderSection {
+  min-height: 100vh; /* Fill the viewport height */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column; 
+  align-items: center; /* Center content horizontally */
+  justify-content: space-between; /* Space out nav and hero content */
+  padding: 1.5rem 2rem; /* Padding for nav and spacing */
+  position: relative; /* For overlay positioning */
+  color: #ffffff; /* Default text color for contrast on image */
+}
+
+.glassOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent black overlay */
+  backdrop-filter: blur(5px); /* Glass effect */
+  -webkit-backdrop-filter: blur(5px); /* Safari support */
+  z-index: 1; /* Below content */
+}
+
+.heroNav {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2; /* Above overlay */
+  position: relative; /* Ensure it's above overlay */
+  /* max-width: 1200px; /* Optional: constrain nav width */
+  /* margin: 0 auto; */
+}
+
+.heroLogoLink {
+  /* Style logo link if needed */
+  line-height: 0; /* Prevent extra space */
+}
+
+.heroNavLinks {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Adjust gap */
+}
+
+/* Re-apply nav-link styles here or ensure they are global and specific enough */
+/* These styles need high contrast against the background */
+.heroNavLinks .nav-link {
+  color: #ffffff; 
+  padding: 0.5rem 0.8rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Improve readability */
+}
+
+.heroNavLinks .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.heroNavLinks .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.2); /* Subtle inset shadow */
+}
+
+/* Adjust Language/Theme switchers if needed for contrast */
+.heroNavLinks > div { /* Target switcher containers */
+  /* Example: Add slight background for better visibility */
+  /* background-color: rgba(0, 0, 0, 0.1); */
+  /* border-radius: 4px; */
+}
+
+
+.heroContent {
   text-align: center;
+  z-index: 2; /* Above overlay */
+  position: relative; 
+  flex-grow: 1; /* Allow content to take available space */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center vertically */
+  align-items: center;
+  padding-bottom: 5vh; /* Add some padding at the bottom */
 }
 
-.heroSection h1 {
-  font-size: 2.5rem;
+.heroTitle {
+  font-size: 3.5rem; /* Make title larger */
   margin-bottom: 1rem;
-  color: var(--text-color);
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-.heroSection p {
-  font-size: 1.2rem;
-  color: var(--text-color);
+.heroSubtitle {
+  font-size: 1.5rem;
+  margin-bottom: 2.5rem;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.ctaButtons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; 
+}
+
+/* Style CTA buttons for contrast */
+.ctaButtonPrimary {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border: 2px solid var(--primary-color);
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.ctaButtonPrimary:hover {
+  background-color: transparent;
+  color: #ffffff; /* White text on hover */
+  border-color: #ffffff;
+  text-shadow: none;
+}
+
+.ctaButtonSecondary {
+  background-color: transparent;
+  color: #ffffff; /* White text */
+  border: 2px solid #ffffff; /* White border */
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.ctaButtonSecondary:hover {
+  background-color: rgba(255, 255, 255, 0.9); /* Almost opaque white */
+  color: var(--primary-color); /* Red text */
+  border-color: rgba(255, 255, 255, 0.9);
+  text-shadow: none;
+}
+
+/* Wrapper for the rest of the page content */
+.pageContentWrapper {
+  max-width: 1200px;
+  margin: 0 auto; /* Center the content */
+  padding: 2rem 1rem; /* Add padding similar to original layout */
+}
+
+/* Keep original section styles, but they are now within the wrapper */
+.storySection, .openingHoursSection, .locationSection {
+  padding: 2rem 0; /* Adjust padding if needed */
   margin-bottom: 2rem;
-}
-
-.storySection, .openingHoursSection, .locationSection, .ctaSection {
-  padding: 2rem;
-  margin-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
 }
+
+.storySection:last-child, 
+.openingHoursSection:last-child, 
+.locationSection:last-child {
+    border-bottom: none;
+}
+
 
 .storySection h2, .openingHoursSection h2, .locationSection h2 {
   font-size: 1.8rem;
@@ -30,89 +183,86 @@
   color: var(--text-color);
 }
 
-.ctaButtons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem; /* Adds space between buttons */
-}
-
-.ctaButtonPrimary {
-  background-color: var(--primary-color);
-  color: var(--button-text-color);
-  border: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.ctaButtonPrimary:hover {
-  background-color: var(--link-hover-color);
-  color: var(--button-text-color);
-}
-
-.ctaButtonSecondary {
-  background-color: transparent;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-}
-
-.ctaButtonSecondary:hover {
-  background-color: var(--primary-color);
-  color: var(--button-text-color);
-}
-
 .mapContainer {
     margin-top: 1.5rem;
     border-radius: 8px;
-    overflow: hidden; /* Ensures the iframe respects the border radius */
+    overflow: hidden;
     border: 1px solid var(--border-color);
+}
+
+.homeFooter {
+  padding: 2rem 0; /* Adjust padding */
+  text-align: center;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary); /* Lighter color for footer */
+  font-size: 0.9rem;
 }
 
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .heroSection {
-    padding: 3rem 1rem;
+  .heroHeaderSection {
+    padding: 1rem; /* Adjust padding */
+    min-height: 90vh; /* Slightly less height if needed */
   }
-  .heroSection h1 {
-    font-size: 2rem;
+  
+  .heroNav {
+      flex-direction: column; /* Stack logo and links */
+      gap: 1rem;
   }
-  .heroSection p {
-    font-size: 1rem;
+
+  .heroNavLinks {
+      justify-content: center; /* Center links */
+      flex-wrap: wrap; /* Allow wrapping */
+      gap: 0.5rem 1rem; /* Row and column gap */
   }
-  .storySection, .openingHoursSection, .locationSection, .ctaSection {
-    padding: 1.5rem 1rem;
+
+  .heroNavLinks .nav-link {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+  .heroSubtitle {
+    font-size: 1.2rem;
+  }
+  
+  .ctaButtons {
+      flex-direction: column;
+      width: 80%; /* Limit width */
+      max-width: 300px;
+  }
+  .ctaButtonPrimary, .ctaButtonSecondary {
+    width: 100%; /* Make buttons full width */
+    font-size: 0.9rem;
+  }
+  
+  .pageContentWrapper {
+     padding: 1.5rem 1rem;
   }
   .storySection h2, .openingHoursSection h2, .locationSection h2 {
     font-size: 1.5rem;
   }
-  .ctaButtons {
-    flex-direction: column; /* Stack buttons vertically */
-  }
-  .ctaButtonPrimary, .ctaButtonSecondary {
-    padding: 0.7rem 1.2rem;
-    font-size: 0.9rem;
-    width: 100%;
-    margin: 0.5rem 0; /* Stack buttons on smaller screens */
-  }
 }
 
 @media (max-width: 480px) {
-  .heroSection h1 {
-    font-size: 1.8rem;
+  .heroTitle {
+    font-size: 2rem;
   }
-  .heroSection p {
-    font-size: 0.9rem;
+  .heroSubtitle {
+    font-size: 1rem;
   }
   .storySection h2, .openingHoursSection h2, .locationSection h2 {
     font-size: 1.3rem;
   }
 }
+
+/* Hide old hero section if it existed */
+.heroSection {
+    display: none;
+}
+
 

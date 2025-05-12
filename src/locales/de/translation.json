@@ -199,6 +199,11 @@
   "switch_to_dark_mode": "In den Dunkelmodus wechseln",
   "switch_to_light_mode": "In den Hellmodus wechseln",
   "customer_phone_label": "Telefonnummer:",
-  "customer_phone_placeholder": "Geben Sie Ihre Telefonnummer ein"
+  "customer_phone_placeholder": "Geben Sie Ihre Telefonnummer ein",
+
+  "nav_home": "Home",
+  "nav_menu": "Menu",
+  "nav_reservations": "Reservations",
+  "nav_cart": "Cart"
 }
 

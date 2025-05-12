@@ -198,6 +198,10 @@
   "customer_phone_label": "Phone Number:",
   "customer_phone_placeholder": "Enter your phone number",
   "switch_to_dark_mode": "Switch to Dark Mode",
-  "switch_to_light_mode": "Switch to Light Mode"
+  "switch_to_light_mode": "Switch to Light Mode",
 
+  "nav_home": "Home",
+  "nav_menu": "Menu",
+  "nav_reservations": "Reservations",
+  "nav_cart": "Cart"
 }

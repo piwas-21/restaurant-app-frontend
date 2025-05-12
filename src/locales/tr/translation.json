@@ -199,6 +199,11 @@
   "switch_to_dark_mode": "Karanlık Moda Geç",
   "switch_to_light_mode": "Aydınlık Moda Geç",
   "customer_phone_label": "Telefon Numarası:",
-  "customer_phone_placeholder": "Telefon numaranızı girin"
+  "customer_phone_placeholder": "Telefon numaranızı girin",
+
+  "nav_home": "Home",
+  "nav_menu": "Menu",
+  "nav_reservations": "Reservations",
+  "nav_cart": "Cart"
 }
 

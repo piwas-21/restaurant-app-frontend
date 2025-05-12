@@ -1,0 +1,93 @@
+:root {
+  --background-color: #ffffff;
+  --text-color: #1a1a1a;
+  --primary-color: #c00000; /* RUMI Red */
+  --secondary-color: #f0f0f0; /* Light Gray */
+  --accent-color: #d9534f; /* A slightly lighter red for accents */
+  --border-color: #dddddd;
+  --card-background: #f9f9f9;
+  --button-text-color: #ffffff;
+  --link-color: #c00000;
+  --link-hover-color: #a00000;
+  --success-color: #4CAF50;
+  --error-color: #f44336;
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+html[data-theme="dark"] {
+  --background-color: #1a1a1a;
+  --text-color: #f0f0f0;
+  --primary-color: #e06666; /* Lighter RUMI Red for dark mode */
+  --secondary-color: #2c2c2c; /* Dark Gray */
+  --accent-color: #ec7063; /* Lighter accent red */
+  --border-color: #444444;
+  --card-background: #252525;
+  --button-text-color: #1a1a1a; /* Dark text on light buttons in dark mode, or adjust button bg */
+  --link-color: #e06666;
+  --link-hover-color: #f08080;
+  --success-color: #81C784;
+  --error-color: #E57373;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-family-sans);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+/* Screen-reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Add more global styles as needed, using the CSS variables */
+
+button {
+  font-family: var(--font-family-sans);
+  cursor: pointer;
+}
+
+input, textarea, select {
+  font-family: var(--font-family-sans);
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--primary-color);
+  border-color: var(--primary-color);
+}
+

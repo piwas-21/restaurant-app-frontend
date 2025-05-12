@@ -1,0 +1,46 @@
+/* styles/LanguageSwitcher.module.css */
+
+.languageSwitcherContainer {
+  display: flex;
+  gap: 0.5rem; /* Space between buttons */
+  padding: 0.5rem 0; /* Padding around the switcher */
+  align-items: center;
+  justify-content: center; /* Center buttons if they are in a row */
+}
+
+.langButton {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.langButton:hover {
+  background-color: #e9ecef;
+  border-color: #bbb;
+}
+
+.langButton:disabled,
+.langButton.activeLang {
+  background-color: #007bff; /* Primary color for active/disabled */
+  color: white;
+  border-color: #007bff;
+  cursor: default;
+}
+
+/* Specific styling for mobile welcome screen if needed */
+.welcomeMobile .languageSwitcherContainer {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.welcomeMobile .langButton {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+

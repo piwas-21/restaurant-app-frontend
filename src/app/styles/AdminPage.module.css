@@ -1,0 +1,231 @@
+/* styles/AdminPage.module.css */
+
+.adminContainer {
+  padding: 2rem;
+  background-color: #f8f9fa; /* Light background for admin area */
+  min-height: 100vh;
+}
+
+.adminHeader {
+  background-color: #343a40; /* Dark header */
+  color: white;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  border-radius: 6px;
+  display: flex; /* For aligning title and button */
+  justify-content: space-between; /* For aligning title and button */
+  align-items: center; /* For aligning title and button */
+}
+
+.adminHeader h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.adminNav {
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+}
+
+.adminNav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1rem; /* Spacing between nav items */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.adminNav ul li a {
+  text-decoration: none;
+  color: #007bff; /* Bootstrap primary blue */
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  display: inline-block; /* Ensure padding is applied correctly */
+}
+
+.adminNav ul li a:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.adminContent {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.adminContent h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.adminContent p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* Basic table styling for admin sections */
+.adminTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+  overflow-x: auto; /* Allow horizontal scrolling on small screens */
+  display: block; /* Required for overflow-x to work on table */
+}
+
+.adminTable th, .adminTable td {
+  border: 1px solid #dee2e6;
+  padding: 0.75rem;
+  text-align: left;
+  white-space: nowrap; /* Prevent text wrapping in cells */
+}
+
+.adminTable th {
+  background-color: #e9ecef;
+  font-weight: 600;
+}
+
+.adminTable tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.adminButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem; /* Add some bottom margin for wrapped buttons */
+  transition: opacity 0.2s ease;
+  display: inline-block; /* Ensure buttons align well when wrapped */
+}
+
+.adminButton.edit {
+  background-color: #ffc107; /* Warning yellow */
+  color: #212529;
+}
+
+.adminButton.delete {
+  background-color: #dc3545; /* Danger red */
+  color: white;
+}
+
+.adminButton.add {
+  background-color: #28a745; /* Success green */
+  color: white;
+  margin-bottom: 1rem; /* Space above table if it's an add button */
+}
+
+.adminButton:hover {
+  opacity: 0.85;
+}
+
+/* Basic form styling for admin sections */
+.adminForm .formGroup {
+  margin-bottom: 1rem;
+}
+
+.adminForm .formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.adminForm .formGroup input[type="text"],
+.adminForm .formGroup input[type="number"],
+.adminForm .formGroup input[type="file"],
+.adminForm .formGroup textarea,
+.adminForm .formGroup select {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+
+.adminForm textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .adminHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .adminHeader h1 {
+    margin-bottom: 0.5rem;
+  }
+  .adminHeader .adminButton {
+    margin-top: 0.5rem;
+  }
+  .adminNav ul {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .adminNav ul li a {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .adminContainer {
+    padding: 1rem;
+  }
+  .adminHeader {
+    padding: 1rem;
+  }
+  .adminHeader h1 {
+    font-size: 1.6rem;
+  }
+  .adminContent {
+    padding: 1rem;
+  }
+  .adminContent h2 {
+    font-size: 1.5rem;
+  }
+  .adminButton {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    width: 100%; /* Make buttons full width for easier tapping */
+    margin-right: 0;
+  }
+  .adminButton.add {
+    margin-bottom: 1rem;
+  }
+  .adminTable th, .adminTable td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .adminHeader h1 {
+    font-size: 1.4rem;
+  }
+  .adminContent h2 {
+    font-size: 1.3rem;
+  }
+  .adminForm .formGroup input[type="text"],
+  .adminForm .formGroup input[type="number"],
+  .adminForm .formGroup input[type="file"],
+  .adminForm .formGroup textarea,
+  .adminForm .formGroup select {
+    font-size: 0.9rem;
+  }
+}
+

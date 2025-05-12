@@ -1,0 +1,137 @@
+/* styles/ReservationsMobile.module.css */
+
+.reservationsContainerMobile {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8f9fa; /* Light background */
+}
+
+.reservationsHeaderMobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.reservationsHeaderMobile h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.backButtonReservationsMobile {
+  font-size: 1.5rem;
+  color: #333;
+  text-decoration: none;
+  padding: 0.5rem;
+  line-height: 1;
+}
+
+.reservationFormMobile {
+  padding: 1.5rem;
+  background-color: #fff;
+  margin: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex-grow: 1;
+}
+
+.formDescriptionMobile {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.formRowMobile {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.formGroupMobileHalf {
+  flex: 1;
+}
+
+.formGroupMobile {
+  margin-bottom: 1rem;
+}
+
+.formGroupMobile label,
+.formGroupMobileHalf label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 0.4rem;
+}
+
+.inputFieldReservationsMobile,
+.selectFieldReservationsMobile,
+.textareaFieldReservationsMobile {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputFieldReservationsMobile:focus,
+.selectFieldReservationsMobile:focus,
+.textareaFieldReservationsMobile:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  outline: none;
+}
+
+.selectFieldReservationsMobile {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\%27 width=\'16\%27 height=\'16\%27 fill=\'%23333\%27 viewBox=\'0 0 16 16\%27%3E%3Cpath fill-rule=\'evenodd\%27 d=\'M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z\%27/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+}
+
+.textareaFieldReservationsMobile {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.submitButtonReservationsMobile {
+  display: block;
+  width: 100%;
+  background-color: #c0392b; /* Restaurant"s primary color */
+  color: white;
+  padding: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 1.5rem;
+}
+
+.submitButtonReservationsMobile:hover {
+  background-color: #a93226;
+}
+
+.confirmationNoteMobile {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+}
+

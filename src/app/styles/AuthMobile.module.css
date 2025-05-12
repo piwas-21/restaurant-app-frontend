@@ -1,0 +1,113 @@
+/* styles/AuthMobile.module.css */
+
+.authMobileContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f4f4f4; /* Consistent light background */
+}
+
+.authHeaderMobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  /* position: sticky; /* No sticky header for auth pages, allow scrolling */
+  /* top: 0; */
+  /* z-index: 100; */
+}
+
+.authHeaderMobile h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.backButtonAuthMobile {
+  font-size: 1.5rem;
+  color: #333;
+  text-decoration: none;
+  padding: 0.5rem;
+  line-height: 1;
+}
+
+.authFormMobile {
+  padding: 1.5rem;
+  background-color: #fff;
+  margin: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex-grow: 1; /* Allow form to take space if content is short */
+}
+
+.formGroupAuthMobile {
+  margin-bottom: 1.2rem;
+}
+
+.formGroupAuthMobile label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 0.4rem;
+}
+
+.inputFieldAuthMobile {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputFieldAuthMobile:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+  outline: none;
+}
+
+.submitButtonAuthMobile {
+  display: block;
+  width: 100%;
+  background-color: #007bff; /* Primary blue for actions */
+  color: white;
+  padding: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 1.5rem;
+}
+
+.submitButtonAuthMobile:hover {
+  background-color: #0056b3;
+}
+
+.authLinkMobile {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.authLinkMobile a {
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.authLinkMobile a:hover {
+  color: #0056b3;
+}
+

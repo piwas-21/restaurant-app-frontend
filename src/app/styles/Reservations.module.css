@@ -1,0 +1,193 @@
+/* styles/Reservations.module.css */
+
+.reservationsContainer {
+  padding: 2rem;
+  max-width: 700px;
+  margin: 2rem auto;
+  background-color: var(--card-background);
+  border-radius: 12px; /* Increased border-radius */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  border: 1px solid var(--border-color);
+}
+
+.pageTitle {
+  font-size: 2.2rem; /* Slightly adjusted */
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 1.5rem; /* Increased margin */
+  font-family: var(--font-family-serif);
+}
+
+.pageDescription {
+  font-size: 1.1rem;
+  color: var(--text-color-secondary); /* Using secondary text color for less emphasis */
+  text-align: center;
+  margin-bottom: 2.5rem; /* Increased margin */
+  line-height: 1.7;
+}
+
+.reservationForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem; /* Slightly increased gap */
+}
+
+.formDescription {
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-bottom: 1rem; /* Increased margin */
+  text-align: left;
+  line-height: 1.6;
+  padding: 1rem;
+  background-color: var(--background-color-light);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.formRow {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.formGroupHalf {
+  flex: 1;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem; /* Slightly increased gap */
+}
+
+.formGroup label {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.95rem; /* Slightly adjusted */
+}
+
+.inputFieldReservations,
+.selectFieldReservations,
+.textareaFieldReservations {
+  width: 100%;
+  padding: 0.85rem 1.1rem; /* Adjusted padding */
+  font-size: 1rem;
+  border: 1px solid var(--border-color-strong);
+  border-radius: 8px; /* Increased border-radius */
+  background-color: var(--input-background-color);
+  color: var(--text-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputFieldReservations::placeholder,
+.textareaFieldReservations::placeholder {
+  color: var(--text-color-placeholder);
+}
+
+.inputFieldReservations:focus,
+.selectFieldReservations:focus,
+.textareaFieldReservations:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem var(--primary-color-focus-shadow);
+  outline: none;
+}
+
+.selectFieldReservations {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23555' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+}
+
+html[data-theme="dark"] .selectFieldReservations {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23bbb' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+
+.textareaFieldReservations {
+  resize: vertical;
+  min-height: 120px; /* Increased min-height */
+}
+
+.submitButtonReservations {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  padding: 0.9rem 1.8rem; /* Adjusted padding */
+  border: none;
+  border-radius: 8px; /* Increased border-radius */
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  align-self: center;
+  margin-top: 1.5rem; /* Increased margin */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.submitButtonReservations:hover {
+  background-color: var(--link-hover-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.submitButtonReservations:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.confirmationNote {
+  text-align: center;
+  margin-top: 1.5rem; /* Increased margin */
+  font-size: 0.95rem; /* Slightly increased font size */
+  color: var(--text-color-secondary);
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .reservationsContainer {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .pageTitle {
+    font-size: 1.8rem; /* Adjusted for mobile */
+  }
+
+  .pageDescription {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .formRow {
+    flex-direction: column;
+    gap: 1.25rem; /* Adjust gap for stacked elements */
+  }
+  
+  .formDescription {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .submitButtonReservations {
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .reservationsContainer {
+    padding: 1rem;
+  }
+  .pageTitle {
+    font-size: 1.6rem;
+  }
+  .inputFieldReservations,
+  .selectFieldReservations,
+  .textareaFieldReservations {
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+  }
+}
+

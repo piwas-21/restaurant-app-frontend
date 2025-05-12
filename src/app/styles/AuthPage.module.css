@@ -1,0 +1,131 @@
+/* styles/AuthPage.module.css */
+
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem;
+  background-color: #f4f4f4; /* Light grey background */
+}
+
+.authForm {
+  background-color: #fff;
+  padding: 2.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 450px;
+}
+
+.authForm h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.formGroup {
+  margin-bottom: 1.2rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.formGroup input[type="email"],
+.formGroup input[type="password"],
+.formGroup input[type="text"] {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.submitButton {
+  width: 100%;
+  background-color: #d9534f; /* Primary action color */
+  color: white;
+  border: none;
+  padding: 0.9rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #c9302c;
+}
+
+.errorMessage {
+  color: #e74c3c; /* Error message color */
+  background-color: #fdd;
+  border: 1px solid #e74c3c;
+  padding: 0.8rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.switchFormText {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.switchFormText a {
+  color: #d9534f;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.switchFormText a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .authContainer {
+    padding: 1.5rem 1rem;
+    min-height: auto; /* Adjust height for smaller screens */
+  }
+  .authForm {
+    padding: 2rem;
+    margin: 1rem; /* Add some margin if container padding is reduced */
+  }
+  .authForm h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .authForm {
+    padding: 1.5rem;
+  }
+  .authForm h1 {
+    font-size: 1.6rem;
+  }
+  .formGroup input[type="email"],
+  .formGroup input[type="password"],
+  .formGroup input[type="text"] {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+  .submitButton {
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+  .switchFormText {
+    font-size: 0.9rem;
+  }
+}
+

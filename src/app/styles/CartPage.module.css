@@ -1,0 +1,214 @@
+/* styles/CartPage.module.css */
+
+.cartContainer {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 2rem auto;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 2rem;
+  font-family: var(--font-family-serif);
+}
+
+/* Empty Cart Styles */
+.emptyCartContainer {
+  text-align: center;
+  padding: 3rem 1rem;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+}
+
+.emptyCartMessage {
+  font-size: 1.5rem;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+}
+
+.emptyCartLink {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.emptyCartLink:hover {
+  background-color: var(--link-hover-color);
+}
+
+/* Cart Items List Styles */
+.cartItemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.cartItem {
+  display: flex;
+  flex-direction: column; /* Stack details and controls on small screens */
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background-color);
+}
+
+.itemDetails {
+  flex-grow: 1;
+}
+
+.itemName {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.itemPrice {
+  font-size: 1.1rem;
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.itemControls {
+  display: flex;
+  flex-direction: column; /* Stack quantity and remove button */
+  align-items: flex-start; /* Align to start for stacked layout */
+  gap: 0.75rem;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quantityButton {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.quantityButton:hover {
+  background-color: var(--border-color);
+}
+
+.itemQuantity {
+  font-size: 1.1rem;
+  font-weight: 500;
+  min-width: 20px; /* Ensure space for number */
+  text-align: center;
+}
+
+.removeItemButton {
+  background-color: transparent;
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.removeItemButton:hover {
+  background-color: var(--error-color);
+  color: var(--button-text-color);
+}
+
+.itemSubtotal {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-top: 0.5rem; /* Add some space above subtotal */
+  text-align: right; /* Align subtotal to the right */
+}
+
+/* Cart Summary Styles */
+.cartSummary {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border-color);
+  text-align: right; /* Align summary content to the right */
+}
+
+.totalPrice {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+.checkoutButton {
+  display: inline-block;
+  padding: 0.9rem 2rem;
+  background-color: var(--success-color);
+  color: var(--button-text-color);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.checkoutButton:hover {
+  background-color: #3e8e41; /* Darker green on hover */
+}
+
+/* Responsive adjustments for cart items */
+@media (min-width: 600px) {
+  .cartItem {
+    flex-direction: row; /* Side-by-side layout for larger screens */
+    align-items: center; /* Align items vertically */
+    justify-content: space-between;
+  }
+
+  .itemControls {
+    flex-direction: row; /* Side-by-side quantity and remove button */
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .itemSubtotal {
+    margin-top: 0; /* Reset margin for row layout */
+    min-width: 120px; /* Ensure enough space for subtotal */
+  }
+}
+
+@media (max-width: 768px) {
+  .cartContainer {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .pageTitle {
+    font-size: 2rem;
+  }
+
+  .emptyCartMessage {
+    font-size: 1.2rem;
+  }
+
+  .totalPrice {
+    font-size: 1.5rem;
+  }
+}
+

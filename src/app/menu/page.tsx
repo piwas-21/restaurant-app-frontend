@@ -82,7 +82,7 @@ export default function MenuPage() {
     const loadedCategoryKeys = Object.keys(categoriesData.en) as MenuCategoryKey[];
     setCategoriesForNav(loadedCategoryKeys);
     if (loadedCategoryKeys.length > 0) {
-      let defaultView: MenuCategoryKey | typeof ALL_ITEMS_KEY = ALL_ITEMS_KEY; 
+      const defaultView: MenuCategoryKey | typeof ALL_ITEMS_KEY = ALL_ITEMS_KEY; 
       if (!loadedCategoryKeys.includes('starter' as MenuCategoryKey) && loadedCategoryKeys[0]) {
       } else if (loadedCategoryKeys.includes('starter' as MenuCategoryKey)) {
       }
@@ -106,8 +106,8 @@ export default function MenuPage() {
         if (selectedView === ALL_ITEMS_KEY) {
           for (const catKey of categoriesForNav) {
             try {
-              const module = await import(`../../data/menu/${catKey}.json`);
-              const items: MenuItem[] = module.default;
+              const categoryName = await import(`../../data/menu/${catKey}.json`);
+              const items: MenuItem[] = categoryName.default;
               if (Array.isArray(items)) {
                 allFetchedItems.push(...items);
               } else {
@@ -118,8 +118,8 @@ export default function MenuPage() {
             }
           }
         } else {
-          const module = await import(`../../data/menu/${selectedView}.json`);
-          const items: MenuItem[] = module.default;
+          const categoryName = await import(`../../data/menu/${selectedView}.json`);
+          const items: MenuItem[] = categoryName.default;
           if (!Array.isArray(items)) {
             console.error("Loaded menu data is not an array:", items);
             throw new Error(`Menu data for ${selectedView} is not in the expected format.`);
@@ -163,6 +163,7 @@ export default function MenuPage() {
   }, [dispatch, enqueueSnackbar, t, currentLanguage]);
 
   const handleFeedbackSuccess = useCallback(async (dishId: string) => {
+    console.log(`Feedback submitted for dish ID: ${dishId}`);
     setShowFeedbackForm(null);
     setRatings({ ...mockAverageRatings });
   }, []);

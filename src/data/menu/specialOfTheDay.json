@@ -1,0 +1,40 @@
+[
+  {
+    "id": "sotd001",
+    "content": {
+      "en": {
+        "name": "Today's Special Dish",
+        "description": "An amazing dish prepared with the freshest ingredients of the day."
+      },
+      "de": {
+        "name": "Heutiges Spezialgericht",
+        "description": "Ein fantastisches Gericht, zubereitet mit den frischesten Zutaten des Tages."
+      },
+      "tr": {
+        "name": "Günün Özel Yemeği",
+        "description": "Günün en taze malzemeleriyle hazırlanmış harika bir yemek."
+      },
+      "it": {
+        "name": "Piatto Speciale di Oggi",
+        "description": "Un piatto straordinario preparato con gli ingredienti più freschi del giorno."
+      },
+      "fr": {
+        "name": "Plat Spécial du Jour",
+        "description": "Un plat incroyable préparé avec les ingrédients les plus frais du jour."
+      },
+      "ar": {
+        "name": "طبق اليوم المميز",
+        "description": "طبق رائع محضر بأ新鮮 مكونات اليوم."
+      }
+    },
+    "price": 25.50,
+    "image": "/images/placeholder-sarma.jpeg",
+    "dietaryTags": ["halal"],
+    "categoryKey": "specialOfTheDay",
+    "isSpecial": true,
+    "images": [
+      { "url": "/images/placeholder-sarma.jpeg", "alt": "Today's Special - sarma" },
+      { "url": "/images/placeholder-falafel.jpeg", "alt": "Today's Special - falafal" }
+    ]
+  }
+]

@@ -161,6 +161,8 @@
   "menu_page_title": "RUMI Restaurant Menüsü - Başlangıçlar, Ana Yemekler, Tatlılar | Cenevre",
   "menu_page_description": "Cenevre'deki RUMI Restaurant'ın lezzetli ve otantik Türk menüsünü keşfedin. Lezzetli kebaplardan enfes mezelere ve geleneksel tatlılara kadar. Helal seçenekler mevcuttur.",
   "menu_categories_label": "Menü Kategorileri",
+  "menu_item_image_alt": "Menü öğesi görseli",
+
   "dietary_information_label": "Beslenme Bilgileri",
   "category_navigation_label": "Kategoriler",
   "category_not_found_in_menu_data": "{{categoryName}} için menü öğeleri şu anda mevcut değil.",
@@ -213,10 +215,11 @@
   "customer_phone_label": "Telefon Numarası:",
   "customer_phone_placeholder": "Telefon numaranızı girin",
 
-  "nav_home": "Home",
-  "nav_menu": "Menu",
-  "nav_reservations": "Reservations",
-  "nav_cart": "Cart",
+  "nav_home": "Ana Sayfa",
+  "nav_menu": "Menü",
+  "nav_reservations": "Rezervasyonlar",
+  "nav_cart": "Sepet",
+  "nav_login": "Giriş Yap",
 
   "close_image_modal_button": "Kapat"
 }

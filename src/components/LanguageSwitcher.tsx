@@ -6,13 +6,14 @@ import { useTranslation } from "react-i18next";
 import Image from 'next/image';
 import styles from "../app/styles/LanguageSwitcher.module.css";
 
-// ** Important: Ensure you have flag images at these paths **
-// e.g., /public/flags/en.svg, /public/flags/de.svg, /public/flags/tr.svg
 const languages = [
   { code: "en", name: "English", flag: "/flags/en.svg" },
   { code: "de", name: "Deutsch", flag: "/flags/de.svg" },
   { code: "tr", name: "Türkçe", flag: "/flags/tr.svg" },
-] as const; // Add 'as const' for stricter typing
+  { code: "it", name: "Italiano", flag: "/flags/it.svg" },
+  { code: "ar", name: "العربية", flag: "/flags/ar.svg" },
+  { code: "fr", name: "Français", flag: "/flags/fr.svg" },
+] as const;
 
 // Export the type for language codes
 export type LanguageCode = typeof languages[number]['code'];
@@ -22,14 +23,15 @@ export default function LanguageSwitcher() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const changeLanguage = (lng: LanguageCode) => { // Use LanguageCode type here
+  const changeLanguage = (lng: LanguageCode) => {
     i18n.changeLanguage(lng);
-    setDropdownOpen(false); // Close dropdown after selection
+    localStorage.setItem("i18nextLng", lng);
+    setDropdownOpen(false);
   };
 
   const toggleDropdown = () => {
-      setDropdownOpen(!dropdownOpen);
-    };
+    setDropdownOpen(!dropdownOpen);
+  };
 
   // Close dropdown if clicked outside
   useEffect(() => {
@@ -50,7 +52,12 @@ export default function LanguageSwitcher() {
 
   return (
     <div className={styles.languageSwitcher} ref={dropdownRef}>
-      <button onClick={toggleDropdown} className={styles.dropdownToggle}>
+      <button
+        onClick={toggleDropdown}
+        className={styles.dropdownToggle}
+        aria-haspopup="listbox"
+        aria-expanded={dropdownOpen}
+      >
         <Image src={currentLanguageDetails.flag} alt={currentLanguageDetails.name} width={24} height={18} />
         <span className={styles.languageName}>{currentLanguageDetails.code.toUpperCase()}</span>
         <span className={styles.arrow}>{dropdownOpen ? "▲" : "▼"}</span>
@@ -59,7 +66,12 @@ export default function LanguageSwitcher() {
         <ul className={styles.dropdownMenu}>
           {languages.map((language) => (
             <li key={language.code}>
-              <button onClick={() => changeLanguage(language.code)} className={styles.dropdownItem}>
+              <button
+                onClick={() => changeLanguage(language.code)}
+                className={styles.dropdownItem}
+                role="option"
+                aria-selected={language.code === i18n.resolvedLanguage}
+              >
                 <Image src={language.flag} alt={language.name} width={20} height={15} />
                 <span>{language.name}</span>
               </button>

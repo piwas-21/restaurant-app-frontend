@@ -40,3 +40,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - add fr, arabic, italy locale files
 - investigate arabic lang design
 - table selection on reservation (tbd)
+
+- user account page: user can update details like email, address, phone number, password. and see the latest orders and total fidelity points.

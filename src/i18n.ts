@@ -4,20 +4,20 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 // Import translation files
-import translationEN from "./locales/en/translation.json";
-import translationDE from "./locales/de/translation.json";
-import translationTR from "./locales/tr/translation.json";
+import translationEN from "./locales/en.json";
+import translationDE from "./locales/de.json";
+import translationTR from "./locales/tr.json";
+import translationIT from "./locales/it.json";
+import translationAR from "./locales/ar.json";
+import translationFR from "./locales/fr.json";
 
 const resources = {
-  en: {
-    translation: translationEN,
-  },
-  de: {
-    translation: translationDE,
-  },
-  tr: {
-    translation: translationTR,
-  },
+  en: { translation: translationEN },
+  de: { translation: translationDE },
+  tr: { translation: translationTR },
+  it: { translation: translationIT },
+  ar: { translation: translationAR },
+  fr: { translation: translationFR },
 };
 
 i18n
@@ -34,7 +34,9 @@ i18n
       order: ["localStorage", "navigator", "htmlTag"],
       caches: ["localStorage"],
     },
+    react: {
+      useSuspense: false, // Disable Suspense for older versions of React or if not using Suspense
+    },
   });
 
 export default i18n;
-

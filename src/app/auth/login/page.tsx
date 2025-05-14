@@ -1,15 +1,20 @@
-// src/app/auth/login/page.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import styles from "../../styles/AuthPage.module.css"; // Create this CSS module
+import styles from "../../styles/AuthPage.module.css";
+import { useRouter } from 'next/navigation'; // Import useRouter
+
+// Mock roles for simulation - in a real app, this would come from your auth system
+const ROLES = ["customer", "admin", "cashier", "kitchen-staff", "server"];
+let roleIndex = 0; // Simple way to cycle roles for testing
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter(); // Initialize router
 
   useEffect(() => {
     emailInputRef.current?.focus();
@@ -18,15 +23,42 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    // Basic validation
+
     if (!email || !password) {
       setError("Email and password are required.");
       return;
     }
-    // TODO: Implement actual login logic (e.g., API call)
+
+    // Simulate login and role assignment
     console.log("Login attempt:", { email });
-    alert("Login functionality to be implemented. Check console.");
-    // On success, redirect or update auth state
+    // In a real app, you would authenticate and get the user's role from the backend.
+    const mockUserRole = ROLES[roleIndex % ROLES.length];
+    roleIndex++; // Cycle to the next role for the next login attempt for testing
+
+    alert(`Simulating login. Assigned role: ${mockUserRole}. Redirecting...`);
+
+    // Redirect based on role
+    switch (mockUserRole) {
+      case "admin":
+        router.push("/admin/dashboard");
+        break;
+      case "customer":
+        router.push("/account"); // User account page
+        break;
+      case "cashier":
+        router.push("/cashier");
+        break;
+      case "kitchen-staff":
+        router.push("/kitchen-staff");
+        break;
+      case "server":
+        router.push("/server");
+        break;
+      default:
+        setError("Unknown user role or redirect path not configured.");
+        router.push("/"); // Fallback to homepage
+        break;
+    }
   };
 
   return (
@@ -60,7 +92,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              aria-required="true"
+              aria-required="true"              
               aria-describedby={error && password === "" ? "password-error" : undefined}
               autoComplete="current-password"
             />
@@ -75,4 +107,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

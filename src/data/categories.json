@@ -1,6 +1,6 @@
-
 {
   "en": {
+    "specialOfTheDay": "Special of the Day",
     "starters": "Starters",
     "durum": "Dürüm Wraps",
     "pide": "Pide (Turkish Pizza)",
@@ -13,6 +13,7 @@
     "coldDrink": "Cold Drinks"
   },
   "tr": {
+    "specialOfTheDay": "Günün Özeli",
     "starters": "Başlangıçlar",
     "durum": "Dürüm",
     "pide": "Pide",
@@ -25,6 +26,7 @@
     "coldDrink": "Soğuk İçecekler"
   },
   "de": {
+    "specialOfTheDay": "Tagesangebot",
     "starters": "Vorspeisen",
     "durum": "Dürüm Wraps",
     "pide": "Pide (Türkische Pizza)",
@@ -35,5 +37,44 @@
     "dessert": "Nachspeisen",
     "hotDrink": "Heiße Getränke",
     "coldDrink": "Kalte Getränke"
+  },
+  "it": {
+    "specialOfTheDay": "Offerta del Giorno",
+    "starters": "Antipasti",
+    "durum": "Piadine Dürüm",
+    "pide": "Pide (Pizza Turca)",
+    "pizza": "Pizza",
+    "grill": "Griglia",
+    "turkishSpecialty": "Specialità Turche",
+    "orientalSpecialty": "Specialità Orientali",
+    "dessert": "Dessert",
+    "hotDrink": "Bevande Calde",
+    "coldDrink": "Bevande Fredde"
+  },
+  "fr": {
+    "specialOfTheDay": "Plat du Jour",
+    "starters": "Entrées",
+    "durum": "Wraps Dürüm",
+    "pide": "Pide (Pizza Turque)",
+    "pizza": "Pizza",
+    "grill": "Grillades",
+    "turkishSpecialty": "Spécialités Turques",
+    "orientalSpecialty": "Spécialités Orientales",
+    "dessert": "Desserts",
+    "hotDrink": "Boissons Chaudes",
+    "coldDrink": "Boissons Froides"
+  },
+  "ar": {
+    "specialOfTheDay": "طبق اليوم",
+    "starters": "مقبلات",
+    "durum": "لفائف الدوروم",
+    "pide": "بيدا (بيتزا تركية)",
+    "pizza": "بيتزا",
+    "grill": "مشويات",
+    "turkishSpecialty": "أطباق تركية خاصة",
+    "orientalSpecialty": "أطباق شرقية خاصة",
+    "dessert": "حلويات",
+    "hotDrink": "مشروبات ساخنة",
+    "coldDrink": "مشروبات باردة"
   }
 }

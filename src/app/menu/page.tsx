@@ -1,4 +1,4 @@
-// src/app/menu/page.tsx
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -28,7 +28,7 @@ interface MenuItemImage {
 export interface MenuItem {
   id: string;
   content: Partial<Record<LanguageCode, MenuItemContent>> & { en?: MenuItemContent }; 
-  price: number | string; 
+  price: number; 
   image: string; 
   dietaryTags: DietaryTag[];
   categoryKey: MenuCategoryKey; 
@@ -54,9 +54,12 @@ interface CategoryTranslations {
   [lang: string]: Record<string, string>;
 }
 
-type MenuCategoryKey = keyof typeof categoriesData.en;
+// Ensure 'specialOfTheDay' is a valid key type
+const tempCategoriesDataForKeys = categoriesData.en as Record<string, string>; 
+type MenuCategoryKey = keyof typeof tempCategoriesDataForKeys | "specialOfTheDay";
 
 const ALL_ITEMS_KEY = "all" as const;
+const SPECIAL_OF_THE_DAY_KEY = "specialOfTheDay" as const;
 
 export default function MenuPage() {
   const { dispatch } = useCart();
@@ -64,7 +67,8 @@ export default function MenuPage() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [categoriesForNav, setCategoriesForNav] = useState<MenuCategoryKey[]>([]);
-  const [selectedView, setSelectedView] = useState<MenuCategoryKey | typeof ALL_ITEMS_KEY | null>(null);
+  // Default selectedView to SPECIAL_OF_THE_DAY_KEY
+  const [selectedView, setSelectedView] = useState<MenuCategoryKey | typeof ALL_ITEMS_KEY | null>(SPECIAL_OF_THE_DAY_KEY);
   const [currentMenuItems, setCurrentMenuItems] = useState<MenuItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [errorLoadingItems, setErrorLoadingItems] = useState<string | null>(null);
@@ -79,16 +83,17 @@ export default function MenuPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    const loadedCategoryKeys = Object.keys(categoriesData.en) as MenuCategoryKey[];
+    // Ensure all keys, including specialOfTheDay, are loaded for navigation
+    const loadedCategoryKeys = Object.keys((categoriesData as CategoryTranslations).en) as MenuCategoryKey[];
     setCategoriesForNav(loadedCategoryKeys);
-    if (loadedCategoryKeys.length > 0) {
-      const defaultView: MenuCategoryKey | typeof ALL_ITEMS_KEY = ALL_ITEMS_KEY; 
-      if (!loadedCategoryKeys.includes('starter' as MenuCategoryKey) && loadedCategoryKeys[0]) {
-      } else if (loadedCategoryKeys.includes('starter' as MenuCategoryKey)) {
-      }
-      setSelectedView(defaultView);
+    // The default view is already set to SPECIAL_OF_THE_DAY_KEY
+    // If specialOfTheDay wasn't in categories.json for some reason (it is now),
+    // and selectedView was null, you might add fallback logic here, but it should be fine.
+    if (!selectedView && loadedCategoryKeys.length > 0) {
+        setSelectedView(SPECIAL_OF_THE_DAY_KEY); // Ensure default if somehow still null
     }
-  }, []);
+
+  }, []); // selectedView removed from deps to prevent re-setting default from user selection
 
   useEffect(() => {
     if (!selectedView) {
@@ -105,11 +110,18 @@ export default function MenuPage() {
       try {
         if (selectedView === ALL_ITEMS_KEY) {
           for (const catKey of categoriesForNav) {
+            if (catKey === SPECIAL_OF_THE_DAY_KEY && !(categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY]) {
+                // If "all" is selected and specialOfTheDay isn't a formal category in JSON 
+                // but we want to load its file anyway (should not happen with current setup)
+                // console.log("Skipping specialOfTheDay in 'All' as it might be loaded separately or is dynamic");
+                // continue;
+            }
             try {
-              const categoryName = await import(`../../data/menu/${catKey}.json`);
-              const items: MenuItem[] = categoryName.default;
+              // Dynamically import JSON for each category
+              const categoryModule = await import(`../../data/menu/${catKey}.json`);
+              const items: MenuItem[] = categoryModule.default;
               if (Array.isArray(items)) {
-                allFetchedItems.push(...items);
+                allFetchedItems.push(...items.map(item => ({ ...item, categoryKey: catKey })));
               } else {
                 console.warn(`Data for category ${catKey} is not an array.`);
               }
@@ -118,13 +130,14 @@ export default function MenuPage() {
             }
           }
         } else {
-          const categoryName = await import(`../../data/menu/${selectedView}.json`);
-          const items: MenuItem[] = categoryName.default;
+          // This handles specific categories including "specialOfTheDay"
+          const categoryModule = await import(`../../data/menu/${selectedView}.json`);
+          const items: MenuItem[] = categoryModule.default;
           if (!Array.isArray(items)) {
             console.error("Loaded menu data is not an array:", items);
             throw new Error(`Menu data for ${selectedView} is not in the expected format.`);
           }
-          allFetchedItems = items;
+          allFetchedItems = items.map(item => ({ ...item, categoryKey: selectedView }));
         }
         setCurrentMenuItems(allFetchedItems);
       } catch (err) {
@@ -136,8 +149,10 @@ export default function MenuPage() {
       setIsLoadingItems(false);
     };
 
-    fetchMenuItems();
-  }, [selectedView, categoriesForNav, t]);
+    if (isMounted) { // Ensure component is mounted before fetching
+        fetchMenuItems();
+    }
+  }, [selectedView, categoriesForNav, t, isMounted]); // Added isMounted
 
   interface AddItemPayload {
     id: string;
@@ -209,13 +224,15 @@ export default function MenuPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [enlargedImageItem, showNextImage, showPrevImage, handleCloseEnlargedImage, currentEnlargedGalleryImages]);
 
-  if (!isMounted || !selectedView) {
+  if (!isMounted || !selectedView) { // Check for isMounted before rendering actual content
+    // Optional: return a loading skeleton or null to prevent flash of unstyled/default content
     return null; 
   }
 
   const categoryDisplayName = selectedView === ALL_ITEMS_KEY 
     ? t("all_categories_nav") 
-    : (categoriesData as CategoryTranslations)[currentLanguage]?.[selectedView] || (categoriesData as CategoryTranslations).en[selectedView] || selectedView;
+    // Ensure categoriesData keys are accessed safely, especially with the new type for MenuCategoryKey
+    : (categoriesData as CategoryTranslations)[currentLanguage]?.[selectedView as string] || (categoriesData as CategoryTranslations).en[selectedView as string] || selectedView;
 
   return (
     <main className={styles.menuContainer} aria-labelledby="menu-page-heading">
@@ -223,6 +240,18 @@ export default function MenuPage() {
 
       {categoriesForNav.length > 0 && (
         <nav className={styles.stickyNav} aria-label={t("category_navigation_label")}>
+          {/* Button for "Special of the Day" - Render it first if it exists */}
+          {(categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY] && (
+            <button
+              key={SPECIAL_OF_THE_DAY_KEY}
+              className={`${styles.navButton} ${selectedView === SPECIAL_OF_THE_DAY_KEY ? styles.navButtonActive : ""}`}
+              onClick={() => setSelectedView(SPECIAL_OF_THE_DAY_KEY)}
+              aria-pressed={selectedView === SPECIAL_OF_THE_DAY_KEY}
+            >
+              {(categoriesData as CategoryTranslations)[currentLanguage]?.[SPECIAL_OF_THE_DAY_KEY] || (categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY]}
+            </button>
+          )}
+          {/* Button for "All Items" */}
           <button
             key={ALL_ITEMS_KEY}
             className={`${styles.navButton} ${selectedView === ALL_ITEMS_KEY ? styles.navButtonActive : ""}`}
@@ -231,18 +260,21 @@ export default function MenuPage() {
           >
             {t("all_categories_nav")}
           </button>
-          {categoriesForNav.map((catKey) => {
-            const categoryName = (categoriesData as CategoryTranslations)[currentLanguage]?.[catKey] || (categoriesData as CategoryTranslations).en[catKey] || catKey;
-            return (
-              <button
-                key={catKey}
-                className={`${styles.navButton} ${selectedView === catKey ? styles.navButtonActive : ""}`}
-                onClick={() => setSelectedView(catKey)}
-                aria-pressed={selectedView === catKey}
-              >
-                {categoryName}
-              </button>
-            );
+          {/* Other category buttons */}
+          {categoriesForNav
+            .filter(catKey => catKey !== SPECIAL_OF_THE_DAY_KEY) // Don't repeat "Special of the Day"
+            .map((catKey) => {
+              const categoryName = (categoriesData as CategoryTranslations)[currentLanguage]?.[catKey as string] || (categoriesData as CategoryTranslations).en[catKey as string] || catKey;
+              return (
+                <button
+                  key={catKey}
+                  className={`${styles.navButton} ${selectedView === catKey ? styles.navButtonActive : ""}`}
+                  onClick={() => setSelectedView(catKey)}
+                  aria-pressed={selectedView === catKey}
+                >
+                  {categoryName}
+                </button>
+              );
           })}
         </nav>
       )}
@@ -338,7 +370,7 @@ export default function MenuPage() {
               &times; {/* HTML entity for a multiplication sign (X) */}
             </button>
             {currentEnlargedGalleryImages.length > 1 && (
-              <button className={`${styles.navButtonModal} ${styles.prevButton}`} onClick={showPrevImage} aria-label={t("previous_image_button_label")}>
+              <button className={`${styles.navButtonModal} ${styles.prevButton}`} onClick={showPrevImage} aria-label={t("previous_image_button_label")}> 
                 &#10094; 
               </button>
             )}
@@ -348,7 +380,7 @@ export default function MenuPage() {
               className={styles.enlargedImageModal}
             />
             {currentEnlargedGalleryImages.length > 1 && (
-              <button className={`${styles.navButtonModal} ${styles.nextButton}`} onClick={showNextImage} aria-label={t("next_image_button_label")}>
+              <button className={`${styles.navButtonModal} ${styles.nextButton}`} onClick={showNextImage} aria-label={t("next_image_button_label")}> 
                 &#10095;
               </button>
             )}

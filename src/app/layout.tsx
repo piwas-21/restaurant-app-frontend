@@ -1,10 +1,9 @@
-// src/app/layout.tsx
 "use client"; 
 
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartContext";
-import { I18nextProvider } from "react-i18next";
+import { I18nextProvider, useTranslation } from "react-i18next"; // Import useTranslation
 import i18n from "../i18n"; 
 import LanguageSwitcher from "@/components/LanguageSwitcher"; 
 import { useEffect, useState } from "react";
@@ -22,6 +21,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme(); 
   const pathname = usePathname();
   const isHomePage = pathname === '/'; // Check if it's the home page
+  const { t } = useTranslation(); // Initialize useTranslation
 
   useEffect(() => {
     setIsClient(true);
@@ -61,10 +61,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                       <Image src="/rumi_logo_transparent.png" alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px" }} />
                     </Link>
                     <nav style={{display: "flex", gap: "1rem", alignItems: "center"}}>
-                      <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>Home</Link>
-                      <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`}>Menu</Link>
-                      <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}>Reservations</Link>
-                      <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`}>Cart</Link> 
+                      <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>{t('nav_home', 'Home')}</Link>
+                      <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`}>{t('nav_menu', 'Menu')}</Link>
+                      <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}>{t('nav_reservations', 'Reservations')}</Link>
+                      <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`}>{t('nav_cart', 'Cart')}</Link> 
+                      <Link href="/auth/login" className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}>{t('nav_login', 'Login')}</Link> 
                       {isClient && <LanguageSwitcher />}
                       {isClient && <ThemeSwitcher />}
                     </nav>

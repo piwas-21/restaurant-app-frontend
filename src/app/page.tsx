@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -50,6 +49,7 @@ export default function HomePage() {
                 <span className={`nav-link`}>Menu</span>
                 <span className={`nav-link`}>Reservations</span>
                 <span className={`nav-link`}>Cart</span>
+                <span className={`nav-link`}>Login</span> 
             </div>
           </nav>
           <div className={styles.heroContent}>
@@ -79,6 +79,7 @@ export default function HomePage() {
             <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`}>{t('nav_menu', 'Menu')}</Link>
             <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}>{t('nav_reservations', 'Reservations')}</Link>
             <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`}>{t('nav_cart', 'Cart')}</Link>
+            <Link href="/auth/login" className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}>{t('nav_login', 'Login')}</Link>
             <LanguageSwitcher />
             <ThemeSwitcher />
           </div>

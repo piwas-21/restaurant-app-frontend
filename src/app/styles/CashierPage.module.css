@@ -1,0 +1,135 @@
+/* src/app/styles/CashierPage.module.css */
+
+.container {
+  padding: 2rem;
+  font-family: var(--font-family-sans);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-color);
+}
+
+.header h1 {
+    color: var(--text-color);
+}
+
+.filterContainer {
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  color: var(--text-color);
+}
+
+.select {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.orderTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+.th {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  text-align: left;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+.td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  color: var(--text-color);
+}
+
+/* General button style - can be a base for others */
+.button {
+  padding: 6px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-color);
+  color: var(--text-color); /* Default text color, might need adjustment for some buttons */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.button:hover {
+  border-color: var(--link-hover-color); /* Or a slightly darker var(--border-color) */
+  background-color: var(--card-background); /* Or a slightly different shade of secondary-color */
+}
+
+.paidButton {
+  composes: button;
+  background-color: var(--success-color);
+  color: var(--button-text-color);
+  border-color: var(--success-color);
+}
+
+.paidButton:hover {
+  background-color: var(--success-color-dark);
+  border-color: var(--success-color-dark);
+}
+
+.viewDetailsButton {
+  composes: button;
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-color: var(--primary-color);
+}
+
+.viewDetailsButton:hover {
+  background-color: var(--link-hover-color); /* Assuming link-hover-color is a darker shade of primary */
+  border-color: var(--link-hover-color);
+}
+
+.orderDetailsSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
+  color: var(--text-color);
+}
+
+.orderDetailsSection h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+}
+
+.orderDetailsSection p,
+.orderDetailsSection ul {
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.orderDetailsSection ul {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.homeLink {
+  margin-top: 2rem;
+  display: inline-block;
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+/* Ensure h2 for "Current Orders" also uses text-color */
+.container h2 {
+    color: var(--text-color);
+}

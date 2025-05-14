@@ -1,0 +1,205 @@
+/* src/app/styles/ServerPage.module.css */
+
+.container {
+  padding: 2rem;
+  font-family: var(--font-family-sans);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  color: var(--text-color);
+}
+
+.ordersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+}
+
+.orderCard {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.07); /* Consider CSS var for shadow */
+}
+
+.orderCardAllServed {
+  /* Optional: Slightly different style for orders where all items are served */
+  /* e.g., opacity: 0.8; border-left: 5px solid var(--success-color); */
+}
+
+.orderCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.orderCardHeader h3 {
+  margin: 0;
+  font-size: 1.5rem; /* Larger for table number */
+  color: var(--primary-color);
+}
+
+.orderTimestamp {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.orderStatus {
+  font-size: 0.9rem;
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.orderStatusActive {
+  background-color: var(--warning-color-xlight);
+  color: var(--warning-color-dark);
+  border: 1px solid var(--warning-color-light);
+}
+
+.orderStatusAllServed {
+  background-color: var(--success-color-xlight);
+  color: var(--success-color-dark);
+  border: 1px solid var(--success-color-light);
+}
+
+.orderNotes {
+  background-color: var(--background-color); /* Changed from --secondary-color-light */
+  padding: 0.6rem 0.8rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color-light); /* Changed from --border-color-extra-light */
+  color: var(--text-secondary);
+}
+
+.orderNotes strong {
+    color: var(--text-color);
+}
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.itemEntry {
+  display: grid;
+  grid-template-columns: 1fr auto auto; /* Name | Qty | Status/Action */
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--border-color-extra-light);
+}
+
+.itemEntry:last-child {
+  border-bottom: none;
+}
+
+.itemName {
+  font-weight: 500;
+  color: var(--text-color); /* Ensure item name is themed */
+}
+
+.itemQuantity {
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--secondary-color); /* Changed from --secondary-color-light */
+  color: var(--text-color); /* Changed from --text-secondary for better contrast */
+  border-radius: 4px;
+  border: 1px solid var(--border-color); /* Added a subtle border */
+}
+
+.itemStatusOrAction {
+  text-align: right;
+}
+
+.itemStatusText {
+  font-size: 0.8rem;
+  font-style: italic;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  display: inline-block;
+  min-width: 100px; 
+  text-align: center;
+}
+
+.statusInKitchen {
+  background-color: var(--info-color-xlight);
+  color: var(--info-color-dark);
+  border: 1px solid var(--info-color-light);
+}
+
+.statusReadyForPickup {
+  background-color: var(--warning-color-xlight);
+  color: var(--warning-color-dark);
+  border: 1px solid var(--warning-color-light);
+}
+
+.statusServedToTable {
+  background-color: var(--success-color-xlight);
+  color: var(--success-color-dark);
+  border: 1px solid var(--success-color-light);
+}
+
+.actionButton {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  border: 1px solid var(--primary-color);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  font-weight: 500;
+}
+
+.actionButton:hover {
+  background-color: var(--link-hover-color); 
+  border-color: var(--link-hover-color);
+}
+
+.orderActionsContainer {
+    margin-top: 1rem;
+    text-align: right;
+}
+
+.noOrdersMessage {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: 3rem;
+  color: var(--text-secondary); /* Themed message color */
+}
+
+.homeLink {
+  display: block;
+  text-align: center;
+  margin-top: 3rem;
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+/* Ensure h2 title is themed */
+.container h2 {
+    color: var(--text-color);
+}

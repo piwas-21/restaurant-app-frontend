@@ -2,86 +2,91 @@
 
 .menuContainer {
   padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-family-sans); /* Use CSS variable */
+  background-color: var(--background-color); /* Ensure base background color respects themes */
+  color: var(--text-color); /* Ensure base text color respects themes */
 }
 
 .pageTitle {
   text-align: center;
   font-size: 2.5rem;
-  margin-bottom: 1.5rem; /* Reduced margin */
-  color: #333;
+  margin-bottom: 1.5rem;
+  color: var(--text-color); /* Use CSS variable */
 }
 
 /* Sticky Category Navigation */
 .stickyNav {
   position: sticky;
   top: 0;
-  background-color: #ffffff;
+  background-color: var(--card-background); /* Use card background for nav */
   padding: 12px 0;
   z-index: 100;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  border-bottom: 1px solid #e0e0e0;
-  margin-bottom: 2rem; /* Increased space below nav */
+  border-bottom: 1px solid var(--border-color); /* Use CSS variable */
+  margin-bottom: 2rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .navButton {
-  padding: 10px 20px; /* Increased padding */
-  margin: 8px; /* Increased margin */
+  padding: 10px 20px;
+  margin: 8px;
   cursor: pointer;
-  border: 1px solid #cccccc;
-  border-radius: 20px; /* More rounded */
-  background-color: #f9f9f9;
+  border: 1px solid var(--border-color); /* Use CSS variable */
+  border-radius: 20px;
+  background-color: var(--secondary-color); /* Use CSS variable */
   transition: background-color 0.3s, color 0.3s, transform 0.2s;
   font-weight: 500;
-  color: #333;
+  color: var(--text-color); /* Use CSS variable */
 }
 
 .navButton:hover {
-  background-color: #e9e9e9;
+  background-color: var(--link-hover-color); /* Use CSS variable, or a darker secondary */
+  border-color: var(--link-hover-color);
   transform: translateY(-2px);
 }
 
 .navButtonActive {
-  background-color: #d9534f; /* Theme color */
-  color: white;
-  border-color: #d9534f;
+  background-color: var(--primary-color); /* Use CSS variable */
+  color: var(--button-text-color); /* Use CSS variable for text on primary bg */
+  border-color: var(--primary-color); /* Use CSS variable */
   font-weight: bold;
 }
 
 .categorySection {
+  /* background-color: var(--background-color); /* Ensure it inherits or uses main bg */
   /* No specific styles needed here unless overriding something */
 }
 
 .categoryTitle {
-  font-size: 2.2rem; /* Slightly larger */
-  margin-top: 2.5rem; /* Increased margin */
-  margin-bottom: 1.8rem; /* Increased margin */
+  font-size: 2.2rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.8rem;
   padding-bottom: 0.7rem;
-  color: #444;
-  text-align: center; /* Centered category title */
+  color: var(--text-color); /* Use CSS variable */
+  text-align: center;
 }
 
 .itemsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Slightly larger minmax */
-  gap: 2.5rem; /* Increased gap */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
 }
 
 .menuItem {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px; /* More rounded */
+  border: 1px solid var(--border-color); /* Use CSS variable */
+  border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
-  background-color: #fff;
+  background-color: var(--card-background); /* Use CSS variable */
   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Helps align button at bottom */
+  justify-content: space-between;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
+  color: var(--text-color); /* Ensure text within card uses theme color */
 }
 
 .menuItem:hover {
@@ -91,11 +96,11 @@
 
 .itemImageContainer {
   width: 100%;
-  padding-top: 66.66%; /* 3:2 Aspect Ratio */
+  padding-top: 66.66%;
   position: relative;
   margin-bottom: 1rem;
-  border-radius: 8px; /* Rounded corners for image container */
-  overflow: hidden; /* Ensures image respects border radius */
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .itemImage {
@@ -120,97 +125,96 @@
 }
 
 .menuItem h3 {
-  font-size: 1.6rem; /* Slightly larger */
+  font-size: 1.6rem;
   margin-bottom: 0.7rem;
-  color: #333;
+  color: var(--text-color); /* Use CSS variable */
 }
 
 .itemDescription {
-  font-size: 0.95rem; /* Slightly larger */
-  color: #555; /* Darker gray */
+  font-size: 0.95rem;
+  color: var(--text-secondary); /* Use CSS variable */
   margin-bottom: 1.2rem;
-  min-height: 50px; /* Adjust as needed */
-  flex-grow: 1; /* Allows description to take up space */
+  min-height: 50px;
+  flex-grow: 1;
 }
 
 .itemPrice {
-  font-size: 1.3rem; /* Slightly larger */
+  font-size: 1.3rem;
   font-weight: bold;
-  color: #d9534f;
+  color: var(--primary-color); /* Use CSS variable */
   margin-bottom: 1.2rem;
 }
 
 .allergyTags {
   margin-bottom: 1rem;
-  min-height: 20px; /* Ensure space even if no tags */
+  min-height: 20px;
 }
 
 .allergyTag {
   display: inline-block;
   padding: 0.4em 0.8em;
   border-radius: 15px;
-  font-size: 0.75rem; /* Smaller font */
+  font-size: 0.75rem;
   font-weight: 500;
   margin: 0.25rem;
   border: 1px solid transparent;
 }
 
-/* Specific Dietary Tag Styles */
+/* Specific Dietary Tag Styles - these might need dark mode adjustments if not using CSS vars that adapt */
 .allergyTag.vegan {
-  background-color: #d4edda; /* Light green */
-  color: #155724; /* Dark green */
-  border-color: #c3e6cb;
+  background-color: var(--success-color-xlight, #d4edda); 
+  color: var(--success-color-dark, #155724); 
+  border-color: var(--success-color-light, #c3e6cb);
 }
 
 .allergyTag.vegetarian {
-  background-color: #cce5ff; /* Light blue */
-  color: #004085; /* Dark blue */
-  border-color: #b8daff;
+  background-color: var(--info-color-xlight, #cce5ff); 
+  color: var(--info-color-dark, #004085); 
+  border-color: var(--info-color-light, #b8daff);
 }
 
 .allergyTag.halal {
-  background-color: #e2e3e5; /* Light gray */
-  color: #383d41; /* Dark gray */
-  border-color: #d6d8db;
+  background-color: var(--secondary-color-light, #e2e3e5); 
+  color: var(--text-secondary, #383d41); 
+  border-color: var(--border-color-light, #d6d8db);
 }
 
 .allergyTag.gluten-free {
-  background-color: #fff3cd; /* Light yellow */
-  color: #856404; /* Dark yellow */
-  border-color: #ffeeba;
+  background-color: var(--warning-color-xlight, #fff3cd); 
+  color: var(--warning-color-dark, #856404); 
+  border-color: var(--warning-color-light, #ffeeba);
 }
-/* Add more specific styles if needed */
 
 .itemActions {
-  margin-top: auto; /* Pushes buttons to the bottom if description is short */
+  margin-top: auto;
 }
 
 .addToOrderButton, .feedbackButton {
-  color: white;
+  color: var(--button-text-color); /* Use CSS variable */
   border: none;
-  padding: 0.8rem 1.3rem; /* Slightly larger padding */
-  font-size: 0.95rem; /* Slightly adjusted font size */
+  padding: 0.8rem 1.3rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  border-radius: 20px; /* More rounded */
+  border-radius: 20px;
   transition: background-color 0.3s ease, transform 0.2s;
   margin-top: 0.5rem;
   font-weight: 500;
 }
 
 .addToOrderButton {
-  background-color: #5cb85c;
+  background-color: var(--success-color); /* Use CSS variable */
 }
 .addToOrderButton:hover {
-  background-color: #4cae4c;
+  background-color: var(--success-color-dark); /* Use CSS variable */
   transform: translateY(-1px);
 }
 
 .feedbackButton {
-  background-color: #f0ad4e;
+  background-color: var(--warning-color); /* Use CSS variable */
   margin-left: 0.5rem;
 }
 .feedbackButton:hover {
-  background-color: #ec971f;
+  background-color: var(--warning-color-dark); /* Use CSS variable */
   transform: translateY(-1px);
 }
 
@@ -220,7 +224,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.9); /* This is usually fine for dark mode */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -233,8 +237,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 90vw;  /* Explicitly set width */
-  height: 90vh; /* Explicitly set height */
+  width: 90vw;
+  height: 90vh;
 }
 
 .enlargedImageModal {
@@ -294,26 +298,26 @@
 }
 
 .prevButton {
-  left: -70px; /* Position outside the image, adjust as needed for larger screens */
+  left: -70px;
 }
 
 .nextButton {
-  right: -70px; /* Position outside the image, adjust as needed for larger screens */
+  right: -70px;
 }
 
 .viewCartButton {
-  background-color: #d9534f !important;
+  background-color: var(--danger-color) !important; /* Or primary, ensure var exists */
   padding: 1rem 2rem !important;
   font-size: 1.1rem !important;
   font-weight: bold !important;
 }
 
 .errorMessage {
-  color: #d9534f;
+  color: var(--danger-color); /* Use CSS variable */
   text-align: center;
   padding: 1rem;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
+  background-color: var(--danger-color-xlight); /* Use CSS variable */
+  border: 1px solid var(--danger-color-light); /* Use CSS variable */
   border-radius: 8px;
   margin: 1rem 0;
 }

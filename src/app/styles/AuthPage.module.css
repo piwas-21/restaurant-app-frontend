@@ -4,25 +4,27 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  min-height: 80vh; /* Consider using 100vh or calc(100vh - header_height) if applicable */
   padding: 2rem;
-  background-color: #f4f4f4; /* Light grey background */
+  background-color: var(--background-color); /* Use CSS variable */
+  color: var(--text-color); /* Base text color for the page */
 }
 
 .authForm {
-  background-color: #fff;
+  background-color: var(--card-background); /* Use CSS variable */
   padding: 2.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Shadow might need adjustment for dark mode or use a variable */
   width: 100%;
   max-width: 450px;
+  border: 1px solid var(--border-color);
 }
 
 .authForm h1 {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: var(--text-color); /* Use CSS variable */
 }
 
 .formGroup {
@@ -33,7 +35,7 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
-  color: #555;
+  color: var(--text-secondary); /* Use CSS variable for slightly muted label text */
 }
 
 .formGroup input[type="email"],
@@ -41,17 +43,28 @@
 .formGroup input[type="text"] {
   width: 100%;
   padding: 0.8rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color); /* Use CSS variable */
   border-radius: 4px;
   font-size: 1rem;
   box-sizing: border-box;
+  background-color: var(--background-color); /* Input background */
+  color: var(--text-color); /* Input text color */
+  transition: border-color 0.2s ease;
+}
+
+.formGroup input[type="email"]:focus,
+.formGroup input[type="password"]:focus,
+.formGroup input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color-xlight); /* Use CSS variable, ensure it's defined */
 }
 
 .submitButton {
   width: 100%;
-  background-color: #d9534f; /* Primary action color */
-  color: white;
-  border: none;
+  background-color: var(--primary-color); /* Use CSS variable */
+  color: var(--button-text-color); /* Use CSS variable for text on primary bg */
+  border: none; /* Or 1px solid var(--primary-color) */
   padding: 0.9rem;
   font-size: 1.1rem;
   font-weight: bold;
@@ -62,13 +75,13 @@
 }
 
 .submitButton:hover {
-  background-color: #c9302c;
+  background-color: var(--link-hover-color); /* Or a specific darker primary variable */
 }
 
 .errorMessage {
-  color: #e74c3c; /* Error message color */
-  background-color: #fdd;
-  border: 1px solid #e74c3c;
+  color: var(--danger-color-dark); /* Ensure defined: Darker text for better contrast on light bg */
+  background-color: var(--danger-color-xlight); /* Use CSS variable for light red bg */
+  border: 1px solid var(--danger-color-light); /* Use CSS variable for light red border */
   padding: 0.8rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -79,28 +92,29 @@
   text-align: center;
   margin-top: 1.5rem;
   font-size: 0.95rem;
-  color: #555;
+  color: var(--text-secondary); /* Use CSS variable */
 }
 
 .switchFormText a {
-  color: #d9534f;
+  color: var(--primary-color); /* Use CSS variable */
   text-decoration: none;
   font-weight: bold;
 }
 
 .switchFormText a:hover {
   text-decoration: underline;
+  color: var(--link-hover-color); /* Use CSS variable */
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments remain largely the same unless specific theme variables impact them */
 @media (max-width: 768px) {
   .authContainer {
     padding: 1.5rem 1rem;
-    min-height: auto; /* Adjust height for smaller screens */
+    min-height: auto; 
   }
   .authForm {
     padding: 2rem;
-    margin: 1rem; /* Add some margin if container padding is reduced */
+    margin: 1rem; 
   }
   .authForm h1 {
     font-size: 1.8rem;
@@ -128,4 +142,3 @@
     font-size: 0.9rem;
   }
 }
-

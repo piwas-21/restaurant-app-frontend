@@ -21,7 +21,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme(); 
   const pathname = usePathname();
   const isHomePage = pathname === '/'; // Check if it's the home page
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation(); 
 
   useEffect(() => {
     setIsClient(true);
@@ -47,18 +47,21 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const langForHtml = isClient ? (i18n.language.split("-")[0] || "en") : "en";
   const themeForHtml = isClient ? theme : "light"; 
 
+  // Determine logo based on theme
+  const logoSrc = theme === 'dark' ? "/rumi_logo_transparent_dark.png" : "/rumi_logo_transparent.png";
+  // Ensure you have rumi_logo_transparent_dark.png in your /public directory
+
   return (
     <html lang={langForHtml} data-theme={themeForHtml} suppressHydrationWarning={true}>
       <body className={inter.className}>
         <I18nextProvider i18n={i18n}>
           <CartProvider>
             <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-              {/* Conditionally render the standard header */}
               {!isHomePage && (
                 <header style={{ padding: "0.5rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", borderBottom: "1px solid var(--border-color)" }}>
                   <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Link href="/" style={{ textDecoration: "none", color: "var(--primary-color)", display: "flex", alignItems: "center" }}>
-                      <Image src="/rumi_logo_transparent.png" alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px" }} />
+                      <Image src={logoSrc} alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px" }} priority />
                     </Link>
                     <nav style={{display: "flex", gap: "1rem", alignItems: "center"}}>
                       <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>{t('nav_home', 'Home')}</Link>
@@ -72,15 +75,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 </header>
               )}
-              {/* Adjust main padding based on whether the header is shown */}
               <main style={{ 
-                  padding: isHomePage ? "0" : "1rem", // No padding on home page main as hero handles it 
-                  maxWidth: isHomePage ? "none" : "1200px", // Allow full width for hero
-                  margin: isHomePage ? "0" : "0 auto" // No margin on home page main
+                  padding: isHomePage ? "0" : "1rem",
+                  maxWidth: isHomePage ? "none" : "1200px",
+                  margin: isHomePage ? "0" : "0 auto"
               }}>
                   {children}
               </main>
-              {!isHomePage && ( // Conditionally render footer if you don't want it on the full-screen hero page
+              {!isHomePage && (
                 <footer style={{ padding: "2rem 1rem", backgroundColor: "var(--secondary-color)", color: "var(--text-color)", textAlign: "center", marginTop: "2rem", borderTop: "1px solid var(--border-color)" }}>
                   <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
                   <p>Rue de Berne 13, 1201 Genève, Switzerland</p>

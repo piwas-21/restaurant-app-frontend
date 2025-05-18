@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LanguageSwitcher from './LanguageSwitcher';
 
-let mockI18nState: { language: any; resolvedLanguage: any; changeLanguage: any; };
+let mockI18nState: { language: string; resolvedLanguage: string; changeLanguage: (lng: string) => Promise<void>; };
 
 const mockUseTranslation = jest.fn();
 
@@ -14,6 +14,7 @@ jest.mock('react-i18next', () => ({
 jest.mock('next/image', () => ({
   __esModule: true,
   default: ({ src, alt, width, height }: { src: string; alt: string; width?: number; height?: number }) => {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} width={width} height={height} />;
   },
 }));

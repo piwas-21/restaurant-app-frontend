@@ -4,7 +4,7 @@
 
 stages:
     - cache
-    # - test
+    - test
     # - build
 
 create_cache:
@@ -22,21 +22,21 @@ create_cache:
             - .yarn
         policy: pull-push
         
-# yarn_test:
-#     image: node:18-bullseye
-#     stage: test
-#     script:
-#         - yarn install
-#         - yarn test
-#     cache: 
-#         key: 
-#             files:
-#                 - yarn.lock
-#         paths:
-#             - node_modules/
-#             - yarn.lock
-#             - .yarn
-#         policy: pull
+yarn_test:
+    image: node:18-bullseye
+    stage: test
+    script:
+        - yarn install
+        - yarn test
+    cache: 
+        key: 
+            files:
+                - yarn.lock
+        paths:
+            - node_modules/
+            - yarn.lock
+            - .yarn
+        policy: pull
 
 # gitleaks:
 #   stage: test
@@ -63,22 +63,22 @@ create_cache:
 #   script:
 #     - semgrep ci --json --output semgrep.json
 
-# retire:
-#   stage: test
-#   image: node:18-bullseye
-#   cache:
-#     key:
-#       files:
-#         - yarn.lock
-#     paths:
-#       - node_modules/
-#       - yarn.lock
-#       - .yarn
-#     policy: pull
-#   before_script:
-#     - npm install -g retire 
-#   script:
-#     - retire --path . --outputformat json --outputpath retire.json
+retire:
+  stage: test
+  image: node:18-bullseye
+  cache:
+    key:
+      files:
+        - yarn.lock
+    paths:
+      - node_modules/
+      - yarn.lock
+      - .yarn
+    policy: pull
+  before_script:
+    - npm install -g retire 
+  script:
+    - retire --path . --outputformat json --outputpath retire.json
 
 # build_image:
 #     stage: build

@@ -78,7 +78,7 @@ retire:
   before_script:
     - npm install -g retire 
   script:
-    - retire --path . --outputformat json --outputpath retire.json
+    - retire --path .
 
 # build_image:
 #     stage: build

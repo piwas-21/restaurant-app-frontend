@@ -1,117 +1,110 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LanguageSwitcher from './LanguageSwitcher';
 
-// Mock react-i18next
-const mockChangeLanguage = jest.fn();
-const mockUseTranslation = jest.fn(() => ({
-  i18n: {
-    changeLanguage: mockChangeLanguage,
-    language: 'en', // Initial language
-  },
-}));
+let mockI18nState: { language: any; resolvedLanguage: any; changeLanguage: any; };
+
+const mockUseTranslation = jest.fn();
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => mockUseTranslation(),
+  useTranslation: () => mockUseTranslation(), 
 }));
 
-// Mock next/image
 jest.mock('next/image', () => ({
   __esModule: true,
   default: ({ src, alt, width, height }: { src: string; alt: string; width?: number; height?: number }) => {
-    // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} width={width} height={height} />;
   },
 }));
 
-
 describe('LanguageSwitcher Component', () => {
   beforeEach(() => {
-    // Clear mock calls and localStorage before each test
-    mockChangeLanguage.mockClear();
-    mockUseTranslation.mockClear();
+    mockI18nState = {
+      language: 'en',
+      resolvedLanguage: 'en',
+      changeLanguage: jest.fn((lng) => {
+        return new Promise((resolve) => {
+          mockI18nState.language = lng;
+          mockI18nState.resolvedLanguage = lng;
+          resolve(undefined);
+        });
+      }),
+    };
+    mockUseTranslation.mockImplementation(() => ({
+        i18n: mockI18nState,
+        t: jest.fn((key) => key),
+    }));
     localStorage.clear();
   });
 
-  test('renders correctly with initial language', () => {
+  test('renders correctly with initial language (EN)', () => {
     render(<LanguageSwitcher />);
-    // Check if the button with the current language (English) is displayed
-    expect(screen.getByRole('button', { name: /English/i })).toBeInTheDocument();
-    expect(screen.getByAltText('English')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /English EN/i })).toBeInTheDocument(); // Main toggle is a button
+    expect(screen.getByAltText('English')).toHaveAttribute('src', '/flags/en.svg');
   });
 
-  test('dropdown opens and closes on click', () => {
+  test('dropdown opens and closes on click', async () => {
     render(<LanguageSwitcher />);
-    const dropdownButton = screen.getByRole('button', { name: /English/i });
+    const dropdownButton = screen.getByRole('button', { name: /English EN/i }); // Main toggle is a button
 
-    // Dropdown should be closed initially
-    // Check for a specific language option that should not be visible
-    expect(screen.queryByRole('button', { name: /Deutsch/i })).not.toBeVisible();
+    expect(screen.queryByRole('option', { name: /Deutsch Deutsch/i })).not.toBeInTheDocument();
 
-
-    // Click to open dropdown
     fireEvent.click(dropdownButton);
-    expect(screen.getByRole('button', { name: /Deutsch/i })).toBeVisible();
-    expect(screen.getByRole('button', { name: /Türkçe/i })).toBeVisible();
+    await waitFor(() => expect(screen.getByRole('option', { name: /Deutsch Deutsch/i })).toBeVisible());
+    expect(screen.getByRole('option', { name: /Türkçe Türkçe/i })).toBeVisible();
 
-    // Click to close dropdown
     fireEvent.click(dropdownButton);
-     // Need to wait for the dropdown to close, items might not be immediately "not.toBeVisible"
-    // A better check might be to see if the list itself is gone, or use waitFor
-    // For simplicity, we'll check one item. In a real scenario, ensure robust checks.
-    expect(screen.queryByRole('button', { name: /Deutsch/i })).not.toBeVisible();
+    await waitFor(() => expect(screen.queryByRole('option', { name: /Deutsch Deutsch/i })).not.toBeInTheDocument());
   });
 
-  test('changes language on selecting a language from dropdown', () => {
+  test('changes language on selecting a language from dropdown and updates button', async () => {
     render(<LanguageSwitcher />);
-    const dropdownButton = screen.getByRole('button', { name: /English/i });
+    const initialButton = screen.getByRole('button', { name: /English EN/i }); // Main toggle is a button
+    fireEvent.click(initialButton);
 
-    // Open dropdown
-    fireEvent.click(dropdownButton);
-
-    // Select German
-    const germanOption = screen.getByRole('button', { name: /Deutsch/i });
+    await waitFor(() => expect(screen.getByRole('option', { name: /Deutsch Deutsch/i })).toBeVisible());
+    const germanOption = screen.getByRole('option', { name: /Deutsch Deutsch/i });
     fireEvent.click(germanOption);
 
-    // Check if i18n.changeLanguage was called with 'de'
-    expect(mockChangeLanguage).toHaveBeenCalledWith('de');
-
-    // Check if localStorage was updated
+    await waitFor(() => {
+        expect(mockI18nState.changeLanguage).toHaveBeenCalledWith('de');
+    });
     expect(localStorage.getItem('i18nextLng')).toBe('de');
 
-    // Dropdown should be closed after selection
-    expect(screen.queryByRole('button', { name: /Deutsch/i })).not.toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Deutsch DE/i })).toBeInTheDocument(); // Main toggle is a button
+    });
+    expect(screen.queryByRole('option', { name: /Deutsch Deutsch/i })).not.toBeInTheDocument();
   });
 
-  test('displays the correct flag and name for the current language', () => {
-    // Reset mock to simulate a different initial language
-    mockUseTranslation.mockImplementation(() => ({
-      i18n: {
-        changeLanguage: mockChangeLanguage,
-        language: 'tr', // Set initial language to Turkish
-      },
+  test('displays the correct flag and name for a pre-set language (TR)', () => {
+    mockI18nState.language = 'tr';
+    mockI18nState.resolvedLanguage = 'tr';
+    mockUseTranslation.mockImplementation(() => ({ 
+        i18n: mockI18nState, 
+        t: jest.fn(key => key) 
     }));
+
     render(<LanguageSwitcher />);
-    expect(screen.getByRole('button', { name: /Türkçe/i })).toBeInTheDocument();
+    
+    expect(screen.getByRole('button', { name: /Türkçe TR/i })).toBeInTheDocument(); // Main toggle is a button
     expect(screen.getByAltText('Türkçe')).toHaveAttribute('src', '/flags/tr.svg');
   });
 
-    test('closes dropdown when clicking outside', () => {
+  test('closes dropdown when clicking outside', async () => {
     render(
       <div>
         <LanguageSwitcher />
         <div data-testid="outside-element">Outside</div>
       </div>
     );
-    const dropdownButton = screen.getByRole('button', { name: /English/i });
+    const dropdownButton = screen.getByRole('button', { name: /English EN/i }); // Main toggle is a button
 
-    // Open dropdown
     fireEvent.click(dropdownButton);
-    expect(screen.getByRole('button', { name: /Deutsch/i })).toBeVisible();
+    await waitFor(() => expect(screen.getByRole('option', { name: /Deutsch Deutsch/i })).toBeVisible());
 
-    // Click outside the dropdown
     fireEvent.mouseDown(screen.getByTestId('outside-element'));
-    expect(screen.queryByRole('button', { name: /Deutsch/i })).not.toBeVisible();
+    await waitFor(() => expect(screen.queryByRole('option', { name: /Deutsch Deutsch/i })).not.toBeInTheDocument());
   });
 });

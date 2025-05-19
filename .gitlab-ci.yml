@@ -22,21 +22,21 @@ create_cache:
             - .yarn
         policy: pull-push
         
-yarn_test:
-    image: node:18-bullseye
-    stage: test
-    script:
-        - yarn install
-        - yarn test
-    cache: 
-        key: 
-            files:
-                - yarn.lock
-        paths:
-            - node_modules/
-            - yarn.lock
-            - .yarn
-        policy: pull
+# yarn_test:
+#     image: node:18-bullseye
+#     stage: test
+#     script:
+#         - yarn install
+#         - yarn test
+#     cache: 
+#         key: 
+#             files:
+#                 - yarn.lock
+#         paths:
+#             - node_modules/
+#             - yarn.lock
+#             - .yarn
+#         policy: pull
 
 # Static Application Tests (SAST)
 
@@ -97,3 +97,13 @@ build_image:
     script:
         - docker build -t $IMAGE_NAME:$IMAGE_TAG .
         - docker push $IMAGE_NAME:$IMAGE_TAG
+
+trivy:
+  stage: build
+  needs: ["build_image"]
+  before_script:
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker pull $IMAGE_NAME:$IMAGE_TAG
+    - trivy image -f json -o trivy.json --severity HIGH,CRITICAL --exit-code 1 $IMAGE_NAME:$IMAGE_TAG

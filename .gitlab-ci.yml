@@ -7,35 +7,33 @@ stages:
     - test
     - build
 
-# create_cache:
-#     stage: cache
-#     image: node:18-bullseye
-#     script:
-#         - yarn install
-#     cache: 
-#         key: 
-#             files:
-#                 - yarn.lock
-#         paths:
-#             - node_modules/
-#             - yarn.lock
-#             - .yarn
-#         policy: pull-push
+create_cache:
+    stage: cache
+    image: node:18-bullseye
+    script:
+        - yarn install
+    cache: 
+        key: "$CI_COMMIT_REF_SLUG"
+        paths:
+            - node_modules/
+            - yarn.lock
+            - .yarn
+        policy: push
 
-clear_cache:
-  stage: cache
-  script:
-    - rm -rf node_modules/ .yarn yarn.lock
-    - mkdir node_modules .yarn
-  cache:
-    key:
-      files:
-        - yarn.lock
-    paths:
-      - node_modules/
-      - .yarn
-      - yarn.lock
-    policy: push
+# clear_cache:
+#   stage: cache
+#   script:
+#     - rm -rf node_modules/ .yarn yarn.lock
+#     - mkdir node_modules .yarn
+#   cache:
+#     key:
+#       files:
+#         - yarn.lock
+#     paths:
+#       - node_modules/
+#       - .yarn
+#       - yarn.lock
+#     policy: push
         
 yarn_test:
     image: node:18-bullseye

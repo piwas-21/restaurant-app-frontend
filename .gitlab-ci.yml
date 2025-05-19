@@ -65,8 +65,8 @@ semgrep:
   script:
     - semgrep ci
 
-Software Composition Analysis (SCA) Test
-This SCA test with retire.js is used for checking vulnerabilities in 3rd party dependencies
+# Software Composition Analysis (SCA) Test
+# This SCA test with retire.js is used for checking vulnerabilities in 3rd party dependencies
 
 retire:
   stage: test
@@ -97,6 +97,8 @@ build_image:
     script:
         - docker build -t $IMAGE_NAME:$IMAGE_TAG .
         - docker push $IMAGE_NAME:$IMAGE_TAG
+
+# Docker Image Scanning
 
 trivy:
   stage: build

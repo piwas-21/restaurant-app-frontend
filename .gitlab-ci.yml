@@ -32,7 +32,7 @@ yarn_test:
         - npm test
     
 
-# Static Application Tests (SAST)
+# Static Application Security Tests (SAST)
 
 gitleaks:
   stage: test

@@ -11,46 +11,25 @@ create_cache:
     stage: cache
     image: node:18-bullseye
     script:
-        - yarn install
+        - npm install
     cache: 
         key: "$CI_COMMIT_REF_SLUG"
         paths:
             - node_modules/
-            - yarn.lock
-            - .yarn
         policy: push
-
-# clear_cache:
-#   stage: cache
-#   script:
-#     - rm -rf node_modules/ .yarn yarn.lock
-#     - mkdir node_modules .yarn
-#   cache:
-#     key:
-#       files:
-#         - yarn.lock
-#     paths:
-#       - node_modules/
-#       - .yarn
-#       - yarn.lock
-#     policy: push
         
 yarn_test:
     image: node:18-bullseye
     stage: test
     cache: 
-        key: 
-            files:
-                - yarn.lock
+        key: "$CI_COMMIT_REF_SLUG"
         paths:
             - node_modules/
-            - yarn.lock
-            - .yarn
         policy: pull
     before_script:
-        - yarn install
+        - npm install
     script:    
-        - yarn test
+        - npm test
     
 
 # Static Application Tests (SAST)

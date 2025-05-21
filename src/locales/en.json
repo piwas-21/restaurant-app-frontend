@@ -332,5 +332,7 @@
   "nav_login": "Login",
 
   "close_image_modal_button": "Close",
+  "open_menu": "Open menu",
+  "close_menu": "Close menu",
   "each": "each"
 }

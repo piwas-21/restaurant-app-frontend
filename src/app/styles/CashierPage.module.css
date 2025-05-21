@@ -3,32 +3,42 @@
 .container {
   padding: 2rem;
   font-family: var(--font-family-sans);
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .header {
   text-align: center;
   margin-bottom: 2rem;
-  color: var(--text-color);
 }
 
 .header h1 {
-    color: var(--text-color);
+  color: var(--text-color);
 }
 
 .filterContainer {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem; 
   display: flex;
-  gap: 1rem;
-  align-items: center;
+  flex-direction: column; 
+  gap: 0.5rem; 
+  align-items: flex-start; 
+  position: relative; /* Added to help anchor dropdown panels */
+}
+
+.filterContainer label {
+  font-weight: 500; 
   color: var(--text-color);
 }
 
 .select {
-  padding: 8px;
+  padding: 0.6rem;
   border-radius: 4px;
   border: 1px solid var(--border-color);
   background-color: var(--background-color);
   color: var(--text-color);
+  width: 100%; 
+  box-sizing: border-box;
+  position: relative; /* This should anchor custom dropdown panels */
 }
 
 .orderTable {
@@ -37,35 +47,47 @@
   margin-bottom: 2rem;
 }
 
-.th {
+.th, .td {
   border: 1px solid var(--border-color);
-  padding: 8px;
+  padding: 0.75rem; 
   text-align: left;
+  color: var(--text-color);
+  white-space: nowrap; 
+}
+
+.th {
   background-color: var(--secondary-color);
-  color: var(--text-color);
+  font-weight: 600;
 }
 
-.td {
-  border: 1px solid var(--border-color);
-  padding: 8px;
-  color: var(--text-color);
+.actionsCell {
+  white-space: normal; 
 }
 
-/* General button style - can be a base for others */
+.actionsCell .button {
+  margin-bottom: 0.5rem; 
+}
+
+.actionsCell .button:last-child {
+  margin-bottom: 0; 
+  margin-right: 0;
+}
+
 .button {
-  padding: 6px 12px;
-  margin-right: 8px;
+  padding: 0.5rem 1rem; 
+  margin-right: 0.5rem; 
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid var(--border-color);
   background-color: var(--secondary-color);
-  color: var(--text-color); /* Default text color, might need adjustment for some buttons */
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  color: var(--text-color);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  font-size: 0.9rem;
 }
 
 .button:hover {
-  border-color: var(--link-hover-color); /* Or a slightly darker var(--border-color) */
-  background-color: var(--card-background); /* Or a slightly different shade of secondary-color */
+  border-color: var(--link-hover-color);
+  background-color: var(--card-background);
 }
 
 .paidButton {
@@ -88,27 +110,28 @@
 }
 
 .viewDetailsButton:hover {
-  background-color: var(--link-hover-color); /* Assuming link-hover-color is a darker shade of primary */
+  background-color: var(--link-hover-color);
   border-color: var(--link-hover-color);
 }
 
 .orderDetailsSection {
   margin-top: 1rem;
-  padding: 1rem;
+  padding: 1.5rem; 
   border: 1px solid var(--border-color);
+  border-radius: 6px; 
   background-color: var(--card-background);
   color: var(--text-color);
 }
 
 .orderDetailsSection h3 {
   margin-top: 0;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem; 
   color: var(--text-color);
 }
 
 .orderDetailsSection p,
 .orderDetailsSection ul {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem; 
   color: var(--text-color);
 }
 
@@ -129,7 +152,116 @@
   text-decoration: underline;
 }
 
-/* Ensure h2 for "Current Orders" also uses text-color */
 .container h2 {
-    color: var(--text-color);
+  color: var(--text-color);
+  margin-bottom: 1rem; 
+}
+
+/* Table scroll container */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] .container {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .header h1,
+[data-theme="dark"] .container h2,
+[data-theme="dark"] .filterContainer label,
+[data-theme="dark"] .orderDetailsSection h3,
+[data-theme="dark"] .orderDetailsSection p,
+[data-theme="dark"] .orderDetailsSection ul {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .select {
+  background-color: var(--secondary-color); 
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .th {
+  background-color: var(--secondary-color); 
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .td {
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .button {
+  background-color: var(--secondary-color); 
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .button:hover {
+  background-color: var(--background-color); 
+  border-color: var(--link-hover-color);
+}
+
+[data-theme="dark"] .paidButton {
+  background-color: var(--success-color-dark);
+  color: var(--text-color); 
+  border-color: var(--success-color-dark);
+}
+
+[data-theme="dark"] .paidButton:hover {
+  background-color: var(--success-color); 
+}
+
+[data-theme="dark"] .viewDetailsButton {
+  background-color: var(--primary-color-dark); 
+  color: var(--text-color);
+  border-color: var(--primary-color-dark);
+}
+
+[data-theme="dark"] .viewDetailsButton:hover {
+  background-color: var(--primary-color);
+}
+
+[data-theme="dark"] .orderDetailsSection {
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .homeLink {
+  color: var(--link-color);
+}
+
+[data-theme="dark"] .homeLink:hover {
+  color: var(--link-hover-color);
+}
+
+/* Responsive adjustments */
+@media (min-width: 576px) { 
+  .filterContainer {
+    flex-direction: row; 
+    align-items: center;
+  }
+  .select {
+    width: auto; 
+    min-width: 200px; 
+  }
+}
+
+@media (max-width: 768px) {
+  .actionsCell .button {
+    display: block; 
+    width: 100%;
+    margin-right: 0;
+  }
+  .actionsCell .button:last-child {
+    margin-bottom: 0;
+  }
+  .td:not(.actionsCell) {
+      white-space: normal;
+  }
 }

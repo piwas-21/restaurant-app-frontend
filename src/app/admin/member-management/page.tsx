@@ -44,36 +44,38 @@ export default function MemberManagementPage() {
     <main className={styles.adminContainer}>
       <header className={styles.adminHeader}>
         <h1>Manage Members</h1>
-        <Link href="/admin/dashboard" className={styles.adminButton} style={{backgroundColor: "#6c757d", color: "white", textDecoration: "none"}}>Back to Dashboard</Link>
+        <Link href="/admin/dashboard" className={styles.adminButton} style={{ backgroundColor: "#6c757d", color: "white", textDecoration: "none" }}>Back to Dashboard</Link>
       </header>
       <section className={styles.adminContent}>
         {/* Add New Member button could be here if manual addition is a feature */}
         {isLoading && <p>Loading members...</p>}
         {error && <p className="errorMessage">Error: {error}</p>}
         {!isLoading && !error && (
-          <table className={styles.adminTable}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Loyalty Points</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map(member => (
-                <tr key={member.id}>
-                  <td>{member.firstName} {member.lastName}</td>
-                  <td>{member.email}</td>
-                  <td>{member.loyalty_points}</td>
-                  <td>
-                    <button onClick={() => handleEditMember(member.id)} className={`${styles.adminButton} ${styles.edit}`}>Edit</button>
-                    <button onClick={() => handleDeleteMember(member.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
-                  </td>
+          <div className={styles.adminTableContainer}>
+            <table className={styles.adminTable}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Loyalty Points</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {members.map(member => (
+                  <tr key={member.id}>
+                    <td>{member.firstName} {member.lastName}</td>
+                    <td>{member.email}</td>
+                    <td>{member.loyalty_points}</td>
+                    <td>
+                      <button onClick={() => handleEditMember(member.id)} className={`${styles.adminButton} ${styles.edit}`}>Edit</button>
+                      <button onClick={() => handleDeleteMember(member.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>

@@ -48,45 +48,47 @@ export default function MenuManagementPage() {
     <main className={styles.adminContainer}>
       <header className={styles.adminHeader}>
         <h1>Menu Management</h1>
-        <Link href="/admin/dashboard" className={styles.adminButton} style={{backgroundColor: "#6c757d", color: "white", textDecoration: "none"}}>Back to Dashboard</Link>
+        <Link href="/admin/dashboard" className={styles.adminButton} style={{ backgroundColor: "#6c757d", color: "white", textDecoration: "none" }}>Back to Dashboard</Link>
       </header>
       <section className={styles.adminContent}>
         <button className={`${styles.adminButton} ${styles.add}`}>Add New Menu Item</button> {/* TODO: Link to add/edit page */}
         {isLoading && <p>Loading menu items...</p>}
         {error && <p className="errorMessage">Error: {error}</p>}
         {!isLoading && !error && (
-          <table className={styles.adminTable}>
-            <thead>
-              <tr>
-                <th>Name (English)</th>
-                <th>Category</th>
-                <th>Price (CHF)</th>
-                <th>Available</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {menuItems.map(item => (
-                <tr key={item.id}>
-                  <td>{item.name_en}</td>
-                  <td>{item.category}</td>
-                  <td>{item.price.toFixed(2)}</td>
-                  <td>{item.availability ? 'Yes' : 'No'}</td>
-                  <td>
-                    <button className={`${styles.adminButton} ${styles.edit}`}>Edit</button> {/* TODO: Link to add/edit page with item ID */}
-                    <button 
-                      onClick={() => handleToggleAvailability(item.id)}
-                      className={styles.adminButton}
-                      style={{backgroundColor: item.availability ? "#ffc107" : "#28a745", color: item.availability? "black": "white"}}
-                    >
-                      {item.availability ? 'Set Unavailable' : 'Set Available'}
-                    </button>
-                    <button onClick={() => handleDeleteItem(item.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
-                  </td>
+          <div className={styles.adminTableContainer}>
+            <table className={styles.adminTable}>
+              <thead>
+                <tr>
+                  <th>Name (English)</th>
+                  <th>Category</th>
+                  <th>Price (CHF)</th>
+                  <th>Available</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {menuItems.map(item => (
+                  <tr key={item.id}>
+                    <td>{item.name_en}</td>
+                    <td>{item.category}</td>
+                    <td>{item.price.toFixed(2)}</td>
+                    <td>{item.availability ? 'Yes' : 'No'}</td>
+                    <td>
+                      <button className={`${styles.adminButton} ${styles.edit}`}>Edit</button> {/* TODO: Link to add/edit page with item ID */}
+                      <button
+                        onClick={() => handleToggleAvailability(item.id)}
+                        className={styles.adminButton}
+                        style={{ backgroundColor: item.availability ? "#ffc107" : "#28a745", color: item.availability ? "black" : "white" }}
+                      >
+                        {item.availability ? 'Set Unavailable' : 'Set Available'}
+                      </button>
+                      <button onClick={() => handleDeleteItem(item.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>

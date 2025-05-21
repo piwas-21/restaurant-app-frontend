@@ -1,0 +1,137 @@
+/* src/app/styles/Header.module.css */
+.headerNav {
+  /* Styles for the main nav container if needed, currently parent div handles alignment */
+}
+
+.navLinksContainer {
+  display: flex; /* Default for desktop: links in a row */
+  gap: 1rem;
+  align-items: center;
+}
+
+.hamburgerMenu {
+  display: none; /* Hidden on desktop */
+  background: none;
+  border: none;
+  font-size: 28px; /* Hamburger icon size */
+  cursor: pointer;
+  color: var(--text-color); /* Uses global CSS variable */
+  z-index: 1101; /* Above mobile menu */
+  padding: 0.5rem; /* Easier to tap */
+}
+
+[data-theme="dark"] .hamburgerMenu {
+  color: var(--text-color); /* text-color variable is updated for dark theme */
+}
+
+.switcherGroup { 
+  /* Styles for desktop view if needed - by default, they'll be flex items due to parent */
+  display: contents; /* Makes the div not affect layout in flex container on desktop */
+}
+
+/* Mobile and Tablet specific styles */
+@media (max-width: 768px) {
+  .navLinksContainer {
+    display: none; /* Hidden by default on mobile/tablet */
+    flex-direction: column;
+    position: fixed; 
+    top: 80px; 
+    right: 0;
+    left: 0;
+    bottom: 0; 
+    background-color: var(--background-color);
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 0; 
+    z-index: 1100; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    gap: 0; 
+    align-items: stretch; 
+    overflow-y: auto; 
+  }
+
+  .navLinksContainer.mobileMenuOpen {
+    display: flex; 
+  }
+  
+  .navLinksContainer.mobileMenuOpen > *, 
+  .navLinksContainer.mobileMenuOpen .nav-link {
+    padding: 0.75rem 1.5rem; 
+    width: 100%;
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+  }
+  
+  .navLinksContainer.mobileMenuOpen > *:last-child,
+  .navLinksContainer.mobileMenuOpen .nav-link:last-of-type {
+    border-bottom: none;
+  }
+
+  /* Styles for the switcher group in mobile menu */
+  .navLinksContainer.mobileMenuOpen .switcherGroup {
+    display: flex; /* Use flex for the group itself */
+    flex-direction: column; /* Stack switchers vertically */
+    align-items: flex-start; /* Align switchers to the left */
+    padding: 0.75rem 1.5rem; /* Consistent padding with other menu items */
+    gap: 0.75rem; /* Space between Language and Theme switcher */
+    width: 100%; /* Make the group take full width like other items */
+    border-bottom: 1px solid var(--border-color); /* Separator line like other items */
+  }
+
+  /* Ensure buttons/elements inside LanguageSwitcher and ThemeSwitcher don't stretch if they are direct children of .switcherGroup's flex items */
+  .navLinksContainer.mobileMenuOpen .switcherGroup > * {
+    width: auto; /* Allow switchers to take their natural width */
+  }
+  
+  /* If LanguageSwitcher or ThemeSwitcher are wrapped by another div by default, target the actual button/select */
+  .navLinksContainer.mobileMenuOpen .switcherGroup button,
+  .navLinksContainer.mobileMenuOpen .switcherGroup select {
+    width: auto; /* Prevent stretching of internal buttons/selects */
+    min-width: 150px; /* Optional: ensure a minimum tap target size or consistent look */
+  }
+
+  /* Remove bottom border from the switcher group if it's the last item */
+  .navLinksContainer.mobileMenuOpen .switcherGroup:last-child {
+    border-bottom: none;
+  }
+
+  [data-theme="dark"] .navLinksContainer.mobileMenuOpen {
+    background-color: var(--secondary-color); 
+    border-top-color: var(--border-color);
+  }
+
+  [data-theme="dark"] .navLinksContainer.mobileMenuOpen > *,
+  [data-theme="dark"] .navLinksContainer.mobileMenuOpen .nav-link,
+  [data-theme="dark"] .navLinksContainer.mobileMenuOpen .switcherGroup {
+    border-bottom-color: var(--border-color);
+  }
+  
+  .hamburgerMenu {
+    display: block; 
+  }
+}
+
+/* Desktop specific styles */
+@media (min-width: 769px) {
+  .navLinksContainer {
+    display: flex !important;
+    flex-direction: row !important;
+    position: static !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    bottom: auto; 
+    overflow-y: visible; 
+  }
+  .hamburgerMenu {
+    display: none !important;
+  }
+  .switcherGroup {
+    display: flex; /* For desktop, arrange them in a row */
+    align-items: center;
+    gap: 0.5rem; /* Adjust gap for desktop view */
+  }
+}

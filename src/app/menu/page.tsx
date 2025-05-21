@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import FeedbackForm from "@/components/feedback/FeedbackForm";
 import AverageRating from "@/components/feedback/AverageRating";
 import { useSnackbar } from "notistack";
+// Removed: import Image from "next/image"; 
 
 import categoriesData from "../../data/categories.json";
 import type { LanguageCode } from "@/components/LanguageSwitcher";
@@ -54,7 +55,6 @@ interface CategoryTranslations {
   [lang: string]: Record<string, string>;
 }
 
-// Ensure 'specialOfTheDay' is a valid key type
 type TempCategoriesData = typeof categoriesData.en;
 type MenuCategoryKey = keyof TempCategoriesData | "specialOfTheDay";
 
@@ -67,7 +67,6 @@ export default function MenuPage() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [categoriesForNav, setCategoriesForNav] = useState<MenuCategoryKey[]>([]);
-  // Default selectedView to SPECIAL_OF_THE_DAY_KEY
   const [selectedView, setSelectedView] = useState<MenuCategoryKey | typeof ALL_ITEMS_KEY | null>(SPECIAL_OF_THE_DAY_KEY);
   const [currentMenuItems, setCurrentMenuItems] = useState<MenuItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
@@ -83,17 +82,12 @@ export default function MenuPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Ensure all keys, including specialOfTheDay, are loaded for navigation
     const loadedCategoryKeys = Object.keys((categoriesData as CategoryTranslations).en) as MenuCategoryKey[];
     setCategoriesForNav(loadedCategoryKeys);
-    // The default view is already set to SPECIAL_OF_THE_DAY_KEY
-    // If specialOfTheDay wasn't in categories.json for some reason (it is now),
-    // and selectedView was null, you might add fallback logic here, but it should be fine.
     if (!selectedView && loadedCategoryKeys.length > 0) {
-        setSelectedView(SPECIAL_OF_THE_DAY_KEY); // Ensure default if somehow still null
+        setSelectedView(SPECIAL_OF_THE_DAY_KEY); 
     }
-
-  }, []); // selectedView removed from deps to prevent re-setting default from user selection
+  }, []); // Reverted: selectedView removed from deps 
 
   useEffect(() => {
     if (!selectedView) {
@@ -111,13 +105,10 @@ export default function MenuPage() {
         if (selectedView === ALL_ITEMS_KEY) {
           for (const catKey of categoriesForNav) {
             if (catKey === SPECIAL_OF_THE_DAY_KEY && !(categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY]) {
-                // If "all" is selected and specialOfTheDay isn't a formal category in JSON 
-                // but we want to load its file anyway (should not happen with current setup)
                 // console.log("Skipping specialOfTheDay in 'All' as it might be loaded separately or is dynamic");
                 // continue;
             }
             try {
-              // Dynamically import JSON for each category
               const categoryModule = await import(`../../data/menu/${catKey}.json`);
               const items: MenuItem[] = categoryModule.default;
               if (Array.isArray(items)) {
@@ -130,7 +121,6 @@ export default function MenuPage() {
             }
           }
         } else {
-          // This handles specific categories including "specialOfTheDay"
           const categoryModule = await import(`../../data/menu/${selectedView}.json`);
           const items: MenuItem[] = categoryModule.default;
           if (!Array.isArray(items)) {
@@ -149,10 +139,10 @@ export default function MenuPage() {
       setIsLoadingItems(false);
     };
 
-    if (isMounted) { // Ensure component is mounted before fetching
+    if (isMounted) { 
         fetchMenuItems();
     }
-  }, [selectedView, categoriesForNav, t, isMounted]); // Added isMounted
+  }, [selectedView, categoriesForNav, t, isMounted]); 
 
   interface AddItemPayload {
     id: string;
@@ -224,14 +214,12 @@ export default function MenuPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [enlargedImageItem, showNextImage, showPrevImage, handleCloseEnlargedImage, currentEnlargedGalleryImages]);
 
-  if (!isMounted || !selectedView) { // Check for isMounted before rendering actual content
-    // Optional: return a loading skeleton or null to prevent flash of unstyled/default content
+  if (!isMounted || !selectedView) { 
     return null; 
   }
 
   const categoryDisplayName = selectedView === ALL_ITEMS_KEY 
     ? t("all_categories_nav") 
-    // Ensure categoriesData keys are accessed safely, especially with the new type for MenuCategoryKey
     : (categoriesData as CategoryTranslations)[currentLanguage]?.[selectedView as string] || (categoriesData as CategoryTranslations).en[selectedView as string] || selectedView;
 
   return (
@@ -240,7 +228,6 @@ export default function MenuPage() {
 
       {categoriesForNav.length > 0 && (
         <nav className={styles.stickyNav} aria-label={t("category_navigation_label")}>
-          {/* Button for "Special of the Day" - Render it first if it exists */}
           {(categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY] && (
             <button
               key={SPECIAL_OF_THE_DAY_KEY}
@@ -251,7 +238,6 @@ export default function MenuPage() {
               {(categoriesData as CategoryTranslations)[currentLanguage]?.[SPECIAL_OF_THE_DAY_KEY] || (categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY]}
             </button>
           )}
-          {/* Button for "All Items" */}
           <button
             key={ALL_ITEMS_KEY}
             className={`${styles.navButton} ${selectedView === ALL_ITEMS_KEY ? styles.navButtonActive : ""}`}
@@ -260,9 +246,8 @@ export default function MenuPage() {
           >
             {t("all_categories_nav")}
           </button>
-          {/* Other category buttons */}
           {categoriesForNav
-            .filter(catKey => catKey !== SPECIAL_OF_THE_DAY_KEY) // Don't repeat "Special of the Day"
+            .filter(catKey => catKey !== SPECIAL_OF_THE_DAY_KEY) 
             .map((catKey) => {
               const categoryName = (categoriesData as CategoryTranslations)[currentLanguage]?.[catKey as string] || (categoriesData as CategoryTranslations).en[catKey as string] || catKey;
               return (
@@ -293,12 +278,13 @@ export default function MenuPage() {
               const itemDescription = item.content?.[currentLanguage]?.description || item.content?.en?.description || "";
               const mainImageAlt = item.content?.[currentLanguage]?.name || item.content?.en?.name || t("menu_item_image_alt") || item.id;
               const numericPrice = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+              const imageUrl = item.image.startsWith('http') ? item.image : `https://lh3.google.com/u/0/d/${item.image}`; 
 
               return (
                 <div key={item.id} className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
                   <div className={styles.itemImageContainer} onClick={() => handleImageClick(item, 0)} style={{ cursor: 'pointer' }}>
                     <img 
-                      src={"https://lh3.google.com/u/0/d/"+item.image} 
+                      src={imageUrl} 
                       alt={mainImageAlt} 
                       className={styles.itemImage}
                       onError={(e) => { 
@@ -367,7 +353,7 @@ export default function MenuPage() {
               onClick={handleCloseEnlargedImage}
               aria-label={t("close_image_modal_button", "Close image modal")}
             >
-              &times; {/* HTML entity for a multiplication sign (X) */}
+              &times; 
             </button>
             {currentEnlargedGalleryImages.length > 1 && (
               <button className={`${styles.navButtonModal} ${styles.prevButton}`} onClick={showPrevImage} aria-label={t("previous_image_button_label")}> 

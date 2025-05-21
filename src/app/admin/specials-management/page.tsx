@@ -37,36 +37,38 @@ export default function SpecialsManagementPage() {
     <main className={styles.adminContainer}>
       <header className={styles.adminHeader}>
         <h1>Manage Daily Specials</h1>
-        <Link href="/admin/dashboard" className={styles.adminButton} style={{backgroundColor: "#6c757d", color: "white", textDecoration: "none"}}>Back to Dashboard</Link>
+        <Link href="/admin/dashboard" className={styles.adminButton} style={{ backgroundColor: "#6c757d", color: "white", textDecoration: "none" }}>Back to Dashboard</Link>
       </header>
       <section className={styles.adminContent}>
         <button className={`${styles.adminButton} ${styles.add}`}>Add New Special</button> {/* TODO: Link to add/edit page */}
         {isLoading && <p>Loading specials...</p>}
         {error && <p className="errorMessage">Error: {error}</p>}
         {!isLoading && !error && (
-          <table className={styles.adminTable}>
-            <thead>
-              <tr>
-                <th>Name (English)</th>
-                <th>Price (CHF)</th>
-                <th>Active Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {specials.map(special => (
-                <tr key={special.id}>
-                  <td>{special.name_en}</td>
-                  <td>{special.price.toFixed(2)}</td>
-                  <td>{special.date_active}</td>
-                  <td>
-                    <button className={`${styles.adminButton} ${styles.edit}`}>Edit</button> {/* TODO: Link to add/edit page with special ID */}
-                    <button onClick={() => handleDeleteSpecial(special.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
-                  </td>
+          <div className={styles.adminTableContainer}>
+            <table className={styles.adminTable}>
+              <thead>
+                <tr>
+                  <th>Name (English)</th>
+                  <th>Price (CHF)</th>
+                  <th>Active Date</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {specials.map(special => (
+                  <tr key={special.id}>
+                    <td>{special.name_en}</td>
+                    <td>{special.price.toFixed(2)}</td>
+                    <td>{special.date_active}</td>
+                    <td>
+                      <button className={`${styles.adminButton} ${styles.edit}`}>Edit</button> {/* TODO: Link to add/edit page with special ID */}
+                      <button onClick={() => handleDeleteSpecial(special.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>

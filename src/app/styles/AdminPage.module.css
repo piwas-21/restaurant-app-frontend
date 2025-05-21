@@ -2,19 +2,20 @@
 
 .adminContainer {
   padding: 2rem;
-  background-color: #f8f9fa; /* Light background for admin area */
+  background-color: var(--secondary-color-light, #f8f9fa); /* Use CSS var, fallback */
+  color: var(--text-color, #333);
   min-height: 100vh;
 }
 
 .adminHeader {
-  background-color: #343a40; /* Dark header */
-  color: white;
+  background-color: var(--primary-color-dark, #343a40);
+  color: var(--button-text-color, white);
   padding: 1.5rem 2rem;
   margin-bottom: 2rem;
   border-radius: 6px;
-  display: flex; /* For aligning title and button */
-  justify-content: space-between; /* For aligning title and button */
-  align-items: center; /* For aligning title and button */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .adminHeader h1 {
@@ -23,11 +24,12 @@
 }
 
 .adminNav {
-  background-color: #fff;
+  background-color: var(--card-background, #fff);
   padding: 1rem;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   margin-bottom: 2rem;
+  border: 1px solid var(--border-color, #ddd);
 }
 
 .adminNav ul {
@@ -35,67 +37,79 @@
   padding: 0;
   margin: 0;
   display: flex;
-  gap: 1rem; /* Spacing between nav items */
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .adminNav ul li a {
   text-decoration: none;
-  color: #007bff; /* Bootstrap primary blue */
+  color: var(--link-color, #007bff);
   font-weight: 500;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  display: inline-block; /* Ensure padding is applied correctly */
+  display: inline-block;
 }
 
 .adminNav ul li a:hover {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--link-color, #007bff);
+  color: var(--button-text-color, white);
 }
 
 .adminContent {
-  background-color: #fff;
+  background-color: var(--card-background, #fff);
   padding: 2rem;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color, #ddd);
+  color: var(--text-color, #333);
 }
 
 .adminContent h2 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--text-color, #333);
 }
 
 .adminContent p {
   font-size: 1rem;
   line-height: 1.6;
-  color: #555;
+  color: var(--text-secondary, #555);
 }
 
-/* Basic table styling for admin sections */
+.adminTableContainer {
+  overflow-x: auto; /* Add scroll to the container */
+  width: 100%; /* Ensure container takes full width */
+  margin-top: 1.5rem;
+}
+
 .adminTable {
   width: 100%;
+  min-width: 600px; /* Example: Set a min-width for the table itself to ensure it shows scrollbar when needed */
   border-collapse: collapse;
-  margin-top: 1.5rem;
-  overflow-x: auto; /* Allow horizontal scrolling on small screens */
-  display: block; /* Required for overflow-x to work on table */
+  border: 1px solid var(--border-color, #dee2e6);
 }
 
 .adminTable th, .adminTable td {
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--border-color, #dee2e6);
   padding: 0.75rem;
   text-align: left;
-  white-space: nowrap; /* Prevent text wrapping in cells */
+  white-space: nowrap;
+  color: var(--text-color, #333);
+  vertical-align: middle; /* Align content vertically in cells */
 }
 
 .adminTable th {
-  background-color: #e9ecef;
+  background-color: var(--secondary-color-light, #e9ecef);
   font-weight: 600;
+  color: var(--text-color, #333);
+  position: sticky; 
+  top: 0;
+  z-index: 1; 
 }
 
 .adminTable tr:nth-child(even) {
-  background-color: #f8f9fa;
+  background-color: var(--secondary-color, #f8f9fa);
 }
 
 .adminButton {
@@ -105,32 +119,37 @@
   cursor: pointer;
   font-size: 0.9rem;
   margin-right: 0.5rem;
-  margin-bottom: 0.5rem; /* Add some bottom margin for wrapped buttons */
+  margin-bottom: 0.5rem;
   transition: opacity 0.2s ease;
-  display: inline-block; /* Ensure buttons align well when wrapped */
+  display: inline-block;
+  text-align: center; /* Center text in button */
 }
 
 .adminButton.edit {
-  background-color: #ffc107; /* Warning yellow */
-  color: #212529;
+  background-color: var(--warning-color, #ffc107);
+  color: var(--text-color, #212529);
 }
 
 .adminButton.delete {
-  background-color: #dc3545; /* Danger red */
+  background-color: var(--danger-color, #dc3545);
   color: white;
 }
 
 .adminButton.add {
-  background-color: #28a745; /* Success green */
+  background-color: var(--success-color, #28a745);
   color: white;
-  margin-bottom: 1rem; /* Space above table if it's an add button */
+  margin-bottom: 1rem;
 }
 
 .adminButton:hover {
   opacity: 0.85;
 }
 
-/* Basic form styling for admin sections */
+/* Remove margin from last button in a sequence if they are inline */
+.adminButton:last-of-type {
+    margin-right: 0;
+}
+
 .adminForm .formGroup {
   margin-bottom: 1rem;
 }
@@ -139,19 +158,22 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
+  color: var(--text-color, #555);
 }
 
 .adminForm .formGroup input[type="text"],
 .adminForm .formGroup input[type="number"],
 .adminForm .formGroup input[type="file"],
-.adminForm .formGroup textarea,
+.adminForm .formGroup input[type="textarea"],
 .adminForm .formGroup select {
   width: 100%;
   padding: 0.6rem;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--border-color, #ced4da);
   border-radius: 4px;
   box-sizing: border-box;
   font-size: 1rem;
+  background-color: var(--background-color, #fff);
+  color: var(--text-color, #333);
 }
 
 .adminForm textarea {
@@ -159,26 +181,110 @@
   resize: vertical;
 }
 
+/* Dark Mode Styles */
+[data-theme="dark"] .adminContainer {
+  background-color: var(--background-color, #121212);
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminHeader {
+  background-color: var(--primary-color-dark, #1f1f1f);
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminNav {
+  background-color: var(--secondary-color, #2c2c2c);
+  border-color: var(--border-color, #444);
+}
+
+[data-theme="dark"] .adminNav ul li a {
+  color: var(--link-color, #8ab4f8);
+}
+
+[data-theme="dark"] .adminNav ul li a:hover {
+  background-color: var(--link-color, #8ab4f8);
+  color: var(--background-color, #121212);
+}
+
+[data-theme="dark"] .adminContent {
+  background-color: var(--secondary-color, #2c2c2c);
+  border-color: var(--border-color, #444);
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminContent h2 {
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminContent p {
+  color: var(--text-secondary, #b0b0b0);
+}
+
+[data-theme="dark"] .adminTable {
+  border-color: var(--border-color, #444);
+}
+
+[data-theme="dark"] .adminTable th,
+[data-theme="dark"] .adminTable td {
+  border-color: var(--border-color, #444);
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminTable th {
+  background-color: var(--secondary-color, #2c2c2c); 
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminTable tr:nth-child(even) {
+  background-color: var(--background-color, #222); 
+}
+
+[data-theme="dark"] .adminButton.edit {
+  background-color: var(--warning-color-dark, #b8860b); 
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .adminButton.delete {
+  background-color: var(--error-color, #c94c4c); 
+}
+
+[data-theme="dark"] .adminButton.add {
+  background-color: var(--success-color-dark, #38761d); 
+}
+
+[data-theme="dark"] .adminForm .formGroup label {
+  color: var(--text-color, #c7c7c7);
+}
+
+[data-theme="dark"] .adminForm .formGroup input[type="text"],
+[data-theme="dark"] .adminForm .formGroup input[type="number"],
+[data-theme="dark"] .adminForm .formGroup input[type="file"],
+[data-theme="dark"] .adminForm .formGroup textarea,
+[data-theme="dark"] .adminForm .formGroup select {
+  background-color: var(--secondary-color, #3a3a3a);
+  color: var(--text-color, #e0e0e0);
+  border-color: var(--border-color, #555);
+}
+
 /* Responsive adjustments */
 @media (max-width: 992px) {
   .adminHeader {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.5rem; 
   }
   .adminHeader h1 {
     margin-bottom: 0.5rem;
   }
-  .adminHeader .adminButton {
-    margin-top: 0.5rem;
-  }
   .adminNav ul {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch; 
   }
   .adminNav ul li a {
     width: 100%;
     box-sizing: border-box;
-    text-align: center;
+    text-align: left; 
+    padding: 0.75rem 1rem; 
   }
 }
 
@@ -198,18 +304,47 @@
   .adminContent h2 {
     font-size: 1.5rem;
   }
+  
+  /* General button styling on mobile */
   .adminButton {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-    width: 100%; /* Make buttons full width for easier tapping */
+    padding: 0.6rem 1rem; 
+    font-size: 0.9rem; 
+    width: 100%; /* Default to full width for standalone buttons */
     margin-right: 0;
+    margin-bottom: 0.75rem; 
+  }
+  .adminButton:last-of-type {
+    margin-bottom: 0; 
   }
   .adminButton.add {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem; 
   }
+
   .adminTable th, .adminTable td {
     padding: 0.5rem;
     font-size: 0.9rem;
+  }
+  .adminTable {
+    min-width: 0; 
+  }
+
+  /* Specifically target the last cell in a table row (assumed Actions cell) */
+  .adminTable td:last-child {
+    white-space: normal; /* Allow content to wrap/stack */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Space between stacked buttons */
+    align-items: stretch; /* Make buttons take full cell width */
+  }
+
+  /* Buttons within the last table cell */
+  .adminTable td:last-child .adminButton {
+    width: 100%; /* Make buttons in this cell full width */
+    margin-right: 0;
+    margin-bottom: 0; /* Gap on parent td handles spacing */
+  }
+  .adminTable td:last-child .adminButton:last-of-type {
+    margin-bottom: 0; /* Explicitly remove for the last button in the cell */
   }
 }
 
@@ -226,6 +361,6 @@
   .adminForm .formGroup textarea,
   .adminForm .formGroup select {
     font-size: 0.9rem;
+    padding: 0.5rem;
   }
 }
-

@@ -7,12 +7,12 @@ import Image from 'next/image';
 import styles from "../app/styles/LanguageSwitcher.module.css";
 
 const languages = [
-  { code: "en", name: "English", flag: "/flags/en.svg" },
-  { code: "de", name: "Deutsch", flag: "/flags/de.svg" },
-  { code: "tr", name: "Türkçe", flag: "/flags/tr.svg" },
-  { code: "it", name: "Italiano", flag: "/flags/it.svg" },
-  { code: "ar", name: "العربية", flag: "/flags/ar.svg" },
   { code: "fr", name: "Français", flag: "/flags/fr.svg" },
+  { code: "en", name: "English", flag: "/flags/en.svg" },
+  { code: "it", name: "Italiano", flag: "/flags/it.svg" },
+  { code: "de", name: "Deutsch", flag: "/flags/de.svg" },
+  { code: "ar", name: "العربية", flag: "/flags/ar.svg" },
+  { code: "tr", name: "Türkçe", flag: "/flags/tr.svg" },
 ] as const;
 
 // Export the type for language codes

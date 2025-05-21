@@ -332,6 +332,8 @@
     "nav_login": "Accedi",
   
     "close_image_modal_button": "Chiudi",
-     "each": "ciascuno"
+    "open_menu": "Apri il menu",
+    "close_menu": "Chiudi il menu",
+    "each": "ciascuno"
   }
   

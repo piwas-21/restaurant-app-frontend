@@ -4,22 +4,16 @@ import React, { useState, useEffect } from "react";
 import styles from "./styles/HomePage.module.css";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { usePathname } from "next/navigation";
-import LanguageSwitcher from "@/components/LanguageSwitcher"; 
-import ThemeSwitcher from "@/components/ThemeSwitcher";
+// Removed unused Pathname and switchers as they are in global header
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
-  const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    // Setting document.title can also cause hydration issues if t() is not ready
-    // It's safer to set it after isClient is true or inside the main return if !isClient is handled
   }, []);
 
-  // Update document title after client is confirmed and translations are ready
   useEffect(() => {
     if (isClient) {
       document.title = t("home_page_title");
@@ -27,39 +21,10 @@ export default function HomePage() {
   }, [isClient, t, i18n.language]);
 
   const googleMapsEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2761.9879077000003!2d6.1423647!3d46.2093549!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c6527ab39c7f7%3A0x1d5b380909c0e60a!2sRue%20de%20Berne%2013%2C%201201%20Gen%C3%A8ve%2C%20Switzerland!5e0!3m2!1sen!2sch!4v1715517619196!5m2!1sen!2sch";
-  const backgroundImageUrl = 'https://lh3.google.com/u/0/d/1ZnD-FSyYYeRA9nreAAuFtD-0IMgwTI9_'; // Ensure this path is correct
+  const backgroundImageUrl = 'https://lh3.google.com/u/0/d/1ZnD-FSyYYeRA9nreAAuFtD-0IMgwTI9_';
 
-  if (!isClient) {
-    // Render a minimal skeleton or null to avoid hydration mismatch
-    // This ensures server and initial client render are the same before translations load.
-    return (
-      <div className={styles.homeContainer}>
-        <section 
-          className={styles.heroHeaderSection} 
-          style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-        >
-          <div className={styles.glassOverlay}></div>
-          <nav className={styles.heroNav}>
-            <Link href="/" className={styles.heroLogoLink}>
-              {/* <Image src="/rumi_logo_transparent.png" alt="RUMI Restaurant Logo" width={180} height={90} /> */}
-            </Link>
-            {/* Placeholder for nav links to match structure if needed */}
-            <div className={styles.heroNavLinks}>
-                <span className={`nav-link`}>Home</span>
-                <span className={`nav-link`}>Menu</span>
-                <span className={`nav-link`}>Reservations</span>
-                <span className={`nav-link`}>Cart</span>
-                <span className={`nav-link`}>Login</span> 
-            </div>
-          </nav>
-          <div className={styles.heroContent}>
-            {/* Placeholder for hero title to match structure */}
-            <h1 id="hero-heading" className={styles.heroTitle}>&nbsp;</h1> 
-          </div>
-        </section>
-      </div>
-    ); 
-  }
+  // No need for !isClient skeleton for the nav part as it's removed
+  // The main content skeleton can remain if desired for large content sections
 
   return (
     <div className={styles.homeContainer}>
@@ -70,20 +35,8 @@ export default function HomePage() {
       >
         <div className={styles.glassOverlay}></div>
         
-        <nav className={styles.heroNav}>
-          <Link href="/" className={styles.heroLogoLink}>
-            {/* <Image src="/rumi_logo_transparent.png" alt="RUMI Restaurant Logo" width={180} height={90} /> */}
-          </Link>
-          <div className={styles.heroNavLinks}>
-            <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>{t('nav_home', 'Home')}</Link>
-            <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`}>{t('nav_menu', 'Menu')}</Link>
-            <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}>{t('nav_reservations', 'Reservations')}</Link>
-            <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`}>{t('nav_cart', 'Cart')}</Link>
-            <Link href="/auth/login" className={`nav-link ${pathname === '/auth/login' ? 'active' : ''}`}>{t('nav_login', 'Login')}</Link>
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
-        </nav>
+        {/* Navigation is now handled by the global header in layout.tsx */}
+        {/* The .heroNav and .heroNavLinks can be removed from HomePage.module.css or kept if other styling relies on them elsewhere (unlikely) */}
 
         <div className={styles.heroContent}>
           <h1 id="hero-heading" className={styles.heroTitle}>{t("home_hero_title")}</h1>

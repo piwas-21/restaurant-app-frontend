@@ -298,7 +298,7 @@ export default function MenuPage() {
                 <div key={item.id} className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
                   <div className={styles.itemImageContainer} onClick={() => handleImageClick(item, 0)} style={{ cursor: 'pointer' }}>
                     <img 
-                      src={item.image} 
+                      src={"https://lh3.google.com/u/0/d/"+item.image} 
                       alt={mainImageAlt} 
                       className={styles.itemImage}
                       onError={(e) => { 
@@ -375,7 +375,7 @@ export default function MenuPage() {
               </button>
             )}
             <img 
-              src={currentEnlargedGalleryImages[currentImageIndex].url}
+              src={"https://lh3.google.com/u/0/d/"+currentEnlargedGalleryImages[currentImageIndex].url}
               alt={currentEnlargedGalleryImages[currentImageIndex].alt || `${enlargedImageItem.content?.[currentLanguage]?.name || enlargedImageItem.content?.en?.name || enlargedImageItem.id} - Image ${currentImageIndex + 1}`}
               className={styles.enlargedImageModal}
             />

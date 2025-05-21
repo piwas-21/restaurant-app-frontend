@@ -27,7 +27,7 @@ export default function HomePage() {
   }, [isClient, t, i18n.language]);
 
   const googleMapsEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2761.9879077000003!2d6.1423647!3d46.2093549!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c6527ab39c7f7%3A0x1d5b380909c0e60a!2sRue%20de%20Berne%2013%2C%201201%20Gen%C3%A8ve%2C%20Switzerland!5e0!3m2!1sen!2sch!4v1715517619196!5m2!1sen!2sch";
-  const backgroundImageUrl = '/images/rumi-background.png'; // Ensure this path is correct
+  const backgroundImageUrl = 'https://lh3.google.com/u/0/d/1ZnD-FSyYYeRA9nreAAuFtD-0IMgwTI9_'; // Ensure this path is correct
 
   if (!isClient) {
     // Render a minimal skeleton or null to avoid hydration mismatch

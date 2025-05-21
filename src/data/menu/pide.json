@@ -1,4 +1,3 @@
-
 [
   {
     "id": "pide-etli-ekmek",
@@ -16,11 +15,15 @@
         "description": "Ein charakteristisches Fladenbrot aus Konya, dünn ausgerollt und mit Hackfleisch, Zwiebeln, Tomaten und Paprika belegt, im Ofen knusprig gebacken. Wird in langen, teilbaren Streifen serviert."
       }
     },
-    "price": 19.90,
-    "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/76656410-6780-4978-9f4c-c0e0030bc791.webp",
+    "price": 19.9,
+    "image": "1hhq-NiggboavmcJQQjE0upG8sLwkVVAz",
     "dietaryTags": ["halal"],
     "categoryKey": "pide",
-    "images": [{ "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/76656410-6780-4978-9f4c-c0e0030bc791.webp", "alt": "Etli Ekmek" }]
+    "images": [
+      { "url": "1hhq-NiggboavmcJQQjE0upG8sLwkVVAz", "alt": "Etli Ekmek" },
+      { "url": "1DWb7yCzZ7JBFWlPC2VK09jJ2EQdE6zQW", "alt": "Etli Ekmek" },
+      { "url": "1hhq-NiggboavmcJQQjE0upG8sLwkVVAz", "alt": "Etli Ekmek" }
+    ]
   },
   {
     "id": "pide-minced-meat",
@@ -38,11 +41,16 @@
         "description": "Türkisches Fladenbrot mit Hackfleisch, Zwiebeln und Tomaten, gewürzt mit Gewürzen. Ein herzhaftes Grundnahrungsmittel, das zartes Fleisch und aromatische Gewürze in einer goldenen Kruste vereint."
       }
     },
-    "price": 19.90,
+    "price": 19.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/15eb4fe1-0954-4fbd-ad3d-c8211be249c2.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "pide",
-    "images": [{ "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/15eb4fe1-0954-4fbd-ad3d-c8211be249c2.webp", "alt": "Minced Meat Pide" }]
+    "images": [
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/15eb4fe1-0954-4fbd-ad3d-c8211be249c2.webp",
+        "alt": "Minced Meat Pide"
+      }
+    ]
   },
   {
     "id": "pide-lamb",
@@ -60,11 +68,16 @@
         "description": "Türkisches Fladenbrot mit Lammwürfeln, Zwiebeln und Tomaten, gewürzt mit Gewürzen. Ein herzhaftes Grundnahrungsmittel, das zartes Fleisch und aromatische Gewürze in einer goldenen Kruste vereint."
       }
     },
-    "price": 21.90,
+    "price": 21.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/ddfb6c17-9739-4977-bc83-24c490277f46.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "pide",
-    "images": [{ "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/ddfb6c17-9739-4977-bc83-24c490277f46.webp", "alt": "Lamb Pide" }]
+    "images": [
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/ddfb6c17-9739-4977-bc83-24c490277f46.webp",
+        "alt": "Lamb Pide"
+      }
+    ]
   },
   {
     "id": "pide-cheese",
@@ -82,11 +95,16 @@
         "description": "Türkisches Fladenbrot, vegetarische Option mit Käse. Ein herzhaftes Grundnahrungsmittel, Käse in einer goldenen Kruste."
       }
     },
-    "price": 17.90,
+    "price": 17.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/a52d9dc3-5648-4ae9-9a72-c1d1403bc9a3.webp",
     "dietaryTags": ["vegetarian", "halal"],
     "categoryKey": "pide",
-    "images": [{ "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/a52d9dc3-5648-4ae9-9a72-c1d1403bc9a3.webp", "alt": "Cheese Pide" }]
+    "images": [
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/a52d9dc3-5648-4ae9-9a72-c1d1403bc9a3.webp",
+        "alt": "Cheese Pide"
+      }
+    ]
   },
   {
     "id": "pide-vegetarian",
@@ -104,12 +122,15 @@
         "description": "Türkisches Fladenbrot, vegetarische Option mit Käse und saisonalem Gemüse. Ein herzhaftes Grundnahrungsmittel, das Käse und saisonales Gemüse in einer goldenen Kruste vereint."
       }
     },
-    "price": 19.90,
+    "price": 19.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/068631d5-ae5e-4344-906a-d9b7e8ede89c.webp",
     "dietaryTags": ["vegetarian", "halal"],
     "categoryKey": "pide",
-    "images": [{ "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/068631d5-ae5e-4344-906a-d9b7e8ede89c.webp", "alt": "Vegetarian Pide" }]
+    "images": [
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/068631d5-ae5e-4344-906a-d9b7e8ede89c.webp",
+        "alt": "Vegetarian Pide"
+      }
+    ]
   }
 ]
-
-    

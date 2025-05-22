@@ -28,11 +28,11 @@ interface MenuItemImage {
 
 export interface MenuItem {
   id: string;
-  content: Partial<Record<LanguageCode, MenuItemContent>> & { en?: MenuItemContent }; 
-  price: number; 
-  image: string; 
+  content: Partial<Record<LanguageCode, MenuItemContent>> & { en?: MenuItemContent };
+  price: number;
+  image: string;
   dietaryTags: DietaryTag[];
-  categoryKey: MenuCategoryKey; 
+  categoryKey: MenuCategoryKey;
   isSpecial?: boolean;
   images?: MenuItemImage[];
 }
@@ -80,12 +80,15 @@ export default function MenuPage() {
 
   const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
+  const gDriveBaseUrl = "https://lh3.google.com/u/0/d/";
+  const getFullImageUrl = (url: string) => url.startsWith('http') ? url : gDriveBaseUrl + url;
+
   useEffect(() => {
     setIsMounted(true);
     const loadedCategoryKeys = Object.keys((categoriesData as CategoryTranslations).en) as MenuCategoryKey[];
     setCategoriesForNav(loadedCategoryKeys);
     if (!selectedView && loadedCategoryKeys.length > 0) {
-        setSelectedView(SPECIAL_OF_THE_DAY_KEY); 
+      setSelectedView(SPECIAL_OF_THE_DAY_KEY);
     }
   }, []); // Reverted: selectedView removed from deps 
 
@@ -105,8 +108,8 @@ export default function MenuPage() {
         if (selectedView === ALL_ITEMS_KEY) {
           for (const catKey of categoriesForNav) {
             if (catKey === SPECIAL_OF_THE_DAY_KEY && !(categoriesData as CategoryTranslations).en[SPECIAL_OF_THE_DAY_KEY]) {
-                // console.log("Skipping specialOfTheDay in 'All' as it might be loaded separately or is dynamic");
-                // continue;
+              // console.log("Skipping specialOfTheDay in 'All' as it might be loaded separately or is dynamic");
+              // continue;
             }
             try {
               const categoryModule = await import(`../../data/menu/${catKey}.json`);
@@ -139,10 +142,10 @@ export default function MenuPage() {
       setIsLoadingItems(false);
     };
 
-    if (isMounted) { 
-        fetchMenuItems();
+    if (isMounted) {
+      fetchMenuItems();
     }
-  }, [selectedView, categoriesForNav, t, isMounted]); 
+  }, [selectedView, categoriesForNav, t, isMounted]);
 
   interface AddItemPayload {
     id: string;
@@ -214,12 +217,12 @@ export default function MenuPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [enlargedImageItem, showNextImage, showPrevImage, handleCloseEnlargedImage, currentEnlargedGalleryImages]);
 
-  if (!isMounted || !selectedView) { 
-    return null; 
+  if (!isMounted || !selectedView) {
+    return null;
   }
 
-  const categoryDisplayName = selectedView === ALL_ITEMS_KEY 
-    ? t("all_categories_nav") 
+  const categoryDisplayName = selectedView === ALL_ITEMS_KEY
+    ? t("all_categories_nav")
     : (categoriesData as CategoryTranslations)[currentLanguage]?.[selectedView as string] || (categoriesData as CategoryTranslations).en[selectedView as string] || selectedView;
 
   return (
@@ -247,7 +250,7 @@ export default function MenuPage() {
             {t("all_categories_nav")}
           </button>
           {categoriesForNav
-            .filter(catKey => catKey !== SPECIAL_OF_THE_DAY_KEY) 
+            .filter(catKey => catKey !== SPECIAL_OF_THE_DAY_KEY)
             .map((catKey) => {
               const categoryName = (categoriesData as CategoryTranslations)[currentLanguage]?.[catKey as string] || (categoriesData as CategoryTranslations).en[catKey as string] || catKey;
               return (
@@ -260,7 +263,7 @@ export default function MenuPage() {
                   {categoryName}
                 </button>
               );
-          })}
+            })}
         </nav>
       )}
 
@@ -278,17 +281,16 @@ export default function MenuPage() {
               const itemDescription = item.content?.[currentLanguage]?.description || item.content?.en?.description || "";
               const mainImageAlt = item.content?.[currentLanguage]?.name || item.content?.en?.name || t("menu_item_image_alt") || item.id;
               const numericPrice = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-              const imageUrl = item.image.startsWith('http') ? item.image : `https://lh3.google.com/u/0/d/${item.image}`; 
-
+              const imageUrl = getFullImageUrl(item.image);
               return (
                 <div key={item.id} className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
                   <div className={styles.itemImageContainer} onClick={() => handleImageClick(item, 0)} style={{ cursor: 'pointer' }}>
-                    <img 
-                      src={imageUrl} 
-                      alt={mainImageAlt} 
+                    <img
+                      src={imageUrl}
+                      alt={mainImageAlt}
                       className={styles.itemImage}
-                      onError={(e) => { 
-                        (e.target as HTMLImageElement).src = '/images/placeholder-falafel.jpeg'; 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/placeholder-falafel.jpeg';
                       }}
                     />
                     {item.images && item.images.length > 1 && (
@@ -298,7 +300,7 @@ export default function MenuPage() {
                   <h3 id={`item-name-${item.id}`}>{itemName}</h3>
                   <p className={styles.itemDescription}>{itemDescription}</p>
                   <p className={styles.itemPrice} aria-label={`${t("checkout_total_label")} CHF ${numericPrice.toFixed(2)}`}>CHF {numericPrice.toFixed(2)}</p>
-                  
+
                   <AverageRating dishId={item.id} initialRatingData={ratings[item.id]} />
 
                   {item.dietaryTags && item.dietaryTags.length > 0 && (
@@ -312,7 +314,7 @@ export default function MenuPage() {
                     <button
                       className={styles.addToOrderButton}
                       onClick={() => handleAddItemToCart(item)}
-                      aria-label={t("add_item_to_order", { itemName }) }
+                      aria-label={t("add_item_to_order", { itemName })}
                     >
                       {t("add_to_order")}
                     </button>
@@ -328,13 +330,13 @@ export default function MenuPage() {
                     <FeedbackForm
                       dishId={item.id}
                       onSubmitSuccess={() => {
-                          const feedbackData = mockFeedbackStore[item.id]?.[mockFeedbackStore[item.id].length -1];
-                          if(feedbackData) {
-                              submitFeedbackToStore(item.id, feedbackData.rating, feedbackData.comment, feedbackData.name)
-                                  .then(() => handleFeedbackSuccess(item.id));
-                          } else {
-                               handleFeedbackSuccess(item.id);
-                          }
+                        const feedbackData = mockFeedbackStore[item.id]?.[mockFeedbackStore[item.id].length - 1];
+                        if (feedbackData) {
+                          submitFeedbackToStore(item.id, feedbackData.rating, feedbackData.comment, feedbackData.name)
+                            .then(() => handleFeedbackSuccess(item.id));
+                        } else {
+                          handleFeedbackSuccess(item.id);
+                        }
                       }}
                     />
                   )}
@@ -344,29 +346,29 @@ export default function MenuPage() {
           </div>
         )}
       </section>
-      
+
       {enlargedImageItem && currentEnlargedGalleryImages.length > 0 && (
         <div className={styles.enlargedImageBackdrop} onClick={handleCloseEnlargedImage}>
           <div className={styles.enlargedImageModalContainer} onClick={(e) => e.stopPropagation()}>
-            <button 
+            <button
               className={styles.closeButtonModal}
               onClick={handleCloseEnlargedImage}
               aria-label={t("close_image_modal_button", "Close image modal")}
             >
-              &times; 
+              &times;
             </button>
             {currentEnlargedGalleryImages.length > 1 && (
-              <button className={`${styles.navButtonModal} ${styles.prevButton}`} onClick={showPrevImage} aria-label={t("previous_image_button_label")}> 
-                &#10094; 
+              <button className={`${styles.navButtonModal} ${styles.prevButton}`} onClick={showPrevImage} aria-label={t("previous_image_button_label")}>
+                &#10094;
               </button>
             )}
-            <img 
-              src={"https://lh3.google.com/u/0/d/"+currentEnlargedGalleryImages[currentImageIndex].url}
+            <img
+              src={getFullImageUrl(currentEnlargedGalleryImages[currentImageIndex].url)}
               alt={currentEnlargedGalleryImages[currentImageIndex].alt || `${enlargedImageItem.content?.[currentLanguage]?.name || enlargedImageItem.content?.en?.name || enlargedImageItem.id} - Image ${currentImageIndex + 1}`}
               className={styles.enlargedImageModal}
             />
             {currentEnlargedGalleryImages.length > 1 && (
-              <button className={`${styles.navButtonModal} ${styles.nextButton}`} onClick={showNextImage} aria-label={t("next_image_button_label")}> 
+              <button className={`${styles.navButtonModal} ${styles.nextButton}`} onClick={showNextImage} aria-label={t("next_image_button_label")}>
                 &#10095;
               </button>
             )}
@@ -374,9 +376,9 @@ export default function MenuPage() {
         </div>
       )}
 
-      <div style={{textAlign: "center", marginTop: "2rem"}}>
+      <div style={{ textAlign: "center", marginTop: "2rem" }}>
         <Link href="/checkout" className={`${styles.addToOrderButton} ${styles.viewCartButton}`}>
-            {t("view_cart_checkout_button")}
+          {t("view_cart_checkout_button")}
         </Link>
       </div>
     </main>

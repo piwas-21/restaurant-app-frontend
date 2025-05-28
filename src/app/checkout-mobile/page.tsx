@@ -2,28 +2,21 @@
 "use client";
 
 import React, { useState } from "react";
-// import type { Metadata } from "next"; // Static metadata
 import styles from "../styles/CheckoutMobile.module.css";
 import { useCart } from "@/components/cart/CartContext";
 import Link from "next/link";
-import { useTranslation } from "react-i18next"; // Import useTranslation
-
-// export const metadata: Metadata = {
-//   title: "Checkout - RUMI Restaurant Mobile",
-//   description: "Complete your order at RUMI Restaurant. Choose pickup or dine-in options.",
-// };
+import { useTranslation } from "react-i18next";
 
 export default function CheckoutMobilePage() {
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { t } = useTranslation();
   const { state } = useCart();
-  const [orderType, setOrderType] = useState<
-    "pickup" | "dine-in"
-  >("pickup");
+  const [orderType, setOrderType] = useState<"pickup" | "dine-in">("pickup");
   const [tableNumber, setTableNumber] = useState("");
   const [tipPercentage, setTipPercentage] = useState(0);
   const [customTip, setCustomTip] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const calculateSubtotal = () => {
     return state.items.reduce(
@@ -42,32 +35,95 @@ export default function CheckoutMobilePage() {
 
   const total = subtotal + tipAmount;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (orderType === "pickup" && (!name || !phone)) {
-      alert(t("place_order_pickup_validation"));
+  const handlePayrexxPayment = async () => {
+    if ((orderType === "pickup" || orderType === "dine-in") && (!name || !phone)) { // Name & Phone for both if payment is upfront
+      alert(t("checkout_place_order_pickup_validation")); // Generic validation, customize if needed
       return;
     }
-    if (orderType === "dine-in" && !tableNumber) {
-      alert(t("place_order_dine_in_validation"));
-      return;
-    }
+    // if (orderType === "dine-in" && !tableNumber) { // Table number if dine-in
+    //   alert(t("checkout_place_order_dine_in_validation"));
+    //   return;
+    // }
 
-    console.log("Mobile Order Placed:", {
-      items: state.items,
-      orderType,
-      tableNumber: orderType === "dine-in" ? tableNumber : undefined,
-      customerName: orderType === "pickup" ? name : undefined,
-      customerPhone: orderType === "pickup" ? phone : undefined,
-      subtotal: subtotal.toFixed(2),
-      tipAmount: tipAmount.toFixed(2),
-      total: total.toFixed(2),
-    });
-    alert(t("order_placed_success"));
-    // dispatch({ type: "CLEAR_CART" });
+    setIsProcessingPayment(true);
+    const referenceId = `RUMI-MOBILE-ORDER-${Date.now()}`;
+    const paymentData = {
+      amount: total,
+      currency: 'CHF',
+      referenceId: referenceId,
+      successRedirectUrl: `${window.location.origin}/payment-success?orderId=${referenceId}`,
+      failedRedirectUrl: `${window.location.origin}/payment-failed?orderId=${referenceId}`,
+      cancelRedirectUrl: `${window.location.origin}/checkout-mobile`,
+      customer: {
+        firstName: name.split(' ')[0] || 'Rumi',
+        lastName: name.split(' ').slice(1).join(' ') || 'Customer',
+        email: 'default-mobile@example.com', // Placeholder
+        phone: phone,
+      },
+      // orderDetails: { items: state.items, orderType, tableNumber, tipAmount } // Optional
+    };
+
+    try {
+      const response = await fetch('/api/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+
+      if (!response.ok) {
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || 'Payment initiation failed (mobile).');
+      }
+
+      const result = await response.json();
+      if (result.link) {
+        console.log("Order details to be saved (mobile) before redirect:", {
+            referenceId,
+            items: state.items,
+            orderType,
+            tableNumber, // if relevant
+            customerName: name,
+            customerPhone: phone,
+            subtotal: subtotal.toFixed(2),
+            tipAmount: tipAmount.toFixed(2),
+            total: total.toFixed(2),
+            paymentStatus: 'pending_payrexx' 
+        });
+        // dispatch({ type: 'CLEAR_CART' });
+        window.location.href = result.link;
+      } else {
+        throw new Error('No payment link received from Payrexx (mobile).');
+      }
+    } catch (error) {
+      console.error("Payrexx payment error (mobile):", error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Could not initiate Payrexx payment.'}`);
+      setIsProcessingPayment(false);
+    }
   };
 
-  if (state.items.length === 0) {
+  // This function would be for a separate Cash/COD order button if retained
+  // const handlePlaceCashOrder = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (orderType === "pickup" && (!name || !phone)) {
+  //     alert(t("checkout_place_order_pickup_validation"));
+  //     return;
+  //   }
+  //   if (orderType === "dine-in" && !tableNumber) {
+  //     alert(t("checkout_place_order_dine_in_validation"));
+  //     return;
+  //   }
+  //   console.log("Mobile Order Placed (Cash/Card):", {
+  //     items: state.items, orderType, tableNumber, name, phone, subtotal, tipAmount, total,
+  //     paymentMethod: "Cash/Card"
+  //   });
+  //   alert(t("checkout_order_placed_success"));
+  //   // dispatch({ type: 'CLEAR_CART' });
+  // };
+
+
+  if (state.items.length === 0 && !isProcessingPayment) {
     return (
       <main className={styles.checkoutMobileContainer} aria-labelledby="checkout-heading">
         <header className={styles.checkoutHeader}>
@@ -78,10 +134,11 @@ export default function CheckoutMobilePage() {
           <span style={{width: "40px"}}></span>
         </header>
         <div className={styles.emptyMessageContainer}>
-          <p>{t("checkout_empty_cart_message")}</p>
+          <p>{t("checkout_empty_cart_message_1")}</p> {/* Adjusted to use the more descriptive key if available */}
           <Link href="/menu-mobile" className={styles.actionButton}>
-            {t("go_to_menu_button")}
+            {t("checkout_empty_cart_message_2")} 
           </Link>
+           {t("checkout_empty_cart_message_3")}
         </div>
       </main>
     );
@@ -89,6 +146,7 @@ export default function CheckoutMobilePage() {
 
   return (
     <main className={styles.checkoutMobileContainer} aria-labelledby="checkout-main-heading">
+      {isProcessingPayment && <div className={styles.overlayMobile}><p>{t('checkout_processing_payment')}...</p></div>}
       <header className={styles.checkoutHeader}>
         <Link href="/cart-mobile" className={styles.backButton} aria-label={t("back_to_cart")}>
           &larr;
@@ -97,9 +155,10 @@ export default function CheckoutMobilePage() {
         <span style={{width: "40px"}}></span>
       </header>
 
-      <form onSubmit={handlePlaceOrder} className={styles.checkoutFormMobile}>
+      {/* Changed from form to div to avoid default form submission for Payrexx button */}
+      <div className={styles.checkoutFormMobile}>
         <section className={styles.orderSummarySectionMobile} aria-labelledby="summary-heading">
-          <h2 id="summary-heading">{t("order_summary")}</h2>
+          <h2 id="summary-heading" className={styles.srOnly}>{t("checkout_order_summary")}</h2>
           {state.items.map(item => (
             <div key={item.id} className={styles.summaryItemMobile}>
               <span>{item.name} (x{item.quantity})</span>
@@ -107,75 +166,73 @@ export default function CheckoutMobilePage() {
             </div>
           ))}
           <div className={styles.summaryTotalMobile}>
-            <strong>{t("subtotal", { amount: subtotal.toFixed(2) })}</strong>
+            <strong>{t("checkout_subtotal_label")} CHF {subtotal.toFixed(2)}</strong>
           </div>
         </section>
 
         <section className={styles.orderDetailsSectionMobile} aria-labelledby="details-heading">
-          <h2 id="details-heading">{t("order_details")}</h2>
+          <h2 id="details-heading" className={styles.srOnly}>{t("checkout_order_details")}</h2>
           <div className={styles.formGroupMobile}>
-            <label htmlFor="orderTypeMobile">{t("order_type")}</label>
+            <label htmlFor="customerNameMobile">{t("checkout_customer_name_label")}</label>
+            <input
+              type="text"
+              id="customerNameMobile"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={styles.textInputMobile}
+              placeholder={t("checkout_customer_name_placeholder")}
+              required
+              disabled={isProcessingPayment}
+            />
+          </div>
+          <div className={styles.formGroupMobile}>
+            <label htmlFor="customerPhoneMobile">{t("checkout_customer_phone_label")}</label>
+            <input
+              type="tel"
+              id="customerPhoneMobile"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={styles.textInputMobile}
+              placeholder={t("checkout_customer_phone_placeholder")}
+              required
+              disabled={isProcessingPayment}
+            />
+          </div>
+          
+          <div className={styles.formGroupMobile}>
+            <label htmlFor="orderTypeMobile">{t("checkout_order_type_label")}</label>
             <select
               id="orderTypeMobile"
               value={orderType}
-              onChange={(e) =>
-                setOrderType(e.target.value as "pickup" | "dine-in")
-              }
+              onChange={(e) => setOrderType(e.target.value as "pickup" | "dine-in")}
               className={styles.selectInputMobile}
+              disabled={isProcessingPayment}
             >
-              <option value="pickup">{t("pickup")}</option>
-              <option value="dine-in">{t("dine_in")}</option>
+              <option value="pickup">{t("checkout_order_type_pickup")}</option>
+              {/* <option value="dine-in">{t("checkout_order_type_dine_in")}</option> */}
             </select>
           </div>
 
-          {orderType === "pickup" && (
-            <>
-              <div className={styles.formGroupMobile}>
-                <label htmlFor="customerNameMobile">{t("customer_name_label")}</label>
-                <input
-                  type="text"
-                  id="customerNameMobile"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={styles.textInputMobile}
-                  placeholder={t("customer_name_placeholder")}
-                  required
-                />
-              </div>
-              <div className={styles.formGroupMobile}>
-                <label htmlFor="customerPhoneMobile">{t("customer_phone_label")}</label>
-                <input
-                  type="tel"
-                  id="customerPhoneMobile"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className={styles.textInputMobile}
-                  placeholder={t("customer_phone_placeholder")}
-                  required
-                />
-              </div>
-            </>
-          )}
-
           {orderType === "dine-in" && (
             <div className={styles.formGroupMobile}>
-              <label htmlFor="tableNumberMobile">{t("table_number_label")}</label>
+              <label htmlFor="tableNumberMobile">{t("checkout_table_number_label")}</label>
               <input
                 type="text"
                 id="tableNumberMobile"
                 value={tableNumber}
                 onChange={(e) => setTableNumber(e.target.value)}
                 className={styles.textInputMobile}
-                placeholder={t("table_number_placeholder")}
-                required
+                placeholder={t("checkout_table_number_placeholder")}
+                required={orderType === 'dine-in'}
+                disabled={isProcessingPayment}
               />
             </div>
           )}
         </section>
 
         <section className={styles.tipSectionMobile} aria-labelledby="tip-heading-mobile">
-          <h2 id="tip-heading-mobile">{t("add_a_tip")}</h2>
-          <div className={styles.tipOptionsMobile} role="group" aria-label={t("tip_percentage_options")}>
+          <h2 id="tip-heading-mobile" className={styles.srOnly}>{t("checkout_add_tip_label")}</h2>
+          <div className={styles.tipOptionsMobile} role="group" aria-label={t("checkout_tip_options_aria_label")}>
             {[10, 15, 20].map(perc => (
                 <button 
                     key={perc} 
@@ -183,39 +240,56 @@ export default function CheckoutMobilePage() {
                     onClick={() => { setTipPercentage(perc); setCustomTip(""); }} 
                     className={`${styles.tipButtonMobile} ${tipPercentage === perc && !customTip ? styles.activeTipMobile : ""}`}
                     aria-pressed={tipPercentage === perc && !customTip}
+                    disabled={isProcessingPayment}
                 >
                     {perc}%
                 </button>
             ))}
           </div>
           <div className={styles.formGroupMobile}>
-            <label htmlFor="customTipMobile">{t("custom_tip_label")}</label>
+            <label htmlFor="customTipMobile">{t("checkout_custom_tip_label")}</label>
             <input
               type="number"
               id="customTipMobile"
               value={customTip}
-              onChange={(e) => {
-                setCustomTip(e.target.value);
-                setTipPercentage(0);
-              }}
+              onChange={(e) => { setCustomTip(e.target.value); setTipPercentage(0); }}
               className={styles.textInputMobile}
-              placeholder={t("custom_tip_placeholder")}
+              placeholder={t("checkout_custom_tip_placeholder")}
               min="0"
               step="0.01"
+              disabled={isProcessingPayment}
             />
           </div>
         </section>
 
         <div className={styles.finalTotalSectionMobile} aria-live="polite">
-          <p>{t("final_total_subtotal")} <span className={styles.amount}>CHF {subtotal.toFixed(2)}</span></p>
-          <p>{t("final_total_tip")} <span className={styles.amount}>CHF {tipAmount.toFixed(2)}</span></p>
-          <p className={styles.grandTotal}>{t("final_total_grand")} <span className={styles.amountBold}>CHF {total.toFixed(2)}</span></p>
+          <p>{t("checkout_subtotal_label")} <span className={styles.amount}>CHF {subtotal.toFixed(2)}</span></p>
+          <p>{t("checkout_tip_label")} <span className={styles.amount}>CHF {tipAmount.toFixed(2)}</span></p>
+          <p className={styles.grandTotal}>{t("checkout_total_label")} <span className={styles.amountBold}>CHF {total.toFixed(2)}</span></p>
         </div>
 
-        <button type="submit" className={styles.placeOrderButtonMobile}>
-          {t("place_order_button")}
-        </button>
-      </form>
+        <section className={styles.paymentOptionsSectionMobile} aria-labelledby="payment-options-heading-mobile">
+            <h2 id="payment-options-heading-mobile" className={styles.srOnly}>{t('checkout_payment_options_label')}</h2>
+            <button 
+              type="button" 
+              onClick={handlePayrexxPayment} 
+              className={`${styles.paymentButtonMobile} ${styles.payrexxButtonMobile}`}
+              aria-label={t('checkout_payrexx_aria_label')}
+              disabled={isProcessingPayment || state.items.length === 0}
+            >
+              {isProcessingPayment ? t('checkout_processing_payment') : t('checkout_pay_with_payrexx')}
+            </button>
+        </section>
+
+        {/* If you need a separate cash order button, it would go here, outside the Payrexx button, potentially in its own form */}
+        {/* Example:
+        <form onSubmit={handlePlaceCashOrder} style={{marginTop: '1rem'}}>
+            <button type="submit" className={styles.placeOrderButtonMobile} disabled={isProcessingPayment || state.items.length === 0}>
+                {t('checkout_place_order_button')} (Cash)
+            </button>
+        </form>
+        */}
+      </div>
     </main>
   );
 }

@@ -55,7 +55,7 @@ export default function CartPage() {
                 {t('cart_remove_item_button')}
               </button>
             </div>
-            <p className={styles.itemSubtotal}>Subtotal: CHF {(item.price * item.quantity).toFixed(2)}</p>
+            <p className={styles.itemSubtotal}>{t('subtotal_label', 'Subtotal')}: CHF {(item.price * item.quantity).toFixed(2)}</p>
           </div>
         ))}
       </div>

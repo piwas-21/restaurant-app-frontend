@@ -2,19 +2,22 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useCart } from '@/components/cart/CartContext'; // Adjusted import path
-import styles from "../styles/CheckoutPage.module.css"; // Create this CSS module
-import Cart from "@/components/cart/Cart"; // Adjusted import path
+import { useCart } from '@/components/cart/CartContext';
+import styles from "../styles/CheckoutPage.module.css";
+import Cart from "@/components/cart/Cart";
 import Link from 'next/link';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 
 export default function CheckoutPage() {
-  const { state } = useCart();
-  const { t } = useTranslation(); // Initialize useTranslation
+  const { state } = useCart(); 
+  const { t } = useTranslation();
   const [orderType, setOrderType] = useState<'pickup' | 'dine-in'>('pickup');
   const [tableNumber, setTableNumber] = useState('');
   const [tipPercentage, setTipPercentage] = useState(0);
   const [customTip, setCustomTip] = useState('');
+  const [customerName, setCustomerName] = useState(''); 
+  const [customerPhone, setCustomerPhone] = useState(''); 
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const calculateSubtotal = () => {
     return state.items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -30,31 +33,87 @@ export default function CheckoutPage() {
 
   const total = subtotal + tipAmount;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Order Placed:", {
-      items: state.items,
-      orderType,
-      tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
-      subtotal: subtotal.toFixed(2),
-      tipAmount: tipAmount.toFixed(2),
-      total: total.toFixed(2),
-      paymentMethod: "Cash/Card on Pickup/Delivery" // Placeholder
-    });
-    alert(t('checkout_order_placed_success'));
+  const handlePayrexxPayment = async () => {
+    if (!customerName || !customerPhone) { 
+        alert(t('checkout_place_order_pickup_validation')); 
+        return;
+    }
+
+    setIsProcessingPayment(true);
+    const referenceId = `RUMI-ORDER-${Date.now()}`;
+    const paymentData = {
+      amount: total, 
+      currency: 'CHF', 
+      referenceId: referenceId,
+      successRedirectUrl: `${window.location.origin}/payment-success?orderId=${referenceId}`,
+      failedRedirectUrl: `${window.location.origin}/payment-failed?orderId=${referenceId}`,
+      cancelRedirectUrl: `${window.location.origin}/checkout`,
+      customer: {
+        firstName: customerName.split(' ')[0] || 'Rumi',
+        lastName: customerName.split(' ').slice(1).join(' ') || 'Customer',
+        email: 'default@example.com', 
+        phone: customerPhone,
+      },
+    };
+
+    try {
+      const response = await fetch('/api/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      });
+
+      if (!response.ok) {
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || 'Payment initiation failed.');
+      }
+
+      const result = await response.json();
+      if (result.link) {
+        console.log("Order details to be saved (desktop) before redirect:", {
+            referenceId,
+            items: state.items,
+            orderType,
+            tableNumber, 
+            customerName,
+            customerPhone,
+            subtotal: subtotal.toFixed(2),
+            tipAmount: tipAmount.toFixed(2),
+            total: total.toFixed(2),
+            paymentStatus: 'pending_payrexx'
+        });
+        window.location.href = result.link;
+      } else {
+        throw new Error('No payment link received from Payrexx.');
+      }
+    } catch (error) {
+      console.error("Payrexx payment error (desktop):", error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Could not initiate Payrexx payment.'}`);
+      setIsProcessingPayment(false);
+    }
   };
 
-  const handleGooglePay = () => {
-    alert(t('checkout_google_pay_placeholder'));
-    // Placeholder for Google Pay integration
-  };
+  // const handlePlaceCashOrder = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //    if (!customerName || !customerPhone) {
+  //       alert(t('checkout_place_order_pickup_validation'));
+  //       return;
+  //   }
+  //   if (orderType === 'dine-in' && !tableNumber) {
+  //       alert(t('checkout_place_order_dine_in_validation'));
+  //       return;
+  //   }
+  //   console.log("Order Placed (Cash/Card):", {
+  //     items: state.items, orderType, tableNumber, customerName, customerPhone, subtotal, tipAmount, total,
+  //     paymentMethod: "Cash/Card on Pickup/Delivery"
+  //   });
+  //   alert(t('checkout_order_placed_success'));
+  // };
 
-  const handleApplePay = () => {
-    alert(t('checkout_apple_pay_placeholder'));
-    // Placeholder for Apple Pay integration
-  };
 
-  if (state.items.length === 0) {
+  if (state.items.length === 0 && !isProcessingPayment) {
     return (
       <main className={styles.checkoutContainer} aria-labelledby="checkout-heading">
         <h1 id="checkout-heading">{t('checkout_title')}</h1>
@@ -65,16 +124,45 @@ export default function CheckoutPage() {
 
   return (
     <main className={styles.checkoutContainer} aria-labelledby="checkout-main-heading">
+      {isProcessingPayment && <div className={styles.overlay}><p>{t('checkout_processing_payment')}...</p></div>}
       <h1 id="checkout-main-heading">{t('checkout_title')}</h1>
       
       <section className={styles.cartSummarySection} aria-labelledby="order-summary-heading">
         <h2 id="order-summary-heading">{t('checkout_order_summary')}</h2>
-        <Cart />
+        <Cart showProceedButton={false} /> {/* Pass prop to hide the button */}
       </section>
 
-      <form onSubmit={handlePlaceOrder}>
+      <div> 
         <section className={styles.orderDetailsSection} aria-labelledby="order-details-heading">
           <h2 id="order-details-heading">{t('checkout_order_details')}</h2>
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="customerName">{t('checkout_customer_name_label')}</label>
+            <input
+              type="text"
+              id="customerName"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className={styles.textInput}
+              placeholder={t('checkout_customer_name_placeholder')}
+              required
+              disabled={isProcessingPayment}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="customerPhone">{t('checkout_customer_phone_label')}</label>
+            <input
+              type="tel"
+              id="customerPhone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              className={styles.textInput}
+              placeholder={t('checkout_customer_phone_placeholder')}
+              required
+              disabled={isProcessingPayment}
+            />
+          </div>
+
           <div className={styles.formGroup}>
             <label htmlFor="orderType">{t('checkout_order_type_label')}</label>
             <select 
@@ -82,9 +170,9 @@ export default function CheckoutPage() {
               value={orderType} 
               onChange={(e) => setOrderType(e.target.value as 'pickup' | 'dine-in')} 
               className={styles.selectInput}
+              disabled={isProcessingPayment} 
             >
               <option value="pickup">{t('checkout_order_type_pickup')}</option>
-              <option value="dine-in">{t('checkout_order_type_dine_in')}</option>
             </select>
           </div>
 
@@ -98,7 +186,8 @@ export default function CheckoutPage() {
                 onChange={(e) => setTableNumber(e.target.value)}
                 className={styles.textInput}
                 placeholder={t('checkout_table_number_placeholder')}
-                aria-required="true"
+                aria-required={orderType === 'dine-in'}
+                disabled={isProcessingPayment}
               />
             </div>
           )}
@@ -107,9 +196,9 @@ export default function CheckoutPage() {
         <section className={styles.tipSection} aria-labelledby="tip-heading">
           <h2 id="tip-heading">{t('checkout_add_tip_label')}</h2>
           <div className={styles.tipOptions} role="group" aria-label={t('checkout_tip_options_aria_label')}>
-            <button type="button" onClick={() => { setTipPercentage(10); setCustomTip(''); }} className={tipPercentage === 10 && !customTip ? styles.activeTip : ''} aria-pressed={tipPercentage === 10 && !customTip}>10%</button>
-            <button type="button" onClick={() => { setTipPercentage(15); setCustomTip(''); }} className={tipPercentage === 15 && !customTip ? styles.activeTip : ''} aria-pressed={tipPercentage === 15 && !customTip}>15%</button>
-            <button type="button" onClick={() => { setTipPercentage(20); setCustomTip(''); }} className={tipPercentage === 20 && !customTip ? styles.activeTip : ''} aria-pressed={tipPercentage === 20 && !customTip}>20%</button>
+            <button type="button" onClick={() => { setTipPercentage(10); setCustomTip(''); }} className={tipPercentage === 10 && !customTip ? styles.activeTip : ''} aria-pressed={tipPercentage === 10 && !customTip} disabled={isProcessingPayment}>10%</button>
+            <button type="button" onClick={() => { setTipPercentage(15); setCustomTip(''); }} className={tipPercentage === 15 && !customTip ? styles.activeTip : ''} aria-pressed={tipPercentage === 15 && !customTip} disabled={isProcessingPayment}>15%</button>
+            <button type="button" onClick={() => { setTipPercentage(20); setCustomTip(''); }} className={tipPercentage === 20 && !customTip ? styles.activeTip : ''} aria-pressed={tipPercentage === 20 && !customTip} disabled={isProcessingPayment}>20%</button>
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="customTip">{t('checkout_custom_tip_label')}</label>
@@ -123,6 +212,7 @@ export default function CheckoutPage() {
               aria-label={t('checkout_custom_tip_aria_label')}
               min="0"
               step="0.01"
+              disabled={isProcessingPayment}
             />
           </div>
         </section>
@@ -135,23 +225,20 @@ export default function CheckoutPage() {
         </section>
 
         <section className={styles.paymentOptionsSection} aria-labelledby="payment-options-heading">
-            <h2 id="payment-options-heading">{t('checkout_payment_options_label')}</h2>
+            <h2 id="payment-options-heading" className={styles.srOnly}>{t('checkout_payment_options_label')}</h2>
             <div className={styles.paymentButtonsContainer}>
-                <button type="button" onClick={handleGooglePay} className={`${styles.paymentButton} ${styles.googlePayButton}`} aria-label={t('checkout_google_pay_aria_label')}>
-                    {/* Placeholder for Google Pay Button Icon */}
-                    <span>{t('checkout_pay_with_google_pay')}</span>
-                </button>
-                <button type="button" onClick={handleApplePay} className={`${styles.paymentButton} ${styles.applePayButton}`} aria-label={t('checkout_apple_pay_aria_label')}>
-                    {/* Placeholder for Apple Pay Button Icon */}
-                    <span>{t('checkout_pay_with_apple_pay')}</span>
+                <button 
+                  type="button" 
+                  onClick={handlePayrexxPayment} 
+                  className={`${styles.paymentButton} ${styles.payrexxButton}`}
+                  aria-label={t('checkout_payrexx_aria_label')}
+                  disabled={isProcessingPayment || state.items.length === 0}
+                >
+                  {isProcessingPayment ? t('checkout_processing_payment') : t('checkout_pay_with_payrexx')}
                 </button>
             </div>
         </section>
-
-        <button type="submit" className={styles.placeOrderButton}>
-          {t('checkout_place_order_button')}
-        </button>
-      </form>
+      </div>
     </main>
   );
 }

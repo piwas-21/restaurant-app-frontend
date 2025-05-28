@@ -2,17 +2,22 @@
 "use client";
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCart } from './CartContext';
-import styles from "../../app/styles/Cart.module.css"; // Create this CSS module
+import styles from "../../app/styles/Cart.module.css";
 import Link from 'next/link';
 
-export default function Cart() {
+interface CartProps {
+  showProceedButton?: boolean;
+}
+
+export default function Cart({ showProceedButton = true }: CartProps) {
+  const { t } = useTranslation();
   const { state, dispatch } = useCart();
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
     console.log(`Removing item: ${itemName}`);
     dispatch({ type: 'REMOVE_ITEM', payload: { id: itemId } });
-    // Announce removal for screen readers if possible, or ensure focus management guides user
   };
 
   const handleUpdateQuantity = (itemId: string, quantity: number, itemName: string) => {
@@ -26,16 +31,16 @@ export default function Cart() {
 
   if (state.items.length === 0) {
     return (
-      <div className={styles.cartContainer} role="region" aria-labelledby="cart-heading">
-        <h2 id="cart-heading">Your Cart</h2>
-        <p>Your cart is empty. <Link href="/menu">Browse our menu</Link> to add items.</p>
+      <div className={styles.cartContainer} role="region" aria-labelledby="cart-heading-empty">
+        <h2 id="cart-heading-empty">{t("cart_title", 'Your Cart')}</h2>
+        <p>{t('cart_empty_message', 'Your cart is empty.')} <Link href="/menu">{t('browse_our_menu', 'Browse our menu')}</Link> {t('to_add_items', 'to add items')}.</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.cartContainer} role="region" aria-labelledby="cart-heading">
-      <h2 id="cart-heading">Your Cart</h2>
+    <div className={styles.cartContainer} role="region" aria-labelledby="cart-heading-full">
+      <h2 id="cart-heading-full">{t("cart_title", 'Your Cart')}</h2>
       <ul className={styles.cartItemsList} aria-label="Items in your cart">
         {state.items.map((item) => (
           <li key={item.id} className={styles.cartItem} role="listitem">
@@ -43,7 +48,7 @@ export default function Cart() {
               <span>{item.name} (CHF {item.price.toFixed(2)})</span>
             </div>
             <div className={styles.itemControls}>
-              <label htmlFor={`quantity-${item.id}`} className="sr-only">Quantity for {item.name}</label>
+              <label htmlFor={`quantity-${item.id}`} className="sr-only">{t('quantity_for', ' Quantity for')} {item.name}</label>
               <input
                 type="number"
                 id={`quantity-${item.id}`}
@@ -58,33 +63,20 @@ export default function Cart() {
                 className={styles.removeButton}
                 aria-label={`Remove ${item.name} from cart`}
               >
-                Remove
+                {t('cart_remove_item_button', 'Remove')}
               </button>
             </div>
           </li>
         ))}
       </ul>
       <div className={styles.cartTotal} role="status" aria-live="polite">
-        <h3>Total: CHF {calculateTotal()}</h3>
+        <h3>{t('total_price_header', 'Total')}: CHF {calculateTotal()}</h3>
       </div>
-      <Link href="/checkout" className={styles.checkoutButton} role="button">
-        Proceed to Checkout
-      </Link>
-      {/* Add tip functionality later */}
+      {showProceedButton && (
+        <Link href="/checkout" className={styles.checkoutButton} role="button">
+          {t('cart_proceed_to_checkout_button', 'Proceed to Checkout')}
+        </Link>
+      )}
     </div>
   );
 }
-
-// Add a visually hidden class for sr-only labels if not already in globals.css
-// .sr-only {
-//   position: absolute;
-//   width: 1px;
-//   height: 1px;
-//   padding: 0;
-//   margin: -1px;
-//   overflow: hidden;
-//   clip: rect(0, 0, 0, 0);
-//   white-space: nowrap;
-//   border-width: 0;
-// }
-

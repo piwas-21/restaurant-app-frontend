@@ -1,8 +1,8 @@
 // src/app/reservations/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react"; // Added useEffect
-import styles from "../styles/Reservations.module.css"; 
+import React, { useState, useEffect } from "react";
+import styles from "../styles/Reservations.module.css";
 import { useTranslation } from "react-i18next";
 
 export default function ReservationsPage() {
@@ -13,10 +13,11 @@ export default function ReservationsPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
-  const [isMounted, setIsMounted] = useState(false); // State to track client-side mount
+  const [selectedTable, setSelectedTable] = useState(""); // New state for table selection
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true); // Set to true after component mounts on the client
+    setIsMounted(true);
   }, []);
 
   const handleSubmitReservation = (e: React.FormEvent) => {
@@ -31,6 +32,7 @@ export default function ReservationsPage() {
       guests,
       name,
       phone,
+      selectedTable, // Include selected table in the request
       notes,
     });
     alert(t("reservation_request_sent"));
@@ -44,10 +46,7 @@ export default function ReservationsPage() {
   };
 
   if (!isMounted) {
-    // Render nothing or a fallback loader on the server and initial client render
-    // This ensures the server and client render match before hydration.
-    // You could return a skeleton loader here if preferred.
-    return null; 
+    return null;
   }
 
   return (
@@ -105,6 +104,25 @@ export default function ReservationsPage() {
             <option value="10+">{t("guests_10_plus")}</option>
           </select>
         </div>
+
+        {/* Table Selection Section Start */}
+        <div className={styles.formGroup}>
+          <label htmlFor="reservationTable">{t("table_selection_label")}</label>
+          <select
+            id="reservationTable"
+            value={selectedTable}
+            onChange={(e) => setSelectedTable(e.target.value)}
+            className={styles.selectFieldReservations}
+          >
+            <option value="">{t("table_selection_placeholder")}</option>
+            <option value="any">{t("table_option_any")}</option>
+            <option value="window">{t("table_option_window")}</option>
+            <option value="booth">{t("table_option_booth")}</option>
+            <option value="patio">{t("table_option_patio")}</option>
+            <option value="private">{t("table_option_private")}</option>
+          </select>
+        </div>
+        {/* Table Selection Section End */}
 
         <div className={styles.formGroup}>
           <label htmlFor="reservationName">{t("full_name_label")}</label>

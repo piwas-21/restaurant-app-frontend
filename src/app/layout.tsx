@@ -7,7 +7,7 @@ import { CartProvider } from "@/components/cart/CartContext";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import i18n from "../i18n"; 
 import LanguageSwitcher from "@/components/LanguageSwitcher"; 
-import { useEffect, useState } from "react";
+import { useEffect, useState, CSSProperties } from "react"; // Added CSSProperties
 import Link from "next/link";
 import Image from "next/image";
 import { ThemeProvider, useTheme } from "@/components/ThemeContext"; 
@@ -75,21 +75,42 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   
+  const commonHeaderProperties: CSSProperties = {
+    padding: "0 1rem",
+    color: "var(--text-color)",
+    zIndex: 1000,
+    height: headerHeight,
+    width: "100%",
+    left: 0,
+    right: 0,
+  };
+
+  let headerSpecificStyles: CSSProperties;
+
+  if (isHomePage) {
+    headerSpecificStyles = {
+      ...commonHeaderProperties,
+      backgroundColor: "transparent",
+      borderBottom: "none",
+      position: "absolute",
+      top: 0,
+    };
+  } else {
+    headerSpecificStyles = {
+      ...commonHeaderProperties,
+      backgroundColor: "var(--secondary-color)",
+      borderBottom: "1px solid var(--border-color)",
+      position: "sticky",
+      top: 0, 
+    };
+  }
+
   return (
     <html lang={langForHtml} data-theme={themeForHtml} suppressHydrationWarning={true}>
       <body className={inter.className}>
         <CartProvider>
           <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "top", horizontal: "center"}}>
-            <header style={{ 
-              padding: "0 1rem", 
-              backgroundColor: "var(--secondary-color)", 
-              color: "var(--text-color)", 
-              borderBottom: "1px solid var(--border-color)",
-              position: "sticky", 
-              top: 0,
-              zIndex: 1000,
-              height: headerHeight
-            }}>
+            <header style={headerSpecificStyles}>
               <div style={{
                 maxWidth: "1200px", 
                 margin: "0 auto", 

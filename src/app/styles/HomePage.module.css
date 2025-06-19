@@ -5,7 +5,8 @@
 }
 
 .heroHeaderSection {
-  min-height: 100vh; /* Make hero section full viewport height */
+  height: 100vh;
+  width: 100vw;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -13,7 +14,6 @@
   flex-direction: column; 
   align-items: center; 
   justify-content: center; 
-  /* Add padding to the top equal to header height, plus desired content padding */
   padding: calc(80px + 1.5rem) 2rem 1.5rem 2rem; 
   position: relative; 
   color: #ffffff; 
@@ -26,8 +26,8 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.3); 
-  backdrop-filter: blur(5px); 
-  -webkit-backdrop-filter: blur(5px); 
+  backdrop-filter: blur(2px); 
+  -webkit-backdrop-filter: blur(2px); 
   z-index: 1; 
 }
 
@@ -145,9 +145,8 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .heroHeaderSection {
-    /* Adjust padding to account for header height + desired mobile content padding */
     padding: calc(80px + 1rem) 1rem 1rem 1rem; 
-    min-height: 100vh; 
+    height: 100vh;
   }
   
   .heroTitle {

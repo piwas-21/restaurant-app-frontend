@@ -12,6 +12,10 @@ export default function HomePage() {
 
   useEffect(() => {
     setIsClient(true);
+    document.body.classList.add("is-homepage");
+    return () => {
+      document.body.classList.remove("is-homepage");
+    };
   }, []);
 
   useEffect(() => {

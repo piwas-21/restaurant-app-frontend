@@ -12,11 +12,36 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123
+      - Redis__Host=redis
+      - Redis__Port=6379
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - restaurant-network-dev
+
+  
+  redis:
+    image: redis:alpine
+    container_name: restaurant-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - restaurant-network-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   postgres:
     image: postgres:16
@@ -42,3 +67,4 @@ networks:
     driver: bridge
 volumes:
   postgres-data-dev:
+  redis-data:

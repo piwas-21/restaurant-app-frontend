@@ -1,9 +1,5 @@
-version: '3.8'
 services:
   restaurantsystem-api:
-    # build:
-    #   context: .
-    #   dockerfile: RestaurantSystem.Api/Dockerfile
     image: ${CI_REGISTRY_IMAGE}:${CI_PIPELINE_IID}
     container_name: restaurant-api-dev
     ports:
@@ -17,10 +13,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - restaurant-network-dev
 
-  
   redis:
     image: redis:alpine
     container_name: restaurant-redis-dev
@@ -37,11 +34,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
 
   postgres:
     image: postgres:16
@@ -53,7 +45,7 @@ services:
       - POSTGRES_PASSWORD=postgres123
       - POSTGRES_DB=restaurantdb
     volumes:
-      - postgres-data-dev:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     networks:
       - restaurant-network-dev
     healthcheck:
@@ -65,6 +57,7 @@ services:
 networks:
   restaurant-network-dev:
     driver: bridge
+
 volumes:
-  postgres-data-dev:
-  redis-data:
+  postgres_data_dev:
+  redis_data:

@@ -11,7 +11,7 @@ services:
       - Redis__Host=redis
       - Redis__Port=6379
     volumes:
-      - /home/ubuntu/app-secrets.json:/app/app-secrets.json:ro
+      - /app/app-secrets.json:/app/app-secrets.json:ro
     depends_on:
       postgres:
         condition: service_healthy

@@ -10,6 +10,8 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123
       - Redis__Host=redis
       - Redis__Port=6379
+    volumes:
+      - /home/ubuntu/app-secrets.json:/app/app-secrets.json:ro
     depends_on:
       postgres:
         condition: service_healthy

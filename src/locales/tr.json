@@ -374,6 +374,34 @@
   "roles.customer": "Müşteri",
   "roles.cashier": "Kasiyer",
   "roles.kitchen-staff": "Mutfak Personeli",
-  "roles.server": "Garson"
+  "roles.server": "Garson",
+
+  "edit": "Düzenle",
+  "delete": "Sil",
+  "add_new_member": "Yeni üye ekle",
+  "first_name": "Ad",
+  "last_name": "Soyad",
+  "loyalty_points": "Sadakat puanları",
+  "register_staff": "Yeni personel kaydet",
+  "staff": "Personel",
+  "customers": "Müşteriler",
+  "search": "Ara",
+  "show_deleted": "Silinenleri göster",
+  "previous": "Önceki",
+  "next": "Sonraki",
+  "name": "İsim",
+  "role": "Rol",
+  "no_users_found": "Kullanıcı bulunamadı",
+
+  "confirmation": "Onay",
+  "delete_user_confirmation_message": "Bu kullanıcıyı silmek istediğinizden emin misiniz?",
+  "yes": "Evet",
+  "cancel": "İptal",
+  "success": "Başarılı",
+  "error": "Hata",
+  "user_deleted_successfully": "Kullanıcı başarıyla silindi",
+  "failed_to_delete_user": "Kullanıcı silinemedi",
+  "delete_user_error": "Kullanıcı silinirken bir hata oluştu",
+  "ok": "Tamam"
 }
 

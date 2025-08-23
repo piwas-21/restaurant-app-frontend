@@ -51,7 +51,8 @@
   display: inline-block;
 }
 
-.adminNav ul li a:hover {
+.adminNav ul li a:hover,
+.adminNav ul li a.activeLink {
   background-color: var(--link-color, #007bff);
   color: var(--button-text-color, white);
 }
@@ -201,7 +202,8 @@
   color: var(--link-color, #8ab4f8);
 }
 
-[data-theme="dark"] .adminNav ul li a:hover {
+[data-theme="dark"] .adminNav ul li a:hover,
+[data-theme="dark"] .adminNav ul li a.activeLink {
   background-color: var(--link-color, #8ab4f8);
   color: var(--background-color, #121212);
 }
@@ -363,4 +365,82 @@
     font-size: 0.9rem;
     padding: 0.5rem;
   }
+}
+
+/* Filters */
+.filtersContainer {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.filtersContainer .formGroup {
+  margin-bottom: 0;
+}
+.filtersContainer .formGroup label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+}
+.filtersContainer .formGroup input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: var(--button-background-color, #f8f9fa);
+  color: var(--button-text-color, #007bff);
+  border: 1px solid var(--border-color, #ddd);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: var(--link-color, #007bff);
+  color: var(--button-text-color, white);
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination span {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #555);
+  margin: 0 0.5rem;
+}
+
+[data-theme="dark"] .pagination {
+  border-top-color: var(--border-color, #444);
+}
+
+[data-theme="dark"] .pagination button {
+  background-color: var(--secondary-color, #3a3a3a);
+  color: var(--link-color, #8ab4f8);
+  border-color: var(--border-color, #555);
+}
+
+[data-theme="dark"] .pagination button:hover:not(:disabled) {
+  background-color: var(--link-color, #8ab4f8);
+  color: var(--background-color, #121212);
+}
+
+[data-theme="dark"] .pagination span {
+  color: var(--text-secondary, #b0b0b0);
 }

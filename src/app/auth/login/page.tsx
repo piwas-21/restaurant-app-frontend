@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import styles from "../../styles/AuthPage.module.css";
+import styles from "@/AuthPage.module.css";
 import { useRouter } from 'next/navigation';
-import { login as loginUser } from '../../../lib/auth/utils';
+import { login as loginUser } from '@/authService';
 import { useAuth } from '@/components/AuthContext';
 
 export default function LoginPage() {

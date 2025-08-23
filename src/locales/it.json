@@ -373,6 +373,34 @@
   "roles.customer": "Cliente",
   "roles.cashier": "Cassiere",
   "roles.kitchen-staff": "Personale di cucina",
-  "roles.server": "Cameriere"
+  "roles.server": "Cameriere",
+
+  "edit": "Modifica",
+  "delete": "Elimina",
+  "add_new_member": "Aggiungi nuovo membro",
+  "first_name": "Nome",
+  "last_name": "Cognome",
+  "loyalty_points": "Punti fedeltà",
+  "register_staff": "Registra nuovo personale",
+  "staff": "Personale",
+  "customers": "Clienti",
+  "search": "Cerca",
+  "show_deleted": "Mostra eliminati",
+  "previous": "Precedente",
+  "next": "Successivo",
+  "name": "Nome",
+  "role": "Ruolo",
+  "no_users_found": "Nessun utente trovato",
+
+  "confirmation": "Conferma",
+  "delete_user_confirmation_message": "Sei sicuro di voler eliminare questo utente?",
+  "yes": "Sì",
+  "cancel": "Annulla",
+  "success": "Successo",
+  "error": "Errore",
+  "user_deleted_successfully": "Utente eliminato con successo",
+  "failed_to_delete_user": "Impossibile eliminare l'utente",
+  "delete_user_error": "Si è verificato un errore durante l'eliminazione dell'utente",
+  "ok": "OK"
 }
   

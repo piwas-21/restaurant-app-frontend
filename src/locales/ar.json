@@ -373,6 +373,34 @@
   "roles.customer": "عميل",
   "roles.cashier": "أمين صندوق",
   "roles.kitchen-staff": "طاقم المطبخ",
-  "roles.server": "نادل"
+  "roles.server": "نادل",
+
+  "edit": "تعديل",
+  "delete": "حذف",
+  "add_new_member": "إضافة عضو جديد",
+  "first_name": "الاسم الأول",
+  "last_name": "اسم العائلة",
+  "loyalty_points": "نقاط الولاء",
+  "register_staff": "تسجيل موظف جديد",
+  "staff": "الموظفون",
+  "customers": "العملاء",
+  "search": "بحث",
+  "show_deleted": "عرض المحذوفات",
+  "previous": "السابق",
+  "next": "التالي",
+  "name": "الاسم",
+  "role": "الدور",
+  "no_users_found": "لم يتم العثور على مستخدمين",
+
+  "confirmation": "تأكيد",
+  "delete_user_confirmation_message": "هل أنت متأكد أنك تريد حذف هذا المستخدم؟",
+  "yes": "نعم",
+  "cancel": "إلغاء",
+  "success": "نجاح",
+  "error": "خطأ",
+  "user_deleted_successfully": "تم حذف المستخدم بنجاح",
+  "failed_to_delete_user": "فشل في حذف المستخدم",
+  "delete_user_error": "حدث خطأ أثناء حذف المستخدم",
+  "ok": "موافق"
 }
   

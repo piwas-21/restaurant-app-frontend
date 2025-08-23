@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import styles from "../../styles/AdminPage.module.css";
 
@@ -18,6 +19,7 @@ interface DailySpecial {
 }
 
 export default function SpecialsManagementPage() {
+  const { t } = useTranslation();
   const [specials, setSpecials] = useState<DailySpecial[]>(initialSpecials);
   const [isLoading] = useState(false);
   const [error] = useState('');
@@ -37,7 +39,7 @@ export default function SpecialsManagementPage() {
       <section className={styles.adminContent}>
         <button className={`${styles.adminButton} ${styles.add}`}>Add New Special</button>
         {isLoading && <p>Loading specials...</p>}
-        {error && <p className="errorMessage">Error: {error}</p>}
+        {error && <p className="errorMessage">{t('error')}: {error}</p>}
         {!isLoading && !error && (
           <div className={styles.adminTableContainer}>
             <table className={styles.adminTable}>

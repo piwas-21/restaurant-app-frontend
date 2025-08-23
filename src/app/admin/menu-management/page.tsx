@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import styles from "../../styles/AdminPage.module.css";
 
@@ -20,6 +21,8 @@ interface MenuItem {
 }
 
 export default function MenuManagementPage() {
+  const { t } = useTranslation();
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isLoading] = useState(false);
   const [error] = useState('');
@@ -47,7 +50,7 @@ export default function MenuManagementPage() {
       <section className={styles.adminContent}>
         <button className={`${styles.adminButton} ${styles.add}`}>Add New Menu Item</button>
         {isLoading && <p>Loading menu items...</p>}
-        {error && <p className="errorMessage">Error: {error}</p>}
+        {error && <p className="errorMessage">{t('error')}: {error}</p>}
         {!isLoading && !error && (
           <div className={styles.adminTableContainer}>
             <table className={styles.adminTable}>
@@ -66,7 +69,7 @@ export default function MenuManagementPage() {
                     <td>{item.name_en}</td>
                     <td>{item.category}</td>
                     <td>{item.price.toFixed(2)}</td>
-                    <td>{item.availability ? 'Yes' : 'No'}</td>
+                    <td>{item.availability ? t('yes') : t('no')}</td>
                     <td>
                       <button className={`${styles.adminButton} ${styles.edit}`}>Edit</button>
                       <button

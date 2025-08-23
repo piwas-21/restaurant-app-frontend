@@ -1,175 +1,248 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import styles from "../../styles/AdminPage.module.css";
-import { registerStaff, staffRegistrationSchema } from "../../../lib/auth/utils";
-import { z } from "zod";
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { fetchUsers, deleteStaff } from '@/services/userService';
+import styles from '@/app/styles/AdminPage.module.css';
+import RegisterStaffModal from '@/components/admin/RegisterStaffModal';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
+import ResultModal from '@/components/common/ResultModal';
 
-// Mock data - replace with API calls
-const initialMembers = [
-  { id: "m1", firstName: "John", lastName: "Doe", email: "john.doe@example.com", loyalty_points: 150 },
-  { id: "m2", firstName: "Jane", lastName: "Smith", email: "jane.smith@example.com", loyalty_points: 275 },
-];
+const MemberManagementPage = () => {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('customers');
+  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-interface Member {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  loyalty_points: number;
-}
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [resultModalMessage, setResultModalMessage] = useState('');
+  const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
 
-export default function MemberManagementPage() {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [isLoading] = useState(false);
-  const [error] = useState("");
-  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
-  const [registrationError, setRegistrationError] = useState<string | null>(null);
-  const [registrationSuccess, setRegistrationSuccess] = useState<string | null>(null);
 
-  // Form state
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("cashier");
-
-  const handleEditMember = (memberId: string) => {
-    console.log("Edit member:", memberId);
-    alert(`Editing member ${memberId} - functionality to be implemented.`);
-  };
-
-  const handleDeleteMember = (memberId: string) => {
-    if (confirm("Are you sure you want to delete this member?")) {
-      setMembers(prevMembers => prevMembers.filter(m => m.id !== memberId));
-    }
-  };
-
-  const handleRegistrationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegistrationError(null);
-    setRegistrationSuccess(null);
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const token = user.accessToken;
-
-    if (!token) {
-      setRegistrationError("Unauthorized. Please log in again.");
-      return;
-    }
-
+  const getUsers = async () => {
+    setError(null);
     try {
-      const formData = { firstName, lastName, email, password, confirmPassword, role };
-      staffRegistrationSchema.parse(formData);
+      const role = activeTab === 'customers' ? 'Customer' : '';
+      const token = localStorage.getItem('token');
+      const data = await fetchUsers(
+        role,
+        showDeleted,
+        searchTerm,
+        page,
+        pageSize
+      );
+      if (data.success) {
+        const fetchedUsers = data.data.items;
+        const usersToDisplay =
+          activeTab === 'staff'
+            ? fetchedUsers.filter((user: any) => user.role !== 'Customer')
+            : fetchedUsers;
 
-      const response = await registerStaff(formData, token);
-
-      if (response.success) {
-        setRegistrationSuccess(response.message);
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-        setRole("cashier");
-        setShowRegistrationForm(false);
+        setUsers(usersToDisplay);
+        setTotalCount(data.data.totalCount);
       } else {
-        setRegistrationError(response.message || "Failed to register staff.");
+        setError('Failed to fetch users');
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        setRegistrationError(error.errors.map(e => e.message).join(", "));
-      } else {
-        setRegistrationError("An unknown error occurred.");
+      setError('An error occurred while fetching users');
+    }
+  };
+
+  useEffect(() => {
+    getUsers();
+  }, [activeTab, searchTerm, showDeleted, page, pageSize]);
+
+  const handleEdit = (user: any) => {
+    // Handle edit logic
+  };
+
+  const handleDeleteClick = (user: any) => {
+    setUserToDelete(user);
+    setIsConfirmationModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (userToDelete) {
+      setIsConfirmationModalOpen(false);
+      try {
+        const data = await deleteStaff(userToDelete.id);
+        if (data.success) {
+          setResultModalMessage(t('user_deleted_successfully'));
+          setIsResultModalSuccess(true);
+          getUsers(); // Refresh the list after deletion
+        } else {
+          setResultModalMessage(data.message || t('failed_to_delete_user'));
+          setIsResultModalSuccess(false);
+        }
+      } catch (error) {
+        setResultModalMessage(t('delete_user_error'));
+        setIsResultModalSuccess(false);
+      } finally {
+        setIsResultModalOpen(true);
+        setUserToDelete(null);
       }
     }
   };
 
+  const handleCloseResultModal = () => {
+    setIsResultModalOpen(false);
+    setResultModalMessage('');
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const handleStaffRegistered = () => {
+    getUsers();
+  }
 
   return (
-    <main className={styles.adminContainer}>
-      <header className={styles.adminHeader}>
-        <h1>Manage Members</h1>
+    <div className={styles.adminContainer}>
+      <div className={styles.adminHeader}>
+        <h1>{t('admin_member_management_title')}</h1>
         <div>
-        <button onClick={() => setShowRegistrationForm(!showRegistrationForm)} className={styles.adminButton}>
-            {showRegistrationForm ? "Cancel" : "Register New Staff"}
+          <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsRegisterModalOpen(true)}>
+            {t('register_staff')}
           </button>
-        <Link href="/admin/dashboard" className={styles.adminButton} style={{ backgroundColor: "#6c757d", color: "white", textDecoration: "none" }}>Back to Dashboard</Link>
+          <button className={styles.adminButton}>
+            Back to Dashboard
+          </button>
         </div>
-      </header>
-
-      {showRegistrationForm && (
-        <section className={styles.adminContent}>
-          <h2>Register New Staff</h2>
-          <form onSubmit={handleRegistrationSubmit}>
-            {registrationError && <p className="errorMessage">{registrationError}</p>}
-            {registrationSuccess && <p className="successMessage">{registrationSuccess}</p>}
-            <div className={styles.formGroup}>
-              <label htmlFor="firstName">First Name</label>
-              <input type="text" id="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="lastName">Last Name</label>
-              <input type="text" id="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="email">Email</label>
-              <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="password">Password</label>
-              <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <input type="password" id="confirmPassword" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="role">Role</label>
-              <select id="role" value={role} onChange={e => setRole(e.target.value)}>
-                <option value="cashier">Cashier</option>
-                <option value="kitchen-staff">Kitchen Staff</option>
-                <option value="server">Server</option>
-              </select>
-            </div>
-            <button type="submit" className={styles.adminButton}>Register</button>
-          </form>
-        </section>
-      )}
-
-      <section className={styles.adminContent}>
-        {isLoading && <p>Loading members...</p>}
-        {error && <p className="errorMessage">Error: {error}</p>}
-        {!isLoading && !error && (
-          <div className={styles.adminTableContainer}>
-            <table className={styles.adminTable}>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Loyalty Points</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map(member => (
-                  <tr key={member.id}>
-                    <td>{member.firstName} {member.lastName}</td>
-                    <td>{member.email}</td>
-                    <td>{member.loyalty_points}</td>
+      </div>
+      <div className={styles.adminContent}>
+        <nav className={styles.adminNav}>
+          <ul>
+            <li>
+              <a
+                href="#"
+                className={activeTab === 'customers' ? styles.activeLink : ''}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab('customers');
+                }}
+              >
+                {t('customers')}
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className={activeTab === 'staff' ? styles.activeLink : ''}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab('staff');
+                }}
+              >
+                {t('staff')}
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <div className={styles.filtersContainer}>
+          <div className={styles.formGroup}>
+            <input
+              type="text"
+              placeholder={t('search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label>
+              <input
+                type="checkbox"
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+              {t('show_deleted')}
+            </label>
+          </div>
+        </div>
+        {error && <p className={styles.error}>{error}</p>}
+        <div className={styles.adminTableContainer}>
+          <table className={styles.adminTable}>
+            <thead>
+              <tr>
+                <th>{t('first_name')}</th>
+                <th>{t('last_name')}</th>
+                <th>{t('email_label')}</th>
+                <th>{t('role')}</th>
+                <th>{t('actions_header')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length > 0 ? (
+                users.map((user: any) => (
+                  <tr key={user.id}>
+                    <td>{user.firstName}</td>
+                    <td>{user.lastName}</td>
+                    <td>{user.email}</td>
+                    <td>{user.role}</td>
                     <td>
-                      <button onClick={() => handleEditMember(member.id)} className={`${styles.adminButton} ${styles.edit}`}>Edit</button>
-                      <button onClick={() => handleDeleteMember(member.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
+                      <button
+                        className={`${styles.adminButton} ${styles.edit}`}
+                        onClick={() => handleEdit(user)}
+                      >
+                        {t('edit')}
+                      </button>
+                      <button
+                        className={`${styles.adminButton} ${styles.delete}`}
+                        onClick={() => handleDeleteClick(user)}
+                      >
+                        {t('delete')}
+                      </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </main>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5}>{t('no_users_found')}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.pagination}>
+          <button onClick={() => setPage(page - 1)} disabled={page === 1}>
+            {t('previous')}
+          </button>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(page + 1)}
+            disabled={page === totalPages}
+          >
+            {t('next')}
+          </button>
+        </div>
+      </div>
+      <RegisterStaffModal 
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        onStaffRegistered={handleStaffRegistered}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        message={t('delete_user_confirmation_message', { name: userToDelete?.firstName + ' ' + userToDelete?.lastName })}
+      />
+      <ResultModal
+        isOpen={isResultModalOpen}
+        onClose={handleCloseResultModal}
+        message={resultModalMessage}
+        isSuccess={isResultModalSuccess}
+      />
+    </div>
   );
-}
+};
+
+export default MemberManagementPage;

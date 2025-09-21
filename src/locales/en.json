@@ -500,5 +500,19 @@
   "suggested_side_items": "Suggested Side Items",
   "item_name": "Item Name",
   "price": "Price",
-  "required": "Required"
+  "required": "Required",
+  "welcome_admin": "Welcome, Admin!",
+  "admin_dashboard_welcome_message": "Select an option from the navigation to manage restaurant data.",
+  "set_as_primary": "Set as Primary",
+  "sort_order": "Sort Order",
+  "loading_categories":"Loading categories...",
+  "delete_image_confirmation_message": "Are you sure you want to delete this image?",
+  "image_gallery": "Image Gallery",
+  "delete_product": "Delete Product",
+  "delete_product_confirmation_message": "Are you sure you want to delete this product?",
+  "upload_more_images": "Upload More Images",
+  "no_images_found": "No images found for this product.",
+  "upload_images": "Upload Images",
+  "save_uploads": "Save Uploads",
+  "files_staged": "{{count}} files staged for upload"
 }

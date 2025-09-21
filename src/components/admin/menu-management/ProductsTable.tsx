@@ -47,7 +47,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, erro
                   <button onClick={() => onDelete(product.id)} className={`${styles.adminButton} ${styles.delete}`}>
                     {t('delete')}
                   </button>
-                  <Link href={`/admin/menu-management/${product.id}`} className={`${styles.adminButton} ${styles.details}`}>
+                  <Link href={`/admin/menu-management/${product.id}`} className={`${styles.adminButton} ${styles.view}`}>
                     {t('details')}
                   </Link>
                 </td>

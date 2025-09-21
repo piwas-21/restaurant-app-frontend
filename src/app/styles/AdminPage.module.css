@@ -264,13 +264,6 @@
   color: white;
 }
 
-
-.adminButton.details {
-  background-color: var(--info-color, #17a2b8);
-  color: white;
-}
-
-
 .adminButton.add {
   background-color: var(--success-color, #28a745);
   color: white;
@@ -423,6 +416,11 @@
 
 [data-theme="dark"] .adminButton.delete {
   background-color: var(--error-color, #c94c4c);
+}
+
+[data-theme="dark"] .adminButton.view {
+  background-color: var(--info-color-dark, #17a2b8);
+  color: var(--text-color, #e0e0e0);
 }
 
 [data-theme="dark"] .adminButton.add {

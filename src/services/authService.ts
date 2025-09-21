@@ -44,3 +44,35 @@ export async function refreshToken() {
     }
     return data;
 }
+
+// Customer registration
+export type CustomerRegistrationPayload = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
+export async function registerCustomer(formData: CustomerRegistrationPayload) {
+  const response = await fetch(`${API_BASE_URL}/api/User/register/customer`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      accept: 'text/plain',
+    },
+    body: JSON.stringify(formData),
+  });
+
+  const data = await response.json();
+  if (response.ok && data?.success) {
+    try {
+      if (data.data?.accessToken) localStorage.setItem('token', data.data.accessToken);
+      if (data.data?.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
+    } catch (e) {
+      // localStorage may be unavailable; ignore and let caller proceed
+      console.warn('Could not persist tokens to localStorage', e);
+    }
+  }
+  return data;
+}

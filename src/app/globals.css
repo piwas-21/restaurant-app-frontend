@@ -13,10 +13,10 @@
   --error-color: #f44336;
   --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
-  --info-color: #2196F3;
-  --info-color-light: #BBDEFB;
-  --info-color-xlight: #E3F2FD;
-  --info-color-dark: #1565C0;
+  --info-color: #28c2d9;
+  --info-color-light: #66bcc9;
+  --info-color-xlight: #8ae0ee;
+  --info-color-dark: #156a77;
   --nav-link-color: var(--text-color);
   --nav-link-hover-bg: rgba(0, 0, 0, 0.1);
   --nav-link-active-color: var(--primary-color);
@@ -25,7 +25,7 @@
   --success-color-dark: #388e3c;
   --warning-color: #FFA500;
   --warning-color-light: #FFDAB9;
-  --warning-color-xlight: #FFF5E1; 
+  --warning-color-xlight: #FFF5E1;
   --warning-color-dark: #A06000;
   --danger-color: #dc3545;
   --primary-color-xlight: rgba(0, 123, 255, 0.1);
@@ -108,6 +108,33 @@ a:hover {
   background-color: var(--nav-link-active-bg);
   color: var(--nav-link-active-color);
   font-weight: 700; /* Make active link bolder */
+}
+
+/* Homepage overlay: in light mode, keep dark-mode nav styles for contrast */
+html:not([data-theme="dark"]) body.is-homepage .nav-link {
+  color: #f0f0f0; /* Dark mode text color */
+}
+html:not([data-theme="dark"]) body.is-homepage .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Dark mode hover bg */
+  color: #f0f0f0;
+}
+html:not([data-theme="dark"]) body.is-homepage .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.05); /* Dark mode active bg */
+  color: #e06666; /* Dark mode primary */
+}
+html:not([data-theme="dark"]) body.is-homepage .hamburgerMenu {
+  color: #f0f0f0;
+}
+
+/* Homepage overlay header: override variables to dark-like values for controls */
+html:not([data-theme="dark"]) .home-overlay-header {
+  --text-color: #f0f0f0;
+  --border-color: rgba(255, 255, 255, 0.4);
+  --secondary-color: rgba(255, 255, 255, 0.12); /* hover backgrounds, etc. */
+  --background-color: rgba(0, 0, 0, 0.85); /* dropdown backgrounds */
+  --nav-link-hover-bg: rgba(255, 255, 255, 0.10);
+  --nav-link-active-bg: rgba(255, 255, 255, 0.06);
+  --nav-link-active-color: #e06666;
 }
 
 

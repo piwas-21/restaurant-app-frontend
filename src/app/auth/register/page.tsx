@@ -5,11 +5,13 @@ import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import styles from "@/AuthPage.module.css";
 import { useRouter } from 'next/navigation';
-import { registerCustomer } from '@/authService';
 import { customerRegistrationSchema } from '@/schemas/auth.schema';
+import { registerCustomer } from '@/authService';
+import { useAuth } from '@/components/AuthContext';
 
 export default function RegisterPage() {
   const { t } = useTranslation();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -42,10 +44,15 @@ export default function RegisterPage() {
 
     try {
       const response = await registerCustomer(formData);
-      if (response.success) {
-        router.push('/auth/login');
+      if (response?.success) {
+        // Auto-login in context and redirect home
+        if (response.data) {
+          login(response.data);
+        }
+        router.push('/');
       } else {
-        setError(response.message || "Failed to register.");
+        const apiErrors = Array.isArray(response?.errors) ? response.errors.join(', ') : '';
+        setError(apiErrors || response?.message || "Failed to register.");
       }
     } catch (err) {
       setError("An unexpected error occurred.");

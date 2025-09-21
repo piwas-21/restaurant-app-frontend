@@ -508,5 +508,19 @@
   "suggested_side_items": "Contorni suggeriti",
   "item_name": "Nome dell’articolo",
   "price": "Prezzo",
-  "required": "Obbligatorio"
+  "required": "Obbligatorio",
+  "welcome_admin": "Benvenuto, Admin!",
+  "admin_dashboard_welcome_message": "Seleziona un’opzione dal menu per gestire i dati del ristorante.",
+  "set_as_primary": "Imposta come principale",
+  "sort_order": "Ordine di ordinamento",
+  "loading_categories": "Caricamento categorie...",
+  "delete_image_confirmation_message": "Sei sicuro di voler eliminare questa immagine?",
+  "image_gallery": "Galleria di immagini",
+  "delete_product": "Elimina prodotto",
+  "delete_product_confirmation_message": "Sei sicuro di voler eliminare questo prodotto?",
+  "upload_more_images": "Carica altre immagini",
+  "no_images_found": "Nessuna immagine trovata per questo prodotto.",
+  "upload_images": "Carica immagini",
+  "save_uploads": "Salva caricamenti",
+  "files_staged": "{{count}} file pronto/i per il caricamento"
 }

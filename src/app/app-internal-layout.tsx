@@ -38,7 +38,10 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     // Language and other effects...
   }, []);
 
-  const logoSrc = theme === 'dark' ? "/rumi_logo_transparent_dark.png" : "/rumi_logo_transparent.png";
+  const useDarkLogoOnHome = isHomePage && theme !== 'dark';
+  const logoSrc = (theme === 'dark' || useDarkLogoOnHome)
+    ? "/rumi_logo_transparent_dark.png"
+    : "/rumi_logo_transparent.png";
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -47,15 +50,17 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     color: "var(--text-color)",
     zIndex: 1000,
     height: headerHeight,
-    position: "sticky",
+    position: isHomePage ? "absolute" : "sticky",
     top: 0,
-    backgroundColor: "var(--secondary-color)",
-    borderBottom: "1px solid var(--border-color)",
+    left: 0,
+    right: 0,
+    backgroundColor: isHomePage ? "transparent" : "var(--secondary-color)",
+    borderBottom: isHomePage ? "none" : "1px solid var(--border-color)",
     width: "100%",
   };
 
   const mainStyles: CSSProperties = {
-    padding: "1rem",
+    padding: isHomePage ? "0" : "1rem",
     flexGrow: 1,
   };
 
@@ -95,8 +100,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {isAdminPage && <Sidebar />}
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', marginLeft: isAdminPage ? sidebarWidth : "0" }}>
-        {!isHomePage && (
-          <header style={headerStyles}>
+        {
+          <header style={headerStyles} className={isHomePage && theme !== 'dark' ? 'home-overlay-header' : undefined}>
             <div style={{
               maxWidth: "1200px",
               margin: "0 auto",
@@ -125,7 +130,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
               </nav>
             </div>
           </header>
-        )}
+        }
         <main style={mainStyles}>
             {children}
         </main>

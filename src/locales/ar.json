@@ -508,5 +508,20 @@
   "suggested_side_items": "عناصر جانبية مقترحة",
   "item_name": "اسم العنصر",
   "price": "السعر",
-  "required": "مطلوب"
+  "required": "مطلوب",
+    "welcome_admin": "مرحباً، أيها المدير!",
+  "admin_dashboard_welcome_message": "اختر خياراً من القائمة لإدارة بيانات المطعم.",
+  "set_as_primary": "تعيين كأساسي",
+  "sort_order": "ترتيب الفرز",
+  "save_changes": "حفظ التغييرات",
+  "loading_categories": "جارٍ تحميل الفئات...",
+  "delete_image_confirmation_message": "هل أنت متأكد أنك تريد حذف هذه الصورة؟",
+  "image_gallery": "معرض الصور",
+  "delete_product": "حذف المنتج",
+  "delete_product_confirmation_message": "هل أنت متأكد أنك تريد حذف هذا المنتج؟",
+  "upload_more_images": "تحميل المزيد من الصور",
+  "no_images_found": "لا توجد صور لهذا المنتج.",
+  "upload_images": "تحميل الصور",
+  "save_uploads": "حفظ التحميلات",
+  "files_staged": "{{count}} ملف/ملفات جاهزة للتحميل"
 }

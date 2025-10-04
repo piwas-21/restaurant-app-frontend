@@ -89,8 +89,7 @@ describe('userService', () => {
       const result = await userService.deleteStaff(userId);
 
       expect(apiClient.delete).toHaveBeenCalledWith(
-        '/api/User/delete/user',
-        { userId }
+        '/api/User/delete/user/user123'
       );
       expect(result).toEqual(mockResponse);
     });

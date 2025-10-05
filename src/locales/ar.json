@@ -534,5 +534,26 @@
 
   "delete_confirmation": "هل أنت متأكد من حذف هذا العنصر؟",
   "add": "إضافة",
-  "save": "حفظ"
+  "save": "حفظ",
+
+  "specialOfTheDay": "طبق اليوم",
+  "starters": "مقبلات",
+  "durum": "لفائف الدوروم",
+  "pide": "بيدا (بيتزا تركية)",
+  "pizza": "بيتزا",
+  "grill": "مشويات",
+  "soups": "شوربات",
+  "salads": "السلطات",
+  "meze": "المقبلات",
+  "vegetarianDishes": "أطباق نباتية",
+  "veganDishes": "أطباق نباتية خالية من المنتجات الحيوانية",
+  "seafood": "أطباق المأكولات البحرية",
+  "kidsMenu": "قائمة الأطفال",
+  "sideDishes": "الأطباق الجانبية",
+  "sauces": "الصلصات",
+  "turkishSpecialty": "أطباق تركية خاصة",
+  "orientalSpecialty": "أطباق شرقية خاصة",
+  "dessert": "حلويات",
+  "hotDrink": "مشروبات ساخنة",
+  "coldDrink": "مشروبات باردة"
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import styles from "@/app/styles/MenuPage.module.css";
 import type { ApiCategory } from "@/types/menu";
 
@@ -13,7 +14,41 @@ type Props = {
 
 export const ALL_ITEMS_KEY = "all" as const;
 
+// Map API category names to translation keys
+function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
+  const mapping: { [key: string]: string } = {
+    'Starters': 'starters',
+    'Grills': 'grill',
+    'Grill': 'grill',
+    'Dessert': 'dessert',
+    'Desserts': 'dessert',
+    'Dürüm Wraps': 'durum',
+    'Durum Wraps': 'durum',
+    'Hot Drinks': 'hotDrink',
+    'Cold Drinks': 'coldDrink',
+    'Drinks': 'hotDrink', // Default to hot drinks, might need more logic
+    'Pizza': 'pizza',
+    'Pide': 'pide',
+    'Turkish Specialties': 'turkishSpecialty',
+    'Oriental Specialties': 'orientalSpecialty',
+    'Special of the Day': 'specialOfTheDay',
+    'Soups': 'soups'
+  };
+
+  return mapping[apiCategoryName] || apiCategoryName.toLowerCase();
+}
+
 export default function CategoryNav({ categories, selectedView, onSelect, allLabel }: Props) {
+  const { t } = useTranslation();
+
+  const getCategoryDisplayName = (categoryName: string) => {
+    const translationKey = mapCategoryNameToTranslationKey(categoryName);
+    const translatedName = t(translationKey);
+
+    // If translation exists and is different from the key, use it; otherwise use API name
+    return translatedName !== translationKey ? translatedName : categoryName;
+  };
+
   return (
     <nav className={styles.stickyNav} aria-label="Category Navigation">
       <button
@@ -31,7 +66,7 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
           onClick={() => onSelect(cat.id)}
           aria-pressed={selectedView === cat.id}
         >
-          {cat.name}
+          {getCategoryDisplayName(cat.name)}
         </button>
       ))}
     </nav>

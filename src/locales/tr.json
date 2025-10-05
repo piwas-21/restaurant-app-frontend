@@ -536,5 +536,26 @@
 
   "delete_confirmation": "Bu öğeyi silmek istediğinizden emin misiniz?",
   "add": "Ekle",
-  "save": "Kaydet"
+  "save": "Kaydet",
+
+  "specialOfTheDay": "Günün Özeli",
+  "starters": "Başlangıçlar",
+  "durum": "Dürüm",
+  "pide": "Pide",
+  "pizza": "Pizza",
+  "grill": "Izgara",
+  "soups": "Çorbalar",
+  "salads": "Salatalar",
+  "meze": "Meze (Başlangıçlar)",
+  "vegetarianDishes": "Vejetaryen Yemekler",
+  "veganDishes": "Vegan Yemekler",
+  "seafood": "Deniz Ürünleri",
+  "kidsMenu": "Çocuk Menüsü",
+  "sideDishes": "Yan Yemekler",
+  "sauces": "Soslar",
+  "turkishSpecialty": "Türk Mutfağı Özel",
+  "orientalSpecialty": "Doğu Mutfağı Özel",
+  "dessert": "Tatlılar",
+  "hotDrink": "Sıcak İçecekler",
+  "coldDrink": "Soğuk İçecekler"
 }

@@ -12,6 +12,30 @@ import type { MenuItem } from "@/types/menu";
 import ImageModal from "@/components/menu/ImageModal";
 import MenuList from "@/components/menu/MenuList";
 
+// Map API category names to translation keys
+function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
+  const mapping: { [key: string]: string } = {
+    'Starters': 'starters',
+    'Grills': 'grill',
+    'Grill': 'grill',
+    'Dessert': 'dessert',
+    'Desserts': 'dessert',
+    'Dürüm Wraps': 'durum',
+    'Durum Wraps': 'durum',
+    'Hot Drinks': 'hotDrink',
+    'Cold Drinks': 'coldDrink',
+    'Drinks': 'hotDrink', // Default to hot drinks, might need more logic
+    'Pizza': 'pizza',
+    'Pide': 'pide',
+    'Turkish Specialties': 'turkishSpecialty',
+    'Oriental Specialties': 'orientalSpecialty',
+    'Special of the Day': 'specialOfTheDay',
+    'Soups': 'soups'
+  };
+
+  return mapping[apiCategoryName] || apiCategoryName.toLowerCase();
+}
+
 export default function MenuPage() {
   const { t, i18n } = useTranslation();
 
@@ -116,8 +140,16 @@ export default function MenuPage() {
   const categoryDisplayName =
     selectedView === ALL_ITEMS_KEY
       ? t("all_categories_nav")
-      : categoriesForNav.find((c) => c.id === selectedView)?.name ||
-        String(selectedView);
+      : (() => {
+          const category = categoriesForNav.find((c) => c.id === selectedView);
+          if (!category) return String(selectedView);
+
+          const translationKey = mapCategoryNameToTranslationKey(category.name);
+          const translatedName = t(translationKey);
+
+          // If translation exists and is different from the key, use it; otherwise use API name
+          return translatedName !== translationKey ? translatedName : category.name;
+        })();
   const displayError = errorLoadingItems
     ? t(
         selectedView === ALL_ITEMS_KEY

@@ -527,5 +527,26 @@
 
   "delete_confirmation": "Are you sure to delete this item?",
   "add": "Add",
-  "save": "Save"
+  "save": "Save",
+
+  "specialOfTheDay": "Special of the Day",
+  "starters": "Starters",
+  "durum": "Dürüm Wraps",
+  "pide": "Pide (Turkish Pizza)",
+  "pizza": "Pizza",
+  "grill": "Grill",
+  "soups": "Soups",
+  "salads": "Salads",
+  "meze": "Meze (Appetizers)",
+  "vegetarianDishes": "Vegetarian Dishes",
+  "veganDishes": "Vegan Dishes",
+  "seafood": "Seafood Dishes",
+  "kidsMenu": "Kids Menu",
+  "sideDishes": "Side Dishes",
+  "sauces": "Sauces",
+  "turkishSpecialty": "Turkish Specialties",
+  "orientalSpecialty": "Oriental Specialties",
+  "dessert": "Desserts",
+  "hotDrink": "Hot Drinks",
+  "coldDrink": "Cold Drinks"
 }

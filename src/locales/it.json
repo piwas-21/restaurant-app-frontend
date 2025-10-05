@@ -535,5 +535,26 @@
 
   "delete_confirmation": "Sei sicuro di voler eliminare questo elemento?",
   "add": "Aggiungi",
-  "save": "Salva"
+  "save": "Salva",
+
+  "specialOfTheDay": "Offerta del Giorno",
+  "starters": "Antipasti",
+  "durum": "Piadine Dürüm",
+  "pide": "Pide (Pizza Turca)",
+  "pizza": "Pizza",
+  "grill": "Griglia",
+  "soups": "Zuppe",
+  "salads": "Insalate",
+  "meze": "Meze (Antipasti)",
+  "vegetarianDishes": "Piatti Vegetariani",
+  "veganDishes": "Piatti Vegani",
+  "seafood": "Piatti di Pesce",
+  "kidsMenu": "Menù per Bambini",
+  "sideDishes": "Contorni",
+  "sauces": "Salse",
+  "turkishSpecialty": "Specialità Turche",
+  "orientalSpecialty": "Specialità Orientali",
+  "dessert": "Dessert",
+  "hotDrink": "Bevande Calde",
+  "coldDrink": "Bevande Fredde"
 }

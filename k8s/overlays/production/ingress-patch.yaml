@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rumi-restaurant-web-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit-rps: "20"
+spec:
+  tls:
+  - hosts:
+    - rumirestaurant.com
+    secretName: rumi-restaurant-web-tls
+  rules:
+  - host: rumirestaurant.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rumi-restaurant-web-service
+            port:
+              number: 80

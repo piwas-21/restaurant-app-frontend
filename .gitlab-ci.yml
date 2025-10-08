@@ -11,6 +11,7 @@ stages:
     - cache
     - test
     - build
+    - deploy_pipeline
 
 # create_cache:
 #     stage: cache
@@ -92,6 +93,13 @@ build_image:
     script:
         - docker build -t $MS_NAME:$MS_VERSION .
         - docker push $MS_NAME:$MS_VERSION
+
+trigger_deploy_pipeline:
+  stage: deploy_pipeline
+  trigger:
+    project: restaurant-app3282120/rumi-argocd-gitops
+    branch: main
+    strategy: depend
 
 # Docker Image Scanning
 

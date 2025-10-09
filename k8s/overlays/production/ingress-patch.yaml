@@ -8,10 +8,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - rumirestaurant.com
+    - rumirestaurant.ch
     secretName: rumi-restaurant-web-tls
   rules:
-  - host: rumirestaurant.com
+  - host: rumirestaurant.ch
     http:
       paths:
       - path: /

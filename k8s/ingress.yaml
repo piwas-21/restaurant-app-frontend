@@ -32,10 +32,10 @@ spec:
   # Uncomment and modify for SSL termination
   # tls:
   # - hosts:
-  #   - your-domain.com
+  #   - rumirestaurant.ch
   #   secretName: rumi-restaurant-web-tls
   rules:
-  - host: your-domain.com  # Replace with your actual domain
+  - host: rumirestaurant.ch  # Replace with your actual domain
     http:
       paths:
       - path: /

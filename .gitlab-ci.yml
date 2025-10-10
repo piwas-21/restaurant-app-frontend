@@ -3,7 +3,7 @@
 #     IMAGE_TAG: $CI_PIPELINE_IID
 
 variables:
-  MS_NAME: $CI_REGISTRY_IMAGE
+  MS_NAME: rumi-restaurant-web
   MS_VERSION: $CI_PIPELINE_IID
 
 

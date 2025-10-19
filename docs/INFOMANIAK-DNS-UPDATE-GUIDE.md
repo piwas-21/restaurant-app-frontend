@@ -21,7 +21,7 @@ The Ingress configuration in `base/ingress.yaml` uses annotations that tell the 
 annotations:
   alb.ingress.kubernetes.io/scheme: internet-facing
   alb.ingress.kubernetes.io/target-type: ip
-  alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:670079155071:certificate/ba079074-05de-49e4-b8d5-a7a75e6ac82a
+  alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:<AWS_ACCOUNT_ID>:certificate/ba079074-05de-49e4-b8d5-a7a75e6ac82a
 ```
 
 ### DNS Flow
@@ -54,7 +54,7 @@ User Request (rumirestaurant.ch)
 ### Method 1: From DevOps Team
 The DevOps team should provide the ALB endpoint when they provision a new cluster. It will look like:
 ```
-k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
+<ALB_ENDPOINT>
 ```
 
 ### Method 2: Retrieve from Kubernetes
@@ -69,7 +69,7 @@ export AWS_DEFAULT_REGION=eu-central-1
 
 # Assume the admin role
 eval $(aws sts assume-role \
-  --role-arn arn:aws:iam::670079155071:role/external-admin \
+  --role-arn arn:aws:iam::<AWS_ACCOUNT_ID>:role/external-admin \
   --role-session-name rumi-dns-update | \
   jq -r '.Credentials | "export AWS_ACCESS_KEY_ID=\(.AccessKeyId)\nexport AWS_SECRET_ACCESS_KEY=\(.SecretAccessKey)\nexport AWS_SESSION_TOKEN=\(.SessionToken)\n"')
 ```
@@ -86,7 +86,7 @@ kubectl get ingress rumi-restaurant-web -n rumi -o jsonpath='{.status.loadBalanc
 
 This will output something like:
 ```
-k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
+<ALB_ENDPOINT>
 ```
 
 ## Step 2: Update Infomaniak DNS Records
@@ -129,7 +129,7 @@ TTL: 3600
 ```
 Type: CNAME
 Name: www
-Value: k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com.
+Value: <ALB_ENDPOINT>.
 TTL: 3600
 ```
 
@@ -141,7 +141,7 @@ The root domain (`@` or `rumirestaurant.ch`) uses A records pointing to the ALB 
 **To get the current IPs:**
 ```bash
 # Get IPs from the ALB endpoint
-dig +short k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
+dig +short <ALB_ENDPOINT>
 ```
 
 **Update the A records:**
@@ -217,7 +217,7 @@ dig www.rumirestaurant.ch CNAME +short
 
 Expected output:
 ```
-k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com.
+<ALB_ENDPOINT>.
 ```
 
 4. **Verify end-to-end resolution:**
@@ -376,7 +376,7 @@ The AWS Load Balancer Controller:
 
 **Current ALB Endpoint:**
 ```
-k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
+<ALB_ENDPOINT>
 ```
 
 **Current Root Domain IPs:**
@@ -386,7 +386,7 @@ k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
 
 **AWS Region:** eu-central-1  
 **EKS Cluster:** z2h-eks  
-**ACM Certificate ARN:** arn:aws:acm:eu-central-1:670079155071:certificate/ba079074-05de-49e4-b8d5-a7a75e6ac82a
+**ACM Certificate ARN:** arn:aws:acm:eu-central-1:<AWS_ACCOUNT_ID>:certificate/ba079074-05de-49e4-b8d5-a7a75e6ac82a
 
 ### Useful Commands
 
@@ -395,7 +395,7 @@ k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
 kubectl get ingress rumi-restaurant-web -n rumi -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 
 # Resolve ALB IPs
-dig +short k8s-rumi-rumirest-d55098070e-1359988842.eu-central-1.elb.amazonaws.com
+dig +short <ALB_ENDPOINT>
 
 # Check DNS from Infomaniak nameservers
 dig @ns11.infomaniak.ch www.rumirestaurant.ch

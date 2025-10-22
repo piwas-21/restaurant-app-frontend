@@ -13,55 +13,120 @@
   display: none; /* Hidden on desktop */
   background: none;
   border: none;
-  font-size: 28px; /* Hamburger icon size */
   cursor: pointer;
   color: var(--text-color); /* Uses global CSS variable */
-  z-index: 1101; /* Above mobile menu */
+  z-index: 1101; /* Above mobile menu and backdrop */
   padding: 0.5rem; /* Easier to tap */
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  position: relative;
+}
+
+.hamburgerMenu:hover {
+  opacity: 0.7;
+  transform: scale(1.05);
+}
+
+.hamburgerMenu:active {
+  transform: scale(0.95);
+}
+
+.hamburgerMenu svg {
+  display: block;
 }
 
 [data-theme="dark"] .hamburgerMenu {
   color: var(--text-color); /* text-color variable is updated for dark theme */
 }
 
-.switcherGroup { 
+.switcherGroup {
   /* Styles for desktop view if needed - by default, they'll be flex items due to parent */
   display: contents; /* Makes the div not affect layout in flex container on desktop */
 }
 
+/* Cart badge counter */
+.cartBadge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Mobile menu backdrop */
+.mobileMenuBackdrop {
+  display: none;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1099;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.mobileMenuBackdrop.visible {
+  display: block;
+  opacity: 1;
+}
+
 /* Mobile and Tablet specific styles */
 @media (max-width: 768px) {
+  /* Adjust cart badge position for mobile menu */
+  .cartBadge {
+    position: relative;
+    top: 0;
+    right: 0;
+    margin-left: 0.5rem;
+    transform: none;
+  }
+
   .navLinksContainer {
     display: none; /* Hidden by default on mobile/tablet */
     flex-direction: column;
-    position: fixed; 
-    top: 80px; 
+    position: fixed;
+    top: 80px;
     right: 0;
-    left: 0;
-    bottom: 0; 
+    width: 280px; /* Fixed width - about 1/3 of mobile screen */
+    max-width: 80vw; /* Don't exceed 80% of viewport on very small screens */
+    height: calc(100vh - 80px); /* Full height minus header */
     background-color: var(--background-color);
-    border-top: 1px solid var(--border-color);
-    padding: 1rem 0; 
-    z-index: 1100; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    gap: 0; 
-    align-items: stretch; 
-    overflow-y: auto; 
+    border-left: 1px solid var(--border-color);
+    padding: 1rem 0;
+    z-index: 1100;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+    gap: 0;
+    align-items: stretch;
+    overflow-y: auto;
+    transform: translateX(100%); /* Start off-screen to the right */
+    transition: transform 0.3s ease-in-out;
   }
 
   .navLinksContainer.mobileMenuOpen {
-    display: flex; 
+    display: flex;
+    transform: translateX(0); /* Slide in from right */
   }
-  
-  .navLinksContainer.mobileMenuOpen > *, 
+
+  .navLinksContainer.mobileMenuOpen > *,
   .navLinksContainer.mobileMenuOpen .nav-link {
-    padding: 0.75rem 1.5rem; 
+    padding: 0.75rem 1.5rem;
     width: 100%;
-    text-align: left; 
+    text-align: left;
     border-bottom: 1px solid var(--border-color);
     box-sizing: border-box;
   }
-  
+
   .navLinksContainer.mobileMenuOpen > *:last-child,
   .navLinksContainer.mobileMenuOpen .nav-link:last-of-type {
     border-bottom: none;
@@ -71,23 +136,27 @@
   .navLinksContainer.mobileMenuOpen .switcherGroup {
     display: flex; /* Use flex for the group itself */
     flex-direction: column; /* Stack switchers vertically */
-    align-items: flex-start; /* Align switchers to the left */
-    padding: 0.75rem 1.5rem; /* Consistent padding with other menu items */
-    gap: 0.75rem; /* Space between Language and Theme switcher */
+    align-items: stretch; /* Stretch to full width */
+    padding: 0; /* Remove padding - let individual buttons handle it */
+    gap: 0; /* Remove gap - borders will separate */
     width: 100%; /* Make the group take full width like other items */
-    border-bottom: 1px solid var(--border-color); /* Separator line like other items */
+    border-bottom: none; /* No border on group itself */
   }
 
-  /* Ensure buttons/elements inside LanguageSwitcher and ThemeSwitcher don't stretch if they are direct children of .switcherGroup's flex items */
+  /* Ensure buttons/elements inside LanguageSwitcher and ThemeSwitcher take full width */
   .navLinksContainer.mobileMenuOpen .switcherGroup > * {
-    width: auto; /* Allow switchers to take their natural width */
+    width: 100%; /* Full width like nav links */
+    border-bottom: 1px solid var(--border-color); /* Add border to each switcher */
   }
-  
-  /* If LanguageSwitcher or ThemeSwitcher are wrapped by another div by default, target the actual button/select */
-  .navLinksContainer.mobileMenuOpen .switcherGroup button,
-  .navLinksContainer.mobileMenuOpen .switcherGroup select {
-    width: auto; /* Prevent stretching of internal buttons/selects */
-    min-width: 150px; /* Optional: ensure a minimum tap target size or consistent look */
+
+  /* Switcher buttons should match nav link padding */
+  .navLinksContainer.mobileMenuOpen .switcherGroup button {
+    padding: 0.75rem 1.5rem; /* Match nav link padding */
+  }
+
+  /* Remove bottom border from last switcher */
+  .navLinksContainer.mobileMenuOpen .switcherGroup > *:last-child {
+    border-bottom: none;
   }
 
   /* Remove bottom border from the switcher group if it's the last item */
@@ -96,7 +165,7 @@
   }
 
   [data-theme="dark"] .navLinksContainer.mobileMenuOpen {
-    background-color: var(--secondary-color); 
+    background-color: var(--secondary-color);
     border-top-color: var(--border-color);
   }
 
@@ -105,9 +174,9 @@
   [data-theme="dark"] .navLinksContainer.mobileMenuOpen .switcherGroup {
     border-bottom-color: var(--border-color);
   }
-  
+
   .hamburgerMenu {
-    display: block; 
+    display: block;
   }
 }
 
@@ -123,8 +192,8 @@
     padding: 0 !important;
     align-items: center !important;
     gap: 1rem !important;
-    bottom: auto; 
-    overflow-y: visible; 
+    bottom: auto;
+    overflow-y: visible;
   }
   .hamburgerMenu {
     display: none !important;

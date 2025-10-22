@@ -7,75 +7,104 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
-  border-radius: 50%;
-  overflow: hidden;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.dropdownToggle:hover {
+  background-color: var(--nav-link-hover-bg);
+  transform: scale(1.05);
+}
+
+.dropdownToggle:active {
+  transform: scale(0.95);
 }
 
 .avatar {
-  border-radius: 50%;
-  border: 2px solid var(--border-color); /* Use theme variable */
-  transition: border-color 0.3s;
-  stroke: var(--text-color); /* Use theme variable for SVG stroke */
+  color: var(--text-color);
+  transition: color 0.2s ease;
 }
 
 .dropdownToggle:hover .avatar,
 .dropdownToggle:focus .avatar {
-  border-color: var(--primary-color); /* Use theme variable */
+  color: var(--primary-color);
 }
 
 .dropdownMenu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   right: 0;
-  background-color: var(--secondary-color); /* Use theme variable */
-  border: 1px solid var(--border-color); /* Use theme variable */
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  min-width: 160px;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/* On mobile, ensure dropdown doesn't overflow screen */
+@media (max-width: 768px) {
+  .dropdownMenu {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 180px;
+  }
 }
 
 .userInfo {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color); /* Use theme variable */
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--background-color);
 }
 
 .userName {
-  font-weight: bold;
+  font-weight: 600;
   margin: 0;
-  color: var(--text-color); /* Use theme variable */
+  color: var(--text-color);
+  font-size: 0.95rem;
 }
 
 .userRole {
-  font-size: 0.9em;
-  color: var(--text-secondary-color); /* Use theme variable */
-  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary-color);
+  margin: 4px 0 0 0;
+  text-transform: capitalize;
 }
 
 .logoutButton {
   background: none;
   border: none;
-  padding: 12px 16px;
+  padding: 0.75rem 1.25rem;
   width: 100%;
   text-align: left;
   cursor: pointer;
   color: #d9534f;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  border-top: 1px solid var(--border-color);
 }
 
 .logoutButton:hover {
-  background-color: var(--hover-color); /* Use theme variable */
+  background-color: rgba(217, 83, 79, 0.08);
 }
 
 .dropdownLink {
-  padding: 12px 16px;
+  padding: 0.75rem 1.25rem;
   color: var(--text-color);
   text-decoration: none;
   display: block;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .dropdownLink:hover {
-  background-color: var(--hover-color);
+  background-color: var(--nav-link-hover-bg);
 }

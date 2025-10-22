@@ -2,28 +2,35 @@
 
 .languageSwitcher {
   position: relative;
-  display: inline-block;
+  display: block;
+  width: 100%;
   font-family: var(--font-family-sans);
 }
 
 .dropdownToggle {
   background-color: transparent;
   color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem 0.75rem;
+  border: none;
+  padding: 0.5rem 0.8rem;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-  min-width: 80px;
-  justify-content: space-between;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  min-width: auto;
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .dropdownToggle:hover {
-  background-color: var(--secondary-color);
-  border-color: #bbb;
+  background-color: var(--nav-link-hover-bg);
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.dropdownToggle:active {
+  transform: scale(0.95);
 }
 
 .dropdownToggle:disabled {
@@ -61,7 +68,7 @@
   margin: 0;
   list-style: none;
   z-index: 1000;
-  min-width: 150px; 
+  min-width: 150px;
 }
 
 .dropdownItem {
@@ -92,12 +99,11 @@
 html[data-theme='dark'] .dropdownToggle {
   background-color: transparent;
   color: var(--text-color);
-  border: 1px solid var(--border-color);
+  border: none;
 }
 
 html[data-theme='dark'] .dropdownToggle:hover {
-  background-color: var(--secondary-color);
-  border-color: #555;
+  background-color: var(--nav-link-hover-bg);
 }
 
 html[data-theme='dark'] .dropdownMenu {

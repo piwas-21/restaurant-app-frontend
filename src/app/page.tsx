@@ -5,6 +5,7 @@ import styles from "./styles/HomePage.module.css";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import FooterCookieLink from "@/components/FooterCookieLink";
+import { UtensilsCrossed, CalendarCheck } from "lucide-react";
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
@@ -29,8 +30,8 @@ export default function HomePage() {
 
   return (
     <div className={styles.homeContainer}>
-      <section 
-        className={styles.heroHeaderSection} 
+      <section
+        className={styles.heroHeaderSection}
         style={{ backgroundImage: `url(${backgroundImageUrl})` }}
         aria-labelledby="hero-heading"
       >
@@ -39,13 +40,19 @@ export default function HomePage() {
           <h1 id="hero-heading" className={styles.heroTitle}>{isClient ? t("home_hero_title") : "Discover Authentic Turkish Flavors"}</h1>
           <p className={styles.heroSubtitle}>{isClient ? t("home_hero_subtitle") : "Your journey into rich tastes and traditions begins here."}</p>
           <div className={styles.ctaButtons}>
-              <Link href="/menu" className={styles.ctaButtonPrimary} role="button">{isClient ? t("home_menu_cta") : "View Menu"}</Link>
-              <Link href="/reservations" className={styles.ctaButtonSecondary} role="button">{isClient ? t("home_reservations_cta") : "Book a Table"}</Link>
+              <Link href="/menu" className={styles.ctaButtonPrimary} role="button">
+                <UtensilsCrossed size={24} strokeWidth={2.5} />
+                <span className={styles.ctaButtonText}>{isClient ? t("home_menu_cta") : "View Menu"}</span>
+              </Link>
+              <Link href="/reservations" className={styles.ctaButtonSecondary} role="button">
+                <CalendarCheck size={24} strokeWidth={2.5} />
+                <span className={styles.ctaButtonText}>{isClient ? t("home_reservations_cta") : "Book a Table"}</span>
+              </Link>
           </div>
         </div>
       </section>
 
-      <div className={styles.pageContentWrapper}> 
+      <div className={styles.pageContentWrapper}>
         <section className={styles.storySection} aria-labelledby="story-heading">
           <h2 id="story-heading">{isClient ? t("home_story_title") : "Our Story"}</h2>
           <p>{isClient ? t("home_story_content") : "RUMI is more than just a restaurant; it's a place where Turkish culinary traditions are celebrated with a modern twist. Our chefs use the freshest ingredients to bring you an unforgettable dining experience."}</p>
@@ -67,13 +74,13 @@ export default function HomePage() {
             {isClient ? t("phone_label") : "Phone"}: <a href={`tel:${t("rumi_phone_number").replace(/\s/g, "")}`}>{isClient ? t("rumi_phone_number") : "+41 22 786 33 33"}</a>
           </address>
           <div className={styles.mapContainer}>
-            <iframe 
+            <iframe
               src={googleMapsEmbedUrl}
-              width="100%" 
-              height="450" 
-              style={{border:0}} 
-              allowFullScreen={true} 
-              loading="lazy" 
+              width="100%"
+              height="450"
+              style={{border:0}}
+              allowFullScreen={true}
+              loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title={isClient ? t("google_maps_iframe_title") : "Location of RUMI Restaurant"}
               aria-label={isClient ? t("google_maps_iframe_aria_label") : "Google Maps showing location of RUMI Restaurant"}

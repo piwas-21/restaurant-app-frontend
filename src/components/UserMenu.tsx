@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import Image from 'next/image';
+import { UserCircle } from 'lucide-react';
 import styles from '../app/styles/UserMenu.module.css';
 import { useAuth } from './AuthContext';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ export default function UserMenu() {
         aria-expanded={dropdownOpen}
         aria-label={t('user_menu.aria_label')}
       >
-        <Image src="/images/avatar.svg" alt={t('user_menu.avatar_alt')} width={40} height={40} className={styles.avatar} />
+        <UserCircle size={32} strokeWidth={1.5} className={styles.avatar} />
       </button>
 
       {dropdownOpen && (

@@ -17,6 +17,8 @@ import FooterCookieLink from "@/components/FooterCookieLink";
 import UserMenu from "@/components/UserMenu";
 import { useAuth } from "@/components/AuthContext";
 import Sidebar from "@/components/admin/Sidebar";
+import { Home, UtensilsCrossed, CalendarCheck, ShoppingCart, LayoutDashboard, Menu, X } from "lucide-react";
+import { useCart } from "@/components/cart/CartContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +26,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const [isClient, setIsClient] = useState(false);
   const { theme } = useTheme();
   const { user, isLoading } = useAuth();
+  const { state: cartState } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const isHomePage = pathname === '/';
@@ -32,6 +35,9 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerHeight = "80px";
   const sidebarWidth = "250px";
+
+  // Calculate total cart items
+  const cartItemCount = cartState.items.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     setIsClient(true);
@@ -78,20 +84,49 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     if (role === 'admin') {
       return (
         <>
-          <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_home', 'Home')}</Link>
-          <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_menu', 'Menu')}</Link>
-          <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_reservations', 'Reservations')}</Link>
-          <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_cart', 'Cart')}</Link>
-          <Link href="/admin/dashboard" className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`} onClick={closeMobileMenu}>{t('admin_dashboard_title')}</Link>
+          <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <Home size={18} />
+            <span>{t('nav_home', 'Home')}</span>
+          </Link>
+          <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <UtensilsCrossed size={18} />
+            <span>{t('nav_menu', 'Menu')}</span>
+          </Link>
+          <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <CalendarCheck size={18} />
+            <span>{t('nav_reservations', 'Reservations')}</span>
+          </Link>
+          <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <ShoppingCart size={18} />
+            <span>{t('nav_cart', 'Cart')}</span>
+            {cartItemCount > 0 && <span className={navStyles.cartBadge}>{cartItemCount}</span>}
+          </Link>
+          <Link href="/admin/dashboard" className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <LayoutDashboard size={18} />
+            <span>{t('admin_dashboard_title')}</span>
+          </Link>
         </>
       );
     }
     return (
       <>
-        <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_home', 'Home')}</Link>
-        <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_menu', 'Menu')}</Link>
-        <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_reservations', 'Reservations')}</Link>
-        <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={closeMobileMenu}>{t('nav_cart', 'Cart')}</Link>
+        <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>
+          <Home size={18} />
+          <span>{t('nav_home', 'Home')}</span>
+        </Link>
+        <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={closeMobileMenu}>
+          <UtensilsCrossed size={18} />
+          <span>{t('nav_menu', 'Menu')}</span>
+        </Link>
+        <Link href="/reservations" className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`} onClick={closeMobileMenu}>
+          <CalendarCheck size={18} />
+          <span>{t('nav_reservations', 'Reservations')}</span>
+        </Link>
+        <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={closeMobileMenu}>
+          <ShoppingCart size={18} />
+          <span>{t('nav_cart', 'Cart')}</span>
+          {cartItemCount > 0 && <span className={navStyles.cartBadge}>{cartItemCount}</span>}
+        </Link>
       </>
     );
   };
@@ -114,8 +149,14 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                 <Image src={logoSrc} alt="RUMI Restaurant Logo" width={180} height={90} style={{ marginRight: "10px", objectFit: "contain", maxHeight: `calc(${headerHeight} - 10px)` }} priority />
               </Link>
               <button className={navStyles.hamburgerMenu} onClick={toggleMobileMenu} aria-label={isClient ? (mobileMenuOpen ? t('close_menu') : t('open_menu')) : "Open menu"} aria-expanded={mobileMenuOpen}>
-                {/* SVG icons */}
+                {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
               </button>
+              {/* Mobile menu backdrop */}
+              <div
+                className={`${navStyles.mobileMenuBackdrop} ${mobileMenuOpen ? navStyles.visible : ''}`}
+                onClick={closeMobileMenu}
+                aria-hidden="true"
+              />
               <nav className={`${navStyles.navLinksContainer} ${mobileMenuOpen ? navStyles.mobileMenuOpen : ''}`}>
                 {renderNavLinks()}
                 {isClient && !isLoading && (

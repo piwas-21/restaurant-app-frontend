@@ -11,7 +11,20 @@
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 1.5rem;
-  color: var(--text-color); /* Use CSS variable */
+  color: var(--primary-color); /* Use primary color for the icon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pageTitle svg {
+  color: var(--primary-color); /* Ensure icon uses primary color */
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.pageTitle svg:hover {
+  transform: scale(1.1); /* Slight scale on hover */
+  color: var(--link-hover-color); /* Change color on hover */
 }
 
 /* Sticky Category Navigation */
@@ -70,8 +83,12 @@
 
 .itemsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 380px));
   gap: 2.5rem;
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .menuItem {
@@ -87,6 +104,8 @@
   justify-content: space-between;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   color: var(--text-color); /* Ensure text within card uses theme color */
+  max-width: 380px;
+  width: 100%;
 }
 
 .menuItem:hover {
@@ -745,8 +764,13 @@
     font-size: 1.8rem;
   }
   .itemsGrid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
     gap: 1.5rem;
+    justify-content: center;
+    padding: 0 1rem;
+  }
+  .menuItem {
+    max-width: 360px;
   }
   .menuItem h3 {
     font-size: 1.4rem;
@@ -795,6 +819,13 @@
   }
   .itemsGrid {
     grid-template-columns: 1fr;
+    max-width: 400px;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .menuItem {
+    max-width: 100%;
   }
   .menuItem h3 {
     font-size: 1.3rem;

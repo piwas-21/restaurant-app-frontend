@@ -11,12 +11,12 @@
   background-position: center;
   background-repeat: no-repeat;
   display: flex;
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: center; 
-  padding: calc(80px + 1.5rem) 2rem 1.5rem 2rem; 
-  position: relative; 
-  color: #ffffff; 
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(80px + 1.5rem) 2rem 1.5rem 2rem;
+  position: relative;
+  color: #ffffff;
 }
 
 .glassOverlay {
@@ -25,24 +25,24 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3); 
-  backdrop-filter: blur(2px); 
-  -webkit-backdrop-filter: blur(2px); 
-  z-index: 1; 
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 1;
 }
 
 .heroContent {
   text-align: center;
-  z-index: 2; 
-  position: relative; 
+  z-index: 2;
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
 }
 
 .heroTitle {
-  font-size: 3.5rem; 
+  font-size: 3.5rem;
   margin-bottom: 1rem;
   font-weight: 700;
   text-shadow: 0 2px 4px rgba(0,0,0,0.6);
@@ -57,7 +57,7 @@
 .ctaButtons {
     display: flex;
     justify-content: center;
-    gap: 1rem; 
+    gap: 1rem;
 }
 
 .ctaButtonPrimary {
@@ -69,51 +69,104 @@
   font-weight: bold;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  min-width: 50px;
+}
+
+.ctaButtonPrimary svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease-in-out;
+}
+
+.ctaButtonText {
+  display: inline-block;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.3s ease-in-out, opacity 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
 
 .ctaButtonPrimary:hover {
   background-color: transparent;
-  color: #ffffff; 
+  color: #ffffff;
   border-color: #ffffff;
   text-shadow: none;
+  padding-right: 1.5rem;
+}
+
+.ctaButtonPrimary:hover svg {
+  transform: scale(1.1);
+}
+
+.ctaButtonPrimary:hover .ctaButtonText {
+  max-width: 200px;
+  opacity: 1;
+  margin-left: 0.5rem;
 }
 
 .ctaButtonSecondary {
   background-color: transparent;
-  color: #ffffff; 
-  border: 2px solid #ffffff; 
+  color: #ffffff;
+  border: 2px solid #ffffff;
   padding: 0.8rem 1.5rem;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  min-width: 50px;
+}
+
+.ctaButtonSecondary svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease-in-out;
 }
 
 .ctaButtonSecondary:hover {
-  background-color: rgba(255, 255, 255, 0.9); 
-  color: var(--primary-color); 
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
   border-color: rgba(255, 255, 255, 0.9);
   text-shadow: none;
+  padding-right: 1.5rem;
+}
+
+.ctaButtonSecondary:hover svg {
+  transform: scale(1.1);
+}
+
+.ctaButtonSecondary:hover .ctaButtonText {
+  max-width: 200px;
+  opacity: 1;
+  margin-left: 0.5rem;
 }
 
 .pageContentWrapper {
   max-width: 1200px;
-  margin: 0 auto; 
-  padding: 2rem 1rem; 
+  margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
 .storySection, .openingHoursSection, .locationSection {
-  padding: 2rem 0; 
+  padding: 2rem 0;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
 }
 
-.storySection:last-child, 
-.openingHoursSection:last-child, 
+.storySection:last-child,
+.openingHoursSection:last-child,
 .locationSection:last-child {
     border-bottom: none;
 }
@@ -133,11 +186,11 @@
 }
 
 .homeFooter {
-  padding: 2rem 0; 
+  padding: 2rem 0;
   text-align: center;
   margin-top: 2rem;
   border-top: 1px solid var(--border-color);
-  color: var(--text-secondary); 
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -145,27 +198,36 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .heroHeaderSection {
-    padding: calc(80px + 1rem) 1rem 1rem 1rem; 
+    padding: calc(80px + 1rem) 1rem 1rem 1rem;
     height: 100vh;
   }
-  
+
   .heroTitle {
     font-size: 2.5rem;
   }
   .heroSubtitle {
     font-size: 1.2rem;
   }
-  
+
   .ctaButtons {
       flex-direction: column;
-      width: 80%; 
+      width: 80%;
       max-width: 300px;
   }
   .ctaButtonPrimary, .ctaButtonSecondary {
-    width: 100%; 
+    width: 100%;
     font-size: 0.9rem;
+    justify-content: center;
   }
-  
+
+  /* Show text by default on mobile (touch devices) */
+  .ctaButtonPrimary .ctaButtonText,
+  .ctaButtonSecondary .ctaButtonText {
+    max-width: 200px;
+    opacity: 1;
+    margin-left: 0.5rem;
+  }
+
   .pageContentWrapper {
      padding: 1.5rem 1rem;
   }

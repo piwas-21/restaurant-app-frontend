@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { Users, FolderTree, UtensilsCrossed, Sparkles } from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
 
 const Sidebar = () => {
@@ -11,10 +12,26 @@ const Sidebar = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/admin/member-management', label: t('admin_member_management_title') },
-    { href: '/admin/category-management', label: t('admin_category_management_title') },
-    { href: '/admin/menu-management', label: t('admin_menu_management_title') },
-    { href: '/admin/specials-management', label: t('admin_specials_management_title') },
+    {
+      href: '/admin/member-management',
+      label: t('admin_member_management_title'),
+      icon: Users
+    },
+    {
+      href: '/admin/category-management',
+      label: t('admin_category_management_title'),
+      icon: FolderTree
+    },
+    {
+      href: '/admin/menu-management',
+      label: t('admin_menu_management_title'),
+      icon: UtensilsCrossed
+    },
+    {
+      href: '/admin/specials-management',
+      label: t('admin_specials_management_title'),
+      icon: Sparkles
+    },
   ];
 
   return (
@@ -23,13 +40,20 @@ const Sidebar = () => {
       <hr className={styles.sidebarDivider} />
       <nav>
         <ul>
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <Link href={item.href} className={pathname.startsWith(item.href) ? styles.activeLink : ''}>
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={pathname.startsWith(item.href) ? styles.activeLink : ''}
+                >
+                  <Icon size={20} strokeWidth={2} />
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>

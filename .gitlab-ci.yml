@@ -1,42 +1,13 @@
 variables:
     IMAGE_NAME: $CI_REGISTRY_IMAGE
     IMAGE_TAG: $CI_PIPELINE_IID
-    SERVER_IP: 3.127.80.30
-    SERVER_USER: ubuntu
-
+    MS_NAME: rumi-restaurant-backend
+    MS_VERSION: $CI_PIPELINE_IID
 
 stages:
-# - cache
 - test
 - build
-- deploy
-- deploy-test
-
-# create_cache:
-#   stage: cache
-#   image: mcr.microsoft.com/dotnet/sdk:9.0
-#   variables:
-#     NUGET_PACKAGES: "$CI_PROJECT_DIR/.nuget/packages"
-#   script:
-#     - dotnet restore RestaurantSystem.sln --packages "$NUGET_PACKAGES"
-#   cache:
-#     key: "$CI_COMMIT_REF_SLUG"
-#     paths:
-#       - .nuget/packages/
-#     policy: push
-
-dotnet_test:
-  image: mcr.microsoft.com/dotnet/sdk:9.0
-  stage: test
-  # cache:
-  #   key: "$CI_COMMIT_REF_SLUG"
-  #   paths:
-  #     - ~/.nuget/packages/
-  #   policy: pull
-  before_script:
-    - dotnet restore RestaurantSystem.sln
-  script:
-    - dotnet test RestaurantSystem.sln --logger:"console;verbosity=normal"
+- deploy_pipeline
 
 # gitleaks is detecting hardcoded secrets in app source code
 
@@ -94,48 +65,15 @@ trivy:
     paths:
       - trivy.json
 
-# Deploy to test environment      
-
-deploy_test:
-  stage: deploy
-  image: debian:bullseye-slim
-  before_script:
-    - apt update -y && apt install -y openssh-client
-    - eval $(ssh-agent -s)
-    - chmod 400 "$SSH_PRIVATE_KEY"
-    - ssh-add "$SSH_PRIVATE_KEY"
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
-    - echo "" >> .env
-    - echo "CI_PIPELINE_IID=$CI_PIPELINE_IID" >> .env
-    - scp docker-compose-pro.yml .env $SERVER_USER@$SERVER_IP:/home/$SERVER_USER/
-
-  script:
-  - ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
-      docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
-      docker compose --env-file .env -f docker-compose-pro.yml down &&
-      docker image prune -f &&
-      docker images | grep 'registry.gitlab.com/restaurant-app3282120/backend/' | grep -v \"$CI_PIPELINE_IID\" | awk '{print \$3}' | xargs -r docker rmi -f &&
-      docker compose --env-file .env -f docker-compose-pro.yml pull &&
-      docker compose --env-file .env -f docker-compose-pro.yml up -d --remove-orphans
-    "
-  # when: manual
-
-# Dynamic Application Security Test (DAST)
-
-zap_baseline:
-  stage: deploy-test
-  needs: ["deploy_test"]
-  image: ghcr.io/zaproxy/zaproxy:stable
+trigger_deploy_pipeline:
+  stage: deploy_pipeline
   variables:
-    ZAP_TARGET: "http://3.127.80.30:3000"
-  before_script:
-    - mkdir -p /zap/wrk
-  script:
-    - zap-baseline.py -t $ZAP_TARGET -g gen.conf -I -x baseline.xml
-    - cp /zap/wrk/baseline.xml baseline.xml
-  artifacts:
-    when: always
-    paths:
-      - baseline.xml
+    MS_NAME: "rumi-restaurant-backend"
+    MS_VERSION: "$CI_PIPELINE_IID"
+  trigger:
+    project: restaurant-app3282120/rumi-argocd-gitops
+    branch: main
+    strategy: depend
+
+
+

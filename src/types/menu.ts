@@ -1,6 +1,7 @@
 export interface MenuItemContent {
   name: string;
   description: string;
+  ingredient: string;
 }
 
 export type DietaryTag = "vegan" | "halal" | "gluten-free" | "vegetarian" | string;
@@ -46,6 +47,7 @@ export type ProductType = 'mainItem' | 'sideItem' | 'beverage' | 'dessert' | 'sa
 export type ContentData = Record<string, {
   name: string;
   description?: string;
+  ingredient?: string;
 }>;
 
 export interface CreateProductData {

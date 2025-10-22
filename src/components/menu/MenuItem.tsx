@@ -33,6 +33,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Get current language - component will re-render when i18n.language changes
   const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
 
   const handleAddItemToCart = useCallback(() => {
@@ -55,14 +56,22 @@ const MenuItem: React.FC<MenuItemProps> = ({
     });
   }, [dispatch, enqueueSnackbar, t, currentLanguage, item]);
 
+  // Compute localized values - these will update when currentLanguage changes
   const itemName =
     item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
+
   const ingredientsText =
-    item.content?.[currentLanguage]?.description ||
-    item.content?.en?.description ||
+    item.content?.[currentLanguage]?.ingredient ||
+    item.content?.en?.ingredient ||
     (Array.isArray(item.ingredients) ? item.ingredients.join(', ') : '') ||
     "";
-  const productDescription = item.longDescription || "";
+
+  const productDescription =
+    item.content?.[currentLanguage]?.description ||
+    item.content?.en?.description ||
+    item.longDescription ||
+    "";
+
   const mainImageAlt =
     item.content?.[currentLanguage]?.name ||
     item.content?.en?.name ||

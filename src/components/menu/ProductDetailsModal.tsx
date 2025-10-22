@@ -60,16 +60,21 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
   const title = detailedProduct
     ? (detailedProduct.content?.[currentLanguage]?.name || detailedProduct.content?.en?.name || detailedProduct.name)
     : (item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name);
-  const description = detailedProduct?.description || item.longDescription || "";
+
+  const description = detailedProduct
+    ? (detailedProduct.content?.[currentLanguage]?.description || detailedProduct.content?.en?.description || detailedProduct.description || "")
+    : (item.content?.[currentLanguage]?.description || item.content?.en?.description || item.longDescription || "");
+
   const price = detailedProduct?.basePrice || (typeof item.price === 'number' ? item.price : parseFloat(item.price as any));
 
-  // For ingredients, use the detailed product ingredients array if available
-  const ingredients = detailedProduct?.ingredients ||
-    item.ingredients ||
-    (item.content?.[currentLanguage]?.description || item.content?.en?.description || "")
-      .split(/[\,\n;]+/)
-      .map(s => s.trim())
-      .filter(Boolean);
+  // Fallback to the base ingredients array if content.ingredient is not available
+  const ingredientsText = detailedProduct
+    ? (detailedProduct.content?.[currentLanguage]?.ingredient || detailedProduct.content?.en?.ingredient || "")
+    : (item.content?.[currentLanguage]?.ingredient || item.content?.en?.ingredient || "");
+
+  const ingredients = ingredientsText
+    ? ingredientsText.split(/[\,\n;]+/).map(s => s.trim()).filter(Boolean)
+    : (detailedProduct?.ingredients || item.ingredients || []);
 
   return createPortal(
     <div className={styles.productDetailsModal} onClick={onClose}>

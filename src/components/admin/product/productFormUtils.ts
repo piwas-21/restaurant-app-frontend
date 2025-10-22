@@ -39,12 +39,13 @@ export const submitProductForm = async ({
   setSubmissionStatus('creating');
   try {
     // Format content for the API
-    const content: { [key: string]: { name: string; description: string } } = {};
+    const content: { [key: string]: { name: string; description: string; ingredient: string } } = {};
 
     // Automatically add the main product data to content using the current user language
     content[currentLanguage] = {
       name: data.name,
-      description: data.ingredients || ''
+      description: data.description || '',
+      ingredient: data.ingredients || ''
     };
 
     // Add any additional multilingual content
@@ -52,7 +53,8 @@ export const submitProductForm = async ({
       if (item.language && item.language !== currentLanguage) {
         content[item.language] = {
           name: item.name,
-          description: item.description || ''
+          description: item.description || '',
+          ingredient: item.ingredient || ''
         };
       }
     });
@@ -112,11 +114,16 @@ export const submitEditProductForm = async ({
         language: String(e.language).trim(),
         name: String(e.name || '').trim(),
         description: (e.description ?? '').toString(),
+        ingredient: (e.ingredient ?? '').toString(),
       }));
 
     const formattedContent = cleanedContentArray.length > 0
       ? cleanedContentArray.reduce((acc: any, curr: any) => {
-          acc[curr.language] = { name: curr.name, description: curr.description };
+          acc[curr.language] = {
+            name: curr.name,
+            description: curr.description,
+            ingredient: curr.ingredient
+          };
           return acc;
         }, {})
       : undefined;

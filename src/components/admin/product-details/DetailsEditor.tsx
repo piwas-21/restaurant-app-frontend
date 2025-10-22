@@ -19,11 +19,21 @@ interface Props {
 }
 
 const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [ingredients, setIngredients] = useState(product.ingredients.join(', '));
   const [allergens, setAllergens] = useState<string[]>(product.allergens || []);
   const [categories, setCategories] = useState<Category[]>([]);
+
+  const currentLanguage = (i18n.language.split('-')[0] || 'en') as string;
+
+  // Get multilingual ingredients with fallback
+  const getLocalizedIngredients = () => {
+    return product.content?.[currentLanguage]?.ingredient ||
+           product.content?.en?.ingredient ||
+           product.ingredients.join(', ') ||
+           '';
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -62,7 +72,7 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
       </div>
       {!editing ? (
         <>
-          <p><strong>{t('ingredients')}:</strong> {product.ingredients.join(', ')}</p>
+          <p><strong>{t('ingredients')}:</strong> {getLocalizedIngredients()}</p>
           <div style={{ marginBottom: '1rem', justifyItems: 'flex-start', display: 'inline-flex' }}>
             <p style={{ marginRight: '1rem' }}><strong>{t('allergens')}:</strong></p>
             <AllergenDisplay

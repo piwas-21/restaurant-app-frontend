@@ -27,6 +27,7 @@ interface ContentData {
   [languageCode: string]: {
     name: string;
     description: string;
+    ingredient: string;
   };
 }
 

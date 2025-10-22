@@ -27,7 +27,8 @@ const createProductSchema = z.object({
   content: z.array(z.object({
     name: z.string(),
     language: z.string(),
-    description: z.string()
+    description: z.string(),
+    ingredient: z.string()
   })),
   preparationTimeMinutes: z.number().optional(),
   displayOrder: z.number().optional()
@@ -84,11 +85,12 @@ export const useProductForm = (onSuccess: () => void): UseProductFormResult => {
     setSubmissionStatus('creating');
     try {
       // Format content for the API
-      const formattedContent: { [key: string]: { name: string; description: string } } = {};
+      const formattedContent: { [key: string]: { name: string; description: string; ingredient: string } } = {};
       data.content.forEach(item => {
         formattedContent[item.language] = {
           name: item.name,
-          description: item.description
+          description: item.description,
+          ingredient: item.ingredient
         };
       });
 

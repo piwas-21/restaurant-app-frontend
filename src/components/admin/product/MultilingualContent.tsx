@@ -56,7 +56,8 @@ export const MultilingualContent: React.FC<MultilingualContentProps> = ({
               );
             })()}
             <input {...register(`content.${index}.name`)} placeholder={t('name_in_language')} />
-            <textarea {...register(`content.${index}.description`)} placeholder={t('ingredients_in_language')} />
+            <textarea {...register(`content.${index}.description`)} placeholder={t('description_in_language')} />
+            <textarea {...register(`content.${index}.ingredient`)} placeholder={t('ingredients_in_language')} />
           </div>
         </div>
       ))}
@@ -69,7 +70,7 @@ export const MultilingualContent: React.FC<MultilingualContentProps> = ({
           const unavailableLanguages = [...usedLanguages, currentLanguage];
           const nextAvailableLanguage = supportedLanguages.find(lang => !unavailableLanguages.includes(lang)) || '';
 
-          appendContent({ language: nextAvailableLanguage, name: '', description: '' });
+          appendContent({ language: nextAvailableLanguage, name: '', description: '', ingredient: '' });
         }}
       >
         {t('add_language_translation')}

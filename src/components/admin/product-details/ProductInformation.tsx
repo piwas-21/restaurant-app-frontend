@@ -22,7 +22,7 @@ interface ProductInformationProps {
 }
 
 const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpdated }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState({
@@ -35,6 +35,16 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
     isSpecial: (product as any) && (product as any).isSpecial ? (product as any).isSpecial : false,
     preparationTimeMinutes: product.preparationTimeMinutes,
   });
+
+  const currentLanguage = (i18n.language.split('-')[0] || 'en') as string;
+
+  // Get multilingual description with fallback
+  const getLocalizedDescription = () => {
+    return product.content?.[currentLanguage]?.description ||
+           product.content?.en?.description ||
+           product.description ||
+           '';
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -82,7 +92,7 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
       {!editing ? (
         <>
           <p>
-            <strong>{t('description')}:</strong> {product.description}
+            <strong>{t('description')}:</strong> {getLocalizedDescription()}
           </p>
           <p>
             <strong>{t('base_price')}:</strong> CHF{product.basePrice.toFixed(2)}

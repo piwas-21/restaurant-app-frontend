@@ -37,6 +37,7 @@ export interface ContentItem {
   language: string;
   name: string;
   description?: string;
+  ingredient?: string;
 }
 
 export interface ProductFormData {

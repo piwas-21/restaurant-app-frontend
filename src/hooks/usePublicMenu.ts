@@ -49,10 +49,14 @@ export function usePublicMenu() {
         const normalizedContent = hasContent
           ? Object.keys(p.content).reduce((acc: any, lang: string) => {
               const v = p.content[lang] || {};
-              acc[lang] = { name: v.name || p.name, description: v.description || '' };
+              acc[lang] = {
+                name: v.name || p.name,
+                description: v.description || '',
+                ingredient: v.ingredient || ''
+              };
               return acc;
             }, {})
-          : { en: { name: p.name, description: p.description || '' } };
+          : { en: { name: p.name, description: p.description || '', ingredient: '' } };
         return {
           id: p.id,
           name: p.name || 'Unnamed Item', // Base name for fallback

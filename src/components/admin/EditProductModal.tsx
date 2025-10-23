@@ -91,6 +91,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         language: lang,
         name: data.name,
         description: data.description,
+        ingredient: data.ingredient,
       })) : [];
 
       const safeCategoryIds = (product.categories?.map((c: any) => c.categoryId).filter((x: any) => !!x) || []) as string[];

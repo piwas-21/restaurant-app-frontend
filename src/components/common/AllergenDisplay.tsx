@@ -6,26 +6,26 @@ import styles from '@/app/styles/MenuPage.module.css';
 
 // Helper function to get allergen styling and icon
 export function getAllergenInfo(allergen: string) {
-  const allergenLower = allergen.toLowerCase();
+  const allergenLower = allergen.toLowerCase().replace(/ /g, '_');
 
   // Define allergen types with their styling and icons
   const allergenMap: { [key: string]: { icon: string; className: string } } = {
     vegan: { icon: '🌱', className: 'vegan' },
     vegetarian: { icon: '🥬', className: 'vegetarian' },
-    'gluten free': { icon: '🌾', className: 'glutenFree' },
-    'dairy free': { icon: '🥛', className: 'dairyFree' },
-    'nut free': { icon: '🥜', className: 'nutFree' },
+    gluten_free: { icon: '🚫🌾', className: 'glutenFree' },
+    dairy_free: { icon: '🚫🥛', className: 'dairyFree' },
+    nut_free: { icon: '🚫🥜', className: 'nutFree' },
     halal: { icon: '☪️', className: 'halal' },
     kosher: { icon: '✡️', className: 'kosher' },
-    'contains nuts': { icon: '⚠️', className: 'warning' },
-    'contains dairy': { icon: '⚠️', className: 'warning' },
-    'contains gluten': { icon: '⚠️', className: 'warning' },
-    'contains soy': { icon: '⚠️', className: 'warning' },
-    'contains eggs': { icon: '⚠️', className: 'warning' },
+    contains_nuts: { icon: '🥜', className: 'warning' },
+    contains_dairy: { icon: '🧈', className: 'warning' },
+    contains_gluten: { icon: '🌾', className: 'warning' },
+    contains_soy: { icon: '🫘', className: 'warning' },
+    contains_eggs: { icon: '🥚', className: 'warning' },
     spicy: { icon: '🌶️', className: 'spicy' },
-    'sugar free': { icon: '🍯', className: 'sugarFree' },
+    sugar_free: { icon: '🚫🍬', className: 'sugarFree' },
     organic: { icon: '🌿', className: 'organic' },
-    'low sodium': { icon: '🧂', className: 'lowSodium' },
+    low_sodium: { icon: '🧂⬇️', className: 'lowSodium' },
   };
 
   // Check for exact matches first
@@ -109,21 +109,26 @@ export default function AllergenDisplay({
       <div className={`${styles.allergensContent} ${className}`}>
         {shown.map((allergen, idx) => {
           const { icon, className: allergenClassName } = getAllergenInfo(allergen);
+          const translationKey = `allergen_${allergen.toLowerCase().replace(/ /g, '_')}`;
+          const displayText = t(translationKey, allergen.replace(/_/g, ' '));
           return (
             <span
               key={`${id}-allergen-${idx}`}
               className={`${styles.allergenTag} ${styles[allergenClassName]}`}
-              title={allergen}
+              title={displayText}
             >
               <span className={styles.allergenIcon}>{icon}</span>
-              <span className={styles.allergenText}>{allergen}</span>
+              <span className={styles.allergenText}>{displayText}</span>
             </span>
           );
         })}
         {remaining > 0 && (
           <span
             className={`${styles.allergenTag} ${styles.more}`}
-            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).join(', ')}`}
+            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(a => {
+              const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
+              return t(key, a.replace(/_/g, ' '));
+            }).join(', ')}`}
           >
             +{remaining}
           </span>
@@ -139,14 +144,16 @@ export default function AllergenDisplay({
         <div className={styles.allergensContent}>
           {allergens.map((allergen, idx) => {
             const { icon, className: allergenClassName } = getAllergenInfo(allergen);
+            const translationKey = `allergen_${allergen.toLowerCase().replace(/ /g, '_')}`;
+            const displayText = t(translationKey, allergen.replace(/_/g, ' '));
             return (
               <span
                 key={`${id}-allergen-${idx}`}
                 className={`${styles.allergenTag} ${styles[allergenClassName]}`}
-                title={allergen}
+                title={displayText}
               >
                 <span className={styles.allergenIcon}>{icon}</span>
-                <span className={styles.allergenText}>{allergen}</span>
+                <span className={styles.allergenText}>{displayText}</span>
               </span>
             );
           })}
@@ -162,21 +169,26 @@ export default function AllergenDisplay({
       <div className={styles.allergensContent}>
         {shown.map((allergen, idx) => {
           const { icon, className: allergenClassName } = getAllergenInfo(allergen);
+          const translationKey = `allergen_${allergen.toLowerCase().replace(/ /g, '_')}`;
+          const displayText = t(translationKey, allergen.replace(/_/g, ' '));
           return (
             <span
               key={`${id}-allergen-${idx}`}
               className={`${styles.allergenTag} ${styles[allergenClassName]}`}
-              title={allergen}
+              title={displayText}
             >
               <span className={styles.allergenIcon}>{icon}</span>
-              <span className={styles.allergenText}>{allergen}</span>
+              <span className={styles.allergenText}>{displayText}</span>
             </span>
           );
         })}
         {remaining > 0 && (
           <span
             className={`${styles.allergenTag} ${styles.more}`}
-            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).join(', ')}`}
+            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(a => {
+              const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
+              return t(key, a.replace(/_/g, ' '));
+            }).join(', ')}`}
           >
             +{remaining}
           </span>

@@ -39,7 +39,7 @@ export default function CartPage() {
     setIsApplyingPromo(true);
     try {
       await applyPromoCode(promoCode.trim());
-      setPromoCode(''); // Clear input on success
+      setPromoCode('');
     } finally {
       setIsApplyingPromo(false);
     }
@@ -104,128 +104,128 @@ export default function CartPage() {
           {state.items.map((item) => {
             const itemId = item.basketItemId || item.id || item.productId;
             return (
-            <div key={itemId} className={styles.cartItem}>
-              {/* Item Image */}
-              {item.productImageUrl && (
-                <div className={styles.itemImageContainer}>
-                  <Image
-                    src={item.productImageUrl}
-                    alt={item.productName || 'Product'}
-                    width={120}
-                    height={120}
-                    className={styles.itemImage}
-                  />
-                </div>
-              )}
-
-              {/* Item Details */}
-              <div className={styles.itemDetails}>
-                <h2 className={styles.itemName}>{item.productName || 'Unknown Item'}</h2>
-                {item.productDescription && (
-                  <p className={styles.itemDescription}>{item.productDescription}</p>
+              <div key={itemId} className={styles.cartItem}>
+                {/* Item Image */}
+                {item.productImageUrl && (
+                  <div className={styles.itemImageContainer}>
+                    <Image
+                      src={item.productImageUrl}
+                      alt={item.productName || 'Product'}
+                      width={120}
+                      height={120}
+                      className={styles.itemImage}
+                    />
+                  </div>
                 )}
-                {item.variationName && (
-                  <p className={styles.itemVariation}>{item.variationName}</p>
-                )}
-                <p className={styles.itemPrice}>CHF {item.unitPrice.toFixed(2)} {t('per_item', 'per item')}</p>
 
-                {/* Special Instructions */}
-                <div className={styles.instructionsContainer}>
-                  {editingInstructions === itemId ? (
-                    <div className={styles.instructionsEdit}>
-                      <textarea
-                        value={instructionsValue}
-                        onChange={(e) => setInstructionsValue(e.target.value)}
-                        placeholder={t('special_instructions_placeholder', 'Add special instructions...')}
-                        className={styles.instructionsTextarea}
-                        rows={3}
-                      />
-                      <div className={styles.instructionsActions}>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveInstructions(itemId, item.quantity, instructionsValue)}
-                          className={styles.saveButton}
-                          disabled={state.isSyncing}
-                        >
-                          {t('save', 'Save')}
-                        </button>
+                {/* Item Details */}
+                <div className={styles.itemDetails}>
+                  <h2 className={styles.itemName}>{item.productName || 'Unknown Item'}</h2>
+                  {item.productDescription && (
+                    <p className={styles.itemDescription}>{item.productDescription}</p>
+                  )}
+                  {item.variationName && (
+                    <p className={styles.itemVariation}>{item.variationName}</p>
+                  )}
+                  <p className={styles.itemPrice}>CHF {item.unitPrice.toFixed(2)} {t('per_item', 'per item')}</p>
+
+                  {/* Special Instructions */}
+                  <div className={styles.instructionsContainer}>
+                    {editingInstructions === itemId ? (
+                      <div className={styles.instructionsEdit}>
+                        <textarea
+                          value={instructionsValue}
+                          onChange={(e) => setInstructionsValue(e.target.value)}
+                          placeholder={t('special_instructions_placeholder', 'Add special instructions...')}
+                          className={styles.instructionsTextarea}
+                          rows={3}
+                        />
+                        <div className={styles.instructionsActions}>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveInstructions(itemId, item.quantity, instructionsValue)}
+                            className={styles.saveButton}
+                            disabled={state.isSyncing}
+                          >
+                            {t('save', 'Save')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingInstructions(null);
+                              setInstructionsValue('');
+                            }}
+                            className={styles.cancelButton}
+                          >
+                            {t('cancel', 'Cancel')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {item.specialInstructions && (
+                          <p className={styles.instructionsText}>
+                            <strong>{t('special_instructions', 'Special Instructions')}:</strong> {item.specialInstructions}
+                          </p>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
-                            setEditingInstructions(null);
-                            setInstructionsValue('');
+                            setEditingInstructions(itemId || null);
+                            setInstructionsValue(item.specialInstructions || '');
                           }}
-                          className={styles.cancelButton}
+                          className={styles.editInstructionsButton}
+                          disabled={state.isSyncing}
                         >
-                          {t('cancel', 'Cancel')}
+                          {item.specialInstructions ? t('edit_instructions', 'Edit Instructions') : t('add_instructions', 'Add Instructions')}
                         </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {item.specialInstructions && (
-                        <p className={styles.instructionsText}>
-                          <strong>{t('special_instructions', 'Special Instructions')}:</strong> {item.specialInstructions}
-                        </p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingInstructions(itemId || null);
-                          setInstructionsValue(item.specialInstructions || '');
-                        }}
-                        className={styles.editInstructionsButton}
-                        disabled={state.isSyncing}
-                      >
-                        {item.specialInstructions ? t('edit_instructions', 'Edit Instructions') : t('add_instructions', 'Add Instructions')}
-                      </button>
-                    </>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Item Controls */}
-              <div className={styles.itemControls}>
-                <div className={styles.quantityControl}>
+                {/* Item Controls */}
+                <div className={styles.itemControls}>
+                  <div className={styles.quantityControl}>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateQuantity(itemId, item.quantity - 1)}
+                      className={styles.quantityButton}
+                      disabled={state.isSyncing || item.quantity <= 1}
+                      aria-label={t('decrease_quantity', 'Decrease quantity')}
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className={styles.itemQuantity}>{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateQuantity(itemId, item.quantity + 1)}
+                      className={styles.quantityButton}
+                      disabled={state.isSyncing}
+                      aria-label={t('increase_quantity', 'Increase quantity')}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+
+                  <p className={styles.itemSubtotal}>
+                    CHF {item.itemTotal.toFixed(2)}
+                  </p>
+
+                  {/* Remove Button */}
                   <button
                     type="button"
-                    onClick={() => handleUpdateQuantity(itemId, item.quantity - 1)}
-                    className={styles.quantityButton}
-                    disabled={state.isSyncing || item.quantity <= 1}
-                    aria-label={t('decrease_quantity', 'Decrease quantity')}
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <span className={styles.itemQuantity}>{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateQuantity(itemId, item.quantity + 1)}
-                    className={styles.quantityButton}
+                    onClick={() => handleRemoveItem(itemId)}
+                    className={styles.removeItemButton}
                     disabled={state.isSyncing}
-                    aria-label={t('increase_quantity', 'Increase quantity')}
+                    aria-label={t('remove_item', 'Remove item')}
                   >
-                    <Plus size={16} />
+                    <Trash2 size={16} />
+                    <span>{t('remove', 'Remove')}</span>
                   </button>
                 </div>
-
-                <p className={styles.itemSubtotal}>
-                  {t('subtotal_label', 'Subtotal')}: CHF {item.itemTotal.toFixed(2)}
-                </p>
               </div>
-
-              {/* Remove Button - Bottom Right */}
-              <button
-                type="button"
-                onClick={() => handleRemoveItem(itemId)}
-                className={styles.removeItemButton}
-                disabled={state.isSyncing}
-                aria-label={t('remove_item', 'Remove item')}
-              >
-                <Trash2 size={16} />
-                {t('remove', 'Remove')}
-              </button>
-            </div>
-          );
+            );
           })}
         </div>
 

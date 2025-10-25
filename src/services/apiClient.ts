@@ -10,8 +10,8 @@ if (!process.env.NEXT_PUBLIC_API_URL && process.env.NODE_ENV === 'development') 
 }
 
 const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('refresh_token');
   window.location.href = '/auth/login';
 };
 
@@ -25,7 +25,7 @@ const isApiUnavailable = (error: any) => {
 };
 
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  let token = localStorage.getItem('token');
+  let token = localStorage.getItem('auth_token');
 
   const headers = new Headers(options.headers || {});
   if (token) {
@@ -45,7 +45,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
       try {
         const refreshResponse = await refreshToken();
         if (refreshResponse.success) {
-          token = localStorage.getItem('token');
+          token = localStorage.getItem('auth_token');
           if (token) {
             headers.set('Authorization', `Bearer ${token}`);
             options.headers = headers;

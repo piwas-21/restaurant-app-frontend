@@ -32,7 +32,11 @@ import {
  */
 export async function createOrder(command: CreateOrderCommand): Promise<OrderDto> {
   try {
-    const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders', command);
+    const response = await apiClient.post<OrderDtoApiResponse>(
+      '/api/Orders',
+      command,
+      { requireAuth: true }
+    );
     if (!response.data) {
       throw new Error('Failed to create order');
     }

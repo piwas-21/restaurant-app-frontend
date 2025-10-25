@@ -7,12 +7,12 @@ import { useCheckout } from '@/contexts/CheckoutContext';
 import { useCart } from '@/components/cart/CartContext';
 import { useSession } from '@/hooks/useSession';
 import { createOrder } from '@/services/orderService';
-import { 
-  PaymentMethod, 
-  CreateOrderCommand, 
+import {
+  PaymentMethod,
+  CreateOrderCommand,
   CreateOrderItemDto,
   CreateOrderDeliveryAddressDto,
-  OrderType as OrderTypeEnum 
+  OrderType as OrderTypeEnum
 } from '@/types/order';
 import { useSnackbar } from 'notistack';
 import {
@@ -29,6 +29,7 @@ import {
   Loader2,
   CheckCircle,
   Edit,
+  Info,
 } from 'lucide-react';
 import Image from 'next/image';
 import styles from '../../styles/ReviewPage.module.css';
@@ -43,7 +44,7 @@ export default function ReviewPage() {
 
   // Payment method state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
-  
+
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -78,45 +79,49 @@ export default function ReviewPage() {
   };
 
   const paymentMethods = [
-    { 
-      value: PaymentMethod.Cash, 
+    {
+      value: PaymentMethod.Cash,
       label: t('payment_cash', 'Cash'),
       icon: Banknote,
-      description: t('payment_cash_desc', 'Pay with cash on delivery/pickup')
+      description: t('payment_cash_desc', 'Pay on cashier'),
+      disabled: false
     },
-    { 
-      value: PaymentMethod.CreditCard, 
+    {
+      value: PaymentMethod.CreditCard,
       label: t('payment_credit_card', 'Credit Card'),
       icon: CreditCard,
-      description: t('payment_credit_card_desc', 'Visa, Mastercard, Amex')
+      description: t('payment_credit_card_desc', 'Visa, Mastercard, Amex'),
+      disabled: true
     },
-    { 
-      value: PaymentMethod.DebitCard, 
+    {
+      value: PaymentMethod.DebitCard,
       label: t('payment_debit_card', 'Debit Card'),
       icon: Wallet,
-      description: t('payment_debit_card_desc', 'EC/Maestro card')
+      description: t('payment_debit_card_desc', 'EC/Maestro card'),
+      disabled: true
     },
-    { 
-      value: PaymentMethod.MobilePayment, 
+    {
+      value: PaymentMethod.MobilePayment,
       label: t('payment_mobile', 'Mobile Payment'),
       icon: Smartphone,
-      description: t('payment_mobile_desc', 'TWINT, Apple Pay, Google Pay')
+      description: t('payment_mobile_desc', 'TWINT, Apple Pay, Google Pay'),
+      disabled: true
     },
-    { 
-      value: PaymentMethod.OnlinePayment, 
+    {
+      value: PaymentMethod.OnlinePayment,
       label: t('payment_online', 'Online Payment'),
       icon: CreditCard,
-      description: t('payment_online_desc', 'Pay securely online')
+      description: t('payment_online_desc', 'Pay securely online'),
+      disabled: true
     },
-    { 
-      value: PaymentMethod.BankTransfer, 
+    {
+      value: PaymentMethod.BankTransfer,
       label: t('payment_bank_transfer', 'Bank Transfer'),
       icon: Building2,
-      description: t('payment_bank_transfer_desc', 'Transfer to our account')
+      description: t('payment_bank_transfer_desc', 'Transfer to our account'),
+      disabled: true
     },
-  ];
-
-  const handlePlaceOrder = async () => {
+  ];  const handlePlaceOrder = async () => {
     setIsSubmitting(true);
     setSubmitError('');
 
@@ -150,8 +155,8 @@ export default function ReviewPage() {
         customerEmail: checkoutState.customerInfo.email,
         customerPhone: checkoutState.customerInfo.phone,
         type: checkoutState.orderType as OrderTypeEnum,
-        tableNumber: checkoutState.orderType === 'DineIn' && checkoutState.tableNumber 
-          ? parseInt(checkoutState.tableNumber, 10) 
+        tableNumber: checkoutState.orderType === 'DineIn' && checkoutState.tableNumber
+          ? parseInt(checkoutState.tableNumber, 10)
           : undefined,
         notes: checkoutState.specialInstructions || undefined,
         deliveryAddress,
@@ -173,7 +178,7 @@ export default function ReviewPage() {
       clearCheckout();
 
       // Show success message
-      enqueueSnackbar(t('order_placed_success', 'Order placed successfully!'), { 
+      enqueueSnackbar(t('order_placed_success', 'Order placed successfully!'), {
         variant: 'success',
         anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
       });
@@ -184,14 +189,14 @@ export default function ReviewPage() {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error placing order:', error);
-      
-      const errorMessage = error instanceof Error 
-        ? error.message 
+
+      const errorMessage = error instanceof Error
+        ? error.message
         : t('order_failed', 'Failed to place order. Please try again.');
-      
+
       setSubmitError(errorMessage);
-      
-      enqueueSnackbar(errorMessage, { 
+
+      enqueueSnackbar(errorMessage, {
         variant: 'error',
         anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
       });
@@ -221,7 +226,7 @@ export default function ReviewPage() {
                   <ShoppingBag size={20} />
                   {t('order_details', 'Order Details')}
                 </h2>
-                <button 
+                <button
                   onClick={() => router.push('/checkout/order-type')}
                   className={styles.editButton}
                 >
@@ -267,7 +272,7 @@ export default function ReviewPage() {
                   <User size={20} />
                   {t('customer_information', 'Customer Information')}
                 </h2>
-                <button 
+                <button
                   onClick={() => router.push('/checkout/customer-info')}
                   className={styles.editButton}
                 >
@@ -298,7 +303,7 @@ export default function ReviewPage() {
                   <ShoppingBag size={20} />
                   {t('order_items', 'Order Items')} ({cartState.items.length})
                 </h2>
-                <button 
+                <button
                   onClick={() => router.push('/cart')}
                   className={styles.editButton}
                 >
@@ -350,32 +355,47 @@ export default function ReviewPage() {
                   {t('payment_method', 'Payment Method')}
                 </h2>
               </div>
+
+              {/* Info message about payment methods under development */}
+              <div className={styles.infoMessage}>
+                <Info size={18} />
+                <p>
+                  {t('payment_methods_info', 'Currently, only cash payment is available. Other payment methods are coming soon!')}
+                </p>
+              </div>
+
               <div className={styles.paymentMethods}>
                 {paymentMethods.map((method) => {
                   const Icon = method.icon;
+                  const isDisabled = method.disabled;
+
                   return (
                     <label
                       key={method.value}
                       className={`${styles.paymentMethod} ${
                         selectedPaymentMethod === method.value ? styles.selected : ''
-                      }`}
+                      } ${isDisabled ? styles.disabled : ''}`}
                     >
                       <input
                         type="radio"
                         name="paymentMethod"
                         value={method.value}
                         checked={selectedPaymentMethod === method.value}
-                        onChange={() => setSelectedPaymentMethod(method.value)}
+                        onChange={() => !isDisabled && setSelectedPaymentMethod(method.value)}
                         className={styles.paymentRadio}
+                        disabled={isDisabled}
                       />
                       <div className={styles.paymentIcon}>
                         <Icon size={24} />
                       </div>
                       <div className={styles.paymentInfo}>
-                        <span className={styles.paymentLabel}>{method.label}</span>
+                        <span className={styles.paymentLabel}>
+                          {method.label}
+                          {isDisabled && <span className={styles.comingSoon}> ({t('coming_soon', 'Coming Soon')})</span>}
+                        </span>
                         <span className={styles.paymentDescription}>{method.description}</span>
                       </div>
-                      {selectedPaymentMethod === method.value && (
+                      {selectedPaymentMethod === method.value && !isDisabled && (
                         <CheckCircle size={20} className={styles.checkmark} />
                       )}
                     </label>
@@ -399,33 +419,33 @@ export default function ReviewPage() {
           <div className={styles.rightColumn}>
             <div className={styles.summaryCard}>
               <h2 className={styles.summaryTitle}>{t('order_summary', 'Order Summary')}</h2>
-              
+
               <div className={styles.summaryRows}>
                 <div className={styles.summaryRow}>
                   <span>{t('subtotal', 'Subtotal')}</span>
                   <span>{formatPrice(cartState.basket?.subTotal || 0)}</span>
                 </div>
-                
+
                 {(cartState.basket?.discount ?? 0) > 0 && (
                   <div className={`${styles.summaryRow} ${styles.discount}`}>
                     <span>{t('discount', 'Discount')}</span>
                     <span>-{formatPrice(cartState.basket?.discount || 0)}</span>
                   </div>
                 )}
-                
+
                 {(cartState.basket?.deliveryFee ?? 0) > 0 && (
                   <div className={styles.summaryRow}>
                     <span>{t('delivery_fee', 'Delivery Fee')}</span>
                     <span>{formatPrice(cartState.basket?.deliveryFee || 0)}</span>
                   </div>
                 )}
-                
+
                 <div className={styles.summaryRow}>
                   <span>{t('tax', 'Tax')}</span>
                   <span>{formatPrice(cartState.basket?.tax || 0)}</span>
                 </div>
               </div>
-              
+
               <div className={styles.summaryTotal}>
                 <span>{t('total', 'Total')}</span>
                 <span className={styles.totalAmount}>

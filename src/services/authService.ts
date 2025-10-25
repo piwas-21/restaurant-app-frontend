@@ -16,8 +16,8 @@ export async function login(formData: z.infer<typeof loginSchema>) {
   if (response.ok) {
     const data = await response.json();
     if (data.success) {
-      localStorage.setItem('token', data.data.accessToken);
-      localStorage.setItem('refreshToken', data.data.refreshToken);
+      localStorage.setItem('auth_token', data.data.accessToken);
+      localStorage.setItem('refresh_token', data.data.refreshToken);
     }
     return data;
   }
@@ -26,8 +26,8 @@ export async function login(formData: z.infer<typeof loginSchema>) {
 }
 
 export async function refreshToken() {
-    const accessToken = localStorage.getItem('token');
-    const refreshToken = localStorage.getItem('refreshToken');
+    const accessToken = localStorage.getItem('auth_token');
+    const refreshToken = localStorage.getItem('refresh_token');
 
     const response = await fetch(`${AUTH_API_URL}/refresh-token`, {
         method: 'POST',
@@ -39,8 +39,8 @@ export async function refreshToken() {
 
     const data = await response.json();
     if (data.success) {
-        localStorage.setItem('token', data.data.accessToken);
-        localStorage.setItem('refreshToken', data.data.refreshToken);
+        localStorage.setItem('auth_token', data.data.accessToken);
+        localStorage.setItem('refresh_token', data.data.refreshToken);
     }
     return data;
 }
@@ -67,10 +67,11 @@ export async function registerCustomer(formData: CustomerRegistrationPayload) {
   const data = await response.json();
   if (response.ok && data?.success) {
     try {
-      if (data.data?.accessToken) localStorage.setItem('token', data.data.accessToken);
-      if (data.data?.refreshToken) localStorage.setItem('refreshToken', data.data.refreshToken);
+      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);
+      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);
     } catch (e) {
       // localStorage may be unavailable; ignore and let caller proceed
+      // eslint-disable-next-line no-console
       console.warn('Could not persist tokens to localStorage', e);
     }
   }

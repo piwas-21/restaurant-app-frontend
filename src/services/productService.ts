@@ -59,3 +59,25 @@ export const deleteProduct = async (productId: string) => {
   const response = await apiClient.delete(`${PRODUCTS_API_URL}/${productId}`);
   return response.json();
 };
+
+// Special Products API Functions
+
+export const getSpecialProducts = async (page: number = 1, pageSize: number = 20) => {
+  const response = await apiClient.get(`${PRODUCTS_API_URL}/specials?page=${page}&pageSize=${pageSize}`);
+  return response.json();
+};
+
+export const getFeaturedSpecial = async () => {
+  const response = await apiClient.get(`${PRODUCTS_API_URL}/featured-special`);
+  return response.json();
+};
+
+export const setFeaturedSpecial = async (productId: string) => {
+  const response = await apiClient.post(`${PRODUCTS_API_URL}/${productId}/set-featured`, {});
+  return response.json();
+};
+
+export const unsetFeaturedSpecial = async () => {
+  const response = await apiClient.delete(`${PRODUCTS_API_URL}/featured-special`);
+  return response.json();
+};

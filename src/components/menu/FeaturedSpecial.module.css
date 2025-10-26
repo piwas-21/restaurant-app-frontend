@@ -1,0 +1,279 @@
+/* Featured Special Section Styles */
+.featuredSpecialSection {
+  margin: 2rem 0 3rem 0;
+  padding: 0;
+}
+
+.featuredSpecialContainer {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid gold;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .featuredSpecialContainer {
+  background: linear-gradient(135deg, #2a2510 0%, #3a3520 100%);
+  border-color: #daa520;
+}
+
+.featuredSpecialBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: gold;
+  color: #333;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+}
+
+.featuredSpecialContent {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.featuredSpecialImageContainer {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.featuredSpecialImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.featuredSpecialDetails {
+  flex: 1;
+}
+
+.featuredSpecialTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .featuredSpecialTitle {
+  color: gold;
+}
+
+.featuredSpecialDescription {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color);
+}
+
+.featuredSpecialMeta {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.featuredSpecialPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.priceLabel {
+  font-weight: 600;
+  color: #666;
+  font-size: 1rem;
+}
+
+[data-theme="dark"] .priceLabel {
+  color: #aaa;
+}
+
+.priceValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .priceValue {
+  color: gold;
+}
+
+.featuredSpecialTime {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 1rem;
+}
+
+[data-theme="dark"] .featuredSpecialTime {
+  color: #aaa;
+}
+
+.featuredSpecialIngredients {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(100, 149, 237, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid #6495ed;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .featuredSpecialIngredients {
+  background: rgba(100, 149, 237, 0.15);
+  color: #ccc;
+}
+
+.featuredSpecialIngredients strong {
+  color: #333;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+[data-theme="dark"] .featuredSpecialIngredients strong {
+  color: #6495ed;
+}
+
+.featuredSpecialAllergens {
+  margin-bottom: 1.5rem;
+}
+
+.allergenContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.featuredSpecialActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.featuredSpecialAddButton {
+  background: var(--success-color);
+  color: white;
+  border: none;
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.featuredSpecialAddButton:hover {
+  background: var(--success-color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.featuredSpecialAddButton:active {
+  transform: translateY(0);
+}
+
+.featuredSpecialDetailsButton {
+  background: var(--secondary-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.featuredSpecialDetailsButton:hover {
+  background: var(--secondary-color-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.featuredSpecialDetailsButton:active {
+  transform: translateY(0);
+}
+
+.featuredSpecialButton {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+.featuredSpecialButton:hover {
+  background: var(--primary-color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
+}
+
+.featuredSpecialButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive styles for featured special */
+@media (max-width: 768px) {
+  .featuredSpecialContainer {
+    padding: 1.5rem;
+  }
+
+  .featuredSpecialContent {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .featuredSpecialImageContainer {
+    max-width: 100%;
+  }
+
+  .featuredSpecialTitle {
+    font-size: 1.5rem;
+  }
+
+  .priceValue {
+    font-size: 1.5rem;
+  }
+
+  .featuredSpecialIngredients {
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+
+  .featuredSpecialActions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .featuredSpecialAddButton,
+  .featuredSpecialDetailsButton {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+
+  .featuredSpecialButton {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+}

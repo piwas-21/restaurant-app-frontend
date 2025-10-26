@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Image from "next/image";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./ImageModal.module.css";
 import { getFullImageUrl } from "@/utils/image";
 
 type Img = { url: string; alt?: string };

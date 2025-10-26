@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./ProductDetailsModal.module.css";
 import type { MenuItem as MenuItemType, DetailedProduct } from "@/types/menu";
 import { useTranslation } from "react-i18next";
 import { getProductById } from "@/services/menuService";

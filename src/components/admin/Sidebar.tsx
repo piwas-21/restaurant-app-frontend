@@ -28,19 +28,14 @@ const Sidebar = () => {
       icon: UtensilsCrossed
     },
     {
-      href: '/admin/orders-management',
-      label: t('admin_orders_management', 'Orders Management'),
-      icon: ClipboardList
-    },
-    {
       href: '/admin/specials-management',
       label: t('admin_specials_management_title'),
       icon: Sparkles
     },
     {
-      href: '/admin/fidelity-analytics',
-      label: 'Fidelity Analytics',
-      icon: TrendingUp
+      href: '/admin/orders-management',
+      label: t('admin_orders_management', 'Orders Management'),
+      icon: ClipboardList
     },
     {
       href: '/admin/point-rules',
@@ -51,6 +46,11 @@ const Sidebar = () => {
       href: '/admin/customer-discounts',
       label: 'Customer Discounts',
       icon: Gift
+    },
+        {
+      href: '/admin/fidelity-analytics',
+      label: 'Fidelity Analytics',
+      icon: TrendingUp
     },
   ];
 

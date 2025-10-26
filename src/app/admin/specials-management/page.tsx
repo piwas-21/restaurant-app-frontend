@@ -4,68 +4,112 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from "@/app/styles/AdminPage.module.css";
 import PageHeader from '@/components/admin/PageHeader';
-
-// Mock data - replace with API calls
-const initialSpecials = [
-  { id: 's1', name_en: 'Lunch Special: Lamb Doner + Ayran', price: 15.00, date_active: '2025-05-12' },
-  { id: 's2', name_en: 'Weekend Pide Feast', price: 29.90, date_active: '2025-05-17' },
-];
-
-interface DailySpecial {
-  id: string;
-  name_en: string;
-  price: number;
-  date_active: string;
-}
+import SpecialsTable from '@/components/admin/specials-management/SpecialsTable';
+import FeaturedSpecialCard from '@/components/admin/specials-management/FeaturedSpecialCard';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
+import ResultModal from '@/components/common/ResultModal';
+import { useSpecialsManagement } from '@/hooks/useSpecialsManagement';
 
 export default function SpecialsManagementPage() {
   const { t } = useTranslation();
-  const [specials, setSpecials] = useState<DailySpecial[]>(initialSpecials);
-  const [isLoading] = useState(false);
-  const [error] = useState('');
+  const {
+    specialProducts,
+    featuredSpecial,
+    isLoading,
+    error,
+    handleSetFeaturedSpecial,
+    handleUnsetFeaturedSpecial,
+  } = useSpecialsManagement();
 
-  const handleDeleteSpecial = (specialId: string) => {
-    if (confirm('Are you sure you want to delete this special?')) {
-      setSpecials(prevSpecials => prevSpecials.filter(s => s.id !== specialId));
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [confirmationAction, setConfirmationAction] = useState<'set' | 'unset'>('set');
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProductName, setSelectedProductName] = useState<string>('');
+
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [resultModalMessage, setResultModalMessage] = useState('');
+  const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
+
+  const handleSetFeaturedClick = (productId: string) => {
+    const product = specialProducts.find(p => p.id === productId);
+    if (product) {
+      setSelectedProductId(productId);
+      setSelectedProductName(product.name);
+      setConfirmationAction('set');
+      setIsConfirmationModalOpen(true);
+    }
+  };
+
+  const handleRemoveFeaturedClick = () => {
+    setConfirmationAction('unset');
+    setIsConfirmationModalOpen(true);
+  };
+
+  const handleConfirmAction = async () => {
+    setIsConfirmationModalOpen(false);
+
+    let result;
+    if (confirmationAction === 'set' && selectedProductId) {
+      result = await handleSetFeaturedSpecial(selectedProductId);
+    } else if (confirmationAction === 'unset') {
+      result = await handleUnsetFeaturedSpecial();
+    } else {
+      return;
+    }
+
+    setResultModalMessage(result.message);
+    setIsResultModalSuccess(result.success);
+    setIsResultModalOpen(true);
+    setSelectedProductId(null);
+    setSelectedProductName('');
+  };
+
+  const getConfirmationMessage = () => {
+    if (confirmationAction === 'set') {
+      return t('confirm_set_featured',
+        `Are you sure you want to set "${selectedProductName}" as the featured special? This will replace any current featured special.`);
+    } else {
+      return t('confirm_remove_featured',
+        'Are you sure you want to remove the featured special?');
     }
   };
 
   return (
-    <main className={styles.adminContainer}>
-      <PageHeader title={t('admin_specials_management_title')}>
-        <button className={`${styles.adminButton} ${styles.add}`}>Add New Special</button>
-      </PageHeader>
-      <section className={styles.adminContent}>
-        {isLoading && <p>Loading specials...</p>}
-        {error && <p className="errorMessage">{t('error')}: {error}</p>}
-        {!isLoading && !error && (
-          <div className={styles.adminTableContainer}>
-            <table className={styles.adminTable}>
-              <thead>
-                <tr>
-                  <th>Name (English)</th>
-                  <th>Price (CHF)</th>
-                  <th>Active Date</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {specials.map(special => (
-                  <tr key={special.id}>
-                    <td>{special.name_en}</td>
-                    <td>{special.price.toFixed(2)}</td>
-                    <td>{special.date_active}</td>
-                    <td>
-                      <button className={`${styles.adminButton} ${styles.edit}`}>Edit</button>
-                      <button onClick={() => handleDeleteSpecial(special.id)} className={`${styles.adminButton} ${styles.delete}`}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </main>
+    <>
+      <main className={styles.adminContainer}>
+        <PageHeader title={t('admin_specials_management_title', 'Specials Management')} />
+
+        <section className={styles.adminContent}>
+          <FeaturedSpecialCard
+            featuredSpecial={featuredSpecial}
+            onRemoveFeatured={handleRemoveFeaturedClick}
+          />
+
+          <div className={styles.sectionDivider} />
+
+          <h2>{t('specials_table_header', 'Special Menu Items')}</h2>
+          <SpecialsTable
+            specialProducts={specialProducts}
+            isLoading={isLoading}
+            error={error}
+            onSetFeatured={handleSetFeaturedClick}
+          />
+        </section>
+      </main>
+
+      <ConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => setIsConfirmationModalOpen(false)}
+        onConfirm={handleConfirmAction}
+        message={getConfirmationMessage()}
+      />
+
+      <ResultModal
+        isOpen={isResultModalOpen}
+        onClose={() => setIsResultModalOpen(false)}
+        message={resultModalMessage}
+        isSuccess={isResultModalSuccess}
+      />
+    </>
   );
 }

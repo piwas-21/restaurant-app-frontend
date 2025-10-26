@@ -715,3 +715,183 @@
 [data-theme="dark"] .pagination span {
   color: var(--text-secondary, #b0b0b0);
 }
+
+/* Featured Special Card Styles */
+.featuredSpecialCard {
+  background: var(--card-background, #fff);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.noFeaturedSpecial {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+[data-theme="dark"] .noFeaturedSpecial {
+  color: #aaa;
+}
+
+.noFeaturedSpecial svg {
+  margin-bottom: 1rem;
+}
+
+.helpText {
+  font-size: 0.9rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+[data-theme="dark"] .helpText {
+  color: #777;
+}
+
+.featuredSpecialHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color, #ddd);
+}
+
+.featuredSpecialTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.featuredSpecialTitle h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--primary-color, #333);
+}
+
+.featuredSpecialContent {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.featuredSpecialImage {
+  flex-shrink: 0;
+}
+
+.featuredSpecialDetails {
+  flex: 1;
+}
+
+.featuredSpecialDetails h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  color: var(--primary-color, #333);
+}
+
+[data-theme="dark"] .featuredSpecialDetails h4 {
+  color: #daa520;
+}
+
+.featuredSpecialDetails p {
+  margin: 0 0 1rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .featuredSpecialDetails p {
+  color: #aaa;
+}
+
+.featuredSpecialPrice {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary-color, #d32f2f);
+  margin: 1rem 0;
+}
+
+[data-theme="dark"] .featuredSpecialPrice {
+  color: #daa520;
+}
+
+.featuredSpecialDate {
+  font-size: 0.9rem;
+  color: #999;
+  font-style: italic;
+}
+
+[data-theme="dark"] .featuredSpecialDate {
+  color: #777;
+}
+
+/* Specials Table Styles */
+.featuredRow {
+  background-color: #fff9e6 !important;
+}
+
+[data-theme="dark"] .featuredRow {
+  background-color: #3a3520 !important;
+}
+
+.featuredBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: gold;
+  color: #333;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .featuredBadge {
+  background-color: #daa520;
+  color: #1a1a1a;
+}
+
+.availableBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.unavailableBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: #999;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.featuredLabel {
+  color: #666;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .featuredLabel {
+  color: #aaa;
+}
+
+.sectionDivider {
+  height: 2px;
+  background: var(--border-color, #ddd);
+  margin: 2rem 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  background: var(--card-background, #fff);
+  border-radius: 8px;
+  color: #666;
+}
+
+[data-theme="dark"] .emptyState {
+  color: #aaa;
+}

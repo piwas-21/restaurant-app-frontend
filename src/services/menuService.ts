@@ -86,3 +86,13 @@ export const getProductById = async (productId: string) => {
     return mockApiClient.getProductById(productId);
   }
 };
+
+export const getFeaturedSpecial = async () => {
+  try {
+    const response = await apiClient.get(`${PRODUCTS_API_URL}/featured-special`);
+    return response.json();
+  } catch {
+    // Return null if no featured special or API fails
+    return { success: true, data: null, message: 'No featured special available' };
+  }
+};

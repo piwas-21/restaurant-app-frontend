@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./MenuItem.module.css";
 import { getFullImageUrl } from "@/utils/image";
 
 type Props = {

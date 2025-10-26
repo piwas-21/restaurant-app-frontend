@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from '@/app/styles/MenuPage.module.css';
+import styles from '@/components/menu/MenuItem.module.css';
 
 // Helper function to get allergen styling and icon
 export function getAllergenInfo(allergen: string) {

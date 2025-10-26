@@ -5,6 +5,8 @@ import styles from "../styles/MenuPage.module.css";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { UtensilsCrossed } from "lucide-react";
+import { useCart } from "@/components/cart/CartContext";
+import { useSnackbar } from "notistack";
 
 import type { LanguageCode } from "@/components/LanguageSwitcher";
 import { usePublicMenu, ALL_ITEMS_KEY } from "@/hooks/usePublicMenu";
@@ -12,6 +14,9 @@ import CategoryNav from "@/components/menu/CategoryNav";
 import type { MenuItem } from "@/types/menu";
 import ImageModal from "@/components/menu/ImageModal";
 import MenuList from "@/components/menu/MenuList";
+import FeaturedSpecial from "@/components/menu/FeaturedSpecial";
+import ProductDetailsModal from "@/components/menu/ProductDetailsModal";
+import { getFeaturedSpecial } from "@/services/menuService";
 
 // Map API category names to translation keys
 function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
@@ -54,6 +59,11 @@ export default function MenuPage() {
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [featuredSpecial, setFeaturedSpecial] = useState<any | null>(null);
+  const [showFeaturedDetails, setShowFeaturedDetails] = useState(false);
+
+  const { addItem } = useCart();
+  const { enqueueSnackbar } = useSnackbar();
 
   const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
 
@@ -65,12 +75,55 @@ export default function MenuPage() {
   };
   useEffect(() => {
     setIsMounted(true);
+
+    // Fetch featured special
+    const loadFeaturedSpecial = async () => {
+      try {
+        const response = await getFeaturedSpecial();
+        if (response.success && response.data) {
+          setFeaturedSpecial(response.data);
+        }
+      } catch {
+        // Silently fail if featured special cannot be loaded
+      }
+    };
+
+    loadFeaturedSpecial();
   }, []);
 
   useEffect(() => {
     if (!isMounted || !selectedView) return;
     // error comes localized below for display only, so nothing here
   }, [isMounted, selectedView]);
+
+  const handleAddFeaturedToCart = useCallback(() => {
+    if (!featuredSpecial) return;
+
+    try {
+      addItem({
+        productId: featuredSpecial.id,
+        quantity: 1,
+      });
+
+      enqueueSnackbar(t('item_added_to_cart', 'Item added to cart'), {
+        variant: 'success',
+        autoHideDuration: 2000,
+      });
+    } catch {
+      enqueueSnackbar(t('error_adding_to_cart', 'Error adding item to cart'), {
+        variant: 'error',
+        autoHideDuration: 3000,
+      });
+    }
+  }, [featuredSpecial, addItem, enqueueSnackbar, t]);
+
+  const handleViewFeaturedDetails = useCallback(() => {
+    setShowFeaturedDetails(true);
+  }, []);
+
+  const handleCloseFeaturedDetails = useCallback(() => {
+    setShowFeaturedDetails(false);
+  }, []);
 
   const handleImageClick = useCallback(
     (item: MenuItem, imageIndex: number = 0) => {
@@ -169,6 +222,14 @@ export default function MenuPage() {
         <UtensilsCrossed size={48} strokeWidth={2} aria-label={t("menu_title")} />
       </h1>
 
+      {featuredSpecial && (
+        <FeaturedSpecial
+          special={featuredSpecial}
+          onAddToCart={handleAddFeaturedToCart}
+          onViewDetails={handleViewFeaturedDetails}
+        />
+      )}
+
       {categoriesForNav.length > 0 && (
         <CategoryNav
           categories={categoriesForNav}
@@ -222,6 +283,28 @@ export default function MenuPage() {
           previousLabel={t("previous_image_button_label")}
           nextLabel={t("next_image_button_label")}
           closeLabel={t("close_image_modal_button", "Close image modal")}
+        />
+      )}
+
+      {showFeaturedDetails && featuredSpecial && (
+        <ProductDetailsModal
+          isOpen={showFeaturedDetails}
+          item={{
+            id: featuredSpecial.id,
+            name: featuredSpecial.name,
+            description: featuredSpecial.description || '',
+            price: featuredSpecial.basePrice,
+            image: featuredSpecial.imageUrl || '',
+            preparationTimeMinutes: featuredSpecial.preparationTimeMinutes,
+            allergens: featuredSpecial.allergens,
+            ingredients: featuredSpecial.ingredients,
+            dietaryTags: [],
+            content: {},
+            images: featuredSpecial.imageUrl ? [{ url: featuredSpecial.imageUrl, alt: featuredSpecial.name }] : [],
+            categoryKey: 'specials',
+            isSpecial: true,
+          }}
+          onClose={handleCloseFeaturedDetails}
         />
       )}
 

@@ -12,7 +12,7 @@ import MenuItemDetails from "./MenuItemDetails";
 import MenuItemActions from "./MenuItemActions";
 import ProductDetailsModal from "./ProductDetailsModal";
 import FeedbackForm from "@/components/feedback/FeedbackForm";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./MenuItem.module.css";
 
 interface MenuItemProps {
   item: MenuItemType;

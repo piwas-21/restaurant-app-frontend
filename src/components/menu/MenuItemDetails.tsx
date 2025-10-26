@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./MenuItem.module.css";
 import AllergenDisplay from "@/components/common/AllergenDisplay";
 
 type RatingData = { average: number; count: number } | undefined;

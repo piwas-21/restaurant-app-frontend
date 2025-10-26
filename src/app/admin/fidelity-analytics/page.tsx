@@ -36,7 +36,7 @@ export default function FidelityAnalyticsPage() {
   return (
     <main className={styles.adminContainer}>
       <PageHeader title="Fidelity Analytics" />
-      
+
       <section className={styles.adminContent}>
         {/* Page Description */}
         <div style={{ marginBottom: '2rem' }}>

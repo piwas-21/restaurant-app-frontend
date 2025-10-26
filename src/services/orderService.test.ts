@@ -20,19 +20,29 @@ describe('OrderService', () => {
     userId: 'user-123',
     status: 'Pending',
     paymentStatus: 'Pending',
-    orderType: 'DineIn',
-    tableNumber: '5',
+    type: 'DineIn',
+    tableNumber: 5,
     customerName: 'John Doe',
     customerEmail: 'john@example.com',
     customerPhone: '+41791234567',
     items: [],
+    payments: [],
+    statusHistory: [],
     subTotal: 0,
     tax: 0,
     discount: 0,
+    discountPercentage: 0,
     deliveryFee: 0,
+    tip: 0,
     total: 0,
+    totalPaid: 0,
+    remainingAmount: 0,
+    isFullyPaid: false,
+    isFocusOrder: false,
+    hasUserLimitDiscount: false,
+    userLimitAmount: 0,
+    orderDate: '2025-10-23T10:00:00Z',
     notes: '',
-    createdAt: '2025-10-23T10:00:00Z',
     ...overrides,
   });
 
@@ -43,12 +53,11 @@ describe('OrderService', () => {
   describe('createOrder', () => {
     it('should create order successfully', async () => {
       const command: CreateOrderCommand = {
-        orderType: 'DineIn',
-        tableNumber: '5',
+        type: 'DineIn' as any,
+        tableNumber: 5,
         customerName: 'John Doe',
         customerEmail: 'john@example.com',
         customerPhone: '+41791234567',
-        paymentMethod: 'Cash',
         notes: 'Please serve quickly',
       };
 
@@ -73,18 +82,17 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.createOrder(command);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/api/Orders', command);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/Orders', command, { requireAuth: true });
       expect(result).toEqual(mockOrder);
       expect(result.orderNumber).toBe('ORD-20251023-0001');
-      expect(result.orderType).toBe('DineIn');
+      expect(result.type).toBe('DineIn');
     });
 
     it('should handle create order errors', async () => {
       const command: CreateOrderCommand = {
-        orderType: 'DineIn',
+        type: 'DineIn' as any,
         customerName: '',
         customerEmail: '',
-        paymentMethod: 'Cash',
       };
 
       const error = new Error('Validation failed');
@@ -97,18 +105,20 @@ describe('OrderService', () => {
   describe('getOrders', () => {
     it('should fetch orders with filters', async () => {
       const filters = {
-        status: 'Pending',
-        paymentStatus: 'Pending',
-        pageNumber: 1,
+        status: 'Pending' as any,
+        paymentStatus: 'Pending' as any,
+        page: 1,
         pageSize: 20,
       };
 
       const mockResponse = {
         items: [createMockOrder(), createMockOrder({ id: 'order-124' })],
-        pageNumber: 1,
+        page: 1,
         pageSize: 20,
         totalCount: 2,
         totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
       };
 
       mockApiClient.get.mockResolvedValue({ data: mockResponse });
@@ -117,17 +127,19 @@ describe('OrderService', () => {
 
       expect(mockApiClient.get).toHaveBeenCalled();
       expect(result.items).toHaveLength(2);
-      expect(result.pageNumber).toBe(1);
+      expect(result.page).toBe(1);
       expect(result.totalCount).toBe(2);
     });
 
     it('should fetch orders without filters', async () => {
       const mockResponse = {
         items: [createMockOrder()],
-        pageNumber: 1,
+        page: 1,
         pageSize: 20,
         totalCount: 1,
         totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
       };
 
       mockApiClient.get.mockResolvedValue({ data: mockResponse });
@@ -186,7 +198,7 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.updateOrderStatus(orderId, command);
 
-      expect(mockApiClient.put).toHaveBeenCalledWith(`/api/Orders/${orderId}/status`, command);
+      expect(mockApiClient.put).toHaveBeenCalledWith(`/api/Orders/${orderId}/status`, command, { requireAuth: true });
       expect(result.status).toBe('Confirmed');
     });
 
@@ -209,17 +221,17 @@ describe('OrderService', () => {
 
       const mockOrder = createMockOrder({ status: 'Cancelled' });
 
-      mockApiClient.put.mockResolvedValue({ data: mockOrder });
+      mockApiClient.post.mockResolvedValue({ data: mockOrder });
 
       const result = await orderServiceModule.cancelOrder(orderId, command);
 
-      expect(mockApiClient.put).toHaveBeenCalledWith(`/api/Orders/${orderId}/cancel`, command);
+      expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/cancel`, command, { requireAuth: true });
       expect(result.status).toBe('Cancelled');
     });
 
     it('should handle cancel order errors', async () => {
       const error = new Error('Order already completed');
-      mockApiClient.put.mockRejectedValue(error);
+      mockApiClient.post.mockRejectedValue(error);
 
       await expect(
         orderServiceModule.cancelOrder('order-123', { reason: 'Test' })
@@ -238,29 +250,23 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.toggleFocusOrder(orderId, command);
 
-      expect(mockApiClient.put).toHaveBeenCalledWith(`/api/Orders/${orderId}/focus`, command);
+      expect(mockApiClient.put).toHaveBeenCalledWith(`/api/Orders/${orderId}/focus`, command, { requireAuth: true });
       expect(result.isFocusOrder).toBe(true);
     });
   });
 
   describe('getFocusOrders', () => {
     it('should fetch focus orders successfully', async () => {
-      const filters = { restaurantId: 'rest-1' };
+      const filters = { activeOnly: true };
 
-      const mockResponse = {
-        items: [createMockOrder({ isFocusOrder: true })],
-        pageNumber: 1,
-        pageSize: 20,
-        totalCount: 1,
-        totalPages: 1,
-      };
+      const mockResponse = [createMockOrder({ isFocusOrder: true })];
 
       mockApiClient.get.mockResolvedValue({ data: mockResponse });
 
       const result = await orderServiceModule.getFocusOrders(filters);
 
       expect(mockApiClient.get).toHaveBeenCalled();
-      expect(result.items[0]?.isFocusOrder).toBe(true);
+      expect(result[0]?.isFocusOrder).toBe(true);
     });
   });
 
@@ -268,16 +274,17 @@ describe('OrderService', () => {
     it('should add payment to order successfully', async () => {
       const orderId = 'order-123';
       const command = {
-        paymentMethod: 'Cash',
+        orderId,
+        paymentMethod: 'Cash' as any,
         amount: 26.93,
       };
 
       const mockPayment = {
         id: 'payment-1',
         orderId,
-        paymentMethod: 'Cash',
+        paymentMethod: 'Cash' as any,
         amount: 26.93,
-        status: 'Completed',
+        status: 'Paid' as any,
         paidAt: '2025-10-23T10:05:00Z',
       };
 
@@ -285,7 +292,7 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.addPaymentToOrder(orderId, command);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/payments`, command);
+      expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/payments`, command, { requireAuth: true });
       expect(result.amount).toBe(26.93);
       expect(result.paymentMethod).toBe('Cash');
     });

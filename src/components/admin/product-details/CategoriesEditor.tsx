@@ -26,20 +26,20 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
 
         // Set selected categories after fetching categories
         const selectedIds = product.categories.map((c) =>
-          resp.data.items.find((cat: Category) => cat.name === c.categoryName)?.id || ''
+          resp.data!.items.find((cat: Category) => cat.name === c.categoryName)?.id || ''
         ).filter(Boolean);
         setSelected(selectedIds);
 
         // Set primary category after fetching categories
         const primaryCategory = product.categories.find((c) => c.isPrimary);
         if (primaryCategory) {
-          const primaryId = resp.data.items.find((cat: Category) => cat.name === primaryCategory.categoryName)?.id || '';
+          const primaryId = resp.data!.items.find((cat: Category) => cat.name === primaryCategory.categoryName)?.id || '';
           setPrimary(primaryId);
         }
       }

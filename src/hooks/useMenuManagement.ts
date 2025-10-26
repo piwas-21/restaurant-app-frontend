@@ -28,7 +28,7 @@ export const useMenuManagement = () => {
       } else {
         setError(response.message || 'Failed to fetch products');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred.');
     } finally {
       setIsLoading(false);
@@ -38,12 +38,12 @@ export const useMenuManagement = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await getCategories();
-        if (response.success && Array.isArray(response.data.items)) {
+        const response = await getCategories() as { success: boolean; data?: { items: any[] } };
+        if (response.success && response.data?.items && Array.isArray(response.data.items)) {
           setCategories(response.data.items);
         }
-      } catch (err) {
-        console.error("Failed to fetch categories", err);
+      } catch {
+        // Silently fail - categories will remain empty
       }
     };
     fetchCategories();

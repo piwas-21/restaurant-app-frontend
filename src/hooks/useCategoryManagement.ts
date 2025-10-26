@@ -13,13 +13,13 @@ export const useCategoryManagement = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getCategories();
-      if (response.success) {
+      const response = await getCategories() as { success: boolean; data?: { items: any[] }; message?: string };
+      if (response.success && response.data?.items) {
         setCategories(response.data.items);
       } else {
         setError(response.message || 'Failed to fetch categories');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred.');
     } finally {
       setIsLoading(false);
@@ -32,7 +32,7 @@ export const useCategoryManagement = () => {
 
   const handleDeleteCategory = async (categoryId: string) => {
     try {
-      const response = await deleteCategory(categoryId);
+      const response = await deleteCategory(categoryId) as { success: boolean; message?: string; errors?: string[] };
       if (response.success) {
         fetchCategories(); // Refresh the list
         return { success: true, message: 'category_deleted_successfully' };
@@ -40,7 +40,7 @@ export const useCategoryManagement = () => {
         const errorMessage = response.errors ? response.errors.join(', ') : response.message;
         return { success: false, message: errorMessage || 'failed_to_delete_category' };
       }
-    } catch (err) {
+    } catch {
       return { success: false, message: 'delete_category_error' };
     }
   };

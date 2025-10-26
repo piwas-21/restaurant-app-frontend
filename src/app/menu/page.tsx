@@ -79,7 +79,7 @@ export default function MenuPage() {
     // Fetch featured special
     const loadFeaturedSpecial = async () => {
       try {
-        const response = await getFeaturedSpecial();
+        const response = await getFeaturedSpecial() as { success: boolean; data?: any };
         if (response.success && response.data) {
           setFeaturedSpecial(response.data);
         }

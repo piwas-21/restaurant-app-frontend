@@ -48,8 +48,8 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
     };
@@ -59,7 +59,7 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
   const onSave = async () => {
     const payload = buildProductPayload({ ...product, ...form } as any, categories);
     try {
-      const res = await updateProduct(product.id, payload);
+      const res = await updateProduct(product.id, payload) as { success: boolean };
       if (res.success) {
         setEditing(false);
         onUpdated && onUpdated();

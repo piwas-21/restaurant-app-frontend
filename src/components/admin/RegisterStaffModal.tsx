@@ -30,7 +30,7 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
 
   const onSubmit = async (data: RegisterStaffFormValues) => {
     try {
-        const response = await registerStaff(data);
+        const response = await registerStaff(data) as { success: boolean; message?: string; errors?: string[] };
         if (response.success) {
             onStaffRegistered();
             onClose();
@@ -50,7 +50,7 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
               setError('root', { message: response.message || 'Registration failed' });
             }
         }
-    } catch (error) {
+    } catch {
         setError('root', { message: 'An unexpected error occurred.' });
     }
   };

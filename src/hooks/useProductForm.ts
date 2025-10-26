@@ -112,7 +112,7 @@ export const useProductForm = (onSuccess: () => void): UseProductFormResult => {
         displayOrder: data.displayOrder
       };
 
-      const response = await createProduct(productData);
+      const response = await createProduct(productData) as { success: boolean; data?: { id: string }; message?: string; errors?: string[] };
 
       if (!response.success) {
         if (response.errors && response.errors.length > 0) {
@@ -134,7 +134,7 @@ export const useProductForm = (onSuccess: () => void): UseProductFormResult => {
         return;
       }
 
-      if (imageFiles.length > 0) {
+      if (imageFiles.length > 0 && response.data?.id) {
         setSubmissionStatus('uploading');
         await uploadBulkProductImages(response.data.id, imageFiles);
       }

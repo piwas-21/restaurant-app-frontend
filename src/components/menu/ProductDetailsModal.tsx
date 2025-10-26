@@ -34,7 +34,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await getProductById(item.id);
+        const response = await getProductById(item.id) as { success: boolean; data?: any; message?: string };
         if (response.success && response.data) {
           setDetailedProduct(response.data);
         } else {

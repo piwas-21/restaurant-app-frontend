@@ -16,8 +16,8 @@ export const useProductDetails = (productId: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const productResponse = await getProductById(productId);
-      if (productResponse.success) {
+      const productResponse = await getProductById(productId) as { success: boolean; data?: any; message?: string };
+      if (productResponse.success && productResponse.data) {
         let productData = productResponse.data;
         // If there's only one image, ensure it's primary and has a sort order of 1
         if (productData.images && productData.images.length === 1) {
@@ -25,8 +25,8 @@ export const useProductDetails = (productId: string) => {
           if (!image.isPrimary || image.sortOrder !== 1) {
             await updateProductImageDetails(productId, image.id, { ...image, isPrimary: true, sortOrder: 1 });
             // Refetch to get the updated data
-            const updatedResponse = await getProductById(productId);
-            if (updatedResponse.success) {
+            const updatedResponse = await getProductById(productId) as { success: boolean; data?: any };
+            if (updatedResponse.success && updatedResponse.data) {
               productData = updatedResponse.data;
             }
           }
@@ -35,7 +35,7 @@ export const useProductDetails = (productId: string) => {
       } else {
         setError(productResponse.message || 'Failed to fetch product details.');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred.');
     } finally {
       setIsLoading(false);

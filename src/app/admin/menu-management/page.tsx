@@ -40,14 +40,14 @@ const MenuManagementContent = () => {
 
   const handleOpenEditModal = async (productId: string) => {
     try {
-      const response = await getProductById(productId);
+      const response = await getProductById(productId) as { success: boolean; data?: any; message?: string };
       if (response.success) {
         setSelectedProduct(response.data);
         setIsEditModalOpen(true);
       } else {
         // Handle error
       }
-    } catch (err) {
+    } catch {
       // Handle error
     }
   };
@@ -59,9 +59,9 @@ const MenuManagementContent = () => {
 
   const handleConfirmDelete = async () => {
     if (productToDelete) {
-      const response = await deleteProduct(productToDelete);
+      const response = await deleteProduct(productToDelete) as { success: boolean; message?: string; data?: string };
       setIsConfirmationOpen(false);
-      setResultModalMessage(response.data || response.message);
+      setResultModalMessage(response.data || response.message || '');
       setIsResultModalSuccess(response.success);
       setIsResultModalOpen(true);
       if (response.success) {

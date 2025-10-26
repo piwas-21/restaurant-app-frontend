@@ -18,8 +18,8 @@ export function usePublicMenu() {
   useEffect(() => {
     const init = async () => {
       try {
-        const response = await getCategories();
-        if (response.success && Array.isArray(response.data.items)) {
+        const response = await getCategories() as { success: boolean; data?: { items: any[] } };
+        if (response.success && response.data?.items && Array.isArray(response.data.items)) {
           setCategories(response.data.items as ApiCategory[]);
         } else {
           setCategories([]);

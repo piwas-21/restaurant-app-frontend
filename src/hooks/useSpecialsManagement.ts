@@ -39,7 +39,7 @@ export const useSpecialsManagement = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getSpecialProducts(page, pageSize);
+      const response = await getSpecialProducts(page, pageSize) as { success: boolean; data?: { items: any[]; totalCount: number }; message?: string };
       if (response.success && response.data) {
         setSpecialProducts(response.data.items || []);
         setTotalCount(response.data.totalCount || 0);
@@ -64,7 +64,7 @@ export const useSpecialsManagement = () => {
 
   const handleSetFeaturedSpecial = async (productId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await setFeaturedSpecialAPI(productId);
+      const response = await setFeaturedSpecialAPI(productId) as { success: boolean; message?: string };
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);
@@ -79,7 +79,7 @@ export const useSpecialsManagement = () => {
 
   const handleUnsetFeaturedSpecial = async (): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await unsetFeaturedSpecialAPI();
+      const response = await unsetFeaturedSpecialAPI() as { success: boolean; message?: string };
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);

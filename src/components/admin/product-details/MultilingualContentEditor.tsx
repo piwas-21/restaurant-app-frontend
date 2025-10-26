@@ -32,8 +32,8 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
     };

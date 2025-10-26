@@ -34,9 +34,9 @@ const ProductDetailsPage = () => {
 
   const handleConfirmDelete = async () => {
     if (product) {
-      const response = await deleteProduct(product.id);
+      const response = await deleteProduct(product.id) as { success: boolean; message?: string; data?: string };
       setIsConfirmationOpen(false);
-      setResultModalMessage(response.data || response.message);
+      setResultModalMessage(response.data || response.message || '');
       setIsResultModalSuccess(response.success);
       setIsResultModalOpen(true);
       if (response.success) {

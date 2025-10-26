@@ -60,7 +60,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
         description: data.description,
         isActive: data.isActive,
         displayOrder: data.displayOrder,
-      });
+      }) as { success: boolean; data?: any; message?: string; errors?: string[] };
 
       if (!categoryResponse.success) {
         // Handle category creation errors
@@ -82,7 +82,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
       const imageFile = data.imageFile?.[0];
       if (imageFile) {
         const newCategoryId = categoryResponse.data.id;
-        const imageUploadResponse = await uploadCategoryImage(newCategoryId, imageFile);
+        const imageUploadResponse = await uploadCategoryImage(newCategoryId, imageFile) as { success: boolean; message?: string };
 
         if (!imageUploadResponse.success) {
           // Handle image upload error, but the category is already created.
@@ -102,7 +102,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
       onClose();
       reset();
 
-    } catch (error) {
+    } catch {
       setError('root', { message: 'An unexpected error occurred.' });
     } finally {
       setIsSubmitting(false);

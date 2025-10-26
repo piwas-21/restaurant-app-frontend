@@ -74,8 +74,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const fetchAllCategories = async () => {
-        const response = await getCategories();
-        if (response.success) setCategories(response.data.items);
+        const response = await getCategories() as { success: boolean; data?: { items: any[] } };
+        if (response.success) setCategories(response.data?.items || []);
       };
       fetchAllCategories();
     } else {

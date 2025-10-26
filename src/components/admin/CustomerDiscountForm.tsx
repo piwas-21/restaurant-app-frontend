@@ -99,7 +99,7 @@ export default function CustomerDiscountForm({
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const response = await fetchUsers('', false, query, 1, 10);
+        const response = await fetchUsers('', false, query, 1, 10) as { success: boolean; data?: { items: any[] } };
         if (response.success && response.data?.items) {
           setSearchResults(response.data.items);
         } else {

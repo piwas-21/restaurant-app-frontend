@@ -67,11 +67,11 @@ export const submitProductForm = async ({
       variations: data.variations || []
     };
 
-    const productResponse = await createProduct(productData);
-    if (productResponse.success && productResponse.data.id) {
+    const productResponse = await createProduct(productData) as { success: boolean; data?: { id: string }; message?: string };
+    if (productResponse.success && productResponse.data?.id) {
       if (imageFiles.length > 0) {
         setSubmissionStatus('uploading');
-        const imageResponse = await uploadBulkProductImages(productResponse.data.id, imageFiles);
+        const imageResponse = await uploadBulkProductImages(productResponse.data.id, imageFiles) as { success: boolean; message?: string };
         if (!imageResponse.success) {
           // eslint-disable-next-line no-console
           console.error("Image upload failed:", imageResponse.message);
@@ -160,7 +160,7 @@ export const submitEditProductForm = async ({
       content: formattedContent,
     } as any;
 
-    const response = await updateProduct(product.id, productData);
+    const response = await updateProduct(product.id, productData) as { success: boolean; message?: string };
     if (response.success) {
       if (imageFiles.length > 0) {
         await uploadBulkProductImages(product.id, imageFiles);

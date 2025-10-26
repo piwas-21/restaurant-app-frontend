@@ -37,8 +37,8 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
     };
@@ -48,8 +48,8 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
   useEffect(()=>{ setLocal(suggestedSideItems||[]); },[suggestedSideItems]);
 
   const runSearch = async () => {
-    const resp = await getProducts(1, 20, undefined);
-    if (resp.success) {
+    const resp = await getProducts(1, 20, undefined) as { success: boolean; data?: { items: any[] } };
+    if (resp.success && resp.data?.items) {
       const items = resp.data.items.filter((p:any)=> p.name.toLowerCase().includes(search.toLowerCase()));
       setResults(items);
     }

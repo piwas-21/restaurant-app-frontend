@@ -255,6 +255,31 @@
   color: var(--text-secondary, #666);
 }
 
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.userName {
+  font-weight: 500;
+  color: var(--text-color, #333);
+  font-size: 0.9rem;
+}
+
+.userEmail {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #666);
+}
+
+[data-theme="dark"] .userName {
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .userEmail {
+  color: var(--text-secondary, #999);
+}
+
 .userId {
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;

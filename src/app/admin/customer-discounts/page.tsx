@@ -187,7 +187,12 @@ export default function CustomerDiscountsPage() {
                   <td>
                     <div className={styles.userCell}>
                       <User size={16} />
-                      <span className={styles.userId}>{discount.userId.substring(0, 8)}...</span>
+                      <div className={styles.userInfo}>
+                        <span className={styles.userName}>{discount.userName || 'Unknown User'}</span>
+                        {discount.userEmail && (
+                          <span className={styles.userEmail}>{discount.userEmail}</span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td>

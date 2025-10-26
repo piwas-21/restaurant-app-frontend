@@ -5,6 +5,7 @@ import { OrderDto } from '@/types/order';
 import { cancelOrder, refundPayment } from '@/services/orderService';
 import { exportOrderToCSV } from '@/utils/exportUtils';
 import { exportOrderToPDF } from '@/utils/pdfExportUtils';
+import { getStatusBadgeClasses, getPaymentBadgeClasses, getFocusBadgeClass } from '@/utils/orderStatusStyles';
 import {
   X,
   User,
@@ -146,26 +147,6 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
     }
   };
 
-  const getStatusColor = () => {
-    switch (order.status) {
-      case 'Pending':
-      case 'Confirmed':
-        return styles.statusPending;
-      case 'Preparing':
-        return styles.statusPreparing;
-      case 'Ready':
-      case 'InTransit':
-        return styles.statusReady;
-      case 'Delivered':
-      case 'Completed':
-        return styles.statusCompleted;
-      case 'Cancelled':
-        return styles.statusCancelled;
-      default:
-        return '';
-    }
-  };
-
   const handlePrint = () => {
     // Add print-specific class to body
     document.body.classList.add('printing');
@@ -200,11 +181,11 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
             <h2 className={styles.title}>Order Details</h2>
             <div className={styles.orderMeta}>
               <span className={styles.orderNumber}>#{order.orderNumber}</span>
-              <span className={`${styles.statusBadge} ${getStatusColor()}`}>
+              <span className={getStatusBadgeClasses(order.status)}>
                 {order.status}
               </span>
               {order.isFocusOrder && (
-                <span className={styles.focusBadge}>
+                <span className={getFocusBadgeClass()}>
                   <Star size={14} />
                   Focus Order
                 </span>
@@ -448,7 +429,9 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                       {formatPrice(payment.amount)}
                     </div>
                     <div className={styles.paymentStatus}>
-                      {payment.status}
+                      <span className={getPaymentBadgeClasses(payment.status)}>
+                        {payment.status}
+                      </span>
                     </div>
                   </div>
                 ))}

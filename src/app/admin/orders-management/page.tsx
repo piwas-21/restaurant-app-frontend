@@ -385,26 +385,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Pending':
-      case 'Confirmed':
-        return styles.statusPending;
-      case 'Preparing':
-        return styles.statusPreparing;
-      case 'Ready':
-      case 'InTransit':
-        return styles.statusReady;
-      case 'Delivered':
-      case 'Completed':
-        return styles.statusCompleted;
-      case 'Cancelled':
-        return styles.statusCancelled;
-      default:
-        return '';
-    }
-  };
-
   // Pagination
   const totalPages = Math.ceil(orders.length / pageSize);
   const paginatedOrders = orders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -548,7 +528,6 @@ export default function AdminOrdersPage() {
                 setSelectedOrder(order);
                 setShowFocusModal(true);
               }}
-              getStatusColor={getStatusColor}
             />
 
             <OrdersPagination

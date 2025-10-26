@@ -1,8 +1,9 @@
 import React from 'react';
 import { OrderDto } from '@/types/order';
 import { useTranslation } from 'react-i18next';
-import { Eye, RefreshCw, Star, CheckCircle, Clock } from 'lucide-react';
+import { Eye, RefreshCw, Star } from 'lucide-react';
 import { useOrderHelpers } from '@/hooks/useOrderHelpers';
+import { getStatusBadgeClasses, getPaymentBadgeClasses } from '@/utils/orderStatusStyles';
 import styles from './OrdersTable.module.css';
 
 interface OrdersTableProps {
@@ -13,7 +14,6 @@ interface OrdersTableProps {
   onViewDetails: (order: OrderDto) => void;
   onUpdateStatus: (order: OrderDto) => void;
   onToggleFocus: (order: OrderDto) => void;
-  getStatusColor: (status: string) => string;
 }
 
 export const OrdersTable: React.FC<OrdersTableProps> = ({
@@ -24,7 +24,6 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onViewDetails,
   onUpdateStatus,
   onToggleFocus,
-  getStatusColor,
 }) => {
   const { t } = useTranslation();
   const { formatPrice, formatDate, getOrderTypeIcon, getOrderTypeLabel, getStatusLabel } = useOrderHelpers();
@@ -85,21 +84,13 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 </div>
               </td>
               <td>
-                <span className={`${styles.statusBadge} ${getStatusColor(order.status)}`}>
+                <span className={getStatusBadgeClasses(order.status)}>
                   {getStatusLabel(order.status)}
                 </span>
               </td>
               <td>
-                <span className={styles.paymentStatus}>
-                  {order.isFullyPaid ? (
-                    <>
-                      <CheckCircle size={14} /> {t('paid', 'Paid')}
-                    </>
-                  ) : (
-                    <>
-                      <Clock size={14} /> {t('pending', 'Pending')}
-                    </>
-                  )}
+                <span className={getPaymentBadgeClasses(order.paymentStatus)}>
+                  {order.paymentStatus}
                 </span>
               </td>
               <td className={styles.totalCell}>{formatPrice(order.total)}</td>

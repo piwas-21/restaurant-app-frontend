@@ -115,7 +115,8 @@
 
 .cartItem {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  /* right column should size to content to avoid empty space */
+  grid-template-columns: auto 1fr min-content;
   gap: 1.5rem;
   padding: 1.5rem;
   border: 1px solid var(--border-color);
@@ -300,10 +301,12 @@
 .itemControls {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  /* center controls and allow the column to shrink to content */
+  align-items: center;
   gap: 0.75rem;
-  min-width: 140px;
+  min-width: 0;
   flex-shrink: 0;
+  justify-self: end;
 }
 
 .quantityControl {
@@ -358,7 +361,7 @@
 }
 
 .removeItemButton {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
@@ -374,6 +377,8 @@
   font-weight: 500;
   width: 120px;
   max-width: 120px;
+  position: static;
+  margin-top: 0.25rem;
 }
 
 .removeItemButton:hover:not(:disabled) {

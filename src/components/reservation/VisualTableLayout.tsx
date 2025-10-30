@@ -85,26 +85,29 @@ export default function VisualTableLayout({
 
   // Normalize pixel positions to percentages
   // Backend stores positions in pixels assuming 800x600 canvas
-  const normalizePosition = (pixelValue: number, maxPixels: number): number => {
-    // Convert pixel value to percentage (0-100)
-    return (pixelValue / maxPixels) * 100;
+  // We scale down to fit in a smaller percentage range to reduce overlap
+  const normalizePosition = (pixelValue: number, maxPixels: number, scaleFactor: number = 0.7): number => {
+    // Convert pixel value to percentage and scale down to create more spacing
+    const percentage = (pixelValue / maxPixels) * 100;
+    return percentage * scaleFactor;
   };
 
   // Default layout if no positions are set
   const getDefaultPosition = (index: number, total: number): { x: number; y: number } => {
-    const cols = Math.ceil(Math.sqrt(total));
+    const cols = Math.min(4, Math.ceil(Math.sqrt(total))); // Max 4 columns
     const row = Math.floor(index / cols);
     const col = index % cols;
 
     return {
-      x: 10 + (col * 80 / cols),
-      y: 10 + (row * 80 / Math.ceil(total / cols))
+      x: 5 + (col * 22), // 22% spacing between columns
+      y: 10 + (row * 25)  // 25% spacing between rows
     };
   };
 
   // Apply default positions if tables don't have positions, or normalize pixel positions
   const tablesWithPositions = tables.map((table, index) => {
-    if (table.positionX === undefined || table.positionY === undefined) {
+    if (table.positionX === undefined || table.positionY === undefined ||
+        table.positionX === 0 || table.positionY === 0) {
       const defaultPos = getDefaultPosition(index, tables.length);
       return {
         ...table,
@@ -113,9 +116,9 @@ export default function VisualTableLayout({
       };
     }
 
-    // Normalize positions: backend uses pixels (max ~800x600), convert to percentages
-    const normalizedX = table.positionX > 100 ? normalizePosition(table.positionX, 800) : table.positionX;
-    const normalizedY = table.positionY > 100 ? normalizePosition(table.positionY, 600) : table.positionY;
+    // Normalize positions: backend uses pixels (max ~800x600), convert to percentages with scaling
+    const normalizedX = table.positionX > 100 ? normalizePosition(table.positionX, 800, 0.75) : table.positionX;
+    const normalizedY = table.positionY > 100 ? normalizePosition(table.positionY, 600, 0.85) : table.positionY;
 
     return {
       ...table,

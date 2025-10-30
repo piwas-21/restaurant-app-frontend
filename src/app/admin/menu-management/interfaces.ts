@@ -41,7 +41,7 @@ export interface ProductIngredient {
   content?: {
     [languageCode: string]: {
       name: string;
-      description: string;
+      description?: string;
     };
   };
 }

@@ -18,6 +18,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^5.2.1",
+    "date-fns": "^4.1.0",
     "i18next": "^25.1.2",
     "i18next-browser-languagedetector": "^8.1.0",
     "jspdf": "^3.0.3",
@@ -26,6 +27,7 @@
     "next": "15.3.2",
     "notistack": "^3.0.2",
     "react": "^19.0.0",
+    "react-big-calendar": "^1.19.4",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.62.0",
     "react-hot-toast": "^2.5.2",

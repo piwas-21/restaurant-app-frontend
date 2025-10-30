@@ -1,0 +1,343 @@
+.container {
+  width: 100%;
+}
+
+.floorPlan {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: #fafafa;
+  border: 3px solid #f4c430;
+  border-radius: 16px;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+/* Entrance */
+.entrance {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entranceDoor {
+  width: 80px;
+  height: 40px;
+  border: 3px solid #f4c430;
+  border-bottom: none;
+  border-radius: 40px 40px 0 0;
+  background: white;
+}
+
+.entranceLabel {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Tables */
+.table {
+  position: absolute;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.table.round {
+  width: 100px;
+  height: 100px;
+}
+
+.table.rectangular {
+  width: 140px;
+  height: 80px;
+}
+
+.table.large {
+  width: 180px;
+  height: 100px;
+}
+
+.tableContent {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 2px solid #ddd;
+}
+
+.table.round .tableContent {
+  border-radius: 50%;
+}
+
+/* Table states */
+.table.available .tableContent {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+.table.available:hover .tableContent {
+  background: #d4d4d4;
+  border-color: #999;
+  transform: scale(1.05);
+}
+
+.table.booked .tableContent {
+  background: #b8b8b8;
+  border-color: #999;
+}
+
+.table.selected .tableContent {
+  background: #ffe680;
+  border-color: #f4c430;
+  box-shadow: 0 0 0 3px rgba(244, 196, 48, 0.3);
+  transform: scale(1.08);
+}
+
+.tableLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+/* Chairs */
+.chair {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: #999;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.table.available .chair {
+  background: #b8b8b8;
+}
+
+.table.booked .chair {
+  background: #808080;
+}
+
+.table.selected .chair {
+  background: #f4c430;
+}
+
+/* Chair positions for round tables */
+.table.round .chair.top {
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.table.round .chair.right {
+  right: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.table.round .chair.bottom {
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.table.round .chair.left {
+  left: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Chair positions for rectangular tables */
+.table.rectangular .chair.top,
+.table.large .chair.top {
+  top: -28px;
+  transform: translateX(-50%);
+}
+
+.table.rectangular .chair.bottom,
+.table.large .chair.bottom {
+  bottom: -28px;
+  transform: translateX(-50%);
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.legendBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+}
+
+.legendBox.available {
+  background: #e8e8e8;
+  border-color: #ccc;
+}
+
+.legendBox.booked {
+  background: #b8b8b8;
+  border-color: #999;
+}
+
+.legendBox.selected {
+  background: #ffe680;
+  border-color: #f4c430;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .floorPlan {
+    aspect-ratio: 4 / 3;
+    padding: 1rem;
+  }
+
+  .table.round {
+    width: 70px;
+    height: 70px;
+  }
+
+  .table.rectangular {
+    width: 100px;
+    height: 60px;
+  }
+
+  .table.large {
+    width: 120px;
+    height: 80px;
+  }
+
+  .chair {
+    width: 18px;
+    height: 18px;
+  }
+
+  .table.round .chair.top {
+    top: -22px;
+  }
+
+  .table.round .chair.right {
+    right: -22px;
+  }
+
+  .table.round .chair.bottom {
+    bottom: -22px;
+  }
+
+  .table.round .chair.left {
+    left: -22px;
+  }
+
+  .table.rectangular .chair.top,
+  .table.large .chair.top {
+    top: -22px;
+  }
+
+  .table.rectangular .chair.bottom,
+  .table.large .chair.bottom {
+    bottom: -22px;
+  }
+
+  .tableLabel {
+    font-size: 0.75rem;
+  }
+
+  .entranceDoor {
+    width: 60px;
+    height: 30px;
+  }
+
+  .entranceLabel {
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .floorPlan {
+    background: #1a1a1a;
+    border-color: #f4c430;
+  }
+
+  .entranceDoor {
+    background: #2a2a2a;
+    border-color: #f4c430;
+  }
+
+  .entranceLabel {
+    color: #aaa;
+  }
+
+  .table.available .tableContent {
+    background: #2a2a2a;
+    border-color: #444;
+  }
+
+  .table.available:hover .tableContent {
+    background: #333;
+    border-color: #666;
+  }
+
+  .table.booked .tableContent {
+    background: #444;
+    border-color: #666;
+  }
+
+  .table.available .chair {
+    background: #444;
+  }
+
+  .table.booked .chair {
+    background: #666;
+  }
+
+  .tableLabel {
+    color: #fff;
+  }
+
+  .legendItem {
+    color: #fff;
+  }
+
+  .legendBox.available {
+    background: #2a2a2a;
+    border-color: #444;
+  }
+
+  .legendBox.booked {
+    background: #444;
+    border-color: #666;
+  }
+}

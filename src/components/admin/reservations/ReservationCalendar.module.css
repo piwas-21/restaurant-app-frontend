@@ -1,5 +1,5 @@
 .calendarContainer {
-  background: var(--card-bg);
+  background: var(--card-background);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
@@ -69,7 +69,7 @@
 .navButton,
 .todayButton {
   padding: 0.5rem 1rem;
-  background: var(--card-bg);
+  background: var(--card-background);
   border: 2px solid var(--border-color);
   border-radius: 6px;
   color: var(--text-primary);
@@ -124,7 +124,7 @@
 }
 
 .viewButtons button:hover {
-  background: var(--card-bg);
+  background: var(--card-background);
   color: var(--text-primary);
 }
 
@@ -133,112 +133,114 @@
   color: white;
 }
 
-/* Calendar Overrides */
-.rbc-calendar {
+/* Calendar Overrides - Using global wrapper */
+.calendarContainer :global(.rbc-calendar) {
   font-family: inherit;
   color: var(--text-primary);
 }
 
-.rbc-header {
+.calendarContainer :global(.rbc-header) {
   padding: 0.75rem 0.5rem;
   font-weight: 600;
   color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color) !important;
   background: var(--background);
 }
 
-.rbc-month-view,
-.rbc-time-view,
-.rbc-agenda-view {
-  border: 1px solid var(--border-color);
+.calendarContainer :global(.rbc-month-view),
+.calendarContainer :global(.rbc-time-view),
+.calendarContainer :global(.rbc-agenda-view) {
+  border: 1px solid var(--border-color) !important;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--card-bg);
+  background: var(--card-background);
 }
 
-.rbc-day-bg,
-.rbc-time-slot {
-  border-color: var(--border-color);
+.calendarContainer :global(.rbc-day-bg),
+.calendarContainer :global(.rbc-time-slot) {
+  border-color: var(--border-color) !important;
 }
 
-.rbc-today {
-  background-color: rgba(79, 70, 229, 0.1);
+.calendarContainer :global(.rbc-today) {
+  background-color: rgba(79, 70, 229, 0.1) !important;
 }
 
-.rbc-off-range-bg {
+.calendarContainer :global(.rbc-off-range-bg) {
   background-color: var(--background);
   opacity: 0.5;
 }
 
-.rbc-event {
-  cursor: pointer;
+.calendarContainer :global(.rbc-event) {
+  cursor: pointer !important;
+  padding: 2px 5px !important;
+  font-size: 0.85rem !important;
 }
 
-.rbc-event:hover {
-  opacity: 0.8;
+.calendarContainer :global(.rbc-event:hover) {
+  opacity: 0.8 !important;
 }
 
-.rbc-selected-cell {
-  background-color: rgba(79, 70, 229, 0.15);
+.calendarContainer :global(.rbc-selected-cell) {
+  background-color: rgba(79, 70, 229, 0.15) !important;
 }
 
-.rbc-date-cell {
+.calendarContainer :global(.rbc-date-cell) {
   padding: 0.5rem;
   color: var(--text-primary);
 }
 
-.rbc-date-cell.rbc-now {
-  font-weight: 700;
-  color: var(--primary);
+.calendarContainer :global(.rbc-date-cell.rbc-now) {
+  font-weight: 700 !important;
+  color: var(--primary) !important;
 }
 
-.rbc-time-header-content {
-  border-left: 1px solid var(--border-color);
+.calendarContainer :global(.rbc-time-header-content) {
+  border-left: 1px solid var(--border-color) !important;
 }
 
-.rbc-time-content {
-  border-top: 1px solid var(--border-color);
+.calendarContainer :global(.rbc-time-content) {
+  border-top: 1px solid var(--border-color) !important;
 }
 
-.rbc-current-time-indicator {
-  background-color: var(--primary);
-  height: 2px;
+.calendarContainer :global(.rbc-current-time-indicator) {
+  background-color: var(--primary) !important;
+  height: 2px !important;
 }
 
-.rbc-agenda-view table.rbc-agenda-table {
-  border-color: var(--border-color);
+.calendarContainer :global(.rbc-agenda-view table.rbc-agenda-table) {
+  border-color: var(--border-color) !important;
 }
 
-.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
-  padding: 0.75rem;
+.calendarContainer :global(.rbc-agenda-view table.rbc-agenda-table tbody > tr > td) {
+  padding: 0.75rem !important;
   color: var(--text-primary);
-  border-color: var(--border-color);
+  border-color: var(--border-color) !important;
 }
 
-.rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
-  background-color: rgba(79, 70, 229, 0.05);
+.calendarContainer :global(.rbc-agenda-view table.rbc-agenda-table tbody > tr:hover) {
+  background-color: rgba(79, 70, 229, 0.05) !important;
 }
 
-.rbc-agenda-view table.rbc-agenda-table .rbc-agenda-time-cell {
+.calendarContainer :global(.rbc-agenda-view table.rbc-agenda-table .rbc-agenda-time-cell) {
   white-space: nowrap;
   font-size: 0.9rem;
 }
 
-.rbc-agenda-view table.rbc-agenda-table .rbc-agenda-date-cell {
+.calendarContainer :global(.rbc-agenda-view table.rbc-agenda-table .rbc-agenda-date-cell) {
   font-weight: 600;
 }
 
-.rbc-toolbar button {
-  color: var(--text-primary);
-  border-color: var(--border-color);
+.calendarContainer :global(.rbc-toolbar button) {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
 }
 
-.rbc-toolbar button:hover,
-.rbc-toolbar button:active,
-.rbc-toolbar button.rbc-active {
-  background-color: var(--primary);
-  border-color: var(--primary);
-  color: white;
+.calendarContainer :global(.rbc-toolbar button:hover),
+.calendarContainer :global(.rbc-toolbar button:active),
+.calendarContainer :global(.rbc-toolbar button.rbc-active) {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: white !important;
 }
 
 /* Responsive */

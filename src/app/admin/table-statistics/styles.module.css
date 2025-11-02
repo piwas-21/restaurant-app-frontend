@@ -71,7 +71,7 @@
 }
 
 .metricCard {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -131,7 +131,7 @@
 }
 
 .chartCard {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -211,7 +211,7 @@
 }
 
 .detailCard {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -286,7 +286,7 @@
 }
 
 .tableCard {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.25rem;
   border: 2px solid var(--border-color);
@@ -396,7 +396,7 @@
 }
 
 .popularTableCard {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.25rem;
   border: 2px solid #f4c430;

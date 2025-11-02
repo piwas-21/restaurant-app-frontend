@@ -14,6 +14,7 @@ import CategoryNav from "@/components/menu/CategoryNav";
 import type { MenuItem } from "@/types/menu";
 import ImageModal from "@/components/menu/ImageModal";
 import MenuList from "@/components/menu/MenuList";
+import Pagination from "@/components/common/Pagination";
 import FeaturedSpecial from "@/components/menu/FeaturedSpecial";
 import ProductDetailsModal from "@/components/menu/ProductDetailsModal";
 import { getFeaturedSpecial } from "@/services/menuService";
@@ -52,6 +53,10 @@ export default function MenuPage() {
     items: currentMenuItems,
     isLoading: isLoadingItems,
     error: errorLoadingItems,
+    currentPage,
+    totalPages,
+    totalCount,
+    onPageChange,
   } = usePublicMenu();
 
   const [enlargedImageItem, setEnlargedImageItem] = useState<MenuItem | null>(
@@ -257,12 +262,30 @@ export default function MenuPage() {
           </p>
         )}
         {!isLoadingItems && !displayError && currentMenuItems.length > 0 && (
-          <MenuList
-            items={currentMenuItems}
-            onImageClick={handleImageClick}
-            onFeedbackSuccess={() => {}}
-            getFallbackImage={getFallbackImage}
-          />
+          <>
+            <MenuList
+              items={currentMenuItems}
+              onImageClick={handleImageClick}
+              onFeedbackSuccess={() => {}}
+              getFallbackImage={getFallbackImage}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              isLoading={isLoadingItems}
+            />
+            {totalCount > 0 && (
+              <p className={styles.paginationInfo}>
+                {t('showing_items', {
+                  start: (currentPage - 1) * 10 + 1,
+                  end: Math.min(currentPage * 10, totalCount),
+                  total: totalCount,
+                  defaultValue: `Showing ${(currentPage - 1) * 10 + 1}-${Math.min(currentPage * 10, totalCount)} of ${totalCount} items`
+                })}
+              </p>
+            )}
+          </>
         )}
       </section>
 

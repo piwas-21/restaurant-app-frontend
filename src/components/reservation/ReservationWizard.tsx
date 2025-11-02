@@ -257,10 +257,9 @@ export default function ReservationWizard() {
                 <label>{t('reservation_phone_label')}</label>
                 <input
                   type="tel"
-                  value={formData.customerPhone}
+                  value={formData.customerPhone || ''}
                   onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                   placeholder={t('reservation_phone_placeholder')}
-                  required
                 />
               </div>
               <div className={styles.formGroup}>

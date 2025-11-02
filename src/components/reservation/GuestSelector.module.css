@@ -1,0 +1,99 @@
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.guestSelector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.guestButton {
+  padding: 0.75rem;
+  background: var(--background);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.guestButton:hover {
+  border-color: #f4c430;
+  background: rgba(244, 196, 48, 0.1);
+}
+
+.guestButton.selected {
+  background: #f4c430;
+  border-color: #f4c430;
+  color: #000;
+}
+
+.customInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.customLabel {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.customInput {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  background: var(--background);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.customInput:focus {
+  outline: none;
+  border-color: #f4c430;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .guestButton {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .guestButton:hover {
+  background: rgba(244, 196, 48, 0.15);
+  border-color: rgba(244, 196, 48, 0.5);
+}
+
+[data-theme="dark"] .guestButton.selected {
+  background: #f4c430;
+  border-color: #f4c430;
+  color: #000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .guestSelector {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .formSection {
+    gap: 0.5rem;
+  }
+}

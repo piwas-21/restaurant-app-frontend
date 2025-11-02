@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '@/app/styles/RegisterStaffModal.module.css'; // Re-using modal styles
+import styles from './ConfirmationModal.module.css';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmationModalProps {

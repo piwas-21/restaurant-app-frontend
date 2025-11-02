@@ -86,7 +86,7 @@
 }
 
 .statCard {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.25rem;
   border: 2px solid var(--border-color);
@@ -156,7 +156,7 @@
 
 .backButton {
   padding: 0.75rem 1.5rem;
-  background: var(--card-bg);
+  background: var(--card-background);
   color: var(--text-primary);
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -219,7 +219,7 @@
 
 /* Canvas */
 .canvasContainer {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -396,7 +396,7 @@
 
 /* Properties Panel */
 .propertiesPanel {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -709,7 +709,7 @@
   max-width: 1400px;
   margin: 1.5rem auto;
   padding: 1rem 1.5rem;
-  background: var(--card-bg);
+  background: var(--card-background);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -743,7 +743,7 @@
 }
 
 .filterChip:hover {
-  background: var(--card-bg);
+  background: var(--card-background);
   border-color: #f4c430;
 }
 
@@ -769,7 +769,7 @@
 /* Selection Mode */
 .selectionModeButton {
   padding: 0.75rem 1.5rem;
-  background: var(--card-bg);
+  background: var(--card-background);
   color: var(--text-primary);
   border: 2px solid #f4c430;
   border-radius: 8px;
@@ -796,7 +796,7 @@
 .selectAllButton,
 .clearButton {
   padding: 0.75rem 1.5rem;
-  background: var(--card-bg);
+  background: var(--card-background);
   color: var(--text-primary);
   border: 2px solid var(--border-color);
   border-radius: 8px;

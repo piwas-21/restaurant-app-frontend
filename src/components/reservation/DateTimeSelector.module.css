@@ -1,0 +1,262 @@
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Date Selector */
+.dateSelector {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #f4c430 rgba(244, 196, 48, 0.1);
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.dateSelector::-webkit-scrollbar {
+  height: 8px;
+}
+
+.dateSelector::-webkit-scrollbar-track {
+  background: rgba(244, 196, 48, 0.1);
+  border-radius: 4px;
+}
+
+.dateSelector::-webkit-scrollbar-thumb {
+  background: #f4c430;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.dateSelector::-webkit-scrollbar-thumb:hover {
+  background: #e0b020;
+}
+
+.dateButton {
+  min-width: 60px;
+  padding: 0.75rem 0.5rem;
+  background: var(--background);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dateButton:hover {
+  border-color: #f4c430;
+  background: rgba(244, 196, 48, 0.1);
+}
+
+.dateButton.selected {
+  background: #f4c430;
+  border-color: #f4c430;
+}
+
+.dateDay {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dateButton.selected .dateDay {
+  color: #000;
+}
+
+.dateDayName {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.dateButton.selected .dateDayName {
+  color: #000;
+}
+
+/* Time Selector */
+.timeSelector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.timeButton {
+  padding: 0.75rem;
+  background: var(--background);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.timeButton:hover:not(:disabled) {
+  border-color: #f4c430;
+  background: rgba(244, 196, 48, 0.1);
+}
+
+.timeButton.selected {
+  background: #f4c430;
+  border-color: #f4c430;
+  color: #000;
+}
+
+.timeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Custom Input Wrapper */
+.customInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.customLabel {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.customInput {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  background: var(--background);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.customInput:focus {
+  outline: none;
+  border-color: #f4c430;
+}
+
+.customInput:hover {
+  border-color: #f4c430;
+}
+
+/* Date picker calendar icon color */
+.customInput[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(59%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(95%) contrast(93%);
+  transition: filter 0.2s ease;
+}
+
+.customInput[type="date"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(52%) sepia(98%) saturate(466%) hue-rotate(7deg) brightness(98%) contrast(90%);
+}
+
+.customInput[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(59%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(95%) contrast(93%);
+  transition: filter 0.2s ease;
+}
+
+.customInput[type="time"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(52%) sepia(98%) saturate(466%) hue-rotate(7deg) brightness(98%) contrast(90%);
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .dateButton {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .dateButton:hover {
+  background: rgba(244, 196, 48, 0.15);
+  border-color: rgba(244, 196, 48, 0.5);
+}
+
+[data-theme="dark"] .dateButton.selected {
+  background: #f4c430;
+  border-color: #f4c430;
+}
+
+[data-theme="dark"] .timeButton {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .timeButton:hover {
+  background: rgba(244, 196, 48, 0.15);
+  border-color: rgba(244, 196, 48, 0.5);
+}
+
+[data-theme="dark"] .timeButton.selected {
+  background: #f4c430;
+  border-color: #f4c430;
+  color: #000;
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] .dateSelector {
+  scrollbar-color: #f4c430 rgba(244, 196, 48, 0.15);
+}
+
+[data-theme="dark"] .dateSelector::-webkit-scrollbar-track {
+  background: rgba(244, 196, 48, 0.15);
+}
+
+[data-theme="dark"] .dateSelector::-webkit-scrollbar-thumb {
+  background: #f4c430;
+}
+
+[data-theme="dark"] .dateSelector::-webkit-scrollbar-thumb:hover {
+  background: #ffcc33;
+}
+
+/* Dark mode calendar picker */
+[data-theme="dark"] .customInput[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] .customInput[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(59%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(115%) contrast(93%);
+}
+
+[data-theme="dark"] .customInput[type="date"]::-webkit-calendar-picker-indicator:hover,
+[data-theme="dark"] .customInput[type="time"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(80%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(115%) contrast(93%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .timeSelector {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dateSelector {
+    gap: 0.25rem;
+  }
+
+  .dateButton {
+    min-width: 50px;
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .formSection {
+    gap: 0.5rem;
+  }
+
+  .timeSelector {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

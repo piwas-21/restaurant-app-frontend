@@ -7,25 +7,13 @@ import { useAuth } from '@/components/AuthContext';
 import { reservationService } from '@/services/reservationService';
 import { ReservationDto, ReservationStatus, TableDto } from '@/types/reservation';
 import { useSnackbar } from 'notistack';
-import {
-  Calendar,
-  RefreshCw,
-  Loader2,
-  AlertCircle,
-  Check,
-  X,
-  Clock,
-  Users,
-  MapPin,
-  Search,
-  Filter,
-  List,
-  CalendarDays,
-  Download,
-  FileText,
-  CheckSquare,
-} from 'lucide-react';
+import { Loader2, AlertCircle, Calendar } from 'lucide-react';
 import ReservationCalendar from '@/components/admin/reservations/ReservationCalendar';
+import { ReservationsHeader } from '@/components/admin/reservations/ReservationsHeader';
+import { ReservationsFilters } from '@/components/admin/reservations/ReservationsFilters';
+import { ReservationsStats } from '@/components/admin/reservations/ReservationsStats';
+import { ReservationsActions } from '@/components/admin/reservations/ReservationsActions';
+import { ReservationsList } from '@/components/admin/reservations/ReservationsList';
 import { exportReservationsToCSV, exportReservationsToPDF } from '@/utils/reservationExportUtils';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
@@ -40,6 +28,7 @@ export default function AdminReservationsManagementPage() {
   const { enqueueSnackbar } = useSnackbar();
 
   const [reservations, setReservations] = useState<ReservationDto[]>([]);
+  const [allReservationsCount, setAllReservationsCount] = useState({ total: 0, pending: 0, confirmed: 0 });
   const [tables, setTables] = useState<TableDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,7 +37,6 @@ export default function AdminReservationsManagementPage() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTableId, setSelectedTableId] = useState<string>('All');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [selectedReservation, setSelectedReservation] = useState<ReservationDto | null>(null);
   const [selectedReservationIds, setSelectedReservationIds] = useState<Set<string>>(new Set());
 
   // Modal states
@@ -89,7 +77,16 @@ export default function AdminReservationsManagementPage() {
       setIsLoading(true);
       setError('');
 
-      // Fetch reservations
+      // Fetch ALL reservations for stats (no filters)
+      const allReservationsResult = await reservationService.getReservations({});
+      const allItems = allReservationsResult.items;
+      setAllReservationsCount({
+        total: allItems.length,
+        pending: allItems.filter(r => r.status === ReservationStatus.Pending).length,
+        confirmed: allItems.filter(r => r.status === ReservationStatus.Confirmed).length
+      });
+
+      // Fetch filtered reservations for display
       const reservationsParams: any = {};
       if (selectedStatus !== 'All') reservationsParams.status = selectedStatus;
       if (selectedDate) reservationsParams.date = selectedDate;
@@ -102,6 +99,7 @@ export default function AdminReservationsManagementPage() {
       const tablesResult = await reservationService.getTables();
       setTables(tablesResult);
     } catch (err: any) {
+      // eslint-disable-next-line no-console
       console.error('Error fetching data:', err);
       setError(t('failed_to_load_reservations', 'Failed to load reservations'));
       enqueueSnackbar(t('failed_to_load_reservations', 'Failed to load reservations'), {
@@ -225,14 +223,6 @@ export default function AdminReservationsManagementPage() {
     setSelectedReservationIds(newSelection);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedReservationIds.size === filteredReservations.length) {
-      setSelectedReservationIds(new Set());
-    } else {
-      setSelectedReservationIds(new Set(filteredReservations.map(r => r.id)));
-    }
-  };
-
   const handleBulkConfirm = async () => {
     if (selectedReservationIds.size === 0) return;
 
@@ -248,6 +238,7 @@ export default function AdminReservationsManagementPage() {
             await reservationService.confirmReservation(id);
             successCount++;
           } catch (err) {
+            // eslint-disable-next-line no-console
             console.error(`Failed to confirm reservation ${id}:`, err);
           }
         }
@@ -279,6 +270,7 @@ export default function AdminReservationsManagementPage() {
             await reservationService.cancelReservation(id);
             successCount++;
           } catch (err) {
+            // eslint-disable-next-line no-console
             console.error(`Failed to cancel reservation ${id}:`, err);
           }
         }
@@ -302,40 +294,10 @@ export default function AdminReservationsManagementPage() {
     return (
       reservation.customerName.toLowerCase().includes(query) ||
       reservation.customerEmail.toLowerCase().includes(query) ||
-      reservation.customerPhone.toLowerCase().includes(query) ||
+      (reservation.customerPhone && reservation.customerPhone.toLowerCase().includes(query)) ||
       reservation.tableNumber.toLowerCase().includes(query)
     );
   });
-
-  const getStatusBadgeClass = (status: ReservationStatus) => {
-    switch (status) {
-      case ReservationStatus.Confirmed:
-        return styles.statusConfirmed;
-      case ReservationStatus.Pending:
-        return styles.statusPending;
-      case ReservationStatus.Cancelled:
-        return styles.statusCancelled;
-      case ReservationStatus.Completed:
-        return styles.statusCompleted;
-      case ReservationStatus.NoShow:
-        return styles.statusNoShow;
-      default:
-        return '';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    const parts = timeString.split(':');
-    return `${parts[0]}:${parts[1]}`;
-  };
 
   if (isLoading) {
     return (
@@ -352,145 +314,66 @@ export default function AdminReservationsManagementPage() {
     <main className={styles.container}>
       <div className={styles.content}>
         {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.titleSection}>
-            <h1 className={styles.title}>
-              <Calendar size={32} />
-              {t('admin_reservations_management', 'Reservations Management')}
-            </h1>
-            <p className={styles.subtitle}>
-              {t('admin_reservations_desc', 'View and manage all table reservations')}
-            </p>
-          </div>
-          <div className={styles.headerActions}>
-            <div className={styles.viewToggle}>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`${styles.viewButton} ${viewMode === 'list' ? styles.active : ''}`}
-                title={t('list_view', 'List View')}
-              >
-                <List size={20} />
-              </button>
-              <button
-                onClick={() => setViewMode('calendar')}
-                className={`${styles.viewButton} ${viewMode === 'calendar' ? styles.active : ''}`}
-                title={t('calendar_view', 'Calendar View')}
-              >
-                <CalendarDays size={20} />
-              </button>
-            </div>
-            <button onClick={fetchData} className={styles.refreshButton} title={t('refresh', 'Refresh')}>
-              <RefreshCw size={20} />
-              {t('refresh', 'Refresh')}
-            </button>
-          </div>
-        </div>
+        <ReservationsHeader
+          title={t('admin_reservations_management', 'Reservations Management')}
+          subtitle={t('admin_reservations_desc', 'View and manage all table reservations')}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onRefresh={fetchData}
+          listViewLabel={t('list_view', 'List View')}
+          calendarViewLabel={t('calendar_view', 'Calendar View')}
+          refreshLabel={t('refresh', 'Refresh')}
+        />
 
         {/* Filters */}
-        <div className={styles.filters}>
-          <div className={styles.searchBox}>
-            <Search size={20} />
-            <input
-              type="text"
-              placeholder={t('search_reservations', 'Search by name, email, phone, or table...')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
-
-          <div className={styles.filterGroup}>
-            <Filter size={16} />
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value as ReservationStatus | 'All')}
-              className={styles.filterSelect}
-            >
-              <option value="All">{t('all_statuses', 'All Statuses')}</option>
-              <option value={ReservationStatus.Pending}>{t('status_pending', 'Pending')}</option>
-              <option value={ReservationStatus.Confirmed}>{t('status_confirmed', 'Confirmed')}</option>
-              <option value={ReservationStatus.Cancelled}>{t('status_cancelled', 'Cancelled')}</option>
-              <option value={ReservationStatus.Completed}>{t('status_completed', 'Completed')}</option>
-              <option value={ReservationStatus.NoShow}>{t('status_no_show', 'No Show')}</option>
-            </select>
-
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className={styles.filterInput}
-            />
-
-            <select
-              value={selectedTableId}
-              onChange={(e) => setSelectedTableId(e.target.value)}
-              className={styles.filterSelect}
-            >
-              <option value="All">{t('all_tables', 'All Tables')}</option>
-              {tables.map(table => (
-                <option key={table.id} value={table.id}>
-                  {t('table', 'Table')} {table.tableNumber}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <ReservationsFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          selectedTableId={selectedTableId}
+          onTableChange={setSelectedTableId}
+          tables={tables}
+          searchPlaceholder={t('search_reservations', 'Search by name, email, phone, or table...')}
+          allStatusesLabel={t('all_statuses', 'All Statuses')}
+          statusLabels={{
+            pending: t('status_pending', 'Pending'),
+            confirmed: t('status_confirmed', 'Confirmed'),
+            cancelled: t('status_cancelled', 'Cancelled'),
+            completed: t('status_completed', 'Completed'),
+            noShow: t('status_no_show', 'No Show'),
+          }}
+          allTablesLabel={t('all_tables', 'All Tables')}
+          tableLabel={t('table', 'Table')}
+        />
 
         {/* Statistics */}
-        <div className={styles.stats}>
-          <div className={styles.statCard}>
-            <div className={styles.statValue}>{filteredReservations.length}</div>
-            <div className={styles.statLabel}>{t('total_reservations', 'Total')}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statValue}>
-              {filteredReservations.filter(r => r.status === ReservationStatus.Pending).length}
-            </div>
-            <div className={styles.statLabel}>{t('pending', 'Pending')}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statValue}>
-              {filteredReservations.filter(r => r.status === ReservationStatus.Confirmed).length}
-            </div>
-            <div className={styles.statLabel}>{t('confirmed', 'Confirmed')}</div>
-          </div>
-        </div>
+        <ReservationsStats
+          total={allReservationsCount.total}
+          pending={allReservationsCount.pending}
+          confirmed={allReservationsCount.confirmed}
+          totalLabel={t('total_reservations', 'Total')}
+          pendingLabel={t('pending', 'Pending')}
+          confirmedLabel={t('confirmed', 'Confirmed')}
+        />
 
         {/* Export & Bulk Actions */}
-        <div className={styles.actionsBar}>
-          <div className={styles.exportButtons}>
-            <button onClick={handleExportCSV} className={styles.exportButton}>
-              <Download size={16} />
-              {t('export_csv', 'Export CSV')}
-            </button>
-            <button onClick={handleExportPDF} className={styles.exportButton}>
-              <FileText size={16} />
-              {t('export_pdf', 'Export PDF')}
-            </button>
-          </div>
-
-          {selectedReservationIds.size > 0 && (
-            <div className={styles.bulkActionsBar}>
-              <span className={styles.selectionCount}>
-                {selectedReservationIds.size} {t('selected', 'selected')}
-              </span>
-              <button onClick={handleBulkConfirm} className={styles.bulkConfirmButton}>
-                <Check size={16} />
-                {t('confirm_selected', 'Confirm')}
-              </button>
-              <button onClick={handleBulkCancel} className={styles.bulkCancelButton}>
-                <X size={16} />
-                {t('cancel_selected', 'Cancel')}
-              </button>
-              <button
-                onClick={() => setSelectedReservationIds(new Set())}
-                className={styles.clearSelectionButton}
-              >
-                {t('clear_selection', 'Clear Selection')}
-              </button>
-            </div>
-          )}
-        </div>
+        <ReservationsActions
+          selectedCount={selectedReservationIds.size}
+          onExportCSV={handleExportCSV}
+          onExportPDF={handleExportPDF}
+          onBulkConfirm={handleBulkConfirm}
+          onBulkCancel={handleBulkCancel}
+          onClearSelection={() => setSelectedReservationIds(new Set())}
+          exportCSVLabel={t('export_csv', 'Export CSV')}
+          exportPDFLabel={t('export_pdf', 'Export PDF')}
+          selectedLabel={t('selected', 'selected')}
+          confirmSelectedLabel={t('confirm_selected', 'Confirm')}
+          cancelSelectedLabel={t('cancel_selected', 'Cancel')}
+          clearSelectionLabel={t('clear_selection', 'Clear Selection')}
+        />
 
         {/* Error State */}
         {error && (
@@ -505,9 +388,9 @@ export default function AdminReservationsManagementPage() {
           <ReservationCalendar
             reservations={filteredReservations}
             onSelectReservation={(reservation) => {
-              setSelectedReservation(reservation);
-              // Could open a modal here to show reservation details
+              toggleReservationSelection(reservation.id);
             }}
+            selectedReservationIds={selectedReservationIds}
           />
         ) : (
           /* List View */
@@ -518,91 +401,18 @@ export default function AdminReservationsManagementPage() {
               <p>{t('no_reservations_match_filters', 'No reservations match your current filters')}</p>
             </div>
           ) : (
-            <div className={styles.reservationsList}>
-            {filteredReservations.map(reservation => (
-              <div key={reservation.id} className={`${styles.reservationCard} ${selectedReservationIds.has(reservation.id) ? styles.selected : ''}`}>
-                <div className={styles.cardHeader}>
-                  <input
-                    type="checkbox"
-                    checked={selectedReservationIds.has(reservation.id)}
-                    onChange={() => toggleReservationSelection(reservation.id)}
-                    className={styles.checkbox}
-                  />
-                  <div className={styles.customerInfo}>
-                    <h3>{reservation.customerName}</h3>
-                    <div className={styles.contactInfo}>
-                      <span>{reservation.customerEmail}</span>
-                      <span>{reservation.customerPhone}</span>
-                    </div>
-                  </div>
-                  <span className={`${styles.statusBadge} ${getStatusBadgeClass(reservation.status)}`}>
-                    {reservationService.getStatusLabel(reservation.status)}
-                  </span>
-                </div>
-
-                <div className={styles.cardBody}>
-                  <div className={styles.infoRow}>
-                    <div className={styles.infoItem}>
-                      <Calendar size={16} />
-                      <span>{formatDate(reservation.reservationDate)}</span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Clock size={16} />
-                      <span>{formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.infoRow}>
-                    <div className={styles.infoItem}>
-                      <MapPin size={16} />
-                      <span>{t('table', 'Table')} {reservation.tableNumber}</span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <Users size={16} />
-                      <span>{reservation.numberOfGuests} {t('guests', 'guests')}</span>
-                    </div>
-                  </div>
-
-                  {reservation.specialRequests && (
-                    <div className={styles.specialRequests}>
-                      <strong>{t('special_requests', 'Special Requests')}:</strong>
-                      <p>{reservation.specialRequests}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.cardActions}>
-                  {reservation.status === ReservationStatus.Pending && (
-                    <>
-                      <button
-                        onClick={() => handleConfirm(reservation.id)}
-                        className={styles.confirmButton}
-                      >
-                        <Check size={16} />
-                        {t('confirm', 'Confirm')}
-                      </button>
-                      <button
-                        onClick={() => handleCancel(reservation.id)}
-                        className={styles.cancelButton}
-                      >
-                        <X size={16} />
-                        {t('cancel', 'Cancel')}
-                      </button>
-                    </>
-                  )}
-                  {reservation.status === ReservationStatus.Confirmed && (
-                    <button
-                      onClick={() => handleCancel(reservation.id)}
-                      className={styles.cancelButton}
-                    >
-                      <X size={16} />
-                      {t('cancel', 'Cancel')}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-            </div>
+            <ReservationsList
+              reservations={filteredReservations}
+              selectedReservationIds={selectedReservationIds}
+              onToggleSelection={toggleReservationSelection}
+              onConfirm={handleConfirm}
+              onCancel={handleCancel}
+              tableLabel={t('table', 'Table')}
+              guestsLabel={t('guests', 'guests')}
+              specialRequestsLabel={t('special_requests', 'Special Requests')}
+              confirmLabel={t('confirm', 'Confirm')}
+              cancelLabel={t('cancel', 'Cancel')}
+            />
           )
         )}
       </div>

@@ -5,7 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { reservationService } from '@/services/reservationService';
 import { TableDto } from '@/types/reservation';
 import VisualTableLayout from '@/components/reservation/VisualTableLayout';
-import styles from './styles.module.css';
+import GuestSelector from '@/components/reservation/GuestSelector';
+import DateTimeSelector from '@/components/reservation/DateTimeSelector';
+import CustomerDetailsForm from '@/components/reservation/CustomerDetailsForm';
+import CapacityWarning from '@/components/reservation/CapacityWarning';
+import SelectedTableInfo from '@/components/reservation/SelectedTableInfo';
+import ReservationSuccessModal from '@/components/reservation/ReservationSuccessModal';
+import styles from './ReservationsPage.module.css';
 import { enqueueSnackbar } from 'notistack';
 
 export default function ReservationsPage() {
@@ -23,44 +29,43 @@ export default function ReservationsPage() {
   const [specialRequests, setSpecialRequests] = useState<string>('');
 
   const [allTables, setAllTables] = useState<TableDto[]>([]);
-  const [availableTables, setAvailableTables] = useState<TableDto[]>([]);
   const [bookedTableIds, setBookedTableIds] = useState<string[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [capacityWarning, setCapacityWarning] = useState<string>('');
 
-  // Generate date options (next 14 days)
-  const dateOptions = Array.from({ length: 14 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    return date;
-  });
-
-  // Time slots
-  const timeSlots = [
-    '11:00', '12:00', '13:00', '14:00',
-    '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'
-  ];
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Load all tables on mount
   useEffect(() => {
     loadAllTables();
+
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check availability when date/time/guests change
   useEffect(() => {
     if (selectedDate && selectedTime) {
       checkAvailability();
+    } else {
+      // If no date/time selected, reset booked tables (all tables available)
+      setBookedTableIds([]);
+      setCapacityWarning('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, selectedTime, numberOfGuests]);
 
   const loadAllTables = async () => {
     try {
       const tables = await reservationService.getTables(true); // Only active tables
       setAllTables(tables);
-      setAvailableTables(tables); // Initially all are available
-    } catch (err) {
-      console.error('Failed to load tables:', err);
+    } catch {
       enqueueSnackbar(t('failed_to_load_tables', 'Failed to load tables'), { variant: 'error' });
     }
   };
@@ -78,33 +83,28 @@ export default function ReservationsPage() {
       if (result.isCapacityIssue && result.error) {
         // Show all available tables with a warning
         setCapacityWarning(result.error);
-        setAvailableTables(allTables.filter(t => t.isActive));
         setBookedTableIds([]);
       } else if (result.error) {
         // Other API errors
-        console.error('Failed to check availability:', result.error);
-        setAvailableTables([]);
         setBookedTableIds(allTables.map(t => t.id));
       } else if (result.data) {
         // Success - find the time slot that matches
         const slot = result.data.timeSlots.find(s => s.startTime.startsWith(selectedTime));
 
-        if (slot) {
-          setAvailableTables(slot.availableTables);
+        // Store all time slots for showing available times
+        setAvailableTimeSlots(result.data.timeSlots || []);
 
+        if (slot) {
           // Calculate booked tables
           const availableIds = new Set(slot.availableTables.map(t => t.id));
           const booked = allTables.filter(t => !availableIds.has(t.id)).map(t => t.id);
           setBookedTableIds(booked);
         } else {
-          setAvailableTables([]);
           setBookedTableIds(allTables.map(t => t.id));
         }
       }
-    } catch (err: any) {
+    } catch {
       // Unexpected network errors
-      console.error('Unexpected error checking availability:', err);
-      setAvailableTables([]);
       setBookedTableIds(allTables.map(t => t.id));
     } finally {
       setLoading(false);
@@ -112,6 +112,33 @@ export default function ReservationsPage() {
   };
 
   const handleTableSelect = (table: TableDto) => {
+    const isBooked = bookedTableIds.includes(table.id);
+    const isSelected = selectedTableIds.includes(table.id);
+
+    // If table is booked and not selected, show available times (but still allow selection)
+    if (isBooked && !isSelected && selectedDate && availableTimeSlots.length > 0) {
+      const availableTimes = availableTimeSlots
+        .filter(slot => slot.availableTables.some((t: TableDto) => t.id === table.id))
+        .map(slot => {
+          const start = slot.startTime.substring(0, 5); // HH:mm
+          return start;
+        });
+
+      if (availableTimes.length > 0) {
+        enqueueSnackbar(
+          `Table ${table.tableNumber} is booked at this time. Available at: ${availableTimes.join(', ')}`,
+          { variant: 'info', autoHideDuration: 5000 }
+        );
+      } else {
+        enqueueSnackbar(
+          `Table ${table.tableNumber} is not available today for ${numberOfGuests} guests`,
+          { variant: 'warning' }
+        );
+      }
+      // Still allow selection even for booked tables
+    }
+
+    // Allow selection/deselection for ALL tables
     setSelectedTableIds(prev => {
       if (prev.includes(table.id)) {
         // Deselect if already selected
@@ -121,6 +148,10 @@ export default function ReservationsPage() {
         return [...prev, table.id];
       }
     });
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,36 +191,26 @@ export default function ReservationsPage() {
         const reservationData = {
           customerName,
           customerEmail,
-          customerPhone,
+          customerPhone: customerPhone.trim() || "", // Send empty string if empty
           tableId,
           reservationDate: new Date(selectedDate).toISOString(),
           startTime: `${selectedTime}:00`,
           endTime: `${parseInt(selectedTime.split(':')[0]) + 2}:00:00`, // 2-hour reservation
           numberOfGuests,
-          specialRequests: finalSpecialRequests || undefined
+          specialRequests: finalSpecialRequests || null
         };
         return reservationService.createReservation(reservationData);
       });
 
       await Promise.all(reservationPromises);
 
-      const successMessage = selectedTableIds.length > 1
-        ? t('multiple_reservations_success', `Successfully reserved ${selectedTableIds.length} tables!`)
-        : t('reservation_success_message', 'Your reservation has been created successfully!');
+      // Show success modal instead of redirecting
+      setShowSuccessModal(true);
 
-      enqueueSnackbar(successMessage, { variant: 'success' });
-
-      // Reset form
+      // Reset form except email and name (user might want to make another reservation)
       setSelectedTableIds([]);
       setRequestCombineTables(false);
-      setCustomerName('');
-      setCustomerEmail('');
-      setCustomerPhone('');
       setSpecialRequests('');
-
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
     } catch (err: any) {
       enqueueSnackbar(
         err.message || t('reservation_failed', 'Failed to create reservation'),
@@ -214,32 +235,14 @@ export default function ReservationsPage() {
             <h2 className={styles.sectionTitle}>
               {t('select_your_tables', 'Select your Table(s)')}
               {selectedTableIds.length > 0 && (
-                <span style={{ marginLeft: '1rem', color: '#f4c430', fontWeight: 'normal', fontSize: '0.9rem' }}>
+                <span className={styles.selectionCount}>
                   ({selectedTableIds.length} {selectedTableIds.length === 1 ? t('table_selected', 'table') : t('tables_selected', 'tables')} selected)
                 </span>
               )}
             </h2>
 
             {/* Capacity Warning */}
-            {capacityWarning && (
-              <div className={styles.capacityWarning}>
-                <div className={styles.warningIcon}>⚠️</div>
-                <div className={styles.warningContent}>
-                  <p className={styles.warningTitle}>
-                    {t('capacity_notice', 'Capacity Notice')}
-                  </p>
-                  <p className={styles.warningMessage}>
-                    {t('capacity_warning_message',
-                      'We don\'t have a single table that can accommodate all {{guests}} guests. However, you can select multiple tables and request to combine them, or proceed with your selection and our staff will review your request to find the best arrangement.',
-                      { guests: numberOfGuests }
-                    )}
-                  </p>
-                  <p className={styles.warningAction}>
-                    {t('select_multiple_tables_suggestion', '💡 Tip: Select multiple tables and use the "combine tables" option below.')}
-                  </p>
-                </div>
-              </div>
-            )}
+            {capacityWarning && <CapacityWarning numberOfGuests={numberOfGuests} />}
 
             <VisualTableLayout
               tables={allTables}
@@ -254,162 +257,35 @@ export default function ReservationsPage() {
             <h2 className={styles.panelTitle}>{t('book_your_table', 'Book your table')}</h2>
 
             <form onSubmit={handleSubmit} className={styles.bookingForm}>
-              {/* Number of Guests */}
-              <div className={styles.formSection}>
-                <label className={styles.label}>{t('guests', 'Guests')}</label>
-                <div className={styles.guestSelector}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                    <button
-                      key={num}
-                      type="button"
-                      className={`${styles.guestButton} ${numberOfGuests === num ? styles.selected : ''}`}
-                      onClick={() => setNumberOfGuests(num)}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.customInputWrapper}>
-                  <label className={styles.customLabel}>{t('or_custom', 'Or custom')}:</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={numberOfGuests}
-                    onChange={(e) => setNumberOfGuests(parseInt(e.target.value) || 1)}
-                    className={styles.customInput}
-                    placeholder={t('enter_guests', 'Enter number')}
-                  />
-                </div>
-              </div>
+              <GuestSelector
+                numberOfGuests={numberOfGuests}
+                onGuestsChange={setNumberOfGuests}
+              />
 
-              {/* Date Selection */}
-              <div className={styles.formSection}>
-                <label className={styles.label}>{t('date', 'Date')}</label>
-                <div className={styles.dateSelector}>
-                  {dateOptions.map(date => {
-                    const dateStr = date.toISOString().split('T')[0];
-                    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
-                    const dayOfMonth = date.getDate();
+              <DateTimeSelector
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                onDateChange={setSelectedDate}
+                onTimeChange={setSelectedTime}
+                loading={loading}
+              />
 
-                    return (
-                      <button
-                        key={dateStr}
-                        type="button"
-                        className={`${styles.dateButton} ${selectedDate === dateStr ? styles.selected : ''}`}
-                        onClick={() => setSelectedDate(dateStr)}
-                      >
-                        <div className={styles.dateDay}>{dayOfMonth}</div>
-                        <div className={styles.dateDayName}>{dayOfWeek}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className={styles.customInputWrapper}>
-                  <label className={styles.customLabel}>{t('or_pick_date', 'Or pick a date')}:</label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className={styles.customInput}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-              </div>
+              <SelectedTableInfo
+                selectedTables={selectedTables}
+                requestCombineTables={requestCombineTables}
+                onToggleCombine={() => setRequestCombineTables(!requestCombineTables)}
+              />
 
-              {/* Time Selection */}
-              <div className={styles.formSection}>
-                <label className={styles.label}>{t('time', 'Time')}</label>
-                <div className={styles.timeSelector}>
-                  {timeSlots.map(time => (
-                    <button
-                      key={time}
-                      type="button"
-                      className={`${styles.timeButton} ${selectedTime === time ? styles.selected : ''}`}
-                      onClick={() => setSelectedTime(time)}
-                      disabled={loading}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.customInputWrapper}>
-                  <label className={styles.customLabel}>{t('or_enter_time', 'Or enter time')}:</label>
-                  <input
-                    type="time"
-                    value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    className={styles.customInput}
-                    min="11:00"
-                    max="22:00"
-                  />
-                </div>
-              </div>
-
-              {/* Selected Table Display */}
-              {selectedTables.length > 0 && (
-                <div className={styles.selectedTableInfo}>
-                  <div className={styles.tableLabel}>
-                    {selectedTables.length === 1 ? t('table', 'Table') : t('tables', 'Tables')}:
-                  </div>
-                  <div className={styles.tableValue}>
-                    {selectedTables.map(t => t.tableNumber).join(', ')}
-                  </div>
-                </div>
-              )}
-
-              {/* Combine Tables Chip */}
-              {selectedTableIds.length > 1 && (
-                <div className={styles.formSection}>
-                  <button
-                    type="button"
-                    onClick={() => setRequestCombineTables(!requestCombineTables)}
-                    className={`${styles.combineChip} ${requestCombineTables ? styles.combineChipActive : ''}`}
-                  >
-                    <span className={styles.combineChipIcon}>{requestCombineTables ? '✓' : '+'}</span>
-                    {t('request_combine_tables', 'Request to combine these tables')}
-                  </button>
-                </div>
-              )}
-
-              {/* Customer Details */}
-              <div className={styles.formSection}>
-                <label className={styles.label}>{t('your_details', 'Your Details')}</label>
-
-                <input
-                  type="text"
-                  placeholder={t('your_name', 'Your Name')}
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className={styles.input}
-                  required
-                />
-
-                <input
-                  type="email"
-                  placeholder={t('your_email', 'Your Email')}
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  className={styles.input}
-                  required
-                />
-
-                <input
-                  type="tel"
-                  placeholder={t('your_phone_optional', 'Your Phone (Optional)')}
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className={styles.input}
-                />
-
-                <textarea
-                  placeholder={t('special_requests_placeholder', 'Allergies, dietary requirements, special occasions, etc.')}
-                  value={specialRequests}
-                  onChange={(e) => setSpecialRequests(e.target.value)}
-                  className={styles.textarea}
-                  rows={3}
-                />
-              </div>
+              <CustomerDetailsForm
+                customerName={customerName}
+                customerEmail={customerEmail}
+                customerPhone={customerPhone}
+                specialRequests={specialRequests}
+                onNameChange={setCustomerName}
+                onEmailChange={setCustomerEmail}
+                onPhoneChange={setCustomerPhone}
+                onSpecialRequestsChange={setSpecialRequests}
+              />
 
               {/* Submit Button */}
               <button
@@ -423,6 +299,15 @@ export default function ReservationsPage() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <ReservationSuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleCloseSuccessModal}
+        isLoggedIn={isLoggedIn}
+        customerEmail={customerEmail}
+        numberOfTables={selectedTableIds.length}
+      />
     </div>
   );
 }

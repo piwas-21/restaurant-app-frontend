@@ -33,7 +33,7 @@ export interface ReservationDto {
   customerId?: string;
   customerName: string;
   customerEmail: string;
-  customerPhone: string;
+  customerPhone?: string | null;
   tableId: string;
   tableNumber: string;
   reservationDate: string;
@@ -49,13 +49,13 @@ export interface ReservationDto {
 export interface CreateReservationDto {
   customerName: string;
   customerEmail: string;
-  customerPhone: string;
+  customerPhone?: string | null;
   tableId: string;
   reservationDate: string;
   startTime: string;
   endTime: string;
   numberOfGuests: number;
-  specialRequests?: string;
+  specialRequests?: string | null;
 }
 
 export interface TimeSlotDto {
@@ -72,7 +72,7 @@ export interface AvailableTimeSlotsDto {
 export interface ReservationFormData {
   customerName: string;
   customerEmail: string;
-  customerPhone: string;
+  customerPhone?: string | null;
   numberOfGuests: number;
   reservationDate: Date;
   selectedTimeSlot?: TimeSlotDto;

@@ -12,6 +12,24 @@ import {
   PagedResult
 } from '@/types/reservation';
 
+// Helper function to map string status from API to enum
+function mapStatusToEnum(status: string | ReservationStatus): ReservationStatus {
+  if (typeof status === 'number') {
+    return status;
+  }
+
+  const statusMap: Record<string, ReservationStatus> = {
+    'Pending': ReservationStatus.Pending,
+    'Confirmed': ReservationStatus.Confirmed,
+    'Cancelled': ReservationStatus.Cancelled,
+    'Completed': ReservationStatus.Completed,
+    'NoShow': ReservationStatus.NoShow,
+    'No-Show': ReservationStatus.NoShow,
+  };
+
+  return statusMap[status] ?? ReservationStatus.Pending;
+}
+
 export const reservationService = {
   // Tables
   async getTables(isActive?: boolean, isOutdoor?: boolean): Promise<TableDto[]> {
@@ -69,11 +87,20 @@ export const reservationService = {
     if (params?.page) queryParams.append('page', String(params.page));
     if (params?.pageSize) queryParams.append('pageSize', String(params.pageSize));
 
-    const response = await apiClient.get<ApiResponse<PagedResult<ReservationDto>>>(
+    const response = await apiClient.get<ApiResponse<PagedResult<any>>>(
       `/api/reservations?${queryParams}`
     );
 
-    return response.data || {
+    // Map string status to enum values
+    const data = response.data;
+    if (data && data.items) {
+      data.items = data.items.map((item: any) => ({
+        ...item,
+        status: mapStatusToEnum(item.status)
+      }));
+    }
+
+    return data || {
       items: [],
       totalCount: 0,
       page: 1,
@@ -121,21 +148,30 @@ export const reservationService = {
   },
 
   async createReservation(data: CreateReservationDto): Promise<ReservationDto> {
-    const response = await apiClient.post<ApiResponse<ReservationDto>>('/api/reservations', data);
+    const response = await apiClient.post<ApiResponse<any>>('/api/reservations', data);
 
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to create reservation');
     }
 
-    return response.data;
+    // Map string status to enum
+    return {
+      ...response.data,
+      status: mapStatusToEnum(response.data.status)
+    };
   },
 
   async getReservationById(id: string): Promise<ReservationDto> {
-    const response = await apiClient.get<ApiResponse<ReservationDto>>(`/api/reservations/${id}`);
+    const response = await apiClient.get<ApiResponse<any>>(`/api/reservations/${id}`);
     if (!response.data) {
       throw new Error('Reservation not found');
     }
-    return response.data;
+
+    // Map string status to enum
+    return {
+      ...response.data,
+      status: mapStatusToEnum(response.data.status)
+    };
   },
 
   async cancelReservation(id: string): Promise<void> {
@@ -181,7 +217,7 @@ export const reservationService = {
       [ReservationStatus.Completed]: 'Completed',
       [ReservationStatus.NoShow]: 'No Show'
     };
-    return labels[status];
+    return labels[status] || 'Unknown';
   },
 
   getStatusColor(status: ReservationStatus): string {

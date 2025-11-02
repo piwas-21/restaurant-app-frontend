@@ -31,8 +31,8 @@ export default function VisualTableLayout({
       try {
         const position = JSON.parse(saved);
         setEntrancePosition(position);
-      } catch (e) {
-        console.error('Failed to load entrance position:', e);
+      } catch {
+        // Failed to parse, use default position
       }
     }
   }, []);
@@ -45,7 +45,6 @@ export default function VisualTableLayout({
 
   const renderTableShape = (table: TableDto) => {
     const status = getTableStatus(table);
-    const isClickable = status === 'available' || status === 'selected';
 
     // Use shape from backend, fallback to capacity-based logic
     const shape = table.shape || (table.maxGuests <= 4 ? 'circle' : 'rectangle');
@@ -70,8 +69,8 @@ export default function VisualTableLayout({
     return (
       <div
         key={table.id}
-        className={`${styles.table} ${styles[status]} ${shapeClass} ${isLarge ? styles.large : ''} ${!isClickable ? styles.disabled : ''}`}
-        onClick={() => isClickable && onSelectTable(table)}
+        className={`${styles.table} ${styles[status]} ${shapeClass} ${isLarge ? styles.large : ''}`}
+        onClick={() => onSelectTable(table)}
         onMouseEnter={() => setHoveredTable(table)}
         onMouseLeave={() => setHoveredTable(null)}
         style={{

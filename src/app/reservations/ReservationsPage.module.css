@@ -1,0 +1,140 @@
+.container {
+  min-height: 100vh;
+  background: var(--background);
+  padding: 2rem 0;
+}
+
+.content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: var(--text-primary);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* Floor Plan Section */
+.floorPlanSection {
+  background: var(--card-background);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.selectionCount {
+  margin-left: 1rem;
+  color: #f4c430;
+  font-weight: normal;
+  font-size: 0.9rem;
+}
+
+/* Booking Panel */
+.bookingPanel {
+  background: var(--card-background);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 2rem;
+}
+
+.panelTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+}
+
+.bookingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Book Button */
+.bookButton {
+  width: 100%;
+  padding: 1rem;
+  background: #f4c430;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.bookButton:hover:not(:disabled) {
+  background: #e0b020;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
+}
+
+.bookButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .bookingPanel {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 0 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .floorPlanSection,
+  .bookingPanel {
+    padding: 1.5rem;
+  }
+
+  .panelTitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem 0;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}

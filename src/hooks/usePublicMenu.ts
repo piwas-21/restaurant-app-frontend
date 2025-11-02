@@ -13,6 +13,10 @@ export function usePublicMenu() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 10;
 
   // Load categories once
   useEffect(() => {
@@ -25,6 +29,7 @@ export function usePublicMenu() {
           setCategories([]);
         }
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error("Failed to load categories", e);
         setCategories([]);
       }
@@ -32,14 +37,20 @@ export function usePublicMenu() {
     init();
   }, []);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (page: number = 1) => {
     setIsLoading(true);
     setError(null);
     setItems([]);
     try {
       const categoryId = selectedView === ALL_ITEMS_KEY ? null : selectedView;
-      const response = await getProducts(1, 200, categoryId || undefined);
+      const response = await getProducts(page, pageSize, categoryId || undefined);
       if (!response.success) throw new Error(response.message || "Failed to fetch products");
+
+      // Update pagination metadata
+      setTotalPages(response.data?.totalPages || 1);
+      setTotalCount(response.data?.totalCount || 0);
+      setCurrentPage(page);
+
       const mapped: MenuItem[] = (response.data?.items || []).map((p: any) => {
         const primaryImage = p.imageUrl || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0].url : "/images/placeholder-falafel.jpeg");
         const gallery = Array.isArray(p.images)
@@ -89,13 +100,20 @@ export function usePublicMenu() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedView]);
+  }, [selectedView, pageSize]);
 
-  // Fetch products when selection changes
+  // Fetch products when selection changes (reset to page 1)
   useEffect(() => {
     if (!selectedView) return;
-    fetchProducts();
+    setCurrentPage(1);
+    fetchProducts(1);
   }, [selectedView, fetchProducts]);
+
+  const handlePageChange = useCallback((page: number) => {
+    fetchProducts(page);
+    // Scroll to top of menu section
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [fetchProducts]);
 
   return {
     categories,
@@ -104,6 +122,11 @@ export function usePublicMenu() {
     items,
     isLoading,
     error,
-    refetch: fetchProducts,
+    currentPage,
+    totalPages,
+    totalCount,
+    pageSize,
+    onPageChange: handlePageChange,
+    refetch: () => fetchProducts(currentPage),
   } as const;
 }

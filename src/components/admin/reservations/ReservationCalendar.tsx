@@ -2,11 +2,10 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { Calendar, dateFnsLocalizer, View, Event } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay, addHours } from 'date-fns';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { ReservationDto, ReservationStatus } from '@/types/reservation';
-import { reservationService } from '@/services/reservationService';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './ReservationCalendar.module.css';
 
@@ -29,11 +28,13 @@ interface CalendarEvent extends Event {
 interface ReservationCalendarProps {
   reservations: ReservationDto[];
   onSelectReservation?: (reservation: ReservationDto) => void;
+  selectedReservationIds?: Set<string>;
 }
 
 export default function ReservationCalendar({
   reservations,
-  onSelectReservation
+  onSelectReservation,
+  selectedReservationIds = new Set()
 }: ReservationCalendarProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<View>('month');
@@ -64,6 +65,7 @@ export default function ReservationCalendar({
   // Custom event style based on status
   const eventStyleGetter = useCallback((event: CalendarEvent) => {
     const reservation = event.resource;
+    const isSelected = selectedReservationIds.has(reservation.id);
     let backgroundColor = '#3174ad';
 
     switch (reservation.status) {
@@ -88,15 +90,17 @@ export default function ReservationCalendar({
       style: {
         backgroundColor,
         borderRadius: '5px',
-        opacity: 0.9,
+        opacity: isSelected ? 1 : 0.9,
         color: 'white',
-        border: '0px',
+        border: isSelected ? '3px solid #f4c430' : '0px',
         display: 'block',
         fontSize: '0.85rem',
         padding: '2px 5px',
+        cursor: 'pointer',
+        fontWeight: isSelected ? 'bold' : 'normal',
       },
     };
-  }, []);
+  }, [selectedReservationIds]);
 
   // Handle event selection
   const handleSelectEvent = useCallback((event: CalendarEvent) => {

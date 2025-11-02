@@ -45,6 +45,9 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Tables */
@@ -132,10 +135,20 @@
   color: #4a3f2a;
   text-align: center;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .table.booked .tableLabel {
   color: #6b5d3f;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="dark"] .table.booked .tableLabel {
+  color: #999;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* Table Tooltip */
@@ -200,6 +213,9 @@
   font-size: 0.85rem;
   color: #4a3f2a;
   font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .tooltipRow:last-child {
@@ -242,6 +258,9 @@
   font-size: 0.95rem;
   color: #4a3f2a;
   font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .legendBox {
@@ -271,42 +290,188 @@
 /* Responsive */
 @media (max-width: 768px) {
   .floorPlan {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
     padding: 1rem;
+    min-height: 400px;
   }
 
   .table.round {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
   }
 
   .table.rectangular {
-    width: 100px;
+    width: 90px;
+    height: 50px;
+  }
+
+  .table.square {
+    width: 60px;
     height: 60px;
   }
 
   .table.large {
-    width: 120px;
-    height: 80px;
+    width: 110px;
+    height: 70px;
   }
 
   .tableLabel {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 
   .tableTooltip {
-    font-size: 0.8rem;
-    min-width: 140px;
-    padding: 0.6rem 0.8rem;
+    font-size: 0.75rem;
+    min-width: 130px;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .tooltipRow {
+    font-size: 0.75rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .tooltipIcon {
+    font-size: 0.9rem;
+    width: 18px;
+  }
+
+  .tooltipNotes {
+    font-size: 0.7rem;
   }
 
   .entranceDoor {
-    width: 60px;
-    height: 30px;
+    width: 50px;
+    height: 25px;
   }
 
   .entranceLabel {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .legend {
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .legendItem {
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+
+  .legendBox {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0;
+  }
+
+  .floorPlan {
+    aspect-ratio: 1 / 1;
+    padding: 0.75rem;
+    min-height: 320px;
+    border-width: 2px;
+    border-radius: 12px;
+  }
+
+  .table.round {
+    width: 48px;
+    height: 48px;
+  }
+
+  .table.rectangular {
+    width: 75px;
+    height: 42px;
+  }
+
+  .table.square {
+    width: 48px;
+    height: 48px;
+  }
+
+  .table.large {
+    width: 95px;
+    height: 58px;
+  }
+
+  .tableContent {
+    border-width: 1.5px;
+    border-radius: 8px;
+  }
+
+  .tableLabel {
+    font-size: 0.65rem;
+  }
+
+  .tableTooltip {
+    font-size: 0.7rem;
+    min-width: 110px;
+    padding: 0.4rem 0.6rem;
+    border-width: 1.5px;
+    border-radius: 8px;
+  }
+
+  .tableTooltip::after {
+    border-width: 6px;
+  }
+
+  .tooltipRow {
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+    gap: 0.4rem;
+  }
+
+  .tooltipIcon {
+    font-size: 0.85rem;
+    width: 16px;
+  }
+
+  .tooltipNotes {
+    font-size: 0.65rem;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    gap: 0.4rem;
+  }
+
+  .entranceDoor {
+    width: 40px;
+    height: 20px;
+    border-width: 2px;
+  }
+
+  .entranceLabel {
+    font-size: 0.65rem;
+  }
+
+  .legend {
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .legendItem {
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .legendBox {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border-width: 1.5px;
+  }
+
+  /* Better touch targets on mobile */
+  .table {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Slightly larger selection ring on mobile for visibility */
+  .table.selected .tableContent {
+    box-shadow: 0 0 0 3px rgba(244, 196, 48, 0.3), 0 4px 16px rgba(244, 196, 48, 0.3);
   }
 }
 
@@ -323,6 +488,9 @@
 
 [data-theme="dark"] .entranceLabel {
   color: #aaa;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 [data-theme="dark"] .table.available .tableContent {
@@ -342,6 +510,10 @@
 
 [data-theme="dark"] .tableLabel {
   color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 700;
 }
 
 [data-theme="dark"] .tableTooltip {

@@ -1,3 +1,4 @@
+/* Main Container */
 .container {
   min-height: 100vh;
   background: var(--background);
@@ -8,473 +9,6 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-}
-
-/* Header */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  gap: 2rem;
-}
-
-.titleSection {
-  flex: 1;
-}
-
-.title {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-  color: var(--text-primary);
-}
-
-.subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.viewToggle {
-  display: flex;
-  gap: 0.25rem;
-  background: var(--background);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.25rem;
-}
-
-.viewButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.viewButton:hover {
-  background: var(--card-bg);
-  color: var(--text-primary);
-}
-
-.viewButton.active {
-  background: var(--primary);
-  color: white;
-}
-
-.refreshButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.refreshButton:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-}
-
-/* Filters */
-.filters {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.searchBox {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: var(--background);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  flex: 1;
-}
-
-.searchBox svg {
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.searchInput {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 1rem;
-  color: var(--text-primary);
-}
-
-.filterGroup {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.filterGroup svg {
-  color: var(--text-secondary);
-}
-
-.filterSelect,
-.filterInput {
-  padding: 0.75rem 1rem;
-  background: var(--background);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-
-.filterSelect:hover,
-.filterSelect:focus,
-.filterInput:hover,
-.filterInput:focus {
-  border-color: var(--primary);
-  outline: none;
-}
-
-/* Statistics */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.statCard {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-}
-
-.statValue {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-}
-
-.statLabel {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Reservations List */
-.reservationsList {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.reservationCard {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
-}
-
-.reservationCard:hover {
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.customerInfo h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: var(--text-primary);
-}
-
-.contactInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.statusBadge {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.statusPending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.statusConfirmed {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.statusCancelled {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.statusCompleted {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.statusNoShow {
-  background: #fecaca;
-  color: #7f1d1d;
-}
-
-.cardBody {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.infoRow {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.infoItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-}
-
-.infoItem svg {
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.specialRequests {
-  padding: 1rem;
-  background: var(--background);
-  border-left: 3px solid var(--primary);
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.specialRequests strong {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.specialRequests p {
-  margin: 0;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.cardActions {
-  display: flex;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.confirmButton,
-.cancelButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.confirmButton {
-  background: #10b981;
-  color: white;
-}
-
-.confirmButton:hover {
-  background: #059669;
-  transform: translateY(-2px);
-}
-
-.cancelButton {
-  background: #ef4444;
-  color: white;
-}
-
-.cancelButton:hover {
-  background: #dc2626;
-  transform: translateY(-2px);
-}
-
-/* Export & Bulk Operations */
-.actionsBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.exportButtons {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.exportButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.exportButton:hover {
-  background: #f4c430;
-  color: #1a1a1a;
-  border-color: #f4c430;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
-}
-
-.bulkActionsBar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--primary);
-  color: white;
-  border-radius: 8px;
-  flex-wrap: wrap;
-}
-
-.selectionCount {
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.bulkConfirmButton,
-.bulkCancelButton,
-.clearSelectionButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.bulkConfirmButton {
-  background: #10b981;
-  color: white;
-}
-
-.bulkConfirmButton:hover {
-  background: #059669;
-}
-
-.bulkCancelButton {
-  background: #ef4444;
-  color: white;
-}
-
-.bulkCancelButton:hover {
-  background: #dc2626;
-}
-
-.clearSelectionButton {
-  background: var(--card-bg);
-  color: var(--text-primary);
-  border: 2px solid var(--border-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.clearSelectionButton:hover {
-  background: #6b7280;
-  color: white;
-  border-color: #6b7280;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
-}
-
-.checkbox {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--primary);
-  margin-right: 1rem;
-}
-
-.reservationCard.selected {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-  background: rgba(79, 70, 229, 0.05);
 }
 
 /* Loading State */
@@ -488,8 +22,8 @@
 }
 
 .spinner {
-  animation: spin 1s linear infinite;
   color: var(--primary);
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -501,118 +35,78 @@
   }
 }
 
-/* Empty State */
-.emptyState {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.emptyIcon {
-  color: var(--text-secondary);
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.emptyState h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.emptyState p {
-  color: var(--text-secondary);
-  font-size: 1rem;
-}
-
 /* Error Alert */
 .errorAlert {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  padding: 1rem 1.25rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  color: #dc2626;
+  margin-bottom: 2rem;
 }
 
-/* Responsive */
+.errorAlert svg {
+  flex-shrink: 0;
+}
+
+.errorAlert p {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 3rem;
+  background: var(--card-background);
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+}
+
+.emptyIcon {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.emptyState h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem;
+}
+
+.emptyState p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
   .content {
     padding: 1rem;
   }
 
-  .header {
-    flex-direction: column;
-    gap: 1rem;
+  .emptyState {
+    min-height: 300px;
+    padding: 2rem 1rem;
   }
 
-  .title {
-    font-size: 1.5rem;
+  .emptyState h2 {
+    font-size: 1.25rem;
   }
 
-  .filters {
-    padding: 1rem;
-  }
-
-  .filterGroup {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filterSelect,
-  .filterInput {
-    width: 100%;
-  }
-
-  .stats {
-    grid-template-columns: 1fr;
-  }
-
-  .cardHeader {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .infoRow {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .cardActions {
-    flex-direction: column;
-  }
-
-  .confirmButton,
-  .cancelButton {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .actionsBar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .exportButtons {
-    flex-direction: column;
-  }
-
-  .exportButton {
-    justify-content: center;
-  }
-
-  .bulkActionsBar {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
-
-  .bulkConfirmButton,
-  .bulkCancelButton,
-  .clearSelectionButton {
-    justify-content: center;
+  .emptyState p {
+    font-size: 0.9375rem;
   }
 }

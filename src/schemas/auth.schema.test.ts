@@ -26,7 +26,7 @@ describe('Auth Schemas', () => {
       email: 'john.doe@example.com',
       password: 'password123',
       confirmPassword: 'password123',
-      role: 'Staff'
+      role: 'Server'
     };
 
     it('should validate correct staff registration data', () => {

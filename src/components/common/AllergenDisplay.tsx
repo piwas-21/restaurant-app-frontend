@@ -69,6 +69,7 @@ interface AllergenDisplayProps {
   showLabel?: boolean;
   variant?: 'compact' | 'full' | 'admin';
   className?: string;
+  contentClassName?: string;
 }
 
 export default function AllergenDisplay({
@@ -78,6 +79,7 @@ export default function AllergenDisplay({
   showLabel = true,
   variant = 'full',
   className = '',
+  contentClassName = '',
 }: AllergenDisplayProps) {
   const { t } = useTranslation();
 
@@ -141,7 +143,7 @@ export default function AllergenDisplay({
     return (
       <div className={`${className}`}>
         {showLabel && <div className={styles.allergensLabel}>{t('allergens', 'Allergens')}</div>}
-        <div className={styles.allergensContent}>
+        <div className={`${styles.allergensContent} ${contentClassName}`}>
           {allergens.map((allergen, idx) => {
             const { icon, className: allergenClassName } = getAllergenInfo(allergen);
             const translationKey = `allergen_${allergen.toLowerCase().replace(/ /g, '_')}`;

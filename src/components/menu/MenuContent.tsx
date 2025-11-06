@@ -5,7 +5,7 @@ import { ALL_ITEMS_KEY } from '@/hooks/usePublicMenu';
 import CategoryNav from '@/components/menu/CategoryNav';
 import MenuList from '@/components/menu/MenuList';
 import Pagination from '@/components/common/Pagination';
-import styles from '@/app/styles/MenuPage.module.css';
+import styles from './MenuContent.module.css';
 
 interface MenuContentProps {
   categoriesForNav: ApiCategory[];

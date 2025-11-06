@@ -1,0 +1,189 @@
+/* Sticky Category Navigation */
+.stickyNav {
+  position: sticky;
+  top: 0;
+  background-color: var(--card-background);
+  padding: 12px 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.navWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.navScrollContainer {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  flex: 1;
+  min-width: 0;
+  max-width: 800px; /* Reasonable max width for desktop */
+}
+
+.navScrollContainer::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.navButtonsContainer {
+  display: flex;
+  gap: 8px;
+  padding: 0 8px;
+  min-width: min-content;
+}
+
+.navButton {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background-color: var(--secondary-color);
+  transition: background-color 0.3s, color 0.3s, transform 0.2s;
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.navButton:hover {
+  background-color: var(--link-hover-color);
+  border-color: var(--link-hover-color);
+  transform: translateY(-2px);
+}
+
+.navButtonActive {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-color: var(--primary-color);
+  font-weight: bold;
+}
+
+.navArrow {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navArrow:hover {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.navArrow:active {
+  transform: scale(0.95);
+}
+
+.navArrowLeft {
+  margin-right: 12px;
+}
+
+.navArrowRight {
+  margin-left: 12px;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .stickyNav {
+    padding: 10px 0;
+    width: 690px;
+    max-width: 100%;
+  }
+
+  .navWrapper {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .navButton {
+    padding: 9px 16px;
+    font-size: 0.95rem;
+  }
+
+  .navArrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .navArrowLeft {
+    margin-right: 8px;
+  }
+
+  .navArrowRight {
+    margin-left: 8px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .stickyNav {
+    padding: 8px 0;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .navWrapper {
+    padding: 0 0.5rem;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .navScrollContainer {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .navButtonsContainer {
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .navButton {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    min-width: fit-content;
+    border-radius: 20px;
+  }
+
+  .navArrow {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .navArrow svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .navArrowLeft {
+    margin-right: 8px;
+  }
+
+  .navArrowRight {
+    margin-left: 8px;
+  }
+}

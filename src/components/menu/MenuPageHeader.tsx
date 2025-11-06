@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { UtensilsCrossed } from 'lucide-react';
-import styles from '@/app/styles/MenuPage.module.css';
+import styles from './MenuPageHeader.module.css';
 
 export default function MenuPageHeader() {
   const { t } = useTranslation();

@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./CategoryNav.module.css";
 import type { ApiCategory } from "@/types/menu";
 
 type Props = {

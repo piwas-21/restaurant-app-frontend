@@ -153,6 +153,10 @@
   margin-bottom: 1.5rem;
 }
 
+.allergensContentLeft {
+  justify-content: flex-start !important;
+}
+
 .allergenContainer {
   display: flex;
   flex-direction: column;

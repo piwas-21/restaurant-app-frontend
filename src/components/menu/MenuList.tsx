@@ -4,7 +4,7 @@
 import React from "react";
 import MenuItem from "./MenuItem";
 import type { MenuItem as MenuItemType } from "@/types/menu";
-import styles from "@/app/styles/MenuPage.module.css";
+import styles from "./MenuContent.module.css";
 import { useTranslation } from "react-i18next";
 
 interface MenuListProps {

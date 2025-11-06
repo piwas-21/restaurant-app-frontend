@@ -1,0 +1,104 @@
+/* Table Banner for QR Code Orders */
+.tableBanner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tableBannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.tableBannerText {
+  flex: 1;
+}
+
+.tableBannerText h2 {
+  color: white;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tableBannerText p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+}
+
+.tableNumber {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tableNumber span {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .tableBanner {
+    padding: 1.25rem;
+    margin: 0.75rem 0 1.5rem;
+  }
+
+  .tableBannerContent {
+    gap: 1rem;
+  }
+
+  .tableBannerText h2 {
+    font-size: 1.25rem;
+  }
+
+  .tableBannerText p {
+    font-size: 0.95rem;
+  }
+
+  .tableNumber {
+    padding: 0.6rem 1.2rem;
+  }
+
+  .tableNumber span {
+    font-size: 1.1rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .tableBanner {
+    padding: 1rem;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .tableBannerContent {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .tableBannerText h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .tableBannerText p {
+    font-size: 0.9rem;
+  }
+
+  .tableNumber {
+    padding: 0.5rem 1rem;
+    width: 100%;
+  }
+
+  .tableNumber span {
+    font-size: 1rem;
+  }
+}

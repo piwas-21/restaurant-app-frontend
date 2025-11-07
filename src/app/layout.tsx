@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/rumi-letter-r-icon.svg',
   },
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes',
 };
 
 const inter = Inter({ subsets: ["latin"] });

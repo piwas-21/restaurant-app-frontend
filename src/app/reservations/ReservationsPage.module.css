@@ -2,12 +2,18 @@
   min-height: 100vh;
   background: var(--background);
   padding: 2rem 0;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .content {
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 2rem;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .title {

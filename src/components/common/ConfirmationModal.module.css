@@ -105,12 +105,14 @@
 }
 
 .cancelButton {
-  background-color: var(--secondary-color, #6c757d);
-  color: var(--button-text-color, white);
+  background-color: transparent;
+  color: var(--text-color, #1a1a1a);
+  border: 2px solid var(--border-color, #d1d5db);
 }
 
 .cancelButton:hover {
-  background-color: var(--secondary-color-dark, #5a6268);
+  background-color: var(--hover-background, #f3f4f6);
+  border-color: var(--border-color-hover, #9ca3af);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -128,11 +130,14 @@
 }
 
 [data-theme="dark"] .cancelButton {
-  background-color: var(--secondary-color, #4a5568);
+  background-color: transparent;
+  color: var(--text-color, #e0e0e0);
+  border: 2px solid var(--border-color, #4a5568);
 }
 
 [data-theme="dark"] .cancelButton:hover {
-  background-color: var(--secondary-color-dark, #3a4556);
+  background-color: var(--hover-background, #374151);
+  border-color: var(--border-color-hover, #6b7280);
 }
 
 /* Responsive */

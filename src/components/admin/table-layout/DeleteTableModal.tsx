@@ -40,7 +40,7 @@ export const DeleteTableModal: React.FC<DeleteTableModalProps> = ({
         </div>
 
         <h2>
-          {isBulkDelete ? t('delete_multiple_tables', 'Delete Multiple Tables?') : t('delete_table', 'Delete Table?')}
+          {isBulkDelete ? t('delete_multiple_tables', 'Delete Multiple Tables?') : t('delete_table_question', 'Delete Table?')}
         </h2>
 
         <p className={styles.warningText}>

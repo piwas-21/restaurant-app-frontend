@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { useSnackbar } from 'notistack';
 import PointRuleForm from '@/components/admin/PointRuleForm';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 import styles from './point-rules.module.css';
 
 export default function PointRulesPage() {
@@ -18,6 +19,10 @@ export default function PointRulesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingRule, setEditingRule] = useState<PointEarningRule | null>(null);
   const [activeOnly, setActiveOnly] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; ruleId: string | null }>({
+    isOpen: false,
+    ruleId: null,
+  });
 
   const loadRules = async () => {
     try {
@@ -48,13 +53,15 @@ export default function PointRulesPage() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t('confirm_delete_rule', 'Are you sure you want to delete this rule?'))) {
-      return;
-    }
+  const handleDelete = (id: string) => {
+    setDeleteConfirmation({ isOpen: true, ruleId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation.ruleId) return;
 
     try {
-      await adminFidelityService.deletePointRule(id);
+      await adminFidelityService.deletePointRule(deleteConfirmation.ruleId);
       enqueueSnackbar(t('rule_deleted', 'Point rule deleted successfully'), {
         variant: 'success',
       });
@@ -63,7 +70,13 @@ export default function PointRulesPage() {
       enqueueSnackbar(t('error_deleting_rule', 'Failed to delete rule'), {
         variant: 'error',
       });
+    } finally {
+      setDeleteConfirmation({ isOpen: false, ruleId: null });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation({ isOpen: false, ruleId: null });
   };
 
   const handleFormSuccess = () => {
@@ -191,6 +204,14 @@ export default function PointRulesPage() {
           onCancel={handleFormCancel}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        message={t('confirm_delete_rule', 'Are you sure you want to delete this rule?')}
+      />
       </main>
     </AdminAuthGuard>
   );

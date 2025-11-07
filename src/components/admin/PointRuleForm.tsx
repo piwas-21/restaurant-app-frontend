@@ -19,24 +19,24 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
   const { enqueueSnackbar } = useSnackbar();
   const [submitting, setSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<CreatePointRuleDto>({
+  const [formData, setFormData] = useState({
     name: '',
-    minOrderAmount: 0,
-    maxOrderAmount: undefined,
-    pointsAwarded: 0,
+    minOrderAmount: '',
+    maxOrderAmount: '',
+    pointsAwarded: '',
     isActive: true,
-    priority: 0,
+    priority: '',
   });
 
   useEffect(() => {
     if (rule) {
       setFormData({
         name: rule.name,
-        minOrderAmount: rule.minOrderAmount,
-        maxOrderAmount: rule.maxOrderAmount,
-        pointsAwarded: rule.pointsAwarded,
+        minOrderAmount: rule.minOrderAmount.toString(),
+        maxOrderAmount: rule.maxOrderAmount?.toString() || '',
+        pointsAwarded: rule.pointsAwarded.toString(),
         isActive: rule.isActive,
-        priority: rule.priority,
+        priority: rule.priority.toString(),
       });
     }
   }, [rule]);
@@ -46,9 +46,6 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
 
     if (type === 'checkbox') {
       setFormData(prev => ({ ...prev, [name]: checked }));
-    } else if (type === 'number') {
-      const numValue = value === '' ? undefined : parseFloat(value);
-      setFormData(prev => ({ ...prev, [name]: numValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -63,26 +60,69 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
       return;
     }
 
-    if (formData.minOrderAmount < 0) {
+    // Parse and validate minOrderAmount
+    const minOrderAmount = parseFloat(formData.minOrderAmount);
+    if (!formData.minOrderAmount || isNaN(minOrderAmount)) {
+      enqueueSnackbar(t('min_order_amount_required', 'Minimum order amount is required'), {
+        variant: 'error',
+      });
+      return;
+    }
+
+    if (minOrderAmount < 0) {
       enqueueSnackbar(t('min_amount_invalid', 'Minimum order amount must be >= 0'), {
         variant: 'error',
       });
       return;
     }
 
-    if (
-      formData.maxOrderAmount !== undefined &&
-      formData.maxOrderAmount <= formData.minOrderAmount
-    ) {
-      enqueueSnackbar(
-        t('max_amount_invalid', 'Maximum order amount must be greater than minimum'),
-        { variant: 'error' }
-      );
+    // Parse and validate maxOrderAmount (optional)
+    let maxOrderAmount: number | undefined = undefined;
+    if (formData.maxOrderAmount) {
+      maxOrderAmount = parseFloat(formData.maxOrderAmount);
+      if (isNaN(maxOrderAmount)) {
+        enqueueSnackbar(t('max_order_amount_must_be_number', 'Maximum order amount must be a valid number'), {
+          variant: 'error',
+        });
+        return;
+      }
+
+      if (maxOrderAmount <= minOrderAmount) {
+        enqueueSnackbar(
+          t('max_amount_invalid', 'Maximum order amount must be greater than minimum'),
+          { variant: 'error' }
+        );
+        return;
+      }
+    }
+
+    // Parse and validate pointsAwarded
+    const pointsAwarded = parseInt(formData.pointsAwarded);
+    if (!formData.pointsAwarded || isNaN(pointsAwarded)) {
+      enqueueSnackbar(t('points_awarded_required', 'Points awarded is required'), {
+        variant: 'error',
+      });
       return;
     }
 
-    if (formData.pointsAwarded <= 0) {
+    if (pointsAwarded <= 0) {
       enqueueSnackbar(t('points_invalid', 'Points awarded must be greater than 0'), {
+        variant: 'error',
+      });
+      return;
+    }
+
+    // Parse and validate priority
+    const priority = parseInt(formData.priority);
+    if (!formData.priority || isNaN(priority)) {
+      enqueueSnackbar(t('priority_required', 'Priority is required'), {
+        variant: 'error',
+      });
+      return;
+    }
+
+    if (priority < 0) {
+      enqueueSnackbar(t('min_amount_invalid', 'Priority must be >= 0'), {
         variant: 'error',
       });
       return;
@@ -91,10 +131,20 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
     try {
       setSubmitting(true);
 
+      // Prepare DTO with parsed numbers
+      const dto: CreatePointRuleDto = {
+        name: formData.name,
+        minOrderAmount,
+        maxOrderAmount,
+        pointsAwarded,
+        isActive: formData.isActive,
+        priority,
+      };
+
       if (rule) {
         // Update existing rule
         await adminFidelityService.updatePointRule(rule.id, {
-          ...formData,
+          ...dto,
           id: rule.id,
         });
         enqueueSnackbar(t('rule_updated', 'Point rule updated successfully'), {
@@ -102,7 +152,7 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
         });
       } else {
         // Create new rule
-        await adminFidelityService.createPointRule(formData);
+        await adminFidelityService.createPointRule(dto);
         enqueueSnackbar(t('rule_created', 'Point rule created successfully'), {
           variant: 'success',
         });
@@ -202,13 +252,13 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
                 {t('min_order_amount', 'Min Order Amount')} * (CHF)
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="minOrderAmount"
                 name="minOrderAmount"
                 value={formData.minOrderAmount}
                 onChange={handleChange}
-                min="0"
-                step="0.01"
+                placeholder="0.00"
                 className={styles.input}
                 required
               />
@@ -219,13 +269,12 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
                 {t('max_order_amount', 'Max Order Amount')} (CHF)
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="maxOrderAmount"
                 name="maxOrderAmount"
                 value={formData.maxOrderAmount ?? ''}
                 onChange={handleChange}
-                min="0"
-                step="0.01"
                 placeholder={t('unlimited', 'Unlimited')}
                 className={styles.input}
               />
@@ -238,13 +287,13 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
                 {t('points_awarded', 'Points Awarded')} *
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 id="pointsAwarded"
                 name="pointsAwarded"
                 value={formData.pointsAwarded}
                 onChange={handleChange}
-                min="1"
-                step="1"
+                placeholder="0"
                 className={styles.input}
                 required
               />
@@ -255,13 +304,13 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
                 {t('priority', 'Priority')} *
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 id="priority"
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                min="0"
-                step="1"
+                placeholder="0"
                 className={styles.input}
                 required
               />

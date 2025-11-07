@@ -26,11 +26,19 @@
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-primary);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .guestButton:hover {
   border-color: #f4c430;
   background: rgba(244, 196, 48, 0.1);
+}
+
+.guestButton:active {
+  transform: scale(0.97);
 }
 
 .guestButton.selected {
@@ -61,6 +69,7 @@
   font-size: 0.95rem;
   color: var(--text-primary);
   transition: border-color 0.2s ease;
+  min-height: 40px;
 }
 
 .customInput:focus {
@@ -89,11 +98,103 @@
 @media (max-width: 768px) {
   .guestSelector {
     grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+
+  .guestButton {
+    padding: 0.65rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+
+  .label {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .formSection {
+    gap: 0.65rem;
+  }
+
+  .guestSelector {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+  }
+
+  .guestButton {
+    padding: 0.55rem 0.5rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+    border-radius: 6px;
+  }
+
+  .label {
+    font-size: 0.9rem;
+  }
+
+  .customInputWrapper {
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+  }
+
+  .customLabel {
+    font-size: 0.85rem;
+  }
+
+  .customInput {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
+    min-height: 36px;
+    border-radius: 6px;
   }
 }
 
 @media (max-width: 480px) {
   .formSection {
     gap: 0.5rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .guestSelector {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+  }
+
+  .guestButton {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.8rem;
+    min-height: 34px;
+    border-width: 1.5px;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+
+  .guestButton:active {
+    transform: scale(0.95);
+  }
+
+  .customInputWrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .customLabel {
+    font-size: 0.8rem;
+    white-space: normal;
+  }
+
+  .customInput {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+    min-height: 34px;
+    border-radius: 5px;
+    width: 100%;
   }
 }

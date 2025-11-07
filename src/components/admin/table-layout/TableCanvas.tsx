@@ -17,13 +17,15 @@ interface TableCanvasProps {
     showActive: boolean;
     showInactive: boolean;
   };
-  canvasSize: { width: number; height: number };
   onTableMouseDown: (e: React.MouseEvent, table: TableDto) => void;
-  onTableClick: (table: TableDto) => void;
   onToggleTableSelection: (tableId: string) => void;
   onEntranceMouseDown: (e: React.MouseEvent) => void;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
+  onRotationStart?: (tableId: string, e: React.MouseEvent) => void;
+  onRotationMove?: (e: React.MouseEvent) => void;
+  onRotationEnd?: () => void;
+  rotatingTable?: string | null;
 }
 
 const CANVAS_WIDTH = 600;
@@ -44,6 +46,10 @@ export default function TableCanvas({
   onEntranceMouseDown,
   onMouseMove,
   onMouseUp,
+  onRotationStart,
+  onRotationMove,
+  onRotationEnd,
+  rotatingTable,
 }: TableCanvasProps) {
   const filteredTables = tables.filter(table => {
     if (!filters.showIndoor && !table.isOutdoor) return false;
@@ -56,6 +62,7 @@ export default function TableCanvas({
   const renderTable = (table: TableDto) => {
     const isSelected = selectedTable?.id === table.id;
     const isInSelectionSet = selectedTableIds.has(table.id);
+    const isRotating = rotatingTable === table.id;
     const shape = table.shape || 'circle';
     const isRound = shape === 'circle';
     const isSquare = shape === 'square';
@@ -69,12 +76,23 @@ export default function TableCanvas({
     const leftPercent = (table.positionX / CANVAS_WIDTH) * 100;
     const topPercent = (table.positionY / CANVAS_HEIGHT) * 100;
 
+    // Apply rotation if defined
+    const rotation = table.rotation || 0;
+    const transformStyle = rotation !== 0 ? `rotate(${rotation}deg)` : undefined;
+
     const handleClick = (e: React.MouseEvent) => {
       if (selectionMode) {
         e.stopPropagation();
         onToggleTableSelection(table.id);
       } else {
         onTableMouseDown(e, table);
+      }
+    };
+
+    const handleRotationHandleMouseDown = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onRotationStart) {
+        onRotationStart(table.id, e);
       }
     };
 
@@ -86,6 +104,7 @@ export default function TableCanvas({
           left: `${leftPercent}%`,
           top: `${topPercent}%`,
           ...shapeStyle,
+          transform: transformStyle,
           cursor: draggingTable === table.id ? 'grabbing' : selectionMode ? 'pointer' : 'grab',
         }}
         onMouseDown={handleClick}
@@ -95,6 +114,17 @@ export default function TableCanvas({
         {table.isOutdoor && <span className={styles.outdoorBadge}>🌤️</span>}
         {!table.isActive && <span className={styles.inactiveBadge}>❌</span>}
         {isInSelectionSet && <span className={styles.checkmark}>✓</span>}
+
+        {/* Rotation Handle - only show for non-round tables when selected */}
+        {isSelected && !isRound && (
+          <div
+            className={`${styles.rotationHandle} ${isRotating ? styles.rotating : ''}`}
+            onMouseDown={handleRotationHandleMouseDown}
+            title="Drag to rotate"
+          >
+            ↻
+          </div>
+        )}
       </div>
     );
   };
@@ -103,9 +133,27 @@ export default function TableCanvas({
     <div
       ref={canvasRef}
       className={styles.canvas}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
+      onMouseMove={(e) => {
+        if (rotatingTable && onRotationMove) {
+          onRotationMove(e);
+        } else {
+          onMouseMove(e);
+        }
+      }}
+      onMouseUp={() => {
+        if (rotatingTable && onRotationEnd) {
+          onRotationEnd();
+        } else {
+          onMouseUp();
+        }
+      }}
+      onMouseLeave={() => {
+        if (rotatingTable && onRotationEnd) {
+          onRotationEnd();
+        } else {
+          onMouseUp();
+        }
+      }}
       style={{
         width: '100%',
         paddingBottom: `${(CANVAS_HEIGHT / CANVAS_WIDTH) * 100}%`,
@@ -121,7 +169,7 @@ export default function TableCanvas({
           }}
           onMouseDown={onEntranceMouseDown}
         >
-          🚪 Entrance
+          🚪
         </div>
 
         {/* Tables */}

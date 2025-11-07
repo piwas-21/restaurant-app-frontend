@@ -63,10 +63,23 @@ export function downloadQRCode(canvas: HTMLCanvasElement, fileName: string): voi
 /**
  * Print QR code
  */
-export function printQRCode(canvas: HTMLCanvasElement, tableNumber: string): void {
+export function printQRCode(canvas: HTMLCanvasElement, tableNumber: string, translations?: {
+  scanToOrder: string;
+  table: string;
+  instructions: string;
+  footer: string;
+}): void {
   try {
     // Convert canvas to data URL
     const dataUrl = canvas.toDataURL('image/png');
+
+    // Default translations (English)
+    const t = translations || {
+      scanToOrder: 'Scan to Order',
+      table: 'Table',
+      instructions: 'Scan this QR code with your phone camera to view our menu and place your order directly from your table.',
+      footer: 'Rumi Restaurant - Digital Ordering System'
+    };
 
     // Create print window
     const printWindow = window.open('', '_blank');
@@ -74,85 +87,101 @@ export function printQRCode(canvas: HTMLCanvasElement, tableNumber: string): voi
       throw new Error('Failed to open print window. Please check popup settings.');
     }
 
-    // Generate print HTML
+    // Generate print HTML with better layout
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>QR Code - Table ${tableNumber}</title>
+          <title>QR Code - ${t.table} ${tableNumber}</title>
           <style>
+            @page {
+              size: A4 portrait;
+              margin: 0;
+            }
             @media print {
-              @page {
-                size: A4;
-                margin: 2cm;
+              body {
+                margin: 0;
+                padding: 0;
               }
             }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
             body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              width: 210mm;
+              height: 297mm;
+              padding: 20mm;
+              background: white;
+            }
+            .container {
+              text-align: center;
               display: flex;
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              min-height: 100vh;
-              margin: 0;
-              padding: 2rem;
-            }
-            .container {
-              text-align: center;
-              max-width: 500px;
+              height: 100%;
             }
             h1 {
-              font-size: 2rem;
+              font-size: 2.5rem;
               margin-bottom: 1rem;
-              color: #333;
+              color: #1a1a1a;
+              font-weight: 600;
             }
             .table-number {
-              font-size: 3rem;
+              font-size: 4rem;
               font-weight: bold;
-              color: #2563eb;
+              color: #c0392b;
               margin-bottom: 2rem;
             }
+            .qr-wrapper {
+              margin: 2rem 0;
+            }
             img {
-              max-width: 100%;
-              height: auto;
-              border: 2px solid #e5e7eb;
-              border-radius: 8px;
+              width: 300px;
+              height: 300px;
+              border: 3px solid #e5e7eb;
+              border-radius: 12px;
               padding: 1rem;
               background: white;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
             .instructions {
               margin-top: 2rem;
-              font-size: 1.125rem;
-              color: #666;
-              line-height: 1.6;
+              font-size: 1.25rem;
+              color: #4b5563;
+              line-height: 1.8;
+              max-width: 500px;
             }
             .footer {
-              margin-top: 2rem;
-              font-size: 0.875rem;
-              color: #999;
+              margin-top: 3rem;
+              font-size: 1rem;
+              color: #9ca3af;
+              font-weight: 500;
             }
           </style>
         </head>
         <body>
           <div class="container">
-            <h1>Scan to Order</h1>
-            <div class="table-number">Table ${tableNumber}</div>
-            <img src="${dataUrl}" alt="QR Code for Table ${tableNumber}" />
+            <h1>${t.scanToOrder}</h1>
+            <div class="table-number">${t.table} ${tableNumber}</div>
+            <div class="qr-wrapper">
+              <img src="${dataUrl}" alt="QR Code for ${t.table} ${tableNumber}" />
+            </div>
             <div class="instructions">
-              Scan this QR code with your phone camera to view our menu and place your order directly from your table.
+              ${t.instructions}
             </div>
             <div class="footer">
-              Rumi Restaurant - Digital Ordering System
+              ${t.footer}
             </div>
           </div>
           <script>
-            // Auto-print when page loads
             window.onload = function() {
-              window.print();
-              // Close window after printing (with delay for user to cancel if needed)
               setTimeout(function() {
-                window.close();
-              }, 100);
+                window.print();
+              }, 250);
             };
           </script>
         </body>

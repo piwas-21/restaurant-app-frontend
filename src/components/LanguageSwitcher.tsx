@@ -5,7 +5,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import Image from 'next/image';
 import styles from "../app/styles/LanguageSwitcher.module.css";
-import { useCookieConsent } from "./CookieConsentContext";
 
 const languages = [
   { code: "fr", name: "Français", flag: "/flags/fr.svg" },
@@ -21,16 +20,14 @@ export type LanguageCode = typeof languages[number]['code'];
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const { consent } = useCookieConsent();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const changeLanguage = (lng: LanguageCode) => {
     i18n.changeLanguage(lng);
-    // Only save to localStorage if consent for preferences has been given
-    if (consent.preferences === true) {
-      localStorage.setItem("i18nextLng", lng);
-    }
+    // Language preference is essential functionality, always save it
+    // This is typically not considered a tracking/preference cookie
+    localStorage.setItem("i18nextLng", lng);
     setDropdownOpen(false);
   };
 

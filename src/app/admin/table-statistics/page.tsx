@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import tableLayoutService from '@/services/tableLayoutService';
 import { reservationService } from '@/services/reservationService';
 import type { TableDto, ReservationDto } from '@/types/reservation';
@@ -22,6 +23,7 @@ interface TableReservationStats {
 
 function TableStatisticsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [tables, setTables] = useState<TableDto[]>([]);
   const [reservations, setReservations] = useState<ReservationDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ function TableStatisticsPage() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading statistics...</div>
+        <div className={styles.loading}>{t('loading_statistics', 'Loading statistics...')}</div>
       </div>
     );
   }
@@ -117,15 +119,15 @@ function TableStatisticsPage() {
         {/* Header */}
         <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Table Statistics</h1>
-          <p className={styles.subtitle}>Overview of your restaurant table inventory and capacity</p>
+          <h1 className={styles.title}>{t('table_statistics', 'Table Statistics')}</h1>
+          <p className={styles.subtitle}>{t('table_statistics_desc', 'Overview of your restaurant table inventory and capacity')}</p>
         </div>
         <div className={styles.headerActions}>
           <button
             onClick={() => router.push('/admin/table-layout-editor')}
             className={styles.layoutButton}
           >
-            Manage Layout
+            {t('manage_layout', 'Manage Layout')}
           </button>
         </div>
       </div>
@@ -136,7 +138,7 @@ function TableStatisticsPage() {
           <div className={styles.metricIcon}>🪑</div>
           <div className={styles.metricContent}>
             <div className={styles.metricValue}>{totalTables}</div>
-            <div className={styles.metricLabel}>Total Tables</div>
+            <div className={styles.metricLabel}>{t('total_tables', 'Total Tables')}</div>
           </div>
         </div>
 
@@ -144,8 +146,8 @@ function TableStatisticsPage() {
           <div className={styles.metricIcon}>✅</div>
           <div className={styles.metricContent}>
             <div className={styles.metricValue}>{activeTables}</div>
-            <div className={styles.metricLabel}>Active Tables</div>
-            <div className={styles.metricSubtext}>{activePercentage.toFixed(1)}% of total</div>
+            <div className={styles.metricLabel}>{t('active_tables', 'Active Tables')}</div>
+            <div className={styles.metricSubtext}>{t('of_total', '{{percent}}% of total', { percent: activePercentage.toFixed(1) })}</div>
           </div>
         </div>
 
@@ -153,8 +155,8 @@ function TableStatisticsPage() {
           <div className={styles.metricIcon}>👥</div>
           <div className={styles.metricContent}>
             <div className={styles.metricValue}>{activeCapacity}</div>
-            <div className={styles.metricLabel}>Active Seating Capacity</div>
-            <div className={styles.metricSubtext}>Total: {totalCapacity} seats</div>
+            <div className={styles.metricLabel}>{t('active_seating_capacity', 'Active Seating Capacity')}</div>
+            <div className={styles.metricSubtext}>{t('total_seats', 'Total: {{count}} seats', { count: totalCapacity })}</div>
           </div>
         </div>
 
@@ -162,8 +164,8 @@ function TableStatisticsPage() {
           <div className={styles.metricIcon}>📅</div>
           <div className={styles.metricContent}>
             <div className={styles.metricValue}>{totalReservations}</div>
-            <div className={styles.metricLabel}>Total Reservations</div>
-            <div className={styles.metricSubtext}>{completedReservations} completed</div>
+            <div className={styles.metricLabel}>{t('total_reservations', 'Total Reservations')}</div>
+            <div className={styles.metricSubtext}>{t('completed_count', '{{count}} completed', { count: completedReservations })}</div>
           </div>
         </div>
       </div>
@@ -172,12 +174,12 @@ function TableStatisticsPage() {
       <div className={styles.chartsGrid}>
         {/* Status Breakdown */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Table Status</h3>
+          <h3 className={styles.chartTitle}>{t('table_status', 'Table Status')}</h3>
           <div className={styles.chartContent}>
             <div className={styles.statusBreakdown}>
               <div className={styles.statusItem}>
                 <div className={styles.statusHeader}>
-                  <span className={styles.statusLabel}>Active Tables</span>
+                  <span className={styles.statusLabel}>{t('active_tables', 'Active Tables')}</span>
                   <span className={styles.statusValue}>{activeTables}</span>
                 </div>
                 <div className={styles.progressBar}>
@@ -191,7 +193,7 @@ function TableStatisticsPage() {
 
               <div className={styles.statusItem}>
                 <div className={styles.statusHeader}>
-                  <span className={styles.statusLabel}>Inactive Tables</span>
+                  <span className={styles.statusLabel}>{t('inactive_tables', 'Inactive Tables')}</span>
                   <span className={styles.statusValue}>{inactiveTables}</span>
                 </div>
                 <div className={styles.progressBar}>
@@ -208,12 +210,12 @@ function TableStatisticsPage() {
 
         {/* Location Breakdown */}
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Table Location</h3>
+          <h3 className={styles.chartTitle}>{t('table_location', 'Table Location')}</h3>
           <div className={styles.chartContent}>
             <div className={styles.statusBreakdown}>
               <div className={styles.statusItem}>
                 <div className={styles.statusHeader}>
-                  <span className={styles.statusLabel}>Indoor Tables</span>
+                  <span className={styles.statusLabel}>{t('indoor_tables', 'Indoor Tables')}</span>
                   <span className={styles.statusValue}>{indoorTables}</span>
                 </div>
                 <div className={styles.progressBar}>
@@ -227,7 +229,7 @@ function TableStatisticsPage() {
 
               <div className={styles.statusItem}>
                 <div className={styles.statusHeader}>
-                  <span className={styles.statusLabel}>Outdoor Tables</span>
+                  <span className={styles.statusLabel}>{t('outdoor_tables', 'Outdoor Tables')}</span>
                   <span className={styles.statusValue}>{outdoorTables}</span>
                 </div>
                 <div className={styles.progressBar}>
@@ -247,26 +249,26 @@ function TableStatisticsPage() {
       <div className={styles.detailsGrid}>
         {/* Shape Distribution */}
         <div className={styles.detailCard}>
-          <h3 className={styles.detailTitle}>Table Shapes</h3>
+          <h3 className={styles.detailTitle}>{t('table_shapes', 'Table Shapes')}</h3>
           <div className={styles.detailList}>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.shapeIcon}>⭕</span>
-                Circular
+                {t('circular', 'Circular')}
               </div>
               <div className={styles.detailValue}>{circularTables}</div>
             </div>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.shapeIcon}>⬜</span>
-                Square
+                {t('square', 'Square')}
               </div>
               <div className={styles.detailValue}>{squareTables}</div>
             </div>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.shapeIcon}>▭</span>
-                Rectangular
+                {t('rectangular', 'Rectangular')}
               </div>
               <div className={styles.detailValue}>{rectangularTables}</div>
             </div>
@@ -275,22 +277,22 @@ function TableStatisticsPage() {
 
         {/* Capacity Distribution */}
         <div className={styles.detailCard}>
-          <h3 className={styles.detailTitle}>Capacity Distribution</h3>
+          <h3 className={styles.detailTitle}>{t('capacity_distribution', 'Capacity Distribution')}</h3>
           <div className={styles.detailList}>
             <div className={styles.detailItem}>
-              <div className={styles.detailLabel}>Small (1-2 seats)</div>
+              <div className={styles.detailLabel}>{t('small_tables', 'Small (1-2 seats)')}</div>
               <div className={styles.detailValue}>{smallTables}</div>
             </div>
             <div className={styles.detailItem}>
-              <div className={styles.detailLabel}>Medium (3-4 seats)</div>
+              <div className={styles.detailLabel}>{t('medium_tables', 'Medium (3-4 seats)')}</div>
               <div className={styles.detailValue}>{mediumTables}</div>
             </div>
             <div className={styles.detailItem}>
-              <div className={styles.detailLabel}>Large (5-6 seats)</div>
+              <div className={styles.detailLabel}>{t('large_tables', 'Large (5-6 seats)')}</div>
               <div className={styles.detailValue}>{largeTables}</div>
             </div>
             <div className={styles.detailItem}>
-              <div className={styles.detailLabel}>Extra Large (7+ seats)</div>
+              <div className={styles.detailLabel}>{t('extra_large_tables', 'Extra Large (7+ seats)')}</div>
               <div className={styles.detailValue}>{extraLargeTables}</div>
             </div>
           </div>
@@ -298,33 +300,33 @@ function TableStatisticsPage() {
 
         {/* Reservation Stats */}
         <div className={styles.detailCard}>
-          <h3 className={styles.detailTitle}>Reservation Status</h3>
+          <h3 className={styles.detailTitle}>{t('reservation_status', 'Reservation Status')}</h3>
           <div className={styles.detailList}>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.statusDot} style={{ backgroundColor: '#10b981' }}></span>
-                Confirmed
+                {t('confirmed', 'Confirmed')}
               </div>
               <div className={styles.detailValue}>{confirmedReservations}</div>
             </div>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.statusDot} style={{ backgroundColor: '#6b7280' }}></span>
-                Completed
+                {t('completed', 'Completed')}
               </div>
               <div className={styles.detailValue}>{completedReservations}</div>
             </div>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.statusDot} style={{ backgroundColor: '#ef4444' }}></span>
-                Cancelled
+                {t('cancelled', 'Cancelled')}
               </div>
               <div className={styles.detailValue}>{cancelledReservations}</div>
             </div>
             <div className={styles.detailItem}>
               <div className={styles.detailLabel}>
                 <span className={styles.statusDot} style={{ backgroundColor: '#ef4444' }}></span>
-                No Show
+                {t('no_show', 'No Show')}
               </div>
               <div className={styles.detailValue}>{noShowReservations}</div>
             </div>
@@ -335,7 +337,7 @@ function TableStatisticsPage() {
       {/* Most Popular Tables */}
       {mostPopularTables.length > 0 && (
         <div className={styles.popularTablesSection}>
-          <h3 className={styles.sectionTitle}>Most Popular Tables</h3>
+          <h3 className={styles.sectionTitle}>{t('most_popular_tables', 'Most Popular Tables')}</h3>
           <div className={styles.popularTablesGrid}>
             {mostPopularTables.map((tableStat, index) => (
               <div key={tableStat.tableId} className={styles.popularTableCard}>
@@ -345,11 +347,11 @@ function TableStatisticsPage() {
                   <div className={styles.popularTableStats}>
                     <div className={styles.popularStat}>
                       <span className={styles.popularStatValue}>{tableStat.totalReservations}</span>
-                      <span className={styles.popularStatLabel}>reservations</span>
+                      <span className={styles.popularStatLabel}>{t('reservations', 'reservations')}</span>
                     </div>
                     <div className={styles.popularStat}>
                       <span className={styles.popularStatValue}>{tableStat.averagePartySize}</span>
-                      <span className={styles.popularStatLabel}>avg party size</span>
+                      <span className={styles.popularStatLabel}>{t('avg_party_size', 'avg party size')}</span>
                     </div>
                   </div>
                   <div className={styles.reservationBreakdown}>
@@ -369,7 +371,7 @@ function TableStatisticsPage() {
 
       {/* Tables List */}
       <div className={styles.tablesSection}>
-        <h3 className={styles.sectionTitle}>All Tables with Reservation Stats</h3>
+        <h3 className={styles.sectionTitle}>{t('all_tables_with_stats', 'All Tables with Reservation Stats')}</h3>
         <div className={styles.tableGrid}>
           {tables.map(table => {
             const stats = tableReservationStats.find(s => s.tableId === table.id);
@@ -378,38 +380,38 @@ function TableStatisticsPage() {
                 <div className={styles.tableCardHeader}>
                   <span className={styles.tableNumber}>{table.tableNumber}</span>
                   <span className={`${styles.tableBadge} ${table.isActive ? styles.active : styles.inactiveStatus}`}>
-                    {table.isActive ? 'Active' : 'Inactive'}
+                    {table.isActive ? t('active', 'Active') : t('inactive', 'Inactive')}
                   </span>
                 </div>
                 <div className={styles.tableCardDetails}>
                   <div className={styles.tableDetail}>
-                    <span className={styles.tableDetailLabel}>Capacity:</span>
-                    <span className={styles.tableDetailValue}>{table.maxGuests} seats</span>
+                    <span className={styles.tableDetailLabel}>{t('capacity', 'Capacity')}:</span>
+                    <span className={styles.tableDetailValue}>{t('seats_count', '{{count}} seats', { count: table.maxGuests })}</span>
                   </div>
                   <div className={styles.tableDetail}>
-                    <span className={styles.tableDetailLabel}>Shape:</span>
+                    <span className={styles.tableDetailLabel}>{t('shape', 'Shape')}:</span>
                     <span className={styles.tableDetailValue}>{table.shape || 'circle'}</span>
                   </div>
                   <div className={styles.tableDetail}>
-                    <span className={styles.tableDetailLabel}>Location:</span>
-                    <span className={styles.tableDetailValue}>{table.isOutdoor ? 'Outdoor' : 'Indoor'}</span>
+                    <span className={styles.tableDetailLabel}>{t('location', 'Location')}:</span>
+                    <span className={styles.tableDetailValue}>{table.isOutdoor ? t('outdoor', 'Outdoor') : t('indoor', 'Indoor')}</span>
                   </div>
                 </div>
                 {stats && stats.totalReservations > 0 && (
                   <div className={styles.tableReservationStats}>
-                    <div className={styles.reservationStatsHeader}>📊 Reservations</div>
+                    <div className={styles.reservationStatsHeader}>📊 {t('reservations', 'Reservations')}</div>
                     <div className={styles.reservationStatsGrid}>
                       <div className={styles.reservationStatItem}>
                         <span className={styles.reservationStatValue}>{stats.totalReservations}</span>
-                        <span className={styles.reservationStatLabel}>Total</span>
+                        <span className={styles.reservationStatLabel}>{t('total', 'Total')}</span>
                       </div>
                       <div className={styles.reservationStatItem}>
                         <span className={styles.reservationStatValue}>{stats.completedReservations}</span>
-                        <span className={styles.reservationStatLabel}>Completed</span>
+                        <span className={styles.reservationStatLabel}>{t('completed', 'Completed')}</span>
                       </div>
                       <div className={styles.reservationStatItem}>
                         <span className={styles.reservationStatValue}>{stats.averagePartySize}</span>
-                        <span className={styles.reservationStatLabel}>Avg Party</span>
+                        <span className={styles.reservationStatLabel}>{t('avg_party', 'Avg Party')}</span>
                       </div>
                     </div>
                   </div>

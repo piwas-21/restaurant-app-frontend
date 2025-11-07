@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import { X, Save, Loader2, Search, UserCheck } from 'lucide-react';
 import { adminFidelityService, CreateCustomerDiscountDto, UpdateCustomerDiscountDto } from '@/services/adminFidelityService';
 import { fetchUsers, UserDto } from '@/services/userService';
@@ -20,6 +21,7 @@ export default function CustomerDiscountForm({
   onClose,
   onSuccess,
 }: CustomerDiscountFormProps) {
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -32,11 +34,11 @@ export default function CustomerDiscountForm({
     userId: '',
     name: '',
     discountType: 'Percentage' as 'Percentage' | 'FixedAmount',
-    discountValue: 0,
-    minOrderAmount: 0,
-    maxOrderAmount: 0,
+    discountValue: '',
+    minOrderAmount: '',
+    maxOrderAmount: '',
     hasMaxOrderAmount: false,
-    maxUsageCount: 0,
+    maxUsageCount: '',
     hasMaxUsageCount: false,
     isActive: true,
     validFrom: '',
@@ -51,11 +53,11 @@ export default function CustomerDiscountForm({
         userId: discount.userId,
         name: discount.name,
         discountType: discount.discountType,
-        discountValue: discount.discountValue,
-        minOrderAmount: discount.minOrderAmount || 0,
-        maxOrderAmount: discount.maxOrderAmount || 0,
+        discountValue: discount.discountValue.toString(),
+        minOrderAmount: discount.minOrderAmount ? discount.minOrderAmount.toString() : '',
+        maxOrderAmount: discount.maxOrderAmount ? discount.maxOrderAmount.toString() : '',
         hasMaxOrderAmount: !!discount.maxOrderAmount,
-        maxUsageCount: discount.maxUsageCount || 0,
+        maxUsageCount: discount.maxUsageCount ? discount.maxUsageCount.toString() : '',
         hasMaxUsageCount: !!discount.maxUsageCount,
         isActive: discount.isActive,
         validFrom: discount.validFrom ? new Date(discount.validFrom).toISOString().slice(0, 16) : '',
@@ -66,10 +68,10 @@ export default function CustomerDiscountForm({
       // Set selected user for display in edit mode
       setSelectedUser({
         id: discount.userId,
-        email: '',
+        email: discount.userEmail || '',
         firstName: '',
         lastName: '',
-        fullName: `User ${discount.userId}`,
+        fullName: discount.userName || discount.userEmail || `User ${discount.userId}`,
         role: UserRole.Customer,
         isEmailConfirmed: false,
         createdAt: '',
@@ -111,12 +113,12 @@ export default function CustomerDiscountForm({
         // eslint-disable-next-line no-console
         console.error('Error searching users:', error);
         setSearchResults([]);
-        enqueueSnackbar('Failed to search users', { variant: 'error' });
+        enqueueSnackbar(t('failed_search_users', 'Failed to search users'), { variant: 'error' });
       } finally {
         setSearchLoading(false);
       }
     }, 500); // 500ms debounce
-  }, [enqueueSnackbar]);
+  }, [enqueueSnackbar, t]);
 
   const handleUserSelect = useCallback((user: UserDto) => {
     setSelectedUser(user);
@@ -139,29 +141,46 @@ export default function CustomerDiscountForm({
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
   const validateForm = (): string | null => {
-    if (!formData.userId.trim()) return 'User ID is required';
-    if (!formData.name.trim()) return 'Name is required';
-    if (formData.discountValue <= 0) return 'Discount value must be greater than 0';
-    if (formData.discountType === 'Percentage' && formData.discountValue > 100) {
-      return 'Percentage discount cannot exceed 100%';
+    if (!formData.userId.trim()) return t('user_id_required', 'User ID is required');
+    if (!formData.name.trim()) return t('name_required', 'Name is required');
+
+    const discountValue = parseFloat(formData.discountValue);
+    if (!formData.discountValue || isNaN(discountValue) || discountValue <= 0) {
+      return t('discount_value_must_be_greater_than_zero', 'Discount value must be greater than 0');
     }
-    if (formData.minOrderAmount < 0) return 'Minimum order amount cannot be negative';
-    if (formData.hasMaxOrderAmount && formData.maxOrderAmount <= formData.minOrderAmount) {
-      return 'Maximum order amount must be greater than minimum';
+    if (formData.discountType === 'Percentage' && discountValue > 100) {
+      return t('percentage_discount_cannot_exceed_100', 'Percentage discount cannot exceed 100%');
     }
-    if (formData.hasMaxUsageCount && formData.maxUsageCount <= 0) {
-      return 'Max usage count must be greater than 0';
+
+    const minOrderAmount = parseFloat(formData.minOrderAmount || '0');
+    if (isNaN(minOrderAmount) || minOrderAmount < 0) {
+      return t('min_order_amount_cannot_be_negative', 'Minimum order amount cannot be negative');
     }
+
+    if (formData.hasMaxOrderAmount) {
+      const maxOrderAmount = parseFloat(formData.maxOrderAmount);
+      if (!formData.maxOrderAmount || isNaN(maxOrderAmount) || maxOrderAmount <= minOrderAmount) {
+        return t('max_order_amount_must_be_greater_than_min', 'Maximum order amount must be greater than minimum');
+      }
+    }
+
+    if (formData.hasMaxUsageCount) {
+      const maxUsageCount = parseInt(formData.maxUsageCount);
+      if (!formData.maxUsageCount || isNaN(maxUsageCount) || maxUsageCount <= 0) {
+        return t('max_usage_count_must_be_greater_than_zero', 'Max usage count must be greater than 0');
+      }
+    }
+
     if (formData.hasValidFrom && formData.hasValidUntil) {
       const from = new Date(formData.validFrom);
       const until = new Date(formData.validUntil);
       if (until <= from) {
-        return 'Valid until date must be after valid from date';
+        return t('valid_until_must_be_after_valid_from', 'Valid until date must be after valid from date');
       }
     }
     return null;
@@ -183,10 +202,10 @@ export default function CustomerDiscountForm({
         userId: formData.userId,
         name: formData.name,
         discountType: formData.discountType,
-        discountValue: formData.discountValue,
-        minOrderAmount: formData.minOrderAmount || undefined,
-        maxOrderAmount: formData.hasMaxOrderAmount ? formData.maxOrderAmount : undefined,
-        maxUsageCount: formData.hasMaxUsageCount ? formData.maxUsageCount : undefined,
+        discountValue: parseFloat(formData.discountValue),
+        minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : undefined,
+        maxOrderAmount: formData.hasMaxOrderAmount && formData.maxOrderAmount ? parseFloat(formData.maxOrderAmount) : undefined,
+        maxUsageCount: formData.hasMaxUsageCount && formData.maxUsageCount ? parseInt(formData.maxUsageCount) : undefined,
         isActive: formData.isActive,
         validFrom: formData.hasValidFrom ? new Date(formData.validFrom).toISOString() : undefined,
         validUntil: formData.hasValidUntil ? new Date(formData.validUntil).toISOString() : undefined,
@@ -194,16 +213,19 @@ export default function CustomerDiscountForm({
 
       if (discount) {
         await adminFidelityService.updateCustomerDiscount(discount.id, dto as UpdateCustomerDiscountDto);
-        enqueueSnackbar('Discount updated successfully', { variant: 'success' });
+        enqueueSnackbar(t('discount_updated_successfully', 'Discount updated successfully'), { variant: 'success' });
       } else {
         await adminFidelityService.createCustomerDiscount(dto);
-        enqueueSnackbar('Discount created successfully', { variant: 'success' });
+        enqueueSnackbar(t('discount_created_successfully', 'Discount created successfully'), { variant: 'success' });
       }
 
       onSuccess();
     } catch (error: any) {
       // Parse error message for better user feedback
-      let errorMessage = `Failed to ${discount ? 'update' : 'create'} discount`;
+      let errorMessage = t(
+        discount ? 'failed_update_discount' : 'failed_create_discount',
+        `Failed to ${discount ? 'update' : 'create'} discount`
+      );
 
       if (error?.response?.data) {
         const errorData = error.response.data;
@@ -214,11 +236,11 @@ export default function CustomerDiscountForm({
 
           // Check for user not found error
           if (firstError.toLowerCase().includes('user') && firstError.toLowerCase().includes('not found')) {
-            errorMessage = `User with ID "${formData.userId}" was not found. Please verify the user ID and try again.`;
+            errorMessage = t('user_not_found_error', 'User with ID "{{userId}}" was not found. Please verify the user ID and try again.', { userId: formData.userId });
           }
           // Check for duplicate discount error
           else if (firstError.toLowerCase().includes('already exists')) {
-            errorMessage = `A discount already exists for this user. Please edit the existing discount instead of creating a new one.`;
+            errorMessage = t('discount_already_exists_error', 'A discount already exists for this user. Please edit the existing discount instead of creating a new one.');
           }
           // Check for validation errors
           else if (firstError.toLowerCase().includes('invalid')) {
@@ -257,7 +279,7 @@ export default function CustomerDiscountForm({
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h2>{discount ? 'Edit Discount' : 'Create New Discount'}</h2>
+          <h2>{discount ? t('edit_discount', 'Edit Discount') : t('create_new_discount', 'Create New Discount')}</h2>
           <button
             onClick={onClose}
             className={styles.closeButton}
@@ -271,7 +293,7 @@ export default function CustomerDiscountForm({
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="userSearch">
-                Customer <span className={styles.required}>*</span>
+                {t('customer', 'Customer')} <span className={styles.required}>*</span>
               </label>
 
               {selectedUser ? (
@@ -280,7 +302,7 @@ export default function CustomerDiscountForm({
                     <UserCheck size={20} />
                     <div>
                       <div className={styles.selectedUserName}>{selectedUser.fullName || `${selectedUser.firstName} ${selectedUser.lastName}`}</div>
-                      <div className={styles.selectedUserEmail}>{selectedUser.email || `ID: ${selectedUser.id}`}</div>
+                      <div className={styles.selectedUserEmail}>{selectedUser.email || `${t('id', 'ID')}: ${selectedUser.id}`}</div>
                     </div>
                   </div>
                   {!discount && (
@@ -305,7 +327,7 @@ export default function CustomerDiscountForm({
                       onChange={(e) => handleSearchChange(e.target.value)}
                       disabled={loading}
                       className={styles.searchInput}
-                      placeholder="Search by name or email..."
+                      placeholder={t('search_by_name_or_email', 'Search by name or email...')}
                       autoComplete="off"
                     />
                     {searchLoading && (
@@ -333,20 +355,20 @@ export default function CustomerDiscountForm({
 
                   {showSearchResults && searchResults.length === 0 && !searchLoading && (
                     <div className={styles.searchNoResults}>
-                      No users found matching &ldquo;{searchQuery}&rdquo;
+                      {t('no_users_found_matching', 'No users found matching "{{query}}"', { query: searchQuery })}
                     </div>
                   )}
                 </div>
               )}
 
               <small className={styles.help}>
-                {selectedUser ? 'Selected customer for this discount' : 'Search and select a customer'}
+                {selectedUser ? t('selected_customer_for_discount', 'Selected customer for this discount') : t('search_and_select_customer', 'Search and select a customer')}
               </small>
             </div>
 
             <div className={styles.formGroup}>
               <label htmlFor="name">
-                Name <span className={styles.required}>*</span>
+                {t('name', 'Name')} <span className={styles.required}>*</span>
               </label>
               <input
                 type="text"
@@ -356,7 +378,7 @@ export default function CustomerDiscountForm({
                 onChange={handleChange}
                 disabled={loading}
                 className={styles.input}
-                placeholder="e.g., VIP 10% Discount"
+                placeholder={t('discount_name_placeholder', 'e.g., VIP 10% Discount')}
               />
             </div>
           </div>
@@ -364,7 +386,7 @@ export default function CustomerDiscountForm({
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="discountType">
-                Discount Type <span className={styles.required}>*</span>
+                {t('discount_type', 'Discount Type')} <span className={styles.required}>*</span>
               </label>
               <select
                 id="discountType"
@@ -374,47 +396,44 @@ export default function CustomerDiscountForm({
                 disabled={loading}
                 className={styles.select}
               >
-                <option value="Percentage">Percentage</option>
-                <option value="FixedAmount">Fixed Amount</option>
+                <option value="Percentage">{t('percentage', 'Percentage')}</option>
+                <option value="FixedAmount">{t('fixed_amount', 'Fixed Amount')}</option>
               </select>
             </div>
 
             <div className={styles.formGroup}>
               <label htmlFor="discountValue">
-                Discount Value <span className={styles.required}>*</span>
+                {t('discount_value', 'Discount Value')} <span className={styles.required}>*</span>
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="discountValue"
                 name="discountValue"
                 value={formData.discountValue}
                 onChange={handleChange}
                 disabled={loading}
                 className={styles.input}
-                min="0"
-                step={formData.discountType === 'Percentage' ? '1' : '0.01'}
-                max={formData.discountType === 'Percentage' ? '100' : undefined}
                 placeholder={formData.discountType === 'Percentage' ? '10' : '5.00'}
               />
               <small className={styles.help}>
-                {formData.discountType === 'Percentage' ? 'Enter percentage (0-100)' : 'Enter CHF amount'}
+                {formData.discountType === 'Percentage' ? t('enter_percentage_0_100', 'Enter percentage (0-100)') : t('enter_chf_amount', 'Enter CHF amount')}
               </small>
             </div>
           </div>
 
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label htmlFor="minOrderAmount">Minimum Order Amount</label>
+              <label htmlFor="minOrderAmount">{t('minimum_order_amount', 'Minimum Order Amount')}</label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="minOrderAmount"
                 name="minOrderAmount"
                 value={formData.minOrderAmount}
                 onChange={handleChange}
                 disabled={loading}
                 className={styles.input}
-                min="0"
-                step="0.01"
                 placeholder="0.00"
               />
             </div>
@@ -429,18 +448,17 @@ export default function CustomerDiscountForm({
                   disabled={loading}
                   className={styles.checkbox}
                 />
-                Set Maximum Order Amount
+                {t('set_maximum_order_amount', 'Set Maximum Order Amount')}
               </label>
               {formData.hasMaxOrderAmount && (
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   name="maxOrderAmount"
                   value={formData.maxOrderAmount}
                   onChange={handleChange}
                   disabled={loading}
                   className={styles.input}
-                  min={formData.minOrderAmount}
-                  step="0.01"
                   placeholder="100.00"
                 />
               )}
@@ -458,7 +476,7 @@ export default function CustomerDiscountForm({
                   disabled={loading}
                   className={styles.checkbox}
                 />
-                Set Valid From Date
+                {t('set_valid_from_date', 'Set Valid From Date')}
               </label>
               {formData.hasValidFrom && (
                 <input
@@ -482,7 +500,7 @@ export default function CustomerDiscountForm({
                   disabled={loading}
                   className={styles.checkbox}
                 />
-                Set Valid Until Date
+                {t('set_valid_until_date', 'Set Valid Until Date')}
               </label>
               {formData.hasValidUntil && (
                 <input
@@ -508,23 +526,22 @@ export default function CustomerDiscountForm({
                   disabled={loading}
                   className={styles.checkbox}
                 />
-                Limit Usage Count
+                {t('limit_usage_count', 'Limit Usage Count')}
               </label>
               {formData.hasMaxUsageCount && (
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   name="maxUsageCount"
                   value={formData.maxUsageCount}
                   onChange={handleChange}
                   disabled={loading}
                   className={styles.input}
-                  min="1"
-                  step="1"
                   placeholder="10"
                 />
               )}
               <small className={styles.help}>
-                Maximum number of times this discount can be used
+                {t('max_usage_count_help', 'Maximum number of times this discount can be used')}
               </small>
             </div>
 
@@ -538,10 +555,10 @@ export default function CustomerDiscountForm({
                   disabled={loading}
                   className={styles.checkbox}
                 />
-                Active
+                {t('active', 'Active')}
               </label>
               <small className={styles.help}>
-                Only active discounts can be applied to orders
+                {t('active_discounts_help', 'Only active discounts can be applied to orders')}
               </small>
             </div>
           </div>
@@ -553,7 +570,7 @@ export default function CustomerDiscountForm({
               className={styles.cancelButton}
               disabled={loading}
             >
-              Cancel
+              {t('cancel', 'Cancel')}
             </button>
             <button
               type="submit"
@@ -563,12 +580,12 @@ export default function CustomerDiscountForm({
               {loading ? (
                 <>
                   <Loader2 size={18} className={styles.spinner} />
-                  Saving...
+                  {t('saving', 'Saving...')}
                 </>
               ) : (
                 <>
                   <Save size={18} />
-                  {discount ? 'Update' : 'Create'} Discount
+                  {discount ? t('update_discount', 'Update Discount') : t('create_discount', 'Create Discount')}
                 </>
               )}
             </button>

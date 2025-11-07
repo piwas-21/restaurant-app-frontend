@@ -62,7 +62,7 @@ describe('LanguageSwitcher Component', () => {
 
   // Optional: Clear mock calls between tests if needed, though mockReturnValue in beforeEach usually handles state.
   // afterEach(() => {
-  //   jest.clearAllMocks(); 
+  //   jest.clearAllMocks();
   // });
 
   test('renders correctly with initial language (EN)', () => {
@@ -114,7 +114,7 @@ describe('LanguageSwitcher Component', () => {
     // The mockUseTranslation will pick up the updated mockI18nState due to beforeEach setup
 
     render(<LanguageSwitcher />);
-    
+
     expect(screen.getByRole('button', { name: /Toggle language menu/i })).toBeInTheDocument();
     expect(screen.getByAltText('Türkçe')).toHaveAttribute('src', '/flags/tr.svg');
     expect(screen.getByText('TR')).toBeInTheDocument();
@@ -134,32 +134,5 @@ describe('LanguageSwitcher Component', () => {
 
     fireEvent.mouseDown(screen.getByTestId('outside-element'));
     await waitFor(() => expect(screen.queryByRole('button', { name: /Deutsch Deutsch/i })).not.toBeInTheDocument());
-  });
-
-  test('does NOT save language to localStorage if consent for preferences is not given', async () => {
-    // Override the default mock for this specific test
-    (useCookieConsent as jest.Mock).mockReturnValue({
-      consent: { preferences: false }, // Simulate NO consent for preferences
-      isConsentPending: false,
-      isSettingsModalOpen: false,
-      acceptPreferences: jest.fn(),
-      declinePreferences: jest.fn(),
-      updateConsent: jest.fn(),
-      openSettingsModal: jest.fn(),
-      closeSettingsModal: jest.fn(),
-    });
-
-    render(<LanguageSwitcher />);
-    const initialButton = screen.getByRole('button', { name: /Toggle language menu/i });
-    fireEvent.click(initialButton);
-
-    await waitFor(() => expect(screen.getByRole('button', { name: /Deutsch Deutsch/i })).toBeVisible());
-    const germanOptionButton = screen.getByRole('button', { name: /Deutsch Deutsch/i });
-    fireEvent.click(germanOptionButton);
-
-    await waitFor(() => {
-      expect(mockI18nState.changeLanguage).toHaveBeenCalledWith('de');
-    });
-    expect(localStorage.getItem('i18nextLng')).toBeNull();
   });
 });

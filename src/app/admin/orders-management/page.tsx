@@ -30,7 +30,6 @@ import {
   AlertCircle,
   RotateCcw,
   Keyboard,
-  ArrowUpDown,
 } from 'lucide-react';
 import styles from '../../styles/AdminOrdersPage.module.css';
 
@@ -83,17 +82,20 @@ export default function AdminOrdersPage() {
   const keyboardShortcuts: KeyboardShortcut[] = [
     {
       key: 'r',
-      description: 'Refresh orders list',
+      description: t('refresh_orders_list', 'Refresh orders list'),
+      translationKey: 'refresh_orders_list',
       action: () => fetchOrders(),
     },
     {
       key: 'n',
-      description: 'Focus search input',
+      description: t('focus_search_input', 'Focus search input'),
+      translationKey: 'focus_search_input',
       action: () => searchInputRef.current?.focus(),
     },
     {
       key: 'Escape',
-      description: 'Close open modals',
+      description: t('close_open_modals', 'Close open modals'),
+      translationKey: 'close_open_modals',
       action: () => {
         setShowDetailsModal(false);
         setShowStatusModal(false);
@@ -105,7 +107,8 @@ export default function AdminOrdersPage() {
     {
       key: '?',
       shift: true,
-      description: 'Show keyboard shortcuts',
+      description: t('show_keyboard_shortcuts', 'Show keyboard shortcuts'),
+      translationKey: 'show_keyboard_shortcuts',
       action: () => setShowKeyboardShortcutsModal(true),
     },
   ];
@@ -305,7 +308,7 @@ export default function AdminOrdersPage() {
 
   const handleBulkExportCSV = () => {
     const selectedOrders = orders.filter(o => selectedOrderIds.has(o.id));
-    exportOrdersToCSV(selectedOrders);
+    exportOrdersToCSV(selectedOrders, t);
     enqueueSnackbar(`Exported ${selectedOrders.length} orders to CSV`, {
       variant: 'success',
       anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
@@ -314,7 +317,7 @@ export default function AdminOrdersPage() {
 
   const handleBulkExportPDF = () => {
     const selectedOrders = orders.filter(o => selectedOrderIds.has(o.id));
-    exportOrdersToPDF(selectedOrders);
+    exportOrdersToPDF(selectedOrders, t);
     enqueueSnackbar(`Exported ${selectedOrders.length} orders to PDF`, {
       variant: 'success',
       anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
@@ -364,30 +367,9 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleSortChange = () => {
-    if (sortBy === 'date') {
-      if (sortOrder === 'desc') {
-        setSortOrder('asc');
-      } else {
-        setSortBy('amount');
-        setSortOrder('desc');
-      }
-    } else {
-      if (sortOrder === 'desc') {
-        setSortOrder('asc');
-      } else {
-        setSortBy('date');
-        setSortOrder('desc');
-      }
-    }
-  };
-
-  const getSortLabel = () => {
-    if (sortBy === 'date') {
-      return sortOrder === 'desc' ? 'Newest First' : 'Oldest First';
-    } else {
-      return sortOrder === 'desc' ? 'Highest Amount' : 'Lowest Amount';
-    }
+  const handleSortChange = (newSortBy: 'date' | 'amount', newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
   };
 
   // Pagination
@@ -409,7 +391,7 @@ export default function AdminOrdersPage() {
       <main className={styles.container}>
         <div className={styles.loadingState}>
           <Loader2 size={64} className={styles.spinner} />
-          <p>{t('loading_orders', 'Loading orders...')}</p>
+          <p suppressHydrationWarning>{t('loading_orders', 'Loading orders...')}</p>
         </div>
       </main>
     );
@@ -482,10 +464,20 @@ export default function AdminOrdersPage() {
 
         {/* Sort Controls */}
         <div className={styles.sortControls}>
-          <button onClick={handleSortChange} className={styles.sortButton}>
-            <ArrowUpDown size={16} />
-            Sort: {getSortLabel()}
-          </button>
+          <label className={styles.sortLabel}>{t('sort_by', 'Sort by')}:</label>
+          <select
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => {
+              const [newSortBy, newSortOrder] = e.target.value.split('-') as ['date' | 'amount', 'asc' | 'desc'];
+              handleSortChange(newSortBy, newSortOrder);
+            }}
+            className={styles.sortDropdown}
+          >
+            <option value="date-desc">{t('sort_newest_first', 'Newest First')}</option>
+            <option value="date-asc">{t('sort_oldest_first', 'Oldest First')}</option>
+            <option value="amount-desc">{t('sort_highest_amount', 'Highest Amount')}</option>
+            <option value="amount-asc">{t('sort_lowest_amount', 'Lowest Amount')}</option>
+          </select>
         </div>
 
         {/* Bulk Actions */}

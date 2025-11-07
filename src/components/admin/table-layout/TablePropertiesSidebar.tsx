@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { TableDto } from '@/types/reservation';
 import styles from './TablePropertiesSidebar.module.css';
 
@@ -17,11 +18,13 @@ export default function TablePropertiesSidebar({
   onDeleteTable,
   onViewQRCode,
 }: TablePropertiesSidebarProps) {
+  const { t } = useTranslation();
+
   if (!selectedTable) {
     return (
       <div className={styles.sidebar}>
         <div className={styles.noSelection}>
-          Click on a table to edit its properties
+          {t('click_table_edit_properties', 'Click on a table to edit its properties')}
         </div>
       </div>
     );
@@ -30,22 +33,22 @@ export default function TablePropertiesSidebar({
   return (
     <div className={styles.sidebar}>
       <div className={styles.sidebarHeader}>
-        <h2>Table Properties</h2>
+        <h2>{t('table_properties', 'Table Properties')}</h2>
       </div>
 
       <div className={styles.formGroup}>
-        <label>Table Number</label>
+        <label>{t('table_number', 'Table Number')}</label>
         <input
           type="text"
           value={selectedTable.tableNumber}
           onChange={(e) => onUpdateTable({ tableNumber: e.target.value })}
           className={styles.input}
-          placeholder="e.g., 1, 2, 3"
+          placeholder={t('table_number_placeholder', 'e.g., 1, 2, 3')}
         />
       </div>
 
       <div className={styles.formGroup}>
-        <label>Max Guests</label>
+        <label>{t('max_guests', 'Max Guests')}</label>
         <input
           type="number"
           value={selectedTable.maxGuests}
@@ -57,72 +60,78 @@ export default function TablePropertiesSidebar({
       </div>
 
       <div className={styles.formGroup}>
-        <label>Shape</label>
+        <label>{t('shape', 'Shape')}</label>
         <select
           value={selectedTable.shape || 'circle'}
           onChange={(e) => onUpdateTable({ shape: e.target.value })}
           className={styles.select}
         >
-          <option value="circle">Circle</option>
-          <option value="square">Square</option>
-          <option value="rectangle">Rectangle</option>
+          <option value="circle">{t('circle', 'Circle')}</option>
+          <option value="square">{t('square', 'Square')}</option>
+          <option value="rectangle">{t('rectangle', 'Rectangle')}</option>
         </select>
       </div>
 
       <div className={styles.formGroup}>
-        <label>Status</label>
+        <label>{t('status', 'Status')}</label>
         <div className={styles.chipContainer}>
           <button
             type="button"
             onClick={() => onUpdateTable({ isActive: !selectedTable.isActive })}
             className={`${styles.chip} ${selectedTable.isActive ? styles.chipActive : styles.chipInactive}`}
           >
-            {selectedTable.isActive ? '✓ Active' : '○ Inactive'}
+            {selectedTable.isActive ? `✓ ${t('active', 'Active')}` : `○ ${t('inactive', 'Inactive')}`}
           </button>
         </div>
       </div>
 
       <div className={styles.formGroup}>
-        <label>Location</label>
+        <label>{t('location', 'Location')}</label>
         <div className={styles.chipContainer}>
           <button
             type="button"
             onClick={() => onUpdateTable({ isOutdoor: false })}
             className={`${styles.chip} ${!selectedTable.isOutdoor ? styles.chipSelected : ''}`}
           >
-            🏠 Indoor
+            🏠 {t('indoor', 'Indoor')}
           </button>
           <button
             type="button"
             onClick={() => onUpdateTable({ isOutdoor: true })}
             className={`${styles.chip} ${selectedTable.isOutdoor ? styles.chipSelected : ''}`}
           >
-            🌳 Outdoor
+            🌳 {t('outdoor', 'Outdoor')}
           </button>
         </div>
       </div>
 
       <div className={styles.formGroup}>
-        <label>Notes (visible to customers)</label>
+        <label>{t('notes_visible_customers', 'Notes (visible to customers)')}</label>
         <textarea
           value={selectedTable.notes || ''}
           onChange={(e) => onUpdateTable({ notes: e.target.value })}
           className={styles.textarea}
-          placeholder="e.g., Near window, Quiet corner, etc."
+          placeholder={t('notes_placeholder', 'e.g., Near window, Quiet corner, etc.')}
           rows={3}
           maxLength={500}
         />
         <small className={styles.charCount}>
-          {(selectedTable.notes || '').length}/500 characters
+          {t('characters_count', '{{count}}/500 characters', { count: (selectedTable.notes || '').length })}
         </small>
       </div>
 
       <div className={styles.formGroup}>
-        <label>Position X: {selectedTable.positionX.toFixed(1)}px ({((selectedTable.positionX / currentCanvasSize.width) * 100).toFixed(1)}%)</label>
+        <label>{t('position_x', 'Position X: {{x}}px ({{percent}}%)', {
+          x: selectedTable.positionX.toFixed(1),
+          percent: ((selectedTable.positionX / currentCanvasSize.width) * 100).toFixed(1)
+        })}</label>
       </div>
 
       <div className={styles.formGroup}>
-        <label>Position Y: {selectedTable.positionY.toFixed(1)}px ({((selectedTable.positionY / currentCanvasSize.height) * 100).toFixed(1)}%)</label>
+        <label>{t('position_y', 'Position Y: {{y}}px ({{percent}}%)', {
+          y: selectedTable.positionY.toFixed(1),
+          percent: ((selectedTable.positionY / currentCanvasSize.height) * 100).toFixed(1)
+        })}</label>
       </div>
 
       <div className={styles.formGroup} style={{ marginTop: '1.5rem' }}>
@@ -130,13 +139,13 @@ export default function TablePropertiesSidebar({
           onClick={onViewQRCode}
           className={styles.qrButton}
         >
-          📱 View QR Code
+          📱 {t('view_qr_code', 'View QR Code')}
         </button>
         <button
           onClick={onDeleteTable}
           className={styles.deleteButton}
         >
-          Delete Table
+          {t('delete_table', 'Delete Table')}
         </button>
       </div>
     </div>

@@ -25,6 +25,7 @@ export interface TableDto {
   width: number;
   height: number;
   shape?: string; // circle, square, rectangle
+  rotation?: number; // 0, 90, 180, 270 degrees
   notes?: string;
   qrCodeData?: string;
   qrCodeGeneratedAt?: string;
@@ -105,6 +106,7 @@ export interface UpdateTableDto {
   width: number;
   height: number;
   shape: string;
+  rotation?: number;
   notes?: string;
 }
 

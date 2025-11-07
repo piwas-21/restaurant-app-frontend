@@ -139,14 +139,44 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
   const getOrderTypeLabel = () => {
     switch (order.type) {
       case 'DineIn':
-        return t('dine_in', 'Dine In');
+        return t('order_type_dine_in', 'Dine In');
       case 'Takeaway':
-        return t('takeaway', 'Takeaway');
+        return t('order_type_takeaway', 'Takeaway');
       case 'Delivery':
-        return t('delivery', 'Delivery');
+        return t('order_type_delivery', 'Delivery');
       default:
         return order.type;
     }
+  };
+
+  const translateTimelineNotes = (notes?: string) => {
+    if (!notes) return null;
+
+    // Check for known translatable notes
+    const knownNotes: { [key: string]: string } = {
+      'Order created': t('order_created', 'Order created'),
+      'Order cancelled': t('order_cancelled', 'Order cancelled'),
+      'Order completed': t('order_completed', 'Order completed'),
+      'Status changed': t('status_changed', 'Status changed'),
+      'Payment received': t('payment_received', 'Payment received'),
+    };
+
+    // Return translated version if known, otherwise return original
+    return knownNotes[notes] || notes;
+  };
+
+  const formatChangedBy = (changedBy?: string) => {
+    if (!changedBy) return null;
+
+    // Check if it's a GUID (UUID format)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(changedBy)) {
+      // It's a user ID, show "System" instead
+      return t('system', 'System');
+    }
+
+    // Otherwise, it's likely a username or email, display as-is
+    return changedBy;
   };
 
   const handlePrint = () => {
@@ -165,12 +195,12 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
   };
 
   const handleExport = () => {
-    exportOrderToCSV(order);
+    exportOrderToCSV(order, t);
     setShowExportMenu(false);
   };
 
   const handleExportPDF = () => {
-    exportOrderToPDF(order);
+    exportOrderToPDF(order, t);
     setShowExportMenu(false);
   };
 
@@ -184,12 +214,12 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
             <div className={styles.orderMeta}>
               <span className={styles.orderNumber}>#{order.orderNumber}</span>
               <span className={getStatusBadgeClasses(order.status)}>
-                {order.status}
+                {order.status ? t(`order_status_${order.status.toLowerCase()}`, order.status) : 'N/A'}
               </span>
               {order.isFocusOrder && (
                 <span className={getFocusBadgeClass()}>
                   <Star size={14} />
-                  Focus Order
+                  {t('focus_order', 'Focus Order')}
                 </span>
               )}
             </div>
@@ -250,7 +280,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                 <span className={styles.infoLabel}>{t('order_date', 'Order Date')}</span>
                 <div className={styles.infoValue}>
                   <Clock size={16} />
-                  {formatDate(order.orderDate)}
+                  {t('order_created', 'Order created')}: {formatDate(order.orderDate)}
                 </div>
               </div>
               {order.type === 'DineIn' && order.tableNumber && (
@@ -407,7 +437,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
               </div>
 
               <div className={`${styles.summaryRow} ${styles.total}`}>
-                <span>Total</span>
+                <span>{t('total', 'Total')}</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
             </div>
@@ -425,14 +455,18 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                   <div key={payment.id} className={styles.paymentItem}>
                     <div className={styles.paymentMethod}>
                       <CreditCard size={16} />
-                      <span>{payment.paymentMethod}</span>
+                      <span>
+                        {payment.paymentMethod
+                          ? t(`payment_method_${payment.paymentMethod.toLowerCase().replace(/\s+/g, '_')}`, payment.paymentMethod)
+                          : 'N/A'}
+                      </span>
                     </div>
                     <div className={styles.paymentAmount}>
                       {formatPrice(payment.amount)}
                     </div>
                     <div className={styles.paymentStatus}>
                       <span className={getPaymentBadgeClasses(payment.status)}>
-                        {payment.status}
+                        {payment.status ? t(`payment_status_${payment.status.toLowerCase()}`, payment.status) : 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -466,15 +500,17 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                   <div key={history.id} className={styles.timelineItem}>
                     <div className={styles.timelineDot}></div>
                     <div className={styles.timelineContent}>
-                      <div className={styles.timelineStatus}>{history.status}</div>
+                      <div className={styles.timelineStatus}>
+                        {history.status ? t(`order_status_${history.status.toLowerCase()}`, history.status) : t('status', 'Status')}
+                      </div>
                       <div className={styles.timelineDate}>
                         {formatDate(history.changedAt)}
                       </div>
                       {history.notes && (
-                        <div className={styles.timelineNotes}>{history.notes}</div>
+                        <div className={styles.timelineNotes}>{translateTimelineNotes(history.notes)}</div>
                       )}
                       {history.changedBy && (
-                        <div className={styles.timelineBy}>by {history.changedBy}</div>
+                        <div className={styles.timelineBy}>{t('by', 'by')} {formatChangedBy(history.changedBy)}</div>
                       )}
                     </div>
                   </div>

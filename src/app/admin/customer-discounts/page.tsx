@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
+import { useTranslation } from 'react-i18next';
 import {
   Trash2,
   Edit,
@@ -18,6 +19,7 @@ import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import styles from './customer-discounts.module.css';
 
 export default function CustomerDiscountsPage() {
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const [discounts, setDiscounts] = useState<CustomerDiscountRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,7 @@ export default function CustomerDiscountsPage() {
       );
       setDiscounts(data);
     } catch {
-      enqueueSnackbar('Failed to load customer discounts', { variant: 'error' });
+      enqueueSnackbar(t('failed_load_customer_discounts', 'Failed to load customer discounts'), { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -57,14 +59,14 @@ export default function CustomerDiscountsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this discount?')) return;
+    if (!confirm(t('confirm_delete_discount', 'Are you sure you want to delete this discount?'))) return;
 
     try {
       await adminFidelityService.deleteCustomerDiscount(id);
-      enqueueSnackbar('Discount deleted successfully', { variant: 'success' });
+      enqueueSnackbar(t('discount_deleted_successfully', 'Discount deleted successfully'), { variant: 'success' });
       fetchDiscounts();
     } catch {
-      enqueueSnackbar('Failed to delete discount', { variant: 'error' });
+      enqueueSnackbar(t('failed_delete_discount', 'Failed to delete discount'), { variant: 'error' });
     }
   };
 
@@ -86,15 +88,15 @@ export default function CustomerDiscountsPage() {
 
   const getStatusBadge = (discount: CustomerDiscountRule) => {
     if (!discount.isActive) {
-      return <span className={`${styles.badge} ${styles.badgeInactive}`}>Inactive</span>;
+      return <span className={`${styles.badge} ${styles.badgeInactive}`}>{t('inactive', 'Inactive')}</span>;
     }
     if (isExpired(discount)) {
-      return <span className={`${styles.badge} ${styles.badgeExpired}`}>Expired</span>;
+      return <span className={`${styles.badge} ${styles.badgeExpired}`}>{t('expired', 'Expired')}</span>;
     }
     if (isNotYetValid(discount)) {
-      return <span className={`${styles.badge} ${styles.badgePending}`}>Pending</span>;
+      return <span className={`${styles.badge} ${styles.badgePending}`}>{t('pending', 'Pending')}</span>;
     }
-    return <span className={`${styles.badge} ${styles.badgeActive}`}>Active</span>;
+    return <span className={`${styles.badge} ${styles.badgeActive}`}>{t('active', 'Active')}</span>;
   };
 
   const getUsageStatus = (discount: CustomerDiscountRule) => {
@@ -103,7 +105,7 @@ export default function CustomerDiscountsPage() {
     const isNearLimit = percentage >= 80;
     return (
       <span className={`${styles.usageBadge} ${isNearLimit ? styles.usageWarning : ''}`}>
-        {discount.usageCount}/{discount.maxUsageCount} uses
+        {t('usage_count', '{{used}}/{{max}} uses', { used: discount.usageCount, max: discount.maxUsageCount })}
       </span>
     );
   };
@@ -113,12 +115,12 @@ export default function CustomerDiscountsPage() {
       <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <h1 className={styles.title}>Customer Discounts</h1>
-          <p className={styles.subtitle}>Manage exclusive customer discount rules</p>
+          <h1 className={styles.title}>{t('customer_discounts', 'Customer Discounts')}</h1>
+          <p className={styles.subtitle}>{t('manage_exclusive_customer_discount_rules', 'Manage exclusive customer discount rules')}</p>
         </div>
         <button onClick={handleCreate} className={styles.createButton}>
           <Plus size={20} />
-          Create Discount
+          {t('create_discount', 'Create Discount')}
         </button>
       </div>
 
@@ -127,7 +129,7 @@ export default function CustomerDiscountsPage() {
           <Filter size={18} />
           <input
             type="text"
-            placeholder="Filter by User ID..."
+            placeholder={t('filter_by_user_id', 'Filter by User ID...')}
             value={filterUserId}
             onChange={(e) => setFilterUserId(e.target.value)}
             className={styles.filterInput}
@@ -137,7 +139,7 @@ export default function CustomerDiscountsPage() {
               onClick={() => setFilterUserId('')}
               className={styles.clearFilter}
             >
-              Clear
+              {t('clear', 'Clear')}
             </button>
           )}
         </div>
@@ -147,23 +149,23 @@ export default function CustomerDiscountsPage() {
             checked={showActiveOnly}
             onChange={(e) => setShowActiveOnly(e.target.checked)}
           />
-          Active only
+          {t('active_only', 'Active only')}
         </label>
       </div>
 
       {loading ? (
         <div className={styles.loading}>
           <div className={styles.spinner}></div>
-          <p>Loading discounts...</p>
+          <p>{t('loading_discounts', 'Loading discounts...')}</p>
         </div>
       ) : discounts.length === 0 ? (
         <div className={styles.empty}>
           <TrendingUp size={48} />
-          <h3>No customer discounts found</h3>
-          <p>Create your first customer discount to get started</p>
+          <h3>{t('no_customer_discounts_found', 'No customer discounts found')}</h3>
+          <p>{t('create_first_customer_discount', 'Create your first customer discount to get started')}</p>
           <button onClick={handleCreate} className={styles.emptyButton}>
             <Plus size={20} />
-            Create First Discount
+            {t('create_first_discount', 'Create First Discount')}
           </button>
         </div>
       ) : (
@@ -171,15 +173,15 @@ export default function CustomerDiscountsPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Customer</th>
-                <th>Type</th>
-                <th>Value</th>
-                <th>Order Range</th>
-                <th>Valid Period</th>
-                <th>Usage</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{t('name', 'Name')}</th>
+                <th>{t('customer', 'Customer')}</th>
+                <th>{t('type', 'Type')}</th>
+                <th>{t('value', 'Value')}</th>
+                <th>{t('order_range', 'Order Range')}</th>
+                <th>{t('valid_period', 'Valid Period')}</th>
+                <th>{t('usage', 'Usage')}</th>
+                <th>{t('status', 'Status')}</th>
+                <th>{t('actions', 'Actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -190,7 +192,7 @@ export default function CustomerDiscountsPage() {
                     <div className={styles.userCell}>
                       <User size={16} />
                       <div className={styles.userInfo}>
-                        <span className={styles.userName}>{discount.userName || 'Unknown User'}</span>
+                        <span className={styles.userName}>{discount.userName || t('unknown_user', 'Unknown User')}</span>
                         {discount.userEmail && (
                           <span className={styles.userEmail}>{discount.userEmail}</span>
                         )}
@@ -208,7 +210,7 @@ export default function CustomerDiscountsPage() {
                       : adminFidelityService.formatCurrency(discount.discountValue)}
                   </td>
                   <td className={styles.rangeCell}>
-                    {discount.minOrderAmount ? adminFidelityService.formatCurrency(discount.minOrderAmount) : 'CHF 0'}
+                    {discount.minOrderAmount ? adminFidelityService.formatCurrency(discount.minOrderAmount) : t('currency_zero', 'CHF 0')}
                     {' → '}
                     {discount.maxOrderAmount ? adminFidelityService.formatCurrency(discount.maxOrderAmount) : '∞'}
                   </td>
@@ -221,12 +223,12 @@ export default function CustomerDiscountsPage() {
                           {discount.validUntil && (
                             <>
                               <br />
-                              <span className={styles.dateTo}>to {adminFidelityService.formatDate(discount.validUntil)}</span>
+                              <span className={styles.dateTo}>{t('to', 'to')} {adminFidelityService.formatDate(discount.validUntil)}</span>
                             </>
                           )}
                         </>
                       ) : (
-                        <span className={styles.dateUnlimited}>No restrictions</span>
+                        <span className={styles.dateUnlimited}>{t('no_restrictions', 'No restrictions')}</span>
                       )}
                     </div>
                   </td>
@@ -237,14 +239,14 @@ export default function CustomerDiscountsPage() {
                       <button
                         onClick={() => handleEdit(discount)}
                         className={styles.actionButton}
-                        title="Edit"
+                        title={t('edit', 'Edit')}
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(discount.id)}
                         className={`${styles.actionButton} ${styles.deleteButton}`}
-                        title="Delete"
+                        title={t('delete', 'Delete')}
                       >
                         <Trash2 size={18} />
                       </button>

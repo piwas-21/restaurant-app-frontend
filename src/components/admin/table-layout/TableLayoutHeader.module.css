@@ -28,26 +28,6 @@
   flex-wrap: wrap;
 }
 
-.canvasSizeSelector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.canvasSizeSelector label {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-
-.sizeSelect {
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--background-color);
-  color: var(--text-color);
-  font-size: 0.875rem;
-}
-
 .createButton,
 .selectionModeButton,
 .saveButton,
@@ -64,7 +44,7 @@
 
 .createButton {
   background: var(--primary-color);
-  color: white;
+  color: var(--text-color);
 }
 
 .createButton:hover {

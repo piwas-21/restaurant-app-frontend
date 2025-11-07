@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import styles from './ReservationSuccessModal.module.css';
 
 interface ReservationSuccessModalProps {
@@ -19,6 +20,7 @@ export default function ReservationSuccessModal({
   numberOfTables
 }: ReservationSuccessModalProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -45,15 +47,18 @@ export default function ReservationSuccessModal({
           <div className={styles.clockIcon}>⏳</div>
         </div>
 
-        <h2 className={styles.title}>Pending Confirmation</h2>
+        <h2 className={styles.title}>{t('reservation_pending_confirmation', 'Pending Confirmation')}</h2>
 
         <p className={styles.message}>
-          Your reservation{numberOfTables > 1 ? 's are' : ' is'} currently pending.
-          Our team will review your request and send you a confirmation email shortly.
+          {t('reservation_pending_message',
+            numberOfTables > 1
+              ? 'Your reservations are currently pending. Our team will review your request and send you a confirmation email shortly.'
+              : 'Your reservation is currently pending. Our team will review your request and send you a confirmation email shortly.'
+          )}
         </p>
 
         <div className={styles.emailInfo}>
-          <span className={styles.emailLabel}>Confirmation will be sent to:</span>
+          <span className={styles.emailLabel}>{t('confirmation_email_sent_to', 'Confirmation will be sent to:')}</span>
           <span className={styles.email}>{customerEmail}</span>
         </div>
 
@@ -61,22 +66,22 @@ export default function ReservationSuccessModal({
           {isLoggedIn ? (
             <>
               <button className={styles.primaryButton} onClick={handleViewReservations}>
-                View My Reservations
+                {t('view_my_reservations', 'View My Reservations')}
               </button>
               <button className={styles.secondaryButton} onClick={handleMakeAnother}>
-                Make Another Reservation
+                {t('make_another_reservation', 'Make Another Reservation')}
               </button>
             </>
           ) : (
             <>
               <button className={styles.primaryButton} onClick={handleLogin}>
-                Login to Track Your Reservation
+                {t('login_to_track_reservation', 'Login to Track Your Reservation')}
               </button>
               <button className={styles.secondaryButton} onClick={handleMakeAnother}>
-                Make Another Reservation
+                {t('make_another_reservation', 'Make Another Reservation')}
               </button>
               <p className={styles.guestNote}>
-                💡 Create an account to easily track all your reservations and manage them online.
+                {t('create_account_to_track', '💡 Create an account to easily track all your reservations and manage them online.')}
               </p>
             </>
           )}

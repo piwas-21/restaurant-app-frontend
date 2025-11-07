@@ -110,6 +110,7 @@ export function useTableLayout() {
           width: table.width,
           height: table.height,
           shape: table.shape || 'circle',
+          rotation: table.rotation || 0,
           notes: table.notes,
         };
         await tableLayoutService.updateTable(table.id, updateData);

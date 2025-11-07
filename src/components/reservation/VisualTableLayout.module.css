@@ -2,6 +2,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .floorPlan {
@@ -15,33 +16,54 @@
   padding: 2rem;
   overflow: hidden;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 /* Entrance */
 .entrance {
   position: absolute;
+  width: 60px;
+  height: 80px;
+  font-size: 4rem;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  transition: all 0.2s;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entrance::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.entrance:hover::after {
+  opacity: 1;
 }
 
 .entranceDoor {
-  background: var(--success-color);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  user-select: none;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  transition: box-shadow 0.2s, transform 0.1s;
+  display: none; /* No longer needed */
 }
 
 .entranceLabel {
-  display: none; /* Hide the separate label since we'll put text inside the door */
+  display: none;
 }
 
 /* Tables */
@@ -138,9 +160,16 @@
 }
 
 /* Table Tooltip */
-.tableTooltip {
+.tableTooltipWrapper {
   position: absolute;
-  bottom: 110%;
+  z-index: 10000;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.tableTooltip {
+  position: relative;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.98);
@@ -150,15 +179,14 @@
   padding: 0.75rem 1rem;
   min-width: 160px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
   animation: tooltipFadeIn 0.2s ease;
   pointer-events: none;
 }
 
 /* Tooltip positioned below (for tables at the top) */
-.tableTooltip.tooltipBelow {
+.tableTooltipWrapper.tooltipBelow .tableTooltip {
   bottom: auto;
-  top: 110%;
+  top: 60px;
 }
 
 @keyframes tooltipFadeIn {
@@ -176,7 +204,7 @@
 .tableTooltip::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: -10px;
   left: 50%;
   transform: translateX(-50%);
   border: 8px solid transparent;
@@ -184,9 +212,9 @@
 }
 
 /* Arrow pointing down (tooltip below table) */
-.tableTooltip.tooltipBelow::after {
-  top: auto;
-  bottom: 100%;
+.tableTooltipWrapper.tooltipBelow .tableTooltip::after {
+  bottom: auto;
+  top: -10px;
   border-top-color: transparent;
   border-bottom-color: #f4c430;
 }
@@ -235,6 +263,8 @@
   margin-top: 1.5rem;
   justify-content: center;
   flex-wrap: wrap;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
 .legendItem {
@@ -252,6 +282,7 @@
   border-radius: 8px;
   border: 3px solid;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .legendBox.available {
@@ -271,6 +302,49 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .floorPlan {
+    min-height: 500px;
+    padding: 1.5rem;
+  }
+
+  .table.round {
+    width: 90px;
+    height: 90px;
+  }
+
+  .table.rectangular {
+    width: 130px;
+    height: 75px;
+  }
+
+  .table.square {
+    width: 75px;
+    height: 75px;
+  }
+
+  .table.large {
+    width: 160px;
+    height: 90px;
+  }
+
+  .tableLabel {
+    font-size: 0.85rem;
+  }
+
+  .guestCount {
+    font-size: 0.7rem;
+  }
+
+  .legend {
+    gap: 1.5rem;
+  }
+
+  .legendItem {
+    font-size: 0.9rem;
+  }
+}
+
 @media (max-width: 768px) {
   .floorPlan {
     aspect-ratio: 1 / 1;
@@ -278,24 +352,127 @@
     min-height: 400px;
   }
 
+  .entrance {
+    width: 50px;
+    height: 70px;
+    font-size: 2.5rem;
+  }
+
   .table.round {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
   }
 
   .table.rectangular {
-    width: 90px;
-    height: 50px;
-  }
-
-  .table.square {
-    width: 60px;
+    width: 100px;
     height: 60px;
   }
 
-  .table.large {
-    width: 110px;
+  .table.square {
+    width: 70px;
     height: 70px;
+  }
+
+  .table.large {
+    width: 130px;
+    height: 75px;
+  }
+
+  .tableLabel {
+    font-size: 0.75rem;
+  }
+
+  .guestCount {
+    font-size: 0.65rem;
+  }
+
+  .tableContent {
+    border-width: 2px;
+    border-radius: 10px;
+  }
+
+  .table.round .tableContent {
+    border-radius: 50%;
+  }
+
+  .tableTooltip {
+    font-size: 0.8rem;
+    min-width: 140px;
+    padding: 0.6rem 0.8rem;
+    border-width: 2px;
+  }
+
+  .tooltipRow {
+    font-size: 0.8rem;
+    margin-bottom: 0.35rem;
+    gap: 0.4rem;
+  }
+
+  .tooltipIcon {
+    font-size: 0.95rem;
+    width: 18px;
+  }
+
+  .tooltipNotes {
+    font-size: 0.75rem;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+  }
+
+  .legend {
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .legendItem {
+    font-size: 0.9rem;
+    gap: 0.6rem;
+  }
+
+  .legendBox {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .floorPlan {
+    aspect-ratio: 1 / 1;
+    padding: 0.75rem;
+    min-height: 320px;
+    border-radius: 10px;
+  }
+
+  .entrance {
+    width: 45px;
+    height: 60px;
+    font-size: 2rem;
+  }
+
+  .table.round {
+    width: 56px;
+    height: 56px;
+  }
+
+  .table.rectangular {
+    width: 80px;
+    height: 48px;
+  }
+
+  .table.square {
+    width: 56px;
+    height: 56px;
+  }
+
+  .table.large {
+    width: 105px;
+    height: 62px;
+  }
+
+  .tableContent {
+    border-width: 1.5px;
+    border-radius: 8px;
   }
 
   .tableLabel {
@@ -303,37 +480,53 @@
   }
 
   .guestCount {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
+  }
+
+  .table.available:hover .tableContent {
+    transform: scale(1.03);
+  }
+
+  .table.selected .tableContent {
+    border-width: 3px;
+    box-shadow: 0 0 0 2px rgba(244, 196, 48, 0.3);
+    transform: scale(1.05);
   }
 
   .tableTooltip {
     font-size: 0.75rem;
-    min-width: 130px;
+    min-width: 120px;
     padding: 0.5rem 0.7rem;
+    border-width: 1.5px;
+    border-radius: 8px;
+  }
+
+  .tableTooltip::after {
+    border-width: 6px;
   }
 
   .tooltipRow {
     font-size: 0.75rem;
     margin-bottom: 0.3rem;
+    gap: 0.35rem;
   }
 
   .tooltipIcon {
     font-size: 0.9rem;
-    width: 18px;
+    width: 16px;
   }
 
   .tooltipNotes {
     font-size: 0.7rem;
-  }
-
-  .entranceDoor {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    gap: 0.35rem;
   }
 
   .legend {
     gap: 1rem;
     margin-top: 1rem;
+    padding: 0 0.5rem;
   }
 
   .legendItem {
@@ -344,20 +537,41 @@
   .legendBox {
     width: 32px;
     height: 32px;
+    border-width: 2px;
+    border-radius: 6px;
+  }
+
+  /* Better touch targets on mobile */
+  .table {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 @media (max-width: 480px) {
   .container {
     padding: 0;
+    width: 100%;
   }
 
   .floorPlan {
     aspect-ratio: 1 / 1;
-    padding: 0.75rem;
-    min-height: 320px;
-    border-width: 2px;
-    border-radius: 12px;
+    padding: 0.5rem;
+    min-height: 280px;
+    border-radius: 8px;
+    border-width: 1.5px;
+  }
+
+  .entrance {
+    width: 40px;
+    height: 55px;
+    font-size: 1.75rem;
+  }
+
+  .entrance::after {
+    font-size: 0.75rem;
+    margin-top: 6px;
+    padding: 0.3rem 0.6rem;
   }
 
   .table.round {
@@ -366,7 +580,7 @@
   }
 
   .table.rectangular {
-    width: 75px;
+    width: 70px;
     height: 42px;
   }
 
@@ -376,66 +590,85 @@
   }
 
   .table.large {
-    width: 95px;
-    height: 58px;
+    width: 90px;
+    height: 55px;
   }
 
   .tableContent {
     border-width: 1.5px;
-    border-radius: 8px;
+    border-radius: 6px;
+  }
+
+  .table.round .tableContent {
+    border-radius: 50%;
   }
 
   .tableLabel {
     font-size: 0.65rem;
+    margin-bottom: 0.15rem;
   }
 
   .guestCount {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
+  }
+
+  .table.available:hover .tableContent {
+    transform: scale(1.02);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .table.selected .tableContent {
+    border-width: 2.5px;
+    box-shadow: 0 0 0 2px rgba(244, 196, 48, 0.4), 0 2px 8px rgba(244, 196, 48, 0.2);
+    transform: scale(1.04);
   }
 
   .tableTooltip {
     font-size: 0.7rem;
-    min-width: 110px;
-    padding: 0.4rem 0.6rem;
+    min-width: 105px;
+    padding: 0.45rem 0.6rem;
     border-width: 1.5px;
-    border-radius: 8px;
+    border-radius: 6px;
+    bottom: 45px;
   }
 
   .tableTooltip::after {
-    border-width: 6px;
+    border-width: 5px;
+    bottom: -8px;
+  }
+
+  .tableTooltipWrapper.tooltipBelow .tableTooltip {
+    top: 45px;
+    bottom: auto;
+  }
+
+  .tableTooltipWrapper.tooltipBelow .tableTooltip::after {
+    bottom: auto;
+    top: -8px;
   }
 
   .tooltipRow {
     font-size: 0.7rem;
     margin-bottom: 0.25rem;
-    gap: 0.4rem;
+    gap: 0.3rem;
   }
 
   .tooltipIcon {
     font-size: 0.85rem;
-    width: 16px;
+    width: 15px;
   }
 
   .tooltipNotes {
     font-size: 0.65rem;
-    margin-top: 0.4rem;
-    padding-top: 0.4rem;
-    gap: 0.4rem;
-  }
-
-  .entranceDoor {
-    width: 40px;
-    height: 20px;
-    border-width: 2px;
-  }
-
-  .entranceLabel {
-    font-size: 0.65rem;
+    margin-top: 0.3rem;
+    padding-top: 0.3rem;
+    gap: 0.3rem;
   }
 
   .legend {
     gap: 0.75rem;
     margin-top: 0.75rem;
+    padding: 0 0.25rem;
   }
 
   .legendItem {
@@ -446,19 +679,8 @@
   .legendBox {
     width: 28px;
     height: 28px;
-    border-radius: 6px;
     border-width: 1.5px;
-  }
-
-  /* Better touch targets on mobile */
-  .table {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Slightly larger selection ring on mobile for visibility */
-  .table.selected .tableContent {
-    box-shadow: 0 0 0 3px rgba(244, 196, 48, 0.3), 0 4px 16px rgba(244, 196, 48, 0.3);
+    border-radius: 5px;
   }
 }
 

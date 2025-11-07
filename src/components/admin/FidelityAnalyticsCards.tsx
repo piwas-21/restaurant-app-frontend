@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown, DollarSign, Users, Award, Gift } from 'lucide-react';
 import styles from './FidelityAnalyticsCards.module.css';
 
@@ -30,6 +31,8 @@ interface FidelityAnalyticsCardsProps {
 }
 
 export default function FidelityAnalyticsCards({ analytics, loading }: FidelityAnalyticsCardsProps) {
+  const { t } = useTranslation();
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'points-issued':
@@ -64,39 +67,39 @@ export default function FidelityAnalyticsCards({ analytics, loading }: FidelityA
 
   const cards: AnalyticsCardProps[] = [
     {
-      title: 'Total Points Issued',
+      title: t('total_points_issued', 'Total Points Issued'),
       value: formatNumber(analytics.totalPointsIssued),
-      subtitle: `${formatCurrency(analytics.totalPointsIssued / 100)} value`,
+      subtitle: t('points_value', { value: formatCurrency(analytics.totalPointsIssued / 100), defaultValue: `${formatCurrency(analytics.totalPointsIssued / 100)} value` }),
       icon: 'points-issued',
     },
     {
-      title: 'Total Points Redeemed',
+      title: t('total_points_redeemed', 'Total Points Redeemed'),
       value: formatNumber(analytics.totalPointsRedeemed),
-      subtitle: `${formatCurrency(analytics.totalPointsRedeemed / 100)} in discounts`,
+      subtitle: t('points_in_discounts', { value: formatCurrency(analytics.totalPointsRedeemed / 100), defaultValue: `${formatCurrency(analytics.totalPointsRedeemed / 100)} in discounts` }),
       icon: 'points-redeemed',
     },
     {
-      title: 'Active Users with Points',
+      title: t('active_users_with_points', 'Active Users with Points'),
       value: formatNumber(analytics.totalActiveUsers),
-      subtitle: `Avg: ${formatNumber(Math.round(analytics.averagePointsPerUser))} pts/user`,
+      subtitle: t('average_points_per_user', { avg: formatNumber(Math.round(analytics.averagePointsPerUser)), defaultValue: `Avg: ${formatNumber(Math.round(analytics.averagePointsPerUser))} pts/user` }),
       icon: 'active-users',
     },
     {
-      title: 'Total Discount Given',
+      title: t('total_discount_given', 'Total Discount Given'),
       value: formatCurrency(analytics.totalDiscountGiven),
-      subtitle: 'Lifetime customer savings',
+      subtitle: t('lifetime_customer_savings', 'Lifetime customer savings'),
       icon: 'discount-given',
     },
     {
-      title: 'Active Point Rules',
+      title: t('active_point_rules', 'Active Point Rules'),
       value: analytics.activePointRules,
-      subtitle: 'Earning rules configured',
+      subtitle: t('earning_rules_configured', 'Earning rules configured'),
       icon: 'rules',
     },
     {
-      title: 'Active Customer Discounts',
+      title: t('active_customer_discounts', 'Active Customer Discounts'),
       value: analytics.activeCustomerDiscounts,
-      subtitle: 'Special discount rules',
+      subtitle: t('special_discount_rules', 'Special discount rules'),
       icon: 'discounts',
     },
   ];

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './TableFilters.module.css';
 
 interface TableFiltersProps {
@@ -12,50 +13,48 @@ interface TableFiltersProps {
 }
 
 export default function TableFilters({ filters, onFilterChange }: TableFiltersProps) {
+  const { t } = useTranslation();
+
   const handleToggle = (key: keyof typeof filters) => {
     onFilterChange({ ...filters, [key]: !filters[key] });
   };
 
   return (
     <div className={styles.filters}>
-      <h3 className={styles.filtersTitle}>Filters</h3>
-
       <div className={styles.filterSection}>
-        <label className={styles.sectionLabel}>Location</label>
         <div className={styles.chipContainer}>
           <button
             type="button"
             onClick={() => handleToggle('showIndoor')}
             className={`${styles.chip} ${filters.showIndoor ? styles.chipActive : styles.chipInactive}`}
           >
-            🏠 Indoor
+            🏠 {t('indoor', 'Indoor')}
           </button>
           <button
             type="button"
             onClick={() => handleToggle('showOutdoor')}
             className={`${styles.chip} ${filters.showOutdoor ? styles.chipActive : styles.chipInactive}`}
           >
-            🌳 Outdoor
+            🌳 {t('outdoor', 'Outdoor')}
           </button>
         </div>
       </div>
 
       <div className={styles.filterSection}>
-        <label className={styles.sectionLabel}>Status</label>
         <div className={styles.chipContainer}>
           <button
             type="button"
             onClick={() => handleToggle('showActive')}
             className={`${styles.chip} ${filters.showActive ? styles.chipActive : styles.chipInactive}`}
           >
-            ✓ Active
+            ✓ {t('active', 'Active')}
           </button>
           <button
             type="button"
             onClick={() => handleToggle('showInactive')}
             className={`${styles.chip} ${filters.showInactive ? styles.chipActive : styles.chipInactive}`}
           >
-            ○ Inactive
+            ○ {t('inactive', 'Inactive')}
           </button>
         </div>
       </div>

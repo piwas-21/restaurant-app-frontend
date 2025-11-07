@@ -1,6 +1,7 @@
 /* Core Menu Page Styles */
 .menuContainer {
   padding: 2rem;
+  width: 98%;
   font-family: var(--font-family-sans);
   background-color: var(--background-color);
   color: var(--text-color);

@@ -1,6 +1,7 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { OrderDto } from '@/types/order';
+
+// Translation function type
+type TranslationFunction = (key: string, fallback: string) => string;
 
 /**
  * Format date for PDF display
@@ -26,237 +27,521 @@ const formatCurrency = (amount: number): string => {
 /**
  * Get order type label
  */
-const getOrderTypeLabel = (type: string): string => {
-  const typeMap: { [key: string]: string } = {
-    DineIn: 'Dine In',
-    Takeaway: 'Takeaway',
-    Delivery: 'Delivery',
+const getOrderTypeLabel = (type: string, t?: TranslationFunction): string => {
+  const translate = t || ((key: string, fallback: string) => fallback);
+
+  switch (type) {
+    case 'DineIn':
+      return translate('order_type_dine_in', 'Dine In');
+    case 'Takeaway':
+      return translate('order_type_takeaway', 'Takeaway');
+    case 'Delivery':
+      return translate('order_type_delivery', 'Delivery');
+    default:
+      return type;
+  }
+};
+
+/**
+ * Escape HTML special characters
+ */
+const escapeHtml = (text: string): string => {
+  const map: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
   };
-  return typeMap[type] || type;
+  return text.replace(/[&<>"']/g, (char) => map[char]);
 };
 
 /**
- * Export a single order to PDF
+ * Export a single order to PDF using browser's print functionality
  */
-export const exportOrderToPDF = (order: OrderDto): void => {
-  const doc = new jsPDF();
+export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction): void => {
+  const translate = t || ((key: string, fallback: string) => fallback);
 
-  // Add company header
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Rumi Restaurant', 14, 20);
+  // Build order items HTML
+  const itemsRows = order.items.map(item => `
+    <tr>
+      <td>${escapeHtml(item.productName || item.menuName || translate('item', 'Item'))}</td>
+      <td style="text-align: center;">${item.quantity}</td>
+      <td style="text-align: right;">${formatCurrency(item.unitPrice)}</td>
+      <td style="text-align: right;">${formatCurrency(item.itemTotal)}</td>
+    </tr>
+  `).join('');
 
-  // Add order details header
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Order Details', 14, 30);
+  // Build delivery address section if applicable
+  const deliverySection = order.type === 'Delivery' && order.deliveryAddress ? `
+    <div class="section">
+      <h3>${translate('delivery_address', 'Delivery Address')}</h3>
+      <div class="info-grid">
+        ${order.deliveryAddress.addressLine1 ? `<p>${escapeHtml(order.deliveryAddress.addressLine1)}</p>` : ''}
+        ${order.deliveryAddress.addressLine2 ? `<p>${escapeHtml(order.deliveryAddress.addressLine2)}</p>` : ''}
+        <p>${escapeHtml(order.deliveryAddress.postalCode || '')} ${escapeHtml(order.deliveryAddress.city || '')}</p>
+      </div>
+    </div>
+  ` : '';
 
-  // Order information
-  doc.setFontSize(10);
-  const orderInfo = [
-    ['Order Number:', order.orderNumber],
-    ['Order Date:', formatDate(order.orderDate)],
-    ['Status:', order.status],
-    ['Order Type:', getOrderTypeLabel(order.type)],
-    ['Payment Status:', order.paymentStatus],
-  ];
+  // Build payment details section if applicable
+  const paymentsSection = order.payments && order.payments.length > 0 ? `
+    <div class="section">
+      <h3>${translate('payment_details', 'Payment Details')}</h3>
+      <table class="payment-table">
+        ${order.payments.map(payment => {
+          const paymentMethod = payment.paymentMethod
+            ? translate(`payment_method_${payment.paymentMethod.toLowerCase().replace(/\s+/g, '_')}`, payment.paymentMethod)
+            : translate('n_a', 'N/A');
+          const paymentStatus = payment.status
+            ? translate(`payment_status_${payment.status.toLowerCase()}`, payment.status)
+            : translate('n_a', 'N/A');
 
-  if (order.type === 'DineIn' && order.tableNumber) {
-    orderInfo.push(['Table Number:', order.tableNumber.toString()]);
+          return `
+            <tr>
+              <td>${escapeHtml(paymentMethod)}</td>
+              <td style="text-align: right;">${formatCurrency(payment.amount)}</td>
+              <td>${escapeHtml(paymentStatus)}</td>
+            </tr>
+          `;
+        }).join('')}
+      </table>
+    </div>
+  ` : '';
+
+  // Build notes section if applicable
+  const notesSection = order.notes ? `
+    <div class="section">
+      <h3>${translate('notes', 'Notes')}</h3>
+      <p>${escapeHtml(order.notes)}</p>
+    </div>
+  ` : '';
+
+  // Create print window
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    throw new Error('Failed to open print window. Please check popup settings.');
   }
 
-  let yPos = 40;
-  orderInfo.forEach(([label, value]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(label, 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(value, 60, yPos);
-    yPos += 7;
-  });
+  // Generate HTML with full order details
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${translate('order_details', 'Order Details')} - ${escapeHtml(order.orderNumber)}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 20mm;
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: white;
+            margin: 50px;
+            padding: 0;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 10px;
+          }
+          .header h1 {
+            font-size: 24pt;
+            color: #c0392b;
+            margin-bottom: 5px;
+          }
+          .header h2 {
+            font-size: 16pt;
+            color: #555;
+          }
+          .section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+          }
+          .section h3 {
+            font-size: 13pt;
+            color: #c0392b;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 5px;
+          }
+          .info-grid {
+            margin: 10px 0;
+          }
+          .info-grid-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 8px;
+            margin: 5px 0;
+          }
+          .info-grid-row .label {
+            font-weight: 600;
+            color: #555;
+          }
+          .info-grid-row .value {
+            color: #1a1a1a;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+          }
+          table.items-table {
+            border: 1px solid #e5e7eb;
+          }
+          table.items-table thead {
+            background: #c0392b;
+            color: white;
+          }
+          table.items-table th,
+          table.items-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+          }
+          table.payment-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .summary {
+            margin-top: 20px;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            page-break-inside: avoid;
+          }
+          .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            margin-left: 60%;
+          }
+          .summary-row.total {
+            font-weight: bold;
+            font-size: 13pt;
+            padding-top: 10px;
+          }
+          .summary-row .label {
+            font-weight: 600;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Rumi Restaurant</h1>
+          <h2>${translate('order_details', 'Order Details')}</h2>
+        </div>
 
-  // Customer information
-  yPos += 5;
-  doc.setFont('helvetica', 'bold');
-  doc.text('Customer Information', 14, yPos);
-  yPos += 7;
+        <div class="section">
+          <h3>${translate('order_information', 'Order Information')}</h3>
+          <div class="info-grid">
+            <div class="info-grid-row">
+              <div class="label">${translate('order_number', 'Order Number')}:</div>
+              <div class="value">${escapeHtml(order.orderNumber)}</div>
+            </div>
 
-  const customerInfo = [
-    ['Name:', order.customerName || 'N/A'],
-    ['Email:', order.customerEmail || 'N/A'],
-    ['Phone:', order.customerPhone || 'N/A'],
-  ];
+            <div class="info-grid-row">
+              <div class="label">${translate('order_date', 'Order Date')}:</div>
+              <div class="value">${formatDate(order.orderDate)}</div>
+            </div>
 
-  customerInfo.forEach(([label, value]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(label, 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    doc.text(value, 60, yPos);
-    yPos += 7;
-  });
+            <div class="info-grid-row">
+              <div class="label">${translate('status', 'Status')}:</div>
+              <div class="value">${escapeHtml(order.status ? translate('order_status_' + order.status.toLowerCase(), order.status) : translate('n_a', 'N/A'))}</div>
+            </div>
 
-  // Delivery address (if applicable)
-  if (order.type === 'Delivery' && order.deliveryAddress) {
-    yPos += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('Delivery Address', 14, yPos);
-    yPos += 7;
-    doc.setFont('helvetica', 'normal');
-    doc.text(order.deliveryAddress.addressLine1 || '', 14, yPos);
-    yPos += 7;
-    if (order.deliveryAddress.addressLine2) {
-      doc.text(order.deliveryAddress.addressLine2, 14, yPos);
-      yPos += 7;
-    }
-    doc.text(
-      `${order.deliveryAddress.postalCode || ''} ${order.deliveryAddress.city || ''}`,
-      14,
-      yPos
-    );
-    yPos += 7;
-  }
+            <div class="info-grid-row">
+              <div class="label">${translate('order_type', 'Order Type')}:</div>
+              <div class="value">${escapeHtml(getOrderTypeLabel(order.type, t))}</div>
+            </div>
 
-  // Order items table
-  yPos += 5;
-  const itemsData = order.items.map(item => [
-    item.productName || item.menuName || 'Item',
-    item.quantity.toString(),
-    formatCurrency(item.unitPrice),
-    formatCurrency(item.itemTotal),
-  ]);
+            <div class="info-grid-row">
+              <div class="label">${translate('payment_status', 'Payment Status')}:</div>
+              <div class="value">${escapeHtml(order.paymentStatus ? translate('payment_status_' + order.paymentStatus.toLowerCase(), order.paymentStatus) : translate('n_a', 'N/A'))}</div>
+            </div>
 
-  autoTable(doc, {
-    startY: yPos,
-    head: [['Item', 'Qty', 'Price', 'Total']],
-    body: itemsData,
-    theme: 'grid',
-    headStyles: { fillColor: [192, 0, 0], textColor: 255 },
-    margin: { left: 14, right: 14 },
-  });
+            ${order.type === 'DineIn' && order.tableNumber ? `
+              <div class="info-grid-row">
+                <div class="label">${translate('table_number', 'Table Number')}:</div>
+                <div class="value">${escapeHtml(order.tableNumber.toString())}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
 
-  // Order summary
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 10;
-  yPos = finalY + 10;
+        <div class="section">
+          <h3>${translate('customer_information', 'Customer Information')}</h3>
+          <div class="info-grid">
+            <div class="info-grid-row">
+              <div class="label">${translate('name', 'Name')}:</div>
+              <div class="value">${escapeHtml(order.customerName || translate('n_a', 'N/A'))}</div>
+            </div>
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Order Summary', 14, yPos);
-  yPos += 7;
+            <div class="info-grid-row">
+              <div class="label">${translate('email', 'Email')}:</div>
+              <div class="value">${escapeHtml(order.customerEmail || translate('n_a', 'N/A'))}</div>
+            </div>
 
-  const summaryData: [string, string][] = [
-    ['Subtotal:', formatCurrency(order.subTotal)],
-  ];
+            <div class="info-grid-row">
+              <div class="label">${translate('phone', 'Phone')}:</div>
+              <div class="value">${escapeHtml(order.customerPhone || translate('n_a', 'N/A'))}</div>
+            </div>
+          </div>
+        </div>
 
-  if (order.tax > 0) {
-    summaryData.push(['Tax:', formatCurrency(order.tax)]);
-  }
+        ${deliverySection}
 
-  if (order.deliveryFee && order.deliveryFee > 0) {
-    summaryData.push(['Delivery Fee:', formatCurrency(order.deliveryFee)]);
-  }
+        <div class="section">
+          <h3>${translate('order_items', 'Order Items')}</h3>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>${translate('item', 'Item')}</th>
+                <th style="text-align: center;">${translate('qty', 'Qty')}</th>
+                <th style="text-align: right;">${translate('price', 'Price')}</th>
+                <th style="text-align: right;">${translate('total', 'Total')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+        </div>
 
-  if (order.discount && order.discount > 0) {
-    summaryData.push(['Discount:', `-${formatCurrency(order.discount)}`]);
-  }
+        <div class="summary">
+          <div class="summary-row">
+            <span class="label">${translate('subtotal', 'Subtotal')}:</span>
+            <span>${formatCurrency(order.subTotal)}</span>
+          </div>
+          ${order.tax > 0 ? `
+            <div class="summary-row">
+              <span class="label">${translate('tax', 'Tax')}:</span>
+              <span>${formatCurrency(order.tax)}</span>
+            </div>
+          ` : ''}
+          ${order.deliveryFee && order.deliveryFee > 0 ? `
+            <div class="summary-row">
+              <span class="label">${translate('delivery_fee', 'Delivery Fee')}:</span>
+              <span>${formatCurrency(order.deliveryFee)}</span>
+            </div>
+          ` : ''}
+          ${order.discount && order.discount > 0 ? `
+            <div class="summary-row">
+              <span class="label">${translate('discount', 'Discount')}:</span>
+              <span>-${formatCurrency(order.discount)}</span>
+            </div>
+          ` : ''}
+          ${order.tip && order.tip > 0 ? `
+            <div class="summary-row">
+              <span class="label">${translate('tip', 'Tip')}:</span>
+              <span>${formatCurrency(order.tip)}</span>
+            </div>
+          ` : ''}
+          <div class="summary-row total">
+            <span class="label">${translate('total', 'Total')}:</span>
+            <span>${formatCurrency(order.total)}</span>
+          </div>
+        </div>
 
-  if (order.tip && order.tip > 0) {
-    summaryData.push(['Tip:', formatCurrency(order.tip)]);
-  }
+        ${paymentsSection}
+        ${notesSection}
 
-  summaryData.push(['Total:', formatCurrency(order.total)]);
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 250);
+          };
+        </script>
+      </body>
+    </html>
+  `);
 
-  summaryData.forEach(([label, value]) => {
-    doc.setFont('helvetica', 'normal');
-    doc.text(label, 120, yPos);
-    doc.setFont('helvetica', 'bold');
-    doc.text(value, 170, yPos, { align: 'right' });
-    yPos += 7;
-  });
-
-  // Payment details
-  if (order.payments && order.payments.length > 0) {
-    yPos += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('Payment Details', 14, yPos);
-    yPos += 7;
-
-    order.payments.forEach(payment => {
-      doc.setFont('helvetica', 'normal');
-      doc.text(
-        `${payment.paymentMethod}: ${formatCurrency(payment.amount)} (${payment.status})`,
-        14,
-        yPos
-      );
-      yPos += 7;
-    });
-  }
-
-  // Notes
-  if (order.notes) {
-    yPos += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('Notes', 14, yPos);
-    yPos += 7;
-    doc.setFont('helvetica', 'normal');
-    const splitText = doc.splitTextToSize(order.notes, 180);
-    doc.text(splitText, 14, yPos);
-  }
-
-  // Save the PDF
-  doc.save(`order-${order.orderNumber}.pdf`);
+  printWindow.document.close();
 };
 
 /**
- * Export multiple orders to PDF (summary table)
+ * Export multiple orders to PDF using browser's print functionality
  */
-export const exportOrdersToPDF = (orders: OrderDto[]): void => {
-  const doc = new jsPDF();
+export const exportOrdersToPDF = (orders: OrderDto[], t?: TranslationFunction): void => {
+  const translate = t || ((key: string, fallback: string) => fallback);
 
-  // Add header
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Rumi Restaurant', 14, 20);
+  // Build orders table rows
+  const ordersRows = orders.map(order => `
+    <tr>
+      <td>${escapeHtml(order.orderNumber)}</td>
+      <td>${formatDate(order.orderDate)}</td>
+      <td>${escapeHtml(getOrderTypeLabel(order.type, t))}</td>
+      <td>${escapeHtml(order.status ? translate('order_status_' + order.status.toLowerCase(), order.status) : translate('n_a', 'N/A'))}</td>
+      <td>${escapeHtml(order.customerName || translate('n_a', 'N/A'))}</td>
+      <td style="text-align: right;">${formatCurrency(order.total)}</td>
+      <td>${escapeHtml(order.paymentStatus ? translate('payment_status_' + order.paymentStatus.toLowerCase(), order.paymentStatus) : translate('n_a', 'N/A'))}</td>
+    </tr>
+  `).join('');
 
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Orders Export', 14, 30);
-
-  doc.setFontSize(10);
-  doc.text(`Total Orders: ${orders.length}`, 14, 38);
-  doc.text(`Export Date: ${formatDate(new Date().toISOString())}`, 14, 45);
-
-  // Prepare table data
-  const tableData = orders.map(order => [
-    order.orderNumber,
-    formatDate(order.orderDate),
-    getOrderTypeLabel(order.type),
-    order.status,
-    order.customerName || 'N/A',
-    formatCurrency(order.total),
-    order.paymentStatus,
-  ]);
-
-  // Create table
-  autoTable(doc, {
-    startY: 52,
-    head: [['Order #', 'Date', 'Type', 'Status', 'Customer', 'Amount', 'Payment']],
-    body: tableData,
-    theme: 'grid',
-    headStyles: { fillColor: [192, 0, 0], textColor: 255 },
-    styles: { fontSize: 8 },
-    margin: { left: 14, right: 14 },
-  });
-
-  // Add summary
-  const finalY = (doc as any).lastAutoTable.finalY || 52;
+  // Calculate summary
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const paidOrders = orders.filter(o => o.paymentStatus === 'Paid').length;
 
-  doc.setFont('helvetica', 'bold');
-  doc.text('Summary', 14, finalY + 10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Total Revenue: ${formatCurrency(totalRevenue)}`, 14, finalY + 17);
-  doc.text(`Paid Orders: ${paidOrders} of ${orders.length}`, 14, finalY + 24);
+  // Create print window
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    throw new Error('Failed to open print window. Please check popup settings.');
+  }
 
-  // Save the PDF
-  const timestamp = new Date().toISOString().split('T')[0];
-  doc.save(`orders-export-${timestamp}.pdf`);
+  // Generate HTML with orders summary
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${translate('orders_export', 'Orders Export')}</title>
+        <style>
+          @page {
+            size: A4 landscape;
+            margin: 20mm;
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: white;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 10px;
+          }
+          .header h1 {
+            font-size: 24pt;
+            color: #c0392b;
+            margin-bottom: 5px;
+          }
+          .header-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 5px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+          }
+          table.orders-table {
+            border: 1px solid #e5e7eb;
+          }
+          table.orders-table thead {
+            background: #c0392b;
+            color: white;
+          }
+          table.orders-table th,
+          table.orders-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+          }
+          table.summary-table td {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          table.summary-table .label {
+            font-weight: 600;
+            width: 200px;
+          }
+          table.summary-table .value {
+            text-align: right;
+            width: 150px;
+          }
+          .summary-section {
+            margin-top: 30px;
+            page-break-inside: avoid;
+          }
+          .summary-section h3 {
+            font-size: 12pt;
+            color: #c0392b;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 5px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Rumi Restaurant</h1>
+          <div class="header-info">${translate('orders_export', 'Orders Export')}</div>
+          <div class="header-info">${translate('total_orders', 'Total Orders')}: ${orders.length}</div>
+          <div class="header-info">${translate('export_date', 'Export Date')}: ${formatDate(new Date().toISOString())}</div>
+        </div>
+
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>${translate('order_number_short', 'Order #')}</th>
+              <th>${translate('date', 'Date')}</th>
+              <th>${translate('type', 'Type')}</th>
+              <th>${translate('status', 'Status')}</th>
+              <th>${translate('customer', 'Customer')}</th>
+              <th>${translate('amount', 'Amount')}</th>
+              <th>${translate('payment', 'Payment')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ordersRows}
+          </tbody>
+        </table>
+
+        <div class="summary-section">
+          <h3>${translate('summary', 'Summary')}</h3>
+          <table class="summary-table">
+            <tr>
+              <td class="label">${translate('total_revenue', 'Total Revenue')}:</td>
+              <td class="value">${formatCurrency(totalRevenue)}</td>
+            </tr>
+            <tr>
+              <td class="label">${translate('paid_orders', 'Paid Orders')}:</td>
+              <td class="value">${paidOrders} ${translate('of', 'of')} ${orders.length}</td>
+            </tr>
+          </table>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 250);
+          };
+        </script>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
 };

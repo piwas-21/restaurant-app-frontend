@@ -88,8 +88,15 @@ export default function TableQRCodeModal({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
-      // Use utility function for print
-      printQRCode(canvas, tableNumber);
+      // Use utility function for print with translations
+      const translations = {
+        scanToOrder: t('qr_print_scan_to_order'),
+        table: t('qr_print_table'),
+        instructions: t('qr_print_instructions'),
+        footer: t('qr_print_footer')
+      };
+
+      printQRCode(canvas, tableNumber, translations);
       URL.revokeObjectURL(url);
     };
 

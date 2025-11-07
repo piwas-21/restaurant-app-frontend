@@ -119,7 +119,7 @@
 
 .cancelButton {
   background: var(--secondary-color, #6c757d);
-  color: white;
+  color: var(--text-color, #1a1a1a);
 }
 
 [data-theme="dark"] .cancelButton {

@@ -101,11 +101,19 @@
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-primary);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .timeButton:hover:not(:disabled) {
   border-color: #f4c430;
   background: rgba(244, 196, 48, 0.1);
+}
+
+.timeButton:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .timeButton.selected {
@@ -143,6 +151,7 @@
   color: var(--text-primary);
   transition: border-color 0.2s ease;
   cursor: pointer;
+  min-height: 40px;
 }
 
 .customInput:focus {
@@ -176,27 +185,12 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .dateButton {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-[data-theme="dark"] .dateButton:hover {
-  background: rgba(244, 196, 48, 0.15);
-  border-color: rgba(244, 196, 48, 0.5);
-}
-
-[data-theme="dark"] .dateButton.selected {
-  background: #f4c430;
-  border-color: #f4c430;
-}
-
 [data-theme="dark"] .timeButton {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-[data-theme="dark"] .timeButton:hover {
+[data-theme="dark"] .timeButton:hover:not(:disabled) {
   background: rgba(244, 196, 48, 0.15);
   border-color: rgba(244, 196, 48, 0.5);
 }
@@ -205,23 +199,6 @@
   background: #f4c430;
   border-color: #f4c430;
   color: #000;
-}
-
-/* Dark mode scrollbar */
-[data-theme="dark"] .dateSelector {
-  scrollbar-color: #f4c430 rgba(244, 196, 48, 0.15);
-}
-
-[data-theme="dark"] .dateSelector::-webkit-scrollbar-track {
-  background: rgba(244, 196, 48, 0.15);
-}
-
-[data-theme="dark"] .dateSelector::-webkit-scrollbar-thumb {
-  background: #f4c430;
-}
-
-[data-theme="dark"] .dateSelector::-webkit-scrollbar-thumb:hover {
-  background: #ffcc33;
 }
 
 /* Dark mode calendar picker */
@@ -239,6 +216,7 @@
 @media (max-width: 768px) {
   .timeSelector {
     grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
   }
 
   .dateSelector {
@@ -248,6 +226,74 @@
   .dateButton {
     min-width: 50px;
     padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .timeButton {
+    padding: 0.65rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+
+  .label {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .formSection {
+    gap: 0.65rem;
+  }
+
+  .timeSelector {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+  }
+
+  .dateSelector {
+    gap: 0.2rem;
+  }
+
+  .dateButton {
+    min-width: 45px;
+    padding: 0.45rem 0.2rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+
+  .timeButton {
+    padding: 0.55rem 0.5rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+    border-radius: 6px;
+  }
+
+  .label {
+    font-size: 0.9rem;
+  }
+
+  .customInputWrapper {
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+  }
+
+  .customLabel {
+    font-size: 0.85rem;
+  }
+
+  .customInput {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
+    min-height: 36px;
+    border-radius: 6px;
+  }
+
+  .dateDay {
+    font-size: 1.1rem;
+  }
+
+  .dateDayName {
+    font-size: 0.7rem;
   }
 }
 
@@ -256,7 +302,67 @@
     gap: 0.5rem;
   }
 
+  .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .dateSelector {
+    gap: 0.15rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .dateButton {
+    min-width: 40px;
+    padding: 0.4rem 0.15rem;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    border-width: 1.5px;
+  }
+
+  .dateDay {
+    font-size: 0.95rem;
+  }
+
+  .dateDayName {
+    font-size: 0.65rem;
+  }
+
   .timeSelector {
     grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+  }
+
+  .timeButton {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.75rem;
+    min-height: 34px;
+    border-width: 1.5px;
+    border-radius: 5px;
+  }
+
+  .timeButton:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .customInputWrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .customLabel {
+    font-size: 0.8rem;
+    white-space: normal;
+  }
+
+  .customInput {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+    min-height: 34px;
+    border-radius: 5px;
+    width: 100%;
+    border-width: 1.5px;
   }
 }

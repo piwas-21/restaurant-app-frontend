@@ -26,7 +26,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onToggleFocus,
 }) => {
   const { t } = useTranslation();
-  const { formatPrice, formatDate, getOrderTypeIcon, getOrderTypeLabel, getStatusLabel } = useOrderHelpers();
+  const { formatPrice, formatDate, getOrderTypeIcon, getOrderTypeLabel, getStatusLabel, getPaymentStatusLabel } = useOrderHelpers();
 
   const allSelected = orders.length > 0 && selectedOrderIds.size === orders.length;
 
@@ -90,7 +90,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
               </td>
               <td>
                 <span className={getPaymentBadgeClasses(order.paymentStatus)}>
-                  {order.paymentStatus}
+                  {getPaymentStatusLabel(order.paymentStatus)}
                 </span>
               </td>
               <td className={styles.totalCell}>{formatPrice(order.total)}</td>

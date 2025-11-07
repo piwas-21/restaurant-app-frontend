@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import styles from './DateTimeSelector.module.css';
 
 interface DateTimeSelectorProps {
@@ -16,7 +17,12 @@ export default function DateTimeSelector({
   onTimeChange,
   loading = false
 }: DateTimeSelectorProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Generate date options (next 14 days)
   const dateOptions = Array.from({ length: 14 }, (_, i) => {
@@ -37,9 +43,9 @@ export default function DateTimeSelector({
       <div className={styles.formSection}>
         <label className={styles.label}>{t('date', 'Date')}</label>
         <div className={styles.dateSelector}>
-          {dateOptions.map(date => {
+          {mounted && dateOptions.map(date => {
             const dateStr = date.toISOString().split('T')[0];
-            const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+            const dayOfWeek = date.toLocaleDateString(i18n.language, { weekday: 'short' });
             const dayOfMonth = date.getDate();
 
             return (
@@ -62,7 +68,7 @@ export default function DateTimeSelector({
             value={selectedDate}
             onChange={(e) => onDateChange(e.target.value)}
             className={styles.customInput}
-            min={new Date().toISOString().split('T')[0]}
+            min={mounted ? new Date().toISOString().split('T')[0] : ''}
           />
         </div>
       </div>

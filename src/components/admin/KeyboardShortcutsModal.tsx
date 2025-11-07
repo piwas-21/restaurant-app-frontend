@@ -38,7 +38,9 @@ export default function KeyboardShortcutsModal({ shortcuts, onClose }: KeyboardS
             {shortcuts.map((shortcut, index) => (
               <div key={index} className={styles.shortcutRow}>
                 <kbd className={styles.shortcutKey}>{formatShortcut(shortcut)}</kbd>
-                <span className={styles.shortcutDescription}>{shortcut.description}</span>
+                <span className={styles.shortcutDescription}>
+                  {t(shortcut.translationKey || '', shortcut.description)}
+                </span>
               </div>
             ))}
           </div>

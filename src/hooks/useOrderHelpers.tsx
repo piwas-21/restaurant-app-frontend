@@ -75,6 +75,25 @@ export const useOrderHelpers = () => {
     }
   };
 
+  const getPaymentStatusLabel = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case 'Pending':
+        return t('payment_status_pending', 'Pending');
+      case 'Paid':
+        return t('payment_status_paid', 'Paid');
+      case 'PartiallyPaid':
+        return t('payment_status_partiallypaid', 'Partially Paid');
+      case 'Refunded':
+        return t('payment_status_refunded', 'Refunded');
+      case 'Failed':
+        return t('payment_status_failed', 'Failed');
+      case 'Overpaid':
+        return t('payment_status_overpaid', 'Overpaid');
+      default:
+        return paymentStatus;
+    }
+  };
+
   const statusOptions: OrderStatus[] = [
     'Pending',
     'Confirmed',
@@ -92,6 +111,7 @@ export const useOrderHelpers = () => {
     getOrderTypeIcon,
     getOrderTypeLabel,
     getStatusLabel,
+    getPaymentStatusLabel,
     statusOptions,
   };
 };

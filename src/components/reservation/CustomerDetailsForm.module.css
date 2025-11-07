@@ -21,6 +21,8 @@
   color: var(--text-primary);
   transition: border-color 0.2s ease;
   font-family: inherit;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 .input:focus,
@@ -31,12 +33,103 @@
 
 .textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
+  padding: 0.875rem 1rem;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .input,
+[data-theme="dark"] .textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .input:focus,
+[data-theme="dark"] .textarea:focus {
+  border-color: #f4c430;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Responsive Design */
+@media (max-width: 768px) {
+  .formSection {
+    gap: 0.65rem;
+  }
+
+  .label {
+    font-size: 0.95rem;
+  }
+
+  .input,
+  .textarea {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.95rem;
+    border-radius: 6px;
+  }
+
+  .textarea {
+    min-height: 90px;
+  }
+}
+
+@media (max-width: 640px) {
+  .formSection {
+    gap: 0.6rem;
+  }
+
+  .label {
+    font-size: 0.9rem;
+  }
+
+  .input,
+  .textarea {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+    border-radius: 6px;
+    border-width: 1.5px;
+  }
+
+  .textarea {
+    min-height: 80px;
+  }
+}
+
 @media (max-width: 480px) {
   .formSection {
     gap: 0.5rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .input,
+  .textarea {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 38px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    letter-spacing: 0.3px;
+  }
+
+  .input::placeholder,
+  .textarea::placeholder {
+    opacity: 0.7;
+  }
+
+  .textarea {
+    min-height: 70px;
+    resize: vertical;
+    max-height: 150px;
+  }
+
+  /* Improve mobile input UX */
+  .input:focus,
+  .textarea:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #f4c430;
   }
 }

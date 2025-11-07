@@ -1,7 +1,7 @@
 /* Sticky Category Navigation */
 .stickyNav {
   position: sticky;
-  top: 0;
+  top: 80px;
   background-color: var(--card-background);
   padding: 12px 0;
   z-index: 100;
@@ -28,7 +28,7 @@
   -ms-overflow-style: none; /* IE and Edge */
   flex: 1;
   min-width: 0;
-  max-width: 800px; /* Reasonable max width for desktop */
+  max-width: 800px;
 }
 
 .navScrollContainer::-webkit-scrollbar {
@@ -108,12 +108,11 @@
 @media (max-width: 768px) {
   .stickyNav {
     padding: 10px 0;
-    width: 690px;
-    max-width: 100%;
   }
 
   .navWrapper {
     padding: 0;
+    width: 690px;
     max-width: 100%;
   }
 
@@ -141,13 +140,12 @@
   .stickyNav {
     padding: 8px 0;
     margin-bottom: 1rem;
-    width: 100%;
-    max-width: 380px;
   }
 
   .navWrapper {
     padding: 0 0.5rem;
-    max-width: 100%;
+    width: 98%;
+    max-width: 380px;
     margin: 0 auto;
   }
 

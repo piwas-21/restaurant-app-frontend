@@ -6,6 +6,7 @@ export interface KeyboardShortcut {
   alt?: boolean;
   shift?: boolean;
   description: string;
+  translationKey?: string;
   action: () => void;
 }
 

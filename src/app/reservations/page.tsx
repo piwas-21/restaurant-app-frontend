@@ -43,9 +43,11 @@ export default function ReservationsPage() {
   useEffect(() => {
     loadAllTables();
 
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    // Check if user is logged in (only on client side)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -109,14 +111,29 @@ export default function ReservationsPage() {
 
         if (tablesWithCapacity.length === 0 && slot.availableTables.length > 0) {
           // Tables are available but none have sufficient capacity
-          const maxCapacity = Math.max(...slot.availableTables.map(t => t.maxGuests));
           setCapacityWarning(
-            `No single table can accommodate ${numberOfGuests} guests. The largest available table seats ${maxCapacity}. Please select multiple tables and request to combine them.`
+            t('capacity_warning_message',
+              'We don\'t have a single table that can accommodate all {{guests}} guests. However, you can select multiple tables and request to combine them, or proceed with your selection and our staff will review your request to find the best arrangement.',
+              { guests: numberOfGuests }
+            )
           );
         }
       } else {
         // Selected time slot not found - all tables are booked at this time
         setBookedTableIds(allTables.map(t => t.id));
+      }
+
+      // Check if guest size exceeds ALL tables in restaurant (not just available ones)
+      if (allTables.length > 0) {
+        const maxRestaurantCapacity = Math.max(...allTables.map(t => t.maxGuests));
+        if (numberOfGuests > maxRestaurantCapacity) {
+          setCapacityWarning(
+            t('capacity_warning_message',
+              'We don\'t have a single table that can accommodate all {{guests}} guests. However, you can select multiple tables and request to combine them, or proceed with your selection and our staff will review your request to find the best arrangement.',
+              { guests: numberOfGuests }
+            )
+          );
+        }
       }
     } catch {
       // Unexpected network errors
@@ -139,12 +156,18 @@ export default function ReservationsPage() {
 
       if (availableTimes.length > 0) {
         enqueueSnackbar(
-          `Table ${table.tableNumber} is booked at this time. Available at: ${availableTimes.join(', ')}`,
+          t('table_booked_available_at', 'Table {{tableNumber}} is booked at this time. Available at: {{times}}', {
+            tableNumber: table.tableNumber,
+            times: availableTimes.join(', ')
+          }),
           { variant: 'info', autoHideDuration: 5000 }
         );
       } else {
         enqueueSnackbar(
-          `Table ${table.tableNumber} is not available today for ${numberOfGuests} guests`,
+          t('table_not_available_today', 'Table {{tableNumber}} is not available today for {{guests}} guests', {
+            tableNumber: table.tableNumber,
+            guests: numberOfGuests
+          }),
           { variant: 'warning' }
         );
       }
@@ -249,7 +272,7 @@ export default function ReservationsPage() {
               {t('select_your_tables', 'Select your Table(s)')}
               {selectedTableIds.length > 0 && (
                 <span className={styles.selectionCount}>
-                  ({selectedTableIds.length} {selectedTableIds.length === 1 ? t('table_selected', 'table') : t('tables_selected', 'tables')} selected)
+                  ({t('tables_count_selected', '{{count}} selected', { count: selectedTableIds.length })})
                 </span>
               )}
             </h2>

@@ -198,22 +198,129 @@
 }
 
 /* Responsive Design */
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
   .container {
-    padding: 1rem;
+    padding: 1.5rem;
+  }
+
+  .section {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.35rem;
+  }
+
+  .reservationCard {
+    padding: 0.875rem;
+  }
+
+  .dateTimeInfo {
+    gap: 0.75rem;
+  }
+
+  .infoItem {
+    font-size: 0.9rem;
+  }
+
+  .detailLabel {
+    min-width: 130px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.25rem 0.75rem;
   }
 
   .section {
     padding: 1rem 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   }
 
   .sectionTitle {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .reservationCard {
+    padding: 0.875rem;
+    border-radius: 6px;
+  }
+
+  .reservationHeader {
+    gap: 0.75rem;
+  }
+
+  .dateTimeInfo {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: flex-start;
+  }
+
+  .infoItem {
+    font-size: 0.88rem;
+    gap: 0.4rem;
+  }
+
+  .expandButton {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+
+  .detailLabel {
+    min-width: 120px;
+    font-size: 0.85rem;
+  }
+
+  .detailValue {
+    font-size: 0.85rem;
+  }
+
+  .cancelButton,
+  .modifyButton {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0.875rem 0.5rem;
+  }
+
+  .section {
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.875rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .reservationsList {
+    gap: 0.75rem;
+  }
+
+  .reservationCard {
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-width: 1px;
   }
 
   .reservationHeader {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .reservationMainInfo {
+    gap: 0.6rem;
   }
 
   .dateTimeInfo {
@@ -222,25 +329,167 @@
     gap: 0.5rem;
   }
 
+  .infoItem {
+    font-size: 0.85rem;
+    gap: 0.35rem;
+  }
+
+  .icon {
+    font-size: 0.95rem;
+  }
+
   .expandButton {
-    align-self: center;
+    align-self: flex-start;
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .reservationDetails {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .detailItem {
+    font-size: 0.8rem;
   }
 
   .detailLabel {
-    min-width: 120px;
-    font-size: 0.875rem;
+    min-width: 110px;
+    font-size: 0.8rem;
   }
 
   .detailValue {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   .actions {
     flex-direction: column;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    gap: 0.5rem;
   }
 
   .cancelButton,
   .modifyButton {
     width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 5px;
+  }
+
+  .loadingText,
+  .emptyMessage,
+  .error {
+    padding: 1.5rem 0;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .section {
+    padding: 0.75rem 0.875rem;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.5rem;
+    margin-top: 0;
+  }
+
+  .reservationsList {
+    gap: 0.5rem;
+  }
+
+  .reservationCard {
+    padding: 0.65rem;
+    border-radius: 6px;
+  }
+
+  .reservationHeader {
+    gap: 0.5rem;
+  }
+
+  .reservationMainInfo {
+    gap: 0.5rem;
+  }
+
+  .dateTimeInfo {
+    gap: 0.4rem;
+  }
+
+  .infoItem {
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+
+  .icon {
+    font-size: 0.85rem;
+  }
+
+  .infoText {
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .expandButton {
+    align-self: flex-start;
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+  }
+
+  .reservationDetails {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    gap: 0.45rem;
+    border-width: 0.5px;
+  }
+
+  .detailItem {
+    font-size: 0.75rem;
+    gap: 0.3rem;
+  }
+
+  .detailLabel {
+    min-width: 100px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .detailValue {
+    font-size: 0.75rem;
+    word-break: break-word;
+  }
+
+  .actions {
+    flex-direction: column;
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    gap: 0.4rem;
+  }
+
+  .cancelButton,
+  .modifyButton {
+    width: 100%;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    min-height: 34px;
+  }
+
+  .loadingText,
+  .emptyMessage,
+  .error {
+    padding: 1.25rem 0.5rem;
+    font-size: 0.8rem;
   }
 }

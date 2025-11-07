@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { useRouter } from 'next/navigation';
 import { Award, Gift } from 'lucide-react';
@@ -12,6 +13,7 @@ import type { FidelityAnalytics } from '@/services/adminFidelityAnalyticsService
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 
 export default function FidelityAnalyticsPage() {
+  const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
   const [analytics, setAnalytics] = useState<FidelityAnalytics | null>(null);
@@ -28,7 +30,7 @@ export default function FidelityAnalyticsPage() {
       const data = await adminFidelityAnalyticsService.getAnalytics();
       setAnalytics(data);
     } catch {
-      enqueueSnackbar('Failed to load fidelity analytics', { variant: 'error' });
+      enqueueSnackbar(t('failed_load_fidelity_analytics', 'Failed to load fidelity analytics'), { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -37,14 +39,14 @@ export default function FidelityAnalyticsPage() {
   return (
     <AdminAuthGuard>
       <main className={styles.adminContainer}>
-      <PageHeader title="Fidelity Analytics" />
+      <PageHeader title={t('fidelity_analytics', 'Fidelity Analytics')} />
 
       <section className={styles.adminContent}>
         {/* Page Description */}
         <div style={{ marginBottom: '2rem' }}>
-          <h2>Fidelity Points System Overview</h2>
+          <h2>{t('fidelity_points_system_overview', 'Fidelity Points System Overview')}</h2>
           <p>
-            Monitor and analyze customer loyalty points, redemptions, and program engagement
+            {t('fidelity_analytics_description', 'Monitor and analyze customer loyalty points, redemptions, and program engagement')}
           </p>
         </div>
 
@@ -70,7 +72,7 @@ export default function FidelityAnalyticsPage() {
 
       {/* Quick Actions Section */}
       <section className={styles.adminContent} style={{ marginTop: '2rem' }}>
-        <h2>Fidelity System Management</h2>
+        <h2>{t('fidelity_system_management', 'Fidelity System Management')}</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
           {/* Point Rules Card */}
           <div
@@ -79,13 +81,13 @@ export default function FidelityAnalyticsPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
               <Award size={32} />
-              <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>Point Earning Rules</h4>
+              <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{t('point_earning_rules', 'Point Earning Rules')}</h4>
             </div>
             <p style={{ margin: 0, opacity: 0.9 }}>
-              Configure how customers earn points based on order amounts
+              {t('point_rules_description', 'Configure how customers earn points based on order amounts')}
             </p>
             <div style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.8 }}>
-              {analytics ? `${analytics.activePointRules} active rules` : 'Loading...'}
+              {analytics ? t('active_rules_count', { count: analytics.activePointRules, defaultValue: `${analytics.activePointRules} active rules` }) : t('loading', 'Loading...')}
             </div>
           </div>
 
@@ -96,13 +98,13 @@ export default function FidelityAnalyticsPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
               <Gift size={32} />
-              <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>Customer Discounts</h4>
+              <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{t('customer_discounts', 'Customer Discounts')}</h4>
             </div>
             <p style={{ margin: 0, opacity: 0.9 }}>
-              Create exclusive discount rules for specific customers
+              {t('customer_discounts_description', 'Create exclusive discount rules for specific customers')}
             </p>
             <div style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.8 }}>
-              {analytics ? `${analytics.activeCustomerDiscounts} active discounts` : 'Loading...'}
+              {analytics ? t('active_discounts_count', { count: analytics.activeCustomerDiscounts, defaultValue: `${analytics.activeCustomerDiscounts} active discounts` }) : t('loading', 'Loading...')}
             </div>
           </div>
         </div>

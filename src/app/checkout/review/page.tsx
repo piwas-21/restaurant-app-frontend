@@ -306,12 +306,12 @@ export default function ReviewPage() {
           {/* Left Column - Order Details */}
           <div className={styles.leftColumn}>
             <OrderTypeSection
-              orderType={checkoutState.orderType}
+              orderType={checkoutState.orderType || 'Takeaway'}
               tableNumber={checkoutState.tableNumber}
               deliveryAddress={checkoutState.deliveryAddress || undefined}
             />
 
-            <CustomerInfoSection customerInfo={checkoutState.customerInfo} />
+            <CustomerInfoSection customerInfo={checkoutState.customerInfo as any} />
 
             <OrderItemsList items={cartState.items} formatPrice={formatPrice} />
 

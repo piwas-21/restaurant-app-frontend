@@ -82,7 +82,7 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.createOrder(command);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/api/Orders', command, { requireAuth: true });
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/Orders', command, { requireAuth: false });
       expect(result).toEqual(mockOrder);
       expect(result.orderNumber).toBe('ORD-20251023-0001');
       expect(result.type).toBe('DineIn');

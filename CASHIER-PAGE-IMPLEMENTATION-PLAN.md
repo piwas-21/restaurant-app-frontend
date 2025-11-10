@@ -108,7 +108,7 @@ Complete cashier interface for managing orders in real-time, updating order deta
 - [ ] **3.3** Implement payment refund dialog (full/partial)
 - [ ] **3.4** Add payment status tracking and validation
 
-### Phase 4: Item Management (2 tasks)
+### Phase 4: Item Management (2 tasks) 
 - [ ] **4.1** Create items list view in order details
 - [ ] **4.2** Add note-based item modification system (workaround for missing backend)
 

@@ -68,17 +68,42 @@ export function useCashierOrders(): UseCashierOrdersReturn {
     }
 
     try {
-      // Try to get auth token for authorized SSE
+      // Get auth token and pass as query parameter (EventSource doesn't support headers)
       const authToken = localStorage.getItem('auth_token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5221';
-      const endpoint = authToken ? '/api/events/service' : '/api/events/all';
-      const url = `${apiUrl}${endpoint}`;
+      const endpoint = '/api/events/service';
+
+      // Always use service endpoint, pass token as query param if available
+      let url = `${apiUrl}${endpoint}`;
+      if (authToken) {
+        url += `?token=${encodeURIComponent(authToken)}`;
+      }
+
+      // eslint-disable-next-line no-console
+      console.log('Connecting to SSE endpoint:', endpoint);
 
       const eventSource = new EventSource(url);
+
+      // Listen for successful connection before marking as connected
+      eventSource.addEventListener('connected', (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          // eslint-disable-next-line no-console
+          console.log('SSE connected with clientId:', data.clientId);
+          setIsConnected(true);
+          setError(null);
+          reconnectAttemptRef.current = 0;
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error('Error parsing connected event:', err);
+        }
+      });
 
       eventSource.addEventListener('order-created', (event) => {
         try {
           const data = JSON.parse(event.data);
+          // eslint-disable-next-line no-console
+          console.log('Received order-created event:', data);
           setOrders((prev) => [data.order || data, ...prev]);
           reconnectAttemptRef.current = 0; // Reset retry count on success
         } catch (err) {
@@ -178,11 +203,12 @@ export function useCashierOrders(): UseCashierOrdersReturn {
       };
 
       eventSourceRef.current = eventSource;
-      setIsConnected(true);
-      setError(null);
+      // Don't set as connected yet - wait for 'connected' event
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Error connecting to SSE:', err);
+      setIsConnected(false);
+      setError('Failed to establish SSE connection');
       // Fall back to polling
       setupPolling();
     }

@@ -15,6 +15,7 @@ import {
 import { OrderDto, PaymentStatus } from '@/types/order';
 import styles from '../../app/styles/CashierPage.module.css';
 import OrderNotes from './OrderNotes';
+import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 
 interface OrderDetailsProps {
   order: OrderDto | null;
@@ -434,10 +435,10 @@ export default function OrderDetails({
               >
                 <div>
                   <p style={{ color: 'var(--text-color)', fontSize: '0.875rem' }}>
-                    {payment.paymentMethod}
+                    {getPaymentMethodLabel(payment.paymentMethod)}
                   </p>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                    {payment.paidAt ? new Date(payment.paidAt).toLocaleString() : 'N/A'}
+                    {payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : 'N/A'}
                   </p>
                 </div>
                 <p style={{ color: 'var(--text-color)', fontWeight: 600 }}>

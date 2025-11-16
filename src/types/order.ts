@@ -124,11 +124,13 @@ export interface CreateOrderPaymentDto {
 export interface OrderPaymentDto extends CreateOrderPaymentDto {
   id: string;
   orderId: string;
-  status: PaymentStatus;
-  paidAt?: string;
-  refundedAt?: string;
-  refundAmount?: number;
+  status: string; // PaymentStatus as string from backend
+  paymentDate?: string;
+  isRefunded?: boolean;
+  refundedAmount?: number;
+  refundDate?: string;
   refundReason?: string;
+  createdAt?: string;
 }
 
 /**

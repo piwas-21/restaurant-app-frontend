@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto, OrderPaymentDto } from '@/types/order';
 import { X } from 'lucide-react';
+import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 
 interface RefundDialogProps {
   order: OrderDto | null;
@@ -136,11 +137,11 @@ export default function RefundDialog({
                     >
                       <div className="payment-info">
                         <span className="payment-method">
-                          {t(`payment.method.${payment.paymentMethod}`) || payment.paymentMethod}
+                          {getPaymentMethodLabel(payment.paymentMethod)}
                         </span>
                         <span className="payment-amount">{(payment.amount || 0).toFixed(2)}</span>
                       </div>
-                      <span className="payment-date">{new Date(payment.paidAt || '').toLocaleDateString()}</span>
+                      <span className="payment-date">{new Date(payment.paymentDate || '').toLocaleDateString()}</span>
                     </button>
                   ))}
                 </div>

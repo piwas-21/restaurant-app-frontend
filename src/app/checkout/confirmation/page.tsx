@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import styles from '../../styles/ConfirmationPage.module.css';
+import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 
 function ConfirmationContent() {
   const { t } = useTranslation();
@@ -397,7 +398,7 @@ function ConfirmationContent() {
                   <h3 className={styles.paymentTitle}>{t('payment_information', 'Payment Information')}</h3>
                   {order.payments.map((payment) => (
                     <div key={payment.id} className={styles.paymentRow}>
-                      <span>{payment.paymentMethod}</span>
+                      <span>{getPaymentMethodLabel(payment.paymentMethod)}</span>
                       <span className={styles.paymentStatus}>{payment.status}</span>
                     </div>
                   ))}

@@ -1,4 +1,5 @@
 import { OrderDto } from '@/types/order';
+import { getPaymentMethodLabel } from './paymentMethodDisplay';
 
 // Translation function type
 type TranslationFunction = (key: string, fallback: string) => string;
@@ -90,9 +91,7 @@ export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction): void
       <h3>${translate('payment_details', 'Payment Details')}</h3>
       <table class="payment-table">
         ${order.payments.map(payment => {
-          const paymentMethod = payment.paymentMethod
-            ? translate(`payment_method_${payment.paymentMethod.toLowerCase().replace(/\s+/g, '_')}`, payment.paymentMethod)
-            : translate('n_a', 'N/A');
+          const paymentMethod = getPaymentMethodLabel(payment.paymentMethod) || translate('n_a', 'N/A');
           const paymentStatus = payment.status
             ? translate(`payment_status_${payment.status.toLowerCase()}`, payment.status)
             : translate('n_a', 'N/A');

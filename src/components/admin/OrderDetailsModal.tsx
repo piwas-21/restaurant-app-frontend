@@ -7,6 +7,7 @@ import { cancelOrder, refundPayment } from '@/services/orderService';
 import { exportOrderToCSV } from '@/utils/exportUtils';
 import { exportOrderToPDF } from '@/utils/pdfExportUtils';
 import { getStatusBadgeClasses, getPaymentBadgeClasses, getFocusBadgeClass } from '@/utils/orderStatusStyles';
+import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import {
   X,
   User,
@@ -455,11 +456,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                   <div key={payment.id} className={styles.paymentItem}>
                     <div className={styles.paymentMethod}>
                       <CreditCard size={16} />
-                      <span>
-                        {payment.paymentMethod
-                          ? t(`payment_method_${payment.paymentMethod.toLowerCase().replace(/\s+/g, '_')}`, payment.paymentMethod)
-                          : 'N/A'}
-                      </span>
+                      <span>{getPaymentMethodLabel(payment.paymentMethod) || 'N/A'}</span>
                     </div>
                     <div className={styles.paymentAmount}>
                       {formatPrice(payment.amount)}
@@ -626,7 +623,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                   <option value="">{t('select_payment_to_refund', '-- Select Payment --')}</option>
                   {order.payments.map((payment) => (
                     <option key={payment.id} value={payment.id}>
-                      {payment.paymentMethod} - {formatPrice(payment.amount)}
+                      {getPaymentMethodLabel(payment.paymentMethod)} - {formatPrice(payment.amount)}
                     </option>
                   ))}
                 </select>

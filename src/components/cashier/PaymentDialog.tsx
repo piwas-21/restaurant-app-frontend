@@ -16,9 +16,9 @@ interface PaymentDialogProps {
 
 export interface PaymentDialogData {
   amount: number;
-  method: string;
+  paymentMethod: string;
   transactionId?: string;
-  notes?: string;
+  paymentNotes?: string;
 }
 
 /**
@@ -87,9 +87,9 @@ export default function PaymentDialog({
     try {
       await onConfirm({
         amount: paymentAmount,
-        method,
+        paymentMethod: method,
         transactionId: transactionId || undefined,
-        notes: notes || undefined,
+        paymentNotes: notes || undefined,
       });
 
       // Reset form

@@ -105,6 +105,7 @@ export interface OrderItemDto extends CreateOrderItemDto {
   variationName?: string;
   menuName?: string;
   itemTotal: number;
+  kitchenType?: string; // FrontKitchen, BackKitchen, or None
 }
 
 /**

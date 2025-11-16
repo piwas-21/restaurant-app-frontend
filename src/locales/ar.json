@@ -1672,6 +1672,25 @@
   "cashier.add_note": "إضافة ملاحظة",
   "cashier.characters": "الأحرف",
   "cashier.toggle_notes": "تبديل الملاحظات",
-  "cashier.failed_to_add_note": "فشل إضافة الملاحظة"
+  "cashier.failed_to_add_note": "فشل إضافة الملاحظة",
+
+  "kitchen_type": "نوع المطبخ",
+  "kitchen_type_none": "غير مخصص",
+  "kitchen_type_frontkitchen": "المطبخ الأمامي",
+  "kitchen_type_backkitchen": "المطبخ الرئيسي",
+  "kitchen_assignment_required": "يرجى تعيين مطبخ لهذا المنتج",
+
+  "print_all_items": "طباعة الفاتورة",
+  "print_front_kitchen": "طباعة المطبخ الأمامي",
+  "print_back_kitchen": "طباعة المطبخ الرئيسي",
+  "print_kitchen_items": "طباعة عناصر المطبخ",
+
+  "front_kitchen_items": "عناصر المطبخ الأمامي",
+  "back_kitchen_items": "عناصر المطبخ الرئيسي",
+  "kitchen_items": "عناصر المطبخ",
+
+  "cashier.print_actions": "إجراءات الطباعة",
+  "cashier.print_bill": "طباعة الفاتورة",
+  "cashier.print_kitchen_orders": "طباعة طلبات المطبخ"
 }
 

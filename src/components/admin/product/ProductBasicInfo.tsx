@@ -2,6 +2,8 @@ import React from 'react';
 import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { ProductBasicInfoProps } from './types';
+import KitchenTypeSelector from './KitchenTypeSelector';
+import { KitchenType } from '@/types/menu';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
@@ -65,6 +67,20 @@ export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
         {errors.primaryCategoryId && (
           <p className={modalStyles.errorMessage}>{errors.primaryCategoryId.message}</p>
         )}
+      </div>
+
+      <div className={modalStyles.formGroup}>
+        <Controller
+          name="kitchenType"
+          control={control}
+          render={({ field }) => (
+            <KitchenTypeSelector
+              value={field.value as KitchenType | undefined}
+              onChange={field.onChange}
+              error={errors.kitchenType?.message}
+            />
+          )}
+        />
       </div>
     </div>
   );

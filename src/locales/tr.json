@@ -1676,6 +1676,25 @@
   "cashier.add_note": "Not Ekle",
   "cashier.characters": "Karakter",
   "cashier.toggle_notes": "Notları Aç/Kapat",
-  "cashier.failed_to_add_note": "Not Eklerken Hata Oluştu"
+  "cashier.failed_to_add_note": "Not Eklerken Hata Oluştu",
+
+  "kitchen_type": "Mutfak Türü",
+  "kitchen_type_none": "Atanmadı",
+  "kitchen_type_frontkitchen": "Ön Mutfak",
+  "kitchen_type_backkitchen": "Ana Mutfak",
+  "kitchen_assignment_required": "Lütfen bu ürün için bir mutfak atayın",
+
+  "print_all_items": "Faturayı Yazdır",
+  "print_front_kitchen": "Ön Mutfağı Yazdır",
+  "print_back_kitchen": "Ana Mutfağı Yazdır",
+  "print_kitchen_items": "Mutfak Öğelerini Yazdır",
+
+  "front_kitchen_items": "Ön Mutfak Öğeleri",
+  "back_kitchen_items": "Ana Mutfak Öğeleri",
+  "kitchen_items": "Mutfak Öğeleri",
+
+  "cashier.print_actions": "Yazdırma İşlemleri",
+  "cashier.print_bill": "Faturayı Yazdır",
+  "cashier.print_kitchen_orders": "Mutfak Siparişlerini Yazdır"
 }
 

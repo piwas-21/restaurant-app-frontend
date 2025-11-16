@@ -1676,7 +1676,26 @@
   "cashier.add_note": "Notiz hinzufügen",
   "cashier.characters": "Zeichen",
   "cashier.toggle_notes": "Notizen umschalten",
-  "cashier.failed_to_add_note": "Fehler beim Hinzufügen der Notiz"
+  "cashier.failed_to_add_note": "Fehler beim Hinzufügen der Notiz",
+
+  "kitchen_type": "Küchenbereiche",
+  "kitchen_type_none": "Nicht zugewiesen",
+  "kitchen_type_frontkitchen": "Vorderküche",
+  "kitchen_type_backkitchen": "Hauptküche",
+  "kitchen_assignment_required": "Bitte weisen Sie einen Küchenbereich für dieses Produkt zu",
+
+  "print_all_items": "Rechnung drucken",
+  "print_front_kitchen": "Vorderküche drucken",
+  "print_back_kitchen": "Hauptküche drucken",
+  "print_kitchen_items": "Küchenelemente drucken",
+
+  "front_kitchen_items": "Vorderküche-Artikel",
+  "back_kitchen_items": "Hauptküche-Artikel",
+  "kitchen_items": "Küchenartikel",
+
+  "cashier.print_actions": "Druckaktionen",
+  "cashier.print_bill": "Rechnung drucken",
+  "cashier.print_kitchen_orders": "Küchenbestellungen drucken"
 }
 
 

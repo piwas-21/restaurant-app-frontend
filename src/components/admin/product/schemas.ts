@@ -26,6 +26,7 @@ const baseProductSchema = z.object({
   isAvailable: z.boolean().default(true),
   isSpecial: z.boolean().default(false),
   type: z.enum(productTypes),
+  kitchenType: z.enum(['None', 'FrontKitchen', 'BackKitchen']).default('None'),
   allergens: z.array(z.string()).optional(),
   categoryIds: z.array(z.string()).min(1, 'Select at least one category'),
   primaryCategoryId: z.string().min(1, 'Primary category is required'),

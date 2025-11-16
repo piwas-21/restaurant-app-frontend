@@ -47,6 +47,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       name: '',
       basePrice: 0,
       type: 'mainItem' as const,
+      kitchenType: 'None' as const,
       isActive: true,
       isAvailable: true,
       isSpecial: false,

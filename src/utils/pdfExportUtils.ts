@@ -375,6 +375,240 @@ export const exportOrderToPDF = (order: OrderDto, t?: TranslationFunction): void
 };
 
 /**
+ * Export order items by kitchen type for kitchen staff
+ */
+export const exportKitchenItemsToPDF = (
+  order: OrderDto,
+  kitchenType: 'FrontKitchen' | 'BackKitchen' | 'All',
+  t?: TranslationFunction
+): void => {
+  const translate = t || ((key: string, fallback: string) => fallback);
+
+  // Filter items by kitchen type
+  const filteredItems = order.items.filter(item => {
+    if (kitchenType === 'All') return true;
+    return item.kitchenType === kitchenType;
+  });
+
+  if (filteredItems.length === 0) {
+    alert(translate('cashier.no_items_for_kitchen', 'No items for this kitchen type'));
+    return;
+  }
+
+  // Get kitchen type label
+  const getKitchenTypeLabel = (): string => {
+    switch (kitchenType) {
+      case 'FrontKitchen':
+        return translate('kitchen_type_frontkitchen', 'Front Kitchen');
+      case 'BackKitchen':
+        return translate('kitchen_type_backkitchen', 'Back Kitchen');
+      default:
+        return translate('order_details', 'Order Details');
+    }
+  };
+
+  // Build order items HTML
+  const itemsRows = filteredItems.map(item => `
+    <tr>
+      <td>${escapeHtml(item.productName || item.menuName || translate('item', 'Item'))}</td>
+      <td style="text-align: center;">${item.quantity}</td>
+      ${kitchenType === 'All' ? `
+        <td style="text-align: right;">${formatCurrency(item.unitPrice)}</td>
+        <td style="text-align: right;">${formatCurrency(item.itemTotal)}</td>
+      ` : ''}
+    </tr>
+  `).join('');
+
+  // Create print window
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    throw new Error('Failed to open print window. Please check popup settings.');
+  }
+
+  // Generate HTML for kitchen order
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${getKitchenTypeLabel()} - ${escapeHtml(order.orderNumber)}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 20mm;
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: white;
+            margin: 40px;
+            padding: 0;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 10px;
+          }
+          .header h1 {
+            font-size: 20pt;
+            color: #c0392b;
+            margin-bottom: 5px;
+          }
+          .header h2 {
+            font-size: 14pt;
+            color: #555;
+          }
+          .order-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f3f4f6;
+            border-left: 4px solid #c0392b;
+          }
+          .order-info p {
+            margin: 3px 0;
+            font-size: 11pt;
+          }
+          .order-info .order-number {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #c0392b;
+            margin-bottom: 5px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+          }
+          table.items-table {
+            border: 1px solid #e5e7eb;
+          }
+          table.items-table thead {
+            background: #c0392b;
+            color: white;
+          }
+          table.items-table th,
+          table.items-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+          }
+          table.items-table th {
+            font-weight: bold;
+          }
+          .item-instructions {
+            font-size: 10pt;
+            color: #666;
+            font-style: italic;
+            margin-top: 3px;
+          }
+          .customer-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-left: 4px solid #3b82f6;
+            font-size: 11pt;
+          }
+          .timestamp {
+            text-align: center;
+            font-size: 10pt;
+            color: #999;
+            margin-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Rumi Restaurant</h1>
+          <h2>${getKitchenTypeLabel()}</h2>
+        </div>
+
+        <div class="order-info">
+          <div class="order-number">${escapeHtml(order.orderNumber)}</div>
+          <p><strong>${translate('order_type', 'Order Type')}:</strong> ${escapeHtml(order.type ? translate('order_type.' + order.type.toLowerCase(), order.type) : 'Unknown')}</p>
+          ${order.type === 'DineIn' && order.tableNumber ? `<p><strong>${translate('table_number', 'Table')}:</strong> ${escapeHtml(order.tableNumber.toString())}</p>` : ''}
+          <p><strong>${translate('order_date', 'Order Time')}:</strong> ${new Date(order.orderDate).toLocaleTimeString()}</p>
+        </div>
+
+        ${order.customerName ? `
+          <div class="customer-info">
+            <strong>${translate('customer_name', 'Customer')}:</strong> ${escapeHtml(order.customerName)}<br/>
+            ${order.customerPhone ? `<strong>${translate('phone', 'Phone')}:</strong> ${escapeHtml(order.customerPhone)}<br/>` : ''}
+          </div>
+        ` : ''}
+
+        <div>
+          <h3 style="font-size: 13pt; color: #c0392b; margin: 15px 0 10px 0;">${translate('order_items', 'Items')}</h3>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>${translate('item', 'Item')}</th>
+                <th style="text-align: center;">${translate('qty', 'Qty')}</th>
+                ${kitchenType === 'All' ? `
+                  <th style="text-align: right;">${translate('price', 'Price')}</th>
+                  <th style="text-align: right;">${translate('total', 'Total')}</th>
+                ` : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+        </div>
+
+        ${kitchenType === 'All' ? `
+          <div style="margin-top: 20px; border-top: 2px solid #333; padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0; margin-left: 60%;">
+              <span><strong>${translate('subtotal', 'Subtotal')}:</strong></span>
+              <span>${formatCurrency(order.subTotal)}</span>
+            </div>
+            ${order.tax > 0 ? `
+              <div style="display: flex; justify-content: space-between; margin: 5px 0; margin-left: 60%;">
+                <span><strong>${translate('tax', 'Tax')}:</strong></span>
+                <span>${formatCurrency(order.tax)}</span>
+              </div>
+            ` : ''}
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; margin-left: 60%; font-weight: bold; font-size: 13pt;">
+              <span>${translate('total', 'Total')}:</span>
+              <span>${formatCurrency(order.total)}</span>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="timestamp">
+          ${translate('printed_at', 'Printed at')}: ${new Date().toLocaleString()}
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 250);
+          };
+        </script>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+};
+
+/**
  * Export multiple orders to PDF using browser's print functionality
  */
 export const exportOrdersToPDF = (orders: OrderDto[], t?: TranslationFunction): void => {

@@ -1689,6 +1689,25 @@
   "cashier.note_required": "Please enter a note",
   "cashier.failed_to_add_note": "Failed to add note",
   "cashier.notes_info_title": "About Notes",
-  "cashier.notes_info": "Use notes to document requested changes that cannot be applied directly through this interface. This is especially useful for order type changes, item modifications, or special requests."
+  "cashier.notes_info": "Use notes to document requested changes that cannot be applied directly through this interface. This is especially useful for order type changes, item modifications, or special requests.",
+
+  "kitchen_type": "Kitchen Type",
+  "kitchen_type_none": "Not Assigned",
+  "kitchen_type_frontkitchen": "Front Kitchen",
+  "kitchen_type_backkitchen": "Back Kitchen",
+  "kitchen_assignment_required": "Please assign a kitchen for this product",
+
+  "print_all_items": "Print Bill",
+  "print_front_kitchen": "Print Front Kitchen",
+  "print_back_kitchen": "Print Back Kitchen",
+  "print_kitchen_items": "Print Kitchen Items",
+
+  "front_kitchen_items": "Front Kitchen Items",
+  "back_kitchen_items": "Back Kitchen Items",
+  "kitchen_items": "Kitchen Items",
+
+  "cashier.print_actions": "Print Actions",
+  "cashier.print_bill": "Print Bill",
+  "cashier.print_kitchen_orders": "Print Kitchen Orders"
 }
 

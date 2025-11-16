@@ -11,11 +11,13 @@ import {
   ShoppingBag,
   CreditCard,
   AlertCircle,
+  Printer,
 } from 'lucide-react';
 import { OrderDto, PaymentStatus } from '@/types/order';
 import styles from '../../app/styles/CashierPage.module.css';
 import OrderNotes from './OrderNotes';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
+import { exportKitchenItemsToPDF } from '@/utils/pdfExportUtils';
 
 interface OrderDetailsProps {
   order: OrderDto | null;
@@ -55,6 +57,28 @@ export default function OrderDetails({
       setIsUpdating(false);
     }
   };
+
+  const handlePrintBill = () => {
+    if (order) {
+      exportKitchenItemsToPDF(order, 'All', t);
+    }
+  };
+
+  const handlePrintFrontKitchen = () => {
+    if (order) {
+      exportKitchenItemsToPDF(order, 'FrontKitchen', t);
+    }
+  };
+
+  const handlePrintBackKitchen = () => {
+    if (order) {
+      exportKitchenItemsToPDF(order, 'BackKitchen', t);
+    }
+  };
+
+  // Check if order has items for each kitchen type
+  const hasFrontKitchenItems = order?.items?.some(item => item.kitchenType === 'FrontKitchen') || false;
+  const hasBackKitchenItems = order?.items?.some(item => item.kitchenType === 'BackKitchen') || false;
 
   const orderStatuses = [
     'Pending',
@@ -545,6 +569,106 @@ export default function OrderDetails({
         >
           {order.isFocusOrder ? t('cashier.unmark_focus', 'Unmark Focus') : t('cashier.mark_focus', 'Mark Focus')}
         </button>
+      </div>
+
+      {/* Print Actions Section */}
+      <div
+        style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          background: 'var(--card-background)',
+          borderRadius: '8px',
+          border: '1px solid var(--border-color)',
+        }}
+      >
+        <h3
+          style={{
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            marginBottom: '1rem',
+            color: 'var(--text-color)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <Printer size={18} /> {t('cashier.print_actions', 'Print Actions')}
+        </h3>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '0.75rem',
+          }}
+        >
+          <button
+            onClick={handlePrintBill}
+            style={{
+              padding: '0.75rem',
+              background: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+            }}
+            title={t('cashier.print_bill_tooltip', 'Print bill with prices')}
+          >
+            <Printer size={16} />
+            {t('cashier.print_bill', 'Print Bill')}
+          </button>
+
+          {hasFrontKitchenItems && (
+            <button
+              onClick={handlePrintFrontKitchen}
+              style={{
+                padding: '0.75rem',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+              }}
+              title={t('cashier.print_front_kitchen_tooltip', 'Print front kitchen items only')}
+            >
+              <Printer size={16} />
+              {t('print_front_kitchen', 'Print Front Kitchen')}
+            </button>
+          )}
+
+          {hasBackKitchenItems && (
+            <button
+              onClick={handlePrintBackKitchen}
+              style={{
+                padding: '0.75rem',
+                background: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+              }}
+              title={t('cashier.print_back_kitchen_tooltip', 'Print back kitchen items only')}
+            >
+              <Printer size={16} />
+              {t('print_back_kitchen', 'Print Back Kitchen')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Order Notes Component */}

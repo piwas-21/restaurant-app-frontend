@@ -1663,6 +1663,25 @@
     "cashier.add_note": "Agregar Nota",
     "cashier.characters": "Caracteres",
     "cashier.toggle_notes": "Alternar Notas",
-    "cashier.failed_to_add_note": "Error al Agregar la Nota"
+    "cashier.failed_to_add_note": "Error al Agregar la Nota",
+
+    "kitchen_type": "Tipo de Cocina",
+    "kitchen_type_none": "No Asignado",
+    "kitchen_type_frontkitchen": "Cocina Frontal",
+    "kitchen_type_backkitchen": "Cocina Principal",
+    "kitchen_assignment_required": "Por favor asigne una cocina para este producto",
+
+    "print_all_items": "Imprimir Factura",
+    "print_front_kitchen": "Imprimir Cocina Frontal",
+    "print_back_kitchen": "Imprimir Cocina Principal",
+    "print_kitchen_items": "Imprimir Elementos de Cocina",
+
+    "front_kitchen_items": "Elementos de Cocina Frontal",
+    "back_kitchen_items": "Elementos de Cocina Principal",
+    "kitchen_items": "Elementos de Cocina",
+
+    "cashier.print_actions": "Acciones de Impresión",
+    "cashier.print_bill": "Imprimir Factura",
+    "cashier.print_kitchen_orders": "Imprimir Órdenes de Cocina"
 }
 

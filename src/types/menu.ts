@@ -74,11 +74,23 @@ export interface MenuItem {
   isAvailable?: boolean;
   images?: MenuItemImage[];
   longDescription?: string;
+  kitchenType?: KitchenType;
 }
 
 export type ApiCategory = { id: string; name: string };
 
 export type ProductType = 'mainItem' | 'sideItem' | 'beverage' | 'dessert' | 'sauce' | 'addOn';
+
+/**
+ * Kitchen type enum for product kitchen designation
+ */
+export type KitchenType = 'None' | 'FrontKitchen' | 'BackKitchen';
+
+export const KITCHEN_TYPES: Record<KitchenType, { label: string; value: KitchenType }> = {
+  'None': { label: 'Not Assigned', value: 'None' },
+  'FrontKitchen': { label: 'Front Kitchen', value: 'FrontKitchen' },
+  'BackKitchen': { label: 'Back Kitchen', value: 'BackKitchen' },
+};
 
 export type ContentData = Record<string, {
   name: string;
@@ -174,6 +186,7 @@ export interface DetailedProduct {
   };
   variations: DetailedProductVariation[];
   suggestedSideItems: SuggestedSideItem[];
+  kitchenType?: KitchenType;
 }
 
 export interface DetailedProductResponse {
@@ -198,6 +211,7 @@ export interface FeaturedSpecial {
   suggestedSideItems: SuggestedSideItem[];
   detailedIngredients: ProductIngredient[];
   content?: ContentData;
+  kitchenType?: KitchenType;
 }
 
 export interface FeaturedSpecialResponse {

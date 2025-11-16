@@ -96,7 +96,7 @@ export default function OrderSummaryCard({
       <div className={styles.summaryTotal}>
         <span>{t('total', 'Total')}</span>
         <span className={styles.totalAmount}>
-          {formatTotal((basket?.total || 0) - pointsDiscount + taxAmount)}
+          {formatTotal((basket?.total || 0) - pointsDiscount)}
         </span>
       </div>
 

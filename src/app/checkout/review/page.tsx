@@ -107,11 +107,10 @@ export default function ReviewPage() {
         const config = await adminTaxConfigurationService.getTaxForOrderType(checkoutState.orderType);
         setTaxConfig(config);
 
-        // Calculate tax amount based on subtotal
-        if (config && cartState.basket) {
-          const subtotal = cartState.basket.subTotal - (cartState.basket.discount || 0) - (cartState.basket.customerDiscount || 0);
-          const calculatedTax = subtotal * (config.rate / 100);
-          setTaxAmount(calculatedTax);
+        // Use tax amount from backend API response instead of calculating locally
+        // Backend now extracts tax from subtotal: SubTotal = ItemsTotal - Tax
+        if (cartState.basket) {
+          setTaxAmount(cartState.basket.tax || 0);
         } else {
           setTaxAmount(0);
         }

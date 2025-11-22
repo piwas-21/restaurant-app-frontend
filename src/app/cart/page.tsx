@@ -149,9 +149,9 @@ export default function CartPage() {
                     <p className={styles.itemPrice}>
                       {t('base_price', 'Base Price')}: CHF {item.unitPrice.toFixed(2)}
                     </p>
-                    {item.customizationPrice != null && item.customizationPrice > 0 && (
+                    {item.customizationPrice != null && item.customizationPrice !== 0 && (
                       <p className={styles.customizationPrice}>
-                        {t('customization_cost', 'Customizations')}: +CHF {item.customizationPrice.toFixed(2)}
+                        {t('customization_cost', 'Customizations')}: {item.customizationPrice > 0 ? '+' : ''}CHF {item.customizationPrice.toFixed(2)}
                       </p>
                     )}
                   </div>
@@ -164,7 +164,19 @@ export default function CartPage() {
                       {item.selectedIngredientNames && item.selectedIngredientNames.length > 0 && (
                         <div className={styles.customizationDetail}>
                           <span className={styles.customizationLabel}>{t('added_ingredients', 'Added')}:</span>
-                          <span className={styles.customizationValue}>{item.selectedIngredientNames.join(', ')}</span>
+                          <span className={styles.customizationValue}>
+                            {item.selectedIngredientNames.map((name, idx) => {
+                              const ingredientId = item.selectedIngredients?.[idx];
+                              const qty = ingredientId && item.ingredientQuantities?.[ingredientId] ? item.ingredientQuantities[ingredientId] : 1;
+                              return (
+                                <span key={idx}>
+                                  {idx > 0 && ', '}
+                                  {name}
+                                  {qty > 1 && ` × ${qty}`}
+                                </span>
+                              );
+                            })}
+                          </span>
                         </div>
                       )}
 

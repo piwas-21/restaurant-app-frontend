@@ -33,6 +33,7 @@ export default function CustomizationModal({
   const [quantity, setQuantity] = useState(1);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+  const [ingredientQuantities, setIngredientQuantities] = useState<Record<string, number>>({});
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>([]);
   const [selectedSideItems, setSelectedSideItems] = useState<
     Array<{ id: string; quantity: number }>
@@ -66,7 +67,8 @@ export default function CustomizationModal({
       selectedIngredients.forEach((ingredientId) => {
         const ingredient = product.detailedIngredients?.find((i) => i.id === ingredientId);
         if (ingredient) {
-          total += ingredient.price;
+          const qty = ingredientQuantities[ingredientId] || 1;
+          total += ingredient.price * qty;
         }
       });
     }
@@ -92,6 +94,7 @@ export default function CustomizationModal({
       setQuantity(1);
       setSelectedVariationId(null);
       setSelectedIngredients([]);
+      setIngredientQuantities({});
       setExcludedIngredients([]);
       setSelectedSideItems([]);
       setSpecialInstructions("");
@@ -99,13 +102,22 @@ export default function CustomizationModal({
     }
   }, [isOpen]);
 
-  // Initialize default selected ingredients (non-optional ingredients should be selected by default)
+  // Initialize default selected ingredients
+  // 1. Non-optional ingredients should be selected by default
+  // 2. Optional ingredients with isIncludedInBasePrice should be pre-selected
   useEffect(() => {
     if (isOpen && product.detailedIngredients) {
       const defaultSelected = product.detailedIngredients
-        .filter((ing) => !ing.isOptional && ing.isActive)
+        .filter((ing) => ing.isActive && (!ing.isOptional || ing.isIncludedInBasePrice))
         .map((ing) => ing.id);
       setSelectedIngredients(defaultSelected);
+
+      // Initialize quantities for default selected ingredients
+      const initialQuantities: Record<string, number> = {};
+      defaultSelected.forEach(id => {
+        initialQuantities[id] = 1;
+      });
+      setIngredientQuantities(initialQuantities);
     }
   }, [isOpen, product.detailedIngredients]);
 
@@ -141,6 +153,7 @@ export default function CustomizationModal({
           const ingredient = product.detailedIngredients?.find((i) => i.id === id);
           return ingredient?.isOptional;
         }),
+        ingredientQuantities,
         selectedSideItems,
         specialInstructions: specialInstructions.trim() || undefined,
         totalPrice: totalPrice(),
@@ -153,6 +166,13 @@ export default function CustomizationModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleIngredientQuantityChange = (ingredientId: string, newQuantity: number) => {
+    setIngredientQuantities(prev => ({
+      ...prev,
+      [ingredientId]: newQuantity
+    }));
   };
 
   const handleQuantityChange = (delta: number) => {
@@ -238,7 +258,9 @@ export default function CustomizationModal({
             <OptionalIngredientsSection
               ingredients={product.detailedIngredients || []}
               selectedIngredients={selectedIngredients}
+              ingredientQuantities={ingredientQuantities}
               onSelectionChange={setSelectedIngredients}
+              onQuantityChange={handleIngredientQuantityChange}
               currentLanguage={currentLanguage}
             />
           )}
@@ -270,6 +292,7 @@ export default function CustomizationModal({
             basePrice={basePrice}
             ingredients={product.detailedIngredients || []}
             selectedIngredients={selectedIngredients}
+            ingredientQuantities={ingredientQuantities}
             sideItems={
               "suggestedSideItems" in product
                 ? (product.suggestedSideItems as any[]) || []

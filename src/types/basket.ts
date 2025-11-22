@@ -54,6 +54,7 @@ export interface BasketItemDto {
   selectedIngredients?: string[]; // IDs of selected optional ingredients
   excludedIngredients?: string[]; // IDs of ingredients to exclude
   addedIngredients?: string[]; // IDs of optional ingredients added
+  ingredientQuantities?: Record<string, number>; // Quantity for each optional ingredient
   customizationPrice?: number; // Additional price from customizations
   // Ingredient names for display purposes
   selectedIngredientNames?: string[];
@@ -103,6 +104,7 @@ export interface AddToBasketDto {
   specialInstructions?: string;
   selectedIngredients?: string[];
   excludedIngredients?: string[];
+  ingredientQuantities?: Record<string, number>;
   selectedSideItems?: Array<{ id: string; quantity: number }>;
 }
 

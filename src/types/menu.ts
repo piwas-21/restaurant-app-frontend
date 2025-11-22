@@ -18,7 +18,9 @@ export interface ProductIngredient {
   id: string;
   name: string;
   isOptional: boolean;
+  maxQuantity?: number; // Maximum quantity allowed for this ingredient (default 1)
   price: number;
+  isIncludedInBasePrice?: boolean; // If true, price is included in base and deducted when deselected
   isActive: boolean;
   displayOrder: number;
   // Multilingual support
@@ -36,6 +38,7 @@ export interface ProductCustomization {
   quantity: number;
   selectedVariationId?: string | null; // ID or name of selected variation
   selectedIngredients?: string[]; // IDs of optional ingredients to include
+  ingredientQuantities?: Record<string, number>; // Quantity for each optional ingredient (default 1)
   excludedIngredients?: string[]; // IDs of default ingredients to exclude
   addedIngredients?: string[]; // IDs of optional ingredients added
   selectedSideItems?: Array<{

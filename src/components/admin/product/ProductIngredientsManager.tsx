@@ -43,6 +43,7 @@ export function ProductIngredientsManager({
       id: tempId,
       name: "",
       isOptional: false,
+      maxQuantity: 1,
       price: 0,
       isActive: true,
       displayOrder: ingredients.length,
@@ -160,6 +161,25 @@ export function ProductIngredientsManager({
                     <span>{t("ingredient_is_optional")}</span>
                   </label>
 
+                  {ingredient.isOptional && (
+                    <label className={styles.numberInputLabel}>
+                      <span>{t("max_quantity")}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={ingredient.maxQuantity || 1}
+                        onChange={(e) =>
+                          handleIngredientChange(
+                            index,
+                            "maxQuantity",
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className={styles.numberInput}
+                      />
+                    </label>
+                  )}
+
                   <label className={styles.checkbox}>
                     <input
                       type="checkbox"
@@ -233,6 +253,24 @@ export function ProductIngredientsManager({
                         CHF {(Number(productBasePrice || 0) + (Number(ingredient.price) || 0)).toFixed(2)}
                       </span>
                     )}
+
+                    <label className={styles.checkbox} style={{ marginTop: '12px' }}>
+                      <input
+                        type="checkbox"
+                        checked={ingredient.isIncludedInBasePrice || false}
+                        onChange={(e) =>
+                          handleIngredientChange(
+                            index,
+                            "isIncludedInBasePrice",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      <span>{t("ingredient_included_in_base_price")}</span>
+                    </label>
+                    <span className={styles.priceHint}>
+                      {t("ingredient_included_in_base_price_hint")}
+                    </span>
                   </div>
                 )}
 

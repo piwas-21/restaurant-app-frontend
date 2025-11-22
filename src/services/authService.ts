@@ -29,20 +29,25 @@ export async function refreshToken() {
     const accessToken = localStorage.getItem('auth_token');
     const refreshToken = localStorage.getItem('refresh_token');
 
-    const response = await fetch(`${AUTH_API_URL}/refresh-token`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ accessToken, refreshToken }),
-    });
+    try {
+        const response = await fetch(`${AUTH_API_URL}/refresh-token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ accessToken, refreshToken }),
+        });
 
-    const data = await response.json();
-    if (data.success) {
-        localStorage.setItem('auth_token', data.data.accessToken);
-        localStorage.setItem('refresh_token', data.data.refreshToken);
+        const data = await response.json();
+        if (data.success) {
+            localStorage.setItem('auth_token', data.data.accessToken);
+            localStorage.setItem('refresh_token', data.data.refreshToken);
+        }
+        return data;
+    } catch (error) {
+        // Network error or other failure
+        return { success: false, message: 'Failed to refresh token' };
     }
-    return data;
 }
 
 // Customer registration

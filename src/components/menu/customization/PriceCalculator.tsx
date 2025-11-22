@@ -10,6 +10,7 @@ interface PriceCalculatorProps {
   basePrice: number;
   ingredients: ProductIngredient[];
   selectedIngredients: string[];
+  ingredientQuantities?: Record<string, number>;
   sideItems: SuggestedSideItem[];
   selectedSideItems: Array<{ id: string; quantity: number }>;
   quantity: number;
@@ -26,6 +27,7 @@ export default function PriceCalculator({
   basePrice,
   ingredients,
   selectedIngredients,
+  ingredientQuantities,
   sideItems,
   selectedSideItems,
   quantity,
@@ -46,10 +48,41 @@ export default function PriceCalculator({
   }
 
   // Calculate ingredient customization cost
-  const ingredientsCost = selectedIngredients.reduce((total, ingredientId) => {
-    const ingredient = ingredients.find((i) => i.id === ingredientId && i.isOptional);
-    return total + (ingredient?.price || 0);
-  }, 0);
+  // Two scenarios:
+  // 1. Ingredient is included in base price (isIncludedInBasePrice = true):
+  //    - Base price includes 1 quantity of this ingredient
+  //    - Qty 0 (deselected): deduct price * 1
+  //    - Qty 1 (selected): no change (already in base)
+  //    - Qty 2+: add price * (qty - 1) for extra pieces
+  // 2. Ingredient is NOT included in base price (isIncludedInBasePrice = false):
+  //    - If selected by user: add price * qty
+  //    - If NOT selected by user: no change
+  const ingredientsCost = ingredients
+    .filter((i) => i.isOptional)
+    .reduce((total, ingredient) => {
+      const isSelected = selectedIngredients.includes(ingredient.id);
+      const qty = ingredientQuantities?.[ingredient.id] || 1;
+
+      if (ingredient.isIncludedInBasePrice) {
+        // Ingredient price is included in base price for 1 quantity
+        if (!isSelected) {
+          // Deselected: deduct the included quantity (1)
+          return total - ingredient.price;
+        } else if (qty > 1) {
+          // Selected with more than 1: add extra quantities beyond the free one
+          return total + (ingredient.price * (qty - 1));
+        }
+        // qty === 1: already in base price, no change
+        return total;
+      } else {
+        // Regular optional ingredient (not included in base)
+        // Add price if user selected it
+        if (isSelected) {
+          return total + (ingredient.price * qty);
+        }
+        return total;
+      }
+    }, 0);
 
   // Calculate side items cost
   const sideItemsCost = selectedSideItems.reduce((total, selectedItem) => {
@@ -87,12 +120,16 @@ export default function PriceCalculator({
               {t("customization_cost")}:
               {optionalIngredientNames.length > 0 && (
                 <span className={styles.itemDetails}>
-                  {optionalIngredientNames.map((ing, idx) => (
-                    <span key={ing!.id}>
-                      {idx > 0 && ", "}
-                      {ing!.name}
-                    </span>
-                  ))}
+                  {optionalIngredientNames.map((ing, idx) => {
+                    const qty = ingredientQuantities?.[ing!.id] || 1;
+                    return (
+                      <span key={ing!.id}>
+                        {idx > 0 && ", "}
+                        {ing!.name}
+                        {qty > 1 && ` × ${qty}`}
+                      </span>
+                    );
+                  })}
                 </span>
               )}
             </span>

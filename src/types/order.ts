@@ -94,6 +94,7 @@ export interface CreateOrderItemDto {
   menuId?: string;
   quantity: number;
   unitPrice: number;
+  customizationPrice?: number;
   specialInstructions?: string;
 }
 
@@ -160,6 +161,14 @@ export interface CreateOrderCommand {
   promoCode?: string;
   hasUserLimitDiscount?: boolean;
   userLimitAmount?: number;
+  // Pre-calculated values from basket (optional)
+  basketSubTotal?: number;
+  basketTax?: number;
+  basketDiscount?: number;
+  basketCustomerDiscount?: number;
+  basketTotal?: number;
+  // Fidelity Points
+  pointsToRedeem?: number;
   isFocusOrder?: boolean;
   priority?: number;
   focusReason?: string;

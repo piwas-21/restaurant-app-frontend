@@ -15,6 +15,7 @@ interface Basket {
   subTotal: number;
   discount?: number;
   customerDiscount?: number;
+  customerDiscountName?: string;
   deliveryFee?: number;
   total: number;
 }
@@ -66,7 +67,7 @@ export default function OrderSummaryCard({
 
         {(basket?.customerDiscount ?? 0) > 0 && (
           <div className={`${styles.summaryRow} ${styles.discount}`}>
-            <span>{t('customer_discount', 'Customer Discount')}</span>
+            <span>{basket?.customerDiscountName || t('customer_discount', 'Customer Discount')}</span>
             <span>-{formatPrice(basket?.customerDiscount || 0)}</span>
           </div>
         )}

@@ -383,7 +383,7 @@ export default function CartPage() {
 
             {state.basket && state.basket.customerDiscount > 0 && (
               <div className={styles.priceRow}>
-                <span>{t('customer_discount', 'Customer Discount')}:</span>
+                <span>{state.basket.customerDiscountName || t('customer_discount', 'Customer Discount')}:</span>
                 <span className={styles.discountAmount}>-CHF {state.basket.customerDiscount.toFixed(2)}</span>
               </div>
             )}

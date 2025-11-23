@@ -76,6 +76,7 @@ export interface BasketDto {
   deliveryFee: number;
   discount: number; // Promo code discount
   customerDiscount: number; // Customer-specific discount
+  customerDiscountName?: string; // Name of the applied customer discount
   total: number;
   promoCode?: string;
   totalItems: number;

@@ -49,7 +49,7 @@
 }
 
 [data-theme="dark"] .retryButton {
-  background-color: var(--primary-color-dark, #5568d3);
+  background-color: var(--primary-color, #5568d3);
 }
 
 [data-theme="dark"] .retryButton:hover {
@@ -57,7 +57,7 @@
 }
 
 .pointsBalanceCard {
-  background: var(--primary-color, #667eea);
+  background: var(--success-color, #667eea);
   color: var(--button-text-color, white);
   padding: 1.5rem;
   border-radius: 12px;
@@ -65,7 +65,7 @@
 }
 
 [data-theme="dark"] .pointsBalanceCard {
-  background: var(--primary-color, #5568d3);
+  background: var(--success-color, #5568d3);
 }
 
 .pointsMainInfo {

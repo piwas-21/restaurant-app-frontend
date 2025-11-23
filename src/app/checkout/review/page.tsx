@@ -199,6 +199,7 @@ export default function ReviewPage() {
         menuId: item.menuId,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
+        customizationPrice: item.customizationPrice || 0,
         specialInstructions: item.specialInstructions,
       }));
 
@@ -229,9 +230,17 @@ export default function ReviewPage() {
         items: orderItems,
         payments: [{
           paymentMethod: selectedPaymentMethod,
-          amount: cartState.basket?.total || 0,
+          amount: (cartState.basket?.total || 0) - pointsDiscount,
         }],
         promoCode: cartState.basket?.promoCode || undefined,
+        // Pass basket pre-calculated values to ensure consistency
+        basketSubTotal: cartState.basket?.subTotal,
+        basketTax: cartState.basket?.tax,
+        basketDiscount: cartState.basket?.discount,
+        basketCustomerDiscount: cartState.basket?.customerDiscount,
+        basketTotal: (cartState.basket?.total || 0) - pointsDiscount,
+        // Fidelity Points
+        pointsToRedeem: redeemedPoints,
       };
 
       // Submit order

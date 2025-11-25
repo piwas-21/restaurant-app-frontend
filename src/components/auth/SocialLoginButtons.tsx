@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
-import AppleLogin from 'react-apple-login';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/components/ThemeContext';

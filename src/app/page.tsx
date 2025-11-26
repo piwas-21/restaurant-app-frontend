@@ -91,6 +91,14 @@ export default function HomePage() {
         <footer className={styles.homeFooter}>
            <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
            <p>{isClient ? t("rumi_address_street") : "Rue du Grand-Pré 45"}, {isClient ? t("rumi_address_city_country") : "1202 Genève, Switzerland"}</p>
+           <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+             <Link href="/privacy-policy" style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}>
+               {isClient ? t('footer_privacy_policy', 'Privacy Policy') : 'Privacy Policy'}
+             </Link>
+             <Link href="/terms-of-usage" style={{ color: 'inherit', textDecoration: 'underline', fontSize: '0.9rem' }}>
+               {isClient ? t('footer_terms_of_usage', 'Terms of Usage') : 'Terms of Usage'}
+             </Link>
+           </div>
            <FooterCookieLink />
         </footer>
       </div>

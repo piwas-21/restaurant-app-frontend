@@ -1762,5 +1762,41 @@
   "custom_minutes": "Minutes personnalisées",
   "order_confirmed_message": "Le client recevra un e-mail de confirmation sous peu.",
   "order_cancelled_message": "La commande a été annulée.",
-  "order_status_pending_approval": "En attente d'approbation"
+  "order_status_pending_approval": "En attente d'approbation",
+  "footer_privacy_policy": "Politique de confidentialité",
+  "footer_terms_of_usage": "Conditions d'utilisation",
+  "privacy_policy": {
+    "title": "Politique de confidentialité",
+    "last_updated": "Dernière mise à jour : {{date}}",
+    "intro_title": "1. Introduction",
+    "intro_text": "Bienvenue chez RUMI Restaurant (« nous », « notre » ou « nos »). Nous nous engageons à protéger vos informations personnelles et votre droit à la vie privée. Si vous avez des questions ou des préoccupations concernant notre politique ou nos pratiques concernant vos informations personnelles, veuillez nous contacter.",
+    "info_collect_title": "2. Informations que nous collectons",
+    "info_collect_text": "Nous collectons des informations personnelles que vous nous fournissez volontairement lorsque vous vous inscrivez aux Services, exprimez un intérêt pour obtenir des informations sur nous ou nos produits et services, participez à des activités sur les Services ou nous contactez autrement.",
+    "info_collect_list_1": "Nom et coordonnées",
+    "info_collect_list_2": "Identifiants",
+    "info_collect_list_3": "Données de paiement",
+    "how_use_title": "3. Comment nous utilisons vos informations",
+    "how_use_text": "Nous utilisons les informations personnelles collectées via nos Services à diverses fins commerciales décrites ci-dessous. Nous traitons vos informations personnelles à ces fins sur la base de nos intérêts commerciaux légitimes, afin de conclure ou d'exécuter un contrat avec vous, avec votre consentement et/ou pour nous conformer à nos obligations légales.",
+    "how_use_list_1": "Pour faciliter la création de compte et le processus de connexion.",
+    "how_use_list_2": "Pour vous envoyer des communications marketing et promotionnelles.",
+    "how_use_list_3": "Pour exécuter et gérer vos commandes.",
+    "contact_title": "4. Contactez-nous",
+    "contact_text": "Si vous avez des questions ou des commentaires sur cette politique, vous pouvez nous envoyer un e-mail ou nous contacter par courrier à :"
+  },
+  "terms_of_usage": {
+    "title": "Conditions d'utilisation",
+    "last_updated": "Dernière mise à jour : {{date}}",
+    "agreement_title": "1. Accord aux conditions",
+    "agreement_text": "Ces conditions d'utilisation constituent un accord juridiquement contraignant conclu entre vous, personnellement ou au nom d'une entité (« vous ») et RUMI Restaurant (« nous », « notre » ou « nos »), concernant votre accès et votre utilisation de notre site Web et de notre application mobile.",
+    "ip_rights_title": "2. Droits de propriété intellectuelle",
+    "ip_rights_text": "Sauf indication contraire, le Site et l'Application sont notre propriété exclusive et tout le code source, les bases de données, les fonctionnalités, les logiciels, les conceptions de sites Web, l'audio, la vidéo, le texte, les photographies et les graphiques sur le Site (collectivement, le « Contenu ») et les marques de commerce, marques de service et logos qu'ils contiennent (les « Marques ») nous appartiennent ou sont contrôlés par nous ou nous sont concédés sous licence, et sont protégés par les lois sur le droit d'auteur et les marques de commerce.",
+    "user_reps_title": "3. Représentations de l'utilisateur",
+    "user_reps_text": "En utilisant le Site, vous déclarez et garantissez que :",
+    "user_reps_list_1": "Toutes les informations d'inscription que vous soumettez seront vraies, exactes, actuelles et complètes.",
+    "user_reps_list_2": "Vous maintiendrez l'exactitude de ces informations et mettrez rapidement à jour ces informations d'inscription si nécessaire.",
+    "user_reps_list_3": "Vous avez la capacité juridique et vous acceptez de vous conformer à ces conditions d'utilisation.",
+    "user_reps_list_4": "Vous n'êtes pas mineur dans la juridiction dans laquelle vous résidez.",
+    "contact_title": "4. Contactez-nous",
+    "contact_text": "Afin de résoudre une plainte concernant le Site ou de recevoir de plus amples informations concernant l'utilisation du Site, veuillez nous contacter à :"
+  }
 }

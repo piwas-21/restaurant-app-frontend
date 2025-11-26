@@ -1762,5 +1762,41 @@
   "custom_minutes": "Minuti personalizzati",
   "order_confirmed_message": "Il cliente riceverà un'email di conferma presto.",
   "order_cancelled_message": "L'ordine è stato annullato.",
-  "order_status_pending_approval": "In Attesa di Approvazione"
+  "order_status_pending_approval": "In Attesa di Approvazione",
+  "footer_privacy_policy": "Informativa sulla Privacy",
+  "footer_terms_of_usage": "Termini di Utilizzo",
+  "privacy_policy": {
+    "title": "Informativa sulla Privacy",
+    "last_updated": "Ultimo aggiornamento: {{date}}",
+    "intro_title": "1. Introduzione",
+    "intro_text": "Benvenuti al RUMI Restaurant (\"noi,\" \"nostro,\" o \"ci\"). Ci impegniamo a proteggere le vostre informazioni personali e il vostro diritto alla privacy. Se avete domande o dubbi sulla nostra politica, o sulle nostre pratiche riguardo alle vostre informazioni personali, vi preghiamo di contattarci.",
+    "info_collect_title": "2. Informazioni che Raccogliamo",
+    "info_collect_text": "Raccogliamo le informazioni personali che ci fornite volontariamente quando vi registrate ai Servizi, esprimete interesse ad ottenere informazioni su di noi o sui nostri prodotti e servizi, quando partecipate ad attività sui Servizi o ci contattate in altro modo.",
+    "info_collect_list_1": "Nome e Dati di Contatto",
+    "info_collect_list_2": "Credenziali",
+    "info_collect_list_3": "Dati di Pagamento",
+    "how_use_title": "3. Come Utilizziamo le Vostre Informazioni",
+    "how_use_text": "Utilizziamo le informazioni personali raccolte tramite i nostri Servizi per una varietà di scopi commerciali descritti di seguito. Trattiamo le vostre informazioni personali per questi scopi in base ai nostri legittimi interessi commerciali, al fine di stipulare o eseguire un contratto con voi, con il vostro consenso e/o per la conformità con i nostri obblighi legali.",
+    "how_use_list_1": "Per facilitare la creazione dell'account e il processo di accesso.",
+    "how_use_list_2": "Per inviarvi comunicazioni di marketing e promozionali.",
+    "how_use_list_3": "Per evadere e gestire i vostri ordini.",
+    "contact_title": "4. Contattateci",
+    "contact_text": "Se avete domande o commenti su questa politica, potete inviarci un'e-mail o contattarci per posta a:"
+  },
+  "terms_of_usage": {
+    "title": "Termini di Utilizzo",
+    "last_updated": "Ultimo aggiornamento: {{date}}",
+    "agreement_title": "1. Accettazione dei Termini",
+    "agreement_text": "I presenti Termini di Utilizzo costituiscono un accordo legalmente vincolante stipulato tra voi, sia personalmente che per conto di un'entità (\"voi\") e RUMI Restaurant (\"noi,\" \"ci\" o \"nostro\"), riguardante il vostro accesso e utilizzo del nostro sito web e dell'applicazione mobile.",
+    "ip_rights_title": "2. Diritti di Proprietà Intellettuale",
+    "ip_rights_text": "Salvo diversa indicazione, il Sito e l'App sono di nostra proprietà esclusiva e tutto il codice sorgente, i database, le funzionalità, il software, i design dei siti web, l'audio, il video, il testo, le fotografie e la grafica sul Sito (collettivamente, il \"Contenuto\") e i marchi, i marchi di servizio e i loghi ivi contenuti (i \"Marchi\") sono di nostra proprietà o sotto il nostro controllo o a noi concessi in licenza e sono protetti dalle leggi sul copyright e sui marchi.",
+    "user_reps_title": "3. Dichiarazioni dell'Utente",
+    "user_reps_text": "Utilizzando il Sito, dichiarate e garantite che:",
+    "user_reps_list_1": "Tutte le informazioni di registrazione che invierete saranno veritiere, accurate, attuali e complete.",
+    "user_reps_list_2": "Manterrete l'accuratezza di tali informazioni e aggiornerete tempestivamente tali informazioni di registrazione se necessario.",
+    "user_reps_list_3": "Avete la capacità legale e accettate di rispettare i presenti Termini di Utilizzo.",
+    "user_reps_list_4": "Non siete minorenni nella giurisdizione in cui risiedete.",
+    "contact_title": "4. Contattateci",
+    "contact_text": "Per risolvere un reclamo riguardante il Sito o per ricevere ulteriori informazioni sull'utilizzo del Sito, vi preghiamo di contattarci a:"
+  }
 }

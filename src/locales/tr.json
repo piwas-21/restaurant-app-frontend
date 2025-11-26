@@ -1762,5 +1762,41 @@
   "custom_minutes": "Özel dakika",
   "order_confirmed_message": "Müşteri kısa süre sonra onay e-postası alacak.",
   "order_cancelled_message": "Sipariş iptal edildi.",
-  "order_status_pending_approval": "Onay Bekliyor"
+  "order_status_pending_approval": "Onay Bekliyor",
+  "footer_privacy_policy": "Gizlilik Politikası",
+  "footer_terms_of_usage": "Kullanım Koşulları",
+  "privacy_policy": {
+    "title": "Gizlilik Politikası",
+    "last_updated": "Son güncelleme: {{date}}",
+    "intro_title": "1. Giriş",
+    "intro_text": "RUMI Restaurant'a (\"biz\", \"bizim\" veya \"bize\") hoş geldiniz. Kişisel bilgilerinizin ve gizlilik hakkınızın korunmasına kararlıyız. Politikamız veya kişisel bilgilerinizle ilgili uygulamalarımız hakkında herhangi bir sorunuz veya endişeniz varsa, lütfen bizimle iletişime geçin.",
+    "info_collect_title": "2. Topladığımız Bilgiler",
+    "info_collect_text": "Hizmetlere kaydolurken, bizimle veya ürün ve hizmetlerimiz hakkında bilgi edinme ilgisi gösterirken, Hizmetlerdeki faaliyetlere katılırken veya başka bir şekilde bizimle iletişime geçerken bize gönüllü olarak sağladığınız kişisel bilgileri toplarız.",
+    "info_collect_list_1": "Ad ve İletişim Bilgileri",
+    "info_collect_list_2": "Kimlik Bilgileri",
+    "info_collect_list_3": "Ödeme Bilgileri",
+    "how_use_title": "3. Bilgilerinizi Nasıl Kullanıyoruz",
+    "how_use_text": "Hizmetlerimiz aracılığıyla toplanan kişisel bilgileri aşağıda açıklanan çeşitli iş amaçları için kullanırız. Kişisel bilgilerinizi bu amaçlar için meşru iş çıkarlarımıza dayanarak, sizinle bir sözleşme yapmak veya ifa etmek, sizin rızanızla ve/veya yasal yükümlülüklerimize uymak için işleriz.",
+    "how_use_list_1": "Hesap oluşturma ve oturum açma sürecini kolaylaştırmak.",
+    "how_use_list_2": "Size pazarlama ve tanıtım iletişimleri göndermek.",
+    "how_use_list_3": "Siparişlerinizi yerine getirmek ve yönetmek.",
+    "contact_title": "4. Bize Ulaşın",
+    "contact_text": "Bu politika hakkında sorularınız veya yorumlarınız varsa, bize e-posta gönderebilir veya posta yoluyla şu adresten bizimle iletişime geçebilirsiniz:"
+  },
+  "terms_of_usage": {
+    "title": "Kullanım Koşulları",
+    "last_updated": "Son güncelleme: {{date}}",
+    "agreement_title": "1. Koşullara Onay",
+    "agreement_text": "Bu Kullanım Koşulları, şahsen veya bir kuruluş adına (\"siz\") ve RUMI Restaurant (\"biz\", \"bize\" veya \"bizim\") arasında, web sitemize ve mobil uygulamamıza erişiminiz ve kullanımınızla ilgili yasal olarak bağlayıcı bir anlaşma teşkil eder.",
+    "ip_rights_title": "2. Fikri Mülkiyet Hakları",
+    "ip_rights_text": "Aksi belirtilmedikçe, Site ve Uygulama bizim tescilli mülkümüzdür ve tüm kaynak kodu, veritabanları, işlevsellik, yazılım, web sitesi tasarımları, ses, video, metin, fotoğraflar ve Sitedeki grafikler (topluca \"İçerik\") ve içinde yer alan ticari markalar, hizmet markaları ve logolar (\"Markalar\") bize aittir veya tarafımızca kontrol edilir veya bize lisanslanmıştır ve telif hakkı ve ticari marka yasalarıyla korunmaktadır.",
+    "user_reps_title": "3. Kullanıcı Beyanları",
+    "user_reps_text": "Siteyi kullanarak şunları beyan ve garanti edersiniz:",
+    "user_reps_list_1": "Gönderdiğiniz tüm kayıt bilgileri doğru, eksiksiz, güncel ve tam olacaktır.",
+    "user_reps_list_2": "Bu bilgilerin doğruluğunu koruyacak ve gerektiğinde bu kayıt bilgilerini derhal güncelleyeceksiniz.",
+    "user_reps_list_3": "Yasal ehliyete sahipsiniz ve bu Kullanım Koşullarına uymayı kabul ediyorsunuz.",
+    "user_reps_list_4": "İkamet ettiğiniz yargı alanında reşit değilsiniz.",
+    "contact_title": "4. Bize Ulaşın",
+    "contact_text": "Site ile ilgili bir şikayeti çözmek veya Sitenin kullanımı hakkında daha fazla bilgi almak için lütfen bizimle şu adresten iletişime geçin:"
+  }
 }

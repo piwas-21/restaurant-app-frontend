@@ -380,3 +380,71 @@
 [data-theme="dark"] .priceHint {
   color: var(--text-secondary, #aaa);
 }
+
+/* Autocomplete suggestions */
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--background-primary, white);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+[data-theme="dark"] .suggestions {
+  background: var(--background-primary, #1a1a1a);
+  border-color: var(--border-color, #444);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.suggestionItem {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:hover {
+  background: var(--background-secondary, #f8f9fa);
+}
+
+[data-theme="dark"] .suggestionItem {
+  border-color: var(--border-color, #333);
+}
+
+[data-theme="dark"] .suggestionItem:hover {
+  background: var(--background-secondary, #2a2a2a);
+}
+
+.suggestionItem span:first-child {
+  font-size: 0.875rem;
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .suggestionItem span:first-child {
+  color: var(--text-primary, #ffffff);
+}
+
+.suggestionHint {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #999);
+  font-style: italic;
+}
+
+[data-theme="dark"] .suggestionHint {
+  color: var(--text-secondary, #666);
+}

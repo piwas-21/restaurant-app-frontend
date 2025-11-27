@@ -235,9 +235,312 @@
   color: var(--text-color, #e0e0e0);
 }
 
+/* ===========================================
+   RESPONSIVE DESIGN - Mobile First Approach
+   =========================================== */
 
+/* Extra Small Devices (phones, less than 576px) - Default styles above */
+.detailsContainer {
+  padding: 0;
+}
+
+.infoSection {
+  padding: 1rem;
+  margin: 0;
+}
+
+.infoSection h2,
+.infoSection h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.headerRow {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.actionRow {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.formGrid {
+  gap: 0.75rem;
+}
+
+/* Table responsive - horizontal scroll on mobile */
+.variationsTable {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.variationsTable thead,
+.variationsTable tbody,
+.variationsTable th,
+.variationsTable td,
+.variationsTable tr {
+  display: block;
+}
+
+.variationsTable thead tr {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+
+.variationsTable tr {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+}
+
+.variationsTable td {
+  border: none;
+  position: relative;
+  padding-left: 40%;
+  text-align: right;
+}
+
+.variationsTable td:before {
+  content: attr(data-label);
+  position: absolute;
+  left: 1rem;
+  width: calc(40% - 2rem);
+  padding-right: 0.5rem;
+  white-space: nowrap;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary, #666);
+}
+
+[data-theme="dark"] .variationsTable td:before {
+  color: var(--text-secondary, #aaa);
+}
+
+/* Image gallery responsive */
+.primaryImage {
+  max-height: 300px;
+}
+
+.thumbnailContainer {
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
+}
+
+.thumbnail {
+  height: 60px;
+}
+
+.imageActions {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.imageActionGroup {
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.sortOrderInput {
+  width: 100%;
+}
+
+/* Small Devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  .infoSection {
+    padding: 1.25rem;
+  }
+
+  .infoSection h2,
+  .infoSection h3 {
+    font-size: 1.25rem;
+  }
+
+  .primaryImage {
+    max-height: 350px;
+  }
+
+  .thumbnailContainer {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+
+  .thumbnail {
+    height: 70px;
+  }
+
+  .imageActionGroup {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .sortOrderInput {
+    width: 70px;
+  }
+
+  /* Table - still card style but with better spacing */
+  .variationsTable td {
+    padding-left: 35%;
+  }
+
+  .variationsTable td:before {
+    width: calc(35% - 2rem);
+  }
+}
+
+/* Medium Devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .detailsContainer {
+    gap: 1.5rem;
+  }
+
+  .infoSection {
+    padding: 1.5rem;
+  }
+
+  .infoSection h2,
+  .infoSection h3 {
+    font-size: 1.3rem;
+  }
+
+  .headerRow {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .actionRow {
+    width: auto;
+  }
+
+  .formGrid {
+    gap: 1rem;
+  }
+
+  /* Better table view for tablets */
+  .variationsTable {
+    display: table;
+    overflow-x: visible;
+  }
+
+  .variationsTable thead,
+  .variationsTable tbody,
+  .variationsTable th,
+  .variationsTable td,
+  .variationsTable tr {
+    display: table-row-group;
+  }
+
+  .variationsTable thead {
+    display: table-header-group;
+  }
+
+  .variationsTable tr {
+    display: table-row;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .variationsTable th,
+  .variationsTable td {
+    display: table-cell;
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .variationsTable td:before {
+    content: none;
+  }
+
+  .variationsTable td {
+    padding-left: 1rem;
+  }
+
+  .primaryImage {
+    max-height: 400px;
+  }
+
+  .thumbnailContainer {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .thumbnail {
+    height: 80px;
+  }
+
+  .imageActions {
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .imageActionGroup {
+    width: auto;
+  }
+}
+
+/* Large Devices (desktops, 992px and up) */
 @media (min-width: 992px) {
+  .detailsContainer {
+    gap: 2rem;
+  }
+
+  .infoSection h2,
+  .infoSection h3 {
+    font-size: 1.4rem;
+  }
+
   .infoGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .primaryImage {
+    max-height: 450px;
+  }
+}
+
+/* Extra Large Devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  /* Layout optimization for large screens */
+  .detailsContainer {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 2rem;
+  }
+
+  .mainContent {
+    grid-column: 1;
+  }
+
+  .imageGalleryContainer {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+  }
+
+  .primaryImage {
+    max-height: 500px;
+  }
+}
+
+/* Ultra Wide Screens (1600px and up) - Maximum content width */
+@media (min-width: 1600px) {
+  .detailsContainer {
+    grid-template-columns: 1fr 450px;
+  }
+  
+  .primaryImage {
+    max-height: 600px;
   }
 }

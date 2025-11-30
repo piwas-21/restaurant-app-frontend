@@ -90,7 +90,7 @@ export default function FidelityPointsSection() {
           </div>
           <div className={styles.pointsValue}>
             <span className={styles.currencyValue}>
-              ≈ ${currentPointsValue.toFixed(2)}
+              ≈ CHF{currentPointsValue.toFixed(2)}
             </span>
             <span className={styles.valueLabel}>
               {t('available_discount', 'Available Discount')}

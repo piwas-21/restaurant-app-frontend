@@ -99,7 +99,7 @@ export default function FidelityPointsCheckout({
           <p className={styles.earnPoints}>
             +{pointsToEarn} {t('points', 'points')}
             <span className={styles.earnValue}>
-              (≈ ${(pointsToEarn / 100).toFixed(2)} {t('future_discount', 'future discount')})
+              (≈ CHF{(pointsToEarn / 100).toFixed(2)} {t('future_discount', 'future discount')})
             </span>
           </p>
         </div>

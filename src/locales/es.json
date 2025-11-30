@@ -978,6 +978,8 @@
   "language_it": "Italiano",
   "language_ar": "Árabe",
   "language_es": "Español",
+  "language_ru": "Ruso",
+  "language_zh": "Chino",
   "reservations": "Reservas",
   "make_reservation": "Hacer una Reserva",
   "my_reservations": "Mis Reservas",
@@ -1858,5 +1860,8 @@
   "menu_image": "Imagen del Menú",
   "includes": "Incluye",
   "edit_menu_bundle": "Editar Combo de Menú",
-  "delete_menu_bundle": "Eliminar Combo de Menú"
+  "delete_menu_bundle": "Eliminar Combo de Menú",
+  "update_menu_bundle": "Actualizar Combo de Menú",
+  "confirm_delete_menu_bundle_message": "¿Estás seguro de que quieres eliminar este combo de menú?",
+  "no_menu_bundles_found": "No se encontraron combos de menú"
 }

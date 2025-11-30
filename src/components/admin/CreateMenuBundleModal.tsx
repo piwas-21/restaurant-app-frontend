@@ -100,12 +100,18 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
     // Ensure type is menu
     // data.type is already 'menu' from schema default/literal
 
-    // Attach menu definition
+    // Attach menu definition, removing temporary IDs
     (data as any).menuDefinition = {
       ...menuDefinition,
+      // Remove id if it's temporary (backend will assign a new one)
+      id: menuDefinition.id?.startsWith('temp-') ? undefined : menuDefinition.id,
       sections: menuDefinition.sections.map(s => ({
         ...s,
+        // Remove section id if it's temporary
+        id: s.id?.startsWith('temp-') ? undefined : s.id,
         items: s.items.map(i => ({
+          // Remove item id if it's temporary
+          id: i.id?.startsWith('temp-') ? undefined : i.id,
           productId: i.productId,
           additionalPrice: i.additionalPrice,
           displayOrder: i.displayOrder,

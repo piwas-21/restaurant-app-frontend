@@ -160,6 +160,7 @@ const MenuManagementContent = () => {
             error={error}
             onEdit={handleOpenEditModal}
             onDelete={handleDeleteClick}
+            activeTab={activeTab}
           />
 
           {/* Pagination */}

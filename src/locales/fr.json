@@ -989,6 +989,8 @@
   "language_it": "Italien",
   "language_ar": "Arabe",
   "language_es": "Espagnol",
+  "language_ru": "Russe",
+  "language_zh": "Chinois",
   "reservations": "Réservations",
   "make_reservation": "Faire une Réservation",
   "my_reservations": "Mes Réservations",
@@ -1856,5 +1858,8 @@
   "menu_image": "Image du Menu",
   "includes": "Comprend",
   "edit_menu_bundle": "Modifier le Pack Menu",
-  "delete_menu_bundle": "Supprimer le Pack Menu"
+  "delete_menu_bundle": "Supprimer le Pack Menu",
+  "update_menu_bundle": "Mettre à jour le Pack Menu",
+  "confirm_delete_menu_bundle_message": "Êtes-vous sûr de vouloir supprimer ce pack menu ?",
+  "no_menu_bundles_found": "Aucun pack menu trouvé"
 }

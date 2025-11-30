@@ -116,7 +116,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
     <div className={styles.scheduleEditor}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>{t('menu_sections')}</h3>
-        <button onClick={addSection} className={styles.addButton}>
+        <button type="button" onClick={addSection} className={styles.addButton}>
           + {t('add_section')}
         </button>
       </div>
@@ -141,6 +141,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                 </div>
                 <div className={styles.sectionActions}>
                   <button
+                    type="button"
                     onClick={() => moveSection(index, 'up')}
                     disabled={index === 0}
                     className={styles.iconButton}
@@ -149,6 +150,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                     ↑
                   </button>
                   <button
+                    type="button"
                     onClick={() => moveSection(index, 'down')}
                     disabled={index === localSections.length - 1}
                     className={styles.iconButton}
@@ -157,6 +159,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                     ↓
                   </button>
                   <button
+                    type="button"
                     onClick={() => toggleSection(section.id)}
                     className={styles.iconButton}
                     title={expandedSections.has(section.id) ? t('collapse') : t('expand')}
@@ -164,6 +167,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                     {expandedSections.has(section.id) ? '−' : '+'}
                   </button>
                   <button
+                    type="button"
                     onClick={() => confirmRemoveSection(index)}
                     className={`${styles.iconButton} ${styles.danger}`}
                     title={t('delete_section')}
@@ -264,10 +268,10 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
       {/* Save/Cancel Buttons */}
       {hasChanges && (
         <div className={styles.editorActions}>
-          <button onClick={handleCancel} className={styles.cancelButton}>
+          <button type="button" onClick={handleCancel} className={styles.cancelButton}>
             {t('cancel')}
           </button>
-          <button onClick={handleSave} className={styles.saveButton}>
+          <button type="button" onClick={handleSave} className={styles.saveButton}>
             {t('save')}
           </button>
         </div>

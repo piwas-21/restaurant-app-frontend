@@ -106,13 +106,13 @@ export const fidelityPointsService = {
   /**
    * Format points as currency value
    * @param points - Number of points
-   * @returns Formatted currency string (e.g., "$5.00")
+   * @returns Formatted currency string (e.g., "CHF 5.00")
    */
   formatPointsAsCurrency(points: number): string {
-    const value = points / 100; // 100 points = $1
-    return new Intl.NumberFormat('en-US', {
+    const value = points / 100; // 100 points = CHF 1
+    return new Intl.NumberFormat('de-CH', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'CHF',
     }).format(value);
   },
 

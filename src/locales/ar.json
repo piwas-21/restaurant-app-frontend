@@ -983,6 +983,8 @@
   "language_it": "الإيطالية",
   "language_ar": "العربية",
   "language_es": "الإسبانية",
+  "language_ru": "الروسية",
+  "language_zh": "الصينية",
   "reservations": "الحجوزات",
   "make_reservation": "إجراء حجز",
   "my_reservations": "حجوزاتي",
@@ -1855,5 +1857,8 @@
   "menu_image": "صورة القائمة",
   "includes": "يتضمن",
   "edit_menu_bundle": "تعديل حزمة القائمة",
-  "delete_menu_bundle": "حذف حزمة القائمة"
+  "delete_menu_bundle": "حذف حزمة القائمة",
+  "update_menu_bundle": "تحديث حزمة القائمة",
+  "confirm_delete_menu_bundle_message": "هل أنت متأكد من حذف هذه الحزمة؟",
+  "no_menu_bundles_found": "لم يتم العثور على حزم قائمة"
 }

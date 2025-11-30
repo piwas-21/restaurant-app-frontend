@@ -1028,6 +1028,8 @@
   "language_it": "意大利语",
   "language_ar": "阿拉伯语",
   "language_es": "西班牙语",
+  "language_ru": "俄语",
+  "language_zh": "中文",
   "ingredients_managed_in_edit_modal": "如需编辑配料，请使用页面顶部的“编辑产品”按钮",
   "use_comma_for_decimals": "小数请使用逗号 (,)",
   "ingredient_included_in_base_price": "包含在基础价格中（移除时减价）",
@@ -1895,5 +1897,8 @@
   "menu_image": "菜单图片",
   "includes": "包含",
   "edit_menu_bundle": "编辑菜单套餐",
-  "delete_menu_bundle": "删除菜单套餐"
+  "delete_menu_bundle": "删除菜单套餐",
+  "update_menu_bundle": "更新菜单套餐",
+  "confirm_delete_menu_bundle_message": "您确定要删除此菜单套餐吗？",
+  "no_menu_bundles_found": "未找到菜单套餐"
 }

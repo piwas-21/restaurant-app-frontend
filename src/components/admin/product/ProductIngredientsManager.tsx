@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import type { ProductIngredient } from "@/types/menu";
 import styles from "./ProductIngredientsManager.module.css";
+import { LANGUAGE_CODES } from "@/config/languageConfig";
 
 interface GlobalIngredientSuggestion {
   id: string;
@@ -387,7 +388,7 @@ export function ProductIngredientsManager({
                     {t("multilingual_names")}
                   </summary>
                   <div className={styles.translationsGrid}>
-                    {["en", "tr", "de", "fr", "it", "ar", "es"].map((lang) => (
+                    {LANGUAGE_CODES.map((lang) => (
                       <div key={lang} className={styles.translationField}>
                         <label>
                           {t(`language_${lang}`)}

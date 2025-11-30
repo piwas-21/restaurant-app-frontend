@@ -62,8 +62,8 @@ const menuSectionSchema = z.object({
 const menuDefinitionSchema = z.object({
   id: z.string().optional(),
   isAlwaysAvailable: z.boolean().default(true),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
+  startTime: z.string().nullable().optional(),
+  endTime: z.string().nullable().optional(),
   availableMonday: z.boolean().default(true),
   availableTuesday: z.boolean().default(true),
   availableWednesday: z.boolean().default(true),

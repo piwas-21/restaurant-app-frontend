@@ -996,6 +996,8 @@
   "language_it": "Italian",
   "language_ar": "Arabic",
   "language_es": "Spanish",
+  "language_ru": "Russian",
+  "language_zh": "Chinese",
   "ingredients_managed_in_edit_modal": "To edit ingredients, use the Edit Product button at the top of the page",
   "use_comma_for_decimals": "Use comma (,) for decimals",
   "ingredient_included_in_base_price": "Included in base price (deduct when deselected)",
@@ -1858,5 +1860,6 @@
   "edit_menu_bundle": "Edit Menu Bundle",
   "delete_menu_bundle": "Delete Menu Bundle",
   "update_menu_bundle": "Update Menu Bundle",
-  "confirm_delete_menu_bundle_message": "Are you sure you want to delete this menu bundle?"
+  "confirm_delete_menu_bundle_message": "Are you sure you want to delete this menu bundle?",
+  "no_menu_bundles_found": "No menu bundles found"
 }

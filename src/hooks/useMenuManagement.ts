@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getProducts, getMenuBundles } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
@@ -10,6 +10,7 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
+  const activeTabRef = useRef(activeTab);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -22,30 +23,44 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
   const pageSize = 20;
 
   const fetchProducts = useCallback(async (page: number = 1) => {
+    const requestTab = activeTab; // Capture which tab this request is for
     setIsLoading(true);
     setError(null);
     try {
       let response: any;
       if (activeTab === 'menus') {
         // Use dedicated endpoint for menu bundles (category-free)
+        console.log('[useMenuManagement] Calling getMenuBundles API');
         response = await getMenuBundles(page, pageSize);
+        console.log('[useMenuManagement] getMenuBundles response:', response);
       } else {
         // Use generic products endpoint (backend now excludes menus by default)
+        console.log('[useMenuManagement] Calling getProducts API');
         response = await getProducts(page, pageSize, selectedCategoryId);
+        console.log('[useMenuManagement] getProducts response:', response);
       }
 
-      if (response.success) {
-        setProducts(response.data.items);
-        setTotalPages(response.data.totalPages || 1);
-        setTotalCount(response.data.totalCount || 0);
-        setCurrentPage(page);
+      // Only update state if we're still on the same tab (check against ref)
+      if (requestTab === activeTabRef.current) {
+        if (response.success) {
+          setProducts(response.data.items);
+          setTotalPages(response.data.totalPages || 1);
+          setTotalCount(response.data.totalCount || 0);
+          setCurrentPage(page);
+        } else {
+          setError(response.message || 'Failed to fetch items');
+        }
       } else {
-        setError(response.message || 'Failed to fetch items');
+        console.log('[useMenuManagement] Ignoring stale response from', requestTab, 'tab, current tab is', activeTabRef.current);
       }
     } catch {
-      setError('An unexpected error occurred.');
+      if (requestTab === activeTabRef.current) {
+        setError('An unexpected error occurred.');
+      }
     } finally {
-      setIsLoading(false);
+      if (requestTab === activeTabRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [activeTab, selectedCategoryId, pageSize]); // selectedCategoryId only affects products tab
 
@@ -64,10 +79,13 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
     fetchCategories();
   }, []);
 
+  // Clear products immediately when tab changes to prevent showing stale data
   useEffect(() => {
+    activeTabRef.current = activeTab; // Update ref to current tab
+    setProducts([]);
     setCurrentPage(1);
     fetchProducts(1);
-  }, [fetchProducts]);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = event.target.value;

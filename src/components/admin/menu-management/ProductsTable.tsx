@@ -12,12 +12,16 @@ interface ProductsTableProps {
   error: string | null;
   onEdit: (productId: string) => void;
   onDelete: (productId: string) => void;
+  activeTab?: 'products' | 'menus';
 }
 
-const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, error, onEdit, onDelete }) => {
+const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, error, onEdit, onDelete, activeTab = 'products' }) => {
   const { t } = useTranslation();
 
-  if (isLoading) return <p>{t('loading_products')}</p>;
+  const loadingMessage = activeTab === 'menus' ? t('loading_menu_bundles') : t('loading_products');
+  const emptyMessage = activeTab === 'menus' ? t('no_menu_bundles_found') : t('no_products_found');
+
+  if (isLoading) return <p>{loadingMessage}</p>;
   if (error) return <p className={styles.error}>{error}</p>;
 
   return (
@@ -55,7 +59,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, erro
             ))
           ) : (
             <tr>
-              <td colSpan={5}>{t('no_products_found')}</td>
+              <td colSpan={5}>{emptyMessage}</td>
             </tr>
           )}
         </tbody>

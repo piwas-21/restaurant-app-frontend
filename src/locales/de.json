@@ -1866,5 +1866,8 @@
   "menu_image": "Menübild",
   "includes": "Beinhaltet",
   "edit_menu_bundle": "Menü-Bundle bearbeiten",
-  "delete_menu_bundle": "Menü-Bundle löschen"
+  "delete_menu_bundle": "Menü-Bundle löschen",
+  "update_menu_bundle": "Menü-Bundle aktualisieren",
+  "confirm_delete_menu_bundle_message": "Möchten Sie diesen Menü-Bundle wirklich löschen?",
+  "no_menu_bundles_found": "Keine Menü-Bundles gefunden"
 }

@@ -928,6 +928,8 @@
   "language_it": "Итальянский",
   "language_ar": "Арабский",
   "language_es": "Испанский",
+  "language_ru": "Русский",
+  "language_zh": "Китайский",
   "ingredients_managed_in_edit_modal": "Для редактирования ингредиентов используйте кнопку Редактировать товар в верхней части страницы",
   "use_comma_for_decimals": "Используйте запятую (,) для десятичных дробей",
   "ingredient_included_in_base_price": "Включено в базовую цену (вычесть при отмене)",
@@ -1789,5 +1791,8 @@
   "menu_image": "Изображение меню",
   "includes": "Включает",
   "edit_menu_bundle": "Редактировать набор меню",
-  "delete_menu_bundle": "Удалить набор меню"
+  "delete_menu_bundle": "Удалить набор меню",
+  "update_menu_bundle": "Обновить набор меню",
+  "confirm_delete_menu_bundle_message": "Вы уверены, что хотите удалить этот набор меню?",
+  "no_menu_bundles_found": "Наборы меню не найдены"
 }

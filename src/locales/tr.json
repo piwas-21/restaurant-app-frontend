@@ -989,6 +989,8 @@
   "language_it": "İtalyanca",
   "language_ar": "Arapça",
   "language_es": "İspanyolca",
+  "language_ru": "Rusça",
+  "language_zh": "Çince",
   "reservations": "Rezervasyonlar",
   "make_reservation": "Rezervasyon Yap",
   "my_reservations": "Rezervasyonlarım",
@@ -1856,5 +1858,8 @@
   "menu_image": "Menü Görseli",
   "includes": "İçerir",
   "edit_menu_bundle": "Menü Paketini Düzenle",
-  "delete_menu_bundle": "Menü Paketini Sil"
+  "delete_menu_bundle": "Menü Paketini Sil",
+  "update_menu_bundle": "Menü Paketini Güncelle",
+  "confirm_delete_menu_bundle_message": "Bu menü paketini silmek istediğinizden emin misiniz?",
+  "no_menu_bundles_found": "Menü paketi bulunamadı"
 }

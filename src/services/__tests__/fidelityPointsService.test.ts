@@ -91,9 +91,9 @@ describe('fidelityPointsService', () => {
 
   describe('formatPointsAsCurrency', () => {
     it('should format points as currency', () => {
-      expect(fidelityPointsService.formatPointsAsCurrency(100)).toBe('$1.00');
-      expect(fidelityPointsService.formatPointsAsCurrency(500)).toBe('$5.00');
-      expect(fidelityPointsService.formatPointsAsCurrency(1000)).toBe('$10.00');
+      expect(fidelityPointsService.formatPointsAsCurrency(100)).toBe('CHF 1.00');
+      expect(fidelityPointsService.formatPointsAsCurrency(500)).toBe('CHF 5.00');
+      expect(fidelityPointsService.formatPointsAsCurrency(1000)).toBe('CHF 10.00');
     });
   });
 

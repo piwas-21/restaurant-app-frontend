@@ -28,6 +28,7 @@ export interface ProductIngredient {
     name: string;
     description?: string;
   }>;
+  globalIngredientId?: string;
 }
 
 /**

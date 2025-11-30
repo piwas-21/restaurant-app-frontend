@@ -2,6 +2,7 @@ import { UseFormSetError, UseFormReset } from 'react-hook-form';
 import { FormData, EditFormData } from './schemas';
 import { createProduct, createMenuBundle, updateMenuBundle } from '@/services/menuService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
+import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
 
 interface SubmitProductFormParams {
   data: FormData;
@@ -60,8 +61,61 @@ export const submitProductForm = async ({
       }
     });
 
+    // Process ingredients: check for new ones and create them globally
+    const processedIngredients = await Promise.all((detailedIngredients || []).map(async (ing: any) => {
+      // If it doesn't have a globalIngredientId, it might be new
+      if (!ing.globalIngredientId && ing.name && ing.name.trim().length > 0) {
+        // First check if it already exists (case-insensitive)
+        try {
+          const searchResponse = await searchGlobalIngredients(ing.name) as { success: boolean; data?: any[] };
+          if (searchResponse.success && searchResponse.data) {
+            const existing = searchResponse.data.find((item: any) => 
+              item.defaultName.toLowerCase() === ing.name.toLowerCase()
+            );
+            if (existing) {
+              return { ...ing, globalIngredientId: existing.id };
+            }
+          }
+        } catch (e) {
+          console.error("Failed to search global ingredient:", e);
+        }
+
+        // If not found, create it
+        // Prepare translations
+        const translations = [];
+        if (ing.content) {
+          for (const [lang, content] of Object.entries(ing.content)) {
+            if ((content as any).name) {
+              translations.push({
+                languageCode: lang,
+                name: (content as any).name
+              });
+            }
+          }
+        }
+        
+        // Also add the default name as English translation if not present, or just rely on defaultName
+        if (translations.length > 0) {
+           try {
+             const newGlobalIngResponse = await createGlobalIngredient({
+               defaultName: ing.name,
+               translations: translations
+             }) as { success: boolean; data?: { id: string } };
+
+             if (newGlobalIngResponse.success && newGlobalIngResponse.data?.id) {
+               return { ...ing, globalIngredientId: newGlobalIngResponse.data.id };
+             }
+           } catch (e) {
+             console.error("Failed to auto-create global ingredient:", e);
+             // Continue without ID, backend might handle or just save as local ingredient
+           }
+        }
+      }
+      return ing;
+    }));
+
     // Clean detailedIngredients - remove temporary IDs for new ingredients
-    const cleanedIngredients = (detailedIngredients || []).map((ing: any) => {
+    const cleanedIngredients = processedIngredients.map((ing: any) => {
       const cleaned = { ...ing };
       // If ID starts with "temp-", it's a new ingredient - remove the ID
       if (typeof cleaned.id === 'string' && cleaned.id.startsWith('temp-')) {
@@ -191,8 +245,61 @@ export const submitEditProductForm = async ({
         displayOrder: Number.isInteger(v.displayOrder as any) ? (v.displayOrder as any) : 0,
       }));
 
+    // Process ingredients: check for new ones and create them globally
+    const processedIngredients = await Promise.all((detailedIngredients || []).map(async (ing: any) => {
+      // If it doesn't have a globalIngredientId, it might be new
+      if (!ing.globalIngredientId && ing.name && ing.name.trim().length > 0) {
+        // First check if it already exists (case-insensitive)
+        try {
+          const searchResponse = await searchGlobalIngredients(ing.name) as { success: boolean; data?: any[] };
+          if (searchResponse.success && searchResponse.data) {
+            const existing = searchResponse.data.find((item: any) => 
+              item.defaultName.toLowerCase() === ing.name.toLowerCase()
+            );
+            if (existing) {
+              return { ...ing, globalIngredientId: existing.id };
+            }
+          }
+        } catch (e) {
+          console.error("Failed to search global ingredient:", e);
+        }
+
+        // If not found, create it
+        // Prepare translations
+        const translations = [];
+        if (ing.content) {
+          for (const [lang, content] of Object.entries(ing.content)) {
+            if ((content as any).name) {
+              translations.push({
+                languageCode: lang,
+                name: (content as any).name
+              });
+            }
+          }
+        }
+        
+        // Also add the default name as English translation if not present, or just rely on defaultName
+        if (translations.length > 0) {
+           try {
+             const newGlobalIngResponse = await createGlobalIngredient({
+               defaultName: ing.name,
+               translations: translations
+             }) as { success: boolean; data?: { id: string } };
+
+             if (newGlobalIngResponse.success && newGlobalIngResponse.data?.id) {
+               return { ...ing, globalIngredientId: newGlobalIngResponse.data.id };
+             }
+           } catch (e) {
+             console.error("Failed to auto-create global ingredient:", e);
+             // Continue without ID
+           }
+        }
+      }
+      return ing;
+    }));
+
     // Clean detailedIngredients - remove temporary IDs for new ingredients
-    const cleanedIngredients = (detailedIngredients || []).map((ing: any) => {
+    const cleanedIngredients = processedIngredients.map((ing: any) => {
       const cleaned = { ...ing };
       // If ID starts with "temp-", it's a new ingredient - remove the ID
       if (typeof cleaned.id === 'string' && cleaned.id.startsWith('temp-')) {

@@ -205,7 +205,7 @@ export async function googleLogin(idToken: string) {
   const data = await response.json();
   if (response.ok && data?.success) {
     try {
-      if (data.data?.token) localStorage.setItem('auth_token', data.data.token);
+      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);
       if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);
     } catch (e) {
       console.warn('Could not persist tokens to localStorage', e);
@@ -230,7 +230,7 @@ export async function appleLogin(idToken: string, user?: { firstName: string; la
   const data = await response.json();
   if (response.ok && data?.success) {
     try {
-      if (data.data?.token) localStorage.setItem('auth_token', data.data.token);
+      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);
       if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);
     } catch (e) {
       console.warn('Could not persist tokens to localStorage', e);
@@ -238,3 +238,4 @@ export async function appleLogin(idToken: string, user?: { firstName: string; la
   }
   return data;
 }
+

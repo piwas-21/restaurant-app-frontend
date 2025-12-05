@@ -273,6 +273,31 @@ export interface MenuSectionItem {
   additionalPrice: number;
   displayOrder: number;
   isDefault: boolean;
+  ingredients?: string[];
+  allergens?: string[];
+  detailedIngredients?: DetailedIngredient[];
+  suggestedSideItems?: SuggestedSideItem[];
+}
+
+export interface DetailedIngredient {
+  id: string;
+  name: string;
+  isOptional: boolean;
+  price: number;
+  isIncludedInBasePrice: boolean;
+  isActive: boolean;
+  displayOrder: number;
+  maxQuantity: number;
+  content?: Record<string, { name: string; description?: string }>;
+}
+
+export interface SuggestedSideItem {
+  id: string;
+  sideItemProductId: string;
+  sideItemProductName?: string;
+  sideItemBasePrice: number;
+  isRequired: boolean;
+  displayOrder: number;
 }
 
 /**
@@ -282,4 +307,29 @@ export interface SelectedMenuOption {
   sectionId: string;
   itemId: string;
   quantity: number;
+  // Nested customization for this item
+  specialInstructions?: string;
+  selectedIngredients?: string[];
+  excludedIngredients?: string[];
+  ingredientQuantities?: Record<string, number>;
+  selectedSideItems?: Array<{ id: string; quantity: number }>;
 }
+
+/**
+ * Menu bundle for customer display
+ */
+export interface MenuBundleItem {
+  id: string;
+  name: string;
+  description?: string;
+  basePrice: number;
+  content?: Record<string, { name: string; description: string }>;
+  menuDefinition: MenuDefinition;
+  images?: MenuItemImage[];
+  isActive: boolean;
+  isAvailable: boolean;
+  isSpecial: boolean;
+  preparationTimeMinutes?: number;
+  displayOrder: number;
+}
+

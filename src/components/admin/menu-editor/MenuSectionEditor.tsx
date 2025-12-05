@@ -21,6 +21,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Reset local state when sections prop changes
   useEffect(() => {
@@ -43,13 +44,21 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
       id: `temp-${Date.now()}`,
       name: '',
       description: '',
-      displayOrder: localSections.length,
+      displayOrder: 0, // New section goes to top
       isRequired: true,
       minSelection: 1,
       maxSelection: 1,
       items: [],
     };
-    setLocalSections([...localSections, newSection]);
+    
+    // Update display orders for existing sections
+    const updatedSections = localSections.map(s => ({
+      ...s,
+      displayOrder: s.displayOrder + 1
+    }));
+    
+    // Add new section at the beginning
+    setLocalSections([newSection, ...updatedSections]);
     setExpandedSections(new Set([...expandedSections, newSection.id]));
     setHasChanges(true);
   };
@@ -98,6 +107,37 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
     setHasChanges(true);
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newSections = [...localSections];
+    const draggedSection = newSections[draggedIndex];
+    
+    // Remove from old position
+    newSections.splice(draggedIndex, 1);
+    // Insert at new position
+    newSections.splice(index, 0, draggedSection);
+    
+    // Update display orders
+    newSections.forEach((section, i) => {
+      section.displayOrder = i;
+    });
+
+    setLocalSections(newSections);
+    setDraggedIndex(index);
+    setHasChanges(true);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   const updateSectionItems = (index: number, items: MenuSectionItem[]) => {
     updateSection(index, { items });
   };
@@ -131,7 +171,15 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
       ) : (
         <div className={styles.sectionList}>
           {localSections.map((section, index) => (
-            <div key={section.id} className={styles.sectionCard}>
+            <div 
+              key={section.id} 
+              className={styles.sectionCard}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              style={{ opacity: draggedIndex === index ? 0.5 : 1 }}
+            >
               <div className={styles.sectionHeader}>
                 <div className={styles.sectionHeaderLeft}>
                   <span className={styles.dragHandle}>⋮⋮</span>
@@ -204,20 +252,22 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                     />
                   </div>
 
-                  {/* Required Toggle & Selection Limits */}
+                  {/* Required Toggle as Chip */}
                   <div className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label className={styles.toggleLabel}>
+                    <div className={styles.chipGroup}>
+                      <div className={styles.chip}>
                         <input
                           type="checkbox"
+                          id={`required-${section.id}`}
                           checked={section.isRequired}
                           onChange={(e) =>
                             updateSection(index, { isRequired: e.target.checked })
                           }
-                          className={styles.checkbox}
                         />
-                        <span>{t('required_section')}</span>
-                      </label>
+                        <label htmlFor={`required-${section.id}`}>
+                          {t('required_section')}
+                        </label>
+                      </div>
                     </div>
                   </div>
 
@@ -256,6 +306,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                   {/* Menu Items */}
                   <MenuItemSelector
                     items={section.items}
+                    maxSelection={section.maxSelection}
                     onChange={(items) => updateSectionItems(index, items)}
                   />
                 </div>

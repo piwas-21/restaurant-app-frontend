@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import { getCategories } from "@/services/categoryService";
-import { getProducts } from "@/services/menuService";
-import type { ApiCategory, MenuItem } from "@/types/menu";
+import { getProducts, getPublicMenuBundles } from "@/services/menuService";
+import type { ApiCategory, MenuItem, MenuBundleItem } from "@/types/menu";
 
 export const ALL_ITEMS_KEY = "all" as const;
+export const MENU_BUNDLES_KEY = "menu-bundles" as const;
 
 export function usePublicMenu() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
-  const [selectedView, setSelectedView] = useState<string | typeof ALL_ITEMS_KEY | null>(ALL_ITEMS_KEY);
+  const [menuBundles, setMenuBundles] = useState<MenuBundleItem[]>([]);
+  const [selectedView, setSelectedView] = useState<string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY | null>(ALL_ITEMS_KEY);
   const [items, setItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,24 +111,78 @@ export function usePublicMenu() {
     }
   }, [pageSize]);
 
-  // Fetch products when selection changes (reset to page 1)
+  const fetchMenuBundles = useCallback(async (page: number) => {
+    setIsLoading(true);
+    setError(null);
+    setMenuBundles([]);
+    try {
+      const response = await getPublicMenuBundles(page, pageSize) as { success: boolean; message?: string; data?: { items: any[]; totalPages: number; totalCount: number } };
+      if (!response.success) throw new Error(response.message || "Failed to fetch menu bundles");
+
+      // Update pagination metadata
+      setTotalPages(response.data?.totalPages || 1);
+      setTotalCount(response.data?.totalCount || 0);
+      setCurrentPage(page);
+
+      const mapped: MenuBundleItem[] = (response.data?.items || []).map((bundle: any) => {
+        const gallery = Array.isArray(bundle.images)
+          ? bundle.images.map((img: any) => ({ url: img.url, alt: img.altText || bundle.name }))
+          : [];
+        
+        return {
+          id: bundle.id,
+          name: bundle.name || 'Unnamed Bundle',
+          description: bundle.description || '',
+          basePrice: typeof bundle.basePrice === "number" ? bundle.basePrice : parseFloat(bundle.basePrice || "0"),
+          content: bundle.content || {},
+          menuDefinition: bundle.menuDefinition || { sections: [] },
+          images: gallery,
+          isActive: bundle.isActive,
+          isAvailable: bundle.isAvailable,
+          isSpecial: bundle.isSpecial || false,
+          preparationTimeMinutes: bundle.preparationTimeMinutes,
+          displayOrder: bundle.displayOrder || 0,
+        };
+      });
+      const filtered = mapped.filter(b => b.isActive !== false && b.isAvailable !== false);
+      setMenuBundles(filtered);
+    } catch (e: any) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to fetch menu bundles", e);
+      setError(e?.message || "Failed to fetch menu bundles");
+      setMenuBundles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageSize]);
+
+  // Fetch products or menu bundles when selection changes (reset to page 1)
   useEffect(() => {
     if (!selectedView) return;
     setCurrentPage(1);
-    fetchProducts(1, selectedView);
-  }, [selectedView, fetchProducts]);
+    if (selectedView === MENU_BUNDLES_KEY) {
+      fetchMenuBundles(1);
+    } else {
+      fetchProducts(1, selectedView);
+    }
+  }, [selectedView, fetchProducts, fetchMenuBundles]);
 
   const handlePageChange = useCallback((page: number) => {
-    fetchProducts(page, selectedViewRef.current);
+    if (selectedViewRef.current === MENU_BUNDLES_KEY) {
+      fetchMenuBundles(page);
+    } else {
+      fetchProducts(page, selectedViewRef.current);
+    }
     // Scroll to top of menu section
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [fetchProducts]);
+  }, [fetchProducts, fetchMenuBundles]);
 
   return {
     categories,
     selectedView,
     setSelectedView,
     items,
+    menuBundles,
     isLoading,
     error,
     currentPage,
@@ -134,6 +190,12 @@ export function usePublicMenu() {
     totalCount,
     pageSize,
     onPageChange: handlePageChange,
-    refetch: () => fetchProducts(currentPage, selectedViewRef.current),
+    refetch: () => {
+      if (selectedViewRef.current === MENU_BUNDLES_KEY) {
+        fetchMenuBundles(currentPage);
+      } else {
+        fetchProducts(currentPage, selectedViewRef.current);
+      }
+    },
   } as const;
 }

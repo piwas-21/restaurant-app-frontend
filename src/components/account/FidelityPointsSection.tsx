@@ -143,7 +143,7 @@ export default function FidelityPointsSection() {
       )}
       {currentPoints === 0 && (
         <p className={styles.fidelityMessage}>
-          {t('earn_more_points_message', 'Earn points with every order! 100 points = $1 discount.')}
+          {t('earn_more_points_message', 'Earn points with every order! 100 points = CHF1 discount.')}
         </p>
       )}
 

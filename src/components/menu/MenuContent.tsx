@@ -1,26 +1,32 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MenuItem, ApiCategory } from '@/types/menu';
-import { ALL_ITEMS_KEY } from '@/hooks/usePublicMenu';
+import type { MenuItem, MenuBundleItem, ApiCategory } from '@/types/menu';
+import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import CategoryNav from '@/components/menu/CategoryNav';
 import MenuList from '@/components/menu/MenuList';
+import MenuBundleCard from '@/components/menu/MenuBundleCard';
+import type { LanguageCode } from '@/components/LanguageSwitcher';
 import Pagination from '@/components/common/Pagination';
 import styles from './MenuContent.module.css';
 
 interface MenuContentProps {
   categoriesForNav: ApiCategory[];
-  selectedView: string | typeof ALL_ITEMS_KEY;
-  onSelectView: (view: string | typeof ALL_ITEMS_KEY) => void;
+  selectedView: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY;
+  onSelectView: (view: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY) => void;
   categoryDisplayName: string;
   isLoadingItems: boolean;
   errorLoadingItems: string | null;
   currentMenuItems: MenuItem[];
+  menuBundles: MenuBundleItem[];
   currentPage: number;
   totalPages: number;
   totalCount: number;
   onPageChange: (page: number) => void;
   onImageClick: (item: MenuItem, imageIndex?: number) => void;
   getFallbackImage: (menuItem: MenuItem) => void;
+  currentLanguage: LanguageCode;
+  onAddBundleToCart: (bundle: MenuBundleItem) => void;
+  onViewBundleDetails: (bundle: MenuBundleItem) => void;
 }
 
 export default function MenuContent({
@@ -31,23 +37,40 @@ export default function MenuContent({
   isLoadingItems,
   errorLoadingItems,
   currentMenuItems,
+  menuBundles,
   currentPage,
   totalPages,
   totalCount,
   onPageChange,
   onImageClick,
   getFallbackImage,
+  currentLanguage,
+  onAddBundleToCart,
+  onViewBundleDetails,
 }: MenuContentProps) {
   const { t } = useTranslation();
+
+  const isMenuBundlesView = selectedView === MENU_BUNDLES_KEY;
+  const displayItems = isMenuBundlesView ? menuBundles : currentMenuItems;
 
   const displayError = errorLoadingItems
     ? t(
         selectedView === ALL_ITEMS_KEY
           ? "error_loading_all_menu_items"
+          : isMenuBundlesView
+          ? "error_loading_menu_bundles"
           : "error_loading_menu_items",
         { categoryName: categoryDisplayName }
       )
     : null;
+
+  const emptyMessage = isMenuBundlesView
+    ? t("no_bundles_available")
+    : t("no_items_in_category", { categoryName: categoryDisplayName });
+
+  const loadingMessage = isMenuBundlesView
+    ? t("loading_menu_bundles")
+    : t("loading_items", "Loading items...");
 
   return (
     <>
@@ -74,27 +97,39 @@ export default function MenuContent({
         </h2>
 
         {/* Loading State */}
-        {isLoadingItems && <p>{t("loading_items", "Loading items...")}</p>}
+        {isLoadingItems && <p>{loadingMessage}</p>}
 
         {/* Error State */}
         {displayError && <p className={styles.errorMessage}>{displayError}</p>}
 
         {/* Empty State */}
-        {!isLoadingItems && !displayError && currentMenuItems.length === 0 && (
-          <p>
-            {t("no_items_in_category", { categoryName: categoryDisplayName })}
-          </p>
+        {!isLoadingItems && !displayError && displayItems.length === 0 && (
+          <p>{emptyMessage}</p>
         )}
 
-        {/* Menu Items */}
-        {!isLoadingItems && !displayError && currentMenuItems.length > 0 && (
+        {/* Menu Items or Bundles */}
+        {!isLoadingItems && !displayError && displayItems.length > 0 && (
           <>
-            <MenuList
-              items={currentMenuItems}
-              onImageClick={onImageClick}
-              onFeedbackSuccess={() => {}}
-              getFallbackImage={getFallbackImage}
-            />
+            {isMenuBundlesView ? (
+              <div className={styles.bundlesGrid}>
+                {menuBundles.map((bundle) => (
+                  <MenuBundleCard
+                    key={bundle.id}
+                    bundle={bundle}
+                    onAdd={onAddBundleToCart}
+                    onDetails={onViewBundleDetails}
+                    currentLanguage={currentLanguage}
+                  />
+                ))}
+              </div>
+            ) : (
+              <MenuList
+                items={currentMenuItems}
+                onImageClick={onImageClick}
+                onFeedbackSuccess={() => {}}
+                getFallbackImage={getFallbackImage}
+              />
+            )}
 
             {/* Pagination */}
             <Pagination

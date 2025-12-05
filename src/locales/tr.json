@@ -1861,5 +1861,19 @@
   "delete_menu_bundle": "Menü Paketini Sil",
   "update_menu_bundle": "Menü Paketini Güncelle",
   "confirm_delete_menu_bundle_message": "Bu menü paketini silmek istediğinizden emin misiniz?",
-  "no_menu_bundles_found": "Menü paketi bulunamadı"
+  "no_menu_bundles_found": "Menü paketi bulunamadı",
+  "bundle_includes": "Bu paket şunları içerir",
+  "select_your_options": "Seçeneklerinizi Belirleyin",
+  "section_required": "Gerekli",
+  "section_optional": "İsteğe Bağlı",
+  "select_min_max": "{{min}} ila {{max}} öğe seçin",
+  "default_selection": "Varsayılan Seçim",
+  "customize_bundle": "Paketi Özelleştir",
+  "bundle_details": "Paket Detayları",
+  "add_bundle_to_cart": "Paketi Sepete Ekle",
+  "more": "daha fazla",
+  "loading_menu_bundles": "Menü paketleri yükleniyor...",
+  "no_bundles_available": "Şu anda menü paketi mevcut değil",
+  "availability_mode": "Uygunluk Modu",
+  "custom_schedule": "Özel Program"
 }

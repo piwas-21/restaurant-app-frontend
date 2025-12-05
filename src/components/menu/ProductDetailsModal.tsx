@@ -9,6 +9,7 @@ import { getProductById } from "@/services/menuService";
 import AllergenDisplay from "@/components/common/AllergenDisplay";
 import MenuCustomizationModal from "./MenuCustomizationModal";
 import { addItemToBasket } from "@/services/basketService";
+import type { LanguageCode } from "@/components/LanguageSwitcher";
 
 type Props = {
   isOpen: boolean;
@@ -18,7 +19,7 @@ type Props = {
 
 export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
   const { t, i18n } = useTranslation();
-  const currentLanguage = (i18n.language.split("-")[0] || "en");
+  const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
 
   const [detailedProduct, setDetailedProduct] = useState<DetailedProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -207,6 +208,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
             console.error('Error adding menu to basket:', error);
           }
         }}
+        currentLanguage={currentLanguage}
       />
     );
   }

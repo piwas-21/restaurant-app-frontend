@@ -1863,5 +1863,19 @@
   "delete_menu_bundle": "Eliminar Combo de Menú",
   "update_menu_bundle": "Actualizar Combo de Menú",
   "confirm_delete_menu_bundle_message": "¿Estás seguro de que quieres eliminar este combo de menú?",
-  "no_menu_bundles_found": "No se encontraron combos de menú"
+  "no_menu_bundles_found": "No se encontraron combos de menú",
+  "bundle_includes": "Este combo incluye",
+  "select_your_options": "Selecciona tus Opciones",
+  "section_required": "Requerido",
+  "section_optional": "Opcional",
+  "select_min_max": "Selecciona {{min}} a {{max}} elementos",
+  "default_selection": "Selección por Defecto",
+  "customize_bundle": "Personalizar Combo",
+  "bundle_details": "Detalles del Combo",
+  "add_bundle_to_cart": "Añadir Combo al Carrito",
+  "more": "más",
+  "loading_menu_bundles": "Cargando combos de menú...",
+  "no_bundles_available": "No hay combos de menú disponibles en este momento",
+  "availability_mode": "Modo de Disponibilidad",
+  "custom_schedule": "Horario Personalizado"
 }

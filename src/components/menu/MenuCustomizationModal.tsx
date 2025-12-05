@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import styles from './MenuCustomization.module.css';
 import { MenuDefinition, MenuSection, SelectedMenuOption } from '@/types/menu';
 import { useTranslation } from 'react-i18next';
+import ProductCustomizationInBundle, { ProductCustomization } from './ProductCustomizationInBundle';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
+import type { LanguageCode } from '@/components/LanguageSwitcher';
 
 interface MenuCustomizationModalProps {
   isOpen: boolean;
@@ -13,6 +16,7 @@ interface MenuCustomizationModalProps {
   basePrice: number;
   menuDefinition: MenuDefinition;
   onAddToBasket: (selectedOptions: SelectedMenuOption[], totalPrice: number) => void;
+  currentLanguage: LanguageCode;
 }
 
 const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
@@ -22,10 +26,23 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
   basePrice,
   menuDefinition,
   onAddToBasket,
+  currentLanguage,
 }) => {
   const { t } = useTranslation();
   const [selectedOptions, setSelectedOptions] = useState<Map<string, SelectedMenuOption[]>>(new Map());
   const [validationErrors, setValidationErrors] = useState<Map<string, string>>(new Map());
+  const [itemCustomizations, setItemCustomizations] = useState<Map<string, ProductCustomization>>(new Map());
+  const [customizingItem, setCustomizingItem] = useState<{ sectionId: string; itemId: string } | null>(null);
+
+  // Helper function to get translated ingredient names
+  const getIngredientNames = (item: any): string => {
+    if (item.detailedIngredients && item.detailedIngredients.length > 0) {
+      return item.detailedIngredients
+        .map((ing: any) => ing.content?.[currentLanguage]?.name || ing.content?.en?.name || ing.name)
+        .join(', ');
+    }
+    return item.ingredients?.join(', ') || '';
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -33,10 +50,14 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
       const defaults = new Map<string, SelectedMenuOption[]>();
       menuDefinition.sections.forEach(section => {
         const defaultItems = section.items.filter(item => item.isDefault);
-        if (defaultItems.length > 0) {
+        
+        // Respect maxSelection when initializing defaults
+        const itemsToSelect = defaultItems.slice(0, section.maxSelection);
+        
+        if (itemsToSelect.length > 0) {
           defaults.set(
             section.id,
-            defaultItems.map(item => ({
+            itemsToSelect.map(item => ({
               sectionId: section.id,
               itemId: item.productId,
               quantity: 1,
@@ -107,6 +128,13 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
         const item = section?.items.find(i => i.productId === selection.itemId);
         if (item) {
           total += item.additionalPrice * selection.quantity;
+          
+          // Add customization price if exists
+          const customizationKey = `${selection.sectionId}-${selection.itemId}`;
+          const customization = itemCustomizations.get(customizationKey);
+          if (customization) {
+            total += customization.totalPrice - (item.additionalPrice || 0);
+          }
         }
       });
     });
@@ -141,12 +169,51 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
 
     const allSelections: SelectedMenuOption[] = [];
     selectedOptions.forEach(sectionSelections => {
-      allSelections.push(...sectionSelections);
+      sectionSelections.forEach(selection => {
+        const customizationKey = `${selection.sectionId}-${selection.itemId}`;
+        const customization = itemCustomizations.get(customizationKey);
+        
+        // Add customization data to the selection
+        const enrichedSelection: SelectedMenuOption = {
+          ...selection,
+          ...(customization && {
+            selectedIngredients: customization.selectedIngredients,
+            excludedIngredients: customization.excludedIngredients,
+            ingredientQuantities: customization.ingredientQuantities,
+            selectedSideItems: customization.selectedSideItems,
+            specialInstructions: customization.specialInstructions,
+          }),
+        };
+        
+        allSelections.push(enrichedSelection);
+      });
     });
 
     const totalPrice = calculateTotalPrice();
     onAddToBasket(allSelections, totalPrice);
     onClose();
+  };
+
+  const handleCustomizeItem = (sectionId: string, itemId: string) => {
+    setCustomizingItem({ sectionId, itemId });
+  };
+
+  const handleCustomizationConfirm = (customization: ProductCustomization) => {
+    if (!customizingItem) return;
+    
+    const customizationKey = `${customizingItem.sectionId}-${customizingItem.itemId}`;
+    const newCustomizations = new Map(itemCustomizations);
+    newCustomizations.set(customizationKey, customization);
+    setItemCustomizations(newCustomizations);
+    setCustomizingItem(null);
+  };
+
+  const getItemForCustomization = () => {
+    if (!customizingItem) return null;
+    
+    const section = menuDefinition.sections.find(s => s.id === customizingItem.sectionId);
+    const item = section?.items.find(i => i.productId === customizingItem.itemId);
+    return item || null;
   };
 
   if (!isOpen) return null;
@@ -158,15 +225,15 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>{productName}</h2>
-          <button onClick={onClose} className={styles.closeButton}>
+          <button onClick={onClose} className={styles.closeButton} aria-label={t('close')}>
             ×
           </button>
         </div>
 
         <div className={styles.modalBody}>
-          <div className={styles.priceDisplay}>
+          <div className={styles.priceInfo}>
             <span>{t('base_price')}:</span>
-            <span className={styles.price}>${basePrice.toFixed(2)}</span>
+            <span className={styles.price}>CHF {basePrice.toFixed(2)}</span>
           </div>
 
           {menuDefinition.sections.map(section => {
@@ -220,11 +287,42 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                           className={styles.optionInput}
                         />
                         <div className={styles.optionDetails}>
-                          <span className={styles.optionName}>{item.productName}</span>
-                          {item.additionalPrice > 0 && (
-                            <span className={styles.optionPrice}>
-                              +${item.additionalPrice.toFixed(2)}
-                            </span>
+                          <div className={styles.optionHeader}>
+                            <span className={styles.optionName}>{item.productName}</span>
+                            {item.additionalPrice > 0 && (
+                              <span className={styles.optionPrice}>
+                                +${item.additionalPrice.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                          
+                          {getIngredientNames(item) && (
+                            <div className={styles.optionIngredients}>
+                              {getIngredientNames(item)}
+                            </div>
+                          )}
+                          
+                          {item.allergens && item.allergens.length > 0 && (
+                            <AllergenDisplay
+                              allergens={item.allergens}
+                              variant="compact"
+                              maxVisible={5}
+                              showLabel={false}
+                              className={styles.optionAllergens}
+                            />
+                          )}
+                          
+                          {/* Customize button for selected items with customizable options */}
+                          {isSelected && (item.detailedIngredients?.length || item.suggestedSideItems?.length) && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleCustomizeItem(section.id, item.productId);
+                              }}
+                              className={styles.customizeButton}
+                            >
+                              {t('customize')}
+                            </button>
                           )}
                         </div>
                       </label>
@@ -239,13 +337,28 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
         <div className={styles.modalFooter}>
           <div className={styles.totalPrice}>
             <span>{t('total')}:</span>
-            <span className={styles.price}>${totalPrice.toFixed(2)}</span>
+            <span className={styles.price}>CHF {totalPrice.toFixed(2)}</span>
           </div>
           <button onClick={handleAddToBasket} className={styles.addButton}>
             {t('add_to_basket')}
           </button>
         </div>
       </div>
+      
+      {/* Product Customization Modal */}
+      {customizingItem && getItemForCustomization() && (
+        <ProductCustomizationInBundle
+          isOpen={!!customizingItem}
+          onClose={() => setCustomizingItem(null)}
+          productName={getItemForCustomization()?.productName || ''}
+          basePrice={getItemForCustomization()?.additionalPrice || 0}
+          detailedIngredients={getItemForCustomization()?.detailedIngredients}
+          suggestedSideItems={getItemForCustomization()?.suggestedSideItems}
+          onConfirm={handleCustomizationConfirm}
+          initialCustomization={itemCustomizations.get(`${customizingItem.sectionId}-${customizingItem.itemId}`)}
+          currentLanguage={currentLanguage}
+        />
+      )}
     </div>
   );
 };

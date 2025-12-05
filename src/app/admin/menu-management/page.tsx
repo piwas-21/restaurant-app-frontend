@@ -53,24 +53,33 @@ const MenuManagementContent = () => {
   const handleOpenEditModal = async (productId: string) => {
     try {
       let response;
+      // Use the correct endpoint based on active tab
       if (activeTab === 'menus') {
+        // Menu bundles use the /api/Menus endpoint
         response = await getMenuBundleById(productId) as { success: boolean; data?: any; message?: string };
       } else {
+        // Regular products use the /api/Products endpoint
         response = await getProductById(productId) as { success: boolean; data?: any; message?: string };
       }
 
       if (response.success) {
         setSelectedProduct(response.data);
-        if (response.data.type === 'menu') {
+        // Open the appropriate modal based on product type
+        if (response.data.type === 'menu' || activeTab === 'menus') {
             setIsEditMenuModalOpen(true);
         } else {
             setIsEditModalOpen(true);
         }
       } else {
-        // Handle error
+        setResultModalMessage(response.message || 'Failed to load product details');
+        setIsResultModalSuccess(false);
+        setIsResultModalOpen(true);
       }
-    } catch {
-      // Handle error
+    } catch (error) {
+      console.error('Error loading product:', error);
+      setResultModalMessage('Failed to load product details');
+      setIsResultModalSuccess(false);
+      setIsResultModalOpen(true);
     }
   };
 

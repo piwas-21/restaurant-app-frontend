@@ -42,6 +42,7 @@ interface AddItemPayload {
   excludedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
   selectedSideItems?: Array<{ id: string; quantity: number }>;
+  selectedMenuOptions?: Array<{ sectionId: string; itemId: string; quantity: number }>;
 }
 
 interface UpdateItemPayload {

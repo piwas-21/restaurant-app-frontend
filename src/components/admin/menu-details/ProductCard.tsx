@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getProductById } from '@/services/menuService';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
 import styles from './MenuBundleDetails.module.css';
 
 interface MenuSectionItemProduct {
@@ -103,20 +104,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
           </div>
           
           <div className={styles.productTags}>
-            {product.allergens && product.allergens.length > 0 && (
-              <>
-                {product.allergens.slice(0, 3).map((allergen, idx) => (
-                  <span key={idx} className={styles.allergenBadge}>
-                    ⚠️ {allergen}
-                  </span>
-                ))}
-                {product.allergens.length > 3 && (
-                  <span className={styles.allergenBadge}>
-                    +{product.allergens.length - 3} more
-                  </span>
-                )}
-              </>
-            )}
+            <AllergenDisplay 
+              allergens={product.allergens}
+              variant="compact"
+              maxVisible={3}
+              showLabel={false}
+            />
             
             {product.ingredients && product.ingredients.length > 0 && (
               <>

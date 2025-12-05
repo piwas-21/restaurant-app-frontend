@@ -74,21 +74,51 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({
     <div className={styles.scheduleEditor}>
       <h3 className={styles.sectionTitle}>{t('menu_availability_schedule')}</h3>
 
-      {/* Always Available Toggle */}
+      {/* Availability Mode Selection */}
       <div className={modalStyles.formGroup}>
-        <div className={modalStyles.chipGroup}>
-            <div className={modalStyles.chip}>
-                <input
-                    type="checkbox"
-                    id="always-available"
-                    checked={localMenuDefinition.isAlwaysAvailable}
-                    onChange={handleToggleAlwaysAvailable}
-                />
-                <label htmlFor="always-available">{t('always_available')}</label>
-            </div>
+        <label>{t('availability_mode')}</label>
+        <div className={styles.chipGroup}>
+          <div className={styles.chip}>
+            <input
+              type="radio"
+              id="always-available"
+              name="availability-mode"
+              checked={localMenuDefinition.isAlwaysAvailable}
+              onChange={() => {}}
+            />
+            <label 
+              onClick={() => {
+                setLocalMenuDefinition({ ...localMenuDefinition, isAlwaysAvailable: true });
+                setHasChanges(true);
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              {t('always_available')}
+            </label>
+          </div>
+          <div className={styles.chip}>
+            <input
+              type="radio"
+              id="custom-schedule"
+              name="availability-mode"
+              checked={!localMenuDefinition.isAlwaysAvailable}
+              onChange={() => {}}
+            />
+            <label 
+              onClick={() => {
+                setLocalMenuDefinition({ ...localMenuDefinition, isAlwaysAvailable: false });
+                setHasChanges(true);
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              {t('custom_schedule')}
+            </label>
+          </div>
         </div>
         <p className={styles.helpText}>
-          {t('always_available_help')}
+          {localMenuDefinition.isAlwaysAvailable
+            ? t('always_available_help')
+            : t('custom_schedule_help', { defaultValue: 'Set specific days and times when this menu is available' })}
         </p>
       </div>
 

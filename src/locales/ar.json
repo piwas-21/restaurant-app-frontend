@@ -1860,5 +1860,19 @@
   "delete_menu_bundle": "حذف حزمة القائمة",
   "update_menu_bundle": "تحديث حزمة القائمة",
   "confirm_delete_menu_bundle_message": "هل أنت متأكد من حذف هذه الحزمة؟",
-  "no_menu_bundles_found": "لم يتم العثور على حزم قائمة"
+  "no_menu_bundles_found": "لم يتم العثور على حزم قائمة",
+  "bundle_includes": "يتضمن هذه الحزمة",
+  "select_your_options": "اختر خياراتك",
+  "section_required": "مطلوب",
+  "section_optional": "اختياري",
+  "select_min_max": "اختر بين {{min}} إلى {{max}} العناصر",
+  "default_selection": "الاختيار الافتراضي",
+  "customize_bundle": "تعديل حزمة",
+  "bundle_details": "تفاصيل الحزمة",
+  "add_bundle_to_cart": "إضافة الحزمة إلى السلة",
+  "more": "المزيد",
+  "loading_menu_bundles": "جارٍ تحميل حزم القائمة...",
+  "no_bundles_available": "لا حزم قائمة متاحة حاليا",
+  "availability_mode": "وضع المتاحة",
+  "custom_schedule": "جدول مخصص"
 }

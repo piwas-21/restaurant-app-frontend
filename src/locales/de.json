@@ -1869,5 +1869,19 @@
   "delete_menu_bundle": "Menü-Bundle löschen",
   "update_menu_bundle": "Menü-Bundle aktualisieren",
   "confirm_delete_menu_bundle_message": "Möchten Sie diesen Menü-Bundle wirklich löschen?",
-  "no_menu_bundles_found": "Keine Menü-Bundles gefunden"
+  "no_menu_bundles_found": "Keine Menü-Bundles gefunden",
+  "bundle_includes": "Dieses Bundle beinhaltet",
+  "select_your_options": "Wählen Sie Ihre Optionen",
+  "section_required": "Erforderlich",
+  "section_optional": "Optional",
+  "select_min_max": "Wählen Sie {{min}} bis {{max}} Elemente",
+  "default_selection": "Standardauswahl",
+  "customize_bundle": "Bundle anpassen",
+  "bundle_details": "Bundle Details",
+  "add_bundle_to_cart": "Bundle zum Warenkorb hinzufügen",
+  "more": "mehr",
+  "loading_menu_bundles": "Menü-Bundles werden geladen...",
+  "no_bundles_available": "Noch keine Menü-Bundles verfügbar",
+  "availability_mode": "Verfügbarkeitsmodus",
+  "custom_schedule": "Personalisierter Terminplan"
 }

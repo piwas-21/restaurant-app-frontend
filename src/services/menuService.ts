@@ -173,3 +173,18 @@ export const getFeaturedSpecial = async () => {
     return { success: true, data: null, message: 'No featured special available' };
   }
 };
+
+/**
+ * Get public menu bundles for customers (active and available only)
+ */
+export const getPublicMenuBundles = async (page: number = 1, pageSize: number = 10) => {
+  try {
+    const url = `${MENUS_API_URL}?page=${page}&pageSize=${pageSize}`;
+    const result = await apiClient.get(url);
+    return result;
+  } catch (error) {
+    console.error("Get Public Menu Bundles Failed:", error);
+    throw error;
+  }
+};
+

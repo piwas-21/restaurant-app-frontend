@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import styles from '@/app/styles/AdminPage.module.css';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +26,9 @@ const ProductDetailsPage = () => {
   const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const productId = params.productId as string;
+  const type = searchParams.get('type'); // 'menu' or 'product'
 
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,20 +46,25 @@ const ProductDetailsPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // First, try to fetch as a menu bundle
-      const menuResponse = await getMenuBundleById(productId) as { success: boolean; data?: any; message?: string };
+      let response;
       
-      if (menuResponse.success && menuResponse.data) {
-        setProduct(menuResponse.data);
-        setIsMenuBundle(true);
-      } else {
-        // If not a menu bundle, fetch as a product
-        const productResponse = await getProductById(productId) as { success: boolean; data?: any; message?: string };
-        if (productResponse.success && productResponse.data) {
-          setProduct(productResponse.data);
-          setIsMenuBundle(false);
+      // Use type parameter to determine which API to call
+      if (type === 'menu') {
+        response = await getMenuBundleById(productId) as { success: boolean; data?: any; message?: string };
+        if (response.success && response.data) {
+          setProduct(response.data);
+          setIsMenuBundle(true);
         } else {
-          setError(productResponse.message || 'Failed to fetch details.');
+          setError(response.message || 'Failed to fetch menu bundle details.');
+        }
+      } else {
+        // Default to product API
+        response = await getProductById(productId) as { success: boolean; data?: any; message?: string };
+        if (response.success && response.data) {
+          setProduct(response.data);
+          setIsMenuBundle(response.data.type === 'menu');
+        } else {
+          setError(response.message || 'Failed to fetch product details.');
         }
       }
     } catch {
@@ -65,7 +72,7 @@ const ProductDetailsPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [productId]);
+  }, [productId, type]);
 
   useEffect(() => {
     fetchProductData();

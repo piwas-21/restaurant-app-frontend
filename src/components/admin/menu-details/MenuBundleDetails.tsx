@@ -27,6 +27,37 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
     if (!product.menuDefinition) return;
     try {
       const updatedMenuDefinition = { ...product.menuDefinition, ...updates };
+      
+      // Clean up temporary IDs from sections and items
+      const cleanedSections = updatedMenuDefinition.sections?.map(s => {
+        const sectionData: any = {
+          name: s.name,
+          description: s.description,
+          displayOrder: s.displayOrder,
+          isRequired: s.isRequired,
+          minSelection: s.minSelection,
+          maxSelection: s.maxSelection,
+          items: s.items.map(i => {
+            const itemData: any = {
+              productId: i.productId,
+              additionalPrice: i.additionalPrice,
+              displayOrder: i.displayOrder,
+              isDefault: i.isDefault
+            };
+            // Only include id if it's not temporary
+            if (i.id && !i.id.startsWith('temp-')) {
+              itemData.id = i.id;
+            }
+            return itemData;
+          })
+        };
+        // Only include section id if it's not temporary
+        if (s.id && !s.id.startsWith('temp-')) {
+          sectionData.id = s.id;
+        }
+        return sectionData;
+      }) || [];
+
       const payload = {
         id: product.id,
         name: product.name,
@@ -38,7 +69,10 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
         preparationTimeMinutes: product.preparationTimeMinutes,
         displayOrder: product.displayOrder,
         content: product.content || {},
-        menuDefinition: updatedMenuDefinition
+        menuDefinition: {
+          ...updatedMenuDefinition,
+          sections: cleanedSections
+        }
       };
 
       await updateMenuBundle(product.id, payload);

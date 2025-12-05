@@ -8,12 +8,13 @@ import type { ApiCategory } from "@/types/menu";
 
 type Props = {
   categories: ApiCategory[];
-  selectedView: string | typeof ALL_ITEMS_KEY;
-  onSelect: (value: string | typeof ALL_ITEMS_KEY) => void;
+  selectedView: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY;
+  onSelect: (value: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY) => void;
   allLabel: string;
 };
 
 export const ALL_ITEMS_KEY = "all" as const;
+export const MENU_BUNDLES_KEY = "menu-bundles" as const;
 
 // Map API category names to translation keys
 function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
@@ -98,6 +99,7 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
   // Show maximum 5 categories at once
   const allCategories = [
     { id: ALL_ITEMS_KEY, name: allLabel, isAll: true },
+    { id: MENU_BUNDLES_KEY, name: t('menu_bundles'), isMenuBundles: true },
     ...categories.map(cat => ({ id: cat.id, name: getCategoryDisplayName(cat.name), isAll: false }))
   ];
 
@@ -129,6 +131,14 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
               aria-pressed={selectedView === ALL_ITEMS_KEY}
             >
               {allLabel}
+            </button>
+            <button
+              key={MENU_BUNDLES_KEY}
+              className={`${styles.navButton} ${selectedView === MENU_BUNDLES_KEY ? styles.navButtonActive : ""}`}
+              onClick={() => onSelect(MENU_BUNDLES_KEY)}
+              aria-pressed={selectedView === MENU_BUNDLES_KEY}
+            >
+              {t('menu_bundles')}
             </button>
             {categories.map((cat) => (
               <button

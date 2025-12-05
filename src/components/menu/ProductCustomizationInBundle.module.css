@@ -1,0 +1,425 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  padding: 1rem;
+}
+
+.modalContent {
+  background: var(--card-background);
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #f5f5f5;
+}
+
+.modalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.priceDisplay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.section h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-color);
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color, #e5e7eb);
+}
+
+.ingredientGroup {
+  margin-bottom: 1.5rem;
+}
+
+.ingredientGroup:last-child {
+  margin-bottom: 0;
+}
+
+.groupTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem 0;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.customizationItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background-color: var(--secondary-color-light, #f9fafb);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.customizationItem:has(:disabled) {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.customizationItem:hover {
+  background-color: var(--secondary-color-light, #f3f4f6);
+  border-color: var(--primary-color, #c0392b);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Fix for disabled items on hover - keep selected color if selected */
+.customizationItem:has(:disabled):not(:has(:checked)):hover {
+  background-color: var(--secondary-color-light, #f9fafb);
+  border-color: var(--border-color, #e5e7eb);
+  box-shadow: none;
+}
+
+.customizationItem:has(:checked):has(:disabled) {
+  background-color: var(--success-color-xlight, #d1fae5);
+  border-color: var(--success-color, #28a745);
+}
+
+.customizationItem:has(:checked):has(:disabled):hover {
+  background-color: var(--success-color-xlight, #d1fae5);
+  border-color: var(--success-color, #28a745);
+  box-shadow: none;
+}
+
+.customizationItem.disabled:not(.selected):hover {
+  background-color: var(--secondary-color-light, #f9fafb);
+  border-color: var(--border-color, #e5e7eb);
+  box-shadow: none;
+}
+
+.customizationItem.selected.disabled {
+  background-color: var(--success-color-xlight, #d1fae5);
+  border-color: var(--success-color, #28a745);
+}
+
+.customizationItem.selected.disabled:hover {
+  background-color: var(--success-color-xlight, #d1fae5);
+  border-color: var(--success-color, #28a745);
+  box-shadow: none;
+}
+
+.itemLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--success-color, #28a745);
+  flex-shrink: 0;
+}
+
+.checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.itemInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-color);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemPrice {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--success-color, #28a745);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.includedBadge,
+.requiredBadge {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.includedBadge {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.requiredBadge {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.quantityButton {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+.quantityButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quantity {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.noCustomization {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  font-style: italic;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  gap: 1rem;
+}
+
+.totalPrice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.totalPrice span:first-child {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.confirmButton {
+  padding: 0.75rem 2rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.confirmButton:hover {
+  background-color: var(--primary-color-dark, #d32f2f);
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] .section h4 {
+  color: var(--text-color, #f0f0f0);
+  border-bottom-color: var(--border-color, #444);
+}
+
+[data-theme="dark"] .groupTitle {
+  color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .customizationItem {
+  background-color: var(--secondary-color, #3a3a3a);
+  border-color: var(--border-color, #555);
+}
+
+[data-theme="dark"] .customizationItem:hover {
+  background-color: var(--background-color, #2c2c2c);
+  border-color: var(--primary-color, #e06666);
+}
+
+[data-theme="dark"] .customizationItem:has(:checked) {
+  background-color: var(--success-color-dark, #065f46);
+  border-color: var(--success-color, #4caf50);
+}
+
+[data-theme="dark"] .customizationItem:has(:checked):has(:disabled) {
+  background-color: var(--success-color-dark, #065f46);
+  border-color: var(--success-color, #4caf50);
+}
+
+[data-theme="dark"] .customizationItem.selected.disabled {
+  background-color: var(--success-color-dark, #065f46);
+  border-color: var(--success-color, #4caf50);
+}
+
+[data-theme="dark"] .checkbox {
+  accent-color: var(--success-color, #4caf50);
+}
+
+[data-theme="dark"] .itemName {
+  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .itemPrice {
+  color: var(--success-color, #81c784);
+}
+
+[data-theme="dark"] .quantityButton {
+  background-color: var(--border-color, #444);
+  color: var(--text-color, #f0f0f0);
+}
+
+[data-theme="dark"] .quantityButton:hover:not(:disabled) {
+  background-color: var(--primary-color, #e06666);
+}
+
+[data-theme="dark"] .quantityValue {
+  color: var(--text-color, #f0f0f0);
+}
+
+[data-theme="dark"] .textarea {
+  background-color: var(--secondary-color, #3a3a3a);
+  border-color: var(--border-color, #555);
+  color: var(--text-color, #f0f0f0);
+}
+
+[data-theme="dark"] .modalHeader h3,
+[data-theme="dark"] .priceDisplay,
+[data-theme="dark"] .totalPrice span {
+  color: var(--text-color, #f0f0f0);
+}
+
+[data-theme="dark"] .priceDisplay {
+  background-color: var(--secondary-color, #3a3a3a);
+}
+
+[data-theme="dark"] .closeButton {
+  color: var(--text-color, #f0f0f0);
+}
+
+[data-theme="dark"] .closeButton:hover {
+  background-color: var(--secondary-color, #3a3a3a);
+}

@@ -18,6 +18,16 @@
   margin-right: auto;
 }
 
+.bundlesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .errorMessage {
   text-align: center;
   padding: 2rem;
@@ -49,6 +59,11 @@
     gap: 1.5rem;
     margin-bottom: 2.5rem;
   }
+
+  .bundlesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
 }
 
 /* Mobile */
@@ -62,6 +77,11 @@
     grid-template-columns: 1fr;
     gap: 1rem;
     margin-bottom: 2rem;
+  }
+
+  .bundlesGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .errorMessage {

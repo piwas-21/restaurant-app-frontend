@@ -10,6 +10,7 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 interface MenuItemSelectorProps {
   items: MenuSectionItem[];
   onChange: (items: MenuSectionItem[]) => void;
+  maxSelection: number; // Maximum number of items that can be selected in this section
 }
 
 interface Product {
@@ -18,7 +19,7 @@ interface Product {
   basePrice: number;
 }
 
-const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange }) => {
+const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, maxSelection }) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -71,6 +72,31 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange }) 
     const newItems = [...items];
     newItems[index] = { ...newItems[index], ...updates };
     onChange(newItems);
+  };
+
+  const handleDefaultToggle = (index: number, checked: boolean) => {
+    if (checked) {
+      // Count current defaults
+      const currentDefaultCount = items.filter(item => item.isDefault).length;
+      
+      // If maxSelection is 1, behave like radio buttons - uncheck others
+      if (maxSelection === 1) {
+        const newItems = items.map((item, i) => ({
+          ...item,
+          isDefault: i === index // Only the clicked item is default
+        }));
+        onChange(newItems);
+        return;
+      }
+      
+      // For maxSelection > 1, check if we're at the limit
+      if (currentDefaultCount >= maxSelection) {
+        alert(t('max_default_items_reached', { max: maxSelection, defaultValue: `You can only mark up to ${maxSelection} item(s) as default for this section.` }));
+        return;
+      }
+    }
+    
+    updateItem(index, { isDefault: checked });
   };
 
   const confirmRemoveItem = (index: number) => {
@@ -197,9 +223,7 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange }) 
                   <input
                     type="checkbox"
                     checked={item.isDefault}
-                    onChange={(e) =>
-                      updateItem(index, { isDefault: e.target.checked })
-                    }
+                    onChange={(e) => handleDefaultToggle(index, e.target.checked)}
                     className={styles.checkbox}
                   />
                 </td>

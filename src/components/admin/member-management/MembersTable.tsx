@@ -12,10 +12,11 @@ interface MembersTableProps {
   users: UserDto[];
   onEdit: (user: UserDto) => void;
   onDelete: (user: UserDto) => void;
+  onReactivate?: (user: UserDto) => void;
   isLoading?: boolean;
 }
 
-const MembersTable: React.FC<MembersTableProps> = ({ users, onEdit, onDelete, isLoading = false }) => {
+const MembersTable: React.FC<MembersTableProps> = ({ users, onEdit, onDelete, onReactivate, isLoading = false }) => {
   const { t } = useTranslation();
   const { getRoleLabel, getRoleClassName } = useRoleHelpers();
 
@@ -122,20 +123,30 @@ const MembersTable: React.FC<MembersTableProps> = ({ users, onEdit, onDelete, is
                   </div>
                 </td>
                 <td className={styles.actionsCell}>
-                  <button
-                    className={`${styles.adminButton} ${styles.edit}`}
-                    onClick={() => onEdit(user)}
-                    disabled={user.role === 'Customer'}
-                    title={user.role === 'Customer' ? t('customers_edit_own_profile', 'Customers can only edit their own profile') : t('edit')}
-                  >
-                    {t('edit')}
-                  </button>
+                  {user.isDeleted ? (
+                    <button
+                      className={`${styles.adminButton} ${styles.edit}`}
+                      onClick={() => onReactivate && onReactivate(user)}
+                      title={t('reactivate_user', 'Reactivate User')}
+                    >
+                      {t('reactivate', 'Restore')}
+                    </button>
+                  ) : (
+                    <button
+                      className={`${styles.adminButton} ${styles.edit}`}
+                      onClick={() => onEdit(user)}
+                      disabled={user.role === 'Customer'}
+                      title={user.role === 'Customer' ? t('customers_edit_own_profile', 'Customers can only edit their own profile') : t('edit')}
+                    >
+                      {t('edit')}
+                    </button>
+                  )}
                   <button
                     className={`${styles.adminButton} ${styles.delete}`}
                     onClick={() => onDelete(user)}
-                    disabled={user.isDeleted}
+                    title={user.isDeleted ? t('delete_permanently', 'Delete Permanently') : t('delete')}
                   >
-                    {t('delete')}
+                    {user.isDeleted ? t('delete_perm', 'Del Perm') : t('delete')}
                   </button>
                 </td>
               </tr>

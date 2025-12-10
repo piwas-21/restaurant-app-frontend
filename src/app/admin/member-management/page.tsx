@@ -26,6 +26,7 @@ const MemberManagementPage = () => {
     getUsers,
     handleDeleteUser,
     handleUpdateUser,
+    handleReactivateUser,
   } = useMemberManagement();
 
   const [activeTab, setActiveTab] = useState('customers');
@@ -112,16 +113,27 @@ const MemberManagementPage = () => {
         `Are you sure you want to permanently delete ${userName}? This action cannot be undone.`);
     }
 
-    // Customers are soft deleted
+    // Customers logic
+    if (userToDelete.isDeleted) {
+       return t('delete_customer_permanent_confirmation_message',
+        `Are you sure you want to PERMANENTLY delete ${userName}? This action cannot be undone.`);
+    }
+
+    // Customers soft delete
     return t('delete_customer_confirmation_message',
       `Are you sure you want to delete ${userName}? This customer can be restored later if needed.`);
   };
 
   const handleConfirmDelete = async () => {
     if (userToDelete) {
-      const result = await handleDeleteUser(userToDelete.id);
+      // If user is already deleted, this is a permanent delete
+      const isPermanent = userToDelete.isDeleted;
+      const result = await handleDeleteUser(userToDelete.id, isPermanent);
       setIsConfirmationModalOpen(false);
-      setResultModalMessage(t(result.message || ''));
+      const messageKey = isPermanent ? 'user_permanently_deleted' : 'user_deleted_successfully';
+      const defaultMessage = isPermanent ? 'User permanently deleted' : 'User deleted successfully';
+      
+      setResultModalMessage(t(messageKey, defaultMessage));
       setIsResultModalSuccess(result.success);
       setIsResultModalOpen(true);
       setUserToDelete(null);
@@ -139,6 +151,20 @@ const MemberManagementPage = () => {
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const handleReactivate = async (user: UserDto) => {
+    const result = await handleReactivateUser(user.id);
+    setResultModalMessage(t('user_reactivated_successfully', 'User reactivated successfully'));
+    setIsResultModalSuccess(result.success);
+    setIsResultModalOpen(true);
+
+    if (result.success) {
+      const role = activeTab === 'customers' ? 'Customer' : '';
+      const showDeletedParam = activeTab === 'customers' ? showDeleted : false;
+      await getUsers(role, showDeletedParam, searchTerm, page, pageSize);
+      setStatsKey(prev => prev + 1);
+    }
+  };
 
   return (
     <AdminAuthGuard>
@@ -163,6 +189,7 @@ const MemberManagementPage = () => {
             users={users}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
+            onReactivate={handleReactivate}
             isLoading={isLoading}
           />
           <Pagination

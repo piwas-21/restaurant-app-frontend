@@ -110,17 +110,24 @@ export const updateUserDiscounts = async (command: UpdateUserDiscountsCommand): 
 /**
  * Delete/Soft delete a user (Admin only)
  */
-export const deleteUser = async (userId: string): Promise<ApiResponse<string>> => {
+export const deleteUser = async (userId: string, permanent: boolean = false): Promise<ApiResponse<string>> => {
   return await apiClient.delete<ApiResponse<string>>(`${USER_API_URL}/delete/user`, {
-    body: JSON.stringify({ userId })
+    body: JSON.stringify({ userId, permanent })
   });
+};
+
+/**
+ * Reactivate a soft-deleted user (Admin only)
+ */
+export const reactivateUser = async (userId: string): Promise<ApiResponse<string>> => {
+  return await apiClient.post<ApiResponse<string>>(`${USER_API_URL}/reactivate/${userId}`, {});
 };
 
 /**
  * Legacy method - kept for backward compatibility
  */
-export const deleteStaff = async (userId: string): Promise<ApiResponse<string>> => {
-  return deleteUser(userId);
+export const deleteStaff = async (userId: string, permanent: boolean = false): Promise<ApiResponse<string>> => {
+  return deleteUser(userId, permanent);
 };
 
 /**

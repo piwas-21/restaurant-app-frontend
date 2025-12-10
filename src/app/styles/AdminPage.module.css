@@ -86,10 +86,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   background-color: var(--card-background);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .pageTitle {
@@ -102,6 +104,27 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .pageHeader {
+    padding: 1rem;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+    width: 100%;
+  }
+
+  .pageActions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .pageActions button {
+    flex: 1;
+  }
 }
 
 
@@ -111,11 +134,34 @@
   background-color: var(--secondary-color-light, #f4f6f9);
   display: flex;
   flex-direction: column;
+  width: calc(100% - 250px);
 }
 
 .adminContainer {
   padding: 2rem;
   flex-grow: 1;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .adminMainContent {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .adminContainer {
+    padding: 1rem;
+  }
 }
 
 [data-theme="dark"] .sidebar {
@@ -225,16 +271,30 @@
 }
 
 .adminTableContainer {
-  overflow-x: auto; /* Add scroll to the container */
-  width: 100%; /* Ensure container takes full width */
+  overflow-x: auto;
+  width: 100%;
   margin-top: 1.5rem;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  border-radius: 6px;
 }
 
 .adminTable {
   width: 100%;
-  min-width: 600px; /* Example: Set a min-width for the table itself to ensure it shows scrollbar when needed */
+  min-width: 800px; /* Increased min-width for better desktop experience */
   border-collapse: collapse;
   border: 1px solid var(--border-color, #dee2e6);
+}
+
+@media (max-width: 1024px) {
+  .adminTable {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 768px) {
+  .adminTable {
+    min-width: 600px;
+  }
 }
 
 .adminTable th, .adminTable td {
@@ -505,74 +565,58 @@
     margin-bottom: 0.5rem;
   }
   .adminNav ul {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    gap: 0.5rem;
   }
   .adminNav ul li a {
-    width: 100%;
-    box-sizing: border-box;
-    text-align: left;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
   }
 }
 
 @media (max-width: 768px) {
   .adminContainer {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   .adminHeader {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   .adminHeader h1 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
   .adminContent {
     padding: 1rem;
   }
   .adminContent h2 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+  }
+
+  .adminNav ul {
+    gap: 0.5rem;
   }
 
   /* General button styling on mobile */
   .adminButton {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-    width: 100%; /* Default to full width for standalone buttons */
-    margin-right: 0;
-    margin-bottom: 0.75rem;
-  }
-  .adminButton:last-of-type {
-    margin-bottom: 0;
-  }
-  .adminButton.add {
-    margin-bottom: 1.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
   }
 
   .adminTable th, .adminTable td {
     padding: 0.5rem;
-    font-size: 0.9rem;
-  }
-  .adminTable {
-    min-width: 0;
+    font-size: 0.85rem;
   }
 
   /* Specifically target the last cell in a table row (assumed Actions cell) */
   .adminTable td:last-child {
-    white-space: normal; /* Allow content to wrap/stack */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem; /* Space between stacked buttons */
-    align-items: stretch; /* Make buttons take full cell width */
+    white-space: normal;
+    min-width: 100px;
   }
 
   /* Buttons within the last table cell */
   .adminTable td:last-child .adminButton {
-    width: 100%; /* Make buttons in this cell full width */
-    margin-right: 0;
-    margin-bottom: 0; /* Gap on parent td handles spacing */
-  }
-  .adminTable td:last-child .adminButton:last-of-type {
-    margin-bottom: 0; /* Explicitly remove for the last button in the cell */
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -646,23 +690,46 @@
 /* Filters */
 .filtersContainer {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
+
 .filtersContainer .formGroup {
   margin-bottom: 0;
+  flex: 1 1 auto;
+  min-width: 200px;
 }
+
+.filtersContainer .formGroup input[type="text"] {
+  width: 100%;
+}
+
 .filtersContainer .formGroup label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: normal;
+  white-space: nowrap;
 }
+
 .filtersContainer .formGroup input[type="checkbox"] {
   width: auto;
   margin-right: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .filtersContainer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .filtersContainer .formGroup {
+    width: 100%;
+    min-width: unset;
+  }
 }
 
 /* Pagination */

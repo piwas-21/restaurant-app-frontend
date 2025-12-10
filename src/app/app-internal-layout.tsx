@@ -141,14 +141,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
           <Sidebar isOpen={adminSidebarOpen} onClose={closeAdminSidebar} />
           {adminSidebarOpen && (
             <div
-              style={{
-                position: 'fixed',
-                inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                zIndex: 999,
-                display: 'none'
-              }}
-              className={navStyles.adminSidebarBackdrop}
+              className={`${navStyles.adminSidebarBackdrop} ${navStyles.visible}`}
               onClick={closeAdminSidebar}
               aria-hidden="true"
             />

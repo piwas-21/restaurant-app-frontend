@@ -9,6 +9,7 @@ import PersonalInfoSection from '../../components/account/PersonalInfoSection';
 import PasswordManagementSection from '../../components/account/PasswordManagementSection';
 import FidelityPointsSection from '../../components/account/FidelityPointsSection';
 import AddressManagement from '../../components/account/AddressManagement';
+import DeleteAccountSection from '../../components/account/DeleteAccountSection';
 import { getCurrentUser, updateProfile, type UpdateUserProfileCommand } from '@/services/userService';
 import { changePassword } from '@/services/authService';
 
@@ -248,6 +249,8 @@ export default function AccountPage() {
             handlePasswordChangeSubmit={handlePasswordChangeSubmit}
             getStrengthBarStyle={getStrengthBarStyle}
           />
+          
+          <DeleteAccountSection />
         </div>
 
         {/* Right Column: Fidelity Points */}

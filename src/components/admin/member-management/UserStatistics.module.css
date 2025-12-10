@@ -1,8 +1,28 @@
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .statsGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 
 .statCard {
@@ -108,9 +128,14 @@
   text-align: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 639px) {
   .statsGrid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .statCard {
+    padding: 1.25rem;
   }
 
   .statValue {
@@ -120,5 +145,9 @@
   .iconWrapper {
     width: 48px;
     height: 48px;
+  }
+
+  .statLabel {
+    font-size: 0.8rem;
   }
 }

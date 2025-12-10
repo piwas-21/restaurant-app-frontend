@@ -1,0 +1,371 @@
+/* Modern Email Verification Page Styles */
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--background-color);
+}
+
+.card {
+  background: var(--card-background);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  max-width: 550px;
+  width: 100%;
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+[data-theme="dark"] .card {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content {
+  padding: 3rem 2.5rem;
+  text-align: center;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.spinner {
+  width: 70px;
+  height: 70px;
+  border: 5px solid #e0f2fe;
+  border-top-color: #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+[data-theme="dark"] .spinner {
+  border-color: #1e3a5f;
+  border-top-color: #38bdf8;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0ea5e9;
+  margin: 0;
+}
+
+[data-theme="dark"] .loadingTitle {
+  color: #38bdf8;
+}
+
+.loadingText {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0;
+}
+
+[data-theme="dark"] .loadingText {
+  color: #94a3b8;
+}
+
+/* Success State */
+.successContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.successIconWrapper {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  animation: successPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes successPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.successIconWrapper::before {
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 3px solid #10b981;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: ripple 1.5s ease-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.successIconWrapper svg {
+  color: white;
+}
+
+.successTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #10b981;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="dark"] .successTitle {
+  color: #34d399;
+}
+
+.successMessage {
+  color: #475569;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+[data-theme="dark"] .successMessage {
+  color: #cbd5e1;
+}
+
+.redirectText {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+[data-theme="dark"] .redirectText {
+  color: #64748b;
+}
+
+.redirectText .dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.redirectText .dots span {
+  width: 6px;
+  height: 6px;
+  background: #94a3b8;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.redirectText .dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.redirectText .dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+}
+
+.loginButton {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loginButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+}
+
+.loginButton:active {
+  transform: translateY(0);
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.errorIconWrapper {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: errorShake 0.6s ease-out;
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-15px);
+  }
+  75% {
+    transform: translateX(15px);
+  }
+}
+
+.errorIconWrapper svg {
+  color: white;
+}
+
+.errorTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ef4444;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="dark"] .errorTitle {
+  color: #fca5a5;
+}
+
+.errorMessage {
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 2rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+}
+
+[data-theme="dark"] .errorMessage {
+  background: rgba(127, 29, 29, 0.2);
+  color: #fca5a5;
+}
+
+.backButton {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: white;
+  border: 2px solid #ef4444;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+[data-theme="dark"] .backButton {
+  background: #1f1f1f;
+  color: #fca5a5;
+  border-color: #7f1d1d;
+}
+
+.backButton:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .backButton:hover {
+  background: #7f1d1d;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .content {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .successTitle,
+  .errorTitle {
+    font-size: 1.5rem;
+  }
+
+  .loadingTitle {
+    font-size: 1.5rem;
+  }
+
+  .successIconWrapper,
+  .errorIconWrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .loginButton,
+  .backButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

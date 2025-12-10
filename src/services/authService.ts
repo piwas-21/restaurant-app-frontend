@@ -193,6 +193,29 @@ export async function verifyEmail(formData: VerifyEmailCommand) {
   return response.json();
 }
 
+export async function requestAccountDeletion() {
+  const token = localStorage.getItem("auth_token");
+  const response = await fetch(`${API_BASE_URL}/api/User/request-deletion`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+  });
+  return response.json();
+}
+
+export async function confirmAccountDeletion(data: { userId: string; token: string }) {
+  const response = await fetch(`${API_BASE_URL}/api/User/confirm-deletion`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
+
 export async function googleLogin(idToken: string) {
   const response = await fetch(`${AUTH_API_URL}/google-login`, {
     method: 'POST',

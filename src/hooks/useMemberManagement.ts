@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { fetchUsers, deleteStaff, updateStaff } from '@/services/userService';
+import { fetchUsers, deleteStaff, updateStaff, reactivateUser } from '@/services/userService';
 import type { UserDto, UpdateStaffCommand } from '@/types/user';
 
 export const useMemberManagement = () => {
@@ -30,9 +30,18 @@ export const useMemberManagement = () => {
     }
   }, []);
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string, permanent: boolean = false) => {
     try {
-      const data = await deleteStaff(userId) as { success: boolean; message?: string };
+      const data = await deleteStaff(userId, permanent) as { success: boolean; message?: string };
+      return { success: data.success, message: data.message };
+    } catch {
+      return { success: false, message: 'An unexpected error occurred.' };
+    }
+  };
+
+  const handleReactivateUser = async (userId: string) => {
+    try {
+      const data = await reactivateUser(userId) as { success: boolean; message?: string };
       return { success: data.success, message: data.message };
     } catch {
       return { success: false, message: 'An unexpected error occurred.' };
@@ -70,5 +79,6 @@ export const useMemberManagement = () => {
     getUsers,
     handleDeleteUser,
     handleUpdateUser,
+    handleReactivateUser,
   };
 };

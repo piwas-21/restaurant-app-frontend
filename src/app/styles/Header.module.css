@@ -1,7 +1,4 @@
 /* src/app/styles/Header.module.css */
-.headerNav {
-  /* Styles for the main nav container if needed, currently parent div handles alignment */
-}
 
 .navLinksContainer {
   display: flex; /* Default for desktop: links in a row */
@@ -244,7 +241,7 @@
 .adminSidebarBackdrop {
   display: none;
   position: fixed;
-  top: 80px;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;

@@ -119,7 +119,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   ];
 
   return (
-    <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
+    <aside className={`${styles.sidebar} ${isOpen ? 'open' : ''}`}>
       <div className={styles.sidebarTitle} suppressHydrationWarning>
         {isClient ? t('admin_dashboard_title') : 'Admin Dashboard'}
       </div>

@@ -76,7 +76,7 @@ describe('userService', () => {
 
       expect(mockApiClient.delete).toHaveBeenCalledWith(
         '/api/User/delete/user',
-        { body: JSON.stringify({ userId }) }
+        { body: JSON.stringify({ userId, permanent: false }) }
       );
       expect(result).toEqual(mockResponse);
     });

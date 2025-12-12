@@ -36,6 +36,22 @@ npm_test:
     script:
         - npm test
 
+npm_audit:
+    image: node:18-bullseye
+    stage: test
+    before_script:
+        - npm install
+    script:
+        - npm audit --audit-level=high
+        - npm audit --json > audit-report.json || true
+    artifacts:
+        reports:
+            dependency_scanning: audit-report.json
+        paths:
+            - audit-report.json
+        expire_in: 30 days
+    allow_failure: false  # Block pipeline on high/critical vulnerabilities
+
 
 # Static Application Security Tests (SAST)
 

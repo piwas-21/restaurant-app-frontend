@@ -71,7 +71,7 @@ export async function updateOrderStatus(
 ): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/status`,
-    { orderId, status },
+    { orderId, newStatus: status },
     { requireAuth: true }
   );
 
@@ -198,4 +198,76 @@ export async function sendConfirmationEmail(orderId: string): Promise<void> {
     {},
     { requireAuth: false }
   );
+}
+
+/**
+ * Quick confirm order with preparation time (used in cashier quick-confirm modal)
+ * Uses the proper order status update API endpoint
+ */
+export async function quickConfirmOrder(
+  orderNumber: string,
+  preparationMinutes: number
+): Promise<void> {
+  // First, get the order by number to get its ID
+  const ordersResponse = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?search=${orderNumber}&pageSize=1`, {
+    requireAuth: true,
+  });
+
+  const order = ordersResponse.data?.items?.[0];
+  if (!order) {
+    throw new Error(`Order ${orderNumber} not found`);
+  }
+
+  // Match backend logic: preparation time > 10 minutes requires customer approval
+  const delayThresholdMinutes = 10;
+  const newStatus = preparationMinutes > delayThresholdMinutes ? 'PendingApproval' : 'Confirmed';
+  const statusNote = preparationMinutes > delayThresholdMinutes
+    ? `Pending customer approval for ${preparationMinutes} min preparation time`
+    : `Confirmed via quick-action with ${preparationMinutes} min preparation time`;
+
+  // Update the order status
+  const response = await apiClient.put<OrderDtoApiResponse>(
+    `/api/orders/${order.id}/status`,
+    {
+      orderId: order.id,
+      newStatus: newStatus,
+      estimatedPreparationMinutes: preparationMinutes,
+      notes: statusNote,
+    },
+    { requireAuth: true }
+  );
+
+  if (!response.data) {
+    throw new Error('Failed to confirm order');
+  }
+}
+
+/**
+ * Quick cancel order (used in cashier quick-confirm modal)
+ * Uses the proper order cancel API endpoint
+ */
+export async function quickCancelOrder(orderNumber: string): Promise<void> {
+  // First, get the order by number to get its ID
+  const ordersResponse = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?search=${orderNumber}&pageSize=1`, {
+    requireAuth: true,
+  });
+
+  const order = ordersResponse.data?.items?.[0];
+  if (!order) {
+    throw new Error(`Order ${orderNumber} not found`);
+  }
+
+  // Cancel the order
+  const response = await apiClient.post<OrderDtoApiResponse>(
+    `/api/orders/${order.id}/cancel`,
+    {
+      orderId: order.id,
+      cancellationReason: 'Cancelled by cashier via quick-action',
+    },
+    { requireAuth: true }
+  );
+
+  if (!response.data) {
+    throw new Error('Failed to cancel order');
+  }
 }

@@ -1,10 +1,3 @@
-/**
- * Tip Selector Component
- *
- * Allows customers to add an optional tip with quick percentage options or custom amount
- * Following UX best practices: optional by default, clear labeling, no pressure
- */
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart } from 'lucide-react';
@@ -27,22 +20,38 @@ export default function TipSelector({
   const [selectedOption, setSelectedOption] = useState<TipOption>('none');
   const [customAmount, setCustomAmount] = useState('');
 
+  const roundTipAmount = (amount: number) => {
+    // Avoid floating point errors by working with integers
+    const totalCents = Math.round(amount * 100);
+    const centsPart = totalCents % 100;
+
+    // Special rule: everything below .10 goes to .00
+    if (centsPart < 10) {
+      return (totalCents - centsPart) / 100;
+    }
+
+    // Standard rule: round down to nearest 0.05
+    const remainder = totalCents % 5;
+    return (totalCents - remainder) / 100;
+  };
+
   // Update selected option based on tip amount
   useEffect(() => {
     if (selectedTipAmount === 0) {
       setSelectedOption('none');
       setCustomAmount('');
     } else {
-      // Check if it matches a percentage
-      const tip10 = subtotal * 0.10;
-      const tip15 = subtotal * 0.15;
-      const tip20 = subtotal * 0.20;
+      // Check if it matches a percentage (using rounded values)
+      const tip10 = roundTipAmount(subtotal * 0.10);
+      const tip15 = roundTipAmount(subtotal * 0.15);
+      const tip20 = roundTipAmount(subtotal * 0.20);
 
-      if (Math.abs(selectedTipAmount - tip10) < 0.01) {
+      // Use a small epsilon for float comparison
+      if (Math.abs(selectedTipAmount - tip10) < 0.001) {
         setSelectedOption(10);
-      } else if (Math.abs(selectedTipAmount - tip15) < 0.01) {
+      } else if (Math.abs(selectedTipAmount - tip15) < 0.001) {
         setSelectedOption(15);
-      } else if (Math.abs(selectedTipAmount - tip20) < 0.01) {
+      } else if (Math.abs(selectedTipAmount - tip20) < 0.001) {
         setSelectedOption(20);
       } else {
         setSelectedOption('custom');
@@ -62,8 +71,9 @@ export default function TipSelector({
       return;
     } else {
       // Calculate percentage tip
-      const tipAmount = subtotal * (option / 100);
-      onTipChange(tipAmount);
+      const rawTip = subtotal * (option / 100);
+      const roundedTip = roundTipAmount(rawTip);
+      onTipChange(roundedTip);
       setCustomAmount('');
     }
   };
@@ -82,7 +92,7 @@ export default function TipSelector({
   };
 
   const calculateTipAmount = (percentage: number) => {
-    return subtotal * (percentage / 100);
+    return roundTipAmount(subtotal * (percentage / 100));
   };
 
   const formatPrice = (price: number) => {

@@ -251,70 +251,113 @@
   font-size: 0.9375rem;
 }
 
-.orderItem {
-  padding: 1rem;
-  margin-bottom: 0.75rem;
+/* Modern Order Cards */
+.orderCard {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
   background: var(--background-light);
-  border: 2px solid transparent;
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-left-width: 4px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.orderItem:hover {
-  border-color: var(--border-color);
-}
-
-.orderItem.selected {
+.orderCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color);
-  background: rgba(192, 0, 0, 0.05);
 }
 
-.orderItemHeader {
+.orderCardSelected {
+  border-color: var(--primary-color) !important;
+  background: rgba(192, 0, 0, 0.03);
+  box-shadow: 0 4px 16px rgba(192, 0, 0, 0.15);
+}
+
+.orderCardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.875rem;
+}
+
+.orderCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.orderTypeIcon {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .orderNumber {
   font-weight: 700;
   color: var(--text-color);
   font-family: 'Courier New', monospace;
+  font-size: 1rem;
 }
 
 .orderStatusBadge {
-  padding: 0.25rem 0.75rem;
-  background: var(--primary-color);
+  padding: 0.375rem 0.875rem;
   color: white;
-  border-radius: 12px;
+  border-radius: 16px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.orderCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
 }
 
 .orderCustomer {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.orderFooter {
+.customerName {
+  font-size: 0.9375rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.tableNumber {
+  font-size: 0.8125rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  background: rgba(192, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.orderCardFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .orderTotal {
   font-weight: 700;
   color: var(--primary-color);
+  font-size: 1.0625rem;
 }
 
 .orderTime {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 /* Main Area - Order Details */

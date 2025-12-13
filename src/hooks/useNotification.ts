@@ -151,12 +151,69 @@ export function useNotification() {
     [addNotification]
   );
 
+  const notifyOrderUpdate = useCallback(
+    (orderNumber: string, status: string) => {
+      addNotification({
+        type: 'info',
+        title: '🔔 Order Updated!',
+        message: `Order #${orderNumber} status changed to ${status}`,
+        duration: 6000,
+        sound: true,
+      });
+    },
+    [addNotification]
+  );
+
+  // Play a different notification sound for order updates (lower pitch, softer)
+  const playOrderUpdateSound = useCallback(() => {
+    if (!audioContextRef.current || !audioEnabled) return;
+
+    try {
+      const audioContext = audioContextRef.current;
+      
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
+      const now = audioContext.currentTime;
+
+      // Different sound: C4, E4, G4 (softer, lower pitch than new order)
+      const playNote = (frequency: number, startTime: number, duration: number, volume: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+
+      // Lower, softer sound: C4 (261.63 Hz), E4 (329.63 Hz), G4 (392 Hz)
+      playNote(261.63, now, 0.25, 0.15);         // C4
+      playNote(329.63, now + 0.08, 0.3, 0.12);   // E4
+      playNote(392, now + 0.16, 0.5, 0.08);      // G4
+
+    } catch (error) {
+      console.error('Could not play order update sound:', error);
+    }
+  }, [audioEnabled]);
+
   return {
     notifications,
     addNotification,
     removeNotification,
     notifyNewOrder,
     notifyOrderReady,
+    notifyOrderUpdate,
+    playOrderUpdateSound,
     audioEnabled,
     toggleAudio,
   };

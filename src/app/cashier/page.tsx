@@ -11,12 +11,14 @@ import PaymentDialog from '@/components/cashier/PaymentDialog';
 import RefundDialog from '@/components/cashier/RefundDialog';
 import CancelOrderDialog from '@/components/cashier/CancelOrderDialog';
 import FocusOrderDialog from '@/components/cashier/FocusOrderDialog';
+import QuickConfirmModal from '@/components/cashier/QuickConfirmModal';
 import NotificationCenter from '@/components/cashier/NotificationCenter';
 import { OrderType } from '@/types/order';
 import { QRCodeValidationResult } from '@/types/userGroupTypes';
 import styles from '@/app/styles/CashierPage.module.css';
 import { RefreshCw, QrCode } from 'lucide-react';
 import QRScannerDialog from '@/components/cashier/QRScannerDialog';
+import { quickConfirmOrder, quickCancelOrder } from '@/services/cashierService';
 
 export default function CashierPage() {
   const { t } = useTranslation();
@@ -48,6 +50,9 @@ export default function CashierPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFocusDialog, setShowFocusDialog] = useState(false);
   const [showQRScannerDialog, setShowQRScannerDialog] = useState(false);
+  const [showQuickConfirmModal, setShowQuickConfirmModal] = useState(false);
+  const [pendingOrderForConfirm, setPendingOrderForConfirm] = useState<string | null>(null);
+  const [dismissedOrders, setDismissedOrders] = useState<Set<string>>(new Set());
 
   // Dialog feedback messages
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -58,10 +63,13 @@ export default function CashierPage() {
     notifications,
     removeNotification,
     notifyNewOrder,
+    notifyOrderUpdate,
+    playOrderUpdateSound,
     audioEnabled,
     toggleAudio,
   } = useNotification();
   const previousOrderCountRef = useRef(0);
+  const previousOrderStatusesRef = useRef<Map<string, string>>(new Map());
   const isInitialLoadRef = useRef(true);
 
   // Get selected order
@@ -131,6 +139,16 @@ export default function CashierPage() {
           order.orderNumber || order.id,
           order.customerName || ''
         );
+
+        // Auto-show quick-confirm modal for non-dine-in orders
+        if (
+          order.type !== OrderType.DineIn &&
+          order.status === 'Pending' &&
+          !dismissedOrders.has(order.id)
+        ) {
+          setPendingOrderForConfirm(order.id);
+          setShowQuickConfirmModal(true);
+        }
       });
 
       // Visual flash effect for new orders (fallback when sound disabled)
@@ -153,7 +171,27 @@ export default function CashierPage() {
     }
 
     previousOrderCountRef.current = orders.length;
-  }, [orders, notifyNewOrder, audioEnabled]);
+  }, [orders, notifyNewOrder, audioEnabled, dismissedOrders]);
+
+  // Monitor order status changes (e.g., customer approvals)
+  useEffect(() => {
+    // Skip on initial load
+    if (isInitialLoadRef.current) return;
+
+    orders.forEach((order) => {
+      const previousStatus = previousOrderStatusesRef.current.get(order.id);
+      
+      // If status changed (and we had a previous status)
+      if (previousStatus && previousStatus !== order.status) {
+        // Notify about the status change
+        notifyOrderUpdate(order.orderNumber, order.status);
+        playOrderUpdateSound();
+      }
+      
+      // Update the tracked status
+      previousOrderStatusesRef.current.set(order.id, order.status);
+    });
+  }, [orders, notifyOrderUpdate, playOrderUpdateSound]);
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
@@ -251,6 +289,46 @@ export default function CashierPage() {
       setShowFocusDialog(false);
     }
   }, [selectedOrder, toggleFocusOrder, t]);
+
+  // Handle quick confirm from modal
+  const handleQuickConfirm = useCallback(async (orderNumber: string, preparationMinutes: number) => {
+    try {
+      await quickConfirmOrder(orderNumber, preparationMinutes);
+      await refreshOrders(); // Refresh to get updated order
+      showSuccess(`Order ${orderNumber} confirmed with ${preparationMinutes} min preparation time`);
+    } catch (err) {
+      showError((err as Error).message || 'Failed to confirm order');
+      throw err; // Re-throw so modal can handle
+    }
+  }, [refreshOrders]);
+
+  // Handle quick cancel from modal
+  const handleQuickCancel = useCallback(async (orderNumber: string) => {
+    try {
+      await quickCancelOrder(orderNumber);
+      await refreshOrders(); // Refresh to get updated order
+      showSuccess(`Order ${orderNumber} has been cancelled`);
+    } catch (err) {
+      showError((err as Error).message || 'Failed to cancel order');
+      throw err; // Re-throw so modal can handle
+    }
+  }, [refreshOrders]);
+
+  // Handle modal close (dismiss)
+  const handleQuickConfirmModalClose = useCallback(() => {
+    if (pendingOrderForConfirm) {
+      // Mark as dismissed so it doesn't auto-popup again
+      setDismissedOrders(prev => new Set(prev).add(pendingOrderForConfirm));
+    }
+    setShowQuickConfirmModal(false);
+    setPendingOrderForConfirm(null);
+  }, [pendingOrderForConfirm]);
+
+  // Open quick-confirm modal manually
+  const openQuickConfirmModal = useCallback((orderId: string) => {
+    setPendingOrderForConfirm(orderId);
+    setShowQuickConfirmModal(true);
+  }, []);
 
   // Utility functions
   const showSuccess = (message: string) => {
@@ -463,6 +541,7 @@ export default function CashierPage() {
                 onRefund={() => setShowRefundDialog(true)}
                 onCancel={() => setShowCancelDialog(true)}
                 onToggleFocus={() => setShowFocusDialog(true)}
+                onQuickConfirm={openQuickConfirmModal}
               />
             ) : (
               <div className={styles.noOrderSelected}>
@@ -517,6 +596,14 @@ export default function CashierPage() {
           // For now, we just show a success message
           showSuccess(t('cashier.discount_info_loaded') || 'Discount information loaded');
         }}
+      />
+
+      <QuickConfirmModal
+        order={pendingOrderForConfirm ? orders.find(o => o.id === pendingOrderForConfirm) || null : null}
+        isOpen={showQuickConfirmModal}
+        onClose={handleQuickConfirmModalClose}
+        onConfirm={handleQuickConfirm}
+        onCancel={handleQuickCancel}
       />
       </div>
     </div>

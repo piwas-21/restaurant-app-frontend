@@ -14,6 +14,54 @@ interface OrderListProps {
   error: string | null;
 }
 
+// Helper to get time ago string
+const getTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  return date.toLocaleDateString();
+};
+
+// Helper to get order type display
+const getOrderTypeDisplay = (type: string) => {
+  switch (type) {
+    case OrderType.DineIn:
+      return { icon: '🍽️', label: 'Dine In', color: '#3b82f6' };
+    case OrderType.Takeaway:
+      return { icon: '🛍️', label: 'Takeaway', color: '#f97316' };
+    case OrderType.Delivery:
+      return { icon: '🚚', label: 'Delivery', color: '#8b5cf6' };
+    default:
+      return { icon: '📦', label: type, color: '#6b7280' };
+  }
+};
+
+// Helper to get status color
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return '#fbbf24';
+    case 'confirmed':
+      return '#10b981';
+    case 'preparing':
+      return '#3b82f6';
+    case 'ready':
+      return '#8b5cf6';
+    case 'completed':
+      return '#6b7280';
+    case 'cancelled':
+      return '#ef4444';
+    default:
+      return '#6b7280';
+  }
+};
+
 export default function OrderList({
   orders,
   selectedOrderId,
@@ -50,38 +98,57 @@ export default function OrderList({
 
   return (
     <div className={styles.orderList}>
-      {orders.map((order) => (
-        <div
-          key={order.id}
-          className={`${styles.orderItem} ${
-            selectedOrderId === order.id ? styles.selected : ''
-          }`}
-          onClick={() => onSelectOrder(order.id)}
-        >
-          <div className={styles.orderItemHeader}>
-            <span className={styles.orderNumber}>{order.orderNumber}</span>
-            <span className={styles.orderStatusBadge}>
-              {t(`order_status.${order.status.toLowerCase()}`, order.status)}
-            </span>
-          </div>
-          <div className={styles.orderCustomer}>
-            {order.customerName || t('guest.label', 'Guest')}
-            {order.type === OrderType.DineIn && order.tableNumber && (
-              <span style={{ marginLeft: '0.5rem', color: 'var(--primary-color)', fontWeight: 600 }}>
-                • Table {order.tableNumber}
+      {orders.map((order) => {
+        const orderTypeDisplay = getOrderTypeDisplay(order.type);
+        const statusColor = getStatusColor(order.status);
+        const isSelected = selectedOrderId === order.id;
+
+        return (
+          <div
+            key={order.id}
+            className={`${styles.orderCard} ${isSelected ? styles.orderCardSelected : ''}`}
+            onClick={() => onSelectOrder(order.id)}
+            style={{
+              borderLeftColor: orderTypeDisplay.color,
+            }}
+          >
+            <div className={styles.orderCardHeader}>
+              <div className={styles.orderCardTitle}>
+                <span className={styles.orderTypeIcon}>{orderTypeDisplay.icon}</span>
+                <span className={styles.orderNumber}>{order.orderNumber}</span>
+              </div>
+              <span 
+                className={styles.orderStatusBadge}
+                style={{ backgroundColor: statusColor }}
+              >
+                {t(`order_status.${order.status.toLowerCase()}`, order.status)}
               </span>
-            )}
+            </div>
+
+            <div className={styles.orderCardBody}>
+              <div className={styles.orderCustomer}>
+                <span className={styles.customerName}>
+                  {order.customerName || t('guest.label', 'Guest')}
+                </span>
+                {order.type === OrderType.DineIn && order.tableNumber && (
+                  <span className={styles.tableNumber}>
+                    Table {order.tableNumber}
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.orderCardFooter}>
+                <span className={styles.orderTotal}>
+                  CHF {order.total?.toFixed(2) || '0.00'}
+                </span>
+                <span className={styles.orderTime}>
+                  {getTimeAgo(order.orderDate)}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className={styles.orderFooter}>
-            <span className={styles.orderTotal}>
-              CHF {order.total?.toFixed(2) || '0.00'}
-            </span>
-            <span className={styles.orderTime}>
-              {new Date(order.orderDate).toLocaleTimeString()}
-            </span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

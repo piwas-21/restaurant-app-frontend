@@ -40,59 +40,56 @@ const MenuItem: React.FC<MenuItemProps> = ({
   // Get current language - component will re-render when i18n.language changes
   const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
 
-  // Check if product has customization options
-  const hasCustomizationOptions =
-    (item.variations && item.variations.length > 0) ||
-    (item.detailedIngredients && item.detailedIngredients.length > 0) ||
-    (item.suggestedSideItems && item.suggestedSideItems.length > 0);
-
   const handleAddItemToCart = useCallback(async () => {
-    // If product has customization options, fetch full details and show customization modal
-    if (hasCustomizationOptions) {
-      setIsLoadingDetails(true);
-      try {
-        // Fetch full product details to ensure we have detailedIngredients and suggestedSideItems
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${item.id}`);
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            setDetailedProduct(result.data);
-            setShowCustomization(true);
-          } else {
-            throw new Error('Failed to load product details');
-          }
-        } else {
-          throw new Error('Failed to fetch product details');
-        }
-      } catch (error) {
-        console.error('Error fetching product details:', error);
-        enqueueSnackbar(t("error_loading_product", "Failed to load product details"), {
-          variant: "error",
-        });
-      } finally {
-        setIsLoadingDetails(false);
-      }
-      return;
-    }
-
-    // Otherwise, add directly to cart
-    const itemName =
-      item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
-
+    // Always fetch full product details first to check for customization options
+    setIsLoadingDetails(true);
     try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${item.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch product details');
+      }
+      
+      const result = await response.json();
+      if (!result.success || !result.data) {
+        throw new Error('Failed to load product details');
+      }
+      
+      const fullProduct = result.data;
+      
+      // Check if product has customization options
+      const hasCustomizationOptions =
+        (fullProduct.variations && fullProduct.variations.length > 0) ||
+        (fullProduct.detailedIngredients && fullProduct.detailedIngredients.length > 0) ||
+        (fullProduct.suggestedSideItems && fullProduct.suggestedSideItems.length > 0);
+      
+      if (hasCustomizationOptions) {
+        // Show customization modal
+        setDetailedProduct(fullProduct);
+        setShowCustomization(true);
+        setIsLoadingDetails(false);
+        return;
+      }
+      
+      // No customization needed, add directly to cart
+      setIsLoadingDetails(false);
+      const itemName =
+        fullProduct.content?.[currentLanguage]?.name || fullProduct.content?.en?.name || fullProduct.name;
+
       await addItem({
-        productId: item.id,
+        productId: fullProduct.id,
         quantity: 1,
       });
       enqueueSnackbar(t("item_added_to_cart_toast", { itemName }), {
         variant: "success",
       });
-    } catch {
-      enqueueSnackbar(t("error_adding_to_cart", "Failed to add item to cart"), {
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      setIsLoadingDetails(false);
+      enqueueSnackbar(t("error_loading_product", "Failed to load product details"), {
         variant: "error",
       });
     }
-  }, [addItem, enqueueSnackbar, t, currentLanguage, item, hasCustomizationOptions]);
+  }, [addItem, enqueueSnackbar, t, currentLanguage, item.id]);
 
   const handleCustomizationConfirm = useCallback(async (customization: ProductCustomization) => {
     const itemName =

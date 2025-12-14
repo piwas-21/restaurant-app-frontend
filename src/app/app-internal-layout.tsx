@@ -17,7 +17,7 @@ import FooterCookieLink from "@/components/FooterCookieLink";
 import UserMenu from "@/components/UserMenu";
 import { useAuth } from "@/components/AuthContext";
 import Sidebar from "@/components/admin/Sidebar";
-import { Home, UtensilsCrossed, CalendarCheck, ShoppingCart, LayoutDashboard, Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, UtensilsCrossed, CalendarCheck, ShoppingCart, LayoutDashboard, Menu, X, ChevronLeft, ChevronRight, Receipt } from "lucide-react";
 import { useCart } from "@/components/cart/CartContext";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -84,6 +84,20 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const renderNavLinks = () => {
     if (isLoading) return null;
     const role = user?.role.toLowerCase();
+    
+    // Cashier: Show only Cashier link
+    if (role === 'cashier') {
+      return (
+        <>
+          <Link href="/cashier" className={`nav-link ${pathname === '/cashier' ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <Receipt size={18} />
+            <span>{t('nav_cashier', 'Cashier')}</span>
+          </Link>
+        </>
+      );
+    }
+    
+    // Admin: Show all customer links + admin dashboard
     if (role === 'admin') {
       return (
         <>
@@ -111,6 +125,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
         </>
       );
     }
+    
+    // Regular users: Show customer navigation
     return (
       <>
         <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>

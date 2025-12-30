@@ -2006,5 +2006,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "点击或与页面交互以允许播放音频。",
   "check_your_browsers_autoplay_settings": "检查浏览器的自动播放设置。",
   "check_your_internet_connection": "检查您的互联网连接。",
-  "try_a_hard_refresh": "尝试强制刷新（Ctrl+F5）。"
+  "try_a_hard_refresh": "尝试强制刷新（Ctrl+F5）。",
+  "audio_blocked": "音频已被阻止",
+  "new_order_received": "收到新订单",
+  "quick_confirm_subtitle": "确认或设置准备时间",
+  "common.close": "关闭",
+  "action_required": "请确认或取消此订单",
+  "confirm_now": "立即确认",
+  "or": "或",
+  "confirm_with_prep_time": "确认并设置准备时间：",
+  "customer_notification_info": "在您采取操作后，系统将自动通知客户。"
 }

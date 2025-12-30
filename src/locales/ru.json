@@ -1946,5 +1946,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "Нажмите или взаимодействуйте со страницей, чтобы разрешить воспроизведение аудио.",
   "check_your_browsers_autoplay_settings": "Проверьте настройки автовоспроизведения в браузере.",
   "check_your_internet_connection": "Проверьте подключение к интернету.",
-  "try_a_hard_refresh": "Попробуйте жёсткое обновление (Ctrl+F5)."
+  "try_a_hard_refresh": "Попробуйте жёсткое обновление (Ctrl+F5).",
+  "audio_blocked": "Звук заблокирован",
+  "new_order_received": "Получен новый заказ",
+  "quick_confirm_subtitle": "Подтвердите или установите время приготовления",
+  "common.close": "Закрыть",
+  "action_required": "Пожалуйста, подтвердите или отмените этот заказ",
+  "confirm_now": "Подтвердить сейчас",
+  "or": "или",
+  "confirm_with_prep_time": "Подтвердить с временем приготовления:",
+  "customer_notification_info": "Клиент будет автоматически уведомлён после вашего действия."
 }

@@ -75,7 +75,7 @@ export default function CashierHeader({
         {/* Audio Blocked Warning */}
         {audioBlockedByPolicy && (
           <div className={styles.connectionStatus} style={{ backgroundColor: '#fff3cd', borderColor: '#ffc107', color: '#856404' }}>
-            <span>⚠️ {t('cashier.audio_blocked') || 'Audio Blocked'}</span>
+            <span>⚠️ {t('audio_blocked') || 'Audio Blocked'}</span>
           </div>
         )}
 

@@ -72,10 +72,10 @@ export default function QuickConfirmModal({
             <div className={styles.orderTypeIcon}>{orderTypeEmoji}</div>
             <div>
               <h2 className={styles.title}>
-                {t('cashier.new_order_received', 'New Order Received')}
+                {t('new_order_received', 'New Order Received')}
               </h2>
               <p className={styles.subtitle}>
-                {t('cashier.quick_confirm_subtitle', 'Confirm or set preparation time')}
+                {t('quick_confirm_subtitle', 'Confirm or set preparation time')}
               </p>
             </div>
           </div>
@@ -94,13 +94,13 @@ export default function QuickConfirmModal({
           <div className={styles.orderSummary}>
             <div className={styles.summaryRow}>
               <span className={styles.label}>
-                {t('order.order_number', 'Order Number')}
+                {t('order_number', 'Order Number')}
               </span>
               <span className={styles.value}>{order.orderNumber}</span>
             </div>
             <div className={styles.summaryRow}>
               <span className={styles.label}>
-                {t('order.type', 'Type')}
+                {t('type', 'Type')}
               </span>
               <span className={styles.valueBadge}>
                 {orderTypeEmoji} {orderTypeLabel}
@@ -108,7 +108,7 @@ export default function QuickConfirmModal({
             </div>
             <div className={styles.summaryRow}>
               <span className={styles.label}>
-                {t('customer.name', 'Customer')}
+                {t('customer', 'Customer')}
               </span>
               <span className={styles.value}>{order.customerName || t('guest.label', 'Guest')}</span>
             </div>
@@ -122,7 +122,7 @@ export default function QuickConfirmModal({
             )}
             <div className={styles.summaryRow}>
               <span className={styles.label}>
-                {t('order.total', 'Total')}
+                {t('total', 'Total')}
               </span>
               <span className={styles.valueTotal}>CHF {order.total?.toFixed(2)}</span>
             </div>
@@ -131,7 +131,7 @@ export default function QuickConfirmModal({
           {/* Action Required Alert */}
           <div className={styles.alertBox}>
             <Package size={20} />
-            <span>{t('cashier.action_required', 'Please confirm or cancel this order')}</span>
+            <span>{t('action_required', 'Please confirm or cancel this order')}</span>
           </div>
 
           {/* Confirm Now Button */}
@@ -141,18 +141,18 @@ export default function QuickConfirmModal({
             disabled={isProcessing}
           >
             <CheckCircle size={20} />
-            {t('cashier.confirm_now', 'Confirm Now')}
+            {t('confirm_now', 'Confirm Now')}
           </button>
 
           {/* Or Divider */}
           <div className={styles.divider}>
-            <span>{t('common.or', 'or')}</span>
+            <span>{t('or', 'or')}</span>
           </div>
 
           {/* Preparation Time Label */}
           <p className={styles.prepTimeLabel}>
             <Clock size={16} />
-            {t('cashier.confirm_with_prep_time', 'Confirm with preparation time:')}
+            {t('confirm_with_prep_time', 'Confirm with preparation time:')}
           </p>
 
           {/* Time Buttons */}
@@ -187,12 +187,12 @@ export default function QuickConfirmModal({
             disabled={isProcessing}
           >
             <XCircle size={20} />
-            {t('cashier.cancel_order', 'Cancel Order')}
+            {t('cancel_order', 'Cancel Order')}
           </button>
 
           {/* Info Text */}
           <p className={styles.infoText}>
-            {t('cashier.customer_notification_info', 'The customer will be notified automatically after you take action.')}
+            {t('customer_notification_info', 'The customer will be notified automatically after you take action.')}
           </p>
         </div>
       </div>

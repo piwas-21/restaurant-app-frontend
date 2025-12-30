@@ -122,7 +122,7 @@ export default function SocialLoginButtons() {
             <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
-            useOneTap
+            useOneTap={process.env.NODE_ENV === 'production'}
             theme={theme === 'light' ? 'outline' : 'filled_black'}
             shape="rectangular"
             width="100%"

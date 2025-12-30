@@ -2006,5 +2006,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "Fai clic o interagisci con la pagina per consentire l’audio.",
   "check_your_browsers_autoplay_settings": "Controlla le impostazioni di riproduzione automatica del browser.",
   "check_your_internet_connection": "Controlla la connessione Internet.",
-  "try_a_hard_refresh": "Prova un aggiornamento forzato (Ctrl+F5)."
+  "try_a_hard_refresh": "Prova un aggiornamento forzato (Ctrl+F5).",
+  "audio_blocked": "Audio bloccato",
+  "new_order_received": "Nuovo ordine ricevuto",
+  "quick_confirm_subtitle": "Conferma o imposta il tempo di preparazione",
+  "common.close": "Chiudi",
+  "action_required": "Per favore conferma o annulla questo ordine",
+  "confirm_now": "Conferma ora",
+  "or": "oppure",
+  "confirm_with_prep_time": "Conferma con tempo di preparazione:",
+  "customer_notification_info": "Il cliente verrà notificato automaticamente dopo che avrai effettuato un’azione."
 }

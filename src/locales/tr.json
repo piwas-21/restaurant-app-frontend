@@ -2001,5 +2001,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "Sese izin vermek için sayfaya tıklayın veya etkileşim kurun.",
   "check_your_browsers_autoplay_settings": "Tarayıcınızın otomatik oynatma ayarlarını kontrol edin.",
   "check_your_internet_connection": "İnternet bağlantınızı kontrol edin.",
-  "try_a_hard_refresh": "Zorla yenilemeyi deneyin (Ctrl+F5)."
+  "try_a_hard_refresh": "Zorla yenilemeyi deneyin (Ctrl+F5).",
+  "audio_blocked": "Ses engellendi",
+  "new_order_received": "Yeni sipariş alındı",
+  "quick_confirm_subtitle": "Onaylayın veya hazırlık süresini ayarlayın",
+  "common.close": "Kapat",
+  "action_required": "Lütfen bu siparişi onaylayın veya iptal edin",
+  "confirm_now": "Şimdi onayla",
+  "or": "veya",
+  "confirm_with_prep_time": "Hazırlık süresiyle onayla:",
+  "customer_notification_info": "Bir işlem yaptıktan sonra müşteri otomatik olarak bilgilendirilecektir."
 }

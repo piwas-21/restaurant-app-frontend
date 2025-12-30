@@ -2001,5 +2001,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "Click or interact with the page to allow audio.",
   "check_your_browsers_autoplay_settings": "Check your browser's autoplay settings.",
   "check_your_internet_connection": "Check your internet connection.",
-  "try_a_hard_refresh": "Try a hard refresh (Ctrl+F5)."
+  "try_a_hard_refresh": "Try a hard refresh (Ctrl+F5).",
+  "audio_blocked": "Audio Blocked",
+  "new_order_received": "New Order Received",
+  "quick_confirm_subtitle": "Confirm or set preparation time",
+  "common.close": "Close",
+  "action_required": "Please confirm or cancel this order",
+  "confirm_now": "Confirm Now",
+  "or": "or",
+  "confirm_with_prep_time": "Confirm with preparation time:",
+  "customer_notification_info": "The customer will be notified automatically after you take action."
 }

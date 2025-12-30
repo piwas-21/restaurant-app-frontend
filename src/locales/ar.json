@@ -2005,5 +2005,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "انقر أو تفاعل مع الصفحة للسماح بتشغيل الصوت.",
   "check_your_browsers_autoplay_settings": "تحقق من إعدادات التشغيل التلقائي في المتصفح.",
   "check_your_internet_connection": "تحقق من اتصال الإنترنت.",
-  "try_a_hard_refresh": "جرّب تحديث الصفحة بشكل كامل (Ctrl+F5)."
+  "try_a_hard_refresh": "جرّب تحديث الصفحة بشكل كامل (Ctrl+F5).",
+  "audio_blocked": "تم حظر الصوت",
+  "new_order_received": "تم استلام طلب جديد",
+  "quick_confirm_subtitle": "قم بالتأكيد أو تحديد وقت التحضير",
+  "common.close": "إغلاق",
+  "action_required": "يرجى تأكيد هذا الطلب أو إلغاؤه",
+  "confirm_now": "تأكيد الآن",
+  "or": "أو",
+  "confirm_with_prep_time": "التأكيد مع وقت التحضير:",
+  "customer_notification_info": "سيتم إخطار العميل تلقائيًا بعد اتخاذ الإجراء."
 }

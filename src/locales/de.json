@@ -2014,5 +2014,14 @@
   "click_or_interact_with_the_page_to_allow_audio": "Klicken Sie auf die Seite oder interagieren Sie mit ihr, um Audio zuzulassen.",
   "check_your_browsers_autoplay_settings": "Überprüfen Sie die Autoplay-Einstellungen Ihres Browsers.",
   "check_your_internet_connection": "Überprüfen Sie Ihre Internetverbindung.",
-  "try_a_hard_refresh": "Versuchen Sie eine harte Aktualisierung (Strg+F5)."
+  "try_a_hard_refresh": "Versuchen Sie eine harte Aktualisierung (Strg+F5).",
+  "audio_blocked": "Audio blockiert",
+  "new_order_received": "Neue Bestellung erhalten",
+  "quick_confirm_subtitle": "Bestätigen oder Vorbereitungszeit festlegen",
+  "common.close": "Schließen",
+  "action_required": "Bitte bestätigen oder stornieren Sie diese Bestellung",
+  "confirm_now": "Jetzt bestätigen",
+  "or": "oder",
+  "confirm_with_prep_time": "Bestätigen mit Vorbereitungszeit:",
+  "customer_notification_info": "Der Kunde wird automatisch benachrichtigt, nachdem Sie eine Aktion durchgeführt haben."
 }

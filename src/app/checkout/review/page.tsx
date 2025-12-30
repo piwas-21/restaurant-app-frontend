@@ -16,7 +16,6 @@ import PaymentMethodSelector from '@/components/checkout/PaymentMethodSelector';
 import TipSelector from '@/components/checkout/TipSelector';
 import OrderSummaryCard from '@/components/checkout/OrderSummaryCard';
 import OrderConfirmationModal from '@/components/checkout/OrderConfirmationModal';
-import { formatPriceWithRounding, hasActiveDiscount } from '@/utils/priceRounding';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import { getTranslatedOrderError } from '@/utils/orderErrorHandler';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
@@ -177,15 +176,13 @@ export default function ReviewPage() {
     }).format(price);
   };
 
-  // Check if customer has active discount
-  const customerHasDiscount = hasActiveDiscount(
-    (cartState.basket?.customerDiscount || 0) + (cartState.basket?.discount || 0)
-  );
+  // Check if customer has active discount (for display formatting only)
+  const customerHasDiscount = (cartState.basket?.customerDiscount || 0) > 0 || (cartState.basket?.discount || 0) > 0;
 
-  // Format total with special rounding for discounted customers
+  // Format total with appropriate decimals (backend already handles rounding)
   const formatTotal = (total: number) => {
-    const formattedValue = formatPriceWithRounding(total, customerHasDiscount);
-    return `CHF ${formattedValue}`;
+    const decimals = customerHasDiscount ? 0 : 2;
+    return `CHF ${total.toFixed(decimals)}`;
   };
 
   const handlePlaceOrder = async () => {

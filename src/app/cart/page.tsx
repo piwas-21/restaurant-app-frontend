@@ -9,7 +9,6 @@ import { useTableContext } from '@/contexts/TableContext';
 import styles from '../styles/CartPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus, ShoppingCart, Tag, Loader2 } from 'lucide-react';
-import { formatPriceWithRounding, hasActiveDiscount } from '@/utils/priceRounding';
 
 export default function CartPage() {
   const router = useRouter();
@@ -22,8 +21,8 @@ export default function CartPage() {
   const [editingInstructions, setEditingInstructions] = useState<string | null>(null);
   const [instructionsValue, setInstructionsValue] = useState('');
 
-  // Check if customer has active discount
-  const customerHasDiscount = hasActiveDiscount(state.basket?.customerDiscount || 0);
+  // Check if customer has active discount (for display formatting only)
+  const customerHasDiscount = (state.basket?.customerDiscount || 0) > 0 || (state.basket?.discount || 0) > 0;
 
   const handleCheckout = () => {
     // If user scanned QR code, skip order-type and go directly to customer-info
@@ -413,7 +412,7 @@ export default function CartPage() {
             <div className={styles.totalRow}>
               <span>{t('total', 'Total')}:</span>
               <span className={styles.totalAmount}>
-                CHF {formatPriceWithRounding(getTotal(), customerHasDiscount)}
+                CHF {getTotal().toFixed(customerHasDiscount ? 0 : 2)}
               </span>
             </div>
           </div>

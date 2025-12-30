@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Zap,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 import { OrderDto } from '@/types/order';
 import styles from './OrderDetails.module.css';
@@ -45,6 +46,7 @@ export default function OrderDetails({
   const { t } = useTranslation();
   const [isUpdating, setIsUpdating] = useState(false);
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
 
   if (!order) {
@@ -58,6 +60,7 @@ export default function OrderDetails({
 
   const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true);
+    setIsStatusMenuOpen(false);
     try {
       await onStatusChange(newStatus);
     } finally {
@@ -102,19 +105,39 @@ export default function OrderDetails({
 
           {/* Status Update */}
           {nextStatuses.length > 0 && order.status !== 'Completed' && order.status !== 'Cancelled' && (
-            <select
-              className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
-              value=""
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={isUpdating}
-            >
-              <option value="">{t('cashier.update_status', 'Update Status')}</option>
-              {nextStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {t(`order_status_${status.toLowerCase()}`, status)}
-                </option>
-              ))}
-            </select>
+            <div className={styles.customDropdownContainer}>
+              <button
+                className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
+                onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+                disabled={isUpdating}
+              >
+                <RefreshCw size={18} className={isUpdating ? styles.spin : ''} />
+                {t('cashier.update_status', 'Update Status')}
+                <ChevronDown size={16} className={`${styles.chevron} ${isStatusMenuOpen ? styles.chevronRotate : ''}`} />
+              </button>
+              
+              {isStatusMenuOpen && (
+                <>
+                  <div className={styles.dropdownOverlay} onClick={() => setIsStatusMenuOpen(false)} />
+                  <div className={styles.statusDropdownMenu}>
+                    {nextStatuses.map((status) => (
+                      <button
+                        key={status}
+                        className={styles.statusDropdownItem}
+                        onClick={() => handleStatusChange(status)}
+                        disabled={isUpdating}
+                      >
+                        <span 
+                          className={styles.statusIndicator} 
+                          style={{ backgroundColor: getStatusColor(status) }}
+                        />
+                        {t(`order_status_${status.toLowerCase()}`, status)}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           {/* Add Payment - hide for completed/cancelled */}

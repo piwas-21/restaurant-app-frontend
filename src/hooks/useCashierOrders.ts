@@ -32,10 +32,12 @@ interface UseCashierOrdersReturn {
   ) => Promise<OrderDto>;
 }
 
-// Connection health check interval (30 seconds)
+// Health check interval (30 seconds)
 const HEALTH_CHECK_INTERVAL_MS = 30000;
-// Maximum time without any event before considering connection dead (45 seconds)
-const MAX_SILENCE_MS = 45000;
+// Maximum time without any event before considering connection dead (60 seconds - slightly more than 4 heartbeats)
+const MAX_SILENCE_MS = 60000;
+// Minimum time between reconnection attempts (prevents rapid reconnects)
+const MIN_RECONNECT_INTERVAL_MS = 2000;
 
 export function useCashierOrders(): UseCashierOrdersReturn {
   const [orders, setOrders] = useState<OrderDto[]>([]);
@@ -45,28 +47,38 @@ export function useCashierOrders(): UseCashierOrdersReturn {
   const [lastEventTime, setLastEventTime] = useState<Date | null>(null);
   const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
+  // Refs for stable references across renders
   const eventSourceRef = useRef<EventSource | null>(null);
   const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptRef = useRef(0);
-  const maxReconnectAttemptsRef = useRef(10); // Increased from 5
-  const lastEventTimeRef = useRef<Date | null>(null); // Ref for health check
-  const isReconnectingRef = useRef(false); // Prevent duplicate reconnections
+  const lastEventTimeRef = useRef<Date | null>(null);
+  const lastReconnectTimeRef = useRef<number>(0);
+  const connectionIdRef = useRef<string>(''); // Track connection ID to prevent stale closures
+  const isMountedRef = useRef(true);
+  const maxReconnectAttempts = 15;
 
   /**
    * Fetch orders from API
    */
   const refreshOrders = useCallback(async () => {
+    if (!isMountedRef.current) return;
+    
     try {
       setError(null);
       const result = await getCashierOrders();
-      setOrders(result.items || []);
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setOrders(result.items || []);
+        setIsLoading(false);
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load orders';
-      setError(errorMessage);
-      setIsLoading(false);
-      console.error('Error fetching orders:', err);
+      if (isMountedRef.current) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load orders';
+        setError(errorMessage);
+        setIsLoading(false);
+        console.error('Error fetching orders:', err);
+      }
     }
   }, []);
 
@@ -75,7 +87,7 @@ export function useCashierOrders(): UseCashierOrdersReturn {
    */
   const cleanupSSE = useCallback(() => {
     if (eventSourceRef.current) {
-      console.log('🔌 SSE: Closing existing connection');
+      console.log('🔌 SSE: Closing connection');
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
@@ -83,25 +95,45 @@ export function useCashierOrders(): UseCashierOrdersReturn {
       clearInterval(healthCheckIntervalRef.current);
       healthCheckIntervalRef.current = null;
     }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
   }, []);
 
   /**
    * Connect to SSE stream for real-time updates
    */
   const connectToSSE = useCallback(() => {
-    // Prevent duplicate connections
+    if (!isMountedRef.current) {
+      console.log('⚠️ SSE: Component unmounted, skipping connection');
+      return;
+    }
+
+    // Prevent rapid reconnections
+    const now = Date.now();
+    if (now - lastReconnectTimeRef.current < MIN_RECONNECT_INTERVAL_MS) {
+      console.log('⚠️ SSE: Too soon for reconnection, scheduling...');
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) connectToSSE();
+      }, MIN_RECONNECT_INTERVAL_MS);
+      return;
+    }
+    lastReconnectTimeRef.current = now;
+
+    // Already connected or connecting
     if (eventSourceRef.current && eventSourceRef.current.readyState !== EventSource.CLOSED) {
       console.log('⚠️ SSE: Already connected or connecting, skipping');
       return;
     }
 
-    if (isReconnectingRef.current) {
-      console.log('⚠️ SSE: Reconnection already in progress, skipping');
-      return;
-    }
-
-    // Clean up any existing connection first
+    // Clean up any existing connection
     cleanupSSE();
+
+    // Generate unique connection ID for this attempt
+    const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    connectionIdRef.current = connectionId;
 
     try {
       setConnectionState('connecting');
@@ -115,55 +147,62 @@ export function useCashierOrders(): UseCashierOrdersReturn {
         url += `?token=${encodeURIComponent(authToken)}`;
       }
 
-      console.log('🔌 SSE: Initiating connection to:', endpoint);
-      console.log('🔌 SSE: Connection attempt:', reconnectAttemptRef.current + 1);
+      console.log(`🔌 SSE: Connecting [${connectionId}] attempt ${reconnectAttemptRef.current + 1}/${maxReconnectAttempts}`);
 
       const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
 
       // Handle successful connection
       eventSource.addEventListener('connected', (event) => {
+        // Check if this is still the active connection
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) {
+          console.log(`⚠️ SSE: Stale connection event [${connectionId}], ignoring`);
+          return;
+        }
+
         try {
           const data = JSON.parse(event.data);
-          console.log('✅ SSE: Connected with clientId:', data.clientId);
+          console.log(`✅ SSE: Connected [${connectionId}] clientId:`, data.clientId);
           setIsConnected(true);
           setConnectionState('connected');
           setError(null);
-          const now = new Date();
-          setLastEventTime(now);
-          lastEventTimeRef.current = now;
+          const eventTime = new Date();
+          setLastEventTime(eventTime);
+          lastEventTimeRef.current = eventTime;
           reconnectAttemptRef.current = 0;
-          isReconnectingRef.current = false;
         } catch (err) {
           console.error('❌ SSE: Error parsing connected event:', err);
         }
       });
 
-      // Handle heartbeat events (keep-alive)
+      // Handle heartbeat events
       eventSource.addEventListener('heartbeat', (event) => {
-        const now = new Date();
-        setLastEventTime(now);
-        lastEventTimeRef.current = now;
-        console.log('💓 SSE: Heartbeat received at', now.toISOString());
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) return;
+        
+        const eventTime = new Date();
+        setLastEventTime(eventTime);
+        lastEventTimeRef.current = eventTime;
+        console.log('💓 SSE: Heartbeat received at', eventTime.toISOString());
       });
 
       // Handle order events
       eventSource.addEventListener('order-created', (event) => {
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) return;
+        
         try {
           const data = JSON.parse(event.data);
-          console.log('📦 SSE: Received order-created:', data.order?.orderNumber || data.orderNumber);
+          console.log('📦 SSE: order-created:', data.order?.orderNumber || data.orderNumber);
           setOrders((prev) => {
-            // Prevent duplicates by checking if order already exists
-            const exists = prev.some(o => o.id === (data.order?.id || data.id));
-            if (exists) {
+            const newOrder = data.order || data;
+            if (prev.some(o => o.id === newOrder.id)) {
               console.log('📦 SSE: Order already exists, skipping duplicate');
               return prev;
             }
-            return [data.order || data, ...prev];
+            return [newOrder, ...prev];
           });
-          const now = new Date();
-          setLastEventTime(now);
-          lastEventTimeRef.current = now;
+          const eventTime = new Date();
+          setLastEventTime(eventTime);
+          lastEventTimeRef.current = eventTime;
           reconnectAttemptRef.current = 0;
         } catch (err) {
           console.error('Error parsing order-created event:', err);
@@ -171,17 +210,20 @@ export function useCashierOrders(): UseCashierOrdersReturn {
       });
 
       eventSource.addEventListener('order-status-changed', (event) => {
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) return;
+        
         try {
           const data = JSON.parse(event.data);
-          console.log('📝 SSE: Received order-status-changed:', data.orderId || data.order?.id);
+          const orderId = data.orderId || data.order?.id;
+          console.log('📝 SSE: order-status-changed:', orderId, '→', data.order?.status);
           setOrders((prev) =>
             prev.map((order) =>
-              order.id === (data.orderId || data.order?.id) ? (data.order || data) : order
+              order.id === orderId ? (data.order || { ...order, ...data }) : order
             )
           );
-          const now = new Date();
-          setLastEventTime(now);
-          lastEventTimeRef.current = now;
+          const eventTime = new Date();
+          setLastEventTime(eventTime);
+          lastEventTimeRef.current = eventTime;
           reconnectAttemptRef.current = 0;
         } catch (err) {
           console.error('Error parsing order-status-changed event:', err);
@@ -189,101 +231,127 @@ export function useCashierOrders(): UseCashierOrdersReturn {
       });
 
       eventSource.addEventListener('order-ready', (event) => {
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) return;
+        
         try {
           const data = JSON.parse(event.data);
+          const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
             prev.map((order) =>
-              order.id === (data.orderId || data.order?.id)
+              order.id === orderId
                 ? { ...order, status: 'Ready', ...data.order }
                 : order
             )
           );
-          const now = new Date();
-          setLastEventTime(now);
-          lastEventTimeRef.current = now;
-          reconnectAttemptRef.current = 0;
+          const eventTime = new Date();
+          setLastEventTime(eventTime);
+          lastEventTimeRef.current = eventTime;
         } catch (err) {
           console.error('Error parsing order-ready event:', err);
         }
       });
 
       eventSource.addEventListener('order-completed', (event) => {
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) return;
+        
         try {
           const data = JSON.parse(event.data);
+          const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
             prev.map((order) =>
-              order.id === (data.orderId || data.order?.id)
+              order.id === orderId
                 ? { ...order, status: 'Completed', ...data.order }
                 : order
             )
           );
-          const now = new Date();
-          setLastEventTime(now);
-          lastEventTimeRef.current = now;
-          reconnectAttemptRef.current = 0;
+          const eventTime = new Date();
+          setLastEventTime(eventTime);
+          lastEventTimeRef.current = eventTime;
         } catch (err) {
           console.error('Error parsing order-completed event:', err);
         }
       });
 
       eventSource.addEventListener('focus-order-update', (event) => {
+        if (connectionIdRef.current !== connectionId || !isMountedRef.current) return;
+        
         try {
           const data = JSON.parse(event.data);
+          const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
             prev.map((order) =>
-              order.id === (data.orderId || data.order?.id)
+              order.id === orderId
                 ? { ...order, isFocusOrder: data.isFocus, ...data.order }
                 : order
             )
           );
-          const now = new Date();
-          setLastEventTime(now);
-          lastEventTimeRef.current = now;
-          reconnectAttemptRef.current = 0;
+          const eventTime = new Date();
+          setLastEventTime(eventTime);
+          lastEventTimeRef.current = eventTime;
         } catch (err) {
           console.error('Error parsing focus-order-update event:', err);
         }
       });
 
-      eventSource.onerror = (event) => {
-        console.error('❌ SSE: Connection error:', {
+      // Handle connection errors
+      eventSource.onerror = () => {
+        if (connectionIdRef.current !== connectionId) {
+          console.log(`⚠️ SSE: Stale error event [${connectionId}], ignoring`);
+          return;
+        }
+
+        console.error(`❌ SSE: Connection error [${connectionId}]`, {
           readyState: eventSource.readyState,
           readyStateText: ['CONNECTING', 'OPEN', 'CLOSED'][eventSource.readyState],
-          timestamp: new Date().toISOString(),
         });
         
+        if (!isMountedRef.current) return;
+
         setIsConnected(false);
         setConnectionState('error');
         cleanupSSE();
 
         // Reconnect with exponential backoff
-        if (reconnectAttemptRef.current < maxReconnectAttemptsRef.current && !isReconnectingRef.current) {
-          isReconnectingRef.current = true;
+        if (reconnectAttemptRef.current < maxReconnectAttempts) {
           reconnectAttemptRef.current += 1;
-          const backoffMs = Math.min(1000 * Math.pow(2, reconnectAttemptRef.current), 15000);
-          console.warn(`🔄 SSE: Reconnecting in ${backoffMs}ms (attempt ${reconnectAttemptRef.current}/${maxReconnectAttemptsRef.current})`);
+          const backoffMs = Math.min(1000 * Math.pow(1.5, reconnectAttemptRef.current), 30000);
+          console.warn(`🔄 SSE: Reconnecting in ${Math.round(backoffMs/1000)}s (attempt ${reconnectAttemptRef.current}/${maxReconnectAttempts})`);
 
-          if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
-          pollingTimeoutRef.current = setTimeout(() => {
-            isReconnectingRef.current = false;
-            connectToSSE();
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              connectToSSE();
+            }
           }, backoffMs);
-        } else if (reconnectAttemptRef.current >= maxReconnectAttemptsRef.current) {
+        } else {
           console.warn('⚠️ SSE: Max reconnect attempts reached, falling back to polling');
-          setError('Real-time updates unavailable - using 10s polling');
-          isReconnectingRef.current = false;
+          setError('Real-time updates unavailable - using polling');
           setupPolling();
         }
       };
 
       // Setup health check interval
       healthCheckIntervalRef.current = setInterval(() => {
+        if (!isMountedRef.current || connectionIdRef.current !== connectionId) {
+          return;
+        }
+
         const lastEvent = lastEventTimeRef.current;
+        const currentEventSource = eventSourceRef.current;
+        
+        // Check if connection is actually open
+        if (!currentEventSource || currentEventSource.readyState === EventSource.CLOSED) {
+          console.warn('⚠️ SSE: Connection closed, reconnecting...');
+          reconnectAttemptRef.current = 0;
+          connectToSSE();
+          return;
+        }
+
+        // Check for silence timeout
         if (lastEvent) {
           const silenceMs = Date.now() - lastEvent.getTime();
           if (silenceMs > MAX_SILENCE_MS) {
             console.warn(`⚠️ SSE: No events for ${Math.round(silenceMs / 1000)}s, reconnecting...`);
-            cleanupSSE();
+            reconnectAttemptRef.current = 0;
             connectToSSE();
           }
         }
@@ -291,28 +359,36 @@ export function useCashierOrders(): UseCashierOrdersReturn {
 
     } catch (err) {
       console.error('Error connecting to SSE:', err);
-      setIsConnected(false);
-      setConnectionState('error');
-      setError('Failed to establish SSE connection');
-      setupPolling();
+      if (isMountedRef.current) {
+        setIsConnected(false);
+        setConnectionState('error');
+        setError('Failed to establish SSE connection');
+        setupPolling();
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cleanupSSE]); // setupPolling is intentionally omitted to avoid circular dependency
+  }, [cleanupSSE]); // Minimal dependencies
 
   /**
    * Setup polling fallback (every 10 seconds)
    */
   const setupPolling = useCallback(() => {
+    if (!isMountedRef.current) return;
+    
     setIsConnected(false);
     setConnectionState('disconnected');
 
     const pollOrders = async () => {
+      if (!isMountedRef.current) return;
+      
       try {
         await refreshOrders();
       } catch (err) {
         console.error('Polling error:', err);
       }
-      pollingTimeoutRef.current = setTimeout(pollOrders, 10000);
+      
+      if (isMountedRef.current) {
+        pollingTimeoutRef.current = setTimeout(pollOrders, 10000);
+      }
     };
 
     pollOrders();
@@ -323,25 +399,25 @@ export function useCashierOrders(): UseCashierOrdersReturn {
    */
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && isMountedRef.current) {
         console.log('👁️ Tab became visible, checking connection...');
         
-        // Refresh orders immediately when tab becomes visible
+        // Refresh orders immediately
         refreshOrders();
         
         // Check if SSE needs reconnection
         const eventSource = eventSourceRef.current;
         if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
-          console.log('🔄 SSE: Connection lost while tab was hidden, reconnecting...');
-          reconnectAttemptRef.current = 0; // Reset retry count
+          console.log('🔄 SSE: Connection lost while hidden, reconnecting...');
+          reconnectAttemptRef.current = 0;
           connectToSSE();
         } else {
-          // Check if we've been silent too long
+          // Check for silence while tab was hidden
           const lastEvent = lastEventTimeRef.current;
           if (lastEvent) {
             const silenceMs = Date.now() - lastEvent.getTime();
             if (silenceMs > MAX_SILENCE_MS) {
-              console.log(`🔄 SSE: Silent for ${Math.round(silenceMs / 1000)}s, reconnecting...`);
+              console.log(`🔄 SSE: Silent for ${Math.round(silenceMs / 1000)}s while hidden, reconnecting...`);
               reconnectAttemptRef.current = 0;
               connectToSSE();
             }
@@ -359,6 +435,7 @@ export function useCashierOrders(): UseCashierOrdersReturn {
    */
   useEffect(() => {
     const handleOnline = () => {
+      if (!isMountedRef.current) return;
       console.log('🌐 Network: Back online, reconnecting SSE...');
       reconnectAttemptRef.current = 0;
       connectToSSE();
@@ -366,6 +443,7 @@ export function useCashierOrders(): UseCashierOrdersReturn {
     };
 
     const handleOffline = () => {
+      if (!isMountedRef.current) return;
       console.log('🌐 Network: Went offline');
       setIsConnected(false);
       setConnectionState('disconnected');
@@ -385,18 +463,23 @@ export function useCashierOrders(): UseCashierOrdersReturn {
    */
   useEffect(() => {
     console.log('🔌 Initializing cashier orders hook...');
+    isMountedRef.current = true;
     
     // Initial fetch
     refreshOrders();
 
-    // Small delay to ensure component is fully mounted before SSE connection
+    // Delay SSE connection slightly to ensure component is fully mounted
+    // This also helps with React StrictMode double-render
     const connectionTimeout = setTimeout(() => {
-      console.log('🔌 Attempting initial SSE connection...');
-      connectToSSE();
-    }, 100);
+      if (isMountedRef.current) {
+        console.log('🔌 Attempting initial SSE connection...');
+        connectToSSE();
+      }
+    }, 250);
 
     return () => {
       console.log('🔌 Cleaning up cashier orders hook...');
+      isMountedRef.current = false;
       clearTimeout(connectionTimeout);
       cleanupSSE();
       if (pollingTimeoutRef.current) {
@@ -404,8 +487,7 @@ export function useCashierOrders(): UseCashierOrdersReturn {
         pollingTimeoutRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // Empty dependency array - only run on mount/unmount
 
   /**
    * Update order status

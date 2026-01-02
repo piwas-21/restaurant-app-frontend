@@ -12,6 +12,7 @@ import {
   OrderDtoApiResponse,
   PagedResult,
 } from '@/types/order';
+import { SseDiagnostics } from '@/types/diagnostics';
 
 /**
  * Get all orders with optional filters for cashier view
@@ -270,4 +271,16 @@ export async function quickCancelOrder(orderNumber: string): Promise<void> {
   if (!response.data) {
     throw new Error('Failed to cancel order');
   }
+}
+
+/**
+ * Get SSE events diagnostics for debugging connection issues
+ * Returns information about connected clients, recent events, and errors
+ */
+export async function getEventsDiagnostics(): Promise<SseDiagnostics> {
+  const response = await apiClient.get<SseDiagnostics>('/api/events/diagnostics', {
+    requireAuth: false, // Diagnostics endpoint is public for debugging
+  });
+
+  return response;
 }

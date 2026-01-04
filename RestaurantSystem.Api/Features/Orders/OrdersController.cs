@@ -77,6 +77,8 @@ public class OrdersController : ControllerBase
             var ordersQuery = dbContext.Orders
                 .Include(o => o.Items)
                     .ThenInclude(i => i.Product)
+                        .ThenInclude(p => p.DetailedIngredients)
+                            .ThenInclude(di => di.GlobalIngredient)
                 .Include(o => o.Payments)
                 .Include(o => o.DeliveryAddress)
                 .Where(o => !o.IsDeleted)

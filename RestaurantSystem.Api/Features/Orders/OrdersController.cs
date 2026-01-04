@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RestaurantSystem.Api.Common;
 using RestaurantSystem.Api.Common.Authorization;
 using RestaurantSystem.Api.Common.Models;
@@ -59,36 +60,71 @@ public class OrdersController : ControllerBase
     /// Get confirmed orders for printer apps (no authentication required)
     /// This endpoint is specifically for internal printer applications to poll for orders to print.
     /// Only returns orders with status "Confirmed" that were modified since the given timestamp.
+    /// Uses direct query to bypass authentication requirements.
     /// </summary>
     [HttpGet("printer-feed")]
     [AllowAnonymous]
-    public async Task<ActionResult<ApiResponse<PagedResult<OrderDto>>>> GetPrinterFeed(
-        [FromQuery] DateTime? modifiedSince)
+    public async Task<ActionResult<object>> GetPrinterFeed(
+        [FromQuery] DateTime? modifiedSince,
+        [FromServices] RestaurantSystem.Infrastructure.Persistence.ApplicationDbContext dbContext,
+        [FromServices] IOrderMappingService mappingService)
     {
-        _logger.LogInformation("🖨️ Printer feed request - modifiedSince: {Since}", modifiedSince);
-        
-        var query = new GetOrdersQuery(
-            Status: "Confirmed",
-            PaymentStatus: null,
-            OrderType: null,
-            StartDate: null,
-            EndDate: null,
-            UserId: null,
-            Search: null,
-            IsFocusOrder: null,
-            ModifiedSince: modifiedSince,
-            OrderBy: "OrderDate",
-            Descending: true,
-            Page: 1,
-            PageSize: 50  // Return up to 50 orders at a time
-        );
-        
-        var result = await _mediator.SendQuery(query);
-        
-        _logger.LogInformation("🖨️ Printer feed returning {Count} orders", 
-            result.Data?.Items?.Count ?? 0);
-        
-        return Ok(result);
+        try
+        {
+            _logger.LogInformation("🖨️ Printer feed request - modifiedSince: {Since}", modifiedSince);
+            
+            // Direct database query - bypasses ICurrentUserService checks
+            var ordersQuery = dbContext.Orders
+                .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .Include(o => o.Payments)
+                .Include(o => o.DeliveryAddress)
+                .Where(o => !o.IsDeleted)
+                .Where(o => o.Status == RestaurantSystem.Domain.Common.Enums.OrderStatus.Confirmed)
+                .AsQueryable();
+            
+            // Filter by modifiedSince if provided
+            if (modifiedSince.HasValue)
+            {
+                ordersQuery = ordersQuery.Where(o => 
+                    o.CreatedAt > modifiedSince.Value || 
+                    (o.UpdatedAt.HasValue && o.UpdatedAt.Value > modifiedSince.Value));
+            }
+            
+            // Get orders (limit to 50)
+            var orders = await ordersQuery
+                .OrderByDescending(o => o.OrderDate)
+                .Take(50)
+                .ToListAsync();
+            
+            // Map to DTOs
+            var orderDtos = orders.Select(mappingService.MapToOrderDto).ToList();
+            
+            _logger.LogInformation("🖨️ Printer feed returning {Count} confirmed orders", orderDtos.Count);
+            
+            // Return in same format as other endpoints
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    items = orderDtos,
+                    totalCount = orderDtos.Count,
+                    page = 1,
+                    pageSize = 50
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error in printer feed");
+            return Ok(new
+            {
+                success = false,
+                message = ex.Message,
+                data = new { items = Array.Empty<object>(), totalCount = 0 }
+            });
+        }
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ Audience = new List<string>()
 "Authentication": {
   "Google": {
     "ClientId": "102252528656-3quqh29v8b7psntuo04r7duambcs1i0t.apps.googleusercontent.com",
-    "ClientSecret": "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",
+    "ClientSecret": "<your-client-secret>",
     "AndroidClientId": "102252528656-3l24ct9qqgrds6ugqf25rule07bg77md.apps.googleusercontent.com",
     "IosClientId": "102252528656-h2jf66f6ftikb8rdc7q263ml945fsrtm.apps.googleusercontent.com"
   }
@@ -50,7 +50,7 @@ Audience = new List<string>()
 ```json
 {
   "clientId": "102252528656-3quqh29v8b7psntuo04r7duambcs1i0t.apps.googleusercontent.com",
-  "clientSecret": "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",
+  "clientSecret": "<your-client-secret>",
   "androidClientId": "102252528656-3l24ct9qqgrds6ugqf25rule07bg77md.apps.googleusercontent.com",
   "iosClientId": "102252528656-h2jf66f6ftikb8rdc7q263ml945fsrtm.apps.googleusercontent.com"
 }

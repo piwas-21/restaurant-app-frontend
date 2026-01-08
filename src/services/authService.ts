@@ -4,12 +4,26 @@ import { loginSchema } from '../schemas/auth.schema';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const AUTH_API_URL = `${API_BASE_URL}/api/Auth`;
 
+/**
+ * Get session ID from localStorage for basket merge on login
+ */
+function getSessionId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('rumi_session_id');
+}
+
 export async function login(formData: z.infer<typeof loginSchema>) {
+  const sessionId = getSessionId();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (sessionId) {
+    headers['X-Session-Id'] = sessionId;
+  }
+
   const response = await fetch(`${AUTH_API_URL}/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(formData),
   });
 
@@ -217,11 +231,17 @@ export async function confirmAccountDeletion(data: { userId: string; token: stri
 }
 
 export async function googleLogin(idToken: string) {
+  const sessionId = getSessionId();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (sessionId) {
+    headers['X-Session-Id'] = sessionId;
+  }
+
   const response = await fetch(`${AUTH_API_URL}/google-login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ idToken }),
   });
 
@@ -238,11 +258,17 @@ export async function googleLogin(idToken: string) {
 }
 
 export async function appleLogin(idToken: string, user?: { firstName: string; lastName: string }) {
+  const sessionId = getSessionId();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (sessionId) {
+    headers['X-Session-Id'] = sessionId;
+  }
+
   const response = await fetch(`${AUTH_API_URL}/apple-login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ 
         idToken,
         firstName: user?.firstName,
@@ -261,4 +287,5 @@ export async function appleLogin(idToken: string, user?: { firstName: string; la
   }
   return data;
 }
+
 

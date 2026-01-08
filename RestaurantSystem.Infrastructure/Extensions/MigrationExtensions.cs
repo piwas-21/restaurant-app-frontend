@@ -39,6 +39,16 @@ namespace RestaurantSystem.Infrastructure.Extensions
                 logger.LogInformation("Seeding global ingredients data");
                 await GlobalIngredientsSeeder.SeedAsync(dbContext, logger);
                 logger.LogInformation("Global ingredients data seeded successfully");
+
+                // Seed users and roles
+                logger.LogInformation("Seeding users and roles");
+                await UserSeeder.SeedAsync(userManager, roleManager, logger);
+                logger.LogInformation("Users and roles seeded successfully");
+
+                // Seed working hours
+                logger.LogInformation("Seeding working hours");
+                await WorkingHoursSeeder.SeedAsync(dbContext, logger);
+                logger.LogInformation("Working hours seeded successfully");
             }
             catch (Exception ex)
             {

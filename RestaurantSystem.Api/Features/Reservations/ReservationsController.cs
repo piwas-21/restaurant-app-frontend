@@ -5,6 +5,7 @@ using RestaurantSystem.Api.Common.Models;
 using RestaurantSystem.Api.Features.Reservations.Commands.CancelReservationCommand;
 using RestaurantSystem.Api.Features.Reservations.Commands.ConfirmReservationCommand;
 using RestaurantSystem.Api.Features.Reservations.Commands.CreateReservationCommand;
+using RestaurantSystem.Api.Features.Reservations.Commands.DeleteReservationCommand;
 using RestaurantSystem.Api.Features.Reservations.Commands.UpdateReservationCommand;
 using RestaurantSystem.Api.Features.Reservations.Dtos;
 using RestaurantSystem.Api.Features.Reservations.Queries.GetAvailableTimeSlotsQuery;
@@ -154,6 +155,24 @@ public class ReservationsController : ControllerBase
     public async Task<ActionResult<ApiResponse<bool>>> ConfirmReservation(Guid id)
     {
         var command = new ConfirmReservationCommand(id);
+        var result = await _mediator.SendCommand(command);
+
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Delete a reservation permanently (Admin only)
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteReservation(Guid id)
+    {
+        var command = new DeleteReservationCommand(id);
         var result = await _mediator.SendCommand(command);
 
         if (!result.Success)

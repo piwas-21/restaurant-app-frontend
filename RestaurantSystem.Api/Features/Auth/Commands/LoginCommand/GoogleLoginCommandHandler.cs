@@ -4,6 +4,7 @@ using RestaurantSystem.Api.Abstraction.Messaging;
 using RestaurantSystem.Api.Common.Models;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Auth.Dtos;
+using RestaurantSystem.Api.Features.Auth.Handlers;
 using RestaurantSystem.Domain.Entities;
 
 namespace RestaurantSystem.Api.Features.Auth.Commands.LoginCommand;
@@ -13,15 +14,21 @@ public class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginCommand, Api
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenService _tokenService;
     private readonly IConfiguration _configuration;
+    private readonly LoginEventHandler _loginEventHandler;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public GoogleLoginCommandHandler(
         UserManager<ApplicationUser> userManager,
         ITokenService tokenService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        LoginEventHandler loginEventHandler,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _tokenService = tokenService;
         _configuration = configuration;
+        _loginEventHandler = loginEventHandler;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ApiResponse<AuthResponse>> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
@@ -71,6 +78,13 @@ public class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginCommand, Api
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
+            // Merge anonymous basket if session ID exists
+            var sessionId = _httpContextAccessor.HttpContext?.Request.Headers["X-Session-Id"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                await _loginEventHandler.HandleUserLogin(user.Id, sessionId);
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
 
             return ApiResponse<AuthResponse>.SuccessWithData(new AuthResponse
@@ -95,3 +109,4 @@ public class GoogleLoginCommandHandler : ICommandHandler<GoogleLoginCommand, Api
         }
     }
 }
+

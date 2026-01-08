@@ -3,6 +3,7 @@ using RestaurantSystem.Api.Abstraction.Messaging;
 using RestaurantSystem.Api.Common.Models;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Auth.Dtos;
+using RestaurantSystem.Api.Features.Auth.Handlers;
 using RestaurantSystem.Domain.Entities;
 
 namespace RestaurantSystem.Api.Features.Auth.Commands.LoginCommand;
@@ -15,12 +16,21 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
     private readonly ITokenService _tokenService;
+    private readonly LoginEventHandler _loginEventHandler;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public LoginCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration configuration,ITokenService tokenService)
+    public LoginCommandHandler(
+        UserManager<ApplicationUser> userManager, 
+        IConfiguration configuration,
+        ITokenService tokenService,
+        LoginEventHandler loginEventHandler,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _configuration = configuration;
         _tokenService = tokenService;
+        _loginEventHandler = loginEventHandler;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ApiResponse<AuthResponse>> Handle(LoginCommand command, CancellationToken cancellationToken)
@@ -55,6 +65,13 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
+        // Merge anonymous basket if session ID exists
+        var sessionId = _httpContextAccessor.HttpContext?.Request.Headers["X-Session-Id"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            await _loginEventHandler.HandleUserLogin(user.Id, sessionId);
+        }
+
         var authResponse = new AuthResponse
         {
             UserId = user.Id,
@@ -79,3 +96,4 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
 
     }
 }
+

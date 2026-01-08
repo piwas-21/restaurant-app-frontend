@@ -805,7 +805,7 @@ public class BasketService : IBasketService
         }
         else if (!string.IsNullOrEmpty(sessionId))
         {
-            query = query.Where(b => b.SessionId == sessionId && b.UserId == null || b.UserId == Guid.Empty);
+            query = query.Where(b => b.SessionId == sessionId && (b.UserId == null || b.UserId == Guid.Empty));
         }
         else
         {

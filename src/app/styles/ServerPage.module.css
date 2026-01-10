@@ -1,5 +1,59 @@
-/* src/app/styles/ServerPage.module.css */
+/* Server Page Styles */
 
+.pageContainer {
+  min-height: 100vh;
+  padding: 1.5rem;
+  background-color: var(--background-color);
+  font-family: var(--font-family-sans);
+}
+
+.mainContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  height: calc(100vh - 140px);
+}
+
+.tablesPanel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.ordersPanel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.clearSelectionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.clearSelectionButton:hover {
+  background-color: var(--primary-color);
+  color: var(--button-text-color, #fff);
+  border-color: var(--primary-color);
+}
+
+/* Legacy styles for backwards compatibility */
 .container {
   padding: 2rem;
   font-family: var(--font-family-sans);
@@ -28,12 +82,12 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.25rem;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.07); /* Consider CSS var for shadow */
+  box-shadow: 0 3px 10px rgba(0,0,0,0.07);
 }
 
 .orderCardAllServed {
-  /* Optional: Slightly different style for orders where all items are served */
-  /* e.g., opacity: 0.8; border-left: 5px solid var(--success-color); */
+  opacity: 0.8;
+  border-left: 5px solid var(--success-color);
 }
 
 .orderCardHeader {
@@ -47,7 +101,7 @@
 
 .orderCardHeader h3 {
   margin: 0;
-  font-size: 1.5rem; /* Larger for table number */
+  font-size: 1.5rem;
   color: var(--primary-color);
 }
 
@@ -78,17 +132,17 @@
 }
 
 .orderNotes {
-  background-color: var(--background-color); /* Changed from --secondary-color-light */
+  background-color: var(--background-color);
   padding: 0.6rem 0.8rem;
   border-radius: 4px;
   margin-bottom: 1rem;
   font-size: 0.85rem;
-  border: 1px solid var(--border-color-light); /* Changed from --border-color-extra-light */
+  border: 1px solid var(--border-color-light);
   color: var(--text-secondary);
 }
 
 .orderNotes strong {
-    color: var(--text-color);
+  color: var(--text-color);
 }
 
 .itemList {
@@ -99,7 +153,7 @@
 
 .itemEntry {
   display: grid;
-  grid-template-columns: 1fr auto auto; /* Name | Qty | Status/Action */
+  grid-template-columns: 1fr auto auto;
   gap: 0.75rem;
   align-items: center;
   padding: 0.75rem 0.25rem;
@@ -112,17 +166,17 @@
 
 .itemName {
   font-weight: 500;
-  color: var(--text-color); /* Ensure item name is themed */
+  color: var(--text-color);
 }
 
 .itemQuantity {
   font-size: 0.9rem;
   text-align: center;
   padding: 0.25rem 0.5rem;
-  background-color: var(--secondary-color); /* Changed from --secondary-color-light */
-  color: var(--text-color); /* Changed from --text-secondary for better contrast */
+  background-color: var(--secondary-color);
+  color: var(--text-color);
   border-radius: 4px;
-  border: 1px solid var(--border-color); /* Added a subtle border */
+  border: 1px solid var(--border-color);
 }
 
 .itemStatusOrAction {
@@ -175,15 +229,15 @@
 }
 
 .orderActionsContainer {
-    margin-top: 1rem;
-    text-align: right;
+  margin-top: 1rem;
+  text-align: right;
 }
 
 .noOrdersMessage {
   text-align: center;
   font-size: 1.1rem;
   margin-top: 3rem;
-  color: var(--text-secondary); /* Themed message color */
+  color: var(--text-secondary);
 }
 
 .homeLink {
@@ -199,7 +253,28 @@
   text-decoration: underline;
 }
 
-/* Ensure h2 title is themed */
-.container h2 {
-    color: var(--text-color);
+/* Responsive */
+@media (max-width: 1024px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .tablesPanel {
+    max-height: 400px;
+  }
+
+  .ordersPanel {
+    max-height: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem;
+  }
+
+  .tablesPanel {
+    max-height: 350px;
+  }
 }

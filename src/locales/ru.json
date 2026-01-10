@@ -2012,5 +2012,18 @@
   "server.no_active_orders": "В данный момент нет активных заказов",
   "server.customer": "Клиент",
   "server.search_customer": "Поиск клиента...",
-  "server.clear_customer": "Очистить клиента"
+  "server.clear_customer": "Очистить клиента",
+
+  "table_occupied": "Занят",
+  "table_occupied_badge": "{{count}} заказ(ов)",
+  "table_full": "Занят полностью",
+  "table_has_active_orders": "За этим столом есть активные заказы",
+  "share_table_title": "Разделить стол?",
+  "share_table_message": "Стол {{tableNumber}} сейчас занят. Хотите присоединиться к этому столу?",
+  "share_table_occupants": "Текущие заказы за этим столом:",
+  "share_table_capacity_warning": "Этот стол заполнен до максимальной вместимости",
+  "share_table_confirm": "Да, присоединиться",
+  "share_table_cancel": "Выбрать другой стол",
+  "remaining_capacity": "Ещё {{count}} гостей могут присоединиться",
+  "guest": "Гость"
 }

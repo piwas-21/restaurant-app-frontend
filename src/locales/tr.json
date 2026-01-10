@@ -2068,5 +2068,18 @@
   "server.no_active_orders": "Şu anda aktif sipariş yok",
   "server.customer": "Müşteri",
   "server.search_customer": "Müşteri ara...",
-  "server.clear_customer": "Müşteriyi temizle"
+  "server.clear_customer": "Müşteriyi temizle",
+
+  "table_occupied": "Dolu",
+  "table_occupied_badge": "{{count}} sipariş",
+  "table_full": "Kapasitede",
+  "table_has_active_orders": "Bu masada aktif siparişler var",
+  "share_table_title": "Masayı Paylaş?",
+  "share_table_message": "Masa {{tableNumber}} şu anda dolu. Bu masaya katılmak ister misiniz?",
+  "share_table_occupants": "Bu masadaki mevcut siparişler:",
+  "share_table_capacity_warning": "Bu masa maksimum kapasiteye ulaştı",
+  "share_table_confirm": "Evet, Masaya Katıl",
+  "share_table_cancel": "Başka Masa Seç",
+  "remaining_capacity": "{{count}} kişi daha katılabilir",
+  "guest": "Misafir"
 }

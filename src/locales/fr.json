@@ -2073,5 +2073,18 @@
   "server.no_active_orders": "Aucune commande active pour le moment",
   "server.customer": "Client",
   "server.search_customer": "Rechercher un client...",
-  "server.clear_customer": "Effacer le client"
+  "server.clear_customer": "Effacer le client",
+
+  "table_occupied": "Occupée",
+  "table_occupied_badge": "{{count}} commande(s)",
+  "table_full": "Complète",
+  "table_has_active_orders": "Cette table a des commandes actives",
+  "share_table_title": "Partager la table ?",
+  "share_table_message": "La table {{tableNumber}} est actuellement occupée. Souhaitez-vous rejoindre cette table ?",
+  "share_table_occupants": "Commandes actuelles à cette table :",
+  "share_table_capacity_warning": "Cette table a atteint sa capacité maximale",
+  "share_table_confirm": "Oui, rejoindre la table",
+  "share_table_cancel": "Choisir une autre table",
+  "remaining_capacity": "{{count}} autres convives peuvent rejoindre",
+  "guest": "Invité"
 }

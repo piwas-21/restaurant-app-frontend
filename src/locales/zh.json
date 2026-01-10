@@ -2072,5 +2072,18 @@
   "server.no_active_orders": "目前暂无进行中订单",
   "server.customer": "客户",
   "server.search_customer": "搜索客户...",
-  "server.clear_customer": "清除客户"
+  "server.clear_customer": "清除客户",
+
+  "table_occupied": "占用中",
+  "table_occupied_badge": "{{count}}个订单",
+  "table_full": "已满",
+  "table_has_active_orders": "此桌有进行中的订单",
+  "share_table_title": "拼桌?",
+  "share_table_message": "{{tableNumber}}号桌目前有人在用。您是否要加入此桌?",
+  "share_table_occupants": "此桌当前订单:",
+  "share_table_capacity_warning": "此桌已达最大容量",
+  "share_table_confirm": "是的，加入此桌",
+  "share_table_cancel": "选择其他桌",
+  "remaining_capacity": "还可容纳{{count}}位客人",
+  "guest": "客人"
 }

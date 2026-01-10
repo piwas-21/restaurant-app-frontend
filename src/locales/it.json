@@ -2072,5 +2072,18 @@
   "server.no_active_orders": "Nessun ordine attivo al momento",
   "server.customer": "Cliente",
   "server.search_customer": "Cerca cliente...",
-  "server.clear_customer": "Rimuovi cliente"
+  "server.clear_customer": "Rimuovi cliente",
+
+  "table_occupied": "Occupato",
+  "table_occupied_badge": "{{count}} ordine/i",
+  "table_full": "Pieno",
+  "table_has_active_orders": "Questo tavolo ha ordini attivi",
+  "share_table_title": "Condividere il tavolo?",
+  "share_table_message": "Il tavolo {{tableNumber}} è attualmente occupato. Vuoi unirti a questo tavolo?",
+  "share_table_occupants": "Ordini attuali a questo tavolo:",
+  "share_table_capacity_warning": "Questo tavolo ha raggiunto la capacità massima",
+  "share_table_confirm": "Sì, unisciti al tavolo",
+  "share_table_cancel": "Scegli un altro tavolo",
+  "remaining_capacity": "Altri {{count}} ospiti possono unirsi",
+  "guest": "Ospite"
 }

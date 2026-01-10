@@ -2068,5 +2068,18 @@
   "server.no_active_orders": "No active orders at the moment",
   "server.customer": "Customer",
   "server.search_customer": "Search customer...",
-  "server.clear_customer": "Clear customer"
+  "server.clear_customer": "Clear customer",
+
+  "table_occupied": "Occupied",
+  "table_occupied_badge": "{{count}} order(s)",
+  "table_full": "Full",
+  "table_has_active_orders": "This table has active orders",
+  "share_table_title": "Share Table?",
+  "share_table_message": "Table {{tableNumber}} is currently occupied. Would you like to join this table?",
+  "share_table_occupants": "Current orders at this table:",
+  "share_table_capacity_warning": "This table is at maximum capacity",
+  "share_table_confirm": "Yes, Join Table",
+  "share_table_cancel": "Choose Another Table",
+  "remaining_capacity": "{{count}} more guests can join",
+  "guest": "Guest"
 }

@@ -2072,5 +2072,18 @@
   "server.no_active_orders": "لا توجد طلبات نشطة حالياً",
   "server.customer": "العميل",
   "server.search_customer": "البحث عن عميل...",
-  "server.clear_customer": "مسح العميل"
+  "server.clear_customer": "مسح العميل",
+
+  "table_occupied": "مشغولة",
+  "table_occupied_badge": "{{count}} طلب/طلبات",
+  "table_full": "ممتلئة",
+  "table_has_active_orders": "هذه الطاولة لديها طلبات نشطة",
+  "share_table_title": "مشاركة الطاولة؟",
+  "share_table_message": "الطاولة {{tableNumber}} مشغولة حالياً. هل ترغب في الانضمام إلى هذه الطاولة؟",
+  "share_table_occupants": "الطلبات الحالية على هذه الطاولة:",
+  "share_table_capacity_warning": "هذه الطاولة وصلت للسعة القصوى",
+  "share_table_confirm": "نعم، انضم للطاولة",
+  "share_table_cancel": "اختر طاولة أخرى",
+  "remaining_capacity": "يمكن لـ {{count}} ضيوف إضافيين الانضمام",
+  "guest": "ضيف"
 }

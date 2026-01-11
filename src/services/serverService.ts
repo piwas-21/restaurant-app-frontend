@@ -167,38 +167,33 @@ export async function markOrderCompleted(orderId: string): Promise<OrderDto> {
 }
 /**
  * Complete all active orders on a table (frees the table)
+ * Uses the backend endpoint that intelligently handles order transitions
  */
-export async function completeAllTableOrders(tableNumber: string): Promise<number> {
-  // Fetch all active orders for this table
-  const result = await getDineInOrders({
-    tableNumber: parseInt(tableNumber, 10),
-    status: 'Pending,Confirmed,Preparing,Ready',
-    pageSize: 50,
-  });
-  
-  const allOrders = result.items || [];
-  
-  // Filter out any orders that might already be completed (in case backend filter isn't working)
-  const activeOrders = allOrders.filter(order => 
-    !['Completed', 'Cancelled'].includes(order.status)
+export async function completeAllTableOrders(tableNumber: string): Promise<{
+  completedCount: number;
+  cancelledCount: number;
+  totalProcessed: number;
+}> {
+  const response = await apiClient.post<ApiResponse<{
+    completedCount: number;
+    cancelledCount: number;
+    totalProcessed: number;
+    processedOrderNumbers: string[];
+  }>>(
+    `/api/orders/table/${tableNumber}/complete-all`,
+    {},
+    { requireAuth: true }
   );
-  
-  if (activeOrders.length === 0) {
-    // No active orders to complete - the table status will be recalculated on refresh
-    return 0;
+
+  if (!response.success || !response.data) {
+    throw new Error(response.message || 'Failed to complete table orders');
   }
-  
-  // Complete all orders (use allSettled to handle partial failures)
-  const results = await Promise.allSettled(
-    activeOrders.map(order => 
-      updateOrderStatus(order.id, 'Completed', 'Table cleared by server')
-    )
-  );
-  
-  // Count how many succeeded
-  const completed = results.filter(r => r.status === 'fulfilled').length;
-  
-  return completed;
+
+  return {
+    completedCount: response.data.completedCount,
+    cancelledCount: response.data.cancelledCount,
+    totalProcessed: response.data.totalProcessed,
+  };
 }
 
 /**

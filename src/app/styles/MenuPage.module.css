@@ -5,6 +5,8 @@
   font-family: var(--font-family-sans);
   background-color: var(--background-color);
   color: var(--text-color);
+  /* Ensure sticky positioning works for children */
+  overflow: visible;
 }
 
 .viewCartButton {

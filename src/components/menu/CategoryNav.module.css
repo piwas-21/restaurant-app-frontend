@@ -107,74 +107,119 @@
 /* Tablet */
 @media (max-width: 768px) {
   .stickyNav {
-    padding: 10px 0;
+    position: sticky;
+    top: 130px; /* 80px header + 50px TableBanner */
+    padding: 12px 0;
+    background-color: var(--card-background);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 100;
   }
 
   .navWrapper {
-    padding: 0;
-    width: 690px;
+    padding: 0 1rem;
+    width: 100%; /* Use full width */
     max-width: 100%;
   }
 
+  .navScrollContainer {
+    -webkit-overflow-scrolling: touch;
+  }
+
   .navButton {
-    padding: 9px 16px;
-    font-size: 0.95rem;
+    padding: 12px 18px;
+    font-size: 1rem;
+    min-height: 44px; /* Accessibility minimum */
+    border-radius: 22px;
+  }
+
+  .navButton:active {
+    transform: scale(0.96);
   }
 
   .navArrow {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .navArrow svg {
+    width: 22px;
+    height: 22px;
   }
 
   .navArrowLeft {
-    margin-right: 8px;
+    margin-right: 10px;
   }
 
   .navArrowRight {
-    margin-left: 8px;
+    margin-left: 10px;
   }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
   .stickyNav {
-    padding: 8px 0;
-    margin-bottom: 1rem;
+    position: sticky;
+    top: 130px; /* 80px header + 50px TableBanner */
+    padding: 12px 0;
+    margin-bottom: 1.5rem;
+    background-color: var(--card-background);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    /* Ensure it stays on top of content */
+    z-index: 100;
   }
 
   .navWrapper {
-    padding: 0 0.5rem;
-    width: 98%;
-    max-width: 380px;
-    margin: 0 auto;
+    padding: 0 0.75rem;
+    width: 100%; /* Use full width on mobile */
+    max-width: 100%;
+    margin: 0;
   }
 
   .navScrollContainer {
     flex: 1;
     min-width: 0;
+    /* Enhanced scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
   }
 
   .navButtonsContainer {
-    gap: 8px;
+    gap: 10px;
     padding: 0 4px;
   }
 
   .navButton {
-    padding: 10px 16px;
-    font-size: 0.9rem;
+    /* Larger touch targets per Apple/Google HIG - minimum 44px */
+    padding: 14px 20px;
+    font-size: 1rem; /* Increased from 0.9rem for better readability */
     min-width: fit-content;
-    border-radius: 20px;
+    min-height: 44px; /* Accessibility: minimum touch target size */
+    border-radius: 22px;
+    font-weight: 500;
+    /* Better tap feedback */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .navButton:active {
+    transform: scale(0.96);
+  }
+
+  .navButtonActive {
+    font-weight: 600;
   }
 
   .navArrow {
-    width: 36px;
-    height: 36px;
+    /* Larger touch targets for arrows */
+    width: 44px;
+    height: 44px;
     flex-shrink: 0;
+    /* Better visual prominence */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   .navArrow svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
 
   .navArrowLeft {
@@ -185,3 +230,4 @@
     margin-left: 8px;
   }
 }
+

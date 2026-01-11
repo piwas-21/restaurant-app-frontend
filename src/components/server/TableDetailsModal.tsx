@@ -161,8 +161,15 @@ export default function TableDetailsModal({
                       setIsUpdating(true);
                       setError(null);
                       // Complete any lingering orders in the database for this table
-                      const completed = await completeAllTableOrders(table.tableNumber);
-                      console.log(`Completed ${completed} orders for table ${table.tableNumber}`);
+                      const result = await completeAllTableOrders(table.tableNumber);
+                      
+                      if (result.totalProcessed > 0) {
+                        console.log(
+                          `Processed ${result.totalProcessed} orders for table ${table.tableNumber}: ` +
+                          `${result.completedCount} completed, ${result.cancelledCount} cancelled`
+                        );
+                      }
+                      
                       onTableStatusChanged();
                       onClose();
                     } catch (err) {

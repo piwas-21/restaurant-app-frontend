@@ -97,6 +97,18 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
       );
     }
     
+    // Server: Show only Server link
+    if (role === 'server') {
+      return (
+        <>
+          <Link href="/server" className={`nav-link ${pathname === '/server' ? 'active' : ''}`} onClick={closeMobileMenu}>
+            <UtensilsCrossed size={18} />
+            <span>{t('nav_server', 'Server')}</span>
+          </Link>
+        </>
+      );
+    }
+    
     // Admin: Show all customer links + admin dashboard
     if (role === 'admin') {
       return (

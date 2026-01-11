@@ -774,7 +774,8 @@ section,
 article,
 div[role="main"] {
   width: 100%;
-  overflow-x: hidden;
+  /* Removed overflow-x: hidden - it breaks position: sticky */
+  /* overflow-x is handled at the html/body level */
   box-sizing: border-box;
 }
 

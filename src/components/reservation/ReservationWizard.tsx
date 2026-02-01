@@ -96,6 +96,23 @@ export default function ReservationWizard() {
       return;
     }
 
+    if (!formData.customerEmail || !formData.customerEmail.trim()) {
+      setError('Email address is required');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.customerEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!formData.customerPhone || !formData.customerPhone.trim()) {
+      setError('Phone number is required');
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -296,6 +313,7 @@ export default function ReservationWizard() {
                   value={formData.customerPhone || ''}
                   onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                   placeholder={t('reservation_phone_placeholder')}
+                  required
                 />
               </div>
               <div className={styles.formGroup}>

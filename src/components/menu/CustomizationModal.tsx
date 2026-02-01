@@ -247,6 +247,7 @@ export default function CustomizationModal({
               onVariationChange={setSelectedVariationId}
               basePrice={basePrice}
               currentLanguage={currentLanguage}
+              productName={productName}
             />
           )}
 

@@ -23,6 +23,7 @@ interface VariationsSectionProps {
   onVariationChange: (variationId: string | null) => void;
   basePrice: number;
   currentLanguage: string;
+  productName: string;
 }
 
 export default function VariationsSection({
@@ -31,6 +32,7 @@ export default function VariationsSection({
   onVariationChange,
   basePrice,
   currentLanguage,
+  productName,
 }: VariationsSectionProps) {
   const { t } = useTranslation();
 
@@ -66,7 +68,7 @@ export default function VariationsSection({
           />
           <div className={styles.variationContent}>
             <div className={styles.variationInfo}>
-              <span className={styles.variationName}>{t("standard")}</span>
+              <span className={styles.variationName}>{productName}</span>
               {basePrice > 0 && (
                 <span className={styles.variationPrice}>
                   CHF {basePrice.toFixed(2)}

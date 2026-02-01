@@ -48,10 +48,11 @@ export default function CustomerDetailsForm({
 
       <input
         type="tel"
-        placeholder={t('your_phone_optional', 'Your Phone (Optional)')}
+        placeholder={t('your_phone_optional', 'Your Phone')}
         value={customerPhone}
         onChange={(e) => onPhoneChange(e.target.value)}
         className={styles.input}
+        required
       />
 
       <textarea

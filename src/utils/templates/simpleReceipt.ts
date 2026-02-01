@@ -109,7 +109,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
       <body>
         <div class="header">
           <h1>Rumi Restaurant</h1>
-          <div>${translate('receipt', 'RECEIPT')}</div>
+          <div>${translate('online_order', 'ONLINE ORDER')}</div>
         </div>
 
         <div class="separator"></div>

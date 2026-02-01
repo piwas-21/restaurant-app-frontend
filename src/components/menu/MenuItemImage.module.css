@@ -25,9 +25,18 @@
   font-size: 0.8rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 480px) {
+/* Mobile - Smaller square image on right */
+@media (max-width: 600px) {
   .itemImageContainer {
-    height: 200px;
+    width: 90px;
+    height: 90px;
+    min-width: 90px;
+    margin-bottom: 0;
+    border-radius: 8px;
+    order: 2; /* Move image to the right */
+  }
+
+  .imageCount {
+    display: none; /* Hide image count on mobile */
   }
 }

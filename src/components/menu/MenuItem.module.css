@@ -20,3 +20,60 @@
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0,0,0,0.12);
 }
+
+/* Content wrapper - no effect on desktop */
+.contentWrapper {
+  display: contents;
+}
+
+/* Price and Actions Row - hidden on desktop */
+.priceActionsRow {
+  display: contents;
+}
+
+.mobilePrice {
+  display: none;
+}
+
+/* Mobile List View - Horizontal Layout */
+@media (max-width: 600px) {
+  .menuItem {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    padding: 0.875rem;
+    text-align: left;
+    gap: 0.75rem;
+    align-items: flex-start;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .menuItem:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .contentWrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    order: 1;
+  }
+
+  .priceActionsRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  .mobilePrice {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+}

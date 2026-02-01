@@ -169,3 +169,21 @@
     border-color: rgba(255, 255, 255, 0.3);
   }
 }
+
+/* Mobile - left align allergens */
+@media (max-width: 600px) {
+  .allergensSection {
+    align-items: flex-start;
+    margin: 0.25rem 0;
+  }
+
+  .allergensContent {
+    justify-content: flex-start;
+  }
+
+  .allergenTag {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    border-radius: 12px;
+  }
+}

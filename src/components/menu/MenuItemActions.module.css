@@ -53,22 +53,32 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
-  .addToOrderButton,
-  .feedbackButton {
-    padding: 0.7rem 1rem;
-    font-size: 0.9rem;
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  .addToOrderButton {
-    margin-bottom: 0.5rem;
-  }
-
+@media (max-width: 600px) {
   .itemActions {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-top: 0;
+    margin-left: auto; /* Push to the right */
+    vertical-align: middle;
+  }
+
+  .addToOrderButton,
+  .feedbackButton,
+  .viewDetailsButton {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.6rem;
+    border-radius: 3px;
+    margin: 0;
+    margin-top: 0;
+    line-height: 1;
+    min-height: unset;
+  }
+
+  .viewDetailsButton {
+    margin-left: 0;
+  }
+
+  .feedbackButton {
+    display: none; /* Hide feedback on mobile for space */
   }
 }

@@ -158,6 +158,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
       className={styles.menuItem}
       role="listitem"
       aria-labelledby={`item-name-${item.id}`}
+      onClick={() => setShowDetails(true)}
+      style={{ cursor: 'pointer' }}
     >
       <MenuItemImage
         imageUrl={item.image}
@@ -167,27 +169,32 @@ const MenuItem: React.FC<MenuItemProps> = ({
         onClick={() => onImageClick(item, 0)}
         onError={() => getFallbackImage(item)}
       />
-      <MenuItemDetails
-        id={item.id}
-        title={itemName}
-        description={productDescription}
-        ingredients={ingredientsText}
-        allergens={item.allergens}
-        price={numericPrice}
-        dietaryTags={item.dietaryTags}
-        t={t}
-        initialRatingData={{ average: 0, count: 0 }}
-      />
-      <MenuItemActions
-        onAdd={handleAddItemToCart}
-        onFeedback={() => setShowFeedbackForm(item.id)}
-        addAria={t("add_item_to_order", { itemName })}
-        addLabel={t("add_to_order")}
-        onDetails={() => setShowDetails(true)}
-        detailsLabel={t('details')}
-        feedbackAria={`${t("feedback_form_heading")} ${itemName}`}
-        feedbackLabel={t("feedback_form_heading")}
-      />
+      <div className={styles.contentWrapper}>
+        <MenuItemDetails
+          id={item.id}
+          title={itemName}
+          description={productDescription}
+          ingredients={ingredientsText}
+          allergens={item.allergens}
+          price={numericPrice}
+          dietaryTags={item.dietaryTags}
+          t={t}
+          initialRatingData={{ average: 0, count: 0 }}
+        />
+        <div className={styles.priceActionsRow}>
+          <span className={styles.mobilePrice}>CHF {numericPrice.toFixed(2)}</span>
+          <MenuItemActions
+            onAdd={handleAddItemToCart}
+            onFeedback={() => setShowFeedbackForm(item.id)}
+            addAria={t("add_item_to_order", { itemName })}
+            addLabel={t("add_to_order")}
+            onDetails={() => setShowDetails(true)}
+            detailsLabel={t('details')}
+            feedbackAria={`${t("feedback_form_heading")} ${itemName}`}
+            feedbackLabel={t("feedback_form_heading")}
+          />
+        </div>
+      </div>
       {showFeedbackForm === item.id && (
         <FeedbackForm
           dishId={item.id}

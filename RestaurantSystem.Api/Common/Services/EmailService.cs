@@ -68,7 +68,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send welcome email to user {UserId} ({Email})", user.Id, user.Email);
-            throw;
+            // Non-fatal: welcome email failure should not block registration
         }
     }
 
@@ -93,7 +93,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email verification to user {UserId} ({Email})", user.Id, user.Email);
-            throw;
+            // Non-fatal: email failure should not block registration
         }
     }
 
@@ -510,7 +510,7 @@ Thank you for being a valued member!";
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send account deletion email to {Email}", toEmail);
-            throw;
+            // Non-fatal: deletion is already scheduled in the DB
         }
     }
 

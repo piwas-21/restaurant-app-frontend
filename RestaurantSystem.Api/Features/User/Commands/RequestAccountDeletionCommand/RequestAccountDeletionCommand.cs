@@ -49,14 +49,21 @@ public class RequestAccountDeletionCommandHandler : ICommandHandler<RequestAccou
         var deleteUrl = $"{_emailSettings.FrontendBaseUrl}/delete-account?token={Uri.EscapeDataString(token)}&userId={user.Id}";
         var cancelUrl = $"{_emailSettings.FrontendBaseUrl}/auth/login"; // Login cancels usage
 
-        // Send email
-        await _emailService.SendAccountDeletionEmailAsync(
-            user.Email!,
-            user.FirstName,
-            user.LastName,
-            deleteUrl,
-            cancelUrl,
-            user.DeletionScheduledAt.Value);
+        // Send email (non-fatal — deletion is already scheduled in the DB)
+        try
+        {
+            await _emailService.SendAccountDeletionEmailAsync(
+                user.Email!,
+                user.FirstName,
+                user.LastName,
+                deleteUrl,
+                cancelUrl,
+                user.DeletionScheduledAt.Value);
+        }
+        catch (Exception emailEx)
+        {
+            _logger.LogError(emailEx, "Failed to send account deletion email for user {UserId}. Deletion is still scheduled.", user.Id);
+        }
 
         _logger.LogInformation("Account deletion requested for user {UserId}. Scheduled for {DeletionDate}", user.Id, user.DeletionScheduledAt);
 

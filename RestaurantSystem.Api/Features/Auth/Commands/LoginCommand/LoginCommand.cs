@@ -40,7 +40,7 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
 
         if (user == null || user.IsDeleted)
         {
-            throw new Exception("Invalid credentials");
+            throw new UnauthorizedAccessException("Invalid credentials");
         }
 
         // Verify password
@@ -48,7 +48,7 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
 
         if (!isPasswordValid)
         {
-            throw new Exception("Invalid credentials");
+            throw new UnauthorizedAccessException("Invalid credentials");
         }
 
         // Check if email is confirmed (only for customers)

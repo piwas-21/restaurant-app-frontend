@@ -65,7 +65,7 @@ public class ExceptionHandlingMiddleware
 
             case UnauthorizedAccessException:
                 statusCode = HttpStatusCode.Unauthorized;
-                message = "You are not authorized to access this resource";
+                message = exception.Message;
                 break;
 
             case ArgumentException:

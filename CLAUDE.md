@@ -165,20 +165,20 @@ Grep for the component / hook / type you're adding or modifying. List every call
 
 ## §7 — Quality gates
 
-| Gate | When | What | Blocking? | Source of truth |
+| Enforcement | Gate | When | What | Source of truth |
 |---|---|---|---|---|
-| `npm run lint` | Pre-commit (manual now) | ESLint passes | yes (manual) | `eslint.config.mjs` |
-| `npm run build` | Pre-commit (manual now) | Next.js build succeeds | yes (manual) | `next.config.ts` |
-| Pre-commit hooks | Every `git commit` | trailing-whitespace, EOF, large files, secret scan, no-commit-to-protected | yes | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
-| `npm test` | MR pipeline | Jest unit tests | yes | `.gitlab-ci.yml` (`npm_test` job) |
-| `npm audit --audit-level=high` | MR pipeline | No high/critical vulnerabilities | yes | `.gitlab-ci.yml` (`npm_audit` job) |
-| Gitleaks | MR pipeline | No leaked credentials (allowlist via `.gitleaks.toml`) | yes | [.gitleaks.toml](.gitleaks.toml) |
-| njsscan | MR pipeline | Static security scan for JS | yes | `.gitlab-ci.yml` |
-| semgrep | MR pipeline | SAST | yes | `.gitlab-ci.yml` |
-| retire.js | MR pipeline | Outdated-dep CVE scan | yes | `.gitlab-ci.yml` (will be replaced by OSV-Scanner in Sprint 4) |
-| Trivy image scan | After build | Reports CRITICAL/HIGH CVEs | **no** (currently `allow_failure: true`) | `.gitlab-ci.yml` |
+| **CI-enforced (blocking)** | `npm test` | MR pipeline | Jest unit tests | `.gitlab-ci.yml` (`npm_test` job) |
+| **CI-enforced (blocking)** | `npm audit --audit-level=high` | MR pipeline | No high/critical vulnerabilities | `.gitlab-ci.yml` (`npm_audit` job) |
+| **CI-enforced (blocking)** | Gitleaks | MR pipeline | No leaked credentials (allowlist via `.gitleaks.toml`) | [.gitleaks.toml](.gitleaks.toml) |
+| **CI-enforced (blocking)** | njsscan | MR pipeline | Static security scan for JS | `.gitlab-ci.yml` |
+| **CI-enforced (blocking)** | semgrep | MR pipeline | SAST | `.gitlab-ci.yml` |
+| **CI-enforced (blocking)** | retire.js | MR pipeline | Outdated-dep CVE scan (replaced by OSV-Scanner in Sprint 4) | `.gitlab-ci.yml` |
+| **CI-enforced** (non-blocking, `allow_failure: true`) | Trivy image scan | After build | Reports CRITICAL/HIGH CVEs (flipped to blocking in Sprint 4) | `.gitlab-ci.yml` |
+| **Pre-commit** (blocking on `git commit`) | `pre-commit` hooks | Every commit | trailing-whitespace, EOF, large files, secret scan, no-commit-to-protected | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
+| **Sprint 1 — manual** (devs run before commit; not yet automated) | `npm run lint` | Manual | ESLint passes | `eslint.config.mjs` |
+| **Sprint 1 — manual** (devs run before commit; not yet automated) | `npm run build` | Manual | Next.js build succeeds | `next.config.ts` |
 
-Format / typecheck / coverage / Playwright E2E gates land in Sprint 2. SAST quality gate (SonarCloud) lands in Sprint 3.
+**Manual gates become automated in Sprint 2** via `prettier --check`, `eslint --max-warnings=0`, and `tsc --noEmit` pre-commit hooks + a CI lint stage. SAST quality gate (SonarCloud) lands in Sprint 3.
 
 ### Setup for a new developer
 ```bash
@@ -231,10 +231,16 @@ Never auto-edit these files / take these actions without explicit user instructi
 - **Backend DTO contract changes** — affects `src/services/types/` and any consumer. Before modifying a frontend type that mirrors a backend DTO, grep usages and flag the cross-repo coordination in the MR.
 
 ### Sensitive-file refusal (matches gitleaks/detect-secrets allowlist)
+
 Never commit:
-- `.env`, `.env.local`, `.env.production` — gitignored; if missing, flag, don't fabricate
+- `.env.local`, `.env.development.local`, `.env.test.local`, `.env.production.local` — gitignored; if missing, flag, don't fabricate
 - `*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.cer`
 - Any file matching `*secret*`, `*credentials*`
+
+**Intentionally-tracked env files (do NOT delete; do NOT add secrets to):**
+- `.env.example` — template that `scripts/dev-secrets.sh` copies into `.env.local`
+- `.env.production` — public deploy-time defaults for the production build. Only `NEXT_PUBLIC_*` values, **never** secrets. Whitelisted in `.gitignore` via `!.env.production`. If you need to add a runtime secret to production, that's a K8s/ArgoCD config change, not a code change to this file.
+- `.env` — currently tracked but contains shared dev/test credentials; pending rotation + migration to `.env.local` per the security tracker issue (see `.gitleaksignore` and the open security issue).
 
 ---
 

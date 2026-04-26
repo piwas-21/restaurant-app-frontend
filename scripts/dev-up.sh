@@ -53,7 +53,8 @@ if $NO_BACKEND_CHECK; then
 else
   info "[2/4] Health-checking backend…"
   # Read NEXT_PUBLIC_API_URL from .env.local without sourcing (avoids exec of arbitrary content).
-  API_URL=$(grep -E '^NEXT_PUBLIC_API_URL=' .env.local | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+  # Tolerates spaces around `=` and strips surrounding whitespace via xargs.
+  API_URL=$(grep -E '^NEXT_PUBLIC_API_URL[[:space:]]*=' .env.local | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'" | xargs)
   if [[ -z "$API_URL" ]]; then
     warn "NEXT_PUBLIC_API_URL not set in .env.local. Skipping backend check."
   else

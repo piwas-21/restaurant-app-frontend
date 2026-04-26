@@ -1,5 +1,33 @@
+# RUMI Backend — gitleaks config
+# Runs in GitLab CI per .gitlab-ci.yml; complements local detect-secrets pre-commit hook.
+# Docs: https://github.com/gitleaks/gitleaks/blob/master/README.md
+
 [extend]
 useDefault = true
 
+# ── Allowlist (intentional false positives) ──────────────────────────
 [allowlist]
-paths = ['test', '.*\/test\/.*']
+description = "Project-specific allowlist for known non-secret patterns"
+
+# Paths that legitimately contain hashed / sample / placeholder credentials
+paths = [
+  '''(?i).*[/\\]test[/\\].*''',
+  '''(?i).*[/\\]TestFixtures[/\\].*''',
+  '''(?i)RestaurantSystem\.IntegrationTests[/\\].*''',
+  # EF migrations sometimes embed sample seed data with placeholder hashes
+  '''(?i)RestaurantSystem\.Infrastructure[/\\]Persistence[/\\]Migrations[/\\].*''',
+  # Build output and dependency caches
+  '''bin[/\\].*''',
+  '''obj[/\\].*''',
+  '''node_modules[/\\].*''',
+]
+
+# Specific commits known to contain false-positive hits
+# (add via: gitleaks detect --report-path /tmp/leaks.json then commit hash)
+commits = []
+
+# Known-safe regexes for placeholder values used in dev / docs
+regexes = [
+  # ASP.NET Core dev-time JWT secret examples (only used in appsettings.Development.json)
+  '''YourSecretKeyForDevelopmentMustBeAtLeast32Characters''',
+]

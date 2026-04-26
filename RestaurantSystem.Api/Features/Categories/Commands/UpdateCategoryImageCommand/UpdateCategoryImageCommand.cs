@@ -92,7 +92,7 @@ public class UpdateCategoryImageCommandHandler : ICommandHandler<UpdateCategoryI
 
             category.ImageUrl = imageUrl;
             category.UpdatedAt = DateTime.UtcNow;
-            category.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+            category.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
             await _context.SaveChangesAsync(cancellationToken);
 

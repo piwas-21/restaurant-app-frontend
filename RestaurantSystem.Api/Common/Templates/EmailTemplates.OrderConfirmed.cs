@@ -9,8 +9,9 @@ public static partial class EmailTemplates
     {
         public static string Subject => "Order Confirmed - Rumi Restaurant";
 
-        public static string GetHtmlBody(string customerName, string orderNumber, string orderType, int estimatedPreparationMinutes)
+        public static string GetHtmlBody(string customerName, string orderNumber, string orderType, int estimatedPreparationMinutes, string? contactEmail = null)
         {
+            var email = contactEmail ?? "rumigeneve@gmail.com";
             var orderTypeEmoji = orderType switch
             {
                 "DineIn" => "🍽️ Dine In",
@@ -57,12 +58,12 @@ public static partial class EmailTemplates
 
             <p>We will do our best to have your order ready as soon as possible.</p>
 
-            <p>If you have any questions, please contact us at rumigeneve@gmail.com</p>
+            <p>If you have any questions, please contact us at {email}</p>
             <p>We look forward to serving you!</p>
             <p>Best regards,<br>Rumi Restaurant Team</p>
         </div>
         <div class='footer'>
-            <p>Rumi Restaurant | Geneva | rumigeneve@gmail.com</p>
+            <p>Rumi Restaurant | Geneva | {email}</p>
             <p>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -70,8 +71,9 @@ public static partial class EmailTemplates
 </html>";
         }
 
-        public static string GetTextBody(string customerName, string orderNumber, string orderType, int estimatedPreparationMinutes)
+        public static string GetTextBody(string customerName, string orderNumber, string orderType, int estimatedPreparationMinutes, string? contactEmail = null)
         {
+            var email = contactEmail ?? "rumigeneve@gmail.com";
             var orderTypeText = orderType switch
             {
                 "DineIn" => "Dine In",
@@ -93,14 +95,14 @@ Estimated Preparation Time: {estimatedPreparationMinutes} minutes
 
 We will do our best to have your order ready as soon as possible.
 
-If you have any questions, please contact us at rumigeneve@gmail.com
+If you have any questions, please contact us at {email}
 
 We look forward to serving you!
 
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

@@ -56,7 +56,7 @@ public class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryComman
             IsActive = command.IsActive,
             DisplayOrder = max + 1,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         _context.Categories.Add(category);

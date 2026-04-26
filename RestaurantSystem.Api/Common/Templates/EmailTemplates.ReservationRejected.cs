@@ -9,8 +9,9 @@ public static partial class EmailTemplates
     {
         public static string Subject => "Reservation Update - Rumi Restaurant";
 
-        public static string GetHtmlBody(string customerName, DateTime reservationDate, TimeSpan startTime, int numberOfGuests)
+        public static string GetHtmlBody(string customerName, DateTime reservationDate, TimeSpan startTime, int numberOfGuests, string? contactEmail = null)
         {
+            var email = contactEmail ?? "rumigeneve@gmail.com";
             var formattedDate = reservationDate.ToString("dddd, MMMM dd, yyyy");
 
             return $@"
@@ -52,12 +53,12 @@ public static partial class EmailTemplates
             </div>
 
             <p>We encourage you to try booking for another date or time. You can make a new reservation on our website or contact us directly.</p>
-            <p>If you have any questions, please don't hesitate to reach out to us at rumigeneve@gmail.com or call us.</p>
+            <p>If you have any questions, please don't hesitate to reach out to us at {email} or call us.</p>
             <p>We hope to welcome you soon!</p>
             <p>Best regards,<br>Rumi Restaurant Team</p>
         </div>
         <div class='footer'>
-            <p>Rumi Restaurant | Geneva | rumigeneve@gmail.com</p>
+            <p>Rumi Restaurant | Geneva | {email}</p>
             <p>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -65,8 +66,9 @@ public static partial class EmailTemplates
 </html>";
         }
 
-        public static string GetTextBody(string customerName, DateTime reservationDate, TimeSpan startTime, int numberOfGuests)
+        public static string GetTextBody(string customerName, DateTime reservationDate, TimeSpan startTime, int numberOfGuests, string? contactEmail = null)
         {
+            var email = contactEmail ?? "rumigeneve@gmail.com";
             var formattedDate = reservationDate.ToString("dddd, MMMM dd, yyyy");
 
             return $@"Rumi Restaurant - Reservation Update
@@ -85,14 +87,14 @@ Unfortunately, we cannot confirm your reservation. This may be due to availabili
 
 We encourage you to try booking for another date or time. You can make a new reservation on our website or contact us directly.
 
-If you have any questions, please don't hesitate to reach out to us at rumigeneve@gmail.com or call us.
+If you have any questions, please don't hesitate to reach out to us at {email} or call us.
 
 We hope to welcome you soon!
 
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

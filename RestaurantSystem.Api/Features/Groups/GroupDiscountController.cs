@@ -42,7 +42,7 @@ public class GroupDiscountController : ControllerBase
             MaximumDiscountAmount = dto.MaximumDiscountAmount,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         _context.GroupDiscounts.Add(discount);

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.FidelityPoints.Interfaces;
 using RestaurantSystem.Domain.Entities;
@@ -172,12 +173,12 @@ public class CustomerDiscountService : ICustomerDiscountService
             .FirstOrDefaultAsync(d => d.Id == discountRuleId, cancellationToken);
 
         if (discount == null)
-            throw new InvalidOperationException($"Discount rule with ID {discountRuleId} not found");
+            throw new NotFoundException($"Discount rule with ID {discountRuleId} not found");
 
         // Increment usage count
         discount.UsageCount++;
         discount.UpdatedAt = DateTime.UtcNow;
-        discount.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        discount.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         // Deactivate if max usage reached
         if (discount.MaxUsageCount.HasValue && discount.UsageCount >= discount.MaxUsageCount.Value)
@@ -226,7 +227,7 @@ public class CustomerDiscountService : ICustomerDiscountService
         }
 
         discount.CreatedAt = DateTime.UtcNow;
-        discount.CreatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        discount.CreatedBy = _currentUserService.GetAuditIdentifier();
         discount.UsageCount = 0;
 
         _context.CustomerDiscountRules.Add(discount);
@@ -243,7 +244,7 @@ public class CustomerDiscountService : ICustomerDiscountService
             .FirstOrDefaultAsync(d => d.Id == discount.Id, cancellationToken);
 
         if (existing == null)
-            throw new InvalidOperationException($"Discount rule with ID {discount.Id} not found");
+            throw new NotFoundException($"Discount rule with ID {discount.Id} not found");
 
         // Validate discount
         if (discount.DiscountType == DiscountType.Percentage && discount.DiscountValue > 100)
@@ -266,7 +267,7 @@ public class CustomerDiscountService : ICustomerDiscountService
         existing.ValidFrom = discount.ValidFrom;
         existing.ValidUntil = discount.ValidUntil;
         existing.UpdatedAt = DateTime.UtcNow;
-        existing.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        existing.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -279,12 +280,12 @@ public class CustomerDiscountService : ICustomerDiscountService
             .FirstOrDefaultAsync(d => d.Id == discountId, cancellationToken);
 
         if (discount == null)
-            throw new InvalidOperationException($"Discount rule with ID {discountId} not found");
+            throw new NotFoundException($"Discount rule with ID {discountId} not found");
 
         // Soft delete by deactivating
         discount.IsActive = false;
         discount.UpdatedAt = DateTime.UtcNow;
-        discount.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        discount.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
     }

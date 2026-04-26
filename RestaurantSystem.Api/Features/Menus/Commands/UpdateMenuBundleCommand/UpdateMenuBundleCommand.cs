@@ -121,7 +121,7 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
             product.PreparationTimeMinutes = command.PreparationTimeMinutes;
             product.DisplayOrder = command.DisplayOrder;
             product.UpdatedAt = DateTime.UtcNow;
-            product.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+            product.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
             // Update Categories
             _context.ProductCategories.RemoveRange(product.ProductCategories);
@@ -138,7 +138,7 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
                         IsPrimary = categoryId == command.PrimaryCategoryId,
                         DisplayOrder = displayOrder++,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     _context.ProductCategories.Add(productCategory);
                 }
@@ -167,9 +167,9 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
                     Name = description.Name,
                     Description = description.Description,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System",
+                    CreatedBy = _currentUserService.GetAuditIdentifier(),
                     UpdatedAt = DateTime.UtcNow,
-                    UpdatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    UpdatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.ProductDescriptions.Add(productDescription);
             }
@@ -182,7 +182,7 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
                 {
                     ProductId = product.Id,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.MenuDefinitions.Add(menuDef);
             }
@@ -198,7 +198,7 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
             menuDef.AvailableSaturday = command.MenuDefinition.AvailableSaturday;
             menuDef.AvailableSunday = command.MenuDefinition.AvailableSunday;
             menuDef.UpdatedAt = DateTime.UtcNow;
-            menuDef.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+            menuDef.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
             // Update Sections
             if (command.MenuDefinition.Sections != null)
@@ -221,7 +221,7 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
                         MinSelection = sectionDto.MinSelection,
                         MaxSelection = sectionDto.MaxSelection,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     
                     _context.MenuSections.Add(section);
@@ -238,7 +238,7 @@ public class UpdateMenuBundleCommandHandler : ICommandHandler<UpdateMenuBundleCo
                                 DisplayOrder = itemDto.DisplayOrder,
                                 IsDefault = itemDto.IsDefault,
                                 CreatedAt = DateTime.UtcNow,
-                                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                                CreatedBy = _currentUserService.GetAuditIdentifier()
                             };
                             _context.MenuSectionItems.Add(item);
                         }

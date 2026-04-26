@@ -56,7 +56,7 @@ public class UpdateCategoryCommandHandler : ICommandHandler<UpdateCategoryComman
         category.Description = command.Description;
         category.IsActive = command.IsActive;
         category.UpdatedAt = DateTime.UtcNow;
-        category.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        category.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

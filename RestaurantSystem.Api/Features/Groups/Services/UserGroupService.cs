@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Groups.Dtos;
 using RestaurantSystem.Api.Features.Groups.Interfaces;
@@ -37,7 +38,7 @@ public class UserGroupService : IUserGroupService
             ValidFrom = dto.ValidFrom.HasValue ? DateTime.SpecifyKind(dto.ValidFrom.Value, DateTimeKind.Utc) : null,
             ValidUntil = dto.ValidUntil.HasValue ? DateTime.SpecifyKind(dto.ValidUntil.Value, DateTimeKind.Utc) : null,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         // Add initial discount if provided
@@ -52,7 +53,7 @@ public class UserGroupService : IUserGroupService
                 MaximumDiscountAmount = dto.InitialDiscount.MaximumDiscountAmount,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
             group.Discounts.Add(discount);
         }
@@ -61,8 +62,8 @@ public class UserGroupService : IUserGroupService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return await GetGroupByIdAsync(group.Id, cancellationToken) 
-            ?? throw new InvalidOperationException("Failed to retrieve created group");
+        return await GetGroupByIdAsync(group.Id, cancellationToken)
+            ?? throw new BadRequestException("Failed to retrieve created group");
     }
 
     public async Task<UserGroupDto> UpdateGroupAsync(UpdateUserGroupDto dto, CancellationToken cancellationToken = default)
@@ -82,7 +83,7 @@ public class UserGroupService : IUserGroupService
         await _context.SaveChangesAsync(cancellationToken);
 
         return await GetGroupByIdAsync(group.Id, cancellationToken)
-            ?? throw new InvalidOperationException("Failed to retrieve updated group");
+            ?? throw new BadRequestException("Failed to retrieve updated group");
     }
 
     public async Task DeleteGroupAsync(Guid id, CancellationToken cancellationToken = default)
@@ -175,7 +176,7 @@ public class UserGroupService : IUserGroupService
 
         if (existingMembership != null)
         {
-            throw new InvalidOperationException("User is already a member of this group");
+            throw new BadRequestException("User is already a member of this group");
         }
 
         // Generate unique QR code for this membership
@@ -197,7 +198,7 @@ public class UserGroupService : IUserGroupService
             JoinedAt = DateTime.UtcNow,
             ExpiresAt = dto.ExpiresAt.HasValue ? DateTime.SpecifyKind(dto.ExpiresAt.Value, DateTimeKind.Utc) : null,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         _context.GroupMemberships.Add(membership);

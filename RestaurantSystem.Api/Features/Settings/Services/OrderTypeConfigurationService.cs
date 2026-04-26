@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Settings.Dtos;
 using RestaurantSystem.Api.Features.Settings.Interfaces;
@@ -71,12 +72,12 @@ public class OrderTypeConfigurationService : IOrderTypeConfigurationService
 
         if (configuration == null)
         {
-            throw new InvalidOperationException($"Order type configuration not found for {orderType}");
+            throw new NotFoundException($"Order type configuration not found for {orderType}");
         }
 
         configuration.IsEnabled = isEnabled;
         configuration.UpdatedAt = DateTime.UtcNow;
-        configuration.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        configuration.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

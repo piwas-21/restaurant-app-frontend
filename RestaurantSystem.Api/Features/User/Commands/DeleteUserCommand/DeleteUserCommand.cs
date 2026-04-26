@@ -108,7 +108,7 @@ public class DeleteUserCommandHandler : ICommandHandler<DeleteUserCommand, ApiRe
             // Soft delete for customers
             user.IsDeleted = true;
             user.DeletedAt = DateTime.UtcNow;
-            user.DeletedBy = _currentUserService.UserId?.ToString() ?? "System";
+            user.DeletedBy = _currentUserService.GetAuditIdentifier();
             
             _logger.LogInformation("Customer {UserId} soft deleted by user {DeletedBy}",
                 command.UserId, _currentUserService.UserId);

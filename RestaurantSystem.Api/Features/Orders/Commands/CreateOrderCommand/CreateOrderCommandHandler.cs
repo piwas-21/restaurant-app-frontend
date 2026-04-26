@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using RestaurantSystem.Api.Settings;
 using RestaurantSystem.Api.Abstraction.Messaging;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Models;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Common.Utilities;
@@ -89,7 +90,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                 Status = command.Type == OrderType.DineIn ? OrderStatus.Confirmed : OrderStatus.Pending,
                 PaymentStatus = PaymentStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
 
 
@@ -140,7 +141,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                         SpecialInstructions = itemDto.SpecialInstructions,
                         IngredientQuantitiesJson = itemDto.IngredientQuantities != null ? JsonSerializer.Serialize(itemDto.IngredientQuantities) : null,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
 
 
@@ -277,7 +278,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                     PaymentNotes = paymentDto.PaymentNotes,
                     PaymentDate = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
 
                 // Only mark non-Cash payments as completed immediately
@@ -324,9 +325,9 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
             ToStatus = order.Status,
             Notes = command.Type == OrderType.DineIn ? "Order created and auto-confirmed (Dine-in)" : "Order created",
             ChangedAt = DateTime.UtcNow,
-            ChangedBy = _currentUserService.UserId?.ToString() ?? "System",
+            ChangedBy = _currentUserService.GetAuditIdentifier(),
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         order.StatusHistory.Add(statusHistory);
@@ -480,7 +481,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                                 ReservedAt = now,
                                 ReservedUntil = now.AddHours(2), // 2 hour default
                                 IsActive = true,
-                                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                                CreatedBy = _currentUserService.GetAuditIdentifier()
                             };
                             
                             _context.TableReservations.Add(reservation);
@@ -583,7 +584,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                     Longitude = savedAddress.Longitude,
                     DeliveryInstructions = savedAddress.DeliveryInstructions,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
             }
         }
@@ -606,7 +607,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                 Longitude = addressDto.Longitude,
                 DeliveryInstructions = addressDto.DeliveryInstructions,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
         }
 
@@ -635,7 +636,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
                     Longitude = defaultAddress.Longitude,
                     DeliveryInstructions = defaultAddress.DeliveryInstructions,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
             }
         }
@@ -651,7 +652,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
 
         if (product == null)
         {
-            throw new InvalidOperationException($"Product {itemDto.ProductId} not found");
+            throw new NotFoundException($"Product {itemDto.ProductId} not found");
         }
 
         decimal unitPrice;
@@ -694,7 +695,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Api
             IngredientQuantitiesJson = itemDto.IngredientQuantities != null ? JsonSerializer.Serialize(itemDto.IngredientQuantities) : null,
             ParentOrderItem = parentItem,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         order.Items.Add(orderItem);

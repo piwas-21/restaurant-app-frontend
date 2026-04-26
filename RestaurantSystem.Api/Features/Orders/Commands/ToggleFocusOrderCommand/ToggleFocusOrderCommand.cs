@@ -72,7 +72,7 @@ public class ToggleFocusOrderCommandHandler : ICommandHandler<ToggleFocusOrderCo
         }
 
         order.UpdatedAt = DateTime.UtcNow;
-        order.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        order.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using RestaurantSystem.Api.Abstraction.Messaging;
 using RestaurantSystem.Api.Common.Models;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Reservations.Dtos;
+using RestaurantSystem.Api.Settings;
 using RestaurantSystem.Domain.Common.Enums;
 using RestaurantSystem.Domain.Entities;
 using RestaurantSystem.Infrastructure.Persistence;
@@ -17,16 +19,18 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
     private readonly ILogger<CreateReservationCommandHandler> _logger;
-    private const string AdminEmail = "rumigeneve@gmail.com";
+    private readonly EmailSettings _emailSettings;
 
     public CreateReservationCommandHandler(
         ApplicationDbContext context,
         IEmailService emailService,
-        ILogger<CreateReservationCommandHandler> logger)
+        ILogger<CreateReservationCommandHandler> logger,
+        IOptions<EmailSettings> emailSettings)
     {
         _context = context;
         _emailService = emailService;
         _logger = logger;
+        _emailSettings = emailSettings.Value;
     }
 
     public async Task<ApiResponse<ReservationDto>> Handle(CreateReservationCommand command, CancellationToken cancellationToken)
@@ -106,11 +110,11 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
 
 
                 // Send to admin with action buttons
-                var baseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? "http://localhost:5221";
-                var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_BASE_URL") ?? "http://localhost:3000";
-                
+                var baseUrl = _emailSettings.BackendBaseUrl;
+                var frontendUrl = _emailSettings.FrontendBaseUrl;
+
                 await _emailService.SendEmailAsync(
-                    AdminEmail,
+                    _emailSettings.AdminEmail,
                     Common.Templates.EmailTemplates.ReservationAdminNotification.Subject,
                     Common.Templates.EmailTemplates.ReservationAdminNotification.GetHtmlBody(
                         reservation.Id,

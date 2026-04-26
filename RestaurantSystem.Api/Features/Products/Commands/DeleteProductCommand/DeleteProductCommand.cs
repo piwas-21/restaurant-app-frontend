@@ -37,7 +37,7 @@ public class DeleteProductCommandHandler : ICommandHandler<DeleteProductCommand,
         // Soft delete
         product.IsDeleted = true;
         product.DeletedAt = DateTime.UtcNow;
-        product.DeletedBy = _currentUserService.UserId?.ToString() ?? "System";
+        product.DeletedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

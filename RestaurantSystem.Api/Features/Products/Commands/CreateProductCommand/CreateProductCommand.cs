@@ -98,7 +98,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                 Allergens = command.Allergens,
                 DisplayOrder = command.DisplayOrder,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
 
             _context.Products.Add(product);
@@ -113,7 +113,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                     IsPrimary = categoryId == command.PrimaryCategoryId,
                     DisplayOrder = displayOrder++,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.ProductCategories.Add(productCategory);
                 product.ProductCategories.Add(productCategory);
@@ -138,7 +138,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                     Name = description.Name,
                     Description = description.Description,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.ProductDescriptions.Add(productDescription);
                 product.Descriptions.Add(productDescription);
@@ -156,7 +156,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                         IsActive = variationDto.IsActive,
                         DisplayOrder = variationDto.DisplayOrder,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     _context.ProductVariations.Add(variation);
                     product.Variations.Add(variation);
@@ -174,7 +174,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                                 Name = content.Name,
                                 Description = content.Description,
                                 CreatedAt = DateTime.UtcNow,
-                                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                                CreatedBy = _currentUserService.GetAuditIdentifier()
                             };
                             _context.ProductVariationDescriptions.Add(description);
                             variation.Descriptions.Add(description);
@@ -195,7 +195,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                         IsRequired = false,
                         DisplayOrder = sideItemDisplayOrder++,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     _context.ProductSideItems.Add(productSideItem);
                     product.SuggestedSideItems.Add(productSideItem);
@@ -218,7 +218,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                         DisplayOrder = ingredientDto.DisplayOrder,
                         MaxQuantity = ingredientDto.MaxQuantity,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
 
                     _context.ProductIngredients.Add(ingredient);
@@ -242,7 +242,7 @@ public class CreateProductCommandHandler : ICommandHandler<CreateProductCommand,
                                 Name = content.Name,
                                 Description = content.Description,
                                 CreatedAt = DateTime.UtcNow,
-                                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                                CreatedBy = _currentUserService.GetAuditIdentifier()
                             };
                             _context.ProductIngredientDescriptions.Add(description);
                             ingredient.Descriptions.Add(description);

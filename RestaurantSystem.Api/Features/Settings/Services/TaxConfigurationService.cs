@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Settings.Interfaces;
 using RestaurantSystem.Domain.Common.Enums;
@@ -57,7 +58,7 @@ public class TaxConfigurationService : ITaxConfigurationService
     public async Task<TaxConfiguration> CreateTaxConfigurationAsync(TaxConfiguration taxConfiguration, CancellationToken cancellationToken = default)
     {
         taxConfiguration.CreatedAt = DateTime.UtcNow;
-        taxConfiguration.CreatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        taxConfiguration.CreatedBy = _currentUserService.GetAuditIdentifier();
 
         _context.TaxConfigurations.Add(taxConfiguration);
         await _context.SaveChangesAsync(cancellationToken);
@@ -71,7 +72,7 @@ public class TaxConfigurationService : ITaxConfigurationService
             .FirstOrDefaultAsync(t => t.Id == taxConfiguration.Id, cancellationToken);
 
         if (existing == null)
-            throw new InvalidOperationException($"Tax configuration with ID {taxConfiguration.Id} not found");
+            throw new NotFoundException($"Tax configuration with ID {taxConfiguration.Id} not found");
 
         existing.Name = taxConfiguration.Name;
         existing.Rate = taxConfiguration.Rate;
@@ -79,7 +80,7 @@ public class TaxConfigurationService : ITaxConfigurationService
         existing.Description = taxConfiguration.Description;
         existing.ApplicableOrderTypes = taxConfiguration.ApplicableOrderTypes;
         existing.UpdatedAt = DateTime.UtcNow;
-        existing.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        existing.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -92,7 +93,7 @@ public class TaxConfigurationService : ITaxConfigurationService
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
         if (taxConfiguration == null)
-            throw new InvalidOperationException($"Tax configuration with ID {id} not found");
+            throw new NotFoundException($"Tax configuration with ID {id} not found");
 
         _context.TaxConfigurations.Remove(taxConfiguration);
         await _context.SaveChangesAsync(cancellationToken);

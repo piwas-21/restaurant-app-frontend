@@ -98,7 +98,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
         product.Allergens = command.Allergens;
         product.DisplayOrder = command.DisplayOrder;
         product.UpdatedAt = DateTime.UtcNow;
-        product.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        product.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         // Update categories
         _context.ProductCategories.RemoveRange(product.ProductCategories);
@@ -113,7 +113,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                 IsPrimary = categoryId == command.PrimaryCategoryId,
                 DisplayOrder = displayOrder++,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
             _context.ProductCategories.Add(productCategory);
         }
@@ -142,9 +142,9 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
             var content = command.Content[key];
             var productDescription = new ProductDescription()
             {
-                UpdatedBy = _currentUserService.UserId?.ToString() ?? "System",
+                UpdatedBy = _currentUserService.GetAuditIdentifier(),
                 UpdatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System",
+                CreatedBy = _currentUserService.GetAuditIdentifier(),
                 CreatedAt = DateTime.UtcNow,
                 Description = content.Description,
                 Lang = key,
@@ -192,7 +192,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                     variation.IsActive = variationDto.IsActive;
                     variation.DisplayOrder = variationDto.DisplayOrder;
                     variation.UpdatedAt = DateTime.UtcNow;
-                    variation.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+                    variation.UpdatedBy = _currentUserService.GetAuditIdentifier();
                     
                     // Remove and recreate descriptions for existing variations
                     var existingDescriptions = await _context.ProductVariationDescriptions
@@ -212,7 +212,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                         IsActive = variationDto.IsActive,
                         DisplayOrder = variationDto.DisplayOrder,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     await _context.ProductVariations.AddAsync(variation, cancellationToken);
                 }
@@ -231,7 +231,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                              Name = content.Name,
                              Description = content.Description,
                              CreatedAt = DateTime.UtcNow,
-                             CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                             CreatedBy = _currentUserService.GetAuditIdentifier()
                          };
                          await _context.ProductVariationDescriptions.AddAsync(description, cancellationToken);
                     }
@@ -254,7 +254,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                     IsRequired = false,
                     DisplayOrder = sideItemDisplayOrder++,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 await _context.ProductSideItems.AddAsync(productSideItem,cancellationToken);
             }
@@ -281,7 +281,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                     DisplayOrder = ingredientDto.DisplayOrder,
                     MaxQuantity = ingredientDto.MaxQuantity,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
 
                 await _context.ProductIngredients.AddAsync(ingredient, cancellationToken);
@@ -298,7 +298,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                             Name = content.Name,
                             Description = content.Description,
                             CreatedAt = DateTime.UtcNow,
-                            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                            CreatedBy = _currentUserService.GetAuditIdentifier()
                         };
                         await _context.ProductIngredientDescriptions.AddAsync(description, cancellationToken);
                     }
@@ -320,7 +320,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                 {
                     ProductId = product.Id,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.MenuDefinitions.Add(menuDef);
             }
@@ -337,7 +337,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
             menuDef.AvailableSaturday = command.MenuDefinition.AvailableSaturday;
             menuDef.AvailableSunday = command.MenuDefinition.AvailableSunday;
             menuDef.UpdatedAt = DateTime.UtcNow;
-            menuDef.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+            menuDef.UpdatedBy = _currentUserService.GetAuditIdentifier();
             
             // Update sections
             if (command.MenuDefinition.Sections != null)
@@ -357,7 +357,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                         MinSelection = sectionDto.MinSelection,
                         MaxSelection = sectionDto.MaxSelection,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     
                     _context.MenuSections.Add(section);
@@ -374,7 +374,7 @@ public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand,
                                 DisplayOrder = itemDto.DisplayOrder,
                                 IsDefault = itemDto.IsDefault,
                                 CreatedAt = DateTime.UtcNow,
-                                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                                CreatedBy = _currentUserService.GetAuditIdentifier()
                             };
                             _context.MenuSectionItems.Add(item);
                         }

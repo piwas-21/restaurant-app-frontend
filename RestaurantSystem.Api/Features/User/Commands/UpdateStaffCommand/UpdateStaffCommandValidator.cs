@@ -2,9 +2,9 @@
 
 namespace RestaurantSystem.Api.Features.User.Commands.EditStaffCommand;
 
-public class UpdateStaffCommandCommandValidator : AbstractValidator<UpdateStaffCommand>
+public class UpdateStaffCommandValidator : AbstractValidator<UpdateStaffCommand>
 {
-    public UpdateStaffCommandCommandValidator()
+    public UpdateStaffCommandValidator()
     {
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First name is required")

@@ -9,8 +9,9 @@ public static partial class EmailTemplates
     {
         public static string Subject => "Order Cancelled - Rumi Restaurant";
 
-        public static string GetHtmlBody(string customerName, string orderNumber, string cancellationReason)
+        public static string GetHtmlBody(string customerName, string orderNumber, string cancellationReason, string? contactEmail = null)
         {
+            var email = contactEmail ?? "rumigeneve@gmail.com";
             return $@"
 <!DOCTYPE html>
 <html>
@@ -50,12 +51,12 @@ public static partial class EmailTemplates
                 {cancellationReason}
             </div>
 
-            <p>If you have any questions or concerns, please don't hesitate to contact us at rumigeneve@gmail.com or call us.</p>
+            <p>If you have any questions or concerns, please don't hesitate to contact us at {email} or call us.</p>
             <p>We apologize for any inconvenience and hope to serve you again soon.</p>
             <p>Best regards,<br>Rumi Restaurant Team</p>
         </div>
         <div class='footer'>
-            <p>Rumi Restaurant | Geneva | rumigeneve@gmail.com</p>
+            <p>Rumi Restaurant | Geneva | {email}</p>
             <p>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -63,8 +64,9 @@ public static partial class EmailTemplates
 </html>";
         }
 
-        public static string GetTextBody(string customerName, string orderNumber, string cancellationReason)
+        public static string GetTextBody(string customerName, string orderNumber, string cancellationReason, string? contactEmail = null)
         {
+            var email = contactEmail ?? "rumigeneve@gmail.com";
             return $@"Rumi Restaurant - Order Cancelled
 
 Dear {customerName},
@@ -76,14 +78,14 @@ Order Number: {orderNumber}
 Cancellation Reason:
 {cancellationReason}
 
-If you have any questions or concerns, please don't hesitate to contact us at rumigeneve@gmail.com or call us.
+If you have any questions or concerns, please don't hesitate to contact us at {email} or call us.
 
 We apologize for any inconvenience and hope to serve you again soon.
 
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

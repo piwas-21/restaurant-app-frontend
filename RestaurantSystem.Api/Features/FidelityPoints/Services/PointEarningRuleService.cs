@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.FidelityPoints.Interfaces;
 using RestaurantSystem.Domain.Entities;
@@ -66,12 +67,12 @@ public class PointEarningRuleService : IPointEarningRuleService
         // Validate no overlap
         if (!await ValidateNoOverlapAsync(rule, cancellationToken))
         {
-            throw new InvalidOperationException(
+            throw new BadRequestException(
                 $"Rule overlaps with existing rule. Range: ${rule.MinOrderAmount} - ${rule.MaxOrderAmount?.ToString() ?? "unlimited"}");
         }
 
         rule.CreatedAt = DateTime.UtcNow;
-        rule.CreatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        rule.CreatedBy = _currentUserService.GetAuditIdentifier();
 
         _context.PointEarningRules.Add(rule);
         await _context.SaveChangesAsync(cancellationToken);
@@ -87,12 +88,12 @@ public class PointEarningRuleService : IPointEarningRuleService
             .FirstOrDefaultAsync(r => r.Id == rule.Id, cancellationToken);
 
         if (existing == null)
-            throw new InvalidOperationException($"Rule with ID {rule.Id} not found");
+            throw new NotFoundException($"Rule with ID {rule.Id} not found");
 
         // Validate no overlap (excluding current rule)
         if (!await ValidateNoOverlapAsync(rule, cancellationToken))
         {
-            throw new InvalidOperationException(
+            throw new BadRequestException(
                 $"Updated rule would overlap with existing rule. Range: ${rule.MinOrderAmount} - ${rule.MaxOrderAmount?.ToString() ?? "unlimited"}");
         }
 
@@ -103,7 +104,7 @@ public class PointEarningRuleService : IPointEarningRuleService
         existing.IsActive = rule.IsActive;
         existing.Priority = rule.Priority;
         existing.UpdatedAt = DateTime.UtcNow;
-        existing.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        existing.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -116,7 +117,7 @@ public class PointEarningRuleService : IPointEarningRuleService
             .FirstOrDefaultAsync(r => r.Id == ruleId, cancellationToken);
 
         if (rule == null)
-            throw new InvalidOperationException($"Rule with ID {ruleId} not found");
+            throw new NotFoundException($"Rule with ID {ruleId} not found");
 
         _context.PointEarningRules.Remove(rule);
         await _context.SaveChangesAsync(cancellationToken);

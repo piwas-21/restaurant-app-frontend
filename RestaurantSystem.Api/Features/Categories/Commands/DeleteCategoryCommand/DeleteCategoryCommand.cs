@@ -44,7 +44,7 @@ public class DeleteCategoryCommandHandler : ICommandHandler<DeleteCategoryComman
         // Soft delete
         category.IsDeleted = true;
         category.DeletedAt = DateTime.UtcNow;
-        category.DeletedBy = _currentUserService.UserId?.ToString() ?? "System";
+        category.DeletedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

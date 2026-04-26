@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.FidelityPoints.Interfaces;
 using RestaurantSystem.Domain.Entities;
@@ -136,7 +137,7 @@ public class FidelityPointsService : IFidelityPointsService
 
             if (balance == null || balance.CurrentPoints < pointsToRedeem)
             {
-                throw new InvalidOperationException($"Insufficient points. Available: {balance?.CurrentPoints ?? 0}, Requested: {pointsToRedeem}");
+                throw new BadRequestException($"Insufficient points. Available: {balance?.CurrentPoints ?? 0}, Requested: {pointsToRedeem}");
             }
 
             // Calculate discount amount
@@ -237,7 +238,7 @@ public class FidelityPointsService : IFidelityPointsService
                 OrderTotal = null,
                 Description = reason,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
 
             _context.FidelityPointsTransactions.Add(pointsTransaction);
@@ -256,7 +257,7 @@ public class FidelityPointsService : IFidelityPointsService
                     TotalRedeemedPoints = points < 0 ? Math.Abs(points) : 0,
                     LastUpdated = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.FidelityPointBalances.Add(balance);
             }
@@ -270,7 +271,7 @@ public class FidelityPointsService : IFidelityPointsService
                     
                 balance.LastUpdated = DateTime.UtcNow;
                 balance.UpdatedAt = DateTime.UtcNow;
-                balance.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+                balance.UpdatedBy = _currentUserService.GetAuditIdentifier();
             }
 
             await _context.SaveChangesAsync(cancellationToken);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Common.Utilities;
 using RestaurantSystem.Api.Features.Basket.Dtos;
@@ -67,7 +68,7 @@ public class BasketService : IBasketService
 
         if (item.ProductId == Guid.Empty && item.MenuId == Guid.Empty)
         {
-            throw new InvalidOperationException("Product or Menu should be provided");
+            throw new BadRequestException("Product or Menu should be provided");
         }
 
         var basket = await GetOrCreateBasketAsync(sessionId, userId);
@@ -91,13 +92,13 @@ public class BasketService : IBasketService
                 .FirstOrDefaultAsync(p => p.Id == item.ProductId && p.IsActive && p.IsAvailable);
 
             if (product == null)
-                throw new InvalidOperationException("Product not found or unavailable");
+                throw new NotFoundException("Product not found or unavailable");
 
             // Handle Menu Type Product
             if (product.Type == ProductType.Menu)
             {
                 if (product.MenuDefinition == null)
-                    throw new InvalidOperationException("Menu definition not found");
+                    throw new NotFoundException("Menu definition not found");
 
                 // Calculate total price including options
                 decimal menuTotalPrice = product.BasePrice;
@@ -119,12 +120,12 @@ public class BasketService : IBasketService
                     
                     if (section.IsRequired && distinctItemCount < section.MinSelection)
                     {
-                        throw new InvalidOperationException($"Section '{section.Name}' requires at least {section.MinSelection} selection(s)");
+                        throw new BadRequestException($"Section '{section.Name}' requires at least {section.MinSelection} selection(s)");
                     }
                     
                     if (distinctItemCount > section.MaxSelection)
                     {
-                        throw new InvalidOperationException($"Section '{section.Name}' allows at most {section.MaxSelection} selection(s)");
+                        throw new BadRequestException($"Section '{section.Name}' allows at most {section.MaxSelection} selection(s)");
                     }
                     
                     foreach (var selection in sectionSelections)
@@ -132,12 +133,12 @@ public class BasketService : IBasketService
                         // Validate individual selection
                         if (selection.Quantity < 1)
                         {
-                            throw new InvalidOperationException($"Invalid quantity for item in section '{section.Name}'");
+                            throw new BadRequestException($"Invalid quantity for item in section '{section.Name}'");
                         }
                         
                         var sectionItem = section.Items.FirstOrDefault(i => i.ProductId == selection.ItemId);
                         if (sectionItem == null)
-                            throw new InvalidOperationException($"Item not found in section '{section.Name}'");
+                            throw new NotFoundException($"Item not found in section '{section.Name}'");
                             
                         menuTotalPrice += sectionItem.AdditionalPrice * selection.Quantity;
                     }
@@ -153,7 +154,7 @@ public class BasketService : IBasketService
                     ItemTotal = menuTotalPrice * item.Quantity,
                     SpecialInstructions = item.SpecialInstructions,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 
                 _context.BasketItems.Add(basketItem);
@@ -173,7 +174,7 @@ public class BasketService : IBasketService
                         .FirstOrDefaultAsync(p => p.Id == option.ItemId);
                     
                     if (childProduct == null)
-                        throw new InvalidOperationException($"Child product not found: {option.ItemId}");
+                        throw new NotFoundException($"Child product not found: {option.ItemId}");
                     
                     // Calculate customization price for this child item based on selected ingredients
                     decimal childCustomizationPrice = 0;
@@ -247,7 +248,7 @@ public class BasketService : IBasketService
                         ExcludedIngredients = option.ExcludedIngredients,
                         IngredientQuantitiesJson = ingredientQuantitiesJson,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     childItemsToAdd.Add(childItem);
                 }
@@ -266,7 +267,7 @@ public class BasketService : IBasketService
                 await _context.SaveChangesAsync();
                 await RecalculateBasketTotalsAsync(basket.Id);
                 await InvalidateBasketCacheAsync(sessionId, userId);
-                return await GetBasketAsync(sessionId, userId) ?? throw new InvalidOperationException("Failed to retrieve basket");
+                return await GetBasketAsync(sessionId, userId) ?? throw new BadRequestException("Failed to retrieve basket");
             }
 
             // Validate variation if specified
@@ -275,7 +276,7 @@ public class BasketService : IBasketService
             {
                 variation = product.Variations.FirstOrDefault(v => v.Id == item.ProductVariationId.Value && v.IsActive);
                 if (variation == null)
-                    throw new InvalidOperationException("Product variation not found or unavailable");
+                    throw new NotFoundException("Product variation not found or unavailable");
             }
 
             // Check if item with EXACT same customizations already exists in basket
@@ -313,7 +314,7 @@ public class BasketService : IBasketService
                 exactMatch.Quantity += item.Quantity;
                 exactMatch.ItemTotal = exactMatch.Quantity * exactMatch.UnitPrice;
                 exactMatch.UpdatedAt = DateTime.UtcNow;
-                exactMatch.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+                exactMatch.UpdatedBy = _currentUserService.GetAuditIdentifier();
             }
             else
             {
@@ -457,7 +458,7 @@ public class BasketService : IBasketService
                     CustomizationPrice = customizationPrice,
                     SelectedSideItemsJson = selectedSideItemsJson,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
 
                 _context.BasketItems.Add(basketItem);
@@ -470,7 +471,7 @@ public class BasketService : IBasketService
         // Invalidate cache
         await InvalidateBasketCacheAsync(sessionId, userId);
 
-        return await GetBasketAsync(sessionId, userId) ?? throw new InvalidOperationException("Failed to retrieve basket");
+        return await GetBasketAsync(sessionId, userId) ?? throw new BadRequestException("Failed to retrieve basket");
     }
 
     public async Task<BasketDto> UpdateBasketItemAsync(string sessionId, Guid basketItemId, UpdateBasketItemDto update)
@@ -480,20 +481,20 @@ public class BasketService : IBasketService
         var basket = await GetBasketFromDatabase(sessionId, userId);
         
         if (basket == null)
-            throw new InvalidOperationException("Basket not found");
+            throw new NotFoundException("Basket not found");
 
         var basketItem = await _context.BasketItems
             .Include(bi => bi.Basket)
             .FirstOrDefaultAsync(bi => bi.Id == basketItemId && bi.BasketId == basket.Id);
 
         if (basketItem == null)
-            throw new InvalidOperationException("Basket item not found");
+            throw new NotFoundException("Basket item not found");
 
         basketItem.Quantity = update.Quantity;
         basketItem.ItemTotal = basketItem.Quantity * basketItem.UnitPrice;
         basketItem.SpecialInstructions = update.SpecialInstructions;
         basketItem.UpdatedAt = DateTime.UtcNow;
-        basketItem.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        basketItem.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync();
         await RecalculateBasketTotalsAsync(basketItem.BasketId);
@@ -501,7 +502,7 @@ public class BasketService : IBasketService
         // Invalidate cache
         await InvalidateBasketCacheAsync(sessionId, userId);
 
-        return await GetBasketAsync(sessionId, userId) ?? throw new InvalidOperationException("Failed to retrieve basket");
+        return await GetBasketAsync(sessionId, userId) ?? throw new BadRequestException("Failed to retrieve basket");
     }
 
     public async Task<BasketDto> RemoveItemFromBasketAsync(string sessionId, Guid basketItemId)
@@ -511,7 +512,7 @@ public class BasketService : IBasketService
         var basket = await GetBasketFromDatabase(sessionId, userId);
         
         if (basket == null)
-            throw new InvalidOperationException("Basket not found");
+            throw new NotFoundException("Basket not found");
 
         var basketItem = await _context.BasketItems
             .Include(bi => bi.Basket)
@@ -519,7 +520,7 @@ public class BasketService : IBasketService
             .FirstOrDefaultAsync(bi => bi.Id == basketItemId && bi.BasketId == basket.Id);
 
         if (basketItem == null)
-            throw new InvalidOperationException("Basket item not found");
+            throw new NotFoundException("Basket item not found");
 
         var basketId = basketItem.BasketId;
 
@@ -538,7 +539,7 @@ public class BasketService : IBasketService
         // Invalidate cache
         await InvalidateBasketCacheAsync(sessionId, userId);
 
-        return await GetBasketAsync(sessionId, userId) ?? throw new InvalidOperationException("Failed to retrieve basket");
+        return await GetBasketAsync(sessionId, userId) ?? throw new BadRequestException("Failed to retrieve basket");
     }
 
 
@@ -546,7 +547,7 @@ public class BasketService : IBasketService
     {
         var basket = await GetBasketFromDatabase(sessionId, _currentUserService.UserId);
         if (basket == null)
-            throw new InvalidOperationException("Basket not found");
+            throw new NotFoundException("Basket not found");
 
         // Remove all items
         var items = await _context.BasketItems
@@ -562,7 +563,7 @@ public class BasketService : IBasketService
         basket.Tax = 0;
         basket.Total = 0;
         basket.UpdatedAt = DateTime.UtcNow;
-        basket.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        basket.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync();
 
@@ -584,12 +585,12 @@ public class BasketService : IBasketService
     {
         var basket = await GetBasketFromDatabase(sessionId, _currentUserService.UserId);
         if (basket == null)
-            throw new InvalidOperationException("Basket not found");
+            throw new NotFoundException("Basket not found");
 
         basket.PromoCode = null;
         basket.Discount = 0;
         basket.UpdatedAt = DateTime.UtcNow;
-        basket.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        basket.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync();
         await RecalculateBasketTotalsAsync(basket.Id);
@@ -597,7 +598,7 @@ public class BasketService : IBasketService
         // Invalidate cache
         await InvalidateBasketCacheAsync(sessionId, basket.UserId);
 
-        return await GetBasketAsync(sessionId, basket.UserId) ?? throw new InvalidOperationException("Failed to retrieve basket");
+        return await GetBasketAsync(sessionId, basket.UserId) ?? throw new BadRequestException("Failed to retrieve basket");
     }
 
     public async Task<BasketSummaryDto?> GetBasketSummaryAsync(string sessionId, Guid? userId = null)
@@ -681,7 +682,7 @@ public class BasketService : IBasketService
         await InvalidateBasketCacheAsync(sessionId, null);
         await InvalidateBasketCacheAsync(sessionId, userId);
 
-        return await GetBasketAsync(sessionId, userId) ?? throw new InvalidOperationException("Failed to retrieve basket");
+        return await GetBasketAsync(sessionId, userId) ?? throw new BadRequestException("Failed to retrieve basket");
     }
 
     public async Task RecalculateBasketTotalsAsync(Guid basketId)
@@ -744,7 +745,7 @@ public class BasketService : IBasketService
         basket.Total = PriceRoundingUtility.ApplySpecialRounding(calculatedTotal, hasDiscount);
         
         basket.UpdatedAt = DateTime.UtcNow;
-        basket.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        basket.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync();
         

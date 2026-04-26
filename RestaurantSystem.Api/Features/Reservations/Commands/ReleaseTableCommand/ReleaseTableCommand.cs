@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RestaurantSystem.Api.Abstraction.Messaging;
 using RestaurantSystem.Api.Common.Models;
@@ -47,7 +46,7 @@ public class ReleaseTableCommandHandler : ICommandHandler<ReleaseTableCommand, A
             // Release the reservation
             reservation.IsActive = false;
             reservation.ReleasedAt = now;
-            reservation.ReleasedBy = _currentUserService.UserId?.ToString() ?? "System";
+            reservation.ReleasedBy = _currentUserService.GetAuditIdentifier();
             reservation.ReleaseReason = "Manual";
 
             await _context.SaveChangesAsync(cancellationToken);

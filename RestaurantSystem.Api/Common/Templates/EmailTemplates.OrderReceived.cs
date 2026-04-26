@@ -10,9 +10,10 @@ public static partial class EmailTemplates
         public static string Subject => "Order Received - Rumi Restaurant";
 
         public static string GetHtmlBody(string customerName, string orderNumber, string orderType, decimal total,
-            IEnumerable<(string name, int quantity, decimal price)> items, string? specialInstructions = null,
-            string? deliveryAddress = null)
+            IEnumerable<(string name, int quantity, decimal price)> items, string contactEmail,
+            string? specialInstructions = null, string? deliveryAddress = null)
         {
+            var email = contactEmail;
             var itemsSection = string.Join("", items.Select(item =>
                 $@"<tr>
                     <td style='padding: 10px; border-bottom: 1px solid #eee;'>{item.name}</td>
@@ -105,12 +106,12 @@ public static partial class EmailTemplates
             {deliverySection}
             {instructionsSection}
 
-            <p>You can track your order status in your account. If you have any questions, please contact us at rumigeneve@gmail.com</p>
+            <p>You can track your order status in your account. If you have any questions, please contact us at {email}</p>
             <p>We look forward to serving you!</p>
             <p>Best regards,<br>Rumi Restaurant Team</p>
         </div>
         <div class='footer'>
-            <p>Rumi Restaurant | Geneva | rumigeneve@gmail.com</p>
+            <p>Rumi Restaurant | Geneva | {email}</p>
             <p>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -119,9 +120,10 @@ public static partial class EmailTemplates
         }
 
         public static string GetTextBody(string customerName, string orderNumber, string orderType, decimal total,
-            IEnumerable<(string name, int quantity, decimal price)> items, string? specialInstructions = null,
-            string? deliveryAddress = null)
+            IEnumerable<(string name, int quantity, decimal price)> items, string contactEmail,
+            string? specialInstructions = null, string? deliveryAddress = null)
         {
+            var email = contactEmail;
             var itemsSection = string.Join("\n", items.Select(item =>
                 $"{item.name} x{item.quantity} = CHF {item.price:F2}"));
 
@@ -166,14 +168,14 @@ Total Amount: CHF {total:F2}
 Order Items:
 {itemsSection}{deliverySection}{instructionsSection}
 
-You can track your order status in your account. If you have any questions, please contact us at rumigeneve@gmail.com
+You can track your order status in your account. If you have any questions, please contact us at {email}
 
 We look forward to serving you!
 
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

@@ -71,7 +71,7 @@ public class RefundPaymentCommandHandler : ICommandHandler<RefundPaymentCommand,
         payment.RefundReason = command.RefundReason;
         payment.Status = command.RefundAmount == payment.Amount ? PaymentStatus.Refunded : PaymentStatus.PartiallyPaid;
         payment.UpdatedAt = DateTime.UtcNow;
-        payment.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        payment.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         // TODO: Process actual refund through payment gateway
         // This would involve calling the payment provider's API
@@ -102,7 +102,7 @@ public class RefundPaymentCommandHandler : ICommandHandler<RefundPaymentCommand,
         }
 
         order.UpdatedAt = DateTime.UtcNow;
-        order.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        order.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -9,8 +9,9 @@ public static partial class EmailTemplates
     {
         public static string Subject => "Action Required: Order Delay - Rumi Restaurant";
 
-        public static string GetHtmlBody(string customerName, string orderNumber, int delayMinutes, string approveUrl, string rejectUrl)
+        public static string GetHtmlBody(string customerName, string orderNumber, int delayMinutes, string approveUrl, string rejectUrl, string contactEmail)
         {
+            var email = contactEmail;
             return $@"
 <!DOCTYPE html>
 <html>
@@ -213,8 +214,9 @@ public static partial class EmailTemplates
 </html>";
         }
 
-        public static string GetTextBody(string customerName, string orderNumber, int delayMinutes, string approveUrl, string rejectUrl)
+        public static string GetTextBody(string customerName, string orderNumber, int delayMinutes, string approveUrl, string rejectUrl, string contactEmail)
         {
+            var email = contactEmail;
             return $@"Rumi Restaurant - Action Required: Order Delay
 
 Dear {customerName},
@@ -237,7 +239,7 @@ If you choose to cancel, you will not be charged.
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

@@ -11,11 +11,12 @@ public static partial class EmailTemplates
 
         public static string GetHtmlBody(string orderNumber, string customerName, string customerEmail, string customerPhone,
             string orderType, decimal total, IEnumerable<(string name, int quantity, decimal price)> items,
-            string? specialInstructions = null, string? deliveryAddress = null, string? baseUrl = null, string? frontendBaseUrl = null)
+            string baseUrl, string frontendBaseUrl, string contactEmail,
+            string? specialInstructions = null, string? deliveryAddress = null)
         {
-            // Use provided baseUrl or fallback to localhost for development
-            var apiBaseUrl = baseUrl ?? "http://localhost:5221";
-            var frontendUrl = frontendBaseUrl ?? "http://localhost:3000";
+            var email = contactEmail;
+            var apiBaseUrl = baseUrl;
+            var frontendUrl = frontendBaseUrl;
             var itemsSection = string.Join("", items.Select(item =>
                 $@"<tr>
                     <td style='padding: 12px; border-bottom: 1px solid #e5e7eb;'>{item.name}</td>
@@ -169,7 +170,7 @@ public static partial class EmailTemplates
 
         <!-- Footer -->
         <div style='background: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;'>
-            <p style='margin: 0 0 8px 0; color: #6b7280; font-size: 13px;'><strong>Rumi Restaurant</strong> | Geneva | rumigeneve@gmail.com</p>
+            <p style='margin: 0 0 8px 0; color: #6b7280; font-size: 13px;'><strong>Rumi Restaurant</strong> | Geneva | {email}</p>
             <p style='margin: 0; color: #9ca3af; font-size: 12px;'>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -278,7 +279,7 @@ public static partial class EmailTemplates
 
         <!-- Footer -->
         <div style='background: #374151; padding: 24px; text-align: center; border-top: 1px solid #4b5563;'>
-            <p style='margin: 0 0 8px 0; color: #9ca3af; font-size: 13px;'><strong>Rumi Restaurant</strong> | Geneva | rumigeneve@gmail.com</p>
+            <p style='margin: 0 0 8px 0; color: #9ca3af; font-size: 13px;'><strong>Rumi Restaurant</strong> | Geneva | {email}</p>
             <p style='margin: 0; color: #6b7280; font-size: 12px;'>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -288,8 +289,10 @@ public static partial class EmailTemplates
 
         public static string GetTextBody(string orderNumber, string customerName, string customerEmail, string customerPhone,
             string orderType, decimal total, IEnumerable<(string name, int quantity, decimal price)> items,
+            string contactEmail,
             string? specialInstructions = null, string? deliveryAddress = null)
         {
+            var email = contactEmail;
             var itemsSection = string.Join("\n", items.Select(item =>
                 $"{item.name} x{item.quantity} = CHF {item.price:F2}"));
 
@@ -339,7 +342,7 @@ Log in to your admin dashboard to manage this order.
 Best regards,
 Restaurant System
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

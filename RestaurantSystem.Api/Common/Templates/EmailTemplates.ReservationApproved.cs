@@ -10,8 +10,10 @@ public static partial class EmailTemplates
         public static string Subject => "Reservation Confirmed - Rumi Restaurant";
 
         public static string GetHtmlBody(string customerName, string tableNumber, DateTime reservationDate,
-            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string? specialRequests = null, string? notes = null)
+            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string contactEmail,
+            string? specialRequests = null, string? notes = null)
         {
+            var email = contactEmail;
             var requestsSection = string.IsNullOrEmpty(specialRequests)
                 ? ""
                 : $@"<div class='info-box'>
@@ -70,14 +72,14 @@ public static partial class EmailTemplates
             <ul>
                 <li>Please arrive on time. Tables are held for 15 minutes past reservation time.</li>
                 <li>If you need to cancel or modify your reservation, please contact us at least 24 hours in advance.</li>
-                <li>Contact us at: rumigeneve@gmail.com</li>
+                <li>Contact us at: {email}</li>
             </ul>
 
             <p>We look forward to welcoming you!</p>
             <p>Best regards,<br>Rumi Restaurant Team</p>
         </div>
         <div class='footer'>
-            <p>Rumi Restaurant | Geneva | rumigeneve@gmail.com</p>
+            <p>Rumi Restaurant | Geneva | {email}</p>
             <p>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -86,8 +88,10 @@ public static partial class EmailTemplates
         }
 
         public static string GetTextBody(string customerName, string tableNumber, DateTime reservationDate,
-            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string? specialRequests = null, string? notes = null)
+            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string contactEmail,
+            string? specialRequests = null, string? notes = null)
         {
+            var email = contactEmail;
             var requestsSection = string.IsNullOrEmpty(specialRequests)
                 ? ""
                 : $@"
@@ -118,14 +122,14 @@ Table: {tableNumber}{requestsSection}{notesSection}
 Important Information:
 - Please arrive on time. Tables are held for 15 minutes past reservation time.
 - If you need to cancel or modify your reservation, please contact us at least 24 hours in advance.
-- Contact us at: rumigeneve@gmail.com
+- Contact us at: {email}
 
 We look forward to welcoming you!
 
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

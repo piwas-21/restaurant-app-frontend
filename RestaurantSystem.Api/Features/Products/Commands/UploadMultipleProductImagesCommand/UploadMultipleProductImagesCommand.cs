@@ -132,7 +132,7 @@ public class UploadMultipleProductImagesCommandHandler : ICommandHandler<UploadM
                         IsPrimary = !hasPrimaryImage && i == 0, // First image becomes primary if none exists
                         SortOrder = ++currentMaxSortOrder,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
 
                     _context.ProductImages.Add(productImage);

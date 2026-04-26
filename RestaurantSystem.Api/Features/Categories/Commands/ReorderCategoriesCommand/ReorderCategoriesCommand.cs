@@ -55,7 +55,7 @@ public class ReorderCategoriesCommandHandler : ICommandHandler<ReorderCategories
             var category = categories.First(c => c.Id == categoryOrder.CategoryId);
             category.DisplayOrder = categoryOrder.DisplayOrder;
             category.UpdatedAt = DateTime.UtcNow;
-            category.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+            category.UpdatedBy = _currentUserService.GetAuditIdentifier();
         }
 
         await _context.SaveChangesAsync(cancellationToken);

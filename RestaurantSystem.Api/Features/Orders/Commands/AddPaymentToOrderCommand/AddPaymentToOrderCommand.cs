@@ -98,7 +98,7 @@ public class AddPaymentToOrderCommandHandler : ICommandHandler<AddPaymentToOrder
             PaymentNotes = command.PaymentNotes,
             PaymentDate = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         _context.OrderPayments.Add(payment);
@@ -116,7 +116,7 @@ public class AddPaymentToOrderCommandHandler : ICommandHandler<AddPaymentToOrder
         }
 
         order.UpdatedAt = DateTime.UtcNow;
-        order.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        order.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -160,7 +160,7 @@ public class AddPaymentToOrderCommandHandler : ICommandHandler<AddPaymentToOrder
         }
 
         order.UpdatedAt = DateTime.UtcNow;
-        order.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        order.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

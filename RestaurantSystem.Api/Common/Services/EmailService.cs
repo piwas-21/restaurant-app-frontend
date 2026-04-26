@@ -187,9 +187,9 @@ public class EmailService : IEmailService
         {
             var subject = EmailTemplates.ReservationConfirmation.Subject;
             var htmlBody = EmailTemplates.ReservationConfirmation.GetHtmlBody(
-                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, specialRequests);
+                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, _emailSettings.AdminEmail, specialRequests);
             var textBody = EmailTemplates.ReservationConfirmation.GetTextBody(
-                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, specialRequests);
+                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, _emailSettings.AdminEmail, specialRequests);
 
             await SendEmailAsync(customerEmail, subject, htmlBody, textBody);
 
@@ -211,9 +211,9 @@ public class EmailService : IEmailService
         {
             var subject = EmailTemplates.ReservationApproved.Subject;
             var htmlBody = EmailTemplates.ReservationApproved.GetHtmlBody(
-                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, specialRequests, notes);
+                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, _emailSettings.AdminEmail, specialRequests, notes);
             var textBody = EmailTemplates.ReservationApproved.GetTextBody(
-                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, specialRequests, notes);
+                customerName, tableNumber, reservationDate, startTime, endTime, numberOfGuests, _emailSettings.AdminEmail, specialRequests, notes);
 
             await SendEmailAsync(customerEmail, subject, htmlBody, textBody);
 
@@ -281,9 +281,9 @@ public class EmailService : IEmailService
         {
             var subject = EmailTemplates.OrderReceived.Subject;
             var htmlBody = EmailTemplates.OrderReceived.GetHtmlBody(
-                customerName, orderNumber, orderType, total, items, specialInstructions, deliveryAddress);
+                customerName, orderNumber, orderType, total, items, _emailSettings.AdminEmail, specialInstructions, deliveryAddress);
             var textBody = EmailTemplates.OrderReceived.GetTextBody(
-                customerName, orderNumber, orderType, total, items, specialInstructions, deliveryAddress);
+                customerName, orderNumber, orderType, total, items, _emailSettings.AdminEmail, specialInstructions, deliveryAddress);
 
             await SendEmailAsync(customerEmail, subject, htmlBody, textBody);
 
@@ -305,9 +305,9 @@ public class EmailService : IEmailService
         {
             var subject = EmailTemplates.OrderConfirmed.Subject;
             var htmlBody = EmailTemplates.OrderConfirmed.GetHtmlBody(
-                customerName, orderNumber, orderType, estimatedPreparationMinutes);
+                customerName, orderNumber, orderType, estimatedPreparationMinutes, _emailSettings.AdminEmail);
             var textBody = EmailTemplates.OrderConfirmed.GetTextBody(
-                customerName, orderNumber, orderType, estimatedPreparationMinutes);
+                customerName, orderNumber, orderType, estimatedPreparationMinutes, _emailSettings.AdminEmail);
 
             await SendEmailAsync(customerEmail, subject, htmlBody, textBody);
 
@@ -329,9 +329,9 @@ public class EmailService : IEmailService
         {
             var subject = EmailTemplates.OrderCancelled.Subject;
             var htmlBody = EmailTemplates.OrderCancelled.GetHtmlBody(
-                customerName, orderNumber, cancellationReason);
+                customerName, orderNumber, cancellationReason, _emailSettings.AdminEmail);
             var textBody = EmailTemplates.OrderCancelled.GetTextBody(
-                customerName, orderNumber, cancellationReason);
+                customerName, orderNumber, cancellationReason, _emailSettings.AdminEmail);
 
             await SendEmailAsync(customerEmail, subject, htmlBody, textBody);
 
@@ -353,9 +353,9 @@ public class EmailService : IEmailService
         {
             var subject = EmailTemplates.OrderDelayed.Subject;
             var htmlBody = EmailTemplates.OrderDelayed.GetHtmlBody(
-                customerName, orderNumber, delayMinutes, approveUrl, rejectUrl);
+                customerName, orderNumber, delayMinutes, approveUrl, rejectUrl, _emailSettings.AdminEmail);
             var textBody = EmailTemplates.OrderDelayed.GetTextBody(
-                customerName, orderNumber, delayMinutes, approveUrl, rejectUrl);
+                customerName, orderNumber, delayMinutes, approveUrl, rejectUrl, _emailSettings.AdminEmail);
 
             await SendEmailAsync(customerEmail, subject, htmlBody, textBody);
 
@@ -378,14 +378,15 @@ public class EmailService : IEmailService
         try
         {
             var subject = EmailTemplates.OrderConfirmationAdmin.Subject;
-            var baseUrl = _emailSettings.BackendBaseUrl ?? "http://localhost:5221";
-            var frontendUrl = _emailSettings.FrontendBaseUrl ?? "http://localhost:3000";
+            var baseUrl = _emailSettings.BackendBaseUrl;
+            var frontendUrl = _emailSettings.FrontendBaseUrl;
             var htmlBody = EmailTemplates.OrderConfirmationAdmin.GetHtmlBody(
                 orderNumber, customerName, customerEmail, customerPhone, orderType, total, items,
-                specialInstructions, deliveryAddress, baseUrl, frontendUrl);
+                baseUrl, frontendUrl, _emailSettings.AdminEmail,
+                specialInstructions, deliveryAddress);
             var textBody = EmailTemplates.OrderConfirmationAdmin.GetTextBody(
                 orderNumber, customerName, customerEmail, customerPhone, orderType, total, items,
-                specialInstructions, deliveryAddress);
+                _emailSettings.AdminEmail, specialInstructions, deliveryAddress);
 
             await SendEmailAsync(adminEmail, subject, htmlBody, textBody);
 

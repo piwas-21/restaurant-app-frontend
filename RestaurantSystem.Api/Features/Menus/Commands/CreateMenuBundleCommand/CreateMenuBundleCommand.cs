@@ -99,7 +99,7 @@ public class CreateMenuBundleCommandHandler : ICommandHandler<CreateMenuBundleCo
                 KitchenType = KitchenType.None, // Menus usually don't have kitchen type directly, or maybe FrontKitchen?
                 DisplayOrder = command.DisplayOrder,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
 
             _context.Products.Add(product);
@@ -116,7 +116,7 @@ public class CreateMenuBundleCommandHandler : ICommandHandler<CreateMenuBundleCo
                         IsPrimary = categoryId == command.PrimaryCategoryId,
                         DisplayOrder = displayOrder++,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     _context.ProductCategories.Add(productCategory);
                     product.ProductCategories.Add(productCategory);
@@ -142,7 +142,7 @@ public class CreateMenuBundleCommandHandler : ICommandHandler<CreateMenuBundleCo
                     Name = description.Name,
                     Description = description.Description,
                     CreatedAt = DateTime.UtcNow,
-                    CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                    CreatedBy = _currentUserService.GetAuditIdentifier()
                 };
                 _context.ProductDescriptions.Add(productDescription);
                 product.Descriptions.Add(productDescription);
@@ -163,7 +163,7 @@ public class CreateMenuBundleCommandHandler : ICommandHandler<CreateMenuBundleCo
                 AvailableSaturday = command.MenuDefinition.AvailableSaturday,
                 AvailableSunday = command.MenuDefinition.AvailableSunday,
                 CreatedAt = DateTime.UtcNow,
-                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                CreatedBy = _currentUserService.GetAuditIdentifier()
             };
             
             _context.MenuDefinitions.Add(menuDef);
@@ -182,7 +182,7 @@ public class CreateMenuBundleCommandHandler : ICommandHandler<CreateMenuBundleCo
                         MinSelection = sectionDto.MinSelection,
                         MaxSelection = sectionDto.MaxSelection,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                        CreatedBy = _currentUserService.GetAuditIdentifier()
                     };
                     
                     _context.MenuSections.Add(section);
@@ -199,7 +199,7 @@ public class CreateMenuBundleCommandHandler : ICommandHandler<CreateMenuBundleCo
                                 DisplayOrder = itemDto.DisplayOrder,
                                 IsDefault = itemDto.IsDefault,
                                 CreatedAt = DateTime.UtcNow,
-                                CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+                                CreatedBy = _currentUserService.GetAuditIdentifier()
                             };
                             _context.MenuSectionItems.Add(item);
                         }

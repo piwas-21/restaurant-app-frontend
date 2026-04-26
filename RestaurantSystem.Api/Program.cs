@@ -223,17 +223,35 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddInfrastructureRegistration();
 
+// CORS: Use configured origins in production, allow all in development.
+// Fail-safe: refuse to start in non-Development if CorsSettings:AllowedOrigins is missing/empty —
+// silent fallback to AllowAnyOrigin in production would be a misconfiguration disguised as a working deploy.
+var corsOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+if (!builder.Environment.IsDevelopment() && (corsOrigins == null || corsOrigins.Length == 0))
+{
+    throw new InvalidOperationException(
+        "CorsSettings:AllowedOrigins must be configured with at least one origin in non-Development environments.");
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithOrigins(corsOrigins!)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
     });
 });
 
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();

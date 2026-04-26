@@ -69,9 +69,9 @@ public class CancelOrderCommandHandler : ICommandHandler<CancelOrderCommand, Api
             ToStatus = OrderStatus.Cancelled,
             Notes = $"Cancellation reason: {command.CancellationReason}",
             ChangedAt = DateTime.UtcNow,
-            ChangedBy = _currentUserService.UserId?.ToString() ?? "System",
+            ChangedBy = _currentUserService.GetAuditIdentifier(),
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         _context.OrderStatusHistories.Add(statusHistory);
@@ -80,7 +80,7 @@ public class CancelOrderCommandHandler : ICommandHandler<CancelOrderCommand, Api
         order.Status = OrderStatus.Cancelled;
         order.CancellationReason = command.CancellationReason;
         order.UpdatedAt = DateTime.UtcNow;
-        order.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        order.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         // Process refunds for completed payments
         foreach (var payment in order.Payments.Where(p => p.Status == PaymentStatus.Completed && !p.IsRefunded))
@@ -91,7 +91,7 @@ public class CancelOrderCommandHandler : ICommandHandler<CancelOrderCommand, Api
             payment.RefundReason = "Order cancelled";
             payment.Status = PaymentStatus.Refunded;
             payment.UpdatedAt = DateTime.UtcNow;
-            payment.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+            payment.UpdatedBy = _currentUserService.GetAuditIdentifier();
             // TODO: Process actual refund through payment gateway
         }
 

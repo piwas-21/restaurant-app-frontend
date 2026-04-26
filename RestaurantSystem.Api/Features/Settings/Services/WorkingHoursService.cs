@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RestaurantSystem.Api.Common.Exceptions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 using RestaurantSystem.Api.Features.Settings.Dtos;
 using RestaurantSystem.Api.Features.Settings.Interfaces;
@@ -64,7 +65,7 @@ public class WorkingHoursService : IWorkingHoursService
 
         if (workingHour == null)
         {
-            throw new InvalidOperationException($"Working hours not found for {dto.DayOfWeek}");
+            throw new NotFoundException($"Working hours not found for {dto.DayOfWeek}");
         }
 
         workingHour.OpenTime = dto.OpenTime;
@@ -73,7 +74,7 @@ public class WorkingHoursService : IWorkingHoursService
         workingHour.IsClosed = dto.IsClosed;
         workingHour.Notes = dto.Notes;
         workingHour.UpdatedAt = DateTime.UtcNow;
-        workingHour.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        workingHour.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -10,8 +10,10 @@ public static partial class EmailTemplates
         public static string Subject => "Reservation Confirmation - Rumi Restaurant";
 
         public static string GetHtmlBody(string customerName, string tableNumber, DateTime reservationDate,
-            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string? specialRequests = null)
+            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string contactEmail,
+            string? specialRequests = null)
         {
+            var email = contactEmail;
             var requestsSection = string.IsNullOrEmpty(specialRequests)
                 ? ""
                 : $@"<div class='info-box'>
@@ -60,12 +62,12 @@ public static partial class EmailTemplates
                 Your reservation is currently pending. Our team will review your request and send you a confirmation email shortly.
             </div>
 
-            <p>If you need to make any changes or have questions, please contact us at rumigeneve@gmail.com</p>
+            <p>If you need to make any changes or have questions, please contact us at {email}</p>
             <p>We look forward to serving you!</p>
             <p>Best regards,<br>Rumi Restaurant Team</p>
         </div>
         <div class='footer'>
-            <p>Rumi Restaurant | Geneva | rumigeneve@gmail.com</p>
+            <p>Rumi Restaurant | Geneva | {email}</p>
             <p>© 2024 Rumi Restaurant. All rights reserved.</p>
         </div>
     </div>
@@ -74,8 +76,10 @@ public static partial class EmailTemplates
         }
 
         public static string GetTextBody(string customerName, string tableNumber, DateTime reservationDate,
-            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string? specialRequests = null)
+            TimeSpan startTime, TimeSpan endTime, int numberOfGuests, string contactEmail,
+            string? specialRequests = null)
         {
+            var email = contactEmail;
             var requestsSection = string.IsNullOrEmpty(specialRequests)
                 ? ""
                 : $@"
@@ -97,14 +101,14 @@ Table: {tableNumber}{requestsSection}
 PENDING CONFIRMATION
 Your reservation is currently pending. Our team will review your request and send you a confirmation email shortly.
 
-If you need to make any changes or have questions, please contact us at rumigeneve@gmail.com
+If you need to make any changes or have questions, please contact us at {email}
 
 We look forward to serving you!
 
 Best regards,
 Rumi Restaurant Team
 
-Rumi Restaurant | Geneva | rumigeneve@gmail.com
+Rumi Restaurant | Geneva | {email}
 © 2024 Rumi Restaurant. All rights reserved.";
         }
     }

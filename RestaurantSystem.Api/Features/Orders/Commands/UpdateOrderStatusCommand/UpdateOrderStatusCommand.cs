@@ -77,9 +77,9 @@ public class UpdateOrderStatusCommandHandler : ICommandHandler<UpdateOrderStatus
             ToStatus = command.NewStatus,
             Notes = command.Notes,
             ChangedAt = DateTime.UtcNow,
-            ChangedBy = _currentUserService.UserId?.ToString() ?? "System",
+            ChangedBy = _currentUserService.GetAuditIdentifier(),
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentUserService.UserId?.ToString() ?? "System"
+            CreatedBy = _currentUserService.GetAuditIdentifier()
         };
 
         _context.OrderStatusHistories.Add(statusHistory);
@@ -87,7 +87,7 @@ public class UpdateOrderStatusCommandHandler : ICommandHandler<UpdateOrderStatus
         // Update order status
         order.Status = command.NewStatus;
         order.UpdatedAt = DateTime.UtcNow;
-        order.UpdatedBy = _currentUserService.UserId?.ToString() ?? "System";
+        order.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         // Handle specific status changes
         switch (command.NewStatus)

@@ -66,7 +66,7 @@ public class CompleteAllTableOrdersCommandHandler : ICommandHandler<CompleteAllT
 
             var result = new CompleteAllTableOrdersResult();
             var now = DateTime.UtcNow;
-            var userId = _currentUserService.UserId?.ToString() ?? "System";
+            var userId = _currentUserService.GetAuditIdentifier();
 
             foreach (var order in activeOrders)
             {

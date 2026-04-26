@@ -1,5 +1,5 @@
 # Install dependencies only when needed
-FROM node:18-alpine AS deps
+FROM node:22-alpine AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -9,7 +9,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci && npm cache clean --force
 
 # Rebuild the source code only when needed
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -32,11 +32,19 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
 # Production image, copy all the files and run next
-FROM node:18-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Remove the npm CLI bundled in the base image. The runtime uses
+# `node server.js` directly (Next.js standalone output) and never invokes npm.
+# The bundled npm ships its own transitive deps (glob, minimatch, tar) which
+# trivy reports as HIGH/CRITICAL CVEs. Removing npm eliminates those reports
+# without affecting runtime. See the security MR description for context.
+RUN rm -rf /usr/local/lib/node_modules/npm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs

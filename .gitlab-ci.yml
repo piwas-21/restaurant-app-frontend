@@ -116,6 +116,14 @@ build_image:
 
 trigger_deploy_pipeline:
   stage: deploy_pipeline
+  # Only fire from the deployment-tracking branches. From a feature branch,
+  # the downstream argocd-gitops pipeline rejects the trigger (permissions /
+  # branch validation), failing CI without surfacing actionable signal.
+  # `develop` is currently the production-tracking branch; `main` will take
+  # over after the planned cutover.
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_BRANCH == "main"
   variables:
     MS_NAME: "rumi-restaurant-web"
     MS_VERSION: "$CI_PIPELINE_IID"

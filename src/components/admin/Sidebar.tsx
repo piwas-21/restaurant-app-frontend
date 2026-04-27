@@ -4,7 +4,23 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { Users, FolderTree, UtensilsCrossed, Sparkles, Award, Gift, TrendingUp, ClipboardList, CalendarCheck, MapPin, BarChart3, DollarSign, Settings, UserCog, LayoutDashboard } from 'lucide-react';
+import {
+  Users,
+  FolderTree,
+  UtensilsCrossed,
+  Sparkles,
+  Award,
+  Gift,
+  TrendingUp,
+  ClipboardList,
+  CalendarCheck,
+  MapPin,
+  BarChart3,
+  DollarSign,
+  Settings,
+  UserCog,
+  LayoutDashboard,
+} from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
 
 interface SidebarProps {
@@ -27,85 +43,85 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       href: '/admin/dashboard',
       key: 'admin_dashboard_title',
       fallback: 'Admin Dashboard',
-      icon: LayoutDashboard
+      icon: LayoutDashboard,
     },
     {
       href: '/admin/member-management',
       key: 'admin_member_management_title',
       fallback: 'Member Management',
-      icon: Users
+      icon: Users,
     },
     {
       href: '/admin/user-groups',
       key: 'admin_user_groups_title',
       fallback: 'User Groups',
-      icon: UserCog
+      icon: UserCog,
     },
     {
       href: '/admin/category-management',
       key: 'admin_category_management_title',
       fallback: 'Category Management',
-      icon: FolderTree
+      icon: FolderTree,
     },
     {
       href: '/admin/menu-management',
       key: 'admin_menu_management_title',
       fallback: 'Menu Management',
-      icon: UtensilsCrossed
+      icon: UtensilsCrossed,
     },
     {
       href: '/admin/specials-management',
       key: 'admin_specials_management_title',
       fallback: 'Specials Management',
-      icon: Sparkles
+      icon: Sparkles,
     },
     {
       href: '/admin/orders-management',
       key: 'admin_orders_management_title',
       fallback: 'Orders Management',
-      icon: ClipboardList
+      icon: ClipboardList,
     },
     {
       href: '/admin/restaurant-settings',
       key: 'restaurant_settings',
       fallback: 'Restaurant Settings',
-      icon: Settings
+      icon: Settings,
     },
     {
       href: '/admin/reservations-management',
       key: 'admin_reservations_management',
       fallback: 'Reservations Management',
-      icon: CalendarCheck
+      icon: CalendarCheck,
     },
     {
       href: '/admin/table-layout-editor',
       key: 'table_layout_editor',
       fallback: 'Table Layout',
-      icon: MapPin
+      icon: MapPin,
     },
     {
       href: '/admin/table-statistics',
       key: 'table_statistics',
       fallback: 'Table Statistics',
-      icon: BarChart3
+      icon: BarChart3,
     },
     {
       href: '/admin/point-rules',
       key: 'point_rules',
       fallback: 'Point Rules',
-      icon: Award
+      icon: Award,
     },
     {
       href: '/admin/customer-discounts',
       key: 'customer_discounts',
       fallback: 'Customer Discounts',
-      icon: Gift
+      icon: Gift,
     },
     {
       href: '/admin/fidelity-analytics',
       key: 'fidelity_analytics',
       fallback: 'Fidelity Analytics',
-      icon: TrendingUp
+      icon: TrendingUp,
     },
   ];
 
@@ -126,9 +142,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
         <ul>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const label = isClient
-              ? t(item.key, item.fallback || item.key)
-              : (item.fallback || item.key);
+            const label = isClient ? t(item.key, item.fallback || item.key) : item.fallback || item.key;
 
             return (
               <li key={item.href}>

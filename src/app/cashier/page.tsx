@@ -52,7 +52,7 @@ export default function CashierPage() {
   // BUGS-IMPROVEMENTS-PLAN §A3 and tracked under B2 admin shift cutover).
   const dateRange = useMemo(
     () => (todayOnly ? { startDate: startOfTodayLocal(), endDate: endOfTodayLocal() } : undefined),
-    [todayOnly]
+    [todayOnly],
   );
 
   // Orders hook
@@ -215,14 +215,14 @@ export default function CashierPage() {
     // Covers: initial REST fetch, React Strict Mode double-invoke, and the
     // SSE re-emit of orders that were already in the REST result.
     if (Date.now() - mountedAtRef.current < POPUP_GRACE_WINDOW_MS) {
-      orders.forEach(order => seenOrderIdsRef.current.add(order.id));
+      orders.forEach((order) => seenOrderIdsRef.current.add(order.id));
       isInitialLoadRef.current = false;
       return;
     }
     isInitialLoadRef.current = false;
 
     // Find truly new orders using ID-based tracking
-    const newOrders = orders.filter(order => !seenOrderIdsRef.current.has(order.id));
+    const newOrders = orders.filter((order) => !seenOrderIdsRef.current.has(order.id));
 
     if (newOrders.length === 0) return;
 
@@ -242,16 +242,11 @@ export default function CashierPage() {
       });
 
       // Notify (this triggers sound)
-      notifyNewOrder(
-        order.orderNumber || order.id,
-        order.customerName || ''
-      );
+      notifyNewOrder(order.orderNumber || order.id, order.customerName || '');
 
       // Check if should show modal
       const shouldShowModal =
-        order.type !== OrderType.DineIn &&
-        order.status === 'Pending' &&
-        !dismissedOrders.has(order.id);
+        order.type !== OrderType.DineIn && order.status === 'Pending' && !dismissedOrders.has(order.id);
 
       if (shouldShowModal) {
         ordersForModal.push(order.id);
@@ -265,7 +260,8 @@ export default function CashierPage() {
           (order.type === OrderType.Delivery && autoPrintSettings.orderTypes.delivery);
 
         const orderStatus = order.status?.toLowerCase() || 'pending';
-        const shouldPrintStatus = autoPrintSettings.orderStatuses[orderStatus as keyof typeof autoPrintSettings.orderStatuses];
+        const shouldPrintStatus =
+          autoPrintSettings.orderStatuses[orderStatus as keyof typeof autoPrintSettings.orderStatuses];
 
         if (shouldPrintType && shouldPrintStatus) {
           if (autoPrintSettings.printContent.all) {
@@ -287,7 +283,7 @@ export default function CashierPage() {
     // Queue orders for modal display (use setTimeout to avoid React state batching issues)
     if (ordersForModal.length > 0) {
       setTimeout(() => {
-        setPendingOrderQueue(prev => [...prev, ...ordersForModal]);
+        setPendingOrderQueue((prev) => [...prev, ...ordersForModal]);
       }, 0);
     }
 
@@ -317,7 +313,7 @@ export default function CashierPage() {
       console.log('📋 Showing modal for queued order:', nextOrderId);
       setPendingOrderForConfirm(nextOrderId);
       setShowQuickConfirmModal(true);
-      setPendingOrderQueue(prev => prev.slice(1));
+      setPendingOrderQueue((prev) => prev.slice(1));
     }
   }, [pendingOrderQueue, showQuickConfirmModal]);
 
@@ -360,112 +356,133 @@ export default function CashierPage() {
   }, []);
 
   // Handle status change
-  const handleStatusChange = useCallback(async (newStatus: string) => {
-    if (!selectedOrder) return;
+  const handleStatusChange = useCallback(
+    async (newStatus: string) => {
+      if (!selectedOrder) return;
 
-    try {
-      const updated = await updateOrderStatus(selectedOrder.id, newStatus);
-      setSelectedOrderId(updated.id);
-      showSuccess(t('cashier.status_updated') || 'Status updated successfully');
-    } catch (err) {
-      showError((err as Error).message || t('cashier.status_update_failed') || 'Failed to update status');
-    } finally {
-      setShowStatusDialog(false);
-    }
-  }, [selectedOrder, updateOrderStatus, t]);
+      try {
+        const updated = await updateOrderStatus(selectedOrder.id, newStatus);
+        setSelectedOrderId(updated.id);
+        showSuccess(t('cashier.status_updated') || 'Status updated successfully');
+      } catch (err) {
+        showError((err as Error).message || t('cashier.status_update_failed') || 'Failed to update status');
+      } finally {
+        setShowStatusDialog(false);
+      }
+    },
+    [selectedOrder, updateOrderStatus, t],
+  );
 
   // Handle add payment
-  const handleAddPayment = useCallback(async (paymentData: any) => {
-    if (!selectedOrder) return;
+  const handleAddPayment = useCallback(
+    async (paymentData: any) => {
+      if (!selectedOrder) return;
 
-    try {
-      const updated = await addPayment(selectedOrder.id, paymentData);
-      setSelectedOrderId(updated.id);
-      showSuccess(t('cashier.payment_added') || 'Payment added successfully');
-    } catch (err) {
-      showError((err as Error).message || t('cashier.payment_failed') || 'Failed to add payment');
-    } finally {
-      setShowPaymentDialog(false);
-    }
-  }, [selectedOrder, addPayment, t]);
+      try {
+        const updated = await addPayment(selectedOrder.id, paymentData);
+        setSelectedOrderId(updated.id);
+        showSuccess(t('cashier.payment_added') || 'Payment added successfully');
+      } catch (err) {
+        showError((err as Error).message || t('cashier.payment_failed') || 'Failed to add payment');
+      } finally {
+        setShowPaymentDialog(false);
+      }
+    },
+    [selectedOrder, addPayment, t],
+  );
 
   // Handle refund
-  const handleRefund = useCallback(async (paymentId: string, amount?: number) => {
-    if (!selectedOrder) return;
+  const handleRefund = useCallback(
+    async (paymentId: string, amount?: number) => {
+      if (!selectedOrder) return;
 
-    try {
-      const updated = await refundPayment(selectedOrder.id, paymentId, amount);
-      setSelectedOrderId(updated.id);
-      showSuccess(t('cashier.refund_completed') || 'Refund completed successfully');
-    } catch (err) {
-      showError((err as Error).message || t('cashier.refund_failed') || 'Failed to process refund');
-    } finally {
-      setShowRefundDialog(false);
-    }
-  }, [selectedOrder, refundPayment, t]);
+      try {
+        const updated = await refundPayment(selectedOrder.id, paymentId, amount);
+        setSelectedOrderId(updated.id);
+        showSuccess(t('cashier.refund_completed') || 'Refund completed successfully');
+      } catch (err) {
+        showError((err as Error).message || t('cashier.refund_failed') || 'Failed to process refund');
+      } finally {
+        setShowRefundDialog(false);
+      }
+    },
+    [selectedOrder, refundPayment, t],
+  );
 
   // Handle cancel order
-  const handleCancelOrder = useCallback(async (reason?: string) => {
-    if (!selectedOrder) return;
+  const handleCancelOrder = useCallback(
+    async (reason?: string) => {
+      if (!selectedOrder) return;
 
-    try {
-      await cancelOrder(selectedOrder.id, reason);
-      setSelectedOrderId(null);
-      showSuccess(t('cashier.order_cancelled') || 'Order cancelled successfully');
-    } catch (err) {
-      showError((err as Error).message || t('cashier.cancel_failed') || 'Failed to cancel order');
-    } finally {
-      setShowCancelDialog(false);
-    }
-  }, [selectedOrder, cancelOrder, t]);
+      try {
+        await cancelOrder(selectedOrder.id, reason);
+        setSelectedOrderId(null);
+        showSuccess(t('cashier.order_cancelled') || 'Order cancelled successfully');
+      } catch (err) {
+        showError((err as Error).message || t('cashier.cancel_failed') || 'Failed to cancel order');
+      } finally {
+        setShowCancelDialog(false);
+      }
+    },
+    [selectedOrder, cancelOrder, t],
+  );
 
   // Handle toggle focus
-  const handleToggleFocus = useCallback(async (isFocus: boolean, priority?: number, reason?: string) => {
-    if (!selectedOrder) return;
+  const handleToggleFocus = useCallback(
+    async (isFocus: boolean, priority?: number, reason?: string) => {
+      if (!selectedOrder) return;
 
-    try {
-      const updated = await toggleFocusOrder(selectedOrder.id, isFocus, priority, reason);
-      setSelectedOrderId(updated.id);
-      showSuccess(
-        isFocus
-          ? t('cashier.order_marked_focus') || 'Order marked as focus'
-          : t('cashier.focus_removed') || 'Focus removed'
-      );
-    } catch (err) {
-      showError((err as Error).message || t('cashier.focus_toggle_failed') || 'Failed to toggle focus');
-    } finally {
-      setShowFocusDialog(false);
-    }
-  }, [selectedOrder, toggleFocusOrder, t]);
+      try {
+        const updated = await toggleFocusOrder(selectedOrder.id, isFocus, priority, reason);
+        setSelectedOrderId(updated.id);
+        showSuccess(
+          isFocus
+            ? t('cashier.order_marked_focus') || 'Order marked as focus'
+            : t('cashier.focus_removed') || 'Focus removed',
+        );
+      } catch (err) {
+        showError((err as Error).message || t('cashier.focus_toggle_failed') || 'Failed to toggle focus');
+      } finally {
+        setShowFocusDialog(false);
+      }
+    },
+    [selectedOrder, toggleFocusOrder, t],
+  );
 
   // Handle quick confirm from modal
-  const handleQuickConfirm = useCallback(async (orderNumber: string, preparationMinutes: number) => {
-    try {
-      await quickConfirmOrder(orderNumber, preparationMinutes);
-      await refreshOrders();
-      showSuccess(`Order ${orderNumber} confirmed with ${preparationMinutes} min preparation time`);
-    } catch (err) {
-      showError((err as Error).message || 'Failed to confirm order');
-      throw err;
-    }
-  }, [refreshOrders]);
+  const handleQuickConfirm = useCallback(
+    async (orderNumber: string, preparationMinutes: number) => {
+      try {
+        await quickConfirmOrder(orderNumber, preparationMinutes);
+        await refreshOrders();
+        showSuccess(`Order ${orderNumber} confirmed with ${preparationMinutes} min preparation time`);
+      } catch (err) {
+        showError((err as Error).message || 'Failed to confirm order');
+        throw err;
+      }
+    },
+    [refreshOrders],
+  );
 
   // Handle quick cancel from modal
-  const handleQuickCancel = useCallback(async (orderNumber: string) => {
-    try {
-      await quickCancelOrder(orderNumber);
-      await refreshOrders();
-      showSuccess(`Order ${orderNumber} has been cancelled`);
-    } catch (err) {
-      showError((err as Error).message || 'Failed to cancel order');
-      throw err;
-    }
-  }, [refreshOrders]);
+  const handleQuickCancel = useCallback(
+    async (orderNumber: string) => {
+      try {
+        await quickCancelOrder(orderNumber);
+        await refreshOrders();
+        showSuccess(`Order ${orderNumber} has been cancelled`);
+      } catch (err) {
+        showError((err as Error).message || 'Failed to cancel order');
+        throw err;
+      }
+    },
+    [refreshOrders],
+  );
 
   // Handle modal close (dismiss)
   const handleQuickConfirmModalClose = useCallback(() => {
     if (pendingOrderForConfirm) {
-      setDismissedOrders(prev => new Set(prev).add(pendingOrderForConfirm));
+      setDismissedOrders((prev) => new Set(prev).add(pendingOrderForConfirm));
     }
     setShowQuickConfirmModal(false);
     setPendingOrderForConfirm(null);
@@ -491,10 +508,7 @@ export default function CashierPage() {
   return (
     <div className={styles.pageWrapper}>
       {/* Notifications */}
-      <NotificationCenter
-        notifications={notifications}
-        onDismiss={removeNotification}
-      />
+      <NotificationCenter notifications={notifications} onDismiss={removeNotification} />
 
       {/* Header */}
       <CashierHeader
@@ -520,20 +534,13 @@ export default function CashierPage() {
       {error && <div className="alert alert-error">{error}</div>}
 
       {/* Order Type Navigation */}
-      <OrderTypeNav
-        activeFilter={orderTypeFilter}
-        onFilterChange={setOrderTypeFilter}
-      />
+      <OrderTypeNav activeFilter={orderTypeFilter} onFilterChange={setOrderTypeFilter} />
 
       {/* Date-range toggle: defaults to today; cashier can flip to all-time */}
       <div className={styles.dateRangeToolbar}>
         <label>
-          <input
-            type="checkbox"
-            checked={todayOnly}
-            onChange={(e) => setTodayOnly(e.target.checked)}
-          />
-          {' '}{t('cashier.show_todays_orders_only')}
+          <input type="checkbox" checked={todayOnly} onChange={(e) => setTodayOnly(e.target.checked)} />{' '}
+          {t('cashier.show_todays_orders_only')}
         </label>
       </div>
 
@@ -606,7 +613,7 @@ export default function CashierPage() {
       />
 
       <QuickConfirmModal
-        order={pendingOrderForConfirm ? orders.find(o => o.id === pendingOrderForConfirm) || null : null}
+        order={pendingOrderForConfirm ? orders.find((o) => o.id === pendingOrderForConfirm) || null : null}
         isOpen={showQuickConfirmModal}
         onClose={handleQuickConfirmModalClose}
         onConfirm={handleQuickConfirm}
@@ -620,21 +627,20 @@ export default function CashierPage() {
         onSave={saveAutoPrintSettings}
       />
 
-      <ZReportModal
-        isOpen={showZReport}
-        onClose={() => setShowZReport(false)}
-      />
+      <ZReportModal isOpen={showZReport} onClose={() => setShowZReport(false)} />
 
       {/* Diagnostic Panel */}
       {showDiagnostics && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          zIndex: 9999,
-          maxWidth: '400px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            maxWidth: '400px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          }}
+        >
           <CashierDiagnostics
             sseConnected={isConnected}
             sseConnectionState={connectionState}

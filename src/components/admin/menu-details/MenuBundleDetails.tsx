@@ -29,34 +29,35 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
       const updatedMenuDefinition = { ...product.menuDefinition, ...updates };
 
       // Clean up temporary IDs from sections and items
-      const cleanedSections = updatedMenuDefinition.sections?.map(s => {
-        const sectionData: any = {
-          name: s.name,
-          description: s.description,
-          displayOrder: s.displayOrder,
-          isRequired: s.isRequired,
-          minSelection: s.minSelection,
-          maxSelection: s.maxSelection,
-          items: s.items.map(i => {
-            const itemData: any = {
-              productId: i.productId,
-              additionalPrice: i.additionalPrice,
-              displayOrder: i.displayOrder,
-              isDefault: i.isDefault
-            };
-            // Only include id if it's not temporary
-            if (i.id && !i.id.startsWith('temp-')) {
-              itemData.id = i.id;
-            }
-            return itemData;
-          })
-        };
-        // Only include section id if it's not temporary
-        if (s.id && !s.id.startsWith('temp-')) {
-          sectionData.id = s.id;
-        }
-        return sectionData;
-      }) || [];
+      const cleanedSections =
+        updatedMenuDefinition.sections?.map((s) => {
+          const sectionData: any = {
+            name: s.name,
+            description: s.description,
+            displayOrder: s.displayOrder,
+            isRequired: s.isRequired,
+            minSelection: s.minSelection,
+            maxSelection: s.maxSelection,
+            items: s.items.map((i) => {
+              const itemData: any = {
+                productId: i.productId,
+                additionalPrice: i.additionalPrice,
+                displayOrder: i.displayOrder,
+                isDefault: i.isDefault,
+              };
+              // Only include id if it's not temporary
+              if (i.id && !i.id.startsWith('temp-')) {
+                itemData.id = i.id;
+              }
+              return itemData;
+            }),
+          };
+          // Only include section id if it's not temporary
+          if (s.id && !s.id.startsWith('temp-')) {
+            sectionData.id = s.id;
+          }
+          return sectionData;
+        }) || [];
 
       const payload = {
         id: product.id,
@@ -71,8 +72,8 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
         content: product.content || {},
         menuDefinition: {
           ...updatedMenuDefinition,
-          sections: cleanedSections
-        }
+          sections: cleanedSections,
+        },
       };
 
       await updateMenuBundle(product.id, payload);
@@ -94,7 +95,7 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
       thursday: t('thursday'),
       friday: t('friday'),
       saturday: t('saturday'),
-      sunday: t('sunday')
+      sunday: t('sunday'),
     };
     return days[day] || day;
   };
@@ -111,23 +112,17 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
       <div className={styles.heroSection}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>{product.name}</h1>
-          {product.description && (
-            <p className={styles.heroDescription}>{product.description}</p>
-          )}
+          {product.description && <p className={styles.heroDescription}>{product.description}</p>}
           <div className={styles.heroBadges}>
             <div className={styles.priceTag}>CHF {product.basePrice.toFixed(2)}</div>
             <span className={`${styles.statusBadge} ${product.isActive ? styles.statusActive : styles.statusInactive}`}>
               {product.isActive ? t('active') : t('inactive')}
             </span>
             {product.isAvailable && (
-              <span className={`${styles.statusBadge} ${styles.statusActive}`}>
-                {t('available')}
-              </span>
+              <span className={`${styles.statusBadge} ${styles.statusActive}`}>{t('available')}</span>
             )}
             {product.isSpecial && (
-              <span className={`${styles.statusBadge} ${styles.statusSpecial}`}>
-                {t('special')}
-              </span>
+              <span className={`${styles.statusBadge} ${styles.statusSpecial}`}>{t('special')}</span>
             )}
           </div>
         </div>
@@ -162,22 +157,13 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
       {/* Menu Schedule */}
       {product.menuDefinition && (
         <div className={styles.collapsibleSection}>
-          <div
-            className={styles.collapsibleHeader}
-            onClick={() => setScheduleOpen(!scheduleOpen)}
-          >
-            <h2 className={styles.collapsibleTitle}>
-              📅 {t('menu_availability')}
-            </h2>
-            <span className={`${styles.collapsibleIcon} ${scheduleOpen ? styles.open : ''}`}>
-              ▼
-            </span>
+          <div className={styles.collapsibleHeader} onClick={() => setScheduleOpen(!scheduleOpen)}>
+            <h2 className={styles.collapsibleTitle}>📅 {t('menu_availability')}</h2>
+            <span className={`${styles.collapsibleIcon} ${scheduleOpen ? styles.open : ''}`}>▼</span>
           </div>
           <div className={`${styles.collapsibleContent} ${scheduleOpen ? styles.open : ''}`}>
             {product.menuDefinition.isAlwaysAvailable ? (
-              <div className={styles.scheduleTime}>
-                ✅ {t('always_available')}
-              </div>
+              <div className={styles.scheduleTime}>✅ {t('always_available')}</div>
             ) : (
               <>
                 {(product.menuDefinition.startTime || product.menuDefinition.endTime) && (
@@ -186,7 +172,7 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
                   </div>
                 )}
                 <div className={styles.scheduleGrid}>
-                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
                     <div
                       key={day}
                       className={`${styles.scheduleDay} ${isDayAvailable(day) ? styles.available : styles.unavailable}`}
@@ -210,16 +196,9 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
       {/* Menu Sections */}
       {product.menuDefinition && product.menuDefinition.sections && (
         <div className={styles.collapsibleSection}>
-          <div
-            className={styles.collapsibleHeader}
-            onClick={() => setSectionsOpen(!sectionsOpen)}
-          >
-            <h2 className={styles.collapsibleTitle}>
-              🍽️ {t('menu_sections')}
-            </h2>
-            <span className={`${styles.collapsibleIcon} ${sectionsOpen ? styles.open : ''}`}>
-              ▼
-            </span>
+          <div className={styles.collapsibleHeader} onClick={() => setSectionsOpen(!sectionsOpen)}>
+            <h2 className={styles.collapsibleTitle}>🍽️ {t('menu_sections')}</h2>
+            <span className={`${styles.collapsibleIcon} ${sectionsOpen ? styles.open : ''}`}>▼</span>
           </div>
           <div className={`${styles.collapsibleContent} ${sectionsOpen ? styles.open : ''}`}>
             <div className={styles.menuSectionsContainer}>
@@ -227,14 +206,10 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
                 <div key={section.id} className={styles.menuSection}>
                   <div className={styles.menuSectionHeader}>
                     <h3 className={styles.menuSectionTitle}>{section.name}</h3>
-                    {section.description && (
-                      <p className={styles.menuSectionDescription}>{section.description}</p>
-                    )}
+                    {section.description && <p className={styles.menuSectionDescription}>{section.description}</p>}
                     <div className={styles.menuSectionMeta}>
                       {section.isRequired && (
-                        <span className={`${styles.metaBadge} ${styles.required}`}>
-                          ⚠️ {t('required')}
-                        </span>
+                        <span className={`${styles.metaBadge} ${styles.required}`}>⚠️ {t('required')}</span>
                       )}
                       <span className={styles.metaBadge}>
                         {t('select')}: {section.minSelection} - {section.maxSelection}
@@ -252,7 +227,14 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--secondary-color-light)', borderRadius: '8px' }}>
+            <div
+              style={{
+                marginTop: '1.5rem',
+                padding: '1rem',
+                background: 'var(--secondary-color-light)',
+                borderRadius: '8px',
+              }}
+            >
               <h4 style={{ marginTop: 0 }}>{t('edit_sections')}</h4>
               <MenuSectionEditor
                 sections={product.menuDefinition.sections}
@@ -265,16 +247,9 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
 
       {/* Multilingual Content */}
       <div className={styles.collapsibleSection}>
-        <div
-          className={styles.collapsibleHeader}
-          onClick={() => setContentOpen(!contentOpen)}
-        >
-          <h2 className={styles.collapsibleTitle}>
-            🌐 {t('multilingual_content')}
-          </h2>
-          <span className={`${styles.collapsibleIcon} ${contentOpen ? styles.open : ''}`}>
-            ▼
-          </span>
+        <div className={styles.collapsibleHeader} onClick={() => setContentOpen(!contentOpen)}>
+          <h2 className={styles.collapsibleTitle}>🌐 {t('multilingual_content')}</h2>
+          <span className={`${styles.collapsibleIcon} ${contentOpen ? styles.open : ''}`}>▼</span>
         </div>
         <div className={`${styles.collapsibleContent} ${contentOpen ? styles.open : ''}`}>
           <MultilingualContentEditor product={product} onUpdated={onUpdated} />
@@ -283,16 +258,9 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
 
       {/* Product Information (Admin) */}
       <div className={styles.collapsibleSection}>
-        <div
-          className={styles.collapsibleHeader}
-          onClick={() => setInfoOpen(!infoOpen)}
-        >
-          <h2 className={styles.collapsibleTitle}>
-            ⚙️ {t('product_information')}
-          </h2>
-          <span className={`${styles.collapsibleIcon} ${infoOpen ? styles.open : ''}`}>
-            ▼
-          </span>
+        <div className={styles.collapsibleHeader} onClick={() => setInfoOpen(!infoOpen)}>
+          <h2 className={styles.collapsibleTitle}>⚙️ {t('product_information')}</h2>
+          <span className={`${styles.collapsibleIcon} ${infoOpen ? styles.open : ''}`}>▼</span>
         </div>
         <div className={`${styles.collapsibleContent} ${infoOpen ? styles.open : ''}`}>
           <ProductInformation product={product} onUpdated={onUpdated} />

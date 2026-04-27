@@ -53,9 +53,7 @@ export default function ServerHeader({
   return (
     <header className={styles.header}>
       <div className={styles.leftSection}>
-        <h1 className={styles.title}>
-          🍽️ {t('server.title', 'Server Interface')}
-        </h1>
+        <h1 className={styles.title}>🍽️ {t('server.title', 'Server Interface')}</h1>
         {error && <span className={styles.errorBadge}>{error}</span>}
       </div>
 

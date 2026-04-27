@@ -9,11 +9,7 @@ interface OrdersPaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export const OrdersPagination: React.FC<OrdersPaginationProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-}) => {
+export const OrdersPagination: React.FC<OrdersPaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
   const { t } = useTranslation();
 
   if (totalPages <= 1) {
@@ -30,9 +26,7 @@ export const OrdersPagination: React.FC<OrdersPaginationProps> = ({
         <ChevronLeft size={18} />
         {t('previous', 'Previous')}
       </button>
-      <div className={styles.pageInfo}>
-        {t('page_info', `Page ${currentPage} of ${totalPages}`)}
-      </div>
+      <div className={styles.pageInfo}>{t('page_info', `Page ${currentPage} of ${totalPages}`)}</div>
       <button
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}

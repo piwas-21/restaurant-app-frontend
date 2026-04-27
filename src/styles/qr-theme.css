@@ -89,7 +89,7 @@
 }
 
 /* Custom Data Theme Attribute Support */
-[data-theme="dark"] {
+[data-theme='dark'] {
   --qr-background: #111827;
   --qr-card-bg: #1f2937;
   --qr-text: #f9fafb;
@@ -103,7 +103,7 @@
   --qr-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
-[data-theme="light"] {
+[data-theme='light'] {
   --qr-background: #f8f9fa;
   --qr-card-bg: #ffffff;
   --qr-text: #1f2937;
@@ -161,7 +161,8 @@
 }
 
 @keyframes qr-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

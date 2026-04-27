@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import styles from "./MenuItemActions.module.css";
+import React from 'react';
+import styles from './MenuItemActions.module.css';
 
 type Props = {
   onAdd: () => void;
@@ -14,7 +14,16 @@ type Props = {
   detailsLabel?: string;
 };
 
-export default function MenuItemActions({ onAdd, onFeedback, addLabel, addAria, feedbackLabel, feedbackAria, onDetails, detailsLabel }: Props) {
+export default function MenuItemActions({
+  onAdd,
+  onFeedback,
+  addLabel,
+  addAria,
+  feedbackLabel,
+  feedbackAria,
+  onDetails,
+  detailsLabel,
+}: Props) {
   return (
     <div className={styles.itemActions}>
       <button className={styles.addToOrderButton} onClick={onAdd} aria-label={addAria}>

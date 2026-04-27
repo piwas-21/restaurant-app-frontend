@@ -76,7 +76,9 @@ export default function OrderSummaryCard({
 
         {pointsDiscount > 0 && (
           <div className={`${styles.summaryRow} ${styles.discount}`}>
-            <span>{t('points_discount', 'Points Discount')} ({redeemedPoints} pts)</span>
+            <span>
+              {t('points_discount', 'Points Discount')} ({redeemedPoints} pts)
+            </span>
             <span>-{formatPrice(pointsDiscount)}</span>
           </div>
         )}
@@ -90,9 +92,7 @@ export default function OrderSummaryCard({
 
         {taxAmount > 0 && (
           <div className={styles.summaryRow}>
-            <span>
-              {taxConfig ? `${taxConfig.name} (${taxConfig.rate}%)` : t('tax', 'Tax')}
-            </span>
+            <span>{taxConfig ? `${taxConfig.name} (${taxConfig.rate}%)` : t('tax', 'Tax')}</span>
             <span>{formatPrice(taxAmount)}</span>
           </div>
         )}
@@ -107,9 +107,7 @@ export default function OrderSummaryCard({
 
       <div className={styles.summaryTotal}>
         <span>{t('total', 'Total')}</span>
-        <span className={styles.totalAmount}>
-          {formatTotal((basket?.total || 0) - pointsDiscount + tipAmount)}
-        </span>
+        <span className={styles.totalAmount}>{formatTotal((basket?.total || 0) - pointsDiscount + tipAmount)}</span>
       </div>
 
       {submitError && (
@@ -119,11 +117,7 @@ export default function OrderSummaryCard({
         </div>
       )}
 
-      <button
-        onClick={onPlaceOrder}
-        disabled={isSubmitting}
-        className={styles.placeOrderButton}
-      >
+      <button onClick={onPlaceOrder} disabled={isSubmitting} className={styles.placeOrderButton}>
         {isSubmitting ? (
           <>
             <Loader2 size={20} className={styles.spinner} />

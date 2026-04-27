@@ -1,19 +1,18 @@
+'use client';
 
-"use client";
-
-import React, { useState, useCallback } from "react";
-import { useCart } from "@/components/cart/CartContext";
-import { useTranslation } from "react-i18next";
-import { useSnackbar } from "notistack";
-import type { LanguageCode } from "@/components/LanguageSwitcher";
-import type { MenuItem as MenuItemType, ProductCustomization } from "@/types/menu";
-import MenuItemImage from "./MenuItemImage";
-import MenuItemDetails from "./MenuItemDetails";
-import MenuItemActions from "./MenuItemActions";
-import ProductDetailsModal from "./ProductDetailsModal";
-import CustomizationModal from "./CustomizationModal";
-import FeedbackForm from "@/components/feedback/FeedbackForm";
-import styles from "./MenuItem.module.css";
+import React, { useState, useCallback } from 'react';
+import { useCart } from '@/components/cart/CartContext';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+import type { LanguageCode } from '@/components/LanguageSwitcher';
+import type { MenuItem as MenuItemType, ProductCustomization } from '@/types/menu';
+import MenuItemImage from './MenuItemImage';
+import MenuItemDetails from './MenuItemDetails';
+import MenuItemActions from './MenuItemActions';
+import ProductDetailsModal from './ProductDetailsModal';
+import CustomizationModal from './CustomizationModal';
+import FeedbackForm from '@/components/feedback/FeedbackForm';
+import styles from './MenuItem.module.css';
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -21,11 +20,7 @@ interface MenuItemProps {
   getFallbackImage: (item: MenuItemType) => void;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({
-  item,
-  onFeedbackSuccess,
-  getFallbackImage,
-}) => {
+const MenuItem: React.FC<MenuItemProps> = ({ item, onFeedbackSuccess, getFallbackImage }) => {
   const { addItem } = useCart();
   const { t, i18n } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
@@ -36,7 +31,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   // Get current language - component will re-render when i18n.language changes
-  const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
+  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
   const handleAddItemToCart = useCallback(async () => {
     // Always fetch full product details first to check for customization options
@@ -77,52 +72,53 @@ const MenuItem: React.FC<MenuItemProps> = ({
         productId: fullProduct.id,
         quantity: 1,
       });
-      enqueueSnackbar(t("item_added_to_cart_toast", { itemName }), {
-        variant: "success",
+      enqueueSnackbar(t('item_added_to_cart_toast', { itemName }), {
+        variant: 'success',
         autoHideDuration: 2000,
-        anchorOrigin: { vertical: "top", horizontal: "center" },
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
       });
     } catch (error) {
       console.error('Error fetching product details:', error);
       setIsLoadingDetails(false);
-      enqueueSnackbar(t("error_loading_product", "Failed to load product details"), {
-        variant: "error",
+      enqueueSnackbar(t('error_loading_product', 'Failed to load product details'), {
+        variant: 'error',
       });
     }
   }, [addItem, enqueueSnackbar, t, currentLanguage, item.id]);
 
-  const handleCustomizationConfirm = useCallback(async (customization: ProductCustomization) => {
-    const itemName =
-      item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
+  const handleCustomizationConfirm = useCallback(
+    async (customization: ProductCustomization) => {
+      const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
 
-    try {
-      await addItem({
-        productId: customization.productId,
-        productVariationId: customization.selectedVariationId || undefined,
-        quantity: customization.quantity,
-        specialInstructions: customization.specialInstructions,
-        selectedIngredients: customization.selectedIngredients,
-        excludedIngredients: customization.excludedIngredients,
-        ingredientQuantities: customization.ingredientQuantities,
-        selectedSideItems: customization.selectedSideItems,
-      });
+      try {
+        await addItem({
+          productId: customization.productId,
+          productVariationId: customization.selectedVariationId || undefined,
+          quantity: customization.quantity,
+          specialInstructions: customization.specialInstructions,
+          selectedIngredients: customization.selectedIngredients,
+          excludedIngredients: customization.excludedIngredients,
+          ingredientQuantities: customization.ingredientQuantities,
+          selectedSideItems: customization.selectedSideItems,
+        });
 
-      setShowCustomization(false);
-      enqueueSnackbar(t("item_added_to_cart_toast", { itemName }), {
-        variant: "success",
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: "top", horizontal: "center" },
-      });
-    } catch {
-      enqueueSnackbar(t("error_adding_to_cart", "Failed to add item to cart"), {
-        variant: "error",
-      });
-    }
-  }, [addItem, enqueueSnackbar, t, currentLanguage, item]);
+        setShowCustomization(false);
+        enqueueSnackbar(t('item_added_to_cart_toast', { itemName }), {
+          variant: 'success',
+          autoHideDuration: 2000,
+          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        });
+      } catch {
+        enqueueSnackbar(t('error_adding_to_cart', 'Failed to add item to cart'), {
+          variant: 'error',
+        });
+      }
+    },
+    [addItem, enqueueSnackbar, t, currentLanguage, item],
+  );
 
   // Compute localized values - these will update when currentLanguage changes
-  const itemName =
-    item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
+  const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
 
   // Get ingredients from detailedIngredients with multilingual support
   const getIngredientsText = () => {
@@ -142,30 +138,19 @@ const MenuItem: React.FC<MenuItemProps> = ({
   const ingredientsText = getIngredientsText();
 
   const productDescription =
-    item.content?.[currentLanguage]?.description ||
-    item.content?.en?.description ||
-    item.longDescription ||
-    "";
+    item.content?.[currentLanguage]?.description || item.content?.en?.description || item.longDescription || '';
 
   const mainImageAlt =
-    item.content?.[currentLanguage]?.name ||
-    item.content?.en?.name ||
-    item.name ||
-    t("menu_item_image_alt");
-  const numericPrice =
-    typeof item.price === "string" ? parseFloat(item.price) : item.price;
+    item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name || t('menu_item_image_alt');
+  const numericPrice = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
 
   return (
-    <div
-      className={styles.menuItem}
-      role="listitem"
-      aria-labelledby={`item-name-${item.id}`}
-    >
+    <div className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
       <MenuItemImage
         imageUrl={item.image}
         alt={mainImageAlt}
         imageCount={item.images?.length}
-        countLabel={t("images_count_label")}
+        countLabel={t('images_count_label')}
         onClick={() => setShowDetails(true)}
         onError={() => getFallbackImage(item)}
       />
@@ -187,20 +172,17 @@ const MenuItem: React.FC<MenuItemProps> = ({
           <MenuItemActions
             onAdd={handleAddItemToCart}
             onFeedback={() => setShowFeedbackForm(item.id)}
-            addAria={t("add_item_to_order", { itemName })}
-            addLabel={t("add_to_order")}
+            addAria={t('add_item_to_order', { itemName })}
+            addLabel={t('add_to_order')}
             onDetails={() => setShowDetails(true)}
             detailsLabel={t('details')}
-            feedbackAria={`${t("feedback_form_heading")} ${itemName}`}
-            feedbackLabel={t("feedback_form_heading")}
+            feedbackAria={`${t('feedback_form_heading')} ${itemName}`}
+            feedbackLabel={t('feedback_form_heading')}
           />
         </div>
       </div>
       {showFeedbackForm === item.id && (
-        <FeedbackForm
-          dishId={item.id}
-          onSubmitSuccess={() => onFeedbackSuccess(item.id)}
-        />
+        <FeedbackForm dishId={item.id} onSubmitSuccess={() => onFeedbackSuccess(item.id)} />
       )}
       <ProductDetailsModal isOpen={showDetails} item={item} onClose={() => setShowDetails(false)} />
       {showCustomization && detailedProduct && (
@@ -215,21 +197,22 @@ const MenuItem: React.FC<MenuItemProps> = ({
         />
       )}
       {isLoadingDetails && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 9999,
-          background: 'rgba(0,0,0,0.8)',
-          color: 'white',
-          padding: '20px',
-          borderRadius: '8px'
-        }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+          }}
+        >
           {t('loading', 'Loading...')}
         </div>
       )}
-
     </div>
   );
 };

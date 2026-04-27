@@ -21,7 +21,9 @@
   max-height: 95vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--border-color, #e2e8f0);
 }
 
@@ -29,7 +31,9 @@
   .modal {
     background-color: var(--card-background, #252525);
     border-color: var(--border-color, #444444);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.3),
+      0 10px 10px -5px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -163,7 +167,9 @@
   background-color: var(--card-background, #ffffff);
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   z-index: 1000;
   min-width: 160px;
   overflow: hidden;
@@ -949,7 +955,6 @@
   }
 }
 
-
 .refundButton {
   display: flex;
   align-items: center;
@@ -1038,7 +1043,9 @@
   padding: 24px;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--border-color, #e2e8f0);
 }
 
@@ -1408,7 +1415,7 @@
   }
 
   /* Page breaks */
-  .section:nth-child(n+6) {
+  .section:nth-child(n + 6) {
     page-break-before: auto;
   }
 }

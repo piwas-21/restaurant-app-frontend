@@ -26,19 +26,22 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReport = useCallback(async (date: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getZReport(date);
-      setReportData(data);
-    } catch {
-      setError(t('cashier.zreport.error') || 'Failed to load Z-Report');
-      setReportData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [t]);
+  const fetchReport = useCallback(
+    async (date: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getZReport(date);
+        setReportData(data);
+      } catch {
+        setError(t('cashier.zreport.error') || 'Failed to load Z-Report');
+        setReportData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [t],
+  );
 
   // Reset date to today and fetch when modal opens
   useEffect(() => {
@@ -143,7 +146,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                 <div>
                   {/* Payment Methods */}
                   <div className={styles.section}>
-                    <div className={styles.sectionTitle}>{t('cashier.zreport.payment_methods') || 'Sales by Payment Method'}</div>
+                    <div className={styles.sectionTitle}>
+                      {t('cashier.zreport.payment_methods') || 'Sales by Payment Method'}
+                    </div>
                     {reportData.paymentsByMethod.length > 0 ? (
                       <table className={styles.table}>
                         <thead>
@@ -170,7 +175,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
 
                   {/* Order Types */}
                   <div className={styles.section}>
-                    <div className={styles.sectionTitle}>{t('cashier.zreport.order_types') || 'Sales by Order Type'}</div>
+                    <div className={styles.sectionTitle}>
+                      {t('cashier.zreport.order_types') || 'Sales by Order Type'}
+                    </div>
                     {reportData.salesByOrderType.length > 0 ? (
                       <table className={styles.table}>
                         <thead>
@@ -225,7 +232,10 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
 
                   {/* Refunds & Cancellations */}
                   <div className={styles.section}>
-                    <div className={styles.sectionTitle}>{t('cashier.zreport.refunds') || 'Refunds'} & {t('cashier.zreport.cancellations') || 'Cancellations'}</div>
+                    <div className={styles.sectionTitle}>
+                      {t('cashier.zreport.refunds') || 'Refunds'} &{' '}
+                      {t('cashier.zreport.cancellations') || 'Cancellations'}
+                    </div>
                     <table className={styles.table}>
                       <tbody>
                         <tr>
@@ -251,7 +261,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
                   {/* Product Types */}
                   {reportData.salesByProductType.length > 0 && (
                     <div className={styles.section}>
-                      <div className={styles.sectionTitle}>{t('cashier.zreport.product_types') || 'Sales by Product Type'}</div>
+                      <div className={styles.sectionTitle}>
+                        {t('cashier.zreport.product_types') || 'Sales by Product Type'}
+                      </div>
                       <table className={styles.table}>
                         <thead>
                           <tr>
@@ -303,9 +315,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
               )}
 
               {reportData.totalTransactions === 0 && (
-                <div className={styles.empty}>
-                  {t('cashier.zreport.no_data') || 'No data available for this date'}
-                </div>
+                <div className={styles.empty}>{t('cashier.zreport.no_data') || 'No data available for this date'}</div>
               )}
             </>
           )}

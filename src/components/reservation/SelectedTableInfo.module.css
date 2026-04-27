@@ -77,17 +77,17 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .selectedTableInfo {
+[data-theme='dark'] .selectedTableInfo {
   background: rgba(244, 196, 48, 0.08);
   border-color: rgba(244, 196, 48, 0.5);
 }
 
-[data-theme="dark"] .combineChip {
+[data-theme='dark'] .combineChip {
   background: rgba(244, 196, 48, 0.05);
   border-color: rgba(244, 196, 48, 0.3);
 }
 
-[data-theme="dark"] .combineChip:hover {
+[data-theme='dark'] .combineChip:hover {
   background: rgba(244, 196, 48, 0.12);
   border-color: rgba(244, 196, 48, 0.5);
 }

@@ -34,7 +34,7 @@ function ScanPageContent() {
 
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/Tables/validate-qr/${encodeURIComponent(qrCode)}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/Tables/validate-qr/${encodeURIComponent(qrCode)}`,
         );
 
         const result = await response.json();
@@ -59,7 +59,6 @@ function ScanPageContent() {
         setTimeout(() => {
           router.push('/menu');
         }, 1000);
-
       } catch (err) {
         // Log error for debugging
         if (process.env.NODE_ENV === 'development') {
@@ -76,54 +75,56 @@ function ScanPageContent() {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '2rem',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '3px solid var(--color-border)',
-          borderTop: '3px solid var(--color-primary)',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-        <h2 style={{ marginTop: '1.5rem', color: 'var(--color-text)' }}>
-          {t('validating_qr_code')}
-        </h2>
-        <p style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)' }}>
-          {t('please_wait')}
-        </p>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          padding: '2rem',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: '50px',
+            height: '50px',
+            border: '3px solid var(--color-border)',
+            borderTop: '3px solid var(--color-primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
+        <h2 style={{ marginTop: '1.5rem', color: 'var(--color-text)' }}>{t('validating_qr_code')}</h2>
+        <p style={{ marginTop: '0.5rem', color: 'var(--color-text-muted)' }}>{t('please_wait')}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '2rem',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          fontSize: '3rem',
-          marginBottom: '1rem'
-        }}>❌</div>
-        <h2 style={{ color: 'var(--color-error)', marginBottom: '0.5rem' }}>
-          {t('qr_code_error')}
-        </h2>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-          {error}
-        </p>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          padding: '2rem',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '3rem',
+            marginBottom: '1rem',
+          }}
+        >
+          ❌
+        </div>
+        <h2 style={{ color: 'var(--color-error)', marginBottom: '0.5rem' }}>{t('qr_code_error')}</h2>
+        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>{error}</p>
         <button
           onClick={() => router.push('/menu')}
           style={{
@@ -134,10 +135,10 @@ function ScanPageContent() {
             borderRadius: '8px',
             fontSize: '1rem',
             cursor: 'pointer',
-            transition: 'opacity 0.2s'
+            transition: 'opacity 0.2s',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
           {t('go_to_menu')}
         </button>
@@ -146,54 +147,60 @@ function ScanPageContent() {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      padding: '2rem',
-      textAlign: 'center'
-    }}>
-      <div style={{
-        fontSize: '3rem',
-        marginBottom: '1rem'
-      }}>✅</div>
-      <h2 style={{ color: 'var(--color-success)', marginBottom: '0.5rem' }}>
-        {t('qr_code_valid')}
-      </h2>
-      <p style={{ color: 'var(--color-text-muted)' }}>
-        {t('redirecting_to_menu')}
-      </p>
-    </div>
-  );
-}
-
-export default function ScanPage() {
-  return (
-    <Suspense fallback={
-      <div style={{
+    <div
+      style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
         padding: '2rem',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '3px solid var(--color-border)',
-          borderTop: '3px solid var(--color-primary)',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-        <h2 style={{ marginTop: '1.5rem', color: 'var(--color-text)' }}>
-          Loading...
-        </h2>
+        textAlign: 'center',
+      }}
+    >
+      <div
+        style={{
+          fontSize: '3rem',
+          marginBottom: '1rem',
+        }}
+      >
+        ✅
       </div>
-    }>
+      <h2 style={{ color: 'var(--color-success)', marginBottom: '0.5rem' }}>{t('qr_code_valid')}</h2>
+      <p style={{ color: 'var(--color-text-muted)' }}>{t('redirecting_to_menu')}</p>
+    </div>
+  );
+}
+
+export default function ScanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            padding: '2rem',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '50px',
+              height: '50px',
+              border: '3px solid var(--color-border)',
+              borderTop: '3px solid var(--color-primary)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <h2 style={{ marginTop: '1.5rem', color: 'var(--color-text)' }}>Loading...</h2>
+        </div>
+      }
+    >
       <ScanPageContent />
     </Suspense>
   );

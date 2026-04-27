@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,9 +45,9 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
     const { name, value, type, checked } = e.target;
 
     if (type === 'checkbox') {
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -88,10 +88,9 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
       }
 
       if (maxOrderAmount <= minOrderAmount) {
-        enqueueSnackbar(
-          t('max_amount_invalid', 'Maximum order amount must be greater than minimum'),
-          { variant: 'error' }
-        );
+        enqueueSnackbar(t('max_amount_invalid', 'Maximum order amount must be greater than minimum'), {
+          variant: 'error',
+        });
         return;
       }
     }
@@ -220,9 +219,7 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>
-            {rule
-              ? t('edit_point_rule', 'Edit Point Rule')
-              : t('create_point_rule', 'Create Point Rule')}
+            {rule ? t('edit_point_rule', 'Edit Point Rule') : t('create_point_rule', 'Create Point Rule')}
           </h2>
           <button onClick={onCancel} className={styles.closeButton} aria-label={t('close', 'Close')}>
             <X size={24} />
@@ -314,9 +311,7 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
                 className={styles.input}
                 required
               />
-              <small className={styles.helpText}>
-                {t('priority_help', 'Lower numbers have higher priority')}
-              </small>
+              <small className={styles.helpText}>{t('priority_help', 'Lower numbers have higher priority')}</small>
             </div>
           </div>
 

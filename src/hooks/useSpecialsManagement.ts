@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSpecialProducts, setFeaturedSpecial as setFeaturedSpecialAPI, unsetFeaturedSpecial as unsetFeaturedSpecialAPI } from '@/services/productService';
+import {
+  getSpecialProducts,
+  setFeaturedSpecial as setFeaturedSpecialAPI,
+  unsetFeaturedSpecial as unsetFeaturedSpecialAPI,
+} from '@/services/productService';
 
 export interface SpecialProduct {
   id: string;
@@ -35,28 +39,35 @@ export const useSpecialsManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
 
-  const fetchSpecialProducts = useCallback(async (page: number = 1) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await getSpecialProducts(page, pageSize) as { success: boolean; data?: { items: any[]; totalCount: number }; message?: string };
-      if (response.success && response.data) {
-        setSpecialProducts(response.data.items || []);
-        setTotalCount(response.data.totalCount || 0);
-        setCurrentPage(page);
+  const fetchSpecialProducts = useCallback(
+    async (page: number = 1) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = (await getSpecialProducts(page, pageSize)) as {
+          success: boolean;
+          data?: { items: any[]; totalCount: number };
+          message?: string;
+        };
+        if (response.success && response.data) {
+          setSpecialProducts(response.data.items || []);
+          setTotalCount(response.data.totalCount || 0);
+          setCurrentPage(page);
 
-        // Find the featured special from the list
-        const featured = response.data.items?.find((p: SpecialProduct) => p.isFeaturedSpecial);
-        setFeaturedSpecial(featured || null);
-      } else {
-        setError(response.message || 'Failed to fetch special products');
+          // Find the featured special from the list
+          const featured = response.data.items?.find((p: SpecialProduct) => p.isFeaturedSpecial);
+          setFeaturedSpecial(featured || null);
+        } else {
+          setError(response.message || 'Failed to fetch special products');
+        }
+      } catch {
+        setError('An unexpected error occurred while fetching special products');
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setError('An unexpected error occurred while fetching special products');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pageSize]);
+    },
+    [pageSize],
+  );
 
   useEffect(() => {
     fetchSpecialProducts(1);
@@ -64,7 +75,7 @@ export const useSpecialsManagement = () => {
 
   const handleSetFeaturedSpecial = async (productId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await setFeaturedSpecialAPI(productId) as { success: boolean; message?: string };
+      const response = (await setFeaturedSpecialAPI(productId)) as { success: boolean; message?: string };
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);
@@ -79,7 +90,7 @@ export const useSpecialsManagement = () => {
 
   const handleUnsetFeaturedSpecial = async (): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await unsetFeaturedSpecialAPI() as { success: boolean; message?: string };
+      const response = (await unsetFeaturedSpecialAPI()) as { success: boolean; message?: string };
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);

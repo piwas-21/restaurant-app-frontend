@@ -34,7 +34,9 @@ export function orderToCSVRow(order: OrderDto, t?: TranslationFunction): string[
     order.customerPhone || translate('n_a', 'N/A'),
     getOrderTypeLabel(order.type),
     order.status ? translate(`order_status_${order.status.toLowerCase()}`, order.status) : translate('n_a', 'N/A'),
-    order.paymentStatus ? translate(`payment_status_${order.paymentStatus.toLowerCase()}`, order.paymentStatus) : translate('n_a', 'N/A'),
+    order.paymentStatus
+      ? translate(`payment_status_${order.paymentStatus.toLowerCase()}`, order.paymentStatus)
+      : translate('n_a', 'N/A'),
     order.subTotal.toFixed(2),
     order.tax.toFixed(2),
     order.discount.toFixed(2),
@@ -44,7 +46,7 @@ export function orderToCSVRow(order: OrderDto, t?: TranslationFunction): string[
     new Date(order.orderDate).toLocaleString('de-CH'),
     order.notes || '',
     order.items.length.toString(),
-    order.items.map(item => `${item.productName} (${item.quantity}x)`).join('; '),
+    order.items.map((item) => `${item.productName} (${item.quantity}x)`).join('; '),
   ];
 }
 
@@ -74,7 +76,7 @@ export function ordersToCSV(orders: OrderDto[], t?: TranslationFunction): string
     translate('items', 'Items'),
   ];
 
-  const rows = orders.map(order => orderToCSVRow(order, t));
+  const rows = orders.map((order) => orderToCSVRow(order, t));
 
   // Escape CSV values
   const escapeCsvValue = (value: string): string => {
@@ -86,7 +88,7 @@ export function ordersToCSV(orders: OrderDto[], t?: TranslationFunction): string
 
   const csvContent = [
     headers.map(escapeCsvValue).join(','),
-    ...rows.map(row => row.map(escapeCsvValue).join(',')),
+    ...rows.map((row) => row.map(escapeCsvValue).join(',')),
   ].join('\n');
 
   return csvContent;
@@ -164,7 +166,7 @@ export function generateOrderReceipt(order: OrderDto, t?: TranslationFunction): 
 
   lines.push('ORDER ITEMS:');
   lines.push('-'.repeat(50));
-  order.items.forEach(item => {
+  order.items.forEach((item) => {
     const itemLine = `${item.quantity}x ${item.productName}`;
     const price = `CHF ${item.itemTotal.toFixed(2)}`;
     lines.push(`${itemLine.padEnd(40)} ${price.padStart(10)}`);

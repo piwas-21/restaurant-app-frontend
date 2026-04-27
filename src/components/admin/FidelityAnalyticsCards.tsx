@@ -69,19 +69,28 @@ export default function FidelityAnalyticsCards({ analytics, loading }: FidelityA
     {
       title: t('total_points_issued', 'Total Points Issued'),
       value: formatNumber(analytics.totalPointsIssued),
-      subtitle: t('points_value', { value: formatCurrency(analytics.totalPointsIssued / 100), defaultValue: `${formatCurrency(analytics.totalPointsIssued / 100)} value` }),
+      subtitle: t('points_value', {
+        value: formatCurrency(analytics.totalPointsIssued / 100),
+        defaultValue: `${formatCurrency(analytics.totalPointsIssued / 100)} value`,
+      }),
       icon: 'points-issued',
     },
     {
       title: t('total_points_redeemed', 'Total Points Redeemed'),
       value: formatNumber(analytics.totalPointsRedeemed),
-      subtitle: t('points_in_discounts', { value: formatCurrency(analytics.totalPointsRedeemed / 100), defaultValue: `${formatCurrency(analytics.totalPointsRedeemed / 100)} in discounts` }),
+      subtitle: t('points_in_discounts', {
+        value: formatCurrency(analytics.totalPointsRedeemed / 100),
+        defaultValue: `${formatCurrency(analytics.totalPointsRedeemed / 100)} in discounts`,
+      }),
       icon: 'points-redeemed',
     },
     {
       title: t('active_users_with_points', 'Active Users with Points'),
       value: formatNumber(analytics.totalActiveUsers),
-      subtitle: t('average_points_per_user', { avg: formatNumber(Math.round(analytics.averagePointsPerUser)), defaultValue: `Avg: ${formatNumber(Math.round(analytics.averagePointsPerUser))} pts/user` }),
+      subtitle: t('average_points_per_user', {
+        avg: formatNumber(Math.round(analytics.averagePointsPerUser)),
+        defaultValue: `Avg: ${formatNumber(Math.round(analytics.averagePointsPerUser))} pts/user`,
+      }),
       icon: 'active-users',
     },
     {
@@ -121,16 +130,12 @@ export default function FidelityAnalyticsCards({ analytics, loading }: FidelityA
       {cards.map((card, index) => (
         <div key={index} className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className={`${styles.iconWrapper} ${styles[`icon-${card.icon}`]}`}>
-              {getIcon(card.icon)}
-            </div>
+            <div className={`${styles.iconWrapper} ${styles[`icon-${card.icon}`]}`}>{getIcon(card.icon)}</div>
             <h3 className={styles.cardTitle}>{card.title}</h3>
           </div>
           <div className={styles.cardBody}>
             <p className={styles.cardValue}>{card.value}</p>
-            {card.subtitle && (
-              <p className={styles.cardSubtitle}>{card.subtitle}</p>
-            )}
+            {card.subtitle && <p className={styles.cardSubtitle}>{card.subtitle}</p>}
           </div>
         </div>
       ))}

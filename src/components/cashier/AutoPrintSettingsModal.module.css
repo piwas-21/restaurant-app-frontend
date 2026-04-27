@@ -32,7 +32,9 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -47,9 +49,11 @@
   }
 }
 
-[data-theme="dark"] .settingsContent {
+[data-theme='dark'] .settingsContent {
   background: var(--secondary-color);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
 .settingsHeader {
@@ -157,12 +161,12 @@
   background-color: rgba(192, 0, 0, 0.05);
 }
 
-[data-theme="dark"] .optionLabel:hover {
+[data-theme='dark'] .optionLabel:hover {
   background-color: rgba(224, 102, 102, 0.1);
 }
 
-.optionLabel input[type="checkbox"],
-.optionLabel input[type="radio"] {
+.optionLabel input[type='checkbox'],
+.optionLabel input[type='radio'] {
   margin-right: 0.75rem;
   cursor: pointer;
   width: 18px;
@@ -176,7 +180,7 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .optionLabel:has(input:checked) {
+[data-theme='dark'] .optionLabel:has(input:checked) {
   background-color: rgba(224, 102, 102, 0.15);
 }
 
@@ -232,11 +236,11 @@
   transform: translateY(0);
 }
 
-[data-theme="dark"] .saveButton {
+[data-theme='dark'] .saveButton {
   background-color: var(--primary-color);
 }
 
-[data-theme="dark"] .saveButton:hover {
+[data-theme='dark'] .saveButton:hover {
   background-color: var(--primary-color-dark);
 }
 

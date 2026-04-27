@@ -12,7 +12,7 @@ const discountSchema = z.object({
   value: z.coerce.number().min(0, { message: 'Value must be positive' }),
   minimumOrderAmount: z.coerce.number().min(0).optional(),
   maximumDiscountAmount: z.coerce.number().min(0).optional(),
-  isActive: z.boolean()
+  isActive: z.boolean(),
 });
 
 type DiscountFormValues = z.infer<typeof discountSchema>;
@@ -25,13 +25,7 @@ interface DiscountModalProps {
   isSubmitting: boolean;
 }
 
-const DiscountModal: React.FC<DiscountModalProps> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  initialData,
-  isSubmitting
-}) => {
+const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onSubmit, initialData, isSubmitting }) => {
   const { t } = useTranslation();
   const isEditMode = !!initialData;
 
@@ -39,14 +33,14 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
   } = useForm<DiscountFormValues>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
       type: DiscountType.Percentage,
       isActive: true,
-      value: 0
-    }
+      value: 0,
+    },
   });
 
   useEffect(() => {
@@ -58,7 +52,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
           value: initialData.value,
           minimumOrderAmount: initialData.minimumOrderAmount,
           maximumDiscountAmount: initialData.maximumDiscountAmount,
-          isActive: initialData.isActive
+          isActive: initialData.isActive,
         });
       } else {
         reset({
@@ -67,7 +61,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
           value: 0,
           minimumOrderAmount: 0,
           maximumDiscountAmount: 0,
-          isActive: true
+          isActive: true,
         });
       }
     }
@@ -116,7 +110,9 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
             <div className={styles.formGroup}>
               <label htmlFor="maximumDiscountAmount">{t('max_discount_amount')}</label>
               <input type="number" step="0.01" id="maximumDiscountAmount" {...register('maximumDiscountAmount')} />
-              {errors.maximumDiscountAmount && <p className={styles.errorMessage}>{errors.maximumDiscountAmount.message}</p>}
+              {errors.maximumDiscountAmount && (
+                <p className={styles.errorMessage}>{errors.maximumDiscountAmount.message}</p>
+              )}
             </div>
           </div>
 
@@ -129,7 +125,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
 
           <div className={styles.buttonGroup}>
             <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-              {isSubmitting ? t('saving...') : (isEditMode ? t('save_changes') : t('create'))}
+              {isSubmitting ? t('saving...') : isEditMode ? t('save_changes') : t('create')}
             </button>
             <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isSubmitting}>
               {t('cancel')}

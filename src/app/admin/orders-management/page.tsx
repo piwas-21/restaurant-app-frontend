@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,14 +24,7 @@ import { exportOrdersToCSV } from '@/utils/exportUtils';
 import { exportOrdersToPDF } from '@/utils/pdfExportUtils';
 import { useOrderFilterPreferences } from '@/hooks/useOrderFilterPreferences';
 import { useKeyboardShortcuts, KeyboardShortcut } from '@/hooks/useKeyboardShortcuts';
-import {
-  ClipboardList,
-  RefreshCw,
-  Loader2,
-  AlertCircle,
-  RotateCcw,
-  Keyboard,
-} from 'lucide-react';
+import { ClipboardList, RefreshCw, Loader2, AlertCircle, RotateCcw, Keyboard } from 'lucide-react';
 import styles from '../../styles/AdminOrdersPage.module.css';
 
 export default function AdminOrdersPage() {
@@ -171,7 +164,16 @@ export default function AdminOrdersPage() {
 
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading, selectedStatus, selectedPaymentStatus, selectedOrderType, showFocusOnly, dateRangeStart, dateRangeEnd]);
+  }, [
+    user,
+    authLoading,
+    selectedStatus,
+    selectedPaymentStatus,
+    selectedOrderType,
+    showFocusOnly,
+    dateRangeStart,
+    dateRangeEnd,
+  ]);
 
   const fetchOrders = async () => {
     try {
@@ -189,16 +191,17 @@ export default function AdminOrdersPage() {
       let filteredOrders = result.items;
 
       if (showFocusOnly) {
-        filteredOrders = filteredOrders.filter(order => order.isFocusOrder);
+        filteredOrders = filteredOrders.filter((order) => order.isFocusOrder);
       }
 
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        filteredOrders = filteredOrders.filter(order =>
-          order.orderNumber.toLowerCase().includes(query) ||
-          order.customerName?.toLowerCase().includes(query) ||
-          order.customerEmail?.toLowerCase().includes(query) ||
-          order.customerPhone?.toLowerCase().includes(query)
+        filteredOrders = filteredOrders.filter(
+          (order) =>
+            order.orderNumber.toLowerCase().includes(query) ||
+            order.customerName?.toLowerCase().includes(query) ||
+            order.customerEmail?.toLowerCase().includes(query) ||
+            order.customerPhone?.toLowerCase().includes(query),
         );
       }
 
@@ -258,13 +261,11 @@ export default function AdminOrdersPage() {
     await toggleFocusOrder(selectedOrder.id, command);
 
     enqueueSnackbar(
-      isFocusOrder
-        ? t('focus_added', 'Order marked as focus')
-        : t('focus_removed', 'Order removed from focus'),
+      isFocusOrder ? t('focus_added', 'Order marked as focus') : t('focus_removed', 'Order removed from focus'),
       {
         variant: 'success',
         anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
-      }
+      },
     );
 
     setShowFocusModal(false);
@@ -326,12 +327,12 @@ export default function AdminOrdersPage() {
     if (selectedOrderIds.size === paginatedOrders.length) {
       setSelectedOrderIds(new Set());
     } else {
-      setSelectedOrderIds(new Set(paginatedOrders.map(o => o.id)));
+      setSelectedOrderIds(new Set(paginatedOrders.map((o) => o.id)));
     }
   };
 
   const handleBulkExportCSV = () => {
-    const selectedOrders = orders.filter(o => selectedOrderIds.has(o.id));
+    const selectedOrders = orders.filter((o) => selectedOrderIds.has(o.id));
     exportOrdersToCSV(selectedOrders, t);
     enqueueSnackbar(`Exported ${selectedOrders.length} orders to CSV`, {
       variant: 'success',
@@ -340,7 +341,7 @@ export default function AdminOrdersPage() {
   };
 
   const handleBulkExportPDF = () => {
-    const selectedOrders = orders.filter(o => selectedOrderIds.has(o.id));
+    const selectedOrders = orders.filter((o) => selectedOrderIds.has(o.id));
     exportOrdersToPDF(selectedOrders, t);
     enqueueSnackbar(`Exported ${selectedOrders.length} orders to PDF`, {
       variant: 'success',
@@ -354,7 +355,7 @@ export default function AdminOrdersPage() {
 
   const handleBulkStatusUpdate = async (status: OrderStatus, notes: string) => {
     setIsUpdatingBulkStatus(true);
-    const selectedOrders = orders.filter(o => selectedOrderIds.has(o.id));
+    const selectedOrders = orders.filter((o) => selectedOrderIds.has(o.id));
     const total = selectedOrders.length;
     let successCount = 0;
     let failCount = 0;
@@ -431,9 +432,7 @@ export default function AdminOrdersPage() {
               <ClipboardList size={32} />
               {t('admin_orders_management', 'Orders Management')}
             </h1>
-            <p className={styles.subtitle}>
-              {t('admin_orders_desc', 'View and manage all restaurant orders')}
-            </p>
+            <p className={styles.subtitle}>{t('admin_orders_desc', 'View and manage all restaurant orders')}</p>
           </div>
           <div className={styles.headerButtons}>
             <button
@@ -555,11 +554,7 @@ export default function AdminOrdersPage() {
               }}
             />
 
-            <OrdersPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+            <OrdersPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </>
         )}
 
@@ -594,9 +589,7 @@ export default function AdminOrdersPage() {
               setSelectedOrder(null);
             }}
             onOrderUpdated={(updatedOrder) => {
-              setOrders((prevOrders) =>
-                prevOrders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
-              );
+              setOrders((prevOrders) => prevOrders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)));
               setShowDetailsModal(false);
               setSelectedOrder(null);
               enqueueSnackbar('Order updated successfully', {
@@ -618,10 +611,7 @@ export default function AdminOrdersPage() {
         )}
 
         {showKeyboardShortcutsModal && (
-          <KeyboardShortcutsModal
-            shortcuts={keyboardShortcuts}
-            onClose={() => setShowKeyboardShortcutsModal(false)}
-          />
+          <KeyboardShortcutsModal shortcuts={keyboardShortcuts} onClose={() => setShowKeyboardShortcutsModal(false)} />
         )}
 
         {showDeleteModal && selectedOrder && (

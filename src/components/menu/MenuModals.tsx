@@ -66,7 +66,9 @@ export default function MenuModals({
             isAvailable: true,
             isSpecial: true,
             content: {},
-            images: featuredSpecial.images || (featuredSpecial.imageUrl ? [{ url: featuredSpecial.imageUrl, alt: featuredSpecial.name }] : []),
+            images:
+              featuredSpecial.images ||
+              (featuredSpecial.imageUrl ? [{ url: featuredSpecial.imageUrl, alt: featuredSpecial.name }] : []),
             variations: featuredSpecial.variations || [],
             suggestedSideItems: featuredSpecial.suggestedSideItems || [],
             categories: [],

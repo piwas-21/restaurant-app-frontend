@@ -12,12 +12,7 @@ interface AutoPrintSettingsModalProps {
   onSave: (settings: AutoPrintSettings) => void;
 }
 
-export default function AutoPrintSettingsModal({
-  isOpen,
-  onClose,
-  settings,
-  onSave,
-}: AutoPrintSettingsModalProps) {
+export default function AutoPrintSettingsModal({ isOpen, onClose, settings, onSave }: AutoPrintSettingsModalProps) {
   const { t } = useTranslation();
   const [localSettings, setLocalSettings] = useState<AutoPrintSettings>(settings);
 
@@ -25,9 +20,9 @@ export default function AutoPrintSettingsModal({
 
   const handleSave = () => {
     // Validation: at least one order type, status, and print content must be selected
-    const hasOrderType = Object.values(localSettings.orderTypes).some(v => v);
-    const hasStatus = Object.values(localSettings.orderStatuses).some(v => v);
-    const hasPrintContent = Object.values(localSettings.printContent).some(v => v);
+    const hasOrderType = Object.values(localSettings.orderTypes).some((v) => v);
+    const hasStatus = Object.values(localSettings.orderStatuses).some((v) => v);
+    const hasPrintContent = Object.values(localSettings.printContent).some((v) => v);
 
     if (!hasOrderType || !hasStatus || !hasPrintContent) {
       alert(t('cashier.at_least_one_option') || 'Please select at least one order type, status, and print content');
@@ -81,9 +76,7 @@ export default function AutoPrintSettingsModal({
         <div className={styles.settingsBody}>
           {/* Order Types Section */}
           <div className={styles.settingsSection}>
-            <h3 className={styles.sectionTitle}>
-              {t('cashier.order_types_to_print') || 'Order Types to Print'}
-            </h3>
+            <h3 className={styles.sectionTitle}>{t('cashier.order_types_to_print') || 'Order Types to Print'}</h3>
             <div className={styles.optionsGroup}>
               <label className={styles.optionLabel}>
                 <input
@@ -114,9 +107,7 @@ export default function AutoPrintSettingsModal({
 
           {/* Order Statuses Section */}
           <div className={styles.settingsSection}>
-            <h3 className={styles.sectionTitle}>
-              {t('cashier.order_statuses_to_print') || 'Order Statuses to Print'}
-            </h3>
+            <h3 className={styles.sectionTitle}>{t('cashier.order_statuses_to_print') || 'Order Statuses to Print'}</h3>
             <div className={styles.optionsGroup}>
               <label className={styles.optionLabel}>
                 <input
@@ -155,9 +146,7 @@ export default function AutoPrintSettingsModal({
 
           {/* Print Content Section */}
           <div className={styles.settingsSection}>
-            <h3 className={styles.sectionTitle}>
-              {t('cashier.what_to_print') || 'What to Print'}
-            </h3>
+            <h3 className={styles.sectionTitle}>{t('cashier.what_to_print') || 'What to Print'}</h3>
             <div className={styles.optionsGroup}>
               <label className={styles.optionLabel}>
                 <input

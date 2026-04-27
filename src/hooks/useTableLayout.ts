@@ -54,12 +54,13 @@ export function useTableLayout() {
     localStorage.setItem('entrancePosition', JSON.stringify(position));
   }, []);
 
-  const updateSelectedTable = useCallback((updates: Partial<TableDto>) => {
-    setSelectedTable(prev => (prev ? { ...prev, ...updates } : null));
-    setTables(prev =>
-      prev.map(t => (t.id === selectedTable?.id ? { ...t, ...updates } : t))
-    );
-  }, [selectedTable?.id]);
+  const updateSelectedTable = useCallback(
+    (updates: Partial<TableDto>) => {
+      setSelectedTable((prev) => (prev ? { ...prev, ...updates } : null));
+      setTables((prev) => prev.map((t) => (t.id === selectedTable?.id ? { ...t, ...updates } : t)));
+    },
+    [selectedTable?.id],
+  );
 
   const handleDeleteTable = useCallback(async () => {
     if (!selectedTable) return;
@@ -74,10 +75,16 @@ export function useTableLayout() {
     try {
       setSaving(true);
       await tableLayoutService.deleteTable(selectedTable.id);
-      setTables(prev => prev.filter(t => t.id !== selectedTable.id));
+      setTables((prev) => prev.filter((t) => t.id !== selectedTable.id));
       setSelectedTable(null);
       setShowDeleteModal(false);
-      showMessage('success', t('table_deleted_successfully', 'Table {{tableNumber}} deleted successfully!').replace('{{tableNumber}}', selectedTable.tableNumber));
+      showMessage(
+        'success',
+        t('table_deleted_successfully', 'Table {{tableNumber}} deleted successfully!').replace(
+          '{{tableNumber}}',
+          selectedTable.tableNumber,
+        ),
+      );
     } catch (error: any) {
       showMessage('error', error.message || t('failed_to_delete_table', 'Failed to delete table'));
     } finally {
@@ -85,18 +92,27 @@ export function useTableLayout() {
     }
   }, [selectedTable, showMessage, t]);
 
-  const handleCreateTable = useCallback(async (tableData: CreateTableDto): Promise<TableDto> => {
-    try {
-      const newTable = await tableLayoutService.createTable(tableData);
-      setTables(prev => [...prev, newTable]);
-      setSelectedTable(newTable);
-      showMessage('success', t('table_created_successfully', 'Table {{tableNumber}} created successfully!').replace('{{tableNumber}}', newTable.tableNumber));
-      return newTable;
-    } catch (error: any) {
-      showMessage('error', error.message || t('failed_to_create_table', 'Failed to create table'));
-      throw error;
-    }
-  }, [showMessage, t]);
+  const handleCreateTable = useCallback(
+    async (tableData: CreateTableDto): Promise<TableDto> => {
+      try {
+        const newTable = await tableLayoutService.createTable(tableData);
+        setTables((prev) => [...prev, newTable]);
+        setSelectedTable(newTable);
+        showMessage(
+          'success',
+          t('table_created_successfully', 'Table {{tableNumber}} created successfully!').replace(
+            '{{tableNumber}}',
+            newTable.tableNumber,
+          ),
+        );
+        return newTable;
+      } catch (error: any) {
+        showMessage('error', error.message || t('failed_to_create_table', 'Failed to create table'));
+        throw error;
+      }
+    },
+    [showMessage, t],
+  );
 
   const handleSaveLayout = useCallback(async () => {
     try {
@@ -129,7 +145,7 @@ export function useTableLayout() {
   }, [tables, loadTables, showMessage, t]);
 
   const toggleTableSelection = useCallback((tableId: string) => {
-    setSelectedTableIds(prev => {
+    setSelectedTableIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(tableId)) {
         newSet.delete(tableId);
@@ -149,7 +165,7 @@ export function useTableLayout() {
     try {
       setSaving(true);
       const updates = Array.from(selectedTableIds).map(async (tableId) => {
-        const table = tables.find(t => t.id === tableId);
+        const table = tables.find((t) => t.id === tableId);
         if (table && !table.isActive) {
           const updateData: UpdateTableDto = {
             ...table,
@@ -165,7 +181,10 @@ export function useTableLayout() {
       const updated = (await Promise.all(updates)).filter(Boolean);
       if (updated.length > 0) {
         await loadTables();
-        showMessage('success', t('tables_activated', 'Activated {{count}} table(s)').replace('{{count}}', updated.length.toString()));
+        showMessage(
+          'success',
+          t('tables_activated', 'Activated {{count}} table(s)').replace('{{count}}', updated.length.toString()),
+        );
         setSelectedTableIds(new Set());
       } else {
         showMessage('error', t('no_inactive_tables', 'No inactive tables to activate'));
@@ -186,7 +205,7 @@ export function useTableLayout() {
     try {
       setSaving(true);
       const updates = Array.from(selectedTableIds).map(async (tableId) => {
-        const table = tables.find(t => t.id === tableId);
+        const table = tables.find((t) => t.id === tableId);
         if (table && table.isActive) {
           const updateData: UpdateTableDto = {
             ...table,
@@ -202,7 +221,10 @@ export function useTableLayout() {
       const updated = (await Promise.all(updates)).filter(Boolean);
       if (updated.length > 0) {
         await loadTables();
-        showMessage('success', t('tables_deactivated', 'Deactivated {{count}} table(s)').replace('{{count}}', updated.length.toString()));
+        showMessage(
+          'success',
+          t('tables_deactivated', 'Deactivated {{count}} table(s)').replace('{{count}}', updated.length.toString()),
+        );
         setSelectedTableIds(new Set());
       } else {
         showMessage('error', t('no_active_tables', 'No active tables to deactivate'));

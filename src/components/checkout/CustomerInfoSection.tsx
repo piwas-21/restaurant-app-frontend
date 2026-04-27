@@ -31,10 +31,7 @@ export default function CustomerInfoSection({ customerInfo }: CustomerInfoSectio
           <User size={20} />
           {t('customer_information', 'Customer Information')}
         </h2>
-        <button
-          onClick={() => router.push('/checkout/customer-info')}
-          className={styles.editButton}
-        >
+        <button onClick={() => router.push('/checkout/customer-info')} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>

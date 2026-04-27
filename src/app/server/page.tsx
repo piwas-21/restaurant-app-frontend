@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useServerOrders } from '@/hooks/useServerOrders';
-import {
-  ServerHeader,
-  TableGridView,
-  ActiveOrdersPanel,
-  TableDetailsModal,
-  TakeOrderModal,
-} from '@/components/server';
+import { ServerHeader, TableGridView, ActiveOrdersPanel, TableDetailsModal, TakeOrderModal } from '@/components/server';
 import { ServerTableDto } from '@/services/serverService';
 import styles from '../styles/ServerPage.module.css';
 
@@ -37,38 +31,44 @@ export default function ServerPage() {
   // Filter orders based on status filter
   const filteredOrders = useMemo(() => {
     if (statusFilter === 'active') {
-      return orders.filter(order => !['Completed', 'Cancelled'].includes(order.status));
+      return orders.filter((order) => !['Completed', 'Cancelled'].includes(order.status));
     }
     if (statusFilter === 'all') {
       return orders;
     }
-    return orders.filter(order => order.status === statusFilter);
+    return orders.filter((order) => order.status === statusFilter);
   }, [orders, statusFilter]);
 
   // Get selected table data
   const selectedTable = useMemo(() => {
     if (!selectedTableNumber) return null;
-    return tables.find(t => t.tableNumber === selectedTableNumber) || null;
+    return tables.find((t) => t.tableNumber === selectedTableNumber) || null;
   }, [tables, selectedTableNumber]);
 
   // Handle table selection
-  const handleSelectTable = useCallback((tableNumber: string) => {
-    if (selectedTableNumber === tableNumber) {
-      // Double-click opens modal
-      setShowTableModal(true);
-    } else {
-      setSelectedTableNumber(tableNumber);
-    }
-  }, [selectedTableNumber]);
+  const handleSelectTable = useCallback(
+    (tableNumber: string) => {
+      if (selectedTableNumber === tableNumber) {
+        // Double-click opens modal
+        setShowTableModal(true);
+      } else {
+        setSelectedTableNumber(tableNumber);
+      }
+    },
+    [selectedTableNumber],
+  );
 
   // Handle status change
-  const handleStatusChange = useCallback(async (orderId: string, status: string) => {
-    try {
-      await updateOrderStatus(orderId, status);
-    } catch (err) {
-      console.error('Failed to update order status:', err);
-    }
-  }, [updateOrderStatus]);
+  const handleStatusChange = useCallback(
+    async (orderId: string, status: string) => {
+      try {
+        await updateOrderStatus(orderId, status);
+      } catch (err) {
+        console.error('Failed to update order status:', err);
+      }
+    },
+    [updateOrderStatus],
+  );
 
   // Clear selection
   const handleClearSelection = useCallback(() => {
@@ -120,10 +120,7 @@ export default function ServerPage() {
         {/* Right Panel - Orders */}
         <div className={styles.ordersPanel}>
           {selectedTableNumber && (
-            <button
-              className={styles.clearSelectionButton}
-              onClick={handleClearSelection}
-            >
+            <button className={styles.clearSelectionButton} onClick={handleClearSelection}>
               ← {t('server.show_all_orders', 'Show All Orders')}
             </button>
           )}

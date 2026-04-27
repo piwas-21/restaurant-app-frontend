@@ -32,7 +32,7 @@
   min-width: 0;
 }
 
-[data-theme="dark"] .priceLabel {
+[data-theme='dark'] .priceLabel {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -43,7 +43,7 @@
   margin-top: 0.125rem;
 }
 
-[data-theme="dark"] .itemDetails {
+[data-theme='dark'] .itemDetails {
   color: var(--text-secondary, #b0b0b0);
 }
 
@@ -54,7 +54,7 @@
   font-size: 0.875rem;
 }
 
-[data-theme="dark"] .priceValue {
+[data-theme='dark'] .priceValue {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -65,7 +65,7 @@
   margin: 0.25rem 0;
 }
 
-[data-theme="dark"] .divider {
+[data-theme='dark'] .divider {
   background-color: var(--border-color, #555);
 }
 
@@ -91,7 +91,7 @@
   white-space: nowrap;
 }
 
-[data-theme="dark"] .quantityLabel {
+[data-theme='dark'] .quantityLabel {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -132,13 +132,13 @@
   outline-offset: 2px;
 }
 
-[data-theme="dark"] .quantityButton {
+[data-theme='dark'] .quantityButton {
   background-color: var(--background-color, #2c2c2c);
   color: var(--text-color, #e0e0e0);
   border-color: var(--border-color, #555);
 }
 
-[data-theme="dark"] .quantityButton:hover:not(:disabled) {
+[data-theme='dark'] .quantityButton:hover:not(:disabled) {
   background-color: var(--primary-color, #e06666);
   border-color: var(--primary-color, #e06666);
 }
@@ -151,7 +151,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .quantityValue {
+[data-theme='dark'] .quantityValue {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -167,7 +167,7 @@
   white-space: nowrap;
 }
 
-[data-theme="dark"] .totalPrice {
+[data-theme='dark'] .totalPrice {
   background-color: var(--primary-color-dark, #e06666);
   color: rgb(199, 191, 191);
 }

@@ -11,12 +11,7 @@ interface MembersTableProps {
   onViewQRCode: (member: GroupMembershipDto) => void;
 }
 
-const MembersTable: React.FC<MembersTableProps> = ({
-  members,
-  isLoading,
-  onRemove,
-  onViewQRCode
-}) => {
+const MembersTable: React.FC<MembersTableProps> = ({ members, isLoading, onRemove, onViewQRCode }) => {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -53,11 +48,7 @@ const MembersTable: React.FC<MembersTableProps> = ({
                 </span>
               </td>
               <td className={styles.actionsCell}>
-                <button
-                  className={styles.actionButton}
-                  onClick={() => onViewQRCode(member)}
-                  title={t('qr_code')}
-                >
+                <button className={styles.actionButton} onClick={() => onViewQRCode(member)} title={t('qr_code')}>
                   <QrCode size={18} />
                 </button>
                 <button

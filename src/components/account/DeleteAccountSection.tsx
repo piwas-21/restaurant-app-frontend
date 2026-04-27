@@ -18,7 +18,12 @@ export default function DeleteAccountSection() {
     try {
       const response = await requestAccountDeletion();
       if (response.success) {
-        setSuccessMessage(t('delete_account_request_success', 'We sent a confirmation email. Please check your inbox to proceed with deletion.'));
+        setSuccessMessage(
+          t(
+            'delete_account_request_success',
+            'We sent a confirmation email. Please check your inbox to proceed with deletion.',
+          ),
+        );
       } else {
         setErrorMessage(response.message || t('delete_account_request_failed', 'Failed to request account deletion.'));
       }
@@ -35,9 +40,7 @@ export default function DeleteAccountSection() {
         <div className={styles.dangerZoneIcon}>
           <AlertTriangle size={20} />
         </div>
-        <h2 className={styles.dangerZoneTitle}>
-          {t('danger_zone_title', 'Danger Zone')}
-        </h2>
+        <h2 className={styles.dangerZoneTitle}>{t('danger_zone_title', 'Danger Zone')}</h2>
       </div>
 
       <div className={styles.dangerZoneContent}>
@@ -67,17 +70,11 @@ export default function DeleteAccountSection() {
         )}
 
         <div className={styles.buttonContainer}>
-          <button
-            onClick={handleDeleteRequest}
-            disabled={isDeleting}
-            className={styles.deleteButton}
-          >
+          <button onClick={handleDeleteRequest} disabled={isDeleting} className={styles.deleteButton}>
             <Trash2 size={18} />
             {isDeleting ? t('processing', 'Processing...') : t('delete_account_button', 'Delete My Account')}
           </button>
-          <span className={styles.helpText}>
-            {t('delete_account_help', 'You will receive a confirmation email')}
-          </span>
+          <span className={styles.helpText}>{t('delete_account_help', 'You will receive a confirmation email')}</span>
         </div>
       </div>
     </section>

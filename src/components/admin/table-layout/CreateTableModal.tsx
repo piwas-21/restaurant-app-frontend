@@ -108,7 +108,7 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
               id="tableNumber"
               type="text"
               value={formData.tableNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, tableNumber: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, tableNumber: e.target.value }))}
               placeholder={t('table_number_placeholder', 'e.g., T1, A1, etc.')}
               required
               disabled={creating}
@@ -123,7 +123,7 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
               min="1"
               max="20"
               value={formData.maxGuests}
-              onChange={(e) => setFormData(prev => ({ ...prev, maxGuests: parseInt(e.target.value) || 1 }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, maxGuests: parseInt(e.target.value) || 1 }))}
               disabled={creating}
             />
           </div>
@@ -133,7 +133,7 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
             <select
               id="shape"
               value={formData.shape}
-              onChange={(e) => setFormData(prev => ({ ...prev, shape: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, shape: e.target.value }))}
               disabled={creating}
             >
               {allShapes.map((shape) => (
@@ -150,7 +150,7 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
               <button
                 type="button"
                 className={`${styles.chip} ${formData.isOutdoor ? styles.chipActive : ''}`}
-                onClick={() => setFormData(prev => ({ ...prev, isOutdoor: !prev.isOutdoor }))}
+                onClick={() => setFormData((prev) => ({ ...prev, isOutdoor: !prev.isOutdoor }))}
                 disabled={creating}
               >
                 <span className={styles.chipLabel}>{t('outdoor', 'Outdoor')}</span>
@@ -164,7 +164,7 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
               <button
                 type="button"
                 className={`${styles.chip} ${formData.isActive ? styles.chipActive : ''}`}
-                onClick={() => setFormData(prev => ({ ...prev, isActive: !prev.isActive }))}
+                onClick={() => setFormData((prev) => ({ ...prev, isActive: !prev.isActive }))}
                 disabled={creating}
               >
                 <span className={styles.chipLabel}>{t('active', 'Active')}</span>
@@ -177,7 +177,7 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
             <textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
               placeholder={t('notes_placeholder', 'e.g., Near window, Quiet corner, etc.')}
               rows={3}
               maxLength={500}
@@ -189,19 +189,10 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
           </div>
 
           <div className={styles.buttonGroup}>
-            <button
-              type="button"
-              onClick={onClose}
-              className={styles.cancelButton}
-              disabled={creating}
-            >
+            <button type="button" onClick={onClose} className={styles.cancelButton} disabled={creating}>
               {t('cancel', 'Cancel')}
             </button>
-            <button
-              type="submit"
-              disabled={creating}
-              className={styles.submitButton}
-            >
+            <button type="submit" disabled={creating} className={styles.submitButton}>
               {creating ? t('creating', 'Creating...') : t('create_table', 'Create Table')}
             </button>
           </div>

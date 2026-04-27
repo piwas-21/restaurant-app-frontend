@@ -127,10 +127,13 @@ export default function AllergenDisplay({
         {remaining > 0 && (
           <span
             className={`${styles.allergenTag} ${styles.more}`}
-            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(a => {
-              const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
-              return t(key, a.replace(/_/g, ' '));
-            }).join(', ')}`}
+            title={`+${remaining} more allergens: ${allergens
+              .slice(maxVisible)
+              .map((a) => {
+                const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
+                return t(key, a.replace(/_/g, ' '));
+              })
+              .join(', ')}`}
           >
             +{remaining}
           </span>
@@ -187,10 +190,13 @@ export default function AllergenDisplay({
         {remaining > 0 && (
           <span
             className={`${styles.allergenTag} ${styles.more}`}
-            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(a => {
-              const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
-              return t(key, a.replace(/_/g, ' '));
-            }).join(', ')}`}
+            title={`+${remaining} more allergens: ${allergens
+              .slice(maxVisible)
+              .map((a) => {
+                const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
+                return t(key, a.replace(/_/g, ' '));
+              })
+              .join(', ')}`}
           >
             +{remaining}
           </span>

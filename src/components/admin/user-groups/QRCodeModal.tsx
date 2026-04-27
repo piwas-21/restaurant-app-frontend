@@ -42,17 +42,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, qrCodeData, 
       <div className={`${styles.modalContent} ${modalStyles.qrModalContent}`}>
         <h2>{title}</h2>
         <div className={modalStyles.qrCodeContainer}>
-          <QRCodeSVG
-            id="qr-code-svg"
-            value={qrCodeData}
-            size={256}
-            level="H"
-            includeMargin={true}
-          />
+          <QRCodeSVG id="qr-code-svg" value={qrCodeData} size={256} level="H" includeMargin={true} />
         </div>
-        <p className={modalStyles.qrCodeText}>
-          {qrCodeData}
-        </p>
+        <p className={modalStyles.qrCodeText}>{qrCodeData}</p>
         <div className={`${styles.buttonGroup} ${modalStyles.centeredButtonGroup}`}>
           <button onClick={handleDownload} className={styles.submitButton}>
             {t('download_wallet_pass')} {/* Using this key for now, maybe change to 'Download QR' */}

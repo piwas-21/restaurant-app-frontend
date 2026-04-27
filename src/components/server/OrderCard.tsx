@@ -79,20 +79,12 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
             {t('server.table', 'Table')} {order.tableNumber}
           </span>
         </div>
-        <div className={styles.statusBadge}>
-          {t(`order.status_${order.status.toLowerCase()}`, order.status)}
-        </div>
+        <div className={styles.statusBadge}>{t(`order.status_${order.status.toLowerCase()}`, order.status)}</div>
       </div>
 
       <div className={styles.meta}>
-        <span className={styles.time}>
-          🕐 {formatTime(order.orderDate)}
-        </span>
-        {order.customerName && (
-          <span className={styles.customer}>
-            👤 {order.customerName}
-          </span>
-        )}
+        <span className={styles.time}>🕐 {formatTime(order.orderDate)}</span>
+        {order.customerName && <span className={styles.customer}>👤 {order.customerName}</span>}
       </div>
 
       <div className={styles.items}>
@@ -100,9 +92,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
           <div key={item.id || index} className={styles.item}>
             <span className={styles.itemQuantity}>{item.quantity}×</span>
             <span className={styles.itemName}>{item.productName || 'Unknown Item'}</span>
-            {item.variationName && (
-              <span className={styles.itemVariation}>({item.variationName})</span>
-            )}
+            {item.variationName && <span className={styles.itemVariation}>({item.variationName})</span>}
           </div>
         ))}
       </div>

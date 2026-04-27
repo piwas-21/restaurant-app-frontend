@@ -1,11 +1,11 @@
 // src/components/LanguageSwitcher.tsx
-"use client";
+'use client';
 
-import React, { useState, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
-import styles from "../app/styles/LanguageSwitcher.module.css";
-import { SUPPORTED_LANGUAGES, LanguageCode } from "@/config/languageConfig";
+import styles from '../app/styles/LanguageSwitcher.module.css';
+import { SUPPORTED_LANGUAGES, LanguageCode } from '@/config/languageConfig';
 
 const languages = SUPPORTED_LANGUAGES;
 
@@ -20,7 +20,7 @@ export default function LanguageSwitcher() {
     i18n.changeLanguage(lng);
     // Language preference is essential functionality, always save it
     // This is typically not considered a tracking/preference cookie
-    localStorage.setItem("i18nextLng", lng);
+    localStorage.setItem('i18nextLng', lng);
     setDropdownOpen(false);
   };
 
@@ -34,14 +34,15 @@ export default function LanguageSwitcher() {
         setDropdownOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownRef]);
 
   // Fallback to English if current language details are not found (should not happen with proper setup)
-  const currentLanguageDetails = languages.find(l => l.code === i18n.resolvedLanguage) || languages.find(l => l.code === 'en') || languages[0];
+  const currentLanguageDetails =
+    languages.find((l) => l.code === i18n.resolvedLanguage) || languages.find((l) => l.code === 'en') || languages[0];
 
   const listRef = useRef<HTMLUListElement>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -81,22 +82,14 @@ export default function LanguageSwitcher() {
       >
         <Image src={currentLanguageDetails.flag} alt={currentLanguageDetails.name} width={24} height={18} />
         <span className={styles.languageName}>{currentLanguageDetails.code.toUpperCase()}</span>
-        <span className={styles.arrow}>{dropdownOpen ? "▲" : "▼"}</span>
+        <span className={styles.arrow}>{dropdownOpen ? '▲' : '▼'}</span>
       </button>
       {dropdownOpen && (
         <div className={styles.dropdownContainer}>
-          <ul
-            className={styles.dropdownMenu}
-            role="listbox"
-            ref={listRef}
-            onScroll={handleScroll}
-          >
+          <ul className={styles.dropdownMenu} role="listbox" ref={listRef} onScroll={handleScroll}>
             {languages.map((language) => (
               <li key={language.code} role="option" aria-selected={language.code === i18n.resolvedLanguage}>
-                <button
-                  onClick={() => changeLanguage(language.code)}
-                  className={styles.dropdownItem}
-                >
+                <button onClick={() => changeLanguage(language.code)} className={styles.dropdownItem}>
                   <Image src={language.flag} alt={language.name} width={20} height={15} />
                   <span>{language.name}</span>
                 </button>
@@ -104,9 +97,9 @@ export default function LanguageSwitcher() {
             ))}
           </ul>
           {showScrollIndicator && (
-             <div className={styles.scrollIndicator} onClick={scrollDown} role="button" aria-label="Scroll down">
-               ▼
-             </div>
+            <div className={styles.scrollIndicator} onClick={scrollDown} role="button" aria-label="Scroll down">
+              ▼
+            </div>
           )}
         </div>
       )}

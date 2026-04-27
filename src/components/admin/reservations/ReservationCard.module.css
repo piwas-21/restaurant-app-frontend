@@ -9,23 +9,23 @@
   border-left-width: 4px;
 }
 
-.reservationCard[data-status="pending"] {
+.reservationCard[data-status='pending'] {
   border-left-color: #f59e0b;
 }
 
-.reservationCard[data-status="confirmed"] {
+.reservationCard[data-status='confirmed'] {
   border-left-color: #10b981;
 }
 
-.reservationCard[data-status="cancelled"] {
+.reservationCard[data-status='cancelled'] {
   border-left-color: #ef4444;
 }
 
-.reservationCard[data-status="completed"] {
+.reservationCard[data-status='completed'] {
   border-left-color: #6b7280;
 }
 
-.reservationCard[data-status="noshow"] {
+.reservationCard[data-status='noshow'] {
   border-left-color: #dc2626;
 }
 

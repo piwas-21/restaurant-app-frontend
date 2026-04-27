@@ -18,11 +18,7 @@ import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor'
 import { MenuDefinition } from '@/types/menu';
 import styles from '@/app/styles/AdminPage.module.css';
 
-const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
-  isOpen,
-  onClose,
-  onProductCreated,
-}) => {
+const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose, onProductCreated }) => {
   const { t, i18n } = useTranslation();
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'creating' | 'uploading'>('idle');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -61,12 +57,16 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
     availableFriday: true,
     availableSaturday: true,
     availableSunday: true,
-    sections: []
+    sections: [],
   });
 
-  const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({
+  const {
+    fields: contentFields,
+    append: appendContent,
+    remove: removeContent,
+  } = useFieldArray({
     control,
-    name: 'content'
+    name: 'content',
   });
 
   const currentLanguage = i18n.language || 'en';
@@ -86,7 +86,7 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
         availableFriday: true,
         availableSaturday: true,
         availableSunday: true,
-        sections: []
+        sections: [],
       });
     }
   }, [isOpen, reset]);
@@ -105,19 +105,19 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
       ...menuDefinition,
       // Remove id if it's temporary (backend will assign a new one)
       id: menuDefinition.id?.startsWith('temp-') ? undefined : menuDefinition.id,
-      sections: menuDefinition.sections.map(s => ({
+      sections: menuDefinition.sections.map((s) => ({
         ...s,
         // Remove section id if it's temporary
         id: s.id?.startsWith('temp-') ? undefined : s.id,
-        items: s.items.map(i => ({
+        items: s.items.map((i) => ({
           // Remove item id if it's temporary
           id: i.id?.startsWith('temp-') ? undefined : i.id,
           productId: i.productId,
           additionalPrice: i.additionalPrice,
           displayOrder: i.displayOrder,
-          isDefault: i.isDefault
-        }))
-      }))
+          isDefault: i.isDefault,
+        })),
+      })),
     };
 
     await submitProductForm({
@@ -130,7 +130,7 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
       onProductCreated,
       onClose,
       reset: reset as any,
-      setImageFiles
+      setImageFiles,
     });
   };
 
@@ -227,10 +227,7 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
             <div className={modalStyles.sectionDivider}></div>
 
             <h3>{t('menu_availability')}</h3>
-            <MenuScheduleEditor
-              menuDefinition={menuDefinition}
-              onChange={setMenuDefinition}
-            />
+            <MenuScheduleEditor menuDefinition={menuDefinition} onChange={setMenuDefinition} />
 
             <div className={modalStyles.sectionDivider}></div>
 
@@ -250,14 +247,12 @@ const CreateMenuBundleModal: React.FC<CreateProductModalProps> = ({
             >
               {t('cancel')}
             </button>
-            <button
-              type="submit"
-              disabled={submissionStatus !== 'idle'}
-              className={modalStyles.submitButton}
-            >
-              {submissionStatus === 'creating' ? t('creating...') :
-               submissionStatus === 'uploading' ? t('uploading...') :
-               t('create_menu_bundle')}
+            <button type="submit" disabled={submissionStatus !== 'idle'} className={modalStyles.submitButton}>
+              {submissionStatus === 'creating'
+                ? t('creating...')
+                : submissionStatus === 'uploading'
+                  ? t('uploading...')
+                  : t('create_menu_bundle')}
             </button>
           </div>
         </form>

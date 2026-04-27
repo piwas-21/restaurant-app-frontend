@@ -40,15 +40,15 @@
   margin: 0;
 }
 
-[data-theme="dark"] .modal {
+[data-theme='dark'] .modal {
   background: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .modalHeader {
+[data-theme='dark'] .modalHeader {
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .modalTitle {
+[data-theme='dark'] .modalTitle {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -73,7 +73,7 @@
   color: var(--text-color, #111827);
 }
 
-[data-theme="dark"] .closeButton:hover {
+[data-theme='dark'] .closeButton:hover {
   background-color: var(--background-color, #333);
   color: var(--text-color, #e0e0e0);
 }
@@ -166,15 +166,15 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .transactionItem {
+[data-theme='dark'] .transactionItem {
   background-color: var(--background-color, #222);
 }
 
-[data-theme="dark"] .transactionItem:hover {
+[data-theme='dark'] .transactionItem:hover {
   background-color: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .transactionIcon {
+[data-theme='dark'] .transactionIcon {
   background-color: var(--secondary-color, #3a3a3a);
 }
 
@@ -230,7 +230,7 @@
   margin-top: 4px;
 }
 
-[data-theme="dark"] .transactionType {
+[data-theme='dark'] .transactionType {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -262,13 +262,13 @@
   cursor: not-allowed;
 }
 
-[data-theme="dark"] .loadMoreButton {
+[data-theme='dark'] .loadMoreButton {
   background-color: var(--secondary-color, #2c2c2c);
   border-color: var(--primary-color, #5568d3);
   color: var(--primary-color, #5568d3);
 }
 
-[data-theme="dark"] .loadMoreButton:hover:not(:disabled) {
+[data-theme='dark'] .loadMoreButton:hover:not(:disabled) {
   background-color: var(--primary-color, #5568d3);
   color: var(--button-text-color, white);
 }

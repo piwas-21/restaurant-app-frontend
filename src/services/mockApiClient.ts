@@ -10,26 +10,26 @@ const initializeMockData = () => {
         id: '4d4045cd-4657-4778-a9b9-e85bcf92f4fe',
         name: 'adana kebap',
         description: 'Spicy Turkish kebab',
-        basePrice: 7.90,
+        basePrice: 7.9,
         isActive: true,
         isAvailable: true,
         isSpecial: false,
         type: 'mainItem',
         categories: [{ categoryId: '1' }],
-        primaryCategoryId: '1'
+        primaryCategoryId: '1',
       },
       {
         id: '39f9fa0e-8491-456b-9d6f-b29f78fc668c',
         name: 'chicken durum 6',
         description: 'Chicken wrap',
-        basePrice: 9.60,
+        basePrice: 9.6,
         isActive: true,
         isAvailable: true,
         isSpecial: false,
         type: 'mainItem',
         categories: [{ categoryId: '6' }],
-        primaryCategoryId: '6'
-      }
+        primaryCategoryId: '6',
+      },
     ];
     localStorage.setItem(MOCK_PRODUCTS_KEY, JSON.stringify(sampleProducts));
   }
@@ -41,7 +41,7 @@ const initializeMockData = () => {
       { id: '3', name: 'Soups' },
       { id: '4', name: 'Drinks' },
       { id: '5', name: 'Dessert' },
-      { id: '6', name: 'Dürüm Wraps' }
+      { id: '6', name: 'Dürüm Wraps' },
     ];
     localStorage.setItem(MOCK_CATEGORIES_KEY, JSON.stringify(sampleCategories));
   }
@@ -59,9 +59,8 @@ export const mockApiClient = {
     let filteredProducts = products;
 
     if (categoryId) {
-      filteredProducts = products.filter((p: any) =>
-        p.categories?.some((c: any) => c.categoryId === categoryId) ||
-        p.primaryCategoryId === categoryId
+      filteredProducts = products.filter(
+        (p: any) => p.categories?.some((c: any) => c.categoryId === categoryId) || p.primaryCategoryId === categoryId,
       );
     }
 
@@ -73,9 +72,9 @@ export const mockApiClient = {
         totalCount: filteredProducts.length,
         page: pageNumber,
         pageSize: pageSize,
-        totalPages: Math.ceil(filteredProducts.length / pageSize)
+        totalPages: Math.ceil(filteredProducts.length / pageSize),
       },
-      errors: null
+      errors: null,
     };
   },
 
@@ -86,7 +85,7 @@ export const mockApiClient = {
     const newProduct = {
       ...productData,
       id: generateId(),
-      categories: productData.categoryIds?.map((id: string) => ({ categoryId: id })) || []
+      categories: productData.categoryIds?.map((id: string) => ({ categoryId: id })) || [],
     };
 
     products.push(newProduct);
@@ -96,7 +95,7 @@ export const mockApiClient = {
       success: true,
       message: 'Product created successfully',
       data: newProduct,
-      errors: null
+      errors: null,
     };
   },
 
@@ -110,7 +109,7 @@ export const mockApiClient = {
         success: false,
         message: 'Product not found',
         data: null,
-        errors: ['Product not found']
+        errors: ['Product not found'],
       };
     }
 
@@ -118,7 +117,7 @@ export const mockApiClient = {
       success: true,
       message: 'Product retrieved successfully',
       data: product,
-      errors: null
+      errors: null,
     };
   },
 
@@ -132,14 +131,15 @@ export const mockApiClient = {
         success: false,
         message: 'Product not found',
         data: null,
-        errors: ['Product not found']
+        errors: ['Product not found'],
       };
     }
 
     const updatedProduct = {
       ...products[productIndex],
       ...productData,
-      categories: productData.categoryIds?.map((id: string) => ({ categoryId: id })) || products[productIndex].categories
+      categories:
+        productData.categoryIds?.map((id: string) => ({ categoryId: id })) || products[productIndex].categories,
     };
 
     products[productIndex] = updatedProduct;
@@ -149,7 +149,7 @@ export const mockApiClient = {
       success: true,
       message: 'Product updated successfully',
       data: updatedProduct,
-      errors: null
+      errors: null,
     };
   },
 
@@ -164,7 +164,7 @@ export const mockApiClient = {
       success: true,
       message: 'Product deleted successfully',
       data: null,
-      errors: null
+      errors: null,
     };
   },
 
@@ -181,9 +181,9 @@ export const mockApiClient = {
         totalCount: categories.length,
         page: 1,
         pageSize: categories.length,
-        totalPages: 1
+        totalPages: 1,
       },
-      errors: null
+      errors: null,
     };
-  }
+  },
 };

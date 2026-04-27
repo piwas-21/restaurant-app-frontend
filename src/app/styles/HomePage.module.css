@@ -45,19 +45,19 @@
   font-size: 3.5rem;
   margin-bottom: 1rem;
   font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .heroSubtitle {
   font-size: 1.5rem;
   margin-bottom: 2.5rem;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .ctaButtons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .ctaButtonPrimary {
@@ -70,7 +70,7 @@
   cursor: pointer;
   border-radius: 5px;
   transition: all 0.3s ease-in-out;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -90,7 +90,10 @@
   opacity: 0;
   overflow: hidden;
   white-space: nowrap;
-  transition: max-width 0.3s ease-in-out, opacity 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+  transition:
+    max-width 0.3s ease-in-out,
+    opacity 0.3s ease-in-out,
+    margin-left 0.3s ease-in-out;
 }
 
 .ctaButtonPrimary:hover {
@@ -121,7 +124,7 @@
   cursor: pointer;
   border-radius: 5px;
   transition: all 0.3s ease-in-out;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -159,7 +162,9 @@
   padding: 2rem 1rem;
 }
 
-.storySection, .openingHoursSection, .locationSection {
+.storySection,
+.openingHoursSection,
+.locationSection {
   padding: 2rem 0;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border-color);
@@ -168,21 +173,22 @@
 .storySection:last-child,
 .openingHoursSection:last-child,
 .locationSection:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
-
-.storySection h2, .openingHoursSection h2, .locationSection h2 {
+.storySection h2,
+.openingHoursSection h2,
+.locationSection h2 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
   color: var(--text-color);
 }
 
 .mapContainer {
-    margin-top: 1.5rem;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
+  margin-top: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .homeFooter {
@@ -193,7 +199,6 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
-
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -210,11 +215,12 @@
   }
 
   .ctaButtons {
-      flex-direction: column;
-      width: 80%;
-      max-width: 300px;
+    flex-direction: column;
+    width: 80%;
+    max-width: 300px;
   }
-  .ctaButtonPrimary, .ctaButtonSecondary {
+  .ctaButtonPrimary,
+  .ctaButtonSecondary {
     width: 100%;
     font-size: 0.9rem;
     justify-content: center;
@@ -229,9 +235,11 @@
   }
 
   .pageContentWrapper {
-     padding: 1.5rem 1rem;
+    padding: 1.5rem 1rem;
   }
-  .storySection h2, .openingHoursSection h2, .locationSection h2 {
+  .storySection h2,
+  .openingHoursSection h2,
+  .locationSection h2 {
     font-size: 1.5rem;
   }
 }
@@ -243,11 +251,13 @@
   .heroSubtitle {
     font-size: 1rem;
   }
-  .storySection h2, .openingHoursSection h2, .locationSection h2 {
+  .storySection h2,
+  .openingHoursSection h2,
+  .locationSection h2 {
     font-size: 1.3rem;
   }
 }
 
 .heroSection {
-    display: none;
+  display: none;
 }

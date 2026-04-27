@@ -17,7 +17,7 @@ export default function DateTimeSelector({
   onDateChange,
   onTimeChange,
   loading = false,
-  availableTimeSlots
+  availableTimeSlots,
 }: DateTimeSelectorProps) {
   const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
@@ -35,8 +35,15 @@ export default function DateTimeSelector({
 
   // Use provided time slots or fallback (though fallback shouldn't be needed with proper logic)
   const timeSlots = availableTimeSlots || [
-    '11:00', '12:00', '13:00', '14:00',
-    '17:00', '18:00', '19:00', '20:00', '21:00'
+    '11:00',
+    '12:00',
+    '13:00',
+    '14:00',
+    '17:00',
+    '18:00',
+    '19:00',
+    '20:00',
+    '21:00',
   ];
 
   return (
@@ -45,23 +52,24 @@ export default function DateTimeSelector({
       <div className={styles.formSection}>
         <label className={styles.label}>{t('date', 'Date')}</label>
         <div className={styles.dateSelector}>
-          {mounted && dateOptions.map(date => {
-            const dateStr = date.toISOString().split('T')[0];
-            const dayOfWeek = date.toLocaleDateString(i18n.language, { weekday: 'short' });
-            const dayOfMonth = date.getDate();
+          {mounted &&
+            dateOptions.map((date) => {
+              const dateStr = date.toISOString().split('T')[0];
+              const dayOfWeek = date.toLocaleDateString(i18n.language, { weekday: 'short' });
+              const dayOfMonth = date.getDate();
 
-            return (
-              <button
-                key={dateStr}
-                type="button"
-                className={`${styles.dateButton} ${selectedDate === dateStr ? styles.selected : ''}`}
-                onClick={() => onDateChange(dateStr)}
-              >
-                <div className={styles.dateDay}>{dayOfMonth}</div>
-                <div className={styles.dateDayName}>{dayOfWeek}</div>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={dateStr}
+                  type="button"
+                  className={`${styles.dateButton} ${selectedDate === dateStr ? styles.selected : ''}`}
+                  onClick={() => onDateChange(dateStr)}
+                >
+                  <div className={styles.dateDay}>{dayOfMonth}</div>
+                  <div className={styles.dateDayName}>{dayOfWeek}</div>
+                </button>
+              );
+            })}
         </div>
         <div className={styles.customInputWrapper}>
           <label className={styles.customLabel}>{t('or_pick_date', 'Or pick a date')}:</label>
@@ -79,7 +87,7 @@ export default function DateTimeSelector({
       <div className={styles.formSection}>
         <label className={styles.label}>{t('time', 'Time')}</label>
         <div className={styles.timeSelector}>
-          {timeSlots.map(time => (
+          {timeSlots.map((time) => (
             <button
               key={time}
               type="button"
@@ -100,7 +108,7 @@ export default function DateTimeSelector({
             disabled={loading || !availableTimeSlots || availableTimeSlots.length === 0}
           >
             <option value="">{t('select_time', 'Select a time...')}</option>
-            {timeSlots.map(time => (
+            {timeSlots.map((time) => (
               <option key={time} value={time}>
                 {time}
               </option>

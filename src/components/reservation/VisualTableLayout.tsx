@@ -21,7 +21,7 @@ export default function VisualTableLayout({
   tables,
   selectedTableIds = [],
   onSelectTable,
-  bookedTableIds = []
+  bookedTableIds = [],
 }: VisualTableLayoutProps) {
   const { t } = useTranslation();
   const { getShapeLabel } = useTableHelpers();
@@ -79,31 +79,31 @@ export default function VisualTableLayout({
       onSelectTable(table);
     };
 
-  return (
-    <div
-      key={table.id}
-      className={`${styles.table} ${styles[status]} ${shapeClass} ${isLarge ? styles.large : ''} ${status === 'booked' ? styles.disabled : ''}`}
-      onClick={handleTableClick}
-      style={{
-        left: `${leftPercent}%`,
-        top: `${topPercent}%`,
-        transform: transformStyle,
-        cursor: status === 'booked' ? 'not-allowed' : 'pointer',
-      }}
-    >
-      {/* Table content */}
-      <div className={styles.tableContent}>
-        <span className={styles.tableNumber}>{table.tableNumber}</span>
-        <span className={styles.guestCount}>👥 {table.maxGuests}</span>
+    return (
+      <div
+        key={table.id}
+        className={`${styles.table} ${styles[status]} ${shapeClass} ${isLarge ? styles.large : ''} ${status === 'booked' ? styles.disabled : ''}`}
+        onClick={handleTableClick}
+        style={{
+          left: `${leftPercent}%`,
+          top: `${topPercent}%`,
+          transform: transformStyle,
+          cursor: status === 'booked' ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {/* Table content */}
+        <div className={styles.tableContent}>
+          <span className={styles.tableNumber}>{table.tableNumber}</span>
+          <span className={styles.guestCount}>👥 {table.maxGuests}</span>
+        </div>
       </div>
-    </div>
     );
   };
 
   const renderTooltip = () => {
     if (!activeTooltipTableId) return null;
 
-    const table = tables.find(t => t.id === activeTooltipTableId);
+    const table = tables.find((t) => t.id === activeTooltipTableId);
     if (!table) return null;
 
     const shape = table.shape || (table.maxGuests <= 4 ? 'circle' : 'rectangle');
@@ -124,11 +124,15 @@ export default function VisualTableLayout({
         <div className={styles.tableTooltip}>
           <div className={styles.tooltipRow}>
             <span className={styles.tooltipIcon}>👥</span>
-            <span>{table.maxGuests} {t('seats', 'seats')}</span>
+            <span>
+              {table.maxGuests} {t('seats', 'seats')}
+            </span>
           </div>
           <div className={styles.tooltipRow}>
             <span className={styles.tooltipIcon}>⬜</span>
-            <span>{getShapeLabel(shape)} {t('table', 'table')}</span>
+            <span>
+              {getShapeLabel(shape)} {t('table', 'table')}
+            </span>
           </div>
           <div className={styles.tooltipRow}>
             <span className={styles.tooltipIcon}>{table.isOutdoor ? '🌳' : '🏠'}</span>

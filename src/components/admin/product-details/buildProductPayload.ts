@@ -18,18 +18,21 @@ export function buildProductPayload(product: ProductDetails, categories?: Catego
 
   if (categories && categories.length > 0) {
     categoryIds = (product.categories || [])
-      .map((c: ProductCategory) => categories.find(cat => cat.name === c.categoryName)?.id || '')
+      .map((c: ProductCategory) => categories.find((cat) => cat.name === c.categoryName)?.id || '')
       .filter(Boolean);
-    primaryCategoryId = (product.categories || [])
-      .find((c: ProductCategory) => c.isPrimary)
-      ? categories.find(cat => cat.name === (product.categories || []).find(c => c.isPrimary)?.categoryName)?.id || ''
+    primaryCategoryId = (product.categories || []).find((c: ProductCategory) => c.isPrimary)
+      ? categories.find((cat) => cat.name === (product.categories || []).find((c) => c.isPrimary)?.categoryName)?.id ||
+        ''
       : '';
   } else {
     // Try to detect if categoryName is actually an ID (UUID pattern)
-    const categoryNames = (product.categories || []).map((c: ProductCategory & { categoryId?: string }) => c.categoryId || c.categoryName || '').filter(Boolean);
+    const categoryNames = (product.categories || [])
+      .map((c: ProductCategory & { categoryId?: string }) => c.categoryId || c.categoryName || '')
+      .filter(Boolean);
     categoryIds = categoryNames;
 
-    const primaryCategoryName = (product.categories || []).find((c: ProductCategory) => c.isPrimary)?.categoryName || '';
+    const primaryCategoryName =
+      (product.categories || []).find((c: ProductCategory) => c.isPrimary)?.categoryName || '';
 
     // If the primary category name looks like a UUID, use it as-is; otherwise, it's a name
     primaryCategoryId = isUUID(primaryCategoryName) ? primaryCategoryName : primaryCategoryName;
@@ -42,8 +45,10 @@ export function buildProductPayload(product: ProductDetails, categories?: Catego
 
   const content = product.content
     ? Object.fromEntries(
-        Object.entries(product.content as Record<string, LocalizedContent>)
-          .map(([lang, v]) => [lang, { name: v.name, description: v.description || '' }])
+        Object.entries(product.content as Record<string, LocalizedContent>).map(([lang, v]) => [
+          lang,
+          { name: v.name, description: v.description || '' },
+        ]),
       )
     : undefined;
 
@@ -69,7 +74,7 @@ export function buildProductPayload(product: ProductDetails, categories?: Catego
       isActive: v.isActive,
       displayOrder: v.displayOrder || 0,
       description: (v as any).description,
-      content: (v as any).content
+      content: (v as any).content,
     })),
     suggestedSideItemIds: (product.suggestedSideItems || []).map((s: SideItem) => s.id),
     content,

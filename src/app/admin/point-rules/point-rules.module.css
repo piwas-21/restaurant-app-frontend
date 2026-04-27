@@ -132,12 +132,12 @@
   background-color: var(--primary-hover, #5568d3);
 }
 
-[data-theme="dark"] .emptyState {
+[data-theme='dark'] .emptyState {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .createButtonSecondary {
+[data-theme='dark'] .createButtonSecondary {
   background-color: var(--primary-color-dark, #5568d3);
 }
 
@@ -189,26 +189,26 @@
   white-space: nowrap;
 }
 
-[data-theme="dark"] .tableContainer {
+[data-theme='dark'] .tableContainer {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .table thead {
+[data-theme='dark'] .table thead {
   background-color: var(--background-color, #222);
 }
 
-[data-theme="dark"] .table th {
+[data-theme='dark'] .table th {
   color: var(--text-secondary, #b0b0b0);
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .table td {
+[data-theme='dark'] .table td {
   color: var(--text-color, #e0e0e0);
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .table tbody tr:hover {
+[data-theme='dark'] .table tbody tr:hover {
   background-color: var(--background-color, #222);
 }
 
@@ -223,7 +223,7 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .pointsBadge {
+[data-theme='dark'] .pointsBadge {
   background: var(--primary-color-dark, #5568d3);
 }
 
@@ -248,12 +248,12 @@
   color: var(--error-color-dark, #991b1b);
 }
 
-[data-theme="dark"] .statusActive {
+[data-theme='dark'] .statusActive {
   background-color: var(--success-color-dark, #065f46);
   color: var(--button-text-color, white);
 }
 
-[data-theme="dark"] .statusInactive {
+[data-theme='dark'] .statusInactive {
   background-color: var(--error-color-dark, #991b1b);
   color: var(--button-text-color, white);
 }
@@ -293,21 +293,21 @@
   background-color: var(--error-color-light, #fecaca);
 }
 
-[data-theme="dark"] .editButton {
+[data-theme='dark'] .editButton {
   background-color: var(--info-color-dark, #1e3a8a);
   color: var(--button-text-color, white);
 }
 
-[data-theme="dark"] .editButton:hover {
+[data-theme='dark'] .editButton:hover {
   background-color: var(--info-color, #3b82f6);
 }
 
-[data-theme="dark"] .deleteButton {
+[data-theme='dark'] .deleteButton {
   background-color: var(--error-color-dark, #7f1d1d);
   color: var(--button-text-color, white);
 }
 
-[data-theme="dark"] .deleteButton:hover {
+[data-theme='dark'] .deleteButton:hover {
   background-color: var(--error-color, #dc2626);
 }
 

@@ -98,28 +98,28 @@
   cursor: not-allowed;
 }
 
-[data-theme="dark"] .modalContent {
+[data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .modalHeader {
+[data-theme='dark'] .modalHeader {
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .modalTitle {
+[data-theme='dark'] .modalTitle {
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .confirmMessage {
+[data-theme='dark'] .confirmMessage {
   color: var(--text-secondary, #b0b0b0);
 }
 
-[data-theme="dark"] .cancelButton {
+[data-theme='dark'] .cancelButton {
   background-color: var(--secondary-color, #3a3a3a);
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .cancelButton:hover:not(:disabled) {
+[data-theme='dark'] .cancelButton:hover:not(:disabled) {
   background-color: var(--background-color, #444);
 }
 

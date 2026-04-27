@@ -14,7 +14,9 @@
   color: var(--text-color); /* Uses global CSS variable */
   z-index: 1101; /* Above mobile menu and backdrop */
   padding: 0.5rem; /* Easier to tap */
-  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  transition:
+    transform 0.2s ease-in-out,
+    opacity 0.2s ease-in-out;
   position: relative;
 }
 
@@ -31,7 +33,7 @@
   display: block;
 }
 
-[data-theme="dark"] .hamburgerMenu {
+[data-theme='dark'] .hamburgerMenu {
   color: var(--text-color); /* text-color variable is updated for dark theme */
 }
 
@@ -101,7 +103,7 @@
     border-left: 1px solid var(--border-color);
     padding: 1rem 0;
     z-index: 1100;
-    box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
     gap: 0;
     align-items: stretch;
     overflow-y: auto;
@@ -160,14 +162,14 @@
     border-bottom: none;
   }
 
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen {
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen {
     background-color: var(--secondary-color);
     border-top-color: var(--border-color);
   }
 
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen > *,
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen .nav-link,
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen .switcherGroup {
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen > *,
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen .nav-link,
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen .switcherGroup {
     border-bottom-color: var(--border-color);
   }
 
@@ -229,11 +231,11 @@
   display: block;
 }
 
-[data-theme="dark"] .adminSidebarToggleFloating {
+[data-theme='dark'] .adminSidebarToggleFloating {
   background-color: #1f1f1f;
 }
 
-[data-theme="dark"] .adminSidebarToggleFloating:hover {
+[data-theme='dark'] .adminSidebarToggleFloating:hover {
   background-color: #2a2a2a;
 }
 

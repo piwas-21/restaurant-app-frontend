@@ -7,10 +7,7 @@
 import { OrderDto } from '@/types/order';
 
 // Import templates
-import {
-  generateSimpleReceiptHtml,
-  generateKitchenReceiptHtml
-} from './templates';
+import { generateSimpleReceiptHtml, generateKitchenReceiptHtml } from './templates';
 
 // Re-export templates for backward compatibility
 export { generateSimpleReceiptHtml, generateKitchenReceiptHtml };
@@ -94,7 +91,7 @@ export const exportSimpleReceiptToPDF = (order: OrderDto, t?: TranslationFunctio
 export const exportKitchenItemsToPDF = (
   order: OrderDto,
   kitchenType: 'FrontKitchen' | 'BackKitchen' | 'All',
-  t?: TranslationFunction
+  t?: TranslationFunction,
 ): void => {
   const translate = t || ((key: string, fallback: string) => fallback);
   const html = generateKitchenReceiptHtml(order, kitchenType, t);
@@ -141,13 +138,20 @@ const escapeHtml = (text: string): string => {
 const getOrderStatusLabel = (status: string, t?: TranslationFunction): string => {
   const translate = t || ((key: string, fallback: string) => fallback);
   switch (status) {
-    case 'Pending': return translate('order_status_pending', 'Pending');
-    case 'Confirmed': return translate('order_status_confirmed', 'Confirmed');
-    case 'Preparing': return translate('order_status_preparing', 'Preparing');
-    case 'Ready': return translate('order_status_ready', 'Ready');
-    case 'Completed': return translate('order_status_completed', 'Completed');
-    case 'Cancelled': return translate('order_status_cancelled', 'Cancelled');
-    default: return status;
+    case 'Pending':
+      return translate('order_status_pending', 'Pending');
+    case 'Confirmed':
+      return translate('order_status_confirmed', 'Confirmed');
+    case 'Preparing':
+      return translate('order_status_preparing', 'Preparing');
+    case 'Ready':
+      return translate('order_status_ready', 'Ready');
+    case 'Completed':
+      return translate('order_status_completed', 'Completed');
+    case 'Cancelled':
+      return translate('order_status_cancelled', 'Cancelled');
+    default:
+      return status;
   }
 };
 
@@ -158,7 +162,9 @@ const getOrderStatusLabel = (status: string, t?: TranslationFunction): string =>
 export const exportOrdersToPDF = (orders: OrderDto[], t?: TranslationFunction): void => {
   const translate = t || ((key: string, fallback: string) => fallback);
 
-  const ordersRows = orders.map(order => `
+  const ordersRows = orders
+    .map(
+      (order) => `
     <tr>
       <td>${escapeHtml(order.orderNumber)}</td>
       <td>${formatDate(order.orderDate)}</td>
@@ -167,11 +173,13 @@ export const exportOrdersToPDF = (orders: OrderDto[], t?: TranslationFunction): 
       <td style="text-align: right;">${formatCurrency(order.total)}</td>
       <td>${escapeHtml(getOrderStatusLabel(order.status, t))}</td>
     </tr>
-  `).join('');
+  `,
+    )
+    .join('');
 
   const totalAmount = orders.reduce((sum, order) => sum + order.total, 0);
-  const completedOrders = orders.filter(o => o.status === 'Completed').length;
-  const cancelledOrders = orders.filter(o => o.status === 'Cancelled').length;
+  const completedOrders = orders.filter((o) => o.status === 'Completed').length;
+  const cancelledOrders = orders.filter((o) => o.status === 'Cancelled').length;
 
   const html = `
     <!DOCTYPE html>

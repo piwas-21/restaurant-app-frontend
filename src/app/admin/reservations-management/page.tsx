@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -50,12 +50,12 @@ export default function AdminReservationsManagementPage() {
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; message: string; onConfirm: () => void }>({
     isOpen: false,
     message: '',
-    onConfirm: () => {}
+    onConfirm: () => {},
   });
   const [resultModal, setResultModal] = useState<{ isOpen: boolean; message: string; isSuccess: boolean }>({
     isOpen: false,
     message: '',
-    isSuccess: false
+    isSuccess: false,
   });
 
   // Auth check
@@ -90,14 +90,14 @@ export default function AdminReservationsManagementPage() {
       const allItems = allReservationsResult.items;
       setAllReservationsCount({
         total: allItems.length,
-        pending: allItems.filter(r => r.status === ReservationStatus.Pending).length,
-        confirmed: allItems.filter(r => r.status === ReservationStatus.Confirmed).length
+        pending: allItems.filter((r) => r.status === ReservationStatus.Pending).length,
+        confirmed: allItems.filter((r) => r.status === ReservationStatus.Confirmed).length,
       });
 
       // Fetch filtered reservations for display with pagination
       const reservationsParams: any = {
         page: currentPage,
-        pageSize: pageSize
+        pageSize: pageSize,
       };
       if (selectedStatus !== 'All') reservationsParams.status = selectedStatus;
       if (selectedDate) reservationsParams.date = selectedDate;
@@ -152,24 +152,27 @@ export default function AdminReservationsManagementPage() {
           setResultModal({
             isOpen: true,
             message: t('reservation_cancelled', 'Reservation cancelled successfully'),
-            isSuccess: true
+            isSuccess: true,
           });
           fetchData();
         } catch (err: any) {
           setResultModal({
             isOpen: true,
             message: err.message || t('failed_to_cancel', 'Failed to cancel reservation'),
-            isSuccess: false
+            isSuccess: false,
           });
         }
-      }
+      },
     });
   };
 
   const handleDelete = async (id: string) => {
     setConfirmModal({
       isOpen: true,
-      message: t('confirm_delete_reservation', 'Are you sure you want to permanently delete this reservation? This action cannot be undone.'),
+      message: t(
+        'confirm_delete_reservation',
+        'Are you sure you want to permanently delete this reservation? This action cannot be undone.',
+      ),
       onConfirm: async () => {
         setConfirmModal({ isOpen: false, message: '', onConfirm: () => {} });
 
@@ -178,25 +181,26 @@ export default function AdminReservationsManagementPage() {
           setResultModal({
             isOpen: true,
             message: t('reservation_deleted_success', 'Reservation deleted successfully'),
-            isSuccess: true
+            isSuccess: true,
           });
           fetchData();
         } catch (err: any) {
           setResultModal({
             isOpen: true,
             message: err.message || t('failed_to_delete_reservation', 'Failed to delete reservation'),
-            isSuccess: false
+            isSuccess: false,
           });
         }
-      }
+      },
     });
   };
 
   // Export handlers
   const handleExportCSV = () => {
-    const dataToExport = selectedReservationIds.size > 0
-      ? filteredReservations.filter(r => selectedReservationIds.has(r.id))
-      : filteredReservations;
+    const dataToExport =
+      selectedReservationIds.size > 0
+        ? filteredReservations.filter((r) => selectedReservationIds.has(r.id))
+        : filteredReservations;
 
     setConfirmModal({
       isOpen: true,
@@ -208,24 +212,25 @@ export default function AdminReservationsManagementPage() {
           setResultModal({
             isOpen: true,
             message: t('exported_successfully', `Successfully exported ${dataToExport.length} reservations to CSV`),
-            isSuccess: true
+            isSuccess: true,
           });
         } catch (err: any) {
           setConfirmModal({ isOpen: false, message: '', onConfirm: () => {} });
           setResultModal({
             isOpen: true,
             message: t('export_failed', `Failed to export: ${err.message}`),
-            isSuccess: false
+            isSuccess: false,
           });
         }
-      }
+      },
     });
   };
 
   const handleExportPDF = () => {
-    const dataToExport = selectedReservationIds.size > 0
-      ? filteredReservations.filter(r => selectedReservationIds.has(r.id))
-      : filteredReservations;
+    const dataToExport =
+      selectedReservationIds.size > 0
+        ? filteredReservations.filter((r) => selectedReservationIds.has(r.id))
+        : filteredReservations;
 
     setConfirmModal({
       isOpen: true,
@@ -237,17 +242,17 @@ export default function AdminReservationsManagementPage() {
           setResultModal({
             isOpen: true,
             message: t('exported_successfully', `Successfully exported ${dataToExport.length} reservations to PDF`),
-            isSuccess: true
+            isSuccess: true,
           });
         } catch (err: any) {
           setConfirmModal({ isOpen: false, message: '', onConfirm: () => {} });
           setResultModal({
             isOpen: true,
             message: t('export_failed', `Failed to export: ${err.message}`),
-            isSuccess: false
+            isSuccess: false,
           });
         }
-      }
+      },
     });
   };
 
@@ -284,13 +289,16 @@ export default function AdminReservationsManagementPage() {
 
         setResultModal({
           isOpen: true,
-          message: t('bulk_confirm_success', `Confirmed ${successCount} of ${selectedReservationIds.size} reservations`),
-          isSuccess: successCount > 0
+          message: t(
+            'bulk_confirm_success',
+            `Confirmed ${successCount} of ${selectedReservationIds.size} reservations`,
+          ),
+          isSuccess: successCount > 0,
         });
 
         setSelectedReservationIds(new Set());
         fetchData();
-      }
+      },
     });
   };
 
@@ -317,12 +325,12 @@ export default function AdminReservationsManagementPage() {
         setResultModal({
           isOpen: true,
           message: t('bulk_cancel_success', `Cancelled ${successCount} of ${selectedReservationIds.size} reservations`),
-          isSuccess: successCount > 0
+          isSuccess: successCount > 0,
         });
 
         setSelectedReservationIds(new Set());
         fetchData();
-      }
+      },
     });
   };
 
@@ -349,12 +357,12 @@ export default function AdminReservationsManagementPage() {
         setResultModal({
           isOpen: true,
           message: t('bulk_delete_success', `Deleted ${successCount} of ${selectedReservationIds.size} reservations`),
-          isSuccess: successCount > 0
+          isSuccess: successCount > 0,
         });
 
         setSelectedReservationIds(new Set());
         fetchData();
-      }
+      },
     });
   };
 
@@ -380,7 +388,7 @@ export default function AdminReservationsManagementPage() {
   };
 
   // Filter reservations by search query
-  const filteredReservations = reservations.filter(reservation => {
+  const filteredReservations = reservations.filter((reservation) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -486,30 +494,28 @@ export default function AdminReservationsManagementPage() {
             }}
             selectedReservationIds={selectedReservationIds}
           />
+        ) : /* List View */
+        filteredReservations.length === 0 ? (
+          <div className={styles.emptyState}>
+            <Calendar size={64} className={styles.emptyIcon} />
+            <h2>{t('no_reservations_found', 'No Reservations Found')}</h2>
+            <p>{t('no_reservations_match_filters', 'No reservations match your current filters')}</p>
+          </div>
         ) : (
-          /* List View */
-          filteredReservations.length === 0 ? (
-            <div className={styles.emptyState}>
-              <Calendar size={64} className={styles.emptyIcon} />
-              <h2>{t('no_reservations_found', 'No Reservations Found')}</h2>
-              <p>{t('no_reservations_match_filters', 'No reservations match your current filters')}</p>
-            </div>
-          ) : (
-            <ReservationsList
-              reservations={filteredReservations}
-              selectedReservationIds={selectedReservationIds}
-              onToggleSelection={toggleReservationSelection}
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
-              onDelete={handleDelete}
-              tableLabel={t('table', 'Table')}
-              guestsLabel={t('guests', 'guests')}
-              specialRequestsLabel={t('special_requests', 'Special Requests')}
-              confirmLabel={t('confirm', 'Confirm')}
-              cancelLabel={t('cancel', 'Cancel')}
-              deleteLabel={t('delete_reservation', 'Delete')}
-            />
-          )
+          <ReservationsList
+            reservations={filteredReservations}
+            selectedReservationIds={selectedReservationIds}
+            onToggleSelection={toggleReservationSelection}
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
+            onDelete={handleDelete}
+            tableLabel={t('table', 'Table')}
+            guestsLabel={t('guests', 'guests')}
+            specialRequestsLabel={t('special_requests', 'Special Requests')}
+            confirmLabel={t('confirm', 'Confirm')}
+            cancelLabel={t('cancel', 'Cancel')}
+            deleteLabel={t('delete_reservation', 'Delete')}
+          />
         )}
 
         {/* Pagination - Only show in list view */}
@@ -529,7 +535,7 @@ export default function AdminReservationsManagementPage() {
                   start: (currentPage - 1) * pageSize + 1,
                   end: Math.min(currentPage * pageSize, totalCount),
                   total: totalCount,
-                  defaultValue: `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} items`
+                  defaultValue: `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} items`,
                 })}
               </p>
             )}

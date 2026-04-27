@@ -19,7 +19,7 @@ const UserGroupsTable: React.FC<UserGroupsTableProps> = ({
   onEdit,
   onDelete,
   onManageMembers,
-  onViewQRCode
+  onViewQRCode,
 }) => {
   const { t } = useTranslation();
 
@@ -66,18 +66,10 @@ const UserGroupsTable: React.FC<UserGroupsTableProps> = ({
                 >
                   <Users size={18} />
                 </button>
-                <button
-                  className={styles.actionButton}
-                  onClick={() => onViewQRCode(group)}
-                  title={t('qr_code')}
-                >
+                <button className={styles.actionButton} onClick={() => onViewQRCode(group)} title={t('qr_code')}>
                   <QrCode size={18} />
                 </button>
-                <button
-                  className={styles.actionButton}
-                  onClick={() => onEdit(group)}
-                  title={t('edit')}
-                >
+                <button className={styles.actionButton} onClick={() => onEdit(group)} title={t('edit')}>
                   <Edit size={18} />
                 </button>
                 <button

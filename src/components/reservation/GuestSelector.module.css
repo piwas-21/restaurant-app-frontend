@@ -78,17 +78,17 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .guestButton {
+[data-theme='dark'] .guestButton {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-[data-theme="dark"] .guestButton:hover {
+[data-theme='dark'] .guestButton:hover {
   background: rgba(244, 196, 48, 0.15);
   border-color: rgba(244, 196, 48, 0.5);
 }
 
-[data-theme="dark"] .guestButton.selected {
+[data-theme='dark'] .guestButton.selected {
   background: #f4c430;
   border-color: #f4c430;
   color: #000;

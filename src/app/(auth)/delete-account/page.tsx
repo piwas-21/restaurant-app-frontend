@@ -34,9 +34,9 @@ function DeleteAccountContent() {
         setStatus('success');
         // Clear local storage
         if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user');
         }
         setTimeout(() => {
           router.push('/auth/login');
@@ -71,7 +71,10 @@ function DeleteAccountContent() {
             <div className={styles.stateContainer}>
               <div className={styles.warningBox}>
                 <p className={styles.warningText}>
-                  {t('delete_account_confirmation_text', 'Are you absolutely sure you want to permanently delete your account? This action cannot be undone.')}
+                  {t(
+                    'delete_account_confirmation_text',
+                    'Are you absolutely sure you want to permanently delete your account? This action cannot be undone.',
+                  )}
                 </p>
                 <ul className={styles.consequencesList}>
                   <li>
@@ -94,17 +97,11 @@ function DeleteAccountContent() {
               </div>
 
               <div className={styles.buttonGroup}>
-                <button
-                  onClick={handleConfirmDelete}
-                  className={styles.confirmButton}
-                >
+                <button onClick={handleConfirmDelete} className={styles.confirmButton}>
                   <Trash2 size={20} />
                   {t('confirm_delete_button', 'Yes, Delete My Account')}
                 </button>
-                <button
-                  onClick={handleCancel}
-                  className={styles.cancelButton}
-                >
+                <button onClick={handleCancel} className={styles.cancelButton}>
                   <X size={20} />
                   {t('cancel_button', 'Cancel')}
                 </button>
@@ -126,7 +123,10 @@ function DeleteAccountContent() {
               </div>
               <h2 className={styles.successTitle}>{t('account_deleted', 'Account Deleted')}</h2>
               <p className={styles.successMessage}>
-                {t('account_deleted_message', 'Your account has been permanently deleted. You will be redirected to the login page shortly.')}
+                {t(
+                  'account_deleted_message',
+                  'Your account has been permanently deleted. You will be redirected to the login page shortly.',
+                )}
               </p>
             </div>
           )}
@@ -138,10 +138,7 @@ function DeleteAccountContent() {
               </div>
               <h2 className={styles.errorTitle}>{t('error', 'Error')}</h2>
               <p className={styles.errorMessage}>{errorMessage}</p>
-              <button
-                onClick={() => router.push('/auth/login')}
-                className={styles.backButton}
-              >
+              <button onClick={() => router.push('/auth/login')} className={styles.backButton}>
                 {t('go_to_login', 'Go to Login')}
               </button>
             </div>

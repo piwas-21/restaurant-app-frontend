@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useCookieConsent } from './CookieConsentContext';
@@ -32,22 +32,34 @@ export default function CookieSettingsModal() {
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>{t('cookie_settings_title', 'Cookie Settings')}</h2>
-          <button onClick={closeSettingsModal} className={styles.closeButton} aria-label={t('cookie_settings_close_aria', 'Close settings')}>&times;</button>
+          <button
+            onClick={closeSettingsModal}
+            className={styles.closeButton}
+            aria-label={t('cookie_settings_close_aria', 'Close settings')}
+          >
+            &times;
+          </button>
         </div>
         <div className={styles.modalBody}>
-          <p>{t('cookie_settings_intro', 'Manage your cookie preferences. You can enable or disable specific cookie categories below.')}</p>
+          <p>
+            {t(
+              'cookie_settings_intro',
+              'Manage your cookie preferences. You can enable or disable specific cookie categories below.',
+            )}
+          </p>
 
           <div className={styles.preferenceItem}>
             <div className={styles.preferenceDetails}>
               <strong>{t('cookie_settings_preferences_title', 'Preferences')}</strong>
-              <p>{t('cookie_settings_preferences_desc', 'These cookies remember your choices, like language or theme, to personalize your experience.')}</p>
+              <p>
+                {t(
+                  'cookie_settings_preferences_desc',
+                  'These cookies remember your choices, like language or theme, to personalize your experience.',
+                )}
+              </p>
             </div>
             <label className={styles.toggleSwitch}>
-              <input
-                type="checkbox"
-                checked={currentPreferences === true}
-                onChange={handlePreferenceChange}
-              />
+              <input type="checkbox" checked={currentPreferences === true} onChange={handlePreferenceChange} />
               <span className={styles.slider}></span>
             </label>
           </div>

@@ -373,8 +373,8 @@
   position: relative;
 }
 
-.chip input[type="checkbox"],
-.chip input[type="radio"] {
+.chip input[type='checkbox'],
+.chip input[type='radio'] {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -403,8 +403,8 @@
   background-color: var(--hover-background);
 }
 
-.chip input[type="checkbox"]:checked + label,
-.chip input[type="radio"]:checked + label {
+.chip input[type='checkbox']:checked + label,
+.chip input[type='radio']:checked + label {
   background-color: #28a745;
   color: white;
   border-color: #28a745;

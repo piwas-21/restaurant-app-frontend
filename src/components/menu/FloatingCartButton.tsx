@@ -19,11 +19,7 @@ interface FloatingCartButtonProps {
   onAnimate?: boolean;
 }
 
-export default function FloatingCartButton({
-  itemCount,
-  totalPrice,
-  onAnimate = false,
-}: FloatingCartButtonProps) {
+export default function FloatingCartButton({ itemCount, totalPrice, onAnimate = false }: FloatingCartButtonProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const [isAnimating, setIsAnimating] = useState(false);

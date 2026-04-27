@@ -78,21 +78,17 @@ export async function getTablesWithStatus(): Promise<ServerTableDto[]> {
   const [tables, ordersResult, reservationsResult] = await Promise.all([
     getTables(),
     getDineInOrders({ status: 'Pending,Confirmed,Preparing,Ready', pageSize: 100 }),
-    getUpcomingReservations()
+    getUpcomingReservations(),
   ]);
 
   const orders = ordersResult.items || [];
   const reservations = reservationsResult.items || [];
 
   // Map tables with their current orders and reservations
-  return tables.map(table => {
-    const tableOrders = orders.filter(
-      order => order.tableNumber?.toString() === table.tableNumber
-    );
+  return tables.map((table) => {
+    const tableOrders = orders.filter((order) => order.tableNumber?.toString() === table.tableNumber);
 
-    const upcomingReservation = reservations.find(
-      res => res.tableId === table.id
-    );
+    const upcomingReservation = reservations.find((res) => res.tableId === table.id);
 
     let status: ServerTableDto['status'] = 'available';
 
@@ -117,7 +113,7 @@ export async function getTablesWithStatus(): Promise<ServerTableDto[]> {
       orderCount: tableOrders.length,
       hasActiveOrders: tableOrders.length > 0,
       upcomingReservation: upcomingReservation,
-      status
+      status,
     };
   });
 }
@@ -128,7 +124,7 @@ export async function getTablesWithStatus(): Promise<ServerTableDto[]> {
 export async function getUpcomingReservations(): Promise<ReservationPagedResult<ReservationDto>> {
   const today = new Date().toISOString().split('T')[0];
   const response = await apiClient.get<ApiResponse<ReservationPagedResult<ReservationDto>>>(
-    `/api/reservations?date=${today}&status=1&pageSize=50` // status=1 is Confirmed
+    `/api/reservations?date=${today}&status=1&pageSize=50`, // status=1 is Confirmed
   );
 
   return response.data || { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 0 };
@@ -137,15 +133,11 @@ export async function getUpcomingReservations(): Promise<ReservationPagedResult<
 /**
  * Update order status
  */
-export async function updateOrderStatus(
-  orderId: string,
-  newStatus: string,
-  notes?: string
-): Promise<OrderDto> {
+export async function updateOrderStatus(orderId: string, newStatus: string, notes?: string): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/status`,
     { orderId, newStatus, notes },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.success) {
@@ -174,16 +166,14 @@ export async function completeAllTableOrders(tableNumber: string): Promise<{
   cancelledCount: number;
   totalProcessed: number;
 }> {
-  const response = await apiClient.post<ApiResponse<{
-    completedCount: number;
-    cancelledCount: number;
-    totalProcessed: number;
-    processedOrderNumbers: string[];
-  }>>(
-    `/api/orders/table/${tableNumber}/complete-all`,
-    {},
-    { requireAuth: true }
-  );
+  const response = await apiClient.post<
+    ApiResponse<{
+      completedCount: number;
+      cancelledCount: number;
+      totalProcessed: number;
+      processedOrderNumbers: string[];
+    }>
+  >(`/api/orders/table/${tableNumber}/complete-all`, {}, { requireAuth: true });
 
   if (!response.success || !response.data) {
     throw new Error(response.message || 'Failed to complete table orders');
@@ -218,7 +208,7 @@ export async function getOrdersForTable(tableNumber: string): Promise<OrderDto[]
   const result = await getDineInOrders({
     tableNumber: parseInt(tableNumber, 10),
     status: 'Pending,Confirmed,Preparing,Ready',
-    pageSize: 50
+    pageSize: 50,
   });
   return result.items || [];
 }
@@ -251,7 +241,7 @@ export async function closeTable(tableId: string): Promise<TableDto> {
       rotation: table.rotation || 0,
       notes: table.notes,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.success || !response.data) {
@@ -289,7 +279,7 @@ export async function openTable(tableId: string): Promise<TableDto> {
       rotation: table.rotation || 0,
       notes: table.notes,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.success || !response.data) {
@@ -306,7 +296,7 @@ export async function releaseTable(tableNumber: string): Promise<boolean> {
   const response = await apiClient.post<ApiResponse<boolean>>(
     `/api/tables/${tableNumber}/release`,
     {},
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.success) {
@@ -325,7 +315,7 @@ export async function createServerOrder(
   customerName?: string,
   notes?: string,
   userId?: string,
-  pointsToRedeem?: number
+  pointsToRedeem?: number,
 ): Promise<OrderDto> {
   const orderCommand: CreateOrderCommand = {
     type: OrderType.DineIn,
@@ -337,11 +327,7 @@ export async function createServerOrder(
     pointsToRedeem: pointsToRedeem || undefined,
   };
 
-  const response = await apiClient.post<OrderDtoApiResponse>(
-    '/api/Orders',
-    orderCommand,
-    { requireAuth: true }
-  );
+  const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders', orderCommand, { requireAuth: true });
 
   if (!response.data) {
     throw new Error('Failed to create order');
@@ -355,7 +341,7 @@ export async function createServerOrder(
  */
 export async function getMenuProducts(): Promise<Product[]> {
   const response = await apiClient.get<{ success: boolean; data: { items: Product[] } }>(
-    '/api/Products?PageSize=100&isActive=true'
+    '/api/Products?PageSize=100&isActive=true',
   );
   return response.data?.items || [];
 }
@@ -365,7 +351,7 @@ export async function getMenuProducts(): Promise<Product[]> {
  */
 export async function getCategories(): Promise<Category[]> {
   const response = await apiClient.get<ApiResponse<{ items: Category[]; totalCount: number }>>(
-    '/api/Categories?PageNumber=1&PageSize=100'
+    '/api/Categories?PageNumber=1&PageSize=100',
   );
   // Handle both paged result and direct array responses
   if (response.data && 'items' in response.data) {
@@ -453,10 +439,9 @@ export async function searchUsers(query: string, pageSize: number = 10): Promise
     PageSize: pageSize.toString(),
   });
 
-  const response = await apiClient.get<ApiResponse<{ items: UserDto[] }>>(
-    `/api/User/users?${params}`,
-    { requireAuth: true }
-  );
+  const response = await apiClient.get<ApiResponse<{ items: UserDto[] }>>(`/api/User/users?${params}`, {
+    requireAuth: true,
+  });
 
   return response.data?.items || [];
 }
@@ -468,7 +453,7 @@ export async function getUserFidelityBalance(userId: string): Promise<FidelityPo
   try {
     const response = await apiClient.get<ApiResponse<FidelityPointBalanceDto>>(
       `/api/FidelityPoints/balance/${userId}`,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data || null;
   } catch (error) {
@@ -516,7 +501,7 @@ export async function getUserDiscountRules(userId: string): Promise<CustomerDisc
   try {
     const response = await apiClient.get<ApiResponse<CustomerDiscountRuleDto[]>>(
       `/api/admin/CustomerDiscounts?userId=${userId}&activeOnly=true`,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data || [];
   } catch (error) {

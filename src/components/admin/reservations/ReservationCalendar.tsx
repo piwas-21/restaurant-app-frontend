@@ -34,7 +34,7 @@ interface ReservationCalendarProps {
 export default function ReservationCalendar({
   reservations,
   onSelectReservation,
-  selectedReservationIds = new Set()
+  selectedReservationIds = new Set(),
 }: ReservationCalendarProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<View>('month');
@@ -42,7 +42,7 @@ export default function ReservationCalendar({
 
   // Convert reservations to calendar events
   const events: CalendarEvent[] = useMemo(() => {
-    return reservations.map(reservation => {
+    return reservations.map((reservation) => {
       const reservationDate = new Date(reservation.reservationDate);
       const [startHour, startMinute] = reservation.startTime.split(':').map(Number);
       const [endHour, endMinute] = reservation.endTime.split(':').map(Number);
@@ -63,51 +63,57 @@ export default function ReservationCalendar({
   }, [reservations]);
 
   // Custom event style based on status
-  const eventStyleGetter = useCallback((event: CalendarEvent) => {
-    const reservation = event.resource;
-    const isSelected = selectedReservationIds.has(reservation.id);
-    let backgroundColor = '#3174ad';
+  const eventStyleGetter = useCallback(
+    (event: CalendarEvent) => {
+      const reservation = event.resource;
+      const isSelected = selectedReservationIds.has(reservation.id);
+      let backgroundColor = '#3174ad';
 
-    switch (reservation.status) {
-      case ReservationStatus.Confirmed:
-        backgroundColor = '#10b981';
-        break;
-      case ReservationStatus.Pending:
-        backgroundColor = '#f59e0b';
-        break;
-      case ReservationStatus.Cancelled:
-        backgroundColor = '#ef4444';
-        break;
-      case ReservationStatus.Completed:
-        backgroundColor = '#6b7280';
-        break;
-      case ReservationStatus.NoShow:
-        backgroundColor = '#dc2626';
-        break;
-    }
+      switch (reservation.status) {
+        case ReservationStatus.Confirmed:
+          backgroundColor = '#10b981';
+          break;
+        case ReservationStatus.Pending:
+          backgroundColor = '#f59e0b';
+          break;
+        case ReservationStatus.Cancelled:
+          backgroundColor = '#ef4444';
+          break;
+        case ReservationStatus.Completed:
+          backgroundColor = '#6b7280';
+          break;
+        case ReservationStatus.NoShow:
+          backgroundColor = '#dc2626';
+          break;
+      }
 
-    return {
-      style: {
-        backgroundColor,
-        borderRadius: '5px',
-        opacity: isSelected ? 1 : 0.9,
-        color: 'white',
-        border: isSelected ? '3px solid #f4c430' : '0px',
-        display: 'block',
-        fontSize: '0.85rem',
-        padding: '2px 5px',
-        cursor: 'pointer',
-        fontWeight: isSelected ? 'bold' : 'normal',
-      },
-    };
-  }, [selectedReservationIds]);
+      return {
+        style: {
+          backgroundColor,
+          borderRadius: '5px',
+          opacity: isSelected ? 1 : 0.9,
+          color: 'white',
+          border: isSelected ? '3px solid #f4c430' : '0px',
+          display: 'block',
+          fontSize: '0.85rem',
+          padding: '2px 5px',
+          cursor: 'pointer',
+          fontWeight: isSelected ? 'bold' : 'normal',
+        },
+      };
+    },
+    [selectedReservationIds],
+  );
 
   // Handle event selection
-  const handleSelectEvent = useCallback((event: CalendarEvent) => {
-    if (onSelectReservation) {
-      onSelectReservation(event.resource);
-    }
-  }, [onSelectReservation]);
+  const handleSelectEvent = useCallback(
+    (event: CalendarEvent) => {
+      if (onSelectReservation) {
+        onSelectReservation(event.resource);
+      }
+    },
+    [onSelectReservation],
+  );
 
   // Custom toolbar
   const CustomToolbar = ({ label, onNavigate, onView }: any) => (
@@ -125,28 +131,16 @@ export default function ReservationCalendar({
       </div>
       <h2 className={styles.label}>{label}</h2>
       <div className={styles.viewButtons}>
-        <button
-          onClick={() => onView('month')}
-          className={view === 'month' ? styles.activeView : ''}
-        >
+        <button onClick={() => onView('month')} className={view === 'month' ? styles.activeView : ''}>
           {t('month', 'Month')}
         </button>
-        <button
-          onClick={() => onView('week')}
-          className={view === 'week' ? styles.activeView : ''}
-        >
+        <button onClick={() => onView('week')} className={view === 'week' ? styles.activeView : ''}>
           {t('week', 'Week')}
         </button>
-        <button
-          onClick={() => onView('day')}
-          className={view === 'day' ? styles.activeView : ''}
-        >
+        <button onClick={() => onView('day')} className={view === 'day' ? styles.activeView : ''}>
           {t('day', 'Day')}
         </button>
-        <button
-          onClick={() => onView('agenda')}
-          className={view === 'agenda' ? styles.activeView : ''}
-        >
+        <button onClick={() => onView('agenda')} className={view === 'agenda' ? styles.activeView : ''}>
           {t('agenda', 'Agenda')}
         </button>
       </div>

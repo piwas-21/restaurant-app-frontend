@@ -25,7 +25,7 @@
   animation: slideUp 0.3s ease-out;
 }
 
-[data-theme="dark"] .modal {
+[data-theme='dark'] .modal {
   background: var(--card-background-dark, #2a2a2a);
 }
 
@@ -49,7 +49,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .header {
+[data-theme='dark'] .header {
   border-bottom-color: var(--border-color-dark, #444);
 }
 
@@ -80,11 +80,11 @@
   margin: 0;
 }
 
-[data-theme="dark"] .title {
+[data-theme='dark'] .title {
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .subtitle {
+[data-theme='dark'] .subtitle {
   color: var(--text-secondary, #b0b0b0);
 }
 
@@ -107,7 +107,7 @@
   color: var(--text-color, #333);
 }
 
-[data-theme="dark"] .closeButton:hover {
+[data-theme='dark'] .closeButton:hover {
   background: var(--hover-background-dark, #444);
   color: var(--text-color, #e0e0e0);
 }
@@ -146,7 +146,7 @@
   font-size: 0.9rem;
 }
 
-[data-theme="dark"] .emptyState p {
+[data-theme='dark'] .emptyState p {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -182,12 +182,12 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-[data-theme="dark"] .taxCard {
+[data-theme='dark'] .taxCard {
   background: var(--hover-background-dark, #333);
   border-color: var(--border-color-dark, #444);
 }
 
-[data-theme="dark"] .taxCard.selected {
+[data-theme='dark'] .taxCard.selected {
   background: linear-gradient(135deg, rgba(124, 143, 245, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   border-color: var(--primary-color-dark, #7c8ff5);
   box-shadow: 0 0 0 3px rgba(124, 143, 245, 0.1);
@@ -210,11 +210,11 @@
   margin: 0 0 0.75rem 0;
 }
 
-[data-theme="dark"] .taxName {
+[data-theme='dark'] .taxName {
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .taxDescription {
+[data-theme='dark'] .taxDescription {
   color: var(--text-secondary, #b0b0b0);
 }
 
@@ -236,7 +236,7 @@
   font-weight: 500;
 }
 
-[data-theme="dark"] .typeBadge {
+[data-theme='dark'] .typeBadge {
   background: rgba(124, 143, 245, 0.15);
   color: var(--primary-color-dark, #7c8ff5);
   border-color: rgba(124, 143, 245, 0.3);
@@ -249,7 +249,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .taxRate {
+[data-theme='dark'] .taxRate {
   color: var(--primary-color-dark, #7c8ff5);
 }
 
@@ -268,7 +268,7 @@
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
-[data-theme="dark"] .checkmark {
+[data-theme='dark'] .checkmark {
   background: var(--primary-color-dark, #7c8ff5);
 }
 
@@ -281,7 +281,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .footer {
+[data-theme='dark'] .footer {
   border-top-color: var(--border-color-dark, #444);
 }
 
@@ -322,12 +322,12 @@
   cursor: not-allowed;
 }
 
-[data-theme="dark"] .cancelButton {
+[data-theme='dark'] .cancelButton {
   color: var(--text-color, #e0e0e0);
   border-color: var(--border-color-dark, #444);
 }
 
-[data-theme="dark"] .cancelButton:hover {
+[data-theme='dark'] .cancelButton:hover {
   background: var(--hover-background-dark, #444);
 }
 

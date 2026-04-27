@@ -31,7 +31,9 @@ const MenuManagementHeader: React.FC<MenuManagementHeaderProps> = ({
         <select onChange={onCategoryChange} value={selectedCategoryId || 'all'} className={styles.adminSelect}>
           <option value="all">{t('all_categories_nav')}</option>
           {categories.map((category) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
           ))}
         </select>
         <div className={styles.tooltipContainer}>
@@ -42,9 +44,7 @@ const MenuManagementHeader: React.FC<MenuManagementHeaderProps> = ({
           >
             {t('create_new_product')}
           </button>
-          {!selectedCategoryId && (
-            <span className={styles.tooltipText}>{t('select_category_to_create_product')}</span>
-          )}
+          {!selectedCategoryId && <span className={styles.tooltipText}>{t('select_category_to_create_product')}</span>}
         </div>
         <button className={styles.adminButton} onClick={() => router.push('/admin/category-management')}>
           {t('back_to_categories')}

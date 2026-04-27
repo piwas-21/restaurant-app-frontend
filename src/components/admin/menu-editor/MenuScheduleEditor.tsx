@@ -22,10 +22,7 @@ const DAYS_OF_WEEK = [
   { key: 'availableSunday', label: 'sunday' },
 ] as const;
 
-const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({
-  menuDefinition,
-  onChange,
-}) => {
+const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition, onChange }) => {
   const { t } = useTranslation();
   const [localMenuDefinition, setLocalMenuDefinition] = useState<MenuDefinition>(menuDefinition);
   const [hasChanges, setHasChanges] = useState(false);

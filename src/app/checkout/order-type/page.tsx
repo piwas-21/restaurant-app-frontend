@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -7,13 +7,7 @@ import { useCheckout } from '@/contexts/CheckoutContext';
 import { useCart } from '@/components/cart/CartContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { OrderType } from '@/types/order';
-import {
-  Store,
-  Utensils,
-  Truck,
-  ChevronRight,
-  MapPin
-} from 'lucide-react';
+import { Store, Utensils, Truck, ChevronRight, MapPin } from 'lucide-react';
 import TableSelector from '@/components/checkout/TableSelector';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses, createAddress, AddressDto } from '@/services/addressService';
@@ -117,10 +111,7 @@ export default function OrderTypePage() {
         <div className={styles.emptyState}>
           <h1>{t('checkout_title', 'Checkout')}</h1>
           <p>{t('cart_empty_message', 'Your cart is empty')}</p>
-          <button
-            onClick={() => router.push('/menu')}
-            className={styles.browseButton}
-          >
+          <button onClick={() => router.push('/menu')} className={styles.browseButton}>
             {t('cart_browse_menu_button', 'Browse Menu')}
           </button>
         </div>
@@ -282,7 +273,7 @@ export default function OrderTypePage() {
   ];
 
   // Filter order types to show only enabled ones
-  const availableOrderTypes = orderTypes.filter(ot => enabledOrderTypes.includes(ot.type));
+  const availableOrderTypes = orderTypes.filter((ot) => enabledOrderTypes.includes(ot.type));
 
   // Show loading state while fetching order types
   if (loadingOrderTypes) {
@@ -302,11 +293,10 @@ export default function OrderTypePage() {
       <main className={styles.container}>
         <div className={styles.emptyState}>
           <h1>{t('checkout_title', 'Checkout')}</h1>
-          <p>{t('no_order_types_available', 'No order types are currently available. Please contact the restaurant.')}</p>
-          <button
-            onClick={() => router.push('/menu')}
-            className={styles.browseButton}
-          >
+          <p>
+            {t('no_order_types_available', 'No order types are currently available. Please contact the restaurant.')}
+          </p>
+          <button onClick={() => router.push('/menu')} className={styles.browseButton}>
             {t('cart_browse_menu_button', 'Browse Menu')}
           </button>
         </div>
@@ -318,9 +308,7 @@ export default function OrderTypePage() {
     <main className={styles.container}>
       <div className={styles.content}>
         <h1 className={styles.title}>{t('select_order_type', 'Select Order Type')}</h1>
-        <p className={styles.subtitle}>
-          {t('select_order_type_desc', 'How would you like to receive your order?')}
-        </p>
+        <p className={styles.subtitle}>{t('select_order_type_desc', 'How would you like to receive your order?')}</p>
 
         {/* Order Type Selection */}
         <div className={styles.orderTypes}>
@@ -345,17 +333,11 @@ export default function OrderTypePage() {
               {t('select_your_table', 'Select your Table')}
             </h3>
 
-            <TableSelector
-              selectedTable={tableNum}
-              onTableSelect={handleTableSelect}
-              disabled={hasTableContext}
-            />
+            <TableSelector selectedTable={tableNum} onTableSelect={handleTableSelect} disabled={hasTableContext} />
 
             {tableError && <p className={styles.error}>{tableError}</p>}
             {hasTableContext && (
-              <p className={styles.infoText}>
-                {t('table_from_qr', 'Table number set from QR code scan')}
-              </p>
+              <p className={styles.infoText}>{t('table_from_qr', 'Table number set from QR code scan')}</p>
             )}
           </div>
         )}
@@ -371,9 +353,7 @@ export default function OrderTypePage() {
             {/* Saved Addresses Section (for logged-in users) */}
             {isLoggedIn && !loadingAddresses && savedAddresses.length > 0 && (
               <div className={styles.savedAddressesSection}>
-                <h4 className={styles.savedAddressesTitle}>
-                  {t('saved_addresses', 'Your Saved Addresses')}
-                </h4>
+                <h4 className={styles.savedAddressesTitle}>{t('saved_addresses', 'Your Saved Addresses')}</h4>
                 <div className={styles.savedAddressesList}>
                   {savedAddresses.map((address) => (
                     <button
@@ -416,127 +396,119 @@ export default function OrderTypePage() {
             {/* Address Form */}
             {showNewAddressForm && (
               <div className={styles.addressForm}>
-              <div className={styles.inputGroup}>
-                <label htmlFor="street" className={styles.label}>
-                  {t('street_address', 'Street Address')}
-                  <span className={styles.required}>*</span>
-                </label>
-                <input
-                  type="text"
-                  id="street"
-                  value={street}
-                  onChange={(e) => {
-                    setStreet(e.target.value);
-                    setAddressError('');
-                  }}
-                  placeholder={t('enter_street', 'Enter street address')}
-                  className={`${styles.input} ${addressError && !street.trim() ? styles.inputError : ''}`}
-                />
-              </div>
-
-              <div className={styles.inputRow}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="postalCode" className={styles.label}>
-                    {t('postal_code', 'Postal Code')}
+                  <label htmlFor="street" className={styles.label}>
+                    {t('street_address', 'Street Address')}
                     <span className={styles.required}>*</span>
                   </label>
                   <input
                     type="text"
-                    id="postalCode"
-                    value={postalCode}
+                    id="street"
+                    value={street}
                     onChange={(e) => {
-                      setPostalCode(e.target.value);
+                      setStreet(e.target.value);
                       setAddressError('');
                     }}
-                    placeholder={t('enter_postal_code', '1234')}
-                    className={`${styles.input} ${addressError && !postalCode.trim() ? styles.inputError : ''}`}
-                    maxLength={4}
+                    placeholder={t('enter_street', 'Enter street address')}
+                    className={`${styles.input} ${addressError && !street.trim() ? styles.inputError : ''}`}
                   />
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label htmlFor="city" className={styles.label}>
-                    {t('city', 'City')}
-                    <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="city"
-                    value={city}
-                    onChange={(e) => {
-                      setCity(e.target.value);
-                      setAddressError('');
-                    }}
-                    placeholder={t('enter_city', 'Enter city')}
-                    className={`${styles.input} ${addressError && !city.trim() ? styles.inputError : ''}`}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label htmlFor="country" className={styles.label}>
-                  {t('country', 'Country')}
-                </label>
-                <input
-                  type="text"
-                  id="country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder={t('enter_country', 'Switzerland')}
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label htmlFor="additionalInfo" className={styles.label}>
-                  {t('additional_info', 'Additional Information')}
-                  <span className={styles.optional}> ({t('optional', 'optional')})</span>
-                </label>
-                <textarea
-                  id="additionalInfo"
-                  value={additionalInfo}
-                  onChange={(e) => setAdditionalInfo(e.target.value)}
-                  placeholder={t('additional_info_placeholder', 'Floor, apartment number, building, etc.')}
-                  className={styles.textarea}
-                  rows={3}
-                />
-              </div>
-
-              {addressError && <p className={styles.error}>{addressError}</p>}
-
-              {/* Save Address Checkbox - only for logged-in users */}
-              {isLoggedIn && (
-                <div className={styles.checkboxGroup}>
-                  <label className={styles.checkboxLabel}>
+                <div className={styles.inputRow}>
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="postalCode" className={styles.label}>
+                      {t('postal_code', 'Postal Code')}
+                      <span className={styles.required}>*</span>
+                    </label>
                     <input
-                      type="checkbox"
-                      checked={saveThisAddress}
-                      onChange={(e) => setSaveThisAddress(e.target.checked)}
-                      className={styles.checkbox}
+                      type="text"
+                      id="postalCode"
+                      value={postalCode}
+                      onChange={(e) => {
+                        setPostalCode(e.target.value);
+                        setAddressError('');
+                      }}
+                      placeholder={t('enter_postal_code', '1234')}
+                      className={`${styles.input} ${addressError && !postalCode.trim() ? styles.inputError : ''}`}
+                      maxLength={4}
                     />
-                    <span>{t('save_this_address', 'Save this address for future orders')}</span>
-                  </label>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="city" className={styles.label}>
+                      {t('city', 'City')}
+                      <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      value={city}
+                      onChange={(e) => {
+                        setCity(e.target.value);
+                        setAddressError('');
+                      }}
+                      placeholder={t('enter_city', 'Enter city')}
+                      className={`${styles.input} ${addressError && !city.trim() ? styles.inputError : ''}`}
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="country" className={styles.label}>
+                    {t('country', 'Country')}
+                  </label>
+                  <input
+                    type="text"
+                    id="country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    placeholder={t('enter_country', 'Switzerland')}
+                    className={styles.input}
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="additionalInfo" className={styles.label}>
+                    {t('additional_info', 'Additional Information')}
+                    <span className={styles.optional}> ({t('optional', 'optional')})</span>
+                  </label>
+                  <textarea
+                    id="additionalInfo"
+                    value={additionalInfo}
+                    onChange={(e) => setAdditionalInfo(e.target.value)}
+                    placeholder={t('additional_info_placeholder', 'Floor, apartment number, building, etc.')}
+                    className={styles.textarea}
+                    rows={3}
+                  />
+                </div>
+
+                {addressError && <p className={styles.error}>{addressError}</p>}
+
+                {/* Save Address Checkbox - only for logged-in users */}
+                {isLoggedIn && (
+                  <div className={styles.checkboxGroup}>
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={saveThisAddress}
+                        onChange={(e) => setSaveThisAddress(e.target.checked)}
+                        className={styles.checkbox}
+                      />
+                      <span>{t('save_this_address', 'Save this address for future orders')}</span>
+                    </label>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
 
         {/* Continue Button */}
         <div className={styles.actions}>
-          <button
-            onClick={() => router.back()}
-            className={styles.backButton}
-            disabled={savingAddress}
-          >
+          <button onClick={() => router.back()} className={styles.backButton} disabled={savingAddress}>
             {t('back', 'Back')}
           </button>
-          <button
-            onClick={handleContinue}
-            disabled={!selectedType || savingAddress}
-            className={styles.continueButton}
-          >
+          <button onClick={handleContinue} disabled={!selectedType || savingAddress} className={styles.continueButton}>
             {savingAddress ? t('saving', 'Saving...') : t('continue', 'Continue')}
             {!savingAddress && <ChevronRight size={20} />}
           </button>

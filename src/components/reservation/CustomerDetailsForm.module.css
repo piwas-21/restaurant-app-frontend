@@ -38,14 +38,14 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .input,
-[data-theme="dark"] .textarea {
+[data-theme='dark'] .input,
+[data-theme='dark'] .textarea {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-[data-theme="dark"] .input:focus,
-[data-theme="dark"] .textarea:focus {
+[data-theme='dark'] .input:focus,
+[data-theme='dark'] .textarea:focus {
   border-color: #f4c430;
   background: rgba(255, 255, 255, 0.08);
 }

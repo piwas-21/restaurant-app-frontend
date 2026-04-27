@@ -55,9 +55,7 @@ export default function TableDetailsModal({
     }
   };
 
-  const activeOrders = orders.filter(
-    order => !['Completed', 'Cancelled'].includes(order.status)
-  );
+  const activeOrders = orders.filter((order) => !['Completed', 'Cancelled'].includes(order.status));
 
   const handleCloseTable = async () => {
     try {
@@ -122,32 +120,21 @@ export default function TableDetailsModal({
         </div>
 
         <div className={styles.content}>
-          {error && (
-            <div className={styles.errorBanner}>{error}</div>
-          )}
+          {error && <div className={styles.errorBanner}>{error}</div>}
 
           {/* Table Actions */}
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>
-              {t('server.actions', 'Actions')}
-            </h3>
+            <h3 className={styles.sectionTitle}>{t('server.actions', 'Actions')}</h3>
             <div className={styles.actionButtons}>
               {table.status !== 'closed' && (
-                <button
-                  className={styles.takeOrderButton}
-                  onClick={onTakeOrder}
-                >
+                <button className={styles.takeOrderButton} onClick={onTakeOrder}>
                   🍽️ {t('server.take_order', 'Take Order')}
                 </button>
               )}
 
               {/* Mark as Available button for reserved tables */}
               {table.status === 'reserved' && (
-                <button
-                  className={styles.releaseTableButton}
-                  onClick={handleReleaseTable}
-                  disabled={isUpdating}
-                >
+                <button className={styles.releaseTableButton} onClick={handleReleaseTable} disabled={isUpdating}>
                   {isUpdating ? '...' : '✅'} {t('server.mark_available', 'Mark as Available')}
                 </button>
               )}
@@ -166,7 +153,7 @@ export default function TableDetailsModal({
                       if (result.totalProcessed > 0) {
                         console.log(
                           `Processed ${result.totalProcessed} orders for table ${table.tableNumber}: ` +
-                          `${result.completedCount} completed, ${result.cancelledCount} cancelled`
+                            `${result.completedCount} completed, ${result.cancelledCount} cancelled`,
                         );
                       }
 
@@ -192,11 +179,7 @@ export default function TableDetailsModal({
               )}
 
               {table.status === 'closed' ? (
-                <button
-                  className={styles.openTableButton}
-                  onClick={handleOpenTable}
-                  disabled={isUpdating}
-                >
+                <button className={styles.openTableButton} onClick={handleOpenTable} disabled={isUpdating}>
                   {isUpdating ? '...' : '🔓'} {t('server.open_table', 'Open Table')}
                 </button>
               ) : (
@@ -219,19 +202,17 @@ export default function TableDetailsModal({
 
           {/* Table Info */}
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>
-              {t('server.table_info', 'Table Information')}
-            </h3>
+            <h3 className={styles.sectionTitle}>{t('server.table_info', 'Table Information')}</h3>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t('server.capacity', 'Capacity')}</span>
-                <span className={styles.infoValue}>👥 {table.maxGuests} {t('server.guests', 'guests')}</span>
+                <span className={styles.infoValue}>
+                  👥 {table.maxGuests} {t('server.guests', 'guests')}
+                </span>
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t('server.location', 'Location')}</span>
-                <span className={styles.infoValue}>
-                  {table.isOutdoor ? '🌳 Outdoor' : '🏠 Indoor'}
-                </span>
+                <span className={styles.infoValue}>{table.isOutdoor ? '🌳 Outdoor' : '🏠 Indoor'}</span>
               </div>
               {table.notes && (
                 <div className={styles.infoItem}>
@@ -245,21 +226,20 @@ export default function TableDetailsModal({
           {/* Upcoming Reservation */}
           {table.upcomingReservation && (
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>
-                🗓️ {t('server.upcoming_reservation', 'Upcoming Reservation')}
-              </h3>
+              <h3 className={styles.sectionTitle}>🗓️ {t('server.upcoming_reservation', 'Upcoming Reservation')}</h3>
               <div className={styles.reservationCard}>
                 <div className={styles.reservationTime}>
-                  {table.upcomingReservation.startTime.substring(0, 5)} - {table.upcomingReservation.endTime.substring(0, 5)}
+                  {table.upcomingReservation.startTime.substring(0, 5)} -{' '}
+                  {table.upcomingReservation.endTime.substring(0, 5)}
                 </div>
                 <div className={styles.reservationDetails}>
                   <span>👤 {table.upcomingReservation.customerName}</span>
-                  <span>👥 {table.upcomingReservation.numberOfGuests} {t('server.guests', 'guests')}</span>
+                  <span>
+                    👥 {table.upcomingReservation.numberOfGuests} {t('server.guests', 'guests')}
+                  </span>
                 </div>
                 {table.upcomingReservation.specialRequests && (
-                  <div className={styles.reservationNotes}>
-                    📝 {table.upcomingReservation.specialRequests}
-                  </div>
+                  <div className={styles.reservationNotes}>📝 {table.upcomingReservation.specialRequests}</div>
                 )}
               </div>
             </div>
@@ -271,12 +251,10 @@ export default function TableDetailsModal({
               📋 {t('server.active_orders', 'Active Orders')} ({activeOrders.length})
             </h3>
             {activeOrders.length === 0 ? (
-              <div className={styles.emptyOrders}>
-                {t('server.no_orders_table', 'No active orders for this table')}
-              </div>
+              <div className={styles.emptyOrders}>{t('server.no_orders_table', 'No active orders for this table')}</div>
             ) : (
               <div className={styles.ordersList}>
-                {activeOrders.map(order => (
+                {activeOrders.map((order) => (
                   <div key={order.id} className={styles.orderItem}>
                     <div className={styles.orderHeader}>
                       <span className={styles.orderNumber}>#{order.orderNumber}</span>
@@ -285,7 +263,9 @@ export default function TableDetailsModal({
                     <div className={styles.orderItems}>
                       {order.items.map((item, idx) => (
                         <div key={idx} className={styles.orderItemLine}>
-                          <span>{item.quantity}× {item.productName}</span>
+                          <span>
+                            {item.quantity}× {item.productName}
+                          </span>
                         </div>
                       ))}
                     </div>

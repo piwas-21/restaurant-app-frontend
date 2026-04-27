@@ -73,15 +73,9 @@ export async function addItemToBasket(item: AddToBasketDto): Promise<BasketDto> 
  * @param updates - Updated quantity and/or special instructions
  * @returns Updated basket
  */
-export async function updateBasketItem(
-  basketItemId: string,
-  updates: UpdateBasketItemDto
-): Promise<BasketDto> {
+export async function updateBasketItem(basketItemId: string, updates: UpdateBasketItemDto): Promise<BasketDto> {
   try {
-    const response = await apiClient.put<BasketDtoApiResponse>(
-      `/api/Basket/items/${basketItemId}`,
-      updates
-    );
+    const response = await apiClient.put<BasketDtoApiResponse>(`/api/Basket/items/${basketItemId}`, updates);
     if (!response.data) {
       throw new Error('Failed to update basket item');
     }
@@ -101,9 +95,7 @@ export async function updateBasketItem(
  */
 export async function removeItemFromBasket(basketItemId: string): Promise<BasketDto> {
   try {
-    const response = await apiClient.delete<BasketDtoApiResponse>(
-      `/api/Basket/items/${basketItemId}`
-    );
+    const response = await apiClient.delete<BasketDtoApiResponse>(`/api/Basket/items/${basketItemId}`);
     if (!response.data) {
       throw new Error('Failed to remove item from basket');
     }
@@ -144,10 +136,7 @@ export async function clearBasket(): Promise<BasketDto> {
 export async function applyPromoCode(promoCode: string): Promise<BasketDto> {
   try {
     const request: ApplyPromoCodeRequest = { promoCode };
-    const response = await apiClient.post<BasketDtoApiResponse>(
-      '/api/Basket/promo-code',
-      request
-    );
+    const response = await apiClient.post<BasketDtoApiResponse>('/api/Basket/promo-code', request);
     if (!response.data) {
       throw new Error('Failed to apply promo code');
     }

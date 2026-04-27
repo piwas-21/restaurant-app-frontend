@@ -28,7 +28,7 @@ export function exportReservationsToCSV(reservations: ReservationDto[], filename
   ];
 
   // Convert reservations to CSV rows
-  const rows = reservations.map(reservation => [
+  const rows = reservations.map((reservation) => [
     reservation.id,
     reservation.customerName,
     reservation.customerEmail,
@@ -45,10 +45,7 @@ export function exportReservationsToCSV(reservations: ReservationDto[], filename
   ]);
 
   // Combine headers and rows
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
-  ].join('\n');
+  const csvContent = [headers.join(','), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))].join('\n');
 
   // Create blob and download
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -167,9 +164,10 @@ export function exportReservationsToPDF(reservations: ReservationDto[], filename
             </tr>
           </thead>
           <tbody>
-            ${reservations.map(reservation => {
-              const statusClass = `status-${reservationService.getStatusLabel(reservation.status).toLowerCase().replace(' ', '')}`;
-              return `
+            ${reservations
+              .map((reservation) => {
+                const statusClass = `status-${reservationService.getStatusLabel(reservation.status).toLowerCase().replace(' ', '')}`;
+                return `
                 <tr>
                   <td><strong>${reservation.customerName}</strong></td>
                   <td>
@@ -186,15 +184,20 @@ export function exportReservationsToPDF(reservations: ReservationDto[], filename
                     </span>
                   </td>
                 </tr>
-                ${reservation.specialRequests ? `
+                ${
+                  reservation.specialRequests
+                    ? `
                   <tr>
                     <td colspan="7" style="background: #f9fafb; font-size: 12px; color: #666;">
                       <strong>Special Requests:</strong> ${reservation.specialRequests}
                     </td>
                   </tr>
-                ` : ''}
+                `
+                    : ''
+                }
               `;
-            }).join('')}
+              })
+              .join('')}
           </tbody>
         </table>
       </body>
@@ -219,11 +222,11 @@ export function exportReservationsToPDF(reservations: ReservationDto[], filename
  */
 export function getReservationStatistics(reservations: ReservationDto[]) {
   const total = reservations.length;
-  const pending = reservations.filter(r => r.status === ReservationStatus.Pending).length;
-  const confirmed = reservations.filter(r => r.status === ReservationStatus.Confirmed).length;
-  const cancelled = reservations.filter(r => r.status === ReservationStatus.Cancelled).length;
-  const completed = reservations.filter(r => r.status === ReservationStatus.Completed).length;
-  const noShow = reservations.filter(r => r.status === ReservationStatus.NoShow).length;
+  const pending = reservations.filter((r) => r.status === ReservationStatus.Pending).length;
+  const confirmed = reservations.filter((r) => r.status === ReservationStatus.Confirmed).length;
+  const cancelled = reservations.filter((r) => r.status === ReservationStatus.Cancelled).length;
+  const completed = reservations.filter((r) => r.status === ReservationStatus.Completed).length;
+  const noShow = reservations.filter((r) => r.status === ReservationStatus.NoShow).length;
 
   const totalGuests = reservations.reduce((sum, r) => sum + r.numberOfGuests, 0);
   const avgGuests = total > 0 ? (totalGuests / total).toFixed(1) : '0';

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -60,20 +60,22 @@ export default function MyOrders() {
         status: order.status as OrderStatus,
         totalAmount: order.total,
         orderType: order.type,
-        items: order.items.map(item => ({
+        items: order.items.map((item) => ({
           id: item.id,
           name: item.productName || item.menuName || 'Unknown Item',
           quantity: item.quantity,
           price: item.unitPrice,
         })),
-        deliveryAddress: order.deliveryAddress ? {
-          addressLine1: order.deliveryAddress.addressLine1,
-          addressLine2: order.deliveryAddress.addressLine2,
-          city: order.deliveryAddress.city,
-          state: order.deliveryAddress.state,
-          postalCode: order.deliveryAddress.postalCode,
-          country: order.deliveryAddress.country,
-        } : undefined,
+        deliveryAddress: order.deliveryAddress
+          ? {
+              addressLine1: order.deliveryAddress.addressLine1,
+              addressLine2: order.deliveryAddress.addressLine2,
+              city: order.deliveryAddress.city,
+              state: order.deliveryAddress.state,
+              postalCode: order.deliveryAddress.postalCode,
+              country: order.deliveryAddress.country,
+            }
+          : undefined,
       }));
 
       setOrderHistory(transformedOrders);
@@ -86,7 +88,7 @@ export default function MyOrders() {
   };
 
   const toggleOrderDetails = (orderId: string) => {
-    setExpandedOrderId(prevId => (prevId === orderId ? null : orderId));
+    setExpandedOrderId((prevId) => (prevId === orderId ? null : orderId));
   };
 
   const formatDate = (dateString: string) => {
@@ -95,21 +97,29 @@ export default function MyOrders() {
     }
     try {
       return new Date(dateString).toLocaleDateString(i18n.language, {
-        year: 'numeric', month: '2-digit', day: '2-digit'
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
       });
     } catch {
       return new Date(dateString).toLocaleDateString(undefined, {
-        year: 'numeric', month: '2-digit', day: '2-digit'
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
       });
     }
   };
 
   const getOrderTypeTranslationKey = (orderType: string): string => {
     switch (orderType) {
-      case 'DineIn': return 'order_type_dine_in';
-      case 'Takeaway': return 'order_type_takeaway';
-      case 'Delivery': return 'order_type_delivery';
-      default: return `order_type_${orderType.toLowerCase()}`;
+      case 'DineIn':
+        return 'order_type_dine_in';
+      case 'Takeaway':
+        return 'order_type_takeaway';
+      case 'Delivery':
+        return 'order_type_delivery';
+      default:
+        return `order_type_${orderType.toLowerCase()}`;
     }
   };
 
@@ -143,7 +153,7 @@ export default function MyOrders() {
           <p className={styles.emptyMessage}>{t('no_orders_history_message', 'You have no past orders to display.')}</p>
         ) : (
           <ul className={styles.orderHistoryList}>
-            {orderHistory.map(order => (
+            {orderHistory.map((order) => (
               <React.Fragment key={order.id}>
                 <li className={styles.orderHistoryItem}>
                   <div>
@@ -152,11 +162,15 @@ export default function MyOrders() {
                   </div>
                   <div>
                     <span className={styles.orderDetailLabel}>{t('order_type_label', 'Type')}</span>
-                    <span className={styles.orderDetailValue}>{t(getOrderTypeTranslationKey(order.orderType), order.orderType)}</span>
+                    <span className={styles.orderDetailValue}>
+                      {t(getOrderTypeTranslationKey(order.orderType), order.orderType)}
+                    </span>
                   </div>
                   <div>
                     <span className={styles.orderDetailLabel}>{t('order_status_label', 'Status')}</span>
-                    <span className={styles.orderDetailValue}>{t(getOrderStatusTranslationKey(order.status), order.status)}</span>
+                    <span className={styles.orderDetailValue}>
+                      {t(getOrderStatusTranslationKey(order.status), order.status)}
+                    </span>
                   </div>
                   <div>
                     <span className={styles.orderDetailLabel}>{t('order_total_label', 'Total')}</span>
@@ -169,7 +183,9 @@ export default function MyOrders() {
                       aria-expanded={expandedOrderId === order.id}
                       aria-controls={`order-details-${order.id}`}
                     >
-                      {expandedOrderId === order.id ? t('hide_details_button', 'Hide Details') : t('view_order_details_button', 'View Details')}
+                      {expandedOrderId === order.id
+                        ? t('hide_details_button', 'Hide Details')
+                        : t('view_order_details_button', 'View Details')}
                     </button>
                   </div>
                 </li>
@@ -187,7 +203,7 @@ export default function MyOrders() {
                           </tr>
                         </thead>
                         <tbody>
-                          {order.items.map(item => (
+                          {order.items.map((item) => (
                             <tr key={item.id}>
                               <td>{item.name}</td>
                               <td>{item.quantity}</td>

@@ -127,17 +127,11 @@ export default function TableLayoutEditorPage() {
       const clampedX = Math.max(0, Math.min(CANVAS_WIDTH, pixelX));
       const clampedY = Math.max(0, Math.min(CANVAS_HEIGHT, pixelY));
 
-      setTables(prev =>
-        prev.map(t =>
-          t.id === draggingTable
-            ? { ...t, positionX: clampedX, positionY: clampedY }
-            : t
-        )
+      setTables((prev) =>
+        prev.map((t) => (t.id === draggingTable ? { ...t, positionX: clampedX, positionY: clampedY } : t)),
       );
-      setSelectedTable(prev =>
-        prev && prev.id === draggingTable
-          ? { ...prev, positionX: clampedX, positionY: clampedY }
-          : prev
+      setSelectedTable((prev) =>
+        prev && prev.id === draggingTable ? { ...prev, positionX: clampedX, positionY: clampedY } : prev,
       );
     } else if (draggingEntrance) {
       const rect = canvas.getBoundingClientRect();
@@ -200,7 +194,7 @@ export default function TableLayoutEditorPage() {
     e.stopPropagation();
 
     const canvas = canvasRef.current;
-    const table = tables.find(t => t.id === tableId);
+    const table = tables.find((t) => t.id === tableId);
     if (!canvas || !table) return;
 
     const rect = canvas.getBoundingClientRect();
@@ -225,7 +219,7 @@ export default function TableLayoutEditorPage() {
 
   const handleRotationMove = (e: React.MouseEvent) => {
     const canvas = canvasRef.current;
-    const table = tables.find(t => t.id === rotatingTable);
+    const table = tables.find((t) => t.id === rotatingTable);
     if (!canvas || !table || !rotatingTable) return;
 
     const rect = canvas.getBoundingClientRect();
@@ -249,22 +243,16 @@ export default function TableLayoutEditorPage() {
     while (newRotation >= 360) newRotation -= 360;
 
     // Update table rotation
-    setTables(prev =>
-      prev.map(t =>
-        t.id === rotatingTable ? { ...t, rotation: Math.round(newRotation) } : t
-      )
-    );
-    setSelectedTable(prev =>
-      prev && prev.id === rotatingTable
-        ? { ...prev, rotation: Math.round(newRotation) }
-        : prev
+    setTables((prev) => prev.map((t) => (t.id === rotatingTable ? { ...t, rotation: Math.round(newRotation) } : t)));
+    setSelectedTable((prev) =>
+      prev && prev.id === rotatingTable ? { ...prev, rotation: Math.round(newRotation) } : prev,
     );
   };
 
   const handleRotationEnd = async () => {
     if (!rotatingTable) return;
 
-    const table = tables.find(t => t.id === rotatingTable);
+    const table = tables.find((t) => t.id === rotatingTable);
     if (table) {
       try {
         // Save the final rotation to backend
@@ -285,7 +273,7 @@ export default function TableLayoutEditorPage() {
       const tableLayoutService = (await import('@/services/tableLayoutService')).tableLayoutService;
 
       // Find the current table to get all required fields
-      const currentTable = tables.find(t => t.id === tableId);
+      const currentTable = tables.find((t) => t.id === tableId);
       if (!currentTable) {
         throw new Error(t('table_not_found', 'Table not found'));
       }
@@ -308,9 +296,7 @@ export default function TableLayoutEditorPage() {
       const updatedTable = await tableLayoutService.updateTable(tableId, updateData);
 
       // Update the table in the local state
-      setTables(prev =>
-        prev.map(table => table.id === tableId ? { ...table, ...updatedTable } : table)
-      );
+      setTables((prev) => prev.map((table) => (table.id === tableId ? { ...table, ...updatedTable } : table)));
 
       showMessage('success', t('table_updated_successfully', 'Table updated successfully'));
     } catch (error: any) {
@@ -332,29 +318,17 @@ export default function TableLayoutEditorPage() {
       const result = await generateTableQRCode(qrModalTable.id);
       const updatedData = {
         qrCodeData: result.qrCodeData,
-        qrCodeGeneratedAt: result.qrCodeGeneratedAt
+        qrCodeGeneratedAt: result.qrCodeGeneratedAt,
       };
 
       // Update tables array
-      setTables(prev =>
-        prev.map(t =>
-          t.id === qrModalTable.id
-            ? { ...t, ...updatedData }
-            : t
-        )
-      );
+      setTables((prev) => prev.map((t) => (t.id === qrModalTable.id ? { ...t, ...updatedData } : t)));
 
       // Update modal table
-      setQRModalTable(prev =>
-        prev ? { ...prev, ...updatedData } : null
-      );
+      setQRModalTable((prev) => (prev ? { ...prev, ...updatedData } : null));
 
       // Update selected table to keep it in sync
-      setSelectedTable(prev =>
-        prev && prev.id === qrModalTable.id
-          ? { ...prev, ...updatedData }
-          : prev
-      );
+      setSelectedTable((prev) => (prev && prev.id === qrModalTable.id ? { ...prev, ...updatedData } : prev));
 
       showMessage('success', t('qr_code_generated_successfully', 'QR code generated successfully!'));
     } catch (error: any) {
@@ -376,11 +350,7 @@ export default function TableLayoutEditorPage() {
     <AdminAuthGuard>
       <div className={styles.container}>
         {/* Message Toast */}
-        {message && (
-          <div className={`${styles.message} ${styles[message.type]}`}>
-            {message.text}
-          </div>
-        )}
+        {message && <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>}
 
         {/* Header */}
         <TableLayoutHeader
@@ -462,7 +432,7 @@ export default function TableLayoutEditorPage() {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onCreateTable={handleCreateTable}
-          existingTableNumbers={tables.map(t => t.tableNumber)}
+          existingTableNumbers={tables.map((t) => t.tableNumber)}
           canvasWidth={CANVAS_WIDTH}
           canvasHeight={CANVAS_HEIGHT}
         />

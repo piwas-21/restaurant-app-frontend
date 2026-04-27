@@ -50,7 +50,7 @@ const ProductDetailsPage = () => {
 
       // Use type parameter to determine which API to call
       if (type === 'menu') {
-        response = await getMenuBundleById(productId) as { success: boolean; data?: any; message?: string };
+        response = (await getMenuBundleById(productId)) as { success: boolean; data?: any; message?: string };
         if (response.success && response.data) {
           setProduct(response.data);
           setIsMenuBundle(true);
@@ -59,7 +59,7 @@ const ProductDetailsPage = () => {
         }
       } else {
         // Default to product API
-        response = await getProductById(productId) as { success: boolean; data?: any; message?: string };
+        response = (await getProductById(productId)) as { success: boolean; data?: any; message?: string };
         if (response.success && response.data) {
           setProduct(response.data);
           setIsMenuBundle(response.data.type === 'menu');
@@ -82,9 +82,9 @@ const ProductDetailsPage = () => {
     if (product) {
       let response;
       if (isMenuBundle) {
-        response = await deleteMenuBundle(product.id) as { success: boolean; message?: string; data?: string };
+        response = (await deleteMenuBundle(product.id)) as { success: boolean; message?: string; data?: string };
       } else {
-        response = await deleteProduct(product.id) as { success: boolean; message?: string; data?: string };
+        response = (await deleteProduct(product.id)) as { success: boolean; message?: string; data?: string };
       }
 
       setIsConfirmationOpen(false);
@@ -101,25 +101,34 @@ const ProductDetailsPage = () => {
     fetchProductData();
   };
 
-  if (isLoading) return <div className={styles.adminContainer}><p>{t('loading_product_details')}</p></div>;
-  if (error) return <div className={styles.adminContainer}><p className={styles.error}>{error}</p></div>;
-  if (!product) return <div className={styles.adminContainer}><p>{t('product_not_found')}</p></div>;
+  if (isLoading)
+    return (
+      <div className={styles.adminContainer}>
+        <p>{t('loading_product_details')}</p>
+      </div>
+    );
+  if (error)
+    return (
+      <div className={styles.adminContainer}>
+        <p className={styles.error}>{error}</p>
+      </div>
+    );
+  if (!product)
+    return (
+      <div className={styles.adminContainer}>
+        <p>{t('product_not_found')}</p>
+      </div>
+    );
 
   return (
     <>
       <div className={styles.adminContainer}>
         <PageHeader title={product.name}>
           <div className={styles.pageActions}>
-            <button
-              className={`${styles.adminButton} ${styles.edit}`}
-              onClick={() => setIsEditModalOpen(true)}
-            >
+            <button className={`${styles.adminButton} ${styles.edit}`} onClick={() => setIsEditModalOpen(true)}>
               {isMenuBundle ? t('edit_menu_bundle') : t('edit_product')}
             </button>
-            <button
-              className={`${styles.adminButton} ${styles.delete}`}
-              onClick={() => setIsConfirmationOpen(true)}
-            >
+            <button className={`${styles.adminButton} ${styles.delete}`} onClick={() => setIsConfirmationOpen(true)}>
               {isMenuBundle ? t('delete_menu_bundle') : t('delete_product')}
             </button>
           </div>
@@ -148,11 +157,7 @@ const ProductDetailsPage = () => {
               />
             </div>
             <div className={detailsStyles.sidebar}>
-              <ImageGallery
-                images={product.images || []}
-                productName={product.name}
-                onImageUpdate={fetchProductData}
-              />
+              <ImageGallery images={product.images || []} productName={product.name} onImageUpdate={fetchProductData} />
             </div>
           </div>
         )}

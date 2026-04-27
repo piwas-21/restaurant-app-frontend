@@ -19,7 +19,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Loader
+  Loader,
 } from 'lucide-react';
 import { getEventsDiagnostics } from '@/services/cashierService';
 import { SseDiagnostics, LogEntry, RecentError } from '@/types/diagnostics';
@@ -55,7 +55,7 @@ export default function CashierDiagnostics({
   onTestSound,
   onEnableAudio,
   onRefreshConnection,
-  onClose
+  onClose,
 }: CashierDiagnosticsProps) {
   const { t } = useTranslation();
 
@@ -102,10 +102,14 @@ export default function CashierDiagnostics({
 
   const getConnectionStatusClass = () => {
     switch (sseConnectionState) {
-      case 'connected': return styles.badgeConnected;
-      case 'connecting': return styles.badgeConnecting;
-      case 'error': return styles.badgeError;
-      default: return '';
+      case 'connected':
+        return styles.badgeConnected;
+      case 'connecting':
+        return styles.badgeConnecting;
+      case 'error':
+        return styles.badgeError;
+      default:
+        return '';
     }
   };
 
@@ -172,20 +176,24 @@ export default function CashierDiagnostics({
         {/* Real-time Connection */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <div className={`${styles.dot} ${
-              sseConnectionState === 'connected' ? styles.dotConnected :
-              sseConnectionState === 'connecting' ? styles.dotConnecting :
-              sseConnectionState === 'error' ? styles.dotError : styles.dotInactive
-            }`} />
+            <div
+              className={`${styles.dot} ${
+                sseConnectionState === 'connected'
+                  ? styles.dotConnected
+                  : sseConnectionState === 'connecting'
+                    ? styles.dotConnecting
+                    : sseConnectionState === 'error'
+                      ? styles.dotError
+                      : styles.dotInactive
+              }`}
+            />
             <h4 className={styles.sectionTitle}>{t('real_time_connection') || 'Real-time Connection'}</h4>
           </div>
 
           <div className={styles.infoCard}>
             <div className={styles.row}>
               <span className={styles.label}>{t('status') || 'Status'}</span>
-              <span className={`${styles.badge} ${getConnectionStatusClass()}`}>
-                {sseConnectionState}
-              </span>
+              <span className={`${styles.badge} ${getConnectionStatusClass()}`}>{sseConnectionState}</span>
             </div>
             <div className={styles.row}>
               <span className={styles.label}>{t('last_activity') || 'Last Activity'}</span>
@@ -245,9 +253,7 @@ export default function CashierDiagnostics({
                     <Users size={14} style={{ marginRight: '6px' }} />
                     Total Clients
                   </span>
-                  <span className={`${styles.badge} ${styles.badgeConnected}`}>
-                    {serverDiagnostics.totalClients}
-                  </span>
+                  <span className={`${styles.badge} ${styles.badgeConnected}`}>{serverDiagnostics.totalClients}</span>
                 </div>
                 <div className={styles.clientBreakdown}>
                   <span className={styles.clientType}>Kitchen: {serverDiagnostics.kitchenClients}</span>
@@ -267,7 +273,10 @@ export default function CashierDiagnostics({
                     <XCircle size={14} style={{ marginRight: '6px', color: '#f44336' }} />
                     Failed Sends
                   </span>
-                  <span className={styles.value} style={{ color: serverDiagnostics.totalFailedSends > 0 ? '#f44336' : 'inherit' }}>
+                  <span
+                    className={styles.value}
+                    style={{ color: serverDiagnostics.totalFailedSends > 0 ? '#f44336' : 'inherit' }}
+                  >
                     {serverDiagnostics.totalFailedSends}
                   </span>
                 </div>
@@ -318,7 +327,9 @@ export default function CashierDiagnostics({
                           <span className={styles.errorType}>{error.errorType}</span>
                         </div>
                         <div className={styles.errorDetails}>
-                          <span>{error.clientType} client from {error.country}</span>
+                          <span>
+                            {error.clientType} client from {error.country}
+                          </span>
                           <span className={styles.errorMessage}>{error.message}</span>
                         </div>
                       </div>
@@ -330,16 +341,10 @@ export default function CashierDiagnostics({
               {/* Auto-refresh toggle */}
               <div className={styles.row} style={{ marginTop: '12px' }}>
                 <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
                   Auto-refresh every 5s
                 </label>
-                <span className={styles.timestamp}>
-                  Updated: {formatTimestamp(serverDiagnostics.timestamp)}
-                </span>
+                <span className={styles.timestamp}>Updated: {formatTimestamp(serverDiagnostics.timestamp)}</span>
               </div>
             </>
           )}
@@ -348,10 +353,11 @@ export default function CashierDiagnostics({
         {/* Audio Status */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <div className={`${styles.dot} ${
-              audioReady ? styles.dotConnected :
-              audioBlockedByPolicy ? styles.dotConnecting : styles.dotInactive
-            }`} />
+            <div
+              className={`${styles.dot} ${
+                audioReady ? styles.dotConnected : audioBlockedByPolicy ? styles.dotConnecting : styles.dotInactive
+              }`}
+            />
             <h4 className={styles.sectionTitle}>{t('notification_sound') || 'Notification Sound'}</h4>
           </div>
 
@@ -395,8 +401,11 @@ export default function CashierDiagnostics({
               <ul className={styles.tipsList}>
                 {audioBlockedByPolicy && (
                   <>
-                    <li>{t('click_or_interact_with_the_page_to_allow_audio') || 'Click or interact with the page to allow audio.'}</li>
-                    <li>{t('check_your_browsers_autoplay_settings') || 'Check your browser\'s autoplay settings.'}</li>
+                    <li>
+                      {t('click_or_interact_with_the_page_to_allow_audio') ||
+                        'Click or interact with the page to allow audio.'}
+                    </li>
+                    <li>{t('check_your_browsers_autoplay_settings') || "Check your browser's autoplay settings."}</li>
                   </>
                 )}
                 {sseConnectionState === 'error' && (

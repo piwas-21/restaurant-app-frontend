@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useCookieConsent } from './CookieConsentContext';
@@ -17,7 +17,7 @@ export default function CookieConsentBanner() {
 
   // Also don't show if still loading initial consent state, unless it's determined that preferences is null
   if (isConsentPending && consent.preferences !== null) {
-      return null;
+    return null;
   }
 
   // Only show when consent is loaded (isConsentPending is false) AND preferences is still null
@@ -29,7 +29,10 @@ export default function CookieConsentBanner() {
     <div className={styles.bannerContainer}>
       <div className={styles.bannerContent}>
         <p className={styles.bannerText}>
-          {t('cookie_consent_banner_text', 'We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies. For now, this only includes remembering your language preference.')}
+          {t(
+            'cookie_consent_banner_text',
+            'We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies. For now, this only includes remembering your language preference.',
+          )}
         </p>
         <div className={styles.bannerActions}>
           <button onClick={acceptPreferences} className={`${styles.bannerButton} ${styles.acceptButton}`}>

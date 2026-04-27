@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ export default function CartPage() {
   const { state, removeItem, updateItem, applyPromoCode, removePromoCode, getTotal, getItemCount } = useCart();
   const { hasTableContext } = useTableContext();
   const { t, i18n } = useTranslation();
-  const currentLanguage = (i18n.language?.split("-")[0] || "en") as string;
+  const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const [promoCode, setPromoCode] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [editingInstructions, setEditingInstructions] = useState<string | null>(null);
@@ -84,7 +84,9 @@ export default function CartPage() {
   if (state.items.length === 0) {
     return (
       <main className={styles.cartContainer} aria-labelledby="cart-heading">
-        <h1 id="cart-heading" className={styles.pageTitle}>{t('cart_title', 'Your Cart')}</h1>
+        <h1 id="cart-heading" className={styles.pageTitle}>
+          {t('cart_title', 'Your Cart')}
+        </h1>
         <div className={styles.emptyCartContainer}>
           <ShoppingCart className={styles.emptyCartIcon} size={64} />
           <p className={styles.emptyCartMessage}>{t('cart_empty_message', 'Your cart is empty')}</p>
@@ -98,7 +100,9 @@ export default function CartPage() {
 
   return (
     <main className={styles.cartContainer} aria-labelledby="cart-heading">
-      <h1 id="cart-heading" className={styles.pageTitle}>{t('cart_title', 'Your Cart')}</h1>
+      <h1 id="cart-heading" className={styles.pageTitle}>
+        {t('cart_title', 'Your Cart')}
+      </h1>
 
       {/* Loading State */}
       {state.isLoading && (
@@ -120,9 +124,8 @@ export default function CartPage() {
         <div className={styles.cartItemsList}>
           {state.items.map((item) => {
             const itemId = item.basketItemId || item.id || item.productId;
-            const variationName = item.variationContent?.[currentLanguage]?.name ||
-                                  item.variationContent?.en?.name ||
-                                  item.variationName;
+            const variationName =
+              item.variationContent?.[currentLanguage]?.name || item.variationContent?.en?.name || item.variationName;
 
             return (
               <div key={itemId} className={styles.cartItem}>
@@ -155,13 +158,17 @@ export default function CartPage() {
                     </p>
                     {item.customizationPrice != null && item.customizationPrice !== 0 && (
                       <p className={styles.customizationPrice}>
-                        {t('customization_cost', 'Customizations')}: {item.customizationPrice > 0 ? '+' : ''}CHF {item.customizationPrice.toFixed(2)}
+                        {t('customization_cost', 'Customizations')}: {item.customizationPrice > 0 ? '+' : ''}CHF{' '}
+                        {item.customizationPrice.toFixed(2)}
                       </p>
                     )}
                   </div>
 
                   {/* Customizations */}
-                  {(item.selectedIngredientNames?.length || item.excludedIngredientNames?.length || item.selectedSideItems?.length || item.specialInstructions) && (
+                  {(item.selectedIngredientNames?.length ||
+                    item.excludedIngredientNames?.length ||
+                    item.selectedSideItems?.length ||
+                    item.specialInstructions) && (
                     <div className={styles.customizationsContainer}>
                       <h4 className={styles.customizationsTitle}>{t('customizations', 'Customizations')}:</h4>
 
@@ -171,7 +178,10 @@ export default function CartPage() {
                           <span className={styles.customizationValue}>
                             {item.selectedIngredientNames.map((name, idx) => {
                               const ingredientId = item.selectedIngredients?.[idx];
-                              const qty = ingredientId && item.ingredientQuantities?.[ingredientId] ? item.ingredientQuantities[ingredientId] : 1;
+                              const qty =
+                                ingredientId && item.ingredientQuantities?.[ingredientId]
+                                  ? item.ingredientQuantities[ingredientId]
+                                  : 1;
                               return (
                                 <span key={idx}>
                                   {idx > 0 && ', '}
@@ -207,7 +217,9 @@ export default function CartPage() {
 
                       {item.specialInstructions && (
                         <div className={styles.customizationDetail}>
-                          <span className={styles.customizationLabel}>{t('special_requests', 'Special Requests')}:</span>
+                          <span className={styles.customizationLabel}>
+                            {t('special_requests', 'Special Requests')}:
+                          </span>
                           <span className={styles.customizationValue}>{item.specialInstructions}</span>
                         </div>
                       )}
@@ -219,54 +231,57 @@ export default function CartPage() {
                     <div className={styles.instructionsContainer}>
                       {editingInstructions === itemId ? (
                         <div className={styles.instructionsEdit}>
-                        <textarea
-                          value={instructionsValue}
-                          onChange={(e) => setInstructionsValue(e.target.value)}
-                          placeholder={t('special_instructions_placeholder', 'Add special instructions...')}
-                          className={styles.instructionsTextarea}
-                          rows={3}
-                        />
-                        <div className={styles.instructionsActions}>
-                          <button
-                            type="button"
-                            onClick={() => handleSaveInstructions(itemId, item.quantity, instructionsValue)}
-                            className={styles.saveButton}
-                            disabled={state.isSyncing}
-                          >
-                            {t('save', 'Save')}
-                          </button>
+                          <textarea
+                            value={instructionsValue}
+                            onChange={(e) => setInstructionsValue(e.target.value)}
+                            placeholder={t('special_instructions_placeholder', 'Add special instructions...')}
+                            className={styles.instructionsTextarea}
+                            rows={3}
+                          />
+                          <div className={styles.instructionsActions}>
+                            <button
+                              type="button"
+                              onClick={() => handleSaveInstructions(itemId, item.quantity, instructionsValue)}
+                              className={styles.saveButton}
+                              disabled={state.isSyncing}
+                            >
+                              {t('save', 'Save')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingInstructions(null);
+                                setInstructionsValue('');
+                              }}
+                              className={styles.cancelButton}
+                            >
+                              {t('cancel', 'Cancel')}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {item.specialInstructions && (
+                            <p className={styles.instructionsText}>
+                              <strong>{t('special_instructions', 'Special Instructions')}:</strong>{' '}
+                              {item.specialInstructions}
+                            </p>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
-                              setEditingInstructions(null);
-                              setInstructionsValue('');
+                              setEditingInstructions(itemId || null);
+                              setInstructionsValue(item.specialInstructions || '');
                             }}
-                            className={styles.cancelButton}
+                            className={styles.editInstructionsButton}
+                            disabled={state.isSyncing}
                           >
-                            {t('cancel', 'Cancel')}
+                            {item.specialInstructions
+                              ? t('edit_instructions', 'Edit Instructions')
+                              : t('add_instructions', 'Add Instructions')}
                           </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        {item.specialInstructions && (
-                          <p className={styles.instructionsText}>
-                            <strong>{t('special_instructions', 'Special Instructions')}:</strong> {item.specialInstructions}
-                          </p>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingInstructions(itemId || null);
-                            setInstructionsValue(item.specialInstructions || '');
-                          }}
-                          className={styles.editInstructionsButton}
-                          disabled={state.isSyncing}
-                        >
-                          {item.specialInstructions ? t('edit_instructions', 'Edit Instructions') : t('add_instructions', 'Add Instructions')}
-                        </button>
-                      </>
-                    )}
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -312,9 +327,7 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  <p className={styles.itemSubtotal}>
-                    CHF {item.itemTotal.toFixed(2)}
-                  </p>
+                  <p className={styles.itemSubtotal}>CHF {item.itemTotal.toFixed(2)}</p>
 
                   {/* Remove Button */}
                   <button
@@ -350,11 +363,7 @@ export default function CartPage() {
                     -{t('discount', 'Discount')}: CHF {state.basket.discount.toFixed(2)}
                   </span>
                 </div>
-                <button
-                  onClick={handleRemovePromoCode}
-                  className={styles.removePromoButton}
-                  disabled={state.isSyncing}
-                >
+                <button onClick={handleRemovePromoCode} className={styles.removePromoButton} disabled={state.isSyncing}>
                   {t('remove', 'Remove')}
                 </button>
               </div>
@@ -378,11 +387,7 @@ export default function CartPage() {
                   className={styles.applyPromoButton}
                   disabled={state.isSyncing || !promoCode.trim()}
                 >
-                  {isApplyingPromo ? (
-                    <Loader2 className={styles.buttonSpinner} size={16} />
-                  ) : (
-                    t('apply', 'Apply')
-                  )}
+                  {isApplyingPromo ? <Loader2 className={styles.buttonSpinner} size={16} /> : t('apply', 'Apply')}
                 </button>
               </div>
             )}
@@ -411,9 +416,7 @@ export default function CartPage() {
 
             <div className={styles.totalRow}>
               <span>{t('total', 'Total')}:</span>
-              <span className={styles.totalAmount}>
-                CHF {getTotal().toFixed(customerHasDiscount ? 0 : 2)}
-              </span>
+              <span className={styles.totalAmount}>CHF {getTotal().toFixed(customerHasDiscount ? 0 : 2)}</span>
             </div>
           </div>
 

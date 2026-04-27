@@ -4,13 +4,7 @@
  * Defines available payment methods and their properties
  */
 
-import {
-  CreditCard,
-  Wallet,
-  Smartphone,
-  Banknote,
-  Building2,
-} from 'lucide-react';
+import { CreditCard, Wallet, Smartphone, Banknote, Building2 } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
 import type { LucideIcon } from 'lucide-react';
 
@@ -32,7 +26,7 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     icon: Banknote,
     descriptionKey: 'payment_cash_desc',
     description: 'Pay on cashier',
-    disabled: false
+    disabled: false,
   },
   {
     value: PaymentMethod.CreditCard,
@@ -41,7 +35,7 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     icon: CreditCard,
     descriptionKey: 'payment_credit_card_desc',
     description: 'Visa, Mastercard, Amex',
-    disabled: true
+    disabled: true,
   },
   {
     value: PaymentMethod.DebitCard,
@@ -50,7 +44,7 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     icon: Wallet,
     descriptionKey: 'payment_debit_card_desc',
     description: 'EC/Maestro card',
-    disabled: true
+    disabled: true,
   },
   {
     value: PaymentMethod.MobilePayment,
@@ -59,7 +53,7 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     icon: Smartphone,
     descriptionKey: 'payment_mobile_desc',
     description: 'TWINT, Apple Pay, Google Pay',
-    disabled: true
+    disabled: true,
   },
   {
     value: PaymentMethod.OnlinePayment,
@@ -68,7 +62,7 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     icon: CreditCard,
     descriptionKey: 'payment_online_desc',
     description: 'Pay securely online',
-    disabled: true
+    disabled: true,
   },
   {
     value: PaymentMethod.BankTransfer,
@@ -77,6 +71,6 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     icon: Building2,
     descriptionKey: 'payment_bank_transfer_desc',
     description: 'Transfer to our account',
-    disabled: true
+    disabled: true,
   },
 ];

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,11 +16,11 @@ interface PersonalInfoSectionProps {
 }
 
 export default function PersonalInfoSection({
-    profile,
-    profileErrors,
-    profileSuccess,
-    handleProfileChange,
-    handleProfileSave
+  profile,
+  profileErrors,
+  profileSuccess,
+  handleProfileChange,
+  handleProfileSave,
 }: PersonalInfoSectionProps) {
   const { t } = useTranslation();
 
@@ -32,7 +32,14 @@ export default function PersonalInfoSection({
       <form onSubmit={handleProfileSave} noValidate>
         <div className={styles.formGroup}>
           <label htmlFor="fullName">{t('full_name_label', 'Full Name')}</label>
-          <input type="text" id="fullName" name="fullName" value={profile.fullName} onChange={handleProfileChange} className={styles.formInput} />
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            value={profile.fullName}
+            onChange={handleProfileChange}
+            className={styles.formInput}
+          />
           {profileErrors.fullName && <p className={styles.errorMessage}>{profileErrors.fullName}</p>}
         </div>
 
@@ -53,12 +60,21 @@ export default function PersonalInfoSection({
 
         <div className={styles.formGroup}>
           <label htmlFor="phoneNumber">{t('customer_phone_label', 'Phone Number')}</label>
-          <input type="tel" id="phoneNumber" name="phoneNumber" value={profile.phoneNumber} onChange={handleProfileChange} className={styles.formInput} />
+          <input
+            type="tel"
+            id="phoneNumber"
+            name="phoneNumber"
+            value={profile.phoneNumber}
+            onChange={handleProfileChange}
+            className={styles.formInput}
+          />
           {profileErrors.phoneNumber && <p className={styles.errorMessage}>{profileErrors.phoneNumber}</p>}
         </div>
 
         <div className={styles.formActions}>
-          <button type="submit" className={styles.saveButton}>{t('save_changes_button', 'Save Changes')}</button>
+          <button type="submit" className={styles.saveButton}>
+            {t('save_changes_button', 'Save Changes')}
+          </button>
         </div>
       </form>
     </section>

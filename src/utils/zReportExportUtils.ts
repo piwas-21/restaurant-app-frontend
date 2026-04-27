@@ -90,24 +90,32 @@ export const exportZReportToPDF = (report: ZReportDto): void => {
     <div>
       <div class="section">
         <div class="section-title">Sales by Payment Method</div>
-        ${report.paymentsByMethod.length > 0 ? `
+        ${
+          report.paymentsByMethod.length > 0
+            ? `
         <table>
           <thead><tr><th>Method</th><th>Txns</th><th>Amount</th></tr></thead>
           <tbody>
-            ${report.paymentsByMethod.map(pm => `<tr><td>${pm.paymentMethod}</td><td>${pm.transactionCount}</td><td>${formatCurrency(pm.totalAmount)}</td></tr>`).join('')}
+            ${report.paymentsByMethod.map((pm) => `<tr><td>${pm.paymentMethod}</td><td>${pm.transactionCount}</td><td>${formatCurrency(pm.totalAmount)}</td></tr>`).join('')}
           </tbody>
-        </table>` : '<p style="color:#999;font-size:11px;">No payments</p>'}
+        </table>`
+            : '<p style="color:#999;font-size:11px;">No payments</p>'
+        }
       </div>
 
       <div class="section">
         <div class="section-title">Sales by Order Type</div>
-        ${report.salesByOrderType.length > 0 ? `
+        ${
+          report.salesByOrderType.length > 0
+            ? `
         <table>
           <thead><tr><th>Type</th><th>Orders</th><th>Amount</th></tr></thead>
           <tbody>
-            ${report.salesByOrderType.map(ot => `<tr><td>${ot.orderType}</td><td>${ot.orderCount}</td><td>${formatCurrency(ot.totalAmount)}</td></tr>`).join('')}
+            ${report.salesByOrderType.map((ot) => `<tr><td>${ot.orderType}</td><td>${ot.orderCount}</td><td>${formatCurrency(ot.totalAmount)}</td></tr>`).join('')}
           </tbody>
-        </table>` : '<p style="color:#999;font-size:11px;">No orders</p>'}
+        </table>`
+            : '<p style="color:#999;font-size:11px;">No orders</p>'
+        }
       </div>
     </div>
 
@@ -136,20 +144,26 @@ export const exportZReportToPDF = (report: ZReportDto): void => {
         </table>
       </div>
 
-      ${report.salesByProductType.length > 0 ? `
+      ${
+        report.salesByProductType.length > 0
+          ? `
       <div class="section">
         <div class="section-title">Sales by Product Type</div>
         <table>
           <thead><tr><th>Type</th><th>Items</th><th>Amount</th></tr></thead>
           <tbody>
-            ${report.salesByProductType.map(pt => `<tr><td>${pt.productType}</td><td>${pt.itemCount}</td><td>${formatCurrency(pt.totalAmount)}</td></tr>`).join('')}
+            ${report.salesByProductType.map((pt) => `<tr><td>${pt.productType}</td><td>${pt.itemCount}</td><td>${formatCurrency(pt.totalAmount)}</td></tr>`).join('')}
           </tbody>
         </table>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>
   </div>
 
-  ${report.topSellingItems.length > 0 ? `
+  ${
+    report.topSellingItems.length > 0
+      ? `
   <div class="section">
     <div class="section-title">Top Selling Items</div>
     <table>
@@ -158,7 +172,9 @@ export const exportZReportToPDF = (report: ZReportDto): void => {
         ${report.topSellingItems.map((item, i) => `<tr><td style="color:#999">${i + 1}</td><td>${item.productName}</td><td>${item.quantitySold}</td><td>${formatCurrency(item.totalRevenue)}</td></tr>`).join('')}
       </tbody>
     </table>
-  </div>` : ''}
+  </div>`
+      : ''
+  }
 
   <div class="footer">
     Generated: ${formatTimestamp(report.generatedAt)} | Rumi Restaurant Z-Report

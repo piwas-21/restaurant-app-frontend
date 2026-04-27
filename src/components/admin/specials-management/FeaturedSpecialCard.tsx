@@ -12,10 +12,7 @@ interface FeaturedSpecialCardProps {
   onRemoveFeatured: () => void;
 }
 
-const FeaturedSpecialCard: React.FC<FeaturedSpecialCardProps> = ({
-  featuredSpecial,
-  onRemoveFeatured,
-}) => {
+const FeaturedSpecialCard: React.FC<FeaturedSpecialCardProps> = ({ featuredSpecial, onRemoveFeatured }) => {
   const { t } = useTranslation();
 
   if (!featuredSpecial) {
@@ -63,9 +60,7 @@ const FeaturedSpecialCard: React.FC<FeaturedSpecialCardProps> = ({
         <div className={styles.featuredSpecialDetails}>
           <h4>{featuredSpecial.name}</h4>
           {featuredSpecial.description && <p>{featuredSpecial.description}</p>}
-          <div className={styles.featuredSpecialPrice}>
-            CHF {featuredSpecial.basePrice.toFixed(2)}
-          </div>
+          <div className={styles.featuredSpecialPrice}>CHF {featuredSpecial.basePrice.toFixed(2)}</div>
           {featuredSpecial.featuredDate && (
             <div className={styles.featuredSpecialDate}>
               {t('featured_since', 'Featured since')}: {new Date(featuredSpecial.featuredDate).toLocaleDateString()}

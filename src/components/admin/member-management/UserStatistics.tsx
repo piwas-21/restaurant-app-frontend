@@ -38,7 +38,7 @@ const UserStatistics: React.FC = () => {
 
   useEffect(() => {
     fetchStats();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (error) {
@@ -101,9 +101,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ icon, label, value, loading, variant }) => {
   return (
     <div className={styles.statCard}>
-      <div className={`${styles.iconWrapper} ${styles[variant]}`}>
-        {icon}
-      </div>
+      <div className={`${styles.iconWrapper} ${styles[variant]}`}>{icon}</div>
       <div className={styles.statContent}>
         {loading ? (
           <div className={styles.loadingSkeleton} />

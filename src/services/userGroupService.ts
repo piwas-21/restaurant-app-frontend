@@ -10,7 +10,7 @@ import {
   UpdateGroupDiscountDto,
   ValidateQRCodeDto,
   QRCodeValidationResult,
-  ApiResponse
+  ApiResponse,
 } from '@/types/userGroupTypes';
 
 const USER_GROUPS_API_URL = '/api/UserGroup';
@@ -57,11 +57,15 @@ export const getMemberQRCode = async (membershipId: string) => {
 };
 
 export const validateQRCode = async (qrCode: string) => {
-  return await apiClient.post<ApiResponse<QRCodeValidationResult>>(`${USER_GROUPS_API_URL}/validate-qr`, { qrCode } as ValidateQRCodeDto);
+  return await apiClient.post<ApiResponse<QRCodeValidationResult>>(`${USER_GROUPS_API_URL}/validate-qr`, {
+    qrCode,
+  } as ValidateQRCodeDto);
 };
 
 export const calculateDiscount = async (membershipId: string, orderAmount: number) => {
-  return await apiClient.get<ApiResponse<number>>(`${USER_GROUPS_API_URL}/membership/${membershipId}/discount?orderAmount=${orderAmount}`);
+  return await apiClient.get<ApiResponse<number>>(
+    `${USER_GROUPS_API_URL}/membership/${membershipId}/discount?orderAmount=${orderAmount}`,
+  );
 };
 
 // Group Discount Operations

@@ -12,10 +12,7 @@ interface MenuSectionEditorProps {
   onChange: (sections: MenuSection[]) => void;
 }
 
-const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
-  sections,
-  onChange,
-}) => {
+const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChange }) => {
   const { t } = useTranslation();
   const [localSections, setLocalSections] = useState<MenuSection[]>(sections);
   const [hasChanges, setHasChanges] = useState(false);
@@ -52,9 +49,9 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
     };
 
     // Update display orders for existing sections
-    const updatedSections = localSections.map(s => ({
+    const updatedSections = localSections.map((s) => ({
       ...s,
-      displayOrder: s.displayOrder + 1
+      displayOrder: s.displayOrder + 1,
     }));
 
     // Add new section at the beginning
@@ -84,19 +81,13 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
   };
 
   const moveSection = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === localSections.length - 1)
-    ) {
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === localSections.length - 1)) {
       return;
     }
 
     const newSections = [...localSections];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newSections[index], newSections[targetIndex]] = [
-      newSections[targetIndex],
-      newSections[index],
-    ];
+    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
 
     // Update display orders
     newSections.forEach((section, i) => {
@@ -164,9 +155,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
       {localSections.length === 0 ? (
         <div className={styles.emptyState}>
           <p>{t('no_sections_yet')}</p>
-          <p className={styles.helpText}>
-            {t('sections_help')}
-          </p>
+          <p className={styles.helpText}>{t('sections_help')}</p>
         </div>
       ) : (
         <div className={styles.sectionList}>
@@ -183,9 +172,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
               <div className={styles.sectionHeader}>
                 <div className={styles.sectionHeaderLeft}>
                   <span className={styles.dragHandle}>⋮⋮</span>
-                  <h4 className={styles.sectionName}>
-                    {section.name || `${t('section')} ${index + 1}`}
-                  </h4>
+                  <h4 className={styles.sectionName}>{section.name || `${t('section')} ${index + 1}`}</h4>
                 </div>
                 <div className={styles.sectionActions}>
                   <button
@@ -244,9 +231,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                     <label>{t('description')}</label>
                     <textarea
                       value={section.description || ''}
-                      onChange={(e) =>
-                        updateSection(index, { description: e.target.value })
-                      }
+                      onChange={(e) => updateSection(index, { description: e.target.value })}
                       placeholder={t('description_placeholder')}
                       className={`${styles.input} ${styles.textarea}`}
                     />
@@ -260,13 +245,9 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({
                           type="checkbox"
                           id={`required-${section.id}`}
                           checked={section.isRequired}
-                          onChange={(e) =>
-                            updateSection(index, { isRequired: e.target.checked })
-                          }
+                          onChange={(e) => updateSection(index, { isRequired: e.target.checked })}
                         />
-                        <label htmlFor={`required-${section.id}`}>
-                          {t('required_section')}
-                        </label>
+                        <label htmlFor={`required-${section.id}`}>{t('required_section')}</label>
                       </div>
                     </div>
                   </div>

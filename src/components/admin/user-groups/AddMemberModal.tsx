@@ -13,12 +13,7 @@ interface AddMemberModalProps {
   isSubmitting: boolean;
 }
 
-const AddMemberModal: React.FC<AddMemberModalProps> = ({
-  isOpen,
-  onClose,
-  onAddMember,
-  isSubmitting
-}) => {
+const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onAddMember, isSubmitting }) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<UserDto[]>([]);
@@ -98,11 +93,13 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   onClick={() => setSelectedUserId(user.id)}
                   className={modalStyles.userListItem}
                   style={{
-                    backgroundColor: selectedUserId === user.id ? 'var(--success-color-dark)' : 'transparent'
+                    backgroundColor: selectedUserId === user.id ? 'var(--success-color-dark)' : 'transparent',
                   }}
                 >
                   <div>
-                    <div className={modalStyles.userName}>{user.firstName} {user.lastName}</div>
+                    <div className={modalStyles.userName}>
+                      {user.firstName} {user.lastName}
+                    </div>
                     <div className={modalStyles.userEmail}>{user.email}</div>
                   </div>
                   {selectedUserId === user.id && <UserPlus size={18} color="var(--success-color)" />}
@@ -110,9 +107,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               ))}
             </ul>
           ) : searchQuery && !isLoading ? (
-            <div className={modalStyles.emptyState}>
-              {t('no_users_found_matching', { query: searchQuery })}
-            </div>
+            <div className={modalStyles.emptyState}>{t('no_users_found_matching', { query: searchQuery })}</div>
           ) : (
             <div className={modalStyles.emptyState}>
               {t('search_orders')} {/* Reusing search placeholder text */}
@@ -121,18 +116,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
         </div>
 
         <div className={styles.buttonGroup}>
-          <button
-            onClick={handleSubmit}
-            className={styles.submitButton}
-            disabled={!selectedUserId || isSubmitting}
-          >
+          <button onClick={handleSubmit} className={styles.submitButton} disabled={!selectedUserId || isSubmitting}>
             {isSubmitting ? t('saving...') : t('add')}
           </button>
-          <button
-            onClick={onClose}
-            className={styles.cancelButton}
-            disabled={isSubmitting}
-          >
+          <button onClick={onClose} className={styles.cancelButton} disabled={isSubmitting}>
             {t('cancel')}
           </button>
         </div>

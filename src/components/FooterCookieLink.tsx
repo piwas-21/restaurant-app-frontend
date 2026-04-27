@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useCookieConsent } from "./CookieConsentContext";
-import { useTranslation } from "react-i18next";
+import { useCookieConsent } from './CookieConsentContext';
+import { useTranslation } from 'react-i18next';
 
 export default function FooterCookieLink() {
   const { openSettingsModal } = useCookieConsent();
@@ -28,7 +28,7 @@ export default function FooterCookieLink() {
         textDecoration: 'underline',
         cursor: 'pointer',
         padding: '0.5rem 0',
-        fontSize: '0.9rem'
+        fontSize: '0.9rem',
       }}
     >
       {buttonText}

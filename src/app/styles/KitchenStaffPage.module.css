@@ -53,7 +53,7 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .orderCardHeader {
@@ -141,7 +141,10 @@
   background-color: var(--secondary-color);
   color: var(--text-color);
   cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease,
+    border-color 0.2s ease;
   text-transform: uppercase;
   font-weight: bold;
 }
@@ -213,85 +216,85 @@
 }
 
 /* Dark Mode Styles */
-[data-theme="dark"] .container,
-[data-theme="dark"] .header h1,
-[data-theme="dark"] .filterContainer label,
-[data-theme="dark"] .orderCardHeader h3,
-[data-theme="dark"] .orderInfo,
-[data-theme="dark"] .orderNotes strong,
-[data-theme="dark"] .itemName,
-[data-theme="dark"] .noOrdersMessage,
-[data-theme="dark"] .container h2 {
+[data-theme='dark'] .container,
+[data-theme='dark'] .header h1,
+[data-theme='dark'] .filterContainer label,
+[data-theme='dark'] .orderCardHeader h3,
+[data-theme='dark'] .orderInfo,
+[data-theme='dark'] .orderNotes strong,
+[data-theme='dark'] .itemName,
+[data-theme='dark'] .noOrdersMessage,
+[data-theme='dark'] .container h2 {
   color: var(--text-color);
 }
 
-[data-theme="dark"] .select {
+[data-theme='dark'] .select {
   background-color: var(--secondary-color);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-[data-theme="dark"] .orderCard {
+[data-theme='dark'] .orderCard {
   background-color: var(--secondary-color);
   border-color: var(--border-color);
 }
 
-[data-theme="dark"] .orderCardHeader {
+[data-theme='dark'] .orderCardHeader {
   border-bottom-color: var(--border-color);
 }
 
-[data-theme="dark"] .orderNotes {
+[data-theme='dark'] .orderNotes {
   background-color: var(--background-color);
   border-color: var(--border-color);
   color: var(--text-secondary);
 }
 
-[data-theme="dark"] .itemEntry {
+[data-theme='dark'] .itemEntry {
   border-bottom-color: var(--border-color);
 }
 
-[data-theme="dark"] .itemQuantity {
+[data-theme='dark'] .itemQuantity {
   background-color: var(--background-color);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-[data-theme="dark"] .statusButton {
+[data-theme='dark'] .statusButton {
   background-color: var(--secondary-color);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-[data-theme="dark"] .statusButton:hover {
+[data-theme='dark'] .statusButton:hover {
   background-color: var(--background-color);
   border-color: var(--link-hover-color);
 }
 
-[data-theme="dark"] .statusPreparing {
+[data-theme='dark'] .statusPreparing {
   background-color: var(--warning-color-dark);
   color: var(--text-color);
   border-color: var(--warning-color-dark);
 }
 
-[data-theme="dark"] .statusPreparing:hover {
+[data-theme='dark'] .statusPreparing:hover {
   background-color: var(--warning-color);
 }
 
-[data-theme="dark"] .itemStatusTextPending {
+[data-theme='dark'] .itemStatusTextPending {
   color: var(--text-secondary);
 }
-[data-theme="dark"] .itemStatusTextPreparing {
+[data-theme='dark'] .itemStatusTextPreparing {
   background-color: var(--warning-color-dark);
   color: var(--warning-color-light);
   border-color: var(--warning-color);
 }
-[data-theme="dark"] .itemStatusTextReady {
+[data-theme='dark'] .itemStatusTextReady {
   background-color: var(--success-color-dark);
   color: var(--success-color-light);
   border-color: var(--success-color);
 }
 
-[data-theme="dark"] .homeLink {
+[data-theme='dark'] .homeLink {
   color: var(--link-color);
 }
 

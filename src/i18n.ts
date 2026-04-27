@@ -1,18 +1,18 @@
 // src/i18n.ts
-import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translation files
-import translationEN from "./locales/en.json";
-import translationDE from "./locales/de.json";
-import translationTR from "./locales/tr.json";
-import translationIT from "./locales/it.json";
-import translationAR from "./locales/ar.json";
-import translationFR from "./locales/fr.json";
-import translationES from "./locales/es.json";
-import translationRU from "./locales/ru.json";
-import translationZH from "./locales/zh.json";
+import translationEN from './locales/en.json';
+import translationDE from './locales/de.json';
+import translationTR from './locales/tr.json';
+import translationIT from './locales/it.json';
+import translationAR from './locales/ar.json';
+import translationFR from './locales/fr.json';
+import translationES from './locales/es.json';
+import translationRU from './locales/ru.json';
+import translationZH from './locales/zh.json';
 
 const resources = {
   en: { translation: translationEN },
@@ -34,15 +34,15 @@ i18n
   .use(initReactI18next) // Passes i18n down to react-i18next
   .init({
     resources,
-    fallbackLng: "en", // Use English if detected language is not available
+    fallbackLng: 'en', // Use English if detected language is not available
     lng: isBrowser ? localStorage.getItem('i18nextLng') || undefined : undefined, // Explicitly read from localStorage
-    debug: process.env.NODE_ENV === "development", // Enable debug mode in development
+    debug: process.env.NODE_ENV === 'development', // Enable debug mode in development
     interpolation: {
       escapeValue: false, // React already safes from xss
     },
     detection: {
-      order: ["localStorage", "navigator", "htmlTag"],
-      caches: ["localStorage"],
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
     },
     react: {
       useSuspense: false, // Disable Suspense for older versions of React or if not using Suspense

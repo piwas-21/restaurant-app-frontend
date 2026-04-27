@@ -15,7 +15,7 @@
   margin: 0 0 0.5rem 0;
 }
 
-[data-theme="dark"] .title {
+[data-theme='dark'] .title {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -25,7 +25,7 @@
   margin: 0;
 }
 
-[data-theme="dark"] .subtitle {
+[data-theme='dark'] .subtitle {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -37,7 +37,7 @@
   margin-bottom: 2rem;
 }
 
-[data-theme="dark"] .tabs {
+[data-theme='dark'] .tabs {
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -56,7 +56,7 @@
   margin-bottom: -2px;
 }
 
-[data-theme="dark"] .tab {
+[data-theme='dark'] .tab {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -65,7 +65,7 @@
   background: var(--hover-bg, #f3f4f6);
 }
 
-[data-theme="dark"] .tab:hover {
+[data-theme='dark'] .tab:hover {
   color: var(--text-color, #e0e0e0);
   background: rgba(255, 255, 255, 0.05);
 }
@@ -76,7 +76,7 @@
   font-weight: 600;
 }
 
-[data-theme="dark"] .activeTab {
+[data-theme='dark'] .activeTab {
   color: var(--primary-color, #4a9eff) !important;
   border-bottom-color: var(--primary-color, #4a9eff);
 }
@@ -98,7 +98,7 @@
   min-height: 400px;
 }
 
-[data-theme="dark"] .tabContent {
+[data-theme='dark'] .tabContent {
   background: var(--secondary-color, #2c2c2c);
   border-color: rgba(255, 255, 255, 0.1);
 }
@@ -121,7 +121,7 @@
   margin: 0;
 }
 
-[data-theme="dark"] .comingSoon p {
+[data-theme='dark'] .comingSoon p {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -131,7 +131,7 @@
   color: var(--text-secondary, #6b7280) !important;
 }
 
-[data-theme="dark"] .comingSoonDesc {
+[data-theme='dark'] .comingSoonDesc {
   color: var(--text-secondary, #9ca3af) !important;
 }
 

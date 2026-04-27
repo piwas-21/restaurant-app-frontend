@@ -30,12 +30,12 @@
 }
 
 .googleWrapper {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .appleWrapper {
-    width: 100%;
+  width: 100%;
 }
 
 .appleButton {
@@ -62,5 +62,5 @@
 }
 
 .appleIcon {
-    margin-bottom: 2px;
+  margin-bottom: 2px;
 }

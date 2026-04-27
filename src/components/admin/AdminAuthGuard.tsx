@@ -13,10 +13,7 @@ interface AdminAuthGuardProps {
  * Authentication guard for admin pages
  * Redirects to home page if user is not authenticated or doesn't have required role
  */
-export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
-  children,
-  requiredRoles = ['Admin', 'Staff']
-}) => {
+export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({ children, requiredRoles = ['Admin', 'Staff'] }) => {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -39,14 +36,16 @@ export const AdminAuthGuard: React.FC<AdminAuthGuardProps> = ({
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        fontSize: '1.125rem',
-        color: 'var(--text-secondary)'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          fontSize: '1.125rem',
+          color: 'var(--text-secondary)',
+        }}
+      >
         Loading...
       </div>
     );

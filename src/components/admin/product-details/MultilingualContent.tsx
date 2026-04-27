@@ -21,8 +21,12 @@ const MultilingualContent: React.FC<MultilingualContentProps> = ({ content }) =>
       {Object.entries(content).map(([lang, data]: [string, any]) => (
         <div key={lang} className={detailsStyles.languageSection}>
           <h4>{t(`lang_${lang}`)}</h4>
-          <p><strong>{t('name')}:</strong> {data.name}</p>
-          <p><strong>{t('ingredients')}:</strong> {data.description}</p>
+          <p>
+            <strong>{t('name')}:</strong> {data.name}
+          </p>
+          <p>
+            <strong>{t('ingredients')}:</strong> {data.description}
+          </p>
         </div>
       ))}
     </div>

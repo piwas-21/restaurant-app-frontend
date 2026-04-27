@@ -20,7 +20,7 @@
   background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
 }
 
-[data-theme="dark"] .dangerZone {
+[data-theme='dark'] .dangerZone {
   background: linear-gradient(135deg, rgba(127, 29, 29, 0.2) 0%, rgba(153, 27, 27, 0.1) 100%);
   border-color: #7f1d1d;
 }
@@ -44,7 +44,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .dangerZoneIcon {
+[data-theme='dark'] .dangerZoneIcon {
   background: #991b1b;
 }
 
@@ -56,7 +56,7 @@
   letter-spacing: -0.01em;
 }
 
-[data-theme="dark"] .dangerZoneTitle {
+[data-theme='dark'] .dangerZoneTitle {
   color: #fca5a5;
 }
 
@@ -71,7 +71,7 @@
   margin-bottom: 1rem;
 }
 
-[data-theme="dark"] .warningText {
+[data-theme='dark'] .warningText {
   color: #fca5a5;
 }
 
@@ -91,7 +91,7 @@
   padding-left: 0.25rem;
 }
 
-[data-theme="dark"] .infoList li {
+[data-theme='dark'] .infoList li {
   color: #fca5a5;
 }
 
@@ -131,7 +131,7 @@
   color: #065f46;
 }
 
-[data-theme="dark"] .alertBox.success {
+[data-theme='dark'] .alertBox.success {
   background: rgba(6, 95, 70, 0.2);
   border-color: #047857;
   color: #6ee7b7;
@@ -143,7 +143,7 @@
   color: #991b1b;
 }
 
-[data-theme="dark"] .alertBox.error {
+[data-theme='dark'] .alertBox.error {
   background: rgba(127, 29, 29, 0.2);
   border-color: #991b1b;
   color: #fca5a5;
@@ -205,7 +205,7 @@
   font-style: italic;
 }
 
-[data-theme="dark"] .helpText {
+[data-theme='dark'] .helpText {
   color: #9ca3af;
 }
 

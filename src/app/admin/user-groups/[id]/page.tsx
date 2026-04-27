@@ -20,7 +20,7 @@ import {
   GroupMembershipDto,
   GroupDiscountDto,
   CreateGroupDiscountDto,
-  UpdateGroupDiscountDto
+  UpdateGroupDiscountDto,
 } from '@/types/userGroupTypes';
 import {
   getUserGroup,
@@ -30,7 +30,7 @@ import {
   getGroupDiscounts,
   createGroupDiscount,
   updateGroupDiscount,
-  deleteGroupDiscount
+  deleteGroupDiscount,
 } from '@/services/userGroupService';
 
 const UserGroupDetailsPage = () => {
@@ -52,7 +52,9 @@ const UserGroupDetailsPage = () => {
   const [qrCodeData, setQrCodeData] = useState<{ data: string; title: string } | null>(null);
 
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ type: 'member' | 'discount', id: string, name: string } | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'member' | 'discount'; id: string; name: string } | null>(
+    null,
+  );
 
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
@@ -66,7 +68,7 @@ const UserGroupDetailsPage = () => {
       const [groupRes, membersRes, discountsRes] = await Promise.all([
         getUserGroup(groupId),
         getGroupMembers(groupId),
-        getGroupDiscounts(groupId)
+        getGroupDiscounts(groupId),
       ]);
 
       if (groupRes.success && groupRes.data) setGroup(groupRes.data);
@@ -76,7 +78,6 @@ const UserGroupDetailsPage = () => {
 
       if (discountsRes.success && discountsRes.data) setDiscounts(discountsRes.data);
       else setDiscounts([]);
-
     } catch (err) {
       console.error('Failed to fetch group details:', err);
       setResultModalMessage(t('error'));
@@ -126,12 +127,12 @@ const UserGroupDetailsPage = () => {
       if (selectedDiscount) {
         const updateDto: UpdateGroupDiscountDto = {
           id: selectedDiscount.id,
-          ...data
+          ...data,
         };
         response = await updateGroupDiscount(selectedDiscount.id, updateDto);
       } else {
         const createDto: CreateGroupDiscountDto = {
-          ...data
+          ...data,
         };
         response = await createGroupDiscount(groupId, createDto);
       }
@@ -193,7 +194,7 @@ const UserGroupDetailsPage = () => {
   const handleViewMemberQRCode = (member: GroupMembershipDto) => {
     setQrCodeData({
       data: member.uniqueQRCode,
-      title: `${member.userName} - ${group?.name}`
+      title: `${member.userName} - ${group?.name}`,
     });
     setIsQRCodeModalOpen(true);
   };
@@ -215,20 +216,27 @@ const UserGroupDetailsPage = () => {
           {group && (
             <div className={detailsStyles.groupInfoCard}>
               <h3>{t('group_info')}</h3>
-              <p><strong>{t('description')}:</strong> {group.description}</p>
-              <p><strong>{t('valid_from')}:</strong> {group.validFrom ? new Date(group.validFrom).toLocaleDateString() : '-'}</p>
-              <p><strong>{t('valid_until')}:</strong> {group.validUntil ? new Date(group.validUntil).toLocaleDateString() : '-'}</p>
-              <p><strong>{t('active_status')}:</strong> {group.isActive ? t('active') : t('inactive')}</p>
+              <p>
+                <strong>{t('description')}:</strong> {group.description}
+              </p>
+              <p>
+                <strong>{t('valid_from')}:</strong>{' '}
+                {group.validFrom ? new Date(group.validFrom).toLocaleDateString() : '-'}
+              </p>
+              <p>
+                <strong>{t('valid_until')}:</strong>{' '}
+                {group.validUntil ? new Date(group.validUntil).toLocaleDateString() : '-'}
+              </p>
+              <p>
+                <strong>{t('active_status')}:</strong> {group.isActive ? t('active') : t('inactive')}
+              </p>
             </div>
           )}
 
           <div className={detailsStyles.section}>
             <div className={detailsStyles.sectionHeader}>
               <h3>{t('members')}</h3>
-              <button
-                className={`${styles.adminButton} ${styles.add}`}
-                onClick={() => setIsAddMemberModalOpen(true)}
-              >
+              <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsAddMemberModalOpen(true)}>
                 {t('add_member')}
               </button>
             </div>

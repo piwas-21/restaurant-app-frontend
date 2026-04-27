@@ -19,7 +19,7 @@
   animation: fadeInUp 0.5s ease-out;
 }
 
-[data-theme="dark"] .card {
+[data-theme='dark'] .card {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -56,7 +56,7 @@
   animation: spin 1s linear infinite;
 }
 
-[data-theme="dark"] .spinner {
+[data-theme='dark'] .spinner {
   border-color: #1e3a5f;
   border-top-color: #38bdf8;
 }
@@ -74,7 +74,7 @@
   margin: 0;
 }
 
-[data-theme="dark"] .loadingTitle {
+[data-theme='dark'] .loadingTitle {
   color: #38bdf8;
 }
 
@@ -84,7 +84,7 @@
   margin: 0;
 }
 
-[data-theme="dark"] .loadingText {
+[data-theme='dark'] .loadingText {
   color: #94a3b8;
 }
 
@@ -156,7 +156,7 @@
   letter-spacing: -0.02em;
 }
 
-[data-theme="dark"] .successTitle {
+[data-theme='dark'] .successTitle {
   color: #34d399;
 }
 
@@ -167,7 +167,7 @@
   margin: 0 0 1.5rem;
 }
 
-[data-theme="dark"] .successMessage {
+[data-theme='dark'] .successMessage {
   color: #cbd5e1;
 }
 
@@ -181,7 +181,7 @@
   gap: 0.5rem;
 }
 
-[data-theme="dark"] .redirectText {
+[data-theme='dark'] .redirectText {
   color: #64748b;
 }
 
@@ -207,7 +207,9 @@
 }
 
 @keyframes bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {
@@ -261,7 +263,8 @@
 }
 
 @keyframes errorShake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   25% {
@@ -284,7 +287,7 @@
   letter-spacing: -0.02em;
 }
 
-[data-theme="dark"] .errorTitle {
+[data-theme='dark'] .errorTitle {
   color: #fca5a5;
 }
 
@@ -299,7 +302,7 @@
   border-left: 4px solid #ef4444;
 }
 
-[data-theme="dark"] .errorMessage {
+[data-theme='dark'] .errorMessage {
   background: rgba(127, 29, 29, 0.2);
   color: #fca5a5;
 }
@@ -320,7 +323,7 @@
   gap: 0.5rem;
 }
 
-[data-theme="dark"] .backButton {
+[data-theme='dark'] .backButton {
   background: #1f1f1f;
   color: #fca5a5;
   border-color: #7f1d1d;
@@ -333,7 +336,7 @@
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-[data-theme="dark"] .backButton:hover {
+[data-theme='dark'] .backButton:hover {
   background: #7f1d1d;
   color: white;
 }

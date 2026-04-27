@@ -261,7 +261,8 @@
     border-radius: 0;
   }
 
-  .modalHeader, .footer {
+  .modalHeader,
+  .footer {
     border-radius: 0;
   }
 }

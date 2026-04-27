@@ -33,11 +33,7 @@ interface OrderItem {
   unitPrice: number;
 }
 
-export default function TakeOrderModal({
-  tableNumber,
-  onClose,
-  onOrderCreated,
-}: TakeOrderModalProps) {
+export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }: TakeOrderModalProps) {
   const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -62,7 +58,7 @@ export default function TakeOrderModal({
     async function loadCategories() {
       try {
         const categoriesData = await getCategories();
-        const activeCategories = categoriesData.filter(c => c.isActive);
+        const activeCategories = categoriesData.filter((c) => c.isActive);
         setCategories(activeCategories);
       } catch (err) {
         console.error('Failed to load categories:', err);
@@ -94,7 +90,7 @@ export default function TakeOrderModal({
             imageUrl: p.imageUrl,
             variations: p.variations,
           }));
-          setProducts(mappedProducts.filter(p => p.isActive && p.isAvailable));
+          setProducts(mappedProducts.filter((p) => p.isActive && p.isAvailable));
         } else {
           setProducts([]);
         }
@@ -114,10 +110,7 @@ export default function TakeOrderModal({
     if (!searchQuery) return products;
 
     const query = searchQuery.toLowerCase();
-    return products.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.description?.toLowerCase().includes(query)
-    );
+    return products.filter((p) => p.name.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query));
   }, [products, searchQuery]);
 
   // Calculate subtotal
@@ -143,67 +136,75 @@ export default function TakeOrderModal({
   }, []);
 
   // Handle customization confirm
-  const handleCustomizationConfirm = useCallback((result: CustomizationResult) => {
-    const product = selectedProductForCustomization;
-    if (!product) return;
+  const handleCustomizationConfirm = useCallback(
+    (result: CustomizationResult) => {
+      const product = selectedProductForCustomization;
+      if (!product) return;
 
-    setOrderItems(prev => {
-      // Check if identical item already exists
-      const existingIndex = prev.findIndex(item =>
-        item.product.id === product.id &&
-        item.variationId === result.variationId &&
-        JSON.stringify(item.excludedIngredients) === JSON.stringify(result.excludedIngredients) &&
-        JSON.stringify(item.addedIngredients?.map(i => i.id)) === JSON.stringify(result.addedIngredients.map(i => i.id)) &&
-        JSON.stringify(item.sideItems?.map(s => s.id)) === JSON.stringify(result.sideItems.map(s => s.id))
-      );
+      setOrderItems((prev) => {
+        // Check if identical item already exists
+        const existingIndex = prev.findIndex(
+          (item) =>
+            item.product.id === product.id &&
+            item.variationId === result.variationId &&
+            JSON.stringify(item.excludedIngredients) === JSON.stringify(result.excludedIngredients) &&
+            JSON.stringify(item.addedIngredients?.map((i) => i.id)) ===
+              JSON.stringify(result.addedIngredients.map((i) => i.id)) &&
+            JSON.stringify(item.sideItems?.map((s) => s.id)) === JSON.stringify(result.sideItems.map((s) => s.id)),
+        );
 
-      if (existingIndex >= 0) {
-        // Increment quantity
-        const updated = [...prev];
-        updated[existingIndex].quantity += 1;
-        return updated;
-      }
+        if (existingIndex >= 0) {
+          // Increment quantity
+          const updated = [...prev];
+          updated[existingIndex].quantity += 1;
+          return updated;
+        }
 
-      // Build customization notes
-      const noteParts: string[] = [];
-      if (result.variationName) {
-        noteParts.push(result.variationName);
-      }
-      if (result.excludedIngredients.length > 0) {
-        noteParts.push(`No: ${result.excludedIngredients.join(', ')}`);
-      }
-      if (result.addedIngredients.length > 0) {
-        noteParts.push(`Add: ${result.addedIngredients.map(i => i.name).join(', ')}`);
-      }
-      if (result.sideItems.length > 0) {
-        noteParts.push(`Sides: ${result.sideItems.map(s => s.name).join(', ')}`);
-      }
-      if (result.specialInstructions) {
-        noteParts.push(result.specialInstructions);
-      }
+        // Build customization notes
+        const noteParts: string[] = [];
+        if (result.variationName) {
+          noteParts.push(result.variationName);
+        }
+        if (result.excludedIngredients.length > 0) {
+          noteParts.push(`No: ${result.excludedIngredients.join(', ')}`);
+        }
+        if (result.addedIngredients.length > 0) {
+          noteParts.push(`Add: ${result.addedIngredients.map((i) => i.name).join(', ')}`);
+        }
+        if (result.sideItems.length > 0) {
+          noteParts.push(`Sides: ${result.sideItems.map((s) => s.name).join(', ')}`);
+        }
+        if (result.specialInstructions) {
+          noteParts.push(result.specialInstructions);
+        }
 
-      return [...prev, {
-        product,
-        quantity: 1,
-        variationId: result.variationId,
-        variationName: result.variationName,
-        notes: noteParts.join(' | ') || undefined,
-        excludedIngredients: result.excludedIngredients,
-        addedIngredients: result.addedIngredients,
-        sideItems: result.sideItems,
-        unitPrice: result.finalPrice,
-      }];
-    });
+        return [
+          ...prev,
+          {
+            product,
+            quantity: 1,
+            variationId: result.variationId,
+            variationName: result.variationName,
+            notes: noteParts.join(' | ') || undefined,
+            excludedIngredients: result.excludedIngredients,
+            addedIngredients: result.addedIngredients,
+            sideItems: result.sideItems,
+            unitPrice: result.finalPrice,
+          },
+        ];
+      });
 
-    setSelectedProductForCustomization(null);
-  }, [selectedProductForCustomization]);
+      setSelectedProductForCustomization(null);
+    },
+    [selectedProductForCustomization],
+  );
 
   // Update item quantity
   const updateQuantity = (index: number, quantity: number) => {
     if (quantity <= 0) {
-      setOrderItems(prev => prev.filter((_, i) => i !== index));
+      setOrderItems((prev) => prev.filter((_, i) => i !== index));
     } else {
-      setOrderItems(prev => {
+      setOrderItems((prev) => {
         const updated = [...prev];
         updated[index].quantity = quantity;
         return updated;
@@ -213,7 +214,7 @@ export default function TakeOrderModal({
 
   // Remove item
   const removeItem = (index: number) => {
-    setOrderItems(prev => prev.filter((_, i) => i !== index));
+    setOrderItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Submit order
@@ -227,7 +228,7 @@ export default function TakeOrderModal({
       setIsSubmitting(true);
       setError(null);
 
-      const items: CreateOrderItemDto[] = orderItems.map(item => ({
+      const items: CreateOrderItemDto[] = orderItems.map((item) => ({
         productId: item.product.id,
         productVariationId: item.variationId,
         quantity: item.quantity,
@@ -242,7 +243,7 @@ export default function TakeOrderModal({
         customerName || undefined,
         orderNotes || undefined,
         selectedUser?.id,
-        pointsToRedeem > 0 ? pointsToRedeem : undefined
+        pointsToRedeem > 0 ? pointsToRedeem : undefined,
       );
 
       onOrderCreated();
@@ -266,7 +267,9 @@ export default function TakeOrderModal({
                 {t('server.table', 'Table')} {tableNumber}
               </span>
             </div>
-            <button className={styles.closeButton} onClick={onClose}>✕</button>
+            <button className={styles.closeButton} onClick={onClose}>
+              ✕
+            </button>
           </div>
 
           <div className={styles.content}>
@@ -289,7 +292,7 @@ export default function TakeOrderModal({
                 >
                   {t('server.all', 'All')}
                 </button>
-                {categories.map(category => (
+                {categories.map((category) => (
                   <button
                     key={category.id}
                     className={`${styles.categoryButton} ${
@@ -309,22 +312,14 @@ export default function TakeOrderModal({
                 </div>
               ) : (
                 <div className={styles.productGrid}>
-                  {filteredProducts.map(product => (
-                    <button
-                      key={product.id}
-                      className={styles.productCard}
-                      onClick={() => handleProductClick(product)}
-                    >
+                  {filteredProducts.map((product) => (
+                    <button key={product.id} className={styles.productCard} onClick={() => handleProductClick(product)}>
                       <span className={styles.productName}>{product.name}</span>
-                      <span className={styles.productPrice}>
-                        CHF {product.basePrice.toFixed(2)}
-                      </span>
+                      <span className={styles.productPrice}>CHF {product.basePrice.toFixed(2)}</span>
                     </button>
                   ))}
                   {filteredProducts.length === 0 && !isLoading && (
-                    <div className={styles.noProducts}>
-                      {t('server.no_products', 'No products found')}
-                    </div>
+                    <div className={styles.noProducts}>{t('server.no_products', 'No products found')}</div>
                   )}
                 </div>
               )}
@@ -332,13 +327,9 @@ export default function TakeOrderModal({
 
             {/* Right Panel - Order Summary */}
             <div className={styles.orderPanel}>
-              <h3 className={styles.orderTitle}>
-                {t('server.order_summary', 'Order Summary')}
-              </h3>
+              <h3 className={styles.orderTitle}>{t('server.order_summary', 'Order Summary')}</h3>
 
-              {error && (
-                <div className={styles.error}>{error}</div>
-              )}
+              {error && <div className={styles.error}>{error}</div>}
 
               <div className={styles.customerInfo}>
                 <CustomerSearchInput
@@ -363,44 +354,27 @@ export default function TakeOrderModal({
 
               <div className={styles.orderItems}>
                 {orderItems.length === 0 ? (
-                  <div className={styles.emptyOrder}>
-                    {t('server.no_items', 'No items added yet')}
-                  </div>
+                  <div className={styles.emptyOrder}>{t('server.no_items', 'No items added yet')}</div>
                 ) : (
                   orderItems.map((item, index) => (
                     <div key={index} className={styles.orderItem}>
                       <div className={styles.orderItemInfo}>
                         <span className={styles.orderItemName}>
                           {item.product.name}
-                          {item.variationName && (
-                            <span className={styles.variationLabel}> ({item.variationName})</span>
-                          )}
+                          {item.variationName && <span className={styles.variationLabel}> ({item.variationName})</span>}
                         </span>
-                        {item.notes && (
-                          <span className={styles.orderItemNotes}>{item.notes}</span>
-                        )}
-                        <span className={styles.orderItemPrice}>
-                          CHF {(item.unitPrice * item.quantity).toFixed(2)}
-                        </span>
+                        {item.notes && <span className={styles.orderItemNotes}>{item.notes}</span>}
+                        <span className={styles.orderItemPrice}>CHF {(item.unitPrice * item.quantity).toFixed(2)}</span>
                       </div>
                       <div className={styles.orderItemActions}>
-                        <button
-                          className={styles.qtyButton}
-                          onClick={() => updateQuantity(index, item.quantity - 1)}
-                        >
+                        <button className={styles.qtyButton} onClick={() => updateQuantity(index, item.quantity - 1)}>
                           −
                         </button>
                         <span className={styles.qtyValue}>{item.quantity}</span>
-                        <button
-                          className={styles.qtyButton}
-                          onClick={() => updateQuantity(index, item.quantity + 1)}
-                        >
+                        <button className={styles.qtyButton} onClick={() => updateQuantity(index, item.quantity + 1)}>
                           +
                         </button>
-                        <button
-                          className={styles.removeButton}
-                          onClick={() => removeItem(index)}
-                        >
+                        <button className={styles.removeButton} onClick={() => removeItem(index)}>
                           🗑️
                         </button>
                       </div>
@@ -422,9 +396,7 @@ export default function TakeOrderModal({
               <div className={styles.orderFooter}>
                 <div className={styles.orderTotal}>
                   <span>{t('server.total', 'Total')}</span>
-                  <span className={styles.totalAmount}>
-                    CHF {orderTotal.toFixed(2)}
-                  </span>
+                  <span className={styles.totalAmount}>CHF {orderTotal.toFixed(2)}</span>
                 </div>
 
                 <button

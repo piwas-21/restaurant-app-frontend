@@ -8,7 +8,7 @@ export const uploadProductImage = async (
   imageFile: File,
   altText: string,
   isPrimary: boolean,
-  sortOrder: number
+  sortOrder: number,
 ) => {
   const formData = new FormData();
   formData.append('Image', imageFile);
@@ -25,7 +25,7 @@ export const getProductImages = async (productId: string) => {
 
 export const uploadBulkProductImages = async (productId: string, imageFiles: File[]) => {
   const formData = new FormData();
-  imageFiles.forEach(file => {
+  imageFiles.forEach((file) => {
     formData.append('Images', file);
   });
 

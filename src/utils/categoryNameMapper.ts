@@ -4,22 +4,22 @@
  */
 export function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
   const mapping: Record<string, string> = {
-    'Starters': 'starters',
-    'Grills': 'grill',
-    'Grill': 'grill',
-    'Dessert': 'dessert',
-    'Desserts': 'dessert',
+    Starters: 'starters',
+    Grills: 'grill',
+    Grill: 'grill',
+    Dessert: 'dessert',
+    Desserts: 'dessert',
     'Dürüm Wraps': 'durum',
     'Durum Wraps': 'durum',
     'Hot Drinks': 'hotDrink',
     'Cold Drinks': 'coldDrink',
-    'Drinks': 'hotDrink',
-    'Pizza': 'pizza',
-    'Pide': 'pide',
+    Drinks: 'hotDrink',
+    Pizza: 'pizza',
+    Pide: 'pide',
     'Turkish Specialties': 'turkishSpecialty',
     'Oriental Specialties': 'orientalSpecialty',
     'Special of the Day': 'specialOfTheDay',
-    'Soups': 'soups'
+    Soups: 'soups',
   };
 
   return mapping[apiCategoryName] || apiCategoryName.toLowerCase();
@@ -29,10 +29,7 @@ export function mapCategoryNameToTranslationKey(apiCategoryName: string): string
  * Gets the display name for a category
  * Returns translated name if available, otherwise returns API name
  */
-export function getCategoryDisplayName(
-  categoryName: string,
-  translationFunction: (key: string) => string
-): string {
+export function getCategoryDisplayName(categoryName: string, translationFunction: (key: string) => string): string {
   const translationKey = mapCategoryNameToTranslationKey(categoryName);
   const translatedName = translationFunction(translationKey);
 

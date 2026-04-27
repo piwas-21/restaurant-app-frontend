@@ -40,28 +40,28 @@ export async function login(formData: z.infer<typeof loginSchema>) {
 }
 
 export async function refreshToken() {
-    const accessToken = localStorage.getItem('auth_token');
-    const refreshToken = localStorage.getItem('refresh_token');
+  const accessToken = localStorage.getItem('auth_token');
+  const refreshToken = localStorage.getItem('refresh_token');
 
-    try {
-        const response = await fetch(`${AUTH_API_URL}/refresh-token`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ accessToken, refreshToken }),
-        });
+  try {
+    const response = await fetch(`${AUTH_API_URL}/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ accessToken, refreshToken }),
+    });
 
-        const data = await response.json();
-        if (data.success) {
-            localStorage.setItem('auth_token', data.data.accessToken);
-            localStorage.setItem('refresh_token', data.data.refreshToken);
-        }
-        return data;
-    } catch (error) {
-        // Network error or other failure
-        return { success: false, message: 'Failed to refresh token' };
+    const data = await response.json();
+    if (data.success) {
+      localStorage.setItem('auth_token', data.data.accessToken);
+      localStorage.setItem('refresh_token', data.data.refreshToken);
     }
+    return data;
+  } catch (error) {
+    // Network error or other failure
+    return { success: false, message: 'Failed to refresh token' };
+  }
 }
 
 // Customer registration
@@ -154,7 +154,7 @@ export async function changePassword(formData: ChangePasswordCommand) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(formData),
   });
@@ -208,12 +208,12 @@ export async function verifyEmail(formData: VerifyEmailCommand) {
 }
 
 export async function requestAccountDeletion() {
-  const token = localStorage.getItem("auth_token");
+  const token = localStorage.getItem('auth_token');
   const response = await fetch(`${API_BASE_URL}/api/User/request-deletion`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
   });
   return response.json();
@@ -221,9 +221,9 @@ export async function requestAccountDeletion() {
 
 export async function confirmAccountDeletion(data: { userId: string; token: string }) {
   const response = await fetch(`${API_BASE_URL}/api/User/confirm-deletion`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
@@ -270,9 +270,9 @@ export async function appleLogin(idToken: string, user?: { firstName: string; la
     method: 'POST',
     headers,
     body: JSON.stringify({
-        idToken,
-        firstName: user?.firstName,
-        lastName: user?.lastName
+      idToken,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
     }),
   });
 

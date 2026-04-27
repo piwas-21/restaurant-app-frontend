@@ -146,10 +146,7 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.getOrders();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/api/Orders',
-        expect.objectContaining({ requireAuth: true })
-      );
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/Orders', expect.objectContaining({ requireAuth: true }));
       expect(result.items).toHaveLength(1);
     });
 
@@ -179,9 +176,7 @@ describe('OrderService', () => {
       const error = new Error('Order not found');
       mockApiClient.get.mockRejectedValue(error);
 
-      await expect(orderServiceModule.getOrderById('non-existent')).rejects.toThrow(
-        'Order not found'
-      );
+      await expect(orderServiceModule.getOrderById('non-existent')).rejects.toThrow('Order not found');
     });
   });
 
@@ -206,9 +201,9 @@ describe('OrderService', () => {
       const error = new Error('Invalid status transition');
       mockApiClient.put.mockRejectedValue(error);
 
-      await expect(
-        orderServiceModule.updateOrderStatus('order-123', { status: 'Invalid' as any })
-      ).rejects.toThrow('Invalid status transition');
+      await expect(orderServiceModule.updateOrderStatus('order-123', { status: 'Invalid' as any })).rejects.toThrow(
+        'Invalid status transition',
+      );
     });
   });
 
@@ -233,9 +228,9 @@ describe('OrderService', () => {
       const error = new Error('Order already completed');
       mockApiClient.post.mockRejectedValue(error);
 
-      await expect(
-        orderServiceModule.cancelOrder('order-123', { reason: 'Test' })
-      ).rejects.toThrow('Order already completed');
+      await expect(orderServiceModule.cancelOrder('order-123', { reason: 'Test' })).rejects.toThrow(
+        'Order already completed',
+      );
     });
   });
 
@@ -292,7 +287,9 @@ describe('OrderService', () => {
 
       const result = await orderServiceModule.addPaymentToOrder(orderId, command);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/payments`, command, { requireAuth: true });
+      expect(mockApiClient.post).toHaveBeenCalledWith(`/api/Orders/${orderId}/payments`, command, {
+        requireAuth: true,
+      });
       expect(result.amount).toBe(26.93);
       expect(result.paymentMethod).toBe('Cash');
     });

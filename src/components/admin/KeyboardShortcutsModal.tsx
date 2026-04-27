@@ -20,11 +20,7 @@ export default function KeyboardShortcutsModal({ shortcuts, onClose }: KeyboardS
             <Keyboard size={24} />
             <h2>{t('keyboard_shortcuts', 'Keyboard Shortcuts')}</h2>
           </div>
-          <button
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label={t('close', 'Close')}
-          >
+          <button className={styles.closeButton} onClick={onClose} aria-label={t('close', 'Close')}>
             <X size={24} />
           </button>
         </div>

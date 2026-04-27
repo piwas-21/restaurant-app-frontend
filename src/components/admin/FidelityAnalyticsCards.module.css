@@ -19,13 +19,13 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
-[data-theme="dark"] .card {
+[data-theme='dark'] .card {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .card:hover {
+[data-theme='dark'] .card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
@@ -101,7 +101,7 @@
   margin: 0;
 }
 
-[data-theme="dark"] .cardValue {
+[data-theme='dark'] .cardValue {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -114,12 +114,7 @@
 .skeleton {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 0%,
-    #e0e0e0 50%,
-    #f0f0f0 100%
-  );
+  background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

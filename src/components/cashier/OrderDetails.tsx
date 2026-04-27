@@ -70,20 +70,27 @@ export default function OrderDetails({
 
   const orderStatuses = ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed'];
   const nextStatuses = orderStatuses.slice(orderStatuses.indexOf(order.status) + 1);
-  const hasFrontKitchenItems = order?.items?.some(item => item.kitchenType === 'FrontKitchen');
-  const hasBackKitchenItems = order?.items?.some(item => item.kitchenType === 'BackKitchen');
+  const hasFrontKitchenItems = order?.items?.some((item) => item.kitchenType === 'FrontKitchen');
+  const hasBackKitchenItems = order?.items?.some((item) => item.kitchenType === 'BackKitchen');
 
   const orderTypeEmoji = order.type === 'DineIn' ? '🍽️' : order.type === 'Takeaway' ? '🛍️' : '🚚';
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'pending': return '#fbbf24';
-      case 'confirmed': return '#10b981';
-      case 'preparing': return '#3b82f6';
-      case 'ready': return '#8b5cf6';
-      case 'completed': return '#6b7280';
-      case 'cancelled': return '#ef4444';
-      default: return '#6b7280';
+      case 'pending':
+        return '#fbbf24';
+      case 'confirmed':
+        return '#10b981';
+      case 'preparing':
+        return '#3b82f6';
+      case 'ready':
+        return '#8b5cf6';
+      case 'completed':
+        return '#6b7280';
+      case 'cancelled':
+        return '#ef4444';
+      default:
+        return '#6b7280';
     }
   };
 
@@ -113,7 +120,10 @@ export default function OrderDetails({
               >
                 <RefreshCw size={18} className={isUpdating ? styles.spin : ''} />
                 {t('cashier.update_status', 'Update Status')}
-                <ChevronDown size={16} className={`${styles.chevron} ${isStatusMenuOpen ? styles.chevronRotate : ''}`} />
+                <ChevronDown
+                  size={16}
+                  className={`${styles.chevron} ${isStatusMenuOpen ? styles.chevronRotate : ''}`}
+                />
               </button>
 
               {isStatusMenuOpen && (
@@ -127,10 +137,7 @@ export default function OrderDetails({
                         onClick={() => handleStatusChange(status)}
                         disabled={isUpdating}
                       >
-                        <span
-                          className={styles.statusIndicator}
-                          style={{ backgroundColor: getStatusColor(status) }}
-                        />
+                        <span className={styles.statusIndicator} style={{ backgroundColor: getStatusColor(status) }} />
                         {t(`order_status_${status.toLowerCase()}`, status)}
                       </button>
                     ))}
@@ -166,7 +173,8 @@ export default function OrderDetails({
             className={`${styles.actionButton} ${order.isFocusOrder ? styles.actionButtonSecondary : styles.actionButtonInfo}`}
             onClick={onToggleFocus}
           >
-            {order.isFocusOrder ? '⭐' : '☆'} {order.isFocusOrder ? t('remove_focus', 'Unfocus') : t('cashier.mark_as_focus', 'Focus')}
+            {order.isFocusOrder ? '⭐' : '☆'}{' '}
+            {order.isFocusOrder ? t('remove_focus', 'Unfocus') : t('cashier.mark_as_focus', 'Focus')}
           </button>
         </div>
       </div>
@@ -263,9 +271,7 @@ export default function OrderDetails({
                       {item.variationName && ` - ${item.variationName}`}
                     </div>
                     {item.specialInstructions && (
-                      <div className={styles.itemInstructions}>
-                        💬 {item.specialInstructions}
-                      </div>
+                      <div className={styles.itemInstructions}>💬 {item.specialInstructions}</div>
                     )}
                   </div>
                   <div className={styles.itemPricing}>
@@ -305,7 +311,8 @@ export default function OrderDetails({
                   {t('order_discount', 'Discount')}
                 </span>
                 <span className={styles.summaryValue} style={{ color: 'var(--primary-color)' }}>
-                  -CHF {order.discount?.toFixed(2)}</span>
+                  -CHF {order.discount?.toFixed(2)}
+                </span>
               </div>
             )}
             <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
@@ -314,81 +321,80 @@ export default function OrderDetails({
             </div>
           </div>
 
-      {/* Payment Information */}
-      <div className={styles.infoCard}>
-        <h3 className={styles.infoCardHeader}>
-          <CreditCard size={18} />
-          {t('payment_status', 'Payment Status')}
-        </h3>
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>{t('cashier.total_paid', 'Total Paid')}</span>
-          <span className={styles.summaryValue}>CHF {order.totalPaid?.toFixed(2)}</span>
-        </div>
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>{t('cashier.remaining', 'Remaining')}</span>
-          <span
-            className={styles.summaryValue}
-            style={{ color: order.remainingAmount! > 0 ? '#ef4444' : '#10b981' }}
-          >
-            CHF {Math.abs(order.remainingAmount || 0).toFixed(2)}
-          </span>
-        </div>
+          {/* Payment Information */}
+          <div className={styles.infoCard}>
+            <h3 className={styles.infoCardHeader}>
+              <CreditCard size={18} />
+              {t('payment_status', 'Payment Status')}
+            </h3>
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>{t('cashier.total_paid', 'Total Paid')}</span>
+              <span className={styles.summaryValue}>CHF {order.totalPaid?.toFixed(2)}</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>{t('cashier.remaining', 'Remaining')}</span>
+              <span
+                className={styles.summaryValue}
+                style={{ color: order.remainingAmount! > 0 ? '#ef4444' : '#10b981' }}
+              >
+                CHF {Math.abs(order.remainingAmount || 0).toFixed(2)}
+              </span>
+            </div>
 
-        {/* Payment List */}
-        {order.payments && order.payments.length > 0 && (
-          <div style={{ marginTop: '1rem' }}>
-            {order.payments.map((payment, idx) => (
-              <div key={idx} className={styles.paymentCard}>
-                <div className={styles.paymentCardHeader}>
-                  <div>
-                    <div className={styles.paymentMethod}>{getPaymentMethodLabel(payment.paymentMethod)}</div>
-                    <div className={styles.paymentDate}>
-                      {payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : 'N/A'}
+            {/* Payment List */}
+            {order.payments && order.payments.length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                {order.payments.map((payment, idx) => (
+                  <div key={idx} className={styles.paymentCard}>
+                    <div className={styles.paymentCardHeader}>
+                      <div>
+                        <div className={styles.paymentMethod}>{getPaymentMethodLabel(payment.paymentMethod)}</div>
+                        <div className={styles.paymentDate}>
+                          {payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : 'N/A'}
+                        </div>
+                      </div>
+                      <div className={styles.paymentAmount}>CHF {payment.amount?.toFixed(2)}</div>
                     </div>
                   </div>
-                  <div className={styles.paymentAmount}>CHF {payment.amount?.toFixed(2)}</div>
-                </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Print Actions */}
-      <div className={styles.infoCard}>
-        <h3 className={styles.infoCardHeader}>
-          <Printer size={18} />
-          {t('cashier.print_actions', 'Print Actions')}
-        </h3>
-        <div className={styles.actionBarGrid}>
-          <button
-            className={`${styles.actionButton} ${styles.actionButtonInfo}`}
-            onClick={() => exportOrderToPDF(order, t)}
-          >
-            <Printer size={16} />
-            {t('cashier.print_bill', 'Print Bill')}
-          </button>
-          {hasFrontKitchenItems && (
-            <button
-              className={`${styles.actionButton} ${styles.actionButtonInfo}`}
-              onClick={() => exportKitchenItemsToPDF(order, 'FrontKitchen', t)}
-            >
-              <Printer size={16} />
-              {t('print_front_kitchen', 'Front Kitchen')}
-            </button>
-          )}
-          {hasBackKitchenItems && (
-            <button
-              className={`${styles.actionButton} ${styles.actionButtonDanger}`}
-              onClick={() => exportKitchenItemsToPDF(order, 'BackKitchen', t)}
-            >
-              <Printer size={16} />
-              {t('print_back_kitchen', 'Back Kitchen')}
-            </button>
-          )}
-        </div>
-      </div>
-
+          {/* Print Actions */}
+          <div className={styles.infoCard}>
+            <h3 className={styles.infoCardHeader}>
+              <Printer size={18} />
+              {t('cashier.print_actions', 'Print Actions')}
+            </h3>
+            <div className={styles.actionBarGrid}>
+              <button
+                className={`${styles.actionButton} ${styles.actionButtonInfo}`}
+                onClick={() => exportOrderToPDF(order, t)}
+              >
+                <Printer size={16} />
+                {t('cashier.print_bill', 'Print Bill')}
+              </button>
+              {hasFrontKitchenItems && (
+                <button
+                  className={`${styles.actionButton} ${styles.actionButtonInfo}`}
+                  onClick={() => exportKitchenItemsToPDF(order, 'FrontKitchen', t)}
+                >
+                  <Printer size={16} />
+                  {t('print_front_kitchen', 'Front Kitchen')}
+                </button>
+              )}
+              {hasBackKitchenItems && (
+                <button
+                  className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                  onClick={() => exportKitchenItemsToPDF(order, 'BackKitchen', t)}
+                >
+                  <Printer size={16} />
+                  {t('print_back_kitchen', 'Back Kitchen')}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

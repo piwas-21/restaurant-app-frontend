@@ -91,7 +91,6 @@
   border-color: var(--text-secondary);
 }
 
-
 .orderList {
   flex: 1;
   overflow-y: auto;

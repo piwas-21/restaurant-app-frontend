@@ -164,51 +164,51 @@
 }
 
 /* Date picker calendar icon color */
-.customInput[type="date"]::-webkit-calendar-picker-indicator {
+.customInput[type='date']::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(59%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(95%) contrast(93%);
   transition: filter 0.2s ease;
 }
 
-.customInput[type="date"]::-webkit-calendar-picker-indicator:hover {
+.customInput[type='date']::-webkit-calendar-picker-indicator:hover {
   filter: invert(52%) sepia(98%) saturate(466%) hue-rotate(7deg) brightness(98%) contrast(90%);
 }
 
-.customInput[type="time"]::-webkit-calendar-picker-indicator {
+.customInput[type='time']::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(59%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(95%) contrast(93%);
   transition: filter 0.2s ease;
 }
 
-.customInput[type="time"]::-webkit-calendar-picker-indicator:hover {
+.customInput[type='time']::-webkit-calendar-picker-indicator:hover {
   filter: invert(52%) sepia(98%) saturate(466%) hue-rotate(7deg) brightness(98%) contrast(90%);
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .timeButton {
+[data-theme='dark'] .timeButton {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-[data-theme="dark"] .timeButton:hover:not(:disabled) {
+[data-theme='dark'] .timeButton:hover:not(:disabled) {
   background: rgba(244, 196, 48, 0.15);
   border-color: rgba(244, 196, 48, 0.5);
 }
 
-[data-theme="dark"] .timeButton.selected {
+[data-theme='dark'] .timeButton.selected {
   background: #f4c430;
   border-color: #f4c430;
   color: #000;
 }
 
 /* Dark mode calendar picker */
-[data-theme="dark"] .customInput[type="date"]::-webkit-calendar-picker-indicator,
-[data-theme="dark"] .customInput[type="time"]::-webkit-calendar-picker-indicator {
+[data-theme='dark'] .customInput[type='date']::-webkit-calendar-picker-indicator,
+[data-theme='dark'] .customInput[type='time']::-webkit-calendar-picker-indicator {
   filter: invert(59%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(115%) contrast(93%);
 }
 
-[data-theme="dark"] .customInput[type="date"]::-webkit-calendar-picker-indicator:hover,
-[data-theme="dark"] .customInput[type="time"]::-webkit-calendar-picker-indicator:hover {
+[data-theme='dark'] .customInput[type='date']::-webkit-calendar-picker-indicator:hover,
+[data-theme='dark'] .customInput[type='time']::-webkit-calendar-picker-indicator:hover {
   filter: invert(80%) sepia(89%) saturate(476%) hue-rotate(7deg) brightness(115%) contrast(93%);
 }
 

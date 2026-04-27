@@ -11,7 +11,7 @@ interface SelectedTableInfoProps {
 export default function SelectedTableInfo({
   selectedTables,
   requestCombineTables,
-  onToggleCombine
+  onToggleCombine,
 }: SelectedTableInfoProps) {
   const { t } = useTranslation();
 
@@ -26,9 +26,7 @@ export default function SelectedTableInfo({
         <div className={styles.tableLabel}>
           {selectedTables.length === 1 ? t('table', 'Table') : t('tables', 'Tables')}:
         </div>
-        <div className={styles.tableValue}>
-          {selectedTables.map(t => t.tableNumber).join(', ')}
-        </div>
+        <div className={styles.tableValue}>{selectedTables.map((t) => t.tableNumber).join(', ')}</div>
       </div>
 
       {/* Combine Tables Chip */}

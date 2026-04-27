@@ -16,11 +16,7 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => Promise<void>;
 }
 
-export default function DeleteConfirmationModal({
-  order,
-  onClose,
-  onConfirm,
-}: DeleteConfirmationModalProps) {
+export default function DeleteConfirmationModal({ order, onClose, onConfirm }: DeleteConfirmationModalProps) {
   const { t } = useTranslation();
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -78,10 +74,7 @@ export default function DeleteConfirmationModal({
         </div>
 
         <p className={styles.warningText}>
-          {t(
-            'delete_order_warning',
-            'This action cannot be undone. The order will be permanently deleted.'
-          )}
+          {t('delete_order_warning', 'This action cannot be undone. The order will be permanently deleted.')}
         </p>
 
         <div className={styles.confirmSection}>
@@ -102,12 +95,7 @@ export default function DeleteConfirmationModal({
         </div>
 
         <div className={styles.buttonGroup}>
-          <button
-            type="button"
-            onClick={onClose}
-            className={styles.cancelButton}
-            disabled={isDeleting}
-          >
+          <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isDeleting}>
             {t('cancel', 'Cancel')}
           </button>
           <button

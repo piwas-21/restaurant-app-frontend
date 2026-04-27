@@ -13,12 +13,7 @@ interface SpecialsTableProps {
   onSetFeatured: (productId: string) => void;
 }
 
-const SpecialsTable: React.FC<SpecialsTableProps> = ({
-  specialProducts,
-  isLoading,
-  error,
-  onSetFeatured,
-}) => {
+const SpecialsTable: React.FC<SpecialsTableProps> = ({ specialProducts, isLoading, error, onSetFeatured }) => {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -93,9 +88,7 @@ const SpecialsTable: React.FC<SpecialsTableProps> = ({
                   </button>
                 )}
                 {product.isFeaturedSpecial && (
-                  <span className={styles.featuredLabel}>
-                    {t('currently_featured', 'Currently Featured')}
-                  </span>
+                  <span className={styles.featuredLabel}>{t('currently_featured', 'Currently Featured')}</span>
                 )}
               </td>
             </tr>

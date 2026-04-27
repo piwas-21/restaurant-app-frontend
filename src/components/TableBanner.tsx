@@ -9,9 +9,7 @@ interface TableBannerProps {
   position?: 'top' | 'floating';
 }
 
-export default function TableBanner({
-  position = 'top'
-}: TableBannerProps) {
+export default function TableBanner({ position = 'top' }: TableBannerProps) {
   const { tableContext, clearTableContext, hasTableContext } = useTableContext();
 
   if (!hasTableContext) {
@@ -38,9 +36,7 @@ export default function TableBanner({
         <div className={styles.info}>
           <span className={styles.label}>Ordering for Table</span>
           <span className={styles.tableNumber}>{tableContext.tableNumber}</span>
-          {tableContext.isOutdoor && (
-            <span className={styles.badge}>🌤️ Outdoor</span>
-          )}
+          {tableContext.isOutdoor && <span className={styles.badge}>🌤️ Outdoor</span>}
         </div>
 
         <button

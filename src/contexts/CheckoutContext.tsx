@@ -4,7 +4,7 @@
  * Manages checkout flow state including order type, customer info, and delivery details
  */
 
-"use client";
+'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { OrderType } from '@/types/order';
@@ -159,11 +159,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     clearCheckout,
   };
 
-  return (
-    <CheckoutContext.Provider value={value}>
-      {children}
-    </CheckoutContext.Provider>
-  );
+  return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }
 
 /**

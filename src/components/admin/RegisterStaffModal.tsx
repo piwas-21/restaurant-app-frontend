@@ -32,28 +32,28 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
 
   const onSubmit = async (data: RegisterStaffFormValues) => {
     try {
-        const response = await registerStaff(data) as { success: boolean; message?: string; errors?: string[] };
-        if (response.success) {
-            onStaffRegistered();
-            onClose();
-            reset(); // Reset form fields on successful registration
-        } else {
-            if (response.errors && Array.isArray(response.errors)) {
-              response.errors.forEach((error: string) => {
-                if (error.includes('password') || error.includes('Password')) {
-                  setError('password', { message: error });
-                } else if (error.includes('email') || error.includes('Email')) {
-                  setError('email', { message: error });
-                } else {
-                  setError('root', { message: error });
-                }
-              });
+      const response = (await registerStaff(data)) as { success: boolean; message?: string; errors?: string[] };
+      if (response.success) {
+        onStaffRegistered();
+        onClose();
+        reset(); // Reset form fields on successful registration
+      } else {
+        if (response.errors && Array.isArray(response.errors)) {
+          response.errors.forEach((error: string) => {
+            if (error.includes('password') || error.includes('Password')) {
+              setError('password', { message: error });
+            } else if (error.includes('email') || error.includes('Email')) {
+              setError('email', { message: error });
             } else {
-              setError('root', { message: response.message || 'Registration failed' });
+              setError('root', { message: error });
             }
+          });
+        } else {
+          setError('root', { message: response.message || 'Registration failed' });
         }
+      }
     } catch {
-        setError('root', { message: 'An unexpected error occurred.' });
+      setError('root', { message: 'An unexpected error occurred.' });
     }
   };
 
@@ -110,8 +110,12 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
             {errors.role && <p className={styles.errorMessage}>{errors.role.message}</p>}
           </div>
           <div className={styles.buttonGroup}>
-            <button type="submit" className={styles.submitButton}>{t('register')}</button>
-            <button type="button" onClick={onClose} className={styles.cancelButton}>{t('cancel')}</button>
+            <button type="submit" className={styles.submitButton}>
+              {t('register')}
+            </button>
+            <button type="button" onClick={onClose} className={styles.cancelButton}>
+              {t('cancel')}
+            </button>
           </div>
         </form>
       </div>

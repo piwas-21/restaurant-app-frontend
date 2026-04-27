@@ -25,7 +25,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
     role: 'Server' as UserRole,
     changePassword: false,
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +40,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
         role: user.role,
         changePassword: false,
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
       setErrors({});
     }
@@ -113,10 +113,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
   };
 
   const handleChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -131,7 +131,9 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
   return (
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>
       <div className={styles.modalContent}>
-        <h2>{t('edit_user', 'Edit User')}: {user.fullName}</h2>
+        <h2>
+          {t('edit_user', 'Edit User')}: {user.fullName}
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
@@ -216,7 +218,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
                 fontSize: '1rem',
                 fontWeight: '500',
                 color: 'var(--text-color)',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'var(--background-color-hover, rgba(0,0,0,0.02))';
@@ -232,25 +234,29 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
             </button>
 
             {!formData.changePassword && (
-              <p style={{
-                fontSize: '0.875rem',
-                color: 'var(--text-secondary, #999)',
-                marginTop: '0.5rem',
-                marginLeft: '0.25rem'
-              }}>
+              <p
+                style={{
+                  fontSize: '0.875rem',
+                  color: 'var(--text-secondary, #999)',
+                  marginTop: '0.5rem',
+                  marginLeft: '0.25rem',
+                }}
+              >
                 {t('leave_password_unchanged', 'Current password will remain unchanged')}
               </p>
             )}
           </div>
 
           {formData.changePassword && (
-            <div style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              backgroundColor: 'var(--background-color, rgba(0,0,0,0.02))',
-              borderRadius: '4px',
-              border: '1px solid var(--border-color, #eee)'
-            }}>
+            <div
+              style={{
+                marginTop: '1rem',
+                padding: '1rem',
+                backgroundColor: 'var(--background-color, rgba(0,0,0,0.02))',
+                borderRadius: '4px',
+                border: '1px solid var(--border-color, #eee)',
+              }}
+            >
               <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
                 <label htmlFor="newPassword">{t('new_password', 'New Password')}</label>
                 <input
@@ -278,19 +284,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
           )}
 
           <div className={styles.buttonGroup}>
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={isSubmitting}
-            >
+            <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
               {isSubmitting ? t('saving', 'Saving...') : t('save_changes', 'Save Changes')}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className={styles.cancelButton}
-              disabled={isSubmitting}
-            >
+            <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isSubmitting}>
               {t('cancel', 'Cancel')}
             </button>
           </div>

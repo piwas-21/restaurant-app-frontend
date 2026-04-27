@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from "@/app/styles/AdminPage.module.css";
+import styles from '@/app/styles/AdminPage.module.css';
 import PageHeader from '@/components/admin/PageHeader';
 import SpecialsTable from '@/components/admin/specials-management/SpecialsTable';
 import FeaturedSpecialCard from '@/components/admin/specials-management/FeaturedSpecialCard';
@@ -37,7 +37,7 @@ export default function SpecialsManagementPage() {
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
 
   const handleSetFeaturedClick = (productId: string) => {
-    const product = specialProducts.find(p => p.id === productId);
+    const product = specialProducts.find((p) => p.id === productId);
     if (product) {
       setSelectedProductId(productId);
       setSelectedProductName(product.name);
@@ -69,11 +69,10 @@ export default function SpecialsManagementPage() {
       if (confirmationAction === 'set') {
         translatedMessage = t('featured_special_set_success', {
           name: selectedProductName,
-          defaultValue: `Successfully set '${selectedProductName}' as the featured special`
+          defaultValue: `Successfully set '${selectedProductName}' as the featured special`,
         });
       } else if (confirmationAction === 'unset') {
-        translatedMessage = t('featured_special_removed_success',
-          'Featured special removed successfully');
+        translatedMessage = t('featured_special_removed_success', 'Featured special removed successfully');
       }
     }
 
@@ -86,11 +85,12 @@ export default function SpecialsManagementPage() {
 
   const getConfirmationMessage = () => {
     if (confirmationAction === 'set') {
-      return t('confirm_set_featured',
-        `Are you sure you want to set "${selectedProductName}" as the featured special? This will replace any current featured special.`);
+      return t(
+        'confirm_set_featured',
+        `Are you sure you want to set "${selectedProductName}" as the featured special? This will replace any current featured special.`,
+      );
     } else {
-      return t('confirm_remove_featured',
-        'Are you sure you want to remove the featured special?');
+      return t('confirm_remove_featured', 'Are you sure you want to remove the featured special?');
     }
   };
 
@@ -107,10 +107,7 @@ export default function SpecialsManagementPage() {
         <PageHeader title={t('admin_specials_management_title', 'Specials Management')} />
 
         <section className={styles.adminContent}>
-          <FeaturedSpecialCard
-            featuredSpecial={featuredSpecial}
-            onRemoveFeatured={handleRemoveFeaturedClick}
-          />
+          <FeaturedSpecialCard featuredSpecial={featuredSpecial} onRemoveFeatured={handleRemoveFeaturedClick} />
 
           <div className={styles.sectionDivider} />
 
@@ -139,7 +136,7 @@ export default function SpecialsManagementPage() {
                     start: (currentPage - 1) * pageSize + 1,
                     end: Math.min(currentPage * pageSize, totalCount),
                     total: totalCount,
-                    defaultValue: `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} items`
+                    defaultValue: `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} items`,
                   })}
                 </p>
               )}

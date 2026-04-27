@@ -17,7 +17,7 @@ export function setFallbackImage(menuItem: MenuItem): void {
  */
 export function getMenuItemImages(
   menuItem: MenuItem | null,
-  currentLanguage: LanguageCode
+  currentLanguage: LanguageCode,
 ): Array<{ url: string; alt: string }> {
   if (!menuItem) return [];
 
@@ -26,10 +26,7 @@ export function getMenuItemImages(
   }
 
   const altText =
-    menuItem.content?.[currentLanguage]?.name ||
-    menuItem.content?.en?.name ||
-    menuItem.name ||
-    'Menu item image';
+    menuItem.content?.[currentLanguage]?.name || menuItem.content?.en?.name || menuItem.name || 'Menu item image';
 
   return [{ url: menuItem.image, alt: altText }];
 }

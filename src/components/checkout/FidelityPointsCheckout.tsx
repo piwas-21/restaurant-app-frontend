@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,10 +12,7 @@ interface FidelityPointsCheckoutProps {
   onPointsRedemption?: (points: number, discountAmount: number) => void;
 }
 
-export default function FidelityPointsCheckout({
-  orderSubtotal,
-  onPointsRedemption,
-}: FidelityPointsCheckoutProps) {
+export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedemption }: FidelityPointsCheckoutProps) {
   const { t } = useTranslation();
   const [balance, setBalance] = useState<FidelityPointBalance | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +39,6 @@ export default function FidelityPointsCheckout({
       const maxPointsBasedOnOrder = orderSubtotal * 100; // 100 points = $1
       const maxPoints = Math.min(balanceData.currentPoints, maxPointsBasedOnOrder);
       setMaxRedeemablePoints(maxPoints);
-
     } catch (err) {
       // Silently handle errors (e.g., non-authenticated users)
       // Don't log auth errors to avoid console noise during checkout for non-logged-in users
@@ -93,9 +89,7 @@ export default function FidelityPointsCheckout({
           <Coins size={20} />
         </div>
         <div className={styles.content}>
-          <h3 className={styles.title}>
-            {t('earn_points_with_order', 'Earn Points with this Order')}
-          </h3>
+          <h3 className={styles.title}>{t('earn_points_with_order', 'Earn Points with this Order')}</h3>
           <p className={styles.earnPoints}>
             +{pointsToEarn} {t('points', 'points')}
             <span className={styles.earnValue}>
@@ -108,14 +102,10 @@ export default function FidelityPointsCheckout({
       {/* Current Balance Display */}
       <div className={styles.balanceSection}>
         <div className={styles.balanceInfo}>
-          <span className={styles.balanceLabel}>
-            {t('your_current_balance', 'Your Current Balance')}:
-          </span>
+          <span className={styles.balanceLabel}>{t('your_current_balance', 'Your Current Balance')}:</span>
           <span className={styles.balanceValue}>
             {balance.currentPoints.toLocaleString()} {t('points', 'points')}
-            <span className={styles.balanceValueCurrency}>
-              (${balance.currentPointsValue.toFixed(2)})
-            </span>
+            <span className={styles.balanceValueCurrency}>(${balance.currentPointsValue.toFixed(2)})</span>
           </span>
         </div>
       </div>
@@ -123,10 +113,7 @@ export default function FidelityPointsCheckout({
       {/* Points Redemption Section */}
       {balance.currentPoints > 0 && (
         <div className={styles.redemptionSection}>
-          <button
-            onClick={() => setShowRedemption(!showRedemption)}
-            className={styles.toggleButton}
-          >
+          <button onClick={() => setShowRedemption(!showRedemption)} className={styles.toggleButton}>
             <Gift size={18} />
             {showRedemption
               ? t('hide_redemption', 'Hide Point Redemption')
@@ -136,10 +123,7 @@ export default function FidelityPointsCheckout({
           {showRedemption && (
             <div className={styles.redemptionPanel}>
               <p className={styles.redemptionInfo}>
-                {t(
-                  'redemption_info',
-                  'Redeem your points for an instant discount. 100 points = $1.00'
-                )}
+                {t('redemption_info', 'Redeem your points for an instant discount. 100 points = $1.00')}
               </p>
 
               {/* Slider for points selection */}
@@ -169,8 +153,7 @@ export default function FidelityPointsCheckout({
                     {pointsToRedeem.toLocaleString()} {t('points', 'points')}
                   </span>
                   <span className={styles.discountAmount}>
-                    <Percent size={16} />
-                    ${discountAmount.toFixed(2)} {t('discount', 'discount')}
+                    <Percent size={16} />${discountAmount.toFixed(2)} {t('discount', 'discount')}
                   </span>
                 </div>
 
@@ -181,11 +164,7 @@ export default function FidelityPointsCheckout({
               </div>
 
               {/* Apply Button */}
-              <button
-                onClick={handleRedeemPoints}
-                disabled={pointsToRedeem === 0}
-                className={styles.applyButton}
-              >
+              <button onClick={handleRedeemPoints} disabled={pointsToRedeem === 0} className={styles.applyButton}>
                 {t('apply_discount', 'Apply Discount')}
               </button>
 

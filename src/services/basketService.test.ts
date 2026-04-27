@@ -103,9 +103,7 @@ describe('BasketService', () => {
       const error = new Error('Product not found');
       mockApiClient.post.mockRejectedValue(error);
 
-      await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow(
-        'Product not found'
-      );
+      await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Product not found');
     });
   });
 
@@ -148,9 +146,7 @@ describe('BasketService', () => {
       const error = new Error('Item not found');
       mockApiClient.put.mockRejectedValue(error);
 
-      await expect(
-        basketServiceModule.updateBasketItem('item-1', { quantity: 2 })
-      ).rejects.toThrow('Item not found');
+      await expect(basketServiceModule.updateBasketItem('item-1', { quantity: 2 })).rejects.toThrow('Item not found');
     });
   });
 
@@ -172,9 +168,7 @@ describe('BasketService', () => {
       const error = new Error('Item not found');
       mockApiClient.delete.mockRejectedValue(error);
 
-      await expect(basketServiceModule.removeItemFromBasket('item-1')).rejects.toThrow(
-        'Item not found'
-      );
+      await expect(basketServiceModule.removeItemFromBasket('item-1')).rejects.toThrow('Item not found');
     });
   });
 
@@ -232,9 +226,7 @@ describe('BasketService', () => {
       const error = new Error('Invalid promo code');
       mockApiClient.post.mockRejectedValue(error);
 
-      await expect(basketServiceModule.applyPromoCode('INVALID')).rejects.toThrow(
-        'Invalid promo code'
-      );
+      await expect(basketServiceModule.applyPromoCode('INVALID')).rejects.toThrow('Invalid promo code');
     });
   });
 

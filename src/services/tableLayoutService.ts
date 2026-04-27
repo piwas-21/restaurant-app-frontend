@@ -26,9 +26,7 @@ class TableLayoutService {
    */
   async batchUpdateTables(tables: Array<{ id: string; data: UpdateTableDto }>): Promise<void> {
     // Execute all updates in parallel
-    await Promise.all(
-      tables.map(({ id, data }) => this.updateTable(id, data))
-    );
+    await Promise.all(tables.map(({ id, data }) => this.updateTable(id, data)));
   }
 
   /**

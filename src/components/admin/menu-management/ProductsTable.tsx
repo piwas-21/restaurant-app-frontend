@@ -15,7 +15,14 @@ interface ProductsTableProps {
   activeTab?: 'products' | 'menus';
 }
 
-const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, error, onEdit, onDelete, activeTab = 'products' }) => {
+const ProductsTable: React.FC<ProductsTableProps> = ({
+  products,
+  isLoading,
+  error,
+  onEdit,
+  onDelete,
+  activeTab = 'products',
+}) => {
   const { t } = useTranslation();
 
   const loadingMessage = activeTab === 'menus' ? t('loading_menu_bundles') : t('loading_products');
@@ -51,7 +58,10 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, erro
                   <button onClick={() => onDelete(product.id)} className={`${styles.adminButton} ${styles.delete}`}>
                     {t('delete')}
                   </button>
-                  <Link href={`/admin/menu-management/${product.id}?type=${activeTab === 'menus' ? 'menu' : 'product'}`} className={`${styles.adminButton} ${styles.view}`}>
+                  <Link
+                    href={`/admin/menu-management/${product.id}?type=${activeTab === 'menus' ? 'menu' : 'product'}`}
+                    className={`${styles.adminButton} ${styles.view}`}
+                  >
                     {t('details')}
                   </Link>
                 </td>

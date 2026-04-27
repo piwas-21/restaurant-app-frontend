@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import styles from "./MenuItemDetails.module.css";
-import AllergenDisplay from "@/components/common/AllergenDisplay";
+import React from 'react';
+import styles from './MenuItemDetails.module.css';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
 
 type RatingData = { average: number; count: number } | undefined;
 
@@ -25,25 +25,38 @@ type Props = {
   initialRatingData?: RatingData;
 };
 
-export default function MenuItemDetails({ id, title, description, ingredients, allergens, price, dietaryTags, t, onTitleClick, initialRatingData }: Props) {
+export default function MenuItemDetails({
+  id,
+  title,
+  description,
+  ingredients,
+  allergens,
+  price,
+  dietaryTags,
+  t,
+  onTitleClick,
+  initialRatingData,
+}: Props) {
   const titleProps = onTitleClick
     ? {
-        role: "button",
+        role: 'button',
         tabIndex: 0,
         onClick: onTitleClick,
         onKeyDown: (e: React.KeyboardEvent<HTMLHeadingElement>) => {
-          if (e.key === "Enter" || e.key === " ") {
+          if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onTitleClick();
           }
         },
-        style: { cursor: "pointer" as const },
+        style: { cursor: 'pointer' as const },
       }
     : {};
 
   return (
     <>
-      <h3 id={`item-name-${id}`} className={styles.itemTitle} {...titleProps}>{title}</h3>
+      <h3 id={`item-name-${id}`} className={styles.itemTitle} {...titleProps}>
+        {title}
+      </h3>
       {/* <p className={`${styles.itemDescription} ${styles.clamp2}`}>{(description || '').trim().length > 0 ? description : ' '}</p> */}
       {/* {(() => {
         const text = (ingredients || '').trim();
@@ -88,29 +101,20 @@ export default function MenuItemDetails({ id, title, description, ingredients, a
       })()} */}
 
       {/* Allergens section - display below ingredients */}
-      <AllergenDisplay
-        allergens={allergens}
-        id={id}
-        maxVisible={3}
-        showLabel={true}
-        variant="full"
-      />
+      <AllergenDisplay allergens={allergens} id={id} maxVisible={3} showLabel={true} variant="full" />
 
-      <p
-        className={styles.itemPrice}
-        aria-label={`${t("checkout_total_label")} CHF ${price.toFixed(2)}`}
-      >
+      <p className={styles.itemPrice} aria-label={`${t('checkout_total_label')} CHF ${price.toFixed(2)}`}>
         CHF {price.toFixed(2)}
       </p>
 
       {/* <AverageRating dishId={id} initialRatingData={initialRatingData} /> */}
 
       {dietaryTags && dietaryTags.length > 0 && (
-        <div className={styles.allergyTags} aria-label={t("dietary_information_label")}>
+        <div className={styles.allergyTags} aria-label={t('dietary_information_label')}>
           {dietaryTags.map((tag) => (
             <span
               key={tag}
-              className={`${styles.allergyTag} ${styles[(tag || "").toLowerCase().replace(/\s+/g, "-")] || ""}`}
+              className={`${styles.allergyTag} ${styles[(tag || '').toLowerCase().replace(/\s+/g, '-')] || ''}`}
               role="status"
             >
               {t(tag, tag)}

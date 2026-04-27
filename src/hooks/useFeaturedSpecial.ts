@@ -18,7 +18,7 @@ export function useFeaturedSpecial() {
   useEffect(() => {
     const loadFeaturedSpecial = async () => {
       try {
-        const response = await getFeaturedSpecial() as FeaturedSpecialResponse;
+        const response = (await getFeaturedSpecial()) as FeaturedSpecialResponse;
         if (response.success && response.data) {
           setFeaturedSpecial(response.data);
         }
@@ -36,7 +36,7 @@ export function useFeaturedSpecial() {
     // Check if product has customization options
     const hasCustomizationOptions =
       (featuredSpecial.variations && featuredSpecial.variations.length > 0) ||
-      (featuredSpecial.detailedIngredients && featuredSpecial.detailedIngredients.some(ing => ing.isOptional)) ||
+      (featuredSpecial.detailedIngredients && featuredSpecial.detailedIngredients.some((ing) => ing.isOptional)) ||
       (featuredSpecial.suggestedSideItems && featuredSpecial.suggestedSideItems.length > 0);
 
     // If product has customization options, show customization modal
@@ -65,34 +65,37 @@ export function useFeaturedSpecial() {
     }
   }, [featuredSpecial, addItem, enqueueSnackbar, t]);
 
-  const handleFeaturedCustomizationConfirm = useCallback(async (customization: ProductCustomization) => {
-    if (!featuredSpecial) return;
+  const handleFeaturedCustomizationConfirm = useCallback(
+    async (customization: ProductCustomization) => {
+      if (!featuredSpecial) return;
 
-    try {
-      await addItem({
-        productId: customization.productId,
-        productVariationId: customization.selectedVariationId || undefined,
-        quantity: customization.quantity,
-        specialInstructions: customization.specialInstructions,
-        selectedIngredients: customization.selectedIngredients,
-        excludedIngredients: customization.excludedIngredients,
-        ingredientQuantities: customization.ingredientQuantities,
-        selectedSideItems: customization.selectedSideItems,
-      });
+      try {
+        await addItem({
+          productId: customization.productId,
+          productVariationId: customization.selectedVariationId || undefined,
+          quantity: customization.quantity,
+          specialInstructions: customization.specialInstructions,
+          selectedIngredients: customization.selectedIngredients,
+          excludedIngredients: customization.excludedIngredients,
+          ingredientQuantities: customization.ingredientQuantities,
+          selectedSideItems: customization.selectedSideItems,
+        });
 
-      setShowFeaturedCustomization(false);
-      enqueueSnackbar(t('item_added_to_cart', 'Item added to cart'), {
-        variant: 'success',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
-    } catch {
-      enqueueSnackbar(t('error_adding_to_cart', 'Error adding item to cart'), {
-        variant: 'error',
-        autoHideDuration: 3000,
-      });
-    }
-  }, [featuredSpecial, addItem, enqueueSnackbar, t]);
+        setShowFeaturedCustomization(false);
+        enqueueSnackbar(t('item_added_to_cart', 'Item added to cart'), {
+          variant: 'success',
+          autoHideDuration: 2000,
+          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        });
+      } catch {
+        enqueueSnackbar(t('error_adding_to_cart', 'Error adding item to cart'), {
+          variant: 'error',
+          autoHideDuration: 3000,
+        });
+      }
+    },
+    [featuredSpecial, addItem, enqueueSnackbar, t],
+  );
 
   const handleViewFeaturedDetails = useCallback(() => {
     setShowFeaturedDetails(true);

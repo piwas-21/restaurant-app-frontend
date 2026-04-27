@@ -4,7 +4,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Loader2, Search, UserCheck } from 'lucide-react';
-import { adminFidelityService, CreateCustomerDiscountDto, UpdateCustomerDiscountDto } from '@/services/adminFidelityService';
+import {
+  adminFidelityService,
+  CreateCustomerDiscountDto,
+  UpdateCustomerDiscountDto,
+} from '@/services/adminFidelityService';
 import { fetchUsers, UserDto } from '@/services/userService';
 import { UserRole } from '@/types/user';
 import type { CustomerDiscountRule } from '@/types/fidelity';
@@ -16,11 +20,7 @@ interface CustomerDiscountFormProps {
   onSuccess: () => void;
 }
 
-export default function CustomerDiscountForm({
-  discount,
-  onClose,
-  onSuccess,
-}: CustomerDiscountFormProps) {
+export default function CustomerDiscountForm({ discount, onClose, onSuccess }: CustomerDiscountFormProps) {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
@@ -85,44 +85,47 @@ export default function CustomerDiscountForm({
   }, [discount]);
 
   // Debounced user search
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
 
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (query.trim().length < 2) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    setSearchLoading(true);
-    setShowSearchResults(true);
-
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        const response = await fetchUsers('', false, query, 1, 10) as { success: boolean; data?: { items: any[] } };
-        if (response.success && response.data?.items) {
-          setSearchResults(response.data.items);
-        } else {
-          setSearchResults([]);
-        }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error searching users:', error);
-        setSearchResults([]);
-        enqueueSnackbar(t('failed_search_users', 'Failed to search users'), { variant: 'error' });
-      } finally {
-        setSearchLoading(false);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
       }
-    }, 500); // 500ms debounce
-  }, [enqueueSnackbar, t]);
+
+      if (query.trim().length < 2) {
+        setSearchResults([]);
+        setShowSearchResults(false);
+        return;
+      }
+
+      setSearchLoading(true);
+      setShowSearchResults(true);
+
+      searchTimeoutRef.current = setTimeout(async () => {
+        try {
+          const response = (await fetchUsers('', false, query, 1, 10)) as { success: boolean; data?: { items: any[] } };
+          if (response.success && response.data?.items) {
+            setSearchResults(response.data.items);
+          } else {
+            setSearchResults([]);
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Error searching users:', error);
+          setSearchResults([]);
+          enqueueSnackbar(t('failed_search_users', 'Failed to search users'), { variant: 'error' });
+        } finally {
+          setSearchLoading(false);
+        }
+      }, 500); // 500ms debounce
+    },
+    [enqueueSnackbar, t],
+  );
 
   const handleUserSelect = useCallback((user: UserDto) => {
     setSelectedUser(user);
-    setFormData(prev => ({ ...prev, userId: user.id }));
+    setFormData((prev) => ({ ...prev, userId: user.id }));
     setSearchQuery('');
     setSearchResults([]);
     setShowSearchResults(false);
@@ -130,12 +133,10 @@ export default function CustomerDiscountForm({
 
   const handleClearUser = useCallback(() => {
     setSelectedUser(null);
-    setFormData(prev => ({ ...prev, userId: '' }));
+    setFormData((prev) => ({ ...prev, userId: '' }));
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
@@ -204,8 +205,10 @@ export default function CustomerDiscountForm({
         discountType: formData.discountType,
         discountValue: parseFloat(formData.discountValue),
         minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : undefined,
-        maxOrderAmount: formData.hasMaxOrderAmount && formData.maxOrderAmount ? parseFloat(formData.maxOrderAmount) : undefined,
-        maxUsageCount: formData.hasMaxUsageCount && formData.maxUsageCount ? parseInt(formData.maxUsageCount) : undefined,
+        maxOrderAmount:
+          formData.hasMaxOrderAmount && formData.maxOrderAmount ? parseFloat(formData.maxOrderAmount) : undefined,
+        maxUsageCount:
+          formData.hasMaxUsageCount && formData.maxUsageCount ? parseInt(formData.maxUsageCount) : undefined,
         isActive: formData.isActive,
         validFrom: formData.hasValidFrom ? new Date(formData.validFrom).toISOString() : undefined,
         validUntil: formData.hasValidUntil ? new Date(formData.validUntil).toISOString() : undefined,
@@ -224,7 +227,7 @@ export default function CustomerDiscountForm({
       // Parse error message for better user feedback
       let errorMessage = t(
         discount ? 'failed_update_discount' : 'failed_create_discount',
-        `Failed to ${discount ? 'update' : 'create'} discount`
+        `Failed to ${discount ? 'update' : 'create'} discount`,
       );
 
       if (error?.response?.data) {
@@ -236,17 +239,23 @@ export default function CustomerDiscountForm({
 
           // Check for user not found error
           if (firstError.toLowerCase().includes('user') && firstError.toLowerCase().includes('not found')) {
-            errorMessage = t('user_not_found_error', 'User with ID "{{userId}}" was not found. Please verify the user ID and try again.', { userId: formData.userId });
+            errorMessage = t(
+              'user_not_found_error',
+              'User with ID "{{userId}}" was not found. Please verify the user ID and try again.',
+              { userId: formData.userId },
+            );
           }
           // Check for duplicate discount error
           else if (firstError.toLowerCase().includes('already exists')) {
-            errorMessage = t('discount_already_exists_error', 'A discount already exists for this user. Please edit the existing discount instead of creating a new one.');
+            errorMessage = t(
+              'discount_already_exists_error',
+              'A discount already exists for this user. Please edit the existing discount instead of creating a new one.',
+            );
           }
           // Check for validation errors
           else if (firstError.toLowerCase().includes('invalid')) {
             errorMessage = firstError;
-          }
-          else {
+          } else {
             // Use the first error message directly
             errorMessage = firstError;
           }
@@ -280,11 +289,7 @@ export default function CustomerDiscountForm({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2>{discount ? t('edit_discount', 'Edit Discount') : t('create_new_discount', 'Create New Discount')}</h2>
-          <button
-            onClick={onClose}
-            className={styles.closeButton}
-            disabled={loading}
-          >
+          <button onClick={onClose} className={styles.closeButton} disabled={loading}>
             <X size={24} />
           </button>
         </div>
@@ -301,8 +306,12 @@ export default function CustomerDiscountForm({
                   <div className={styles.selectedUserInfo}>
                     <UserCheck size={20} />
                     <div>
-                      <div className={styles.selectedUserName}>{selectedUser.fullName || `${selectedUser.firstName} ${selectedUser.lastName}`}</div>
-                      <div className={styles.selectedUserEmail}>{selectedUser.email || `${t('id', 'ID')}: ${selectedUser.id}`}</div>
+                      <div className={styles.selectedUserName}>
+                        {selectedUser.fullName || `${selectedUser.firstName} ${selectedUser.lastName}`}
+                      </div>
+                      <div className={styles.selectedUserEmail}>
+                        {selectedUser.email || `${t('id', 'ID')}: ${selectedUser.id}`}
+                      </div>
                     </div>
                   </div>
                   {!discount && (
@@ -330,9 +339,7 @@ export default function CustomerDiscountForm({
                       placeholder={t('search_by_name_or_email', 'Search by name or email...')}
                       autoComplete="off"
                     />
-                    {searchLoading && (
-                      <Loader2 size={18} className={`${styles.searchIcon} ${styles.spinner}`} />
-                    )}
+                    {searchLoading && <Loader2 size={18} className={`${styles.searchIcon} ${styles.spinner}`} />}
                   </div>
 
                   {showSearchResults && searchResults.length > 0 && (
@@ -345,7 +352,9 @@ export default function CustomerDiscountForm({
                           className={styles.searchResultItem}
                         >
                           <div className={styles.searchResultInfo}>
-                            <div className={styles.searchResultName}>{user.fullName || `${user.firstName} ${user.lastName}`}</div>
+                            <div className={styles.searchResultName}>
+                              {user.fullName || `${user.firstName} ${user.lastName}`}
+                            </div>
                             <div className={styles.searchResultEmail}>{user.email}</div>
                           </div>
                         </button>
@@ -362,7 +371,9 @@ export default function CustomerDiscountForm({
               )}
 
               <small className={styles.help}>
-                {selectedUser ? t('selected_customer_for_discount', 'Selected customer for this discount') : t('search_and_select_customer', 'Search and select a customer')}
+                {selectedUser
+                  ? t('selected_customer_for_discount', 'Selected customer for this discount')
+                  : t('search_and_select_customer', 'Search and select a customer')}
               </small>
             </div>
 
@@ -417,7 +428,9 @@ export default function CustomerDiscountForm({
                 placeholder={formData.discountType === 'Percentage' ? '10' : '5.00'}
               />
               <small className={styles.help}>
-                {formData.discountType === 'Percentage' ? t('enter_percentage_0_100', 'Enter percentage (0-100)') : t('enter_chf_amount', 'Enter CHF amount')}
+                {formData.discountType === 'Percentage'
+                  ? t('enter_percentage_0_100', 'Enter percentage (0-100)')
+                  : t('enter_chf_amount', 'Enter CHF amount')}
               </small>
             </div>
           </div>
@@ -564,19 +577,10 @@ export default function CustomerDiscountForm({
           </div>
 
           <div className={styles.actions}>
-            <button
-              type="button"
-              onClick={onClose}
-              className={styles.cancelButton}
-              disabled={loading}
-            >
+            <button type="button" onClick={onClose} className={styles.cancelButton} disabled={loading}>
               {t('cancel', 'Cancel')}
             </button>
-            <button
-              type="submit"
-              className={styles.submitButton}
-              disabled={loading}
-            >
+            <button type="submit" className={styles.submitButton} disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 size={18} className={styles.spinner} />

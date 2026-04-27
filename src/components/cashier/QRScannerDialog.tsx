@@ -11,11 +11,7 @@ interface QRScannerDialogProps {
   onApplyDiscount?: (result: QRCodeValidationResult) => void;
 }
 
-const QRScannerDialog: React.FC<QRScannerDialogProps> = ({
-  isOpen,
-  onClose,
-  onApplyDiscount
-}) => {
+const QRScannerDialog: React.FC<QRScannerDialogProps> = ({ isOpen, onClose, onApplyDiscount }) => {
   const { t } = useTranslation();
   const [qrCode, setQrCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -100,19 +96,10 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({
               )}
 
               <div className={styles.dialogFooter}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={onClose}
-                  disabled={isLoading}
-                >
+                <button type="button" className={styles.cancelButton} onClick={onClose} disabled={isLoading}>
                   {t('cancel')}
                 </button>
-                <button
-                  type="submit"
-                  className={styles.confirmButton}
-                  disabled={isLoading || !qrCode.trim()}
-                >
+                <button type="submit" className={styles.confirmButton} disabled={isLoading || !qrCode.trim()}>
                   {isLoading ? t('validating...') : t('validate')}
                 </button>
               </div>
@@ -126,9 +113,15 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({
 
               <div style={{ padding: '15px', border: '1px solid #eee', borderRadius: '8px' }}>
                 <h3 style={{ margin: '0 0 10px 0' }}>{t('member_details')}</h3>
-                <p><strong>{t('name')}:</strong> {result.membership?.userName}</p>
-                <p><strong>{t('group')}:</strong> {result.group?.name}</p>
-                <p><strong>{t('status')}:</strong> {result.membership?.isActive ? t('active') : t('inactive')}</p>
+                <p>
+                  <strong>{t('name')}:</strong> {result.membership?.userName}
+                </p>
+                <p>
+                  <strong>{t('group')}:</strong> {result.group?.name}
+                </p>
+                <p>
+                  <strong>{t('status')}:</strong> {result.membership?.isActive ? t('active') : t('inactive')}
+                </p>
               </div>
 
               <div>

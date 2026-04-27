@@ -58,18 +58,18 @@
 }
 
 /* Dark Mode Support */
-[data-theme="dark"] .capacityWarning {
+[data-theme='dark'] .capacityWarning {
   background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 152, 0, 0.1) 100%);
   border-color: rgba(255, 167, 38, 0.5);
   border-left-color: rgba(255, 152, 0, 0.8);
 }
 
-[data-theme="dark"] .warningTitle {
+[data-theme='dark'] .warningTitle {
   color: #ffb74d;
 }
 
-[data-theme="dark"] .warningMessage,
-[data-theme="dark"] .warningAction {
+[data-theme='dark'] .warningMessage,
+[data-theme='dark'] .warningAction {
   color: rgba(255, 255, 255, 0.9);
 }
 

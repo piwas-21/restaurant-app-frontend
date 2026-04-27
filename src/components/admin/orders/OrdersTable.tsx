@@ -28,7 +28,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   onDeleteOrder,
 }) => {
   const { t } = useTranslation();
-  const { formatPrice, formatDate, getOrderTypeIcon, getOrderTypeLabel, getStatusLabel, getPaymentStatusLabel } = useOrderHelpers();
+  const { formatPrice, formatDate, getOrderTypeIcon, getOrderTypeLabel, getStatusLabel, getPaymentStatusLabel } =
+    useOrderHelpers();
 
   const allSelected = orders.length > 0 && selectedOrderIds.size === orders.length;
 
@@ -38,12 +39,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
         <thead>
           <tr>
             <th className={styles.checkboxColumn}>
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={onToggleSelectAll}
-                className={styles.checkbox}
-              />
+              <input type="checkbox" checked={allSelected} onChange={onToggleSelectAll} className={styles.checkbox} />
             </th>
             <th>{t('order_number', 'Order #')}</th>
             <th>{t('customer', 'Customer')}</th>
@@ -86,9 +82,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                 </div>
               </td>
               <td>
-                <span className={getStatusBadgeClasses(order.status)}>
-                  {getStatusLabel(order.status)}
-                </span>
+                <span className={getStatusBadgeClasses(order.status)}>{getStatusLabel(order.status)}</span>
               </td>
               <td>
                 <span className={getPaymentBadgeClasses(order.paymentStatus)}>
@@ -116,11 +110,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
                   <button
                     onClick={() => onToggleFocus(order)}
                     className={`${styles.actionButton} ${order.isFocusOrder ? styles.focusActive : ''}`}
-                    title={
-                      order.isFocusOrder
-                        ? t('remove_focus', 'Remove Focus')
-                        : t('mark_as_focus', 'Mark as Focus')
-                    }
+                    title={order.isFocusOrder ? t('remove_focus', 'Remove Focus') : t('mark_as_focus', 'Mark as Focus')}
                   >
                     <Star size={16} />
                   </button>

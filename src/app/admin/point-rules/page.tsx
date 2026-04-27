@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -93,125 +93,119 @@ export default function PointRulesPage() {
   return (
     <AdminAuthGuard>
       <main className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{t('point_earning_rules', 'Point Earning Rules')}</h1>
-          <p className={styles.subtitle}>
-            {t('point_rules_desc', 'Manage point earning rules based on order amounts')}
-          </p>
-        </div>
-        <button onClick={handleCreate} className={styles.createButton}>
-          <Plus size={20} />
-          {t('create_rule', 'Create Rule')}
-        </button>
-      </div>
-
-      {/* Filter */}
-      <div className={styles.filters}>
-        <label className={styles.filterLabel}>
-          <input
-            type="checkbox"
-            checked={activeOnly}
-            onChange={(e) => setActiveOnly(e.target.checked)}
-            className={styles.checkbox}
-          />
-          {t('show_active_only', 'Show active only')}
-        </label>
-      </div>
-
-      {/* Table */}
-      {loading ? (
-        <div className={styles.loadingContainer}>
-          <Loader2 size={48} className={styles.spinner} />
-          <p>{t('loading', 'Loading...')}</p>
-        </div>
-      ) : rules.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>{t('no_rules_found', 'No point earning rules found')}</p>
-          <button onClick={handleCreate} className={styles.createButtonSecondary}>
+        <div className={styles.header}>
+          <div>
+            <h1 className={styles.title}>{t('point_earning_rules', 'Point Earning Rules')}</h1>
+            <p className={styles.subtitle}>
+              {t('point_rules_desc', 'Manage point earning rules based on order amounts')}
+            </p>
+          </div>
+          <button onClick={handleCreate} className={styles.createButton}>
             <Plus size={20} />
-            {t('create_first_rule', 'Create your first rule')}
+            {t('create_rule', 'Create Rule')}
           </button>
         </div>
-      ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>{t('name', 'Name')}</th>
-                <th>{t('order_amount_range', 'Order Amount Range')}</th>
-                <th>{t('points_awarded', 'Points Awarded')}</th>
-                <th>{t('priority', 'Priority')}</th>
-                <th>{t('status', 'Status')}</th>
-                <th>{t('actions', 'Actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((rule) => (
-                <tr key={rule.id}>
-                  <td className={styles.nameCell}>{rule.name}</td>
-                  <td>
-                    CHF {rule.minOrderAmount.toFixed(2)} -{' '}
-                    {rule.maxOrderAmount ? `CHF ${rule.maxOrderAmount.toFixed(2)}` : '∞'}
-                  </td>
-                  <td className={styles.pointsCell}>
-                    <span className={styles.pointsBadge}>{rule.pointsAwarded} pts</span>
-                  </td>
-                  <td>{rule.priority}</td>
-                  <td>
-                    {rule.isActive ? (
-                      <span className={styles.statusActive}>
-                        <CheckCircle size={16} />
-                        {t('active', 'Active')}
-                      </span>
-                    ) : (
-                      <span className={styles.statusInactive}>
-                        <XCircle size={16} />
-                        {t('inactive', 'Inactive')}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <div className={styles.actions}>
-                      <button
-                        onClick={() => handleEdit(rule)}
-                        className={styles.editButton}
-                        title={t('edit', 'Edit')}
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(rule.id)}
-                        className={styles.deleteButton}
-                        title={t('delete', 'Delete')}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        {/* Filter */}
+        <div className={styles.filters}>
+          <label className={styles.filterLabel}>
+            <input
+              type="checkbox"
+              checked={activeOnly}
+              onChange={(e) => setActiveOnly(e.target.checked)}
+              className={styles.checkbox}
+            />
+            {t('show_active_only', 'Show active only')}
+          </label>
         </div>
-      )}
 
-      {/* Form Modal */}
-      {showForm && (
-        <PointRuleForm
-          rule={editingRule}
-          onSuccess={handleFormSuccess}
-          onCancel={handleFormCancel}
+        {/* Table */}
+        {loading ? (
+          <div className={styles.loadingContainer}>
+            <Loader2 size={48} className={styles.spinner} />
+            <p>{t('loading', 'Loading...')}</p>
+          </div>
+        ) : rules.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>{t('no_rules_found', 'No point earning rules found')}</p>
+            <button onClick={handleCreate} className={styles.createButtonSecondary}>
+              <Plus size={20} />
+              {t('create_first_rule', 'Create your first rule')}
+            </button>
+          </div>
+        ) : (
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>{t('name', 'Name')}</th>
+                  <th>{t('order_amount_range', 'Order Amount Range')}</th>
+                  <th>{t('points_awarded', 'Points Awarded')}</th>
+                  <th>{t('priority', 'Priority')}</th>
+                  <th>{t('status', 'Status')}</th>
+                  <th>{t('actions', 'Actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rules.map((rule) => (
+                  <tr key={rule.id}>
+                    <td className={styles.nameCell}>{rule.name}</td>
+                    <td>
+                      CHF {rule.minOrderAmount.toFixed(2)} -{' '}
+                      {rule.maxOrderAmount ? `CHF ${rule.maxOrderAmount.toFixed(2)}` : '∞'}
+                    </td>
+                    <td className={styles.pointsCell}>
+                      <span className={styles.pointsBadge}>{rule.pointsAwarded} pts</span>
+                    </td>
+                    <td>{rule.priority}</td>
+                    <td>
+                      {rule.isActive ? (
+                        <span className={styles.statusActive}>
+                          <CheckCircle size={16} />
+                          {t('active', 'Active')}
+                        </span>
+                      ) : (
+                        <span className={styles.statusInactive}>
+                          <XCircle size={16} />
+                          {t('inactive', 'Inactive')}
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <div className={styles.actions}>
+                        <button
+                          onClick={() => handleEdit(rule)}
+                          className={styles.editButton}
+                          title={t('edit', 'Edit')}
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(rule.id)}
+                          className={styles.deleteButton}
+                          title={t('delete', 'Delete')}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Form Modal */}
+        {showForm && <PointRuleForm rule={editingRule} onSuccess={handleFormSuccess} onCancel={handleFormCancel} />}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={deleteConfirmation.isOpen}
+          onClose={cancelDelete}
+          onConfirm={confirmDelete}
+          message={t('confirm_delete_rule', 'Are you sure you want to delete this rule?')}
         />
-      )}
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={deleteConfirmation.isOpen}
-        onClose={cancelDelete}
-        onConfirm={confirmDelete}
-        message={t('confirm_delete_rule', 'Are you sure you want to delete this rule?')}
-      />
       </main>
     </AdminAuthGuard>
   );

@@ -31,7 +31,7 @@ export default function RestaurantSettingsPage() {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             className={`${styles.tab} ${activeTab === tab.id ? styles.activeTab : ''}`}

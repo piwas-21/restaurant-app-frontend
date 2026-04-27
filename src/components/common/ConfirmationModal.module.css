@@ -30,7 +30,9 @@
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -45,9 +47,11 @@
   }
 }
 
-[data-theme="dark"] .modalContent {
+[data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
 .modalContent h2 {
@@ -56,7 +60,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .modalContent h2 {
+[data-theme='dark'] .modalContent h2 {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -67,7 +71,7 @@
   line-height: 1.5;
 }
 
-[data-theme="dark"] .modalContent p {
+[data-theme='dark'] .modalContent p {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -121,21 +125,21 @@
   transform: translateY(0);
 }
 
-[data-theme="dark"] .submitButton {
+[data-theme='dark'] .submitButton {
   background-color: var(--primary-color, #e06666);
 }
 
-[data-theme="dark"] .submitButton:hover {
+[data-theme='dark'] .submitButton:hover {
   background-color: var(--primary-color-dark, #c94d4d);
 }
 
-[data-theme="dark"] .cancelButton {
+[data-theme='dark'] .cancelButton {
   background-color: transparent;
   color: var(--text-color, #e0e0e0);
   border: 2px solid var(--border-color, #4a5568);
 }
 
-[data-theme="dark"] .cancelButton:hover {
+[data-theme='dark'] .cancelButton:hover {
   background-color: var(--hover-background, #374151);
   border-color: var(--border-color-hover, #6b7280);
 }

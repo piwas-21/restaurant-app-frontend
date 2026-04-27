@@ -31,9 +31,9 @@ export default function WorkingHoursManager() {
       const hours = await workingHoursService.getAll();
 
       // Convert dayOfWeek from string to number and sort by day of week (Monday first)
-      const normalized: NormalizedWorkingHours[] = hours.map(wh => ({
+      const normalized: NormalizedWorkingHours[] = hours.map((wh) => ({
         ...wh,
-        dayOfWeek: dayNameToNumber(wh.dayOfWeek)
+        dayOfWeek: dayNameToNumber(wh.dayOfWeek),
       }));
 
       const sorted = normalized.sort((a, b) => {
@@ -76,27 +76,15 @@ export default function WorkingHoursManager() {
   };
 
   const handleTimeChange = (id: string, field: 'openTime' | 'closeTime', value: string) => {
-    setWorkingHours(prev =>
-      prev.map(wh =>
-        wh.id === id ? { ...wh, [field]: value } : wh
-      )
-    );
+    setWorkingHours((prev) => prev.map((wh) => (wh.id === id ? { ...wh, [field]: value } : wh)));
   };
 
   const handleToggleClosed = (id: string) => {
-    setWorkingHours(prev =>
-      prev.map(wh =>
-        wh.id === id ? { ...wh, isClosed: !wh.isClosed } : wh
-      )
-    );
+    setWorkingHours((prev) => prev.map((wh) => (wh.id === id ? { ...wh, isClosed: !wh.isClosed } : wh)));
   };
 
   const handleNotesChange = (id: string, notes: string) => {
-    setWorkingHours(prev =>
-      prev.map(wh =>
-        wh.id === id ? { ...wh, notes } : wh
-      )
-    );
+    setWorkingHours((prev) => prev.map((wh) => (wh.id === id ? { ...wh, notes } : wh)));
   };
 
   const validateTimes = (): boolean => {
@@ -109,7 +97,7 @@ export default function WorkingHoursManager() {
             t('close_time_must_be_after_open', 'Close time must be after open time for {{day}}', {
               day: getDayName(wh.dayOfWeek),
             }),
-            { variant: 'error' }
+            { variant: 'error' },
           );
           return false;
         }
@@ -130,7 +118,7 @@ export default function WorkingHoursManager() {
       setSaving(true);
 
       // Update all days
-      const updatePromises = workingHours.map(wh => {
+      const updatePromises = workingHours.map((wh) => {
         const dto: UpdateWorkingHoursDto = {
           dayOfWeek: wh.dayOfWeek,
           openTime: wh.openTime,
@@ -200,7 +188,7 @@ export default function WorkingHoursManager() {
             </tr>
           </thead>
           <tbody>
-            {workingHours.map(wh => (
+            {workingHours.map((wh) => (
               <tr key={wh.id} className={wh.isClosed ? styles.closedRow : ''}>
                 <td className={styles.dayCell}>
                   <strong suppressHydrationWarning>{getDayName(wh.dayOfWeek)}</strong>
@@ -218,7 +206,7 @@ export default function WorkingHoursManager() {
                   <input
                     type="time"
                     value={wh.openTime.substring(0, 5)} // HH:mm
-                    onChange={e => handleTimeChange(wh.id, 'openTime', e.target.value + ':00')}
+                    onChange={(e) => handleTimeChange(wh.id, 'openTime', e.target.value + ':00')}
                     disabled={wh.isClosed}
                     className={styles.timeInput}
                   />
@@ -227,7 +215,7 @@ export default function WorkingHoursManager() {
                   <input
                     type="time"
                     value={wh.closeTime.substring(0, 5)} // HH:mm
-                    onChange={e => handleTimeChange(wh.id, 'closeTime', e.target.value + ':00')}
+                    onChange={(e) => handleTimeChange(wh.id, 'closeTime', e.target.value + ':00')}
                     disabled={wh.isClosed}
                     className={styles.timeInput}
                   />
@@ -236,7 +224,7 @@ export default function WorkingHoursManager() {
                   <input
                     type="text"
                     value={wh.notes || ''}
-                    onChange={e => handleNotesChange(wh.id, e.target.value)}
+                    onChange={(e) => handleNotesChange(wh.id, e.target.value)}
                     placeholder={t('optional_notes', 'Optional notes...')}
                     className={styles.notesInput}
                   />
@@ -249,11 +237,7 @@ export default function WorkingHoursManager() {
 
       {/* Save Button */}
       <div className={styles.actions}>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={styles.saveButton}
-        >
+        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
           <Save size={18} />
           <span>{saving ? t('saving', 'Saving...') : t('save_changes', 'Save Changes')}</span>
         </button>

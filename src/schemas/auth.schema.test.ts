@@ -1,7 +1,6 @@
 import { loginSchema, staffRegistrationSchema, customerRegistrationSchema } from './auth.schema';
 
 describe('Auth Schemas', () => {
-
   describe('loginSchema', () => {
     it('should validate correct login data', () => {
       const data = { email: 'test@example.com', password: 'password123' };
@@ -14,8 +13,8 @@ describe('Auth Schemas', () => {
     });
 
     it('should invalidate with a missing password', () => {
-        const data = { email: 'test@example.com' };
-        expect(() => loginSchema.parse(data)).toThrow();
+      const data = { email: 'test@example.com' };
+      expect(() => loginSchema.parse(data)).toThrow();
     });
   });
 
@@ -26,7 +25,7 @@ describe('Auth Schemas', () => {
       email: 'john.doe@example.com',
       password: 'password123',
       confirmPassword: 'password123',
-      role: 'Server'
+      role: 'Server',
     };
 
     it('should validate correct staff registration data', () => {
@@ -39,32 +38,32 @@ describe('Auth Schemas', () => {
     });
 
     it('should invalidate if password is too short', () => {
-        const data = { ...validData, password: 'short', confirmPassword: 'short' };
-        expect(() => staffRegistrationSchema.parse(data)).toThrow();
+      const data = { ...validData, password: 'short', confirmPassword: 'short' };
+      expect(() => staffRegistrationSchema.parse(data)).toThrow();
     });
   });
 
   describe('customerRegistrationSchema', () => {
     const validData = {
-        firstName: 'Jane',
-        lastName: 'Doe',
-        email: 'jane.doe@example.com',
-        password: 'password123',
-        confirmPassword: 'password123',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane.doe@example.com',
+      password: 'password123',
+      confirmPassword: 'password123',
     };
 
     it('should validate correct customer registration data', () => {
-        expect(() => customerRegistrationSchema.parse(validData)).not.toThrow();
+      expect(() => customerRegistrationSchema.parse(validData)).not.toThrow();
     });
 
     it('should invalidate if passwords do not match', () => {
-        const data = { ...validData, confirmPassword: 'differentpassword' };
-        expect(() => customerRegistrationSchema.parse(data)).toThrow();
+      const data = { ...validData, confirmPassword: 'differentpassword' };
+      expect(() => customerRegistrationSchema.parse(data)).toThrow();
     });
 
     it('should invalidate if password is too short', () => {
-        const data = { ...validData, password: 'short', confirmPassword: 'short' };
-        expect(() => customerRegistrationSchema.parse(data)).toThrow();
+      const data = { ...validData, password: 'short', confirmPassword: 'short' };
+      expect(() => customerRegistrationSchema.parse(data)).toThrow();
     });
   });
 });

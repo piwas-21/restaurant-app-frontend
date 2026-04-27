@@ -77,13 +77,13 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
   const handleDefaultToggle = (index: number, checked: boolean) => {
     if (checked) {
       // Count current defaults
-      const currentDefaultCount = items.filter(item => item.isDefault).length;
+      const currentDefaultCount = items.filter((item) => item.isDefault).length;
 
       // If maxSelection is 1, behave like radio buttons - uncheck others
       if (maxSelection === 1) {
         const newItems = items.map((item, i) => ({
           ...item,
-          isDefault: i === index // Only the clicked item is default
+          isDefault: i === index, // Only the clicked item is default
         }));
         onChange(newItems);
         return;
@@ -91,7 +91,12 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
 
       // For maxSelection > 1, check if we're at the limit
       if (currentDefaultCount >= maxSelection) {
-        alert(t('max_default_items_reached', { max: maxSelection, defaultValue: `You can only mark up to ${maxSelection} item(s) as default for this section.` }));
+        alert(
+          t('max_default_items_reached', {
+            max: maxSelection,
+            defaultValue: `You can only mark up to ${maxSelection} item(s) as default for this section.`,
+          }),
+        );
         return;
       }
     }
@@ -112,19 +117,13 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
   };
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
-    if (
-      (direction === 'up' && index === 0) ||
-      (direction === 'down' && index === items.length - 1)
-    ) {
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === items.length - 1)) {
       return;
     }
 
     const newItems = [...items];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newItems[index], newItems[targetIndex]] = [
-      newItems[targetIndex],
-      newItems[index],
-    ];
+    [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
 
     // Update display orders
     newItems.forEach((item, i) => {
@@ -150,11 +149,7 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
         {showResults && searchResults.length > 0 && (
           <div className={styles.searchResults}>
             {searchResults.map((product) => (
-              <div
-                key={product.id}
-                onClick={() => addItem(product)}
-                className={styles.searchResultItem}
-              >
+              <div key={product.id} onClick={() => addItem(product)} className={styles.searchResultItem}>
                 <div>{product.name}</div>
                 <div className={styles.helpText}>${product.basePrice.toFixed(2)}</div>
               </div>

@@ -86,9 +86,7 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
             {reservation.customerPhone && <span>{reservation.customerPhone}</span>}
           </div>
         </div>
-        <span className={`${styles.statusBadge} ${getStatusBadgeClass(reservation.status)}`}>
-          {statusLabel}
-        </span>
+        <span className={`${styles.statusBadge} ${getStatusBadgeClass(reservation.status)}`}>{statusLabel}</span>
       </div>
 
       <div className={styles.cardBody}>
@@ -99,15 +97,21 @@ export const ReservationCard: React.FC<ReservationCardProps> = ({
           </div>
           <div className={styles.infoItem}>
             <Clock size={16} />
-            <span>{formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}</span>
+            <span>
+              {formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}
+            </span>
           </div>
           <div className={styles.infoItem}>
             <MapPin size={16} />
-            <span>{tableLabel} {reservation.tableNumber}</span>
+            <span>
+              {tableLabel} {reservation.tableNumber}
+            </span>
           </div>
           <div className={styles.infoItem}>
             <Users size={16} />
-            <span>{reservation.numberOfGuests} {guestsLabel}</span>
+            <span>
+              {reservation.numberOfGuests} {guestsLabel}
+            </span>
           </div>
         </div>
 

@@ -12,7 +12,10 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { getCategories } from '@/services/categoryService';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 
-interface Category { id: string; name: string; }
+interface Category {
+  id: string;
+  name: string;
+}
 const supportedLanguages = LANGUAGE_CODES;
 
 interface Props {
@@ -22,7 +25,11 @@ interface Props {
 
 const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
   const { t } = useTranslation();
-  const initial = Object.entries((product.content||{}) as any).map(([language, v]: any)=> ({ language, name: v.name||'', description: v.description||'' }));
+  const initial = Object.entries((product.content || {}) as any).map(([language, v]: any) => ({
+    language,
+    name: v.name || '',
+    description: v.description || '',
+  }));
   const [editing, setEditing] = useState(false);
   const [entries, setEntries] = useState(initial);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -33,7 +40,7 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      const resp = (await getCategories()) as { success: boolean; data?: { items: any[] } };
       if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
@@ -55,14 +62,17 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
   };
 
   const add = () => {
-    const used = entries.map(e => e.language).filter(Boolean);
-    const next = supportedLanguages.find(l => !used.includes(l)) || '';
+    const used = entries.map((e) => e.language).filter(Boolean);
+    const next = supportedLanguages.find((l) => !used.includes(l)) || '';
     setEntries([...entries, { language: next, name: '', description: '' }]);
   };
-  const askRemove = (idx: number) => { setPendingDeleteIndex(idx); setConfirmOpen(true); };
+  const askRemove = (idx: number) => {
+    setPendingDeleteIndex(idx);
+    setConfirmOpen(true);
+  };
   const removeNow = () => {
-    if (pendingDeleteIndex===null) return;
-    setEntries(entries.filter((_,i)=>i!==pendingDeleteIndex));
+    if (pendingDeleteIndex === null) return;
+    setEntries(entries.filter((_, i) => i !== pendingDeleteIndex));
     setPendingDeleteIndex(null);
     setConfirmOpen(false);
   };
@@ -106,11 +116,17 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
       <div className={detailsStyles.headerRow}>
         <h3>{t('multilingual_content')}</h3>
         {!editing ? (
-          <button className={`${styles.adminButton} ${styles.edit}`} onClick={()=>setEditing(true)}>{t('edit')}</button>
+          <button className={`${styles.adminButton} ${styles.edit}`} onClick={() => setEditing(true)}>
+            {t('edit')}
+          </button>
         ) : (
           <div className={detailsStyles.actionRow}>
-            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-            <button className={styles.cancelButton} onClick={()=>setEditing(false)}>{t('cancel')}</button>
+            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+              {t('save')}
+            </button>
+            <button className={styles.cancelButton} onClick={() => setEditing(false)}>
+              {t('cancel')}
+            </button>
           </div>
         )}
       </div>
@@ -127,7 +143,7 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
               </tr>
             </thead>
             <tbody>
-              {initial.map((e:any)=> (
+              {initial.map((e: any) => (
                 <tr key={e.language}>
                   <td>{t(`lang_${e.language}`)}</td>
                   <td>{e.name}</td>
@@ -142,34 +158,54 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
           {entries.map((e, idx) => (
             <div key={idx} className={detailsStyles.formGroup}>
               <div className={detailsStyles.actionRow}>
-                <select value={e.language} onChange={ev=>setEntries(entries.map((x,i)=> i===idx ? { ...x, language: ev.target.value } : x))}>
-                  <option value="" disabled>{t('language')}</option>
-                  {supportedLanguages.map(l => (
-                    <option key={l} value={l} disabled={entries.some((x,i)=> x.language === l && i !== idx)}>{t(`lang_${l}`)}</option>
+                <select
+                  value={e.language}
+                  onChange={(ev) =>
+                    setEntries(entries.map((x, i) => (i === idx ? { ...x, language: ev.target.value } : x)))
+                  }
+                >
+                  <option value="" disabled>
+                    {t('language')}
+                  </option>
+                  {supportedLanguages.map((l) => (
+                    <option key={l} value={l} disabled={entries.some((x, i) => x.language === l && i !== idx)}>
+                      {t(`lang_${l}`)}
+                    </option>
                   ))}
                 </select>
                 <div>
                   <input
-                    ref={el => { inputRefs.current[idx] = el; }}
+                    ref={(el) => {
+                      inputRefs.current[idx] = el;
+                    }}
                     placeholder={t('name_in_language') as string}
                     value={e.name}
-                    onChange={ev=>updateEntry(idx, 'name', ev.target.value)}
+                    onChange={(ev) => updateEntry(idx, 'name', ev.target.value)}
                     className={invalidFields.has(idx) ? modalStyles.fieldError : ''}
                   />
                 </div>
                 <input
                   placeholder={t('description_in_language') as string}
                   value={e.description}
-                  onChange={ev=>updateEntry(idx, 'description', ev.target.value)}
+                  onChange={(ev) => updateEntry(idx, 'description', ev.target.value)}
                 />
-                <button type="button" className={styles.deleteButton} onClick={()=>askRemove(idx)}>{t('remove')}</button>
+                <button type="button" className={styles.deleteButton} onClick={() => askRemove(idx)}>
+                  {t('remove')}
+                </button>
               </div>
             </div>
           ))}
-          <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={add}>{t('add_language_translation')}</button>
+          <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={add}>
+            {t('add_language_translation')}
+          </button>
         </div>
       )}
-      <ConfirmationModal isOpen={confirmOpen} onClose={()=>setConfirmOpen(false)} onConfirm={removeNow} message={t('delete_confirmation')} />
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={removeNow}
+        message={t('delete_confirmation')}
+      />
     </div>
   );
 };

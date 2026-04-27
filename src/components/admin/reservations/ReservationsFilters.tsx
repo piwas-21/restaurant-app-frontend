@@ -77,13 +77,9 @@ export const ReservationsFilters: React.FC<ReservationsFiltersProps> = ({
           className={styles.filterInput}
         />
 
-        <select
-          value={selectedTableId}
-          onChange={(e) => onTableChange(e.target.value)}
-          className={styles.filterSelect}
-        >
+        <select value={selectedTableId} onChange={(e) => onTableChange(e.target.value)} className={styles.filterSelect}>
           <option value="All">{allTablesLabel}</option>
-          {tables.map(table => (
+          {tables.map((table) => (
             <option key={table.id} value={table.id}>
               {tableLabel} {table.tableNumber}
             </option>

@@ -12,7 +12,10 @@
   width: min-content;
   min-width: auto;
   height: auto;
-  transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .themeSwitcher svg {

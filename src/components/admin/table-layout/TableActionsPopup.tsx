@@ -56,7 +56,9 @@ export default function TableActionsPopup({
       }}
     >
       <div className={styles.popupHeader}>
-        <h3>{t('table', 'Table')} {table.tableNumber}</h3>
+        <h3>
+          {t('table', 'Table')} {table.tableNumber}
+        </h3>
         <div className={styles.tableBadge}>
           <span className={styles.badgeIcon}>👥</span>
           {table.maxGuests} {t('guests', 'guests')}
@@ -64,20 +66,12 @@ export default function TableActionsPopup({
       </div>
 
       <div className={styles.actions}>
-        <button
-          onClick={onEdit}
-          className={styles.actionButton}
-          aria-label={t('edit', 'Edit')}
-        >
+        <button onClick={onEdit} className={styles.actionButton} aria-label={t('edit', 'Edit')}>
           <Settings size={20} />
           <span>{t('edit', 'Edit')}</span>
         </button>
 
-        <button
-          onClick={onViewQR}
-          className={styles.actionButton}
-          aria-label={t('view_qr_code', 'View QR Code')}
-        >
+        <button onClick={onViewQR} className={styles.actionButton} aria-label={t('view_qr_code', 'View QR Code')}>
           <QrCode size={20} />
           <span>{t('view_qr_code', 'View QR Code')}</span>
         </button>

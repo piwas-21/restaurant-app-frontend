@@ -1,8 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
-import type {
-  PointEarningRule,
-  CustomerDiscountRule,
-} from '@/types/fidelity';
+import type { PointEarningRule, CustomerDiscountRule } from '@/types/fidelity';
 
 /**
  * API Response wrapper
@@ -92,10 +89,9 @@ export const adminFidelityService = {
    * Get point earning rule by ID
    */
   async getPointRuleById(id: string): Promise<PointEarningRule> {
-    const response = await apiClient.get<ApiResponse<PointEarningRule>>(
-      `${ADMIN_ENDPOINTS.POINT_RULES}/${id}`,
-      { requireAuth: true }
-    );
+    const response = await apiClient.get<ApiResponse<PointEarningRule>>(`${ADMIN_ENDPOINTS.POINT_RULES}/${id}`, {
+      requireAuth: true,
+    });
     return response.data;
   },
 
@@ -103,11 +99,9 @@ export const adminFidelityService = {
    * Create new point earning rule
    */
   async createPointRule(rule: CreatePointRuleDto): Promise<PointEarningRule> {
-    const response = await apiClient.post<ApiResponse<PointEarningRule>>(
-      ADMIN_ENDPOINTS.POINT_RULES,
-      rule,
-      { requireAuth: true }
-    );
+    const response = await apiClient.post<ApiResponse<PointEarningRule>>(ADMIN_ENDPOINTS.POINT_RULES, rule, {
+      requireAuth: true,
+    });
     return response.data;
   },
 
@@ -115,11 +109,9 @@ export const adminFidelityService = {
    * Update existing point earning rule
    */
   async updatePointRule(id: string, rule: UpdatePointRuleDto): Promise<PointEarningRule> {
-    const response = await apiClient.put<ApiResponse<PointEarningRule>>(
-      `${ADMIN_ENDPOINTS.POINT_RULES}/${id}`,
-      rule,
-      { requireAuth: true }
-    );
+    const response = await apiClient.put<ApiResponse<PointEarningRule>>(`${ADMIN_ENDPOINTS.POINT_RULES}/${id}`, rule, {
+      requireAuth: true,
+    });
     return response.data;
   },
 
@@ -127,21 +119,16 @@ export const adminFidelityService = {
    * Delete point earning rule
    */
   async deletePointRule(id: string): Promise<void> {
-    await apiClient.delete<ApiResponse<void>>(
-      `${ADMIN_ENDPOINTS.POINT_RULES}/${id}`,
-      { requireAuth: true }
-    );
+    await apiClient.delete<ApiResponse<void>>(`${ADMIN_ENDPOINTS.POINT_RULES}/${id}`, { requireAuth: true });
   },
 
   /**
    * Validate point earning rule (check for overlaps)
    */
   async validatePointRule(request: ValidateRuleRequest): Promise<boolean> {
-    const response = await apiClient.post<ApiResponse<boolean>>(
-      `${ADMIN_ENDPOINTS.POINT_RULES}/validate`,
-      request,
-      { requireAuth: true }
-    );
+    const response = await apiClient.post<ApiResponse<boolean>>(`${ADMIN_ENDPOINTS.POINT_RULES}/validate`, request, {
+      requireAuth: true,
+    });
     return response.data;
   },
 
@@ -150,10 +137,7 @@ export const adminFidelityService = {
   /**
    * Get all customer discount rules with optional filters
    */
-  async getCustomerDiscounts(
-    userId?: string,
-    activeOnly: boolean = false
-  ): Promise<CustomerDiscountRule[]> {
+  async getCustomerDiscounts(userId?: string, activeOnly: boolean = false): Promise<CustomerDiscountRule[]> {
     const params = new URLSearchParams();
     if (userId) {
       params.append('userId', userId);
@@ -174,7 +158,7 @@ export const adminFidelityService = {
   async getCustomerDiscountById(id: string): Promise<CustomerDiscountRule> {
     const response = await apiClient.get<ApiResponse<CustomerDiscountRule>>(
       `${ADMIN_ENDPOINTS.CUSTOMER_DISCOUNTS}/${id}`,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data;
   },
@@ -182,13 +166,11 @@ export const adminFidelityService = {
   /**
    * Create new customer discount rule
    */
-  async createCustomerDiscount(
-    discount: CreateCustomerDiscountDto
-  ): Promise<CustomerDiscountRule> {
+  async createCustomerDiscount(discount: CreateCustomerDiscountDto): Promise<CustomerDiscountRule> {
     const response = await apiClient.post<ApiResponse<CustomerDiscountRule>>(
       ADMIN_ENDPOINTS.CUSTOMER_DISCOUNTS,
       discount,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data;
   },
@@ -196,14 +178,11 @@ export const adminFidelityService = {
   /**
    * Update existing customer discount rule
    */
-  async updateCustomerDiscount(
-    id: string,
-    discount: UpdateCustomerDiscountDto
-  ): Promise<CustomerDiscountRule> {
+  async updateCustomerDiscount(id: string, discount: UpdateCustomerDiscountDto): Promise<CustomerDiscountRule> {
     const response = await apiClient.put<ApiResponse<CustomerDiscountRule>>(
       `${ADMIN_ENDPOINTS.CUSTOMER_DISCOUNTS}/${id}`,
       discount,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data;
   },
@@ -212,10 +191,7 @@ export const adminFidelityService = {
    * Delete customer discount rule
    */
   async deleteCustomerDiscount(id: string): Promise<void> {
-    await apiClient.delete<ApiResponse<void>>(
-      `${ADMIN_ENDPOINTS.CUSTOMER_DISCOUNTS}/${id}`,
-      { requireAuth: true }
-    );
+    await apiClient.delete<ApiResponse<void>>(`${ADMIN_ENDPOINTS.CUSTOMER_DISCOUNTS}/${id}`, { requireAuth: true });
   },
 
   // ==================== Helper Methods ====================

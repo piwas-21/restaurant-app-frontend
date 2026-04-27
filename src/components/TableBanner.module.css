@@ -30,11 +30,14 @@
   transform: translateX(-50%);
   max-width: 600px;
   border-radius: 12px;
-  animation: slideDown 0.3s ease-out, float 2s ease-in-out infinite;
+  animation:
+    slideDown 0.3s ease-out,
+    float 2s ease-in-out infinite;
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
   50% {
@@ -137,13 +140,13 @@
 }
 
 /* Custom Theme Support */
-[data-theme="dark"] .banner {
+[data-theme='dark'] .banner {
   background: linear-gradient(135deg, #4c5fd5 0%, #5a3d7c 100%);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .icon,
-[data-theme="dark"] .clearButton {
+[data-theme='dark'] .icon,
+[data-theme='dark'] .clearButton {
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -166,7 +169,8 @@
 
 /* Loading state for async actions */
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   50% {
@@ -218,7 +222,8 @@
   }
 
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
     }
     50% {

@@ -12,7 +12,10 @@ import { getCategories } from '@/services/categoryService';
 import AllergenDisplay, { AVAILABLE_ALLERGENS } from '@/components/common/AllergenDisplay';
 import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
 
-interface Category { id: string; name: string; }
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface Props {
   product: ProductDetails;
@@ -23,7 +26,7 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
   const { t, i18n } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [detailedIngredients, setDetailedIngredients] = useState<ProductIngredient[]>(
-    product.detailedIngredients || []
+    product.detailedIngredients || [],
   );
   const [allergens, setAllergens] = useState<string[]>(product.allergens || []);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -44,15 +47,17 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
     }
 
     // Fallback to legacy structures
-    return product.content?.[currentLanguage]?.ingredient ||
-           product.content?.en?.ingredient ||
-           (Array.isArray(product.ingredients) ? product.ingredients.join(', ') : '') ||
-           '';
+    return (
+      product.content?.[currentLanguage]?.ingredient ||
+      product.content?.en?.ingredient ||
+      (Array.isArray(product.ingredients) ? product.ingredients.join(', ') : '') ||
+      ''
+    );
   };
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      const resp = (await getCategories()) as { success: boolean; data?: { items: any[] } };
       if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
@@ -61,7 +66,7 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
   }, []);
 
   const toggleAllergen = (a: string, checked: boolean) => {
-    setAllergens(prev => checked ? Array.from(new Set([...(prev||[]), a])) : (prev||[]).filter(x=>x!==a));
+    setAllergens((prev) => (checked ? Array.from(new Set([...(prev || []), a])) : (prev || []).filter((x) => x !== a)));
   };
 
   const save = async () => {
@@ -77,11 +82,17 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
       <div className={detailsStyles.headerRow}>
         <h3>{t('details')}</h3>
         {!editing ? (
-          <button className={`${styles.adminButton} ${styles.edit}`} onClick={()=>setEditing(true)}>{t('edit')}</button>
+          <button className={`${styles.adminButton} ${styles.edit}`} onClick={() => setEditing(true)}>
+            {t('edit')}
+          </button>
         ) : (
           <div className={detailsStyles.actionRow}>
-            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-            <button className={styles.cancelButton} onClick={()=>setEditing(false)}>{t('cancel')}</button>
+            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+              {t('save')}
+            </button>
+            <button className={styles.cancelButton} onClick={() => setEditing(false)}>
+              {t('cancel')}
+            </button>
           </div>
         )}
       </div>
@@ -90,8 +101,13 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
           <p>
             <strong>{t('ingredients')}:</strong> {getLocalizedIngredients() || <em>{t('no_ingredients_added')}</em>}
           </p>
-          <div className={detailsStyles.inlineBadges} style={{ marginBottom: '1rem', marginTop: '1rem', alignItems: 'flex-start' }}>
-            <span style={{ marginTop: '0.25rem' }}><strong>{t('allergens')}:</strong></span>
+          <div
+            className={detailsStyles.inlineBadges}
+            style={{ marginBottom: '1rem', marginTop: '1rem', alignItems: 'flex-start' }}
+          >
+            <span style={{ marginTop: '0.25rem' }}>
+              <strong>{t('allergens')}:</strong>
+            </span>
             <AllergenDisplay
               allergens={product.allergens}
               id="product-details-allergens"
@@ -112,13 +128,13 @@ const DetailsEditor: React.FC<Props> = ({ product, onUpdated }) => {
           <div className={detailsStyles.formGroup}>
             <label>{t('allergens')}</label>
             <div className={modalStyles.chipGroup}>
-              {AVAILABLE_ALLERGENS.map(a => (
+              {AVAILABLE_ALLERGENS.map((a) => (
                 <div key={a} className={modalStyles.chip}>
                   <input
                     type="checkbox"
                     id={`allergen-inline-${a}`}
                     checked={allergens.includes(a)}
-                    onChange={e => toggleAllergen(a, e.target.checked)}
+                    onChange={(e) => toggleAllergen(a, e.target.checked)}
                   />
                   <label htmlFor={`allergen-inline-${a}`}>{t(`allergen_${a}`)}</label>
                 </div>

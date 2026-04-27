@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { Mail, CheckCircle, ArrowRight } from 'lucide-react';
-import styles from "@/AuthPage.module.css";
+import styles from '@/AuthPage.module.css';
 import successStyles from './RegisterSuccess.module.css';
 import { useRouter } from 'next/navigation';
 import { customerRegistrationSchema } from '@/schemas/auth.schema';
@@ -17,17 +17,17 @@ export default function RegisterPage() {
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [generalError, setGeneralError] = useState("");
+  const [generalError, setGeneralError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState("");
+  const [resendMessage, setResendMessage] = useState('');
   const firstNameInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -45,16 +45,16 @@ export default function RegisterPage() {
   };
 
   const getTranslatedError = (message: string): string => {
-    if (message.includes("Invalid") || message.includes("email")) {
+    if (message.includes('Invalid') || message.includes('email')) {
       return t('validation_invalid_email', 'Invalid email address');
     }
-    if (message.includes("at least 6")) {
+    if (message.includes('at least 6')) {
       return t('validation_min_6_chars', 'Must be at least 6 characters');
     }
-    if (message.includes("at least 2")) {
+    if (message.includes('at least 2')) {
       return t('validation_min_2_chars', 'Must be at least 2 characters');
     }
-    if (message.includes("do not match") || message.includes("Passwords")) {
+    if (message.includes('do not match') || message.includes('Passwords')) {
       return t('validation_passwords_match', 'Passwords do not match');
     }
     return message;
@@ -63,12 +63,12 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    setGeneralError("");
+    setGeneralError('');
 
     const validationResult = customerRegistrationSchema.safeParse(formData);
     if (!validationResult.success) {
       const fieldErrors: { [key: string]: string } = {};
-      validationResult.error.issues.forEach(issue => {
+      validationResult.error.issues.forEach((issue) => {
         const fieldName = issue.path[0] as string;
         fieldErrors[fieldName] = getTranslatedError(issue.message);
       });
@@ -82,21 +82,23 @@ export default function RegisterPage() {
         setRegistrationSuccess(true);
       } else {
         const apiErrors = Array.isArray(response?.errors) ? response.errors.join(', ') : '';
-        setGeneralError(apiErrors || response?.message || t('failed_to_register', "Failed to register."));
+        setGeneralError(apiErrors || response?.message || t('failed_to_register', 'Failed to register.'));
       }
     } catch (err) {
-      setGeneralError(t('unexpected_error', "An unexpected error occurred."));
+      setGeneralError(t('unexpected_error', 'An unexpected error occurred.'));
     }
   };
 
   const handleResendEmail = async () => {
     setResendLoading(true);
-    setResendMessage("");
+    setResendMessage('');
 
     try {
       const response = await sendEmailVerification({ email: formData.email });
       if (response?.success || response?.succeeded) {
-        setResendMessage(t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'));
+        setResendMessage(
+          t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'),
+        );
       } else {
         setResendMessage(t('resend_failed', 'Failed to resend email. Please try again later.'));
       }
@@ -105,7 +107,7 @@ export default function RegisterPage() {
     } finally {
       setResendLoading(false);
       // Clear message after 5 seconds
-      setTimeout(() => setResendMessage(""), 5000);
+      setTimeout(() => setResendMessage(''), 5000);
     }
   };
 
@@ -121,17 +123,13 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <h1 className={successStyles.successTitle}>
-              {t('registration_successful', 'Registration Successful!')}
-            </h1>
+            <h1 className={successStyles.successTitle}>{t('registration_successful', 'Registration Successful!')}</h1>
 
             <div className={successStyles.instructionsBox}>
               <p className={successStyles.instructionsText}>
                 {t('verify_email_instructions', 'We have sent a verification email to')}
               </p>
-              <div className={successStyles.emailHighlight}>
-                {formData.email}
-              </div>
+              <div className={successStyles.emailHighlight}>{formData.email}</div>
 
               <ul className={successStyles.stepsList}>
                 <li>
@@ -161,18 +159,15 @@ export default function RegisterPage() {
                 {t('go_to_login', 'Go to Login')}
                 <ArrowRight size={18} />
               </Link>
-              <button
-                onClick={handleResendEmail}
-                disabled={resendLoading}
-                className={successStyles.resendButton}
-              >
+              <button onClick={handleResendEmail} disabled={resendLoading} className={successStyles.resendButton}>
                 <Mail size={18} />
                 {resendLoading ? t('sending', 'Sending...') : t('resend_email', 'Resend Email')}
               </button>
             </div>
 
             <p className={successStyles.helpText}>
-              {t('didnt_receive_email', "Didn't receive the email?")} {t('check_spam_or_contact', 'Please check your spam folder.')}
+              {t('didnt_receive_email', "Didn't receive the email?")}{' '}
+              {t('check_spam_or_contact', 'Please check your spam folder.')}
             </p>
           </div>
         </div>
@@ -196,9 +191,7 @@ export default function RegisterPage() {
             required
             className={errors.firstName ? styles.inputError : ''}
           />
-          {errors.firstName && (
-            <p className={styles.fieldError}>{errors.firstName}</p>
-          )}
+          {errors.firstName && <p className={styles.fieldError}>{errors.firstName}</p>}
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="lastName">{t('last_name', 'Last Name')}</label>
@@ -210,9 +203,7 @@ export default function RegisterPage() {
             required
             className={errors.lastName ? styles.inputError : ''}
           />
-          {errors.lastName && (
-            <p className={styles.fieldError}>{errors.lastName}</p>
-          )}
+          {errors.lastName && <p className={styles.fieldError}>{errors.lastName}</p>}
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="email">{t('email', 'Email')}</label>
@@ -224,9 +215,7 @@ export default function RegisterPage() {
             required
             className={errors.email ? styles.inputError : ''}
           />
-          {errors.email && (
-            <p className={styles.fieldError}>{errors.email}</p>
-          )}
+          {errors.email && <p className={styles.fieldError}>{errors.email}</p>}
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="password">{t('password_label', 'Password')}</label>
@@ -238,9 +227,7 @@ export default function RegisterPage() {
             required
             className={errors.password ? styles.inputError : ''}
           />
-          {errors.password && (
-            <p className={styles.fieldError}>{errors.password}</p>
-          )}
+          {errors.password && <p className={styles.fieldError}>{errors.password}</p>}
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="confirmPassword">{t('confirm_password_label', 'Confirm Password')}</label>
@@ -252,13 +239,14 @@ export default function RegisterPage() {
             required
             className={errors.confirmPassword ? styles.inputError : ''}
           />
-          {errors.confirmPassword && (
-            <p className={styles.fieldError}>{errors.confirmPassword}</p>
-          )}
+          {errors.confirmPassword && <p className={styles.fieldError}>{errors.confirmPassword}</p>}
         </div>
-        <button type="submit" className={styles.submitButton}>{t('register_button', 'Register')}</button>
+        <button type="submit" className={styles.submitButton}>
+          {t('register_button', 'Register')}
+        </button>
         <p className={styles.switchFormText}>
-          {t('already_have_account', 'Already have an account?')} <Link href="/auth/login">{t('login_button', 'Login')}</Link>
+          {t('already_have_account', 'Already have an account?')}{' '}
+          <Link href="/auth/login">{t('login_button', 'Login')}</Link>
         </p>
         <SocialLoginButtons />
       </form>

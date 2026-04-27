@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
@@ -34,7 +34,7 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
         const parsedConsent = JSON.parse(storedConsent) as ConsentState;
         setConsent(parsedConsent);
       } catch (error) {
-        console.error("Error parsing stored cookie consent:", error);
+        console.error('Error parsing stored cookie consent:', error);
         localStorage.removeItem(COOKIE_CONSENT_KEY);
       }
     }
@@ -42,13 +42,13 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   }, []);
 
   const updateConsentStateAndStorage = (newConsentSettings: Partial<ConsentState>) => {
-    setConsent(prevConsent => {
+    setConsent((prevConsent) => {
       const updatedConsent = { ...prevConsent, ...newConsentSettings };
       localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(updatedConsent));
       // If preferences are declined, ensure i18nextLng is removed.
       // If accepted, it will be set by LanguageSwitcher upon language change.
       if (updatedConsent.preferences === false) {
-        localStorage.removeItem("i18nextLng");
+        localStorage.removeItem('i18nextLng');
       }
       return updatedConsent;
     });
@@ -67,16 +67,18 @@ export const CookieConsentProvider = ({ children }: { children: ReactNode }) => 
   const closeSettingsModal = () => setIsSettingsModalOpen(false);
 
   return (
-    <CookieConsentContext.Provider value={{
-      consent,
-      isConsentPending,
-      isSettingsModalOpen,
-      acceptPreferences,
-      declinePreferences,
-      updateConsent: updateConsentStateAndStorage,
-      openSettingsModal,
-      closeSettingsModal
-    }}>
+    <CookieConsentContext.Provider
+      value={{
+        consent,
+        isConsentPending,
+        isSettingsModalOpen,
+        acceptPreferences,
+        declinePreferences,
+        updateConsent: updateConsentStateAndStorage,
+        openSettingsModal,
+        closeSettingsModal,
+      }}
+    >
       {children}
     </CookieConsentContext.Provider>
   );

@@ -2126,5 +2126,6 @@
   "share_table_confirm": "نعم، انضم للطاولة",
   "share_table_cancel": "اختر طاولة أخرى",
   "remaining_capacity": "يمكن لـ {{count}} ضيوف إضافيين الانضمام",
-  "guest": "ضيف"
+  "guest": "ضيف",
+  "failed_to_load_user_groups": "فشل تحميل مجموعات المستخدمين"
 }

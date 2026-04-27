@@ -12,6 +12,8 @@
   --link-hover-color: #a00000;
   --success-color: #4caf50;
   --error-color: #f44336;
+  --error-background: #fdecea;
+  --error-border: #f5c2c0;
   --font-family-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -55,7 +57,9 @@ html[data-theme='dark'] {
   --link-color: #e06666;
   --link-hover-color: #f08080;
   --success-color: #81c784;
-  --error-color: #e57373;
+  --error-color: #ff8a80;
+  --error-background: #3a1f1f;
+  --error-border: #5a2a2a;
   --danger-color-dark: #ff6b6b;
   --danger-color-light: #ee5a6f;
   --danger-color-xlight: #ffe0e6;

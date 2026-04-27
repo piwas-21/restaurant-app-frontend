@@ -1190,3 +1190,16 @@
   background-color: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
 }
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--error-background);
+  color: var(--error-color);
+  border: 1px solid var(--error-border);
+  border-radius: 0.375rem;
+}

@@ -2122,5 +2122,6 @@
   "share_table_confirm": "Yes, Join Table",
   "share_table_cancel": "Choose Another Table",
   "remaining_capacity": "{{count}} more guests can join",
-  "guest": "Guest"
+  "guest": "Guest",
+  "failed_to_load_user_groups": "Failed to load user groups"
 }

@@ -2067,5 +2067,6 @@
   "share_table_confirm": "Да, присоединиться",
   "share_table_cancel": "Выбрать другой стол",
   "remaining_capacity": "Ещё {{count}} гостей могут присоединиться",
-  "guest": "Гость"
+  "guest": "Гость",
+  "failed_to_load_user_groups": "Не удалось загрузить группы пользователей"
 }

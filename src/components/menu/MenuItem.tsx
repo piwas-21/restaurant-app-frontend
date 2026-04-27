@@ -158,8 +158,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
       className={styles.menuItem}
       role="listitem"
       aria-labelledby={`item-name-${item.id}`}
-      onClick={() => setShowDetails(true)}
-      style={{ cursor: 'pointer' }}
     >
       <MenuItemImage
         imageUrl={item.image}
@@ -179,6 +177,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
           price={numericPrice}
           dietaryTags={item.dietaryTags}
           t={t}
+          onTitleClick={() => setShowDetails(true)}
           initialRatingData={{ average: 0, count: 0 }}
         />
         <div className={styles.priceActionsRow}>

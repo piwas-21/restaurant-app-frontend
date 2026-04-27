@@ -9,7 +9,6 @@ import TableBanner from "@/components/TableBanner";
 
 import type { LanguageCode } from "@/components/LanguageSwitcher";
 import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from "@/hooks/usePublicMenu";
-import { useImageGallery } from "@/hooks/useImageGallery";
 import { useFeaturedSpecial } from "@/hooks/useFeaturedSpecial";
 import { useCart } from "@/components/cart/CartContext";
 import { getCategoryDisplayName } from "@/utils/categoryNameMapper";
@@ -48,16 +47,6 @@ export default function MenuPage() {
     totalCount,
     onPageChange,
   } = usePublicMenu();
-
-  const {
-    enlargedImageItem,
-    currentImageIndex,
-    currentEnlargedGalleryImages,
-    handleImageClick,
-    handleCloseEnlargedImage,
-    showNextImage,
-    showPrevImage,
-  } = useImageGallery(currentLanguage);
 
   const {
     featuredSpecial,
@@ -194,7 +183,6 @@ export default function MenuPage() {
         totalPages={totalPages}
         totalCount={totalCount}
         onPageChange={onPageChange}
-        onImageClick={handleImageClick}
         getFallbackImage={setFallbackImage}
         currentLanguage={currentLanguage}
         onAddBundleToCart={handleCustomizeBundle}
@@ -202,13 +190,6 @@ export default function MenuPage() {
       />
 
       <MenuModals
-        enlargedImageItem={enlargedImageItem}
-        currentImageIndex={currentImageIndex}
-        currentEnlargedGalleryImages={currentEnlargedGalleryImages}
-        onCloseEnlargedImage={handleCloseEnlargedImage}
-        onNextImage={showNextImage}
-        onPrevImage={showPrevImage}
-        currentLanguage={currentLanguage}
         featuredSpecial={featuredSpecial}
         showFeaturedDetails={showFeaturedDetails}
         showFeaturedCustomization={showFeaturedCustomization}

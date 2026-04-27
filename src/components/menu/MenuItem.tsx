@@ -17,14 +17,12 @@ import styles from "./MenuItem.module.css";
 
 interface MenuItemProps {
   item: MenuItemType;
-  onImageClick: (item: MenuItemType, imageIndex?: number) => void;
   onFeedbackSuccess: (dishId: string) => void;
   getFallbackImage: (item: MenuItemType) => void;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
   item,
-  onImageClick,
   onFeedbackSuccess,
   getFallbackImage,
 }) => {
@@ -164,7 +162,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
         alt={mainImageAlt}
         imageCount={item.images?.length}
         countLabel={t("images_count_label")}
-        onClick={() => onImageClick(item, 0)}
+        onClick={() => setShowDetails(true)}
         onError={() => getFallbackImage(item)}
       />
       <div className={styles.contentWrapper}>

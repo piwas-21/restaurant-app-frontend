@@ -2127,5 +2127,6 @@
   "share_table_confirm": "是的，加入此桌",
   "share_table_cancel": "选择其他桌",
   "remaining_capacity": "还可容纳{{count}}位客人",
-  "guest": "客人"
+  "guest": "客人",
+  "failed_to_load_user_groups": "加载用户组失败"
 }

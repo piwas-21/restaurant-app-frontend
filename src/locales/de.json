@@ -2135,5 +2135,6 @@
   "share_table_confirm": "Ja, Tisch beitreten",
   "share_table_cancel": "Anderen Tisch wählen",
   "remaining_capacity": "{{count}} weitere Gäste können beitreten",
-  "guest": "Gast"
+  "guest": "Gast",
+  "failed_to_load_user_groups": "Benutzergruppen konnten nicht geladen werden"
 }

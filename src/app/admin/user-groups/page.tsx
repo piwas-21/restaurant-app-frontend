@@ -20,7 +20,7 @@ const UserGroupsPage = () => {
 
   const [groups, setGroups] = useState<UserGroupDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [_error, setError] = useState<string | null>(null);
+  const [hasLoadError, setHasLoadError] = useState(false);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -46,10 +46,11 @@ const UserGroupsPage = () => {
       } else {
         setGroups([]);
       }
-      setError(null);
+      setHasLoadError(false);
     } catch (err) {
       console.error('Failed to fetch user groups:', err);
-      setError('Failed to load user groups');
+      setGroups([]);
+      setHasLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -186,6 +187,14 @@ const UserGroupsPage = () => {
         </PageHeader>
 
         <div className={styles.adminContent}>
+          {hasLoadError && !isLoading && (
+            <div className={styles.errorBanner} role="alert">
+              <span>{t('failed_to_load_user_groups')}</span>
+              <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={fetchGroups}>
+                {t('retry')}
+              </button>
+            </div>
+          )}
           <UserGroupsTable
             groups={groups}
             isLoading={isLoading}

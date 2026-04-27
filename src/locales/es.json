@@ -2129,5 +2129,6 @@
   "share_table_confirm": "Sí, unirme a la mesa",
   "share_table_cancel": "Elegir otra mesa",
   "remaining_capacity": "{{count}} personas más pueden unirse",
-  "guest": "Invitado"
+  "guest": "Invitado",
+  "failed_to_load_user_groups": "Error al cargar los grupos de usuarios"
 }

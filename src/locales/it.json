@@ -2127,5 +2127,6 @@
   "share_table_confirm": "Sì, unisciti al tavolo",
   "share_table_cancel": "Scegli un altro tavolo",
   "remaining_capacity": "Altri {{count}} ospiti possono unirsi",
-  "guest": "Ospite"
+  "guest": "Ospite",
+  "failed_to_load_user_groups": "Impossibile caricare i gruppi utenti"
 }

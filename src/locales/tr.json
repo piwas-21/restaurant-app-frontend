@@ -2122,5 +2122,6 @@
   "share_table_confirm": "Evet, Masaya Katıl",
   "share_table_cancel": "Başka Masa Seç",
   "remaining_capacity": "{{count}} kişi daha katılabilir",
-  "guest": "Misafir"
+  "guest": "Misafir",
+  "failed_to_load_user_groups": "Kullanıcı grupları yüklenemedi"
 }

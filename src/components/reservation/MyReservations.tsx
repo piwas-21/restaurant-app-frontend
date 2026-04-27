@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -59,7 +59,7 @@ export default function MyReservations() {
     setExpandedReservation(expandedReservation === id ? null : id);
   };
 
-  const getStatusClass = (status: typeof ReservationStatusLabel[keyof typeof ReservationStatusLabel]): string => {
+  const getStatusClass = (status: (typeof ReservationStatusLabel)[keyof typeof ReservationStatusLabel]): string => {
     switch (status) {
       case ReservationStatusLabel[ReservationStatus.Confirmed]:
         return statusStyles.statusConfirmed;
@@ -86,7 +86,7 @@ export default function MyReservations() {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -122,9 +122,7 @@ export default function MyReservations() {
       <div className={styles.container}>
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>{t('reservations_title', 'My Reservations')}</h2>
-          <p className={styles.emptyMessage}>
-            {t('no_reservations_message', 'You have no reservations yet.')}
-          </p>
+          <p className={styles.emptyMessage}>{t('no_reservations_message', 'You have no reservations yet.')}</p>
         </section>
       </div>
     );
@@ -147,7 +145,9 @@ export default function MyReservations() {
                     </div>
                     <div className={styles.infoItem}>
                       <Clock size={16} className={styles.icon} />
-                      <span className={styles.infoText}>{formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}</span>
+                      <span className={styles.infoText}>
+                        {formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}
+                      </span>
                     </div>
                     <div className={styles.infoItem}>
                       <Users size={16} className={styles.icon} />
@@ -167,11 +167,7 @@ export default function MyReservations() {
                   onClick={() => toggleExpanded(reservation.id)}
                   aria-label={t('toggle_details', 'Toggle details')}
                 >
-                  {expandedReservation === reservation.id ? (
-                    <ChevronUp size={20} />
-                  ) : (
-                    <ChevronDown size={20} />
-                  )}
+                  {expandedReservation === reservation.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </button>
               </div>
 

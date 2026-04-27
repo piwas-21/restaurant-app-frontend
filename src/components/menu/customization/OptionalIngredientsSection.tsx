@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useTranslation } from "react-i18next";
-import type { ProductIngredient } from "@/types/menu";
-import styles from "./OptionalIngredientsSection.module.css";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import type { ProductIngredient } from '@/types/menu';
+import styles from './OptionalIngredientsSection.module.css';
 
 interface OptionalIngredientsSectionProps {
   ingredients: ProductIngredient[];
@@ -66,21 +66,17 @@ export default function OptionalIngredientsSection({
 
   // Get ingredient name in current language
   const getIngredientName = (ingredient: ProductIngredient) => {
-    return (
-      ingredient.content?.[currentLanguage]?.name ||
-      ingredient.content?.en?.name ||
-      ingredient.name
-    );
+    return ingredient.content?.[currentLanguage]?.name || ingredient.content?.en?.name || ingredient.name;
   };
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t("customize_ingredients")}</h3>
+      <h3 className={styles.sectionTitle}>{t('customize_ingredients')}</h3>
 
       {/* Default Ingredients (always included, can be excluded) */}
       {defaultIngredients.length > 0 && (
         <div className={styles.ingredientGroup}>
-          <h4 className={styles.groupTitle}>{t("ingredient_included")}</h4>
+          <h4 className={styles.groupTitle}>{t('ingredient_included')}</h4>
           <div className={styles.ingredientList}>
             {defaultIngredients.map((ingredient) => (
               <label key={ingredient.id} className={styles.ingredientItem}>
@@ -94,7 +90,7 @@ export default function OptionalIngredientsSection({
                 <span className={styles.ingredientName}>{getIngredientName(ingredient)}</span>
                 {ingredient.price > 0 && (
                   <span className={styles.ingredientPrice}>
-                    {t("ingredient_price", { price: ingredient.price.toFixed(2) })}
+                    {t('ingredient_price', { price: ingredient.price.toFixed(2) })}
                   </span>
                 )}
               </label>
@@ -106,7 +102,7 @@ export default function OptionalIngredientsSection({
       {/* Optional Ingredients (can be added) */}
       {optionalIngredients.length > 0 && (
         <div className={styles.ingredientGroup}>
-          <h4 className={styles.groupTitle}>{t("ingredient_optional")}</h4>
+          <h4 className={styles.groupTitle}>{t('ingredient_optional')}</h4>
           <div className={styles.ingredientList}>
             {optionalIngredients.map((ingredient) => {
               const isSelected = selectedIngredients.includes(ingredient.id);
@@ -129,9 +125,10 @@ export default function OptionalIngredientsSection({
                         <span className={styles.ingredientPrice}>
                           {ingredient.isIncludedInBasePrice
                             ? isSelected
-                              ? "" // Already in base price, no indicator needed
+                              ? '' // Already in base price, no indicator needed
                               : `-CHF ${ingredient.price.toFixed(2)}` // Deducted when deselected
-                            : `+CHF ${ingredient.price.toFixed(2)}`} {/* Added when selected */}
+                            : `+CHF ${ingredient.price.toFixed(2)}`}{' '}
+                          {/* Added when selected */}
                         </span>
                       )}
                     </div>

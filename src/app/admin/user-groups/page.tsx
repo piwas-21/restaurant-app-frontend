@@ -12,7 +12,13 @@ import QRCodeModal from '@/components/admin/user-groups/QRCodeModal';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import { UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto } from '@/types/userGroupTypes';
-import { getUserGroups, createUserGroup, updateUserGroup, deleteUserGroup, createGroupDiscount } from '@/services/userGroupService';
+import {
+  getUserGroups,
+  createUserGroup,
+  updateUserGroup,
+  deleteUserGroup,
+  createGroupDiscount,
+} from '@/services/userGroupService';
 
 const UserGroupsPage = () => {
   const { t } = useTranslation();
@@ -75,7 +81,7 @@ const UserGroupsPage = () => {
           type: data.discountType,
           value: data.discountValue,
           minimumOrderAmount: data.minOrderAmount,
-          maximumDiscountAmount: data.maxDiscountAmount
+          maximumDiscountAmount: data.maxDiscountAmount,
         };
       }
 
@@ -171,7 +177,7 @@ const UserGroupsPage = () => {
   const handleViewQRCode = (group: UserGroupDto) => {
     setQrCodeData({
       data: group.qrCodeData,
-      title: group.name
+      title: group.name,
     });
     setIsQRCodeModalOpen(true);
   };
@@ -180,10 +186,7 @@ const UserGroupsPage = () => {
     <AdminAuthGuard>
       <div className={styles.adminContainer}>
         <PageHeader title={t('admin_user_groups_title')}>
-          <button
-            className={`${styles.adminButton} ${styles.add}`}
-            onClick={() => setIsCreateModalOpen(true)}
-          >
+          <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsCreateModalOpen(true)}>
             {t('create_user_group')}
           </button>
         </PageHeader>

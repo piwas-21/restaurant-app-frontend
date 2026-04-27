@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -172,21 +172,18 @@ function ConfirmationContent() {
           <div className={styles.successIcon}>
             <CheckCircle size={80} />
           </div>
-          <h1 className={styles.successTitle}>
-            {t('order_received', 'Order Received')}
-          </h1>
+          <h1 className={styles.successTitle}>{t('order_received', 'Order Received')}</h1>
           <p className={styles.successSubtitle}>
-            {t('order_confirmation_message', 'Thank you for your order. We have received it and will start preparing it shortly.')}
+            {t(
+              'order_confirmation_message',
+              'Thank you for your order. We have received it and will start preparing it shortly.',
+            )}
           </p>
           <div className={styles.orderNumber}>
             <Receipt size={24} />
             <div>
-              <span className={styles.orderNumberLabel}>
-                {t('order_number', 'Order Number')}
-              </span>
-              <span className={styles.orderNumberValue}>
-                {orderNumber || order.orderNumber}
-              </span>
+              <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
+              <span className={styles.orderNumberValue}>{orderNumber || order.orderNumber}</span>
             </div>
           </div>
         </div>
@@ -216,9 +213,7 @@ function ConfirmationContent() {
                 </div>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('status', 'Status')}:</span>
-                  <span className={`${styles.infoValue} ${styles.statusBadge}`}>
-                    {getStatusLabel(order.status)}
-                  </span>
+                  <span className={`${styles.infoValue} ${styles.statusBadge}`}>{getStatusLabel(order.status)}</span>
                 </div>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('order_date', 'Order Date')}:</span>
@@ -236,13 +231,11 @@ function ConfirmationContent() {
                     <div>
                       <p className={styles.addressTitle}>{t('delivery_address', 'Delivery Address')}:</p>
                       <p>{order.deliveryAddress.addressLine1}</p>
-                      {order.deliveryAddress.addressLine2 && (
-                        <p>{order.deliveryAddress.addressLine2}</p>
-                      )}
-                      <p>{order.deliveryAddress.postalCode} {order.deliveryAddress.city}</p>
-                      {order.deliveryAddress.state && (
-                        <p>{order.deliveryAddress.state}</p>
-                      )}
+                      {order.deliveryAddress.addressLine2 && <p>{order.deliveryAddress.addressLine2}</p>}
+                      <p>
+                        {order.deliveryAddress.postalCode} {order.deliveryAddress.city}
+                      </p>
+                      {order.deliveryAddress.state && <p>{order.deliveryAddress.state}</p>}
                       <p>{order.deliveryAddress.country}</p>
                       {order.deliveryAddress.deliveryInstructions && (
                         <p className={styles.additionalInfo}>{order.deliveryAddress.deliveryInstructions}</p>
@@ -312,9 +305,7 @@ function ConfirmationContent() {
                     )}
                     <div className={styles.itemDetails}>
                       <h3 className={styles.itemName}>{item.productName}</h3>
-                      {item.variationName && (
-                        <p className={styles.itemVariation}>{item.variationName}</p>
-                      )}
+                      {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
                       {item.specialInstructions && (
                         <p className={styles.itemInstructions}>
                           <i>{item.specialInstructions}</i>
@@ -324,9 +315,7 @@ function ConfirmationContent() {
                         {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                       </p>
                     </div>
-                    <div className={styles.itemPrice}>
-                      {formatPrice(item.itemTotal)}
-                    </div>
+                    <div className={styles.itemPrice}>{formatPrice(item.itemTotal)}</div>
                   </div>
                 ))}
               </div>
@@ -335,9 +324,7 @@ function ConfirmationContent() {
             {/* Special Instructions */}
             {order.notes && (
               <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>
-                  {t('special_instructions', 'Special Instructions')}
-                </h2>
+                <h2 className={styles.sectionTitle}>{t('special_instructions', 'Special Instructions')}</h2>
                 <div className={styles.infoCard}>
                   <p className={styles.notes}>{order.notes}</p>
                 </div>
@@ -387,9 +374,7 @@ function ConfirmationContent() {
 
               <div className={styles.summaryTotal}>
                 <span>{t('total', 'Total')}</span>
-                <span className={styles.totalAmount}>
-                  {formatPrice(order.total)}
-                </span>
+                <span className={styles.totalAmount}>{formatPrice(order.total)}</span>
               </div>
 
               {/* Payment Information */}
@@ -407,17 +392,11 @@ function ConfirmationContent() {
 
               {/* Action Buttons */}
               <div className={styles.actions}>
-                <button
-                  onClick={() => router.push('/orders')}
-                  className={styles.trackButton}
-                >
+                <button onClick={() => router.push('/orders')} className={styles.trackButton}>
                   <Receipt size={20} />
                   {t('track_order', 'Track Order')}
                 </button>
-                <button
-                  onClick={() => router.push('/menu')}
-                  className={styles.menuButton}
-                >
+                <button onClick={() => router.push('/menu')} className={styles.menuButton}>
                   <Home size={20} />
                   {t('back_to_menu', 'Back to Menu')}
                 </button>
@@ -428,9 +407,7 @@ function ConfirmationContent() {
                 <p>
                   {t('confirmation_email_sent', 'A confirmation email has been sent to')} {order.customerEmail}
                 </p>
-                <p className={styles.helpNote}>
-                  {t('help_text', 'If you have any questions, please contact us.')}
-                </p>
+                <p className={styles.helpNote}>{t('help_text', 'If you have any questions, please contact us.')}</p>
               </div>
             </div>
           </div>
@@ -442,14 +419,16 @@ function ConfirmationContent() {
 
 export default function ConfirmationPage() {
   return (
-    <Suspense fallback={
-      <main className={styles.container}>
-        <div className={styles.loadingState}>
-          <Loader2 size={64} className={styles.spinner} />
-          <p>Loading...</p>
-        </div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className={styles.container}>
+          <div className={styles.loadingState}>
+            <Loader2 size={64} className={styles.spinner} />
+            <p>Loading...</p>
+          </div>
+        </main>
+      }
+    >
       <ConfirmationContent />
     </Suspense>
   );

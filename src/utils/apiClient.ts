@@ -17,7 +17,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     public message: string,
-    public errors?: string[]
+    public errors?: string[],
   ) {
     super(message);
     this.name = 'ApiError';
@@ -51,10 +51,7 @@ interface RequestConfig extends RequestInit {
 /**
  * Make HTTP request with error handling
  */
-async function request<T>(
-  endpoint: string,
-  config: RequestConfig = {}
-): Promise<T> {
+async function request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
   const { requireAuth = false, requireSession = false, ...fetchConfig } = config;
 
   // Build headers
@@ -149,7 +146,9 @@ async function request<T>(
       // Extract error message and details
       const message = data.message || data.title || `Request failed with status ${response.status}`;
       const errors = data.errors
-        ? (Array.isArray(data.errors) ? data.errors : Object.values(data.errors).flat())
+        ? Array.isArray(data.errors)
+          ? data.errors
+          : Object.values(data.errors).flat()
         : undefined;
 
       throw new ApiError(response.status, message, errors as string[] | undefined);
@@ -189,7 +188,7 @@ export const apiClient = {
    */
   post: <T>(endpoint: string, body?: unknown, config?: RequestConfig): Promise<T> => {
     // Support both FormData and JSON
-    const requestBody = body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined);
+    const requestBody = body instanceof FormData ? body : body ? JSON.stringify(body) : undefined;
     return request<T>(endpoint, {
       ...config,
       method: 'POST',
@@ -202,7 +201,7 @@ export const apiClient = {
    */
   put: <T>(endpoint: string, body?: unknown, config?: RequestConfig): Promise<T> => {
     // Support both FormData and JSON
-    const requestBody = body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined);
+    const requestBody = body instanceof FormData ? body : body ? JSON.stringify(body) : undefined;
     return request<T>(endpoint, {
       ...config,
       method: 'PUT',

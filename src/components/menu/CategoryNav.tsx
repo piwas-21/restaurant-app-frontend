@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useRef, useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import styles from "./CategoryNav.module.css";
-import type { ApiCategory } from "@/types/menu";
+import React, { useRef, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import styles from './CategoryNav.module.css';
+import type { ApiCategory } from '@/types/menu';
 
 type Props = {
   categories: ApiCategory[];
@@ -13,28 +13,28 @@ type Props = {
   allLabel: string;
 };
 
-export const ALL_ITEMS_KEY = "all" as const;
-export const MENU_BUNDLES_KEY = "menu-bundles" as const;
+export const ALL_ITEMS_KEY = 'all' as const;
+export const MENU_BUNDLES_KEY = 'menu-bundles' as const;
 
 // Map API category names to translation keys
 function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
   const mapping: { [key: string]: string } = {
-    'Starters': 'starters',
-    'Grills': 'grill',
-    'Grill': 'grill',
-    'Dessert': 'dessert',
-    'Desserts': 'dessert',
+    Starters: 'starters',
+    Grills: 'grill',
+    Grill: 'grill',
+    Dessert: 'dessert',
+    Desserts: 'dessert',
     'Dürüm Wraps': 'durum',
     'Durum Wraps': 'durum',
     'Hot Drinks': 'hotDrink',
     'Cold Drinks': 'coldDrink',
-    'Drinks': 'hotDrink', // Default to hot drinks, might need more logic
-    'Pizza': 'pizza',
-    'Pide': 'pide',
+    Drinks: 'hotDrink', // Default to hot drinks, might need more logic
+    Pizza: 'pizza',
+    Pide: 'pide',
     'Turkish Specialties': 'turkishSpecialty',
     'Oriental Specialties': 'orientalSpecialty',
     'Special of the Day': 'specialOfTheDay',
-    'Soups': 'soups'
+    Soups: 'soups',
   };
 
   return mapping[apiCategoryName] || apiCategoryName.toLowerCase();
@@ -85,13 +85,14 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const scrollAmount = 300;
-      const newScrollLeft = direction === 'left'
-        ? scrollContainerRef.current.scrollLeft - scrollAmount
-        : scrollContainerRef.current.scrollLeft + scrollAmount;
+      const newScrollLeft =
+        direction === 'left'
+          ? scrollContainerRef.current.scrollLeft - scrollAmount
+          : scrollContainerRef.current.scrollLeft + scrollAmount;
 
       scrollContainerRef.current.scrollTo({
         left: newScrollLeft,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -100,7 +101,7 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
   const allCategories = [
     { id: ALL_ITEMS_KEY, name: allLabel, isAll: true },
     { id: MENU_BUNDLES_KEY, name: t('menu_bundles'), isMenuBundles: true },
-    ...categories.map(cat => ({ id: cat.id, name: getCategoryDisplayName(cat.name), isAll: false }))
+    ...categories.map((cat) => ({ id: cat.id, name: getCategoryDisplayName(cat.name), isAll: false })),
   ];
 
   const showNavArrows = allCategories.length > 5;
@@ -119,14 +120,11 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
           </button>
         )}
 
-        <div
-          ref={scrollContainerRef}
-          className={styles.navScrollContainer}
-        >
+        <div ref={scrollContainerRef} className={styles.navScrollContainer}>
           <div className={styles.navButtonsContainer}>
             <button
               key={ALL_ITEMS_KEY}
-              className={`${styles.navButton} ${selectedView === ALL_ITEMS_KEY ? styles.navButtonActive : ""}`}
+              className={`${styles.navButton} ${selectedView === ALL_ITEMS_KEY ? styles.navButtonActive : ''}`}
               onClick={() => onSelect(ALL_ITEMS_KEY)}
               aria-pressed={selectedView === ALL_ITEMS_KEY}
             >
@@ -134,7 +132,7 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
             </button>
             <button
               key={MENU_BUNDLES_KEY}
-              className={`${styles.navButton} ${selectedView === MENU_BUNDLES_KEY ? styles.navButtonActive : ""}`}
+              className={`${styles.navButton} ${selectedView === MENU_BUNDLES_KEY ? styles.navButtonActive : ''}`}
               onClick={() => onSelect(MENU_BUNDLES_KEY)}
               aria-pressed={selectedView === MENU_BUNDLES_KEY}
             >
@@ -143,7 +141,7 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                className={`${styles.navButton} ${selectedView === cat.id ? styles.navButtonActive : ""}`}
+                className={`${styles.navButton} ${selectedView === cat.id ? styles.navButtonActive : ''}`}
                 onClick={() => onSelect(cat.id)}
                 aria-pressed={selectedView === cat.id}
               >

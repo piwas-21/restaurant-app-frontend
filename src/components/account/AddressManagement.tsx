@@ -21,7 +21,10 @@ export default function AddressManagement() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressDto | null>(null);
   const [error, setError] = useState<string>('');
-  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ show: boolean; addressId: string | null }>({ show: false, addressId: null });
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ show: boolean; addressId: string | null }>({
+    show: false,
+    addressId: null,
+  });
 
   const loadAddresses = async () => {
     try {
@@ -123,7 +126,7 @@ export default function AddressManagement() {
 
       {addresses.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>{t('no_addresses_message', 'You haven\'t added any delivery addresses yet.')}</p>
+          <p>{t('no_addresses_message', "You haven't added any delivery addresses yet.")}</p>
           <button onClick={handleAddNew} className={styles.addButton}>
             {t('add_first_address_button', 'Add Your First Address')}
           </button>
@@ -166,11 +169,7 @@ export default function AddressManagement() {
               >
                 {t('cancel_button', 'Cancel')}
               </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className={styles.deleteButton}
-              >
+              <button type="button" onClick={confirmDelete} className={styles.deleteButton}>
                 {t('delete_button', 'Delete')}
               </button>
             </div>
@@ -194,32 +193,27 @@ function AddressCard({ address, onEdit, onDelete, onSetDefault }: AddressCardPro
 
   return (
     <div className={`${styles.addressCard} ${address.isDefault ? styles.defaultCard : ''}`}>
-      {address.isDefault && (
-        <div className={styles.defaultBadge}>
-          {t('default_address_badge', 'Default')}
-        </div>
-      )}
+      {address.isDefault && <div className={styles.defaultBadge}>{t('default_address_badge', 'Default')}</div>}
 
       <div className={styles.addressContent}>
         <h3 className={styles.addressLabel}>{address.label}</h3>
         <p className={styles.addressText}>
           {address.addressLine1}
-          {address.addressLine2 && <><br />{address.addressLine2}</>}
+          {address.addressLine2 && (
+            <>
+              <br />
+              {address.addressLine2}
+            </>
+          )}
           <br />
           {address.postalCode} {address.city}
           {address.state && `, ${address.state}`}
           <br />
           {address.country}
         </p>
-        {address.phone && (
-          <p className={styles.addressPhone}>
-            📞 {address.phone}
-          </p>
-        )}
+        {address.phone && <p className={styles.addressPhone}>📞 {address.phone}</p>}
         {address.deliveryInstructions && (
-          <p className={styles.addressInstructions}>
-            📝 {address.deliveryInstructions}
-          </p>
+          <p className={styles.addressInstructions}>📝 {address.deliveryInstructions}</p>
         )}
       </div>
 
@@ -293,9 +287,7 @@ function AddressFormModal({ address, onSave, onCancel }: AddressFormModalProps) 
 
     try {
       setSaving(true);
-      const command = address
-        ? { ...formData, id: address.id }
-        : formData;
+      const command = address ? { ...formData, id: address.id } : formData;
       await onSave(command);
     } catch (err: any) {
       // eslint-disable-next-line no-console
@@ -393,13 +385,7 @@ function AddressFormModal({ address, onSave, onCancel }: AddressFormModalProps) 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label htmlFor="state">{t('state', 'State/Canton')}</label>
-              <input
-                type="text"
-                id="state"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-              />
+              <input type="text" id="state" name="state" value={formData.state} onChange={handleChange} />
             </div>
 
             <div className={styles.formGroup}>

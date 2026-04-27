@@ -16,10 +16,13 @@ interface CartItem {
   productName?: string;
   productImageUrl?: string;
   variationName?: string;
-  variationContent?: Record<string, {
-    name: string;
-    description?: string;
-  }>;
+  variationContent?: Record<
+    string,
+    {
+      name: string;
+      description?: string;
+    }
+  >;
   quantity: number;
   unitPrice: number;
   itemTotal: number;
@@ -33,7 +36,7 @@ interface OrderItemsListProps {
 
 export default function OrderItemsList({ items, formatPrice }: OrderItemsListProps) {
   const { t, i18n } = useTranslation();
-  const currentLanguage = (i18n.language?.split("-")[0] || "en") as string;
+  const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const router = useRouter();
 
   return (
@@ -43,19 +46,15 @@ export default function OrderItemsList({ items, formatPrice }: OrderItemsListPro
           <ShoppingBag size={20} />
           {t('order_items', 'Order Items')} ({items.length})
         </h2>
-        <button
-          onClick={() => router.push('/cart')}
-          className={styles.editButton}
-        >
+        <button onClick={() => router.push('/cart')} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>
       </div>
       <div className={styles.itemsList}>
         {items.map((item, index) => {
-          const variationName = item.variationContent?.[currentLanguage]?.name ||
-                                item.variationContent?.en?.name ||
-                                item.variationName;
+          const variationName =
+            item.variationContent?.[currentLanguage]?.name || item.variationContent?.en?.name || item.variationName;
 
           return (
             <div key={item.id || `item-${index}`} className={styles.cartItem}>
@@ -72,23 +71,19 @@ export default function OrderItemsList({ items, formatPrice }: OrderItemsListPro
               )}
               <div className={styles.itemDetails}>
                 <h3 className={styles.itemName}>{item.productName}</h3>
-                {variationName && (
-                  <p className={styles.itemVariation}>{variationName}</p>
+                {variationName && <p className={styles.itemVariation}>{variationName}</p>}
+                {item.specialInstructions && (
+                  <p className={styles.itemInstructions}>
+                    <i>{item.specialInstructions}</i>
+                  </p>
                 )}
-              {item.specialInstructions && (
-                <p className={styles.itemInstructions}>
-                  <i>{item.specialInstructions}</i>
+                <p className={styles.itemQuantity}>
+                  {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                 </p>
-              )}
-              <p className={styles.itemQuantity}>
-                {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
-              </p>
+              </div>
+              <div className={styles.itemPrice}>{formatPrice(item.itemTotal)}</div>
             </div>
-            <div className={styles.itemPrice}>
-              {formatPrice(item.itemTotal)}
-            </div>
-          </div>
-        );
+          );
         })}
       </div>
     </section>

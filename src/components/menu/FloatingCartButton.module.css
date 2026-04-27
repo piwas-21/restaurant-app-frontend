@@ -18,8 +18,9 @@
   border: none;
   border-radius: 32px;
 
-  box-shadow: 0 8px 32px rgba(192, 0, 0, 0.3),
-              0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 8px 32px rgba(192, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.15);
 
   cursor: pointer;
 
@@ -39,8 +40,9 @@
 
 .floatingButton:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 12px 48px rgba(192, 0, 0, 0.4),
-              0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 12px 48px rgba(192, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .floatingButton:active {
@@ -49,9 +51,10 @@
 
 .floatingButton:focus {
   outline: none;
-  box-shadow: 0 8px 32px rgba(192, 0, 0, 0.3),
-              0 2px 8px rgba(0, 0, 0, 0.15),
-              0 0 0 4px rgba(192, 0, 0, 0.2);
+  box-shadow:
+    0 8px 32px rgba(192, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 0 0 4px rgba(192, 0, 0, 0.2);
 }
 
 /* Pulse animation when item added */
@@ -60,7 +63,8 @@
 }
 
 @keyframes cartPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
   25% {
@@ -200,19 +204,22 @@
 @media (prefers-color-scheme: dark) {
   .floatingButton {
     background: linear-gradient(135deg, #e06666 0%, #c00000 100%);
-    box-shadow: 0 8px 32px rgba(224, 102, 102, 0.3),
-                0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      0 8px 32px rgba(224, 102, 102, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
   .floatingButton:hover {
-    box-shadow: 0 12px 48px rgba(224, 102, 102, 0.4),
-                0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow:
+      0 12px 48px rgba(224, 102, 102, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.4);
   }
 
   .floatingButton:focus {
-    box-shadow: 0 8px 32px rgba(224, 102, 102, 0.3),
-                0 2px 8px rgba(0, 0, 0, 0.3),
-                0 0 0 4px rgba(224, 102, 102, 0.2);
+    box-shadow:
+      0 8px 32px rgba(224, 102, 102, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 0 0 4px rgba(224, 102, 102, 0.2);
   }
 }
 

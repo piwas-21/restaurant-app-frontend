@@ -107,11 +107,11 @@ export default function CustomerSearchInput({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setHighlightedIndex(prev => Math.min(prev + 1, users.length - 1));
+        setHighlightedIndex((prev) => Math.min(prev + 1, users.length - 1));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setHighlightedIndex(prev => Math.max(prev - 1, 0));
+        setHighlightedIndex((prev) => Math.max(prev - 1, 0));
         break;
       case 'Enter':
         e.preventDefault();
@@ -173,11 +173,7 @@ export default function CustomerSearchInput({
                 <span className={styles.userName}>{user.fullName || `${user.firstName} ${user.lastName}`}</span>
                 <span className={styles.userEmail}>{user.email}</span>
               </div>
-              {user.isDiscountActive && (
-                <span className={styles.userDiscount}>
-                  {user.discountPercentage}%
-                </span>
-              )}
+              {user.isDiscountActive && <span className={styles.userDiscount}>{user.discountPercentage}%</span>}
             </button>
           ))}
         </div>

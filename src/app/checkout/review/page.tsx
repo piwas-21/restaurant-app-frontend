@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,7 +24,7 @@ import {
   CreateOrderCommand,
   CreateOrderItemDto,
   CreateOrderDeliveryAddressDto,
-  OrderType as OrderTypeEnum
+  OrderType as OrderTypeEnum,
 } from '@/types/order';
 import { useSnackbar } from 'notistack';
 import { Loader2 } from 'lucide-react';
@@ -55,7 +55,11 @@ export default function ReviewPage() {
 
   // Order confirmation modal state
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [confirmedOrder, setConfirmedOrder] = useState<{ id: string; orderNumber: string; customerEmail: string } | null>(null);
+  const [confirmedOrder, setConfirmedOrder] = useState<{
+    id: string;
+    orderNumber: string;
+    customerEmail: string;
+  } | null>(null);
 
   // Check if user is logged in based on auth token
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -111,7 +115,8 @@ export default function ReviewPage() {
         // Note: Baskets have tax = 0, tax is only calculated on order creation in backend
         // For checkout/review, we calculate tax for display purposes
         if (config && cartState.basket) {
-          const subtotal = cartState.basket.subTotal - (cartState.basket.discount || 0) - (cartState.basket.customerDiscount || 0);
+          const subtotal =
+            cartState.basket.subTotal - (cartState.basket.discount || 0) - (cartState.basket.customerDiscount || 0);
           const calculatedTax = subtotal * (config.rate / 100);
           setTaxAmount(calculatedTax);
         } else {
@@ -191,7 +196,7 @@ export default function ReviewPage() {
 
     try {
       // Convert basket items to order items
-      const orderItems: CreateOrderItemDto[] = cartState.items.map(item => {
+      const orderItems: CreateOrderItemDto[] = cartState.items.map((item) => {
         // Process ingredient quantities - set to 0 for deselected ingredients
         let processedIngredientQuantities: Record<string, number> | undefined;
         if (item.ingredientQuantities && Object.keys(item.ingredientQuantities).length > 0) {
@@ -199,7 +204,7 @@ export default function ReviewPage() {
 
           // If selectedIngredients exists, mark deselected ingredients with quantity 0
           if (item.selectedIngredients && Array.isArray(item.selectedIngredients)) {
-            Object.keys(processedIngredientQuantities).forEach(ingredientId => {
+            Object.keys(processedIngredientQuantities).forEach((ingredientId) => {
               // If ingredient is NOT in selectedIngredients, it was deselected
               if (!item.selectedIngredients!.includes(ingredientId)) {
                 processedIngredientQuantities![ingredientId] = 0;
@@ -221,7 +226,7 @@ export default function ReviewPage() {
 
         // Map side items to child items if they exist
         if (item.selectedSideItems && item.selectedSideItems.length > 0) {
-          orderItem.childItems = item.selectedSideItems.map(sideItem => ({
+          orderItem.childItems = item.selectedSideItems.map((sideItem) => ({
             productId: sideItem.id,
             quantity: sideItem.quantity,
             unitPrice: sideItem.price || 0,
@@ -251,16 +256,19 @@ export default function ReviewPage() {
         customerEmail: checkoutState.customerInfo?.email,
         customerPhone: checkoutState.customerInfo?.phone,
         type: checkoutState.orderType as OrderTypeEnum,
-        tableNumber: checkoutState.orderType === 'DineIn' && checkoutState.tableNumber
-          ? parseInt(checkoutState.tableNumber, 10)
-          : undefined,
+        tableNumber:
+          checkoutState.orderType === 'DineIn' && checkoutState.tableNumber
+            ? parseInt(checkoutState.tableNumber, 10)
+            : undefined,
         notes: checkoutState.specialInstructions || undefined,
         deliveryAddress,
         items: orderItems,
-        payments: [{
-          paymentMethod: selectedPaymentMethod,
-          amount: (cartState.basket?.total || 0) - pointsDiscount + (checkoutState.tipAmount || 0),
-        }],
+        payments: [
+          {
+            paymentMethod: selectedPaymentMethod,
+            amount: (cartState.basket?.total || 0) - pointsDiscount + (checkoutState.tipAmount || 0),
+          },
+        ],
         promoCode: cartState.basket?.promoCode || undefined,
         // Pass basket pre-calculated values to ensure consistency
         basketSubTotal: cartState.basket?.subTotal,
@@ -314,7 +322,6 @@ export default function ReviewPage() {
       });
 
       // Modal will automatically show via useEffect watching confirmedOrder
-
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error placing order:', error);
@@ -335,75 +342,72 @@ export default function ReviewPage() {
 
   return (
     <>
-    <main className={styles.container}>
-      <div className={styles.content}>
-        {/* Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>{t('review_order', 'Review Your Order')}</h1>
-          <p className={styles.subtitle}>
-            {t('review_order_desc', 'Please review your order details and choose a payment method')}
-          </p>
-        </div>
-
-        <div className={styles.gridLayout}>
-          {/* Left Column - Order Details */}
-          <div className={styles.leftColumn}>
-            <OrderTypeSection
-              orderType={checkoutState.orderType || 'Takeaway'}
-              tableNumber={checkoutState.tableNumber}
-              deliveryAddress={checkoutState.deliveryAddress || undefined}
-            />
-
-            <CustomerInfoSection customerInfo={checkoutState.customerInfo as any} />
-
-            <OrderItemsList items={cartState.items} formatPrice={formatPrice} />
-
-            <PaymentMethodSelector
-              selectedMethod={selectedPaymentMethod}
-              onMethodChange={setSelectedPaymentMethod}
-            />
-
-            {/* Special Instructions */}
-            {checkoutState.specialInstructions && (
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>{t('special_instructions', 'Special Instructions')}</h2>
-                <div className={styles.infoCard}>
-                  <p>{checkoutState.specialInstructions}</p>
-                </div>
-              </section>
-            )}
+      <main className={styles.container}>
+        <div className={styles.content}>
+          {/* Header */}
+          <div className={styles.header}>
+            <h1 className={styles.title}>{t('review_order', 'Review Your Order')}</h1>
+            <p className={styles.subtitle}>
+              {t('review_order_desc', 'Please review your order details and choose a payment method')}
+            </p>
           </div>
 
-          {/* Right Column - Order Summary */}
-          <div className={styles.rightColumn}>
-            <TipSelector
-              subtotal={cartState.basket?.subTotal || 0}
-              selectedTipAmount={checkoutState.tipAmount || 0}
-              onTipChange={setTipAmount}
-            />
+          <div className={styles.gridLayout}>
+            {/* Left Column - Order Details */}
+            <div className={styles.leftColumn}>
+              <OrderTypeSection
+                orderType={checkoutState.orderType || 'Takeaway'}
+                tableNumber={checkoutState.tableNumber}
+                deliveryAddress={checkoutState.deliveryAddress || undefined}
+              />
 
-            <FidelityPointsCheckout
-              orderSubtotal={cartState.basket?.subTotal || 0}
-              onPointsRedemption={handlePointsRedemption}
-            />
+              <CustomerInfoSection customerInfo={checkoutState.customerInfo as any} />
 
-            <OrderSummaryCard
-              basket={cartState.basket}
-              taxConfig={taxConfig}
-              taxAmount={taxAmount}
-              pointsDiscount={pointsDiscount}
-              redeemedPoints={redeemedPoints}
-              tipAmount={checkoutState.tipAmount || 0}
-              isSubmitting={isSubmitting}
-              submitError={submitError}
-              formatPrice={formatPrice}
-              formatTotal={formatTotal}
-              onPlaceOrder={handlePlaceOrder}
-            />
+              <OrderItemsList items={cartState.items} formatPrice={formatPrice} />
+
+              <PaymentMethodSelector selectedMethod={selectedPaymentMethod} onMethodChange={setSelectedPaymentMethod} />
+
+              {/* Special Instructions */}
+              {checkoutState.specialInstructions && (
+                <section className={styles.section}>
+                  <h2 className={styles.sectionTitle}>{t('special_instructions', 'Special Instructions')}</h2>
+                  <div className={styles.infoCard}>
+                    <p>{checkoutState.specialInstructions}</p>
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* Right Column - Order Summary */}
+            <div className={styles.rightColumn}>
+              <TipSelector
+                subtotal={cartState.basket?.subTotal || 0}
+                selectedTipAmount={checkoutState.tipAmount || 0}
+                onTipChange={setTipAmount}
+              />
+
+              <FidelityPointsCheckout
+                orderSubtotal={cartState.basket?.subTotal || 0}
+                onPointsRedemption={handlePointsRedemption}
+              />
+
+              <OrderSummaryCard
+                basket={cartState.basket}
+                taxConfig={taxConfig}
+                taxAmount={taxAmount}
+                pointsDiscount={pointsDiscount}
+                redeemedPoints={redeemedPoints}
+                tipAmount={checkoutState.tipAmount || 0}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+                formatPrice={formatPrice}
+                formatTotal={formatTotal}
+                onPlaceOrder={handlePlaceOrder}
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </main>
-  </>
+      </main>
+    </>
   );
 }

@@ -54,21 +54,19 @@ export default function MenuContent({
   const displayError = errorLoadingItems
     ? t(
         selectedView === ALL_ITEMS_KEY
-          ? "error_loading_all_menu_items"
+          ? 'error_loading_all_menu_items'
           : isMenuBundlesView
-          ? "error_loading_menu_bundles"
-          : "error_loading_menu_items",
-        { categoryName: categoryDisplayName }
+            ? 'error_loading_menu_bundles'
+            : 'error_loading_menu_items',
+        { categoryName: categoryDisplayName },
       )
     : null;
 
   const emptyMessage = isMenuBundlesView
-    ? t("no_bundles_available")
-    : t("no_items_in_category", { categoryName: categoryDisplayName });
+    ? t('no_bundles_available')
+    : t('no_items_in_category', { categoryName: categoryDisplayName });
 
-  const loadingMessage = isMenuBundlesView
-    ? t("loading_menu_bundles")
-    : t("loading_items", "Loading items...");
+  const loadingMessage = isMenuBundlesView ? t('loading_menu_bundles') : t('loading_items', 'Loading items...');
 
   return (
     <>
@@ -78,19 +76,13 @@ export default function MenuContent({
           categories={categoriesForNav}
           selectedView={selectedView}
           onSelect={onSelectView}
-          allLabel={t("all_categories_nav")}
+          allLabel={t('all_categories_nav')}
         />
       )}
 
       {/* Menu Items Section */}
-      <section
-        className={styles.categorySection}
-        aria-labelledby={`category-heading-${selectedView}`}
-      >
-        <h2
-          id={`category-heading-${selectedView}`}
-          className={styles.categoryTitle}
-        >
+      <section className={styles.categorySection} aria-labelledby={`category-heading-${selectedView}`}>
+        <h2 id={`category-heading-${selectedView}`} className={styles.categoryTitle}>
           {categoryDisplayName}
         </h2>
 
@@ -101,9 +93,7 @@ export default function MenuContent({
         {displayError && <p className={styles.errorMessage}>{displayError}</p>}
 
         {/* Empty State */}
-        {!isLoadingItems && !displayError && displayItems.length === 0 && (
-          <p>{emptyMessage}</p>
-        )}
+        {!isLoadingItems && !displayError && displayItems.length === 0 && <p>{emptyMessage}</p>}
 
         {/* Menu Items or Bundles */}
         {!isLoadingItems && !displayError && displayItems.length > 0 && (
@@ -121,11 +111,7 @@ export default function MenuContent({
                 ))}
               </div>
             ) : (
-              <MenuList
-                items={currentMenuItems}
-                onFeedbackSuccess={() => {}}
-                getFallbackImage={getFallbackImage}
-              />
+              <MenuList items={currentMenuItems} onFeedbackSuccess={() => {}} getFallbackImage={getFallbackImage} />
             )}
 
             {/* Pagination */}
@@ -143,7 +129,7 @@ export default function MenuContent({
                   start: (currentPage - 1) * 10 + 1,
                   end: Math.min(currentPage * 10, totalCount),
                   total: totalCount,
-                  defaultValue: `Showing ${(currentPage - 1) * 10 + 1}-${Math.min(currentPage * 10, totalCount)} of ${totalCount} items`
+                  defaultValue: `Showing ${(currentPage - 1) * 10 + 1}-${Math.min(currentPage * 10, totalCount)} of ${totalCount} items`,
                 })}
               </p>
             )}

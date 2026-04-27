@@ -8,7 +8,7 @@ export default function MenuPageHeader() {
 
   return (
     <h1 id="menu-page-heading" className={styles.pageTitle}>
-      <UtensilsCrossed size={48} strokeWidth={2} aria-label={t("menu_title")} />
+      <UtensilsCrossed size={48} strokeWidth={2} aria-label={t('menu_title')} />
     </h1>
   );
 }

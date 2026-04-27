@@ -10,11 +10,7 @@ interface FocusOrderModalProps {
   onConfirm: (isFocusOrder: boolean, priority?: number, reason?: string) => Promise<void>;
 }
 
-export const FocusOrderModal: React.FC<FocusOrderModalProps> = ({
-  order,
-  onClose,
-  onConfirm,
-}) => {
+export const FocusOrderModal: React.FC<FocusOrderModalProps> = ({ order, onClose, onConfirm }) => {
   const { t } = useTranslation();
   const [priority, setPriority] = useState(1);
   const [reason, setReason] = useState('');
@@ -26,7 +22,7 @@ export const FocusOrderModal: React.FC<FocusOrderModalProps> = ({
       await onConfirm(
         !order.isFocusOrder,
         order.isFocusOrder ? undefined : priority,
-        order.isFocusOrder ? undefined : reason || undefined
+        order.isFocusOrder ? undefined : reason || undefined,
       );
     } finally {
       setIsProcessing(false);

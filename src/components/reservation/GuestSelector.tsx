@@ -15,7 +15,7 @@ export default function GuestSelector({ numberOfGuests, onGuestsChange }: GuestS
     <div className={styles.formSection}>
       <label className={styles.label}>{t('guests', 'Guests')}</label>
       <div className={styles.guestSelector}>
-        {presetNumbers.map(num => (
+        {presetNumbers.map((num) => (
           <button
             key={num}
             type="button"

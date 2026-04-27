@@ -81,10 +81,7 @@ interface ApiResponse<T> {
  */
 export async function getMyAddresses(): Promise<AddressDto[]> {
   try {
-    const response = await apiClient.get<ApiResponse<AddressDto[]>>(
-      '/api/Addresses',
-      { requireAuth: true }
-    );
+    const response = await apiClient.get<ApiResponse<AddressDto[]>>('/api/Addresses', { requireAuth: true });
 
     if (!response.data) {
       throw new Error('Failed to fetch addresses');
@@ -110,10 +107,7 @@ export async function getMyAddresses(): Promise<AddressDto[]> {
  */
 export async function getAddressById(id: string): Promise<AddressDto> {
   try {
-    const response = await apiClient.get<ApiResponse<AddressDto>>(
-      `/api/Addresses/${id}`,
-      { requireAuth: true }
-    );
+    const response = await apiClient.get<ApiResponse<AddressDto>>(`/api/Addresses/${id}`, { requireAuth: true });
 
     if (!response.data) {
       throw new Error('Failed to fetch address');
@@ -135,11 +129,7 @@ export async function getAddressById(id: string): Promise<AddressDto> {
  */
 export async function createAddress(command: CreateAddressCommand): Promise<AddressDto> {
   try {
-    const response = await apiClient.post<ApiResponse<AddressDto>>(
-      '/api/Addresses',
-      command,
-      { requireAuth: true }
-    );
+    const response = await apiClient.post<ApiResponse<AddressDto>>('/api/Addresses', command, { requireAuth: true });
 
     if (!response.data) {
       throw new Error('Failed to create address');
@@ -160,16 +150,11 @@ export async function createAddress(command: CreateAddressCommand): Promise<Addr
  * @param command - Address update details
  * @returns Updated address
  */
-export async function updateAddress(
-  id: string,
-  command: UpdateAddressCommand
-): Promise<AddressDto> {
+export async function updateAddress(id: string, command: UpdateAddressCommand): Promise<AddressDto> {
   try {
-    const response = await apiClient.put<ApiResponse<AddressDto>>(
-      `/api/Addresses/${id}`,
-      command,
-      { requireAuth: true }
-    );
+    const response = await apiClient.put<ApiResponse<AddressDto>>(`/api/Addresses/${id}`, command, {
+      requireAuth: true,
+    });
 
     if (!response.data) {
       throw new Error('Failed to update address');
@@ -190,10 +175,7 @@ export async function updateAddress(
  */
 export async function deleteAddress(id: string): Promise<void> {
   try {
-    await apiClient.delete<ApiResponse<string>>(
-      `/api/Addresses/${id}`,
-      { requireAuth: true }
-    );
+    await apiClient.delete<ApiResponse<string>>(`/api/Addresses/${id}`, { requireAuth: true });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error deleting address:', error);
@@ -208,11 +190,7 @@ export async function deleteAddress(id: string): Promise<void> {
  */
 export async function setDefaultAddress(id: string): Promise<void> {
   try {
-    await apiClient.post<ApiResponse<string>>(
-      `/api/Addresses/${id}/set-default`,
-      {},
-      { requireAuth: true }
-    );
+    await apiClient.post<ApiResponse<string>>(`/api/Addresses/${id}/set-default`, {}, { requireAuth: true });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error setting default address:', error);

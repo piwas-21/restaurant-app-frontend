@@ -25,7 +25,7 @@ describe('userService', () => {
       const result = await userService.fetchUsers(role, isDeleted, search, page, pageSize);
 
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        `/api/User/users?Role=Customer&IsDeleted=false&Search=&Page=1&PageSize=10`
+        `/api/User/users?Role=Customer&IsDeleted=false&Search=&Page=1&PageSize=10`,
       );
       expect(result).toEqual(mockResponse);
     });
@@ -45,13 +45,17 @@ describe('userService', () => {
       const mockResponse = { success: true, message: 'Staff registered successfully' };
       mockApiClient.post.mockResolvedValue(mockResponse);
 
-      const staffData = { firstName: 'Jane', lastName: 'Doe', email: 'jane.doe@example.com', password: 'Password123!', confirmPassword: 'Password123!', role: 'Server' };
+      const staffData = {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane.doe@example.com',
+        password: 'Password123!',
+        confirmPassword: 'Password123!',
+        role: 'Server',
+      };
       const result = await userService.registerStaff(staffData);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/api/User/register/staff',
-        staffData
-      );
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/User/register/staff', staffData);
       expect(result).toEqual(mockResponse);
     });
 
@@ -59,7 +63,14 @@ describe('userService', () => {
       const mockErrorResponse = { success: false, message: 'Registration failed' };
       mockApiClient.post.mockResolvedValue(mockErrorResponse);
 
-      const staffData = { firstName: 'Jane', lastName: 'Doe', email: 'jane.doe@example.com', password: 'Password123!', confirmPassword: 'Password123!', role: 'Server' };
+      const staffData = {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane.doe@example.com',
+        password: 'Password123!',
+        confirmPassword: 'Password123!',
+        role: 'Server',
+      };
       const result = await userService.registerStaff(staffData);
 
       expect(result).toEqual(mockErrorResponse);
@@ -74,10 +85,9 @@ describe('userService', () => {
       const userId = 'user123';
       const result = await userService.deleteStaff(userId);
 
-      expect(mockApiClient.delete).toHaveBeenCalledWith(
-        '/api/User/delete/user',
-        { body: JSON.stringify({ userId, permanent: false }) }
-      );
+      expect(mockApiClient.delete).toHaveBeenCalledWith('/api/User/delete/user', {
+        body: JSON.stringify({ userId, permanent: false }),
+      });
       expect(result).toEqual(mockResponse);
     });
 

@@ -17,7 +17,7 @@ export default function ReservationSuccessModal({
   isOpen,
   onClose,
   customerEmail,
-  numberOfTables
+  numberOfTables,
 }: ReservationSuccessModalProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -51,10 +51,11 @@ export default function ReservationSuccessModal({
         <h2 className={styles.title}>{t('reservation_pending_confirmation', 'Pending Confirmation')}</h2>
 
         <p className={styles.message}>
-          {t('reservation_pending_message',
+          {t(
+            'reservation_pending_message',
             numberOfTables > 1
               ? 'Your reservations are currently pending. Our team will review your request and send you a confirmation email shortly.'
-              : 'Your reservation is currently pending. Our team will review your request and send you a confirmation email shortly.'
+              : 'Your reservation is currently pending. Our team will review your request and send you a confirmation email shortly.',
           )}
         </p>
 
@@ -82,7 +83,10 @@ export default function ReservationSuccessModal({
                 {t('make_another_reservation', 'Make Another Reservation')}
               </button>
               <p className={styles.guestNote}>
-                {t('create_account_to_track', '💡 Create an account to easily track all your reservations and manage them online.')}
+                {t(
+                  'create_account_to_track',
+                  '💡 Create an account to easily track all your reservations and manage them online.',
+                )}
               </p>
             </>
           )}

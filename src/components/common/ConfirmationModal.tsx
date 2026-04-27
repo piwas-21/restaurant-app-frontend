@@ -22,8 +22,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
         <h2>{t('confirmation')}</h2>
         <p>{message}</p>
         <div className={styles.buttonGroup}>
-          <button onClick={onConfirm} className={styles.submitButton}>{t('yes')}</button>
-          <button onClick={onClose} className={styles.cancelButton}>{t('cancel')}</button>
+          <button onClick={onConfirm} className={styles.submitButton}>
+            {t('yes')}
+          </button>
+          <button onClick={onClose} className={styles.cancelButton}>
+            {t('cancel')}
+          </button>
         </div>
       </div>
     </div>

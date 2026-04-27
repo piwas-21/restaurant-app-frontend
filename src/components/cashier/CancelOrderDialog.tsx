@@ -116,8 +116,7 @@ export default function CancelOrderDialog({
                 disabled={isLoading}
               />
               <span>
-                {t('cashier.confirm_cancel_acknowledge') ||
-                  'I understand that cancelling this order cannot be undone'}
+                {t('cashier.confirm_cancel_acknowledge') || 'I understand that cancelling this order cannot be undone'}
               </span>
             </label>
           </div>
@@ -130,9 +129,7 @@ export default function CancelOrderDialog({
             {t('common.keep_order') || 'Keep Order'}
           </button>
           <button className="btn btn-danger" onClick={handleConfirm} disabled={!confirmed || isLoading}>
-            {isLoading
-              ? t('common.loading') || 'Loading...'
-              : t('cashier.yes_cancel_order') || 'Yes, Cancel Order'}
+            {isLoading ? t('common.loading') || 'Loading...' : t('cashier.yes_cancel_order') || 'Yes, Cancel Order'}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 export enum DiscountType {
   Percentage = 'Percentage',
-  FixedAmount = 'FixedAmount'
+  FixedAmount = 'FixedAmount',
 }
 
 export interface GroupDiscountDto {

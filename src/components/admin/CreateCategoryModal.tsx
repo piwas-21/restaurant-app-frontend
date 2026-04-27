@@ -17,7 +17,7 @@ const createCategorySchema = z.object({
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files[0].type),
-      '.jpg, .jpeg, .png and .webp files are accepted.'
+      '.jpg, .jpeg, .png and .webp files are accepted.',
     )
     .optional(),
   isActive: z.boolean(),
@@ -55,12 +55,12 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
 
     try {
       // Step 1: Create the category without the image
-      const categoryResponse = await createCategory({
+      const categoryResponse = (await createCategory({
         name: data.name,
         description: data.description,
         isActive: data.isActive,
         displayOrder: data.displayOrder,
-      }) as { success: boolean; data?: any; message?: string; errors?: string[] };
+      })) as { success: boolean; data?: any; message?: string; errors?: string[] };
 
       if (!categoryResponse.success) {
         // Handle category creation errors
@@ -82,7 +82,10 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
       const imageFile = data.imageFile?.[0];
       if (imageFile) {
         const newCategoryId = categoryResponse.data.id;
-        const imageUploadResponse = await uploadCategoryImage(newCategoryId, imageFile) as { success: boolean; message?: string };
+        const imageUploadResponse = (await uploadCategoryImage(newCategoryId, imageFile)) as {
+          success: boolean;
+          message?: string;
+        };
 
         if (!imageUploadResponse.success) {
           // Handle image upload error, but the category is already created.
@@ -101,7 +104,6 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
       onCategoryCreated();
       onClose();
       reset();
-
     } catch {
       setError('root', { message: 'An unexpected error occurred.' });
     } finally {

@@ -49,7 +49,7 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
 
   // Filter orders by date range
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+    return orders.filter((order) => {
       if (!order.createdAt) return false;
       const orderDate = new Date(order.createdAt);
       return orderDate >= startDate && orderDate <= endDate;
@@ -60,7 +60,7 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
   const ordersOverTime = useMemo(() => {
     const groupedByDate: { [key: string]: { date: string; orders: number; revenue: number } } = {};
 
-    filteredOrders.forEach(order => {
+    filteredOrders.forEach((order) => {
       if (!order.createdAt) return;
       const date = new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       if (!groupedByDate[date]) {
@@ -70,16 +70,14 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
       groupedByDate[date].revenue += order.total;
     });
 
-    return Object.values(groupedByDate).sort((a, b) =>
-      new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+    return Object.values(groupedByDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [filteredOrders]);
 
   // Prepare data for order types pie chart
   const orderTypeData = useMemo(() => {
     const types: { [key: string]: number } = {};
 
-    filteredOrders.forEach(order => {
+    filteredOrders.forEach((order) => {
       const type = order.type || 'Unknown';
       types[type] = (types[type] || 0) + 1;
     });
@@ -91,7 +89,7 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
   const revenueByStatus = useMemo(() => {
     const statusRevenue: { [key: string]: number } = {};
 
-    filteredOrders.forEach(order => {
+    filteredOrders.forEach((order) => {
       const status = order.status || 'Unknown';
       statusRevenue[status] = (statusRevenue[status] || 0) + order.total;
     });
@@ -123,24 +121,15 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
           {t('advanced_analytics', 'Advanced Analytics')}
         </h2>
         <div className={styles.dateRangeButtons}>
-          <button
-            className={dateRange === '7days' ? styles.active : ''}
-            onClick={() => setDateRange('7days')}
-          >
+          <button className={dateRange === '7days' ? styles.active : ''} onClick={() => setDateRange('7days')}>
             <Calendar size={16} />
             {t('last_7_days', 'Last 7 Days')}
           </button>
-          <button
-            className={dateRange === '30days' ? styles.active : ''}
-            onClick={() => setDateRange('30days')}
-          >
+          <button className={dateRange === '30days' ? styles.active : ''} onClick={() => setDateRange('30days')}>
             <Calendar size={16} />
             {t('last_30_days', 'Last 30 Days')}
           </button>
-          <button
-            className={dateRange === '90days' ? styles.active : ''}
-            onClick={() => setDateRange('90days')}
-          >
+          <button className={dateRange === '90days' ? styles.active : ''} onClick={() => setDateRange('90days')}>
             <Calendar size={16} />
             {t('last_90_days', 'Last 90 Days')}
           </button>
@@ -158,22 +147,9 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={ordersOverTime}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis
-                  dataKey="date"
-                  stroke="#64748b"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis
-                  yAxisId="left"
-                  stroke="#3b82f6"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  stroke="#10b981"
-                  style={{ fontSize: '12px' }}
-                />
+                <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: '12px' }} />
+                <YAxis yAxisId="left" stroke="#3b82f6" style={{ fontSize: '12px' }} />
+                <YAxis yAxisId="right" orientation="right" stroke="#10b981" style={{ fontSize: '12px' }} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#1e293b',
@@ -256,16 +232,8 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={revenueByStatus}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis
-                  dataKey="status"
-                  stroke="#64748b"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis
-                  stroke="#64748b"
-                  style={{ fontSize: '12px' }}
-                  tickFormatter={formatCurrency}
-                />
+                <XAxis dataKey="status" stroke="#64748b" style={{ fontSize: '12px' }} />
+                <YAxis stroke="#64748b" style={{ fontSize: '12px' }} tickFormatter={formatCurrency} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#1e293b',

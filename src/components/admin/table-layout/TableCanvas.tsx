@@ -51,7 +51,7 @@ export default function TableCanvas({
   onRotationEnd,
   rotatingTable,
 }: TableCanvasProps) {
-  const filteredTables = tables.filter(table => {
+  const filteredTables = tables.filter((table) => {
     if (!filters.showIndoor && !table.isOutdoor) return false;
     if (!filters.showOutdoor && table.isOutdoor) return false;
     if (!filters.showActive && table.isActive) return false;
@@ -70,8 +70,8 @@ export default function TableCanvas({
     const shapeStyle: React.CSSProperties = isRound
       ? { borderRadius: '50%', width: '8%', height: '10%' }
       : isSquare
-      ? { width: '8%', height: '8%' }
-      : { width: '12%', height: '14%' };
+        ? { width: '8%', height: '8%' }
+        : { width: '12%', height: '14%' };
 
     const leftPercent = (table.positionX / CANVAS_WIDTH) * 100;
     const topPercent = (table.positionY / CANVAS_HEIGHT) * 100;

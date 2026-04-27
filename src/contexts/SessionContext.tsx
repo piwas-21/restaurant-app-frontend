@@ -72,13 +72,16 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
   // Refresh session periodically (every 30 minutes)
   useEffect(() => {
-    const refreshInterval = setInterval(() => {
-      if (hasActiveSession()) {
-        refreshSessionExpiry();
-        const expiry = getSessionExpiryDate();
-        setExpiryDate(expiry);
-      }
-    }, 30 * 60 * 1000); // 30 minutes
+    const refreshInterval = setInterval(
+      () => {
+        if (hasActiveSession()) {
+          refreshSessionExpiry();
+          const expiry = getSessionExpiryDate();
+          setExpiryDate(expiry);
+        }
+      },
+      30 * 60 * 1000,
+    ); // 30 minutes
 
     return () => clearInterval(refreshInterval);
   }, []);
@@ -140,11 +143,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
     ensureSession,
   };
 
-  return (
-    <SessionContext.Provider value={value}>
-      {children}
-    </SessionContext.Provider>
-  );
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
 /**

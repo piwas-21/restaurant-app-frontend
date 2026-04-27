@@ -16,7 +16,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -131,11 +132,11 @@
   }
 }
 
-[data-theme="dark"] .container {
+[data-theme='dark'] .container {
   background: var(--background-color, #111827);
 }
 
-[data-theme="dark"] .loading {
+[data-theme='dark'] .loading {
   color: var(--text-muted, #9ca3af);
 }
 

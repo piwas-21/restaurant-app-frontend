@@ -120,12 +120,12 @@ export function useNotification() {
     };
 
     const events = ['click', 'touchstart', 'keydown'];
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleUserInteraction, { once: true });
     });
 
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleUserInteraction);
       });
     };
@@ -140,12 +140,15 @@ export function useNotification() {
 
         if (state === 'suspended' && hasUserInteractedRef.current) {
           console.log('🔊 Attempting to resume audio after visibility change...');
-          audioContextRef.current.resume().then(() => {
-            setAudioReady(audioContextRef.current?.state === 'running');
-            setAudioBlockedByPolicy(audioContextRef.current?.state !== 'running');
-          }).catch(err => {
-            console.warn('⚠️ Failed to resume audio on visibility change:', err);
-          });
+          audioContextRef.current
+            .resume()
+            .then(() => {
+              setAudioReady(audioContextRef.current?.state === 'running');
+              setAudioBlockedByPolicy(audioContextRef.current?.state !== 'running');
+            })
+            .catch((err) => {
+              console.warn('⚠️ Failed to resume audio on visibility change:', err);
+            });
         } else if (state === 'running') {
           setAudioReady(true);
           setAudioBlockedByPolicy(false);
@@ -177,7 +180,13 @@ export function useNotification() {
   const playNotes = useCallback((audioContext: AudioContext, type: NotificationSoundType) => {
     const now = audioContext.currentTime;
 
-    const playNote = (frequency: number, startTime: number, duration: number, volume: number, waveType: OscillatorType = 'sine') => {
+    const playNote = (
+      frequency: number,
+      startTime: number,
+      duration: number,
+      volume: number,
+      waveType: OscillatorType = 'sine',
+    ) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -244,16 +253,19 @@ export function useNotification() {
     // Resume context if suspended
     if (audioContext.state === 'suspended') {
       console.warn('⚠️ AudioContext suspended, attempting resume...');
-      audioContext.resume().then(() => {
-        if (audioContext.state === 'running') {
-          setAudioReady(true);
-          setAudioBlockedByPolicy(false);
-          playNotes(audioContext, soundType);
-        }
-      }).catch(err => {
-        console.error('Failed to resume AudioContext:', err);
-        setAudioBlockedByPolicy(true);
-      });
+      audioContext
+        .resume()
+        .then(() => {
+          if (audioContext.state === 'running') {
+            setAudioReady(true);
+            setAudioBlockedByPolicy(false);
+            playNotes(audioContext, soundType);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to resume AudioContext:', err);
+          setAudioBlockedByPolicy(true);
+        });
       return;
     }
 
@@ -265,23 +277,26 @@ export function useNotification() {
   }, [audioEnabled, soundType, initializeAudio, playNotes]);
 
   // Play a specific sound type
-  const playSoundByType = useCallback((type: NotificationSoundType) => {
-    if (!audioContextRef.current || !audioEnabled) {
-      return;
-    }
-
-    try {
-      const audioContext = audioContextRef.current;
-
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
+  const playSoundByType = useCallback(
+    (type: NotificationSoundType) => {
+      if (!audioContextRef.current || !audioEnabled) {
+        return;
       }
 
-      playNotes(audioContext, type);
-    } catch (error) {
-      console.error('Could not play notification sound:', error);
-    }
-  }, [audioEnabled, playNotes]);
+      try {
+        const audioContext = audioContextRef.current;
+
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+
+        playNotes(audioContext, type);
+      } catch (error) {
+        console.error('Could not play notification sound:', error);
+      }
+    },
+    [audioEnabled, playNotes],
+  );
 
   // Stop repeating sound
   const stopRepeating = useCallback(() => {
@@ -300,12 +315,17 @@ export function useNotification() {
 
     const getRepeatInterval = () => {
       switch (soundType) {
-        case 'bell': return 1500;
-        case 'melody': return 2200;
-        case 'ping': return 600;
-        case 'alert': return 1000;
+        case 'bell':
+          return 1500;
+        case 'melody':
+          return 2200;
+        case 'ping':
+          return 600;
+        case 'alert':
+          return 1000;
         case 'chime':
-        default: return 1200;
+        default:
+          return 1200;
       }
     };
 
@@ -354,7 +374,7 @@ export function useNotification() {
       return { id };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [playNotificationSound]
+    [playNotificationSound],
   );
 
   const removeNotification = useCallback((id: string) => {
@@ -375,7 +395,7 @@ export function useNotification() {
         startRepeatingUntilMouseMoves();
       }
     },
-    [addNotification, repeatUntilMouseMoves, startRepeatingUntilMouseMoves]
+    [addNotification, repeatUntilMouseMoves, startRepeatingUntilMouseMoves],
   );
 
   const notifyOrderReady = useCallback(
@@ -388,7 +408,7 @@ export function useNotification() {
         sound: true,
       });
     },
-    [addNotification]
+    [addNotification],
   );
 
   const notifyOrderUpdate = useCallback(
@@ -401,7 +421,7 @@ export function useNotification() {
         sound: true,
       });
     },
-    [addNotification]
+    [addNotification],
   );
 
   // Play a different notification sound for order updates
@@ -439,7 +459,6 @@ export function useNotification() {
       playNote(261.63, now, 0.25, 0.15);
       playNote(329.63, now + 0.08, 0.3, 0.12);
       playNote(392, now + 0.16, 0.5, 0.08);
-
     } catch (error) {
       console.error('Could not play order update sound:', error);
     }

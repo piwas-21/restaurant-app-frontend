@@ -3,12 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
-import {
-  ShoppingBag,
-  Clock,
-  TrendingUp,
-  DollarSign,
-} from 'lucide-react';
+import { ShoppingBag, Clock, TrendingUp, DollarSign } from 'lucide-react';
 import styles from './OrderAnalytics.module.css';
 
 interface OrderAnalyticsProps {
@@ -38,9 +33,7 @@ export default function OrderAnalytics({ orders }: OrderAnalyticsProps) {
 
   // Calculate metrics
   const totalOrdersToday = todaysOrders.length;
-  const pendingOrders = orders.filter(
-    (order) => order.status === 'Pending' || order.status === 'Confirmed'
-  ).length;
+  const pendingOrders = orders.filter((order) => order.status === 'Pending' || order.status === 'Confirmed').length;
   const revenueToday = todaysOrders.reduce((sum, order) => sum + order.total, 0);
   const averageOrderValue = totalOrdersToday > 0 ? revenueToday / totalOrdersToday : 0;
 

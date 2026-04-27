@@ -101,7 +101,7 @@
   overflow: hidden;
 }
 
-[data-theme="dark"] .configCard {
+[data-theme='dark'] .configCard {
   background: var(--secondary-color, #2c2c2c);
   border-color: rgba(255, 255, 255, 0.1);
 }
@@ -132,7 +132,7 @@
   border-color: var(--primary-color, #4f46e5);
 }
 
-[data-theme="dark"] .configCard:hover {
+[data-theme='dark'] .configCard:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
@@ -158,7 +158,7 @@
   line-height: 1.3;
 }
 
-[data-theme="dark"] .configName {
+[data-theme='dark'] .configName {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -173,7 +173,7 @@
   overflow: hidden;
 }
 
-[data-theme="dark"] .configDescription {
+[data-theme='dark'] .configDescription {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -192,7 +192,7 @@
   color: #059669;
 }
 
-[data-theme="dark"] .statusBadge {
+[data-theme='dark'] .statusBadge {
   background: rgba(16, 185, 129, 0.2);
   color: #10b981;
 }
@@ -202,7 +202,7 @@
   color: #6b7280;
 }
 
-[data-theme="dark"] .statusBadge.inactive {
+[data-theme='dark'] .statusBadge.inactive {
   background: rgba(156, 163, 175, 0.2);
   color: #9ca3af;
 }
@@ -218,7 +218,7 @@
   margin-bottom: 1.25rem;
 }
 
-[data-theme="dark"] .configDetails {
+[data-theme='dark'] .configDetails {
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -234,7 +234,7 @@
   color: var(--text-secondary, #6b7280);
 }
 
-[data-theme="dark"] .rateLabel {
+[data-theme='dark'] .rateLabel {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -245,7 +245,7 @@
   letter-spacing: -0.02em;
 }
 
-[data-theme="dark"] .rateValue {
+[data-theme='dark'] .rateValue {
   color: var(--primary-color, #818cf8);
 }
 
@@ -261,7 +261,7 @@
   color: var(--text-secondary, #6b7280);
 }
 
-[data-theme="dark"] .orderTypesLabel {
+[data-theme='dark'] .orderTypesLabel {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -282,7 +282,7 @@
   font-weight: 500;
 }
 
-[data-theme="dark"] .orderTypeBadge {
+[data-theme='dark'] .orderTypeBadge {
   background: rgba(129, 140, 248, 0.15);
   color: var(--primary-color, #818cf8);
 }
@@ -316,7 +316,7 @@
   color: var(--primary-color, #4f46e5);
 }
 
-[data-theme="dark"] .toggleButton {
+[data-theme='dark'] .toggleButton {
   background: rgba(129, 140, 248, 0.15);
   color: var(--primary-color, #818cf8);
 }
@@ -332,7 +332,7 @@
   color: #2563eb;
 }
 
-[data-theme="dark"] .editButton {
+[data-theme='dark'] .editButton {
   background: rgba(96, 165, 250, 0.15);
   color: #60a5fa;
 }
@@ -348,7 +348,7 @@
   color: #dc2626;
 }
 
-[data-theme="dark"] .deleteButton {
+[data-theme='dark'] .deleteButton {
   background: rgba(248, 113, 113, 0.15);
   color: #f87171;
 }
@@ -395,7 +395,7 @@
   animation: slideUp 0.3s ease;
 }
 
-[data-theme="dark"] .modalContent {
+[data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
 }
 
@@ -418,7 +418,7 @@
   border-bottom: 1px solid var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .modalHeader {
+[data-theme='dark'] .modalHeader {
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -429,7 +429,7 @@
   margin: 0;
 }
 
-[data-theme="dark"] .modalHeader h2 {
+[data-theme='dark'] .modalHeader h2 {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -448,7 +448,7 @@
   transition: all 0.2s ease;
 }
 
-[data-theme="dark"] .closeButton {
+[data-theme='dark'] .closeButton {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary, #9ca3af);
 }
@@ -458,7 +458,7 @@
   transform: rotate(90deg);
 }
 
-[data-theme="dark"] .closeButton:hover {
+[data-theme='dark'] .closeButton:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -482,11 +482,11 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .formGroup label {
+[data-theme='dark'] .formGroup label {
   color: var(--text-color, #e0e0e0);
 }
 
-.formGroup input[type="text"],
+.formGroup input[type='text'],
 .formGroup textarea {
   padding: 0.875rem 1rem;
   border: 2px solid var(--border-color, #e5e7eb);
@@ -497,14 +497,14 @@
   transition: all 0.2s ease;
 }
 
-[data-theme="dark"] .formGroup input[type="text"],
-[data-theme="dark"] .formGroup textarea {
+[data-theme='dark'] .formGroup input[type='text'],
+[data-theme='dark'] .formGroup textarea {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--text-color, #e0e0e0);
 }
 
-.formGroup input[type="text"]:focus,
+.formGroup input[type='text']:focus,
 .formGroup textarea:focus {
   outline: none;
   border-color: var(--primary-color, #4f46e5);
@@ -536,7 +536,7 @@
   color: var(--text-secondary, #6b7280);
 }
 
-[data-theme="dark"] .formGroup small {
+[data-theme='dark'] .formGroup small {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -550,7 +550,7 @@
   border-radius: 10px;
 }
 
-[data-theme="dark"] .checkboxGroup {
+[data-theme='dark'] .checkboxGroup {
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -563,11 +563,11 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .checkboxLabel {
+[data-theme='dark'] .checkboxLabel {
   color: var(--text-color, #e0e0e0);
 }
 
-.checkboxLabel input[type="checkbox"] {
+.checkboxLabel input[type='checkbox'] {
   width: 20px;
   height: 20px;
   cursor: pointer;
@@ -582,7 +582,7 @@
   border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .formActions {
+[data-theme='dark'] .formActions {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -603,7 +603,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .cancelButton {
+[data-theme='dark'] .cancelButton {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-color, #e0e0e0);
 }
@@ -612,7 +612,7 @@
   background: var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .cancelButton:hover {
+[data-theme='dark'] .cancelButton:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 

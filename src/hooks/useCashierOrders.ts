@@ -29,12 +29,7 @@ interface UseCashierOrdersReturn {
   addPayment: (orderId: string, paymentData: any) => Promise<OrderDto>;
   refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
-  toggleFocusOrder: (
-    orderId: string,
-    isFocus: boolean,
-    priority?: number,
-    reason?: string
-  ) => Promise<OrderDto>;
+  toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
 }
 
 // PRIMARY: Polling interval (5 seconds) - guaranteed order delivery
@@ -55,7 +50,9 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastEventTime, setLastEventTime] = useState<Date | null>(null);
-  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>(
+    'disconnected',
+  );
 
   // Refs for stable references across renders
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -67,7 +64,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
   const lastReconnectTimeRef = useRef<number>(0);
   const connectionIdRef = useRef<string>(''); // Track connection ID to prevent stale closures
   const isMountedRef = useRef(true);
-  const lastPolledAtRef = useRef<Date | null>(null);  // Track last poll time for modifiedSince
+  const lastPolledAtRef = useRef<Date | null>(null); // Track last poll time for modifiedSince
   const primaryPollingIntervalRef = useRef<NodeJS.Timeout | null>(null); // Primary polling mechanism
   const maxReconnectAttempts = 15;
 
@@ -85,9 +82,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         ...(range?.startDate ? { startDate: range.startDate } : {}),
         ...(range?.endDate ? { endDate: range.endDate } : {}),
       };
-      const result = await getCashierOrders(
-        Object.keys(filters).length > 0 ? filters : undefined
-      );
+      const result = await getCashierOrders(Object.keys(filters).length > 0 ? filters : undefined);
       if (isMountedRef.current) {
         if (modifiedSince && result.items && result.items.length > 0) {
           // Incremental update: merge new/updated orders
@@ -95,7 +90,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           setOrders((prev) => {
             const newOrders = [...prev];
             for (const order of result.items) {
-              const existingIndex = newOrders.findIndex(o => o.id === order.id);
+              const existingIndex = newOrders.findIndex((o) => o.id === order.id);
               if (existingIndex >= 0) {
                 newOrders[existingIndex] = order; // Update existing
               } else {
@@ -186,7 +181,9 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         url += `?token=${encodeURIComponent(authToken)}`;
       }
 
-      console.log(`🔌 SSE: Connecting [${connectionId}] attempt ${reconnectAttemptRef.current + 1}/${maxReconnectAttempts}`);
+      console.log(
+        `🔌 SSE: Connecting [${connectionId}] attempt ${reconnectAttemptRef.current + 1}/${maxReconnectAttempts}`,
+      );
 
       const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
@@ -233,7 +230,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           console.log('📦 SSE: order-created:', data.order?.orderNumber || data.orderNumber);
           setOrders((prev) => {
             const newOrder = data.order || data;
-            if (prev.some(o => o.id === newOrder.id)) {
+            if (prev.some((o) => o.id === newOrder.id)) {
               console.log('📦 SSE: Order already exists, skipping duplicate');
               return prev;
             }
@@ -256,9 +253,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           const orderId = data.orderId || data.order?.id;
           console.log('📝 SSE: order-status-changed:', orderId, '→', data.order?.status);
           setOrders((prev) =>
-            prev.map((order) =>
-              order.id === orderId ? (data.order || { ...order, ...data }) : order
-            )
+            prev.map((order) => (order.id === orderId ? data.order || { ...order, ...data } : order)),
           );
           const eventTime = new Date();
           setLastEventTime(eventTime);
@@ -276,11 +271,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           const data = JSON.parse(event.data);
           const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
-            prev.map((order) =>
-              order.id === orderId
-                ? { ...order, status: 'Ready', ...data.order }
-                : order
-            )
+            prev.map((order) => (order.id === orderId ? { ...order, status: 'Ready', ...data.order } : order)),
           );
           const eventTime = new Date();
           setLastEventTime(eventTime);
@@ -297,11 +288,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           const data = JSON.parse(event.data);
           const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
-            prev.map((order) =>
-              order.id === orderId
-                ? { ...order, status: 'Completed', ...data.order }
-                : order
-            )
+            prev.map((order) => (order.id === orderId ? { ...order, status: 'Completed', ...data.order } : order)),
           );
           const eventTime = new Date();
           setLastEventTime(eventTime);
@@ -319,10 +306,8 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
             prev.map((order) =>
-              order.id === orderId
-                ? { ...order, isFocusOrder: data.isFocus, ...data.order }
-                : order
-            )
+              order.id === orderId ? { ...order, isFocusOrder: data.isFocus, ...data.order } : order,
+            ),
           );
           const eventTime = new Date();
           setLastEventTime(eventTime);
@@ -354,7 +339,9 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         if (reconnectAttemptRef.current < maxReconnectAttempts) {
           reconnectAttemptRef.current += 1;
           const backoffMs = Math.min(1000 * Math.pow(1.5, reconnectAttemptRef.current), 30000);
-          console.warn(`🔄 SSE: Reconnecting in ${Math.round(backoffMs/1000)}s (attempt ${reconnectAttemptRef.current}/${maxReconnectAttempts})`);
+          console.warn(
+            `🔄 SSE: Reconnecting in ${Math.round(backoffMs / 1000)}s (attempt ${reconnectAttemptRef.current}/${maxReconnectAttempts})`,
+          );
 
           reconnectTimeoutRef.current = setTimeout(() => {
             if (isMountedRef.current) {
@@ -388,14 +375,16 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         // 2. Check if stuck in CONNECTING state (0) for too long
         // If we are connecting but haven't received 'connected' event or any data
         if (currentEventSource.readyState === EventSource.CONNECTING) {
-             const connectingDuration = Date.now() - lastReconnectTimeRef.current;
-             // If connecting for more than 15 seconds, assume stuck
-             if (connectingDuration > 15000) {
-                 console.warn(`⚠️ SSE: Stuck in CONNECTING state for ${Math.round(connectingDuration/1000)}s, forcing reconnect...`);
-                 eventSourceRef.current?.close(); // Force close
-                 connectToSSE();
-                 return;
-             }
+          const connectingDuration = Date.now() - lastReconnectTimeRef.current;
+          // If connecting for more than 15 seconds, assume stuck
+          if (connectingDuration > 15000) {
+            console.warn(
+              `⚠️ SSE: Stuck in CONNECTING state for ${Math.round(connectingDuration / 1000)}s, forcing reconnect...`,
+            );
+            eventSourceRef.current?.close(); // Force close
+            connectToSSE();
+            return;
+          }
         }
 
         // 3. Check for silence timeout (only if OPEN/connected)
@@ -408,7 +397,6 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
           }
         }
       }, HEALTH_CHECK_INTERVAL_MS);
-
     } catch (err) {
       console.error('Error connecting to SSE:', err);
       if (isMountedRef.current) {
@@ -570,110 +558,98 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
   /**
    * Update order status
    */
-  const handleUpdateOrderStatus = useCallback(
-    async (orderId: string, status: string) => {
-      try {
-        const updatedOrder = await updateOrderStatus(orderId, status);
-        let mergedOrder: OrderDto | undefined;
-        setOrders((prev) =>
-          prev.map((order) => {
-            if (order.id === orderId) {
-              mergedOrder = { ...order, ...updatedOrder };
-              return mergedOrder;
-            }
-            return order;
-          })
-        );
-        return mergedOrder || updatedOrder;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
-        setError(errorMessage);
-        throw err;
-      }
-    },
-    []
-  );
+  const handleUpdateOrderStatus = useCallback(async (orderId: string, status: string) => {
+    try {
+      const updatedOrder = await updateOrderStatus(orderId, status);
+      let mergedOrder: OrderDto | undefined;
+      setOrders((prev) =>
+        prev.map((order) => {
+          if (order.id === orderId) {
+            mergedOrder = { ...order, ...updatedOrder };
+            return mergedOrder;
+          }
+          return order;
+        }),
+      );
+      return mergedOrder || updatedOrder;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
 
   /**
    * Add payment to order
    */
-  const handleAddPayment = useCallback(
-    async (orderId: string, paymentData: any) => {
-      try {
-        const updatedOrder = await addPaymentToOrder(orderId, paymentData);
-        let mergedOrder: OrderDto | undefined;
-        setOrders((prev) =>
-          prev.map((order) => {
-            if (order.id === orderId) {
-              mergedOrder = { ...order, ...updatedOrder };
-              return mergedOrder;
-            }
-            return order;
-          })
-        );
-        return mergedOrder || updatedOrder;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to add payment';
-        setError(errorMessage);
-        throw err;
-      }
-    },
-    []
-  );
+  const handleAddPayment = useCallback(async (orderId: string, paymentData: any) => {
+    try {
+      const updatedOrder = await addPaymentToOrder(orderId, paymentData);
+      let mergedOrder: OrderDto | undefined;
+      setOrders((prev) =>
+        prev.map((order) => {
+          if (order.id === orderId) {
+            mergedOrder = { ...order, ...updatedOrder };
+            return mergedOrder;
+          }
+          return order;
+        }),
+      );
+      return mergedOrder || updatedOrder;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add payment';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
 
   /**
    * Refund payment
    */
-  const handleRefundPayment = useCallback(
-    async (orderId: string, paymentId: string, amount?: number) => {
-      try {
-        const updatedOrder = await refundPayment(orderId, paymentId, amount);
-        let mergedOrder: OrderDto | undefined;
-        setOrders((prev) =>
-          prev.map((order) => {
-            if (order.id === orderId) {
-              mergedOrder = { ...order, ...updatedOrder };
-              return mergedOrder;
-            }
-            return order;
-          })
-        );
-        return mergedOrder || updatedOrder;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to refund';
-        setError(errorMessage);
-        throw err;
-      }
-    },
-    []
-  );
+  const handleRefundPayment = useCallback(async (orderId: string, paymentId: string, amount?: number) => {
+    try {
+      const updatedOrder = await refundPayment(orderId, paymentId, amount);
+      let mergedOrder: OrderDto | undefined;
+      setOrders((prev) =>
+        prev.map((order) => {
+          if (order.id === orderId) {
+            mergedOrder = { ...order, ...updatedOrder };
+            return mergedOrder;
+          }
+          return order;
+        }),
+      );
+      return mergedOrder || updatedOrder;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to refund';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
 
   /**
    * Cancel order
    */
-  const handleCancelOrder = useCallback(
-    async (orderId: string, reason?: string) => {
-      try {
-        const updatedOrder = await cancelOrder(orderId, reason);
-        let mergedOrder: OrderDto | undefined;
-        setOrders((prev) =>
-          prev.map((order) => {
-            if (order.id === orderId) {
-              mergedOrder = { ...order, ...updatedOrder };
-              return mergedOrder;
-            }
-            return order;
-          })
-        );
-        return mergedOrder || updatedOrder;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to cancel order';
-        setError(errorMessage);
-        throw err;
-      }
-    },
-    []
-  );
+  const handleCancelOrder = useCallback(async (orderId: string, reason?: string) => {
+    try {
+      const updatedOrder = await cancelOrder(orderId, reason);
+      let mergedOrder: OrderDto | undefined;
+      setOrders((prev) =>
+        prev.map((order) => {
+          if (order.id === orderId) {
+            mergedOrder = { ...order, ...updatedOrder };
+            return mergedOrder;
+          }
+          return order;
+        }),
+      );
+      return mergedOrder || updatedOrder;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel order';
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
 
   /**
    * Toggle focus order
@@ -690,7 +666,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
               return mergedOrder;
             }
             return order;
-          })
+          }),
         );
         return mergedOrder || updatedOrder;
       } catch (err) {
@@ -699,7 +675,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         throw err;
       }
     },
-    []
+    [],
   );
 
   return {

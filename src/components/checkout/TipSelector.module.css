@@ -9,7 +9,7 @@
   transition: all 0.2s ease;
 }
 
-[data-theme="dark"] .tipCard {
+[data-theme='dark'] .tipCard {
   background: var(--secondary-color, #2c2c2c);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -19,7 +19,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="dark"] .tipCard:hover {
+[data-theme='dark'] .tipCard:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
@@ -42,7 +42,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .heartIcon {
+[data-theme='dark'] .heartIcon {
   color: var(--primary-color, #4a9eff);
 }
 
@@ -53,7 +53,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .tipTitle {
+[data-theme='dark'] .tipTitle {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -68,7 +68,7 @@
   letter-spacing: 0.5px;
 }
 
-[data-theme="dark"] .optionalBadge {
+[data-theme='dark'] .optionalBadge {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-secondary, #9ca3af);
 }
@@ -96,7 +96,7 @@
   gap: 0.25rem;
 }
 
-[data-theme="dark"] .tipButton {
+[data-theme='dark'] .tipButton {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.1);
 }
@@ -108,7 +108,7 @@
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
 }
 
-[data-theme="dark"] .tipButton:hover {
+[data-theme='dark'] .tipButton:hover {
   border-color: var(--primary-color, #4a9eff);
   background: rgba(74, 158, 255, 0.1);
 }
@@ -120,7 +120,7 @@
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
-[data-theme="dark"] .tipButton.selected {
+[data-theme='dark'] .tipButton.selected {
   border-color: var(--primary-color, #4a9eff);
   background: var(--primary-color, #4a9eff);
 }
@@ -131,7 +131,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .tipLabel {
+[data-theme='dark'] .tipLabel {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -145,7 +145,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .tipPercentage {
+[data-theme='dark'] .tipPercentage {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -159,7 +159,7 @@
   font-weight: 500;
 }
 
-[data-theme="dark"] .tipAmount {
+[data-theme='dark'] .tipAmount {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -173,7 +173,7 @@
   border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .customTipContainer {
+[data-theme='dark'] .customTipContainer {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -185,7 +185,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .customTipLabel {
+[data-theme='dark'] .customTipLabel {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -204,7 +204,7 @@
   pointer-events: none;
 }
 
-[data-theme="dark"] .currencySymbol {
+[data-theme='dark'] .currencySymbol {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -220,7 +220,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .customTipInput {
+[data-theme='dark'] .customTipInput {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--text-color, #e0e0e0);
@@ -232,7 +232,7 @@
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
-[data-theme="dark"] .customTipInput:focus {
+[data-theme='dark'] .customTipInput:focus {
   border-color: var(--primary-color, #4a9eff);
   box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
 }
@@ -248,7 +248,7 @@
   margin: 0;
 }
 
-.customTipInput[type=number] {
+.customTipInput[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }

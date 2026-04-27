@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,16 +8,7 @@ import { useCart } from '@/components/cart/CartContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { OrderType } from '@/types/order';
 import { getCurrentUser } from '@/services/userService';
-import {
-  User,
-  Mail,
-  Phone,
-  ChevronRight,
-  AlertCircle,
-  Utensils,
-  Star,
-  LogIn
-} from 'lucide-react';
+import { User, Mail, Phone, ChevronRight, AlertCircle, Utensils, Star, LogIn } from 'lucide-react';
 import styles from '../../styles/CustomerInfoPage.module.css';
 
 export default function CustomerInfoPage() {
@@ -111,10 +102,7 @@ export default function CustomerInfoPage() {
         <div className={styles.emptyState}>
           <h1>{t('checkout_title', 'Checkout')}</h1>
           <p>{t('cart_empty_message', 'Your cart is empty')}</p>
-          <button
-            onClick={() => router.push('/menu')}
-            className={styles.browseButton}
-          >
+          <button onClick={() => router.push('/menu')} className={styles.browseButton}>
             {t('cart_browse_menu_button', 'Browse Menu')}
           </button>
         </div>
@@ -130,10 +118,7 @@ export default function CustomerInfoPage() {
           <AlertCircle size={64} className={styles.alertIcon} />
           <h1>{t('order_type_not_selected', 'Order Type Not Selected')}</h1>
           <p>{t('order_type_not_selected_desc', 'Please select your order type first')}</p>
-          <button
-            onClick={() => router.push('/checkout/order-type')}
-            className={styles.browseButton}
-          >
+          <button onClick={() => router.push('/checkout/order-type')} className={styles.browseButton}>
             {t('select_order_type', 'Select Order Type')}
           </button>
         </div>
@@ -244,9 +229,7 @@ export default function CustomerInfoPage() {
       <div className={styles.content}>
         <div className={styles.header}>
           <h1 className={styles.title}>{t('customer_information', 'Customer Information')}</h1>
-          <p className={styles.subtitle}>
-            {t('customer_info_desc', 'Please provide your contact information')}
-          </p>
+          <p className={styles.subtitle}>{t('customer_info_desc', 'Please provide your contact information')}</p>
         </div>
 
         {/* Table Banner for QR Scan Users */}
@@ -282,7 +265,13 @@ export default function CustomerInfoPage() {
         )}
 
         {/* Customer Info Form */}
-        <form className={styles.form} onSubmit={(e) => { e.preventDefault(); handleContinue(); }}>
+        <form
+          className={styles.form}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleContinue();
+          }}
+        >
           {/* Name Field */}
           <div className={styles.inputGroup}>
             <label htmlFor="name" className={styles.label}>
@@ -366,7 +355,10 @@ export default function CustomerInfoPage() {
               </p>
             )}
             <p className={styles.hint}>
-              {t('phone_hint_optional', 'You can enter a phone number in any format (e.g., +1 555 123 4567 or 555-123-4567)')}
+              {t(
+                'phone_hint_optional',
+                'You can enter a phone number in any format (e.g., +1 555 123 4567 or 555-123-4567)',
+              )}
             </p>
           </div>
 
@@ -390,17 +382,10 @@ export default function CustomerInfoPage() {
 
           {/* Actions */}
           <div className={styles.actions}>
-            <button
-              type="button"
-              onClick={handleBack}
-              className={styles.backButton}
-            >
+            <button type="button" onClick={handleBack} className={styles.backButton}>
               {t('back', 'Back')}
             </button>
-            <button
-              type="submit"
-              className={styles.continueButton}
-            >
+            <button type="submit" className={styles.continueButton}>
               {t('continue_to_review', 'Continue to Review')}
               <ChevronRight size={20} />
             </button>
@@ -413,9 +398,7 @@ export default function CustomerInfoPage() {
             <div className={styles.registrationCard}>
               <div className={styles.registrationHeader}>
                 <Star size={24} className={styles.registrationIcon} />
-                <h2 className={styles.registrationTitle}>
-                  {t('dont_have_account', 'Don\'t have an account yet?')}
-                </h2>
+                <h2 className={styles.registrationTitle}>{t('dont_have_account', "Don't have an account yet?")}</h2>
               </div>
               <p className={styles.registrationDescription}>
                 {t('register_benefits', 'Create a RUMI account to unlock exclusive benefits')}
@@ -438,21 +421,13 @@ export default function CustomerInfoPage() {
                   <span>{t('benefit_reservations', 'Manage your reservations easily')}</span>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => router.push('/auth/register')}
-                className={styles.registerButton}
-              >
+              <button type="button" onClick={() => router.push('/auth/register')} className={styles.registerButton}>
                 <LogIn size={18} />
                 {t('register_now', 'Register Now')}
               </button>
               <p className={styles.registrationFooter}>
                 {t('already_member', 'Already a member?')}
-                <button
-                  type="button"
-                  onClick={() => router.push('/auth/login')}
-                  className={styles.loginLink}
-                >
+                <button type="button" onClick={() => router.push('/auth/login')} className={styles.loginLink}>
                   {t('login_here', 'Login here')}
                 </button>
               </p>

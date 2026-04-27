@@ -341,85 +341,85 @@
 }
 
 /* Dark Mode Styles */
-[data-theme="dark"] .section h4 {
+[data-theme='dark'] .section h4 {
   color: var(--text-color, #f0f0f0);
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .groupTitle {
+[data-theme='dark'] .groupTitle {
   color: var(--text-secondary, #9ca3af);
 }
 
-[data-theme="dark"] .customizationItem {
+[data-theme='dark'] .customizationItem {
   background-color: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
 }
 
-[data-theme="dark"] .customizationItem:hover {
+[data-theme='dark'] .customizationItem:hover {
   background-color: var(--background-color, #2c2c2c);
   border-color: var(--primary-color, #e06666);
 }
 
-[data-theme="dark"] .customizationItem:has(:checked) {
+[data-theme='dark'] .customizationItem:has(:checked) {
   background-color: var(--success-color-dark, #065f46);
   border-color: var(--success-color, #4caf50);
 }
 
-[data-theme="dark"] .customizationItem:has(:checked):has(:disabled) {
+[data-theme='dark'] .customizationItem:has(:checked):has(:disabled) {
   background-color: var(--success-color-dark, #065f46);
   border-color: var(--success-color, #4caf50);
 }
 
-[data-theme="dark"] .customizationItem.selected.disabled {
+[data-theme='dark'] .customizationItem.selected.disabled {
   background-color: var(--success-color-dark, #065f46);
   border-color: var(--success-color, #4caf50);
 }
 
-[data-theme="dark"] .checkbox {
+[data-theme='dark'] .checkbox {
   accent-color: var(--success-color, #4caf50);
 }
 
-[data-theme="dark"] .itemName {
+[data-theme='dark'] .itemName {
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .itemPrice {
+[data-theme='dark'] .itemPrice {
   color: var(--success-color, #81c784);
 }
 
-[data-theme="dark"] .quantityButton {
+[data-theme='dark'] .quantityButton {
   background-color: var(--border-color, #444);
   color: var(--text-color, #f0f0f0);
 }
 
-[data-theme="dark"] .quantityButton:hover:not(:disabled) {
+[data-theme='dark'] .quantityButton:hover:not(:disabled) {
   background-color: var(--primary-color, #e06666);
 }
 
-[data-theme="dark"] .quantityValue {
+[data-theme='dark'] .quantityValue {
   color: var(--text-color, #f0f0f0);
 }
 
-[data-theme="dark"] .textarea {
+[data-theme='dark'] .textarea {
   background-color: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
   color: var(--text-color, #f0f0f0);
 }
 
-[data-theme="dark"] .modalHeader h3,
-[data-theme="dark"] .priceDisplay,
-[data-theme="dark"] .totalPrice span {
+[data-theme='dark'] .modalHeader h3,
+[data-theme='dark'] .priceDisplay,
+[data-theme='dark'] .totalPrice span {
   color: var(--text-color, #f0f0f0);
 }
 
-[data-theme="dark"] .priceDisplay {
+[data-theme='dark'] .priceDisplay {
   background-color: var(--secondary-color, #3a3a3a);
 }
 
-[data-theme="dark"] .closeButton {
+[data-theme='dark'] .closeButton {
   color: var(--text-color, #f0f0f0);
 }
 
-[data-theme="dark"] .closeButton:hover {
+[data-theme='dark'] .closeButton:hover {
   background-color: var(--secondary-color, #3a3a3a);
 }

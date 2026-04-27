@@ -56,19 +56,19 @@ const MenuManagementContent = () => {
       // Use the correct endpoint based on active tab
       if (activeTab === 'menus') {
         // Menu bundles use the /api/Menus endpoint
-        response = await getMenuBundleById(productId) as { success: boolean; data?: any; message?: string };
+        response = (await getMenuBundleById(productId)) as { success: boolean; data?: any; message?: string };
       } else {
         // Regular products use the /api/Products endpoint
-        response = await getProductById(productId) as { success: boolean; data?: any; message?: string };
+        response = (await getProductById(productId)) as { success: boolean; data?: any; message?: string };
       }
 
       if (response.success) {
         setSelectedProduct(response.data);
         // Open the appropriate modal based on product type
         if (response.data.type === 'menu' || activeTab === 'menus') {
-            setIsEditMenuModalOpen(true);
+          setIsEditMenuModalOpen(true);
         } else {
-            setIsEditModalOpen(true);
+          setIsEditModalOpen(true);
         }
       } else {
         setResultModalMessage(response.message || 'Failed to load product details');
@@ -95,9 +95,9 @@ const MenuManagementContent = () => {
       // Since we only have ID here, we might need to check the current tab or fetch details first.
       // However, for delete, we can try to infer from the active tab.
       if (activeTab === 'menus') {
-         response = await deleteMenuBundle(productToDelete) as { success: boolean; message?: string; data?: string };
+        response = (await deleteMenuBundle(productToDelete)) as { success: boolean; message?: string; data?: string };
       } else {
-         response = await deleteProduct(productToDelete) as { success: boolean; message?: string; data?: string };
+        response = (await deleteProduct(productToDelete)) as { success: boolean; message?: string; data?: string };
       }
 
       setIsConfirmationOpen(false);
@@ -110,9 +110,7 @@ const MenuManagementContent = () => {
     }
   };
 
-  const pageTitle = categoryName
-    ? `${t('menu_items_for')} "${categoryName}"`
-    : t('admin_menu_management_title');
+  const pageTitle = categoryName ? `${t('menu_items_for')} "${categoryName}"` : t('admin_menu_management_title');
 
   return (
     <>
@@ -136,19 +134,22 @@ const MenuManagementContent = () => {
 
             {/* Category filter - only show for Products tab */}
             {activeTab === 'products' && (
-              <select onChange={handleCategoryChange} value={selectedCategoryId || 'all'} className={styles.adminSelect}>
+              <select
+                onChange={handleCategoryChange}
+                value={selectedCategoryId || 'all'}
+                className={styles.adminSelect}
+              >
                 <option value="all">{t('all_categories_nav')}</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>{category.name}</option>
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
                 ))}
               </select>
             )}
             <div className={styles.tooltipContainer}>
               {activeTab === 'products' ? (
-                <button
-                  className={`${styles.adminButton} ${styles.add}`}
-                  onClick={() => setIsCreateModalOpen(true)}
-                >
+                <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsCreateModalOpen(true)}>
                   {t('create_new_product')}
                 </button>
               ) : (
@@ -189,7 +190,7 @@ const MenuManagementContent = () => {
                     start: (currentPage - 1) * pageSize + 1,
                     end: Math.min(currentPage * pageSize, totalCount),
                     total: totalCount,
-                    defaultValue: `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} items`
+                    defaultValue: `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} items`,
                   })}
                 </p>
               )}
@@ -219,16 +220,18 @@ const MenuManagementContent = () => {
           }}
           product={selectedProduct}
         />
-      ) : selectedProduct && (
-        <EditProductModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onProductUpdated={() => {
-            setIsEditModalOpen(false);
-            fetchProducts();
-          }}
-          product={selectedProduct}
-        />
+      ) : (
+        selectedProduct && (
+          <EditProductModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onProductUpdated={() => {
+              setIsEditModalOpen(false);
+              fetchProducts();
+            }}
+            product={selectedProduct}
+          />
+        )
       )}
       <ConfirmationModal
         isOpen={isConfirmationOpen}

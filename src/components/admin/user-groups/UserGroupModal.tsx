@@ -7,28 +7,33 @@ import styles from '@/app/styles/RegisterStaffModal.module.css';
 import modalStyles from './UserGroupModal.module.css';
 import { UserGroupDto, DiscountType } from '@/types/userGroupTypes';
 
-const userGroupSchema = z.object({
-  name: z.string().min(1, { message: 'Group name is required' }),
-  description: z.string().optional(),
-  validFrom: z.string().optional(),
-  validUntil: z.string().optional(),
-  isActive: z.boolean(),
-  // Initial discount fields (only used for creation)
-  hasInitialDiscount: z.boolean().optional(),
-  discountName: z.string().optional(),
-  discountType: z.nativeEnum(DiscountType).optional(),
-  discountValue: z.coerce.number().min(0).optional(),
-  minOrderAmount: z.coerce.number().min(0).optional(),
-  maxDiscountAmount: z.coerce.number().min(0).optional(),
-}).refine((data) => {
-  if (data.hasInitialDiscount) {
-    return !!data.discountName && data.discountValue !== undefined && data.discountValue > 0;
-  }
-  return true;
-}, {
-  message: "Discount name and value are required when adding an initial discount",
-  path: ["discountName"],
-});
+const userGroupSchema = z
+  .object({
+    name: z.string().min(1, { message: 'Group name is required' }),
+    description: z.string().optional(),
+    validFrom: z.string().optional(),
+    validUntil: z.string().optional(),
+    isActive: z.boolean(),
+    // Initial discount fields (only used for creation)
+    hasInitialDiscount: z.boolean().optional(),
+    discountName: z.string().optional(),
+    discountType: z.nativeEnum(DiscountType).optional(),
+    discountValue: z.coerce.number().min(0).optional(),
+    minOrderAmount: z.coerce.number().min(0).optional(),
+    maxDiscountAmount: z.coerce.number().min(0).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.hasInitialDiscount) {
+        return !!data.discountName && data.discountValue !== undefined && data.discountValue > 0;
+      }
+      return true;
+    },
+    {
+      message: 'Discount name and value are required when adding an initial discount',
+      path: ['discountName'],
+    },
+  );
 
 type UserGroupFormValues = z.infer<typeof userGroupSchema>;
 
@@ -40,13 +45,7 @@ interface UserGroupModalProps {
   isSubmitting: boolean;
 }
 
-const UserGroupModal: React.FC<UserGroupModalProps> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  initialData,
-  isSubmitting
-}) => {
+const UserGroupModal: React.FC<UserGroupModalProps> = ({ isOpen, onClose, onSubmit, initialData, isSubmitting }) => {
   const { t } = useTranslation();
   const isEditMode = !!initialData;
 
@@ -56,14 +55,14 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({
     formState: { errors },
     reset,
     watch,
-    setValue
+    setValue,
   } = useForm<UserGroupFormValues>({
     resolver: zodResolver(userGroupSchema),
     defaultValues: {
       isActive: true,
       hasInitialDiscount: false,
-      discountType: DiscountType.Percentage
-    }
+      discountType: DiscountType.Percentage,
+    },
   });
 
   const hasInitialDiscount = watch('hasInitialDiscount');
@@ -77,7 +76,7 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({
           validFrom: initialData.validFrom ? new Date(initialData.validFrom).toISOString().split('T')[0] : '',
           validUntil: initialData.validUntil ? new Date(initialData.validUntil).toISOString().split('T')[0] : '',
           isActive: initialData.isActive,
-          hasInitialDiscount: false // Can't add initial discount on edit
+          hasInitialDiscount: false, // Can't add initial discount on edit
         });
       } else {
         reset({
@@ -88,7 +87,7 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({
           isActive: true,
           hasInitialDiscount: false,
           discountType: DiscountType.Percentage,
-          discountValue: 0
+          discountValue: 0,
         });
       }
     }
@@ -144,7 +143,9 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({
           {!isEditMode && (
             <>
               <div className={modalStyles.sectionHeader}>
-                <h3 className={modalStyles.sectionTitle}>{t('initial_discount')} <span className={modalStyles.optionalText}>{t('optional')}</span></h3>
+                <h3 className={modalStyles.sectionTitle}>
+                  {t('initial_discount')} <span className={modalStyles.optionalText}>{t('optional')}</span>
+                </h3>
                 {!hasInitialDiscount && (
                   <button
                     type="button"
@@ -207,7 +208,7 @@ const UserGroupModal: React.FC<UserGroupModalProps> = ({
 
           <div className={styles.buttonGroup}>
             <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-              {isSubmitting ? t('saving...') : (isEditMode ? t('save_changes') : t('create'))}
+              {isSubmitting ? t('saving...') : isEditMode ? t('save_changes') : t('create')}
             </button>
             <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isSubmitting}>
               {t('cancel')}

@@ -74,7 +74,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
         {existingImages && existingImages.length > 0 && (
           <div className={styles.existingImagesList}>
-            <p><strong>{t('uploaded_images')}:</strong></p>
+            <p>
+              <strong>{t('uploaded_images')}:</strong>
+            </p>
             <ul>
               {existingImages.map((img) => (
                 <li key={img.id}>

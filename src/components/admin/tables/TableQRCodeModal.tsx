@@ -93,7 +93,7 @@ export default function TableQRCodeModal({
         scanToOrder: t('qr_print_scan_to_order'),
         table: t('qr_print_table'),
         instructions: t('qr_print_instructions'),
-        footer: t('qr_print_footer')
+        footer: t('qr_print_footer'),
       };
 
       printQRCode(canvas, tableNumber, translations);
@@ -117,11 +117,7 @@ export default function TableQRCodeModal({
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>{t('qr_code_for_table', { tableNumber })}</h2>
-          <button
-            onClick={onClose}
-            className={styles.closeButton}
-            aria-label="Close modal"
-          >
+          <button onClick={onClose} className={styles.closeButton} aria-label="Close modal">
             <X size={24} />
           </button>
         </div>
@@ -130,12 +126,7 @@ export default function TableQRCodeModal({
           {qrCodeData ? (
             <>
               <div className={styles.qrCodeContainer} ref={qrRef}>
-                <QRCodeSVG
-                  value={qrUrl}
-                  size={300}
-                  level="H"
-                  includeMargin={true}
-                />
+                <QRCodeSVG value={qrUrl} size={300} level="H" includeMargin={true} />
               </div>
 
               <p className={styles.infoText}>{t('qr_code_info')}</p>
@@ -147,18 +138,12 @@ export default function TableQRCodeModal({
               )}
 
               <div className={styles.actions}>
-                <button
-                  onClick={handleDownload}
-                  className={styles.actionButton}
-                >
+                <button onClick={handleDownload} className={styles.actionButton}>
                   <Download size={20} />
                   {t('download_qr_code')}
                 </button>
 
-                <button
-                  onClick={handlePrint}
-                  className={styles.actionButton}
-                >
+                <button onClick={handlePrint} className={styles.actionButton}>
                   <Printer size={20} />
                   {t('print_qr_code')}
                 </button>
@@ -176,11 +161,7 @@ export default function TableQRCodeModal({
           ) : (
             <div className={styles.noQrCode}>
               <p>{t('no_qr_code')}</p>
-              <button
-                onClick={handleRegenerate}
-                className={styles.generateButton}
-                disabled={isRegenerating}
-              >
+              <button onClick={handleRegenerate} className={styles.generateButton} disabled={isRegenerating}>
                 <RefreshCw size={20} className={isRegenerating ? styles.spinning : ''} />
                 {t('generate_qr_code')}
               </button>

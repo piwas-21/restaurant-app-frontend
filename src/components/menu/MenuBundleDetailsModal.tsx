@@ -38,16 +38,10 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
   if (!isOpen || !bundle) return null;
 
   // Get localized name and description
-  const bundleName =
-    bundle.content?.[currentLanguage]?.name ||
-    bundle.content?.en?.name ||
-    bundle.name;
+  const bundleName = bundle.content?.[currentLanguage]?.name || bundle.content?.en?.name || bundle.name;
 
   const bundleDescription =
-    bundle.content?.[currentLanguage]?.description ||
-    bundle.content?.en?.description ||
-    bundle.description ||
-    '';
+    bundle.content?.[currentLanguage]?.description || bundle.content?.en?.description || bundle.description || '';
 
   const handleAddToCart = () => {
     onClose();
@@ -62,11 +56,7 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h3>{bundleName}</h3>
-          <button
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label={t('close')}
-          >
+          <button className={styles.closeButton} onClick={onClose} aria-label={t('close')}>
             ✕
           </button>
         </div>
@@ -87,9 +77,7 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
                   <div className={styles.sectionInfo}>
                     <span className={styles.sectionName}>
                       {section.name}
-                      {section.isRequired && (
-                        <span className={styles.requiredBadge}>{t('required', '*')}</span>
-                      )}
+                      {section.isRequired && <span className={styles.requiredBadge}>{t('required', '*')}</span>}
                     </span>
                     <span className={styles.sectionMeta}>
                       {t('select_min_max', {
@@ -105,24 +93,18 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
                         <div className={styles.itemRow}>
                           <span className={styles.itemName}>
                             {item.productName}
-                            {item.isDefault && (
-                              <span className={styles.defaultBadge}>{t('default')}</span>
-                            )}
+                            {item.isDefault && <span className={styles.defaultBadge}>{t('default')}</span>}
                           </span>
                           {item.additionalPrice > 0 && (
-                            <span className={styles.itemPrice}>
-                              +CHF {item.additionalPrice.toFixed(2)}
-                            </span>
+                            <span className={styles.itemPrice}>+CHF {item.additionalPrice.toFixed(2)}</span>
                           )}
                         </div>
 
                         {getIngredientNames(item) && (
-                          <div className={styles.itemIngredients}>
-                            {getIngredientNames(item)}
-                          </div>
+                          <div className={styles.itemIngredients}>{getIngredientNames(item)}</div>
                         )}
 
-                        {(item.allergens && item.allergens.length > 0) && (
+                        {item.allergens && item.allergens.length > 0 && (
                           <AllergenDisplay
                             allergens={item.allergens}
                             variant="compact"
@@ -150,7 +132,7 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

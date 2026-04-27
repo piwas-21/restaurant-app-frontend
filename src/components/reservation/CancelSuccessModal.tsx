@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,11 +11,7 @@ interface CancelSuccessModalProps {
   autoCloseMs?: number;
 }
 
-export default function CancelSuccessModal({
-  isOpen,
-  onClose,
-  autoCloseMs = 3000,
-}: CancelSuccessModalProps) {
+export default function CancelSuccessModal({ isOpen, onClose, autoCloseMs = 3000 }: CancelSuccessModalProps) {
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -44,7 +40,10 @@ export default function CancelSuccessModal({
 
         <div className={styles.modalBody}>
           <p className={styles.successMessage}>
-            {t('reservation_cancel_success_message', 'Your reservation has been cancelled. You can make a new reservation anytime.')}
+            {t(
+              'reservation_cancel_success_message',
+              'Your reservation has been cancelled. You can make a new reservation anytime.',
+            )}
           </p>
         </div>
 

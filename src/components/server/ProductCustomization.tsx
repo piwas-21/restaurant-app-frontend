@@ -60,12 +60,7 @@ interface ProductCustomizationProps {
   onConfirm: (result: CustomizationResult) => void;
 }
 
-export default function ProductCustomization({
-  product,
-  isOpen,
-  onClose,
-  onConfirm,
-}: ProductCustomizationProps) {
+export default function ProductCustomization({ product, isOpen, onClose, onConfirm }: ProductCustomizationProps) {
   const { t, i18n } = useTranslation();
   const currentLanguage = i18n.language.split('-')[0] || 'en';
 
@@ -85,7 +80,7 @@ export default function ProductCustomization({
     async function fetchDetails() {
       setIsLoading(true);
       try {
-        const response = await getProductById(product.id) as { success: boolean; data?: any };
+        const response = (await getProductById(product.id)) as { success: boolean; data?: any };
         if (response.success && response.data) {
           setDetailedProduct(response.data);
 
@@ -148,17 +143,13 @@ export default function ProductCustomization({
   // Get standard (non-optional) ingredients
   const standardIngredients = useMemo(() => {
     if (!detailedProduct?.detailedIngredients) return [];
-    return detailedProduct.detailedIngredients.filter(
-      (ing: DetailedIngredient) => ing.isActive && !ing.isOptional
-    );
+    return detailedProduct.detailedIngredients.filter((ing: DetailedIngredient) => ing.isActive && !ing.isOptional);
   }, [detailedProduct]);
 
   // Get optional ingredients
   const optionalIngredients = useMemo(() => {
     if (!detailedProduct?.detailedIngredients) return [];
-    return detailedProduct.detailedIngredients.filter(
-      (ing: DetailedIngredient) => ing.isActive && ing.isOptional
-    );
+    return detailedProduct.detailedIngredients.filter((ing: DetailedIngredient) => ing.isActive && ing.isOptional);
   }, [detailedProduct]);
 
   // Get variations
@@ -173,10 +164,8 @@ export default function ProductCustomization({
   }, [detailedProduct]);
 
   // Check if product has customizations
-  const hasCustomizations = standardIngredients.length > 0 ||
-    optionalIngredients.length > 0 ||
-    variations.length > 0 ||
-    sideItems.length > 0;
+  const hasCustomizations =
+    standardIngredients.length > 0 || optionalIngredients.length > 0 || variations.length > 0 || sideItems.length > 0;
 
   // Toggle excluded ingredient
   const toggleExcluded = (ingredientId: string) => {
@@ -218,7 +207,7 @@ export default function ProductCustomization({
       variationId: selectedVariation?.id,
       variationName: selectedVariation ? getLocalizedName(selectedVariation) : undefined,
       excludedIngredients: Array.from(excludedIngredients),
-      addedIngredients: Array.from(addedOptionalIngredients).map(id => {
+      addedIngredients: Array.from(addedOptionalIngredients).map((id) => {
         const ing = optionalIngredients.find((i: DetailedIngredient) => i.id === id);
         return { id, name: getLocalizedName(ing), price: ing?.price || 0 };
       }),
@@ -247,7 +236,9 @@ export default function ProductCustomization({
             <h2 className={styles.productName}>{product.name}</h2>
             <span className={styles.basePrice}>CHF {product.basePrice.toFixed(2)}</span>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>✕</button>
+          <button className={styles.closeButton} onClick={onClose}>
+            ✕
+          </button>
         </div>
 
         <div className={styles.content}>
@@ -278,7 +269,8 @@ export default function ProductCustomization({
                           CHF {variation.finalPrice.toFixed(2)}
                           {variation.priceModifier !== 0 && (
                             <span className={styles.modifier}>
-                              ({variation.priceModifier > 0 ? '+' : ''}{variation.priceModifier.toFixed(2)})
+                              ({variation.priceModifier > 0 ? '+' : ''}
+                              {variation.priceModifier.toFixed(2)})
                             </span>
                           )}
                         </span>
@@ -307,10 +299,7 @@ export default function ProductCustomization({
                   <h3 className={styles.sectionTitle}>{t('server.ingredients', 'Ingredients')}</h3>
                   <div className={styles.ingredientList}>
                     {standardIngredients.map((ing: DetailedIngredient) => (
-                      <span
-                        key={ing.id}
-                        className={styles.ingredientTag}
-                      >
+                      <span key={ing.id} className={styles.ingredientTag}>
                         {getLocalizedName(ing)}
                       </span>
                     ))}
@@ -378,17 +367,11 @@ export default function ProductCustomization({
 
         <div className={styles.footer}>
           <div className={styles.quantityControl}>
-            <button
-              className={styles.qtyButton}
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            >
+            <button className={styles.qtyButton} onClick={() => setQuantity(Math.max(1, quantity - 1))}>
               −
             </button>
             <span className={styles.qtyValue}>{quantity}</span>
-            <button
-              className={styles.qtyButton}
-              onClick={() => setQuantity(quantity + 1)}
-            >
+            <button className={styles.qtyButton} onClick={() => setQuantity(quantity + 1)}>
               +
             </button>
           </div>

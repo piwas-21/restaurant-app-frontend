@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { Plus, Minus } from "lucide-react";
-import type { SuggestedSideItem } from "@/types/menu";
-import styles from "./SuggestedSideItemsSection.module.css";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Minus } from 'lucide-react';
+import type { SuggestedSideItem } from '@/types/menu';
+import styles from './SuggestedSideItemsSection.module.css';
 
 interface SuggestedSideItemsSectionProps {
   sideItems: SuggestedSideItem[];
@@ -29,9 +29,7 @@ export default function SuggestedSideItemsSection({
     if (existing) {
       // Increase quantity
       onSelectionChange(
-        selectedSideItems.map((item) =>
-          item.id === sideItemId ? { ...item, quantity: item.quantity + 1 } : item
-        )
+        selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity + 1 } : item)),
       );
     } else {
       // Add new item
@@ -45,9 +43,7 @@ export default function SuggestedSideItemsSection({
       if (existing.quantity > 1) {
         // Decrease quantity
         onSelectionChange(
-          selectedSideItems.map((item) =>
-            item.id === sideItemId ? { ...item, quantity: item.quantity - 1 } : item
-          )
+          selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity - 1 } : item)),
         );
       } else {
         // Remove item
@@ -63,8 +59,8 @@ export default function SuggestedSideItemsSection({
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t("product_suggested_sides")}</h3>
-      <p className={styles.sectionDescription}>{t("select_options")}</p>
+      <h3 className={styles.sectionTitle}>{t('product_suggested_sides')}</h3>
+      <p className={styles.sectionDescription}>{t('select_options')}</p>
 
       <div className={styles.sideItemsList}>
         {sideItems.map((sideItem) => {
@@ -75,12 +71,8 @@ export default function SuggestedSideItemsSection({
             <div key={sideItem.id} className={styles.sideItem}>
               <div className={styles.sideItemInfo}>
                 <h4 className={styles.sideItemName}>{sideItem.name}</h4>
-                {sideItem.description && (
-                  <p className={styles.sideItemDescription}>{sideItem.description}</p>
-                )}
-                <span className={styles.sideItemPrice}>
-                  CHF {sideItem.price.toFixed(2)}
-                </span>
+                {sideItem.description && <p className={styles.sideItemDescription}>{sideItem.description}</p>}
+                <span className={styles.sideItemPrice}>CHF {sideItem.price.toFixed(2)}</span>
               </div>
 
               <div className={styles.sideItemActions}>
@@ -89,7 +81,7 @@ export default function SuggestedSideItemsSection({
                     <button
                       onClick={() => handleRemove(sideItem.id)}
                       className={styles.quantityButton}
-                      aria-label={t("decrease_quantity")}
+                      aria-label={t('decrease_quantity')}
                       type="button"
                     >
                       <Minus size={16} />
@@ -98,19 +90,15 @@ export default function SuggestedSideItemsSection({
                     <button
                       onClick={() => handleAdd(sideItem.id)}
                       className={styles.quantityButton}
-                      aria-label={t("increase_quantity")}
+                      aria-label={t('increase_quantity')}
                       type="button"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => handleAdd(sideItem.id)}
-                    className={styles.addButton}
-                    type="button"
-                  >
-                    {t("add_ingredient")}
+                  <button onClick={() => handleAdd(sideItem.id)} className={styles.addButton} type="button">
+                    {t('add_ingredient')}
                   </button>
                 )}
               </div>

@@ -63,12 +63,16 @@ export function downloadQRCode(canvas: HTMLCanvasElement, fileName: string): voi
 /**
  * Print QR code
  */
-export function printQRCode(canvas: HTMLCanvasElement, tableNumber: string, translations?: {
-  scanToOrder: string;
-  table: string;
-  instructions: string;
-  footer: string;
-}): void {
+export function printQRCode(
+  canvas: HTMLCanvasElement,
+  tableNumber: string,
+  translations?: {
+    scanToOrder: string;
+    table: string;
+    instructions: string;
+    footer: string;
+  },
+): void {
   try {
     // Convert canvas to data URL
     const dataUrl = canvas.toDataURL('image/png');
@@ -77,8 +81,9 @@ export function printQRCode(canvas: HTMLCanvasElement, tableNumber: string, tran
     const t = translations || {
       scanToOrder: 'Scan to Order',
       table: 'Table',
-      instructions: 'Scan this QR code with your phone camera to view our menu and place your order directly from your table.',
-      footer: 'Rumi Restaurant - Digital Ordering System'
+      instructions:
+        'Scan this QR code with your phone camera to view our menu and place your order directly from your table.',
+      footer: 'Rumi Restaurant - Digital Ordering System',
     };
 
     // Create print window
@@ -197,9 +202,7 @@ export function printQRCode(canvas: HTMLCanvasElement, tableNumber: string, tran
 /**
  * Download multiple QR codes as a PDF (future enhancement)
  */
-export function downloadAllQRCodesAsPDF(
-  qrCodes: Array<{ canvas: HTMLCanvasElement; tableNumber: string }>
-): void {
+export function downloadAllQRCodesAsPDF(qrCodes: Array<{ canvas: HTMLCanvasElement; tableNumber: string }>): void {
   // TODO: Implement PDF generation using library like jsPDF
   throw new Error(`Bulk PDF download not yet implemented. ${qrCodes.length} QR codes pending.`);
 }

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useTranslation } from "react-i18next";
-import styles from "./SpecialRequestSection.module.css";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from './SpecialRequestSection.module.css';
 
 interface SpecialRequestSectionProps {
   specialInstructions: string;
@@ -26,20 +26,20 @@ export default function SpecialRequestSection({
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t("product_special_requests")}</h3>
-      <p className={styles.sectionDescription}>{t("make_it_yours")}</p>
+      <h3 className={styles.sectionTitle}>{t('product_special_requests')}</h3>
+      <p className={styles.sectionDescription}>{t('make_it_yours')}</p>
 
       <textarea
         value={specialInstructions}
         onChange={handleChange}
-        placeholder={t("product_special_requests_placeholder")}
+        placeholder={t('product_special_requests_placeholder')}
         className={styles.textarea}
         rows={3}
-        aria-label={t("product_special_requests")}
+        aria-label={t('product_special_requests')}
       />
 
       <div className={styles.characterCount}>
-        {t("character_limit", {
+        {t('character_limit', {
           current: specialInstructions.length,
           max: MAX_CHARACTERS,
         })}

@@ -3,15 +3,15 @@ export enum ReservationStatus {
   Confirmed = 1,
   Cancelled = 2,
   Completed = 3,
-  NoShow = 4
+  NoShow = 4,
 }
 
 export const ReservationStatusLabel: Record<ReservationStatus, string> = {
-  [ReservationStatus.Pending]: "Pending",
-  [ReservationStatus.Confirmed]: "Confirmed",
-  [ReservationStatus.Cancelled]: "Cancelled",
-  [ReservationStatus.Completed]: "Completed",
-  [ReservationStatus.NoShow]: "NoShow",
+  [ReservationStatus.Pending]: 'Pending',
+  [ReservationStatus.Confirmed]: 'Confirmed',
+  [ReservationStatus.Cancelled]: 'Cancelled',
+  [ReservationStatus.Completed]: 'Completed',
+  [ReservationStatus.NoShow]: 'NoShow',
 };
 
 export interface TableDto {

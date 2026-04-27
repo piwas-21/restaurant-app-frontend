@@ -48,7 +48,7 @@ export default function CashierMainContent({
   onSearchChange,
   onStatusFilterChange,
   onPaymentStatusFilterChange,
-  onOrderTypeFilterChange
+  onOrderTypeFilterChange,
 }: CashierMainContentProps) {
   const { t } = useTranslation();
 

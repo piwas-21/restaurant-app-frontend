@@ -22,53 +22,61 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
 
-  const fetchProducts = useCallback(async (page: number = 1) => {
-    const requestTab = activeTab; // Capture which tab this request is for
-    setIsLoading(true);
-    setError(null);
-    try {
-      let response: any;
-      if (activeTab === 'menus') {
-        // Use dedicated endpoint for menu bundles (category-free)
-        console.log('[useMenuManagement] Calling getMenuBundles API');
-        response = await getMenuBundles(page, pageSize);
-        console.log('[useMenuManagement] getMenuBundles response:', response);
-      } else {
-        // Use generic products endpoint (backend now excludes menus by default)
-        console.log('[useMenuManagement] Calling getProducts API');
-        response = await getProducts(page, pageSize, selectedCategoryId);
-        console.log('[useMenuManagement] getProducts response:', response);
-      }
-
-      // Only update state if we're still on the same tab (check against ref)
-      if (requestTab === activeTabRef.current) {
-        if (response.success) {
-          setProducts(response.data.items);
-          setTotalPages(response.data.totalPages || 1);
-          setTotalCount(response.data.totalCount || 0);
-          setCurrentPage(page);
+  const fetchProducts = useCallback(
+    async (page: number = 1) => {
+      const requestTab = activeTab; // Capture which tab this request is for
+      setIsLoading(true);
+      setError(null);
+      try {
+        let response: any;
+        if (activeTab === 'menus') {
+          // Use dedicated endpoint for menu bundles (category-free)
+          console.log('[useMenuManagement] Calling getMenuBundles API');
+          response = await getMenuBundles(page, pageSize);
+          console.log('[useMenuManagement] getMenuBundles response:', response);
         } else {
-          setError(response.message || 'Failed to fetch items');
+          // Use generic products endpoint (backend now excludes menus by default)
+          console.log('[useMenuManagement] Calling getProducts API');
+          response = await getProducts(page, pageSize, selectedCategoryId);
+          console.log('[useMenuManagement] getProducts response:', response);
         }
-      } else {
-        console.log('[useMenuManagement] Ignoring stale response from', requestTab, 'tab, current tab is', activeTabRef.current);
+
+        // Only update state if we're still on the same tab (check against ref)
+        if (requestTab === activeTabRef.current) {
+          if (response.success) {
+            setProducts(response.data.items);
+            setTotalPages(response.data.totalPages || 1);
+            setTotalCount(response.data.totalCount || 0);
+            setCurrentPage(page);
+          } else {
+            setError(response.message || 'Failed to fetch items');
+          }
+        } else {
+          console.log(
+            '[useMenuManagement] Ignoring stale response from',
+            requestTab,
+            'tab, current tab is',
+            activeTabRef.current,
+          );
+        }
+      } catch {
+        if (requestTab === activeTabRef.current) {
+          setError('An unexpected error occurred.');
+        }
+      } finally {
+        if (requestTab === activeTabRef.current) {
+          setIsLoading(false);
+        }
       }
-    } catch {
-      if (requestTab === activeTabRef.current) {
-        setError('An unexpected error occurred.');
-      }
-    } finally {
-      if (requestTab === activeTabRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [activeTab, selectedCategoryId, pageSize]); // selectedCategoryId only affects products tab
+    },
+    [activeTab, selectedCategoryId, pageSize],
+  ); // selectedCategoryId only affects products tab
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         // Fetch all categories for dropdown
-        const response = await getCategories(1, 100) as { success: boolean; data?: { items: any[] } };
+        const response = (await getCategories(1, 100)) as { success: boolean; data?: { items: any[] } };
         if (response.success && response.data?.items && Array.isArray(response.data.items)) {
           setCategories(response.data.items);
         }

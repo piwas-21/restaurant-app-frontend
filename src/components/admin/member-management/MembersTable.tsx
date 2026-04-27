@@ -48,14 +48,30 @@ const MembersTable: React.FC<MembersTableProps> = ({ users, onEdit, onDelete, on
           <tbody>
             {[...Array(5)].map((_, index) => (
               <tr key={index}>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
-                <td><div className={tableStyles.skeleton} /></td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
+                <td>
+                  <div className={tableStyles.skeleton} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -136,7 +152,11 @@ const MembersTable: React.FC<MembersTableProps> = ({ users, onEdit, onDelete, on
                       className={`${styles.adminButton} ${styles.edit}`}
                       onClick={() => onEdit(user)}
                       disabled={user.role === 'Customer'}
-                      title={user.role === 'Customer' ? t('customers_edit_own_profile', 'Customers can only edit their own profile') : t('edit')}
+                      title={
+                        user.role === 'Customer'
+                          ? t('customers_edit_own_profile', 'Customers can only edit their own profile')
+                          : t('edit')
+                      }
                     >
                       {t('edit')}
                     </button>

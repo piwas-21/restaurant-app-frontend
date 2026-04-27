@@ -82,14 +82,14 @@ export interface CreateProductData {
 export const getProducts = async (
   pageNumber: number = 1,
   pageSize: number = 10,
-  categoryId?: string | null
+  categoryId?: string | null,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
   try {
     let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
     if (categoryId) {
       url += `&CategoryId=${categoryId}`;
     }
-    return await apiClient.get(url) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
+    return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
   } catch {
     // Fallback to mock API if real API fails
     return mockApiClient.getProducts(pageNumber, pageSize, categoryId);
@@ -102,7 +102,7 @@ export const createMenuBundle = async (menuData: any) => {
   try {
     return await apiClient.post(MENUS_API_URL, menuData);
   } catch (error) {
-    console.error("Create Menu Bundle Failed:", error);
+    console.error('Create Menu Bundle Failed:', error);
     throw error;
   }
 };
@@ -111,7 +111,7 @@ export const updateMenuBundle = async (id: string, menuData: any) => {
   try {
     return await apiClient.put(`${MENUS_API_URL}/${id}`, menuData);
   } catch (error) {
-    console.error("Update Menu Bundle Failed:", error);
+    console.error('Update Menu Bundle Failed:', error);
     throw error;
   }
 };
@@ -124,7 +124,7 @@ export const getMenuBundles = async (page: number = 1, pageSize: number = 10, in
     console.log('[menuService] getMenuBundles result:', result);
     return result;
   } catch (error) {
-    console.error("Get Menu Bundles Failed:", error);
+    console.error('Get Menu Bundles Failed:', error);
     throw error;
   }
 };
@@ -133,7 +133,7 @@ export const getMenuBundleById = async (id: string) => {
   try {
     return await apiClient.get(`${MENUS_API_URL}/${id}`);
   } catch (error) {
-    console.error("Get Menu Bundle Failed:", error);
+    console.error('Get Menu Bundle Failed:', error);
     throw error;
   }
 };
@@ -142,7 +142,7 @@ export const deleteMenuBundle = async (id: string) => {
   try {
     return await apiClient.delete(`${MENUS_API_URL}/${id}`);
   } catch (error) {
-    console.error("Delete Menu Bundle Failed:", error);
+    console.error('Delete Menu Bundle Failed:', error);
     throw error;
   }
 };
@@ -151,7 +151,7 @@ export const createProduct = async (productData: CreateProductData) => {
   try {
     return await apiClient.post(PRODUCTS_API_URL, productData);
   } catch (error) {
-    console.error("Create Product Failed:", error);
+    console.error('Create Product Failed:', error);
     throw error;
   }
 };
@@ -183,7 +183,7 @@ export const getPublicMenuBundles = async (page: number = 1, pageSize: number = 
     const result = await apiClient.get(url);
     return result;
   } catch (error) {
-    console.error("Get Public Menu Bundles Failed:", error);
+    console.error('Get Public Menu Bundles Failed:', error);
     throw error;
   }
 };

@@ -14,13 +14,7 @@ interface QuickConfirmModalProps {
   onCancel: (orderNumber: string) => Promise<void>;
 }
 
-export default function QuickConfirmModal({
-  order,
-  isOpen,
-  onClose,
-  onConfirm,
-  onCancel,
-}: QuickConfirmModalProps) {
+export default function QuickConfirmModal({ order, isOpen, onClose, onConfirm, onCancel }: QuickConfirmModalProps) {
   const { t } = useTranslation();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -41,7 +35,7 @@ export default function QuickConfirmModal({
 
   const handleCancel = async () => {
     const confirmed = window.confirm(
-      t('cashier.confirm_cancel_order', 'Are you sure you want to cancel this order? The customer will be notified.')
+      t('cashier.confirm_cancel_order', 'Are you sure you want to cancel this order? The customer will be notified.'),
     );
     if (!confirmed) return;
 
@@ -71,12 +65,8 @@ export default function QuickConfirmModal({
           <div className={styles.headerContent}>
             <div className={styles.orderTypeIcon}>{orderTypeEmoji}</div>
             <div>
-              <h2 className={styles.title}>
-                {t('new_order_received', 'New Order Received')}
-              </h2>
-              <p className={styles.subtitle}>
-                {t('quick_confirm_subtitle', 'Confirm or set preparation time')}
-              </p>
+              <h2 className={styles.title}>{t('new_order_received', 'New Order Received')}</h2>
+              <p className={styles.subtitle}>{t('quick_confirm_subtitle', 'Confirm or set preparation time')}</p>
             </div>
           </div>
           <button
@@ -93,37 +83,27 @@ export default function QuickConfirmModal({
           {/* Order Summary */}
           <div className={styles.orderSummary}>
             <div className={styles.summaryRow}>
-              <span className={styles.label}>
-                {t('order_number', 'Order Number')}
-              </span>
+              <span className={styles.label}>{t('order_number', 'Order Number')}</span>
               <span className={styles.value}>{order.orderNumber}</span>
             </div>
             <div className={styles.summaryRow}>
-              <span className={styles.label}>
-                {t('type', 'Type')}
-              </span>
+              <span className={styles.label}>{t('type', 'Type')}</span>
               <span className={styles.valueBadge}>
                 {orderTypeEmoji} {orderTypeLabel}
               </span>
             </div>
             <div className={styles.summaryRow}>
-              <span className={styles.label}>
-                {t('customer', 'Customer')}
-              </span>
+              <span className={styles.label}>{t('customer', 'Customer')}</span>
               <span className={styles.value}>{order.customerName || t('guest.label', 'Guest')}</span>
             </div>
             {order.customerPhone && (
               <div className={styles.summaryRow}>
-                <span className={styles.label}>
-                  {t('customer.phone', 'Phone')}
-                </span>
+                <span className={styles.label}>{t('customer.phone', 'Phone')}</span>
                 <span className={styles.value}>{order.customerPhone}</span>
               </div>
             )}
             <div className={styles.summaryRow}>
-              <span className={styles.label}>
-                {t('total', 'Total')}
-              </span>
+              <span className={styles.label}>{t('total', 'Total')}</span>
               <span className={styles.valueTotal}>CHF {order.total?.toFixed(2)}</span>
             </div>
           </div>
@@ -135,11 +115,7 @@ export default function QuickConfirmModal({
           </div>
 
           {/* Confirm Now Button */}
-          <button
-            className={styles.confirmNowButton}
-            onClick={() => handleConfirm(0)}
-            disabled={isProcessing}
-          >
+          <button className={styles.confirmNowButton} onClick={() => handleConfirm(0)} disabled={isProcessing}>
             <CheckCircle size={20} />
             {t('confirm_now', 'Confirm Now')}
           </button>
@@ -157,35 +133,19 @@ export default function QuickConfirmModal({
 
           {/* Time Buttons */}
           <div className={styles.timeButtons}>
-            <button
-              className={styles.timeButton}
-              onClick={() => handleConfirm(15)}
-              disabled={isProcessing}
-            >
+            <button className={styles.timeButton} onClick={() => handleConfirm(15)} disabled={isProcessing}>
               15 min
             </button>
-            <button
-              className={styles.timeButton}
-              onClick={() => handleConfirm(30)}
-              disabled={isProcessing}
-            >
+            <button className={styles.timeButton} onClick={() => handleConfirm(30)} disabled={isProcessing}>
               30 min
             </button>
-            <button
-              className={styles.timeButton}
-              onClick={() => handleConfirm(45)}
-              disabled={isProcessing}
-            >
+            <button className={styles.timeButton} onClick={() => handleConfirm(45)} disabled={isProcessing}>
               45 min
             </button>
           </div>
 
           {/* Cancel Button */}
-          <button
-            className={styles.cancelButton}
-            onClick={handleCancel}
-            disabled={isProcessing}
-          >
+          <button className={styles.cancelButton} onClick={handleCancel} disabled={isProcessing}>
             <XCircle size={20} />
             {t('cancel_order', 'Cancel Order')}
           </button>

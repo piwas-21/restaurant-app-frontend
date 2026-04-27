@@ -1,5 +1,5 @@
 // src/components/feedback/AverageRating.tsx
-"use client";
+'use client';
 
 import React from 'react';
 import styles from '@/app/styles/FeedbackForm.module.css'; // Assuming shared styles or create a new one
@@ -11,7 +11,7 @@ interface AverageRatingProps {
 }
 
 const AverageRating: React.FC<AverageRatingProps> = ({ dishId, initialRatingData }) => {
-  console.log("AverageRating component rendered for dishId:", dishId);
+  console.log('AverageRating component rendered for dishId:', dishId);
   const { t } = useTranslation();
   // In a real app, you might fetch this data or receive it as props after calculation
   const ratingData = initialRatingData;
@@ -21,9 +21,18 @@ const AverageRating: React.FC<AverageRatingProps> = ({ dishId, initialRatingData
   }
 
   return (
-    <div className={styles.averageRatingContainer} aria-label={t('average_rating_label', { rating: ratingData.average, count: ratingData.count }) }>
-      <span className={styles.averageStars}>{'★'.repeat(Math.round(ratingData.average))}{'☆'.repeat(5 - Math.round(ratingData.average))}</span>
-      <span className={styles.averageText}>{ratingData.average.toFixed(1)}/5 ({ratingData.count} {ratingData.count === 1 ? t('guest_singular') : t('guest_plural')})</span>
+    <div
+      className={styles.averageRatingContainer}
+      aria-label={t('average_rating_label', { rating: ratingData.average, count: ratingData.count })}
+    >
+      <span className={styles.averageStars}>
+        {'★'.repeat(Math.round(ratingData.average))}
+        {'☆'.repeat(5 - Math.round(ratingData.average))}
+      </span>
+      <span className={styles.averageText}>
+        {ratingData.average.toFixed(1)}/5 ({ratingData.count}{' '}
+        {ratingData.count === 1 ? t('guest_singular') : t('guest_plural')})
+      </span>
       {/* Using guest_singular/plural for review count as an example, ideally would have specific review count keys */}
     </div>
   );

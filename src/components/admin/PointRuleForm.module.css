@@ -23,7 +23,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .modal {
+[data-theme='dark'] .modal {
   background: var(--secondary-color, #2c2c2c);
 }
 
@@ -104,7 +104,7 @@
   color: var(--text-tertiary, #999);
 }
 
-[data-theme="dark"] .input {
+[data-theme='dark'] .input {
   background-color: var(--secondary-color, #3a3a3a);
   color: var(--text-color, #e0e0e0);
   border-color: var(--border-color, #555);
@@ -180,13 +180,13 @@
   cursor: not-allowed;
 }
 
-[data-theme="dark"] .cancelButton {
+[data-theme='dark'] .cancelButton {
   background: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .cancelButton:hover:not(:disabled) {
+[data-theme='dark'] .cancelButton:hover:not(:disabled) {
   background-color: var(--background-color, #222);
 }
 

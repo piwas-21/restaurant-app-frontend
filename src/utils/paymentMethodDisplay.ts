@@ -44,7 +44,7 @@ export function getPaymentMethodLabel(method: string | PaymentMethod | number): 
       pm.value.toString() === methodStr ||
       pm.label === methodStr ||
       // Match by enum name
-      (pm.value as unknown as string) === methodStr
+      (pm.value as unknown as string) === methodStr,
   );
 
   return paymentMethodConfig?.label || (methodStr === '0' ? 'Unknown' : methodStr);
@@ -54,10 +54,7 @@ export function getPaymentMethodLabel(method: string | PaymentMethod | number): 
  * Get a formatted payment method string for display
  * Includes the amount if provided
  */
-export function formatPaymentMethod(
-  method: string | PaymentMethod | number,
-  amount?: number
-): string {
+export function formatPaymentMethod(method: string | PaymentMethod | number, amount?: number): string {
   const label = getPaymentMethodLabel(method);
   if (amount !== undefined) {
     return `${label} - CHF ${amount.toFixed(2)}`;

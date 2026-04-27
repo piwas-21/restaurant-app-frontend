@@ -74,7 +74,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
       const updatedOrder = await updateOrderStatus(order.id, {
         newStatus: withDelay ? 'PendingApproval' : 'Confirmed',
         estimatedPreparationMinutes: prepMinutes,
-        notes: withDelay ? `Confirmed with ${prepMinutes} min delay` : 'Order confirmed'
+        notes: withDelay ? `Confirmed with ${prepMinutes} min delay` : 'Order confirmed',
       });
 
       if (onOrderUpdated) {
@@ -270,11 +270,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
             </div>
           </div>
           <div className={styles.headerActions}>
-            <button
-              onClick={handlePrint}
-              className={styles.iconButton}
-              title={t('print_receipt', 'Print Receipt')}
-            >
+            <button onClick={handlePrint} className={styles.iconButton} title={t('print_receipt', 'Print Receipt')}>
               <Printer size={20} />
             </button>
             <div className={styles.exportDropdown}>
@@ -422,9 +418,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                   )}
                   <div className={styles.itemDetails}>
                     <h4 className={styles.itemName}>{item.productName}</h4>
-                    {item.variationName && (
-                      <p className={styles.itemVariation}>{item.variationName}</p>
-                    )}
+                    {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
                     {item.specialInstructions && (
                       <p className={styles.itemInstructions}>
                         <FileText size={12} />
@@ -435,9 +429,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                       {t('qty', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                     </div>
                   </div>
-                  <div className={styles.itemTotal}>
-                    {formatPrice(item.itemTotal)}
-                  </div>
+                  <div className={styles.itemTotal}>{formatPrice(item.itemTotal)}</div>
                 </div>
               ))}
             </div>
@@ -502,9 +494,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                       <CreditCard size={16} />
                       <span>{getPaymentMethodLabel(payment.paymentMethod) || 'N/A'}</span>
                     </div>
-                    <div className={styles.paymentAmount}>
-                      {formatPrice(payment.amount)}
-                    </div>
+                    <div className={styles.paymentAmount}>{formatPrice(payment.amount)}</div>
                     <div className={styles.paymentStatus}>
                       <span className={getPaymentBadgeClasses(payment.status)}>
                         {payment.status ? t(`payment_status_${payment.status.toLowerCase()}`, payment.status) : 'N/A'}
@@ -542,16 +532,18 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                     <div className={styles.timelineDot}></div>
                     <div className={styles.timelineContent}>
                       <div className={styles.timelineStatus}>
-                        {history.status ? t(`order_status_${history.status.toLowerCase()}`, history.status) : t('status', 'Status')}
+                        {history.status
+                          ? t(`order_status_${history.status.toLowerCase()}`, history.status)
+                          : t('status', 'Status')}
                       </div>
-                      <div className={styles.timelineDate}>
-                        {formatDate(history.changedAt)}
-                      </div>
+                      <div className={styles.timelineDate}>{formatDate(history.changedAt)}</div>
                       {history.notes && (
                         <div className={styles.timelineNotes}>{translateTimelineNotes(history.notes)}</div>
                       )}
                       {history.changedBy && (
-                        <div className={styles.timelineBy}>{t('by', 'by')} {formatChangedBy(history.changedBy)}</div>
+                        <div className={styles.timelineBy}>
+                          {t('by', 'by')} {formatChangedBy(history.changedBy)}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -577,9 +569,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                       {t('confirming', 'Confirming...')}
                     </>
                   ) : (
-                    <>
-                      ✓ {t('confirm_order', 'Confirm Order')}
-                    </>
+                    <>✓ {t('confirm_order', 'Confirm Order')}</>
                   )}
                 </button>
                 <button
@@ -593,19 +583,13 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
               </>
             )}
             {canCancelOrder() && (
-              <button
-                onClick={() => setShowCancelModal(true)}
-                className={styles.cancelOrderButton}
-              >
+              <button onClick={() => setShowCancelModal(true)} className={styles.cancelOrderButton}>
                 <Ban size={18} />
                 {t('cancel_order', 'Cancel Order')}
               </button>
             )}
             {order.payments && order.payments.length > 0 && order.isFullyPaid && (
-              <button
-                onClick={() => setShowRefundModal(true)}
-                className={styles.refundButton}
-              >
+              <button onClick={() => setShowRefundModal(true)} className={styles.refundButton}>
                 <DollarSign size={18} />
                 {t('refund_payment', 'Refund Payment')}
               </button>
@@ -651,11 +635,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                 >
                   {t('cancel', 'Cancel')}
                 </button>
-                <button
-                  onClick={handleCancelOrder}
-                  className={styles.confirmCancelButton}
-                  disabled={isCancelling}
-                >
+                <button onClick={handleCancelOrder} className={styles.confirmCancelButton} disabled={isCancelling}>
                   {isCancelling ? (
                     <>
                       <Loader2 size={18} className={styles.spinner} />
@@ -758,9 +738,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                       {t('confirming', 'Confirming...')}
                     </>
                   ) : (
-                    <>
-                      ✓ {t('confirm_order', 'Confirm Order')}
-                    </>
+                    <>✓ {t('confirm_order', 'Confirm Order')}</>
                   )}
                 </button>
               </div>
@@ -834,11 +812,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                 >
                   {t('cancel', 'Cancel')}
                 </button>
-                <button
-                  onClick={handleRefundPayment}
-                  className={styles.confirmRefundButton}
-                  disabled={isRefunding}
-                >
+                <button onClick={handleRefundPayment} className={styles.confirmRefundButton} disabled={isRefunding}>
                   {isRefunding ? (
                     <>
                       <Loader2 size={18} className={styles.spinner} />
@@ -867,10 +841,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                 {t('order_confirmed_message', 'The customer will receive a confirmation email shortly.')}
               </p>
               <div className={styles.confirmModalActions}>
-                <button
-                  onClick={handleSuccessClose}
-                  className={styles.confirmButton}
-                >
+                <button onClick={handleSuccessClose} className={styles.confirmButton}>
                   {t('close', 'Close')}
                 </button>
               </div>
@@ -890,10 +861,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
                 {t('order_cancelled_message', 'The order has been cancelled.')}
               </p>
               <div className={styles.confirmModalActions}>
-                <button
-                  onClick={handleCancelSuccessClose}
-                  className={styles.confirmButton}
-                >
+                <button onClick={handleCancelSuccessClose} className={styles.confirmButton}>
                   {t('close', 'Close')}
                 </button>
               </div>

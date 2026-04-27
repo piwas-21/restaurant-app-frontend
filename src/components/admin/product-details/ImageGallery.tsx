@@ -30,7 +30,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
     const validImages = images || [];
     setImageList(validImages);
     if (validImages.length > 0) {
-      const primary = validImages.find(img => img.isPrimary) || validImages[0];
+      const primary = validImages.find((img) => img.isPrimary) || validImages[0];
       setSelectedImage(primary);
     } else {
       setSelectedImage(null);
@@ -46,7 +46,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
 
   const handleSetPrimary = () => {
     if (selectedImage) {
-      const updatedImages = imageList.map(img => ({
+      const updatedImages = imageList.map((img) => ({
         ...img,
         isPrimary: img.id === selectedImage.id,
       }));
@@ -58,7 +58,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
   const handleSortOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSortOrder = parseInt(e.target.value, 10);
     if (selectedImage) {
-      const updatedImages = imageList.map(img => {
+      const updatedImages = imageList.map((img) => {
         if (img.id === selectedImage.id) {
           return { ...img, sortOrder: newSortOrder };
         }
@@ -90,7 +90,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files || []);
-    setStagedFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setStagedFiles((prevFiles) => [...prevFiles, ...newFiles]);
   };
 
   const handleSaveUpload = async () => {
@@ -106,7 +106,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
   };
 
   const handleRemoveStagedFile = (index: number) => {
-    setStagedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+    setStagedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
   return (
@@ -154,7 +154,10 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
                   {stagedFiles.map((file, index) => (
                     <li key={index} className={detailsStyles.stagedFileItem}>
                       <span>{file.name}</span>
-                      <button onClick={() => handleRemoveStagedFile(index)} className={detailsStyles.removeStagedFileBtn}>
+                      <button
+                        onClick={() => handleRemoveStagedFile(index)}
+                        className={detailsStyles.removeStagedFileBtn}
+                      >
                         &times;
                       </button>
                     </li>
@@ -170,16 +173,14 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, o
                 </div>
               </div>
             )}
-            <button onClick={handleUploadClick} className={`${styles.adminButton} ${styles.add}`} style={{ marginTop: '1rem' }}>
+            <button
+              onClick={handleUploadClick}
+              className={`${styles.adminButton} ${styles.add}`}
+              style={{ marginTop: '1rem' }}
+            >
               {imageList.length > 0 ? t('upload_more_images') : t('upload_images')}
             </button>
-            <input
-              type="file"
-              multiple
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
+            <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
           </div>
         </div>
       </div>

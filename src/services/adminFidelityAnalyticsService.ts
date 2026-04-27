@@ -33,9 +33,7 @@ export const adminFidelityAnalyticsService = {
    * Get fidelity system analytics
    */
   async getAnalytics(): Promise<FidelityAnalytics> {
-    const response = await apiClient.get<ApiResponse<FidelityAnalytics>>(
-      '/api/Admin/FidelityAnalytics'
-    );
+    const response = await apiClient.get<ApiResponse<FidelityAnalytics>>('/api/Admin/FidelityAnalytics');
     return response.data;
   },
 };

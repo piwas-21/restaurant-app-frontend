@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -52,8 +52,8 @@ export default function OrdersPage() {
       const result = await getOrders(filters);
 
       // Sort by date (newest first)
-      const sortedOrders = result.items.sort((a, b) =>
-        new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+      const sortedOrders = result.items.sort(
+        (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(),
       );
 
       setOrders(sortedOrders);
@@ -101,13 +101,10 @@ export default function OrdersPage() {
         }
       }
 
-      enqueueSnackbar(
-        t('items_added_to_cart', `${order.items.length} items added to cart`),
-        {
-          variant: 'success',
-          anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
-        }
-      );
+      enqueueSnackbar(t('items_added_to_cart', `${order.items.length} items added to cart`), {
+        variant: 'success',
+        anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
+      });
 
       // Navigate to cart
       router.push('/cart');
@@ -226,7 +223,9 @@ export default function OrdersPage() {
       <main className={styles.container}>
         <div className={styles.loadingState}>
           <Loader2 size={64} className={styles.spinner} />
-          <p>{authLoading ? t('authenticating', 'Authenticating...') : t('loading_orders', 'Loading your orders...')}</p>
+          <p>
+            {authLoading ? t('authenticating', 'Authenticating...') : t('loading_orders', 'Loading your orders...')}
+          </p>
         </div>
       </main>
     );
@@ -242,9 +241,7 @@ export default function OrdersPage() {
               <Package size={32} />
               {t('my_orders', 'My Orders')}
             </h1>
-            <p className={styles.subtitle}>
-              {t('my_orders_desc', 'View and manage your order history')}
-            </p>
+            <p className={styles.subtitle}>{t('my_orders_desc', 'View and manage your order history')}</p>
           </div>
           <button onClick={fetchOrders} className={styles.refreshButton} title={t('refresh', 'Refresh')}>
             <RefreshCw size={20} />
@@ -338,7 +335,9 @@ export default function OrdersPage() {
                 <div className={styles.orderSummary}>
                   <div className={styles.summaryItem}>
                     <ShoppingBag size={16} />
-                    <span>{order.items.length} {order.items.length === 1 ? t('item', 'Item') : t('items', 'Items')}</span>
+                    <span>
+                      {order.items.length} {order.items.length === 1 ? t('item', 'Item') : t('items', 'Items')}
+                    </span>
                   </div>
                   <div className={styles.summaryDivider}>•</div>
                   <div className={styles.summaryItem}>
@@ -359,13 +358,11 @@ export default function OrdersPage() {
                         </h4>
                         <div className={styles.addressBox}>
                           <p>{order.deliveryAddress.addressLine1}</p>
-                          {order.deliveryAddress.addressLine2 && (
-                            <p>{order.deliveryAddress.addressLine2}</p>
-                          )}
-                          <p>{order.deliveryAddress.postalCode} {order.deliveryAddress.city}</p>
-                          {order.deliveryAddress.state && (
-                            <p>{order.deliveryAddress.state}</p>
-                          )}
+                          {order.deliveryAddress.addressLine2 && <p>{order.deliveryAddress.addressLine2}</p>}
+                          <p>
+                            {order.deliveryAddress.postalCode} {order.deliveryAddress.city}
+                          </p>
+                          {order.deliveryAddress.state && <p>{order.deliveryAddress.state}</p>}
                           <p>{order.deliveryAddress.country}</p>
                           {order.deliveryAddress.deliveryInstructions && (
                             <p className={styles.additionalInfo}>{order.deliveryAddress.deliveryInstructions}</p>
@@ -403,9 +400,7 @@ export default function OrdersPage() {
                             )}
                             <div className={styles.itemDetails}>
                               <h5 className={styles.itemName}>{item.productName}</h5>
-                              {item.variationName && (
-                                <p className={styles.itemVariation}>{item.variationName}</p>
-                              )}
+                              {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
                               {item.specialInstructions && (
                                 <p className={styles.itemInstructions}>
                                   <i>{item.specialInstructions}</i>
@@ -415,9 +410,7 @@ export default function OrdersPage() {
                             <div className={styles.itemQuantity}>
                               <span>×{item.quantity}</span>
                             </div>
-                            <div className={styles.itemPrice}>
-                              {formatPrice(item.itemTotal)}
-                            </div>
+                            <div className={styles.itemPrice}>{formatPrice(item.itemTotal)}</div>
                           </div>
                         ))}
                       </div>
@@ -471,7 +464,9 @@ export default function OrdersPage() {
                     {/* Action Buttons */}
                     <div className={styles.detailActions}>
                       <button
-                        onClick={() => router.push(`/checkout/confirmation?orderId=${order.id}&orderNumber=${order.orderNumber}`)}
+                        onClick={() =>
+                          router.push(`/checkout/confirmation?orderId=${order.id}&orderNumber=${order.orderNumber}`)
+                        }
                         className={styles.viewDetailsButton}
                       >
                         <Receipt size={18} />

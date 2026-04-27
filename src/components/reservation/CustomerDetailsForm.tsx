@@ -20,7 +20,7 @@ export default function CustomerDetailsForm({
   onNameChange,
   onEmailChange,
   onPhoneChange,
-  onSpecialRequestsChange
+  onSpecialRequestsChange,
 }: CustomerDetailsFormProps) {
   const { t } = useTranslation();
 

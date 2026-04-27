@@ -18,13 +18,7 @@ interface RefundDialogProps {
  * Dialog for refunding a payment
  * Allows full or partial refund of completed payments
  */
-export default function RefundDialog({
-  order,
-  isOpen,
-  onClose,
-  onConfirm,
-  isLoading = false,
-}: RefundDialogProps) {
+export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoading = false }: RefundDialogProps) {
   const { t } = useTranslation();
   const [selectedPaymentId, setSelectedPaymentId] = useState<string>('');
   const [refundAmount, setRefundAmount] = useState<string>('');
@@ -58,15 +52,18 @@ export default function RefundDialog({
     setError(null);
   }, [maxRefundAmount]);
 
-  const handleRefundTypeChange = useCallback((type: 'full' | 'partial') => {
-    setRefundType(type);
-    if (type === 'full') {
-      setRefundAmount(maxRefundAmount.toFixed(2));
-    } else {
-      setRefundAmount('');
-    }
-    setError(null);
-  }, [maxRefundAmount]);
+  const handleRefundTypeChange = useCallback(
+    (type: 'full' | 'partial') => {
+      setRefundType(type);
+      if (type === 'full') {
+        setRefundAmount(maxRefundAmount.toFixed(2));
+      } else {
+        setRefundAmount('');
+      }
+      setError(null);
+    },
+    [maxRefundAmount],
+  );
 
   const handleConfirm = useCallback(async () => {
     if (!selectedPaymentId) {
@@ -85,7 +82,7 @@ export default function RefundDialog({
       if (amount > maxRefundAmount) {
         setError(
           t('cashier.refund_exceeds_payment') ||
-            `Refund amount cannot exceed payment amount of ${maxRefundAmount.toFixed(2)}`
+            `Refund amount cannot exceed payment amount of ${maxRefundAmount.toFixed(2)}`,
         );
         return;
       }
@@ -136,9 +133,7 @@ export default function RefundDialog({
                       disabled={isLoading}
                     >
                       <div className="payment-info">
-                        <span className="payment-method">
-                          {getPaymentMethodLabel(payment.paymentMethod)}
-                        </span>
+                        <span className="payment-method">{getPaymentMethodLabel(payment.paymentMethod)}</span>
                         <span className="payment-amount">{(payment.amount || 0).toFixed(2)}</span>
                       </div>
                       <span className="payment-date">{new Date(payment.paymentDate || '').toLocaleDateString()}</span>
@@ -183,9 +178,7 @@ export default function RefundDialog({
                   {/* Refund Amount (for partial refunds) */}
                   {refundType === 'partial' && (
                     <div className="form-group">
-                      <label className="form-label">
-                        {t('cashier.refund_amount') || 'Refund Amount'} *
-                      </label>
+                      <label className="form-label">{t('cashier.refund_amount') || 'Refund Amount'} *</label>
                       <div className="amount-input-group">
                         <input
                           type="number"
@@ -198,11 +191,7 @@ export default function RefundDialog({
                           step="0.01"
                           max={maxRefundAmount}
                         />
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={handleSetMaxAmount}
-                          disabled={isLoading}
-                        >
+                        <button className="btn btn-secondary btn-sm" onClick={handleSetMaxAmount} disabled={isLoading}>
                           {t('cashier.max') || 'Max'}
                         </button>
                       </div>
@@ -211,9 +200,7 @@ export default function RefundDialog({
 
                   {/* Reason for Refund */}
                   <div className="form-group">
-                    <label className="form-label">
-                      {t('cashier.refund_reason') || 'Reason for Refund'} (optional)
-                    </label>
+                    <label className="form-label">{t('cashier.refund_reason') || 'Reason for Refund'} (optional)</label>
                     <textarea
                       className="form-textarea"
                       placeholder={t('cashier.refund_reason_placeholder') || 'Enter reason for refund'}
@@ -236,14 +223,8 @@ export default function RefundDialog({
             {t('common.cancel') || 'Cancel'}
           </button>
           {refundablePayments.length > 0 && (
-            <button
-              className="btn btn-danger"
-              onClick={handleConfirm}
-              disabled={!selectedPaymentId || isLoading}
-            >
-              {isLoading
-                ? t('common.loading') || 'Loading...'
-                : t('cashier.process_refund') || 'Process Refund'}
+            <button className="btn btn-danger" onClick={handleConfirm} disabled={!selectedPaymentId || isLoading}>
+              {isLoading ? t('common.loading') || 'Loading...' : t('cashier.process_refund') || 'Process Refund'}
             </button>
           )}
         </div>

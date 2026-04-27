@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from "@/app/styles/AdminPage.module.css";
+import styles from '@/app/styles/AdminPage.module.css';
 import PageHeader from '@/components/admin/PageHeader';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 

@@ -1,4 +1,3 @@
-
 [
   {
     "id": "orientalSpecialty-chicken-tagine",
@@ -16,7 +15,7 @@
         "description": "Tender, slow-cooked Moroccan stew of spiced chicken braised with onions, garlic, lemons, and green olives. Served with couscous or rice for soaking up the fragrant, citrusy sauce."
       }
     },
-    "price": 24.90,
+    "price": 24.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/21b35f18-40c7-40a5-a1fc-ec5fc637efff.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "orientalSpecialty",
@@ -43,7 +42,7 @@
         "description": "Tender, slow-cooked Moroccan stew of lamb braised with onions, apricots, and prunes. Served with rice or couscous for soaking up the fragrant, citrusy sauce."
       }
     },
-    "price": 28.90,
+    "price": 28.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/e13ce78b-6dcf-4630-baf2-5f3f2753e6fe.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "orientalSpecialty",
@@ -70,7 +69,7 @@
         "description": "Fluffy steamed couscous tossed with a vibrant mix of boiled seasonal vegetables and aromatic spices. Enriched with chickpeas, served warm as a hearty vegan main."
       }
     },
-    "price": 19.90,
+    "price": 19.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/aa521929-da58-47d7-82dc-a3addbcd721d.webp",
     "dietaryTags": ["halal", "vegan", "vegetarian", "gluten-free"],
     "categoryKey": "orientalSpecialty",
@@ -97,7 +96,7 @@
         "description": "Fluffy steamed couscous tossed with chicken leg quarter and a vibrant mix of boiled seasonal vegetables and aromatic spices. Enriched with chickpeas, served with a warm sauce."
       }
     },
-    "price": 24.90,
+    "price": 24.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/9beec89b-4c88-46dd-bd6b-6ced529c6c44.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "orientalSpecialty",
@@ -124,7 +123,7 @@
         "description": "Fluffy steamed couscous tossed with lamb and a vibrant mix of boiled seasonal vegetables and aromatic spices. Enriched with chickpeas, served with a warm sauce."
       }
     },
-    "price": 27.90,
+    "price": 27.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/575bf0ed-5f8b-4152-ae45-c6af988e1e99.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "orientalSpecialty",

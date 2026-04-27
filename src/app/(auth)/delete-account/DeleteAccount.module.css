@@ -9,7 +9,7 @@
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 50%, #fecaca 100%);
 }
 
-[data-theme="dark"] .container {
+[data-theme='dark'] .container {
   background: linear-gradient(135deg, #1a0505 0%, #2d0a0a 50%, #3f0f0f 100%);
 }
 
@@ -23,7 +23,7 @@
   animation: slideUp 0.4s ease-out;
 }
 
-[data-theme="dark"] .card {
+[data-theme='dark'] .card {
   background: #1f1f1f;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
@@ -70,7 +70,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
   }
@@ -116,7 +117,7 @@
   margin-bottom: 2rem;
 }
 
-[data-theme="dark"] .warningBox {
+[data-theme='dark'] .warningBox {
   background: rgba(127, 29, 29, 0.2);
   border-color: #7f1d1d;
 }
@@ -128,7 +129,7 @@
   margin-bottom: 1rem;
 }
 
-[data-theme="dark"] .warningText {
+[data-theme='dark'] .warningText {
   color: #fca5a5;
 }
 
@@ -151,7 +152,7 @@
   border-radius: 6px;
 }
 
-[data-theme="dark"] .consequencesList li {
+[data-theme='dark'] .consequencesList li {
   color: #fca5a5;
   background: rgba(220, 38, 38, 0.1);
 }
@@ -205,7 +206,7 @@
   transition: all 0.2s ease;
 }
 
-[data-theme="dark"] .cancelButton {
+[data-theme='dark'] .cancelButton {
   background: #2d2d2d;
   border-color: #404040;
   color: #9ca3af;
@@ -216,7 +217,7 @@
   background: #f9fafb;
 }
 
-[data-theme="dark"] .cancelButton:hover {
+[data-theme='dark'] .cancelButton:hover {
   border-color: #525252;
   background: #3a3a3a;
 }
@@ -243,7 +244,7 @@
   font-size: 1rem;
 }
 
-[data-theme="dark"] .processingText {
+[data-theme='dark'] .processingText {
   color: #9ca3af;
 }
 
@@ -280,7 +281,7 @@
   margin: 0 0 0.75rem;
 }
 
-[data-theme="dark"] .successTitle {
+[data-theme='dark'] .successTitle {
   color: #34d399;
 }
 
@@ -290,7 +291,7 @@
   line-height: 1.6;
 }
 
-[data-theme="dark"] .successMessage {
+[data-theme='dark'] .successMessage {
   color: #9ca3af;
 }
 
@@ -308,7 +309,8 @@
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   25% {
@@ -330,7 +332,7 @@
   margin: 0 0 0.75rem;
 }
 
-[data-theme="dark"] .errorTitle {
+[data-theme='dark'] .errorTitle {
   color: #fca5a5;
 }
 
@@ -341,7 +343,7 @@
   margin-bottom: 1.5rem;
 }
 
-[data-theme="dark"] .errorMessage {
+[data-theme='dark'] .errorMessage {
   color: #9ca3af;
 }
 
@@ -357,7 +359,7 @@
   transition: all 0.2s ease;
 }
 
-[data-theme="dark"] .backButton {
+[data-theme='dark'] .backButton {
   background: #1f1f1f;
   color: #fca5a5;
   border-color: #7f1d1d;
@@ -368,7 +370,7 @@
   color: white;
 }
 
-[data-theme="dark"] .backButton:hover {
+[data-theme='dark'] .backButton:hover {
   background: #7f1d1d;
   color: white;
 }

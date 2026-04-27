@@ -11,7 +11,7 @@
 export enum OrderType {
   DineIn = 'DineIn',
   Takeaway = 'Takeaway',
-  Delivery = 'Delivery'
+  Delivery = 'Delivery',
 }
 
 /**
@@ -23,7 +23,7 @@ export enum PaymentMethod {
   DebitCard = 'DebitCard',
   OnlinePayment = 'OnlinePayment',
   MobilePayment = 'MobilePayment',
-  BankTransfer = 'BankTransfer'
+  BankTransfer = 'BankTransfer',
 }
 
 /**
@@ -44,12 +44,7 @@ export type OrderStatus =
 /**
  * Payment status values
  */
-export type PaymentStatus =
-  | 'Pending'
-  | 'Paid'
-  | 'PartiallyPaid'
-  | 'Refunded'
-  | 'Failed';
+export type PaymentStatus = 'Pending' | 'Paid' | 'PartiallyPaid' | 'Refunded' | 'Failed';
 
 /**
  * Delivery address for orders
@@ -111,7 +106,6 @@ export interface CreateOrderItemDto {
   ingredientQuantities?: Record<string, number>; // Ingredient quantities for kitchen print
   childItems?: CreateOrderItemDto[]; // Child items (e.g. side items, additionals)
 }
-
 
 export interface OrderItemDto extends CreateOrderItemDto {
   id: string;

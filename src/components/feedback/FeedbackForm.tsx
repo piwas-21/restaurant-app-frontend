@@ -1,5 +1,5 @@
 // src/components/feedback/FeedbackForm.tsx
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import styles from '@/app/styles/FeedbackForm.module.css';
@@ -44,7 +44,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ dishId, onSubmitSuccess }) 
     }
 
     console.log('Submitting feedback:', { dishId, rating, comment, name });
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
 
     setIsSubmitting(false);
     setRating(0); // Reset rating to 0 after successful submission
@@ -57,10 +57,14 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ dishId, onSubmitSuccess }) 
 
   return (
     <form onSubmit={handleSubmit} className={styles.feedbackForm} aria-labelledby="feedback-form-heading">
-      <h3 id="feedback-form-heading" className="sr-only">{t('feedback_form_heading')}</h3>
+      <h3 id="feedback-form-heading" className="sr-only">
+        {t('feedback_form_heading')}
+      </h3>
 
       <div className={styles.formGroup} role="group" aria-labelledby="rating-label">
-        <label id="rating-label" className={styles.ratingLabel}>{t('feedback_form_rating_label')}:</label>
+        <label id="rating-label" className={styles.ratingLabel}>
+          {t('feedback_form_rating_label')}:
+        </label>
         <div className={styles.starRating} onMouseLeave={handleStarMouseLeave}>
           {[1, 2, 3, 4, 5].map((starValue) => {
             const isFilled = starValue <= (hoverRating || rating);
@@ -94,7 +98,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ dishId, onSubmitSuccess }) 
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="name">{t('feedback_form_name_label')} ({t('feedback_form_optional_label')}):</label>
+        <label htmlFor="name">
+          {t('feedback_form_name_label')} ({t('feedback_form_optional_label')}):
+        </label>
         <input
           type="text"
           id="name"
@@ -105,7 +111,11 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ dishId, onSubmitSuccess }) 
         />
       </div>
 
-      {error && <p className={styles.errorMessage} role="alert">{error}</p>}
+      {error && (
+        <p className={styles.errorMessage} role="alert">
+          {error}
+        </p>
+      )}
 
       <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
         {isSubmitting ? t('feedback_form_submitting_button') : t('feedback_form_submit_button')}

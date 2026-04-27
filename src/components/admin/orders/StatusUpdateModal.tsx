@@ -11,11 +11,7 @@ interface StatusUpdateModalProps {
   onConfirm: (status: OrderStatus, notes: string) => Promise<void>;
 }
 
-export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({
-  order,
-  onClose,
-  onConfirm,
-}) => {
+export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ order, onClose, onConfirm }) => {
   const { t } = useTranslation();
   const { getStatusLabel, statusOptions } = useOrderHelpers();
   const [newStatus, setNewStatus] = useState<OrderStatus>(order.status as OrderStatus);

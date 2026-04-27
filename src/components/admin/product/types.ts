@@ -4,8 +4,8 @@ import { LANGUAGE_CODES } from '@/config/languageConfig';
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
 export const supportedLanguages = LANGUAGE_CODES;
 
-export type ProductType = typeof productTypes[number];
-export type SupportedLanguage = typeof supportedLanguages[number];
+export type ProductType = (typeof productTypes)[number];
+export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 export interface Category {
   id: string;
@@ -33,10 +33,13 @@ export interface Variation {
   priceModifier: number;
   isActive: boolean;
   displayOrder: number;
-  content: Record<string, {
-    name: string;
-    description?: string;
-  }>;
+  content: Record<
+    string,
+    {
+      name: string;
+      description?: string;
+    }
+  >;
 }
 
 export interface ContentItem {

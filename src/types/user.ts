@@ -6,7 +6,7 @@ export enum UserRole {
   Admin = 'Admin',
   Cashier = 'Cashier',
   KitchenStaff = 'KitchenStaff',
-  Server = 'Server'
+  Server = 'Server',
 }
 
 /**

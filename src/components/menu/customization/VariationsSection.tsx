@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useTranslation } from "react-i18next";
-import styles from "./VariationsSection.module.css";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import styles from './VariationsSection.module.css';
 
 interface Variation {
   id?: string;
@@ -11,10 +11,13 @@ interface Variation {
   priceModifier: number;
   isActive: boolean;
   displayOrder: number;
-  content?: Record<string, {
-    name: string;
-    description?: string;
-  }>;
+  content?: Record<
+    string,
+    {
+      name: string;
+      description?: string;
+    }
+  >;
 }
 
 interface VariationsSectionProps {
@@ -37,9 +40,7 @@ export default function VariationsSection({
   const { t } = useTranslation();
 
   // Filter only active variations and sort by display order
-  const activeVariations = variations
-    .filter((v) => v.isActive)
-    .sort((a, b) => a.displayOrder - b.displayOrder);
+  const activeVariations = variations.filter((v) => v.isActive).sort((a, b) => a.displayOrder - b.displayOrder);
 
   if (activeVariations.length === 0) {
     return null;
@@ -49,13 +50,13 @@ export default function VariationsSection({
     const content = variation.content?.[currentLanguage] || variation.content?.en;
     return {
       name: content?.name || variation.name,
-      description: content?.description || variation.description
+      description: content?.description || variation.description,
     };
   };
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t("select_variation")}</h3>
+      <h3 className={styles.sectionTitle}>{t('select_variation')}</h3>
       <div className={styles.variationsList}>
         {/* Default/No variation option */}
         <label className={styles.variationOption}>
@@ -69,11 +70,7 @@ export default function VariationsSection({
           <div className={styles.variationContent}>
             <div className={styles.variationInfo}>
               <span className={styles.variationName}>{productName}</span>
-              {basePrice > 0 && (
-                <span className={styles.variationPrice}>
-                  CHF {basePrice.toFixed(2)}
-                </span>
-              )}
+              {basePrice > 0 && <span className={styles.variationPrice}>CHF {basePrice.toFixed(2)}</span>}
             </div>
           </div>
         </label>
@@ -84,9 +81,10 @@ export default function VariationsSection({
 
           // priceModifier is always additive (positive = add, negative = subtract)
           const varPrice = basePrice + variation.priceModifier;
-          const priceChangeText = variation.priceModifier >= 0
-            ? ` +${variation.priceModifier.toFixed(2)} CHF`
-            : ` ${variation.priceModifier.toFixed(2)} CHF`;
+          const priceChangeText =
+            variation.priceModifier >= 0
+              ? ` +${variation.priceModifier.toFixed(2)} CHF`
+              : ` ${variation.priceModifier.toFixed(2)} CHF`;
 
           const variationId = variation.id || variation.name;
 
@@ -102,20 +100,12 @@ export default function VariationsSection({
               <div className={styles.variationContent}>
                 <div className={styles.variationInfo}>
                   <span className={styles.variationName}>{name}</span>
-                  {description && (
-                    <span className={styles.variationDescription}>
-                      {description}
-                    </span>
-                  )}
+                  {description && <span className={styles.variationDescription}>{description}</span>}
                 </div>
                 {varPrice > 0 && (
                   <span className={styles.variationPrice}>
                     CHF {varPrice.toFixed(2)}
-                    {priceChangeText && (
-                      <span className={styles.priceModifier}>
-                        {priceChangeText}
-                      </span>
-                    )}
+                    {priceChangeText && <span className={styles.priceModifier}>{priceChangeText}</span>}
                   </span>
                 )}
               </div>

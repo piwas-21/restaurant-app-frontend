@@ -1,9 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
-import type {
-  FidelityPointBalance,
-  FidelityPointsTransaction,
-  PointsHistoryParams,
-} from '@/types/fidelity';
+import type { FidelityPointBalance, FidelityPointsTransaction, PointsHistoryParams } from '@/types/fidelity';
 
 /**
  * API Response wrapper matching backend
@@ -29,10 +25,9 @@ export const fidelityPointsService = {
    */
   async getBalance(): Promise<FidelityPointBalance> {
     try {
-      const response = await apiClient.get<ApiResponse<FidelityPointBalance>>(
-        FIDELITY_ENDPOINTS.BALANCE,
-        { requireAuth: true }
-      );
+      const response = await apiClient.get<ApiResponse<FidelityPointBalance>>(FIDELITY_ENDPOINTS.BALANCE, {
+        requireAuth: true,
+      });
       return response.data;
     } catch (error) {
       // Don't log auth errors - they're expected for non-authenticated users during checkout
@@ -47,9 +42,7 @@ export const fidelityPointsService = {
   /**
    * Get user's points transaction history
    */
-  async getHistory(
-    params: PointsHistoryParams = {}
-  ): Promise<FidelityPointsTransaction[]> {
+  async getHistory(params: PointsHistoryParams = {}): Promise<FidelityPointsTransaction[]> {
     const { page = 1, pageSize = 50 } = params;
     const queryParams = new URLSearchParams({
       page: page.toString(),
@@ -57,7 +50,7 @@ export const fidelityPointsService = {
     });
     const response = await apiClient.get<ApiResponse<FidelityPointsTransaction[]>>(
       `${FIDELITY_ENDPOINTS.HISTORY}?${queryParams.toString()}`,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data;
   },
@@ -74,7 +67,7 @@ export const fidelityPointsService = {
       });
       const response = await apiClient.get<ApiResponse<number>>(
         `${FIDELITY_ENDPOINTS.CALCULATE_DISCOUNT}?${queryParams.toString()}`,
-        { requireAuth: true }
+        { requireAuth: true },
       );
       return response.data;
     } catch (error) {
@@ -98,7 +91,7 @@ export const fidelityPointsService = {
     });
     const response = await apiClient.get<ApiResponse<number>>(
       `${FIDELITY_ENDPOINTS.CALCULATE_POINTS}?${queryParams.toString()}`,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     return response.data;
   },

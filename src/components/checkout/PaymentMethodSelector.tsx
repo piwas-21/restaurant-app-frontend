@@ -16,10 +16,7 @@ interface PaymentMethodSelectorProps {
   onMethodChange: (method: PaymentMethod) => void;
 }
 
-export default function PaymentMethodSelector({
-  selectedMethod,
-  onMethodChange,
-}: PaymentMethodSelectorProps) {
+export default function PaymentMethodSelector({ selectedMethod, onMethodChange }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
 
   return (
@@ -35,7 +32,10 @@ export default function PaymentMethodSelector({
       <div className={styles.infoMessage}>
         <Info size={18} />
         <p>
-          {t('payment_methods_info', 'Currently, only cash payment is available. Other payment methods are coming soon!')}
+          {t(
+            'payment_methods_info',
+            'Currently, only cash payment is available. Other payment methods are coming soon!',
+          )}
         </p>
       </div>
 
@@ -68,13 +68,9 @@ export default function PaymentMethodSelector({
                   {t(method.labelKey, method.label)}
                   {isDisabled && <span className={styles.comingSoon}> ({t('coming_soon', 'Coming Soon')})</span>}
                 </span>
-                <span className={styles.paymentDescription}>
-                  {t(method.descriptionKey, method.description)}
-                </span>
+                <span className={styles.paymentDescription}>{t(method.descriptionKey, method.description)}</span>
               </div>
-              {selectedMethod === method.value && !isDisabled && (
-                <CheckCircle size={20} className={styles.checkmark} />
-              )}
+              {selectedMethod === method.value && !isDisabled && <CheckCircle size={20} className={styles.checkmark} />}
             </label>
           );
         })}

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -44,9 +44,7 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/Tables?isActive=true`
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/Tables?isActive=true`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch tables');
@@ -59,7 +57,7 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
         const sortedTables = [...result.data].sort((a, b) => {
           return a.tableNumber.localeCompare(b.tableNumber, undefined, {
             numeric: true,
-            sensitivity: 'base'
+            sensitivity: 'base',
           });
         });
         setTables(sortedTables);
@@ -166,9 +164,7 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
                   selectedTable === table.tableNumber ? styles.selected : ''
                 } ${isDisabled ? styles.disabled : ''} ${
                   table.isReserved ? styles.reserved : ''
-                } ${table.isOccupied && !isFull ? styles.occupied : ''} ${
-                  isFull ? styles.full : ''
-                }`}
+                } ${table.isOccupied && !isFull ? styles.occupied : ''} ${isFull ? styles.full : ''}`}
               >
                 <div className={styles.tableIcon}>
                   {table.isOccupied ? <Coffee size={28} /> : <Utensils size={28} />}
@@ -181,28 +177,17 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
                       {t('max_guests_count', '{{count}} guests', { count: table.maxGuests })}
                     </span>
                   </div>
-                  {table.isOutdoor && (
-                    <span className={styles.outdoorBadge}>
-                      {t('outdoor', 'Outdoor')}
-                    </span>
-                  )}
-                  {table.isReserved && (
-                    <span className={styles.reservedBadge}>
-                      {t('reserved', 'Reserved')}
-                    </span>
-                  )}
+                  {table.isOutdoor && <span className={styles.outdoorBadge}>{t('outdoor', 'Outdoor')}</span>}
+                  {table.isReserved && <span className={styles.reservedBadge}>{t('reserved', 'Reserved')}</span>}
                   {table.isOccupied && !table.isReserved && (
                     <span className={isFull ? styles.fullBadge : styles.occupiedBadge}>
                       {isFull
                         ? t('table_full', 'Full')
-                        : t('table_occupied_badge', '{{count}} order(s)', { count: table.activeOrderCount || 0 })
-                      }
+                        : t('table_occupied_badge', '{{count}} order(s)', { count: table.activeOrderCount || 0 })}
                     </span>
                   )}
                 </div>
-                {selectedTable === table.tableNumber && (
-                  <div className={styles.selectedBadge}>✓</div>
-                )}
+                {selectedTable === table.tableNumber && <div className={styles.selectedBadge}>✓</div>}
               </button>
             );
           })}
@@ -221,25 +206,23 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
               <h3>{t('share_table_title', 'Share Table?')}</h3>
             </div>
             <p className={styles.modalMessage}>
-              {t('share_table_message', 'Table {{tableNumber}} is currently occupied. Would you like to join this table?', {
-                tableNumber: tableToShare.tableNumber
-              })}
+              {t(
+                'share_table_message',
+                'Table {{tableNumber}} is currently occupied. Would you like to join this table?',
+                {
+                  tableNumber: tableToShare.tableNumber,
+                },
+              )}
             </p>
 
             {tableToShare.occupants && tableToShare.occupants.length > 0 && (
               <div className={styles.occupantsList}>
-                <p className={styles.occupantsTitle}>
-                  {t('share_table_occupants', 'Current orders at this table:')}
-                </p>
+                <p className={styles.occupantsTitle}>{t('share_table_occupants', 'Current orders at this table:')}</p>
                 <ul>
                   {tableToShare.occupants.map((occupant, index) => (
                     <li key={index} className={styles.occupantItem}>
-                      <span className={styles.occupantName}>
-                        {occupant.customerName || t('guest', 'Guest')}
-                      </span>
-                      {occupant.orderNumber && (
-                        <span className={styles.orderNumber}>#{occupant.orderNumber}</span>
-                      )}
+                      <span className={styles.occupantName}>{occupant.customerName || t('guest', 'Guest')}</span>
+                      {occupant.orderNumber && <span className={styles.orderNumber}>#{occupant.orderNumber}</span>}
                     </li>
                   ))}
                 </ul>
@@ -248,7 +231,7 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
 
             <p className={styles.capacityInfo}>
               {t('remaining_capacity', '{{count}} more guests can join', {
-                count: (tableToShare.maxGuests + 1) - (tableToShare.activeOrderCount || 0)
+                count: tableToShare.maxGuests + 1 - (tableToShare.activeOrderCount || 0),
               })}
             </p>
 

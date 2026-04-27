@@ -12,7 +12,7 @@
   border-bottom: 2px solid var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .sectionTitle {
+[data-theme='dark'] .sectionTitle {
   color: var(--text-color, #f0f0f0);
   border-bottom-color: var(--border-color, #444);
 }
@@ -35,7 +35,7 @@
   margin: 0 0 0.75rem 0;
 }
 
-[data-theme="dark"] .groupTitle {
+[data-theme='dark'] .groupTitle {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -81,17 +81,17 @@
   border-color: var(--success-color, #28a745);
 }
 
-[data-theme="dark"] .ingredientItem {
+[data-theme='dark'] .ingredientItem {
   background-color: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
 }
 
-[data-theme="dark"] .ingredientItem:hover {
+[data-theme='dark'] .ingredientItem:hover {
   background-color: var(--background-color, #2c2c2c);
   border-color: var(--primary-color, #e06666);
 }
 
-[data-theme="dark"] .ingredientItem:has(:checked) {
+[data-theme='dark'] .ingredientItem:has(:checked) {
   background-color: var(--success-color-dark, #065f46);
   border-color: var(--success-color, #4caf50);
 }
@@ -110,7 +110,7 @@
   opacity: 0.7;
 }
 
-[data-theme="dark"] .checkbox {
+[data-theme='dark'] .checkbox {
   accent-color: var(--success-color, #4caf50);
 }
 
@@ -126,7 +126,7 @@
   white-space: nowrap;
 }
 
-[data-theme="dark"] .ingredientName {
+[data-theme='dark'] .ingredientName {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -139,7 +139,7 @@
   white-space: nowrap;
 }
 
-[data-theme="dark"] .ingredientPrice {
+[data-theme='dark'] .ingredientPrice {
   color: var(--success-color, #81c784);
 }
 
@@ -168,12 +168,12 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] .ingredientItemWrapper {
+[data-theme='dark'] .ingredientItemWrapper {
   background-color: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
 }
 
-[data-theme="dark"] .ingredientItemWrapper:hover {
+[data-theme='dark'] .ingredientItemWrapper:hover {
   background-color: var(--background-color, #2c2c2c);
   border-color: var(--primary-color, #e06666);
 }
@@ -189,7 +189,7 @@
   border: 1px solid var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .quantityControls {
+[data-theme='dark'] .quantityControls {
   background-color: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #555);
 }
@@ -221,12 +221,12 @@
   cursor: not-allowed;
 }
 
-[data-theme="dark"] .quantityBtn {
+[data-theme='dark'] .quantityBtn {
   background-color: var(--border-color, #444);
   color: var(--text-color, #f0f0f0);
 }
 
-[data-theme="dark"] .quantityBtn:hover:not(:disabled) {
+[data-theme='dark'] .quantityBtn:hover:not(:disabled) {
   background-color: var(--primary-color, #e06666);
 }
 
@@ -238,7 +238,7 @@
   color: var(--text-color, #1a1a1a);
 }
 
-[data-theme="dark"] .quantityValue {
+[data-theme='dark'] .quantityValue {
   color: var(--text-color, #f0f0f0);
 }
 
@@ -259,7 +259,7 @@
   font-style: italic;
 }
 
-[data-theme="dark"] .emptyState {
+[data-theme='dark'] .emptyState {
   color: var(--text-secondary, #9ca3af);
 }
 

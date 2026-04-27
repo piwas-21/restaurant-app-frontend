@@ -17,12 +17,7 @@ import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEdito
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
 import { MenuDefinition } from '@/types/menu';
 
-const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
-  isOpen,
-  onClose,
-  onProductUpdated,
-  product
-}) => {
+const EditMenuBundleModal: React.FC<EditProductModalProps> = ({ isOpen, onClose, onProductUpdated, product }) => {
   const { t, i18n } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -49,7 +44,7 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
       content: [],
       preparationTimeMinutes: 0,
       displayOrder: 0,
-    }
+    },
   });
 
   const [menuDefinition, setMenuDefinition] = useState<MenuDefinition>({
@@ -62,12 +57,16 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
     availableFriday: true,
     availableSaturday: true,
     availableSunday: true,
-    sections: []
+    sections: [],
   });
 
-  const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({
+  const {
+    fields: contentFields,
+    append: appendContent,
+    remove: removeContent,
+  } = useFieldArray({
     control,
-    name: 'content'
+    name: 'content',
   });
 
   const currentLanguage = i18n.language || 'en';
@@ -82,11 +81,13 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
 
   useEffect(() => {
     if (product) {
-      const flattenedContent = product.content ? Object.entries(product.content).map(([lang, data]: [string, any]) => ({
-        language: lang,
-        name: data.name,
-        description: data.description,
-      })) : [];
+      const flattenedContent = product.content
+        ? Object.entries(product.content).map(([lang, data]: [string, any]) => ({
+            language: lang,
+            name: data.name,
+            description: data.description,
+          }))
+        : [];
 
       reset({
         id: product.id,
@@ -115,7 +116,7 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
           availableFriday: product.menuDefinition.availableFriday ?? true,
           availableSaturday: product.menuDefinition.availableSaturday ?? true,
           availableSunday: product.menuDefinition.availableSunday ?? true,
-          sections: product.menuDefinition.sections || []
+          sections: product.menuDefinition.sections || [],
         });
       }
     }
@@ -127,49 +128,49 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
   }, [menuDefinition, setValue]);
 
   const onSubmit = async (data: EditMenuBundleFormData) => {
-    console.log("EditMenuBundleModal onSubmit called", data);
+    console.log('EditMenuBundleModal onSubmit called', data);
     try {
-        // Attach menu definition, removing temporary IDs
-        const cleanedSections = menuDefinition.sections.map(s => {
-          const sectionData: any = {
-            name: s.name,
-            description: s.description,
-            displayOrder: s.displayOrder,
-            isRequired: s.isRequired,
-            minSelection: s.minSelection,
-            maxSelection: s.maxSelection,
-            items: s.items.map(i => {
-              const itemData: any = {
-                productId: i.productId,
-                additionalPrice: i.additionalPrice,
-                displayOrder: i.displayOrder,
-                isDefault: i.isDefault
-              };
-              // Only include id if it's not temporary
-              if (i.id && !i.id.startsWith('temp-')) {
-                itemData.id = i.id;
-              }
-              return itemData;
-            })
-          };
-          // Only include section id if it's not temporary
-          if (s.id && !s.id.startsWith('temp-')) {
-            sectionData.id = s.id;
-          }
-          return sectionData;
-        });
-
-        (data as any).menuDefinition = {
-          ...menuDefinition,
-          sections: cleanedSections
+      // Attach menu definition, removing temporary IDs
+      const cleanedSections = menuDefinition.sections.map((s) => {
+        const sectionData: any = {
+          name: s.name,
+          description: s.description,
+          displayOrder: s.displayOrder,
+          isRequired: s.isRequired,
+          minSelection: s.minSelection,
+          maxSelection: s.maxSelection,
+          items: s.items.map((i) => {
+            const itemData: any = {
+              productId: i.productId,
+              additionalPrice: i.additionalPrice,
+              displayOrder: i.displayOrder,
+              isDefault: i.isDefault,
+            };
+            // Only include id if it's not temporary
+            if (i.id && !i.id.startsWith('temp-')) {
+              itemData.id = i.id;
+            }
+            return itemData;
+          }),
         };
-        // Only include menuDefinition id if it's not temporary
-        if (!menuDefinition.id || menuDefinition.id.startsWith('temp-')) {
-          delete (data as any).menuDefinition.id;
+        // Only include section id if it's not temporary
+        if (s.id && !s.id.startsWith('temp-')) {
+          sectionData.id = s.id;
         }
+        return sectionData;
+      });
 
-        console.log("Calling submitEditProductForm with", data);
-        await submitEditProductForm({
+      (data as any).menuDefinition = {
+        ...menuDefinition,
+        sections: cleanedSections,
+      };
+      // Only include menuDefinition id if it's not temporary
+      if (!menuDefinition.id || menuDefinition.id.startsWith('temp-')) {
+        delete (data as any).menuDefinition.id;
+      }
+
+      console.log('Calling submitEditProductForm with', data);
+      await submitEditProductForm({
         data: data as any, // Cast to any to bypass strict EditFormData check
         product,
         imageFiles,
@@ -178,13 +179,13 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
         setError: setError as any,
         onProductUpdated,
         onClose,
-        });
+      });
     } catch (e) {
-        console.error("Error in onSubmit:", e);
+      console.error('Error in onSubmit:', e);
     }
   };
 
-  console.log("Form Errors:", errors);
+  console.log('Form Errors:', errors);
 
   if (!isOpen) return null;
 
@@ -279,10 +280,7 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
             <div className={modalStyles.sectionDivider}></div>
 
             <h3>{t('menu_availability')}</h3>
-            <MenuScheduleEditor
-              menuDefinition={menuDefinition}
-              onChange={setMenuDefinition}
-            />
+            <MenuScheduleEditor menuDefinition={menuDefinition} onChange={setMenuDefinition} />
 
             <div className={modalStyles.sectionDivider}></div>
 
@@ -294,19 +292,10 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({
           </div>
 
           <div className={modalStyles.buttonGroup}>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={modalStyles.submitButton}
-            >
+            <button type="submit" disabled={isSubmitting} className={modalStyles.submitButton}>
               {isSubmitting ? t('updating...') : t('update_menu_bundle')}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className={modalStyles.cancelButton}
-              disabled={isSubmitting}
-            >
+            <button type="button" onClick={onClose} className={modalStyles.cancelButton} disabled={isSubmitting}>
               {t('cancel')}
             </button>
           </div>

@@ -39,7 +39,7 @@ export default function CashierHeader({
   onToggleRepeat,
   onOpenQRScanner,
   onOpenZReport,
-  onOpenDiagnostics
+  onOpenDiagnostics,
 }: CashierHeaderProps) {
   const { t } = useTranslation();
   const [showSoundSelector, setShowSoundSelector] = useState(false);
@@ -76,7 +76,10 @@ export default function CashierHeader({
 
         {/* Audio Blocked Warning */}
         {audioBlockedByPolicy && (
-          <div className={styles.connectionStatus} style={{ backgroundColor: '#fff3cd', borderColor: '#ffc107', color: '#856404' }}>
+          <div
+            className={styles.connectionStatus}
+            style={{ backgroundColor: '#fff3cd', borderColor: '#ffc107', color: '#856404' }}
+          >
             <span>⚠️ {t('audio_blocked') || 'Audio Blocked'}</span>
           </div>
         )}
@@ -97,18 +100,17 @@ export default function CashierHeader({
         <button
           className={styles.button}
           onClick={onToggleAudio}
-          title={audioEnabled
-            ? (t('cashier.disable_sound') || 'Disable notification sounds')
-            : (t('cashier.enable_sound') || 'Enable notification sounds')
+          title={
+            audioEnabled
+              ? t('cashier.disable_sound') || 'Disable notification sounds'
+              : t('cashier.enable_sound') || 'Enable notification sounds'
           }
           style={{
-            backgroundColor: audioEnabled ? '#4caf50' : '#ff9800'
+            backgroundColor: audioEnabled ? '#4caf50' : '#ff9800',
           }}
         >
-          {audioEnabled ? '🔕' : '🔔'} {audioEnabled
-            ? (t('cashier.disable_sound') || 'Disable Sound')
-            : (t('cashier.enable_sound') || 'Enable Sound')
-          }
+          {audioEnabled ? '🔕' : '🔔'}{' '}
+          {audioEnabled ? t('cashier.disable_sound') || 'Disable Sound' : t('cashier.enable_sound') || 'Enable Sound'}
         </button>
 
         {/* Sound Selector */}
@@ -136,11 +138,7 @@ export default function CashierHeader({
         )}
 
         {/* QR Scanner Button */}
-        <button
-          className={styles.button}
-          onClick={onOpenQRScanner}
-          title={t('cashier.scan_qr_code') || 'Scan QR Code'}
-        >
+        <button className={styles.button} onClick={onOpenQRScanner} title={t('cashier.scan_qr_code') || 'Scan QR Code'}>
           <QrCode size={16} />
           {t('cashier.scan_qr') || 'Scan QR'}
         </button>
@@ -173,11 +171,7 @@ export default function CashierHeader({
 
         {/* Z-Report Button */}
         {onOpenZReport && (
-          <button
-            className={styles.button}
-            onClick={onOpenZReport}
-            title={t('cashier.zreport.title') || 'Z-Report'}
-          >
+          <button className={styles.button} onClick={onOpenZReport} title={t('cashier.zreport.title') || 'Z-Report'}>
             <FileBarChart size={16} />
             {t('cashier.zreport.title') || 'Z-Report'}
           </button>

@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import styles from "../styles/MenuPage.module.css";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { useSnackbar } from "notistack";
-import TableBanner from "@/components/TableBanner";
+import React, { useState, useEffect } from 'react';
+import styles from '../styles/MenuPage.module.css';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+import TableBanner from '@/components/TableBanner';
 
-import type { LanguageCode } from "@/components/LanguageSwitcher";
-import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from "@/hooks/usePublicMenu";
-import { useFeaturedSpecial } from "@/hooks/useFeaturedSpecial";
-import { useCart } from "@/components/cart/CartContext";
-import { getCategoryDisplayName } from "@/utils/categoryNameMapper";
-import { setFallbackImage } from "@/utils/imageHelpers";
+import type { LanguageCode } from '@/components/LanguageSwitcher';
+import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
+import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
+import { useCart } from '@/components/cart/CartContext';
+import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { setFallbackImage } from '@/utils/imageHelpers';
 
-import MenuPageHeader from "@/components/menu/MenuPageHeader";
-import MenuContent from "@/components/menu/MenuContent";
-import MenuModals from "@/components/menu/MenuModals";
-import FeaturedSpecialComponent from "@/components/menu/FeaturedSpecial";
-import MenuBundleDetailsModal from "@/components/menu/MenuBundleDetailsModal";
+import MenuPageHeader from '@/components/menu/MenuPageHeader';
+import MenuContent from '@/components/menu/MenuContent';
+import MenuModals from '@/components/menu/MenuModals';
+import FeaturedSpecialComponent from '@/components/menu/FeaturedSpecial';
+import MenuBundleDetailsModal from '@/components/menu/MenuBundleDetailsModal';
 import { MenuBundleItem, SelectedMenuOption } from '@/types/menu';
 import MenuCustomizationModal from '@/components/menu/MenuCustomizationModal';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
@@ -31,7 +31,7 @@ export default function MenuPage() {
   const [selectedBundleForCustomization, setSelectedBundleForCustomization] = useState<MenuBundleItem | null>(null);
   const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
 
-  const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
+  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
   // Custom hooks
   const {
@@ -74,12 +74,9 @@ export default function MenuPage() {
   const handleAddBundleToCart = async (
     bundle: MenuBundleItem,
     selectedOptions?: SelectedMenuOption[],
-    totalPrice?: number
+    totalPrice?: number,
   ) => {
-    const bundleName =
-      bundle.content?.[currentLanguage]?.name ||
-      bundle.content?.en?.name ||
-      bundle.name;
+    const bundleName = bundle.content?.[currentLanguage]?.name || bundle.content?.en?.name || bundle.name;
 
     try {
       if (!bundle.menuDefinition) {
@@ -91,18 +88,21 @@ export default function MenuPage() {
 
       // If selectedOptions are provided (from customization modal), use them
       // Otherwise use default items (respecting maxSelection)
-      const optionsToAdd = selectedOptions || bundle.menuDefinition.sections?.flatMap((section) => {
-        const defaultItems = section.items.filter((item) => item.isDefault);
+      const optionsToAdd =
+        selectedOptions ||
+        bundle.menuDefinition.sections?.flatMap((section) => {
+          const defaultItems = section.items.filter((item) => item.isDefault);
 
-        // Respect maxSelection when selecting defaults
-        const itemsToSelect = defaultItems.slice(0, section.maxSelection);
+          // Respect maxSelection when selecting defaults
+          const itemsToSelect = defaultItems.slice(0, section.maxSelection);
 
-        return itemsToSelect.map((item) => ({
-          sectionId: section.id,
-          itemId: item.productId,
-          quantity: 1,
-        }));
-      }) || [];
+          return itemsToSelect.map((item) => ({
+            sectionId: section.id,
+            itemId: item.productId,
+            quantity: 1,
+          }));
+        }) ||
+        [];
 
       // Use provided totalPrice or bundle base price
       const price = totalPrice || bundle.basePrice;
@@ -145,14 +145,14 @@ export default function MenuPage() {
   // Get display name for selected category
   const categoryDisplayName =
     selectedView === ALL_ITEMS_KEY
-      ? t("all_categories_nav")
+      ? t('all_categories_nav')
       : selectedView === MENU_BUNDLES_KEY
-      ? t("menu_bundles")
-      : (() => {
-          const category = categoriesForNav.find((c) => c.id === selectedView);
-          if (!category) return String(selectedView);
-          return getCategoryDisplayName(category.name, t);
-        })();
+        ? t('menu_bundles')
+        : (() => {
+            const category = categoriesForNav.find((c) => c.id === selectedView);
+            if (!category) return String(selectedView);
+            return getCategoryDisplayName(category.name, t);
+          })();
 
   // Calculate cart totals for floating button
   const itemCount = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -229,18 +229,14 @@ export default function MenuPage() {
         />
       )}
 
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
         <Link href="/cart" className={`${styles.viewCartButton}`}>
-          {t("view_cart_checkout_button")}
+          {t('view_cart_checkout_button')}
         </Link>
       </div>
 
       {/* Floating Cart Button */}
-      <FloatingCartButton
-        itemCount={itemCount}
-        totalPrice={cartTotal}
-        onAnimate={cartAnimationTrigger}
-      />
+      <FloatingCartButton itemCount={itemCount} totalPrice={cartTotal} onAnimate={cartAnimationTrigger} />
     </main>
   );
 }

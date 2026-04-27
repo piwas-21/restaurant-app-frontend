@@ -34,10 +34,7 @@ export const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
           {t('update_status_bulk', 'Update Status')}
         </button>
         <div className={styles.exportDropdown}>
-          <button
-            onClick={() => setShowExportMenu(!showExportMenu)}
-            className={styles.bulkExportButton}
-          >
+          <button onClick={() => setShowExportMenu(!showExportMenu)} className={styles.bulkExportButton}>
             <Download size={16} />
             {t('export_selected', 'Export Selected')}
             <ChevronDown size={14} />

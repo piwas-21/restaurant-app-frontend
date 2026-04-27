@@ -11,12 +11,7 @@ interface DiscountsTableProps {
   onDelete: (discount: GroupDiscountDto) => void;
 }
 
-const DiscountsTable: React.FC<DiscountsTableProps> = ({
-  discounts,
-  isLoading,
-  onEdit,
-  onDelete
-}) => {
+const DiscountsTable: React.FC<DiscountsTableProps> = ({ discounts, isLoading, onEdit, onDelete }) => {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -47,9 +42,7 @@ const DiscountsTable: React.FC<DiscountsTableProps> = ({
               <td>{discount.name}</td>
               <td>{discount.type === DiscountType.Percentage ? t('percentage') : t('fixed_amount')}</td>
               <td>
-                {discount.type === DiscountType.Percentage
-                  ? `${discount.value}%`
-                  : `CHF ${discount.value.toFixed(2)}`}
+                {discount.type === DiscountType.Percentage ? `${discount.value}%` : `CHF ${discount.value.toFixed(2)}`}
               </td>
               <td>{discount.minimumOrderAmount ? `CHF ${discount.minimumOrderAmount.toFixed(2)}` : '-'}</td>
               <td>{discount.maximumDiscountAmount ? `CHF ${discount.maximumDiscountAmount.toFixed(2)}` : '-'}</td>
@@ -59,11 +52,7 @@ const DiscountsTable: React.FC<DiscountsTableProps> = ({
                 </span>
               </td>
               <td className={styles.actionsCell}>
-                <button
-                  className={styles.actionButton}
-                  onClick={() => onEdit(discount)}
-                  title={t('edit')}
-                >
+                <button className={styles.actionButton} onClick={() => onEdit(discount)} title={t('edit')}>
                   <Edit size={18} />
                 </button>
                 <button

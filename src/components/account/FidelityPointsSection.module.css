@@ -5,7 +5,7 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .sectionTitle {
@@ -48,11 +48,11 @@
   background-color: var(--primary-hover, #5568d3);
 }
 
-[data-theme="dark"] .retryButton {
+[data-theme='dark'] .retryButton {
   background-color: var(--primary-color, #5568d3);
 }
 
-[data-theme="dark"] .retryButton:hover {
+[data-theme='dark'] .retryButton:hover {
   background-color: var(--primary-hover, #4557b8);
 }
 
@@ -64,7 +64,7 @@
   margin-bottom: 1.5rem;
 }
 
-[data-theme="dark"] .pointsBalanceCard {
+[data-theme='dark'] .pointsBalanceCard {
   background: var(--success-color, #5568d3);
 }
 
@@ -168,13 +168,13 @@
   background-color: var(--secondary-color-light, #f8f9fa);
 }
 
-[data-theme="dark"] .learnMoreButton {
+[data-theme='dark'] .learnMoreButton {
   background-color: var(--secondary-color, #3a3a3a);
   color: white;
   border-color: var(--border-color, #555);
 }
 
-[data-theme="dark"] .learnMoreButton:hover {
+[data-theme='dark'] .learnMoreButton:hover {
   background-color: var(--background-color, #222);
 }
 
@@ -306,25 +306,25 @@
   opacity: 0.9;
 }
 
-[data-theme="dark"] .modalContent {
+[data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .modalHeader {
+[data-theme='dark'] .modalHeader {
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .modalTitle {
+[data-theme='dark'] .modalTitle {
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .closeButton:hover {
+[data-theme='dark'] .closeButton:hover {
   background-color: var(--background-color, #333);
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .modalBody p,
-[data-theme="dark"] .modalBody li {
+[data-theme='dark'] .modalBody p,
+[data-theme='dark'] .modalBody li {
   color: var(--text-secondary, #b0b0b0);
 }
 

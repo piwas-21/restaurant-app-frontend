@@ -49,15 +49,14 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
 
   // Get multilingual description with fallback
   const getLocalizedDescription = () => {
-    return product.content?.[currentLanguage]?.description ||
-           product.content?.en?.description ||
-           product.description ||
-           '';
+    return (
+      product.content?.[currentLanguage]?.description || product.content?.en?.description || product.description || ''
+    );
   };
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories() as { success: boolean; data?: { items: any[] } };
+      const resp = (await getCategories()) as { success: boolean; data?: { items: any[] } };
       if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
@@ -68,7 +67,7 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
   const onSave = async () => {
     const payload = buildProductPayload({ ...product, ...form } as any, categories);
     try {
-      const res = await updateProduct(product.id, payload) as { success: boolean };
+      const res = (await updateProduct(product.id, payload)) as { success: boolean };
       if (res.success) {
         setEditing(false);
         onUpdated && onUpdated();
@@ -107,8 +106,8 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
             <strong>{t('base_price')}:</strong> CHF{product.basePrice.toFixed(2)}
           </p>
           <p>
-            <strong>{t('status')}:</strong> {product.isActive ? t('active') : t('inactive')} | {' '}
-            {product.isAvailable ? t('available') : t('unavailable')} | {' '}
+            <strong>{t('status')}:</strong> {product.isActive ? t('active') : t('inactive')} |{' '}
+            {product.isAvailable ? t('available') : t('unavailable')} |{' '}
             {(product as any)?.isSpecial && t('special_of_the_day_title')}
           </p>
           <p>

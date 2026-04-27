@@ -63,13 +63,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export default function OrderList({
-  orders,
-  selectedOrderId,
-  onSelectOrder,
-  isLoading,
-  error,
-}: OrderListProps) {
+export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLoading, error }: OrderListProps) {
   const { t } = useTranslation();
 
   if (error) {
@@ -90,11 +84,7 @@ export default function OrderList({
   }
 
   if (orders.length === 0) {
-    return (
-      <div className={styles.orderListEmpty}>
-        {t('cashier.no_orders', 'No orders found')}
-      </div>
-    );
+    return <div className={styles.orderListEmpty}>{t('cashier.no_orders', 'No orders found')}</div>;
   }
 
   return (
@@ -118,33 +108,22 @@ export default function OrderList({
                 <span className={styles.orderTypeIcon}>{orderTypeDisplay.icon}</span>
                 <span className={styles.orderNumber}>{order.orderNumber}</span>
               </div>
-              <span
-                className={styles.orderStatusBadge}
-                style={{ backgroundColor: statusColor }}
-              >
+              <span className={styles.orderStatusBadge} style={{ backgroundColor: statusColor }}>
                 {t(getOrderStatusTranslationKey(order.status as OrderStatus), order.status)}
               </span>
             </div>
 
             <div className={styles.orderCardBody}>
               <div className={styles.orderCustomer}>
-                <span className={styles.customerName}>
-                  {order.customerName || t('guest', 'Guest')}
-                </span>
+                <span className={styles.customerName}>{order.customerName || t('guest', 'Guest')}</span>
                 {order.type === OrderType.DineIn && order.tableNumber && (
-                  <span className={styles.tableNumber}>
-                    Table {order.tableNumber}
-                  </span>
+                  <span className={styles.tableNumber}>Table {order.tableNumber}</span>
                 )}
               </div>
 
               <div className={styles.orderCardFooter}>
-                <span className={styles.orderTotal}>
-                  CHF {order.total?.toFixed(2) || '0.00'}
-                </span>
-                <span className={styles.orderTime}>
-                  {getTimeAgo(order.orderDate)}
-                </span>
+                <span className={styles.orderTotal}>CHF {order.total?.toFixed(2) || '0.00'}</span>
+                <span className={styles.orderTime}>{getTimeAgo(order.orderDate)}</span>
               </div>
             </div>
           </div>

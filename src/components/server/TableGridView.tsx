@@ -11,12 +11,7 @@ interface TableGridViewProps {
   isLoading?: boolean;
 }
 
-export default function TableGridView({
-  tables,
-  selectedTableNumber,
-  onSelectTable,
-  isLoading,
-}: TableGridViewProps) {
+export default function TableGridView({ tables, selectedTableNumber, onSelectTable, isLoading }: TableGridViewProps) {
   const { t } = useTranslation();
 
   // Sort tables by table number
@@ -29,10 +24,10 @@ export default function TableGridView({
   // Calculate stats
   const stats = {
     total: tables.length,
-    available: tables.filter(t => t.status === 'available').length,
-    occupied: tables.filter(t => t.status === 'occupied').length,
-    reserved: tables.filter(t => t.status === 'reserved').length,
-    closed: tables.filter(t => t.status === 'closed').length,
+    available: tables.filter((t) => t.status === 'available').length,
+    occupied: tables.filter((t) => t.status === 'occupied').length,
+    reserved: tables.filter((t) => t.status === 'reserved').length,
+    closed: tables.filter((t) => t.status === 'closed').length,
   };
 
   if (isLoading) {

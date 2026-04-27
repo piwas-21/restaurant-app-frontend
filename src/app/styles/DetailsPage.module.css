@@ -30,7 +30,7 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background-color: var(--card-background);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
   width: 100%;
   max-width: 720px; /* Keep content contained but responsive */
   box-sizing: border-box;
@@ -137,7 +137,8 @@
   transition: border-color 0.2s;
 }
 
-.thumbnail:hover, .thumbnail.active {
+.thumbnail:hover,
+.thumbnail.active {
   border-color: var(--primary-color);
 }
 
@@ -200,11 +201,11 @@
   background-color: var(--secondary-color-light);
 }
 
-[data-theme="dark"] .imageActions {
+[data-theme='dark'] .imageActions {
   background-color: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .languageSection {
+[data-theme='dark'] .languageSection {
   background-color: var(--secondary-color-dark, #3a3a3a);
   border-color: var(--border-color-dark, #555);
 }
@@ -220,7 +221,8 @@
   overflow: hidden;
 }
 
-.variationsTable th, .variationsTable td {
+.variationsTable th,
+.variationsTable td {
   padding: 0.8rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
@@ -234,7 +236,7 @@
   border-bottom: none;
 }
 
-[data-theme="dark"] .variationsTable th {
+[data-theme='dark'] .variationsTable th {
   background-color: var(--secondary-color, #2c2c2c);
   color: var(--text-color, #e0e0e0);
 }
@@ -321,7 +323,7 @@
     color: var(--text-secondary, #666);
   }
 
-  [data-theme="dark"] .variationsTable td:before {
+  [data-theme='dark'] .variationsTable td:before {
     color: var(--text-secondary, #aaa);
   }
 

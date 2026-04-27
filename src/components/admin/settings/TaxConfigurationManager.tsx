@@ -3,14 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
-import {
-  Trash2,
-  Edit,
-  Plus,
-  DollarSign,
-  ToggleLeft,
-  ToggleRight
-} from 'lucide-react';
+import { Trash2, Edit, Plus, DollarSign, ToggleLeft, ToggleRight } from 'lucide-react';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
@@ -41,7 +34,7 @@ export default function TaxConfigurationManager() {
     rate: 0,
     isEnabled: false,
     description: '',
-    applicableOrderTypes: []
+    applicableOrderTypes: [],
   });
 
   useEffect(() => {
@@ -69,7 +62,7 @@ export default function TaxConfigurationManager() {
       rate: 0,
       isEnabled: false,
       description: '',
-      applicableOrderTypes: []
+      applicableOrderTypes: [],
     });
     setIsFormOpen(true);
   };
@@ -83,7 +76,7 @@ export default function TaxConfigurationManager() {
       rate: config.rate,
       isEnabled: config.isEnabled,
       description: config.description,
-      applicableOrderTypes: config.applicableOrderTypes || []
+      applicableOrderTypes: config.applicableOrderTypes || [],
     });
     setIsFormOpen(true);
   };
@@ -115,16 +108,18 @@ export default function TaxConfigurationManager() {
       if (editingConfig) {
         await adminTaxConfigurationService.updateTaxConfiguration({
           ...formData,
-          id: editingConfig.id
+          id: editingConfig.id,
         });
       } else {
         await adminTaxConfigurationService.createTaxConfiguration(formData);
       }
 
       enqueueSnackbar(
-        t(editingConfig ? 'tax_updated_successfully' : 'tax_created_successfully',
-          `Tax configuration ${editingConfig ? 'updated' : 'created'} successfully`),
-        { variant: 'success' }
+        t(
+          editingConfig ? 'tax_updated_successfully' : 'tax_created_successfully',
+          `Tax configuration ${editingConfig ? 'updated' : 'created'} successfully`,
+        ),
+        { variant: 'success' },
       );
 
       setIsFormOpen(false);
@@ -142,19 +137,21 @@ export default function TaxConfigurationManager() {
         rate: config.rate,
         isEnabled: !config.isEnabled,
         description: config.description,
-        applicableOrderTypes: config.applicableOrderTypes || []
+        applicableOrderTypes: config.applicableOrderTypes || [],
       });
 
       enqueueSnackbar(
-        t(config.isEnabled ? 'tax_disabled_successfully' : 'tax_enabled_successfully',
-          `Tax ${!config.isEnabled ? 'enabled' : 'disabled'} successfully`),
-        { variant: 'success' }
+        t(
+          config.isEnabled ? 'tax_disabled_successfully' : 'tax_enabled_successfully',
+          `Tax ${!config.isEnabled ? 'enabled' : 'disabled'} successfully`,
+        ),
+        { variant: 'success' },
       );
 
       fetchTaxConfigs();
     } catch {
       enqueueSnackbar(t('tax_failed_to_toggle', 'Failed to toggle tax configuration'), { variant: 'error' });
-    };
+    }
   };
 
   const handleRateChange = (value: string) => {
@@ -219,9 +216,7 @@ export default function TaxConfigurationManager() {
           taxConfigs.map((config) => (
             <div
               key={config.id}
-              className={`${styles.configCard} ${
-                config.isEnabled ? styles.enabled : styles.disabled
-              }`}
+              className={`${styles.configCard} ${config.isEnabled ? styles.enabled : styles.disabled}`}
             >
               <div className={styles.configHeader}>
                 <div className={styles.configInfo}>
@@ -232,9 +227,7 @@ export default function TaxConfigurationManager() {
                   {config.isEnabled ? (
                     <span className={styles.statusBadge}>{t('active', 'Active')}</span>
                   ) : (
-                    <span className={`${styles.statusBadge} ${styles.inactive}`}>
-                      {t('inactive', 'Inactive')}
-                    </span>
+                    <span className={`${styles.statusBadge} ${styles.inactive}`}>{t('inactive', 'Inactive')}</span>
                   )}
                 </div>
               </div>
@@ -242,9 +235,7 @@ export default function TaxConfigurationManager() {
               <div className={styles.configDetails}>
                 <div className={styles.rateDisplay}>
                   <span className={styles.rateLabel}>{t('rate', 'Rate')}:</span>
-                  <span className={styles.rateValue}>
-                    {config.rate.toFixed(2)}%
-                  </span>
+                  <span className={styles.rateValue}>{config.rate.toFixed(2)}%</span>
                 </div>
                 <div className={styles.orderTypesDisplay}>
                   <span className={styles.orderTypesLabel}>{t('applies_to', 'Applies to')}:</span>
@@ -282,11 +273,7 @@ export default function TaxConfigurationManager() {
                     </>
                   )}
                 </button>
-                <button
-                  onClick={() => handleEdit(config)}
-                  className={styles.editButton}
-                  title={t('edit', 'Edit')}
-                >
+                <button onClick={() => handleEdit(config)} className={styles.editButton} title={t('edit', 'Edit')}>
                   <Edit size={16} />
                 </button>
                 <button
@@ -312,10 +299,7 @@ export default function TaxConfigurationManager() {
                   ? t('edit_tax_configuration', 'Edit Tax Configuration')
                   : t('create_tax_configuration', 'Create Tax Configuration')}
               </h2>
-              <button
-                onClick={() => setIsFormOpen(false)}
-                className={styles.closeButton}
-              >
+              <button onClick={() => setIsFormOpen(false)} className={styles.closeButton}>
                 ×
               </button>
             </div>
@@ -357,9 +341,7 @@ export default function TaxConfigurationManager() {
                 <textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder={t('tax_description_placeholder', 'e.g., Standard VAT rate for Switzerland')}
                   rows={3}
                 />
@@ -375,7 +357,7 @@ export default function TaxConfigurationManager() {
                       onChange={(e) => {
                         const types = e.target.checked
                           ? [...formData.applicableOrderTypes, OrderType.DineIn]
-                          : formData.applicableOrderTypes.filter(t => t !== OrderType.DineIn);
+                          : formData.applicableOrderTypes.filter((t) => t !== OrderType.DineIn);
                         setFormData({ ...formData, applicableOrderTypes: types });
                       }}
                     />
@@ -388,7 +370,7 @@ export default function TaxConfigurationManager() {
                       onChange={(e) => {
                         const types = e.target.checked
                           ? [...formData.applicableOrderTypes, OrderType.Takeaway]
-                          : formData.applicableOrderTypes.filter(t => t !== OrderType.Takeaway);
+                          : formData.applicableOrderTypes.filter((t) => t !== OrderType.Takeaway);
                         setFormData({ ...formData, applicableOrderTypes: types });
                       }}
                     />
@@ -401,7 +383,7 @@ export default function TaxConfigurationManager() {
                       onChange={(e) => {
                         const types = e.target.checked
                           ? [...formData.applicableOrderTypes, OrderType.Delivery]
-                          : formData.applicableOrderTypes.filter(t => t !== OrderType.Delivery);
+                          : formData.applicableOrderTypes.filter((t) => t !== OrderType.Delivery);
                         setFormData({ ...formData, applicableOrderTypes: types });
                       }}
                     />
@@ -415,27 +397,17 @@ export default function TaxConfigurationManager() {
                   <input
                     type="checkbox"
                     checked={formData.isEnabled}
-                    onChange={(e) =>
-                      setFormData({ ...formData, isEnabled: e.target.checked })
-                    }
+                    onChange={(e) => setFormData({ ...formData, isEnabled: e.target.checked })}
                   />
                   <span>{t('enable_this_tax_configuration', 'Enable this tax configuration')}</span>
                 </label>
               </div>
 
               <div className={styles.formActions}>
-                <button
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className={styles.cancelButton}
-                >
+                <button type="button" onClick={() => setIsFormOpen(false)} className={styles.cancelButton}>
                   {t('cancel', 'Cancel')}
                 </button>
-                <button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={!isRateValid || !rateInput}
-                >
+                <button type="submit" className={styles.submitButton} disabled={!isRateValid || !rateInput}>
                   {editingConfig ? t('update', 'Update') : t('create', 'Create')}
                 </button>
               </div>

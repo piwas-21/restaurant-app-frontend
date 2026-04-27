@@ -35,11 +35,7 @@ import {
  */
 export async function createOrder(command: CreateOrderCommand): Promise<OrderDto> {
   try {
-    const response = await apiClient.post<OrderDtoApiResponse>(
-      '/api/Orders',
-      command,
-      { requireAuth: false }
-    );
+    const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders', command, { requireAuth: false });
     if (!response.data) {
       throw new Error('Failed to create order');
     }
@@ -57,9 +53,7 @@ export async function createOrder(command: CreateOrderCommand): Promise<OrderDto
  * @param filters - Optional query filters
  * @returns Paged list of orders for current user
  */
-export async function getMyOrders(
-  filters?: Partial<OrderQueryFilters>
-): Promise<PagedResult<OrderDto>> {
+export async function getMyOrders(filters?: Partial<OrderQueryFilters>): Promise<PagedResult<OrderDto>> {
   try {
     // Build query string from filters
     const params = new URLSearchParams();
@@ -74,10 +68,7 @@ export async function getMyOrders(
     const queryString = params.toString();
     const endpoint = queryString ? `/api/Orders?${queryString}` : '/api/Orders';
 
-    const response = await apiClient.get<OrderDtoPagedResultApiResponse>(
-      endpoint,
-      { requireAuth: true }
-    );
+    const response = await apiClient.get<OrderDtoPagedResultApiResponse>(endpoint, { requireAuth: true });
 
     if (!response.data) {
       throw new Error('Failed to fetch orders');
@@ -97,9 +88,7 @@ export async function getMyOrders(
  * @param filters - Query filters (status, payment status, date range, etc.)
  * @returns Paged list of orders
  */
-export async function getOrders(
-  filters?: OrderQueryFilters
-): Promise<PagedResult<OrderDto>> {
+export async function getOrders(filters?: OrderQueryFilters): Promise<PagedResult<OrderDto>> {
   try {
     // Build query string from filters
     const params = new URLSearchParams();
@@ -114,10 +103,7 @@ export async function getOrders(
     const queryString = params.toString();
     const endpoint = queryString ? `/api/Orders?${queryString}` : '/api/Orders';
 
-    const response = await apiClient.get<OrderDtoPagedResultApiResponse>(
-      endpoint,
-      { requireAuth: true }
-    );
+    const response = await apiClient.get<OrderDtoPagedResultApiResponse>(endpoint, { requireAuth: true });
 
     if (!response.data) {
       throw new Error('Failed to fetch orders');
@@ -158,16 +144,11 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
  * @param command - Status update details
  * @returns Updated order
  */
-export async function updateOrderStatus(
-  orderId: string,
-  command: UpdateOrderStatusCommand
-): Promise<OrderDto> {
+export async function updateOrderStatus(orderId: string, command: UpdateOrderStatusCommand): Promise<OrderDto> {
   try {
-    const response = await apiClient.put<OrderDtoApiResponse>(
-      `/api/Orders/${orderId}/status`,
-      command,
-      { requireAuth: true }
-    );
+    const response = await apiClient.put<OrderDtoApiResponse>(`/api/Orders/${orderId}/status`, command, {
+      requireAuth: true,
+    });
     if (!response.data) {
       throw new Error('Failed to update order status');
     }
@@ -186,16 +167,11 @@ export async function updateOrderStatus(
  * @param command - Cancellation details
  * @returns Updated order
  */
-export async function cancelOrder(
-  orderId: string,
-  command: CancelOrderCommand
-): Promise<OrderDto> {
+export async function cancelOrder(orderId: string, command: CancelOrderCommand): Promise<OrderDto> {
   try {
-    const response = await apiClient.post<OrderDtoApiResponse>(
-      `/api/Orders/${orderId}/cancel`,
-      command,
-      { requireAuth: true }
-    );
+    const response = await apiClient.post<OrderDtoApiResponse>(`/api/Orders/${orderId}/cancel`, command, {
+      requireAuth: true,
+    });
     if (!response.data) {
       throw new Error('Failed to cancel order');
     }
@@ -233,16 +209,11 @@ export async function deleteOrder(orderId: string): Promise<void> {
  * @param command - Focus order details
  * @returns Updated order
  */
-export async function toggleFocusOrder(
-  orderId: string,
-  command: ToggleFocusOrderCommand
-): Promise<OrderDto> {
+export async function toggleFocusOrder(orderId: string, command: ToggleFocusOrderCommand): Promise<OrderDto> {
   try {
-    const response = await apiClient.put<OrderDtoApiResponse>(
-      `/api/Orders/${orderId}/focus`,
-      command,
-      { requireAuth: true }
-    );
+    const response = await apiClient.put<OrderDtoApiResponse>(`/api/Orders/${orderId}/focus`, command, {
+      requireAuth: true,
+    });
     if (!response.data) {
       throw new Error('Failed to toggle focus order');
     }
@@ -260,9 +231,7 @@ export async function toggleFocusOrder(
  * @param filters - Focus order filters
  * @returns List of focus orders
  */
-export async function getFocusOrders(
-  filters?: FocusOrdersQueryFilters
-): Promise<OrderDto[]> {
+export async function getFocusOrders(filters?: FocusOrdersQueryFilters): Promise<OrderDto[]> {
   try {
     // Build query string from filters
     const params = new URLSearchParams();
@@ -277,10 +246,7 @@ export async function getFocusOrders(
     const queryString = params.toString();
     const endpoint = queryString ? `/api/Orders/focus?${queryString}` : '/api/Orders/focus';
 
-    const response = await apiClient.get<OrderDtoListApiResponse>(
-      endpoint,
-      { requireAuth: true }
-    );
+    const response = await apiClient.get<OrderDtoListApiResponse>(endpoint, { requireAuth: true });
 
     return response.data || [];
   } catch (error) {
@@ -297,16 +263,11 @@ export async function getFocusOrders(
  * @param command - Payment details
  * @returns Created payment
  */
-export async function addPaymentToOrder(
-  orderId: string,
-  command: AddPaymentToOrderCommand
-): Promise<OrderPaymentDto> {
+export async function addPaymentToOrder(orderId: string, command: AddPaymentToOrderCommand): Promise<OrderPaymentDto> {
   try {
-    const response = await apiClient.post<OrderPaymentDtoApiResponse>(
-      `/api/Orders/${orderId}/payments`,
-      command,
-      { requireAuth: true }
-    );
+    const response = await apiClient.post<OrderPaymentDtoApiResponse>(`/api/Orders/${orderId}/payments`, command, {
+      requireAuth: true,
+    });
     if (!response.data) {
       throw new Error('Failed to add payment');
     }
@@ -329,13 +290,13 @@ export async function addPaymentToOrder(
 export async function refundPayment(
   orderId: string,
   paymentId: string,
-  command: RefundPaymentCommand
+  command: RefundPaymentCommand,
 ): Promise<OrderPaymentDto> {
   try {
     const response = await apiClient.post<OrderPaymentDtoApiResponse>(
       `/api/Orders/${orderId}/payments/${paymentId}/refund`,
       command,
-      { requireAuth: true }
+      { requireAuth: true },
     );
     if (!response.data) {
       throw new Error('Failed to refund payment');

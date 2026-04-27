@@ -35,7 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
       try {
         setLoading(true);
         setError(false);
-        const response = await getProductById(item.productId) as { success: boolean; data?: ProductDetails };
+        const response = (await getProductById(item.productId)) as { success: boolean; data?: ProductDetails };
         if (response.success && response.data) {
           setProduct(response.data);
         } else {
@@ -53,63 +53,44 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   }, [item.productId]);
 
   if (loading) {
-    return (
-      <div className={`${styles.productCard} ${styles.loadingSkeleton} ${styles.skeletonCard}`} />
-    );
+    return <div className={`${styles.productCard} ${styles.loadingSkeleton} ${styles.skeletonCard}`} />;
   }
 
   if (error || !product) {
     return (
       <div className={styles.productCard}>
-        <div className={styles.errorMessage}>
-          Failed to load product details
-        </div>
+        <div className={styles.errorMessage}>Failed to load product details</div>
       </div>
     );
   }
 
-  const primaryImage = product.images?.find(img => img.url) || product.images?.[0];
+  const primaryImage = product.images?.find((img) => img.url) || product.images?.[0];
   const displayPrice = product.basePrice;
   const hasAdditionalPrice = item.additionalPrice > 0;
 
   return (
     <div className={`${styles.productCard} ${item.isDefault ? styles.default : ''}`}>
-      {item.isDefault && (
-        <div className={styles.defaultBadge}>Default</div>
-      )}
+      {item.isDefault && <div className={styles.defaultBadge}>Default</div>}
 
       <div className={styles.productCardContent}>
         {primaryImage && (
-          <img
-            src={primaryImage.url}
-            alt={primaryImage.altText || product.name}
-            className={styles.productImage}
-          />
+          <img src={primaryImage.url} alt={primaryImage.altText || product.name} className={styles.productImage} />
         )}
 
         <div className={styles.productInfo}>
           <h4 className={styles.productName}>{product.name}</h4>
 
-          {product.description && (
-            <p className={styles.productDescription}>{product.description}</p>
-          )}
+          {product.description && <p className={styles.productDescription}>{product.description}</p>}
 
           <div className={styles.productPrice}>
             CHF {displayPrice.toFixed(2)}
             {hasAdditionalPrice && (
-              <span className={styles.additionalPrice}>
-                +CHF {item.additionalPrice.toFixed(2)}
-              </span>
+              <span className={styles.additionalPrice}>+CHF {item.additionalPrice.toFixed(2)}</span>
             )}
           </div>
 
           <div className={styles.productTags}>
-            <AllergenDisplay
-              allergens={product.allergens}
-              variant="compact"
-              maxVisible={3}
-              showLabel={false}
-            />
+            <AllergenDisplay allergens={product.allergens} variant="compact" maxVisible={3} showLabel={false} />
 
             {product.ingredients && product.ingredients.length > 0 && (
               <>
@@ -119,9 +100,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
                   </span>
                 ))}
                 {product.ingredients.length > 2 && (
-                  <span className={styles.ingredientBadge}>
-                    +{product.ingredients.length - 2} more
-                  </span>
+                  <span className={styles.ingredientBadge}>+{product.ingredients.length - 2} more</span>
                 )}
               </>
             )}

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { BasketDto, BasketItemDto } from '@/types/basket';
@@ -98,7 +98,7 @@ const initialState: CartState = {
 function basketToCartItems(basket: BasketDto | null): CartItem[] {
   if (!basket || !basket.items) return [];
 
-  return basket.items.map(item => ({
+  return basket.items.map((item) => ({
     ...item,
     basketItemId: item.id, // Store backend ID for updates/deletes
   }));
@@ -149,10 +149,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       // Optimistically update item quantity
       return {
         ...state,
-        items: state.items.map(item =>
+        items: state.items.map((item) =>
           item.basketItemId === action.payload.basketItemId
             ? { ...item, quantity: action.payload.quantity, specialInstructions: action.payload.specialInstructions }
-            : item
+            : item,
         ),
         isSyncing: true,
       };
@@ -161,7 +161,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       // Optimistically remove item from cart
       return {
         ...state,
-        items: state.items.filter(item => item.basketItemId !== action.payload.basketItemId),
+        items: state.items.filter((item) => item.basketItemId !== action.payload.basketItemId),
         isSyncing: true,
       };
 
@@ -294,7 +294,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       // If item was already removed (not found), refresh the cart
       // This handles the case where the item was removed in another tab
-      if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('basket item not found')) {
+      if (
+        errorMessage.toLowerCase().includes('not found') ||
+        errorMessage.toLowerCase().includes('basket item not found')
+      ) {
         await syncBasket();
         return; // Don't throw error or rollback
       }
@@ -333,7 +336,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       // If item was already removed (not found), keep the optimistic update
       // This handles the case where the item was removed in another tab
-      if (errorMessage.toLowerCase().includes('not found') || errorMessage.toLowerCase().includes('basket item not found')) {
+      if (
+        errorMessage.toLowerCase().includes('not found') ||
+        errorMessage.toLowerCase().includes('basket item not found')
+      ) {
         // Refresh the cart to get the latest state from the server
         await syncBasket();
         return; // Don't throw error or rollback
@@ -462,11 +468,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     getTotal,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 /**

@@ -4,7 +4,7 @@ export interface MenuItemContent {
   ingredient: string;
 }
 
-export type DietaryTag = "vegan" | "halal" | "gluten-free" | "vegetarian" | string;
+export type DietaryTag = 'vegan' | 'halal' | 'gluten-free' | 'vegetarian' | string;
 
 export interface MenuItemImage {
   url: string;
@@ -24,10 +24,13 @@ export interface ProductIngredient {
   isActive: boolean;
   displayOrder: number;
   // Multilingual support
-  content?: Record<string, {
-    name: string;
-    description?: string;
-  }>;
+  content?: Record<
+    string,
+    {
+      name: string;
+      description?: string;
+    }
+  >;
   globalIngredientId?: string;
 }
 
@@ -71,10 +74,13 @@ export interface MenuItem {
     priceModifier: number;
     displayOrder: number;
     description?: string;
-    content?: Record<string, {
-      name: string;
-      description?: string;
-    }>;
+    content?: Record<
+      string,
+      {
+        name: string;
+        description?: string;
+      }
+    >;
   }>;
   suggestedSideItems?: SuggestedSideItem[]; // Full side item objects
   categoryKey?: string;
@@ -96,16 +102,19 @@ export type ProductType = 'mainItem' | 'sideItem' | 'beverage' | 'dessert' | 'sa
 export type KitchenType = 'None' | 'FrontKitchen' | 'BackKitchen';
 
 export const KITCHEN_TYPES: Record<KitchenType, { label: string; value: KitchenType }> = {
-  'None': { label: 'Not Assigned', value: 'None' },
-  'FrontKitchen': { label: 'Front Kitchen', value: 'FrontKitchen' },
-  'BackKitchen': { label: 'Back Kitchen', value: 'BackKitchen' },
+  None: { label: 'Not Assigned', value: 'None' },
+  FrontKitchen: { label: 'Front Kitchen', value: 'FrontKitchen' },
+  BackKitchen: { label: 'Back Kitchen', value: 'BackKitchen' },
 };
 
-export type ContentData = Record<string, {
-  name: string;
-  description?: string;
-  ingredient?: string;
-}>;
+export type ContentData = Record<
+  string,
+  {
+    name: string;
+    description?: string;
+    ingredient?: string;
+  }
+>;
 
 export interface CreateProductData {
   name: string;
@@ -146,10 +155,13 @@ export interface DetailedProductVariation {
   finalPrice: number;
   isActive: boolean;
   displayOrder: number;
-  content?: Record<string, {
-    name: string;
-    description?: string;
-  }>;
+  content?: Record<
+    string,
+    {
+      name: string;
+      description?: string;
+    }
+  >;
 }
 
 export interface SuggestedSideItem {

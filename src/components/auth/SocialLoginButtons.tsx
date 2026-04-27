@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
@@ -26,30 +26,30 @@ export default function SocialLoginButtons() {
 
           const userRole = response.data.role.toLowerCase();
           switch (userRole) {
-            case "admin":
-              router.push("/admin/dashboard");
+            case 'admin':
+              router.push('/admin/dashboard');
               break;
-            case "customer":
-              router.push("/account");
+            case 'customer':
+              router.push('/account');
               break;
-            case "cashier":
-              router.push("/cashier");
+            case 'cashier':
+              router.push('/cashier');
               break;
-            case "kitchen-staff":
-              router.push("/kitchen-staff");
+            case 'kitchen-staff':
+              router.push('/kitchen-staff');
               break;
-            case "server":
-              router.push("/server");
+            case 'server':
+              router.push('/server');
               break;
             default:
-              router.push("/");
+              router.push('/');
               break;
           }
         } else {
           toast.error(response.message || t('login_failed', 'Login failed'));
         }
       } catch (error) {
-        console.error("Google login error:", error);
+        console.error('Google login error:', error);
         toast.error(t('login_error', 'An error occurred during login'));
       }
     }
@@ -119,14 +119,14 @@ export default function SocialLoginButtons() {
       </div>
       <div className={styles.buttons}>
         <div className={styles.googleWrapper}>
-            <GoogleLogin
+          <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
             useOneTap={process.env.NODE_ENV === 'production'}
             theme={theme === 'light' ? 'outline' : 'filled_black'}
             shape="rectangular"
             width="100%"
-            />
+          />
         </div>
 
         {/* Apple Login requires HTTPS and valid configuration to work properly */}

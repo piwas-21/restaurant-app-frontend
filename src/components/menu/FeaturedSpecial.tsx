@@ -51,7 +51,9 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({ special, onAddToCart,
             {special.preparationTimeMinutes > 0 && (
               <div className={styles.featuredSpecialTime}>
                 <Clock size={16} />
-                <span>{special.preparationTimeMinutes} {t('minutes', 'min')}</span>
+                <span>
+                  {special.preparationTimeMinutes} {t('minutes', 'min')}
+                </span>
               </div>
             )}
 

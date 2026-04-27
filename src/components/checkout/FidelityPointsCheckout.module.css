@@ -7,7 +7,7 @@
   margin-bottom: 1.5rem;
 }
 
-[data-theme="dark"] .container {
+[data-theme='dark'] .container {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
 }
@@ -98,7 +98,7 @@
   color: var(--text-tertiary, #9ca3af);
 }
 
-[data-theme="dark"] .balanceSection {
+[data-theme='dark'] .balanceSection {
   background: var(--background-color, #222);
   border-color: var(--border-color, #444);
 }
@@ -141,20 +141,20 @@
   margin: 0 0 1rem 0;
 }
 
-[data-theme="dark"] .redemptionSection {
+[data-theme='dark'] .redemptionSection {
   background: var(--background-color, #222);
   border-color: var(--border-color, #444);
 }
 
-[data-theme="dark"] .toggleButton {
+[data-theme='dark'] .toggleButton {
   background: var(--background-color, #222);
 }
 
-[data-theme="dark"] .toggleButton:hover {
+[data-theme='dark'] .toggleButton:hover {
   background-color: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .redemptionPanel {
+[data-theme='dark'] .redemptionPanel {
   border-top-color: var(--border-color, #444);
 }
 
@@ -192,7 +192,7 @@
   background-color: var(--primary-hover, #5568d3);
 }
 
-[data-theme="dark"] .sliderLabel {
+[data-theme='dark'] .sliderLabel {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -238,7 +238,7 @@
   transform: scale(1.1);
 }
 
-[data-theme="dark"] .slider {
+[data-theme='dark'] .slider {
   background: var(--border-color, #555);
 }
 
@@ -272,7 +272,7 @@
   margin-top: 0.25rem;
 }
 
-[data-theme="dark"] .pointsSelected {
+[data-theme='dark'] .pointsSelected {
   color: var(--text-color, #e0e0e0);
 }
 

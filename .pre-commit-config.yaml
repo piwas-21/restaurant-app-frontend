@@ -3,9 +3,10 @@
 # Update hooks:   pre-commit autoupdate
 # Run manually:   pre-commit run --all-files
 #
-# Sprint 1 scope: hygiene + secret scanning only.
-# Sprint 2 will add prettier, eslint --max-warnings=0, tsc --noEmit
-# (see docs/QUALITY-SECURITY-PLAN.md).
+# Sprint 1: hygiene + secret scanning.
+# Sprint 2: prettier --check (this MR). eslint --max-warnings=0 and
+# tsc --noEmit deferred — pre-existing warnings/errors need clearing first.
+# See docs/QUALITY-SECURITY-PLAN.md.
 
 repos:
   # ── General hygiene ──────────────────────────────────────────────────
@@ -40,3 +41,15 @@ repos:
         # appear in those paths. Prefer regenerating the baseline:
         #   detect-secrets scan --baseline .secrets.baseline
         args: ["--baseline", ".secrets.baseline"]
+
+  # ── Sprint 2: format gate ────────────────────────────────────────────
+  # Verifies staged files are prettier-clean. To fix: `npm run format`
+  # and re-stage. Runs only when a relevant file is in the commit.
+  - repo: local
+    hooks:
+      - id: prettier-check
+        name: prettier --check
+        entry: npx prettier --check
+        language: system
+        files: ^src/.*\.(ts|tsx|css|json|md)$
+        exclude: ^src/locales/.*\.json$

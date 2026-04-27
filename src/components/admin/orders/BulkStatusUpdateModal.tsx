@@ -91,11 +91,7 @@ export const BulkStatusUpdateModal: React.FC<BulkStatusUpdateModalProps> = ({
           <button onClick={onClose} className={styles.cancelButton} disabled={isUpdating}>
             Cancel
           </button>
-          <button
-            onClick={handleConfirm}
-            className={styles.confirmButton}
-            disabled={isUpdating || !notes.trim()}
-          >
+          <button onClick={handleConfirm} className={styles.confirmButton} disabled={isUpdating || !notes.trim()}>
             {isUpdating ? (
               <>
                 <Loader2 size={16} className={styles.spinner} />

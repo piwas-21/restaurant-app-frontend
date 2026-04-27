@@ -15,7 +15,7 @@
   overflow: hidden;
 }
 
-[data-theme="dark"] .featuredSpecialContainer {
+[data-theme='dark'] .featuredSpecialContainer {
   background: linear-gradient(135deg, #2a2510 0%, #3a3520 100%);
   border-color: #daa520;
 }
@@ -66,7 +66,7 @@
   color: var(--primary-color);
 }
 
-[data-theme="dark"] .featuredSpecialTitle {
+[data-theme='dark'] .featuredSpecialTitle {
   color: gold;
 }
 
@@ -96,7 +96,7 @@
   font-size: 1rem;
 }
 
-[data-theme="dark"] .priceLabel {
+[data-theme='dark'] .priceLabel {
   color: #aaa;
 }
 
@@ -106,7 +106,7 @@
   color: var(--primary-color);
 }
 
-[data-theme="dark"] .priceValue {
+[data-theme='dark'] .priceValue {
   color: gold;
 }
 
@@ -118,7 +118,7 @@
   font-size: 1rem;
 }
 
-[data-theme="dark"] .featuredSpecialTime {
+[data-theme='dark'] .featuredSpecialTime {
   color: #aaa;
 }
 
@@ -133,7 +133,7 @@
   line-height: 1.6;
 }
 
-[data-theme="dark"] .featuredSpecialIngredients {
+[data-theme='dark'] .featuredSpecialIngredients {
   background: rgba(100, 149, 237, 0.15);
   color: #ccc;
 }
@@ -145,7 +145,7 @@
   letter-spacing: 0.05em;
 }
 
-[data-theme="dark"] .featuredSpecialIngredients strong {
+[data-theme='dark'] .featuredSpecialIngredients strong {
   color: #6495ed;
 }
 

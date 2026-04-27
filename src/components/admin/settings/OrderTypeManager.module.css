@@ -24,7 +24,7 @@
   transition: all 0.3s ease;
 }
 
-[data-theme="dark"] .configCard {
+[data-theme='dark'] .configCard {
   background: var(--secondary-color, #2c2c2c);
   border-color: rgba(255, 255, 255, 0.1);
 }
@@ -34,7 +34,7 @@
   background: linear-gradient(135deg, var(--background-color, white) 0%, rgba(34, 197, 94, 0.05) 100%);
 }
 
-[data-theme="dark"] .configCard.enabled {
+[data-theme='dark'] .configCard.enabled {
   background: linear-gradient(135deg, var(--secondary-color, #2c2c2c) 0%, rgba(34, 197, 94, 0.1) 100%);
 }
 
@@ -47,7 +47,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] .configCard:hover {
+[data-theme='dark'] .configCard:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -70,7 +70,7 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .iconWrapper {
+[data-theme='dark'] .iconWrapper {
   background: rgba(74, 158, 255, 0.15);
   color: var(--primary-color, #4a9eff);
 }
@@ -80,7 +80,7 @@
   color: var(--text-secondary, #6b7280);
 }
 
-[data-theme="dark"] .configCard.disabled .iconWrapper {
+[data-theme='dark'] .configCard.disabled .iconWrapper {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-secondary, #9ca3af);
 }
@@ -96,7 +96,7 @@
   margin: 0 0 0.5rem 0;
 }
 
-[data-theme="dark"] .cardTitle {
+[data-theme='dark'] .cardTitle {
   color: var(--text-color, #e0e0e0);
 }
 
@@ -107,7 +107,7 @@
   line-height: 1.5;
 }
 
-[data-theme="dark"] .cardDescription {
+[data-theme='dark'] .cardDescription {
   color: var(--text-secondary, #9ca3af);
 }
 
@@ -119,7 +119,7 @@
   border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
-[data-theme="dark"] .cardActions {
+[data-theme='dark'] .cardActions {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -135,7 +135,7 @@
   color: #16a34a;
 }
 
-[data-theme="dark"] .statusBadge.statusEnabled {
+[data-theme='dark'] .statusBadge.statusEnabled {
   background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
 }
@@ -145,7 +145,7 @@
   color: #6b7280;
 }
 
-[data-theme="dark"] .statusBadge.statusDisabled {
+[data-theme='dark'] .statusBadge.statusDisabled {
   background: rgba(156, 163, 175, 0.2);
   color: #9ca3af;
 }
@@ -177,13 +177,13 @@
   border-radius: 28px;
 }
 
-[data-theme="dark"] .toggleSlider {
+[data-theme='dark'] .toggleSlider {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
 .toggleSlider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 20px;
   width: 20px;
   left: 4px;

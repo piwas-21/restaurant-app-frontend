@@ -18,7 +18,7 @@ export default function OrderConfirmationModal({
   orderNumber,
   customerEmail,
   isLoggedIn,
-  onClose
+  onClose,
 }: OrderConfirmationModalProps) {
   const router = useRouter();
   const { t } = useTranslation();
@@ -45,7 +45,10 @@ export default function OrderConfirmationModal({
         <h2 className={styles.title}>{t('order_received', 'Order Received')}</h2>
 
         <p className={styles.message}>
-          {t('order_confirmation_message', 'Thank you for your order. We have received it and will start preparing it shortly.')}
+          {t(
+            'order_confirmation_message',
+            'Thank you for your order. We have received it and will start preparing it shortly.',
+          )}
         </p>
 
         <div className={styles.orderNumberCard}>

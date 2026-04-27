@@ -11,18 +11,20 @@ export default function VerifyEmailPage() {
   const { t } = useTranslation();
 
   return (
-    <Suspense fallback={
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <div className={styles.content}>
-            <div className={styles.loadingContainer}>
-              <div className={styles.spinner}></div>
-              <p className={styles.loadingText}>{t('loading', 'Loading...')}</p>
+    <Suspense
+      fallback={
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <div className={styles.content}>
+              <div className={styles.loadingContainer}>
+                <div className={styles.spinner}></div>
+                <p className={styles.loadingText}>{t('loading', 'Loading...')}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <VerifyEmailContent />
     </Suspense>
   );
@@ -55,14 +57,24 @@ function VerifyEmailContent() {
 
         if (response.succeeded || response.success) {
           setStatus('success');
-          setMessage(response.data || response.message || t('email_verified_success', 'Your email has been successfully verified! You can now access all features.'));
+          setMessage(
+            response.data ||
+              response.message ||
+              t(
+                'email_verified_success',
+                'Your email has been successfully verified! You can now access all features.',
+              ),
+          );
           // Redirect to login after 3 seconds
           setTimeout(() => {
             router.push('/auth/login?verified=true');
           }, 3000);
         } else {
           setStatus('error');
-          const errorMsg = response.messages?.[0] || response.message || t('email_verification_failed', 'Failed to verify email. The link may have expired or is invalid.');
+          const errorMsg =
+            response.messages?.[0] ||
+            response.message ||
+            t('email_verification_failed', 'Failed to verify email. The link may have expired or is invalid.');
           setMessage(errorMsg);
         }
       } catch (error) {

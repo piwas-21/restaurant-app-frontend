@@ -40,9 +40,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
 
   // Helper function to get translated ingredient name
   const getIngredientName = (ingredient: DetailedIngredient): string => {
-    return ingredient.content?.[currentLanguage]?.name ||
-           ingredient.content?.en?.name ||
-           ingredient.name;
+    return ingredient.content?.[currentLanguage]?.name || ingredient.content?.en?.name || ingredient.name;
   };
 
   const [selectedIngredients, setSelectedIngredients] = useState<Set<string>>(new Set());
@@ -59,7 +57,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
         setExcludedIngredients(new Set(initialCustomization.excludedIngredients));
         setIngredientQuantities(initialCustomization.ingredientQuantities);
         const sidesMap = new Map<string, number>();
-        initialCustomization.selectedSideItems.forEach(si => sidesMap.set(si.id, si.quantity));
+        initialCustomization.selectedSideItems.forEach((si) => sidesMap.set(si.id, si.quantity));
         setSelectedSideItems(sidesMap);
         setSpecialInstructions(initialCustomization.specialInstructions || '');
       } else {
@@ -67,7 +65,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
         const defaultSelected = new Set<string>();
         const defaultQuantities: Record<string, number> = {};
 
-        detailedIngredients.forEach(ing => {
+        detailedIngredients.forEach((ing) => {
           // Always select non-optional ingredients
           if (!ing.isOptional) {
             defaultSelected.add(ing.id);
@@ -93,7 +91,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
     let total = basePrice;
 
     // Add ingredient costs
-    detailedIngredients.forEach(ing => {
+    detailedIngredients.forEach((ing) => {
       if (ing.isIncludedInBasePrice) {
         // Ingredient price is included in base price for 1 quantity
         const isSelected = selectedIngredients.has(ing.id);
@@ -117,7 +115,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
 
     // Add side item costs
     selectedSideItems.forEach((quantity, sideId) => {
-      const side = suggestedSideItems.find(s => s.id === sideId);
+      const side = suggestedSideItems.find((s) => s.id === sideId);
       if (side) {
         total += side.sideItemBasePrice * quantity;
       }
@@ -151,7 +149,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
   };
 
   const handleIngredientQuantityChange = (ingredientId: string, delta: number) => {
-    const ingredient = detailedIngredients.find(i => i.id === ingredientId);
+    const ingredient = detailedIngredients.find((i) => i.id === ingredientId);
     if (!ingredient) return;
 
     const currentQty = ingredientQuantities[ingredientId] || 1;
@@ -222,9 +220,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
             <span className={styles.price}>CHF {basePrice.toFixed(2)}</span>
           </div>
 
-          {!hasCustomizableItems && (
-            <p className={styles.noCustomization}>{t('no_customization_available')}</p>
-          )}
+          {!hasCustomizableItems && <p className={styles.noCustomization}>{t('no_customization_available')}</p>}
 
           {/* Ingredients Section */}
           {detailedIngredients.length > 0 && (
@@ -232,128 +228,127 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
               <h4>{t('customize_ingredients')}</h4>
 
               {/* Included Ingredients (non-optional) */}
-              {detailedIngredients.filter(ing => !ing.isOptional).length > 0 && (
+              {detailedIngredients.filter((ing) => !ing.isOptional).length > 0 && (
                 <div className={styles.ingredientGroup}>
                   <h5 className={styles.groupTitle}>{t('ingredient_included')}</h5>
                   <div className={styles.itemsList}>
-                    {detailedIngredients.filter(ing => !ing.isOptional).map(ingredient => {
-                      const isSelected = selectedIngredients.has(ingredient.id);
-                      const quantity = ingredientQuantities[ingredient.id] || 1;
-                      const showQuantity = isSelected && ingredient.maxQuantity > 1;
+                    {detailedIngredients
+                      .filter((ing) => !ing.isOptional)
+                      .map((ingredient) => {
+                        const isSelected = selectedIngredients.has(ingredient.id);
+                        const quantity = ingredientQuantities[ingredient.id] || 1;
+                        const showQuantity = isSelected && ingredient.maxQuantity > 1;
 
-                      return (
-                        <div
-                          key={ingredient.id}
-                          className={`${styles.customizationItem} ${isSelected ? styles.selected : ''} ${styles.disabled}`}
-                        >
-                          <label className={styles.itemLabel}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => handleIngredientToggle(ingredient)}
-                              disabled={true}
-                              className={styles.checkbox}
-                            />
-                            <div className={styles.itemInfo}>
-                              <span className={styles.itemName}>
-                                {getIngredientName(ingredient)}
-                              </span>
-                              {ingredient.price > 0 && !ingredient.isIncludedInBasePrice && (
-                                <span className={styles.itemPrice}>
-                                  +CHF {ingredient.price.toFixed(2)}
-                                </span>
-                              )}
-                            </div>
-                          </label>
+                        return (
+                          <div
+                            key={ingredient.id}
+                            className={`${styles.customizationItem} ${isSelected ? styles.selected : ''} ${styles.disabled}`}
+                          >
+                            <label className={styles.itemLabel}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleIngredientToggle(ingredient)}
+                                disabled={true}
+                                className={styles.checkbox}
+                              />
+                              <div className={styles.itemInfo}>
+                                <span className={styles.itemName}>{getIngredientName(ingredient)}</span>
+                                {ingredient.price > 0 && !ingredient.isIncludedInBasePrice && (
+                                  <span className={styles.itemPrice}>+CHF {ingredient.price.toFixed(2)}</span>
+                                )}
+                              </div>
+                            </label>
 
-                          {showQuantity && (
-                            <div className={styles.quantityControl}>
-                              <button
-                                onClick={() => handleIngredientQuantityChange(ingredient.id, -1)}
-                                disabled={quantity <= 1}
-                                className={styles.quantityButton}
-                              >
-                                −
-                              </button>
-                              <span className={styles.quantity}>{quantity}</span>
-                              <button
-                                onClick={() => handleIngredientQuantityChange(ingredient.id, 1)}
-                                disabled={quantity >= ingredient.maxQuantity}
-                                className={styles.quantityButton}
-                              >
-                                +
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            {showQuantity && (
+                              <div className={styles.quantityControl}>
+                                <button
+                                  onClick={() => handleIngredientQuantityChange(ingredient.id, -1)}
+                                  disabled={quantity <= 1}
+                                  className={styles.quantityButton}
+                                >
+                                  −
+                                </button>
+                                <span className={styles.quantity}>{quantity}</span>
+                                <button
+                                  onClick={() => handleIngredientQuantityChange(ingredient.id, 1)}
+                                  disabled={quantity >= ingredient.maxQuantity}
+                                  className={styles.quantityButton}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
 
               {/* Optional Ingredients */}
-              {detailedIngredients.filter(ing => ing.isOptional).length > 0 && (
+              {detailedIngredients.filter((ing) => ing.isOptional).length > 0 && (
                 <div className={styles.ingredientGroup}>
                   <h5 className={styles.groupTitle}>{t('ingredient_optional')}</h5>
                   <div className={styles.itemsList}>
-                    {detailedIngredients.filter(ing => ing.isOptional).map(ingredient => {
-                      const isSelected = selectedIngredients.has(ingredient.id);
-                      const quantity = ingredientQuantities[ingredient.id] || 1;
-                      const showQuantity = isSelected && ingredient.maxQuantity > 1;
+                    {detailedIngredients
+                      .filter((ing) => ing.isOptional)
+                      .map((ingredient) => {
+                        const isSelected = selectedIngredients.has(ingredient.id);
+                        const quantity = ingredientQuantities[ingredient.id] || 1;
+                        const showQuantity = isSelected && ingredient.maxQuantity > 1;
 
-                      return (
-                        <div
-                          key={ingredient.id}
-                          className={`${styles.customizationItem} ${isSelected ? styles.selected : ''}`}
-                        >
-                          <label className={styles.itemLabel}>
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => handleIngredientToggle(ingredient)}
-                              className={styles.checkbox}
-                            />
-                            <div className={styles.itemInfo}>
-                              <span className={styles.itemName}>
-                                {getIngredientName(ingredient)}
-                              </span>
-                              {ingredient.price > 0 && (
-                                <span className={styles.itemPrice}>
-                                  {ingredient.isIncludedInBasePrice
-                                    ? isSelected
-                                      ? quantity > 1
-                                        ? `+CHF ${(ingredient.price * (quantity - 1)).toFixed(2)}` // Show extra cost when quantity > 1
-                                        : "" // Quantity 1 is already in base price
-                                      : `-CHF ${ingredient.price.toFixed(2)}` // Deducted when deselected
-                                    : `+CHF ${(ingredient.price * quantity).toFixed(2)}`} {/* Added when selected */}
-                                </span>
-                              )}
-                            </div>
-                          </label>
+                        return (
+                          <div
+                            key={ingredient.id}
+                            className={`${styles.customizationItem} ${isSelected ? styles.selected : ''}`}
+                          >
+                            <label className={styles.itemLabel}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleIngredientToggle(ingredient)}
+                                className={styles.checkbox}
+                              />
+                              <div className={styles.itemInfo}>
+                                <span className={styles.itemName}>{getIngredientName(ingredient)}</span>
+                                {ingredient.price > 0 && (
+                                  <span className={styles.itemPrice}>
+                                    {ingredient.isIncludedInBasePrice
+                                      ? isSelected
+                                        ? quantity > 1
+                                          ? `+CHF ${(ingredient.price * (quantity - 1)).toFixed(2)}` // Show extra cost when quantity > 1
+                                          : '' // Quantity 1 is already in base price
+                                        : `-CHF ${ingredient.price.toFixed(2)}` // Deducted when deselected
+                                      : `+CHF ${(ingredient.price * quantity).toFixed(2)}`}{' '}
+                                    {/* Added when selected */}
+                                  </span>
+                                )}
+                              </div>
+                            </label>
 
-                          {showQuantity && (
-                            <div className={styles.quantityControl}>
-                              <button
-                                onClick={() => handleIngredientQuantityChange(ingredient.id, -1)}
-                                disabled={quantity <= 1}
-                                className={styles.quantityButton}
-                              >
-                                −
-                              </button>
-                              <span className={styles.quantity}>{quantity}</span>
-                              <button
-                                onClick={() => handleIngredientQuantityChange(ingredient.id, 1)}
-                                disabled={quantity >= ingredient.maxQuantity}
-                                className={styles.quantityButton}
-                              >
-                                +
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            {showQuantity && (
+                              <div className={styles.quantityControl}>
+                                <button
+                                  onClick={() => handleIngredientQuantityChange(ingredient.id, -1)}
+                                  disabled={quantity <= 1}
+                                  className={styles.quantityButton}
+                                >
+                                  −
+                                </button>
+                                <span className={styles.quantity}>{quantity}</span>
+                                <button
+                                  onClick={() => handleIngredientQuantityChange(ingredient.id, 1)}
+                                  disabled={quantity >= ingredient.maxQuantity}
+                                  className={styles.quantityButton}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -365,7 +360,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
             <div className={styles.section}>
               <h4>{t('side_items')}</h4>
               <div className={styles.itemsList}>
-                {suggestedSideItems.map(sideItem => {
+                {suggestedSideItems.map((sideItem) => {
                   const isSelected = selectedSideItems.has(sideItem.id);
                   const quantity = selectedSideItems.get(sideItem.id) || 1;
 
@@ -381,13 +376,9 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
                         <div className={styles.itemInfo}>
                           <span className={styles.itemName}>
                             {sideItem.sideItemProductName}
-                            {sideItem.isRequired && (
-                              <span className={styles.requiredBadge}>{t('required')}</span>
-                            )}
+                            {sideItem.isRequired && <span className={styles.requiredBadge}>{t('required')}</span>}
                           </span>
-                          <span className={styles.itemPrice}>
-                            +CHF {sideItem.sideItemBasePrice.toFixed(2)}
-                          </span>
+                          <span className={styles.itemPrice}>+CHF {sideItem.sideItemBasePrice.toFixed(2)}</span>
                         </div>
                       </label>
 

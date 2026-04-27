@@ -24,11 +24,7 @@ interface OrderTypeSectionProps {
   deliveryAddress?: DeliveryAddress;
 }
 
-export default function OrderTypeSection({
-  orderType,
-  tableNumber,
-  deliveryAddress,
-}: OrderTypeSectionProps) {
+export default function OrderTypeSection({ orderType, tableNumber, deliveryAddress }: OrderTypeSectionProps) {
   const { t } = useTranslation();
   const router = useRouter();
 
@@ -39,10 +35,7 @@ export default function OrderTypeSection({
           <ShoppingBag size={20} />
           {t('order_details', 'Order Details')}
         </h2>
-        <button
-          onClick={() => router.push('/checkout/order-type')}
-          className={styles.editButton}
-        >
+        <button onClick={() => router.push('/checkout/order-type')} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>
@@ -67,7 +60,9 @@ export default function OrderTypeSection({
             <MapPin size={18} className={styles.addressIcon} />
             <div>
               <p>{deliveryAddress.street}</p>
-              <p>{deliveryAddress.postalCode} {deliveryAddress.city}</p>
+              <p>
+                {deliveryAddress.postalCode} {deliveryAddress.city}
+              </p>
               <p>{deliveryAddress.country}</p>
               {deliveryAddress.additionalInfo && (
                 <p className={styles.additionalInfo}>{deliveryAddress.additionalInfo}</p>

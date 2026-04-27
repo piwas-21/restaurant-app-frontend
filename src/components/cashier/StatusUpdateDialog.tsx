@@ -91,9 +91,7 @@ export default function StatusUpdateDialog({
 
         <div className="modal-body">
           <div className="form-group">
-            <label className="form-label">
-              {t('cashier.current_status') || 'Current Status'}
-            </label>
+            <label className="form-label">{t('cashier.current_status') || 'Current Status'}</label>
             <div className="status-display">
               <span className={`status-badge status-${order.status?.toLowerCase()}`}>
                 {t(`order.status.${order.status}`) || order.status}
@@ -103,9 +101,7 @@ export default function StatusUpdateDialog({
 
           {availableStatuses.length > 0 ? (
             <div className="form-group">
-              <label className="form-label">
-                {t('cashier.new_status') || 'New Status'}
-              </label>
+              <label className="form-label">{t('cashier.new_status') || 'New Status'}</label>
               <div className="status-options">
                 {availableStatuses.map((status) => (
                   <button
@@ -134,11 +130,7 @@ export default function StatusUpdateDialog({
           <button className="btn btn-secondary" onClick={onClose} disabled={isLoading}>
             {t('common.cancel') || 'Cancel'}
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleConfirm}
-            disabled={!selectedStatus || isLoading}
-          >
+          <button className="btn btn-primary" onClick={handleConfirm} disabled={!selectedStatus || isLoading}>
             {isLoading ? t('common.loading') || 'Loading...' : t('common.confirm') || 'Confirm'}
           </button>
         </div>

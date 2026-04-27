@@ -121,15 +121,15 @@
   transform: translateY(0);
 }
 
-[data-theme="dark"] .modalContent {
+[data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .modalTitle {
+[data-theme='dark'] .modalTitle {
   color: var(--text-color, #e0e0e0);
 }
 
-[data-theme="dark"] .successMessage {
+[data-theme='dark'] .successMessage {
   color: var(--text-secondary, #b0b0b0);
 }
 

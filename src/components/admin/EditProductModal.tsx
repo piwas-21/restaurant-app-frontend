@@ -18,12 +18,7 @@ import { SuggestedSideItemsPicker } from './product/SuggestedSideItemsPicker';
 import { ProductIngredientsManager } from './product/ProductIngredientsManager';
 import { submitEditProductForm } from './product/productFormUtils';
 
-const EditProductModal: React.FC<EditProductModalProps> = ({
-  isOpen,
-  onClose,
-  onProductUpdated,
-  product
-}) => {
+const EditProductModal: React.FC<EditProductModalProps> = ({ isOpen, onClose, onProductUpdated, product }) => {
   const { t, i18n } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -58,16 +53,24 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       primaryCategoryId: '',
       preparationTimeMinutes: 0,
       suggestedSideItemIds: [],
-    }
+    },
   });
 
-  const { fields: variationFields, append: appendVariation, remove: removeVariation } = useFieldArray({
+  const {
+    fields: variationFields,
+    append: appendVariation,
+    remove: removeVariation,
+  } = useFieldArray({
     control,
-    name: 'variations'
+    name: 'variations',
   });
-  const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({
+  const {
+    fields: contentFields,
+    append: appendContent,
+    remove: removeContent,
+  } = useFieldArray({
     control,
-    name: 'content'
+    name: 'content',
   });
 
   const selectedCategoryIds = watch('categoryIds', []);
@@ -76,7 +79,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const fetchAllCategories = async () => {
-        const response = await getCategories() as { success: boolean; data?: { items: any[] } };
+        const response = (await getCategories()) as { success: boolean; data?: { items: any[] } };
         if (response.success) setCategories(response.data?.items || []);
       };
       fetchAllCategories();
@@ -89,13 +92,16 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
   useEffect(() => {
     if (product) {
-      const flattenedContent = product.content ? Object.entries(product.content).map(([lang, data]: [string, any]) => ({
-        language: lang,
-        name: data.name,
-        description: data.description,
-      })) : [];
+      const flattenedContent = product.content
+        ? Object.entries(product.content).map(([lang, data]: [string, any]) => ({
+            language: lang,
+            name: data.name,
+            description: data.description,
+          }))
+        : [];
 
-      const safeCategoryIds = (product.categories?.map((c: any) => c.categoryId).filter((x: any) => !!x) || []) as string[];
+      const safeCategoryIds = (product.categories?.map((c: any) => c.categoryId).filter((x: any) => !!x) ||
+        []) as string[];
 
       // Extract IDs from suggestedSideItems array
       const sideItemIds = Array.isArray(product.suggestedSideItems)
@@ -238,19 +244,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           </div>
 
           <div className={modalStyles.buttonGroup}>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={modalStyles.submitButton}
-            >
+            <button type="submit" disabled={isSubmitting} className={modalStyles.submitButton}>
               {isSubmitting ? t('updating...') : t('update_product')}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className={modalStyles.cancelButton}
-              disabled={isSubmitting}
-            >
+            <button type="button" onClick={onClose} className={modalStyles.cancelButton} disabled={isSubmitting}>
               {t('cancel')}
             </button>
           </div>

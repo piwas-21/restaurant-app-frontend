@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
-import styles from "@/AuthPage.module.css";
+import styles from '@/AuthPage.module.css';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { login as loginUser, sendEmailVerification } from '@/authService';
@@ -12,12 +12,12 @@ import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 export default function LoginPage() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [resendMessage, setResendMessage] = useState("");
+  const [resendMessage, setResendMessage] = useState('');
   const emailInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { login } = useAuth();
@@ -28,12 +28,14 @@ export default function LoginPage() {
 
   const handleResendVerification = async () => {
     setResendLoading(true);
-    setResendMessage("");
+    setResendMessage('');
 
     try {
       const response = await sendEmailVerification({ email });
       if (response?.success || response?.succeeded) {
-        setResendMessage(t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'));
+        setResendMessage(
+          t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'),
+        );
       } else {
         setResendMessage(t('resend_failed', 'Failed to resend email. Please try again later.'));
       }
@@ -41,15 +43,15 @@ export default function LoginPage() {
       setResendMessage(t('resend_error', 'An error occurred. Please try again.'));
     } finally {
       setResendLoading(false);
-      setTimeout(() => setResendMessage(""), 5000);
+      setTimeout(() => setResendMessage(''), 5000);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setNeedsVerification(false);
-    setResendMessage("");
+    setResendMessage('');
 
     if (!email || !password) {
       setError(t('email_and_password_required', 'Email and password are required.'));
@@ -64,32 +66,38 @@ export default function LoginPage() {
         const userRole = response.data.role.toLowerCase();
 
         switch (userRole) {
-          case "admin":
-            router.push("/admin/dashboard");
+          case 'admin':
+            router.push('/admin/dashboard');
             break;
-          case "customer":
-            router.push("/account");
+          case 'customer':
+            router.push('/account');
             break;
-          case "cashier":
-            router.push("/cashier");
+          case 'cashier':
+            router.push('/cashier');
             break;
-          case "kitchenstaff":
-            router.push("/kitchen-staff");
+          case 'kitchenstaff':
+            router.push('/kitchen-staff');
             break;
-          case "server":
-            router.push("/server");
+          case 'server':
+            router.push('/server');
             break;
           default:
-            router.push("/");
+            router.push('/');
             break;
         }
       } else {
         // Check if it's an email verification error
-        if (response.message?.toLowerCase().includes('verify') ||
-            response.message?.toLowerCase().includes('verification') ||
-            response.errors?.[0]?.toLowerCase().includes('verify')) {
+        if (
+          response.message?.toLowerCase().includes('verify') ||
+          response.message?.toLowerCase().includes('verification') ||
+          response.errors?.[0]?.toLowerCase().includes('verify')
+        ) {
           setNeedsVerification(true);
-          setError(response.errors?.[0] || response.message || t('email_verification_required', 'Please verify your email address before logging in.'));
+          setError(
+            response.errors?.[0] ||
+              response.message ||
+              t('email_verification_required', 'Please verify your email address before logging in.'),
+          );
         } else {
           setError(response.message || t('unknown_error', 'An unknown error occurred.'));
         }
@@ -110,11 +118,13 @@ export default function LoginPage() {
               {needsVerification && (
                 <div style={{ marginTop: '1rem' }}>
                   {resendMessage && (
-                    <p style={{
-                      color: resendMessage.includes('resent') ? '#10b981' : '#ef4444',
-                      fontSize: '0.9rem',
-                      marginBottom: '0.75rem'
-                    }}>
+                    <p
+                      style={{
+                        color: resendMessage.includes('resent') ? '#10b981' : '#ef4444',
+                        fontSize: '0.9rem',
+                        marginBottom: '0.75rem',
+                      }}
+                    >
                       {resendMessage}
                     </p>
                   )}
@@ -135,11 +145,13 @@ export default function LoginPage() {
                       opacity: resendLoading ? 0.6 : 1,
                       fontSize: '0.95rem',
                       fontWeight: 600,
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     <Mail size={18} />
-                    {resendLoading ? t('sending', 'Sending...') : t('resend_verification_email', 'Resend Verification Email')}
+                    {resendLoading
+                      ? t('sending', 'Sending...')
+                      : t('resend_verification_email', 'Resend Verification Email')}
                   </button>
                 </div>
               )}
@@ -172,10 +184,13 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
           </div>
-          <button type="submit" className={styles.submitButton}>{t('login_button', 'Login')}</button>
+          <button type="submit" className={styles.submitButton}>
+            {t('login_button', 'Login')}
+          </button>
         </form>
         <p className={styles.switchFormText}>
-          {t('dont_have_account_auth', "Don't have an account?")} <Link href="/auth/register">{t('register_here', 'Register here')}</Link>
+          {t('dont_have_account_auth', "Don't have an account?")}{' '}
+          <Link href="/auth/register">{t('register_here', 'Register here')}</Link>
         </p>
         <SocialLoginButtons />
       </div>

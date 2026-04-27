@@ -121,30 +121,28 @@ export default function TablePropertiesSidebar({
       </div>
 
       <div className={styles.formGroup}>
-        <label>{t('position_x', 'Position X: {{x}}px ({{percent}}%)', {
-          x: selectedTable.positionX.toFixed(1),
-          percent: ((selectedTable.positionX / currentCanvasSize.width) * 100).toFixed(1)
-        })}</label>
+        <label>
+          {t('position_x', 'Position X: {{x}}px ({{percent}}%)', {
+            x: selectedTable.positionX.toFixed(1),
+            percent: ((selectedTable.positionX / currentCanvasSize.width) * 100).toFixed(1),
+          })}
+        </label>
       </div>
 
       <div className={styles.formGroup}>
-        <label>{t('position_y', 'Position Y: {{y}}px ({{percent}}%)', {
-          y: selectedTable.positionY.toFixed(1),
-          percent: ((selectedTable.positionY / currentCanvasSize.height) * 100).toFixed(1)
-        })}</label>
+        <label>
+          {t('position_y', 'Position Y: {{y}}px ({{percent}}%)', {
+            y: selectedTable.positionY.toFixed(1),
+            percent: ((selectedTable.positionY / currentCanvasSize.height) * 100).toFixed(1),
+          })}
+        </label>
       </div>
 
       <div className={styles.formGroup} style={{ marginTop: '1.5rem' }}>
-        <button
-          onClick={onViewQRCode}
-          className={styles.qrButton}
-        >
+        <button onClick={onViewQRCode} className={styles.qrButton}>
           📱 {t('view_qr_code', 'View QR Code')}
         </button>
-        <button
-          onClick={onDeleteTable}
-          className={styles.deleteButton}
-        >
+        <button onClick={onDeleteTable} className={styles.deleteButton}>
           {t('delete_table', 'Delete Table')}
         </button>
       </div>

@@ -39,7 +39,9 @@ export function useServerOrders(): UseServerOrdersReturn {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastEventTime, setLastEventTime] = useState<Date | null>(null);
-  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>(
+    'disconnected',
+  );
 
   // Refs for stable references across renders
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -70,7 +72,7 @@ export function useServerOrders(): UseServerOrdersReturn {
           setOrders((prev) => {
             const newOrders = [...prev];
             for (const order of result.items) {
-              const existingIndex = newOrders.findIndex(o => o.id === order.id);
+              const existingIndex = newOrders.findIndex((o) => o.id === order.id);
               if (existingIndex >= 0) {
                 newOrders[existingIndex] = order;
               } else {
@@ -215,7 +217,7 @@ export function useServerOrders(): UseServerOrdersReturn {
           if (newOrder.type === 'DineIn') {
             console.log('📦 Server SSE: New dine-in order:', newOrder.orderNumber);
             setOrders((prev) => {
-              if (prev.some(o => o.id === newOrder.id)) {
+              if (prev.some((o) => o.id === newOrder.id)) {
                 return prev;
               }
               return [newOrder, ...prev];
@@ -241,9 +243,7 @@ export function useServerOrders(): UseServerOrdersReturn {
           const orderId = data.orderId || data.order?.id;
           console.log('📝 Server SSE: Order status changed:', orderId, '→', data.order?.status);
           setOrders((prev) =>
-            prev.map((order) =>
-              order.id === orderId ? (data.order || { ...order, ...data }) : order
-            )
+            prev.map((order) => (order.id === orderId ? data.order || { ...order, ...data } : order)),
           );
           // Refresh tables to update status
           refreshTables();
@@ -264,11 +264,7 @@ export function useServerOrders(): UseServerOrdersReturn {
           const data = JSON.parse(event.data);
           const orderId = data.orderId || data.order?.id;
           setOrders((prev) =>
-            prev.map((order) =>
-              order.id === orderId
-                ? { ...order, status: 'Completed', ...data.order }
-                : order
-            )
+            prev.map((order) => (order.id === orderId ? { ...order, status: 'Completed', ...data.order } : order)),
           );
           refreshTables();
 
@@ -295,7 +291,7 @@ export function useServerOrders(): UseServerOrdersReturn {
         if (reconnectAttemptRef.current < maxReconnectAttempts) {
           reconnectAttemptRef.current += 1;
           const backoffMs = Math.min(1000 * Math.pow(1.5, reconnectAttemptRef.current), 30000);
-          console.warn(`🔄 Server SSE: Reconnecting in ${Math.round(backoffMs/1000)}s`);
+          console.warn(`🔄 Server SSE: Reconnecting in ${Math.round(backoffMs / 1000)}s`);
 
           reconnectTimeoutRef.current = setTimeout(() => {
             if (isMountedRef.current) {
@@ -331,7 +327,6 @@ export function useServerOrders(): UseServerOrdersReturn {
           }
         }
       }, HEALTH_CHECK_INTERVAL_MS);
-
     } catch (err) {
       console.error('Error connecting to SSE:', err);
       if (isMountedRef.current) {
@@ -441,7 +436,7 @@ export function useServerOrders(): UseServerOrdersReturn {
               return mergedOrder;
             }
             return order;
-          })
+          }),
         );
         // Refresh tables to update status
         await refreshTables();
@@ -452,7 +447,7 @@ export function useServerOrders(): UseServerOrdersReturn {
         throw err;
       }
     },
-    [refreshTables]
+    [refreshTables],
   );
 
   /**
@@ -460,11 +455,9 @@ export function useServerOrders(): UseServerOrdersReturn {
    */
   const getOrdersForTable = useCallback(
     (tableNumber: string) => {
-      return orders.filter(
-        order => order.tableNumber?.toString() === tableNumber
-      );
+      return orders.filter((order) => order.tableNumber?.toString() === tableNumber);
     },
-    [orders]
+    [orders],
   );
 
   return {

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +29,7 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
       if (page === 1) {
         setTransactions(data);
       } else {
-        setTransactions(prev => [...prev, ...data]);
+        setTransactions((prev) => [...prev, ...data]);
       }
 
       // Check if there are more pages
@@ -51,7 +51,7 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
   }, [isOpen, page]);
 
   const loadMore = () => {
-    setPage(prev => prev + 1);
+    setPage((prev) => prev + 1);
   };
 
   const formatDate = (dateString: string) => {
@@ -90,14 +90,8 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>
-            {t('points_history', 'Points History')}
-          </h2>
-          <button
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label={t('close', 'Close')}
-          >
+          <h2 className={styles.modalTitle}>{t('points_history', 'Points History')}</h2>
+          <button className={styles.closeButton} onClick={onClose} aria-label={t('close', 'Close')}>
             ×
           </button>
         </div>
@@ -131,39 +125,28 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
                       transaction.points > 0 ? styles.positive : styles.negative
                     }`}
                   >
-                    <div className={styles.transactionIcon}>
-                      {getTransactionIcon(transaction.transactionType)}
-                    </div>
+                    <div className={styles.transactionIcon}>{getTransactionIcon(transaction.transactionType)}</div>
                     <div className={styles.transactionDetails}>
                       <div className={styles.transactionHeader}>
                         <span className={styles.transactionType}>
-                          {fidelityPointsService.getTransactionTypeLabel(
-                            transaction.transactionType
-                          )}
+                          {fidelityPointsService.getTransactionTypeLabel(transaction.transactionType)}
                         </span>
                         <span
                           className={`${styles.transactionPoints} ${
-                            transaction.points > 0
-                              ? styles.pointsPositive
-                              : styles.pointsNegative
+                            transaction.points > 0 ? styles.pointsPositive : styles.pointsNegative
                           }`}
                         >
                           {transaction.points > 0 ? '+' : ''}
                           {transaction.points.toLocaleString()}
                         </span>
                       </div>
-                      <p className={styles.transactionDescription}>
-                        {transaction.description}
-                      </p>
+                      <p className={styles.transactionDescription}>{transaction.description}</p>
                       {transaction.orderTotal && (
                         <p className={styles.transactionOrderTotal}>
-                          {t('order_total', 'Order Total')}: $
-                          {transaction.orderTotal.toFixed(2)}
+                          {t('order_total', 'Order Total')}: ${transaction.orderTotal.toFixed(2)}
                         </p>
                       )}
-                      <p className={styles.transactionDate}>
-                        {formatDate(transaction.createdAt)}
-                      </p>
+                      <p className={styles.transactionDate}>{formatDate(transaction.createdAt)}</p>
                     </div>
                   </div>
                 ))}
@@ -171,14 +154,8 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
 
               {hasMore && (
                 <div className={styles.loadMoreContainer}>
-                  <button
-                    onClick={loadMore}
-                    disabled={loading}
-                    className={styles.loadMoreButton}
-                  >
-                    {loading
-                      ? t('loading', 'Loading...')
-                      : t('load_more', 'Load More')}
+                  <button onClick={loadMore} disabled={loading} className={styles.loadMoreButton}>
+                    {loading ? t('loading', 'Loading...') : t('load_more', 'Load More')}
                   </button>
                 </div>
               )}

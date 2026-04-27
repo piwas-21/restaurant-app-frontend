@@ -11,7 +11,10 @@ export const useTableHelpers = () => {
    */
   const getShapeLabel = (shape: string | undefined): string => {
     const normalizedShape = (shape || 'circle').toLowerCase();
-    return t(normalizedShape, normalizedShape === 'circle' ? 'Circle' : normalizedShape === 'square' ? 'Square' : 'Rectangle');
+    return t(
+      normalizedShape,
+      normalizedShape === 'circle' ? 'Circle' : normalizedShape === 'square' ? 'Square' : 'Rectangle',
+    );
   };
 
   /**

@@ -9,7 +9,7 @@ import {
   AvailableTimeSlotsDto,
   ReservationStatus,
   ApiResponse,
-  PagedResult
+  PagedResult,
 } from '@/types/reservation';
 
 // Helper function to map string status from API to enum
@@ -19,11 +19,11 @@ function mapStatusToEnum(status: string | ReservationStatus): ReservationStatus 
   }
 
   const statusMap: Record<string, ReservationStatus> = {
-    'Pending': ReservationStatus.Pending,
-    'Confirmed': ReservationStatus.Confirmed,
-    'Cancelled': ReservationStatus.Cancelled,
-    'Completed': ReservationStatus.Completed,
-    'NoShow': ReservationStatus.NoShow,
+    Pending: ReservationStatus.Pending,
+    Confirmed: ReservationStatus.Confirmed,
+    Cancelled: ReservationStatus.Cancelled,
+    Completed: ReservationStatus.Completed,
+    NoShow: ReservationStatus.NoShow,
     'No-Show': ReservationStatus.NoShow,
   };
 
@@ -88,48 +88,52 @@ export const reservationService = {
     if (params?.page) queryParams.append('page', String(params.page));
     if (params?.pageSize) queryParams.append('pageSize', String(params.pageSize));
 
-    const response = await apiClient.get<ApiResponse<PagedResult<any>>>(
-      `/api/reservations?${queryParams}`
-    );
+    const response = await apiClient.get<ApiResponse<PagedResult<any>>>(`/api/reservations?${queryParams}`);
 
     // Map string status to enum values
     const data = response.data;
     if (data && data.items) {
       data.items = data.items.map((item: any) => ({
         ...item,
-        status: mapStatusToEnum(item.status)
+        status: mapStatusToEnum(item.status),
       }));
     }
 
-    return data || {
-      items: [],
-      totalCount: 0,
-      page: 1,
-      pageSize: 50,
-      totalPages: 0
-    };
+    return (
+      data || {
+        items: [],
+        totalCount: 0,
+        page: 1,
+        pageSize: 50,
+        totalPages: 0,
+      }
+    );
   },
 
-  async getAvailableTimeSlots(date: string, numberOfGuests: number): Promise<{
+  async getAvailableTimeSlots(
+    date: string,
+    numberOfGuests: number,
+  ): Promise<{
     data: AvailableTimeSlotsDto | null;
     error?: string;
     isCapacityIssue?: boolean;
   }> {
     const params = new URLSearchParams({
       date: date,
-      numberOfGuests: String(numberOfGuests)
+      numberOfGuests: String(numberOfGuests),
     });
 
     try {
       const response = await apiClient.get<ApiResponse<AvailableTimeSlotsDto>>(
-        `/api/reservations/available-slots?${params}`
+        `/api/reservations/available-slots?${params}`,
       );
 
       if (!response.success || !response.data) {
         // Check errors array first, then message, then fallback
-        const errorMessage = response.errors && response.errors.length > 0
-          ? response.errors[0]
-          : response.message || 'Failed to fetch available time slots';
+        const errorMessage =
+          response.errors && response.errors.length > 0
+            ? response.errors[0]
+            : response.message || 'Failed to fetch available time slots';
 
         // Check if it's a capacity issue (expected scenario)
         const isCapacityIssue = errorMessage.toLowerCase().includes('no tables available for');
@@ -137,7 +141,7 @@ export const reservationService = {
         return {
           data: null,
           error: errorMessage,
-          isCapacityIssue
+          isCapacityIssue,
         };
       }
 
@@ -158,7 +162,7 @@ export const reservationService = {
     // Map string status to enum
     return {
       ...response.data,
-      status: mapStatusToEnum(response.data.status)
+      status: mapStatusToEnum(response.data.status),
     };
   },
 
@@ -171,7 +175,7 @@ export const reservationService = {
     // Map string status to enum
     return {
       ...response.data,
-      status: mapStatusToEnum(response.data.status)
+      status: mapStatusToEnum(response.data.status),
     };
   },
 
@@ -224,7 +228,7 @@ export const reservationService = {
       [ReservationStatus.Confirmed]: 'Confirmed',
       [ReservationStatus.Cancelled]: 'Cancelled',
       [ReservationStatus.Completed]: 'Completed',
-      [ReservationStatus.NoShow]: 'No Show'
+      [ReservationStatus.NoShow]: 'No Show',
     };
     return labels[status] || 'Unknown';
   },
@@ -235,8 +239,8 @@ export const reservationService = {
       [ReservationStatus.Confirmed]: '#10b981',
       [ReservationStatus.Cancelled]: '#ef4444',
       [ReservationStatus.Completed]: '#6b7280',
-      [ReservationStatus.NoShow]: '#ef4444'
+      [ReservationStatus.NoShow]: '#ef4444',
     };
     return colors[status];
-  }
+  },
 };

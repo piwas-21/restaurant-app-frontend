@@ -18,7 +18,7 @@ const SOUND_OPTIONS = [
   { value: 'bell' as const, label: 'Bell', desc: 'Loud & Long' },
   { value: 'ping' as const, label: 'Ping', desc: 'Soft & Short' },
   { value: 'alert' as const, label: 'Alert', desc: 'Loud & Short' },
-  { value: 'melody' as const, label: 'Melody', desc: 'Soft & Long' }
+  { value: 'melody' as const, label: 'Melody', desc: 'Soft & Long' },
 ];
 
 export default function SoundSelector({
@@ -28,7 +28,7 @@ export default function SoundSelector({
   onSoundTypeChange,
   onTestSound,
   repeatUntilMouseMoves,
-  onToggleRepeat
+  onToggleRepeat,
 }: SoundSelectorProps) {
   const { t } = useTranslation();
 
@@ -36,9 +36,7 @@ export default function SoundSelector({
 
   return (
     <div className={styles.dropdown}>
-      <div className={styles.header}>
-        {t('select_notification_sound') || 'Select Notification Sound'}
-      </div>
+      <div className={styles.header}>{t('select_notification_sound') || 'Select Notification Sound'}</div>
 
       {SOUND_OPTIONS.map((sound) => (
         <div
@@ -50,12 +48,8 @@ export default function SoundSelector({
           }}
         >
           <div>
-            <div className={styles.soundLabel}>
-              {sound.label}
-            </div>
-            <div className={styles.soundDesc}>
-              {sound.desc}
-            </div>
+            <div className={styles.soundLabel}>{sound.label}</div>
+            <div className={styles.soundDesc}>{sound.desc}</div>
           </div>
           <button
             onClick={(e) => {
@@ -78,9 +72,7 @@ export default function SoundSelector({
           <div className={styles.repeatContent}>
             <div className={styles.repeatTitle}>
               <span className={styles.repeatIcon}>🔁</span>
-              <span>
-                {t('repeat_until_mouse_moves') || 'Repeat until mouse moves'}
-              </span>
+              <span>{t('repeat_until_mouse_moves') || 'Repeat until mouse moves'}</span>
             </div>
             <div className={styles.repeatDesc}>
               {t('repeat_sound_desc') || 'Keeps playing until you return to the desk'}

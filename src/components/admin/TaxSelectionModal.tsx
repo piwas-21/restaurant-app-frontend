@@ -20,7 +20,7 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
   onClose,
   onSelectTax,
   currentOrderType,
-  currentTaxId
+  currentTaxId,
 }) => {
   const { t } = useTranslation();
   const [taxConfigurations, setTaxConfigurations] = useState<TaxConfiguration[]>([]);
@@ -34,10 +34,7 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
 
       // Filter taxes that apply to the current order type and are enabled
       const applicableTaxes = allTaxes.filter(
-        (tax) =>
-          tax.isEnabled &&
-          tax.applicableOrderTypes &&
-          tax.applicableOrderTypes.includes(currentOrderType)
+        (tax) => tax.isEnabled && tax.applicableOrderTypes && tax.applicableOrderTypes.includes(currentOrderType),
       );
 
       setTaxConfigurations(applicableTaxes);
@@ -109,8 +106,14 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
           ) : taxConfigurations.length === 0 ? (
             <div className={styles.emptyState}>
               <DollarSign size={48} />
-              <p>{t('no_tax_configurations_for_order_type', 'No tax configurations available for {{orderType}}', { orderType: getOrderTypeLabel(currentOrderType) })}</p>
-              <small>{t('create_tax_configuration_admin_panel', 'Please create a tax configuration in the admin panel')}</small>
+              <p>
+                {t('no_tax_configurations_for_order_type', 'No tax configurations available for {{orderType}}', {
+                  orderType: getOrderTypeLabel(currentOrderType),
+                })}
+              </p>
+              <small>
+                {t('create_tax_configuration_admin_panel', 'Please create a tax configuration in the admin panel')}
+              </small>
             </div>
           ) : (
             <>
@@ -122,7 +125,9 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
                 >
                   <div className={styles.taxInfo}>
                     <h3 className={styles.taxName}>{t('no_tax', 'No Tax')}</h3>
-                    <p className={styles.taxDescription}>{t('no_tax_description', 'Do not apply any tax to this order')}</p>
+                    <p className={styles.taxDescription}>
+                      {t('no_tax_description', 'Do not apply any tax to this order')}
+                    </p>
                   </div>
                   <div className={styles.taxRate}>0.00%</div>
                   {selectedTaxId === null && (
@@ -166,11 +171,7 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
           <button onClick={onClose} className={styles.cancelButton}>
             {t('cancel', 'Cancel')}
           </button>
-          <button
-            onClick={handleConfirm}
-            className={styles.confirmButton}
-            disabled={loading}
-          >
+          <button onClick={handleConfirm} className={styles.confirmButton} disabled={loading}>
             {t('confirm_selection', 'Confirm Selection')}
           </button>
         </div>

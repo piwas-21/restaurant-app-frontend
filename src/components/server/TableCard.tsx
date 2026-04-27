@@ -79,18 +79,14 @@ export default function TableCard({ table, isSelected, onClick }: TableCardProps
         <div className={styles.orderCount}>
           <span className={styles.orderBadge}>{table.orderCount}</span>
           <span className={styles.orderLabel}>
-            {table.orderCount === 1
-              ? t('server.order', 'order')
-              : t('server.orders', 'orders')}
+            {table.orderCount === 1 ? t('server.order', 'order') : t('server.orders', 'orders')}
           </span>
         </div>
       )}
 
       {table.upcomingReservation && table.status === 'reserved' && (
         <div className={styles.reservationInfo}>
-          <span className={styles.reservationTime}>
-            {table.upcomingReservation.startTime.substring(0, 5)}
-          </span>
+          <span className={styles.reservationTime}>{table.upcomingReservation.startTime.substring(0, 5)}</span>
           <span className={styles.reservationGuests}>
             {table.upcomingReservation.numberOfGuests} {t('server.guests', 'guests')}
           </span>

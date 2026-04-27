@@ -48,8 +48,8 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
     if (isOpen) {
       // Initialize with default selections
       const defaults = new Map<string, SelectedMenuOption[]>();
-      menuDefinition.sections.forEach(section => {
-        const defaultItems = section.items.filter(item => item.isDefault);
+      menuDefinition.sections.forEach((section) => {
+        const defaultItems = section.items.filter((item) => item.isDefault);
 
         // Respect maxSelection when initializing defaults
         const itemsToSelect = defaultItems.slice(0, section.maxSelection);
@@ -57,11 +57,11 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
         if (itemsToSelect.length > 0) {
           defaults.set(
             section.id,
-            itemsToSelect.map(item => ({
+            itemsToSelect.map((item) => ({
               sectionId: section.id,
               itemId: item.productId,
               quantity: 1,
-            }))
+            })),
           );
         }
       });
@@ -72,17 +72,19 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
 
   const handleOptionToggle = (section: MenuSection, itemId: string) => {
     const sectionSelections = selectedOptions.get(section.id) || [];
-    const existingIndex = sectionSelections.findIndex(opt => opt.itemId === itemId);
+    const existingIndex = sectionSelections.findIndex((opt) => opt.itemId === itemId);
 
     let newSelections: SelectedMenuOption[];
 
     if (section.maxSelection === 1) {
       // Radio button behavior - replace selection
-      newSelections = [{
-        sectionId: section.id,
-        itemId,
-        quantity: 1,
-      }];
+      newSelections = [
+        {
+          sectionId: section.id,
+          itemId,
+          quantity: 1,
+        },
+      ];
     } else {
       // Checkbox behavior
       if (existingIndex >= 0) {
@@ -91,10 +93,7 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
       } else {
         // Add selection if not at max
         if (sectionSelections.length < section.maxSelection) {
-          newSelections = [
-            ...sectionSelections,
-            { sectionId: section.id, itemId, quantity: 1 },
-          ];
+          newSelections = [...sectionSelections, { sectionId: section.id, itemId, quantity: 1 }];
         } else {
           return; // Max reached, don't add
         }
@@ -117,15 +116,15 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
 
   const isOptionSelected = (sectionId: string, itemId: string): boolean => {
     const sectionSelections = selectedOptions.get(sectionId) || [];
-    return sectionSelections.some(opt => opt.itemId === itemId);
+    return sectionSelections.some((opt) => opt.itemId === itemId);
   };
 
   const calculateTotalPrice = (): number => {
     let total = basePrice;
-    selectedOptions.forEach(sectionSelections => {
-      sectionSelections.forEach(selection => {
-        const section = menuDefinition.sections.find(s => s.id === selection.sectionId);
-        const item = section?.items.find(i => i.productId === selection.itemId);
+    selectedOptions.forEach((sectionSelections) => {
+      sectionSelections.forEach((selection) => {
+        const section = menuDefinition.sections.find((s) => s.id === selection.sectionId);
+        const item = section?.items.find((i) => i.productId === selection.itemId);
         if (item) {
           total += item.additionalPrice * selection.quantity;
 
@@ -145,15 +144,12 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
     const errors = new Map<string, string>();
     let isValid = true;
 
-    menuDefinition.sections.forEach(section => {
+    menuDefinition.sections.forEach((section) => {
       const sectionSelections = selectedOptions.get(section.id) || [];
       const totalQuantity = sectionSelections.reduce((sum, opt) => sum + opt.quantity, 0);
 
       if (section.isRequired && totalQuantity < section.minSelection) {
-        errors.set(
-          section.id,
-          `${t('please_select_at_least')} ${section.minSelection} ${t('options')}`
-        );
+        errors.set(section.id, `${t('please_select_at_least')} ${section.minSelection} ${t('options')}`);
         isValid = false;
       }
     });
@@ -168,8 +164,8 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
     }
 
     const allSelections: SelectedMenuOption[] = [];
-    selectedOptions.forEach(sectionSelections => {
-      sectionSelections.forEach(selection => {
+    selectedOptions.forEach((sectionSelections) => {
+      sectionSelections.forEach((selection) => {
         const customizationKey = `${selection.sectionId}-${selection.itemId}`;
         const customization = itemCustomizations.get(customizationKey);
 
@@ -211,8 +207,8 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
   const getItemForCustomization = () => {
     if (!customizingItem) return null;
 
-    const section = menuDefinition.sections.find(s => s.id === customizingItem.sectionId);
-    const item = section?.items.find(i => i.productId === customizingItem.itemId);
+    const section = menuDefinition.sections.find((s) => s.id === customizingItem.sectionId);
+    const item = section?.items.find((i) => i.productId === customizingItem.itemId);
     return item || null;
   };
 
@@ -236,7 +232,7 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
             <span className={styles.price}>CHF {basePrice.toFixed(2)}</span>
           </div>
 
-          {menuDefinition.sections.map(section => {
+          {menuDefinition.sections.map((section) => {
             const sectionSelections = selectedOptions.get(section.id) || [];
             const totalQuantity = sectionSelections.reduce((sum, opt) => sum + opt.quantity, 0);
             const hasError = validationErrors.has(section.id);
@@ -248,9 +244,7 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                     {section.name}
                     {section.isRequired && <span className={styles.required}>*</span>}
                   </h3>
-                  {section.description && (
-                    <p className={styles.sectionDescription}>{section.description}</p>
-                  )}
+                  {section.description && <p className={styles.sectionDescription}>{section.description}</p>}
                   <p className={styles.selectionInfo}>
                     {section.minSelection === section.maxSelection
                       ? `${t('choose')} ${section.maxSelection}`
@@ -259,17 +253,12 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                   </p>
                 </div>
 
-                {hasError && (
-                  <div className={styles.errorMessage}>{validationErrors.get(section.id)}</div>
-                )}
+                {hasError && <div className={styles.errorMessage}>{validationErrors.get(section.id)}</div>}
 
                 <div className={styles.optionsList}>
-                  {section.items.map(item => {
+                  {section.items.map((item) => {
                     const isSelected = isOptionSelected(section.id, item.productId);
-                    const isDisabled =
-                      !isSelected &&
-                      section.maxSelection > 1 &&
-                      totalQuantity >= section.maxSelection;
+                    const isDisabled = !isSelected && section.maxSelection > 1 && totalQuantity >= section.maxSelection;
 
                     return (
                       <label
@@ -290,16 +279,12 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                           <div className={styles.optionHeader}>
                             <span className={styles.optionName}>{item.productName}</span>
                             {item.additionalPrice > 0 && (
-                              <span className={styles.optionPrice}>
-                                +${item.additionalPrice.toFixed(2)}
-                              </span>
+                              <span className={styles.optionPrice}>+${item.additionalPrice.toFixed(2)}</span>
                             )}
                           </div>
 
                           {getIngredientNames(item) && (
-                            <div className={styles.optionIngredients}>
-                              {getIngredientNames(item)}
-                            </div>
+                            <div className={styles.optionIngredients}>{getIngredientNames(item)}</div>
                           )}
 
                           {item.allergens && item.allergens.length > 0 && (

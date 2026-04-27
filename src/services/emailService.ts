@@ -13,9 +13,7 @@ import { apiClient } from '@/utils/apiClient';
  * @param orderId - Order ID
  * @returns Promise that resolves when emails are sent
  */
-export async function sendOrderConfirmationEmails(
-  orderId: string
-): Promise<void> {
+export async function sendOrderConfirmationEmails(orderId: string): Promise<void> {
   try {
     // eslint-disable-next-line no-console
     console.log('Sending order confirmation emails for order:', orderId);
@@ -23,7 +21,7 @@ export async function sendOrderConfirmationEmails(
     const response = await apiClient.post<{ data: string }>(
       `/api/Orders/${orderId}/send-confirmation-email`,
       {},
-      { requireAuth: false }
+      { requireAuth: false },
     );
 
     // eslint-disable-next-line no-console

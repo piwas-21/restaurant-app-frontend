@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import styles from "./ProductDetailsModal.module.css";
-import type { MenuItem as MenuItemType, DetailedProduct } from "@/types/menu";
-import { useTranslation } from "react-i18next";
-import { getProductById } from "@/services/menuService";
-import AllergenDisplay from "@/components/common/AllergenDisplay";
-import MenuCustomizationModal from "./MenuCustomizationModal";
-import { addItemToBasket } from "@/services/basketService";
-import type { LanguageCode } from "@/components/LanguageSwitcher";
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import styles from './ProductDetailsModal.module.css';
+import type { MenuItem as MenuItemType, DetailedProduct } from '@/types/menu';
+import { useTranslation } from 'react-i18next';
+import { getProductById } from '@/services/menuService';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
+import MenuCustomizationModal from './MenuCustomizationModal';
+import { addItemToBasket } from '@/services/basketService';
+import type { LanguageCode } from '@/components/LanguageSwitcher';
 
 type Props = {
   isOpen: boolean;
@@ -19,7 +19,7 @@ type Props = {
 
 export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
   const { t, i18n } = useTranslation();
-  const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
+  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
   const [detailedProduct, setDetailedProduct] = useState<DetailedProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await getProductById(item.id) as { success: boolean; data?: any; message?: string };
+        const response = (await getProductById(item.id)) as { success: boolean; data?: any; message?: string };
         if (response.success && response.data) {
           setDetailedProduct(response.data);
 
@@ -67,11 +67,11 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
           }
           setSelectedSideItems(defaultSideItems);
         } else {
-          throw new Error(response.message || "Failed to fetch product details");
+          throw new Error(response.message || 'Failed to fetch product details');
         }
       } catch (err: any) {
-        console.error("Failed to fetch product details:", err);
-        setError(err.message || "Failed to load product details");
+        console.error('Failed to fetch product details:', err);
+        setError(err.message || 'Failed to load product details');
         // Fallback to using the item data from the list
         setDetailedProduct(null);
       } finally {
@@ -87,14 +87,18 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
   // Use detailed product data if available, otherwise fallback to menu item data
   const productData = detailedProduct || item;
   const title = detailedProduct
-    ? (detailedProduct.content?.[currentLanguage]?.name || detailedProduct.content?.en?.name || detailedProduct.name)
-    : (item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name);
+    ? detailedProduct.content?.[currentLanguage]?.name || detailedProduct.content?.en?.name || detailedProduct.name
+    : item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
 
   const description = detailedProduct
-    ? (detailedProduct.content?.[currentLanguage]?.description || detailedProduct.content?.en?.description || detailedProduct.description || "")
-    : (item.content?.[currentLanguage]?.description || item.content?.en?.description || item.longDescription || "");
+    ? detailedProduct.content?.[currentLanguage]?.description ||
+      detailedProduct.content?.en?.description ||
+      detailedProduct.description ||
+      ''
+    : item.content?.[currentLanguage]?.description || item.content?.en?.description || item.longDescription || '';
 
-  const price = detailedProduct?.basePrice || (typeof item.price === 'number' ? item.price : parseFloat(item.price as any));
+  const price =
+    detailedProduct?.basePrice || (typeof item.price === 'number' ? item.price : parseFloat(item.price as any));
 
   // Get ingredients from detailedIngredients with multilingual support
   const getIngredients = () => {
@@ -181,7 +185,9 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
   };
 
   const totalPrice = calculateTotalPrice();
-  const hasCustomizations = optionalIngredients.length > 0 || (detailedProduct?.suggestedSideItems && detailedProduct.suggestedSideItems.length > 0);
+  const hasCustomizations =
+    optionalIngredients.length > 0 ||
+    (detailedProduct?.suggestedSideItems && detailedProduct.suggestedSideItems.length > 0);
 
   // Check if this is a menu bundle product
   const isMenuProduct = detailedProduct?.type === 'menu' && detailedProduct?.menuDefinition;
@@ -219,7 +225,9 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
       <div className={styles.productDetailsContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.productDetailsHeader}>
           <h3>{title}</h3>
-          <button className={styles.productDetailsClose} onClick={onClose} aria-label={t('close')}>×</button>
+          <button className={styles.productDetailsClose} onClick={onClose} aria-label={t('close')}>
+            ×
+          </button>
         </div>
         <div className={styles.productDetailsBody}>
           {isLoading && (
@@ -246,7 +254,9 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
               <h4>{t('ingredients')}:</h4>
               <div className={styles.allergyTags}>
                 {ingredients.map((ingredient, idx) => (
-                  <span key={`${item.id}-ing-full-${idx}`} className={styles.allergyTag}>{ingredient}</span>
+                  <span key={`${item.id}-ing-full-${idx}`} className={styles.allergyTag}>
+                    {ingredient}
+                  </span>
                 ))}
               </div>
             </div>
@@ -277,12 +287,16 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
               <h4>{t('variations', 'Variations')}:</h4>
               <div className={styles.variationsList}>
                 {detailedProduct.variations
-                  .filter(v => v.isActive)
+                  .filter((v) => v.isActive)
                   .sort((a, b) => a.displayOrder - b.displayOrder)
                   .map((variation, idx) => {
                     // Try to get name/description in current language
-                    const varName = variation.content?.[currentLanguage]?.name || variation.content?.en?.name || variation.name;
-                    const varDesc = variation.content?.[currentLanguage]?.description || variation.content?.en?.description || variation.description;
+                    const varName =
+                      variation.content?.[currentLanguage]?.name || variation.content?.en?.name || variation.name;
+                    const varDesc =
+                      variation.content?.[currentLanguage]?.description ||
+                      variation.content?.en?.description ||
+                      variation.description;
 
                     return (
                       <div key={`${item.id}-variation-${idx}`} className={styles.variationItem}>
@@ -293,14 +307,11 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
                             <span className={styles.priceModifier}>
                               {variation.priceModifier > 0
                                 ? ` (+${variation.priceModifier.toFixed(2)})`
-                                : ` (${variation.priceModifier.toFixed(2)})`
-                              }
+                                : ` (${variation.priceModifier.toFixed(2)})`}
                             </span>
                           )}
                         </span>
-                        {varDesc && (
-                          <p className={styles.variationDescription}>{varDesc}</p>
-                        )}
+                        {varDesc && <p className={styles.variationDescription}>{varDesc}</p>}
                       </div>
                     );
                   })}
@@ -323,9 +334,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
                         </span>
                         <span className={styles.sideItemPrice}>CHF {sideItem.price.toFixed(2)}</span>
                       </div>
-                      {sideItem.description && (
-                        <p className={styles.sideItemDescription}>{sideItem.description}</p>
-                      )}
+                      {sideItem.description && <p className={styles.sideItemDescription}>{sideItem.description}</p>}
                     </div>
                   ))}
               </div>
@@ -338,6 +347,6 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

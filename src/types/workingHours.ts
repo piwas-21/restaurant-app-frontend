@@ -22,13 +22,13 @@ export const dayNameToNumber = (day: string | number): number => {
   if (typeof day === 'number') return day;
 
   const dayMap: Record<string, number> = {
-    'Sunday': 0,
-    'Monday': 1,
-    'Tuesday': 2,
-    'Wednesday': 3,
-    'Thursday': 4,
-    'Friday': 5,
-    'Saturday': 6
+    Sunday: 0,
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
   };
 
   return dayMap[day] ?? 0;

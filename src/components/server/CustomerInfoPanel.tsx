@@ -104,22 +104,23 @@ export default function CustomerInfoPanel({
       )}
 
       {/* Customer discount rules */}
-      {hasDiscountRules && discountRules.map((rule) => (
-        <div key={rule.id} className={styles.discountRow}>
-          <span className={styles.discountIcon}>🎁</span>
-          <span className={styles.discountText}>
-            {rule.name}: <strong>{formatDiscountValue(rule)}</strong>
-          </span>
-          {rule.maxUsageCount && (
-            <span className={styles.discountNote}>
-              ({rule.usageCount}/{rule.maxUsageCount} {t('server.used', 'used')})
+      {hasDiscountRules &&
+        discountRules.map((rule) => (
+          <div key={rule.id} className={styles.discountRow}>
+            <span className={styles.discountIcon}>🎁</span>
+            <span className={styles.discountText}>
+              {rule.name}: <strong>{formatDiscountValue(rule)}</strong>
             </span>
-          )}
-          {!rule.maxUsageCount && (
-            <span className={styles.discountNote}>{t('server.auto_applied', '(auto-applied)')}</span>
-          )}
-        </div>
-      ))}
+            {rule.maxUsageCount && (
+              <span className={styles.discountNote}>
+                ({rule.usageCount}/{rule.maxUsageCount} {t('server.used', 'used')})
+              </span>
+            )}
+            {!rule.maxUsageCount && (
+              <span className={styles.discountNote}>{t('server.auto_applied', '(auto-applied)')}</span>
+            )}
+          </div>
+        ))}
 
       {/* No discounts message */}
       {!hasUserDiscount && !hasDiscountRules && (

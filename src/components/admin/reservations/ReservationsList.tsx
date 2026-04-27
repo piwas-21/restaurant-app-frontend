@@ -34,7 +34,7 @@ export const ReservationsList: React.FC<ReservationsListProps> = ({
 }) => {
   return (
     <div className={styles.reservationsList}>
-      {reservations.map(reservation => (
+      {reservations.map((reservation) => (
         <ReservationCard
           key={reservation.id}
           reservation={reservation}

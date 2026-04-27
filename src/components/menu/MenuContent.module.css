@@ -43,7 +43,7 @@
   font-weight: 500;
 }
 
-[data-theme="dark"] .paginationInfo {
+[data-theme='dark'] .paginationInfo {
   color: var(--text-secondary, #9ca3af);
 }
 

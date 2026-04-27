@@ -10,10 +10,7 @@ interface NotificationCenterProps {
   onDismiss: (id: string) => void;
 }
 
-export default function NotificationCenter({
-  notifications,
-  onDismiss,
-}: NotificationCenterProps) {
+export default function NotificationCenter({ notifications, onDismiss }: NotificationCenterProps) {
   return (
     <div className={styles.container}>
       {notifications.map((notification) => (

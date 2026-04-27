@@ -8,7 +8,7 @@ import type {
   UserStatistics,
   PagedResult,
   ApiResponse,
-  UpdateUserProfileCommand
+  UpdateUserProfileCommand,
 } from '@/types/user';
 
 // Re-export types for convenience
@@ -66,7 +66,7 @@ export const fetchUsers = async (
   isDeleted: boolean,
   search: string,
   page: number,
-  pageSize: number
+  pageSize: number,
 ): Promise<ApiResponse<PagedResult<UserDto>>> => {
   const params = new URLSearchParams({
     Role: role,
@@ -112,7 +112,7 @@ export const updateUserDiscounts = async (command: UpdateUserDiscountsCommand): 
  */
 export const deleteUser = async (userId: string, permanent: boolean = false): Promise<ApiResponse<string>> => {
   return await apiClient.delete<ApiResponse<string>>(`${USER_API_URL}/delete/user`, {
-    body: JSON.stringify({ userId, permanent })
+    body: JSON.stringify({ userId, permanent }),
   });
 };
 

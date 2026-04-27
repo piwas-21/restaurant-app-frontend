@@ -6,12 +6,7 @@
  */
 
 import { apiClient } from '@/utils/apiClient';
-import {
-  OrderDto,
-  OrderDtoPagedResultApiResponse,
-  OrderDtoApiResponse,
-  PagedResult,
-} from '@/types/order';
+import { OrderDto, OrderDtoPagedResultApiResponse, OrderDtoApiResponse, PagedResult } from '@/types/order';
 import { SseDiagnostics } from '@/types/diagnostics';
 
 /**
@@ -25,7 +20,7 @@ export async function getCashierOrders(filters?: {
   pageSize?: number;
   startDate?: Date;
   endDate?: Date;
-  modifiedSince?: Date;  // For efficient polling - returns orders modified after this timestamp
+  modifiedSince?: Date; // For efficient polling - returns orders modified after this timestamp
 }): Promise<PagedResult<OrderDto>> {
   const params = new URLSearchParams();
 
@@ -72,14 +67,11 @@ export async function getOrderById(orderId: string): Promise<OrderDto> {
 /**
  * Update order status
  */
-export async function updateOrderStatus(
-  orderId: string,
-  status: string
-): Promise<OrderDto> {
+export async function updateOrderStatus(orderId: string, status: string): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/status`,
     { orderId, newStatus: status },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {
@@ -103,7 +95,7 @@ export async function addPaymentToOrder(
     cardType?: string;
     paymentGateway?: string;
     paymentNotes?: string;
-  }
+  },
 ): Promise<OrderDto> {
   const response = await apiClient.post<OrderDtoApiResponse>(
     `/api/orders/${orderId}/payments`,
@@ -111,7 +103,7 @@ export async function addPaymentToOrder(
       orderId,
       ...paymentData,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {
@@ -124,11 +116,7 @@ export async function addPaymentToOrder(
 /**
  * Refund a payment
  */
-export async function refundPayment(
-  orderId: string,
-  paymentId: string,
-  refundAmount?: number
-): Promise<OrderDto> {
+export async function refundPayment(orderId: string, paymentId: string, refundAmount?: number): Promise<OrderDto> {
   const response = await apiClient.post<OrderDtoApiResponse>(
     `/api/orders/${orderId}/payments/${paymentId}/refund`,
     {
@@ -136,7 +124,7 @@ export async function refundPayment(
       paymentId,
       refundAmount,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {
@@ -149,17 +137,14 @@ export async function refundPayment(
 /**
  * Cancel order
  */
-export async function cancelOrder(
-  orderId: string,
-  reason?: string
-): Promise<OrderDto> {
+export async function cancelOrder(orderId: string, reason?: string): Promise<OrderDto> {
   const response = await apiClient.post<OrderDtoApiResponse>(
     `/api/orders/${orderId}/cancel`,
     {
       orderId,
       cancellationReason: reason,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {
@@ -176,7 +161,7 @@ export async function toggleFocusOrder(
   orderId: string,
   isFocus: boolean,
   priority?: number,
-  reason?: string
+  reason?: string,
 ): Promise<OrderDto> {
   const response = await apiClient.put<OrderDtoApiResponse>(
     `/api/orders/${orderId}/focus`,
@@ -186,7 +171,7 @@ export async function toggleFocusOrder(
       priority: priority || 1,
       focusReason: reason,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {
@@ -200,25 +185,21 @@ export async function toggleFocusOrder(
  * Send confirmation email
  */
 export async function sendConfirmationEmail(orderId: string): Promise<void> {
-  await apiClient.post(
-    `/api/orders/${orderId}/send-confirmation-email`,
-    {},
-    { requireAuth: false }
-  );
+  await apiClient.post(`/api/orders/${orderId}/send-confirmation-email`, {}, { requireAuth: false });
 }
 
 /**
  * Quick confirm order with preparation time (used in cashier quick-confirm modal)
  * Uses the proper order status update API endpoint
  */
-export async function quickConfirmOrder(
-  orderNumber: string,
-  preparationMinutes: number
-): Promise<void> {
+export async function quickConfirmOrder(orderNumber: string, preparationMinutes: number): Promise<void> {
   // First, get the order by number to get its ID
-  const ordersResponse = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?search=${orderNumber}&pageSize=1`, {
-    requireAuth: true,
-  });
+  const ordersResponse = await apiClient.get<OrderDtoPagedResultApiResponse>(
+    `/api/orders?search=${orderNumber}&pageSize=1`,
+    {
+      requireAuth: true,
+    },
+  );
 
   const order = ordersResponse.data?.items?.[0];
   if (!order) {
@@ -228,9 +209,10 @@ export async function quickConfirmOrder(
   // Match backend logic: preparation time > 10 minutes requires customer approval
   const delayThresholdMinutes = 10;
   const newStatus = preparationMinutes > delayThresholdMinutes ? 'PendingApproval' : 'Confirmed';
-  const statusNote = preparationMinutes > delayThresholdMinutes
-    ? `Pending customer approval for ${preparationMinutes} min preparation time`
-    : `Confirmed via quick-action with ${preparationMinutes} min preparation time`;
+  const statusNote =
+    preparationMinutes > delayThresholdMinutes
+      ? `Pending customer approval for ${preparationMinutes} min preparation time`
+      : `Confirmed via quick-action with ${preparationMinutes} min preparation time`;
 
   // Update the order status
   const response = await apiClient.put<OrderDtoApiResponse>(
@@ -241,7 +223,7 @@ export async function quickConfirmOrder(
       estimatedPreparationMinutes: preparationMinutes,
       notes: statusNote,
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {
@@ -255,9 +237,12 @@ export async function quickConfirmOrder(
  */
 export async function quickCancelOrder(orderNumber: string): Promise<void> {
   // First, get the order by number to get its ID
-  const ordersResponse = await apiClient.get<OrderDtoPagedResultApiResponse>(`/api/orders?search=${orderNumber}&pageSize=1`, {
-    requireAuth: true,
-  });
+  const ordersResponse = await apiClient.get<OrderDtoPagedResultApiResponse>(
+    `/api/orders?search=${orderNumber}&pageSize=1`,
+    {
+      requireAuth: true,
+    },
+  );
 
   const order = ordersResponse.data?.items?.[0];
   if (!order) {
@@ -271,7 +256,7 @@ export async function quickCancelOrder(orderNumber: string): Promise<void> {
       orderId: order.id,
       cancellationReason: 'Cancelled by cashier via quick-action',
     },
-    { requireAuth: true }
+    { requireAuth: true },
   );
 
   if (!response.data) {

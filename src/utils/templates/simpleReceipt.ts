@@ -24,10 +24,14 @@ const escapeHtml = (text: string): string => {
 const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): string => {
   const translate = t || ((key: string, fallback: string) => fallback);
   switch (type) {
-    case 'DineIn': return translate('order_type.dinein', 'Dine In');
-    case 'Takeaway': return translate('order_type.takeaway', 'Takeaway');
-    case 'Delivery': return translate('order_type.delivery', 'Delivery');
-    default: return type || 'Unknown';
+    case 'DineIn':
+      return translate('order_type.dinein', 'Dine In');
+    case 'Takeaway':
+      return translate('order_type.takeaway', 'Takeaway');
+    case 'Delivery':
+      return translate('order_type.delivery', 'Delivery');
+    default:
+      return type || 'Unknown';
   }
 };
 
@@ -71,8 +75,9 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
   const timeStr = orderDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   // Delivery address
-  const deliveryAddress = order.type === 'Delivery' && order.deliveryAddress
-    ? `
+  const deliveryAddress =
+    order.type === 'Delivery' && order.deliveryAddress
+      ? `
       <div style="margin: 10px 0; padding: 8px; border: 1px dashed #000;">
         <strong>${translate('delivery_to', 'DELIVERY TO')}:</strong><br/>
         ${escapeHtml(order.deliveryAddress.addressLine1 || '')}
@@ -80,16 +85,19 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
         <br/>${escapeHtml(order.deliveryAddress.postalCode || '')} ${escapeHtml(order.deliveryAddress.city || '')}
         ${order.deliveryAddress.phone ? '<br/>Tel: ' + escapeHtml(order.deliveryAddress.phone) : ''}
       </div>
-    ` : '';
+    `
+      : '';
 
   // Payments
-  const paymentsHtml = order.payments && order.payments.length > 0
-    ? `
+  const paymentsHtml =
+    order.payments && order.payments.length > 0
+      ? `
       <div style="margin-top: 8px;">
         <strong>${translate('payment', 'PAYMENT')}:</strong>
-        ${order.payments.map(p => `<div>${getPaymentMethodLabel(p.paymentMethod)}: ${formatCurrency(p.amount)}</div>`).join('')}
+        ${order.payments.map((p) => `<div>${getPaymentMethodLabel(p.paymentMethod)}: ${formatCurrency(p.amount)}</div>`).join('')}
       </div>
-    ` : '';
+    `
+      : '';
 
   return `
     <!DOCTYPE html>
@@ -116,11 +124,15 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
           </div>
         </div>
 
-        ${order.customerName ? `
+        ${
+          order.customerName
+            ? `
           <div style="margin: 8px 0;">
             <div><strong>${translate('customer', 'Customer')}:</strong> ${escapeHtml(order.customerName)}</div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         ${deliveryAddress}
 
@@ -137,30 +149,46 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
             <span>${translate('subtotal', 'Subtotal')}:</span>
             <span>${formatCurrency(order.subTotal)}</span>
           </div>
-          ${order.tax > 0 ? `
+          ${
+            order.tax > 0
+              ? `
             <div class="flex-row">
               <span>${translate('tax', 'Tax')}:</span>
               <span>${formatCurrency(order.tax)}</span>
             </div>
-          ` : ''}
-          ${order.deliveryFee && order.deliveryFee > 0 ? `
+          `
+              : ''
+          }
+          ${
+            order.deliveryFee && order.deliveryFee > 0
+              ? `
             <div class="flex-row">
               <span>${translate('delivery_fee', 'Delivery')}:</span>
               <span>${formatCurrency(order.deliveryFee)}</span>
             </div>
-          ` : ''}
-          ${order.discount && order.discount > 0 ? `
+          `
+              : ''
+          }
+          ${
+            order.discount && order.discount > 0
+              ? `
             <div class="flex-row">
               <span>${translate('discount', 'Discount')}:</span>
               <span>-${formatCurrency(order.discount)}</span>
             </div>
-          ` : ''}
-          ${order.tip && order.tip > 0 ? `
+          `
+              : ''
+          }
+          ${
+            order.tip && order.tip > 0
+              ? `
             <div class="flex-row">
               <span>${translate('tip', 'Tip')}:</span>
               <span>${formatCurrency(order.tip)}</span>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <div class="separator"></div>
@@ -172,12 +200,16 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
 
         ${paymentsHtml}
 
-        ${order.notes ? `
+        ${
+          order.notes
+            ? `
           <div class="separator"></div>
           <div style="margin: 8px 0;">
             <strong>${translate('notes', 'Notes')}:</strong> ${escapeHtml(order.notes)}
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <div class="double-separator"></div>
 

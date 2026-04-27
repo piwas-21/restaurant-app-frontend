@@ -26,10 +26,14 @@ const escapeHtml = (text: string): string => {
 const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): string => {
   const translate = t || ((key: string, fallback: string) => fallback);
   switch (type) {
-    case 'DineIn': return translate('order_type.dinein', 'Dine In');
-    case 'Takeaway': return translate('order_type.takeaway', 'Takeaway');
-    case 'Delivery': return translate('order_type.delivery', 'Delivery');
-    default: return type || 'Unknown';
+    case 'DineIn':
+      return translate('order_type.dinein', 'Dine In');
+    case 'Takeaway':
+      return translate('order_type.takeaway', 'Takeaway');
+    case 'Delivery':
+      return translate('order_type.delivery', 'Delivery');
+    default:
+      return type || 'Unknown';
   }
 };
 
@@ -60,12 +64,10 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
   }
 
   // Only show removed and extra ingredients
-  const customizedIngredients = item.ingredientCustomizations?.filter(ing =>
-    ing.isRemoved || ing.quantity > 1
-  ) || [];
+  const customizedIngredients = item.ingredientCustomizations?.filter((ing) => ing.isRemoved || ing.quantity > 1) || [];
 
   if (customizedIngredients.length > 0) {
-    customizedIngredients.forEach(ing => {
+    customizedIngredients.forEach((ing) => {
       if (ing.isRemoved) {
         html += `<div style="margin-left: 16px; font-size: 11pt; text-decoration: line-through;">✘ NO ${escapeHtml(ing.ingredientName)}</div>`;
       } else if (ing.quantity > 1) {
@@ -77,7 +79,7 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
   // Side items
   if (item.sideItems && item.sideItems.length > 0) {
     html += `<div style="margin-left: 16px; font-size: 11pt; margin-top: 4px;"><strong>Additionals:</strong></div>`;
-    item.sideItems.forEach(side => {
+    item.sideItems.forEach((side) => {
       const sidePrice = showPrices ? ` (${formatCurrency(side.itemTotal)})` : '';
       html += `<div style="margin-left: 24px; font-size: 11pt;">+ ${escapeHtml(side.productName || 'Item')}${side.quantity > 1 ? ` x${side.quantity}` : ''}${sidePrice}</div>`;
     });
@@ -102,12 +104,12 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
 export const generateKitchenReceiptHtml = (
   order: OrderDto,
   kitchenType: 'FrontKitchen' | 'BackKitchen' | 'All',
-  t?: TranslationFunction
+  t?: TranslationFunction,
 ): string | null => {
   const translate = t || ((key: string, fallback: string) => fallback);
 
   // Filter items by kitchen type
-  const filteredItems = order.items.filter(item => {
+  const filteredItems = order.items.filter((item) => {
     if (kitchenType === 'All') return true;
     return item.kitchenType === kitchenType;
   });
@@ -120,54 +122,73 @@ export const generateKitchenReceiptHtml = (
   const showPrices = kitchenType === 'All';
 
   // Kitchen type label
-  const kitchenLabel = kitchenType === 'FrontKitchen'
-    ? translate('kitchen_type_frontkitchen', 'Front Kitchen')
-    : kitchenType === 'BackKitchen'
-    ? translate('kitchen_type_backkitchen', 'Back Kitchen')
-    : translate('order_details', 'Order Details');
+  const kitchenLabel =
+    kitchenType === 'FrontKitchen'
+      ? translate('kitchen_type_frontkitchen', 'Front Kitchen')
+      : kitchenType === 'BackKitchen'
+        ? translate('kitchen_type_backkitchen', 'Back Kitchen')
+        : translate('order_details', 'Order Details');
 
   // Build items with or without prices
-  const itemsHtml = filteredItems.map(item => buildKitchenItemHtml(item, translate, showPrices)).join('');
+  const itemsHtml = filteredItems.map((item) => buildKitchenItemHtml(item, translate, showPrices)).join('');
 
   // Totals section only for customer-facing 'All' type
-  const totalsHtml = showPrices ? `
+  const totalsHtml = showPrices
+    ? `
     <div class="double-separator"></div>
     <div style="margin: 8px 0;">
       <div style="display: flex; justify-content: space-between; margin: 4px 0;">
         <span>Subtotal:</span>
         <span>${formatCurrency(order.subTotal)}</span>
       </div>
-      ${order.tax > 0 ? `
+      ${
+        order.tax > 0
+          ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
           <span>Tax:</span>
           <span>${formatCurrency(order.tax)}</span>
         </div>
-      ` : ''}
-      ${order.deliveryFee && order.deliveryFee > 0 ? `
+      `
+          : ''
+      }
+      ${
+        order.deliveryFee && order.deliveryFee > 0
+          ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
           <span>Delivery:</span>
           <span>${formatCurrency(order.deliveryFee)}</span>
         </div>
-      ` : ''}
-      ${order.discount && order.discount > 0 ? `
+      `
+          : ''
+      }
+      ${
+        order.discount && order.discount > 0
+          ? `
         <div style="display: flex; justify-content: space-between; margin: 4px 0;">
           <span>Discount:</span>
           <span>-${formatCurrency(order.discount)}</span>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
     </div>
     <div class="separator"></div>
     <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 14pt; font-weight: bold;">
       <span>TOTAL:</span>
       <span>${formatCurrency(order.total)}</span>
     </div>
-    ${order.payments && order.payments.length > 0 ? `
+    ${
+      order.payments && order.payments.length > 0
+        ? `
       <div style="margin-top: 8px;">
         <strong>Payment:</strong>
-        ${order.payments.map(p => `<div>${p.paymentMethod}: ${formatCurrency(p.amount)}</div>`).join('')}
+        ${order.payments.map((p) => `<div>${p.paymentMethod}: ${formatCurrency(p.amount)}</div>`).join('')}
       </div>
-    ` : ''}
-  ` : '';
+    `
+        : ''
+    }
+  `
+    : '';
 
   return `
     <!DOCTYPE html>
@@ -193,11 +214,15 @@ export const generateKitchenReceiptHtml = (
           </div>
         </div>
 
-        ${order.customerName ? `
+        ${
+          order.customerName
+            ? `
           <div style="margin: 8px 0; padding: 6px; background: #f5f5f5;">
             <strong>Customer:</strong> ${escapeHtml(order.customerName)}
           </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <div class="double-separator"></div>
 

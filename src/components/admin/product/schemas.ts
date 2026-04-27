@@ -9,10 +9,16 @@ export const variationSchema = z.object({
   priceModifier: z.coerce.number(),
   isActive: z.boolean().default(true),
   displayOrder: z.coerce.number().int().default(0),
-  content: z.record(z.string(), z.object({
-    name: z.string().optional(),
-    description: z.string().optional()
-  })).optional().default({}),
+  content: z
+    .record(
+      z.string(),
+      z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+      }),
+    )
+    .optional()
+    .default({}),
 });
 
 export const contentSchema = z.object({
@@ -35,11 +41,17 @@ const baseProductSchema = z.object({
   categoryIds: z.array(z.string()).min(1, 'Select at least one category'),
   primaryCategoryId: z.string().min(1, 'Primary category is required'),
   variations: z.array(variationSchema).default([]),
-  content: z.array(contentSchema).default([]).refine(items => {
-    if (!items) return true;
-    const languages = items.map(item => item.language);
-    return new Set(languages).size === languages.length;
-  }, { message: 'Each language can only be used once' }),
+  content: z
+    .array(contentSchema)
+    .default([])
+    .refine(
+      (items) => {
+        if (!items) return true;
+        const languages = items.map((item) => item.language);
+        return new Set(languages).size === languages.length;
+      },
+      { message: 'Each language can only be used once' },
+    ),
   preparationTimeMinutes: z.coerce.number().min(0).default(0),
   suggestedSideItemIds: z.array(z.string()).default([]),
 });
@@ -93,25 +105,33 @@ const baseMenuBundleSchema = z.object({
   type: z.literal('menu'),
   preparationTimeMinutes: z.coerce.number().min(0).default(0),
   displayOrder: z.coerce.number().int().default(0),
-  content: z.array(contentSchema).default([]).refine(items => {
-    if (!items) return true;
-    const languages = items.map(item => item.language);
-    return new Set(languages).size === languages.length;
-  }, { message: 'Each language can only be used once' }),
+  content: z
+    .array(contentSchema)
+    .default([])
+    .refine(
+      (items) => {
+        if (!items) return true;
+        const languages = items.map((item) => item.language);
+        return new Set(languages).size === languages.length;
+      },
+      { message: 'Each language can only be used once' },
+    ),
   menuDefinition: menuDefinitionSchema,
 });
 
 export const createMenuBundleSchema = baseMenuBundleSchema;
 
-export const editProductSchema = baseProductSchema.extend({
-  id: z.string().optional(),
-  preparationTimeMinutes: z.coerce.number().optional(),
-  displayOrder: z.coerce.number().optional(),
-  menuDefinition: menuDefinitionSchema.optional(),
-}).refine(d => !d.categoryIds || d.categoryIds.length === 0 || !!d.primaryCategoryId, {
-  path: ['primaryCategoryId'],
-  message: 'Primary category is required when categories are selected',
-});
+export const editProductSchema = baseProductSchema
+  .extend({
+    id: z.string().optional(),
+    preparationTimeMinutes: z.coerce.number().optional(),
+    displayOrder: z.coerce.number().optional(),
+    menuDefinition: menuDefinitionSchema.optional(),
+  })
+  .refine((d) => !d.categoryIds || d.categoryIds.length === 0 || !!d.primaryCategoryId, {
+    path: ['primaryCategoryId'],
+    message: 'Primary category is required when categories are selected',
+  });
 
 export const editMenuBundleSchema = baseMenuBundleSchema.extend({
   id: z.string().optional(),

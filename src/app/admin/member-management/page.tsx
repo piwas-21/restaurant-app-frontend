@@ -18,16 +18,8 @@ import type { UserDto } from '@/types/user';
 
 const MemberManagementPage = () => {
   const { t } = useTranslation();
-  const {
-    users,
-    totalCount,
-    isLoading,
-    error,
-    getUsers,
-    handleDeleteUser,
-    handleUpdateUser,
-    handleReactivateUser,
-  } = useMemberManagement();
+  const { users, totalCount, isLoading, error, getUsers, handleDeleteUser, handleUpdateUser, handleReactivateUser } =
+    useMemberManagement();
 
   const [activeTab, setActiveTab] = useState('customers');
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,7 +79,7 @@ const MemberManagementPage = () => {
       await getUsers(role, showDeletedParam, searchTerm, page, pageSize);
 
       // Refresh statistics
-      setStatsKey(prev => prev + 1);
+      setStatsKey((prev) => prev + 1);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error updating user:', error);
@@ -109,19 +101,25 @@ const MemberManagementPage = () => {
 
     // Staff members are permanently deleted
     if (activeTab === 'staff') {
-      return t('delete_staff_confirmation_message',
-        `Are you sure you want to permanently delete ${userName}? This action cannot be undone.`);
+      return t(
+        'delete_staff_confirmation_message',
+        `Are you sure you want to permanently delete ${userName}? This action cannot be undone.`,
+      );
     }
 
     // Customers logic
     if (userToDelete.isDeleted) {
-       return t('delete_customer_permanent_confirmation_message',
-        `Are you sure you want to PERMANENTLY delete ${userName}? This action cannot be undone.`);
+      return t(
+        'delete_customer_permanent_confirmation_message',
+        `Are you sure you want to PERMANENTLY delete ${userName}? This action cannot be undone.`,
+      );
     }
 
     // Customers soft delete
-    return t('delete_customer_confirmation_message',
-      `Are you sure you want to delete ${userName}? This customer can be restored later if needed.`);
+    return t(
+      'delete_customer_confirmation_message',
+      `Are you sure you want to delete ${userName}? This customer can be restored later if needed.`,
+    );
   };
 
   const handleConfirmDelete = async () => {
@@ -145,7 +143,7 @@ const MemberManagementPage = () => {
         await getUsers(role, showDeletedParam, searchTerm, page, pageSize);
 
         // Refresh statistics
-        setStatsKey(prev => prev + 1);
+        setStatsKey((prev) => prev + 1);
       }
     }
   };
@@ -162,7 +160,7 @@ const MemberManagementPage = () => {
       const role = activeTab === 'customers' ? 'Customer' : '';
       const showDeletedParam = activeTab === 'customers' ? showDeleted : false;
       await getUsers(role, showDeletedParam, searchTerm, page, pageSize);
-      setStatsKey(prev => prev + 1);
+      setStatsKey((prev) => prev + 1);
     }
   };
 
@@ -192,12 +190,7 @@ const MemberManagementPage = () => {
             onReactivate={handleReactivate}
             isLoading={isLoading}
           />
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            isLoading={isLoading}
-          />
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} isLoading={isLoading} />
         </div>
       </div>
       <RegisterStaffModal
@@ -207,7 +200,7 @@ const MemberManagementPage = () => {
           const role = activeTab === 'customers' ? 'Customer' : '';
           const showDeletedParam = activeTab === 'customers' ? showDeleted : false;
           getUsers(role, showDeletedParam, searchTerm, page, pageSize);
-          setStatsKey(prev => prev + 1); // Refresh statistics
+          setStatsKey((prev) => prev + 1); // Refresh statistics
         }}
       />
       <ConfirmationModal

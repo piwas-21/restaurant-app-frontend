@@ -25,13 +25,7 @@ export interface PaymentDialogData {
  * Dialog for adding payment to an order
  * Shows remaining balance and payment method options
  */
-export default function PaymentDialog({
-  order,
-  isOpen,
-  onClose,
-  onConfirm,
-  isLoading = false,
-}: PaymentDialogProps) {
+export default function PaymentDialog({ order, isOpen, onClose, onConfirm, isLoading = false }: PaymentDialogProps) {
   const { t } = useTranslation();
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<string>(PaymentMethod.Cash);
@@ -74,7 +68,7 @@ export default function PaymentDialog({
     if (paymentAmount > remainingBalance) {
       setError(
         t('cashier.payment_exceeds_balance') ||
-          `Payment amount cannot exceed remaining balance of ${remainingBalance.toFixed(2)}`
+          `Payment amount cannot exceed remaining balance of ${remainingBalance.toFixed(2)}`,
       );
       return;
     }
@@ -214,11 +208,7 @@ export default function PaymentDialog({
           <button className="btn btn-secondary" onClick={onClose} disabled={isLoading}>
             {t('common.cancel') || 'Cancel'}
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleConfirm}
-            disabled={!amount || !method || isLoading}
-          >
+          <button className="btn btn-primary" onClick={handleConfirm} disabled={!amount || !method || isLoading}>
             {isLoading ? t('common.loading') || 'Loading...' : t('cashier.add_payment') || 'Add Payment'}
           </button>
         </div>

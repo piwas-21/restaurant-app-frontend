@@ -23,6 +23,17 @@ stages:
 #             - node_modules/
 #         policy: push
 
+# Sprint 2 quality gate: prettier --check.
+# Fails the pipeline if any tracked source file has formatting drift.
+# Fix: `npm run format` locally and re-push.
+prettier_check:
+    image: node:22-alpine
+    stage: test
+    before_script:
+        - npm install
+    script:
+        - npm run format:check
+
 npm_test:
     image: node:18-bullseye
     stage: test

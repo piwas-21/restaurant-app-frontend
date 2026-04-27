@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -89,48 +89,30 @@ export default function FidelityPointsSection() {
             <span className={styles.pointsLabel}>{t('points', 'Points')}</span>
           </div>
           <div className={styles.pointsValue}>
-            <span className={styles.currencyValue}>
-              ≈ CHF{currentPointsValue.toFixed(2)}
-            </span>
-            <span className={styles.valueLabel}>
-              {t('available_discount', 'Available Discount')}
-            </span>
+            <span className={styles.currencyValue}>≈ CHF{currentPointsValue.toFixed(2)}</span>
+            <span className={styles.valueLabel}>{t('available_discount', 'Available Discount')}</span>
           </div>
         </div>
 
         {/* Points Statistics */}
         <div className={styles.pointsStats}>
           <div className={styles.statItem}>
-            <span className={styles.statValue}>
-              {balance.totalEarnedPoints.toLocaleString()}
-            </span>
-            <span className={styles.statLabel}>
-              {t('total_earned', 'Total Earned')}
-            </span>
+            <span className={styles.statValue}>{balance.totalEarnedPoints.toLocaleString()}</span>
+            <span className={styles.statLabel}>{t('total_earned', 'Total Earned')}</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statValue}>
-              {balance.totalRedeemedPoints.toLocaleString()}
-            </span>
-            <span className={styles.statLabel}>
-              {t('total_redeemed', 'Total Redeemed')}
-            </span>
+            <span className={styles.statValue}>{balance.totalRedeemedPoints.toLocaleString()}</span>
+            <span className={styles.statLabel}>{t('total_redeemed', 'Total Redeemed')}</span>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className={styles.pointsActions}>
-        <button
-          onClick={() => setShowHistoryModal(true)}
-          className={styles.viewHistoryButton}
-        >
+        <button onClick={() => setShowHistoryModal(true)} className={styles.viewHistoryButton}>
           {t('view_history', 'View History')}
         </button>
-        <button
-          onClick={() => setShowLearnMoreModal(true)}
-          className={styles.learnMoreButton}
-        >
+        <button onClick={() => setShowLearnMoreModal(true)} className={styles.learnMoreButton}>
           {t('learn_more', 'Learn More')}
         </button>
       </div>
@@ -148,10 +130,7 @@ export default function FidelityPointsSection() {
       )}
 
       {/* TODO: Integrate PointsHistoryModal component when created */}
-      <PointsHistoryModal
-        isOpen={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
-      />
+      <PointsHistoryModal isOpen={showHistoryModal} onClose={() => setShowHistoryModal(false)} />
 
       {showLearnMoreModal && (
         <div className={styles.modalOverlay} onClick={() => setShowLearnMoreModal(false)}>
@@ -167,21 +146,22 @@ export default function FidelityPointsSection() {
               </button>
             </div>
             <div className={styles.modalBody}>
-              <p><strong>{t('how_fidelity_works', 'How Fidelity Points Work:')}</strong></p>
+              <p>
+                <strong>{t('how_fidelity_works', 'How Fidelity Points Work:')}</strong>
+              </p>
               <ul>
                 <li>{t('fidelity_rule_1', 'Earn 1 point for every CHF 1.00 you spend')}</li>
                 <li>{t('fidelity_rule_2', '100 points = CHF 1.00 discount on future orders')}</li>
                 <li>{t('fidelity_rule_3', 'Points never expire as long as you use your account')}</li>
                 <li>{t('fidelity_rule_4', 'Automatically applied to your orders at checkout')}</li>
               </ul>
-              <p><strong>{t('example_title', 'Example:')}</strong></p>
+              <p>
+                <strong>{t('example_title', 'Example:')}</strong>
+              </p>
               <p>{t('example_text', 'Spend CHF 50.00 → Earn 50 points → Get CHF 0.50 discount on next order')}</p>
             </div>
             <div className={styles.formActions}>
-              <button
-                onClick={() => setShowLearnMoreModal(false)}
-                className={styles.closeModalButton}
-              >
+              <button onClick={() => setShowLearnMoreModal(false)} className={styles.closeModalButton}>
                 {t('close', 'Close')}
               </button>
             </div>

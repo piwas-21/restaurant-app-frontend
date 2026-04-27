@@ -65,11 +65,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
         {activeTab === 'customers' && (
           <div className={styles.formGroup}>
             <label>
-              <input
-                type="checkbox"
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-              />
+              <input type="checkbox" checked={showDeleted} onChange={(e) => setShowDeleted(e.target.checked)} />
               {t('show_deleted')}
             </label>
           </div>

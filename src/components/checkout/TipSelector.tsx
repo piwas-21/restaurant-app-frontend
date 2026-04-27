@@ -11,11 +11,7 @@ interface TipSelectorProps {
 
 type TipOption = 'none' | 10 | 15 | 20 | 'custom';
 
-export default function TipSelector({
-  subtotal,
-  selectedTipAmount,
-  onTipChange,
-}: TipSelectorProps) {
+export default function TipSelector({ subtotal, selectedTipAmount, onTipChange }: TipSelectorProps) {
   const { t } = useTranslation();
   const [selectedOption, setSelectedOption] = useState<TipOption>('none');
   const [customAmount, setCustomAmount] = useState('');
@@ -42,9 +38,9 @@ export default function TipSelector({
       setCustomAmount('');
     } else {
       // Check if it matches a percentage (using rounded values)
-      const tip10 = roundTipAmount(subtotal * 0.10);
+      const tip10 = roundTipAmount(subtotal * 0.1);
       const tip15 = roundTipAmount(subtotal * 0.15);
-      const tip20 = roundTipAmount(subtotal * 0.20);
+      const tip20 = roundTipAmount(subtotal * 0.2);
 
       // Use a small epsilon for float comparison
       if (Math.abs(selectedTipAmount - tip10) < 0.001) {
@@ -109,13 +105,9 @@ export default function TipSelector({
       <div className={styles.tipHeader}>
         <div className={styles.tipHeaderContent}>
           <Heart className={styles.heartIcon} size={20} />
-          <h3 className={styles.tipTitle}>
-            {t('tip', 'Tip')}
-          </h3>
+          <h3 className={styles.tipTitle}>{t('tip', 'Tip')}</h3>
         </div>
-        <span className={styles.optionalBadge}>
-          {t('tip_optional', 'Optional')}
-        </span>
+        <span className={styles.optionalBadge}>{t('tip_optional', 'Optional')}</span>
       </div>
 
       <div className={styles.tipOptions}>

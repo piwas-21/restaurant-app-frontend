@@ -40,19 +40,25 @@ export const DeleteTableModal: React.FC<DeleteTableModalProps> = ({
         </div>
 
         <h2>
-          {isBulkDelete ? t('delete_multiple_tables', 'Delete Multiple Tables?') : t('delete_table_question', 'Delete Table?')}
+          {isBulkDelete
+            ? t('delete_multiple_tables', 'Delete Multiple Tables?')
+            : t('delete_table_question', 'Delete Table?')}
         </h2>
 
         <p className={styles.warningText}>
           {isBulkDelete ? (
             <>
-              {t('delete_tables_confirmation', 'Are you sure you want to delete {{count}} table(s)?', { count: tableCount })}
+              {t('delete_tables_confirmation', 'Are you sure you want to delete {{count}} table(s)?', {
+                count: tableCount,
+              })}
               <br />
               {t('action_cannot_be_undone', 'This action cannot be undone.')}
             </>
           ) : (
             <>
-              {t('delete_table_confirmation', 'Are you sure you want to delete Table {{tableNumber}}?', { tableNumber })}
+              {t('delete_table_confirmation', 'Are you sure you want to delete Table {{tableNumber}}?', {
+                tableNumber,
+              })}
               <br />
               {t('action_cannot_be_undone', 'This action cannot be undone.')}
             </>
@@ -60,20 +66,10 @@ export const DeleteTableModal: React.FC<DeleteTableModalProps> = ({
         </p>
 
         <div className={styles.buttonGroup}>
-          <button
-            type="button"
-            onClick={onClose}
-            className={styles.cancelButton}
-            disabled={isDeleting}
-          >
+          <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isDeleting}>
             {t('cancel', 'Cancel')}
           </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isDeleting}
-            className={styles.deleteButton}
-          >
+          <button type="button" onClick={onConfirm} disabled={isDeleting} className={styles.deleteButton}>
             {isDeleting ? t('deleting', 'Deleting...') : t('delete', 'Delete')}
           </button>
         </div>

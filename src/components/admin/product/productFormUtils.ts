@@ -48,71 +48,73 @@ export const submitProductForm = async ({
     // Automatically add the main product data to content using the current user language
     content[currentLanguage] = {
       name: data.name,
-      description: data.description || ''
+      description: data.description || '',
     };
 
     // Add any additional multilingual content
-    data.content?.forEach(item => {
+    data.content?.forEach((item) => {
       if (item.language && item.language !== currentLanguage) {
         content[item.language] = {
           name: item.name,
-          description: item.description || ''
+          description: item.description || '',
         };
       }
     });
 
     // Process ingredients: check for new ones and create them globally
-    const processedIngredients = await Promise.all((detailedIngredients || []).map(async (ing: any) => {
-      // If it doesn't have a globalIngredientId, it might be new
-      if (!ing.globalIngredientId && ing.name && ing.name.trim().length > 0) {
-        // First check if it already exists (case-insensitive)
-        try {
-          const searchResponse = await searchGlobalIngredients(ing.name) as { success: boolean; data?: any[] };
-          if (searchResponse.success && searchResponse.data) {
-            const existing = searchResponse.data.find((item: any) =>
-              item.defaultName.toLowerCase() === ing.name.toLowerCase()
-            );
-            if (existing) {
-              return { ...ing, globalIngredientId: existing.id };
+    const processedIngredients = await Promise.all(
+      (detailedIngredients || []).map(async (ing: any) => {
+        // If it doesn't have a globalIngredientId, it might be new
+        if (!ing.globalIngredientId && ing.name && ing.name.trim().length > 0) {
+          // First check if it already exists (case-insensitive)
+          try {
+            const searchResponse = (await searchGlobalIngredients(ing.name)) as { success: boolean; data?: any[] };
+            if (searchResponse.success && searchResponse.data) {
+              const existing = searchResponse.data.find(
+                (item: any) => item.defaultName.toLowerCase() === ing.name.toLowerCase(),
+              );
+              if (existing) {
+                return { ...ing, globalIngredientId: existing.id };
+              }
+            }
+          } catch (e) {
+            console.error('Failed to search global ingredient:', e);
+          }
+
+          // If not found, create it
+          // Prepare translations
+          const translations = [];
+          if (ing.content) {
+            for (const [lang, content] of Object.entries(ing.content)) {
+              if ((content as any).name) {
+                translations.push({
+                  languageCode: lang,
+                  name: (content as any).name,
+                });
+              }
             }
           }
-        } catch (e) {
-          console.error("Failed to search global ingredient:", e);
-        }
 
-        // If not found, create it
-        // Prepare translations
-        const translations = [];
-        if (ing.content) {
-          for (const [lang, content] of Object.entries(ing.content)) {
-            if ((content as any).name) {
-              translations.push({
-                languageCode: lang,
-                name: (content as any).name
-              });
+          // Also add the default name as English translation if not present, or just rely on defaultName
+          if (translations.length > 0) {
+            try {
+              const newGlobalIngResponse = (await createGlobalIngredient({
+                defaultName: ing.name,
+                translations: translations,
+              })) as { success: boolean; data?: { id: string } };
+
+              if (newGlobalIngResponse.success && newGlobalIngResponse.data?.id) {
+                return { ...ing, globalIngredientId: newGlobalIngResponse.data.id };
+              }
+            } catch (e) {
+              console.error('Failed to auto-create global ingredient:', e);
+              // Continue without ID, backend might handle or just save as local ingredient
             }
           }
         }
-
-        // Also add the default name as English translation if not present, or just rely on defaultName
-        if (translations.length > 0) {
-           try {
-             const newGlobalIngResponse = await createGlobalIngredient({
-               defaultName: ing.name,
-               translations: translations
-             }) as { success: boolean; data?: { id: string } };
-
-             if (newGlobalIngResponse.success && newGlobalIngResponse.data?.id) {
-               return { ...ing, globalIngredientId: newGlobalIngResponse.data.id };
-             }
-           } catch (e) {
-             console.error("Failed to auto-create global ingredient:", e);
-             // Continue without ID, backend might handle or just save as local ingredient
-           }
-        }
-      }
-      return ing;
-    }));
+        return ing;
+      }),
+    );
 
     // Clean detailedIngredients - remove temporary IDs for new ingredients
     const cleanedIngredients = processedIngredients.map((ing: any) => {
@@ -124,9 +126,7 @@ export const submitProductForm = async ({
       return cleaned;
     });
 
-
-
-// ...
+    // ...
 
     // Format the product data
     const productData = {
@@ -135,32 +135,54 @@ export const submitProductForm = async ({
       primaryCategoryId: data.primaryCategoryId || null,
       variations: data.variations || [],
       detailedIngredients: cleanedIngredients,
-      menuDefinition: data.menuDefinition ? {
-        ...data.menuDefinition,
-        id: data.menuDefinition.id || null,
-        sections: data.menuDefinition.sections?.map((section: any) => ({
-          ...section,
-          id: (section.id && (section.id.startsWith('temp-') || section.id === '')) ? null : section.id,
-        })) || [],
-        startTime: data.menuDefinition.startTime ? (data.menuDefinition.startTime.length === 5 ? `${data.menuDefinition.startTime}:00` : data.menuDefinition.startTime) : null,
-        endTime: data.menuDefinition.endTime ? (data.menuDefinition.endTime.length === 5 ? `${data.menuDefinition.endTime}:00` : data.menuDefinition.endTime) : null,
-      } : undefined
+      menuDefinition: data.menuDefinition
+        ? {
+            ...data.menuDefinition,
+            id: data.menuDefinition.id || null,
+            sections:
+              data.menuDefinition.sections?.map((section: any) => ({
+                ...section,
+                id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
+              })) || [],
+            startTime: data.menuDefinition.startTime
+              ? data.menuDefinition.startTime.length === 5
+                ? `${data.menuDefinition.startTime}:00`
+                : data.menuDefinition.startTime
+              : null,
+            endTime: data.menuDefinition.endTime
+              ? data.menuDefinition.endTime.length === 5
+                ? `${data.menuDefinition.endTime}:00`
+                : data.menuDefinition.endTime
+              : null,
+          }
+        : undefined,
     };
 
     let productResponse;
     if (data.menuDefinition) {
-       // It's a menu bundle
-       productResponse = await createMenuBundle(productData) as { success: boolean; data?: { id: string }; message?: string };
+      // It's a menu bundle
+      productResponse = (await createMenuBundle(productData)) as {
+        success: boolean;
+        data?: { id: string };
+        message?: string;
+      };
     } else {
-       productResponse = await createProduct(productData) as { success: boolean; data?: { id: string }; message?: string };
+      productResponse = (await createProduct(productData)) as {
+        success: boolean;
+        data?: { id: string };
+        message?: string;
+      };
     }
     if (productResponse.success && productResponse.data?.id) {
       if (imageFiles.length > 0) {
         setSubmissionStatus('uploading');
-        const imageResponse = await uploadBulkProductImages(productResponse.data.id, imageFiles) as { success: boolean; message?: string };
+        const imageResponse = (await uploadBulkProductImages(productResponse.data.id, imageFiles)) as {
+          success: boolean;
+          message?: string;
+        };
         if (!imageResponse.success) {
           // eslint-disable-next-line no-console
-          console.error("Image upload failed:", imageResponse.message);
+          console.error('Image upload failed:', imageResponse.message);
         }
       }
       onProductCreated();
@@ -171,20 +193,20 @@ export const submitProductForm = async ({
       setError('root', { message: productResponse.message || 'Failed to create product' });
     }
   } catch (error: any) {
-    console.error("Submit error:", error);
+    console.error('Submit error:', error);
     // Extract meaningful error message from backend response
     let errorMessage = 'An unexpected error occurred.';
     if (error?.response?.data) {
-        if (error.response.data.errors) {
-            // Combine validation errors
-            errorMessage = Object.values(error.response.data.errors).flat().join(', ');
-        } else if (error.response.data.title) {
-            errorMessage = error.response.data.title;
-        } else if (error.response.data.message) {
-            errorMessage = error.response.data.message;
-        }
+      if (error.response.data.errors) {
+        // Combine validation errors
+        errorMessage = Object.values(error.response.data.errors).flat().join(', ');
+      } else if (error.response.data.title) {
+        errorMessage = error.response.data.title;
+      } else if (error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
     } else if (error?.message) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
     setError('root', { message: errorMessage });
   } finally {
@@ -218,25 +240,26 @@ export const submitEditProductForm = async ({
         description: (e.description ?? '').toString(),
       }));
 
-    const formattedContent = cleanedContentArray.length > 0
-      ? cleanedContentArray.reduce((acc: any, curr: any) => {
-          acc[curr.language] = {
-            name: curr.name,
-            description: curr.description
-          };
-          return acc;
-        }, {})
-      : undefined;
+    const formattedContent =
+      cleanedContentArray.length > 0
+        ? cleanedContentArray.reduce((acc: any, curr: any) => {
+            acc[curr.language] = {
+              name: curr.name,
+              description: curr.description,
+            };
+            return acc;
+          }, {})
+        : undefined;
 
-    const categoryIds = Array.isArray(data.categoryIds) ? data.categoryIds.filter(Boolean) as string[] : [];
+    const categoryIds = Array.isArray(data.categoryIds) ? (data.categoryIds.filter(Boolean) as string[]) : [];
     let primaryCategoryId = (data.primaryCategoryId || '') as string;
     if (categoryIds.length > 0 && !categoryIds.includes(primaryCategoryId)) {
       primaryCategoryId = categoryIds[0];
     }
 
     const cleanedVariations = (data.variations || [])
-      .filter(v => (v?.name || '').trim().length > 0)
-      .map(v => ({
+      .filter((v) => (v?.name || '').trim().length > 0)
+      .map((v) => ({
         id: v.id,
         name: (v.name || '').trim(),
         description: v.description ?? '',
@@ -247,57 +270,59 @@ export const submitEditProductForm = async ({
       }));
 
     // Process ingredients: check for new ones and create them globally
-    const processedIngredients = await Promise.all((detailedIngredients || []).map(async (ing: any) => {
-      // If it doesn't have a globalIngredientId, it might be new
-      if (!ing.globalIngredientId && ing.name && ing.name.trim().length > 0) {
-        // First check if it already exists (case-insensitive)
-        try {
-          const searchResponse = await searchGlobalIngredients(ing.name) as { success: boolean; data?: any[] };
-          if (searchResponse.success && searchResponse.data) {
-            const existing = searchResponse.data.find((item: any) =>
-              item.defaultName.toLowerCase() === ing.name.toLowerCase()
-            );
-            if (existing) {
-              return { ...ing, globalIngredientId: existing.id };
+    const processedIngredients = await Promise.all(
+      (detailedIngredients || []).map(async (ing: any) => {
+        // If it doesn't have a globalIngredientId, it might be new
+        if (!ing.globalIngredientId && ing.name && ing.name.trim().length > 0) {
+          // First check if it already exists (case-insensitive)
+          try {
+            const searchResponse = (await searchGlobalIngredients(ing.name)) as { success: boolean; data?: any[] };
+            if (searchResponse.success && searchResponse.data) {
+              const existing = searchResponse.data.find(
+                (item: any) => item.defaultName.toLowerCase() === ing.name.toLowerCase(),
+              );
+              if (existing) {
+                return { ...ing, globalIngredientId: existing.id };
+              }
+            }
+          } catch (e) {
+            console.error('Failed to search global ingredient:', e);
+          }
+
+          // If not found, create it
+          // Prepare translations
+          const translations = [];
+          if (ing.content) {
+            for (const [lang, content] of Object.entries(ing.content)) {
+              if ((content as any).name) {
+                translations.push({
+                  languageCode: lang,
+                  name: (content as any).name,
+                });
+              }
             }
           }
-        } catch (e) {
-          console.error("Failed to search global ingredient:", e);
-        }
 
-        // If not found, create it
-        // Prepare translations
-        const translations = [];
-        if (ing.content) {
-          for (const [lang, content] of Object.entries(ing.content)) {
-            if ((content as any).name) {
-              translations.push({
-                languageCode: lang,
-                name: (content as any).name
-              });
+          // Also add the default name as English translation if not present, or just rely on defaultName
+          if (translations.length > 0) {
+            try {
+              const newGlobalIngResponse = (await createGlobalIngredient({
+                defaultName: ing.name,
+                translations: translations,
+              })) as { success: boolean; data?: { id: string } };
+
+              if (newGlobalIngResponse.success && newGlobalIngResponse.data?.id) {
+                return { ...ing, globalIngredientId: newGlobalIngResponse.data.id };
+              }
+            } catch (e) {
+              console.error('Failed to auto-create global ingredient:', e);
+              // Continue without ID
             }
           }
         }
-
-        // Also add the default name as English translation if not present, or just rely on defaultName
-        if (translations.length > 0) {
-           try {
-             const newGlobalIngResponse = await createGlobalIngredient({
-               defaultName: ing.name,
-               translations: translations
-             }) as { success: boolean; data?: { id: string } };
-
-             if (newGlobalIngResponse.success && newGlobalIngResponse.data?.id) {
-               return { ...ing, globalIngredientId: newGlobalIngResponse.data.id };
-             }
-           } catch (e) {
-             console.error("Failed to auto-create global ingredient:", e);
-             // Continue without ID
-           }
-        }
-      }
-      return ing;
-    }));
+        return ing;
+      }),
+    );
 
     // Clean detailedIngredients - remove temporary IDs for new ingredients
     const cleanedIngredients = processedIngredients.map((ing: any) => {
@@ -315,7 +340,10 @@ export const submitEditProductForm = async ({
       name: (data.name || '').trim(),
       description: (data.description ?? '').toString(),
       basePrice: parseNum(data.basePrice, 0),
-      preparationTimeMinutes: typeof data.preparationTimeMinutes === 'number' ? data.preparationTimeMinutes : parseInt(String(data.preparationTimeMinutes || '0'), 10) || 0,
+      preparationTimeMinutes:
+        typeof data.preparationTimeMinutes === 'number'
+          ? data.preparationTimeMinutes
+          : parseInt(String(data.preparationTimeMinutes || '0'), 10) || 0,
       allergens: Array.isArray(data.allergens) ? data.allergens.filter(Boolean) : [],
 
       categoryIds: categoryIds || [],
@@ -323,19 +351,30 @@ export const submitEditProductForm = async ({
       variations: cleanedVariations,
       content: formattedContent,
       detailedIngredients: cleanedIngredients,
-      menuDefinition: data.menuDefinition ? {
-        ...data.menuDefinition,
-        id: data.menuDefinition.id || null,
-        sections: data.menuDefinition.sections?.map((section: any) => ({
-          ...section,
-          id: (section.id && (section.id.startsWith('temp-') || section.id === '')) ? null : section.id,
-        })) || [],
-        startTime: data.menuDefinition.startTime ? (data.menuDefinition.startTime.length === 5 ? `${data.menuDefinition.startTime}:00` : data.menuDefinition.startTime) : null,
-        endTime: data.menuDefinition.endTime ? (data.menuDefinition.endTime.length === 5 ? `${data.menuDefinition.endTime}:00` : data.menuDefinition.endTime) : null,
-      } : undefined
+      menuDefinition: data.menuDefinition
+        ? {
+            ...data.menuDefinition,
+            id: data.menuDefinition.id || null,
+            sections:
+              data.menuDefinition.sections?.map((section: any) => ({
+                ...section,
+                id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
+              })) || [],
+            startTime: data.menuDefinition.startTime
+              ? data.menuDefinition.startTime.length === 5
+                ? `${data.menuDefinition.startTime}:00`
+                : data.menuDefinition.startTime
+              : null,
+            endTime: data.menuDefinition.endTime
+              ? data.menuDefinition.endTime.length === 5
+                ? `${data.menuDefinition.endTime}:00`
+                : data.menuDefinition.endTime
+              : null,
+          }
+        : undefined,
     } as any;
 
-    const response = await updateProduct(product.id, productData) as { success: boolean; message?: string };
+    const response = (await updateProduct(product.id, productData)) as { success: boolean; message?: string };
     if (response.success) {
       if (imageFiles.length > 0) {
         await uploadBulkProductImages(product.id, imageFiles);

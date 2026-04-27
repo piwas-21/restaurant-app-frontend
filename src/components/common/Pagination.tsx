@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import styles from "./Pagination.module.css";
+import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import styles from './Pagination.module.css';
 
 interface PaginationProps {
   currentPage: number;
@@ -11,12 +11,7 @@ interface PaginationProps {
   isLoading?: boolean;
 }
 
-export default function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  isLoading = false,
-}: PaginationProps) {
+export default function Pagination({ currentPage, totalPages, onPageChange, isLoading = false }: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const getPageNumbers = () => {
@@ -33,7 +28,7 @@ export default function Pagination({
       pages.push(1);
 
       if (currentPage > 3) {
-        pages.push("...");
+        pages.push('...');
       }
 
       // Show pages around current page
@@ -45,7 +40,7 @@ export default function Pagination({
       }
 
       if (currentPage < totalPages - 2) {
-        pages.push("...");
+        pages.push('...');
       }
 
       // Always show last page
@@ -68,7 +63,7 @@ export default function Pagination({
   };
 
   const handlePageClick = (page: number | string) => {
-    if (typeof page === "number" && page !== currentPage && !isLoading) {
+    if (typeof page === 'number' && page !== currentPage && !isLoading) {
       onPageChange(page);
     }
   };
@@ -87,7 +82,7 @@ export default function Pagination({
 
       <div className={styles.pageNumbers}>
         {getPageNumbers().map((page, index) => {
-          if (page === "...") {
+          if (page === '...') {
             return (
               <span key={`ellipsis-${index}`} className={styles.ellipsis}>
                 ...
@@ -98,13 +93,11 @@ export default function Pagination({
           return (
             <button
               key={page}
-              className={`${styles.pageButton} ${
-                page === currentPage ? styles.active : ""
-              }`}
+              className={`${styles.pageButton} ${page === currentPage ? styles.active : ''}`}
               onClick={() => handlePageClick(page)}
               disabled={isLoading}
               aria-label={`Page ${page}`}
-              aria-current={page === currentPage ? "page" : undefined}
+              aria-current={page === currentPage ? 'page' : undefined}
               type="button"
             >
               {page}

@@ -17,12 +17,7 @@ interface KitchenTypeSelectorProps {
   error?: string;
 }
 
-export default function KitchenTypeSelector({
-  value,
-  onChange,
-  disabled = false,
-  error,
-}: KitchenTypeSelectorProps) {
+export default function KitchenTypeSelector({ value, onChange, disabled = false, error }: KitchenTypeSelectorProps) {
   const { t } = useTranslation();
 
   const kitchenTypeOptions = Object.entries(KITCHEN_TYPES).map(([key, config]) => ({
@@ -60,11 +55,7 @@ export default function KitchenTypeSelector({
         ))}
       </div>
 
-      {error && (
-        <p style={{ color: '#DC2626', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-          {error}
-        </p>
-      )}
+      {error && <p style={{ color: '#DC2626', fontSize: '0.875rem', marginTop: '0.25rem' }}>{error}</p>}
     </div>
   );
 }

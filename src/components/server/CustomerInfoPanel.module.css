@@ -19,8 +19,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .header {
@@ -113,7 +117,11 @@
   width: 100%;
   height: 6px;
   appearance: none;
-  background: linear-gradient(to right, var(--primary-color) var(--percent, 0%), var(--border-color) var(--percent, 0%));
+  background: linear-gradient(
+    to right,
+    var(--primary-color) var(--percent, 0%),
+    var(--border-color) var(--percent, 0%)
+  );
   border-radius: 3px;
   cursor: pointer;
 }

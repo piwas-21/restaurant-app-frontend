@@ -22,18 +22,16 @@ export default function ActiveOrdersPanel({
   const { t } = useTranslation();
 
   // Filter active orders (exclude completed/cancelled)
-  const activeOrders = orders.filter(
-    order => !['Completed', 'Cancelled'].includes(order.status)
-  );
+  const activeOrders = orders.filter((order) => !['Completed', 'Cancelled'].includes(order.status));
 
   // Filter by selected table if any
   const displayedOrders = selectedTableNumber
-    ? activeOrders.filter(order => order.tableNumber?.toString() === selectedTableNumber)
+    ? activeOrders.filter((order) => order.tableNumber?.toString() === selectedTableNumber)
     : activeOrders;
 
   // Sort by order date (newest first)
   const sortedOrders = [...displayedOrders].sort(
-    (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()
+    (a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(),
   );
 
   return (
@@ -69,13 +67,8 @@ export default function ActiveOrdersPanel({
             </span>
           </div>
         ) : (
-          sortedOrders.map(order => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onStatusChange={onStatusChange}
-              isLoading={isLoading}
-            />
+          sortedOrders.map((order) => (
+            <OrderCard key={order.id} order={order} onStatusChange={onStatusChange} isLoading={isLoading} />
           ))
         )}
       </div>

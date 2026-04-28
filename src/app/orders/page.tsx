@@ -40,7 +40,10 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { router.push('/login'); return; }
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     fetchAll();
   }, [authLoading, user, router, fetchAll]);
 
@@ -80,7 +83,9 @@ export default function OrdersPage() {
       <main className={styles.container}>
         <div className={styles.loadingState}>
           <Loader2 size={64} className={styles.spinner} />
-          <p>{authLoading ? t('authenticating', 'Authenticating...') : t('loading_orders', 'Loading your orders...')}</p>
+          <p>
+            {authLoading ? t('authenticating', 'Authenticating...') : t('loading_orders', 'Loading your orders...')}
+          </p>
         </div>
       </main>
     );
@@ -124,7 +129,8 @@ export default function OrdersPage() {
           </button>
           {activeTab === 'active' && lastUpdated && (
             <span className={styles.lastUpdated}>
-              {t('last_updated', 'Updated')} {lastUpdated.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })}
+              {t('last_updated', 'Updated')}{' '}
+              {lastUpdated.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
@@ -170,9 +176,14 @@ export default function OrdersPage() {
             {activeTab === 'past' && pastHasMore && (
               <div className={styles.loadMoreWrapper}>
                 <button onClick={loadMorePast} disabled={isLoadingMore} className={styles.loadMoreButton}>
-                  {isLoadingMore
-                    ? <><Loader2 size={18} className={styles.spinner} />{t('loading', 'Loading...')}</>
-                    : t('load_more', 'Load more')}
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 size={18} className={styles.spinner} />
+                      {t('loading', 'Loading...')}
+                    </>
+                  ) : (
+                    t('load_more', 'Load more')
+                  )}
                 </button>
               </div>
             )}

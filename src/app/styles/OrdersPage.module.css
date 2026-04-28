@@ -97,7 +97,9 @@
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
   border-radius: 0;
 }
 
@@ -275,7 +277,9 @@
   background: none;
   color: var(--primary-color);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .loadMoreButton:hover:not(:disabled) {
@@ -381,7 +385,6 @@
   align-items: center;
   gap: 0.75rem;
 }
-
 
 .expandButton {
   display: flex;
@@ -786,5 +789,4 @@
     width: 100%;
     font-size: 1rem;
   }
-
 }

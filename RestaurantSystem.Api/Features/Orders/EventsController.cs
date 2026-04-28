@@ -140,7 +140,12 @@ public class EventsController : ControllerBase
             Country = country
         };
 
-        _orderEventService.AddClient(clientId, client);
+        if (!_orderEventService.TryAddClient(clientId, client))
+        {
+            Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await Response.WriteAsJsonAsync(new { error = "Too many SSE connections from your IP address." });
+            return;
+        }
 
         _logger.LogInformation("SSE client connected: {ClientId} with type {ClientType}", clientId, clientType);
 

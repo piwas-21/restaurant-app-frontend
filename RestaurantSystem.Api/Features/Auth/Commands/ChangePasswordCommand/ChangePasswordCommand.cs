@@ -22,8 +22,12 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
 
         RuleFor(x => x.NewPassword)
             .NotEmpty().WithMessage("New password is required")
-            .MinimumLength(6).WithMessage("New password must be at least 6 characters")
-            .MaximumLength(100).WithMessage("New password cannot exceed 100 characters");
+            .MinimumLength(8).WithMessage("New password must be at least 8 characters")
+            .MaximumLength(100).WithMessage("New password cannot exceed 100 characters")
+            .Matches("[A-Z]").WithMessage("New password must contain at least one uppercase letter")
+            .Matches("[a-z]").WithMessage("New password must contain at least one lowercase letter")
+            .Matches("[0-9]").WithMessage("New password must contain at least one digit")
+            .Matches("[^a-zA-Z0-9]").WithMessage("New password must contain at least one special character");
 
         RuleFor(x => x.ConfirmPassword)
             .NotEmpty().WithMessage("Password confirmation is required")
@@ -83,6 +87,11 @@ public class ChangePasswordCommandHandler : ICommandHandler<ChangePasswordComman
             _logger.LogWarning("Failed to change password for user {Email}: {Errors}", user.Email, errors);
             return ApiResponse<string>.Failure($"Failed to change password: {errors}");
         }
+
+        // Invalidate existing refresh tokens so active sessions must re-authenticate
+        user.RefreshToken = string.Empty;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
 
         _logger.LogInformation("Password changed successfully for user: {Email}", user.Email);
         return ApiResponse<string>.SuccessWithData("Password changed successfully");

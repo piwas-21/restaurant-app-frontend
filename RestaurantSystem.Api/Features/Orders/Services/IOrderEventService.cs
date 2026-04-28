@@ -5,6 +5,7 @@ namespace RestaurantSystem.Api.Features.Orders.Services;
 public interface IOrderEventService
 {
     void AddClient(string clientId, OrderEventService.SseClient client);
+    bool TryAddClient(string clientId, OrderEventService.SseClient client);
     void RemoveClient(string clientId);
 
     Task NotifyOrderCreated(OrderDto order);

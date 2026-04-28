@@ -11,6 +11,7 @@ public class OrderEventService : IOrderEventService, IDisposable
     private readonly ILogger<OrderEventService> _logger;
     private readonly ConcurrentQueue<LogEntry> _recentLogs = new();
     private const int MaxLogEntries = 100;
+    private const int MaxConnectionsPerIp = 10;
     private readonly Timer _cleanupTimer;
 
     // Consider a client stale if no activity for 3 minutes (should receive heartbeats every 10 seconds)
@@ -166,15 +167,26 @@ public class OrderEventService : IOrderEventService, IDisposable
         AddLog("Info", completionMsg, null, client.ClientId);
     }
 
-    public void AddClient(string clientId, SseClient client)
+    // Returns false if the IP has reached the per-IP connection limit.
+    public bool TryAddClient(string clientId, SseClient client)
     {
+        var connectionsFromIp = _clients.Values.Count(c => c.IpAddress == client.IpAddress);
+        if (connectionsFromIp >= MaxConnectionsPerIp)
+        {
+            _logger.LogWarning("SSE connection limit reached for IP {IP} ({Count}/{Max})",
+                client.IpAddress, connectionsFromIp, MaxConnectionsPerIp);
+            return false;
+        }
+
         _clients.TryAdd(clientId, client);
         var clientsByType = _clients.Values.GroupBy(c => c.ClientType).ToDictionary(g => g.Key, g => g.Count());
         var message = $"SSE client {clientId} ({client.ClientType}) connected from {client.IpAddress} ({client.Country ?? "Unknown"}). Total clients: {_clients.Count} (Kitchen: {clientsByType.GetValueOrDefault(ClientType.Kitchen, 0)}, Service: {clientsByType.GetValueOrDefault(ClientType.Service, 0)}, Manager: {clientsByType.GetValueOrDefault(ClientType.Manager, 0)}, Stock: {clientsByType.GetValueOrDefault(ClientType.Stock, 0)})";
-
         _logger.LogInformation(message);
         AddLog("Info", message, null, clientId);
+        return true;
     }
+
+    public void AddClient(string clientId, SseClient client) => TryAddClient(clientId, client);
 
     public void RemoveClient(string clientId)
     {

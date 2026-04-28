@@ -59,9 +59,10 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
                 "Email verification required");
         }
 
-        // Generate tokens
+        // Generate tokens — store hash of refresh token, return raw value to client
         var token = _tokenService.GenerateAccessToken(user);
-        user.RefreshToken = _tokenService.GenerateRefreshToken();
+        var rawRefreshToken = _tokenService.GenerateRefreshToken();
+        user.RefreshToken = _tokenService.HashRefreshToken(rawRefreshToken);
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
@@ -80,7 +81,7 @@ public class LoginCommandHandler : ICommandHandler<LoginCommand, ApiResponse<Aut
             Email = user.Email!,
             Role = user.Role,
             AccessToken = token,
-            RefreshToken = user.RefreshToken,
+            RefreshToken = rawRefreshToken,
             Expiration = _tokenService.GetAccessTokenExpiration()
         };
 

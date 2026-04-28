@@ -29,6 +29,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
+import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 
 const _inter = Inter({ subsets: ['latin'] });
 
@@ -42,6 +43,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
   const { t } = useTranslation();
+  const { info: restaurantInfo } = useRestaurantInfo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adminSidebarOpen, setAdminSidebarOpen] = useState(false);
   const headerHeight = '80px';
@@ -291,8 +293,12 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
           <footer style={footerStyles}>
             <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
             <p>
-              {isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45'},{' '}
-              {isClient ? t('rumi_address_city_country') : '1202 Genève, Switzerland'}
+              {restaurantInfo?.addressLine1 ?? (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45')},{' '}
+              {restaurantInfo
+                ? `${restaurantInfo.postalCode} ${restaurantInfo.city}, ${restaurantInfo.country}`
+                : isClient
+                  ? t('rumi_address_city_country')
+                  : '1202 Genève, Switzerland'}
             </p>
             <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
               <Link

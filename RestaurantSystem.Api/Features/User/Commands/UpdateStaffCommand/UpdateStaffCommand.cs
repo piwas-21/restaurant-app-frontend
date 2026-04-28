@@ -9,7 +9,7 @@ using RestaurantSystem.Domain.Common.Enums;
 using RestaurantSystem.Domain.Entities;
 using RestaurantSystem.Infrastructure.Persistence;
 
-namespace RestaurantSystem.Api.Features.User.Commands.EditStaffCommand;
+namespace RestaurantSystem.Api.Features.User.Commands.UpdateStaffCommand;
 
 public record UpdateStaffCommand(
     [property: JsonPropertyName("userId")] Guid UserId,

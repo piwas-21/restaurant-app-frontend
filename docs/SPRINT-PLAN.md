@@ -91,6 +91,7 @@
 | 2.12 | Register all new services in `Program.cs` | (modify existing) | -- |
 | 2.13 | Convert `GlobalIngredientsController` to CQRS pattern | Refactor from direct DbContext to Commands/Queries | ~120 |
 | 2.14 | Extract HTML templates from `ReservationsController` to `HtmlResponseBuilder` | Modify existing | ~150 |
+| 2.15 | Extract `GroupDiscountController` discount-update logic to CQRS command handler (direct EF + SaveChangesAsync in action method — pre-existing thin-dispatcher violation flagged in MR !20 review) | `Features/Groups/Commands/UpdateGroupDiscountCommand/` | ~80 |
 
 ### Sprint 2 Tests
 

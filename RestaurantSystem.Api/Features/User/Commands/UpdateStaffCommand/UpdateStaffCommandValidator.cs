@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace RestaurantSystem.Api.Features.User.Commands.EditStaffCommand;
+namespace RestaurantSystem.Api.Features.User.Commands.UpdateStaffCommand;
 
 public class UpdateStaffCommandValidator : AbstractValidator<UpdateStaffCommand>
 {

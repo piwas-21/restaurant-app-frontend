@@ -21,6 +21,7 @@ using RestaurantSystem.Api.Features.Orders.Queries.GetOrderByIdQuery;
 using RestaurantSystem.Api.Features.Orders.Queries.GetOrdersQuery;
 using RestaurantSystem.Api.Features.Orders.Queries.GetZReportQuery;
 using RestaurantSystem.Api.Features.Orders.Services;
+using RestaurantSystem.Api.Common.Filters;
 using RestaurantSystem.Api.Settings;
 using Microsoft.Extensions.Options;
 
@@ -79,7 +80,7 @@ public class OrdersController : ControllerBase
     /// Uses direct query to bypass authentication requirements.
     /// </summary>
     [HttpGet("printer-feed")]
-    [AllowAnonymous]
+    [ApiKeyAuthFilter]
     public async Task<ActionResult<object>> GetPrinterFeed(
         [FromQuery] DateTime? modifiedSince,
         [FromServices] RestaurantSystem.Infrastructure.Persistence.ApplicationDbContext dbContext,

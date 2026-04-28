@@ -78,7 +78,7 @@ public class UserGroupService : IUserGroupService
         group.ValidFrom = dto.ValidFrom.HasValue ? DateTime.SpecifyKind(dto.ValidFrom.Value, DateTimeKind.Utc) : null;
         group.ValidUntil = dto.ValidUntil.HasValue ? DateTime.SpecifyKind(dto.ValidUntil.Value, DateTimeKind.Utc) : null;
         group.UpdatedAt = DateTime.UtcNow;
-        group.UpdatedBy = _currentUserService.UserId?.ToString();
+        group.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync(cancellationToken);
 

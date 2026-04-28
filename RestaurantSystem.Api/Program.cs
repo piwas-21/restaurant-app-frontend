@@ -218,6 +218,8 @@ builder.Services.AddAuthentication(options =>
 var emailSettings = builder.Configuration.GetSection("EmailSettings");
 builder.Services.Configure<EmailSettings>(emailSettings);
 
+builder.Services.Configure<PrinterSettings>(builder.Configuration.GetSection("PrinterSettings"));
+
 builder.Services.AddFileStorage(builder.Configuration);
 builder.Services.AddAuthorization();
 

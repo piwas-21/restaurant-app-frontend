@@ -5,7 +5,7 @@ using RestaurantSystem.Api.Common.Authorization;
 using RestaurantSystem.Api.Common.Models;
 using RestaurantSystem.Api.Features.Auth.Dtos;
 using RestaurantSystem.Api.Features.User.Commands.DeleteUserCommand;
-using RestaurantSystem.Api.Features.User.Commands.EditStaffCommand;
+using RestaurantSystem.Api.Features.User.Commands.UpdateStaffCommand;
 using RestaurantSystem.Api.Features.User.Commands.RegisterCustomerCommand;
 using RestaurantSystem.Api.Features.User.Commands.RegisterStaffCommand;
 using RestaurantSystem.Api.Features.User.Commands.UpdateUserDiscountsCommand;

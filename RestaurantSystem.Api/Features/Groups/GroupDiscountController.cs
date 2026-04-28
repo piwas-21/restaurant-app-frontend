@@ -84,7 +84,7 @@ public class GroupDiscountController : ControllerBase
         discount.MaximumDiscountAmount = dto.MaximumDiscountAmount;
         discount.IsActive = dto.IsActive;
         discount.UpdatedAt = DateTime.UtcNow;
-        discount.UpdatedBy = _currentUserService.UserId?.ToString();
+        discount.UpdatedBy = _currentUserService.GetAuditIdentifier();
 
         await _context.SaveChangesAsync();
 

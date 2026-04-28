@@ -8,9 +8,11 @@ import FooterCookieLink from '@/components/FooterCookieLink';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
 import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto } from '@/types/workingHours';
+import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
+  const { info } = useRestaurantInfo();
   const [isClient, setIsClient] = useState(false);
   const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>([]);
   const [isLoadingHours, setIsLoadingHours] = useState(true);
@@ -135,6 +137,19 @@ export default function HomePage() {
     return days.map((d) => getDayName(d)).join(', ');
   };
 
+  // Restaurant info from the admin singleton; fall back to the i18n
+  // strings (and ultimately the SSR literal) so the page never blanks
+  // out if the API is unreachable on first paint.
+  const addressStreet = info?.addressLine1 ?? (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45');
+  const addressCityCountry = info
+    ? `${info.postalCode} ${info.city}, ${info.country}`
+    : isClient
+      ? t('rumi_address_city_country')
+      : '1202 Genève, Switzerland';
+  const primaryPhone = info?.phoneNumbers.find((p) => p.isActive) ?? info?.phoneNumbers[0] ?? null;
+  const phoneDisplay = primaryPhone?.number ?? (isClient ? t('rumi_phone_number') : '+41 22 786 33 33');
+  const phoneTel = (primaryPhone?.number ?? t('rumi_phone_number')).replace(/\s/g, '');
+
   return (
     <div className={styles.homeContainer}>
       <section
@@ -199,14 +214,11 @@ export default function HomePage() {
         <section className={styles.locationSection} aria-labelledby="location-heading">
           <h2 id="location-heading">{isClient ? t('home_location_title') : 'Visit Us'}</h2>
           <address>
-            {isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45'}
+            {addressStreet}
             <br />
-            {isClient ? t('rumi_address_city_country') : '1202 Genève, Switzerland'}
+            {addressCityCountry}
             <br />
-            {isClient ? t('phone_label') : 'Phone'}:{' '}
-            <a href={`tel:${t('rumi_phone_number').replace(/\s/g, '')}`}>
-              {isClient ? t('rumi_phone_number') : '+41 22 786 33 33'}
-            </a>
+            {isClient ? t('phone_label') : 'Phone'}: <a href={`tel:${phoneTel}`}>{phoneDisplay}</a>
           </address>
           <div className={styles.mapContainer}>
             <iframe
@@ -228,8 +240,7 @@ export default function HomePage() {
         <footer className={styles.homeFooter}>
           <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
           <p>
-            {isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45'},{' '}
-            {isClient ? t('rumi_address_city_country') : '1202 Genève, Switzerland'}
+            {addressStreet}, {addressCityCountry}
           </p>
           <div
             style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}

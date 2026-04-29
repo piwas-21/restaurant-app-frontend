@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using RestaurantSystem.Api.Common.Services.Interfaces;
 
 namespace RestaurantSystem.Api.Common.Services;
@@ -8,17 +9,34 @@ namespace RestaurantSystem.Api.Common.Services;
 /// Default <see cref="IHtmlResponseBuilder"/> implementation. Pure string
 /// composition — no I/O, no DI dependencies. Registered as singleton.
 /// </summary>
-public class HtmlResponseBuilder : IHtmlResponseBuilder
+public sealed class HtmlResponseBuilder : IHtmlResponseBuilder
 {
+    // Hex (#abc / #abcdef) or CSS named colour (a-z letters, allowing
+    // composite names like "rebeccapurple"). Rejects anything that could
+    // close the style attribute or open another CSS declaration — defence
+    // in depth even though AccentColor is documented as never-user-input.
+    private static readonly Regex CssColorPattern = new(
+        @"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|[a-zA-Z]+)$",
+        RegexOptions.Compiled);
+
     public string Escape(string? value) =>
         WebUtility.HtmlEncode(value ?? string.Empty);
 
     public string BuildStatusPage(HtmlStatusPage page)
     {
+        if (!CssColorPattern.IsMatch(page.AccentColor))
+        {
+            throw new ArgumentException(
+                $"AccentColor must be a hex (#abc / #abcdef) or named CSS colour. Got: '{page.AccentColor}'.",
+                nameof(page));
+        }
+
         var title = Escape(page.Title);
         var heading = Escape(page.Heading);
         var icon = Escape(page.Icon);
-        var color = Escape(page.AccentColor);
+        // AccentColor is regex-validated above; Escape() would alter named
+        // colours unnecessarily (no HTML chars present anyway).
+        var color = page.AccentColor;
         // BodyHtml is intentionally not escaped — it's pre-rendered HTML
         // (see IHtmlResponseBuilder.Escape for the contract).
         var body = page.BodyHtml;
@@ -33,13 +51,12 @@ public class HtmlResponseBuilder : IHtmlResponseBuilder
 
         if (page.Redirect is { } redirect)
         {
-            // Url is taken verbatim from configured frontend base URLs (EmailSettings)
-            // — not user input — so no escape is needed beyond the meta tag's own
-            // attribute quoting.
+            // Escape the URL for HTML-attribute correctness: a query string
+            // like ?a=1&b=2 must encode the ampersand.
             sb.Append("    <meta http-equiv='refresh' content='")
               .Append(redirect.DelaySeconds)
               .Append(";url=")
-              .Append(redirect.Url)
+              .Append(Escape(redirect.Url))
               .AppendLine("'>");
         }
 

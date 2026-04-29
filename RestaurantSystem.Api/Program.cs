@@ -179,6 +179,17 @@ builder.Services.AddAuthentication(options =>
 
     options.Events = new JwtBearerEvents
     {
+        // EventSource (SSE) cannot set headers, so the frontend passes the JWT
+        // via ?token= query string for SSE endpoints. Extract it here.
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api/events") &&
+                context.Request.Query.TryGetValue("token", out var token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        },
         OnAuthenticationFailed = context =>
         {
             if (context.Exception is SecurityTokenExpiredException)

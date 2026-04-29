@@ -56,8 +56,8 @@ public class RefreshTokenCommandHandler : ICommandHandler<RefreshTokenCommand, A
                 return ApiResponse<AuthResponse>.Failure("Invalid token", "Token refresh failed");
             }
 
-            // Step 3: Validate refresh token
-            if (user.RefreshToken != command.RefreshToken)
+            // Step 3: Validate refresh token — compare stored hash against hash of provided token
+            if (user.RefreshToken != _tokenService.HashRefreshToken(command.RefreshToken))
             {
                 _logger.LogWarning("Invalid refresh token attempt for user {UserId} - token mismatch", user.Id);
                 return ApiResponse<AuthResponse>.Failure("Invalid token", "Token refresh failed");
@@ -73,8 +73,8 @@ public class RefreshTokenCommandHandler : ICommandHandler<RefreshTokenCommand, A
             var newAccessToken = _tokenService.GenerateAccessToken(user);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-            // Step 5: Update user with new refresh token
-            user.RefreshToken = newRefreshToken;
+            // Step 5: Update user with hash of new refresh token
+            user.RefreshToken = _tokenService.HashRefreshToken(newRefreshToken);
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Configurable refresh token expiry
             user.UpdatedAt = DateTime.UtcNow;
             user.UpdatedBy = user.Id.ToString();

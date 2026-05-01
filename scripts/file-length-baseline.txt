@@ -25,7 +25,6 @@ src/app/admin/orders-management/page.tsx
 src/app/admin/menu-management/page.tsx
 src/app/admin/member-management/page.tsx
 src/app/admin/table-statistics/styles.module.css
-src/app/admin/table-statistics/page.tsx
 src/app/app-internal-layout.tsx
 src/app/scan/page.tsx
 src/app/checkout/confirmation/page.tsx

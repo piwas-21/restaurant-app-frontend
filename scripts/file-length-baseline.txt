@@ -21,7 +21,6 @@ src/app/admin/customer-discounts/page.tsx
 src/app/admin/user-groups/[id]/page.tsx
 src/app/admin/point-rules/point-rules.module.css
 src/app/admin/point-rules/page.tsx
-src/app/admin/table-layout-editor/page.tsx
 src/app/admin/orders-management/page.tsx
 src/app/admin/menu-management/page.tsx
 src/app/admin/member-management/page.tsx

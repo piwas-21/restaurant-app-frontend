@@ -11,7 +11,6 @@
 src/types/basket.ts
 src/types/menu.ts
 src/types/order.ts
-src/app/cashier/page.tsx
 src/app/kitchen-staff/page.tsx
 src/app/auth/register/RegisterSuccess.module.css
 src/app/auth/register/page.tsx

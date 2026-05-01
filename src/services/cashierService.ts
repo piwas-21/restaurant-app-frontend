@@ -84,19 +84,18 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 /**
  * Add payment to order
  */
-export async function addPaymentToOrder(
-  orderId: string,
-  paymentData: {
-    paymentMethod: string;
-    amount: number;
-    transactionId?: string;
-    referenceNumber?: string;
-    cardLastFourDigits?: string;
-    cardType?: string;
-    paymentGateway?: string;
-    paymentNotes?: string;
-  },
-): Promise<OrderDto> {
+export interface AddPaymentRequest {
+  paymentMethod: string;
+  amount: number;
+  transactionId?: string;
+  referenceNumber?: string;
+  cardLastFourDigits?: string;
+  cardType?: string;
+  paymentGateway?: string;
+  paymentNotes?: string;
+}
+
+export async function addPaymentToOrder(orderId: string, paymentData: AddPaymentRequest): Promise<OrderDto> {
   const response = await apiClient.post<OrderDtoApiResponse>(
     `/api/orders/${orderId}/payments`,
     {

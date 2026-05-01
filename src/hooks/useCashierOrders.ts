@@ -8,6 +8,7 @@ import {
   refundPayment,
   cancelOrder,
   toggleFocusOrder,
+  AddPaymentRequest,
 } from '@/services/cashierService';
 import { OrderDto } from '@/types/order';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
@@ -28,7 +29,7 @@ interface UseCashierOrdersReturn {
   connectionState: ConnectionState;
   refreshOrders: () => Promise<void>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
-  addPayment: (orderId: string, paymentData: any) => Promise<OrderDto>;
+  addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
   refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;

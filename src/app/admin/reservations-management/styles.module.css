@@ -110,3 +110,9 @@
     font-size: 0.9375rem;
   }
 }
+
+.paginationInfo {
+  text-align: center;
+  margin-top: 1rem;
+  color: var(--text-color-muted);
+}

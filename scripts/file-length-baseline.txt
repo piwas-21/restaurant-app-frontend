@@ -156,7 +156,6 @@ src/hooks/usePublicMenu.ts
 src/hooks/useTableLayout.ts
 src/services/orderService.ts
 src/services/reservationService.ts
-src/services/serverService.ts
 src/services/addressService.ts
 src/services/authService.ts
 src/services/cashierService.ts

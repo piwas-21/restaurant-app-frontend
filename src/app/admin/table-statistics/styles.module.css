@@ -561,3 +561,33 @@
     font-size: 1.5rem;
   }
 }
+
+/* Status colour chips for the breakdown bars + dots. Sourced from the
+   chart-status palette in globals.css so theming changes flow through. */
+.colorActive {
+  background-color: var(--success-color);
+}
+.colorInactive {
+  background-color: var(--status-warning);
+}
+.colorIndoor {
+  background-color: var(--status-info);
+}
+.colorOutdoor {
+  background-color: var(--status-success-light);
+}
+.colorConfirmed {
+  background-color: var(--status-confirmed);
+}
+.colorCompleted {
+  background-color: var(--status-completed);
+}
+.colorCancelled {
+  background-color: var(--status-danger);
+}
+.textConfirmed {
+  color: var(--status-confirmed);
+}
+.textCancelled {
+  color: var(--status-danger);
+}

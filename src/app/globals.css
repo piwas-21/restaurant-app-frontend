@@ -29,6 +29,7 @@
   --primary-color-dark: #890303;
   --success-color-dark: #388e3c; /* ~4.1:1 on white — used as text colour or as background where contrast against white text isn't required. Below WCAG AA for normal text on white. */
   --success-color-darker: #2e7d32; /* CTA button background in light mode (~5.7:1 on white, WCAG AA). */
+  --text-on-accent: #ffffff; /* Foreground colour for text on AA-darker accents (--success-color-darker, --primary-color-dark, etc.). Same value across themes — accent backgrounds are deliberately dark in both. */
   --warning-color: #ffa500;
   --warning-color-light: #ffdab9;
   --warning-color-xlight: #fff5e1;
@@ -70,6 +71,7 @@ html[data-theme='dark'] {
   --link-hover-color: #f08080;
   --success-color: #81c784;
   --success-color-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a). */
+  --text-on-accent: #ffffff; /* Mirror of light-mode value — accent backgrounds are dark in both themes. */
   --error-color: #ff8a80;
   --error-background: #3a1f1f;
   --error-border: #5a2a2a;

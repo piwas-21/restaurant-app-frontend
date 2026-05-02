@@ -59,6 +59,6 @@
 .changeButton:hover,
 .changeButton:focus-visible {
   background-color: var(--success-color-darker);
-  color: #ffffff; /* AA-contrast pair with --success-color-darker (~5.7:1 light, ~6.0:1 dark) */
+  color: var(--text-on-accent);
   outline: none;
 }

@@ -1,5 +1,11 @@
 'use client';
 
+// TODO(C1.5.b): the legacy /checkout/order-type page that consumed this
+// component has been redirected to /menu. This file is currently unused
+// but BUGS-IMPROVEMENTS-PLAN §C1.5.b explicitly slates it for reuse:
+// `DeliveryAddressModal` "extracts existing address form from current
+// /checkout/order-type". Don't dead-code-prune until C1.5.b lands.
+
 import { useTranslation } from 'react-i18next';
 import { MapPin } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';

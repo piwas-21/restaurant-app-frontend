@@ -31,10 +31,28 @@ test('first-time visitor sees the order-type welcome modal and the choice persis
   const parsed = JSON.parse(stored as string) as { orderType: string };
   expect(parsed.orderType).toBe('Takeaway');
 
-  // Reload — the modal must NOT come back (the choice is persistent).
+  // Reload — the modal must NOT come back (the choice is persistent), and
+  // the sticky header now shows the current pick.
   await page.reload();
   await expect(page.getByRole('button', { name: /^Add( .+)? to order$/i }).first()).toBeVisible({
     timeout: 15_000,
   });
   await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(page.getByRole('region', { name: /order type/i }).getByText(/Takeaway/i)).toBeVisible();
+});
+
+test('the legacy /checkout/order-type page redirects to /menu when no order type is set', async ({ page }) => {
+  await page.goto('/checkout/order-type');
+  await expect(page).toHaveURL(/\/menu$/);
+});
+
+test('the legacy /checkout/order-type page redirects to /checkout/customer-info when chosen', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      'rumi_order_type_state',
+      JSON.stringify({ orderType: 'Takeaway', table: '', deliveryAddress: null }),
+    );
+  });
+  await page.goto('/checkout/order-type');
+  await expect(page).toHaveURL(/\/checkout\/customer-info$/);
 });

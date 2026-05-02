@@ -1,0 +1,64 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--success-color-xlight);
+  border-bottom: 1px solid var(--border-color-light);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  color: var(--success-color-darker);
+}
+
+.label {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.liveRegion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.value {
+  font-weight: 600;
+}
+
+.detail {
+  opacity: 0.75;
+  font-size: 0.85rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border-color);
+}
+
+.changeButton {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  color: var(--success-color-darker);
+  border: 1px solid var(--success-color-darker);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.changeButton:hover,
+.changeButton:focus-visible {
+  background-color: var(--success-color-darker);
+  color: #ffffff; /* AA-contrast pair with --success-color-darker (~5.7:1 light, ~6.0:1 dark) */
+  outline: none;
+}

@@ -2,6 +2,16 @@ import { AxeBuilder } from '@axe-core/playwright';
 import { expect, type Page } from '@playwright/test';
 import type { Result } from 'axe-core';
 
+interface A11yOptions {
+  /**
+   * CSS selectors to exclude from the scan. Per E2E-STRATEGY §Accessibility,
+   * scope exclusions to specific selectors, NEVER the whole page; document
+   * the reason at the call site so the next reader knows whether the
+   * exclusion is still load-bearing.
+   */
+  excludeSelectors?: string[];
+}
+
 /**
  * Run axe-core against the page and fail on critical/serious violations.
  *
@@ -10,10 +20,12 @@ import type { Result } from 'axe-core';
  * not fail the test (avoids drowning genuine regressions in colour-contrast
  * noise from work-in-progress design tokens).
  */
-export async function expectNoA11yViolations(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze();
+export async function expectNoA11yViolations(page: Page, opts: A11yOptions = {}): Promise<void> {
+  let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']);
+  for (const selector of opts.excludeSelectors ?? []) {
+    builder = builder.exclude(selector);
+  }
+  const results = await builder.analyze();
 
   const blocking = results.violations.filter(
     (v) => v.impact === 'critical' || v.impact === 'serious',

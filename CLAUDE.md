@@ -23,6 +23,7 @@
 | Design / component patterns | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) |
 | Coding conventions | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) |
 | Test work | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) |
+| Adding/changing a Playwright E2E | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules |
 | Quality / security gate work | [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) |
 | Security review / threat model | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) |
 | Architectural decisions | [docs/adr/README.md](docs/adr/README.md) — index of ADRs |

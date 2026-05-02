@@ -87,19 +87,31 @@ test('StatusBadge renders correct color for pending order', () => {
 ```
 
 ### Layer 4: E2E Tests (NEW - Playwright)
-Full browser flows.
+
+Full browser flows. **Authoritative rules** for E2E (scope, tiering, selectors, auth, reliability, CI) live in [E2E-STRATEGY.md](E2E-STRATEGY.md). This phase plan is the *what*; the strategy is the *how*.
 
 ```typescript
-// e2e/checkout.e2e.ts
-test('customer can complete checkout flow', async ({ page }) => {
+// e2e/tests/customer/checkout.e2e.ts
+import { test, expect } from '@playwright/test';
+import { expectNoA11yViolations } from '../../helpers/a11y';
+
+test('customer can place a guest order from the public menu', async ({ page }) => {
   await page.goto('/menu');
-  await page.click('[data-testid="add-to-cart-pizza"]');
-  await page.click('[data-testid="checkout-button"]');
-  await page.fill('[name="customerName"]', 'Test User');
+  await expectNoA11yViolations(page);
+
+  await page.getByRole('button', { name: /add to cart/i }).first().click();
+  await page.getByRole('link', { name: /cart/i }).click();
+  await page.getByRole('button', { name: /checkout/i }).click();
+  await page.getByLabel(/name/i).fill('Test User');
   // ...
-  await expect(page.locator('.orderConfirmation')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /order confirmed/i })).toBeVisible();
 });
 ```
+
+Key deltas from earlier drafts:
+- **Role-based selectors** (`getByRole`, `getByLabel`, `getByText`) preferred over `data-testid`. `data-testid` only as a last resort — see strategy §Selector strategy.
+- **One file per flow**, not per page. Files live under `e2e/tests/<surface>/`.
+- **Per-role auth fixtures** (customer / cashier / server / kitchen / admin) seed via the backend API, not stubbed contexts.
 
 ---
 
@@ -195,17 +207,22 @@ test('customer can complete checkout flow', async ({ page }) => {
 
 ### Phase 6: E2E Tests (Sprint 7-8)
 
-| Test File | Tests | Coverage |
-|-----------|-------|----------|
-| `auth.e2e.ts` | 5 | Register, login, logout, password reset, email verify |
-| `menu-and-cart.e2e.ts` | 5 | Browse menu, add items, customize, view cart, update quantities |
-| `checkout.e2e.ts` | 5 | Order type select, customer info, payment, confirmation |
-| `cashier.e2e.ts` | 5 | View orders, update status, add payment, print |
-| `admin-orders.e2e.ts` | 4 | Filter, view details, cancel, refund |
-| `reservations.e2e.ts` | 4 | Create, approve, reject, cancel |
-| `admin-products.e2e.ts` | 4 | Create, edit, images, categories |
+> Scoped per [E2E-STRATEGY.md](E2E-STRATEGY.md) — **HIGH** tier only ships in this phase; **MED** items roll in opportunistically when adjacent flows are touched.
 
-**Total: ~32 E2E tests**
+| Test File | Tier | Tests | Coverage |
+|-----------|------|-------|----------|
+| `tests/auth/register-login.e2e.ts` | HIGH | 4 | Register → verify → login → logout; failed login surfaces error |
+| `tests/public/menu-and-cart.e2e.ts` | HIGH | 4 | Browse menu, add items with options, view cart, update quantities |
+| `tests/customer/checkout-guest.e2e.ts` | HIGH | 3 | Guest checkout (delivery / pickup / dine-in), confirmation visible |
+| `tests/customer/checkout-authed.e2e.ts` | HIGH | 3 | Logged-in checkout reusing saved address; order appears in `/my-orders` |
+| `tests/cashier/order-flow.e2e.ts` | HIGH | 4 | Cashier sees incoming order, updates status, marks paid |
+| `tests/server/take-order.e2e.ts` | HIGH | 3 | Open table layout, seat guests, send order to kitchen |
+| `tests/admin/products.e2e.ts` | HIGH | 3 | Create product, upload image, toggle availability → visible on public menu |
+| `tests/admin/orders.e2e.ts` | HIGH | 3 | Filter, view details, cancel/refund (boundary-mocked) |
+| `tests/customer/reservations.e2e.ts` | HIGH | 3 | Customer creates reservation → admin approves → status syncs |
+| `tests/public/locale-rtl.e2e.ts` | HIGH | 2 | Switch to `ar`, layout mirrors, primary CTA reachable |
+
+**Total: ~32 E2E tests** (HIGH tier). MED tier (theme/locale persistence, fidelity points balance, `/scan` landing) adds ~5 more if cheap.
 
 ---
 

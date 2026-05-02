@@ -55,7 +55,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Playwright E2E outputs (do NOT gitignore the whole e2e/ — tests are committed)
+e2e/.auth/
 test-results/
-e2e/
-.playwright-mcp/
 playwright-report/
+.playwright-mcp/

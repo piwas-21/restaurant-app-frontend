@@ -72,7 +72,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+    // Clear per-user PII / state that would otherwise leak to the next person
+    // on the same browser. Keep `rumi_session_id` — that's a guest-cart
+    // identifier, intentionally preserved so the now-anonymous user keeps
+    // their basket.
+    localStorage.removeItem('rumi_saved_customer_info');
+    localStorage.removeItem('rumi_checkout_state');
     setUser(null);
     router.push('/');
   };

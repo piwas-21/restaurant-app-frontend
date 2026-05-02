@@ -33,8 +33,6 @@ function getPool(): Pool {
   return pool;
 }
 
-// TODO(task-4): wire `closeDbPool` into Playwright globalTeardown so the
-// process exits cleanly instead of relying on the pool's idle-timeout.
 export async function closeDbPool(): Promise<void> {
   if (pool) {
     await pool.end();

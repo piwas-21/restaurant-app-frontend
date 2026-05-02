@@ -49,6 +49,10 @@ export default defineConfig({
     env: {
       TZ: 'UTC',
       LANG: 'en_US.UTF-8',
+      // Pin the dev server's backend URL to E2E_API_BASE_URL so browser-side
+      // fetches don't fall through to whatever .env.local has (e.g. a stale
+      // staging URL). Fixture-level request.* calls already use this value.
+      NEXT_PUBLIC_API_URL: process.env.E2E_API_BASE_URL ?? 'http://localhost:5221',
     },
   },
 });

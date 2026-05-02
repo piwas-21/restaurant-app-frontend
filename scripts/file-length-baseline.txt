@@ -29,7 +29,6 @@ src/app/app-internal-layout.tsx
 src/app/scan/page.tsx
 src/app/checkout/confirmation/page.tsx
 src/app/checkout/review/page.tsx
-src/app/checkout/customer-info/page.tsx
 src/app/styles/RegisterStaffModal.module.css
 src/app/styles/ServerPage.module.css
 src/app/styles/Reservations.module.css

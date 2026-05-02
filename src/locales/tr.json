@@ -696,6 +696,8 @@
   "order_type_takeaway_desc": "Siparişinizi alıp götürün",
   "order_type_delivery": "Teslimat",
   "order_type_delivery_desc": "Adresinize teslimat yapıyoruz",
+  "order_type_welcome_title": "Nasıl sipariş vermek istersiniz?",
+  "order_type_welcome_subtitle": "Yemeğinizi nasıl tatmak istediğinizi seçin — bunu daha sonra değiştirebilirsiniz.",
   "table_number": "Masa Numarası",
   "delivery_address": "Teslimat Adresi",
   "street_address": "Sokak Adresi",

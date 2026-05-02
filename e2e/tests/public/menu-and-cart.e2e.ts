@@ -22,6 +22,16 @@ import { expectNoA11yViolations } from '../../helpers/a11y';
  * cross-test cart pollution isn't possible.
  */
 test('customer can browse the menu, add an item, and update its quantity in the cart', async ({ page }) => {
+  // Skip the order-type welcome modal that /menu shows on first visit
+  // (introduced by C1.5.a). Browse/cart is what's under test here, not the
+  // first-touch onboarding — pre-seeding localStorage with a chosen type is
+  // the same pattern the customerUser fixture uses for auth_token.
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      'rumi_order_type_state',
+      JSON.stringify({ orderType: 'Takeaway', table: '', deliveryAddress: null }),
+    );
+  });
   await page.goto('/menu');
 
   // a11y baseline: scan after the menu has rendered (helper waits for it).

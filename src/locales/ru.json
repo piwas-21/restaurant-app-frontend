@@ -622,6 +622,8 @@
   "order_type_takeaway_desc": "Заберите свой заказ",
   "order_type_delivery": "Доставка",
   "order_type_delivery_desc": "Мы доставим заказ по вашему адресу",
+  "order_type_welcome_title": "Как вы хотите сделать заказ?",
+  "order_type_welcome_subtitle": "Выберите, как вы хотите насладиться едой — вы можете изменить это позже.",
   "table_number": "Номер столика",
   "delivery_address": "Адрес доставки",
   "street_address": "Улица",

@@ -694,6 +694,8 @@
   "order_type_takeaway_desc": "Ritira il tuo ordine",
   "order_type_delivery": "Consegna",
   "order_type_delivery_desc": "Consegniamo al tuo indirizzo",
+  "order_type_welcome_title": "Come vorresti ordinare?",
+  "order_type_welcome_subtitle": "Scegli come vuoi gustare il pasto — puoi cambiarlo più tardi.",
   "table_number": "Numero Tavolo",
   "delivery_address": "Indirizzo di consegna",
   "street_address": "Indirizzo stradale",

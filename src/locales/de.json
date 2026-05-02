@@ -699,6 +699,8 @@
   "order_type_takeaway_desc": "Holen Sie Ihre Bestellung ab",
   "order_type_delivery": "Lieferung",
   "order_type_delivery_desc": "Wir liefern zu Ihrer Adresse",
+  "order_type_welcome_title": "Wie möchten Sie bestellen?",
+  "order_type_welcome_subtitle": "Wählen Sie, wie Sie Ihr Essen genießen möchten — Sie können dies später ändern.",
   "table_number": "Tischnummer",
   "delivery_address": "Lieferadresse",
   "street_address": "Straßenadresse",

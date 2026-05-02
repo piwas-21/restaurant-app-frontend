@@ -690,6 +690,8 @@
   "order_type_takeaway_desc": "取走您的订单",
   "order_type_delivery": "送货",
   "order_type_delivery_desc": "我们把餐点送到您的地址",
+  "order_type_welcome_title": "您想如何点餐？",
+  "order_type_welcome_subtitle": "选择您想如何享用您的餐点 — 您可以稍后更改。",
   "table_number": "餐桌号",
   "delivery_address": "送货地址",
   "street_address": "街道地址",

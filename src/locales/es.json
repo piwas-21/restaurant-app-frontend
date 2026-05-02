@@ -688,6 +688,8 @@
   "order_type_takeaway_desc": "Recoja su pedido",
   "order_type_delivery": "Entrega",
   "order_type_delivery_desc": "Entregamos en su dirección",
+  "order_type_welcome_title": "¿Cómo te gustaría pedir?",
+  "order_type_welcome_subtitle": "Elige cómo quieres disfrutar tu comida — puedes cambiarlo más tarde.",
   "table_number": "Número de Mesa",
   "delivery_address": "Dirección de entrega",
   "street_address": "Dirección de calle",

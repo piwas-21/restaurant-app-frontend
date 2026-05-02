@@ -691,6 +691,8 @@
   "order_type_takeaway_desc": "Pick up your order",
   "order_type_delivery": "Delivery",
   "order_type_delivery_desc": "We deliver to your address",
+  "order_type_welcome_title": "How would you like to order?",
+  "order_type_welcome_subtitle": "Pick how you'd like to enjoy your meal — you can change this later.",
   "table_number": "Table Number",
   "delivery_address": "Delivery Address",
   "street_address": "Street Address",

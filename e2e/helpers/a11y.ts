@@ -1,0 +1,49 @@
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect, type Page } from '@playwright/test';
+import type { Result } from 'axe-core';
+
+/**
+ * Run axe-core against the page and fail on critical/serious violations.
+ *
+ * Strategy: docs/E2E-STRATEGY.md §Accessibility. Default threshold is
+ * critical + serious; moderate findings are logged for visibility but do
+ * not fail the test (avoids drowning genuine regressions in colour-contrast
+ * noise from work-in-progress design tokens).
+ */
+export async function expectNoA11yViolations(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+
+  const blocking = results.violations.filter(
+    (v) => v.impact === 'critical' || v.impact === 'serious',
+  );
+
+  const moderate = results.violations.filter(
+    (v) => v.impact === 'moderate' || v.impact === 'minor',
+  );
+  if (moderate.length > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[a11y] ${moderate.length} non-blocking violation(s):`,
+      moderate.map((v) => `${v.id} (${v.impact})`).join(', '),
+    );
+  }
+
+  expect(blocking, formatViolations(blocking)).toEqual([]);
+}
+
+function formatViolations(violations: Result[]): string {
+  if (violations.length === 0) return '';
+  return [
+    `\nFound ${violations.length} blocking accessibility violation(s):`,
+    ...violations.map(
+      (v, i) =>
+        `  ${i + 1}. [${v.impact ?? 'unknown'}] ${v.id}: ${v.description}\n` +
+        `     affecting ${v.nodes.length} node(s): ${v.nodes
+          .slice(0, 3)
+          .map((n) => JSON.stringify(n.target))
+          .join(', ')}${v.nodes.length > 3 ? ', …' : ''}`,
+    ),
+  ].join('\n');
+}

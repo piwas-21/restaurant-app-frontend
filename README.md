@@ -44,7 +44,7 @@ scripts/                          # Local dev orchestration
 .gitlab/                          # MR templates, CI templates
 __mocks__/                        # Jest mocks
 __tests__ / *.test.ts             # Unit tests colocated with source
-playwright/                       # E2E tests
+e2e/                              # Playwright E2E (see docs/E2E-STRATEGY.md)
 ```
 
 ## Quick start (new clone)
@@ -131,6 +131,7 @@ Required sections: summary, sprint-task link, acceptance-criteria coverage, back
 | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Design system patterns |
 | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) | Coding conventions |
 | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) | Security findings + status |
-| [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) | Test strategy |
+| [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) | Test strategy (Jest + Playwright phases, coverage targets) |
+| [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) | Playwright E2E rules — scope, tiers, selectors, auth, reliability |
 | [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) | CI / quality / security gate plan |
 | [docs/adr/](docs/adr/) | Architecture Decision Records |

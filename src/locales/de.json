@@ -703,6 +703,8 @@
   "order_type_welcome_subtitle": "Wählen Sie, wie Sie Ihr Essen genießen möchten — Sie können dies später ändern.",
   "order_type_change": "Ändern",
   "order_type_change_confirm": "Eine Änderung Ihres Bestelltyps kann Artikel in Ihrem Warenkorb betreffen. Fortfahren?",
+  "table_selection_title": "Wählen Sie Ihren Tisch",
+  "delivery_address_modal_title": "Wohin sollen wir liefern?",
   "redirecting": "Weiterleitung…",
   "table_number": "Tischnummer",
   "delivery_address": "Lieferadresse",

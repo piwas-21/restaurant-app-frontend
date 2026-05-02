@@ -697,6 +697,8 @@
   "order_type_welcome_subtitle": "اختر كيف تريد الاستمتاع بوجبتك — يمكنك تغيير هذا لاحقًا.",
   "order_type_change": "تغيير",
   "order_type_change_confirm": "قد يؤثر تغيير نوع الطلب على العناصر في سلة التسوق الخاصة بك. هل تريد المتابعة؟",
+  "table_selection_title": "اختر طاولتك",
+  "delivery_address_modal_title": "إلى أين نقوم بالتوصيل؟",
   "redirecting": "جارٍ إعادة التوجيه…",
   "table_number": "رقم الطاولة",
   "delivery_address": "عنوان التسليم",

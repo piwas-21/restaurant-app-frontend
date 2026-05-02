@@ -34,6 +34,13 @@ export default function OrderTypeWelcomeModal({ isOpen, onClose, onChosen }: Ord
   const { setOrderType } = useOrderType();
 
   const choose = (type: OrderType) => {
+    // Order matters and the chain must stay synchronous: setOrderType
+    // (commits to OrderTypeContext) → onChosen (which queues the follow-up
+    // modal in useOrderTypeWelcomePrompt) → onClose (unmounts this modal).
+    // React batches the three state updates into one commit, so the
+    // follow-up modal mounts in the same tick the welcome modal unmounts.
+    // Do NOT make this async — see useOrderTypeWelcomePrompt for the
+    // contract on the dispatch hook side.
     setOrderType(type);
     onChosen?.(type);
     onClose();

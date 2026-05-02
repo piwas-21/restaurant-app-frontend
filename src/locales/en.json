@@ -695,6 +695,8 @@
   "order_type_welcome_subtitle": "Pick how you'd like to enjoy your meal — you can change this later.",
   "order_type_change": "Change",
   "order_type_change_confirm": "Changing your order type may affect items in your cart. Continue?",
+  "table_selection_title": "Select your table",
+  "delivery_address_modal_title": "Where should we deliver?",
   "redirecting": "Redirecting…",
   "table_number": "Table Number",
   "delivery_address": "Delivery Address",

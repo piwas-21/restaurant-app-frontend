@@ -700,6 +700,8 @@
   "order_type_welcome_subtitle": "Yemeğinizi nasıl tatmak istediğinizi seçin — bunu daha sonra değiştirebilirsiniz.",
   "order_type_change": "Değiştir",
   "order_type_change_confirm": "Sipariş türünü değiştirmek sepetinizdeki ürünleri etkileyebilir. Devam edilsin mi?",
+  "table_selection_title": "Masanızı seçin",
+  "delivery_address_modal_title": "Teslimat nereye yapılsın?",
   "redirecting": "Yönlendiriliyor…",
   "table_number": "Masa Numarası",
   "delivery_address": "Teslimat Adresi",

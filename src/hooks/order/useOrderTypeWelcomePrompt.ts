@@ -5,6 +5,9 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { OrderType } from '@/types/order';
 
+/** Which follow-up modal to display after the welcome modal closes. */
+export type OrderTypeFollowUp = 'table' | 'address' | null;
+
 interface PromptState {
   showWelcomeModal: boolean;
   /**
@@ -14,6 +17,19 @@ interface PromptState {
    */
   openWelcomeModal: () => void;
   closeWelcomeModal: () => void;
+  /**
+   * Which follow-up modal is currently open: 'table' for dine-in,
+   * 'address' for delivery, null for takeaway / no choice.
+   */
+  followUp: OrderTypeFollowUp;
+  /**
+   * Pass to `<OrderTypeWelcomeModal onChosen={...}>` — picks the right
+   * follow-up modal based on type. Welcome modal closes first (its own
+   * `onClose`), then the follow-up opens because `followUp` state was
+   * set in the same synchronous click handler. No race.
+   */
+  handleWelcomeChosen: (type: OrderType) => void;
+  closeFollowUp: () => void;
 }
 
 /**
@@ -40,6 +56,7 @@ export function useOrderTypeWelcomePrompt(): PromptState {
   const { hasTableContext, tableContext } = useTableContext();
   const [isMounted, setIsMounted] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
   const hasPromptedRef = useRef(false);
 
   useEffect(() => {
@@ -64,5 +81,23 @@ export function useOrderTypeWelcomePrompt(): PromptState {
   const openWelcomeModal = useCallback(() => setShowWelcomeModal(true), []);
   const closeWelcomeModal = useCallback(() => setShowWelcomeModal(false), []);
 
-  return { showWelcomeModal, openWelcomeModal, closeWelcomeModal };
+  const handleWelcomeChosen = useCallback((type: OrderType) => {
+    if (type === OrderType.DineIn) {
+      setFollowUp('table');
+    } else if (type === OrderType.Delivery) {
+      setFollowUp('address');
+    }
+    // Takeaway: no follow-up modal.
+  }, []);
+
+  const closeFollowUp = useCallback(() => setFollowUp(null), []);
+
+  return {
+    showWelcomeModal,
+    openWelcomeModal,
+    closeWelcomeModal,
+    followUp,
+    handleWelcomeChosen,
+    closeFollowUp,
+  };
 }

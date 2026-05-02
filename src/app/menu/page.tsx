@@ -12,8 +12,8 @@ import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePubli
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderTypeWelcomePrompt } from '@/hooks/order/useOrderTypeWelcomePrompt';
-import OrderTypeWelcomeModal from '@/components/order/OrderTypeWelcomeModal';
 import OrderTypeStickyHeader from '@/components/order/OrderTypeStickyHeader';
+import OrderFlowModals from '@/components/order/OrderFlowModals';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 import { setFallbackImage } from '@/utils/imageHelpers';
 
@@ -64,7 +64,7 @@ export default function MenuPage() {
 
   const { addItem, state: cartState } = useCart();
   const { enqueueSnackbar } = useSnackbar();
-  const { showWelcomeModal, openWelcomeModal, closeWelcomeModal } = useOrderTypeWelcomePrompt();
+  const orderTypePrompt = useOrderTypeWelcomePrompt();
 
   useEffect(() => {
     setIsMounted(true);
@@ -166,7 +166,7 @@ export default function MenuPage() {
     <main className={styles.menuContainer} aria-labelledby="menu-page-heading">
       <MenuPageHeader />
 
-      <OrderTypeStickyHeader onChange={openWelcomeModal} />
+      <OrderTypeStickyHeader onChange={orderTypePrompt.openWelcomeModal} />
 
       <TableBanner position="top" />
 
@@ -244,7 +244,7 @@ export default function MenuPage() {
       {/* Floating Cart Button */}
       <FloatingCartButton itemCount={itemCount} totalPrice={cartTotal} onAnimate={cartAnimationTrigger} />
 
-      <OrderTypeWelcomeModal isOpen={showWelcomeModal} onClose={closeWelcomeModal} />
+      <OrderFlowModals prompt={orderTypePrompt} />
     </main>
   );
 }

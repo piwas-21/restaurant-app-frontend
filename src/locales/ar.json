@@ -693,6 +693,8 @@
   "order_type_takeaway_desc": "اختر طلبك",
   "order_type_delivery": "التسليم",
   "order_type_delivery_desc": "نقوم بالتسليم إلى عنوانك",
+  "order_type_welcome_title": "كيف تريد أن تطلب؟",
+  "order_type_welcome_subtitle": "اختر كيف تريد الاستمتاع بوجبتك — يمكنك تغيير هذا لاحقًا.",
   "table_number": "رقم الطاولة",
   "delivery_address": "عنوان التسليم",
   "street_address": "عنوان الشارع",

@@ -10,6 +10,7 @@ import React from 'react';
 import { AuthProvider } from '@/components/AuthContext';
 import { SessionProvider } from '@/contexts/SessionContext';
 import { CheckoutProvider } from '@/contexts/CheckoutContext';
+import { OrderTypeProvider } from '@/contexts/OrderTypeContext';
 import { TableContextProvider } from '@/contexts/TableContext';
 import { X } from 'lucide-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -25,36 +26,38 @@ export default function ClientProviders({ children }: { children: React.ReactNod
                 <TableContextProvider>
                   <CartProvider>
                     <CheckoutProvider>
-                      <SnackbarProvider
-                        maxSnack={3}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                        autoHideDuration={4000}
-                        action={(snackbarKey) => (
-                          <button
-                            onClick={() => closeSnackbar(snackbarKey)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: 'inherit',
-                              cursor: 'pointer',
-                              padding: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginLeft: '8px',
-                              opacity: 0.8,
-                              transition: 'opacity 0.2s',
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                            onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
-                            aria-label="Close notification"
-                          >
-                            <X size={18} strokeWidth={2} />
-                          </button>
-                        )}
-                      >
-                        {children}
-                      </SnackbarProvider>
+                      <OrderTypeProvider>
+                        <SnackbarProvider
+                          maxSnack={3}
+                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                          autoHideDuration={4000}
+                          action={(snackbarKey) => (
+                            <button
+                              onClick={() => closeSnackbar(snackbarKey)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: 'inherit',
+                                cursor: 'pointer',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginLeft: '8px',
+                                opacity: 0.8,
+                                transition: 'opacity 0.2s',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
+                              aria-label="Close notification"
+                            >
+                              <X size={18} strokeWidth={2} />
+                            </button>
+                          )}
+                        >
+                          {children}
+                        </SnackbarProvider>
+                      </OrderTypeProvider>
                     </CheckoutProvider>
                   </CartProvider>
                 </TableContextProvider>

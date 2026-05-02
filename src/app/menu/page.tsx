@@ -11,6 +11,8 @@ import type { LanguageCode } from '@/components/LanguageSwitcher';
 import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
+import { useOrderTypeWelcomePrompt } from '@/hooks/order/useOrderTypeWelcomePrompt';
+import OrderTypeWelcomeModal from '@/components/order/OrderTypeWelcomeModal';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 import { setFallbackImage } from '@/utils/imageHelpers';
 
@@ -61,6 +63,7 @@ export default function MenuPage() {
 
   const { addItem, state: cartState } = useCart();
   const { enqueueSnackbar } = useSnackbar();
+  const { showWelcomeModal, closeWelcomeModal } = useOrderTypeWelcomePrompt();
 
   useEffect(() => {
     setIsMounted(true);
@@ -237,6 +240,8 @@ export default function MenuPage() {
 
       {/* Floating Cart Button */}
       <FloatingCartButton itemCount={itemCount} totalPrice={cartTotal} onAnimate={cartAnimationTrigger} />
+
+      <OrderTypeWelcomeModal isOpen={showWelcomeModal} onClose={closeWelcomeModal} />
     </main>
   );
 }

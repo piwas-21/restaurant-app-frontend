@@ -38,11 +38,19 @@
 }
 
 .addToOrderButton {
-  background-color: var(--success-color);
+  /* WCAG AA contrast against #ffffff button text in light mode
+     (#2e7d32 → ~5.5:1) and against #1a1a1a in dark mode (#66bb6a →
+     ~5.7:1). The original --success-color (#4caf50) gave only ~2.7:1
+     on white; the intermediate --success-color-dark (#388e3c) was 4.11:1,
+     still under AA's 4.5 threshold. The menu-and-cart e2e test catches
+     regressions to either via axe-core. */
+  background-color: var(--success-color-darker);
 }
 
 .addToOrderButton:hover {
-  background-color: var(--success-color-dark);
+  /* Hover keeps the same bg colour (already AA-pass) — affordance comes
+     from the transform + cursor change. Going darker still would need a
+     fourth design-token tier for marginal UX gain. */
   transform: translateY(-1px);
 }
 

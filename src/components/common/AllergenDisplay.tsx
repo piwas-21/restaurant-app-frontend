@@ -87,7 +87,11 @@ export default function AllergenDisplay({
     // For menu items, preserve space to maintain layout alignment
     if (variant === 'full') {
       return (
-        <div className={`${styles.allergensSection} ${className}`} aria-label={t('allergens', 'Allergens')}>
+        <div
+          role="group"
+          className={`${styles.allergensSection} ${className}`}
+          aria-label={t('allergens', 'Allergens')}
+        >
           <div className={styles.allergensLabel} style={{ visibility: 'hidden' }}>
             {t('allergens', 'Allergens')}
           </div>
@@ -169,7 +173,7 @@ export default function AllergenDisplay({
 
   // Default 'full' variant - preserves layout spacing
   return (
-    <div className={`${styles.allergensSection} ${className}`} aria-label={t('allergens', 'Allergens')}>
+    <div role="group" className={`${styles.allergensSection} ${className}`} aria-label={t('allergens', 'Allergens')}>
       {/* {showLabel && <div className={styles.allergensLabel}>{t('allergens', 'Allergens')}</div>} */}
       <div className={styles.allergensContent}>
         {shown.map((allergen, idx) => {

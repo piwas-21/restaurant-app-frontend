@@ -28,11 +28,7 @@ test('customer can browse the menu, add an item, and update its quantity in the 
   // The first add-to-order button being visible is the load-completed signal.
   const firstAddButton = page.getByRole('button', { name: /^Add( .+)? to order$/i }).first();
   await expect(firstAddButton).toBeVisible({ timeout: 15_000 });
-  // The "Add to Order" buttons fail WCAG AA color-contrast on the current
-  // success-color token. Tracked as a design-system issue (see follow-ups
-  // in the MR description). Excluded by class-substring (CLAUDE.md
-  // §Selector strategy forbids depending on hashed CSS-Module class names).
-  await expectNoA11yViolations(page, { excludeSelectors: ['[class*="addToOrderButton"]'] });
+  await expectNoA11yViolations(page);
 
   // The basket POST may fire from the card click directly, or from the
   // customization modal's confirm button — set up the response wait

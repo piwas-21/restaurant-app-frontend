@@ -7,6 +7,12 @@ import { OrderType } from '@/types/order';
 
 interface PromptState {
   showWelcomeModal: boolean;
+  /**
+   * Manually open the modal (sticky header's "change" affordance, etc.).
+   * Always opens — does NOT consult the hasPromptedRef one-shot guard,
+   * which only governs the automatic first-visit open.
+   */
+  openWelcomeModal: () => void;
   closeWelcomeModal: () => void;
 }
 
@@ -55,7 +61,8 @@ export function useOrderTypeWelcomePrompt(): PromptState {
     setShowWelcomeModal(true);
   }, [isMounted, hasChosenOrderType, hasTableContext]);
 
+  const openWelcomeModal = useCallback(() => setShowWelcomeModal(true), []);
   const closeWelcomeModal = useCallback(() => setShowWelcomeModal(false), []);
 
-  return { showWelcomeModal, closeWelcomeModal };
+  return { showWelcomeModal, openWelcomeModal, closeWelcomeModal };
 }

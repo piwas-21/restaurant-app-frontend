@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import TableSelector from '@/components/checkout/TableSelector';
+import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
+import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import styles from './TableSelectionModal.module.css';
 
 interface TableSelectionModalProps {
@@ -34,6 +36,10 @@ export default function TableSelectionModal({
 }: TableSelectionModalProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(initialTable);
+  // Phone optional for DineIn — matches the pre-existing customer-info
+  // schema (the customer is at the restaurant; phone is a nice-to-have,
+  // not required to take the order).
+  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email'], enabled: isOpen });
 
   // Re-sync local state when the modal re-opens with a different initial
   // (e.g. after the user changed via sticky header → welcome → reopen).
@@ -43,6 +49,7 @@ export default function TableSelectionModal({
 
   const handleConfirm = () => {
     if (!selected) return;
+    if (guest.visibleFields.length > 0 && guest.commit() === null) return;
     onConfirm(selected);
     onClose();
   };
@@ -64,6 +71,14 @@ export default function TableSelectionModal({
       }
     >
       <TableSelector selectedTable={selected} onTableSelect={setSelected} />
+      <GuestCustomerInfoFields
+        value={guest.value}
+        errors={guest.errors}
+        visibleFields={guest.visibleFields}
+        showRegisterCta={guest.showRegisterCta}
+        onChange={guest.setField}
+        onBlur={guest.blurField}
+      />
     </BaseModal>
   );
 }

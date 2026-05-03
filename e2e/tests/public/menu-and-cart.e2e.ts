@@ -99,8 +99,14 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
   const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
   await expect(sidebar).toBeVisible({ timeout: 15_000 });
 
-  // Pick Takeaway — no follow-up modal, no detail to capture.
+  // Pick Takeaway. As a guest (§C1.5.e), the TakeawayInfoModal opens
+  // asking for name + email + phone — dismiss it; this test only
+  // exercises the sidebar surface itself, not the smart-skip path
+  // (covered by smart-skip-checkout.e2e.ts).
   await sidebar.getByRole('group', { name: /order type/i }).getByRole('button', { name: /takeaway/i }).click();
+  const takeawayModal = page.getByRole('dialog', { name: /almost there/i });
+  await takeawayModal.getByRole('button', { name: /^cancel$/i }).click();
+  await expect(takeawayModal).toBeHidden();
 
   // Add the first menu item to cart, wait for /api/Basket POST/PUT to
   // settle so the sidebar's items list re-renders deterministically.

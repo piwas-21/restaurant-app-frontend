@@ -27,6 +27,8 @@ interface SmartCheckoutRouter {
 
 function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false;
+  // Key written by services/authService.ts on login; mirrored here to avoid
+  // pulling in the whole auth surface for a single SSR-safe boolean check.
   return !!localStorage.getItem('auth_token');
 }
 

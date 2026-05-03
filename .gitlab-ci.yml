@@ -197,7 +197,26 @@ build_image:
           --build-arg NEXT_PUBLIC_IMAGE_BASE_URL=https://rumi-test-backend-bucket.s3.eu-central-1.amazonaws.com
           --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=102252528656-3quqh29v8b7psntuo04r7duambcs1i0t.apps.googleusercontent.com
           -t $IMAGE_NAME:$IMAGE_TAG .
-        - docker push $IMAGE_NAME:$IMAGE_TAG
+        # Push with retry: when a concurrent backend pipeline `docker login`s
+        # to the same registry, our pending JWT-exchange can race the macOS
+        # keychain and 401 on `gitlab.com/jwt/auth` even though our own
+        # `docker login` succeeded (mirror of backend MR !51 — observed on
+        # frontend develop pipeline #342, 2026-05-03). Re-`docker login` +
+        # retry up to 3 times with backoff; the second login refreshes the
+        # credential and the next push lands clean.
+        - |
+            for attempt in 1 2 3; do
+                if docker push "$IMAGE_NAME:$IMAGE_TAG"; then
+                    break
+                fi
+                if [ "$attempt" -eq 3 ]; then
+                    echo "docker push failed after 3 attempts" >&2
+                    exit 1
+                fi
+                echo "docker push attempt $attempt failed, refreshing login and retrying..." >&2
+                sleep $((attempt * 5))
+                docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+            done
 
 trigger_deploy_pipeline:
   stage: deploy_pipeline

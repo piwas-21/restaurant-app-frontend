@@ -2170,5 +2170,10 @@
   "items_added_to_cart": "Ürünler sepete eklendi",
   "failed_to_reorder": "Ürünler sepete eklenemedi",
   "authenticating": "Kimlik doğrulanıyor...",
-  "shopping_basket": "Sepet"
+  "shopping_basket": "Sepet",
+  "tell_us_how_to_reach_you": "Sana nasıl ulaşalım?",
+  "no_account_yet": "Hesabın yok mu?",
+  "register_link_text": "Kayıt ol",
+  "takeaway_info_title": "Son adım — bilgilerin",
+  "phone_required": "Telefon numarası gereklidir"
 }

@@ -49,7 +49,7 @@ test('delivery: sidebar toggle → Delivery → address modal opens', async ({ p
   await expect(toggle.getByRole('button', { name: /delivery/i, pressed: true })).toBeVisible();
 });
 
-test('takeaway: sidebar toggle → Takeaway → no follow-up modal', async ({ page }) => {
+test('takeaway: sidebar toggle → Takeaway → guest info modal opens', async ({ page }) => {
   await page.goto('/menu');
 
   const aside = page.getByRole('complementary', { name: /shopping basket/i });
@@ -58,7 +58,11 @@ test('takeaway: sidebar toggle → Takeaway → no follow-up modal', async ({ pa
   const toggle = aside.getByRole('group', { name: /order type/i });
   await toggle.getByRole('button', { name: /takeaway/i }).click();
 
-  // Takeaway has no detail to capture — no dialog should open.
-  await expect(page.getByRole('dialog')).toBeHidden();
+  // Default Playwright context is unauthenticated — the §C1.5.e takeaway
+  // info modal opens to collect name + email + phone before we let the
+  // guest reach checkout. Logged-in-with-complete-profile users skip this
+  // modal entirely; covered in customer/smart-skip-checkout.e2e.ts.
+  const takeawayModal = page.getByRole('dialog', { name: /almost there/i });
+  await expect(takeawayModal).toBeVisible({ timeout: 15_000 });
   await expect(toggle.getByRole('button', { name: /takeaway/i, pressed: true })).toBeVisible();
 });

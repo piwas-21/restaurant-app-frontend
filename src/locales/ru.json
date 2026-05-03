@@ -2115,5 +2115,10 @@
   "items_added_to_cart": "Товары добавлены в корзину",
   "failed_to_reorder": "Не удалось добавить товары в корзину",
   "authenticating": "Аутентификация...",
-  "shopping_basket": "Корзина"
+  "shopping_basket": "Корзина",
+  "tell_us_how_to_reach_you": "Как с вами связаться",
+  "no_account_yet": "Ещё нет аккаунта?",
+  "register_link_text": "Зарегистрироваться",
+  "takeaway_info_title": "Почти готово — ваши данные",
+  "phone_required": "Требуется телефон"
 }

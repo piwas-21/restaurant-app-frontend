@@ -2183,5 +2183,10 @@
   "items_added_to_cart": "Artikel zum Warenkorb hinzugefügt",
   "failed_to_reorder": "Artikel konnten nicht zum Warenkorb hinzugefügt werden",
   "authenticating": "Authentifizierung...",
-  "shopping_basket": "Warenkorb"
+  "shopping_basket": "Warenkorb",
+  "tell_us_how_to_reach_you": "Wie erreichen wir dich?",
+  "no_account_yet": "Noch kein Konto?",
+  "register_link_text": "Registrieren",
+  "takeaway_info_title": "Fast geschafft — deine Angaben",
+  "phone_required": "Telefonnummer ist erforderlich"
 }

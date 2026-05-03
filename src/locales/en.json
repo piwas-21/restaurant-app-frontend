@@ -2170,5 +2170,10 @@
   "items_added_to_cart": "Items added to cart",
   "failed_to_reorder": "Failed to add items to cart",
   "authenticating": "Authenticating...",
-  "shopping_basket": "Shopping Basket"
+  "shopping_basket": "Shopping Basket",
+  "tell_us_how_to_reach_you": "Tell us how to reach you",
+  "no_account_yet": "Don't have an account yet?",
+  "register_link_text": "Register",
+  "takeaway_info_title": "Almost there — your details",
+  "phone_required": "Phone is required"
 }

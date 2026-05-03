@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import DeliveryAddressSection from '@/components/checkout/order-type/DeliveryAddressSection';
 import { useDeliveryAddress } from '@/hooks/checkout/useDeliveryAddress';
+import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
+import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import type { DeliveryAddress } from '@/contexts/CheckoutContext';
 import tableModalStyles from './TableSelectionModal.module.css';
 
@@ -58,8 +60,14 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
     hasOpened,
   );
 
+  // Phone is required for delivery (driver contact). Per
+  // BUGS-IMPROVEMENTS-PLAN §C1.5.e — guests fill all three; logged-in
+  // users see only the fields their profile is missing.
+  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email', 'phone'], enabled: isOpen });
+
   const handleConfirm = async () => {
     if (!address.validate()) return;
+    if (guest.visibleFields.length > 0 && guest.commit() === null) return;
     const persisted = await address.persistIfRequested();
     if (!persisted) return;
     const trimmed = address.trimmed();
@@ -100,6 +108,15 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
       }
     >
       <DeliveryAddressSection address={address} />
+      <GuestCustomerInfoFields
+        value={guest.value}
+        errors={guest.errors}
+        visibleFields={guest.visibleFields}
+        showRegisterCta={guest.showRegisterCta}
+        onChange={guest.setField}
+        onBlur={guest.blurField}
+        disabled={address.savingAddress}
+      />
     </BaseModal>
   );
 }

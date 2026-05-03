@@ -38,18 +38,72 @@
   cursor: not-allowed;
 }
 
-.registerCta {
-  margin: 0.25rem 0 0;
+.registerBlock {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.registerHeading {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.registerSubtitle {
+  margin: 0;
   font-size: 0.9rem;
   color: var(--text-secondary, var(--text-color));
 }
 
-.registerLink {
-  color: var(--link-color);
-  text-decoration: underline;
-  font-weight: 500;
+.benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
 }
 
-.registerLink:hover {
-  color: var(--link-hover-color);
+.benefits li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.benefits svg {
+  color: var(--success-color-darker);
+  flex-shrink: 0;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.checkboxRow input[type='checkbox'] {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.passwordFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }

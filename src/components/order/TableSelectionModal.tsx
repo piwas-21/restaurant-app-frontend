@@ -47,9 +47,12 @@ export default function TableSelectionModal({
     if (isOpen) setSelected(initialTable);
   }, [isOpen, initialTable]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selected) return;
-    if (guest.visibleFields.length > 0 && guest.commit() === null) return;
+    if (guest.visibleFields.length > 0 || guest.wantsRegister) {
+      const committed = await guest.commit();
+      if (committed === null) return;
+    }
     onConfirm(selected);
     onClose();
   };
@@ -61,11 +64,16 @@ export default function TableSelectionModal({
       title={t('table_selection_title', 'Select your table')}
       footer={
         <>
-          <button type="button" className={styles.secondaryButton} onClick={onClose}>
+          <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={guest.isRegistering}>
             {t('cancel', 'Cancel')}
           </button>
-          <button type="button" className={styles.primaryButton} onClick={handleConfirm} disabled={!selected}>
-            {t('confirm', 'Confirm')}
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={handleConfirm}
+            disabled={!selected || guest.isRegistering}
+          >
+            {guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
           </button>
         </>
       }
@@ -78,6 +86,13 @@ export default function TableSelectionModal({
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}
+        disabled={guest.isRegistering}
+        wantsRegister={guest.wantsRegister}
+        setWantsRegister={guest.setWantsRegister}
+        registerValue={guest.registerValue}
+        registerErrors={guest.registerErrors}
+        onRegisterChange={guest.setRegisterField}
+        onRegisterBlur={guest.blurRegisterField}
       />
     </BaseModal>
   );

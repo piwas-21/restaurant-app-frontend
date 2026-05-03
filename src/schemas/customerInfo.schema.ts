@@ -8,6 +8,14 @@ const NAME_MAX = 100;
 const PHONE_PATTERN = /^[+\s\-()0-9]{5,}$/;
 
 /**
+ * Minimum password length for inline-registration in the order-type
+ * modals (BUGS-IMPROVEMENTS-PLAN §C1.5.g). Mirrors the backend
+ * `customerRegistrationSchema` rule (`password: z.string().min(6)`)
+ * — keep these aligned if either side moves.
+ */
+export const MIN_PASSWORD_LENGTH = 6;
+
+/**
  * Schema for the checkout customer-info form. Error keys are i18n keys
  * (matching the strings the page used pre-extraction so translations
  * don't need to change). Hook resolves them via `t(key, fallback)`.
@@ -24,5 +32,16 @@ export const customerInfoSchema = z.object({
     .trim()
     .refine((v) => v === '' || PHONE_PATTERN.test(v), 'phone_invalid'),
 });
+
+/**
+ * Per-field schemas for the §C1.5.g inline-registration password fields.
+ * Caller composes these with a cross-field equality check at commit time
+ * (see `validateRegisterField`) — splitting per field avoids re-running
+ * an `.refine` on every keystroke for the dependent confirmPassword.
+ */
+export const registerFieldsSchema = {
+  password: z.string().min(1, 'field_required').min(MIN_PASSWORD_LENGTH, 'password_too_short'),
+  confirmPassword: z.string().min(1, 'field_required').min(MIN_PASSWORD_LENGTH, 'password_too_short'),
+} as const;
 
 export type CustomerInfoInput = z.infer<typeof customerInfoSchema>;

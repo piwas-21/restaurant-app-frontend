@@ -27,6 +27,11 @@ interface TakeawayInfoModalProps {
  * at all and never reach this modal — the `pickType('Takeaway')` branch
  * in `useOrderTypeFollowUp` skips it entirely.
  *
+ * §C1.5.g additions: guests also see the benefits block + opt-in
+ * inline registration. Submitting with the checkbox ticked fires
+ * `POST /api/User/register/customer` in the background (option A:
+ * verification-email path, this order proceeds as guest regardless).
+ *
  * Footer button styles are shared with TableSelectionModal —
  * non-critical duplication; promote to design-system if a fourth modal
  * lands with the same footer shape.
@@ -38,8 +43,9 @@ export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: Takeaw
     enabled: isOpen,
   });
 
-  const handleConfirm = () => {
-    if (guest.commit() === null) return;
+  const handleConfirm = async () => {
+    const committed = await guest.commit();
+    if (committed === null) return;
     onConfirm();
     onClose();
   };
@@ -51,16 +57,21 @@ export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: Takeaw
       title={t('takeaway_info_title', 'Almost there — your details')}
       footer={
         <>
-          <button type="button" className={tableModalStyles.secondaryButton} onClick={onClose}>
+          <button
+            type="button"
+            className={tableModalStyles.secondaryButton}
+            onClick={onClose}
+            disabled={guest.isRegistering}
+          >
             {t('cancel', 'Cancel')}
           </button>
           <button
             type="button"
             className={tableModalStyles.primaryButton}
             onClick={handleConfirm}
-            disabled={guest.isLoadingUser}
+            disabled={guest.isLoadingUser || guest.isRegistering}
           >
-            {t('confirm', 'Confirm')}
+            {guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
           </button>
         </>
       }
@@ -72,6 +83,13 @@ export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: Takeaw
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}
+        disabled={guest.isRegistering}
+        wantsRegister={guest.wantsRegister}
+        setWantsRegister={guest.setWantsRegister}
+        registerValue={guest.registerValue}
+        registerErrors={guest.registerErrors}
+        onRegisterChange={guest.setRegisterField}
+        onRegisterBlur={guest.blurRegisterField}
       />
     </BaseModal>
   );

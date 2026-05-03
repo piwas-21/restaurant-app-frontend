@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useId } from 'react';
-import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { ZodType } from 'zod';
 import FormField from '@/components/design-system/FormField';
-import { customerInfoSchema } from '@/schemas/customerInfo.schema';
+import { customerInfoSchema, registerFieldsSchema } from '@/schemas/customerInfo.schema';
+import RegisterAccountBlock from './RegisterAccountBlock';
 import styles from './GuestCustomerInfoFields.module.css';
 
 export type CustomerInfoField = 'name' | 'email' | 'phone';
+export type RegisterField = 'password' | 'confirmPassword';
 
 export interface GuestCustomerInfoValue {
   name: string;
@@ -23,39 +24,51 @@ export interface GuestCustomerInfoErrors {
   phone: string;
 }
 
+export interface RegisterFieldsValue {
+  password: string;
+  confirmPassword: string;
+}
+
+export interface RegisterFieldsErrors {
+  password: string;
+  confirmPassword: string;
+}
+
 interface GuestCustomerInfoFieldsProps {
-  /** Current field values. */
+  /** Current contact-field values. */
   value: GuestCustomerInfoValue;
-  /** Replace one field's value (errors are not cleared here — parent owns blur). */
   onChange: (field: CustomerInfoField, next: string) => void;
-  /** Validate one field on blur. Parent decides what to surface. */
   onBlur: (field: CustomerInfoField) => void;
-  /** Per-field error strings (already translated). Empty string == valid. */
   errors: GuestCustomerInfoErrors;
-  /**
-   * Fields that must be visible + editable. Anything not in this list is
-   * hidden — used for logged-in users who only need to fill the missing
-   * piece (e.g. just `phone`).
-   */
+  /** Visible contact fields — every one in this list is treated as required. */
   visibleFields: ReadonlyArray<CustomerInfoField>;
   /**
-   * If true, the "Don't have an account?" CTA renders below the inputs.
-   * False for logged-in users (they already have an account).
+   * If true, the benefits block + opt-in registration checkbox render
+   * below the contact fields. Hidden for logged-in users (they already
+   * have an account).
    */
   showRegisterCta: boolean;
-  /** Disable all inputs (e.g. while a parent is saving). */
+  /** Disable all inputs (parent is saving). */
   disabled?: boolean;
+
+  /** Inline-registration state — owned by the parent hook. */
+  wantsRegister: boolean;
+  setWantsRegister: (next: boolean) => void;
+  registerValue: RegisterFieldsValue;
+  registerErrors: RegisterFieldsErrors;
+  onRegisterChange: (field: RegisterField, next: string) => void;
+  onRegisterBlur: (field: RegisterField) => void;
 }
 
 /**
- * Reusable customer-info inputs for the order-type modals
- * (BUGS-IMPROVEMENTS-PLAN §C1.5.e). Used inside TableSelectionModal,
- * DeliveryAddressModal, and TakeawayInfoModal.
+ * Reusable contact-info inputs + opt-in registration block for the
+ * order-type modals (BUGS-IMPROVEMENTS-PLAN §C1.5.e + §C1.5.g).
  *
- * Validation is owned by the parent: this component only emits change
- * and blur events. The parent calls `validateGuestCustomerInfoField()`
- * (exported below) to keep error keys consistent across all three modals
- * and matching the existing `customerInfoSchema` used by /checkout/customer-info.
+ * Validation is owned by the parent (`useGuestCustomerInfo`); this
+ * component only emits change/blur events. Required indicators (*)
+ * render after every visible label — every visible field is required
+ * for the active flow by construction (the hook narrows
+ * `requiredFields` to whatever isn't pre-filled from the user's profile).
  */
 export default function GuestCustomerInfoFields({
   value,
@@ -65,88 +78,103 @@ export default function GuestCustomerInfoFields({
   visibleFields,
   showRegisterCta,
   disabled,
+  wantsRegister,
+  setWantsRegister,
+  registerValue,
+  registerErrors,
+  onRegisterChange,
+  onRegisterBlur,
 }: GuestCustomerInfoFieldsProps) {
   const { t } = useTranslation();
   const reactId = useId();
   const nameId = `${reactId}-name`;
   const emailId = `${reactId}-email`;
   const phoneId = `${reactId}-phone`;
+  const requiredMark = ' *';
 
-  if (visibleFields.length === 0) return null;
+  if (visibleFields.length === 0 && !showRegisterCta) return null;
 
   return (
     <section className={styles.section} aria-labelledby={`${reactId}-heading`}>
-      <h3 id={`${reactId}-heading`} className={styles.heading}>
-        {t('tell_us_how_to_reach_you', 'Tell us how to reach you')}
-      </h3>
+      {visibleFields.length > 0 && (
+        <>
+          <h3 id={`${reactId}-heading`} className={styles.heading}>
+            {t('tell_us_how_to_reach_you', 'Tell us how to reach you')}
+          </h3>
 
-      {visibleFields.includes('name') && (
-        <FormField label={t('full_name', 'Full Name')} error={errors.name} htmlFor={nameId}>
-          <input
-            id={nameId}
-            type="text"
-            value={value.name}
-            onChange={(e) => onChange('name', e.target.value)}
-            onBlur={() => onBlur('name')}
-            disabled={disabled}
-            autoComplete="name"
-            className={styles.input}
-            required
-          />
-        </FormField>
-      )}
+          {visibleFields.includes('name') && (
+            <FormField label={`${t('full_name', 'Full Name')}${requiredMark}`} error={errors.name} htmlFor={nameId}>
+              <input
+                id={nameId}
+                type="text"
+                value={value.name}
+                onChange={(e) => onChange('name', e.target.value)}
+                onBlur={() => onBlur('name')}
+                disabled={disabled}
+                autoComplete="name"
+                className={styles.input}
+                required
+              />
+            </FormField>
+          )}
 
-      {visibleFields.includes('email') && (
-        <FormField label={t('email', 'Email')} error={errors.email} htmlFor={emailId}>
-          <input
-            id={emailId}
-            type="email"
-            value={value.email}
-            onChange={(e) => onChange('email', e.target.value)}
-            onBlur={() => onBlur('email')}
-            disabled={disabled}
-            autoComplete="email"
-            className={styles.input}
-            required
-          />
-        </FormField>
-      )}
+          {visibleFields.includes('email') && (
+            <FormField label={`${t('email', 'Email')}${requiredMark}`} error={errors.email} htmlFor={emailId}>
+              <input
+                id={emailId}
+                type="email"
+                value={value.email}
+                onChange={(e) => onChange('email', e.target.value)}
+                onBlur={() => onBlur('email')}
+                disabled={disabled}
+                autoComplete="email"
+                className={styles.input}
+                required
+              />
+            </FormField>
+          )}
 
-      {visibleFields.includes('phone') && (
-        <FormField label={t('phone', 'Phone')} error={errors.phone} htmlFor={phoneId}>
-          <input
-            id={phoneId}
-            type="tel"
-            value={value.phone}
-            onChange={(e) => onChange('phone', e.target.value)}
-            onBlur={() => onBlur('phone')}
-            disabled={disabled}
-            autoComplete="tel"
-            className={styles.input}
-          />
-        </FormField>
+          {visibleFields.includes('phone') && (
+            <FormField label={`${t('phone', 'Phone')}${requiredMark}`} error={errors.phone} htmlFor={phoneId}>
+              <input
+                id={phoneId}
+                type="tel"
+                value={value.phone}
+                onChange={(e) => onChange('phone', e.target.value)}
+                onBlur={() => onBlur('phone')}
+                disabled={disabled}
+                autoComplete="tel"
+                className={styles.input}
+                required
+              />
+            </FormField>
+          )}
+        </>
       )}
 
       {showRegisterCta && (
-        <p className={styles.registerCta}>
-          {t('no_account_yet', "Don't have an account yet?")}{' '}
-          <Link href="/auth/register" className={styles.registerLink}>
-            {t('register_link_text', 'Register')}
-          </Link>
-        </p>
+        <RegisterAccountBlock
+          fieldIdPrefix={reactId}
+          wantsRegister={wantsRegister}
+          setWantsRegister={setWantsRegister}
+          value={registerValue}
+          errors={registerErrors}
+          onChange={onRegisterChange}
+          onBlur={onRegisterBlur}
+          disabled={disabled}
+        />
       )}
     </section>
   );
 }
 
 /**
- * Validate a single customer-info field against the shared Zod schema
- * and return a translated error string ('' == valid). Exported so
- * parent modals can blur-validate without duplicating the resolver.
+ * Validate a single contact-info field against the shared Zod schema
+ * and return a translated error string ('' == valid). Exported so the
+ * shared hook can blur-validate without duplicating the resolver.
  *
- * `phoneRequired` lets Takeaway/Delivery callers reject empty phone
- * even though the underlying schema treats it as optional (it is, per
- * the customer-info page's pre-existing UX). DineIn does not pass it.
+ * `phoneRequired` rejects empty phone for Takeaway/Delivery callers
+ * even though the underlying schema treats phone as optional (DineIn).
  */
 export function validateGuestCustomerInfoField(
   field: CustomerInfoField,
@@ -163,4 +191,22 @@ export function validateGuestCustomerInfoField(
   if (result.success) return '';
   const key = result.error.issues[0]?.message ?? 'invalid';
   return t(key, key);
+}
+
+/**
+ * Validate one of the two register-only fields. Length / required
+ * rules come from the shared `registerFieldsSchema` (Zod, mirrors the
+ * customerInfoSchema pattern); the cross-field equality check stays
+ * here so we don't re-run an `.refine` on every password keystroke.
+ */
+export function validateRegisterField(field: RegisterField, value: string, other: string, t: TFunction): string {
+  const result = registerFieldsSchema[field].safeParse(value);
+  if (!result.success) {
+    const key = result.error.issues[0]?.message ?? 'invalid';
+    return t(key, key);
+  }
+  if (field === 'confirmPassword' && value !== other) {
+    return t('passwords_do_not_match', 'Passwords do not match.');
+  }
+  return '';
 }

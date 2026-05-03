@@ -2117,8 +2117,13 @@
   "authenticating": "Аутентификация...",
   "shopping_basket": "Корзина",
   "tell_us_how_to_reach_you": "Как с вами связаться",
-  "no_account_yet": "Ещё нет аккаунта?",
-  "register_link_text": "Зарегистрироваться",
   "takeaway_info_title": "Почти готово — ваши данные",
-  "phone_required": "Требуется телефон"
+  "phone_required": "Требуется телефон",
+  "create_account_with_details": "Создать аккаунт с этими данными",
+  "account_created_check_email": "Аккаунт создан! Подтвердите email, чтобы получать бонусы лояльности.",
+  "email_already_registered": "Аккаунт с таким email уже существует. Пожалуйста, войдите.",
+  "password_too_short": "Пароль должен содержать минимум 6 символов",
+  "account_creation_failed_continuing": "Не удалось создать аккаунт, но заказ продолжится как гостевой.",
+  "register_full_name_help": "Укажите имя и фамилию полностью",
+  "field_required": "Обязательно"
 }

@@ -2177,8 +2177,13 @@
   "authenticating": "Autenticazione in corso...",
   "shopping_basket": "Carrello",
   "tell_us_how_to_reach_you": "Come possiamo contattarti",
-  "no_account_yet": "Non hai ancora un account?",
-  "register_link_text": "Registrati",
   "takeaway_info_title": "Quasi fatto — i tuoi dati",
-  "phone_required": "Il telefono è obbligatorio"
+  "phone_required": "Il telefono è obbligatorio",
+  "create_account_with_details": "Crea il mio account con questi dati",
+  "account_created_check_email": "Account creato! Controlla l'email per attivarlo e accumulare punti fedeltà.",
+  "email_already_registered": "Esiste già un account con questa email. Accedi per favore.",
+  "password_too_short": "La password deve contenere almeno 6 caratteri",
+  "account_creation_failed_continuing": "Impossibile creare l'account; l'ordine continuerà come ospite.",
+  "register_full_name_help": "Inserisci nome e cognome",
+  "field_required": "Obbligatorio"
 }

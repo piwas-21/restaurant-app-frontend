@@ -2176,8 +2176,13 @@
   "authenticating": "جارٍ المصادقة...",
   "shopping_basket": "سلة التسوق",
   "tell_us_how_to_reach_you": "كيف يمكننا التواصل معك",
-  "no_account_yet": "لا يوجد لديك حساب بعد؟",
-  "register_link_text": "سجل",
   "takeaway_info_title": "اقتربنا — تفاصيلك",
-  "phone_required": "رقم الهاتف مطلوب"
+  "phone_required": "رقم الهاتف مطلوب",
+  "create_account_with_details": "أنشئ حسابي بهذه التفاصيل",
+  "account_created_check_email": "تم إنشاء الحساب! تحقق من بريدك لتفعيله والحصول على نقاط الولاء.",
+  "email_already_registered": "يوجد حساب بهذا البريد بالفعل. يرجى تسجيل الدخول.",
+  "password_too_short": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+  "account_creation_failed_continuing": "تعذّر إنشاء الحساب، وسيستمر طلبك كضيف.",
+  "register_full_name_help": "يرجى إدخال الاسم الكامل (الاسم واللقب)",
+  "field_required": "مطلوب"
 }

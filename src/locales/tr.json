@@ -2172,8 +2172,13 @@
   "authenticating": "Kimlik doğrulanıyor...",
   "shopping_basket": "Sepet",
   "tell_us_how_to_reach_you": "Sana nasıl ulaşalım?",
-  "no_account_yet": "Hesabın yok mu?",
-  "register_link_text": "Kayıt ol",
   "takeaway_info_title": "Son adım — bilgilerin",
-  "phone_required": "Telefon numarası gereklidir"
+  "phone_required": "Telefon numarası gereklidir",
+  "create_account_with_details": "Bu bilgilerle hesabımı oluştur",
+  "account_created_check_email": "Hesap oluşturuldu! Sadakat puanları için e-postanı doğrula.",
+  "email_already_registered": "Bu e-posta ile bir hesap zaten var. Lütfen giriş yap.",
+  "password_too_short": "Şifre en az 6 karakter olmalıdır",
+  "account_creation_failed_continuing": "Hesap oluşturulamadı, siparişin misafir olarak devam edecek.",
+  "register_full_name_help": "Lütfen ad ve soyadı birlikte gir",
+  "field_required": "Zorunlu"
 }

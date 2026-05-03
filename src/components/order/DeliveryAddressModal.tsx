@@ -67,7 +67,10 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
 
   const handleConfirm = async () => {
     if (!address.validate()) return;
-    if (guest.visibleFields.length > 0 && guest.commit() === null) return;
+    if (guest.visibleFields.length > 0 || guest.wantsRegister) {
+      const committed = await guest.commit();
+      if (committed === null) return;
+    }
     const persisted = await address.persistIfRequested();
     if (!persisted) return;
     const trimmed = address.trimmed();
@@ -92,7 +95,7 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
             type="button"
             className={tableModalStyles.secondaryButton}
             onClick={onClose}
-            disabled={address.savingAddress}
+            disabled={address.savingAddress || guest.isRegistering}
           >
             {t('cancel', 'Cancel')}
           </button>
@@ -100,9 +103,9 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
             type="button"
             className={tableModalStyles.primaryButton}
             onClick={handleConfirm}
-            disabled={address.savingAddress}
+            disabled={address.savingAddress || guest.isRegistering}
           >
-            {address.savingAddress ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
+            {address.savingAddress || guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
           </button>
         </>
       }
@@ -115,7 +118,13 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}
-        disabled={address.savingAddress}
+        disabled={address.savingAddress || guest.isRegistering}
+        wantsRegister={guest.wantsRegister}
+        setWantsRegister={guest.setWantsRegister}
+        registerValue={guest.registerValue}
+        registerErrors={guest.registerErrors}
+        onRegisterChange={guest.setRegisterField}
+        onRegisterBlur={guest.blurRegisterField}
       />
     </BaseModal>
   );

@@ -2185,8 +2185,13 @@
   "authenticating": "Authentifizierung...",
   "shopping_basket": "Warenkorb",
   "tell_us_how_to_reach_you": "Wie erreichen wir dich?",
-  "no_account_yet": "Noch kein Konto?",
-  "register_link_text": "Registrieren",
   "takeaway_info_title": "Fast geschafft — deine Angaben",
-  "phone_required": "Telefonnummer ist erforderlich"
+  "phone_required": "Telefonnummer ist erforderlich",
+  "create_account_with_details": "Konto mit diesen Angaben erstellen",
+  "account_created_check_email": "Konto erstellt! Bestätige deine E-Mail, um Treuepunkte zu sammeln.",
+  "email_already_registered": "Es existiert bereits ein Konto mit dieser E-Mail. Bitte einloggen.",
+  "password_too_short": "Das Passwort muss mindestens 6 Zeichen lang sein",
+  "account_creation_failed_continuing": "Konto konnte nicht erstellt werden, deine Bestellung läuft als Gast weiter.",
+  "register_full_name_help": "Bitte vollständigen Namen angeben (Vor- und Nachname)",
+  "field_required": "Erforderlich"
 }

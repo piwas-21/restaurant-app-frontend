@@ -2177,8 +2177,13 @@
   "authenticating": "Authentification...",
   "shopping_basket": "Panier",
   "tell_us_how_to_reach_you": "Comment vous joindre",
-  "no_account_yet": "Pas encore de compte ?",
-  "register_link_text": "S'inscrire",
   "takeaway_info_title": "Presque terminé — vos coordonnées",
-  "phone_required": "Le téléphone est requis"
+  "phone_required": "Le téléphone est requis",
+  "create_account_with_details": "Créer mon compte avec ces informations",
+  "account_created_check_email": "Compte créé ! Vérifiez votre email pour l'activer et gagner des points fidélité.",
+  "email_already_registered": "Un compte avec cet email existe déjà. Veuillez vous connecter.",
+  "password_too_short": "Le mot de passe doit contenir au moins 6 caractères",
+  "account_creation_failed_continuing": "Impossible de créer le compte ; votre commande se poursuit en tant qu’invité.",
+  "register_full_name_help": "Veuillez saisir votre nom complet (prénom et nom)",
+  "field_required": "Requis"
 }

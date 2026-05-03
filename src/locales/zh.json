@@ -2177,8 +2177,13 @@
   "authenticating": "正在验证身份...",
   "shopping_basket": "购物篮",
   "tell_us_how_to_reach_you": "我们如何联系您",
-  "no_account_yet": "还没有账户?",
-  "register_link_text": "注册",
   "takeaway_info_title": "就快好了 — 您的资料",
-  "phone_required": "需要电话号码"
+  "phone_required": "需要电话号码",
+  "create_account_with_details": "使用这些信息创建我的账户",
+  "account_created_check_email": "账户已创建!查看邮箱以激活并赚取忠诚积分。",
+  "email_already_registered": "此邮箱已注册账户。请登录。",
+  "password_too_short": "密码至少为 6 个字符",
+  "account_creation_failed_continuing": "无法创建账户,您的订单将以访客身份继续。",
+  "register_full_name_help": "请输入完整姓名(姓和名)",
+  "field_required": "必填"
 }

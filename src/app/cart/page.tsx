@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/cart/CartContext';
-import { useTableContext } from '@/contexts/TableContext';
+import { useOrderType } from '@/contexts/OrderTypeContext';
+import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import styles from '../styles/CartPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus, ShoppingCart, Tag, Loader2 } from 'lucide-react';
@@ -13,7 +14,8 @@ import { Trash2, Plus, Minus, ShoppingCart, Tag, Loader2 } from 'lucide-react';
 export default function CartPage() {
   const router = useRouter();
   const { state, removeItem, updateItem, applyPromoCode, removePromoCode, getTotal, getItemCount } = useCart();
-  const { hasTableContext } = useTableContext();
+  const { state: orderTypeState, hasChosenOrderType } = useOrderType();
+  const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const [promoCode, setPromoCode] = useState('');
@@ -25,12 +27,11 @@ export default function CartPage() {
   const customerHasDiscount = (state.basket?.customerDiscount || 0) > 0 || (state.basket?.discount || 0) > 0;
 
   const handleCheckout = () => {
-    // If user scanned QR code, skip order-type and go directly to customer-info
-    if (hasTableContext) {
-      router.push('/checkout/customer-info');
-    } else {
-      router.push('/checkout/order-type');
+    if (hasChosenOrderType && orderTypeState.orderType) {
+      proceedToCheckout(orderTypeState.orderType);
+      return;
     }
+    router.push('/menu');
   };
 
   const handleRemoveItem = async (basketItemId: string | undefined) => {
@@ -421,7 +422,7 @@ export default function CartPage() {
           </div>
 
           {/* Checkout Button */}
-          <button onClick={handleCheckout} className={styles.checkoutButton}>
+          <button onClick={handleCheckout} className={styles.checkoutButton} disabled={isResolving}>
             {t('proceed_to_checkout', 'Proceed to Checkout')} ({getItemCount()} {t('items', 'items')})
           </button>
         </div>

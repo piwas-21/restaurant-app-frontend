@@ -2,6 +2,7 @@ import { test as authedTest, expect } from '../../fixtures/customerUser';
 import { test as publicTest } from '@playwright/test';
 import { request } from '@playwright/test';
 import { apiBaseUrl } from '../../helpers/config';
+import { deleteUserByEmail } from '../../helpers/db';
 
 /**
  * HIGH-tier — smart-skip checkout (BUGS-IMPROVEMENTS-PLAN §C1.5.d + §C1.5.e).
@@ -120,10 +121,10 @@ authedTest(
       const modal = page.getByRole('dialog', { name: /almost there/i });
       await expect(modal).toBeVisible({ timeout: 10_000 });
       // Name/email shouldn't be re-prompted.
-      await expect(modal.getByLabel(/full name/i)).toBeHidden();
-      await expect(modal.getByLabel(/^email$/i)).toBeHidden();
+      await expect(modal.getByLabel(/full name \*/i)).toBeHidden();
+      await expect(modal.getByLabel(/^email \*/i)).toBeHidden();
 
-      await modal.getByLabel(/^phone$/i).fill('+41791234567');
+      await modal.getByLabel(/^phone \*/i).fill('+41791234567');
       await modal.getByRole('button', { name: /^confirm$/i }).click();
       await expect(modal).toBeHidden({ timeout: 5_000 });
 
@@ -172,12 +173,12 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
     const modal = page.getByRole('dialog', { name: /almost there/i });
     await expect(modal).toBeVisible({ timeout: 10_000 });
 
-    // Register CTA is visible only for guests.
-    await expect(modal.getByRole('link', { name: /register/i })).toBeVisible();
+    // Benefits block is visible only for guests (§C1.5.g).
+    await expect(modal.getByRole('checkbox', { name: /create my account/i })).toBeVisible();
 
-    await modal.getByLabel(/full name/i).fill('Guest E2E');
-    await modal.getByLabel(/^email$/i).fill(`e2e-guest-${Date.now()}@test.local`);
-    await modal.getByLabel(/^phone$/i).fill('+41791234567');
+    await modal.getByLabel(/full name \*/i).fill('Guest E2E');
+    await modal.getByLabel(/^email \*/i).fill(`e2e-guest-${Date.now()}@test.local`);
+    await modal.getByLabel(/^phone \*/i).fill('+41791234567');
     await modal.getByRole('button', { name: /^confirm$/i }).click();
     await expect(modal).toBeHidden({ timeout: 5_000 });
 
@@ -185,5 +186,87 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
     await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
   } finally {
     await context.close();
+  }
+});
+
+publicTest('guest opts in to inline registration via Takeaway modal (§C1.5.g)', async ({ browser }, testInfo) => {
+  // The hook fires POST /api/User/register/customer and proceeds as
+  // guest regardless (option A). We verify the modal closes + checkout
+  // routes through, and clean up the created account in afterEach.
+  const email = `e2e-inline-${testInfo.testId}-${Date.now()}@test.local`;
+  let createdEmail: string | undefined = email;
+
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  try {
+    await page.goto('/menu');
+
+    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
+    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+
+    const basketWritePromise = page.waitForResponse(
+      (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
+      { timeout: 10_000 },
+    );
+    await page
+      .getByRole('button', { name: /^Add( .+)? to order$/i })
+      .first()
+      .click();
+    try {
+      await page
+        .getByRole('dialog')
+        .getByRole('button', { name: /^Add( .+)? to order$/i })
+        .click({ timeout: 3_000 });
+    } catch {
+      /* no modal */
+    }
+    await basketWritePromise;
+
+    await sidebar
+      .getByRole('group', { name: /order type/i })
+      .getByRole('button', { name: /takeaway/i })
+      .click();
+
+    const modal = page.getByRole('dialog', { name: /almost there/i });
+    await expect(modal).toBeVisible({ timeout: 10_000 });
+
+    await modal.getByLabel(/full name \*/i).fill('Inline Reg');
+    await modal.getByLabel(/^email \*/i).fill(email);
+    await modal.getByLabel(/^phone \*/i).fill('+41791234567');
+
+    // Tick the inline-registration checkbox; password fields appear.
+    const wantsRegister = modal.getByRole('checkbox', { name: /create my account/i });
+    await wantsRegister.check();
+
+    await modal.getByLabel(/^password \*/i).fill('Test123!');
+    await modal.getByLabel(/confirm password \*/i).fill('Test123!');
+
+    // Wait for the register-customer call to fire before submitting.
+    const registerCallPromise = page.waitForResponse(
+      (r) => r.url().includes('/api/User/register/customer') && r.request().method() === 'POST',
+      { timeout: 15_000 },
+    );
+    await modal.getByRole('button', { name: /^(confirm|saving)/i }).click();
+    const registerResponse = await registerCallPromise;
+    expect(
+      registerResponse.ok(),
+      `register: ${registerResponse.status()} ${await registerResponse.text()}`,
+    ).toBeTruthy();
+
+    await expect(modal).toBeHidden({ timeout: 10_000 });
+
+    await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
+    await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
+  } finally {
+    await context.close();
+    if (createdEmail) {
+      try {
+        await deleteUserByEmail(createdEmail);
+      } catch (err) {
+        console.warn(`[smart-skip-checkout] cleanup failed for ${createdEmail}:`, err);
+      } finally {
+        createdEmail = undefined;
+      }
+    }
   }
 });

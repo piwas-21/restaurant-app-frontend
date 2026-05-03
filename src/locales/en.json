@@ -2172,8 +2172,13 @@
   "authenticating": "Authenticating...",
   "shopping_basket": "Shopping Basket",
   "tell_us_how_to_reach_you": "Tell us how to reach you",
-  "no_account_yet": "Don't have an account yet?",
-  "register_link_text": "Register",
   "takeaway_info_title": "Almost there — your details",
-  "phone_required": "Phone is required"
+  "phone_required": "Phone is required",
+  "create_account_with_details": "Create my account with these details",
+  "account_created_check_email": "Account created! Check your email to activate it for fidelity points.",
+  "email_already_registered": "An account with this email already exists. Please log in.",
+  "password_too_short": "Password must be at least 6 characters",
+  "account_creation_failed_continuing": "Could not create your account, but your order will continue as guest.",
+  "register_full_name_help": "Please enter your full name (first and last)",
+  "field_required": "Required"
 }

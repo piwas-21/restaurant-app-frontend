@@ -2179,8 +2179,13 @@
   "authenticating": "Autenticando...",
   "shopping_basket": "Cesta de la compra",
   "tell_us_how_to_reach_you": "Cómo contactarte",
-  "no_account_yet": "¿Aún no tienes cuenta?",
-  "register_link_text": "Registrarse",
   "takeaway_info_title": "Casi listo — tus datos",
-  "phone_required": "El teléfono es obligatorio"
+  "phone_required": "El teléfono es obligatorio",
+  "create_account_with_details": "Crear mi cuenta con estos datos",
+  "account_created_check_email": "¡Cuenta creada! Verifica tu correo para activarla y ganar puntos de fidelidad.",
+  "email_already_registered": "Ya existe una cuenta con este correo. Por favor, inicia sesión.",
+  "password_too_short": "La contraseña debe tener al menos 6 caracteres",
+  "account_creation_failed_continuing": "No se pudo crear la cuenta, pero tu pedido continuará como invitado.",
+  "register_full_name_help": "Ingresa tu nombre completo (nombre y apellido)",
+  "field_required": "Obligatorio"
 }

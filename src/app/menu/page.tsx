@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/MenuPage.module.css';
-import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import TableBanner from '@/components/TableBanner';
@@ -242,12 +241,6 @@ export default function MenuPage() {
           currentLanguage={currentLanguage}
         />
       )}
-
-      <div className={styles.menuFooterCheckoutLink}>
-        <Link href="/cart" className={`${styles.viewCartButton}`}>
-          {t('view_cart_checkout_button')}
-        </Link>
-      </div>
 
       {/* Floating Cart Button */}
       <FloatingCartButton

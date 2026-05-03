@@ -690,10 +690,6 @@
   "order_type_takeaway_desc": "取走您的订单",
   "order_type_delivery": "送货",
   "order_type_delivery_desc": "我们把餐点送到您的地址",
-  "order_type_welcome_title": "您想如何点餐？",
-  "order_type_welcome_subtitle": "选择您想如何享用您的餐点 — 您可以稍后更改。",
-  "order_type_change": "更改",
-  "order_type_change_confirm": "更改订单类型可能会影响购物车中的商品。是否继续？",
   "table_selection_title": "选择您的餐桌",
   "delivery_address_modal_title": "送货地址？",
   "redirecting": "正在重定向…",
@@ -2178,5 +2174,6 @@
   "load_more": "加载更多",
   "items_added_to_cart": "商品已加入购物车",
   "failed_to_reorder": "无法将商品加入购物车",
-  "authenticating": "正在验证身份..."
+  "authenticating": "正在验证身份...",
+  "shopping_basket": "购物篮"
 }

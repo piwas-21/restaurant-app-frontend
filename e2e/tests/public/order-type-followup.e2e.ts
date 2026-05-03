@@ -1,64 +1,64 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * HIGH-tier — C1.5.b acceptance: the welcome modal triggers the right
- * follow-up modal based on the chosen type, all without leaving /menu.
+ * HIGH-tier — C1.5.c acceptance: the user picks order type via the
+ * sidebar toggle on /menu (no welcome modal anymore). DineIn opens the
+ * table modal, Delivery opens the address modal, Takeaway commits with
+ * no follow-up. All without leaving /menu.
  *
- * Scope: tests verify the modal-flow handoff (welcome → follow-up open
- * with correct title). The internal table-pick / address-fill flows
- * delegate to existing components (TableSelector + DeliveryAddressSection)
- * that have their own production usage outside this MR; testing their
- * internals belongs in component-level tests, not here.
+ * Tests verify the toggle-click → right follow-up handoff. They do NOT
+ * exercise the inner table-pick / address-fill flows — those belong in
+ * component-level tests for TableSelector + DeliveryAddressSection.
+ *
+ * Sidebar is desktop-only (hidden under 1024px). Playwright's default
+ * viewport is 1280×720 so the sidebar renders by default.
  */
 
-test('dine-in: welcome → pick DineIn → table-selection modal opens', async ({ page }) => {
+test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async ({ page }) => {
   await page.goto('/menu');
 
-  const welcome = page.getByRole('dialog', { name: /how would you like to order/i });
-  await expect(welcome).toBeVisible({ timeout: 15_000 });
+  // No welcome modal; the sidebar's order-type toggle is the entry point.
+  await expect(page.getByRole('dialog')).toBeHidden();
 
-  await welcome.getByRole('button', { name: /^Dine In/i }).click();
-  await expect(welcome).toBeHidden();
+  const aside = page.getByRole('complementary', { name: /shopping basket/i });
+  await expect(aside).toBeVisible({ timeout: 15_000 });
 
-  // Welcome closed; the dine-in follow-up opens immediately.
+  // The toggle exposes a role="group" with aria-label="Order type".
+  const toggle = aside.getByRole('group', { name: /order type/i });
+  await toggle.getByRole('button', { name: /dine in/i }).click();
+
   const tableModal = page.getByRole('dialog', { name: /select your table/i });
   await expect(tableModal).toBeVisible({ timeout: 15_000 });
 
-  // Sticky header on /menu now shows DineIn (welcome modal's own click
-  // handler called setOrderType before triggering the follow-up).
-  const region = page.getByRole('region', { name: /order type/i });
-  await expect(region.getByText(/Dine In/i)).toBeVisible();
+  // Toggle's active state reflects the chosen type.
+  await expect(toggle.getByRole('button', { name: /dine in/i, pressed: true })).toBeVisible();
 });
 
-test('delivery: welcome → pick Delivery → address modal opens', async ({ page }) => {
+test('delivery: sidebar toggle → Delivery → address modal opens', async ({ page }) => {
   await page.goto('/menu');
 
-  const welcome = page.getByRole('dialog', { name: /how would you like to order/i });
-  await expect(welcome).toBeVisible({ timeout: 15_000 });
+  const aside = page.getByRole('complementary', { name: /shopping basket/i });
+  await expect(aside).toBeVisible({ timeout: 15_000 });
 
-  await welcome.getByRole('button', { name: /^Delivery/i }).click();
-  await expect(welcome).toBeHidden();
+  const toggle = aside.getByRole('group', { name: /order type/i });
+  await toggle.getByRole('button', { name: /delivery/i }).click();
 
   const addressModal = page.getByRole('dialog', { name: /where should we deliver/i });
   await expect(addressModal).toBeVisible({ timeout: 15_000 });
 
-  const region = page.getByRole('region', { name: /order type/i });
-  await expect(region.getByText(/Delivery/i)).toBeVisible();
+  await expect(toggle.getByRole('button', { name: /delivery/i, pressed: true })).toBeVisible();
 });
 
-test('takeaway: welcome → pick Takeaway → no follow-up modal opens', async ({ page }) => {
+test('takeaway: sidebar toggle → Takeaway → no follow-up modal', async ({ page }) => {
   await page.goto('/menu');
 
-  const welcome = page.getByRole('dialog', { name: /how would you like to order/i });
-  await expect(welcome).toBeVisible({ timeout: 15_000 });
+  const aside = page.getByRole('complementary', { name: /shopping basket/i });
+  await expect(aside).toBeVisible({ timeout: 15_000 });
 
-  await welcome.getByRole('button', { name: /^Takeaway/i }).click();
-  await expect(welcome).toBeHidden();
+  const toggle = aside.getByRole('group', { name: /order type/i });
+  await toggle.getByRole('button', { name: /takeaway/i }).click();
 
-  // No dialog should be open. role="dialog" returns nothing visible.
+  // Takeaway has no detail to capture — no dialog should open.
   await expect(page.getByRole('dialog')).toBeHidden();
-
-  // Sticky header shows Takeaway with no detail row.
-  const region = page.getByRole('region', { name: /order type/i });
-  await expect(region.getByText(/Takeaway/i)).toBeVisible();
+  await expect(toggle.getByRole('button', { name: /takeaway/i, pressed: true })).toBeVisible();
 });

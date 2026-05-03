@@ -691,10 +691,6 @@
   "order_type_takeaway_desc": "Pick up your order",
   "order_type_delivery": "Delivery",
   "order_type_delivery_desc": "We deliver to your address",
-  "order_type_welcome_title": "How would you like to order?",
-  "order_type_welcome_subtitle": "Pick how you'd like to enjoy your meal — you can change this later.",
-  "order_type_change": "Change",
-  "order_type_change_confirm": "Changing your order type may affect items in your cart. Continue?",
   "table_selection_title": "Select your table",
   "delivery_address_modal_title": "Where should we deliver?",
   "redirecting": "Redirecting…",
@@ -2173,5 +2169,6 @@
   "load_more": "Load more",
   "items_added_to_cart": "Items added to cart",
   "failed_to_reorder": "Failed to add items to cart",
-  "authenticating": "Authenticating..."
+  "authenticating": "Authenticating...",
+  "shopping_basket": "Shopping Basket"
 }

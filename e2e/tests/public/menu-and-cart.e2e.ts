@@ -22,16 +22,6 @@ import { expectNoA11yViolations } from '../../helpers/a11y';
  * cross-test cart pollution isn't possible.
  */
 test('customer can browse the menu, add an item, and update its quantity in the cart', async ({ page }) => {
-  // Skip the order-type welcome modal that /menu shows on first visit
-  // (introduced by C1.5.a). Browse/cart is what's under test here, not the
-  // first-touch onboarding — pre-seeding localStorage with a chosen type is
-  // the same pattern the customerUser fixture uses for auth_token.
-  await page.addInitScript(() => {
-    window.localStorage.setItem(
-      'rumi_order_type_state',
-      JSON.stringify({ orderType: 'Takeaway', table: '', deliveryAddress: null }),
-    );
-  });
   await page.goto('/menu');
 
   // a11y baseline: scan after the menu has rendered (helper waits for it).
@@ -91,4 +81,51 @@ test('customer can browse the menu, add an item, and update its quantity in the 
   const items = updatedBasket.data?.items ?? [];
   expect(items.length).toBeGreaterThan(0);
   expect(items.some((i) => i.quantity >= 2)).toBe(true);
+});
+
+/**
+ * Sidebar happy-path: pick Takeaway in the sidebar toggle, add an item,
+ * verify the sidebar reflects the cart, then click Proceed to Checkout
+ * and assert the route. Locks in the sidebar's cart-half regression
+ * surface that the order-type-followup tests don't cover (qty controls
+ * + remove + checkout button).
+ *
+ * Sidebar is hidden under 1024px; Playwright's default 1280-wide
+ * viewport is fine. Skip if a smaller viewport is ever set as default.
+ */
+test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', async ({ page }) => {
+  await page.goto('/menu');
+
+  const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
+  await expect(sidebar).toBeVisible({ timeout: 15_000 });
+
+  // Pick Takeaway — no follow-up modal, no detail to capture.
+  await sidebar.getByRole('group', { name: /order type/i }).getByRole('button', { name: /takeaway/i }).click();
+
+  // Add the first menu item to cart, wait for /api/Basket POST/PUT to
+  // settle so the sidebar's items list re-renders deterministically.
+  const basketWritePromise = page.waitForResponse(
+    (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
+    { timeout: 10_000 },
+  );
+  await page.getByRole('button', { name: /^Add( .+)? to order$/i }).first().click();
+  // If a customization dialog appears, confirm through it; otherwise the
+  // card click already triggered the basket write.
+  try {
+    await page.getByRole('dialog').getByRole('button', { name: /^Add( .+)? to order$/i }).click({ timeout: 3_000 });
+  } catch {
+    /* no customization modal — direct add */
+  }
+  await basketWritePromise;
+
+  // Sidebar shows the added item.
+  await expect(sidebar.getByRole('button', { name: /increase quantity/i })).toBeVisible();
+  await expect(sidebar.getByRole('button', { name: /remove item/i })).toBeVisible();
+
+  // Proceed to Checkout is now enabled (cart non-empty + type chosen).
+  // Wait for the click navigation, then assert URL.
+  const proceed = sidebar.getByRole('button', { name: /proceed to checkout/i });
+  await expect(proceed).toBeEnabled();
+  await proceed.click();
+  await expect(page).toHaveURL(/\/checkout\/customer-info$/);
 });

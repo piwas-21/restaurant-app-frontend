@@ -11,9 +11,9 @@ import type { LanguageCode } from '@/components/LanguageSwitcher';
 import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
-import { useOrderTypeWelcomePrompt } from '@/hooks/order/useOrderTypeWelcomePrompt';
-import OrderTypeStickyHeader from '@/components/order/OrderTypeStickyHeader';
+import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import OrderFlowModals from '@/components/order/OrderFlowModals';
+import OrderFlowSidebar from '@/components/order/OrderFlowSidebar';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 import { setFallbackImage } from '@/utils/imageHelpers';
 
@@ -64,7 +64,7 @@ export default function MenuPage() {
 
   const { addItem, state: cartState } = useCart();
   const { enqueueSnackbar } = useSnackbar();
-  const orderTypePrompt = useOrderTypeWelcomePrompt();
+  const orderTypeFollowUp = useOrderTypeFollowUp();
 
   useEffect(() => {
     setIsMounted(true);
@@ -166,36 +166,42 @@ export default function MenuPage() {
     <main className={styles.menuContainer} aria-labelledby="menu-page-heading">
       <MenuPageHeader />
 
-      <OrderTypeStickyHeader onChange={orderTypePrompt.openWelcomeModal} />
-
       <TableBanner position="top" />
 
-      {featuredSpecial && (
-        <FeaturedSpecialComponent
-          special={featuredSpecial}
-          onAddToCart={handleAddFeaturedToCart}
-          onViewDetails={handleViewFeaturedDetails}
-        />
-      )}
+      <div className={styles.menuLayout}>
+        <div className={styles.menuMain}>
+          {featuredSpecial && (
+            <FeaturedSpecialComponent
+              special={featuredSpecial}
+              onAddToCart={handleAddFeaturedToCart}
+              onViewDetails={handleViewFeaturedDetails}
+            />
+          )}
 
-      <MenuContent
-        categoriesForNav={categoriesForNav}
-        selectedView={selectedView}
-        onSelectView={setSelectedView}
-        categoryDisplayName={categoryDisplayName}
-        isLoadingItems={isLoadingItems}
-        errorLoadingItems={errorLoadingItems}
-        currentMenuItems={currentMenuItems}
-        menuBundles={menuBundles}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        onPageChange={onPageChange}
-        getFallbackImage={setFallbackImage}
-        currentLanguage={currentLanguage}
-        onAddBundleToCart={handleCustomizeBundle}
-        onViewBundleDetails={handleViewBundleDetails}
-      />
+          <MenuContent
+            categoriesForNav={categoriesForNav}
+            selectedView={selectedView}
+            onSelectView={setSelectedView}
+            categoryDisplayName={categoryDisplayName}
+            isLoadingItems={isLoadingItems}
+            errorLoadingItems={errorLoadingItems}
+            currentMenuItems={currentMenuItems}
+            menuBundles={menuBundles}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onPageChange={onPageChange}
+            getFallbackImage={setFallbackImage}
+            currentLanguage={currentLanguage}
+            onAddBundleToCart={handleCustomizeBundle}
+            onViewBundleDetails={handleViewBundleDetails}
+          />
+        </div>
+
+        <aside className={styles.menuSidebarColumn}>
+          <OrderFlowSidebar followUp={orderTypeFollowUp} />
+        </aside>
+      </div>
 
       <MenuModals
         featuredSpecial={featuredSpecial}
@@ -235,7 +241,7 @@ export default function MenuPage() {
         />
       )}
 
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+      <div className={styles.menuFooterCheckoutLink}>
         <Link href="/cart" className={`${styles.viewCartButton}`}>
           {t('view_cart_checkout_button')}
         </Link>
@@ -244,7 +250,7 @@ export default function MenuPage() {
       {/* Floating Cart Button */}
       <FloatingCartButton itemCount={itemCount} totalPrice={cartTotal} onAnimate={cartAnimationTrigger} />
 
-      <OrderFlowModals prompt={orderTypePrompt} />
+      <OrderFlowModals followUp={orderTypeFollowUp} />
     </main>
   );
 }

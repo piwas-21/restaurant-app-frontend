@@ -129,9 +129,12 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
   await expect(sidebar.getByRole('button', { name: /remove item/i })).toBeVisible();
 
   // Proceed to Checkout is now enabled (cart non-empty + type chosen).
-  // Wait for the click navigation, then assert URL.
+  // The takeaway info modal was cancelled, so CheckoutContext.customerInfo
+  // is empty — smart-skip falls back to /menu (§C1.5.h: customer-info page
+  // retired) so the modal can collect the missing inputs. The test stays
+  // on /menu to lock in this fallback target.
   const proceed = sidebar.getByRole('button', { name: /proceed to checkout/i });
   await expect(proceed).toBeEnabled();
   await proceed.click();
-  await expect(page).toHaveURL(/\/checkout\/customer-info$/);
+  await expect(page).toHaveURL(/\/menu$/);
 });

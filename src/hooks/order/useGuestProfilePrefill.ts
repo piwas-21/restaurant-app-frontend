@@ -8,6 +8,8 @@ import type { CustomerInfoField, GuestCustomerInfoValue } from '@/components/ord
 const SAVED_INFO_KEY = 'rumi_saved_customer_info';
 
 export interface UseGuestProfilePrefillResult {
+  /** The resolved logged-in user, or null for guests / pre-resolution. */
+  user: UserDto | null;
   isLoggedIn: boolean;
   isLoadingUser: boolean;
   /**
@@ -93,7 +95,7 @@ export function useGuestProfilePrefill(
     return requiredFields.filter((f) => !(user && hasProfileValue(user, f)));
   }, [requiredFields, user]);
 
-  return { isLoggedIn, isLoadingUser, prefill, visibleFields };
+  return { user, isLoggedIn, isLoadingUser, prefill, visibleFields };
 }
 
 function hasProfileValue(user: UserDto, field: CustomerInfoField): boolean {

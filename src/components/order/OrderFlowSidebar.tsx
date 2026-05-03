@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus, ShoppingCart, ChevronRight } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import type { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
+import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import OrderTypeToggle from './OrderTypeToggle';
 import styles from './OrderFlowSidebar.module.css';
 
@@ -31,9 +31,9 @@ interface OrderFlowSidebarProps {
  */
 export default function OrderFlowSidebar({ followUp }: OrderFlowSidebarProps) {
   const { t } = useTranslation();
-  const router = useRouter();
   const { state: cartState, updateItem, removeItem } = useCart();
-  const { hasChosenOrderType } = useOrderType();
+  const { state: orderTypeState, hasChosenOrderType } = useOrderType();
+  const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
 
   const itemCount = cartState.items.reduce((acc, it) => acc + it.quantity, 0);
   const subtotal = cartState.items.reduce((acc, it) => acc + it.itemTotal, 0);
@@ -54,8 +54,8 @@ export default function OrderFlowSidebar({ followUp }: OrderFlowSidebarProps) {
   };
 
   const handleCheckout = () => {
-    if (!canCheckout) return;
-    router.push('/checkout/customer-info');
+    if (!canCheckout || !orderTypeState.orderType) return;
+    proceedToCheckout(orderTypeState.orderType);
   };
 
   return (
@@ -125,7 +125,7 @@ export default function OrderFlowSidebar({ followUp }: OrderFlowSidebarProps) {
       <button
         type="button"
         onClick={handleCheckout}
-        disabled={!canCheckout}
+        disabled={!canCheckout || isResolving}
         className={styles.checkoutButton}
         aria-label={t('proceed_to_checkout', 'Proceed to Checkout')}
       >

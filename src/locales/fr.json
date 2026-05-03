@@ -2175,5 +2175,10 @@
   "items_added_to_cart": "Articles ajoutés au panier",
   "failed_to_reorder": "Impossible d'ajouter les articles au panier",
   "authenticating": "Authentification...",
-  "shopping_basket": "Panier"
+  "shopping_basket": "Panier",
+  "tell_us_how_to_reach_you": "Comment vous joindre",
+  "no_account_yet": "Pas encore de compte ?",
+  "register_link_text": "S'inscrire",
+  "takeaway_info_title": "Presque terminé — vos coordonnées",
+  "phone_required": "Le téléphone est requis"
 }

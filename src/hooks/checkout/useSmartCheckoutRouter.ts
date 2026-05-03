@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCheckout } from '@/contexts/CheckoutContext';
+import { useCheckout, type CustomerInfo, type DeliveryAddress } from '@/contexts/CheckoutContext';
 import { OrderType } from '@/types/order';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses } from '@/services/addressService';
@@ -14,8 +14,12 @@ interface SmartCheckoutRouter {
    * pre-populate CheckoutContext from the user's profile and (for Delivery)
    * preferred saved address, then route to the next page.
    *
-   *  - logged-out OR profile incomplete → /checkout/customer-info  (existing flow)
-   *  - logged-in AND profile complete   → /checkout/review        (skip customer-info)
+   * Priority:
+   *   1. CheckoutContext already has everything this type needs
+   *      (e.g. filled inline by the type-modal in §C1.5.e) — skip the
+   *      API calls entirely and go straight to /checkout/review.
+   *   2. Logged-in + profile complete → populate context, skip.
+   *   3. Otherwise → /checkout/customer-info (existing flow).
    *
    * Errors fetching profile/addresses (network blip, 401 after token expiry,
    * etc.) fall through to /checkout/customer-info — the safe default — so a
@@ -32,6 +36,26 @@ function isLoggedIn(): boolean {
   return !!localStorage.getItem('auth_token');
 }
 
+function checkoutContextSatisfies(
+  orderType: OrderType,
+  customerInfo: CustomerInfo | null,
+  deliveryAddress: DeliveryAddress | null,
+): boolean {
+  if (!customerInfo?.name?.trim() || !customerInfo?.email?.trim()) return false;
+  if (orderType === OrderType.DineIn) return true;
+  // Takeaway + Delivery both need a phone we can call.
+  if (!customerInfo?.phone?.trim()) return false;
+  if (orderType === OrderType.Delivery) {
+    return !!(
+      deliveryAddress?.street?.trim() &&
+      deliveryAddress?.city?.trim() &&
+      deliveryAddress?.postalCode?.trim() &&
+      deliveryAddress?.country?.trim()
+    );
+  }
+  return true;
+}
+
 export function useSmartCheckoutRouter(): SmartCheckoutRouter {
   const router = useRouter();
   const { state: checkoutState, setCustomerInfo, setDeliveryAddress } = useCheckout();
@@ -39,6 +63,14 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
 
   const proceedToCheckout = useCallback(
     async (orderType: OrderType) => {
+      // Fast path: the type modals (§C1.5.e) already wrote everything we
+      // need into CheckoutContext. No API calls, no smart-skip logic — just
+      // go to review.
+      if (checkoutContextSatisfies(orderType, checkoutState.customerInfo, checkoutState.deliveryAddress)) {
+        router.push('/checkout/review');
+        return;
+      }
+
       if (!isLoggedIn()) {
         router.push('/checkout/customer-info');
         return;

@@ -5,6 +5,7 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import type { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import TableSelectionModal from './TableSelectionModal';
 import DeliveryAddressModal from './DeliveryAddressModal';
+import TakeawayInfoModal from './TakeawayInfoModal';
 
 interface OrderFlowModalsProps {
   /** The full return value from `useOrderTypeFollowUp`. */
@@ -36,6 +37,12 @@ export default function OrderFlowModals({ followUp }: OrderFlowModalsProps) {
         onClose={followUp.closeFollowUp}
         onConfirm={setAddress}
         initial={state.deliveryAddress}
+      />
+
+      <TakeawayInfoModal
+        isOpen={followUp.followUp === 'takeaway'}
+        onClose={followUp.closeFollowUp}
+        onConfirm={followUp.closeFollowUp}
       />
     </>
   );

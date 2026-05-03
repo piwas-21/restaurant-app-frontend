@@ -2175,5 +2175,10 @@
   "items_added_to_cart": "Articoli aggiunti al carrello",
   "failed_to_reorder": "Impossibile aggiungere articoli al carrello",
   "authenticating": "Autenticazione in corso...",
-  "shopping_basket": "Carrello"
+  "shopping_basket": "Carrello",
+  "tell_us_how_to_reach_you": "Come possiamo contattarti",
+  "no_account_yet": "Non hai ancora un account?",
+  "register_link_text": "Registrati",
+  "takeaway_info_title": "Quasi fatto — i tuoi dati",
+  "phone_required": "Il telefono è obbligatorio"
 }

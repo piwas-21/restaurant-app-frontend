@@ -2175,5 +2175,10 @@
   "items_added_to_cart": "商品已加入购物车",
   "failed_to_reorder": "无法将商品加入购物车",
   "authenticating": "正在验证身份...",
-  "shopping_basket": "购物篮"
+  "shopping_basket": "购物篮",
+  "tell_us_how_to_reach_you": "我们如何联系您",
+  "no_account_yet": "还没有账户?",
+  "register_link_text": "注册",
+  "takeaway_info_title": "就快好了 — 您的资料",
+  "phone_required": "需要电话号码"
 }

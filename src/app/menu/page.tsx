@@ -14,6 +14,7 @@ import { useCart } from '@/components/cart/CartContext';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import OrderFlowModals from '@/components/order/OrderFlowModals';
 import OrderFlowSidebar from '@/components/order/OrderFlowSidebar';
+import MobileCartSheet from '@/components/order/MobileCartSheet';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 import { setFallbackImage } from '@/utils/imageHelpers';
 
@@ -33,6 +34,7 @@ export default function MenuPage() {
   const [showBundleDetails, setShowBundleDetails] = useState(false);
   const [selectedBundleForCustomization, setSelectedBundleForCustomization] = useState<MenuBundleItem | null>(null);
   const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
+  const [isMobileCartSheetOpen, setIsMobileCartSheetOpen] = useState(false);
 
   const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
@@ -248,7 +250,18 @@ export default function MenuPage() {
       </div>
 
       {/* Floating Cart Button */}
-      <FloatingCartButton itemCount={itemCount} totalPrice={cartTotal} onAnimate={cartAnimationTrigger} />
+      <FloatingCartButton
+        itemCount={itemCount}
+        totalPrice={cartTotal}
+        onAnimate={cartAnimationTrigger}
+        onClick={() => setIsMobileCartSheetOpen(true)}
+      />
+
+      <MobileCartSheet
+        isOpen={isMobileCartSheetOpen}
+        onClose={() => setIsMobileCartSheetOpen(false)}
+        followUp={orderTypeFollowUp}
+      />
 
       <OrderFlowModals followUp={orderTypeFollowUp} />
     </main>

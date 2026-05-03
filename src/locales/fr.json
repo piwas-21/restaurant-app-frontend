@@ -699,10 +699,8 @@
   "order_type_takeaway_desc": "Récupérez votre commande",
   "order_type_delivery": "Livraison",
   "order_type_delivery_desc": "Nous livrons à votre adresse",
-  "order_type_welcome_title": "Comment souhaitez-vous commander ?",
-  "order_type_welcome_subtitle": "Choisissez comment vous souhaitez déguster votre repas — vous pourrez modifier ce choix plus tard.",
-  "order_type_change": "Modifier",
-  "order_type_change_confirm": "Modifier votre type de commande peut affecter les articles de votre panier. Continuer ?",
+  "table_selection_title": "Choisissez votre table",
+  "delivery_address_modal_title": "Où devons-nous livrer ?",
   "redirecting": "Redirection…",
   "table_number": "Numéro de Table",
   "delivery_address": "Adresse de livraison",
@@ -2176,5 +2174,6 @@
   "load_more": "Charger plus",
   "items_added_to_cart": "Articles ajoutés au panier",
   "failed_to_reorder": "Impossible d'ajouter les articles au panier",
-  "authenticating": "Authentification..."
+  "authenticating": "Authentification...",
+  "shopping_basket": "Panier"
 }

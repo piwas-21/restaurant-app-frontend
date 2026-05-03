@@ -693,10 +693,8 @@
   "order_type_takeaway_desc": "اختر طلبك",
   "order_type_delivery": "التسليم",
   "order_type_delivery_desc": "نقوم بالتسليم إلى عنوانك",
-  "order_type_welcome_title": "كيف تريد أن تطلب؟",
-  "order_type_welcome_subtitle": "اختر كيف تريد الاستمتاع بوجبتك — يمكنك تغيير هذا لاحقًا.",
-  "order_type_change": "تغيير",
-  "order_type_change_confirm": "قد يؤثر تغيير نوع الطلب على العناصر في سلة التسوق الخاصة بك. هل تريد المتابعة؟",
+  "table_selection_title": "اختر طاولتك",
+  "delivery_address_modal_title": "إلى أين نقوم بالتوصيل؟",
   "redirecting": "جارٍ إعادة التوجيه…",
   "table_number": "رقم الطاولة",
   "delivery_address": "عنوان التسليم",
@@ -2175,5 +2173,6 @@
   "load_more": "تحميل المزيد",
   "items_added_to_cart": "تمت إضافة العناصر إلى السلة",
   "failed_to_reorder": "فشل إضافة العناصر إلى السلة",
-  "authenticating": "جارٍ المصادقة..."
+  "authenticating": "جارٍ المصادقة...",
+  "shopping_basket": "سلة التسوق"
 }

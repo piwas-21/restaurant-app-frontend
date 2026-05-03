@@ -688,10 +688,8 @@
   "order_type_takeaway_desc": "Recoja su pedido",
   "order_type_delivery": "Entrega",
   "order_type_delivery_desc": "Entregamos en su dirección",
-  "order_type_welcome_title": "¿Cómo te gustaría pedir?",
-  "order_type_welcome_subtitle": "Elige cómo quieres disfrutar tu comida — puedes cambiarlo más tarde.",
-  "order_type_change": "Cambiar",
-  "order_type_change_confirm": "Cambiar el tipo de pedido puede afectar los artículos del carrito. ¿Continuar?",
+  "table_selection_title": "Selecciona tu mesa",
+  "delivery_address_modal_title": "¿Dónde entregamos?",
   "redirecting": "Redirigiendo…",
   "table_number": "Número de Mesa",
   "delivery_address": "Dirección de entrega",
@@ -2178,5 +2176,6 @@
   "load_more": "Cargar más",
   "items_added_to_cart": "Artículos añadidos al carrito",
   "failed_to_reorder": "No se pudieron añadir artículos al carrito",
-  "authenticating": "Autenticando..."
+  "authenticating": "Autenticando...",
+  "shopping_basket": "Cesta de la compra"
 }

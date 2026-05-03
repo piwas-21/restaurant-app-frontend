@@ -198,9 +198,9 @@ export default function MenuPage() {
           />
         </div>
 
-        <aside className={styles.menuSidebarColumn}>
+        <div className={styles.menuSidebarColumn}>
           <OrderFlowSidebar followUp={orderTypeFollowUp} />
-        </aside>
+        </div>
       </div>
 
       <MenuModals

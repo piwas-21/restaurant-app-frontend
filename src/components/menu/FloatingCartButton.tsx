@@ -17,9 +17,20 @@ interface FloatingCartButtonProps {
   itemCount: number;
   totalPrice: number;
   onAnimate?: boolean;
+  /**
+   * Override the default "navigate to /cart" click action. Used by /menu
+   * to open the mobile bottom-sheet (§C1.5.f) instead of routing to the
+   * standalone cart page.
+   */
+  onClick?: () => void;
 }
 
-export default function FloatingCartButton({ itemCount, totalPrice, onAnimate = false }: FloatingCartButtonProps) {
+export default function FloatingCartButton({
+  itemCount,
+  totalPrice,
+  onAnimate = false,
+  onClick,
+}: FloatingCartButtonProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -46,6 +57,10 @@ export default function FloatingCartButton({ itemCount, totalPrice, onAnimate = 
   }
 
   const handleClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
     router.push('/cart');
   };
 

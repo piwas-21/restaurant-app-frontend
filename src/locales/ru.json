@@ -622,10 +622,8 @@
   "order_type_takeaway_desc": "Заберите свой заказ",
   "order_type_delivery": "Доставка",
   "order_type_delivery_desc": "Мы доставим заказ по вашему адресу",
-  "order_type_welcome_title": "Как вы хотите сделать заказ?",
-  "order_type_welcome_subtitle": "Выберите, как вы хотите насладиться едой — вы можете изменить это позже.",
-  "order_type_change": "Изменить",
-  "order_type_change_confirm": "Изменение типа заказа может затронуть товары в корзине. Продолжить?",
+  "table_selection_title": "Выберите ваш столик",
+  "delivery_address_modal_title": "Куда доставить?",
   "redirecting": "Перенаправление…",
   "table_number": "Номер столика",
   "delivery_address": "Адрес доставки",
@@ -2116,5 +2114,6 @@
   "load_more": "Загрузить ещё",
   "items_added_to_cart": "Товары добавлены в корзину",
   "failed_to_reorder": "Не удалось добавить товары в корзину",
-  "authenticating": "Аутентификация..."
+  "authenticating": "Аутентификация...",
+  "shopping_basket": "Корзина"
 }

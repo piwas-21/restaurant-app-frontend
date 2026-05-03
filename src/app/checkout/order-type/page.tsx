@@ -8,18 +8,18 @@ import { Loader2 } from 'lucide-react';
 import styles from '../../styles/OrderTypePage.module.css';
 
 /**
- * Legacy redirect (BUGS-IMPROVEMENTS-PLAN §C1.5.a). The standalone
- * order-type page has been replaced by the welcome modal on /menu plus
- * the OrderTypeStickyHeader. We keep this file as a redirect for one
- * release for back-compat with bookmarks, the cart-page checkout button
- * (which still pushes here when there's no QR table context), and any
- * external links.
+ * Legacy redirect (BUGS-IMPROVEMENTS-PLAN §C1.5.c). The standalone
+ * order-type page has been replaced by the cart-sidebar order-type
+ * toggle on /menu (with table + delivery-address modals as follow-ups).
+ * We keep this file as a redirect for one release for back-compat with
+ * bookmarks, the cart-page checkout button (which still pushes here
+ * when there's no QR table context), and any external links.
  *
- * Pragmatic deviation from plan wording: when an order type has been
- * chosen, redirect to `/checkout/customer-info` (the next checkout step)
- * rather than `/cart`. The plan's `/cart` target would create a redirect
- * loop on the cart-checkout-button code path until C1.5.d makes /cart
- * smart enough to skip /checkout/order-type altogether.
+ * Pragmatic deviation from earlier plan drafts: when an order type has
+ * been chosen, redirect to `/checkout/customer-info` (the next checkout
+ * step) rather than `/cart`. A `/cart` target would loop with the
+ * cart-page's checkout button on the no-QR path until C1.5.d makes
+ * /cart smart enough to skip /checkout/order-type altogether.
  */
 export default function OrderTypePageRedirect() {
   const { t } = useTranslation();

@@ -696,10 +696,8 @@
   "order_type_takeaway_desc": "Siparişinizi alıp götürün",
   "order_type_delivery": "Teslimat",
   "order_type_delivery_desc": "Adresinize teslimat yapıyoruz",
-  "order_type_welcome_title": "Nasıl sipariş vermek istersiniz?",
-  "order_type_welcome_subtitle": "Yemeğinizi nasıl tatmak istediğinizi seçin — bunu daha sonra değiştirebilirsiniz.",
-  "order_type_change": "Değiştir",
-  "order_type_change_confirm": "Sipariş türünü değiştirmek sepetinizdeki ürünleri etkileyebilir. Devam edilsin mi?",
+  "table_selection_title": "Masanızı seçin",
+  "delivery_address_modal_title": "Teslimat nereye yapılsın?",
   "redirecting": "Yönlendiriliyor…",
   "table_number": "Masa Numarası",
   "delivery_address": "Teslimat Adresi",
@@ -2171,5 +2169,6 @@
   "load_more": "Daha fazla yükle",
   "items_added_to_cart": "Ürünler sepete eklendi",
   "failed_to_reorder": "Ürünler sepete eklenemedi",
-  "authenticating": "Kimlik doğrulanıyor..."
+  "authenticating": "Kimlik doğrulanıyor...",
+  "shopping_basket": "Sepet"
 }

@@ -9,6 +9,50 @@
   overflow: visible;
 }
 
+/* 2-column grid: menu content (left) + cart sidebar (right) on desktop.
+   Single column on tablet/mobile — sidebar is hidden, FloatingCartButton
+   takes over (BUGS-IMPROVEMENTS-PLAN §C1.5.c — full mobile FAB sheet
+   lands in a follow-up MR). */
+.menuLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.menuMain {
+  min-width: 0; /* lets the column shrink rather than overflow */
+}
+
+.menuSidebarColumn {
+  display: block;
+}
+
+/* The "View Cart & Checkout" link below the menu content is the mobile
+   path to checkout (sidebar is hidden < 1024px). On desktop the sidebar's
+   own Proceed-to-Checkout button supersedes it — hide to avoid two
+   competing CTAs with divergent destinations. */
+.menuFooterCheckoutLink {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .menuLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .menuSidebarColumn {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  .menuFooterCheckoutLink {
+    display: none;
+  }
+}
+
 .viewCartButton {
   background-color: var(--link-color);
   color: var(--button-text-color);

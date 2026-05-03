@@ -1,0 +1,46 @@
+/* Action buttons used in the modal footer (TableSelectionModal +
+   DeliveryAddressModal share these patterns; if a third modal lands,
+   promote to design-system primitives). */
+
+.primaryButton {
+  background-color: var(--success-color-darker);
+  color: var(--text-on-accent);
+  border: none;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.primaryButton:hover:not(:disabled),
+.primaryButton:focus-visible:not(:disabled) {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 0.65rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.secondaryButton:hover,
+.secondaryButton:focus-visible {
+  background-color: var(--nav-link-hover-bg);
+  outline: none;
+}

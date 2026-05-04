@@ -9,9 +9,9 @@
 
 - **Stack**: Next.js 15.5 (App Router) · React 19 · TypeScript · CSS Modules · i18next (9 locales)
 - **Test**: Jest + React Testing Library (unit) · Playwright (E2E)
-- **Hosted on**: GitLab — https://gitlab.com/restaurant-app3282120/frontend
+- **Hosted on**: GitHub — https://github.com/piwas-21/restaurant-app-frontend
 - **Production**: deployed from `main` (currently `develop` until cutover); test environment from `develop`
-- **Backend dependency**: this app talks to the [backend repo](https://gitlab.com/restaurant-app3282120/backend) via `NEXT_PUBLIC_API_URL`. DTO contracts mirror backend `Features/**/Dtos/`.
+- **Backend dependency**: this app talks to the [backend repo](https://github.com/piwas-21/restaurant-app-backend) via `NEXT_PUBLIC_API_URL`. DTO contracts mirror backend `Features/**/Dtos/`.
 - **In-flight workspace**: this repo is one of three under [/Users/mahmutkaya/workspace/rumi-workspace/](../). The workspace meta-repo holds cross-repo plans and the master roadmap. When this repo is cloned standalone, only this `CLAUDE.md` is in scope.
 
 ## §2 — Critical files to read
@@ -178,18 +178,18 @@ Grep for the component / hook / type you're adding or modifying. List every call
 
 | Enforcement | Gate | When | What | Source of truth |
 |---|---|---|---|---|
-| **CI-enforced (blocking)** | `npm test` | MR pipeline | Jest unit tests | `.gitlab-ci.yml` (`npm_test` job) |
-| **CI-enforced (blocking)** | `npm audit --audit-level=high` | MR pipeline | No high/critical vulnerabilities | `.gitlab-ci.yml` (`npm_audit` job) |
-| **CI-enforced (blocking)** | Gitleaks | MR pipeline | No leaked credentials (allowlist via `.gitleaks.toml`) | [.gitleaks.toml](.gitleaks.toml) |
-| **CI-enforced (blocking)** | njsscan | MR pipeline | Static security scan for JS | `.gitlab-ci.yml` |
-| **CI-enforced (blocking)** | semgrep | MR pipeline | SAST | `.gitlab-ci.yml` |
-| **CI-enforced (blocking)** | retire.js | MR pipeline | Outdated-dep CVE scan (replaced by OSV-Scanner in Sprint 4) | `.gitlab-ci.yml` |
-| **CI-enforced (blocking)** | Trivy image scan | MR pipeline (`trivy` job, after `build_image`) | Zero HIGH/CRITICAL CVEs in the built image. False-positive exclusions live in `.trivyignore` with written justification. | `.gitlab-ci.yml`, `.trivyignore` |
+| **CI-enforced (blocking)** | `npm test` | CI workflow | Jest unit tests | `.github/workflows/ci.yml` (`npm_test` job) |
+| **CI-enforced (blocking)** | `npm audit --audit-level=high` | CI workflow | No high/critical vulnerabilities | `.github/workflows/ci.yml` (`npm_audit` job) |
+| **CI-enforced (blocking)** | Gitleaks | CI workflow | No leaked credentials (allowlist via `.gitleaks.toml`) | [.gitleaks.toml](.gitleaks.toml) |
+| **CI-enforced (blocking)** | njsscan | CI workflow | Static security scan for JS | `.github/workflows/ci.yml` |
+| **CI-enforced (blocking)** | semgrep | CI workflow | SAST | `.github/workflows/ci.yml` |
+| **CI-enforced (blocking)** | retire.js | CI workflow | Outdated-dep CVE scan (replaced by OSV-Scanner in Sprint 4) | `.github/workflows/ci.yml` |
+| **CI-enforced (blocking)** | Trivy image scan | CI workflow (`trivy` job, after `build_image`) | Zero HIGH/CRITICAL CVEs in the built image. False-positive exclusions live in `.trivyignore` with written justification. | `.github/workflows/ci.yml`, `.trivyignore` |
 | **Pre-commit** (blocking on `git commit`) | `pre-commit` hooks | Every commit | trailing-whitespace, EOF, large files, secret scan, no-commit-to-protected | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
-| **CI-enforced (blocking)** | `prettier --check` | MR pipeline (`prettier_check` job) **and** pre-commit when staged file matches `^src/.*\.(ts\|tsx\|css\|json\|md)$` | Source is prettier-clean | `.gitlab-ci.yml`, `.pre-commit-config.yaml` |
-| **CI-enforced (blocking)** | `tsc --noEmit` | MR pipeline (`typecheck` job) **and** pre-commit when any `.ts`/`.tsx` is staged | Whole-project typecheck passes | `.gitlab-ci.yml`, `.pre-commit-config.yaml` |
-| **CI-enforced (blocking)** | `eslint --max-warnings=0` | MR pipeline (`eslint` job) **and** pre-commit when any `.ts`/`.tsx`/`.js`/`.mjs`/`.cjs` is staged | Zero lint warnings (allow-list configured per rule, see `eslint.config.mjs`) | `.gitlab-ci.yml`, `.pre-commit-config.yaml`, `eslint.config.mjs` |
-| **CI-enforced (blocking)** | File-length gate | MR pipeline (`file_length` job) **and** pre-commit (per-file when `.ts`/`.tsx`/`.module.css` is staged) | LOC ≤ §4 limit OR file is in `scripts/file-length-baseline.txt` | [scripts/check-file-length.sh](scripts/check-file-length.sh), `.gitlab-ci.yml`, `.pre-commit-config.yaml` |
+| **CI-enforced (blocking)** | `prettier --check` | CI workflow (`prettier_check` job) **and** pre-commit when staged file matches `^src/.*\.(ts\|tsx\|css\|json\|md)$` | Source is prettier-clean | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
+| **CI-enforced (blocking)** | `tsc --noEmit` | CI workflow (`typecheck` job) **and** pre-commit when any `.ts`/`.tsx` is staged | Whole-project typecheck passes | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
+| **CI-enforced (blocking)** | `eslint --max-warnings=0` | CI workflow (`eslint` job) **and** pre-commit when any `.ts`/`.tsx`/`.js`/`.mjs`/`.cjs` is staged | Zero lint warnings (allow-list configured per rule, see `eslint.config.mjs`) | `.github/workflows/ci.yml`, `.pre-commit-config.yaml`, `eslint.config.mjs` |
+| **CI-enforced (blocking)** | File-length gate | CI workflow (`file_length` job) **and** pre-commit (per-file when `.ts`/`.tsx`/`.module.css` is staged) | LOC ≤ §4 limit OR file is in `scripts/file-length-baseline.txt` | [scripts/check-file-length.sh](scripts/check-file-length.sh), `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
 | **Sprint 1 — manual** (devs run before commit; not yet automated) | `npm run build` | Manual | Next.js build succeeds | `next.config.ts` |
 
 **`prettier --check`, `tsc --noEmit`, and `eslint --max-warnings=0` all automated and blocking as of Sprint 2 / 2.5**. SAST quality gate (SonarCloud) lands in Sprint 3.
@@ -217,7 +217,7 @@ main                    ← production (currently develop; cutover pending)
 ```
 
 - **Never push to `main` or `develop` directly** — pre-commit hook blocks this.
-- Branch off **`develop`**. Open MR to `develop`. After merge to `develop` and test-env validation, `develop` is promoted to `main` for prod.
+- Branch off **`develop`**. Open PR to `develop`. After merge to `develop` and test-env validation, `develop` is promoted to `main` for prod.
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`, `test/`.
 
 ### Commit messages
@@ -226,7 +226,7 @@ Format: `type(scope): description`. Same convention as backend (see backend `CLA
 
 ### Merge requests
 
-Every MR uses [.gitlab/merge_request_templates/Default.md](.gitlab/merge_request_templates/Default.md). Required sections: summary, sprint-task link, acceptance-criteria coverage, backend-contract verification + i18n parity (where applicable), standard checklist, test plan, deploy notes.
+Every PR uses [.github/pull_request_template.md](.github/pull_request_template.md). Required sections: summary, sprint-task link, acceptance-criteria coverage, backend-contract verification + i18n parity (where applicable), standard checklist, test plan, deploy notes.
 
 ---
 
@@ -282,4 +282,4 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 4. `git status` → only intentional changes staged.
 5. Commit with `type(scope):` format.
 6. Push to feature branch.
-7. Open MR via `glab mr create` (or GitLab UI) — fill template fully, including i18n parity confirmation.
+7. Open PR via `gh pr create` (or GitHub UI) — fill template fully, including i18n parity confirmation.

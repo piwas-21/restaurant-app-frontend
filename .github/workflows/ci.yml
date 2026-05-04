@@ -41,7 +41,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --prefer-offline --no-audit
-      - run: npx prettier --check .
+      - run: npm run format:check
 
   typecheck:
     name: tsc --noEmit
@@ -67,7 +67,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --prefer-offline --no-audit
-      - run: npx eslint --max-warnings=0 .
+      - run: npm run lint
 
   npm_test:
     name: npm test (jest)
@@ -149,4 +149,4 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --prefer-offline --no-audit
-      - run: npx retire --severity high
+      - run: npx retire --path .

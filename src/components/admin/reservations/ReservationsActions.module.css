@@ -1,0 +1,114 @@
+.actionsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.exportButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.exportButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exportButton:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.bulkActionsBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--primary-bg-light);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+}
+
+.selectionCount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--border-color);
+}
+
+.bulkConfirmButton,
+.bulkCancelButton,
+.clearSelectionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bulkConfirmButton {
+  background: #10b981;
+  color: white;
+}
+
+.bulkConfirmButton:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.bulkCancelButton {
+  background: #ef4444;
+  color: white;
+}
+
+.bulkCancelButton:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.clearSelectionButton {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.clearSelectionButton:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .actionsBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .exportButtons,
+  .bulkActionsBar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bulkActionsBar {
+    flex-wrap: wrap;
+  }
+}

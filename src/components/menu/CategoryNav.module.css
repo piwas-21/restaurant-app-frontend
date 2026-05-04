@@ -1,0 +1,235 @@
+/* Sticky Category Navigation */
+.stickyNav {
+  position: sticky;
+  top: 80px;
+  background-color: var(--card-background);
+  padding: 12px 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.navScrollContainer {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  flex: 1;
+  min-width: 0;
+  max-width: 800px;
+}
+
+.navScrollContainer::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.navButtonsContainer {
+  display: flex;
+  gap: 8px;
+  padding: 0 8px;
+  min-width: min-content;
+}
+
+.navButton {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background-color: var(--secondary-color);
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    transform 0.2s;
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.navButton:hover {
+  background-color: var(--link-hover-color);
+  border-color: var(--link-hover-color);
+  transform: translateY(-2px);
+}
+
+.navButtonActive {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-color: var(--primary-color);
+  font-weight: bold;
+}
+
+.navArrow {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navArrow:hover {
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.navArrow:active {
+  transform: scale(0.95);
+}
+
+.navArrowLeft {
+  margin-right: 12px;
+}
+
+.navArrowRight {
+  margin-left: 12px;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .stickyNav {
+    position: sticky;
+    top: 130px; /* 80px header + 50px TableBanner */
+    padding: 12px 0;
+    background-color: var(--card-background);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+  }
+
+  .navWrapper {
+    padding: 0 1rem;
+    width: 100%; /* Use full width */
+    max-width: 100%;
+  }
+
+  .navScrollContainer {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .navButton {
+    padding: 12px 18px;
+    font-size: 1rem;
+    min-height: 44px; /* Accessibility minimum */
+    border-radius: 22px;
+  }
+
+  .navButton:active {
+    transform: scale(0.96);
+  }
+
+  .navArrow {
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .navArrow svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .navArrowLeft {
+    margin-right: 10px;
+  }
+
+  .navArrowRight {
+    margin-left: 10px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .stickyNav {
+    position: sticky;
+    top: 130px; /* 80px header + 50px TableBanner */
+    padding: 12px 0;
+    margin-bottom: 1.5rem;
+    background-color: var(--card-background);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Ensure it stays on top of content */
+    z-index: 100;
+  }
+
+  .navWrapper {
+    padding: 0 0.75rem;
+    width: 100%; /* Use full width on mobile */
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .navScrollContainer {
+    flex: 1;
+    min-width: 0;
+    /* Enhanced scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .navButtonsContainer {
+    gap: 10px;
+    padding: 0 4px;
+  }
+
+  .navButton {
+    /* Larger touch targets per Apple/Google HIG - minimum 44px */
+    padding: 14px 20px;
+    font-size: 1rem; /* Increased from 0.9rem for better readability */
+    min-width: fit-content;
+    min-height: 44px; /* Accessibility: minimum touch target size */
+    border-radius: 22px;
+    font-weight: 500;
+    /* Better tap feedback */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .navButton:active {
+    transform: scale(0.96);
+  }
+
+  .navButtonActive {
+    font-weight: 600;
+  }
+
+  .navArrow {
+    /* Larger touch targets for arrows */
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    /* Better visual prominence */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .navArrow svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .navArrowLeft {
+    margin-right: 8px;
+  }
+
+  .navArrowRight {
+    margin-left: 8px;
+  }
+}

@@ -1,193 +1,196 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from '../styles/CashierPage.module.css';
-
-interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-}
-
-export type PaymentStatus = "Paid Online" | "To Be Paid at Cashier" | "Paid at Cashier";
-export type OrderType = "Pickup" | "Dine-in";
-
-export interface Order {
-  id: string;
-  customerName: string;
-  items: OrderItem[];
-  totalPrice: number;
-  paymentStatus: PaymentStatus;
-  orderType: OrderType;
-  tableNumber?: string;
-  timestamp: Date;
-}
-
-// Mock Data - in a real app, this would come from an API
-const initialOrders: Order[] = [
-  {
-    id: "ORD001",
-    customerName: "Alice Wonderland",
-    items: [
-      { id: "item001", name: "Adana Kebab", quantity: 1, price: 23.90 },
-      { id: "item002", name: "Ayran", quantity: 2, price: 3.50 },
-    ],
-    totalPrice: 30.90,
-    paymentStatus: "Paid Online",
-    orderType: "Pickup",
-    timestamp: new Date(Date.now() - 3600000 * 1), // 1 hour ago
-  },
-  {
-    id: "ORD002",
-    customerName: "Bob The Builder",
-    items: [
-      { id: "item003", name: "Pide (Turkish Pizza)", quantity: 2, price: 18.00 },
-      { id: "item004", name: "Coca-Cola", quantity: 4, price: 3.00 },
-    ],
-    totalPrice: 48.00,
-    paymentStatus: "To Be Paid at Cashier",
-    orderType: "Dine-in",
-    tableNumber: "5",
-    timestamp: new Date(Date.now() - 3600000 * 0.5), // 30 mins ago
-  },
-  {
-    id: "ORD003",
-    customerName: "Charlie Brown",
-    items: [
-      { id: "item005", name: "Sarma (Vegan)", quantity: 6, price: 1.90 },
-      { id: "item006", name: "Turkish Tea", quantity: 1, price: 2.50 },
-    ],
-    totalPrice: 13.90,
-    paymentStatus: "To Be Paid at Cashier",
-    orderType: "Pickup",
-    timestamp: new Date(Date.now() - 3600000 * 0.2), // 12 mins ago
-  },
-];
+import { useCashierOrders } from '@/hooks/useCashierOrders';
+import { useNotification } from '@/hooks/useNotification';
+import { useCashierFilters } from '@/hooks/cashier/useCashierFilters';
+import { useCashierDialogs } from '@/hooks/cashier/useCashierDialogs';
+import { useCashierAutoPrint } from '@/hooks/cashier/useCashierAutoPrint';
+import { useCashierOrderAlerts } from '@/hooks/cashier/useCashierOrderAlerts';
+import { useTodayOnlyDateRange } from '@/hooks/cashier/useTodayOnlyDateRange';
+import CashierHeader from '@/components/cashier/CashierHeader';
+import OrderTypeNav from '@/components/cashier/OrderTypeNav';
+import CashierMainContent from '@/components/cashier/CashierMainContent';
+import CashierActionDialogs from '@/components/cashier/CashierActionDialogs';
+import CashierAuxiliaryDialogs from '@/components/cashier/CashierAuxiliaryDialogs';
+import QuickConfirmModal from '@/components/cashier/QuickConfirmModal';
+import NotificationCenter from '@/components/cashier/NotificationCenter';
+import styles from '@/app/styles/CashierPage.module.css';
 
 export default function CashierPage() {
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>(initialOrders.sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()));
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | PaymentStatus>('all');
 
-  const handleMarkAsPaid = (orderId: string) => {
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId ? { ...order, paymentStatus: "Paid at Cashier" } : order
-      )
-    );
-  };
+  const { todayOnly, setTodayOnly, dateRange } = useTodayOnlyDateRange();
 
-  const toggleViewDetails = (orderId: string) => {
-    setSelectedOrderId(prevId => (prevId === orderId ? null : orderId));
-  };
+  const {
+    orders,
+    isConnected,
+    isLoading,
+    error,
+    lastEventTime,
+    connectionState,
+    refreshOrders,
+    updateOrderStatus,
+    addPayment,
+    refundPayment,
+    cancelOrder,
+    toggleFocusOrder,
+  } = useCashierOrders(dateRange);
 
-  const filteredOrders = orders.filter(order => 
-    filter === 'all' || order.paymentStatus === filter
-  );
+  const notif = useNotification();
+
+  const { settings: autoPrintSettings, saveSettings: saveAutoPrintSettings } = useCashierAutoPrint();
+
+  const dialogs = useCashierDialogs(orders, {
+    updateOrderStatus,
+    addPayment,
+    refundPayment,
+    cancelOrder,
+    toggleFocusOrder,
+    refreshOrders,
+  });
+
+  const filters = useCashierFilters(orders, dialogs.selectedOrderId, dialogs.setSelectedOrderId);
+
+  const alerts = useCashierOrderAlerts({
+    orders,
+    autoPrintSettings,
+    audioEnabled: notif.audioEnabled,
+    notifyNewOrder: notif.notifyNewOrder,
+    notifyOrderUpdate: notif.notifyOrderUpdate,
+    playOrderUpdateSound: notif.playOrderUpdateSound,
+  });
+
+  const [showAutoPrintSettings, setShowAutoPrintSettings] = useState(false);
+  const [showQRScannerDialog, setShowQRScannerDialog] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [showZReport, setShowZReport] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshOrders();
+      dialogs.showSuccess(t('cashier.orders_refreshed') || 'Orders refreshed');
+    } catch {
+      dialogs.showError(t('cashier.refresh_failed') || 'Failed to refresh orders');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshOrders, dialogs, t]);
 
   return (
-    <main className={styles.container}>
-      <header className={styles.header}>
-        <h1>{t('cashier_interface_title', 'Cashier Interface')}</h1>
-      </header>
+    <div className={styles.pageWrapper}>
+      <NotificationCenter notifications={notif.notifications} onDismiss={notif.removeNotification} />
 
-      <div className={styles.filterContainer}>
-        <label htmlFor="paymentStatusFilter">{t('filter_by_payment_status', 'Filter by Payment Status:')}</label>
-        <select 
-            id="paymentStatusFilter" 
-            className={styles.select} 
-            value={filter} 
-            onChange={(e) => setFilter(e.target.value as 'all' | PaymentStatus)}
-        >
-            <option value="all">{t('filter_all', 'All')}</option>
-            <option value="Paid Online">{t('payment_status_paid_online', 'Paid Online')}</option>
-            <option value="To Be Paid at Cashier">{t('payment_status_to_be_paid', 'To Be Paid at Cashier')}</option>
-            <option value="Paid at Cashier">{t('payment_status_paid_at_cashier', 'Paid at Cashier')}</option>
-        </select>
+      <CashierHeader
+        isConnected={isConnected}
+        isRefreshing={isRefreshing}
+        audioEnabled={notif.audioEnabled}
+        audioBlockedByPolicy={notif.audioBlockedByPolicy}
+        soundType={notif.soundType}
+        repeatUntilMouseMoves={notif.repeatUntilMouseMoves}
+        onRefresh={handleRefresh}
+        onToggleAudio={notif.toggleAudio}
+        onSoundTypeChange={notif.changeSoundType}
+        onTestSound={notif.playSoundByType}
+        onToggleRepeat={notif.toggleRepeatSound}
+        onOpenQRScanner={() => setShowQRScannerDialog(true)}
+        onOpenZReport={() => setShowZReport(true)}
+        onOpenDiagnostics={() => setShowDiagnostics(!showDiagnostics)}
+      />
+
+      {dialogs.successMessage && <div className="alert alert-success">{dialogs.successMessage}</div>}
+      {dialogs.errorMessage && <div className="alert alert-error">{dialogs.errorMessage}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
+
+      <OrderTypeNav activeFilter={filters.orderTypeFilter} onFilterChange={filters.setOrderTypeFilter} />
+
+      <div className={styles.dateRangeToolbar}>
+        <label>
+          <input type="checkbox" checked={todayOnly} onChange={(e) => setTodayOnly(e.target.checked)} />{' '}
+          {t('cashier.show_todays_orders_only')}
+        </label>
       </div>
 
-      <h2>{t('orders_list_title', 'Current Orders')}</h2>
-      {filteredOrders.length === 0 ? (
-        <p>{t('no_orders_message', 'No orders match the current filter.')}</p>
-      ) : (
-        <table className={styles.orderTable}>
-          <thead>
-            <tr>
-              <th className={styles.th}>{t('order_id_header', 'Order ID')}</th>
-              <th className={styles.th}>{t('customer_name_header', 'Customer')}</th>
-              <th className={styles.th}>{t('order_type_header', 'Type')}</th>
-              <th className={styles.th}>{t('total_price_header', 'Total')}</th>
-              <th className={styles.th}>{t('payment_status_header', 'Payment Status')}</th>
-              <th className={styles.th}>{t('actions_header', 'Actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.map(order => (
-              <React.Fragment key={order.id}>
-                <tr>
-                  <td className={styles.td}>{order.id}</td>
-                  <td className={styles.td}>{order.customerName}</td>
-                  <td className={styles.td}>
-                    {t(order.orderType === "Dine-in" ? 'checkout_order_type_dine_in' : 'checkout_order_type_pickup', order.orderType)}
-                    {order.orderType === 'Dine-in' && order.tableNumber && ` (${t('table_number_label_short', 'Table')}: ${order.tableNumber})`}
-                  </td>
-                  <td className={styles.td}>CHF {order.totalPrice.toFixed(2)}</td>
-                  <td className={styles.td}>
-                    {order.paymentStatus === "Paid Online" && t('payment_status_paid_online', order.paymentStatus)}
-                    {order.paymentStatus === "To Be Paid at Cashier" && t('payment_status_to_be_paid', order.paymentStatus)}
-                    {order.paymentStatus === "Paid at Cashier" && t('payment_status_paid_at_cashier', order.paymentStatus)}
-                  </td>
-                  <td className={styles.td}>
-                    <button 
-                        className={styles.viewDetailsButton} 
-                        onClick={() => toggleViewDetails(order.id)}
-                    >
-                        {selectedOrderId === order.id ? t('hide_details_button', 'Hide Details') : t('view_details_button', 'View Details')}
-                    </button>
-                    {order.paymentStatus === "To Be Paid at Cashier" && (
-                      <button 
-                        className={styles.paidButton} 
-                        onClick={() => handleMarkAsPaid(order.id)}
-                       >
-                        {t('mark_as_paid_button', 'Mark as Paid')}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-                {selectedOrderId === order.id && (
-                  <tr>
-                    <td colSpan={6} className={styles.orderDetailsSection}>
-                      <h3>{t('order_details_title', 'Order Details')} ({order.id})</h3>
-                      <p><strong>{t('customer_name_header', 'Customer')}:</strong> {order.customerName}</p>
-                      <p><strong>{t('order_type_header', 'Type')}:</strong> 
-                        {t(order.orderType === "Dine-in" ? 'checkout_order_type_dine_in' : 'checkout_order_type_pickup', order.orderType)}
-                        {order.orderType === 'Dine-in' && order.tableNumber && ` (${t('table_number_label_short', 'Table')}: ${order.tableNumber})`}
-                      </p>
-                      <p><strong>{t('payment_status_header', 'Payment Status')}:</strong> 
-                        {order.paymentStatus === "Paid Online" && t('payment_status_paid_online', order.paymentStatus)}
-                        {order.paymentStatus === "To Be Paid at Cashier" && t('payment_status_to_be_paid', order.paymentStatus)}
-                        {order.paymentStatus === "Paid at Cashier" && t('payment_status_paid_at_cashier', order.paymentStatus)}
-                      </p>
-                      <p><strong>{t('items_ordered_label', 'Items:')}</strong></p>
-                      <ul>
-                        {order.items.map(item => (
-                          <li key={item.id}>
-                            {item.name} - {t('quantity_short_label', 'Qty')}: {item.quantity} @ CHF {item.price.toFixed(2)} {t('each', 'each')}
-                          </li>
-                        ))}
-                      </ul>
-                      <p><strong>{t('checkout_total_label', 'Total')}: CHF {order.totalPrice.toFixed(2)}</strong></p>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </main>
+      <CashierMainContent
+        filteredOrders={filters.filteredOrders}
+        selectedOrder={dialogs.selectedOrder}
+        selectedOrderId={dialogs.selectedOrderId}
+        isLoading={isLoading}
+        error={error}
+        searchQuery={filters.searchQuery}
+        statusFilter={filters.statusFilter}
+        paymentStatusFilter={filters.paymentStatusFilter}
+        orderTypeFilter={filters.orderTypeFilter}
+        onSelectOrder={dialogs.setSelectedOrderId}
+        onStatusChange={dialogs.handleStatusChange}
+        onAddPayment={() => dialogs.setShowPaymentDialog(true)}
+        onRefund={() => dialogs.setShowRefundDialog(true)}
+        onCancel={() => dialogs.setShowCancelDialog(true)}
+        onToggleFocus={() => dialogs.setShowFocusDialog(true)}
+        onQuickConfirm={alerts.openQuickConfirmModal}
+        onSearchChange={filters.setSearchQuery}
+        onStatusFilterChange={filters.setStatusFilter}
+        onPaymentStatusFilterChange={filters.setPaymentStatusFilter}
+        onOrderTypeFilterChange={filters.setOrderTypeFilter}
+      />
+
+      <CashierActionDialogs
+        selectedOrder={dialogs.selectedOrder}
+        showStatusDialog={dialogs.showStatusDialog}
+        showPaymentDialog={dialogs.showPaymentDialog}
+        showRefundDialog={dialogs.showRefundDialog}
+        showCancelDialog={dialogs.showCancelDialog}
+        showFocusDialog={dialogs.showFocusDialog}
+        onCloseStatus={() => dialogs.setShowStatusDialog(false)}
+        onClosePayment={() => dialogs.setShowPaymentDialog(false)}
+        onCloseRefund={() => dialogs.setShowRefundDialog(false)}
+        onCloseCancel={() => dialogs.setShowCancelDialog(false)}
+        onCloseFocus={() => dialogs.setShowFocusDialog(false)}
+        onConfirmStatus={dialogs.handleStatusChange}
+        onConfirmPayment={dialogs.handleAddPayment}
+        onConfirmRefund={dialogs.handleRefund}
+        onConfirmCancel={dialogs.handleCancelOrder}
+        onConfirmFocus={dialogs.handleToggleFocus}
+      />
+
+      <QuickConfirmModal
+        order={
+          alerts.pendingOrderForConfirm ? orders.find((o) => o.id === alerts.pendingOrderForConfirm) || null : null
+        }
+        isOpen={alerts.showQuickConfirmModal}
+        onClose={alerts.closeQuickConfirmModal}
+        onConfirm={dialogs.handleQuickConfirm}
+        onCancel={dialogs.handleQuickCancel}
+      />
+
+      <CashierAuxiliaryDialogs
+        showQRScanner={showQRScannerDialog}
+        showAutoPrint={showAutoPrintSettings}
+        showZReport={showZReport}
+        showDiagnostics={showDiagnostics}
+        autoPrintSettings={autoPrintSettings}
+        diagnostics={{
+          sseConnected: isConnected,
+          sseConnectionState: connectionState,
+          sseLastEventTime: lastEventTime,
+          sseError: error,
+          audioEnabled: notif.audioEnabled,
+          audioReady: notif.audioReady,
+          audioBlockedByPolicy: notif.audioBlockedByPolicy,
+        }}
+        onCloseQRScanner={() => setShowQRScannerDialog(false)}
+        onCloseAutoPrint={() => setShowAutoPrintSettings(false)}
+        onCloseZReport={() => setShowZReport(false)}
+        onCloseDiagnostics={() => setShowDiagnostics(false)}
+        onApplyDiscount={() => dialogs.showSuccess(t('cashier.discount_info_loaded') || 'Discount information loaded')}
+        onSaveAutoPrint={saveAutoPrintSettings}
+        onTestSound={() => notif.playSoundByType(notif.soundType)}
+        onEnableAudio={notif.resumeAudioContext}
+        onRefreshConnection={handleRefresh}
+      />
+    </div>
   );
 }

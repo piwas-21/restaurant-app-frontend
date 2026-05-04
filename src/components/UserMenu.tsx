@@ -1,14 +1,20 @@
-"use client";
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRoleHelpers } from '@/hooks/useRoleHelpers';
 import { UserCircle } from 'lucide-react';
 import styles from '../app/styles/UserMenu.module.css';
 import { useAuth } from './AuthContext';
 import Link from 'next/link';
 
-export default function UserMenu() {
+interface UserMenuProps {
+  onMobileMenuClose?: () => void;
+}
+
+export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
   const { t } = useTranslation();
+  const { getRoleLabel } = useRoleHelpers();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -28,9 +34,9 @@ export default function UserMenu() {
         setDropdownOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -53,15 +59,52 @@ export default function UserMenu() {
       {dropdownOpen && (
         <div className={styles.dropdownMenu}>
           <div className={styles.userInfo}>
-            <p className={styles.userName}>{user.firstName} {user.lastName}</p>
-            <p className={styles.userRole}>{t(`roles.${user.role.toLowerCase()}`)}</p>
+            <p className={styles.userName}>
+              {user.firstName} {user.lastName}
+            </p>
+            <p className={styles.userRole}>{getRoleLabel(user.role)}</p>
           </div>
           {user.role.toLowerCase() === 'customer' && (
-            <Link href="/account" className={styles.dropdownLink} onClick={() => setDropdownOpen(false)}>
-              {t('user_menu.my_account')}
-            </Link>
+            <>
+              <Link
+                href="/account"
+                className={styles.dropdownLink}
+                onClick={() => {
+                  setDropdownOpen(false);
+                  onMobileMenuClose?.();
+                }}
+              >
+                {t('user_menu.my_account', 'My Account')}
+              </Link>
+              <Link
+                href="/orders"
+                className={styles.dropdownLink}
+                onClick={() => {
+                  setDropdownOpen(false);
+                  onMobileMenuClose?.();
+                }}
+              >
+                {t('user_menu.my_orders', 'My Orders')}
+              </Link>
+              <Link
+                href="/my-reservations"
+                className={styles.dropdownLink}
+                onClick={() => {
+                  setDropdownOpen(false);
+                  onMobileMenuClose?.();
+                }}
+              >
+                {t('nav_reservations', 'Reservations')}
+              </Link>
+            </>
           )}
-          <button onClick={handleLogout} className={styles.logoutButton}>
+          <button
+            onClick={() => {
+              handleLogout();
+              onMobileMenuClose?.();
+            }}
+            className={styles.logoutButton}
+          >
             {t('user_menu.logout')}
           </button>
         </div>

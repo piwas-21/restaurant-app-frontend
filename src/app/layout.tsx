@@ -1,8 +1,8 @@
-import { Inter } from "next/font/google";
-import "./globals.css";
-import AppInternalLayout from "./app-internal-layout";
-import ClientProviders from "./client-providers";
-import { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import AppInternalLayout from './app-internal-layout';
+import ClientProviders from './client-providers';
+import { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
   title: 'RUMI Restaurant',
@@ -12,7 +12,14 @@ export const metadata: Metadata = {
   },
 };
 
-const inter = Inter({ subsets: ["latin"] });
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+  maximumScale: 5.0,
+  userScalable: true,
+};
+
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -34,7 +34,9 @@
   cursor: pointer;
   padding: 0.2rem;
   /* color is now set by .starFilled or .starEmpty */
-  transition: color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  transition:
+    color 0.2s ease-in-out,
+    transform 0.1s ease-in-out;
 }
 
 .starRating button:hover,
@@ -43,7 +45,7 @@
 }
 
 .starFilled {
-  color: #FFD700; /* Gold color for filled stars */
+  color: #ffd700; /* Gold color for filled stars */
 }
 
 .starEmpty {
@@ -93,4 +95,3 @@
   font-size: 0.9rem;
   margin-top: -0.5rem;
 }
-

@@ -15,19 +15,16 @@ import { ProductDetails } from './product/ProductDetails';
 import { MultilingualContent } from './product/MultilingualContent';
 import { ProductVariations } from './product/ProductVariations';
 import { SuggestedSideItemsPicker } from './product/SuggestedSideItemsPicker';
+import { ProductIngredientsManager } from './product/ProductIngredientsManager';
 import { submitEditProductForm } from './product/productFormUtils';
 
-const EditProductModal: React.FC<EditProductModalProps> = ({
-  isOpen,
-  onClose,
-  onProductUpdated,
-  product
-}) => {
+const EditProductModal: React.FC<EditProductModalProps> = ({ isOpen, onClose, onProductUpdated, product }) => {
   const { t, i18n } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [selectedSideItemIds, setSelectedSideItemIds] = useState<string[]>([]);
+  const [detailedIngredients, setDetailedIngredients] = useState<any[]>([]);
 
   const {
     register,
@@ -48,24 +45,32 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       isAvailable: true,
       isSpecial: false,
       type: 'mainItem',
+      kitchenType: 'None',
       allergens: [],
-      ingredients: '',
       variations: [],
       content: [],
       categoryIds: [],
       primaryCategoryId: '',
       preparationTimeMinutes: 0,
       suggestedSideItemIds: [],
-    }
+    },
   });
 
-  const { fields: variationFields, append: appendVariation, remove: removeVariation } = useFieldArray({
+  const {
+    fields: variationFields,
+    append: appendVariation,
+    remove: removeVariation,
+  } = useFieldArray({
     control,
-    name: 'variations'
+    name: 'variations',
   });
-  const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({
+  const {
+    fields: contentFields,
+    append: appendContent,
+    remove: removeContent,
+  } = useFieldArray({
     control,
-    name: 'content'
+    name: 'content',
   });
 
   const selectedCategoryIds = watch('categoryIds', []);
@@ -74,8 +79,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const fetchAllCategories = async () => {
-        const response = await getCategories();
-        if (response.success) setCategories(response.data.items);
+        const response = (await getCategories()) as { success: boolean; data?: { items: any[] } };
+        if (response.success) setCategories(response.data?.items || []);
       };
       fetchAllCategories();
     } else {
@@ -87,14 +92,21 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 
   useEffect(() => {
     if (product) {
-      const flattenedContent = product.content ? Object.entries(product.content).map(([lang, data]: [string, any]) => ({
-        language: lang,
-        name: data.name,
-        description: data.description,
-        ingredient: data.ingredient,
-      })) : [];
+      const flattenedContent = product.content
+        ? Object.entries(product.content).map(([lang, data]: [string, any]) => ({
+            language: lang,
+            name: data.name,
+            description: data.description,
+          }))
+        : [];
 
-      const safeCategoryIds = (product.categories?.map((c: any) => c.categoryId).filter((x: any) => !!x) || []) as string[];
+      const safeCategoryIds = (product.categories?.map((c: any) => c.categoryId).filter((x: any) => !!x) ||
+        []) as string[];
+
+      // Extract IDs from suggestedSideItems array
+      const sideItemIds = Array.isArray(product.suggestedSideItems)
+        ? product.suggestedSideItems.map((item: any) => item.id).filter((id: any) => !!id)
+        : [];
 
       reset({
         name: product.name || '',
@@ -104,7 +116,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         isAvailable: product.isAvailable ?? true,
         isSpecial: product.isSpecial ?? false,
         type: product.type || 'mainItem',
-        ingredients: Array.isArray(product.ingredients) ? product.ingredients.join(', ') : (product.ingredients || ''),
+        kitchenType: product.kitchenType || 'None',
         allergens: Array.isArray(product.allergens) ? product.allergens : [],
         categoryIds: safeCategoryIds,
         primaryCategoryId: product.primaryCategoryId || (safeCategoryIds.length > 0 ? safeCategoryIds[0] : ''),
@@ -112,10 +124,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         content: flattenedContent,
         preparationTimeMinutes: product.preparationTimeMinutes || 0,
         displayOrder: product.displayOrder || 0,
-        suggestedSideItemIds: product.suggestedSideItemIds || [],
+        suggestedSideItemIds: sideItemIds,
       });
 
-      setSelectedSideItemIds(product.suggestedSideItemIds || []);
+      setSelectedSideItemIds(sideItemIds);
+      setDetailedIngredients(product.detailedIngredients || []);
     }
   }, [product, reset]);
 
@@ -124,6 +137,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       data,
       product,
       imageFiles,
+      detailedIngredients, // Pass ingredients to submit handler
       setIsSubmitting,
       setError,
       onProductUpdated,
@@ -188,6 +202,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               control={control}
               imageFiles={imageFiles}
               setImageFiles={setImageFiles}
+              existingImages={product.images || []}
             />
           </div>
 
@@ -220,22 +235,19 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                 setValue('suggestedSideItemIds', newSelection);
               }}
             />
+
+            <ProductIngredientsManager
+              ingredients={detailedIngredients}
+              onChange={setDetailedIngredients}
+              productBasePrice={watch('basePrice') || 0}
+            />
           </div>
 
           <div className={modalStyles.buttonGroup}>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={modalStyles.submitButton}
-            >
+            <button type="submit" disabled={isSubmitting} className={modalStyles.submitButton}>
               {isSubmitting ? t('updating...') : t('update_product')}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className={modalStyles.cancelButton}
-              disabled={isSubmitting}
-            >
+            <button type="button" onClick={onClose} className={modalStyles.cancelButton} disabled={isSubmitting}>
               {t('cancel')}
             </button>
           </div>

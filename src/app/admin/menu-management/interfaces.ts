@@ -1,5 +1,7 @@
 // src/interfaces/Product.ts
 
+import { MenuDefinition } from '@/types/menu';
+
 export interface ProductImage {
   id: string;
   url: string;
@@ -31,6 +33,21 @@ export interface ProductCategory {
   isPrimary: boolean;
 }
 
+export interface ProductIngredient {
+  id: string;
+  name: string;
+  isOptional: boolean;
+  price: number;
+  isActive: boolean;
+  displayOrder: number;
+  content?: {
+    [languageCode: string]: {
+      name: string;
+      description?: string;
+    };
+  };
+}
+
 export interface ProductDetails {
   id: string;
   name: string;
@@ -40,13 +57,16 @@ export interface ProductDetails {
   isAvailable: boolean;
   isSpecial?: boolean;
   preparationTimeMinutes: number;
+  displayOrder?: number;
   type: string;
-  ingredients: string[];
+  ingredients: string[]; // Legacy field - kept for backward compatibility
+  detailedIngredients?: ProductIngredient[];
   allergens: string[];
   categories: ProductCategory[];
   variations: Variation[];
   images: ProductImage[];
   suggestedSideItems: SideItem[];
+  menuDefinition?: MenuDefinition; // For menu bundle products
   content?: any; // To match the full product object for the edit modal
 }
 
@@ -68,4 +88,5 @@ export interface Category {
   description?: string | null;
   isActive: boolean;
   displayOrder: number;
+  productCount?: number;
 }

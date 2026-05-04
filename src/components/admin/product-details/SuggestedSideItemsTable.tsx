@@ -13,7 +13,10 @@ import { buildProductPayload } from './buildProductPayload';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { getCategories } from '@/services/categoryService';
 
-interface Category { id: string; name: string; }
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface SuggestedSideItemsTableProps {
   suggestedSideItems: SideItem[];
@@ -22,7 +25,12 @@ interface SuggestedSideItemsTableProps {
   product?: any;
 }
 
-const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ suggestedSideItems, productId, onUpdated, product }) => {
+const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
+  suggestedSideItems,
+  productId,
+  onUpdated,
+  product,
+}) => {
   const { t } = useTranslation();
   const [local, setLocal] = useState<SideItem[]>(suggestedSideItems || []);
   const [search, setSearch] = useState('');
@@ -37,31 +45,40 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      const resp = (await getCategories()) as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
     };
     fetchCategories();
   }, []);
 
-  useEffect(()=>{ setLocal(suggestedSideItems||[]); },[suggestedSideItems]);
+  useEffect(() => {
+    setLocal(suggestedSideItems || []);
+  }, [suggestedSideItems]);
 
   const runSearch = async () => {
-    const resp = await getProducts(1, 20, undefined);
-    if (resp.success) {
-      const items = resp.data.items.filter((p:any)=> p.name.toLowerCase().includes(search.toLowerCase()));
+    const resp = (await getProducts(1, 20, undefined)) as { success: boolean; data?: { items: any[] } };
+    if (resp.success && resp.data?.items) {
+      const items = resp.data.items.filter((p: any) => p.name.toLowerCase().includes(search.toLowerCase()));
       setResults(items);
     }
   };
 
   const toggleSelect = (id: string, checked: boolean) => {
-    setSelectedIds(prev => checked ? Array.from(new Set([...(prev||[]), id])) : (prev||[]).filter(x=>x!==id));
+    setSelectedIds((prev) =>
+      checked ? Array.from(new Set([...(prev || []), id])) : (prev || []).filter((x) => x !== id),
+    );
   };
 
   const saveSelected = async () => {
-    const additions = results.filter(r => selectedIds.includes(r.id)).map(p => ({ id: p.id, name: p.name, description: p.description, price: p.basePrice, isRequired: false } as SideItem));
-    const next = [...local, ...additions.filter(a => !local.some(l => l.id === a.id))];
+    const additions = results
+      .filter((r) => selectedIds.includes(r.id))
+      .map(
+        (p) =>
+          ({ id: p.id, name: p.name, description: p.description, price: p.basePrice, isRequired: false }) as SideItem,
+      );
+    const next = [...local, ...additions.filter((a) => !local.some((l) => l.id === a.id))];
     if (productId && product) {
       const payload = buildProductPayload({ ...product, suggestedSideItems: next } as any, categories);
       await updateProduct(productId, payload);
@@ -72,10 +89,16 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
     onUpdated && onUpdated();
   };
 
-  const startEdit = (idx: number) => { setEditingIndex(idx); setDraft({ ...local[idx] }); };
-  const cancel = () => { setEditingIndex(null); setDraft(null); };
+  const startEdit = (idx: number) => {
+    setEditingIndex(idx);
+    setDraft({ ...local[idx] });
+  };
+  const cancel = () => {
+    setEditingIndex(null);
+    setDraft(null);
+  };
   const save = async () => {
-    if (editingIndex===null || !draft) return;
+    if (editingIndex === null || !draft) return;
     const next = [...local];
     next[editingIndex] = draft as SideItem;
     if (productId && product) {
@@ -86,12 +109,15 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
     cancel();
     onUpdated && onUpdated();
   };
-  const confirmDelete = (idx: number) => { setPendingDeleteIndex(idx); setConfirmOpen(true); };
+  const confirmDelete = (idx: number) => {
+    setPendingDeleteIndex(idx);
+    setConfirmOpen(true);
+  };
   const removeAt = async () => {
-    if (pendingDeleteIndex===null) return;
+    if (pendingDeleteIndex === null) return;
     const idx = pendingDeleteIndex;
     setConfirmOpen(false);
-    const next = local.filter((_,i)=>i!==idx);
+    const next = local.filter((_, i) => i !== idx);
     if (productId && product) {
       const payload = buildProductPayload({ ...product, suggestedSideItems: next } as any, categories);
       await updateProduct(productId, payload);
@@ -106,14 +132,16 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
       <div className={detailsStyles.infoSection}>
         <div className={detailsStyles.headerRow}>
           <h3>{t('suggested_side_items')}</h3>
-          <button className={`${styles.adminButton} ${styles.add}`} onClick={()=>setShowPicker(true)}>{t('add')}</button>
+          <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setShowPicker(true)}>
+            {t('add')}
+          </button>
         </div>
         {showPicker && (
           <div className={detailsStyles.formGrid}>
             <input
               placeholder={t('search') as string}
               value={search}
-              onChange={e=>setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && search.trim()) {
                   runSearch();
@@ -122,21 +150,42 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
             />
 
             <div className={modalStyles.chipGroup}>
-              {results.map(p => {
+              {results.map((p) => {
                 const id = `side-item-result-${p.id}`;
                 const checked = selectedIds.includes(p.id);
                 return (
                   <div key={p.id} className={modalStyles.chip}>
-                    <input type="checkbox" id={id} checked={checked} onChange={e=>toggleSelect(p.id, e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      id={id}
+                      checked={checked}
+                      onChange={(e) => toggleSelect(p.id, e.target.checked)}
+                    />
                     <label htmlFor={id}>{p.name}</label>
                   </div>
                 );
               })}
             </div>
             <div className={detailsStyles.actionRow}>
-              <button className={`${styles.adminButton}`} onClick={runSearch}>{t('search')}</button>
-              <button className={styles.cancelButton} onClick={()=>{ setShowPicker(false); setSelectedIds([]); }}>{t('cancel')}</button>
-              <button className={`${styles.adminButton} ${styles.save}`} onClick={saveSelected} disabled={selectedIds.length===0}>{t('save')}</button>
+              <button className={`${styles.adminButton}`} onClick={runSearch}>
+                {t('search')}
+              </button>
+              <button
+                className={styles.cancelButton}
+                onClick={() => {
+                  setShowPicker(false);
+                  setSelectedIds([]);
+                }}
+              >
+                {t('cancel')}
+              </button>
+              <button
+                className={`${styles.adminButton} ${styles.save}`}
+                onClick={saveSelected}
+                disabled={selectedIds.length === 0}
+              >
+                {t('save')}
+              </button>
             </div>
           </div>
         )}
@@ -148,14 +197,16 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
     <div className={detailsStyles.infoSection}>
       <div className={detailsStyles.headerRow}>
         <h3>{t('suggested_side_items')}</h3>
-        <button className={`${styles.adminButton} ${styles.add}`} onClick={()=>setShowPicker(true)}>{t('add')}</button>
+        <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setShowPicker(true)}>
+          {t('add')}
+        </button>
       </div>
       {showPicker && (
         <div className={detailsStyles.formGrid}>
           <input
             placeholder={t('search') as string}
             value={search}
-            onChange={e=>setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && search.trim()) {
                 runSearch();
@@ -164,12 +215,17 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
           />
 
           <div className={modalStyles.chipGroup}>
-            {results.map(p => {
+            {results.map((p) => {
               const id = `side-item-result-${p.id}`;
               const checked = selectedIds.includes(p.id);
               return (
                 <div key={p.id} className={modalStyles.chip}>
-                  <input type="checkbox" id={id} checked={checked} onChange={e=>toggleSelect(p.id, e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    id={id}
+                    checked={checked}
+                    onChange={(e) => toggleSelect(p.id, e.target.checked)}
+                  />
                   <label htmlFor={id}>{p.name}</label>
                 </div>
               );
@@ -177,9 +233,25 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
           </div>
 
           <div className={detailsStyles.actionRow}>
-            <button className={`${styles.adminButton}`} onClick={runSearch}>{t('search')}</button>
-            <button className={styles.cancelButton} onClick={()=>{ setShowPicker(false); setSelectedIds([]); }}>{t('cancel')}</button>
-            <button className={`${styles.adminButton} ${styles.save}`} onClick={saveSelected} disabled={selectedIds.length===0}>{t('save')}</button>
+            <button className={`${styles.adminButton}`} onClick={runSearch}>
+              {t('search')}
+            </button>
+            <button
+              className={styles.cancelButton}
+              onClick={() => {
+                setShowPicker(false);
+                setSelectedIds([]);
+              }}
+            >
+              {t('cancel')}
+            </button>
+            <button
+              className={`${styles.adminButton} ${styles.save}`}
+              onClick={saveSelected}
+              disabled={selectedIds.length === 0}
+            >
+              {t('save')}
+            </button>
           </div>
         </div>
       )}
@@ -196,31 +268,64 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
           {local.map((item, idx) => (
             <tr key={item.id}>
               <td>
-                {editingIndex===idx && draft ? (
-                  <input value={draft.name||''} onChange={e=>setDraft({...draft, name: e.target.value})} />
-                ) : item.name}
+                {editingIndex === idx && draft ? (
+                  <input value={draft.name || ''} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                ) : (
+                  item.name
+                )}
               </td>
               <td>
-                {editingIndex===idx && draft ? (
-                  <input type="number" step="0.01" value={draft.price as number} onChange={e=>setDraft({...draft, price: parseFloat(e.target.value)})} />
-                ) : `$${item.price.toFixed(2)}`}
+                {editingIndex === idx && draft ? (
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={draft.price as number}
+                    onChange={(e) => setDraft({ ...draft, price: parseFloat(e.target.value) })}
+                  />
+                ) : (
+                  `$${item.price.toFixed(2)}`
+                )}
               </td>
               <td>
-                {editingIndex===idx && draft ? (
-                  <label><input type="checkbox" checked={!!draft.isRequired} onChange={e=>setDraft({...draft, isRequired: e.target.checked})} /> {t('required')}</label>
-                ) : (item.isRequired ? t('yes') : t('no'))}
+                {editingIndex === idx && draft ? (
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={!!draft.isRequired}
+                      onChange={(e) => setDraft({ ...draft, isRequired: e.target.checked })}
+                    />{' '}
+                    {t('required')}
+                  </label>
+                ) : item.isRequired ? (
+                  t('yes')
+                ) : (
+                  t('no')
+                )}
               </td>
               <td>
-                {editingIndex===idx ? (
+                {editingIndex === idx ? (
                   <div className={detailsStyles.actionRow}>
-                    <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-                    <button className={styles.cancelButton} onClick={cancel}>{t('cancel')}</button>
+                    <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+                      {t('save')}
+                    </button>
+                    <button className={styles.cancelButton} onClick={cancel}>
+                      {t('cancel')}
+                    </button>
                   </div>
                 ) : (
                   <div className={detailsStyles.actionRow}>
-                    <button className={`${styles.adminButton} ${styles.edit}`} onClick={()=>startEdit(idx)}>{t('edit')}</button>
-                    <button className={styles.deleteButton} onClick={()=>confirmDelete(idx)}>{t('remove')}</button>
-                    <Link href={`/admin/menu-management/${item.id}`} className={`${styles.adminButton} ${styles.details}`}>{t('details')}</Link>
+                    <button className={`${styles.adminButton} ${styles.edit}`} onClick={() => startEdit(idx)}>
+                      {t('edit')}
+                    </button>
+                    <button className={styles.deleteButton} onClick={() => confirmDelete(idx)}>
+                      {t('remove')}
+                    </button>
+                    <Link
+                      href={`/admin/menu-management/${item.id}`}
+                      className={`${styles.adminButton} ${styles.details}`}
+                    >
+                      {t('details')}
+                    </Link>
                   </div>
                 )}
               </td>
@@ -228,7 +333,12 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({ sugge
           ))}
         </tbody>
       </table>
-      <ConfirmationModal isOpen={confirmOpen} onClose={()=>setConfirmOpen(false)} onConfirm={removeAt} message={t('delete_confirmation')} />
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={removeAt}
+        message={t('delete_confirmation')}
+      />
     </div>
   );
 };

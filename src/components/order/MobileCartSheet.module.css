@@ -1,0 +1,35 @@
+/* Sheet-mode override of BaseModal's centered-dialog defaults. The
+   `.sheet` class is appended to BaseModal's `.dialog`, so positioning
+   is overridden by the cascade — keep this file scoped to layout, not
+   the dialog's own colors / borders / shadow which BaseModal owns. */
+
+.sheet {
+  /* Pin to the bottom edge of the overlay (the overlay is a flex
+     container; centering is the BaseModal default). */
+  align-self: flex-end;
+
+  /* Full width on mobile; cap at the same 560px BaseModal does on
+     larger screens just in case the sheet ever renders ≥ 768px. */
+  width: 100%;
+  max-width: 560px;
+
+  /* Generous body height while still leaving room to dismiss by
+     tapping the backdrop above. */
+  max-height: 80vh;
+
+  /* Round only the top corners — the bottom flush against the screen. */
+  border-radius: 18px 18px 0 0;
+
+  /* Replace BaseModal's slide-from-top-20px animation with a real
+     bottom-sheet slide. */
+  animation: sheetSlideUp 0.25s ease-out;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

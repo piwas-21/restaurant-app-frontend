@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { ProductImage } from '@/app/admin/menu-management/interfaces';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
 import ImageActions from './ImageActions';
@@ -16,9 +17,9 @@ interface ImageGalleryProps {
   onImageUpdate: () => void;
 }
 
-const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImageUpdate }) => {
+const ImageGallery: React.FC<ImageGalleryProps> = ({ images = [], productName, onImageUpdate }) => {
   const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
-  const [imageList, setImageList] = useState<ProductImage[]>(images);
+  const [imageList, setImageList] = useState<ProductImage[]>(images || []);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,10 +28,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
   const { t } = useTranslation();
 
   useEffect(() => {
-    setImageList(images);
-    if (images && images.length > 0) {
-      const primary = images.find(img => img.isPrimary) || images[0];
+    const validImages = images || [];
+    setImageList(validImages);
+    if (validImages.length > 0) {
+      const primary = validImages.find((img) => img.isPrimary) || validImages[0];
       setSelectedImage(primary);
+    } else {
+      setSelectedImage(null);
     }
   }, [images]);
 
@@ -43,7 +47,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
 
   const handleSetPrimary = () => {
     if (selectedImage) {
-      const updatedImages = imageList.map(img => ({
+      const updatedImages = imageList.map((img) => ({
         ...img,
         isPrimary: img.id === selectedImage.id,
       }));
@@ -55,7 +59,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
   const handleSortOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSortOrder = parseInt(e.target.value, 10);
     if (selectedImage) {
-      const updatedImages = imageList.map(img => {
+      const updatedImages = imageList.map((img) => {
         if (img.id === selectedImage.id) {
           return { ...img, sortOrder: newSortOrder };
         }
@@ -87,7 +91,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files || []);
-    setStagedFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setStagedFiles((prevFiles) => [...prevFiles, ...newFiles]);
   };
 
   const handleSaveUpload = async () => {
@@ -103,7 +107,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
   };
 
   const handleRemoveStagedFile = (index: number) => {
-    setStagedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+    setStagedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
   return (
@@ -114,19 +118,25 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
           {imageList.length > 0 && (
             <>
               <div className={detailsStyles.primaryImageContainer}>
-                <img 
-                  src={selectedImage?.url} 
-                  alt={selectedImage?.altText || productName} 
-                  className={detailsStyles.primaryImage} 
-                />
+                {selectedImage?.url && (
+                  <Image
+                    src={selectedImage.url}
+                    alt={selectedImage.altText || productName}
+                    className={detailsStyles.primaryImage}
+                    width={1200}
+                    height={800}
+                  />
+                )}
               </div>
               <div className={detailsStyles.thumbnailContainer}>
                 {imageList.map((img, index) => (
-                  <img
+                  <Image
                     key={index}
                     src={img.url}
                     alt={img.altText}
                     className={`${detailsStyles.thumbnail} ${selectedImage?.url === img.url ? detailsStyles.active : ''}`}
+                    width={160}
+                    height={80}
                     onClick={() => setSelectedImage(img)}
                   />
                 ))}
@@ -143,7 +153,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
               )}
             </>
           )}
-          
+
           <div className={detailsStyles.uploadSection}>
             {stagedFiles.length > 0 && (
               <div>
@@ -151,7 +161,10 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
                   {stagedFiles.map((file, index) => (
                     <li key={index} className={detailsStyles.stagedFileItem}>
                       <span>{file.name}</span>
-                      <button onClick={() => handleRemoveStagedFile(index)} className={detailsStyles.removeStagedFileBtn}>
+                      <button
+                        onClick={() => handleRemoveStagedFile(index)}
+                        className={detailsStyles.removeStagedFileBtn}
+                      >
                         &times;
                       </button>
                     </li>
@@ -167,16 +180,14 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, productName, onImag
                 </div>
               </div>
             )}
-            <button onClick={handleUploadClick} className={`${styles.adminButton} ${styles.add}`} style={{ marginTop: '1rem' }}>
+            <button
+              onClick={handleUploadClick}
+              className={`${styles.adminButton} ${styles.add}`}
+              style={{ marginTop: '1rem' }}
+            >
               {imageList.length > 0 ? t('upload_more_images') : t('upload_images')}
             </button>
-            <input
-              type="file"
-              multiple
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
+            <input type="file" multiple ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
           </div>
         </div>
       </div>

@@ -1,0 +1,158 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--button-text-color, #fff);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.errorBadge {
+  background-color: var(--error-color-light, #fee2e2);
+  color: var(--error-color, #dc2626);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.centerSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filterSelect {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--button-text-color, #fff);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterSelect:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.filterSelect option {
+  background-color: var(--card-background);
+  color: var(--text-color);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.connectionStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusConnected {
+  color: #10b981;
+}
+
+.statusConnected .statusDot {
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.statusConnecting {
+  color: #f59e0b;
+}
+
+.statusConnecting .statusDot {
+  background-color: #f59e0b;
+  animation: blink 1s ease-in-out infinite;
+}
+
+.statusDisconnected {
+  color: #ef4444;
+}
+
+.statusDisconnected .statusDot {
+  background-color: #ef4444;
+}
+
+.statusText {
+  color: var(--button-text-color, #fff);
+}
+
+.lastUpdate {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .leftSection,
+  .centerSection,
+  .rightSection {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+}

@@ -16,19 +16,16 @@ import { ProductDetails } from './product/ProductDetails';
 import { MultilingualContent } from './product/MultilingualContent';
 import { ProductVariations } from './product/ProductVariations';
 import { SuggestedSideItemsPicker } from './product/SuggestedSideItemsPicker';
+import { ProductIngredientsManager } from './product/ProductIngredientsManager';
 import { submitProductForm } from './product/productFormUtils';
 
-const CreateProductModal: React.FC<CreateProductModalProps> = ({
-  isOpen,
-  onClose,
-  onProductCreated,
-  categoryId
-}) => {
+const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose, onProductCreated, categoryId }) => {
   const { t, i18n } = useTranslation();
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'creating' | 'uploading'>('idle');
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [selectedSideItemIds, setSelectedSideItemIds] = useState<string[]>([]);
+  const [detailedIngredients, setDetailedIngredients] = useState<any[]>([]);
 
   const {
     register,
@@ -45,6 +42,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       name: '',
       basePrice: 0,
       type: 'mainItem' as const,
+      kitchenType: 'None' as const,
       isActive: true,
       isAvailable: true,
       isSpecial: false,
@@ -58,13 +56,21 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
     },
   });
 
-  const { fields: variationFields, append: appendVariation, remove: removeVariation } = useFieldArray({
+  const {
+    fields: variationFields,
+    append: appendVariation,
+    remove: removeVariation,
+  } = useFieldArray({
     control,
-    name: 'variations'
+    name: 'variations',
   });
-  const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({
+  const {
+    fields: contentFields,
+    append: appendContent,
+    remove: removeContent,
+  } = useFieldArray({
     control,
-    name: 'content'
+    name: 'content',
   });
 
   const selectedCategoryIds = watch('categoryIds', categoryId ? [categoryId] : []);
@@ -73,14 +79,15 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const fetchAllCategories = async () => {
-        const response = await getCategories();
-        if (response.success) setCategories(response.data.items);
+        const response = (await getCategories()) as { success: boolean; data?: { items: any[] } };
+        if (response.success) setCategories(response.data?.items || []);
       };
       fetchAllCategories();
     } else {
       reset();
       setImageFiles([]);
       setSelectedSideItemIds([]);
+      setDetailedIngredients([]);
       setSubmissionStatus('idle');
     }
   }, [isOpen, reset]);
@@ -97,12 +104,13 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
       data,
       imageFiles,
       currentLanguage,
+      detailedIngredients,
       setSubmissionStatus,
       setError,
       onProductCreated,
       onClose,
       reset,
-      setImageFiles
+      setImageFiles,
     });
   };
 
@@ -171,6 +179,12 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 setValue('suggestedSideItemIds', newIds);
               }}
             />
+
+            <ProductIngredientsManager
+              ingredients={detailedIngredients}
+              onChange={setDetailedIngredients}
+              productBasePrice={watch('basePrice') || 0}
+            />
           </div>
 
           <div className={modalStyles.buttonGroup}>
@@ -182,14 +196,12 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({
             >
               {t('cancel')}
             </button>
-            <button
-              type="submit"
-              disabled={submissionStatus !== 'idle'}
-              className={modalStyles.submitButton}
-            >
-              {submissionStatus === 'creating' ? t('creating...') :
-               submissionStatus === 'uploading' ? t('uploading...') :
-               t('create_product')}
+            <button type="submit" disabled={submissionStatus !== 'idle'} className={modalStyles.submitButton}>
+              {submissionStatus === 'creating'
+                ? t('creating...')
+                : submissionStatus === 'uploading'
+                  ? t('uploading...')
+                  : t('create_product')}
             </button>
           </div>
         </form>

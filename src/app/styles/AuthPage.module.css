@@ -14,7 +14,7 @@
   background-color: var(--card-background); /* Use CSS variable */
   padding: 2.5rem;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Shadow might need adjustment for dark mode or use a variable */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Shadow might need adjustment for dark mode or use a variable */
   width: 100%;
   max-width: 450px;
   border: 1px solid var(--border-color);
@@ -38,9 +38,9 @@
   color: var(--text-secondary); /* Use CSS variable for slightly muted label text */
 }
 
-.formGroup input[type="email"],
-.formGroup input[type="password"],
-.formGroup input[type="text"] {
+.formGroup input[type='email'],
+.formGroup input[type='password'],
+.formGroup input[type='text'] {
   width: 100%;
   padding: 0.8rem;
   border: 1px solid var(--border-color); /* Use CSS variable */
@@ -52,9 +52,9 @@
   transition: border-color 0.2s ease;
 }
 
-.formGroup input[type="email"]:focus,
-.formGroup input[type="password"]:focus,
-.formGroup input[type="text"]:focus {
+.formGroup input[type='email']:focus,
+.formGroup input[type='password']:focus,
+.formGroup input[type='text']:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px var(--primary-color-xlight); /* Use CSS variable, ensure it's defined */
@@ -88,6 +88,18 @@
   text-align: center;
 }
 
+.fieldError {
+  color: var(--danger-color-dark);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0;
+}
+
+.inputError {
+  border-color: var(--danger-color-dark) !important;
+  background-color: var(--danger-color-xlight);
+}
+
 .switchFormText {
   text-align: center;
   margin-top: 1.5rem;
@@ -110,11 +122,11 @@
 @media (max-width: 768px) {
   .authContainer {
     padding: 1.5rem 1rem;
-    min-height: auto; 
+    min-height: auto;
   }
   .authForm {
     padding: 2rem;
-    margin: 1rem; 
+    margin: 1rem;
   }
   .authForm h1 {
     font-size: 1.8rem;
@@ -128,9 +140,9 @@
   .authForm h1 {
     font-size: 1.6rem;
   }
-  .formGroup input[type="email"],
-  .formGroup input[type="password"],
-  .formGroup input[type="text"] {
+  .formGroup input[type='email'],
+  .formGroup input[type='password'],
+  .formGroup input[type='text'] {
     padding: 0.7rem;
     font-size: 0.9rem;
   }

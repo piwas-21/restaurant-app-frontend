@@ -6,6 +6,7 @@ import { staffRegistrationSchema } from '@/schemas/auth.schema';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { registerStaff } from '@/services/userService';
+import { useRoleHelpers } from '@/hooks/useRoleHelpers';
 
 type RegisterStaffFormValues = z.infer<typeof staffRegistrationSchema>;
 
@@ -17,6 +18,7 @@ interface RegisterStaffModalProps {
 
 const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose, onStaffRegistered }) => {
   const { t } = useTranslation();
+  const { getRoleLabel, staffRoles } = useRoleHelpers();
   const modalContentRef = useRef<HTMLDivElement>(null);
   const {
     register,
@@ -30,28 +32,28 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
 
   const onSubmit = async (data: RegisterStaffFormValues) => {
     try {
-        const response = await registerStaff(data);
-        if (response.success) {
-            onStaffRegistered();
-            onClose();
-            reset(); // Reset form fields on successful registration
-        } else {
-            if (response.errors && Array.isArray(response.errors)) {
-              response.errors.forEach((error: string) => {
-                if (error.includes('password') || error.includes('Password')) {
-                  setError('password', { message: error });
-                } else if (error.includes('email') || error.includes('Email')) {
-                  setError('email', { message: error });
-                } else {
-                  setError('root', { message: error });
-                }
-              });
+      const response = (await registerStaff(data)) as { success: boolean; message?: string; errors?: string[] };
+      if (response.success) {
+        onStaffRegistered();
+        onClose();
+        reset(); // Reset form fields on successful registration
+      } else {
+        if (response.errors && Array.isArray(response.errors)) {
+          response.errors.forEach((error: string) => {
+            if (error.includes('password') || error.includes('Password')) {
+              setError('password', { message: error });
+            } else if (error.includes('email') || error.includes('Email')) {
+              setError('email', { message: error });
             } else {
-              setError('root', { message: response.message || 'Registration failed' });
+              setError('root', { message: error });
             }
+          });
+        } else {
+          setError('root', { message: response.message || 'Registration failed' });
         }
-    } catch (error) {
-        setError('root', { message: 'An unexpected error occurred.' });
+      }
+    } catch {
+      setError('root', { message: 'An unexpected error occurred.' });
     }
   };
 
@@ -99,16 +101,21 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
           <div className={styles.formGroup}>
             <label htmlFor="role">{t('role')}</label>
             <select id="role" {...register('role')}>
-              <option value="Server">Server</option>
-              <option value="Cashier">Cashier</option>
-              <option value="KitchenStaff">Kitchen Staff</option>
-              <option value="Admin">Admin</option>
+              {staffRoles.map((role) => (
+                <option key={role} value={role}>
+                  {getRoleLabel(role)}
+                </option>
+              ))}
             </select>
             {errors.role && <p className={styles.errorMessage}>{errors.role.message}</p>}
           </div>
           <div className={styles.buttonGroup}>
-            <button type="submit" className={styles.submitButton}>{t('register')}</button>
-            <button type="button" onClick={onClose} className={styles.cancelButton}>{t('cancel')}</button>
+            <button type="submit" className={styles.submitButton}>
+              {t('register')}
+            </button>
+            <button type="button" onClick={onClose} className={styles.cancelButton}>
+              {t('cancel')}
+            </button>
           </div>
         </form>
       </div>

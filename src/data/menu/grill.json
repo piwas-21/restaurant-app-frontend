@@ -1,4 +1,3 @@
-
 [
   {
     "id": "grill-kofte-grill",
@@ -16,7 +15,7 @@
         "description": "Gegrillte Köftes, serviert mit Salat und Pommes frites oder Reis, dazu Saucen und Brot."
       }
     },
-    "price": 23.90,
+    "price": 23.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/e2f39427-8d33-4807-bee0-7ae3b3d3cbfb.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "grill",
@@ -43,13 +42,16 @@
         "description": "Gegrilltes Adana, serviert mit Salat und Pommes frites oder Reis, dazu Saucen und Brot."
       }
     },
-    "price": 23.90,
+    "price": 23.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/375a855f-1b96-4532-add1-7453bda071b6.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "grill",
     "isSpecial": true,
     "images": [
-      { "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/375a855f-1b96-4532-add1-7453bda071b6.webp", "alt": "Adana Grill" }
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/375a855f-1b96-4532-add1-7453bda071b6.webp",
+        "alt": "Adana Grill"
+      }
     ]
   },
   {
@@ -68,7 +70,7 @@
         "description": "Gegrillter Hähnchenspieß, serviert mit Salat und Pommes frites oder Reis, dazu Saucen und Brot."
       }
     },
-    "price": 23.90,
+    "price": 23.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/b49efdd9-5b0f-4b64-89d3-13f265e3993f.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "grill",
@@ -95,7 +97,7 @@
         "description": "Gegrillter Lammspieß, serviert mit Salat und Pommes frites oder Reis, dazu Saucen und Brot."
       }
     },
-    "price": 26.90,
+    "price": 26.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/5e9b15a8-9806-4222-b5e6-8b104bfe88cc.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "grill",
@@ -122,7 +124,7 @@
         "description": "Gegrillte Köftes, Adana, Lamm- und Hähnchenspieß, serviert mit Salat und Pommes frites oder Reis, dazu Saucen und Brot."
       }
     },
-    "price": 32.90,
+    "price": 32.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/cad4dd66-b3e5-4bb7-b59f-53d2bed089e8.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "grill",
@@ -131,7 +133,10 @@
         "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/cad4dd66-b3e5-4bb7-b59f-53d2bed089e8.webp",
         "alt": "Mix Grill"
       },
-      { "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/cad4dd66-b3e5-4bb7-b59f-53d2bed089e8.webp", "alt": "Mix Grill" }
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/cad4dd66-b3e5-4bb7-b59f-53d2bed089e8.webp",
+        "alt": "Mix Grill"
+      }
     ]
   }
 ]

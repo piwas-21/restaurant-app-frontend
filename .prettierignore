@@ -1,4 +1,22 @@
+# Build output / deps
 /dist
 node_modules
-package.json
+.next
+out
+coverage
+
+# Lockfiles + generated
 package-lock.json
+package.json
+
+# Tests artefacts
+tests/**/*-snapshots/
+playwright-report
+test-results
+
+# Locale files (machine-translated; structural diffs from prettier rewrites
+# would obscure real translation changes)
+src/locales/*.json
+
+# Public assets
+public

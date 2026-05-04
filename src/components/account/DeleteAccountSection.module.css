@@ -1,0 +1,231 @@
+/* Modern Danger Zone Section Styles */
+
+.dangerZone {
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.5) 0%, rgba(254, 226, 226, 0.3) 100%);
+  border: 2px solid #fecaca;
+  border-radius: 12px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.dangerZone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+}
+
+[data-theme='dark'] .dangerZone {
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.2) 0%, rgba(153, 27, 27, 0.1) 100%);
+  border-color: #7f1d1d;
+}
+
+.dangerZoneHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.dangerZoneIcon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dc2626;
+  border-radius: 8px;
+  color: white;
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .dangerZoneIcon {
+  background: #991b1b;
+}
+
+.dangerZoneTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+[data-theme='dark'] .dangerZoneTitle {
+  color: #fca5a5;
+}
+
+.dangerZoneContent {
+  margin-bottom: 1.5rem;
+}
+
+.warningText {
+  color: #7f1d1d;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+[data-theme='dark'] .warningText {
+  color: #fca5a5;
+}
+
+.infoList {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.infoList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: #991b1b;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+[data-theme='dark'] .infoList li {
+  color: #fca5a5;
+}
+
+.infoList li::before {
+  content: '•';
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.alertBox {
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alertBox.success {
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+}
+
+[data-theme='dark'] .alertBox.success {
+  background: rgba(6, 95, 70, 0.2);
+  border-color: #047857;
+  color: #6ee7b7;
+}
+
+.alertBox.error {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+[data-theme='dark'] .alertBox.error {
+  background: rgba(127, 29, 29, 0.2);
+  border-color: #991b1b;
+  color: #fca5a5;
+}
+
+.alertIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.deleteButton {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deleteButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+}
+
+.deleteButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.deleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.deleteButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.helpText {
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+[data-theme='dark'] .helpText {
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .dangerZone {
+    padding: 1.5rem;
+  }
+
+  .dangerZoneTitle {
+    font-size: 1.1rem;
+  }
+
+  .buttonContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .deleteButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

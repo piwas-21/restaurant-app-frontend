@@ -1,0 +1,384 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background-color: var(--card-background);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
+  color: var(--button-text-color, #fff);
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.productName {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.basePrice {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--button-text-color, #fff);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+}
+
+.loading,
+.noCustomizations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  gap: 0.75rem;
+  min-height: 150px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.section {
+  margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.sectionHint {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Variations */
+.variationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.variationButton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: var(--background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.variationButton:hover {
+  border-color: var(--primary-color);
+}
+
+.variationButton.selected {
+  background-color: rgba(218, 165, 32, 0.1);
+  border-color: var(--primary-color);
+}
+
+.variationName {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.variationPrice {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.modifier {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-left: 0.25rem;
+}
+
+/* Ingredients */
+.ingredientList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ingredientButton {
+  padding: 0.5rem 0.875rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ingredientButton:hover {
+  border-color: var(--text-secondary);
+}
+
+.ingredientButton.excluded {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+  text-decoration: line-through;
+}
+
+.ingredientButton.optional {
+  border-style: dashed;
+}
+
+.ingredientButton.added {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  border-style: solid;
+  color: #10b981;
+}
+
+.ingredientTag {
+  padding: 0.4rem 0.75rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+.excludeIcon {
+  font-weight: bold;
+}
+
+.addIcon {
+  font-weight: bold;
+}
+
+.ingredientPrice {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-left: 0.25rem;
+}
+
+/* Side Items */
+.sideItemList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sideItemButton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 0.875rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sideItemButton:hover:not(:disabled) {
+  border-color: var(--primary-color);
+}
+
+.sideItemButton.selected {
+  background-color: rgba(218, 165, 32, 0.1);
+  border-color: var(--primary-color);
+}
+
+.sideItemButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sideName {
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.requiredBadge {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.sidePrice {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+}
+
+/* Special Instructions */
+.instructionsInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  resize: none;
+}
+
+.instructionsInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--card-background);
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qtyButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qtyButton:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--button-text-color, #fff);
+}
+
+.qtyValue {
+  min-width: 32px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+
+.confirmButton {
+  flex: 1;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
+  color: var(--button-text-color, #fff);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(218, 165, 32, 0.3);
+}
+
+.confirmButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(218, 165, 32, 0.4);
+}
+
+@media (max-width: 480px) {
+  .modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}

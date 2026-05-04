@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '@/app/styles/RegisterStaffModal.module.css'; // Re-using modal styles
+import styles from './ConfirmationModal.module.css';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmationModalProps {
@@ -22,8 +22,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
         <h2>{t('confirmation')}</h2>
         <p>{message}</p>
         <div className={styles.buttonGroup}>
-          <button onClick={onConfirm} className={styles.submitButton}>{t('yes')}</button>
-          <button onClick={onClose} className={styles.cancelButton}>{t('cancel')}</button>
+          <button onClick={onConfirm} className={styles.submitButton}>
+            {t('yes')}
+          </button>
+          <button onClick={onClose} className={styles.cancelButton}>
+            {t('cancel')}
+          </button>
         </div>
       </div>
     </div>

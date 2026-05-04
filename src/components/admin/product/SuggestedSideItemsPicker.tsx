@@ -18,6 +18,37 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<ProductSearchResult[]>([]);
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
+  const [selectedItemsDetails, setSelectedItemsDetails] = useState<Map<string, { name: string; description?: string }>>(
+    new Map(),
+  );
+
+  // Fetch details for selected side items on mount or when selectedSideItemIds change
+  React.useEffect(() => {
+    const fetchSelectedItemsDetails = async () => {
+      if (selectedSideItemIds.length === 0) {
+        setSelectedItemsDetails(new Map());
+        return;
+      }
+
+      try {
+        const resp = await getProducts(1, 100, undefined);
+        if (resp.success) {
+          const detailsMap = new Map<string, { name: string; description?: string }>();
+          selectedSideItemIds.forEach((id: string) => {
+            const item = resp.data.items.find((p: any) => p.id === id);
+            if (item) {
+              detailsMap.set(id, { name: item.name, description: item.description });
+            }
+          });
+          setSelectedItemsDetails(detailsMap);
+        }
+      } catch {
+        // Handle error silently
+      }
+    };
+
+    fetchSelectedItemsDetails();
+  }, [selectedSideItemIds]);
 
   const runSearch = async () => {
     if (!search.trim()) return;
@@ -26,8 +57,8 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
       const resp = await getProducts(1, 20, undefined);
       if (resp.success) {
         const filteredItems = resp.data.items
-          .filter((p: any) =>
-            p.name.toLowerCase().includes(search.toLowerCase()) // Allow any product type as side item
+          .filter(
+            (p: any) => p.name.toLowerCase().includes(search.toLowerCase()), // Allow any product type as side item
           )
           .map((p: any) => ({
             id: p.id,
@@ -45,11 +76,7 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
   };
 
   const toggleSelect = (id: string, checked: boolean) => {
-    setTempSelectedIds(prev =>
-      checked
-        ? Array.from(new Set([...prev, id]))
-        : prev.filter(x => x !== id)
-    );
+    setTempSelectedIds((prev) => (checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id)));
   };
 
   const saveSelected = () => {
@@ -62,7 +89,7 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
   };
 
   const removeItem = (idToRemove: string) => {
-    const updatedIds = selectedSideItemIds.filter(id => id !== idToRemove);
+    const updatedIds = selectedSideItemIds.filter((id) => id !== idToRemove);
     onChange(updatedIds);
   };
 
@@ -73,10 +100,11 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
 
     return (
       <div className={modalStyles.chipGroup}>
-        {selectedSideItemIds.map(id => {
-          // Find the item name from results if available, otherwise just show ID
-          const item = results.find(r => r.id === id);
-          const displayName = item?.name || `Item ${id}`;
+        {selectedSideItemIds.map((id) => {
+          // Get the item name from fetched details, fallback to results, or show ID
+          const itemDetails = selectedItemsDetails.get(id);
+          const resultItem = results.find((r) => r.id === id);
+          const displayName = itemDetails?.name || resultItem?.name || `Item ${id.substring(0, 8)}...`;
 
           return (
             <div key={id} className={modalStyles.chip}>
@@ -98,18 +126,14 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
 
   return (
     <div className={modalStyles.formGroup}>
-      <h3>{t('suggested_side_items')} ({t('optional')})</h3>
-      {errors.suggestedSideItemIds && (
-        <p className={modalStyles.errorMessage}>{errors.suggestedSideItemIds.message}</p>
-      )}
+      <h3>
+        {t('suggested_side_items')} {t('optional')}
+      </h3>
+      {errors.suggestedSideItemIds && <p className={modalStyles.errorMessage}>{errors.suggestedSideItemIds.message}</p>}
 
       {getSelectedItemsDisplay()}
 
-      <button
-        type="button"
-        className={`${styles.adminButton} ${styles.add}`}
-        onClick={() => setShowPicker(true)}
-      >
+      <button type="button" className={`${styles.adminButton} ${styles.add}`} onClick={() => setShowPicker(true)}>
         {t('add_side_items')}
       </button>
 
@@ -132,7 +156,7 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
 
           {results.length > 0 && (
             <div className={modalStyles.chipGroup}>
-              {results.map(product => {
+              {results.map((product) => {
                 const isSelected = tempSelectedIds.includes(product.id);
                 const isAlreadyAdded = selectedSideItemIds.includes(product.id);
                 const chipId = `side-item-${product.id}`;
@@ -159,17 +183,10 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
             </div>
           )}
 
-          {search && results.length === 0 && (
-            <p className={modalStyles.emptyState}>{t('no_side_items_found')}</p>
-          )}
+          {search && results.length === 0 && <p className={modalStyles.emptyState}>{t('no_side_items_found')}</p>}
 
           <div className={detailsStyles.actionRow}>
-            <button
-              type="button"
-              className={`${styles.adminButton}`}
-              onClick={runSearch}
-              disabled={!search.trim()}
-            >
+            <button type="button" className={`${styles.adminButton}`} onClick={runSearch} disabled={!search.trim()}>
               {t('search')}
             </button>
             <button
@@ -200,13 +217,7 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
       <Controller
         name="suggestedSideItemIds"
         control={control}
-        render={({ field }) => (
-          <input
-            type="hidden"
-            {...field}
-            value={selectedSideItemIds.join(',')}
-          />
-        )}
+        render={({ field }) => <input type="hidden" {...field} value={selectedSideItemIds.join(',')} />}
       />
     </div>
   );

@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { refreshToken } from '@/services/authService';
 
 interface User {
   firstName: string;
@@ -26,16 +27,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const validateSession = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const authToken = localStorage.getItem('auth_token');
+        const refreshTokenValue = localStorage.getItem('refresh_token');
+
+        if (storedUser && authToken && refreshTokenValue) {
+          // Validate the token by attempting a refresh
+          try {
+            const refreshResponse = await refreshToken();
+
+            if (refreshResponse.success) {
+              // Token is valid or successfully refreshed
+              setUser(JSON.parse(storedUser));
+            } else {
+              // Token refresh failed - clear auth state
+              localStorage.removeItem('auth_token');
+              localStorage.removeItem('refresh_token');
+              localStorage.removeItem('user');
+              setUser(null);
+            }
+          } catch {
+            // Token validation/refresh failed - clear auth state
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            setUser(null);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to validate session', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    validateSession();
   }, []);
 
   const login = (userData: User) => {
@@ -44,16 +72,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+    // Clear per-user PII / state that would otherwise leak to the next person
+    // on the same browser. Keep `rumi_session_id` — that's a guest-cart
+    // identifier, intentionally preserved so the now-anonymous user keeps
+    // their basket.
+    localStorage.removeItem('rumi_saved_customer_info');
+    localStorage.removeItem('rumi_checkout_state');
     setUser(null);
     router.push('/');
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

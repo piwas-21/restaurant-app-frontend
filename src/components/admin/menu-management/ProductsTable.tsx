@@ -12,12 +12,23 @@ interface ProductsTableProps {
   error: string | null;
   onEdit: (productId: string) => void;
   onDelete: (productId: string) => void;
+  activeTab?: 'products' | 'menus';
 }
 
-const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, error, onEdit, onDelete }) => {
+const ProductsTable: React.FC<ProductsTableProps> = ({
+  products,
+  isLoading,
+  error,
+  onEdit,
+  onDelete,
+  activeTab = 'products',
+}) => {
   const { t } = useTranslation();
 
-  if (isLoading) return <p>{t('loading_products')}</p>;
+  const loadingMessage = activeTab === 'menus' ? t('loading_menu_bundles') : t('loading_products');
+  const emptyMessage = activeTab === 'menus' ? t('no_menu_bundles_found') : t('no_products_found');
+
+  if (isLoading) return <p>{loadingMessage}</p>;
   if (error) return <p className={styles.error}>{error}</p>;
 
   return (
@@ -37,7 +48,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, erro
             products.map((product) => (
               <tr key={product.id}>
                 <td>{product.name}</td>
-                <td>${product.basePrice.toFixed(2)}</td>
+                <td>CHF {product.basePrice.toFixed(2)}</td>
                 <td>{product.isActive ? t('yes') : t('no')}</td>
                 <td>{product.isAvailable ? t('yes') : t('no')}</td>
                 <td className={styles.actionsCell}>
@@ -47,7 +58,10 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, erro
                   <button onClick={() => onDelete(product.id)} className={`${styles.adminButton} ${styles.delete}`}>
                     {t('delete')}
                   </button>
-                  <Link href={`/admin/menu-management/${product.id}`} className={`${styles.adminButton} ${styles.view}`}>
+                  <Link
+                    href={`/admin/menu-management/${product.id}?type=${activeTab === 'menus' ? 'menu' : 'product'}`}
+                    className={`${styles.adminButton} ${styles.view}`}
+                  >
                     {t('details')}
                   </Link>
                 </td>
@@ -55,7 +69,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, isLoading, erro
             ))
           ) : (
             <tr>
-              <td colSpan={5}>{t('no_products_found')}</td>
+              <td colSpan={5}>{emptyMessage}</td>
             </tr>
           )}
         </tbody>

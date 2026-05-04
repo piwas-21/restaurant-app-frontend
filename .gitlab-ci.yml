@@ -10,7 +10,7 @@ stages:
     - prepare
     - test
     - build
-    - deploy_pipeline
+    # - deploy_pipeline
 
 # install_deps populates a node_modules cache once per pipeline so the 5
 # test-stage jobs that need it (prettier_check, typecheck, eslint,

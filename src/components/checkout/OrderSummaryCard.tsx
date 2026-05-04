@@ -131,11 +131,7 @@ export default function OrderSummaryCard({
         )}
       </button>
 
-      <button
-        onClick={() => router.push('/checkout/customer-info')}
-        disabled={isSubmitting}
-        className={styles.backButton}
-      >
+      <button onClick={() => router.push('/menu')} disabled={isSubmitting} className={styles.backButton}>
         {t('back', 'Back')}
       </button>
     </div>

@@ -131,10 +131,12 @@ export default function ReviewPage() {
 
     if (cartState.items.length === 0) {
       router.push('/cart');
-    } else if (!checkoutState.orderType) {
-      router.push('/checkout/order-type');
-    } else if (!checkoutState.customerInfo) {
-      router.push('/checkout/customer-info');
+    } else if (!checkoutState.orderType || !checkoutState.customerInfo) {
+      // Order type and contact info are now collected on /menu via the
+      // sidebar toggle + type modal (§C1.5.e/g/h). Anything missing here
+      // means the user landed on /review by deep link or back-button —
+      // bounce them to /menu so the modal fills the gap.
+      router.push('/menu');
     }
   }, [cartState.items.length, checkoutState.orderType, checkoutState.customerInfo, router, confirmedOrder]);
 

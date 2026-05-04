@@ -1,0 +1,23 @@
+/* Page Header */
+.pageTitle {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: var(--primary-color);
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+}

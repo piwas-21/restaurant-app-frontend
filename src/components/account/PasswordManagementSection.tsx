@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from '../../app/styles/AccountPage.module.css'; // Assuming styles are shared
+import styles from './PasswordManagementSection.module.css';
 
 interface PasswordManagementSectionProps {
   currentPassword: string;
@@ -30,7 +30,7 @@ export default function PasswordManagementSection({
   handleNewPasswordChange,
   handleConfirmNewPasswordChange,
   handlePasswordChangeSubmit,
-  getStrengthBarStyle
+  getStrengthBarStyle,
 }: PasswordManagementSectionProps) {
   const { t } = useTranslation();
 
@@ -42,20 +42,34 @@ export default function PasswordManagementSection({
       <form onSubmit={handlePasswordChangeSubmit} noValidate>
         <div className={styles.formGroup}>
           <label htmlFor="currentPassword">{t('current_password_label', 'Current Password')}</label>
-          <input type="password" id="currentPassword" name="currentPassword" value={currentPassword} onChange={handleCurrentPasswordChange} className={styles.formInput} />
+          <input
+            type="password"
+            id="currentPassword"
+            name="currentPassword"
+            value={currentPassword}
+            onChange={handleCurrentPasswordChange}
+            className={styles.formInput}
+          />
           {passwordErrors.currentPassword && <p className={styles.errorMessage}>{passwordErrors.currentPassword}</p>}
         </div>
 
         <div className={styles.formGroup}>
           <label htmlFor="newPassword">{t('new_password_label', 'New Password')}</label>
-          <input type="password" id="newPassword" name="newPassword" value={newPassword} onChange={handleNewPasswordChange} className={styles.formInput} />
+          <input
+            type="password"
+            id="newPassword"
+            name="newPassword"
+            value={newPassword}
+            onChange={handleNewPasswordChange}
+            className={styles.formInput}
+          />
           {newPassword && (
             <div className={styles.passwordStrengthContainer}>
-              <span style={{marginRight: '0.5rem'}}>{t('password_strength_label', 'Password Strength:')}</span>
-              {[1, 2, 3, 4, 5].map(level => (
-                  <div key={level} className={`${styles.strengthBar} ${getStrengthBarStyle(level)}`} />
+              <span style={{ marginRight: '0.5rem' }}>{t('password_strength_label', 'Password Strength:')}</span>
+              {[1, 2, 3, 4, 5].map((level) => (
+                <div key={level} className={`${styles.strengthBar} ${getStrengthBarStyle(level)}`} />
               ))}
-              <span style={{marginLeft: '0.5rem'}}>{passwordStrengthText}</span>
+              <span style={{ marginLeft: '0.5rem' }}>{passwordStrengthText}</span>
             </div>
           )}
           {passwordErrors.newPassword && <p className={styles.errorMessage}>{passwordErrors.newPassword}</p>}
@@ -63,11 +77,22 @@ export default function PasswordManagementSection({
 
         <div className={styles.formGroup}>
           <label htmlFor="confirmNewPassword">{t('confirm_new_password_label', 'Confirm New Password')}</label>
-          <input type="password" id="confirmNewPassword" name="confirmNewPassword" value={confirmNewPassword} onChange={handleConfirmNewPasswordChange} className={styles.formInput} />
-          {passwordErrors.confirmNewPassword && <p className={styles.errorMessage}>{passwordErrors.confirmNewPassword}</p>}
+          <input
+            type="password"
+            id="confirmNewPassword"
+            name="confirmNewPassword"
+            value={confirmNewPassword}
+            onChange={handleConfirmNewPasswordChange}
+            className={styles.formInput}
+          />
+          {passwordErrors.confirmNewPassword && (
+            <p className={styles.errorMessage}>{passwordErrors.confirmNewPassword}</p>
+          )}
         </div>
         <div className={styles.formActions}>
-          <button type="submit" className={styles.changePasswordButton}>{t('change_password_button', 'Change Password')}</button>
+          <button type="submit" className={styles.changePasswordButton}>
+            {t('change_password_button', 'Change Password')}
+          </button>
         </div>
       </form>
     </section>

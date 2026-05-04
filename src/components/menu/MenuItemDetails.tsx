@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import styles from "@/app/styles/MenuPage.module.css";
-import AllergenDisplay from "@/components/common/AllergenDisplay";
+import React from 'react';
+import styles from './MenuItemDetails.module.css';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
 
 type RatingData = { average: number; count: number } | undefined;
 
@@ -15,15 +15,50 @@ type Props = {
   price: number;
   dietaryTags: string[];
   t: (key: string, defaultValue?: any) => string;
+  /**
+   * Optional handler for clicking the item title. When provided, the title
+   * becomes a button (clickable + keyboard-focusable). Lets the parent route
+   * the click without resorting to a card-wide onClick that bubbles up from
+   * action buttons inside `MenuItemActions`.
+   */
+  onTitleClick?: () => void;
   initialRatingData?: RatingData;
 };
 
-export default function MenuItemDetails({ id, title, description, ingredients, allergens, price, dietaryTags, t, initialRatingData }: Props) {
+export default function MenuItemDetails({
+  id,
+  title,
+  description: _description,
+  ingredients: _ingredients,
+  allergens,
+  price,
+  dietaryTags,
+  t,
+  onTitleClick,
+  initialRatingData: _initialRatingData,
+}: Props) {
+  const titleProps = onTitleClick
+    ? {
+        role: 'button',
+        tabIndex: 0,
+        onClick: onTitleClick,
+        onKeyDown: (e: React.KeyboardEvent<HTMLHeadingElement>) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onTitleClick();
+          }
+        },
+        style: { cursor: 'pointer' as const },
+      }
+    : {};
+
   return (
     <>
-      <h3 id={`item-name-${id}`} className={styles.itemTitle}>{title}</h3>
-      <p className={`${styles.itemDescription} ${styles.clamp2}`}>{(description || '').trim().length > 0 ? description : ' '}</p>
-      {(() => {
+      <h3 id={`item-name-${id}`} className={styles.itemTitle} {...titleProps}>
+        {title}
+      </h3>
+      {/* <p className={`${styles.itemDescription} ${styles.clamp2}`}>{(description || '').trim().length > 0 ? description : ' '}</p> */}
+      {/* {(() => {
         const text = (ingredients || '').trim();
         const parts = text
           ? text.split(/[\,\n;]+/).map((s) => s.trim()).filter(Boolean)
@@ -63,32 +98,23 @@ export default function MenuItemDetails({ id, title, description, ingredients, a
             )}
           </div>
         );
-      })()}
+      })()} */}
 
       {/* Allergens section - display below ingredients */}
-      <AllergenDisplay
-        allergens={allergens}
-        id={id}
-        maxVisible={3}
-        showLabel={true}
-        variant="full"
-      />
+      <AllergenDisplay allergens={allergens} id={id} maxVisible={3} showLabel={true} variant="full" />
 
-      <p
-        className={styles.itemPrice}
-        aria-label={`${t("checkout_total_label")} CHF ${price.toFixed(2)}`}
-      >
+      <p className={styles.itemPrice} aria-label={`${t('checkout_total_label')} CHF ${price.toFixed(2)}`}>
         CHF {price.toFixed(2)}
       </p>
 
       {/* <AverageRating dishId={id} initialRatingData={initialRatingData} /> */}
 
       {dietaryTags && dietaryTags.length > 0 && (
-        <div className={styles.allergyTags} aria-label={t("dietary_information_label")}>
+        <div className={styles.allergyTags} aria-label={t('dietary_information_label')}>
           {dietaryTags.map((tag) => (
             <span
               key={tag}
-              className={`${styles.allergyTag} ${styles[(tag || "").toLowerCase().replace(/\s+/g, "-")] || ""}`}
+              className={`${styles.allergyTag} ${styles[(tag || '').toLowerCase().replace(/\s+/g, '-')] || ''}`}
               role="status"
             >
               {t(tag, tag)}

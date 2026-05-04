@@ -19,7 +19,15 @@ const eslintConfig = [
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unused-vars": "warn", // Changed to warning only
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
       "@typescript-eslint/no-unused-expressions": "off",
 
       // Next.js specific rules
@@ -28,7 +36,10 @@ const eslintConfig = [
       // Other helpful rules to disable during development
       "no-unused-vars": "off", // Turn off base rule as it can conflict with @typescript-eslint/no-unused-vars
       "no-unused-expressions": "off",
-      "no-console": "warn"
+      // Permit console.warn/error (legitimate production signals) but flag
+      // console.log as noise. console.debug/info follow the same rationale
+      // as .log — they're typically dev-time scaffolding and shouldn't ship.
+      "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
 ];

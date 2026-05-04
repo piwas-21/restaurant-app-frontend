@@ -10,7 +10,10 @@ import { getCategories } from '@/services/categoryService';
 import { updateProduct } from '@/services/productService';
 import { buildProductPayload } from './buildProductPayload';
 
-interface Category { id: string; name: string; }
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface Props {
   product: ProductDetails;
@@ -26,20 +29,22 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
 
   useEffect(() => {
     const fetchAll = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      // Fetch all categories for selection
+      const resp = (await getCategories(1, 100)) as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
 
         // Set selected categories after fetching categories
-        const selectedIds = product.categories.map((c) =>
-          resp.data.items.find((cat: Category) => cat.name === c.categoryName)?.id || ''
-        ).filter(Boolean);
+        const selectedIds = product.categories
+          .map((c) => resp.data!.items.find((cat: Category) => cat.name === c.categoryName)?.id || '')
+          .filter(Boolean);
         setSelected(selectedIds);
 
         // Set primary category after fetching categories
         const primaryCategory = product.categories.find((c) => c.isPrimary);
         if (primaryCategory) {
-          const primaryId = resp.data.items.find((cat: Category) => cat.name === primaryCategory.categoryName)?.id || '';
+          const primaryId =
+            resp.data!.items.find((cat: Category) => cat.name === primaryCategory.categoryName)?.id || '';
           setPrimary(primaryId);
         }
       }
@@ -48,15 +53,17 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
   }, [product.categories]);
 
   const toggle = (id: string, checked: boolean) => {
-    setSelected(prev => checked ? Array.from(new Set([...(prev||[]), id])) : (prev||[]).filter(x=>x!==id));
+    setSelected((prev) =>
+      checked ? Array.from(new Set([...(prev || []), id])) : (prev || []).filter((x) => x !== id),
+    );
   };
 
   const save = async () => {
     const updated: ProductDetails = {
       ...product,
-      categories: selected.map(id => ({
-        categoryName: categories.find(c => c.id === id)?.name || '',
-        isPrimary: id === primary
+      categories: selected.map((id) => ({
+        categoryName: categories.find((c) => c.id === id)?.name || '',
+        isPrimary: id === primary,
       })),
     };
     const payload = {
@@ -74,18 +81,26 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
       <div className={detailsStyles.headerRow}>
         <h3>{t('categories')}</h3>
         {!editing ? (
-          <button className={`${styles.adminButton} ${styles.edit}`} onClick={()=>setEditing(true)}>{t('edit')}</button>
+          <button className={`${styles.adminButton} ${styles.edit}`} onClick={() => setEditing(true)}>
+            {t('edit')}
+          </button>
         ) : (
           <div className={detailsStyles.actionRow}>
-            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-            <button className={styles.cancelButton} onClick={()=>setEditing(false)}>{t('cancel')}</button>
+            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+              {t('save')}
+            </button>
+            <button className={styles.cancelButton} onClick={() => setEditing(false)}>
+              {t('cancel')}
+            </button>
           </div>
         )}
       </div>
       {!editing ? (
         <ul>
-          {product.categories.map(cat => (
-            <li key={cat.categoryName}>{cat.categoryName} {cat.isPrimary && `(${t('primary')})`}</li>
+          {product.categories.map((cat) => (
+            <li key={cat.categoryName}>
+              {cat.categoryName} {cat.isPrimary && `(${t('primary')})`}
+            </li>
           ))}
         </ul>
       ) : (
@@ -93,13 +108,13 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
           <div className={detailsStyles.formGroup}>
             <label>{t('categories')}</label>
             <div className={modalStyles.chipGroup}>
-              {categories.map(c => (
+              {categories.map((c) => (
                 <div key={c.id} className={modalStyles.chip}>
                   <input
                     type="checkbox"
                     id={`category-inline-${c.id}`}
                     checked={selected.includes(c.id)}
-                    onChange={e => toggle(c.id, e.target.checked)}
+                    onChange={(e) => toggle(c.id, e.target.checked)}
                   />
                   <label htmlFor={`category-inline-${c.id}`}>{c.name}</label>
                 </div>
@@ -108,11 +123,17 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
           </div>
           <div className={detailsStyles.formGroup}>
             <label>{t('primary_category')}</label>
-            <select value={primary} onChange={e=>setPrimary(e.target.value)} disabled={selected.length===0}>
-              <option value="" disabled>{t('select_primary_category')}</option>
-              {categories.filter(c=>selected.includes(c.id)).map(c=> (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+            <select value={primary} onChange={(e) => setPrimary(e.target.value)} disabled={selected.length === 0}>
+              <option value="" disabled>
+                {t('select_primary_category')}
+              </option>
+              {categories
+                .filter((c) => selected.includes(c.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
             </select>
           </div>
         </div>

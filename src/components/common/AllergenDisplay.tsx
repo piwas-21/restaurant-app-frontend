@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from '@/app/styles/MenuPage.module.css';
+import styles from './AllergenDisplay.module.css';
 
 // Helper function to get allergen styling and icon
 export function getAllergenInfo(allergen: string) {
@@ -69,6 +69,7 @@ interface AllergenDisplayProps {
   showLabel?: boolean;
   variant?: 'compact' | 'full' | 'admin';
   className?: string;
+  contentClassName?: string;
 }
 
 export default function AllergenDisplay({
@@ -78,6 +79,7 @@ export default function AllergenDisplay({
   showLabel = true,
   variant = 'full',
   className = '',
+  contentClassName = '',
 }: AllergenDisplayProps) {
   const { t } = useTranslation();
 
@@ -85,7 +87,11 @@ export default function AllergenDisplay({
     // For menu items, preserve space to maintain layout alignment
     if (variant === 'full') {
       return (
-        <div className={`${styles.allergensSection} ${className}`} aria-label={t('allergens', 'Allergens')}>
+        <div
+          role="group"
+          className={`${styles.allergensSection} ${className}`}
+          aria-label={t('allergens', 'Allergens')}
+        >
           <div className={styles.allergensLabel} style={{ visibility: 'hidden' }}>
             {t('allergens', 'Allergens')}
           </div>
@@ -125,10 +131,13 @@ export default function AllergenDisplay({
         {remaining > 0 && (
           <span
             className={`${styles.allergenTag} ${styles.more}`}
-            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(a => {
-              const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
-              return t(key, a.replace(/_/g, ' '));
-            }).join(', ')}`}
+            title={`+${remaining} more allergens: ${allergens
+              .slice(maxVisible)
+              .map((a) => {
+                const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
+                return t(key, a.replace(/_/g, ' '));
+              })
+              .join(', ')}`}
           >
             +{remaining}
           </span>
@@ -141,7 +150,7 @@ export default function AllergenDisplay({
     return (
       <div className={`${className}`}>
         {showLabel && <div className={styles.allergensLabel}>{t('allergens', 'Allergens')}</div>}
-        <div className={styles.allergensContent}>
+        <div className={`${styles.allergensContent} ${contentClassName}`}>
           {allergens.map((allergen, idx) => {
             const { icon, className: allergenClassName } = getAllergenInfo(allergen);
             const translationKey = `allergen_${allergen.toLowerCase().replace(/ /g, '_')}`;
@@ -164,8 +173,8 @@ export default function AllergenDisplay({
 
   // Default 'full' variant - preserves layout spacing
   return (
-    <div className={`${styles.allergensSection} ${className}`} aria-label={t('allergens', 'Allergens')}>
-      {showLabel && <div className={styles.allergensLabel}>{t('allergens', 'Allergens')}</div>}
+    <div role="group" className={`${styles.allergensSection} ${className}`} aria-label={t('allergens', 'Allergens')}>
+      {/* {showLabel && <div className={styles.allergensLabel}>{t('allergens', 'Allergens')}</div>} */}
       <div className={styles.allergensContent}>
         {shown.map((allergen, idx) => {
           const { icon, className: allergenClassName } = getAllergenInfo(allergen);
@@ -185,10 +194,13 @@ export default function AllergenDisplay({
         {remaining > 0 && (
           <span
             className={`${styles.allergenTag} ${styles.more}`}
-            title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(a => {
-              const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
-              return t(key, a.replace(/_/g, ' '));
-            }).join(', ')}`}
+            title={`+${remaining} more allergens: ${allergens
+              .slice(maxVisible)
+              .map((a) => {
+                const key = `allergen_${a.toLowerCase().replace(/ /g, '_')}`;
+                return t(key, a.replace(/_/g, ' '));
+              })
+              .join(', ')}`}
           >
             +{remaining}
           </span>

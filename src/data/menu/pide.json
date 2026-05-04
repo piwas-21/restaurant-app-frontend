@@ -20,7 +20,10 @@
     "dietaryTags": ["halal"],
     "categoryKey": "pide",
     "images": [
-      { "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/76656410-6780-4978-9f4c-c0e0030bc791.webp", "alt": "Etli Ekmek" }
+      {
+        "url": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/76656410-6780-4978-9f4c-c0e0030bc791.webp",
+        "alt": "Etli Ekmek"
+      }
     ]
   },
   {

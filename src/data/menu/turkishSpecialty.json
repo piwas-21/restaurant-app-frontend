@@ -1,4 +1,3 @@
-
 [
   {
     "id": "turkishSpecialty-lamb-guvec",
@@ -16,7 +15,7 @@
         "description": "Zarte Lammwürfel langsam mit saisonalem Gemüse in einem traditionellen Tontopf gegart, mit Knoblauch verfeinert. Serviert mit knusprigem Brot, Reis und Salat."
       }
     },
-    "price": 28.90,
+    "price": 28.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/5b6d759c-7d34-4771-b2cb-a60b431176fc.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "turkishSpecialty",
@@ -43,7 +42,7 @@
         "description": "Zartes Hähnchen und Pilze langsam mit saisonalem Gemüse und Käse in einem traditionellen Tontopf gegart, mit Knoblauch verfeinert. Serviert mit knusprigem Brot, Reis und Salat."
       }
     },
-    "price": 28.90,
+    "price": 28.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/5eb2584f-2e0e-4c4a-a2ad-66d5f917720e.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "turkishSpecialty",
@@ -70,7 +69,7 @@
         "description": "Zartes Hähnchen langsam mit saisonalem Gemüse in einem traditionellen Tontopf gegart, mit Knoblauch verfeinert. Serviert mit knusprigem Brot, Reis und Salat."
       }
     },
-    "price": 26.90,
+    "price": 26.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/7e7a7c3a-df33-46c3-98a3-9f6d3f62e386.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "turkishSpecialty",
@@ -97,7 +96,7 @@
         "description": "Köfte langsam mit saisonalem Gemüse und Käse in einem traditionellen Tontopf gegart, mit Knoblauch verfeinert. Serviert mit knusprigem Brot, Reis und Salat."
       }
     },
-    "price": 26.90,
+    "price": 26.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/fd8edd95-5cdc-447f-b7c2-086bc99ce3c7.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "turkishSpecialty",
@@ -124,7 +123,7 @@
         "description": "Zarte Lammwürfel bei hoher Hitze in einer traditionellen Sac-Pfanne mit Paprika, Tomaten und Gewürzen angebraten. Saftig, leicht angekohlt und aromatisch, brutzelnd mit Salat und Fladenbrot serviert."
       }
     },
-    "price": 28.90,
+    "price": 28.9,
     "image": "https://restaurant-admin-api.orderhub.ch/web-images/67d4c8d1c062921ef88f9767/product/0d3dbdab-f6d2-4018-90c2-9f2dfdc3e423.webp",
     "dietaryTags": ["halal"],
     "categoryKey": "turkishSpecialty",

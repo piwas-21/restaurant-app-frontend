@@ -1,0 +1,444 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.header {
+  padding: 1rem 1.25rem;
+  background-color: #607d8b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.closeButton:hover {
+  opacity: 1;
+}
+
+.content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  max-height: calc(80vh - 60px); /* Account for header height */
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.infoCard {
+  background-color: var(--secondary-color);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.badgeConnected {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.badgeConnecting {
+  background-color: rgba(255, 193, 7, 0.15);
+  color: #ff9800;
+  border-color: rgba(255, 193, 7, 0.3);
+  animation: blink 1.5s infinite;
+}
+
+.badgeError {
+  background-color: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+}
+
+.primaryButton {
+  background-color: var(--primary-color);
+}
+
+.secondaryButton {
+  background-color: #4caf50;
+}
+
+.warningButton {
+  background-color: #ff9800;
+}
+
+.actionButton:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.actionButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.actionButton:disabled {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.errorBox {
+  padding: 10px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  border-radius: 6px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: #f44336;
+  font-weight: 500;
+  margin: 0;
+}
+
+.tipsBox {
+  margin-top: 4px;
+  padding: 12px;
+  background-color: rgba(33, 150, 243, 0.1);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+}
+
+.tipsTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2196f3;
+  margin-bottom: 6px;
+}
+
+.tipsList {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 0.75rem;
+  color: #1976d2;
+  line-height: 1.4;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dotConnected {
+  background-color: #4caf50;
+}
+.dotConnecting {
+  background-color: #ffc107;
+}
+.dotError {
+  background-color: #f44336;
+}
+.dotInactive {
+  background-color: #9e9e9e;
+}
+
+/* Server Diagnostics Styles */
+.iconButton {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--primary-color);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.clientBreakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.clientType {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background-color: var(--card-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.logsSection,
+.errorsSection {
+  margin-top: 12px;
+}
+
+.subSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.logsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.7rem;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.logEntry {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.logEntry:last-child {
+  border-bottom: none;
+}
+
+.logTime {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.logLevel {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.logInfo .logLevel {
+  color: #2196f3;
+}
+.logWarning .logLevel {
+  color: #ff9800;
+}
+.logError .logLevel {
+  color: #f44336;
+}
+
+.logMessage {
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.errorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.errorEntry {
+  background-color: rgba(244, 67, 54, 0.05);
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.75rem;
+}
+
+.errorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.errorTime {
+  color: var(--text-secondary);
+}
+
+.errorType {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.errorDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-secondary);
+}
+
+.errorMessage {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  cursor: pointer;
+}
+
+.timestamp {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}

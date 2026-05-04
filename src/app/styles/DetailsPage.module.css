@@ -1,9 +1,16 @@
 /* styles/DetailsPage.module.css */
 
+/* Override adminContent padding when it contains detailsContainer */
 .detailsContainer {
+  margin: -2rem; /* Counteract the adminContent padding */
+  padding: 2rem; /* Add it back to the container itself */
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent children from overflowing */
 }
 
 .mainContent {
@@ -23,7 +30,11 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background-color: var(--card-background);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  width: 100%;
+  max-width: 720px; /* Keep content contained but responsive */
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .infoSection h2,
@@ -69,10 +80,6 @@
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
-}
-
-.inlineBadges span {
-  opacity: 0.5;
 }
 
 /* Search results wrap for side item picker */
@@ -130,7 +137,8 @@
   transition: border-color 0.2s;
 }
 
-.thumbnail:hover, .thumbnail.active {
+.thumbnail:hover,
+.thumbnail.active {
   border-color: var(--primary-color);
 }
 
@@ -177,8 +185,6 @@
   padding: 0 0.5rem;
 }
 
-
-
 .imageActions .formGroup {
   margin-bottom: 0;
 }
@@ -195,15 +201,14 @@
   background-color: var(--secondary-color-light);
 }
 
-[data-theme="dark"] .imageActions {
+[data-theme='dark'] .imageActions {
   background-color: var(--secondary-color, #2c2c2c);
 }
 
-[data-theme="dark"] .languageSection {
+[data-theme='dark'] .languageSection {
   background-color: var(--secondary-color-dark, #3a3a3a);
   border-color: var(--border-color-dark, #555);
 }
-
 
 /* Variations table specific styling */
 .variationsTable {
@@ -213,10 +218,11 @@
   border-spacing: 0;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  overflow: hidden; /* Ensures border-radius is respected by children */
+  overflow: hidden;
 }
 
-.variationsTable th, .variationsTable td {
+.variationsTable th,
+.variationsTable td {
   padding: 0.8rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
@@ -230,14 +236,192 @@
   border-bottom: none;
 }
 
-[data-theme="dark"] .variationsTable th {
+[data-theme='dark'] .variationsTable th {
   background-color: var(--secondary-color, #2c2c2c);
   color: var(--text-color, #e0e0e0);
 }
 
+/* ===========================================
+   RESPONSIVE DESIGN
+   =========================================== */
 
+/* Mobile Devices (less than 768px) */
+@media (max-width: 767px) {
+  .detailsContainer {
+    gap: 1rem;
+  }
+
+  .mainContent {
+    gap: 1rem;
+  }
+
+  .infoSection {
+    padding: 1rem;
+  }
+
+  .infoSection h2,
+  .infoSection h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .actionRow {
+    width: 100%;
+  }
+
+  .formGrid {
+    gap: 0.75rem;
+  }
+
+  /* Mobile table - card layout */
+  .variationsTable {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: none;
+  }
+
+  .variationsTable thead {
+    display: none;
+  }
+
+  .variationsTable tbody,
+  .variationsTable tr,
+  .variationsTable td {
+    display: block;
+  }
+
+  .variationsTable tr {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .variationsTable td {
+    border: none;
+    position: relative;
+    padding: 0.5rem 0.5rem 0.5rem 40%;
+    text-align: right;
+  }
+
+  .variationsTable td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0.75rem;
+    width: 35%;
+    padding-right: 0.5rem;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+  }
+
+  [data-theme='dark'] .variationsTable td:before {
+    color: var(--text-secondary, #aaa);
+  }
+
+  .primaryImage {
+    max-height: 300px;
+  }
+
+  .thumbnailContainer {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .thumbnail {
+    height: 60px;
+  }
+
+  .imageActions {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem;
+  }
+
+  .imageActionGroup {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .sortOrderInput {
+    width: 100%;
+  }
+}
+
+/* Tablets (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .detailsContainer {
+    gap: 1.5rem;
+  }
+
+  .infoSection h2,
+  .infoSection h3 {
+    font-size: 1.3rem;
+  }
+
+  .primaryImage {
+    max-height: 400px;
+  }
+}
+
+/* Desktop (992px and up) - Enable sidebar layout */
 @media (min-width: 992px) {
   .infoGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Sidebar layout for desktop */
+  .detailsContainer {
+    display: grid !important; /* Force grid layout */
+    grid-template-columns: 1fr 350px !important;
+    gap: 2rem !important;
+  }
+
+  .mainContent {
+    grid-column: 1;
+    min-width: 0; /* Prevent grid blowout */
+  }
+
+  .imageGalleryContainer {
+    grid-column: 2;
+    grid-row: 1 / span 10;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .primaryImage {
+    max-height: 450px;
+  }
+}
+
+/* Large Desktop (1200px and up) - Wider sidebar */
+@media (min-width: 1200px) {
+  .detailsContainer {
+    grid-template-columns: 1fr 400px;
+  }
+
+  .primaryImage {
+    max-height: 500px;
+  }
+}
+
+/* Ultra Wide (1600px and up) */
+@media (min-width: 1600px) {
+  .detailsContainer {
+    grid-template-columns: 1fr 450px;
+  }
+
+  .primaryImage {
+    max-height: 600px;
   }
 }

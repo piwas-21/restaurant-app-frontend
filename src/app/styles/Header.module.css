@@ -1,7 +1,4 @@
 /* src/app/styles/Header.module.css */
-.headerNav {
-  /* Styles for the main nav container if needed, currently parent div handles alignment */
-}
 
 .navLinksContainer {
   display: flex; /* Default for desktop: links in a row */
@@ -17,7 +14,9 @@
   color: var(--text-color); /* Uses global CSS variable */
   z-index: 1101; /* Above mobile menu and backdrop */
   padding: 0.5rem; /* Easier to tap */
-  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  transition:
+    transform 0.2s ease-in-out,
+    opacity 0.2s ease-in-out;
   position: relative;
 }
 
@@ -34,13 +33,12 @@
   display: block;
 }
 
-[data-theme="dark"] .hamburgerMenu {
+[data-theme='dark'] .hamburgerMenu {
   color: var(--text-color); /* text-color variable is updated for dark theme */
 }
 
 .switcherGroup {
-  /* Styles for desktop view if needed - by default, they'll be flex items due to parent */
-  display: contents; /* Makes the div not affect layout in flex container on desktop */
+  display: contents;
 }
 
 /* Cart badge counter */
@@ -105,7 +103,7 @@
     border-left: 1px solid var(--border-color);
     padding: 1rem 0;
     z-index: 1100;
-    box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
     gap: 0;
     align-items: stretch;
     overflow-y: auto;
@@ -164,24 +162,104 @@
     border-bottom: none;
   }
 
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen {
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen {
     background-color: var(--secondary-color);
     border-top-color: var(--border-color);
   }
 
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen > *,
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen .nav-link,
-  [data-theme="dark"] .navLinksContainer.mobileMenuOpen .switcherGroup {
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen > *,
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen .nav-link,
+  [data-theme='dark'] .navLinksContainer.mobileMenuOpen .switcherGroup {
     border-bottom-color: var(--border-color);
   }
 
   .hamburgerMenu {
     display: block;
   }
+
+  .adminMainContent {
+    margin-left: 0;
+  }
+
+  .adminSidebarToggleFloating {
+    display: flex !important;
+  }
+}
+
+/* Admin main content wrapper */
+.adminMainContent {
+  margin-left: 0;
+  transition: margin-left 0.3s ease-in-out;
+  position: relative;
+}
+
+/* Floating admin sidebar toggle button */
+.adminSidebarToggleFloating {
+  display: none; /* Hidden by default on desktop */
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--primary-color-dark, #343a40);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 1rem;
+  margin: 0;
+  transition: all 0.3s ease;
+  z-index: 998;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.adminSidebarToggleFloating:hover {
+  background-color: var(--primary-color, #1f3a3a);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.adminSidebarToggleFloating:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.adminSidebarToggleFloating svg {
+  display: block;
+}
+
+[data-theme='dark'] .adminSidebarToggleFloating {
+  background-color: #1f1f1f;
+}
+
+[data-theme='dark'] .adminSidebarToggleFloating:hover {
+  background-color: #2a2a2a;
+}
+
+/* Admin sidebar backdrop for mobile */
+.adminSidebarBackdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.adminSidebarBackdrop.visible {
+  display: block;
+  opacity: 1;
 }
 
 /* Desktop specific styles */
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .navLinksContainer {
     display: flex !important;
     flex-direction: row !important;
@@ -199,8 +277,27 @@
     display: none !important;
   }
   .switcherGroup {
-    display: flex; /* For desktop, arrange them in a row */
+    display: flex;
     align-items: center;
-    gap: 0.5rem; /* Adjust gap for desktop view */
+    gap: 0.5rem;
+  }
+
+  .adminSidebarToggleFloating {
+    display: none !important;
+  }
+
+  .adminMainContent {
+    margin-left: 0;
+  }
+}
+
+/* Ensure button shows on mobile and tablet */
+@media (max-width: 1024px) {
+  .adminSidebarToggleFloating {
+    display: flex !important;
+  }
+
+  .adminMainContent {
+    margin-left: 0 !important;
   }
 }

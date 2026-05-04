@@ -1,267 +1,322 @@
-/* src/app/styles/CashierPage.module.css */
-
-.container {
-  padding: 2rem;
-  font-family: var(--font-family-sans);
-  background-color: var(--background-color);
-  color: var(--text-color);
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.header h1 {
-  color: var(--text-color);
-}
-
-.filterContainer {
-  margin-bottom: 1.5rem; 
+/* Page Wrapper */
+.pageWrapper {
   display: flex;
-  flex-direction: column; 
-  gap: 0.5rem; 
-  align-items: flex-start; 
-  position: relative; /* Added to help anchor dropdown panels */
-}
-
-.filterContainer label {
-  font-weight: 500; 
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  background: var(--background-color);
   color: var(--text-color);
 }
 
-.select {
-  padding: 0.6rem;
-  border-radius: 4px;
+/* Modern Order Cards - Used by OrderList component */
+.orderCard {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--background-light);
   border: 1px solid var(--border-color);
-  background-color: var(--background-color);
-  color: var(--text-color);
-  width: 100%; 
-  box-sizing: border-box;
-  position: relative; /* This should anchor custom dropdown panels */
-}
-
-.orderTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 2rem;
-}
-
-.th, .td {
-  border: 1px solid var(--border-color);
-  padding: 0.75rem; 
-  text-align: left;
-  color: var(--text-color);
-  white-space: nowrap; 
-}
-
-.th {
-  background-color: var(--secondary-color);
-  font-weight: 600;
-}
-
-.actionsCell {
-  white-space: normal; 
-}
-
-.actionsCell .button {
-  margin-bottom: 0.5rem; 
-}
-
-.actionsCell .button:last-child {
-  margin-bottom: 0; 
-  margin-right: 0;
-}
-
-.button {
-  padding: 0.5rem 1rem; 
-  margin-right: 0.5rem; 
+  border-left-width: 4px;
+  border-radius: 10px;
   cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
-  background-color: var(--secondary-color);
-  color: var(--text-color);
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  font-size: 0.9rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.button:hover {
-  border-color: var(--link-hover-color);
-  background-color: var(--card-background);
-}
-
-.paidButton {
-  composes: button;
-  background-color: var(--success-color);
-  color: var(--button-text-color);
-  border-color: var(--success-color);
-}
-
-.paidButton:hover {
-  background-color: var(--success-color-dark);
-  border-color: var(--success-color-dark);
-}
-
-.viewDetailsButton {
-  composes: button;
-  background-color: var(--primary-color);
-  color: var(--button-text-color);
+.orderCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: var(--primary-color);
 }
 
-.viewDetailsButton:hover {
-  background-color: var(--link-hover-color);
-  border-color: var(--link-hover-color);
+.orderCardSelected {
+  border-color: var(--primary-color) !important;
+  background: rgba(192, 0, 0, 0.03);
+  box-shadow: 0 4px 16px rgba(192, 0, 0, 0.15);
 }
 
-.orderDetailsSection {
-  margin-top: 1rem;
-  padding: 1.5rem; 
-  border: 1px solid var(--border-color);
-  border-radius: 6px; 
-  background-color: var(--card-background);
+.orderCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.875rem;
+}
+
+.orderCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.orderTypeIcon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.orderNumber {
+  font-weight: 700;
+  color: var(--text-color);
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+}
+
+.orderStatusBadge {
+  padding: 0.375rem 0.875rem;
+  color: white;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.orderCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.orderCustomer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.customerName {
+  font-size: 0.9375rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.tableNumber {
+  font-size: 0.8125rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  background: rgba(192, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.orderCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.orderTotal {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1.0625rem;
+}
+
+.orderTime {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+/* Table Canvas Wrapper - Used by OrderDetails */
+.tableCanvasWrapper {
+  flex-shrink: 0;
+}
+
+/* Loading and Error States */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--primary-color);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
   color: var(--text-color);
 }
 
-.orderDetailsSection h3 {
-  margin-top: 0;
-  margin-bottom: 1rem; 
-  color: var(--text-color);
+.errorIcon {
+  color: #ef4444;
 }
 
-.orderDetailsSection p,
-.orderDetailsSection ul {
-  margin-bottom: 0.75rem; 
-  color: var(--text-color);
+.errorMessage {
+  font-size: 1rem;
+  color: var(--text-muted);
 }
 
-.orderDetailsSection ul {
-  list-style: disc;
-  padding-left: 20px;
-}
-
-.homeLink {
+/* Notes Section - Used by OrderDetails */
+.notesSection {
+  border-top: 1px solid var(--border-color);
   margin-top: 2rem;
-  display: inline-block;
-  color: var(--link-color);
-  text-decoration: none;
+  padding-top: 1.5rem;
 }
 
-.homeLink:hover {
-  color: var(--link-hover-color);
-  text-decoration: underline;
+.notesHeader {
+  margin-bottom: 1rem;
 }
 
-.container h2 {
-  color: var(--text-color);
-  margin-bottom: 1rem; 
+.notesToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.5rem;
+  transition: color 0.2s;
 }
 
-/* Table scroll container */
-.tableContainer {
-  width: 100%;
-  overflow-x: auto;
+.notesToggle:hover {
+  color: var(--primary-color-dark);
+}
+
+.notesCount {
+  background: var(--primary-color);
+  color: white;
+  border-radius: 12px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
+.notesContent {
+  background: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.notesList {
   margin-bottom: 2rem;
 }
 
-/* Dark Mode Styles */
-[data-theme="dark"] .container {
-  background-color: var(--background-color);
+.notesList h4 {
   color: var(--text-color);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
 }
 
-[data-theme="dark"] .header h1,
-[data-theme="dark"] .container h2,
-[data-theme="dark"] .filterContainer label,
-[data-theme="dark"] .orderDetailsSection h3,
-[data-theme="dark"] .orderDetailsSection p,
-[data-theme="dark"] .orderDetailsSection ul {
+.noteItem {
+  background: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.noteText {
+  flex: 1;
   color: var(--text-color);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  word-wrap: break-word;
 }
 
-[data-theme="dark"] .select {
-  background-color: var(--secondary-color); 
+.noteForm h4 {
   color: var(--text-color);
-  border-color: var(--border-color);
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
-[data-theme="dark"] .th {
-  background-color: var(--secondary-color); 
+.noteHint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.noteInput {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   color: var(--text-color);
-  border-color: var(--border-color);
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s;
 }
 
-[data-theme="dark"] .td {
+.noteInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(192, 0, 0, 0.1);
+}
+
+.noteInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.noteFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.charCount {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Dark Mode - Uses CSS variables */
+@media (prefers-color-scheme: dark) {
+  /* All colors handled by CSS variables in globals.css */
+}
+
+.dateRangeToolbar {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
   color: var(--text-color);
-  border-color: var(--border-color);
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .button {
-  background-color: var(--secondary-color); 
-  color: var(--text-color);
-  border-color: var(--border-color);
+.dateRangeToolbar label {
+  cursor: pointer;
+  user-select: none;
 }
 
-[data-theme="dark"] .button:hover {
-  background-color: var(--background-color); 
-  border-color: var(--link-hover-color);
-}
-
-[data-theme="dark"] .paidButton {
-  background-color: var(--success-color-dark);
-  color: var(--text-color); 
-  border-color: var(--success-color-dark);
-}
-
-[data-theme="dark"] .paidButton:hover {
-  background-color: var(--success-color); 
-}
-
-[data-theme="dark"] .viewDetailsButton {
-  background-color: var(--primary-color-dark); 
-  color: var(--text-color);
-  border-color: var(--primary-color-dark);
-}
-
-[data-theme="dark"] .viewDetailsButton:hover {
-  background-color: var(--primary-color);
-}
-
-[data-theme="dark"] .orderDetailsSection {
-  background-color: var(--secondary-color);
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .homeLink {
-  color: var(--link-color);
-}
-
-[data-theme="dark"] .homeLink:hover {
-  color: var(--link-hover-color);
-}
-
-/* Responsive adjustments */
-@media (min-width: 576px) { 
-  .filterContainer {
-    flex-direction: row; 
-    align-items: center;
-  }
-  .select {
-    width: auto; 
-    min-width: 200px; 
-  }
-}
-
-@media (max-width: 768px) {
-  .actionsCell .button {
-    display: block; 
-    width: 100%;
-    margin-right: 0;
-  }
-  .actionsCell .button:last-child {
-    margin-bottom: 0;
-  }
-  .td:not(.actionsCell) {
-      white-space: normal;
-  }
+.diagnosticsOverlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }

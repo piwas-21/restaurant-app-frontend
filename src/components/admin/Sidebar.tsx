@@ -1,55 +1,157 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { Users, FolderTree, UtensilsCrossed, Sparkles } from 'lucide-react';
+import {
+  Users,
+  FolderTree,
+  UtensilsCrossed,
+  Sparkles,
+  Award,
+  Gift,
+  TrendingUp,
+  ClipboardList,
+  CalendarCheck,
+  MapPin,
+  BarChart3,
+  Settings,
+  UserCog,
+  LayoutDashboard,
+} from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
 
-const Sidebar = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure we're on client side and language is loaded
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const navItems = [
     {
+      href: '/admin/dashboard',
+      key: 'admin_dashboard_title',
+      fallback: 'Admin Dashboard',
+      icon: LayoutDashboard,
+    },
+    {
       href: '/admin/member-management',
-      label: t('admin_member_management_title'),
-      icon: Users
+      key: 'admin_member_management_title',
+      fallback: 'Member Management',
+      icon: Users,
+    },
+    {
+      href: '/admin/user-groups',
+      key: 'admin_user_groups_title',
+      fallback: 'User Groups',
+      icon: UserCog,
     },
     {
       href: '/admin/category-management',
-      label: t('admin_category_management_title'),
-      icon: FolderTree
+      key: 'admin_category_management_title',
+      fallback: 'Category Management',
+      icon: FolderTree,
     },
     {
       href: '/admin/menu-management',
-      label: t('admin_menu_management_title'),
-      icon: UtensilsCrossed
+      key: 'admin_menu_management_title',
+      fallback: 'Menu Management',
+      icon: UtensilsCrossed,
     },
     {
       href: '/admin/specials-management',
-      label: t('admin_specials_management_title'),
-      icon: Sparkles
+      key: 'admin_specials_management_title',
+      fallback: 'Specials Management',
+      icon: Sparkles,
+    },
+    {
+      href: '/admin/orders-management',
+      key: 'admin_orders_management_title',
+      fallback: 'Orders Management',
+      icon: ClipboardList,
+    },
+    {
+      href: '/admin/restaurant-settings',
+      key: 'restaurant_settings',
+      fallback: 'Restaurant Settings',
+      icon: Settings,
+    },
+    {
+      href: '/admin/reservations-management',
+      key: 'admin_reservations_management',
+      fallback: 'Reservations Management',
+      icon: CalendarCheck,
+    },
+    {
+      href: '/admin/table-layout-editor',
+      key: 'table_layout_editor',
+      fallback: 'Table Layout',
+      icon: MapPin,
+    },
+    {
+      href: '/admin/table-statistics',
+      key: 'table_statistics',
+      fallback: 'Table Statistics',
+      icon: BarChart3,
+    },
+    {
+      href: '/admin/point-rules',
+      key: 'point_rules',
+      fallback: 'Point Rules',
+      icon: Award,
+    },
+    {
+      href: '/admin/customer-discounts',
+      key: 'customer_discounts',
+      fallback: 'Customer Discounts',
+      icon: Gift,
+    },
+    {
+      href: '/admin/fidelity-analytics',
+      key: 'fidelity_analytics',
+      fallback: 'Fidelity Analytics',
+      icon: TrendingUp,
     },
   ];
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.sidebarTitle}>{t('admin_dashboard_title')}</div>
+    <aside
+      className={`${styles.sidebar} ${isOpen ? 'open' : ''}`}
+      data-open={isOpen}
+      style={{
+        zIndex: 2002,
+        transform: isOpen ? 'translateX(0)' : undefined,
+      }}
+    >
+      <div className={styles.sidebarTitle} suppressHydrationWarning>
+        {isClient ? t('admin_dashboard_title') : 'Admin Dashboard'}
+      </div>
       <hr className={styles.sidebarDivider} />
       <nav>
         <ul>
           {navItems.map((item) => {
             const Icon = item.icon;
+            const label = isClient ? t(item.key, item.fallback || item.key) : item.fallback || item.key;
+
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={pathname.startsWith(item.href) ? styles.activeLink : ''}
+                  onClick={onClose}
                 >
                   <Icon size={20} strokeWidth={2} />
-                  <span>{item.label}</span>
+                  <span suppressHydrationWarning>{label}</span>
                 </Link>
               </li>
             );

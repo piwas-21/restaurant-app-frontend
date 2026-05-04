@@ -16,14 +16,20 @@ const ProductDetailsGrid: React.FC<ProductDetailsGridProps> = ({ product }) => {
     <div className={detailsStyles.infoGrid}>
       <div className={detailsStyles.infoSection}>
         <h3>{t('details')}</h3>
-        <p><strong>{t('ingredients')}:</strong> {product.ingredients.join(', ')}</p>
-        <p><strong>{t('allergens')}:</strong> {product.allergens.map(a => t(`allergen_${a}`)).join(', ')}</p>
+        <p>
+          <strong>{t('ingredients')}:</strong> {product.ingredients.join(', ')}
+        </p>
+        <p>
+          <strong>{t('allergens')}:</strong> {product.allergens.map((a) => t(`allergen_${a}`)).join(', ')}
+        </p>
       </div>
       <div className={detailsStyles.infoSection}>
         <h3>{t('categories')}</h3>
         <ul>
-          {product.categories.map(cat => (
-            <li key={cat.categoryName}>{cat.categoryName} {cat.isPrimary && `(${t('primary')})`}</li>
+          {product.categories.map((cat) => (
+            <li key={cat.categoryName}>
+              {cat.categoryName} {cat.isPrimary && `(${t('primary')})`}
+            </li>
           ))}
         </ul>
       </div>

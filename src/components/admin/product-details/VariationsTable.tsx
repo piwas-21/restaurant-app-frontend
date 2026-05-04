@@ -11,7 +11,10 @@ import { buildProductPayload } from './buildProductPayload';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { getCategories } from '@/services/categoryService';
 
-interface Category { id: string; name: string; }
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface VariationsTableProps {
   variations: Variation[];
@@ -21,7 +24,7 @@ interface VariationsTableProps {
 }
 
 const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId, onUpdated, product }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [local, setLocal] = useState<Variation[]>(variations || []);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
@@ -35,8 +38,8 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const resp = await getCategories();
-      if (resp.success) {
+      const resp = (await getCategories()) as { success: boolean; data?: { items: any[] } };
+      if (resp.success && resp.data?.items) {
         setCategories(resp.data.items);
       }
     };
@@ -44,14 +47,22 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
   }, []);
 
   const updateDraftName = (value: string) => {
-    setDraft({...draft, name: value});
+    setDraft({ ...draft, name: value });
     // Clear validation error when user starts typing a valid name
     if (value.trim() && nameFieldError) {
       setNameFieldError(false);
     }
   };
-  const startEdit = (idx: number) => { setEditingIndex(idx); setDraft({ ...local[idx] }); setNameFieldError(false); };
-  const startAdd = () => { setAdding(true); setDraft({ name: '', description: '', priceModifier: 0, isActive: true, displayOrder: 0 }); setNameFieldError(false); };
+  const startEdit = (idx: number) => {
+    setEditingIndex(idx);
+    setDraft({ ...local[idx] });
+    setNameFieldError(false);
+  };
+  const startAdd = () => {
+    setAdding(true);
+    setDraft({ name: '', description: '', priceModifier: 0, isActive: true, displayOrder: 0 });
+    setNameFieldError(false);
+  };
   const save = async () => {
     if (!draft) return;
 
@@ -70,7 +81,8 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
     setNameFieldError(false);
 
     const next = [...local];
-    if (adding) next.push(draft as Variation); else if (editingIndex!==null) next[editingIndex] = draft as Variation;
+    if (adding) next.push(draft as Variation);
+    else if (editingIndex !== null) next[editingIndex] = draft as Variation;
     try {
       if (productId && product) {
         const payload = buildProductPayload({ ...product, variations: next } as any, categories);
@@ -81,13 +93,21 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
       onUpdated && onUpdated();
     } catch {}
   };
-  const cancel = () => { setEditingIndex(null); setAdding(false); setDraft(null); setNameFieldError(false); };
-  const confirmDelete = (idx: number) => { setPendingDeleteIndex(idx); setConfirmOpen(true); };
+  const cancel = () => {
+    setEditingIndex(null);
+    setAdding(false);
+    setDraft(null);
+    setNameFieldError(false);
+  };
+  const confirmDelete = (idx: number) => {
+    setPendingDeleteIndex(idx);
+    setConfirmOpen(true);
+  };
   const handleConfirmDelete = async () => {
-    if (pendingDeleteIndex===null) return;
+    if (pendingDeleteIndex === null) return;
     const idx = pendingDeleteIndex;
     setConfirmOpen(false);
-    const next = local.filter((_,i)=>i!==idx);
+    const next = local.filter((_, i) => i !== idx);
     try {
       if (productId && product) {
         const payload = buildProductPayload({ ...product, variations: next } as any, categories);
@@ -104,7 +124,9 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
       <div className={detailsStyles.infoSection}>
         <div className={detailsStyles.headerRow}>
           <h3>{t('variations')}</h3>
-          <button className={`${styles.adminButton} ${styles.add}`} onClick={startAdd}>{t('add')}</button>
+          <button className={`${styles.adminButton} ${styles.add}`} onClick={startAdd}>
+            {t('add')}
+          </button>
         </div>
         {adding && draft && (
           <div className={detailsStyles.formGrid}>
@@ -113,8 +135,8 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
               <input
                 ref={nameInputRef}
                 placeholder={t('variation_name') as string}
-                value={draft.name||''}
-                onChange={e=>updateDraftName(e.target.value)}
+                value={draft.name || ''}
+                onChange={(e) => updateDraftName(e.target.value)}
                 className={nameFieldError ? modalStyles.fieldError : ''}
               />
             </div>
@@ -122,8 +144,8 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
               <label>{t('description')}</label>
               <input
                 placeholder={t('description') as string}
-                value={draft.description||''}
-                onChange={e=>setDraft({...draft, description: e.target.value})}
+                value={draft.description || ''}
+                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
               />
             </div>
             <div className={detailsStyles.formGroup}>
@@ -133,7 +155,7 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
                 type="number"
                 step="0.01"
                 value={draft.priceModifier as number}
-                onChange={e=>setDraft({...draft, priceModifier: parseFloat(e.target.value)})}
+                onChange={(e) => setDraft({ ...draft, priceModifier: parseFloat(e.target.value) })}
               />
             </div>
             <div className={detailsStyles.formGroup}>
@@ -142,7 +164,7 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
                 placeholder={t('display_order') as string}
                 type="number"
                 value={draft.displayOrder as number}
-                onChange={e=>setDraft({...draft, displayOrder: parseInt(e.target.value)})}
+                onChange={(e) => setDraft({ ...draft, displayOrder: parseInt(e.target.value) })}
               />
             </div>
             <div className={detailsStyles.formGroup}>
@@ -153,15 +175,19 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
                     type="checkbox"
                     id="variation-active-add"
                     checked={draft.isActive}
-                    onChange={e => setDraft({...draft, isActive: e.target.checked})}
+                    onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })}
                   />
                   <label htmlFor="variation-active-add">{t('active')}</label>
                 </div>
               </div>
             </div>
             <div className={detailsStyles.actionRow}>
-              <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-              <button className={styles.cancelButton} onClick={cancel}>{t('cancel')}</button>
+              <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+                {t('save')}
+              </button>
+              <button className={styles.cancelButton} onClick={cancel}>
+                {t('cancel')}
+              </button>
             </div>
           </div>
         )}
@@ -173,7 +199,9 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
     <div className={detailsStyles.infoSection}>
       <div className={detailsStyles.headerRow}>
         <h3>{t('variations')}</h3>
-        <button className={`${styles.adminButton} ${styles.add}`} onClick={startAdd}>{t('add')}</button>
+        <button className={`${styles.adminButton} ${styles.add}`} onClick={startAdd}>
+          {t('add')}
+        </button>
       </div>
       {adding && draft && (
         <div className={detailsStyles.formGrid}>
@@ -182,8 +210,8 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
             <input
               ref={nameInputRef}
               placeholder={t('variation_name') as string}
-              value={draft.name||''}
-              onChange={e=>updateDraftName(e.target.value)}
+              value={draft.name || ''}
+              onChange={(e) => updateDraftName(e.target.value)}
               className={nameFieldError ? modalStyles.fieldError : ''}
             />
           </div>
@@ -191,8 +219,8 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
             <label>{t('description')}</label>
             <input
               placeholder={t('description') as string}
-              value={draft.description||''}
-              onChange={e=>setDraft({...draft, description: e.target.value})}
+              value={draft.description || ''}
+              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
             />
           </div>
           <div className={detailsStyles.formGroup}>
@@ -202,7 +230,7 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
               type="number"
               step="0.01"
               value={draft.priceModifier as number}
-              onChange={e=>setDraft({...draft, priceModifier: parseFloat(e.target.value)})}
+              onChange={(e) => setDraft({ ...draft, priceModifier: parseFloat(e.target.value) })}
             />
           </div>
           <div className={detailsStyles.formGroup}>
@@ -211,7 +239,7 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
               placeholder={t('display_order') as string}
               type="number"
               value={draft.displayOrder as number}
-              onChange={e=>setDraft({...draft, displayOrder: parseInt(e.target.value)})}
+              onChange={(e) => setDraft({ ...draft, displayOrder: parseInt(e.target.value) })}
             />
           </div>
           <div className={detailsStyles.formGroup}>
@@ -222,15 +250,19 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
                   type="checkbox"
                   id="variation-active-main-add"
                   checked={draft.isActive}
-                  onChange={e => setDraft({...draft, isActive: e.target.checked})}
+                  onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })}
                 />
                 <label htmlFor="variation-active-main-add">{t('active')}</label>
               </div>
             </div>
           </div>
           <div className={detailsStyles.actionRow}>
-            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-            <button className={styles.cancelButton} onClick={cancel}>{t('cancel')}</button>
+            <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+              {t('save')}
+            </button>
+            <button className={styles.cancelButton} onClick={cancel}>
+              {t('cancel')}
+            </button>
           </div>
         </div>
       )}
@@ -249,59 +281,91 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
           {local.map((v, idx) => (
             <tr key={v.id || v.name} className={!v.isActive ? detailsStyles.inactiveRow : ''}>
               <td>
-                {editingIndex===idx && draft ? (
+                {editingIndex === idx && draft ? (
                   <input
                     ref={editNameInputRef}
-                    value={draft.name||''}
-                    onChange={e=>updateDraftName(e.target.value)}
+                    value={draft.name || ''}
+                    onChange={(e) => updateDraftName(e.target.value)}
                     className={nameFieldError ? modalStyles.fieldError : ''}
                   />
-                ) : v.name}
+                ) : (
+                  // Multilingual display
+                  (v as any).content?.[i18n.language.split('-')[0]]?.name || v.name
+                )}
               </td>
               <td>
-                {editingIndex===idx && draft ? (
-                  <input value={draft.description||''} onChange={e=>setDraft({...draft, description: e.target.value})} />
-                ) : (v.description || '-')}
+                {editingIndex === idx && draft ? (
+                  <input
+                    value={draft.description || ''}
+                    onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                  />
+                ) : (
+                  // Multilingual display
+                  (v as any).content?.[i18n.language.split('-')[0]]?.description || v.description || '-'
+                )}
               </td>
               <td>
-                {editingIndex===idx && draft ? (
-                  <input type="number" step="0.01" value={draft.priceModifier as number} onChange={e=>setDraft({...draft, priceModifier: parseFloat(e.target.value)})} />
-                ) : `CHF${v.priceModifier.toFixed(2)}`}
+                {editingIndex === idx && draft ? (
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={draft.priceModifier as number}
+                    onChange={(e) => setDraft({ ...draft, priceModifier: parseFloat(e.target.value) })}
+                  />
+                ) : (
+                  `CHF${v.priceModifier.toFixed(2)}`
+                )}
               </td>
               <td>
-                {editingIndex===idx && draft ? (
-                  <input type="number" value={draft.displayOrder as number} onChange={e=>setDraft({...draft, displayOrder: parseInt(e.target.value)})} />
-                ) : (v.displayOrder || 0)}
+                {editingIndex === idx && draft ? (
+                  <input
+                    type="number"
+                    value={draft.displayOrder as number}
+                    onChange={(e) => setDraft({ ...draft, displayOrder: parseInt(e.target.value) })}
+                  />
+                ) : (
+                  v.displayOrder || 0
+                )}
               </td>
               <td>
-                {editingIndex===idx && draft ? (
+                {editingIndex === idx && draft ? (
                   <div className={modalStyles.chipGroup}>
                     <div className={modalStyles.chip}>
                       <input
                         type="checkbox"
                         id={`variation-active-edit-${idx}`}
                         checked={draft.isActive}
-                        onChange={e => setDraft({...draft, isActive: e.target.checked})}
+                        onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })}
                       />
                       <label htmlFor={`variation-active-edit-${idx}`}>{t('active')}</label>
                     </div>
                   </div>
                 ) : (
-                  <span className={`${detailsStyles.statusBadge} ${v.isActive ? detailsStyles.statusActive : detailsStyles.statusInactive}`}>
+                  <span
+                    className={`${detailsStyles.statusBadge} ${v.isActive ? detailsStyles.statusActive : detailsStyles.statusInactive}`}
+                  >
                     {v.isActive ? t('active') : t('inactive')}
                   </span>
                 )}
               </td>
               <td>
-                {editingIndex===idx ? (
+                {editingIndex === idx ? (
                   <div className={detailsStyles.actionRow}>
-                    <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>{t('save')}</button>
-                    <button className={styles.cancelButton} onClick={cancel}>{t('cancel')}</button>
+                    <button className={`${styles.adminButton} ${styles.save}`} onClick={save}>
+                      {t('save')}
+                    </button>
+                    <button className={styles.cancelButton} onClick={cancel}>
+                      {t('cancel')}
+                    </button>
                   </div>
                 ) : (
                   <div className={detailsStyles.actionRow}>
-                    <button className={`${styles.adminButton} ${styles.edit}`} onClick={()=>startEdit(idx)}>{t('edit')}</button>
-                    <button className={styles.deleteButton} onClick={()=>confirmDelete(idx)}>{t('delete')}</button>
+                    <button className={`${styles.adminButton} ${styles.edit}`} onClick={() => startEdit(idx)}>
+                      {t('edit')}
+                    </button>
+                    <button className={styles.deleteButton} onClick={() => confirmDelete(idx)}>
+                      {t('delete')}
+                    </button>
                   </div>
                 )}
               </td>
@@ -309,7 +373,12 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
           ))}
         </tbody>
       </table>
-      <ConfirmationModal isOpen={confirmOpen} onClose={()=>setConfirmOpen(false)} onConfirm={handleConfirmDelete} message={t('delete_confirmation')} />
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        message={t('delete_confirmation')}
+      />
     </div>
   );
 };

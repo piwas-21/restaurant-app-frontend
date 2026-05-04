@@ -9,10 +9,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
+  width: min-content;
   min-width: auto;
   height: auto;
-  transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .themeSwitcher svg {
@@ -34,4 +37,3 @@
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
-

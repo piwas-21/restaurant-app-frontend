@@ -1,0 +1,89 @@
+# RUMI Frontend — pre-commit configuration
+# Install:        pre-commit install && pre-commit install --hook-type pre-push
+# Update hooks:   pre-commit autoupdate
+# Run manually:   pre-commit run --all-files
+#
+# Sprint 1: hygiene + secret scanning.
+# Sprint 2:   prettier --check.
+# Sprint 2.5: tsc --noEmit, eslint --max-warnings=0.
+# See docs/QUALITY-SECURITY-PLAN.md.
+
+repos:
+  # ── General hygiene ──────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.(svg|patch)$
+      - id: end-of-file-fixer
+        exclude: \.(svg|patch)$
+      - id: check-yaml
+        # GitLab CI YAML uses extensions that the default parser rejects
+        args: ["--unsafe"]
+      - id: check-json
+        # Skip files that legitimately hold credentials placeholders
+        exclude: "(secrets|credentials|service-account)\\.json"
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: no-commit-to-branch
+        # `master` included defensively in case of accidental rename / fork.
+        args: ["--branch", "main", "--branch", "develop", "--branch", "master"]
+
+  # ── Secret scanning ──────────────────────────────────────────────────
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        # Single source of truth for known false positives is .secrets.baseline.
+        # Don't add path excludes here — they hide rows the baseline already
+        # captures, leaving the team without visibility when new "secrets"
+        # appear in those paths. Prefer regenerating the baseline:
+        #   detect-secrets scan --baseline .secrets.baseline
+        args: ["--baseline", ".secrets.baseline"]
+
+  # ── Sprint 2: format gate ────────────────────────────────────────────
+  # Verifies staged files are prettier-clean. To fix: `npm run format`
+  # and re-stage. Runs only when a relevant file is in the commit.
+  - repo: local
+    hooks:
+      - id: prettier-check
+        name: prettier --check
+        entry: npx prettier --check
+        language: system
+        files: ^src/.*\.(ts|tsx|css|json|md)$
+        exclude: ^src/locales/.*\.json$
+
+  # ── Sprint 2.5: typecheck gate ───────────────────────────────────────
+  # Runs `tsc --noEmit` whenever a .ts/.tsx file is staged. Whole-project
+  # check (no incremental) — catches cross-file type breakage that
+  # affects-only-staged-files lint can't see.
+  - repo: local
+    hooks:
+      - id: tsc-noemit
+        name: tsc --noEmit
+        entry: npx tsc --noEmit
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx)$
+
+      - id: eslint
+        name: eslint (--max-warnings=0)
+        entry: npm run lint --silent
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx|js|mjs|cjs)$
+
+  # ── Sprint 2: file-length gate ───────────────────────────────────────
+  # Enforces the per-file LOC limits from CLAUDE.md §4. Existing oversized
+  # files are grandfathered in scripts/file-length-baseline.txt; new
+  # violations block. See scripts/check-file-length.sh for limits + opt-out.
+  # Per-file mode: pre-commit passes the staged paths.
+  - repo: local
+    hooks:
+      - id: file-length
+        name: file-length (CLAUDE.md §4 limits)
+        entry: bash scripts/check-file-length.sh
+        language: system
+        files: \.(ts|tsx|module\.css)$
+        exclude: \.(test|spec|stories)\.(ts|tsx)$

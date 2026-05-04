@@ -1,133 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RUMI Frontend
 
-## Getting Started
+Restaurant management system frontend — Next.js 15 (App Router), React 19, TypeScript, CSS Modules, i18next.
 
-### Prerequisites
+> **For agents:** read [CLAUDE.md](CLAUDE.md) first; it auto-loads in Claude Code sessions and lists the rules every change must follow.
 
-* Node.js (v18.x or later recommended)
-* npm, yarn, or pnpm
+---
 
-### Setup
+## Stack
 
-1.  **Clone the repository:**
+- **Next.js 15.5** (App Router with Turbopack dev server)
+- **React 19** + **TypeScript**
+- **CSS Modules** + design tokens (`src/app/globals.css`). See [ADR-002](docs/adr/ADR-002-css-modules-and-tokens.md).
+- **i18next** with 9 locales (en, de, tr, it, ar, fr, es, ru, zh). See [ADR-003](docs/adr/ADR-003-i18next-locale-parity.md).
+- **State**: React Context API (Auth, Session, Cart, Table, Checkout, Theme). See [ADR-001](docs/adr/ADR-001-app-router-context-api.md).
+- **Forms**: Zod schemas + react-hook-form. See [ADR-004](docs/adr/ADR-004-zod-form-validation.md).
+- **Design system**: `BaseModal`, `FormField`, `StatusBadge` mandatory wrappers. See [ADR-005](docs/adr/ADR-005-design-system-primitives.md).
+- **Testing**: Jest + React Testing Library (unit), Playwright (E2E)
+- Hosted on GitLab; CI runs gitleaks, npm audit, njsscan, semgrep, retire.js, build, Trivy image scan per `.gitlab-ci.yml`.
 
-    ```bash
-    git clone https://gitlab.com/restaurant-app3282120/frontend.git
-    cd frontend
-    ```
+## Repository layout
 
-2.  **Install dependencies:**
+```
+src/
+├── app/                          # Next.js App Router (pages + API routes)
+│   ├── globals.css               # Design tokens (CSS variables) + base styles
+│   └── layout.tsx                # Root layout
+├── components/                   # Shared UI components
+│   ├── design-system/            # BaseModal, FormField, StatusBadge
+│   ├── menu/                     # Feature-area folders
+│   └── ...
+├── contexts/                     # React Context providers
+├── hooks/                        # Custom hooks (page-level logic lives here)
+├── lib/                          # apiClient, config, formatters
+├── locales/                      # i18next JSON files (9 locales)
+├── schemas/                      # Zod schemas (form validation)
+├── services/                     # Backend API service files (one per resource)
+├── styles/                       # Shared CSS Modules + globals
+├── types/                        # TypeScript types/interfaces
+└── utils/                        # Pure utility functions
 
-    ```bash
-    npm install
-    # or
-    yarn install
-    # or
-    pnpm install
-    ```
-
-3.  **Create an environment file:**
-
-    Copy the example environment file and configure it:
-
-    ```bash
-    cp .env.example .env.local
-    ```
-
-    Update `.env.local` with your local backend URL:
-
-    ```
-    NEXT_PUBLIC_API_URL=http://localhost:5221
-    NEXT_PUBLIC_IMAGE_BASE_URL=https://rumi-test-backend-bucket.s3.eu-central-1.amazonaws.com
-    ```
-
-    *Note: The backend URL assumes the backend is running on port `5221`. Update if your backend uses a different port.*
-
-    📖 **For detailed environment configuration, see [ENVIRONMENT-SETUP.md](./docs/ENVIRONMENT-SETUP.md)**
-
-4.  **Run the development server:**
-
-    ```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Running Tests
-
-This project uses [Jest](https://jestjs.io/) for unit and component testing.
-
-*   **Run all tests:**
-
-    ```bash
-    npm test
-    ```
-
-*   **Run a specific test file:**
-
-    ```bash
-    npm test -- <path-to-test-file>
-    ```
-
-    For example, to run the tests for the authentication services, use:
-
-    ```bash
-    npm test -- src/lib/auth/utils.test.ts
-    ```
-
-*   **Run tests in watch mode:**
-
-    ```bash
-    npm test -- --watch
-    ```
-
-## Deployment
-
-This project uses **GitOps with ArgoCD** for automated deployments to Kubernetes.
-
-### Production Deployment
-
-Simply push your changes to the `main` branch:
-
-```bash
-git add .
-git commit -m "Your changes"
-git push origin main
+docs/                             # Design system, sprint plan, ADRs, security audit
+scripts/                          # Local dev orchestration
+.gitlab/                          # MR templates, CI templates
+__mocks__/                        # Jest mocks
+__tests__ / *.test.ts             # Unit tests colocated with source
+e2e/                              # Playwright E2E (see docs/E2E-STRATEGY.md)
 ```
 
-The GitLab CI/CD pipeline will:
-1. Run tests and security scans
-2. Build the Docker image
-3. Trigger the ArgoCD GitOps pipeline
-4. Automatically deploy to production
-
-📖 **For detailed deployment information, see [GITOPS-DEPLOYMENT.md](./docs/GITOPS-DEPLOYMENT.md)**
-
-### Local Testing
-
-To test the Docker build locally:
+## Quick start (new clone)
 
 ```bash
-./build-production.sh
+# 1. Install pre-commit hooks (one-time)
+bash scripts/setup_hooks.sh
+
+# 2. Bootstrap local .env.local from .env.example (one-time)
+bash scripts/dev-secrets.sh
+# then edit .env.local with your local backend URL etc.
+
+# 3. Make sure the backend is running first
+#    (in the backend repo: bash scripts/dev-up.sh)
+
+# 4. Start the frontend dev server
+bash scripts/dev-up.sh
+
+# Stop
+bash scripts/dev-down.sh
 ```
 
-**Note**: This creates a local image only. Production builds are handled by GitLab CI/CD.
+`dev-up.sh` health-checks the backend before starting the dev server (skip with `--no-backend-check` if you're working offline). It also runs `npm install` only when `package-lock.json` changed since last invocation, so subsequent invocations are fast.
+
+## npm scripts
+
+```bash
+npm run dev          # Next.js dev server (Turbopack)
+npm run build        # production build
+npm run lint         # ESLint
+npm test             # Jest (unit)
+npm run test:watch   # Jest watch mode
+npm run coverage     # Jest with coverage
+npm run test:e2e     # Playwright (headless)
+npm run test:e2e:ui  # Playwright with UI mode
+```
+
+## Branch strategy
+
+```
+main          ← production deployment (currently develop; cutover pending)
+└── develop   ← test environment (auto-deployed)
+     ├── feature/<x>
+     ├── fix/<x>
+     ├── chore/<x>
+     └── docs/<x>
+```
+
+Pre-commit hook blocks direct commits to `main`, `develop`, and `master`. Branch off `develop`, open MR to `develop` using the [default MR template](.gitlab/merge_request_templates/Default.md). After test-env validation, `develop` is promoted to `main` for production.
+
+### Branch protection (GitLab)
+
+Configured in **Settings → Repository → Protected Branches**:
+
+| Branch | Allowed to push | Allowed to merge | Force push |
+|---|---|---|---|
+| `main` | No one | Maintainers | Disabled |
+| `develop` | No one | Maintainers + Developers | Disabled |
+
+All MRs require the pipeline to pass before merge.
+
+## Environment variables
+
+| Variable | Purpose | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend API base URL | E.g. `http://localhost:5221` for local; `https://www.rumirestaurant.ch` for prod |
+| `NEXT_PUBLIC_IMAGE_BASE_URL` | Image CDN / S3 base | E.g. S3 bucket URL |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client (public) | Per-environment value |
+
+Read variables via `src/lib/config.ts` (typed export), never `process.env.NEXT_PUBLIC_*` scattered across components.
+
+## Pull requests
+
+Every MR uses [.gitlab/merge_request_templates/Default.md](.gitlab/merge_request_templates/Default.md). It auto-loads when you create an MR via the GitLab UI or `glab mr create`.
+
+Required sections: summary, sprint-task link, acceptance-criteria coverage, backend-contract verification (for API-consumer changes), i18n parity (for string changes — all 9 locales must be touched), standard checklist, test plan.
 
 ## Documentation
 
-Comprehensive documentation is available in the [`docs/`](./docs) directory:
-
-### Deployment & Infrastructure
-- **[GITOPS-DEPLOYMENT.md](./docs/GITOPS-DEPLOYMENT.md)** - GitOps deployment workflow with ArgoCD
-- **[K8S-DEPLOYMENT.md](./docs/K8S-DEPLOYMENT.md)** - Kubernetes deployment configuration and guides
-- **[ENVIRONMENT-SETUP.md](./docs/ENVIRONMENT-SETUP.md)** - Environment variables and configuration setup
-
-### Security & Compliance
-- **[TRIVY-CVE-2024-21538.md](./docs/TRIVY-CVE-2024-21538.md)** - Trivy CVE analysis and mitigation
-
-### DNS & Infrastructure (Historical)
-- **[INFOMANIAK-DNS-UPDATE-GUIDE.md](./docs/INFOMANIAK-DNS-UPDATE-GUIDE.md)** - DNS configuration guide (Note: This was accidentally added to frontend repo, should be in GitOps repo)
+| File | Purpose |
+|---|---|
+| [CLAUDE.md](CLAUDE.md) | Agent rules — auto-loaded |
+| [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) | 8-sprint refactoring plan |
+| [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Design system patterns |
+| [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) | Coding conventions |
+| [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) | Security findings + status |
+| [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) | Test strategy (Jest + Playwright phases, coverage targets) |
+| [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) | Playwright E2E rules — scope, tiers, selectors, auth, reliability |
+| [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) | CI / quality / security gate plan |
+| [docs/adr/](docs/adr/) | Architecture Decision Records |

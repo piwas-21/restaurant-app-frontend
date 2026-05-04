@@ -1,238 +1,262 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import styles from "../styles/MenuPage.module.css";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { UtensilsCrossed } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import styles from '../styles/MenuPage.module.css';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
+import TableBanner from '@/components/TableBanner';
 
-import type { LanguageCode } from "@/components/LanguageSwitcher";
-import { usePublicMenu, ALL_ITEMS_KEY } from "@/hooks/usePublicMenu";
-import CategoryNav from "@/components/menu/CategoryNav";
-import type { MenuItem } from "@/types/menu";
-import ImageModal from "@/components/menu/ImageModal";
-import MenuList from "@/components/menu/MenuList";
+import type { LanguageCode } from '@/components/LanguageSwitcher';
+import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
+import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
+import { useCart } from '@/components/cart/CartContext';
+import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
+import OrderFlowModals from '@/components/order/OrderFlowModals';
+import OrderFlowSidebar from '@/components/order/OrderFlowSidebar';
+import MobileCartSheet from '@/components/order/MobileCartSheet';
+import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { setFallbackImage } from '@/utils/imageHelpers';
 
-// Map API category names to translation keys
-function mapCategoryNameToTranslationKey(apiCategoryName: string): string {
-  const mapping: { [key: string]: string } = {
-    'Starters': 'starters',
-    'Grills': 'grill',
-    'Grill': 'grill',
-    'Dessert': 'dessert',
-    'Desserts': 'dessert',
-    'Dürüm Wraps': 'durum',
-    'Durum Wraps': 'durum',
-    'Hot Drinks': 'hotDrink',
-    'Cold Drinks': 'coldDrink',
-    'Drinks': 'hotDrink', // Default to hot drinks, might need more logic
-    'Pizza': 'pizza',
-    'Pide': 'pide',
-    'Turkish Specialties': 'turkishSpecialty',
-    'Oriental Specialties': 'orientalSpecialty',
-    'Special of the Day': 'specialOfTheDay',
-    'Soups': 'soups'
-  };
-
-  return mapping[apiCategoryName] || apiCategoryName.toLowerCase();
-}
+import MenuPageHeader from '@/components/menu/MenuPageHeader';
+import MenuContent from '@/components/menu/MenuContent';
+import MenuModals from '@/components/menu/MenuModals';
+import FeaturedSpecialComponent from '@/components/menu/FeaturedSpecial';
+import MenuBundleDetailsModal from '@/components/menu/MenuBundleDetailsModal';
+import { MenuBundleItem, SelectedMenuOption } from '@/types/menu';
+import MenuCustomizationModal from '@/components/menu/MenuCustomizationModal';
+import FloatingCartButton from '@/components/menu/FloatingCartButton';
 
 export default function MenuPage() {
   const { t, i18n } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
+  const [selectedBundle, setSelectedBundle] = useState<MenuBundleItem | null>(null);
+  const [showBundleDetails, setShowBundleDetails] = useState(false);
+  const [selectedBundleForCustomization, setSelectedBundleForCustomization] = useState<MenuBundleItem | null>(null);
+  const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
+  const [isMobileCartSheetOpen, setIsMobileCartSheetOpen] = useState(false);
 
+  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
+
+  // Custom hooks
   const {
     categories: categoriesForNav,
     selectedView,
     setSelectedView,
     items: currentMenuItems,
+    menuBundles,
     isLoading: isLoadingItems,
     error: errorLoadingItems,
+    currentPage,
+    totalPages,
+    totalCount,
+    onPageChange,
   } = usePublicMenu();
 
-  const [enlargedImageItem, setEnlargedImageItem] = useState<MenuItem | null>(
-    null
-  );
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
+  const {
+    featuredSpecial,
+    showFeaturedDetails,
+    showFeaturedCustomization,
+    handleAddFeaturedToCart,
+    handleFeaturedCustomizationConfirm,
+    handleViewFeaturedDetails,
+    handleCloseFeaturedDetails,
+    setShowFeaturedCustomization,
+  } = useFeaturedSpecial();
 
-  const currentLanguage = (i18n.language.split("-")[0] || "en") as LanguageCode;
+  const { addItem, state: cartState } = useCart();
+  const { enqueueSnackbar } = useSnackbar();
+  const orderTypeFollowUp = useOrderTypeFollowUp();
 
-  const getFallbackImage = (menuItem: MenuItem) => {
-    const fallbackImage = "/images/placeholder-falafel.jpeg";
-    if (menuItem && menuItem.image !== fallbackImage) {
-      menuItem.image = fallbackImage;
-    }
-  };
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!isMounted || !selectedView) return;
-    // error comes localized below for display only, so nothing here
-  }, [isMounted, selectedView]);
+  // Bundle handlers
+  const handleCustomizeBundle = (bundle: MenuBundleItem) => {
+    setSelectedBundleForCustomization(bundle);
+  };
 
-  const handleImageClick = useCallback(
-    (item: MenuItem, imageIndex: number = 0) => {
-      setEnlargedImageItem(item);
-      const initialImageIndex =
-        item.images && item.images.length > imageIndex ? imageIndex : 0;
-      setCurrentImageIndex(initialImageIndex);
-    },
-    []
-  );
+  const handleAddBundleToCart = async (
+    bundle: MenuBundleItem,
+    selectedOptions?: SelectedMenuOption[],
+    totalPrice?: number,
+  ) => {
+    const bundleName = bundle.content?.[currentLanguage]?.name || bundle.content?.en?.name || bundle.name;
 
-  const handleCloseEnlargedImage = useCallback(() => {
-    setEnlargedImageItem(null);
-    setCurrentImageIndex(0);
-  }, []);
+    try {
+      if (!bundle.menuDefinition) {
+        enqueueSnackbar(t('error_adding_to_cart', 'Failed to add bundle to cart'), {
+          variant: 'error',
+        });
+        return;
+      }
 
-  const getEnlargedImages = useCallback(() => {
-    if (!enlargedImageItem) return [];
-    if (enlargedImageItem.images && enlargedImageItem.images.length > 0) {
-      return enlargedImageItem.images;
+      // If selectedOptions are provided (from customization modal), use them
+      // Otherwise use default items (respecting maxSelection)
+      const optionsToAdd =
+        selectedOptions ||
+        bundle.menuDefinition.sections?.flatMap((section) => {
+          const defaultItems = section.items.filter((item) => item.isDefault);
+
+          // Respect maxSelection when selecting defaults
+          const itemsToSelect = defaultItems.slice(0, section.maxSelection);
+
+          return itemsToSelect.map((item) => ({
+            sectionId: section.id,
+            itemId: item.productId,
+            quantity: 1,
+          }));
+        }) ||
+        [];
+
+      // Use provided totalPrice or bundle base price
+      const _price = totalPrice || bundle.basePrice;
+
+      await addItem({
+        productId: bundle.id,
+        quantity: 1,
+        selectedMenuOptions: optionsToAdd,
+      });
+
+      // Close customization modal if open
+      setSelectedBundleForCustomization(null);
+
+      enqueueSnackbar(t('item_added_to_cart_toast', { itemName: bundleName }), {
+        variant: 'success',
+        autoHideDuration: 2000,
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+
+      // Trigger cart animation
+      setCartAnimationTrigger(true);
+      setTimeout(() => setCartAnimationTrigger(false), 100);
+    } catch (error) {
+      console.error('Error adding bundle to cart:', error);
+      enqueueSnackbar(t('error_adding_to_cart', 'Failed to add bundle to cart'), {
+        variant: 'error',
+      });
     }
-    const altText =
-      enlargedImageItem.content?.[currentLanguage]?.name ||
-      enlargedImageItem.content?.en?.name ||
-      enlargedImageItem.name ||
-      'Menu item image';
-    return [{ url: enlargedImageItem.image, alt: altText }];
-  }, [enlargedImageItem, currentLanguage]);
+  };
 
-  const currentEnlargedGalleryImages = getEnlargedImages();
-
-  const showNextImage = useCallback(() => {
-    setCurrentImageIndex(
-      (prevIndex) => (prevIndex + 1) % currentEnlargedGalleryImages.length
-    );
-  }, [currentEnlargedGalleryImages]);
-
-  const showPrevImage = useCallback(() => {
-    setCurrentImageIndex(
-      (prevIndex) =>
-        (prevIndex - 1 + currentEnlargedGalleryImages.length) %
-        currentEnlargedGalleryImages.length
-    );
-  }, [currentEnlargedGalleryImages]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!enlargedImageItem) return;
-      if (event.key === "ArrowRight" && currentEnlargedGalleryImages.length > 1)
-        showNextImage();
-      if (event.key === "ArrowLeft" && currentEnlargedGalleryImages.length > 1)
-        showPrevImage();
-      if (event.key === "Escape") handleCloseEnlargedImage();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    enlargedImageItem,
-    showNextImage,
-    showPrevImage,
-    handleCloseEnlargedImage,
-    currentEnlargedGalleryImages,
-  ]);
+  const handleViewBundleDetails = (bundle: MenuBundleItem) => {
+    setSelectedBundle(bundle);
+    setShowBundleDetails(true);
+  };
 
   if (!isMounted || !selectedView) {
     return null;
   }
 
+  // Get display name for selected category
   const categoryDisplayName =
     selectedView === ALL_ITEMS_KEY
-      ? t("all_categories_nav")
-      : (() => {
-          const category = categoriesForNav.find((c) => c.id === selectedView);
-          if (!category) return String(selectedView);
+      ? t('all_categories_nav')
+      : selectedView === MENU_BUNDLES_KEY
+        ? t('menu_bundles')
+        : (() => {
+            const category = categoriesForNav.find((c) => c.id === selectedView);
+            if (!category) return String(selectedView);
+            return getCategoryDisplayName(category.name, t);
+          })();
 
-          const translationKey = mapCategoryNameToTranslationKey(category.name);
-          const translatedName = t(translationKey);
-
-          // If translation exists and is different from the key, use it; otherwise use API name
-          return translatedName !== translationKey ? translatedName : category.name;
-        })();
-  const displayError = errorLoadingItems
-    ? t(
-        selectedView === ALL_ITEMS_KEY
-          ? "error_loading_all_menu_items"
-          : "error_loading_menu_items",
-        {
-          categoryName: categoryDisplayName,
-        }
-      )
-    : null;
+  // Calculate cart totals for floating button
+  const itemCount = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = cartState.basket?.total || 0;
 
   return (
     <main className={styles.menuContainer} aria-labelledby="menu-page-heading">
-      <h1 id="menu-page-heading" className={styles.pageTitle}>
-        <UtensilsCrossed size={48} strokeWidth={2} aria-label={t("menu_title")} />
-      </h1>
+      <MenuPageHeader />
 
-      {categoriesForNav.length > 0 && (
-        <CategoryNav
-          categories={categoriesForNav}
-          selectedView={selectedView}
-          onSelect={setSelectedView}
-          allLabel={t("all_categories_nav")}
-        />
-      )}
+      <TableBanner position="top" />
 
-      <section
-        className={styles.categorySection}
-        aria-labelledby={`category-heading-${selectedView}`}
-      >
-        <h2
-          id={`category-heading-${selectedView}`}
-          className={styles.categoryTitle}
-        >
-          {categoryDisplayName}
-        </h2>
-        {isLoadingItems && <p>{t("loading_items", "Loading items...")}</p>}
-        {displayError && <p className={styles.errorMessage}>{displayError}</p>}
-        {!isLoadingItems && !displayError && currentMenuItems.length === 0 && (
-          <p>
-            {t("no_items_in_category", { categoryName: categoryDisplayName })}
-          </p>
-        )}
-        {!isLoadingItems && !displayError && currentMenuItems.length > 0 && (
-          <MenuList
-            items={currentMenuItems}
-            onImageClick={handleImageClick}
-            onFeedbackSuccess={() => {}}
-            getFallbackImage={getFallbackImage}
+      <div className={styles.menuLayout}>
+        <div className={styles.menuMain}>
+          {featuredSpecial && (
+            <FeaturedSpecialComponent
+              special={featuredSpecial}
+              onAddToCart={handleAddFeaturedToCart}
+              onViewDetails={handleViewFeaturedDetails}
+            />
+          )}
+
+          <MenuContent
+            categoriesForNav={categoriesForNav}
+            selectedView={selectedView}
+            onSelectView={setSelectedView}
+            categoryDisplayName={categoryDisplayName}
+            isLoadingItems={isLoadingItems}
+            errorLoadingItems={errorLoadingItems}
+            currentMenuItems={currentMenuItems}
+            menuBundles={menuBundles}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onPageChange={onPageChange}
+            getFallbackImage={setFallbackImage}
+            currentLanguage={currentLanguage}
+            onAddBundleToCart={handleCustomizeBundle}
+            onViewBundleDetails={handleViewBundleDetails}
           />
-        )}
-      </section>
+        </div>
 
-      {enlargedImageItem && currentEnlargedGalleryImages.length > 0 && (
-        <ImageModal
-          isOpen={true}
-          images={currentEnlargedGalleryImages}
-          currentIndex={currentImageIndex}
-          onClose={handleCloseEnlargedImage}
-          onNext={showNextImage}
-          onPrev={showPrevImage}
-          altBase={
-            enlargedImageItem.content?.[currentLanguage]?.name ||
-            enlargedImageItem.content?.en?.name ||
-            enlargedImageItem.id
+        <div className={styles.menuSidebarColumn}>
+          <OrderFlowSidebar followUp={orderTypeFollowUp} />
+        </div>
+      </div>
+
+      <MenuModals
+        featuredSpecial={featuredSpecial}
+        showFeaturedDetails={showFeaturedDetails}
+        showFeaturedCustomization={showFeaturedCustomization}
+        onCloseFeaturedDetails={handleCloseFeaturedDetails}
+        onCloseFeaturedCustomization={() => setShowFeaturedCustomization(false)}
+        onFeaturedCustomizationConfirm={handleFeaturedCustomizationConfirm}
+      />
+
+      {/* Menu Bundle Details Modal */}
+      <MenuBundleDetailsModal
+        bundle={selectedBundle}
+        isOpen={showBundleDetails}
+        onClose={() => setShowBundleDetails(false)}
+        onAddToCart={handleCustomizeBundle}
+        currentLanguage={currentLanguage}
+      />
+
+      {/* Menu Customization Modal */}
+      {selectedBundleForCustomization && selectedBundleForCustomization.menuDefinition && (
+        <MenuCustomizationModal
+          isOpen={!!selectedBundleForCustomization}
+          onClose={() => setSelectedBundleForCustomization(null)}
+          productId={selectedBundleForCustomization.id}
+          productName={
+            selectedBundleForCustomization.content?.[currentLanguage]?.name ||
+            selectedBundleForCustomization.content?.en?.name ||
+            selectedBundleForCustomization.name
           }
-          onImageError={() => getFallbackImage(enlargedImageItem)}
-          previousLabel={t("previous_image_button_label")}
-          nextLabel={t("next_image_button_label")}
-          closeLabel={t("close_image_modal_button", "Close image modal")}
+          basePrice={selectedBundleForCustomization.basePrice}
+          menuDefinition={selectedBundleForCustomization.menuDefinition}
+          onAddToBasket={(selectedOptions, totalPrice) =>
+            handleAddBundleToCart(selectedBundleForCustomization, selectedOptions, totalPrice)
+          }
+          currentLanguage={currentLanguage}
         />
       )}
 
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
-        <Link
-          href="/checkout"
-          className={`${styles.addToOrderButton} ${styles.viewCartButton}`}
-        >
-          {t("view_cart_checkout_button")}
-        </Link>
-      </div>
+      {/* Floating Cart Button */}
+      <FloatingCartButton
+        itemCount={itemCount}
+        totalPrice={cartTotal}
+        onAnimate={cartAnimationTrigger}
+        onClick={() => setIsMobileCartSheetOpen(true)}
+      />
+
+      <MobileCartSheet
+        isOpen={isMobileCartSheetOpen}
+        onClose={() => setIsMobileCartSheetOpen(false)}
+        followUp={orderTypeFollowUp}
+      />
+
+      <OrderFlowModals followUp={orderTypeFollowUp} />
     </main>
   );
 }

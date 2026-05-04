@@ -19,7 +19,7 @@
   color: var(--text-color, #333);
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
@@ -100,7 +100,9 @@
   cursor: pointer;
   font-weight: 500;
   font-size: 0.9rem;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .saveButton {
@@ -134,28 +136,28 @@
   right: 0;
   bottom: 0;
   background-color: var(--border-color, #ccc);
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 28px;
 }
 
 .slider:before {
   position: absolute;
-  content: "";
+  content: '';
   height: 20px;
   width: 20px;
   left: 4px;
   bottom: 4px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
   border-radius: 50%;
 }
 
 input:checked + .slider {
-  background-color: var(--primary-color, #2196F3);
+  background-color: var(--primary-color, #2196f3);
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px var(--primary-color, #2196F3);
+  box-shadow: 0 0 1px var(--primary-color, #2196f3);
 }
 
 input:checked + .slider:before {
@@ -168,7 +170,7 @@ html[data-theme='dark'] .modalContent {
   color: var(--text-color-dark, #eee);
 }
 
-html[data-theme='dark'] .modalHeader, 
+html[data-theme='dark'] .modalHeader,
 html[data-theme='dark'] .modalFooter {
   border-color: var(--border-color-dark, #444);
 }

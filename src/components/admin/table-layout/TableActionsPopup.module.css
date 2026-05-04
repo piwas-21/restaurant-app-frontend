@@ -1,0 +1,223 @@
+.popup {
+  position: absolute;
+  background: white;
+  color: #1a1a1a;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  min-width: 200px;
+  overflow: hidden;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+[data-theme='dark'] .popup {
+  background: var(--secondary-color, #2c2c2c);
+  color: var(--text-color, #e0e0e0);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color, #444);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.popupHeader {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+[data-theme='dark'] .popupHeader {
+  border-bottom: 1px solid var(--border-color, #444);
+  background: var(--secondary-color, #2c2c2c);
+}
+
+.popupHeader h3 {
+  margin: 0 0 0.375rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color, #34393e);
+}
+
+[data-theme='dark'] .popupHeader h3 {
+  color: var(--text-color, #e0e0e0);
+}
+
+.tableBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+[data-theme='dark'] .tableBadge {
+  color: var(--text-muted, #9ca3af);
+}
+
+.badgeIcon {
+  font-size: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: white;
+  color: #1f2937;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+[data-theme='dark'] .actionButton {
+  background: var(--secondary-color, #2c2c2c);
+  color: var(--text-color, #e0e0e0);
+  border-bottom: 1px solid var(--border-color, #444);
+}
+
+.actionButton:last-child {
+  border-bottom: none;
+}
+
+.actionButton:hover {
+  background: #f9fafb;
+  color: #111827;
+}
+
+[data-theme='dark'] .actionButton:hover {
+  background: var(--hover-background, #3a3a3a);
+}
+
+.actionButton:active {
+  transform: scale(0.98);
+}
+
+.actionButton svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #4b5563;
+  transition: color 0.15s ease;
+}
+
+[data-theme='dark'] .actionButton svg {
+  color: var(--text-muted, #9ca3af);
+}
+
+.actionButton:hover svg {
+  color: #1f2937;
+}
+
+[data-theme='dark'] .actionButton:hover svg {
+  color: var(--text-color, #e0e0e0);
+}
+
+.deleteButton {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .deleteButton {
+  color: var(--error-color, #ef4444);
+}
+
+.deleteButton svg {
+  color: #dc2626;
+}
+
+[data-theme='dark'] .deleteButton svg {
+  color: var(--error-color, #ef4444);
+}
+
+.deleteButton:hover {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+[data-theme='dark'] .deleteButton:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.deleteButton:hover svg {
+  color: #991b1b;
+}
+
+[data-theme='dark'] .deleteButton:hover svg {
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .popup {
+  background: #1f2937;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .popupHeader h3 {
+  color: #f9fafb;
+}
+
+[data-theme='dark'] .tableBadge {
+  color: #d1d5db;
+}
+
+[data-theme='dark'] .actionButton {
+  color: #d1d5db;
+}
+
+[data-theme='dark'] .actionButton:hover {
+  background: #374151;
+  color: #f9fafb;
+}
+
+[data-theme='dark'] .actionButton svg {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .actionButton:hover svg {
+  color: #f9fafb;
+}
+
+[data-theme='dark'] .deleteButton {
+  color: #f87171;
+}
+
+[data-theme='dark'] .deleteButton:hover {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .deleteButton svg {
+  color: #ef4444;
+}
+
+[data-theme='dark'] .deleteButton:hover svg {
+  color: #fca5a5;
+}
+
+/* Accessibility */
+.actionButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

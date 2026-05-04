@@ -12,12 +12,14 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/web
 const editCategorySchema = z.object({
   name: z.string().min(1, { message: 'Category name is required' }),
   description: z.string().optional(),
-  imageFile: z.any()
+  imageFile: z
+    .any()
     .refine((files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files[0].type),
-      '.jpg, .jpeg, .png and .webp files are accepted.'
-    ).optional(),
+      '.jpg, .jpeg, .png and .webp files are accepted.',
+    )
+    .optional(),
   isActive: z.boolean(),
   displayOrder: z.coerce.number().int().min(0, { message: 'Display order must be a non-negative integer' }),
 });
@@ -77,13 +79,21 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
         description: data.description,
         isActive: data.isActive,
       };
-      const categoryResponse = await updateCategory(category.id, updateData);
+      const categoryResponse = (await updateCategory(category.id, updateData)) as {
+        success: boolean;
+        data?: any;
+        message?: string;
+        errors?: string[];
+      };
 
       if (!categoryResponse.success) {
         // Handle main update failure
         if (categoryResponse.errors && Array.isArray(categoryResponse.errors) && categoryResponse.errors.length > 0) {
           const errorMessage = categoryResponse.errors[0];
-          setError(errorMessage.toLowerCase().includes('name') ? 'name' : 'root', { type: 'manual', message: errorMessage });
+          setError(errorMessage.toLowerCase().includes('name') ? 'name' : 'root', {
+            type: 'manual',
+            message: errorMessage,
+          });
         } else {
           setError('root', { message: categoryResponse.message || 'Failed to update category' });
         }
@@ -93,7 +103,10 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
 
       // Step 2: Update display order if it has changed
       if (data.displayOrder !== category.displayOrder) {
-        const reorderResponse = await reorderCategory(category.id, data.displayOrder);
+        const reorderResponse = (await reorderCategory(category.id, data.displayOrder)) as {
+          success: boolean;
+          message?: string;
+        };
         if (!reorderResponse.success) {
           // Handle reorder failure, but show partial success
           setError('root', { message: `Category details updated, but reorder failed: ${reorderResponse.message}` });
@@ -104,7 +117,10 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
       // Step 3: Upload image if a new one is provided
       const imageFile = data.imageFile?.[0];
       if (imageFile) {
-        const imageUploadResponse = await uploadCategoryImage(category.id, imageFile);
+        const imageUploadResponse = (await uploadCategoryImage(category.id, imageFile)) as {
+          success: boolean;
+          message?: string;
+        };
         if (!imageUploadResponse.success) {
           // Handle image upload failure, but show partial success
           setError('root', { message: `Category updated, but image upload failed: ${imageUploadResponse.message}` });
@@ -113,8 +129,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
 
       onCategoryUpdated();
       onClose();
-
-    } catch (error) {
+    } catch {
       setError('root', { message: 'An unexpected error occurred.' });
     } finally {
       setIsSubmitting(false);

@@ -10,20 +10,22 @@ import { getProfileCompleteness, pickPreferredAddress } from '@/lib/checkout/pro
 
 interface SmartCheckoutRouter {
   /**
-   * Decide whether the chosen order type can skip /checkout/customer-info,
-   * pre-populate CheckoutContext from the user's profile and (for Delivery)
-   * preferred saved address, then route to the next page.
+   * Decide whether the chosen order type already has the data it needs
+   * to land on /checkout/review, pre-populate CheckoutContext from the
+   * user's profile and (for Delivery) preferred saved address, then
+   * route to the next page.
    *
    * Priority:
    *   1. CheckoutContext already has everything this type needs
    *      (e.g. filled inline by the type-modal in §C1.5.e) — skip the
    *      API calls entirely and go straight to /checkout/review.
-   *   2. Logged-in + profile complete → populate context, skip.
-   *   3. Otherwise → /checkout/customer-info (existing flow).
+   *   2. Logged-in + profile complete → populate context, push to review.
+   *   3. Otherwise → /menu (the type modal will collect what's missing
+   *      via §C1.5.e's inline contact-info fields).
    *
-   * Errors fetching profile/addresses (network blip, 401 after token expiry,
-   * etc.) fall through to /checkout/customer-info — the safe default — so a
-   * transient outage never blocks the customer from ordering.
+   * Errors fetching profile/addresses (network blip, 401 after token
+   * expiry, etc.) also fall through to /menu — the safe default — so
+   * a transient outage never blocks the customer from ordering.
    */
   proceedToCheckout: (orderType: OrderType) => Promise<void>;
   isResolving: boolean;
@@ -72,7 +74,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
       }
 
       if (!isLoggedIn()) {
-        router.push('/checkout/customer-info');
+        router.push('/menu');
         return;
       }
 
@@ -83,7 +85,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
         const { complete } = getProfileCompleteness(user, orderType, addresses);
 
         if (!complete) {
-          router.push('/checkout/customer-info');
+          router.push('/menu');
           return;
         }
 
@@ -114,7 +116,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
         router.push('/checkout/review');
       } catch (error) {
         console.warn('Smart-skip checkout could not resolve profile, falling back:', error);
-        router.push('/checkout/customer-info');
+        router.push('/menu');
       } finally {
         setIsResolving(false);
       }

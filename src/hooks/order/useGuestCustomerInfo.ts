@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
+import { persistPhoneToProfileIfChanged } from '@/lib/checkout/persistPhoneToProfile';
 import {
   validateGuestCustomerInfoField,
   type CustomerInfoField,
@@ -84,7 +85,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
   const { t } = useTranslation();
   const { state: checkoutState, setCustomerInfo } = useCheckout();
   const registration = useInlineRegistration();
-  const { isLoggedIn, isLoadingUser, prefill, visibleFields } = useGuestProfilePrefill(
+  const { user, isLoggedIn, isLoadingUser, prefill, visibleFields } = useGuestProfilePrefill(
     opts.enabled,
     opts.requiredFields,
   );
@@ -170,8 +171,11 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
         // localStorage full / blocked — non-critical.
       }
     }
+
+    persistPhoneToProfileIfChanged({ isLoggedIn, user, newPhone: trimmed.phone });
+
     return trimmed;
-  }, [opts.requiredFields, value, t, phoneRequired, registration, setCustomerInfo, isLoggedIn]);
+  }, [opts.requiredFields, value, t, phoneRequired, registration, setCustomerInfo, isLoggedIn, user]);
 
   return {
     value,

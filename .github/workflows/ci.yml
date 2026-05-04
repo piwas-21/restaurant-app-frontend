@@ -1,0 +1,145 @@
+name: CI
+
+# Ported from .gitlab-ci.yml as part of the GitLab → GitHub migration.
+# Out-of-scope here: build_image / trivy / trigger_deploy_pipeline —
+# those reintroduce when the new deploy strategy lands. Image-pushing
+# does NOT happen here today.
+#
+# Security: this workflow uses no untrusted-input expressions
+# (PR title/body/branch/commit) in run: commands. All inputs are
+# either secrets.GITHUB_TOKEN or static literals.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  install_deps:
+    name: install (cache npm modules)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+
+  prettier_check:
+    name: prettier --check
+    needs: install_deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npx prettier --check .
+
+  typecheck:
+    name: tsc --noEmit
+    needs: install_deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npx tsc --noEmit
+
+  eslint:
+    name: eslint (--max-warnings=0)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npx eslint --max-warnings=0 .
+
+  npm_test:
+    name: npm test (jest)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npm test -- --ci --runInBand
+
+  npm_audit:
+    name: npm audit (high+)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npm audit --audit-level=high
+
+  file_length:
+    name: file-length (CLAUDE.md §4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/check-file-length.sh --all
+
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  njsscan:
+    name: njsscan (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ajinabraham/njsscan-action@master
+        with:
+          args: '. --exit-warning'
+
+  semgrep:
+    name: semgrep (SAST)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep ci --config=auto --error
+
+  retire:
+    name: retire.js (vulnerable deps)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npx retire --severity high

@@ -60,3 +60,6 @@ e2e/.auth/
 test-results/
 playwright-report/
 .playwright-mcp/
+
+# Claude Code per-repo settings (machine-local).
+.claude/

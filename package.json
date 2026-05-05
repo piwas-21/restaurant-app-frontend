@@ -67,6 +67,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "cross-spawn": "^7.0.6"
+    "cross-spawn": "^7.0.6",
+    "postcss": "^8.5.14"
   }
 }

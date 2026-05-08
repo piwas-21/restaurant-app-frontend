@@ -1,0 +1,86 @@
+name: Qodana
+
+# Per-PR static analysis via Qodana for JS/TS. Mirrors backend
+# adoption (restaurant-app-backend#25) and tracks frontend issue #29.
+#
+# Spike phase: continue-on-error: true so we observe the baseline
+# without blocking PRs. The follow-up adopt PR will:
+#   - commit qodana.sarif.json as the baseline
+#   - drop continue-on-error
+#   - pass --baseline,qodana.sarif.json via the action's args input
+#     (NOT in qodana.yaml — Qodana 2026.1 rejects baseline as a
+#     config key, learned in backend PR #25)
+#
+# Triggers:
+#   - PR against main/develop  -> diff-only PR-mode scan
+#   - push to main/develop     -> full-repo scan
+#   - workflow_dispatch        -> manual full-repo scan (baseline /
+#                                 on-demand audits)
+#
+# Security posture: no untrusted-input expressions are interpolated
+# into run: commands. The only ${{ ... }} interpolations are:
+#   - secrets.QODANA_TOKEN_FRONTEND (secret, safe)
+#   - secrets.GITHUB_TOKEN (set by Actions automatically, safe)
+#   - github.event_name (string-typed, only compared to literals)
+#   - github.ref (used as a concurrency group key, not in run:)
+# Third-party actions are SHA-pinned per our hardening policy.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: qodana-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  qodana:
+    name: Qodana (JS/TS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    env:
+      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_FRONTEND }}
+    steps:
+      # Skip the scan gracefully if the token hasn't been provisioned
+      # yet. Without this guard, every PR/push run shows a red X
+      # because the qodana-action errors on missing token. The token
+      # is provisioned post-merge by registering the project at
+      # https://qodana.cloud and adding QODANA_TOKEN_FRONTEND as a
+      # repo secret.
+      - name: Check QODANA_TOKEN_FRONTEND
+        id: token
+        run: |
+          if [ -z "$QODANA_TOKEN" ]; then
+            echo "::warning::QODANA_TOKEN_FRONTEND not set; skipping Qodana scan. Provision the secret to activate."
+            echo "set=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "set=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.token.outputs.set == 'true'
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Qodana scan
+        if: steps.token.outputs.set == 'true'
+        uses: JetBrains/qodana-action@d7b5ec2fbec32197ef447c450e00589ed5f34fd5 # v2026.1
+        with:
+          upload-result: false
+          use-caches: true
+          post-pr-comment: ${{ github.event_name == 'pull_request' }}
+      - name: Upload SARIF artifact (spike only)
+        if: steps.token.outputs.set == 'true' && always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: qodana-sarif
+          path: ${{ runner.temp }}/qodana/results/qodana.sarif.json
+          if-no-files-found: warn
+          retention-days: 14

@@ -103,10 +103,13 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
     // Removed router.push which was clearing params/state unnecessarily
   };
 
-  const handlePageChange = (page: number) => {
-    void fetchProducts(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      void fetchProducts(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [fetchProducts],
+  );
 
   return {
     products,

@@ -218,7 +218,7 @@ export function useServerOrders(): UseServerOrdersReturn {
             });
             // Refresh tables to update status. Fire-and-forget — the
             // 5s polling cycle below recovers from transient failures.
-            refreshTables().catch((err) => console.error('refreshTables after order-created failed:', err));
+            void refreshTables();
           }
 
           const eventTime = new Date();
@@ -240,7 +240,7 @@ export function useServerOrders(): UseServerOrdersReturn {
             prev.map((order) => (order.id === orderId ? data.order || { ...order, ...data } : order)),
           );
           // Refresh tables to update status. Fire-and-forget — polling recovers.
-          refreshTables().catch((err) => console.error('refreshTables after order-status-changed failed:', err));
+          void refreshTables();
 
           const eventTime = new Date();
           setLastEventTime(eventTime);
@@ -261,7 +261,7 @@ export function useServerOrders(): UseServerOrdersReturn {
             prev.map((order) => (order.id === orderId ? { ...order, status: 'Completed', ...data.order } : order)),
           );
           // Fire-and-forget — polling recovers from transient failures.
-          refreshTables().catch((err) => console.error('refreshTables after order-completed failed:', err));
+          void refreshTables();
 
           const eventTime = new Date();
           setLastEventTime(eventTime);
@@ -342,10 +342,10 @@ export function useServerOrders(): UseServerOrdersReturn {
       if (!isMountedRef.current) return;
 
       const since = lastPolledAtRef.current;
-      // Fire-and-forget — the next polling tick re-attempts on failure;
-      // log so transient failures aren't silent.
-      refreshOrders(since || undefined).catch((err) => console.error('refreshOrders (polling) failed:', err));
-      refreshTables().catch((err) => console.error('refreshTables (polling) failed:', err));
+      // Fire-and-forget — refreshOrders/refreshTables self-absorb errors
+      // (try/catch + console.error), and the next polling tick re-attempts.
+      void refreshOrders(since || undefined);
+      void refreshTables();
     }, POLLING_INTERVAL_MS);
   }, [refreshOrders, refreshTables]);
 
@@ -366,8 +366,8 @@ export function useServerOrders(): UseServerOrdersReturn {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && isMountedRef.current) {
         // Fire-and-forget — polling continues regardless.
-        refreshOrders().catch((err) => console.error('refreshOrders on visibilitychange failed:', err));
-        refreshTables().catch((err) => console.error('refreshTables on visibilitychange failed:', err));
+        void refreshOrders();
+        void refreshTables();
 
         const eventSource = eventSourceRef.current;
         if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
@@ -389,8 +389,8 @@ export function useServerOrders(): UseServerOrdersReturn {
 
     // Initial fetch — fire-and-forget; the polling timer below picks up
     // any transient failure on the next 5s tick.
-    refreshOrders().catch((err) => console.error('refreshOrders (initial) failed:', err));
-    refreshTables().catch((err) => console.error('refreshTables (initial) failed:', err));
+    void refreshOrders();
+    void refreshTables();
 
     // Start polling
     const pollingStartTimeout = setTimeout(() => {

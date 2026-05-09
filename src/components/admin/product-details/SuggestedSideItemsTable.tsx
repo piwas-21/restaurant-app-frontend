@@ -67,6 +67,14 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
     }
   };
 
+  // Shared onKeyPress handler — both the empty-state and populated-state
+  // input branches use this. runSearch doesn't try/catch, so surface failures.
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && search.trim()) {
+      runSearch().catch((err) => console.error('SuggestedSideItemsTable: search failed', err));
+    }
+  };
+
   const toggleSelect = (id: string, checked: boolean) => {
     setSelectedIds((prev) =>
       checked ? Array.from(new Set([...(prev || []), id])) : (prev || []).filter((x) => x !== id),
@@ -144,12 +152,7 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
               placeholder={t('search') as string}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && search.trim()) {
-                  // runSearch doesn't try/catch — surface failures.
-                  runSearch().catch((err) => console.error('SuggestedSideItemsTable: search failed', err));
-                }
-              }}
+              onKeyDown={handleSearchKeyPress}
             />
 
             <div className={modalStyles.chipGroup}>
@@ -210,12 +213,7 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
             placeholder={t('search') as string}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && search.trim()) {
-                // runSearch doesn't try/catch — surface failures.
-                runSearch().catch((err) => console.error('SuggestedSideItemsTable: search failed', err));
-              }
-            }}
+            onKeyDown={handleSearchKeyPress}
           />
 
           <div className={modalStyles.chipGroup}>

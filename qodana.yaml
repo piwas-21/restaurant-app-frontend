@@ -5,12 +5,16 @@
 # https://github.com/piwas-21/restaurant-app-backend/blob/develop/qodana.yaml).
 # Frontend issue: piwas-21/restaurant-app-frontend#29.
 #
-# Spike phase: keep the failure threshold lenient so we observe the
-# baseline without blocking PRs. The follow-up adopt PR will:
-#   - commit qodana.sarif.json as the baseline
-#   - tighten failureConditions.severityThresholds.any → 0
-#   - flip continue-on-error: true → false in the workflow
-#   - add the noisy rules we discover here to `exclude:`
+# Adoption notes:
+#   - Baseline of 572 findings committed as qodana.sarif.json. New
+#     PRs are graded against that baseline; only NEW problems block.
+#     The bulk of the baseline (~400) is `Eslint`-prefixed findings —
+#     Qodana runs its own ESLint pass with rules our local ESLint
+#     config has disabled or scoped differently. We absorb them as
+#     baseline rather than re-tuning two ESLint configs in tandem.
+#   - Profile: `qodana.starter`. Ratchet to `qodana.recommended`
+#     in a follow-up after the starter-set baseline is materially
+#     smaller (mirrors the backend ratchet plan).
 
 version: "1.0"
 linter: jetbrains/qodana-js:2026.1
@@ -18,7 +22,9 @@ linter: jetbrains/qodana-js:2026.1
 profile:
   name: qodana.starter
 
-# Lenient threshold for the spike — we want to observe, not block.
+# Block on any NEW finding (anything not in the baseline). Existing
+# baselined items remain reported but don't fail the build — drive
+# them down over time.
 failureConditions:
   severityThresholds:
-    any: 1000
+    any: 0

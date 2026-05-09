@@ -208,11 +208,12 @@ export function usePublicMenu() {
     pageSize,
     onPageChange: handlePageChange,
     refetch: () => {
+      // Returns the promise so callers (e.g. admin save flows) can `await`
+      // a fresh load instead of racing the next render.
       if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-        void fetchMenuBundles(currentPage);
-      } else {
-        void fetchProducts(currentPage, selectedViewRef.current);
+        return fetchMenuBundles(currentPage);
       }
+      return fetchProducts(currentPage, selectedViewRef.current);
     },
   } as const;
 }

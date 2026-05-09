@@ -89,7 +89,8 @@ const UserGroupDetailsPage = () => {
   }, [groupId, t]);
 
   useEffect(() => {
-    fetchData();
+    // fetchData has its own try/catch (sets error state); fire-and-forget.
+    void fetchData();
   }, [fetchData]);
 
   const handleAddMember = async (userId: string) => {
@@ -101,7 +102,7 @@ const UserGroupDetailsPage = () => {
         setResultModalMessage(t('success'));
         setIsResultModalSuccess(true);
         setIsResultModalOpen(true);
-        fetchData();
+        void fetchData();
       } else {
         throw new Error('Failed to add member');
       }
@@ -143,7 +144,7 @@ const UserGroupDetailsPage = () => {
         setIsResultModalSuccess(true);
         setIsResultModalOpen(true);
         setIsDiscountModalOpen(false);
-        fetchData();
+        void fetchData();
       } else {
         throw new Error('Failed to save discount');
       }
@@ -176,7 +177,7 @@ const UserGroupDetailsPage = () => {
       if (response.success || response === true) {
         setResultModalMessage(t('success'));
         setIsResultModalSuccess(true);
-        fetchData();
+        void fetchData();
       } else {
         throw new Error('Failed to delete item');
       }

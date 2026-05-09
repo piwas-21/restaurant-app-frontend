@@ -28,7 +28,8 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     if (hasChosenOrderType && orderTypeState.orderType) {
-      proceedToCheckout(orderTypeState.orderType);
+      // proceedToCheckout has its own try/catch (toasts on failure); fire-and-forget.
+      void proceedToCheckout(orderTypeState.orderType);
       return;
     }
     router.push('/menu');
@@ -379,7 +380,8 @@ export default function CartPage() {
                   disabled={state.isSyncing}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      handleApplyPromoCode();
+                      // handleApplyPromoCode has its own try/catch; fire-and-forget.
+                      void handleApplyPromoCode();
                     }
                   }}
                 />

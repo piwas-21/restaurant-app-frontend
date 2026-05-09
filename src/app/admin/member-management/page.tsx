@@ -48,7 +48,7 @@ const MemberManagementPage = () => {
     const role = activeTab === 'customers' ? 'Customer' : '';
     // For staff, always pass false for showDeleted since they are hard deleted
     const showDeletedParam = activeTab === 'customers' ? showDeleted : false;
-    getUsers(role, showDeletedParam, searchTerm, page, pageSize);
+    void getUsers(role, showDeletedParam, searchTerm, page, pageSize);
   }, [activeTab, searchTerm, showDeleted, page, pageSize, getUsers]);
 
   const handleEdit = (user: UserDto) => {
@@ -198,7 +198,7 @@ const MemberManagementPage = () => {
         onStaffRegistered={() => {
           const role = activeTab === 'customers' ? 'Customer' : '';
           const showDeletedParam = activeTab === 'customers' ? showDeleted : false;
-          getUsers(role, showDeletedParam, searchTerm, page, pageSize);
+          void getUsers(role, showDeletedParam, searchTerm, page, pageSize);
           setStatsKey((prev) => prev + 1); // Refresh statistics
         }}
       />

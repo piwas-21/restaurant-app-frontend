@@ -51,7 +51,8 @@ export default function CartContents({ pickType, onProceed }: CartContentsProps)
   const handleCheckout = () => {
     if (!canCheckout || !orderTypeState.orderType) return;
     onProceed?.();
-    proceedToCheckout(orderTypeState.orderType);
+    // proceedToCheckout has its own try/catch (toasts on failure); fire-and-forget.
+    void proceedToCheckout(orderTypeState.orderType);
   };
 
   return (

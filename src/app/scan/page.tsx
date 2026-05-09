@@ -69,7 +69,8 @@ function ScanPageContent() {
       }
     };
 
-    validateQRCode();
+    // validateQRCode has its own try/catch (sets error state); fire-and-forget.
+    void validateQRCode();
   }, [searchParams, router, t, setTableContext]);
 
   if (loading) {

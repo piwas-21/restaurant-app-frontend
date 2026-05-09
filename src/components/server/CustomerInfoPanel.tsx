@@ -41,7 +41,8 @@ export default function CustomerInfoPanel({
       setDiscountRules(rulesData);
       setIsLoading(false);
     }
-    loadData();
+    // loadData has its own try/catch (silently handles auth errors); fire-and-forget.
+    void loadData();
   }, [user.id]);
 
   const availablePoints = balance?.currentPoints || 0;

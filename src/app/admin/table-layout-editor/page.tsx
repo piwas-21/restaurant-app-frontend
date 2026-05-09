@@ -37,8 +37,9 @@ export default function TableLayoutEditorPage() {
   const layout = useTableLayout();
 
   useEffect(() => {
-    layout.loadTables();
-    layout.loadEntrancePosition();
+    // Both loaders have their own try/catch; fire-and-forget.
+    void layout.loadTables();
+    void layout.loadEntrancePosition();
   }, [layout]);
 
   const mutations = useTableLayoutMutations({

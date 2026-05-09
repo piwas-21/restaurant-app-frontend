@@ -84,8 +84,9 @@ export default function ServerPage() {
 
   // Handle order created
   const handleOrderCreated = useCallback(() => {
-    refreshOrders();
-    refreshTables();
+    // refreshOrders/refreshTables have internal try/catch; fire-and-forget.
+    void refreshOrders();
+    void refreshTables();
   }, [refreshOrders, refreshTables]);
 
   // Handle table status changed - refresh both orders and tables to sync data

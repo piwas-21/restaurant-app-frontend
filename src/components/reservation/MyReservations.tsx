@@ -22,7 +22,8 @@ export default function MyReservations() {
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadReservations();
+    // loadReservations has its own try/catch (sets error state); fire-and-forget.
+    void loadReservations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -47,7 +48,7 @@ export default function MyReservations() {
       await reservationService.cancelReservation(id);
       setShowCancelModal(null);
       setShowSuccessModal(true);
-      loadReservations();
+      void loadReservations();
     } catch (err: any) {
       setCancelError(err.message || t('my_reservations_cancel_error', 'Failed to cancel reservation'));
     } finally {

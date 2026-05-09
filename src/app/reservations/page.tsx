@@ -42,7 +42,8 @@ export default function ReservationsPage() {
 
   // Load all tables on mount
   useEffect(() => {
-    loadAllTables();
+    // loadAllTables has its own try/catch (toasts on failure); fire-and-forget.
+    void loadAllTables();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -58,7 +59,8 @@ export default function ReservationsPage() {
   // Check availability when date or guests change
   useEffect(() => {
     if (selectedDate) {
-      fetchTimeSlots();
+      // fetchTimeSlots has its own try/catch (toasts on failure); fire-and-forget.
+      void fetchTimeSlots();
     } else {
       setAvailableTimeSlots([]);
       setBookedTableIds([]);

@@ -444,7 +444,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Sync basket from backend on mount (when session is ready)
   useEffect(() => {
     if (sessionId) {
-      syncBasket();
+      // syncBasket has its own try/catch (dispatches error state); fire-and-forget.
+      void syncBasket();
     }
   }, [sessionId]);
 

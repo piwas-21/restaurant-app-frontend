@@ -47,7 +47,9 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
       }
     };
 
-    fetchSelectedItemsDetails();
+    // fetchSelectedItemsDetails has its own try/catch (silently absorbs
+    // failures); fire-and-forget.
+    void fetchSelectedItemsDetails();
   }, [selectedSideItemIds]);
 
   const runSearch = async () => {
@@ -148,7 +150,9 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
               onChange={(e) => setSearch(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && search.trim()) {
-                  runSearch();
+                  // runSearch has its own try/catch (resets results on
+                  // failure); fire-and-forget.
+                  void runSearch();
                 }
               }}
             />

@@ -129,7 +129,9 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
 
     // Debounce search
     searchTimeouts.current[index] = setTimeout(() => {
-      searchGlobalIngredients(value, index);
+      // searchGlobalIngredients has its own try/catch (logs and resets
+      // loading state); fire-and-forget inside the timeout.
+      void searchGlobalIngredients(value, index);
     }, 300);
   };
 

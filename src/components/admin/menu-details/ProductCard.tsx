@@ -50,7 +50,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
       }
     };
 
-    fetchProductDetails();
+    // fetchProductDetails has its own try/catch (sets error state); fire-and-forget.
+    void fetchProductDetails();
   }, [item.productId]);
 
   if (loading) {

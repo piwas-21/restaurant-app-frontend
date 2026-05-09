@@ -49,7 +49,9 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
         }
       }
     };
-    fetchAll();
+    // Inner fetchAll doesn't try/catch — surface failures so the
+    // unhandled-rejection isn't silently dropped on the floor.
+    fetchAll().catch((err) => console.error('CategoriesEditor: failed to load categories', err));
   }, [product.categories]);
 
   const toggle = (id: string, checked: boolean) => {

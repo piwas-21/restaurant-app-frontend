@@ -43,7 +43,9 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
         setCategories(resp.data.items);
       }
     };
-    fetchCategories();
+    // Inner fetchCategories doesn't try/catch — surface failures so the
+    // unhandled-rejection isn't silently dropped on the floor.
+    fetchCategories().catch((err) => console.error('VariationsTable: failed to load categories', err));
   }, []);
 
   const updateDraftName = (value: string) => {

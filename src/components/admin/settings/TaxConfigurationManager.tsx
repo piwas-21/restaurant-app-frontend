@@ -38,8 +38,10 @@ export default function TaxConfigurationManager() {
   });
 
   useEffect(() => {
-    fetchTaxConfigs();
-    // Mount-only initial fetch; see OrderTypeManager comment.
+    // fetchTaxConfigs has its own try/catch (toasts on failure);
+    // fire-and-forget. Mount-only initial fetch; see OrderTypeManager
+    // comment.
+    void fetchTaxConfigs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

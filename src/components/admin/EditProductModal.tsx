@@ -82,7 +82,9 @@ const EditProductModal: React.FC<EditProductModalProps> = ({ isOpen, onClose, on
         const response = (await getCategories()) as { success: boolean; data?: { items: any[] } };
         if (response.success) setCategories(response.data?.items || []);
       };
-      fetchAllCategories();
+      // Inner fetchAllCategories doesn't try/catch — surface failures so the
+      // unhandled-rejection isn't silently dropped on the floor.
+      fetchAllCategories().catch((err) => console.error('EditProductModal: failed to load categories', err));
     } else {
       reset();
       setImageFiles([]);

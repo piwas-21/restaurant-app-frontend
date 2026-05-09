@@ -19,7 +19,7 @@ name: Qodana
 #
 # Security posture: no untrusted-input expressions are interpolated
 # into run: commands. The only ${{ ... }} interpolations are:
-#   - secrets.QODANA_TOKEN_FRONTEND (secret, safe)
+#   - secrets.QODANA_TOKEN (secret, safe)
 #   - secrets.GITHUB_TOKEN (set by Actions automatically, safe)
 #   - github.event_name (string-typed, only compared to literals)
 #   - github.ref (used as a concurrency group key, not in run:)
@@ -48,19 +48,19 @@ jobs:
     timeout-minutes: 30
     continue-on-error: true
     env:
-      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_FRONTEND }}
+      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
     steps:
       # Skip the scan gracefully if the token hasn't been provisioned
       # yet. Without this guard, every PR/push run shows a red X
       # because the qodana-action errors on missing token. The token
       # is provisioned post-merge by registering the project at
-      # https://qodana.cloud and adding QODANA_TOKEN_FRONTEND as a
+      # https://qodana.cloud and adding QODANA_TOKEN as a
       # repo secret.
-      - name: Check QODANA_TOKEN_FRONTEND
+      - name: Check QODANA_TOKEN
         id: token
         run: |
           if [ -z "$QODANA_TOKEN" ]; then
-            echo "::warning::QODANA_TOKEN_FRONTEND not set; skipping Qodana scan. Provision the secret to activate."
+            echo "::warning::QODANA_TOKEN not set; skipping Qodana scan. Provision the secret to activate."
             echo "set=false" >> "$GITHUB_OUTPUT"
           else
             echo "set=true" >> "$GITHUB_OUTPUT"

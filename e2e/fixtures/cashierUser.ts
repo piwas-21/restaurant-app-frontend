@@ -1,5 +1,5 @@
 import { test as base, request, type APIRequestContext } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { deleteUserByEmail, promoteE2EUser } from '../helpers/db';
 import { apiBaseUrl } from '../helpers/config';
@@ -100,7 +100,20 @@ export const test = base.extend<{ cashierUser: CashierUser }>({
         storageStatePath,
       };
 
-      await use(user);
+      try {
+        await use(user);
+      } finally {
+        // Drop the per-test storageState file so e2e/.auth/ doesn't
+        // accumulate stale credentials between runs. `force: true`
+        // means missing-file isn't an error if a prior failure
+        // already removed it.
+        try {
+          await rm(storageStatePath, { force: true });
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn(`[cashierUser] teardown failed to remove storageState ${storageStatePath}:`, err);
+        }
+      }
     } finally {
       await ctx.dispose();
       try {

@@ -56,6 +56,13 @@ test.describe('checkout-guest: public ordering as guest', () => {
 
   test('guest browses menu, adds product, places Takeaway order', async ({ page }, testInfo) => {
     const guestEmail = `e2e-guest-${testInfo.testId}-${Date.now()}@test.local`;
+    // Track in createdEmail so the afterEach cleanup runs even if the
+    // backend ends up creating a user record for this guest (e.g. a
+    // future variant of the test ticks the inline-register checkbox,
+    // or the order-create handler decides to materialise a guest
+    // identity). Today the pure-guest path leaves no User row, so
+    // deleteUserByEmail is idempotent and returns 0.
+    createdEmail = guestEmail;
 
     await page.goto('/menu');
 

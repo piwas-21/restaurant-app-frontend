@@ -22,6 +22,26 @@ linter: jetbrains/qodana-js:2026.1
 profile:
   name: qodana.starter
 
+# Path-scoped exclusions for known false positives.
+#
+# `HardcodedPasswords` fires on the connection-string examples in
+# `e2e/helpers/db.ts` (Error message hinting at the DSN format) and
+# `scripts/dev-e2e.sh` (comment with the dev-compose default). Both
+# are documentation strings, already annotated with
+# `pragma: allowlist secret` for our other secret scanners (gitleaks,
+# detect-secrets); Qodana doesn't honour those pragmas, so we
+# path-scope here. We ALSO exclude the rule on `qodana.sarif.json`
+# itself — without that, Qodana scans its own baseline file (which
+# embeds the password-URL snippets describing the original findings)
+# and produces NEW HardcodedPasswords findings against the baseline,
+# blocking every PR.
+exclude:
+  - name: HardcodedPasswords
+    paths:
+      - e2e/helpers/db.ts
+      - scripts/dev-e2e.sh
+      - qodana.sarif.json
+
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive
 # them down over time.

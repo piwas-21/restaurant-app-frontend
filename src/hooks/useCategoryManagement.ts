@@ -46,18 +46,21 @@ export const useCategoryManagement = () => {
   );
 
   useEffect(() => {
-    fetchCategories(1);
+    // `fetchCategories` handles its own errors internally — `void`
+    // signals fire-and-forget. Same below in `handlePageChange`.
+    void fetchCategories(1);
   }, [fetchCategories]);
 
   const handleDeleteCategory = async (categoryId: string) => {
     try {
       const response = (await deleteCategory(categoryId)) as { success: boolean; message?: string; errors?: string[] };
       if (response.success) {
-        // If after deletion the current page becomes empty and it's not page 1, go to previous page
+        // If after deletion the current page becomes empty and it's not page 1, go to previous page.
+        // Refresh is fire-and-forget — `void` matches the pattern used elsewhere in this hook.
         if (categories.length === 1 && currentPage > 1) {
-          fetchCategories(currentPage - 1);
+          void fetchCategories(currentPage - 1);
         } else {
-          fetchCategories(currentPage); // Refresh the current page
+          void fetchCategories(currentPage); // Refresh the current page
         }
         return { success: true, message: 'category_deleted_successfully' };
       } else {
@@ -71,7 +74,7 @@ export const useCategoryManagement = () => {
 
   const handlePageChange = useCallback(
     (page: number) => {
-      fetchCategories(page);
+      void fetchCategories(page);
     },
     [fetchCategories],
   );

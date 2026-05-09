@@ -74,7 +74,9 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
         // Silently fail - categories will remain empty
       }
     };
-    fetchCategories();
+    // Internal try/catch absorbs errors — `void` for fire-and-forget.
+    // Same below for `fetchProducts` calls.
+    void fetchCategories();
   }, []);
 
   // Fetch when tab or category changes
@@ -87,7 +89,7 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
 
     // We want to reset page to 1 when tab OR category changes
     setCurrentPage(1);
-    fetchProducts(1);
+    void fetchProducts(1);
     // fetchProducts closes over component state and is recreated each render;
     // adding it to deps would cause an infinite re-fetch loop. The intent is
     // to fetch when the tab or category filter changes — which the listed
@@ -102,7 +104,7 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
   };
 
   const handlePageChange = (page: number) => {
-    fetchProducts(page);
+    void fetchProducts(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

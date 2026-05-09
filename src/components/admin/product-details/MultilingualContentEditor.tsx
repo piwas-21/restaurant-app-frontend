@@ -45,7 +45,9 @@ const MultilingualContentEditor: React.FC<Props> = ({ product, onUpdated }) => {
         setCategories(resp.data.items);
       }
     };
-    fetchCategories();
+    // Inner fetchCategories doesn't try/catch — surface failures so the
+    // unhandled-rejection isn't silently dropped on the floor.
+    fetchCategories().catch((err) => console.error('MultilingualContentEditor: failed to load categories', err));
   }, []);
 
   const updateEntry = (index: number, field: string, value: string) => {

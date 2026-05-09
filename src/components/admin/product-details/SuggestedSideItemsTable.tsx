@@ -50,7 +50,9 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
         setCategories(resp.data.items);
       }
     };
-    fetchCategories();
+    // Inner fetchCategories doesn't try/catch — surface failures so the
+    // unhandled-rejection isn't silently dropped on the floor.
+    fetchCategories().catch((err) => console.error('SuggestedSideItemsTable: failed to load categories', err));
   }, []);
 
   useEffect(() => {
@@ -144,7 +146,8 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
               onChange={(e) => setSearch(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && search.trim()) {
-                  runSearch();
+                  // runSearch doesn't try/catch — surface failures.
+                  runSearch().catch((err) => console.error('SuggestedSideItemsTable: search failed', err));
                 }
               }}
             />
@@ -209,7 +212,8 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
             onChange={(e) => setSearch(e.target.value)}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && search.trim()) {
-                runSearch();
+                // runSearch doesn't try/catch — surface failures.
+                runSearch().catch((err) => console.error('SuggestedSideItemsTable: search failed', err));
               }
             }}
           />

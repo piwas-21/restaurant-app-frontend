@@ -152,7 +152,7 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
               placeholder={t('search') as string}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyPress={handleSearchKeyPress}
+              onKeyDown={handleSearchKeyPress}
             />
 
             <div className={modalStyles.chipGroup}>
@@ -213,7 +213,7 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
             placeholder={t('search') as string}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={handleSearchKeyPress}
+            onKeyDown={handleSearchKeyPress}
           />
 
           <div className={modalStyles.chipGroup}>

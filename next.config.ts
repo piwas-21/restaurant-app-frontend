@@ -48,10 +48,10 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://www.gstatic.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' http://localhost:5221 https://www.rumirestaurant.ch https://accounts.google.com https://www.gstatic.com",
+              "connect-src 'self' http://localhost:5221 https://www.rumirestaurant.ch https://api.tro-vro.com https://accounts.google.com https://www.gstatic.com",
               "frame-src 'self' https://accounts.google.com https://www.google.com https://maps.google.com",
               "object-src 'none'",
               "base-uri 'self'",
@@ -77,6 +77,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '**.rumirestaurant.ch',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.tro-vro.com',
       },
       {
         protocol: 'https',

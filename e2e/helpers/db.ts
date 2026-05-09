@@ -60,20 +60,18 @@ export async function deleteUserByEmail(email: string): Promise<number> {
 
   // FK constraints to "Users" are RESTRICT, so dependents must go first.
   // Resolve the id once; absent == already cleaned (return 0, idempotent).
-  const idRes = await pool.query<{ id: string }>(
-    'SELECT id FROM "Users" WHERE normalized_email = $1',
-    [email.toUpperCase()],
-  );
+  const idRes = await pool.query<{ id: string }>('SELECT id FROM "Users" WHERE normalized_email = $1', [
+    email.toUpperCase(),
+  ]);
   const userId = idRes.rows[0]?.id;
   if (!userId) return 0;
 
   // Cascade the dependents that the auth flow creates today (Baskets +
   // BasketItems via the login basket-merge handler). Grow this list as new
   // e2e tests touch more user-owned tables (orders, reservations, addresses…).
-  await pool.query(
-    'DELETE FROM "BasketItems" WHERE basket_id IN (SELECT id FROM "Baskets" WHERE user_id = $1)',
-    [userId],
-  );
+  await pool.query('DELETE FROM "BasketItems" WHERE basket_id IN (SELECT id FROM "Baskets" WHERE user_id = $1)', [
+    userId,
+  ]);
   await pool.query('DELETE FROM "Baskets" WHERE user_id = $1', [userId]);
 
   const res = await pool.query('DELETE FROM "Users" WHERE id = $1', [userId]);
@@ -90,9 +88,34 @@ export async function deleteUserByEmail(email: string): Promise<number> {
  * Filters by normalized prefix `E2E-` so unrelated rows are never touched.
  */
 export async function purgeE2EUsers(): Promise<number> {
+  const result = await getPool().query('DELETE FROM "Users" WHERE normalized_email LIKE $1', [
+    `${E2E_USER_PREFIX.toUpperCase()}%`,
+  ]);
+  return result.rowCount ?? 0;
+}
+
+/**
+ * Promote an E2E user to a non-Customer role and mark their email as
+ * confirmed. Used by staff fixtures (cashier, admin, etc.) that need a
+ * pre-verified user without going through the email-verification round-trip.
+ *
+ * Schema mirrors ApplicationUser : IdentityUser<Guid> — see
+ * backend/RestaurantSystem.Domain/Entities/ApplicationUser.cs. The `role`
+ * column is `text`, mapped via `EnumToStringConverter<UserRole>` (see
+ * backend/RestaurantSystem.Infrastructure/Persistence/Configurations/
+ * ApplicationUserConfiguration.cs), so we write the enum *name*, not its
+ * integer value.
+ *
+ * Returns the number of rows updated (0 if the user doesn't exist).
+ */
+export async function promoteE2EUser(
+  email: string,
+  role: 'Admin' | 'Cashier' | 'KitchenStaff' | 'Server',
+): Promise<number> {
+  assertE2EEmail(email);
   const result = await getPool().query(
-    'DELETE FROM "Users" WHERE normalized_email LIKE $1',
-    [`${E2E_USER_PREFIX.toUpperCase()}%`],
+    'UPDATE "Users" SET role = $1, email_confirmed = TRUE WHERE normalized_email = $2',
+    [role, email.toUpperCase()],
   );
   return result.rowCount ?? 0;
 }
@@ -101,8 +124,6 @@ function assertE2EEmail(email: string): void {
   const lowered = email.toLowerCase();
   const prefix = E2E_USER_PREFIX.toLowerCase();
   if (!lowered.startsWith(prefix)) {
-    throw new Error(
-      `Refusing to mutate non-E2E account: "${email}" must start with "${E2E_USER_PREFIX}"`,
-    );
+    throw new Error(`Refusing to mutate non-E2E account: "${email}" must start with "${E2E_USER_PREFIX}"`);
   }
 }

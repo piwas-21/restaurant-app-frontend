@@ -380,8 +380,8 @@ export default function CartPage() {
                   disabled={state.isSyncing}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      // handleApplyPromoCode has its own try/catch; fire-and-forget.
-                      void handleApplyPromoCode();
+                      // handleApplyPromoCode only has try/finally — applyPromoCode re-throws.
+                      handleApplyPromoCode().catch((err) => console.error('cart: failed to apply promo', err));
                     }
                   }}
                 />

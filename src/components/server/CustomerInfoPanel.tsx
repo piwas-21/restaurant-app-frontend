@@ -41,8 +41,11 @@ export default function CustomerInfoPanel({
       setDiscountRules(rulesData);
       setIsLoading(false);
     }
-    // loadData has its own try/catch (silently handles auth errors); fire-and-forget.
-    void loadData();
+    // loadData has no try/catch; surface the rejection so the loader doesn't hang.
+    loadData().catch((err) => {
+      console.error('CustomerInfoPanel: failed to load data', err);
+      setIsLoading(false);
+    });
   }, [user.id]);
 
   const availablePoints = balance?.currentPoints || 0;

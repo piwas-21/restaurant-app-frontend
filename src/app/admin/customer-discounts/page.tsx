@@ -26,7 +26,7 @@ export default function CustomerDiscountsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    fetchDiscounts();
+    void fetchDiscounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showActiveOnly]);
 
@@ -102,7 +102,7 @@ export default function CustomerDiscountsPage() {
       enqueueSnackbar(t('discount_deleted_successfully', 'Discount deleted successfully'), { variant: 'success' });
       setIsDeleteModalOpen(false);
       setDiscountToDelete(null);
-      fetchDiscounts();
+      void fetchDiscounts();
     } catch {
       enqueueSnackbar(t('failed_delete_discount', 'Failed to delete discount'), { variant: 'error' });
     } finally {
@@ -118,7 +118,7 @@ export default function CustomerDiscountsPage() {
   const handleFormSuccess = () => {
     setIsFormOpen(false);
     setEditingDiscount(null);
-    fetchDiscounts();
+    void fetchDiscounts();
   };
 
   const isExpired = (discount: CustomerDiscountRule): boolean => {

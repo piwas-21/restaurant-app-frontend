@@ -42,7 +42,8 @@ export default function AddressManagement() {
 
   // Load addresses
   useEffect(() => {
-    loadAddresses();
+    // loadAddresses has its own try/catch (sets error state); fire-and-forget.
+    void loadAddresses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

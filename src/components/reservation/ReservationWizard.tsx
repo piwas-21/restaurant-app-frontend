@@ -374,7 +374,8 @@ export default function ReservationWizard() {
             className={styles.nextButton}
             onClick={() => {
               if (currentStep === 'date') {
-                loadAvailableSlots(formData.reservationDate, formData.numberOfGuests);
+                // loadAvailableSlots has its own try/catch (sets error state); fire-and-forget.
+                void loadAvailableSlots(formData.reservationDate, formData.numberOfGuests);
               }
               handleNext();
             }}

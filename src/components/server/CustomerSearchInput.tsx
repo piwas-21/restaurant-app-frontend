@@ -56,7 +56,8 @@ export default function CustomerSearchInput({
 
     if (!selectedUser && value.length >= 2) {
       debounceRef.current = setTimeout(() => {
-        performSearch(value);
+        // performSearch has its own try/catch (logs and resets results); fire-and-forget.
+        void performSearch(value);
       }, 300);
     }
 

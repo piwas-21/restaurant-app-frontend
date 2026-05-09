@@ -48,7 +48,8 @@ export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedempti
   };
 
   useEffect(() => {
-    loadBalanceAndCalculate();
+    // loadBalanceAndCalculate has its own try/catch (silently handles auth errors); fire-and-forget.
+    void loadBalanceAndCalculate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderSubtotal]);
 

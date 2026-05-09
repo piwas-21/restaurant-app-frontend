@@ -46,7 +46,8 @@ export default function HomePage() {
       }
     };
 
-    fetchWorkingHours();
+    // fetchWorkingHours has its own try/catch (logs and keeps empty); fire-and-forget.
+    void fetchWorkingHours();
   }, []);
 
   useEffect(() => {

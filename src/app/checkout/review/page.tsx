@@ -121,7 +121,8 @@ export default function ReviewPage() {
         setTaxAmount(cartState.basket?.tax || 0);
       }
     };
-    fetchTaxConfig();
+    // fetchTaxConfig has its own try/catch (logs and falls back); fire-and-forget.
+    void fetchTaxConfig();
   }, [checkoutState.orderType, cartState.basket]);
 
   // Check prerequisites (but don't redirect if order was just confirmed)

@@ -39,7 +39,7 @@ export default function PointRulesPage() {
   };
 
   useEffect(() => {
-    loadRules();
+    void loadRules();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeOnly]);
 
@@ -65,7 +65,7 @@ export default function PointRulesPage() {
       enqueueSnackbar(t('rule_deleted', 'Point rule deleted successfully'), {
         variant: 'success',
       });
-      loadRules();
+      void loadRules();
     } catch {
       enqueueSnackbar(t('error_deleting_rule', 'Failed to delete rule'), {
         variant: 'error',
@@ -82,7 +82,7 @@ export default function PointRulesPage() {
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingRule(null);
-    loadRules();
+    void loadRules();
   };
 
   const handleFormCancel = () => {

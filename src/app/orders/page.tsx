@@ -44,7 +44,8 @@ export default function OrdersPage() {
       router.push('/login');
       return;
     }
-    fetchAll();
+    // fetchAll has its own try/catch (sets error state); fire-and-forget.
+    void fetchAll();
   }, [authLoading, user, router, fetchAll]);
 
   const handleReorder = async (order: OrderDto) => {

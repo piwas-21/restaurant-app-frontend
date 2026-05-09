@@ -79,7 +79,8 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
       }
     };
 
-    fetchProductDetails();
+    // fetchProductDetails has its own try/catch (sets error state); fire-and-forget.
+    void fetchProductDetails();
   }, [isOpen, item]);
 
   if (!isOpen || !item) return null;

@@ -48,14 +48,15 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
     if (isOpen) {
       const today = getTodayISO();
       setReportDate(today);
-      fetchReport(today);
+      // fetchReport has its own try/catch (sets error state); fire-and-forget.
+      void fetchReport(today);
     }
   }, [isOpen, fetchReport]);
 
   // Re-fetch when date changes (user picks a different date)
   const handleDateChange = (newDate: string) => {
     setReportDate(newDate);
-    fetchReport(newDate);
+    void fetchReport(newDate);
   };
 
   if (!isOpen) return null;

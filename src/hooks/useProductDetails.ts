@@ -43,7 +43,8 @@ export const useProductDetails = (productId: string) => {
   }, [productId]);
 
   useEffect(() => {
-    fetchProductData();
+    // fetchProductData has its own try/catch (sets error state); fire-and-forget.
+    void fetchProductData();
   }, [fetchProductData]);
 
   return { product, isLoading, error, fetchProductData };

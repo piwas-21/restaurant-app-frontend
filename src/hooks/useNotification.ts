@@ -106,7 +106,9 @@ export function useNotification() {
     const handleUserInteraction = () => {
       if (!hasUserInteractedRef.current) {
         hasUserInteractedRef.current = true;
-        resumeAudioContext();
+        // resumeAudioContext has its own try/catch (logs and sets
+        // audioBlockedByPolicy on failure); fire-and-forget here.
+        void resumeAudioContext();
       }
     };
 
@@ -153,7 +155,11 @@ export function useNotification() {
   const toggleAudio = useCallback(async () => {
     if (!audioContextRef.current) {
       initializeAudio();
-      setTimeout(() => resumeAudioContext(), 100);
+      setTimeout(() => {
+        // resumeAudioContext has its own try/catch (logs and sets
+        // audioBlockedByPolicy on failure); fire-and-forget here.
+        void resumeAudioContext();
+      }, 100);
     } else {
       const newEnabled = !audioEnabled;
       setAudioEnabled(newEnabled);

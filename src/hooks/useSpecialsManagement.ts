@@ -70,7 +70,8 @@ export const useSpecialsManagement = () => {
   );
 
   useEffect(() => {
-    fetchSpecialProducts(1);
+    // fetchSpecialProducts has its own try/catch (sets error state); fire-and-forget.
+    void fetchSpecialProducts(1);
   }, [fetchSpecialProducts]);
 
   const handleSetFeaturedSpecial = async (productId: string): Promise<{ success: boolean; message: string }> => {

@@ -104,7 +104,8 @@ export function useRestaurantInfo(): UseRestaurantInfoReturn {
     // component on admin save — actually triggers a re-fetch in this
     // consumer rather than re-rendering with the still-stale cache.data.
     subscribers.add(fetchIfStale);
-    fetchIfStale();
+    // fetchIfStale has its own try/catch (sets error state); fire-and-forget.
+    void fetchIfStale();
     return () => {
       subscribers.delete(fetchIfStale);
     };

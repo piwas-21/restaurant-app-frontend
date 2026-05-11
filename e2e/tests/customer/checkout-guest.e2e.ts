@@ -138,18 +138,21 @@ test.describe('checkout-guest: public ordering as guest', () => {
     const orderResponse = await orderResponsePromise;
     expect(orderResponse.ok(), `place order: ${orderResponse.status()} ${await orderResponse.text()}`).toBeTruthy();
 
-    // /checkout/review renders an OrderConfirmationModal (role=dialog) on
-    // successful POST — the user reviews the order number, then dismisses
-    // the modal which is what actually navigates to /checkout/confirmation
-    // (see OrderConfirmationModal.onClose wiring in src/app/checkout/review/
-    // page.tsx → handleCloseConfirmationModal). Without an explicit dismiss
-    // the URL stays at /checkout/review, which is what the early version
-    // of this test hit. The backdrop click triggers onClose.
-    const orderReceivedModal = page.getByRole('dialog', { name: /order received/i });
-    await expect(orderReceivedModal).toBeVisible({ timeout: 10_000 });
-    // Click the modal overlay (outside the dialog content) to dismiss; this
-    // is the same gesture a real user would make to acknowledge the order.
-    await page.locator('body').click({ position: { x: 5, y: 5 } });
+    // /checkout/review renders an OrderConfirmationModal on successful POST
+    // — the user reviews the order number, then dismisses the modal which
+    // is what navigates to /checkout/confirmation (see OrderConfirmationModal
+    // wiring in src/app/checkout/review/page.tsx → handleCloseConfirmationModal).
+    // Without an explicit dismiss the URL stays at /checkout/review, which
+    // is what the early version of this test hit.
+    //
+    // NB: this modal is a hand-rolled <div> rather than the BaseModal wrapper
+    // so it has no role="dialog" / aria-labelledby. Targeting the visible
+    // h2 heading instead. Tracked for a11y migration in frontend #54.
+    await expect(page.getByRole('heading', { level: 2, name: /order received/i })).toBeVisible({ timeout: 10_000 });
+    // The overlay covers the viewport with the modal centered; clicking at
+    // (0,0) reliably lands on the overlay (not the modal content) and fires
+    // its onClick → handleCloseConfirmationModal → router.push(/confirmation).
+    await page.mouse.click(0, 0);
 
     // Confirmation lands. The confirmation page reads ?orderId & orderNumber
     // from the query string and renders the receipt.

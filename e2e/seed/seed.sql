@@ -79,8 +79,6 @@ INSERT INTO product_descriptions (
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
-COMMIT;
-
 -- 5) One dining-room Table — needed for the DineIn order-type followup
 -- test (table-selection modal needs at least one row to render).
 -- PascalCase quoted; columns snake_case.
@@ -116,7 +114,9 @@ SET open_time = INTERVAL '00:00:00',
     is_closed = FALSE,
     updated_by = 'e2e-seed';
 
--- Verification line (visible in CI logs)
+COMMIT;
+
+-- Verification lines (visible in CI logs)
 SELECT count(*) AS products_total FROM "Products";
 SELECT count(*) AS tables_total FROM "Tables";
 SELECT day_of_week, open_time, close_time, is_closed

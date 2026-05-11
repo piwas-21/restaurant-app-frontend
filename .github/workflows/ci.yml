@@ -212,3 +212,156 @@ jobs:
           scan-args: |-
             --lockfile=package-lock.json
             --format=table
+
+  # Playwright HIGH-tier E2E suite. Brings up Postgres + Mailpit as service
+  # containers, checks out the backend repo as a sibling (uses BACKEND_REPO_TOKEN
+  # PAT — the default GITHUB_TOKEN can't read another repo), runs `dotnet ef
+  # database update` + a tiny SQL seed, launches the .NET API natively via
+  # `dotnet run`, then runs `npx playwright test`. See docs/E2E-STRATEGY.md
+  # §CI for the design rationale; tracked in frontend #37.
+  playwright_e2e:
+    name: playwright (e2e)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres123 # pragma: allowlist secret
+          POSTGRES_DB: restaurantdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.29.7
+        ports:
+          - 1025:1025
+          - 8025:8025
+    env:
+      # Backend runtime config (read via .AddEnvironmentVariables() —
+      # double-underscore = nested key per .NET convention)
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://localhost:5221
+      ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123 # pragma: allowlist secret
+      JwtSettings__Secret: e2e-only-jwt-secret-not-for-production-at-least-32-chars-long-padding-padding # pragma: allowlist secret
+      JwtSettings__Issuer: rumi-e2e
+      JwtSettings__Audience: rumi-e2e
+      EmailSettings__SmtpHost: localhost
+      EmailSettings__SmtpPort: '1025'
+      EmailSettings__EnableSsl: 'false'
+      EmailSettings__UseAuthentication: 'false'
+      EmailSettings__Username: e2e
+      EmailSettings__Password: e2e # pragma: allowlist secret
+      EmailSettings__FromEmail: noreply@test.local
+      EmailSettings__FromName: RUMI E2E
+      EmailSettings__AdminEmail: e2e-admin@test.local
+      EmailSettings__FrontendBaseUrl: http://localhost:3000
+      EmailSettings__BackendBaseUrl: http://localhost:5221
+      CorsSettings__AllowedOrigins__0: http://localhost:3000
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      # Frontend / Playwright config
+      E2E_API_BASE_URL: http://localhost:5221
+      E2E_BASE_URL: http://localhost:3000
+      E2E_MAILPIT_URL: http://localhost:8025
+      E2E_DATABASE_URL: postgres://postgres:postgres123@localhost:5432/restaurantdb # pragma: allowlist secret
+      NEXT_PUBLIC_API_URL: http://localhost:5221
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Checkout backend (sibling repo at ./backend)
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: piwas-21/restaurant-app-backend
+          ref: develop
+          path: backend
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install npm deps
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Restore + build backend
+        working-directory: backend
+        run: dotnet build RestaurantSystem.sln --configuration Release --nologo
+
+      - name: Apply EF migrations
+        working-directory: backend
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.*
+          dotnet ef database update \
+            --project RestaurantSystem.Infrastructure \
+            --startup-project RestaurantSystem.Api \
+            --no-build --configuration Release
+
+      - name: Seed test data
+        env:
+          PGPASSWORD: postgres123 # pragma: allowlist secret
+        run: |
+          psql -h localhost -U postgres -d restaurantdb \
+            -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+
+      - name: Start backend
+        working-directory: backend
+        run: |
+          nohup dotnet run --project RestaurantSystem.Api --no-build --configuration Release \
+            > /tmp/backend.log 2>&1 &
+          echo $! > /tmp/backend.pid
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 90); do
+            if curl -fsS --max-time 2 http://localhost:5221/api/health >/dev/null 2>&1; then
+              echo "Backend ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Backend never came up. Last 200 log lines:"
+          tail -200 /tmp/backend.log || true
+          exit 1
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/backend.pid ]; then
+            kill "$(cat /tmp/backend.pid)" 2>/dev/null || true
+          fi
+
+      - name: Dump backend log on failure
+        if: failure()
+        run: tail -300 /tmp/backend.log || true
+
+      - name: Upload Playwright report + traces
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore

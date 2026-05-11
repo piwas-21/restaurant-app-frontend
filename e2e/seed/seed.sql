@@ -81,5 +81,25 @@ INSERT INTO product_descriptions (
 
 COMMIT;
 
+-- 5) One dining-room Table — needed for the DineIn order-type followup
+-- test (table-selection modal needs at least one row to render).
+-- PascalCase quoted; columns snake_case.
+INSERT INTO "Tables" (
+    id, table_number, max_guests, is_active, is_outdoor,
+    position_x, position_y, width, height, created_by
+) VALUES (
+    '00000000-0000-0000-0000-0000000000ta',
+    'T1',
+    4,
+    TRUE,
+    FALSE,
+    0,
+    0,
+    80,
+    80,
+    'e2e-seed'
+) ON CONFLICT (id) DO NOTHING;
+
 -- Verification line (visible in CI logs)
 SELECT count(*) AS products_total FROM "Products";
+SELECT count(*) AS tables_total FROM "Tables";

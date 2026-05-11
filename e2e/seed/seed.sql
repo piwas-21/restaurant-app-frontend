@@ -88,7 +88,7 @@ INSERT INTO "Tables" (
     id, table_number, max_guests, is_active, is_outdoor,
     position_x, position_y, width, height, created_by
 ) VALUES (
-    '00000000-0000-0000-0000-0000000000ta',
+    '00000000-0000-0000-0000-00000000007a',
     'T1',
     4,
     TRUE,

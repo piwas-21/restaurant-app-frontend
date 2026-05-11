@@ -14,10 +14,7 @@ import { test, expect } from '@playwright/test';
  * viewport is 1280×720 so the sidebar renders by default.
  */
 
-// Skipped in CI — the table-selection modal doesn't open against a minimal
-// seed even with a Table row present. Likely a session/context dependency
-// the seed doesn't cover (see frontend #51). Re-enable once that's resolved.
-test.skip('dine-in: sidebar toggle → DineIn → table-selection modal opens', async ({ page }) => {
+test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async ({ page }) => {
   await page.goto('/menu');
 
   // No welcome modal; the sidebar's order-type toggle is the entry point.

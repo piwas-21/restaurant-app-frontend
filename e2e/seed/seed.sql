@@ -79,8 +79,6 @@ INSERT INTO product_descriptions (
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
-COMMIT;
-
 -- 5) One dining-room Table — needed for the DineIn order-type followup
 -- test (table-selection modal needs at least one row to render).
 -- PascalCase quoted; columns snake_case.
@@ -100,6 +98,26 @@ INSERT INTO "Tables" (
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
--- Verification line (visible in CI logs)
+-- 6) Working hours — override the migration's 10:00–23:00 default to
+-- 00:00–23:59 (effectively 24h) so the DineIn order type stays enabled
+-- regardless of the CI wall-clock time. The migration's window is
+-- Europe/Zurich local time (CET = UTC+1 winter, CEST = UTC+2 summer),
+-- so CI runs after 22:00 UTC in winter / 21:00 UTC in summer get DineIn
+-- filtered out by OrderTypeConfigurationService.GetEnabledOrderTypesAsync,
+-- which calls IsOpenNowAsync and removes DineIn when closed. That's
+-- the root cause of e2e/tests/public/order-type-followup.e2e.ts
+-- (frontend #51) failing intermittently.
+UPDATE working_hours
+SET open_time = INTERVAL '00:00:00',
+    close_time = INTERVAL '23:59:59',
+    is_active = TRUE,
+    is_closed = FALSE,
+    updated_by = 'e2e-seed';
+
+COMMIT;
+
+-- Verification lines (visible in CI logs)
 SELECT count(*) AS products_total FROM "Products";
 SELECT count(*) AS tables_total FROM "Tables";
+SELECT day_of_week, open_time, close_time, is_closed
+FROM working_hours ORDER BY day_of_week;

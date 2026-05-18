@@ -46,7 +46,6 @@ test.describe('checkout-guest: public ordering as guest', () => {
       try {
         await deleteUserByEmail(createdEmail);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.warn(`[checkout-guest.e2e] cleanup failed for ${createdEmail}:`, err);
       } finally {
         createdEmail = undefined;
@@ -54,11 +53,7 @@ test.describe('checkout-guest: public ordering as guest', () => {
     }
   });
 
-  // Skipped in CI — the order POST succeeds against a minimal seed but the
-  // frontend doesn't navigate to /checkout/confirmation. Runtime data
-  // dependency (tax config? restaurant info?) the e2e/seed/seed.sql doesn't
-  // cover. Tracked in frontend #50. Re-enable once that seed is extended.
-  test.skip('guest browses menu, adds product, places Takeaway order', async ({ page }, testInfo) => {
+  test('guest browses menu, adds product, places Takeaway order', async ({ page }, testInfo) => {
     const guestEmail = `e2e-guest-${testInfo.testId}-${Date.now()}@test.local`;
     // Track in createdEmail so the afterEach cleanup runs even if the
     // backend ends up creating a user record for this guest (e.g. a
@@ -142,6 +137,22 @@ test.describe('checkout-guest: public ordering as guest', () => {
       .click();
     const orderResponse = await orderResponsePromise;
     expect(orderResponse.ok(), `place order: ${orderResponse.status()} ${await orderResponse.text()}`).toBeTruthy();
+
+    // /checkout/review renders an OrderConfirmationModal on successful POST
+    // — the user reviews the order number, then dismisses the modal which
+    // is what navigates to /checkout/confirmation (see OrderConfirmationModal
+    // wiring in src/app/checkout/review/page.tsx → handleCloseConfirmationModal).
+    // Without an explicit dismiss the URL stays at /checkout/review, which
+    // is what the early version of this test hit.
+    //
+    // NB: this modal is a hand-rolled <div> rather than the BaseModal wrapper
+    // so it has no role="dialog" / aria-labelledby. Targeting the visible
+    // h2 heading instead. Tracked for a11y migration in frontend #54.
+    await expect(page.getByRole('heading', { level: 2, name: /order received/i })).toBeVisible({ timeout: 10_000 });
+    // The overlay covers the viewport with the modal centered; clicking at
+    // (0,0) reliably lands on the overlay (not the modal content) and fires
+    // its onClick → handleCloseConfirmationModal → router.push(/confirmation).
+    await page.mouse.click(0, 0);
 
     // Confirmation lands. The confirmation page reads ?orderId & orderNumber
     // from the query string and renders the receipt.

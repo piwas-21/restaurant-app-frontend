@@ -76,7 +76,8 @@ export default function CashierDiagnostics({
 
   // Fetch on mount
   useEffect(() => {
-    fetchServerDiagnostics();
+    // fetchServerDiagnostics has its own try/catch (sets error state); fire-and-forget.
+    void fetchServerDiagnostics();
   }, [fetchServerDiagnostics]);
 
   // Auto-refresh every 5 seconds if enabled

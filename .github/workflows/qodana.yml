@@ -3,13 +3,15 @@ name: Qodana
 # Per-PR static analysis via Qodana for JS/TS. Mirrors backend
 # adoption (restaurant-app-backend#25) and tracks frontend issue #29.
 #
-# Spike phase: continue-on-error: true so we observe the baseline
-# without blocking PRs. The follow-up adopt PR will:
-#   - commit qodana.sarif.json as the baseline
-#   - drop continue-on-error
-#   - pass --baseline,qodana.sarif.json via the action's args input
-#     (NOT in qodana.yaml — Qodana 2026.1 rejects baseline as a
-#     config key, learned in backend PR #25)
+# Adopt phase (post-spike #32 + #33):
+#   - Baseline lives in-repo at qodana.sarif.json. Only NEW findings
+#     beyond the baseline fail the build. `args: --baseline,...` is
+#     passed via the action's args input (NOT in qodana.yaml —
+#     Qodana 2026.1 rejects baseline as a config key, learned in
+#     backend PR #25).
+#   - The token-presence guard at the start is kept so the workflow
+#     gracefully skips when QODANA_TOKEN isn't set (e.g. during a
+#     token rotation gap), instead of failing the whole job.
 #
 # Triggers:
 #   - PR against main/develop  -> diff-only PR-mode scan
@@ -19,7 +21,7 @@ name: Qodana
 #
 # Security posture: no untrusted-input expressions are interpolated
 # into run: commands. The only ${{ ... }} interpolations are:
-#   - secrets.QODANA_TOKEN_FRONTEND (secret, safe)
+#   - secrets.QODANA_TOKEN (secret, safe)
 #   - secrets.GITHUB_TOKEN (set by Actions automatically, safe)
 #   - github.event_name (string-typed, only compared to literals)
 #   - github.ref (used as a concurrency group key, not in run:)
@@ -46,21 +48,17 @@ jobs:
     name: Qodana (JS/TS)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     env:
-      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_FRONTEND }}
+      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
     steps:
-      # Skip the scan gracefully if the token hasn't been provisioned
-      # yet. Without this guard, every PR/push run shows a red X
-      # because the qodana-action errors on missing token. The token
-      # is provisioned post-merge by registering the project at
-      # https://qodana.cloud and adding QODANA_TOKEN_FRONTEND as a
-      # repo secret.
-      - name: Check QODANA_TOKEN_FRONTEND
+      # Skip the scan gracefully if the token isn't provisioned (e.g.
+      # during a token rotation gap). The token-empty branch sets
+      # set=false; downstream steps gate on it and the job exits clean.
+      - name: Check QODANA_TOKEN
         id: token
         run: |
           if [ -z "$QODANA_TOKEN" ]; then
-            echo "::warning::QODANA_TOKEN_FRONTEND not set; skipping Qodana scan. Provision the secret to activate."
+            echo "::warning::QODANA_TOKEN not set; skipping Qodana scan."
             echo "set=false" >> "$GITHUB_OUTPUT"
           else
             echo "set=true" >> "$GITHUB_OUTPUT"
@@ -76,11 +74,7 @@ jobs:
           upload-result: false
           use-caches: true
           post-pr-comment: ${{ github.event_name == 'pull_request' }}
-      - name: Upload SARIF artifact (spike only)
-        if: steps.token.outputs.set == 'true' && always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: qodana-sarif
-          path: ${{ runner.temp }}/qodana/results/qodana.sarif.json
-          if-no-files-found: warn
-          retention-days: 14
+          # Baseline lives in-repo at qodana.sarif.json — only NEW
+          # findings beyond the baseline fail the build. Passed as
+          # CLI args because `baseline` is not a qodana.yaml key.
+          args: --baseline,qodana.sarif.json

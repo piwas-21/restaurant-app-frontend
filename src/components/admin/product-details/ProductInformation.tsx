@@ -61,7 +61,9 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
         setCategories(resp.data.items);
       }
     };
-    fetchCategories();
+    // Inner fetchCategories doesn't try/catch — surface failures so the
+    // unhandled-rejection isn't silently dropped on the floor.
+    fetchCategories().catch((err) => console.error('ProductInformation: failed to load categories', err));
   }, []);
 
   const onSave = async () => {

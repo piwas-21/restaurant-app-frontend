@@ -44,7 +44,8 @@ export default function PointsHistoryModal({ isOpen, onClose }: PointsHistoryMod
 
   useEffect(() => {
     if (isOpen) {
-      loadTransactions();
+      // loadTransactions has its own try/catch (sets error state); fire-and-forget.
+      void loadTransactions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, page]);

@@ -37,7 +37,8 @@ export default function DeleteConfirmationModal({ order, onClose, onConfirm }: D
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && isConfirmValid && !isDeleting) {
-      handleConfirm();
+      // handleConfirm has its own try/catch (resets isDeleting); fire-and-forget.
+      void handleConfirm();
     } else if (e.key === 'Escape' && !isDeleting) {
       onClose();
     }

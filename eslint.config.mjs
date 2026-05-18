@@ -10,6 +10,14 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // `next lint` already restricts to src/pages/app by default so the local
+  // `npm run lint` gate never touches e2e/. Qodana, however, walks the whole
+  // tree and triggers "ESLint: Install the 'eslint' package" on each e2e file
+  // because no flat-config block matches it. Ignore e2e here so both surfaces
+  // are consistent. (E2E files are typed via tsconfig + checked by Playwright.)
+  {
+    ignores: ["e2e/**", "playwright-report/**", "test-results/**"],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {

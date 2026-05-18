@@ -108,7 +108,8 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
       }
     }
 
-    fetchDetails();
+    // fetchDetails has its own try/catch (logs and resets product); fire-and-forget.
+    void fetchDetails();
     // Re-fetch only when the product identity changes; full `product` ref
     // changes on every render of the parent and would re-fetch needlessly.
     // eslint-disable-next-line react-hooks/exhaustive-deps

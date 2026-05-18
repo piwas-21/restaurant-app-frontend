@@ -57,7 +57,8 @@ export default function AccountPage() {
         console.error('Failed to load profile:', error);
       }
     };
-    loadProfile();
+    // loadProfile has its own try/catch (logs on failure); fire-and-forget.
+    void loadProfile();
   }, []);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

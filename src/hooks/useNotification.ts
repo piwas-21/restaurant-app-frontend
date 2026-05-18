@@ -28,6 +28,7 @@ export function useNotification() {
   const [soundType, setSoundType] = useState<NotificationSoundType>('chime');
   const [repeatUntilMouseMoves, setRepeatUntilMouseMoves] = useState(false);
   const repeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasUserInteractedRef = useRef(false);
 
   // Initialize AudioContext on first user interaction
@@ -106,7 +107,9 @@ export function useNotification() {
     const handleUserInteraction = () => {
       if (!hasUserInteractedRef.current) {
         hasUserInteractedRef.current = true;
-        resumeAudioContext();
+        // resumeAudioContext has its own try/catch (logs and sets
+        // audioBlockedByPolicy on failure); fire-and-forget here.
+        void resumeAudioContext();
       }
     };
 
@@ -149,11 +152,27 @@ export function useNotification() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
+  // Clear any pending audio-resume timeout on unmount so the deferred
+  // setState in resumeAudioContext doesn't fire on an unmounted component.
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current);
+        resumeTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Toggle audio on/off
   const toggleAudio = useCallback(async () => {
     if (!audioContextRef.current) {
       initializeAudio();
-      setTimeout(() => resumeAudioContext(), 100);
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = setTimeout(() => {
+        // resumeAudioContext has its own try/catch (logs and sets
+        // audioBlockedByPolicy on failure); fire-and-forget here.
+        void resumeAudioContext();
+      }, 100);
     } else {
       const newEnabled = !audioEnabled;
       setAudioEnabled(newEnabled);

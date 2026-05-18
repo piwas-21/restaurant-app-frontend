@@ -75,7 +75,8 @@ const ProductDetailsPage = () => {
   }, [productId, type]);
 
   useEffect(() => {
-    fetchProductData();
+    // fetchProductData has its own try/catch (sets error state); fire-and-forget.
+    void fetchProductData();
   }, [fetchProductData]);
 
   const handleConfirmDelete = async () => {
@@ -98,7 +99,7 @@ const ProductDetailsPage = () => {
   };
 
   const handleUpdate = () => {
-    fetchProductData();
+    void fetchProductData();
   };
 
   if (isLoading)

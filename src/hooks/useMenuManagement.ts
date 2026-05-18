@@ -74,7 +74,9 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
         // Silently fail - categories will remain empty
       }
     };
-    fetchCategories();
+    // Internal try/catch absorbs errors — `void` for fire-and-forget.
+    // Same below for `fetchProducts` calls.
+    void fetchCategories();
   }, []);
 
   // Fetch when tab or category changes
@@ -87,13 +89,8 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
 
     // We want to reset page to 1 when tab OR category changes
     setCurrentPage(1);
-    fetchProducts(1);
-    // fetchProducts closes over component state and is recreated each render;
-    // adding it to deps would cause an infinite re-fetch loop. The intent is
-    // to fetch when the tab or category filter changes — which the listed
-    // deps already cover.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, selectedCategoryId]);
+    void fetchProducts(1);
+  }, [activeTab, selectedCategoryId, fetchProducts]);
 
   const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = event.target.value;
@@ -101,10 +98,13 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
     // Removed router.push which was clearing params/state unnecessarily
   };
 
-  const handlePageChange = (page: number) => {
-    fetchProducts(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      void fetchProducts(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [fetchProducts],
+  );
 
   return {
     products,

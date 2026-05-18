@@ -44,7 +44,8 @@ export default function MyOrders() {
   }, []);
 
   useEffect(() => {
-    loadOrders();
+    // loadOrders has its own try/catch (sets error state); fire-and-forget.
+    void loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

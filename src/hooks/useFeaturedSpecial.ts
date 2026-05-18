@@ -27,10 +27,11 @@ export function useFeaturedSpecial() {
       }
     };
 
-    loadFeaturedSpecial();
+    // Internal try/catch absorbs errors — `void` for fire-and-forget.
+    void loadFeaturedSpecial();
   }, []);
 
-  const handleAddFeaturedToCart = useCallback(() => {
+  const handleAddFeaturedToCart = useCallback(async () => {
     if (!featuredSpecial) return;
 
     // Check if product has customization options
@@ -45,9 +46,12 @@ export function useFeaturedSpecial() {
       return;
     }
 
-    // Otherwise, add directly to cart
+    // Otherwise, add directly to cart. `addItem` is async — must await
+    // so the success/error snackbar reflects the actual outcome.
+    // Pre-fix: the sync try/catch couldn't catch an async rejection,
+    // so the success snackbar fired even when addItem failed.
     try {
-      addItem({
+      await addItem({
         productId: featuredSpecial.id,
         quantity: 1,
       });

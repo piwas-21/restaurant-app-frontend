@@ -75,7 +75,7 @@ export default function TableSelector({ selectedTable, onTableSelect, disabled }
   };
 
   useEffect(() => {
-    fetchAvailableTables();
+    void fetchAvailableTables();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -30,7 +30,8 @@ export default function FidelityPointsSection() {
       }
     };
 
-    fetchBalance();
+    // fetchBalance has its own try/catch (sets error state); fire-and-forget.
+    void fetchBalance();
   }, [t]);
 
   const loadBalance = async () => {

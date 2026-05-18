@@ -63,7 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    validateSession();
+    // validateSession has its own try/catch (logs and clears auth); fire-and-forget.
+    void validateSession();
   }, []);
 
   const login = (userData: User) => {

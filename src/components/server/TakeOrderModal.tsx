@@ -64,7 +64,8 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
         console.error('Failed to load categories:', err);
       }
     }
-    loadCategories();
+    // loadCategories has its own try/catch (logs silently); fire-and-forget.
+    void loadCategories();
   }, []);
 
   // Fetch products when category changes
@@ -102,7 +103,8 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
         setIsLoading(false);
       }
     }
-    fetchProducts();
+    // fetchProducts has its own try/catch (sets error state); fire-and-forget.
+    void fetchProducts();
   }, [selectedCategory]);
 
   // Filter products by search (category filtering is done server-side)

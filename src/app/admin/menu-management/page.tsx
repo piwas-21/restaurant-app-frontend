@@ -105,7 +105,7 @@ const MenuManagementContent = () => {
       setIsResultModalSuccess(response.success);
       setIsResultModalOpen(true);
       if (response.success) {
-        fetchProducts();
+        void fetchProducts();
       }
     }
   };
@@ -216,7 +216,7 @@ const MenuManagementContent = () => {
           onClose={() => setIsEditMenuModalOpen(false)}
           onProductUpdated={() => {
             setIsEditMenuModalOpen(false);
-            fetchProducts();
+            void fetchProducts();
           }}
           product={selectedProduct}
         />
@@ -227,7 +227,7 @@ const MenuManagementContent = () => {
             onClose={() => setIsEditModalOpen(false)}
             onProductUpdated={() => {
               setIsEditModalOpen(false);
-              fetchProducts();
+              void fetchProducts();
             }}
             product={selectedProduct}
           />

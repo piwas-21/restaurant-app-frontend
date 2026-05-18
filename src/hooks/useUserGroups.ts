@@ -46,7 +46,8 @@ export function useUserGroups(): UseUserGroupsReturn {
   }, []);
 
   useEffect(() => {
-    refetch();
+    // refetch has its own try/catch (sets hasLoadError); fire-and-forget.
+    void refetch();
   }, [refetch]);
 
   const createGroup = useCallback(

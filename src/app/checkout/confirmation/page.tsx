@@ -47,7 +47,8 @@ function ConfirmationContent() {
         // Silently fail - fallback to default tax label
       }
     };
-    fetchTaxConfig();
+    // fetchTaxConfig has its own try/catch (silently falls back); fire-and-forget.
+    void fetchTaxConfig();
   }, []);
 
   useEffect(() => {
@@ -70,7 +71,8 @@ function ConfirmationContent() {
       }
     };
 
-    fetchOrder();
+    // fetchOrder has its own try/catch (sets error state); fire-and-forget.
+    void fetchOrder();
   }, [orderId, t]);
 
   const formatPrice = (price: number) => {

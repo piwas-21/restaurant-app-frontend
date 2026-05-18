@@ -44,7 +44,10 @@ export function usePublicMenu() {
         setCategories([]);
       }
     };
-    init();
+    // `init` handles its own errors internally — `void` signals
+    // intentional fire-and-forget. Same pattern applies to the
+    // fetchProducts / fetchMenuBundles call sites below.
+    void init();
   }, []);
 
   const fetchProducts = useCallback(
@@ -172,18 +175,18 @@ export function usePublicMenu() {
     if (!selectedView) return;
     setCurrentPage(1);
     if (selectedView === MENU_BUNDLES_KEY) {
-      fetchMenuBundles(1);
+      void fetchMenuBundles(1);
     } else {
-      fetchProducts(1, selectedView);
+      void fetchProducts(1, selectedView);
     }
   }, [selectedView, fetchProducts, fetchMenuBundles]);
 
   const handlePageChange = useCallback(
     (page: number) => {
       if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-        fetchMenuBundles(page);
+        void fetchMenuBundles(page);
       } else {
-        fetchProducts(page, selectedViewRef.current);
+        void fetchProducts(page, selectedViewRef.current);
       }
       // Scroll to top of menu section
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -205,11 +208,12 @@ export function usePublicMenu() {
     pageSize,
     onPageChange: handlePageChange,
     refetch: () => {
+      // Returns the promise so callers (e.g. admin save flows) can `await`
+      // a fresh load instead of racing the next render.
       if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-        fetchMenuBundles(currentPage);
-      } else {
-        fetchProducts(currentPage, selectedViewRef.current);
+        return fetchMenuBundles(currentPage);
       }
+      return fetchProducts(currentPage, selectedViewRef.current);
     },
   } as const;
 }

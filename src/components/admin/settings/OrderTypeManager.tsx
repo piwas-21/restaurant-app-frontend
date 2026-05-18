@@ -20,9 +20,11 @@ export default function OrderTypeManager() {
   const [pendingOrderType, setPendingOrderType] = useState<OrderType | null>(null);
 
   useEffect(() => {
-    fetchConfigurations();
-    // Mount-only initial fetch; fetchConfigurations is a stable closure
-    // over component state — including it in deps would not change behaviour.
+    // fetchConfigurations has its own try/catch (toasts on failure);
+    // fire-and-forget. Mount-only initial fetch; fetchConfigurations is a
+    // stable closure over component state — including it in deps would
+    // not change behaviour.
+    void fetchConfigurations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -95,7 +95,8 @@ export default function SpecialsManagementPage() {
   };
 
   const handlePageChange = (page: number) => {
-    fetchSpecialProducts(page);
+    // fetchSpecialProducts has its own try/catch (sets error state); fire-and-forget.
+    void fetchSpecialProducts(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

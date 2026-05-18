@@ -33,7 +33,8 @@ const UserStatistics: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStats();
+    // fetchStats has its own try/catch (sets error state); fire-and-forget.
+    void fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -20,7 +20,8 @@ export default function FidelityAnalyticsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAnalytics();
+    // fetchAnalytics has its own try/catch (toasts on failure); fire-and-forget.
+    void fetchAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

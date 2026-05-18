@@ -48,7 +48,9 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      fetchTaxConfigurations();
+      // fetchTaxConfigurations has its own try/catch (resets state on
+      // failure); fire-and-forget.
+      void fetchTaxConfigurations();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);

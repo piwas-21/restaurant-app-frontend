@@ -21,9 +21,9 @@ export default function WorkingHoursManager() {
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
 
   useEffect(() => {
-    loadWorkingHours();
-    checkIsOpen();
-    // Mount-only initial fetch; see OrderTypeManager comment.
+    // Both callees have internal try/catch; fire-and-forget. See OrderTypeManager.
+    void loadWorkingHours();
+    void checkIsOpen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

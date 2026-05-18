@@ -83,7 +83,8 @@ function VerifyEmailContent() {
       }
     };
 
-    verifyUserEmail();
+    // verifyUserEmail has its own try/catch (sets error state); fire-and-forget.
+    void verifyUserEmail();
   }, [searchParams, router, t]);
 
   return (

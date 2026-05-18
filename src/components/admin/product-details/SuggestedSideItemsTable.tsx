@@ -50,7 +50,9 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
         setCategories(resp.data.items);
       }
     };
-    fetchCategories();
+    // Inner fetchCategories doesn't try/catch — surface failures so the
+    // unhandled-rejection isn't silently dropped on the floor.
+    fetchCategories().catch((err) => console.error('SuggestedSideItemsTable: failed to load categories', err));
   }, []);
 
   useEffect(() => {
@@ -62,6 +64,14 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
     if (resp.success && resp.data?.items) {
       const items = resp.data.items.filter((p: any) => p.name.toLowerCase().includes(search.toLowerCase()));
       setResults(items);
+    }
+  };
+
+  // Shared onKeyPress handler — both the empty-state and populated-state
+  // input branches use this. runSearch doesn't try/catch, so surface failures.
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && search.trim()) {
+      runSearch().catch((err) => console.error('SuggestedSideItemsTable: search failed', err));
     }
   };
 
@@ -142,11 +152,7 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
               placeholder={t('search') as string}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && search.trim()) {
-                  runSearch();
-                }
-              }}
+              onKeyDown={handleSearchKeyPress}
             />
 
             <div className={modalStyles.chipGroup}>
@@ -207,11 +213,7 @@ const SuggestedSideItemsTable: React.FC<SuggestedSideItemsTableProps> = ({
             placeholder={t('search') as string}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && search.trim()) {
-                runSearch();
-              }
-            }}
+            onKeyDown={handleSearchKeyPress}
           />
 
           <div className={modalStyles.chipGroup}>

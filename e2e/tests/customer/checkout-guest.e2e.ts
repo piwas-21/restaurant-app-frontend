@@ -149,10 +149,14 @@ test.describe('checkout-guest: public ordering as guest', () => {
     // so it has no role="dialog" / aria-labelledby. Targeting the visible
     // h2 heading instead. Tracked for a11y migration in frontend #54.
     await expect(page.getByRole('heading', { level: 2, name: /order received/i })).toBeVisible({ timeout: 10_000 });
-    // The overlay covers the viewport with the modal centered; clicking at
-    // (0,0) reliably lands on the overlay (not the modal content) and fires
-    // its onClick → handleCloseConfirmationModal → router.push(/confirmation).
-    await page.mouse.click(0, 0);
+    // Click the modal's overlay directly to dismiss. The overlay has
+    // `data-testid="order-confirmation-overlay"` precisely so this test isn't
+    // dependent on viewport coordinates or the CSS-Module class hash. The
+    // overlay covers the viewport with the modal centered, so a position
+    // near the corner lands outside the inner modal box; clicking there fires
+    // onClose → handleCloseConfirmationModal → router.push(/confirmation).
+    // When the modal migrates to BaseModal (#54), switch to `getByRole('dialog')`.
+    await page.getByTestId('order-confirmation-overlay').click({ position: { x: 5, y: 5 } });
 
     // Confirmation lands. The confirmation page reads ?orderId & orderNumber
     // from the query string and renders the receipt.

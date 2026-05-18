@@ -34,7 +34,7 @@ export default function OrderConfirmationModal({
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay} onClick={onClose} data-testid="order-confirmation-overlay" role="presentation">
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.iconContainer}>
           <div className={styles.successIcon}>

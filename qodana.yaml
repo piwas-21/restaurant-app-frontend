@@ -42,6 +42,18 @@ exclude:
       - scripts/dev-e2e.sh
       - qodana.sarif.json
 
+  # Qodana runs its own ESLint integration that walks the whole tree.
+  # Local `next lint` defaults to src/pages/app and skips e2e/; Qodana
+  # doesn't know that. When new e2e files land (cashierUser fixture,
+  # cashier order-flow spec, etc.), Qodana reports "ESLint: Install
+  # the 'eslint' package" because no flat-config block matches them.
+  # The e2e tree is tsc-typed and Playwright-checked; we don't need a
+  # second linter pass on it. eslint.config.mjs also has matching
+  # `ignores: ["e2e/**", ...]` so the two surfaces stay in lockstep.
+  - name: Eslint
+    paths:
+      - e2e
+
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive
 # them down over time.

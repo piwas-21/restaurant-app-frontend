@@ -76,7 +76,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
   }, [hasTableContext, tableContext.tableNumber, hasChosenOrderType, setOrderType, setTable]);
 
   const pickType = useCallback(
-    async (type: OrderType, source: string = 'sidebar') => {
+    async (type: OrderType, source = 'sidebar') => {
       setOrderType(type);
       // Funnel anchor — fires once per click, regardless of whether a
       // follow-up modal opens (the modal is a sub-step of the same intent).

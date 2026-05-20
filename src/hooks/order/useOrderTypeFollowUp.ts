@@ -24,8 +24,12 @@ interface FollowUpState {
    * Takeaway opens its info modal only when the customer needs to
    * provide name/email/phone — logged-in users with all three on file
    * commit silently and proceed straight to the cart.
+   *
+   * `source` is the analytics surface tag forwarded to
+   * `order_type_selected` so the funnel can distinguish desktop sidebar
+   * vs. mobile bottom-sheet. Defaults to 'sidebar'.
    */
-  pickType: (type: OrderType) => void;
+  pickType: (type: OrderType, source?: string) => void;
   closeFollowUp: () => void;
 }
 
@@ -72,13 +76,13 @@ export function useOrderTypeFollowUp(): FollowUpState {
   }, [hasTableContext, tableContext.tableNumber, hasChosenOrderType, setOrderType, setTable]);
 
   const pickType = useCallback(
-    async (type: OrderType) => {
+    async (type: OrderType, source: string = 'sidebar') => {
       setOrderType(type);
       // Funnel anchor — fires once per click, regardless of whether a
       // follow-up modal opens (the modal is a sub-step of the same intent).
       trackEvent('order_type_selected', {
         orderType: type,
-        source: 'sidebar',
+        source,
         loggedIn: isLoggedInForAnalytics(),
       });
       if (type === OrderType.DineIn) {

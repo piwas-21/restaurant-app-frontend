@@ -43,8 +43,10 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
   test('takeaway guest: order_type_selected → checkout_opened → checkout_completed', async ({ page }, testInfo) => {
     const guestEmail = `e2e-analytics-${testInfo.testId}-${Date.now()}@test.local`;
 
-    await page.goto('/menu');
+    // Attach the analytics listener BEFORE navigating so the helper's
+    // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
+    await page.goto('/menu');
 
     const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
     await expect(sidebar).toBeVisible({ timeout: 15_000 });
@@ -154,8 +156,10 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     // Lighter-weight check — DineIn's full happy path needs a table-pick UI
     // exercise that's already in order-type-followup.e2e.ts. Here we just
     // assert the analytics fire on the first funnel step for this persona.
-    await page.goto('/menu');
+    // Attach the analytics listener BEFORE navigating so the helper's
+    // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
+    await page.goto('/menu');
 
     const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
     await expect(sidebar).toBeVisible({ timeout: 15_000 });
@@ -180,8 +184,10 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
   });
 
   test('delivery guest: order_type_selected fires with Delivery payload + opens address modal', async ({ page }) => {
-    await page.goto('/menu');
+    // Attach the analytics listener BEFORE navigating so the helper's
+    // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
+    await page.goto('/menu');
 
     const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
     await expect(sidebar).toBeVisible({ timeout: 15_000 });
@@ -209,8 +215,10 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     // Regression guard: a previous draft hooked the event in a useEffect
     // watching orderType — re-renders fired duplicates. Confirm one click =
     // one event by toggling through all three types.
-    await page.goto('/menu');
+    // Attach the analytics listener BEFORE navigating so the helper's
+    // addInitScript runs on this page load (and any subsequent ones).
     const analytics = await captureAnalytics(page);
+    await page.goto('/menu');
 
     const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
     await expect(sidebar).toBeVisible({ timeout: 15_000 });

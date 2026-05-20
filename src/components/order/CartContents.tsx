@@ -11,8 +11,10 @@ import OrderTypeToggle from './OrderTypeToggle';
 import styles from './CartContents.module.css';
 
 interface CartContentsProps {
-  /** Toggle click handler — comes from `useOrderTypeFollowUp.pickType`. */
-  pickType: (type: OrderType) => void;
+  /** Toggle click handler — comes from `useOrderTypeFollowUp.pickType`.
+   * Accepts an optional `source` we forward via the wrapper below so the
+   * `order_type_selected` event carries the correct surface tag. */
+  pickType: (type: OrderType, source?: string) => void;
   /** Optional callback fired right after Proceed-to-Checkout — lets a parent
    * sheet close itself before the route transition completes (mobile sheet). */
   onProceed?: () => void;
@@ -60,9 +62,14 @@ export default function CartContents({ pickType, onProceed, analyticsSource = 's
     void proceedToCheckout(orderTypeState.orderType, analyticsSource);
   };
 
+  // Wrap pickType so the analytics surface tag flows into
+  // `order_type_selected` (otherwise the event always reads as 'sidebar'
+  // even when the user clicked inside the mobile bottom-sheet).
+  const handlePick = (type: OrderType) => pickType(type, analyticsSource);
+
   return (
     <>
-      <OrderTypeToggle onPick={pickType} />
+      <OrderTypeToggle onPick={handlePick} />
 
       {cartState.items.length === 0 ? (
         <div className={styles.empty}>

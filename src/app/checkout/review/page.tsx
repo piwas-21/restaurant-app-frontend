@@ -28,6 +28,7 @@ import {
 } from '@/types/order';
 import { useSnackbar } from 'notistack';
 import { Loader2 } from 'lucide-react';
+import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import styles from '../../styles/ReviewPage.module.css';
 
 export default function ReviewPage() {
@@ -278,6 +279,19 @@ export default function ReviewPage() {
 
       // Submit order
       const createdOrder = await createOrder(orderCommand);
+
+      // Funnel terminator — fired right after the backend confirms the
+      // order. Lives inside the try-block so a backend 4xx/5xx doesn't
+      // log a phantom completion. Re-instruments the legacy
+      // /checkout/confirmation page-view that disappeared in C1.5.h
+      // (see BUGS-IMPROVEMENTS-PLAN §C1.9 — analytics continuity).
+      trackEvent('checkout_completed', {
+        orderType: checkoutState.orderType ?? undefined,
+        orderId: createdOrder.id,
+        orderNumber: createdOrder.orderNumber,
+        loggedIn: isLoggedInForAnalytics(),
+        source: 'review',
+      });
 
       // Store order info for modal (capture email before clearing checkout state)
       setConfirmedOrder({

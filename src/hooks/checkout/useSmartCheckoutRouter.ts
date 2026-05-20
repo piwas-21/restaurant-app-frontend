@@ -7,6 +7,7 @@ import { OrderType } from '@/types/order';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses } from '@/services/addressService';
 import { getProfileCompleteness, pickPreferredAddress } from '@/lib/checkout/profileCompleteness';
+import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 interface SmartCheckoutRouter {
   /**
@@ -26,8 +27,13 @@ interface SmartCheckoutRouter {
    * Errors fetching profile/addresses (network blip, 401 after token
    * expiry, etc.) also fall through to /menu — the safe default — so
    * a transient outage never blocks the customer from ordering.
+   *
+   * `source` is forwarded to the `checkout_opened` analytics event so the
+   * funnel can attribute the click to the surface that fired it (desktop
+   * sidebar, mobile bottom-sheet, legacy /cart page). Defaults to
+   * 'sidebar' for back-compat with callers that don't supply one.
    */
-  proceedToCheckout: (orderType: OrderType) => Promise<void>;
+  proceedToCheckout: (orderType: OrderType, source?: string) => Promise<void>;
   isResolving: boolean;
 }
 
@@ -64,11 +70,20 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
   const [isResolving, setIsResolving] = useState(false);
 
   const proceedToCheckout = useCallback(
-    async (orderType: OrderType) => {
+    async (orderType: OrderType, source: string = 'sidebar') => {
       // Fast path: the type modals (§C1.5.e) already wrote everything we
       // need into CheckoutContext. No API calls, no smart-skip logic — just
       // go to review.
       if (checkoutContextSatisfies(orderType, checkoutState.customerInfo, checkoutState.deliveryAddress)) {
+        // checkout_opened — fires on the user-action path (Proceed click),
+        // not from a route-watching effect, so it never double-fires on
+        // hydration/replay. Only emitted once we've confirmed the route is
+        // actually about to happen (i.e. inputs are sufficient).
+        trackEvent('checkout_opened', {
+          orderType,
+          source,
+          loggedIn: isLoggedInForAnalytics(),
+        });
         router.push('/checkout/review');
         return;
       }
@@ -113,6 +128,14 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
           }
         }
 
+        // checkout_opened — smart-skip variant. The logged-in path lands
+        // here when the profile was sufficient and we filled CheckoutContext
+        // from the API. Same payload shape as the fast-path emission above.
+        trackEvent('checkout_opened', {
+          orderType,
+          source,
+          loggedIn: true,
+        });
         router.push('/checkout/review');
       } catch (error) {
         console.warn('Smart-skip checkout could not resolve profile, falling back:', error);

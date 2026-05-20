@@ -16,6 +16,11 @@ interface CartContentsProps {
   /** Optional callback fired right after Proceed-to-Checkout — lets a parent
    * sheet close itself before the route transition completes (mobile sheet). */
   onProceed?: () => void;
+  /** Analytics-surface tag forwarded to `checkout_opened` so the funnel can
+   * distinguish desktop sidebar vs. mobile bottom-sheet vs. legacy /cart.
+   * Defaults to 'sidebar' — see useSmartCheckoutRouter for the funnel
+   * contract. */
+  analyticsSource?: string;
 }
 
 /**
@@ -24,7 +29,7 @@ interface CartContentsProps {
  * caller wraps it in `<aside>` (sidebar) or `BaseModal` (sheet) and
  * provides any title.
  */
-export default function CartContents({ pickType, onProceed }: CartContentsProps) {
+export default function CartContents({ pickType, onProceed, analyticsSource = 'sidebar' }: CartContentsProps) {
   const { t } = useTranslation();
   const { state: cartState, updateItem, removeItem } = useCart();
   const { state: orderTypeState, hasChosenOrderType } = useOrderType();
@@ -52,7 +57,7 @@ export default function CartContents({ pickType, onProceed }: CartContentsProps)
     if (!canCheckout || !orderTypeState.orderType) return;
     onProceed?.();
     // proceedToCheckout has its own try/catch (toasts on failure); fire-and-forget.
-    void proceedToCheckout(orderTypeState.orderType);
+    void proceedToCheckout(orderTypeState.orderType, analyticsSource);
   };
 
   return (

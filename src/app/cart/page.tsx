@@ -29,7 +29,10 @@ export default function CartPage() {
   const handleCheckout = () => {
     if (hasChosenOrderType && orderTypeState.orderType) {
       // proceedToCheckout has its own try/catch (toasts on failure); fire-and-forget.
-      void proceedToCheckout(orderTypeState.orderType);
+      // Analytics-source 'cart_page' marks the legacy /cart entry — the new
+      // C1.5 flow uses 'sidebar' / 'mobile_sheet'. Lets the funnel report on
+      // how many users still land here vs. the redesigned surfaces.
+      void proceedToCheckout(orderTypeState.orderType, 'cart_page');
       return;
     }
     router.push('/menu');

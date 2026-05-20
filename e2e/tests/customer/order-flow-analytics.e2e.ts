@@ -218,11 +218,17 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
 
     await toggle.getByRole('button', { name: /dine in/i }).click();
     // Close the table modal so the next click isn't intercepted.
-    await page.getByRole('dialog', { name: /select your table/i }).getByRole('button', { name: /close/i }).click();
+    await page
+      .getByRole('dialog', { name: /select your table/i })
+      .getByRole('button', { name: /close/i })
+      .click();
     await expect(page.getByRole('dialog', { name: /select your table/i })).toBeHidden({ timeout: 5_000 });
 
     await toggle.getByRole('button', { name: /delivery/i }).click();
-    await page.getByRole('dialog', { name: /where should we deliver/i }).getByRole('button', { name: /close/i }).click();
+    await page
+      .getByRole('dialog', { name: /where should we deliver/i })
+      .getByRole('button', { name: /close/i })
+      .click();
     await expect(page.getByRole('dialog', { name: /where should we deliver/i })).toBeHidden({ timeout: 5_000 });
 
     await toggle.getByRole('button', { name: /takeaway/i }).click();

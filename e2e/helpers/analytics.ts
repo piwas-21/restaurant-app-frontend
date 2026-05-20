@@ -6,10 +6,7 @@ import type { Page } from '@playwright/test';
  * fixed funnel so adding a new event here is a deliberate decision, not
  * a silent contract change.
  */
-export type CapturedAnalyticsName =
-  | 'order_type_selected'
-  | 'checkout_opened'
-  | 'checkout_completed';
+export type CapturedAnalyticsName = 'order_type_selected' | 'checkout_opened' | 'checkout_completed';
 
 export interface CapturedAnalyticsEvent {
   event: CapturedAnalyticsName;

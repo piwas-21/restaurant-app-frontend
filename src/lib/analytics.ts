@@ -22,10 +22,7 @@
  * SSR-safe: every call is a no-op when `window` is undefined.
  */
 
-export type AnalyticsEventName =
-  | 'order_type_selected'
-  | 'checkout_opened'
-  | 'checkout_completed';
+export type AnalyticsEventName = 'order_type_selected' | 'checkout_opened' | 'checkout_completed';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */

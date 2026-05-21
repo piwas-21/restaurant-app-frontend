@@ -70,7 +70,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
   const [isResolving, setIsResolving] = useState(false);
 
   const proceedToCheckout = useCallback(
-    async (orderType: OrderType, source: string = 'sidebar') => {
+    async (orderType: OrderType, source = 'sidebar') => {
       // Fast path: the type modals (§C1.5.e) already wrote everything we
       // need into CheckoutContext. No API calls, no smart-skip logic — just
       // go to review.

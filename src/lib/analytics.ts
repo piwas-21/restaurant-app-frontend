@@ -44,11 +44,9 @@ interface DataLayerEntry extends AnalyticsEventPayload {
   ts: number;
 }
 
-declare global {
-  interface Window {
-    dataLayer?: DataLayerEntry[];
-  }
-}
+// Window.dataLayer is declared globally in src/types/global.d.ts as
+// `Record<string, unknown>[]` — kept loose there to keep the global
+// scope dependency-free. DataLayerEntry is structurally compatible.
 
 /**
  * Fire an analytics event. Safe to call from any client component / hook.

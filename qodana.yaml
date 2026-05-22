@@ -50,9 +50,18 @@ exclude:
   # The e2e tree is tsc-typed and Playwright-checked; we don't need a
   # second linter pass on it. eslint.config.mjs also has matching
   # `ignores: ["e2e/**", ...]` so the two surfaces stay in lockstep.
+  #
+  # The same "Install the 'eslint' package" error fires on top-level
+  # `src/lib/*.ts` and any `src/types/*.d.ts` file — Qodana's bundled
+  # ESLint can't resolve a flat-config block for them even though
+  # local `npx eslint <file>` runs clean. Excluded with the same
+  # rationale: src/lib + src/types are tsc-typed; the local lint gate
+  # (`npm run lint`) covers them on commit.
   - name: Eslint
     paths:
       - e2e
+      - src/lib
+      - src/types
 
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive

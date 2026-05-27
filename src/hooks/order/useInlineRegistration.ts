@@ -10,6 +10,11 @@ import {
   type RegisterFieldsErrors,
   type RegisterFieldsValue,
 } from '@/components/order/GuestCustomerInfoFields';
+import {
+  isDuplicateEmailError,
+  isDuplicateEmailResponse,
+  type RegisterCustomerFailure,
+} from './duplicateEmailDetection';
 
 const EMPTY_REGISTER_ERRORS: RegisterFieldsErrors = { password: '', confirmPassword: '' };
 /** Long enough for users to read both lines of the success/failure toast. */
@@ -115,8 +120,7 @@ export function useInlineRegistration(): UseInlineRegistrationResult {
           );
           return { status: 'ok' };
         }
-        const message = (result?.message as string | undefined) ?? '';
-        if (/already.*exist|already.*registered|duplicate/i.test(message)) {
+        if (isDuplicateEmailResponse(result as RegisterCustomerFailure)) {
           return { status: 'duplicate' };
         }
         // Unknown failure — toast and continue as guest.
@@ -129,6 +133,12 @@ export function useInlineRegistration(): UseInlineRegistrationResult {
         );
         return { status: 'ok' };
       } catch (err) {
+        // Future-proofing: if a later `apiClient` refactor starts throwing on
+        // non-2xx, surface duplicate-email as the inline error here too rather
+        // than silently degrading to the generic toast (issue #1).
+        if (isDuplicateEmailError(err)) {
+          return { status: 'duplicate' };
+        }
         console.warn('Inline registration failed:', err);
         enqueueSnackbar(
           t(

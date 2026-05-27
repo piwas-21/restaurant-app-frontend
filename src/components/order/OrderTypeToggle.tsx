@@ -35,7 +35,7 @@ const ICON_BY_TYPE: Record<OrderType, React.ReactNode> = {
  * auto-pins DineIn, the toggle highlights DineIn without an explicit
  * click).
  */
-export default function OrderTypeToggle({ onPick }: OrderTypeToggleProps) {
+function OrderTypeToggleImpl({ onPick }: OrderTypeToggleProps) {
   const { t } = useTranslation();
   const { state } = useOrderType();
   const { enabled, loading } = useEnabledOrderTypes();
@@ -67,6 +67,13 @@ export default function OrderTypeToggle({ onPick }: OrderTypeToggleProps) {
     </div>
   );
 }
+
+// Memoized so the `useCallback`-stabilised `onPick` from CartContents (PR
+// #74 review) actually prevents this child from re-rendering on parent
+// re-renders. Props are a single function reference; context-driven state
+// (orderType, enabled list) already invalidates only on real changes.
+const OrderTypeToggle = React.memo(OrderTypeToggleImpl);
+export default OrderTypeToggle;
 
 function labelFor(type: OrderType, t: (k: string, fallback: string) => string): string {
   switch (type) {

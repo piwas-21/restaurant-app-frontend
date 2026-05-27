@@ -65,7 +65,11 @@ export default function CartContents({ pickType, onProceed, analyticsSource = 's
   // Wrap pickType so the analytics surface tag flows into
   // `order_type_selected` (otherwise the event always reads as 'sidebar'
   // even when the user clicked inside the mobile bottom-sheet).
-  const handlePick = (type: OrderType) => pickType(type, analyticsSource);
+  // Memoized so `OrderTypeToggle` doesn't re-render on every parent render.
+  const handlePick = React.useCallback(
+    (type: OrderType) => pickType(type, analyticsSource),
+    [pickType, analyticsSource],
+  );
 
   return (
     <>

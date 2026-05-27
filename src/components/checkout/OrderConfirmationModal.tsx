@@ -63,10 +63,12 @@ export default function OrderConfirmationModal({
         <span className={styles.orderNumberValue}>{orderNumber}</span>
       </div>
 
-      <div className={styles.emailInfo}>
-        <span className={styles.emailLabel}>{t('confirmation_email_sent_to', 'Confirmation email sent to:')}</span>
-        <span className={styles.email}>{customerEmail}</span>
-      </div>
+      {customerEmail && (
+        <div className={styles.emailInfo}>
+          <span className={styles.emailLabel}>{t('confirmation_email_sent_to', 'Confirmation email sent to:')}</span>
+          <span className={styles.email}>{customerEmail}</span>
+        </div>
+      )}
 
       <div className={styles.actions}>
         {isLoggedIn ? (

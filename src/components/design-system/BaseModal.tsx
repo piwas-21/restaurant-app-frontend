@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import styles from './BaseModal.module.css';
 
+export type BaseModalSize = 'sm' | 'md' | 'lg';
+
 export interface BaseModalProps {
   /** Controls visibility. When false the modal is unmounted, not just hidden. */
   isOpen: boolean;
@@ -17,6 +19,11 @@ export interface BaseModalProps {
   children: ReactNode;
   /** Optional footer (e.g. action buttons). */
   footer?: ReactNode;
+  /**
+   * Optional preset width. `sm` ≈ 400px, `md` (default) ≈ 560px, `lg` ≈ 800px.
+   * For finer control, use `className` to override `max-width` directly.
+   */
+  size?: BaseModalSize;
   /**
    * Extra className appended to the dialog box. Use for content-specific
    * width/padding overrides (e.g. a wider variant for the customization
@@ -52,6 +59,7 @@ export default function BaseModal({
   title,
   children,
   footer,
+  size = 'md',
   className,
   disableBackdropClose,
   disableEscapeClose,
@@ -106,7 +114,7 @@ export default function BaseModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`${styles.dialog}${className ? ` ${className}` : ''}`}
+        className={`${styles.dialog} ${styles[`size_${size}`]}${className ? ` ${className}` : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>

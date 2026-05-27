@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { getProducts, getPublicMenuBundles } from '@/services/menuService';
 import type { MenuBundleItem, MenuItem } from '@/types/menu';
 import { ALL_ITEMS_KEY } from './constants';
@@ -46,13 +46,22 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  // Request-id guard: rapid view/category switching can race two in-flight
+  // fetches. We bump this counter on every fetch start, capture the local id,
+  // and only commit state if our local id is still the latest after the await.
+  // The loading flag is still owned by the latest request so the UI's
+  // true→false transition tracks the freshest fetch.
+  const requestIdRef = useRef(0);
+
   const fetchProducts = useCallback(async (page: number, categoryId: string | typeof ALL_ITEMS_KEY | null) => {
+    const localId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     setItems([]);
     try {
       const catId = categoryId === ALL_ITEMS_KEY ? null : categoryId;
       const response = (await getProducts(page, PAGE_SIZE, catId || undefined)) as ProductListResponse;
+      if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
       if (!response.success) throw new Error(response.message || 'Failed to fetch products');
 
       setTotalPages(response.data?.totalPages || 1);
@@ -62,20 +71,23 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
       const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, catId || undefined));
       setItems(mapped.filter(isVisible));
     } catch (e: unknown) {
+      if (localId !== requestIdRef.current) return;
       console.error('Failed to fetch products', e);
       setError(errorMessage(e, 'Failed to fetch products'));
       setItems([]);
     } finally {
-      setIsLoading(false);
+      if (localId === requestIdRef.current) setIsLoading(false);
     }
   }, []);
 
   const fetchMenuBundles = useCallback(async (page: number) => {
+    const localId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     setMenuBundles([]);
     try {
       const response = (await getPublicMenuBundles(page, PAGE_SIZE)) as MenuBundleListResponse;
+      if (localId !== requestIdRef.current) return;
       if (!response.success) throw new Error(response.message || 'Failed to fetch menu bundles');
 
       setTotalPages(response.data?.totalPages || 1);
@@ -85,11 +97,12 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
       const mapped = (response.data?.items || []).map(mapBundleDtoToMenuBundleItem);
       setMenuBundles(mapped.filter(isVisible));
     } catch (e: unknown) {
+      if (localId !== requestIdRef.current) return;
       console.error('Failed to fetch menu bundles', e);
       setError(errorMessage(e, 'Failed to fetch menu bundles'));
       setMenuBundles([]);
     } finally {
-      setIsLoading(false);
+      if (localId === requestIdRef.current) setIsLoading(false);
     }
   }, []);
 

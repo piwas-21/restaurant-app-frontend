@@ -5,15 +5,20 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-app.png';
 
 /** Coerce wire `basePrice` (number | string | missing) into a number. */
 function parseBasePrice(value: number | string | undefined): number {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') return parseFloat(value || '0');
+  if (typeof value === 'number') return Number.isNaN(value) ? 0 : value;
+  if (typeof value === 'string') {
+    const n = parseFloat(value || '0');
+    return Number.isNaN(n) ? 0 : n;
+  }
   return 0;
 }
 
 /** Build the gallery used by both products and bundles (same shape). */
 function mapImages(images: ProductImageDto[] | undefined, fallbackAlt: string): MenuItemImage[] {
   if (!Array.isArray(images)) return [];
-  return images.map((img) => ({ url: img.url, alt: img.altText || fallbackAlt }));
+  return images
+    .filter((img): img is ProductImageDto => !!img && typeof img.url === 'string' && img.url.length > 0)
+    .map((img) => ({ url: img.url, alt: img.altText || fallbackAlt }));
 }
 
 /** Normalise the per-locale content map; falls back to an `en` entry if absent. */
@@ -22,7 +27,9 @@ function mapContent(
   fallbackName: string,
   fallbackDescription: string,
 ): MenuItem['content'] {
-  if (!content || typeof content !== 'object') {
+  // `typeof [] === 'object'` is true, so guard arrays explicitly: a wire
+  // payload that mis-sends `content: []` should fall through to the default.
+  if (!content || typeof content !== 'object' || Array.isArray(content)) {
     return { en: { name: fallbackName, description: fallbackDescription, ingredient: '' } };
   }
   const out: Partial<Record<string, MenuItemContent>> = {};
@@ -45,7 +52,7 @@ function mapContent(
 export function mapProductDtoToMenuItem(p: ProductDto, categoryKey?: string): MenuItem {
   const fallbackName = p.name || 'Unnamed Item';
   const primaryImage =
-    p.imageUrl || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0].url : PLACEHOLDER_IMAGE);
+    p.imageUrl || (Array.isArray(p.images) && p.images[0]?.url ? p.images[0].url : PLACEHOLDER_IMAGE);
   return {
     id: p.id,
     name: fallbackName,

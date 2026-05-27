@@ -61,7 +61,10 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
     return () => {
       cancelled = true;
     };
-  }, [selectedSideItemIds]);
+    // Depend on a serialized key so the effect only re-runs when the actual
+    // IDs change. The array reference is unstable across parent renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSideItemIds.join(',')]);
 
   const runSearch = async () => {
     if (!search.trim()) return;

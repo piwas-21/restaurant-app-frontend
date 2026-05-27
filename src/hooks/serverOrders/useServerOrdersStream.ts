@@ -7,31 +7,19 @@ import {
   healthCheckNeedsReconnect,
   registerServerSseListeners,
   useSseRecovery,
-  OrdersUpdater,
+  HEALTH_CHECK_INTERVAL_MS,
+  MAX_SILENCE_MS,
+  MIN_RECONNECT_INTERVAL_MS,
+  MAX_RECONNECT_ATTEMPTS,
+  MAX_BACKOFF_MS,
+  SSE_ENDPOINT,
+  INITIAL_CONNECT_DELAY_MS,
+  type ConnectionState,
+  type UseServerOrdersStreamOptions,
+  type UseServerOrdersStreamReturn,
 } from './serverOrdersSseHandlers';
 
-const HEALTH_CHECK_INTERVAL_MS = 20000;
-const MAX_SILENCE_MS = 35000;
-const MIN_RECONNECT_INTERVAL_MS = 2000;
-const MAX_RECONNECT_ATTEMPTS = 15;
-const MAX_BACKOFF_MS = 30000;
-const SSE_ENDPOINT = '/api/events/service';
-const INITIAL_CONNECT_DELAY_MS = 500;
-
-export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
-
-export interface UseServerOrdersStreamOptions {
-  onOrderUpdate: (updater: OrdersUpdater) => void;
-  onTablesRefreshRequested: () => void;
-  onVisibilityResume: () => void;
-}
-
-export interface UseServerOrdersStreamReturn {
-  isConnected: boolean;
-  lastEventTime: Date | null;
-  connectionState: ConnectionState;
-  error: string | null;
-}
+export type { ConnectionState };
 
 /**
  * Owns the server (waitstaff) orders SSE connection: connect/reconnect

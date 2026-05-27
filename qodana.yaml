@@ -16,7 +16,7 @@
 #     in a follow-up after the starter-set baseline is materially
 #     smaller (mirrors the backend ratchet plan).
 
-version: "1.0"
+version: '1.0'
 linter: jetbrains/qodana-js:2026.1
 
 profile:
@@ -62,6 +62,11 @@ exclude:
       - e2e
       - src/lib
       - src/types
+      # Same Qodana flat-config gap as src/lib + src/types — bundled
+      # ESLint can't resolve a config block for nested hook subdirs
+      # (added 2026-05-27 when useServerOrders was split into
+      # src/hooks/serverOrders/*). Local `npm run lint` covers it.
+      - src/hooks/serverOrders
 
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive

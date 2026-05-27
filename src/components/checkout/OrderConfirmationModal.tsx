@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, Home, ShoppingBag } from 'lucide-react';
+import BaseModal from '@/components/design-system/BaseModal';
 import styles from './OrderConfirmationModal.module.css';
 
 interface OrderConfirmationModalProps {
@@ -13,6 +14,17 @@ interface OrderConfirmationModalProps {
   onClose?: () => void;
 }
 
+/**
+ * Post-checkout confirmation dialog (closes #54).
+ *
+ * Migrated from a hand-rolled overlay to the shared `BaseModal` primitive
+ * (CLAUDE.md frontend §5 rule 2). `BaseModal` now owns the portal,
+ * backdrop, ESC / backdrop dismissal, body-scroll lock, `role="dialog"` +
+ * `aria-modal` + `aria-labelledby`, and the X close button — so the
+ * component-local overlay/modal/title scaffolding is gone. Component-
+ * specific styles (icon, order-number card, email info, action buttons,
+ * guest note) remain in the colocated CSS module.
+ */
 export default function OrderConfirmationModal({
   isOpen,
   orderNumber,
@@ -23,8 +35,6 @@ export default function OrderConfirmationModal({
   const router = useRouter();
   const { t } = useTranslation();
 
-  if (!isOpen) return null;
-
   const handleViewOrders = () => {
     router.push('/orders');
   };
@@ -33,59 +43,60 @@ export default function OrderConfirmationModal({
     router.push('/menu');
   };
 
+  // BaseModal requires a non-optional onClose. The caller always passes one,
+  // but the prop is historically optional — fall back to a no-op to preserve
+  // the existing contract without forcing a caller-side change.
+  const handleClose = onClose ?? (() => {});
+
   return (
-    <div className={styles.overlay} onClick={onClose} data-testid="order-confirmation-overlay" role="presentation">
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.iconContainer}>
-          <div className={styles.successIcon}>
-            <CheckCircle size={80} />
-          </div>
-        </div>
-
-        <h2 className={styles.title}>{t('order_received', 'Order Received')}</h2>
-
-        <p className={styles.message}>
-          {t(
-            'order_confirmation_message',
-            'Thank you for your order. We have received it and will start preparing it shortly.',
-          )}
-        </p>
-
-        <div className={styles.orderNumberCard}>
-          <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
-          <span className={styles.orderNumberValue}>{orderNumber}</span>
-        </div>
-
-        <div className={styles.emailInfo}>
-          <span className={styles.emailLabel}>{t('confirmation_email_sent_to', 'Confirmation email sent to:')}</span>
-          <span className={styles.email}>{customerEmail}</span>
-        </div>
-
-        <div className={styles.actions}>
-          {isLoggedIn ? (
-            <>
-              <button className={styles.primaryButton} onClick={handleViewOrders}>
-                <ShoppingBag size={20} />
-                {t('track_order', 'Track Order')}
-              </button>
-              <button className={styles.secondaryButton} onClick={handleBackToMenu}>
-                <Home size={20} />
-                {t('back_to_menu', 'Back to Menu')}
-              </button>
-            </>
-          ) : (
-            <>
-              <button className={styles.primaryButton} onClick={handleBackToMenu}>
-                <Home size={20} />
-                {t('back_to_menu', 'Back to Menu')}
-              </button>
-              <p className={styles.guestNote}>
-                {t('login_to_track_order', '💡 Login to your account to track your order status in real-time.')}
-              </p>
-            </>
-          )}
+    <BaseModal isOpen={isOpen} onClose={handleClose} title={t('order_received', 'Order Received')}>
+      <div className={styles.iconContainer}>
+        <div className={styles.successIcon}>
+          <CheckCircle size={80} />
         </div>
       </div>
-    </div>
+
+      <p className={styles.message}>
+        {t(
+          'order_confirmation_message',
+          'Thank you for your order. We have received it and will start preparing it shortly.',
+        )}
+      </p>
+
+      <div className={styles.orderNumberCard}>
+        <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
+        <span className={styles.orderNumberValue}>{orderNumber}</span>
+      </div>
+
+      <div className={styles.emailInfo}>
+        <span className={styles.emailLabel}>{t('confirmation_email_sent_to', 'Confirmation email sent to:')}</span>
+        <span className={styles.email}>{customerEmail}</span>
+      </div>
+
+      <div className={styles.actions}>
+        {isLoggedIn ? (
+          <>
+            <button className={styles.primaryButton} onClick={handleViewOrders}>
+              <ShoppingBag size={20} />
+              {t('track_order', 'Track Order')}
+            </button>
+            <button className={styles.secondaryButton} onClick={handleBackToMenu}>
+              <Home size={20} />
+              {t('back_to_menu', 'Back to Menu')}
+            </button>
+          </>
+        ) : (
+          <>
+            <button className={styles.primaryButton} onClick={handleBackToMenu}>
+              <Home size={20} />
+              {t('back_to_menu', 'Back to Menu')}
+            </button>
+            <p className={styles.guestNote}>
+              {t('login_to_track_order', '💡 Login to your account to track your order status in real-time.')}
+            </p>
+          </>
+        )}
+      </div>
+    </BaseModal>
   );
 }

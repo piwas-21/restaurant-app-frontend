@@ -32,10 +32,14 @@ export function useUserGroups(): UseUserGroupsReturn {
       const response = await getUserGroups();
       if (response.success && response.data) {
         setGroups(response.data);
+        setHasLoadError(false);
       } else {
+        // API responded with { success: false } envelope (no HTTP error thrown).
+        // Treat as a load failure so the banner surfaces instead of an empty list.
+        console.error('Failed to fetch user groups:', response.message);
         setGroups([]);
+        setHasLoadError(true);
       }
-      setHasLoadError(false);
     } catch (err) {
       console.error('Failed to fetch user groups:', err);
       setGroups([]);

@@ -24,14 +24,21 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
 
   // Fetch details for selected side items on mount or when selectedSideItemIds change
   React.useEffect(() => {
+    // Race guard: rapid changes to `selectedSideItemIds` can land an older
+    // fetch after a newer one. The service layer swallows fetch errors, so we
+    // use the cancellation-flag pattern (same idiom as
+    // `useGuestProfilePrefill`) to suppress stale state writes.
+    let cancelled = false;
+
     const fetchSelectedItemsDetails = async () => {
       if (selectedSideItemIds.length === 0) {
-        setSelectedItemsDetails(new Map());
+        if (!cancelled) setSelectedItemsDetails(new Map());
         return;
       }
 
       try {
         const resp = await getProducts(1, 100, undefined);
+        if (cancelled) return;
         if (resp.success) {
           const detailsMap = new Map<string, { name: string; description?: string }>();
           selectedSideItemIds.forEach((id: string) => {
@@ -50,7 +57,14 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
     // fetchSelectedItemsDetails has its own try/catch (silently absorbs
     // failures); fire-and-forget.
     void fetchSelectedItemsDetails();
-  }, [selectedSideItemIds]);
+
+    return () => {
+      cancelled = true;
+    };
+    // Depend on a serialized key so the effect only re-runs when the actual
+    // IDs change. The array reference is unstable across parent renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSideItemIds.join(',')]);
 
   const runSearch = async () => {
     if (!search.trim()) return;

@@ -33,7 +33,6 @@ src/app/styles/RegisterStaffModal.module.css
 src/app/styles/ServerPage.module.css
 src/app/styles/Reservations.module.css
 src/app/styles/HomePage.module.css
-src/app/styles/CustomerInfoPage.module.css
 src/app/styles/KitchenStaffPage.module.css
 src/app/styles/CashierPage.module.css
 src/app/styles/ConfirmationPage.module.css
@@ -145,9 +144,7 @@ src/components/account/DeleteAccountSection.module.css
 src/components/account/AddressManagement.module.css
 src/hooks/cashier/useCashierOrdersStream.ts
 src/hooks/useNotification.ts
-src/hooks/useServerOrders.ts
 src/hooks/admin/useAdminOrdersData.ts
-src/hooks/usePublicMenu.ts
 src/hooks/useTableLayout.ts
 src/services/orderService.ts
 src/services/reservationService.ts

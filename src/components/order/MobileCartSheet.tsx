@@ -41,7 +41,7 @@ export default function MobileCartSheet({ isOpen, onClose, followUp }: MobileCar
       title={t('shopping_basket', 'Shopping Basket')}
       className={styles.sheet}
     >
-      <CartContents pickType={followUp.pickType} onProceed={onClose} />
+      <CartContents pickType={followUp.pickType} onProceed={onClose} analyticsSource="mobile_sheet" />
     </BaseModal>
   );
 }

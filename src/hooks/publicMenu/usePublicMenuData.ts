@@ -58,23 +58,27 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
     setIsLoading(true);
     setError(null);
     setItems([]);
+    const reportError = (msg: string) => {
+      setError(msg);
+      setItems([]);
+    };
     try {
       const catId = categoryId === ALL_ITEMS_KEY ? null : categoryId;
       const response = (await getProducts(page, PAGE_SIZE, catId || undefined)) as ProductListResponse;
       if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
-      if (!response.success) throw new Error(response.message || 'Failed to fetch products');
-
+      if (!response.success) {
+        reportError(response.message || 'Failed to fetch products');
+        return;
+      }
       setTotalPages(response.data?.totalPages || 1);
       setTotalCount(response.data?.totalCount || 0);
       setCurrentPage(page);
-
       const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, catId || undefined));
       setItems(mapped.filter(isVisible));
     } catch (e: unknown) {
       if (localId !== requestIdRef.current) return;
       console.error('Failed to fetch products', e);
-      setError(errorMessage(e, 'Failed to fetch products'));
-      setItems([]);
+      reportError(errorMessage(e, 'Failed to fetch products'));
     } finally {
       if (localId === requestIdRef.current) setIsLoading(false);
     }
@@ -85,22 +89,26 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
     setIsLoading(true);
     setError(null);
     setMenuBundles([]);
+    const reportError = (msg: string) => {
+      setError(msg);
+      setMenuBundles([]);
+    };
     try {
       const response = (await getPublicMenuBundles(page, PAGE_SIZE)) as MenuBundleListResponse;
       if (localId !== requestIdRef.current) return;
-      if (!response.success) throw new Error(response.message || 'Failed to fetch menu bundles');
-
+      if (!response.success) {
+        reportError(response.message || 'Failed to fetch menu bundles');
+        return;
+      }
       setTotalPages(response.data?.totalPages || 1);
       setTotalCount(response.data?.totalCount || 0);
       setCurrentPage(page);
-
       const mapped = (response.data?.items || []).map(mapBundleDtoToMenuBundleItem);
       setMenuBundles(mapped.filter(isVisible));
     } catch (e: unknown) {
       if (localId !== requestIdRef.current) return;
       console.error('Failed to fetch menu bundles', e);
-      setError(errorMessage(e, 'Failed to fetch menu bundles'));
-      setMenuBundles([]);
+      reportError(errorMessage(e, 'Failed to fetch menu bundles'));
     } finally {
       if (localId === requestIdRef.current) setIsLoading(false);
     }

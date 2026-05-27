@@ -114,7 +114,7 @@ export default function BaseModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`${styles.dialog} ${styles[`size_${size}`]}${className ? ` ${className}` : ''}`}
+        className={[styles.dialog, styles[`size_${size}`], className].filter(Boolean).join(' ')}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>

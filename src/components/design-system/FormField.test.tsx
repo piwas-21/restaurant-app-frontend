@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import FormField from './FormField';
 
 describe('FormField', () => {
@@ -13,16 +13,22 @@ describe('FormField', () => {
     expect(screen.getByTestId('email-input')).toBeInTheDocument();
   });
 
-  it('clicking the label focuses the wrapped input (label wraps input)', () => {
+  it('associates the label with the wrapped input so clicking the label focuses it', () => {
     render(
       <FormField label="Username">
-        <input data-testid="username" />
+        <input type="text" />
       </FormField>,
     );
-    // The label is the wrapper <label> — assert its text label is associated.
-    const labelEl = screen.getByText('Username').closest('label');
-    expect(labelEl).not.toBeNull();
-    expect(labelEl?.contains(screen.getByTestId('username'))).toBe(true);
+    // getByLabelText resolves the accessible-name link (wrapping <label>
+    // OR htmlFor/id). If FormField ever regresses to rendering the label
+    // as an unassociated sibling, this query throws and the test fails.
+    // We use a real browser-like click via fireEvent — but JSDOM does not
+    // propagate label-click → wrapped-input focus, so we assert the
+    // association directly and that the input is the one the label points
+    // at (the same node a browser would focus on click).
+    const input = screen.getByLabelText('Username');
+    fireEvent.click(screen.getByText('Username'));
+    expect(input).toBe(screen.getByRole('textbox'));
   });
 
   it('renders an error message with role="alert" when provided', () => {

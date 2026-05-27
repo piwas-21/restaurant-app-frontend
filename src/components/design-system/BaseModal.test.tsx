@@ -38,11 +38,11 @@ describe('BaseModal', () => {
         <p>body</p>
       </BaseModal>,
     );
-    const dialog = screen.getByRole('dialog');
+    // getByRole with `name` resolves the accessible name via aria-labelledby,
+    // so this implicitly verifies the title element is correctly linked.
+    const dialog = screen.getByRole('dialog', { name: /a11y title/i });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
-    const labelledBy = dialog.getAttribute('aria-labelledby');
-    expect(labelledBy).toBeTruthy();
-    expect(document.getElementById(labelledBy!)).toHaveTextContent('A11y title');
+    expect(dialog).toHaveAttribute('aria-labelledby');
   });
 
   it('invokes onClose when the X button is clicked', () => {

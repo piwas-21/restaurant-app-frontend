@@ -67,6 +67,10 @@ exclude:
       # (added 2026-05-27 when useServerOrders was split into
       # src/hooks/serverOrders/*). Local `npm run lint` covers it.
       - src/hooks/serverOrders
+      # Same Qodana flat-config gap — added 2026-05-27 when usePublicMenu was
+      # split into src/hooks/publicMenu/* (PR #66). Local `npm run lint`
+      # covers it.
+      - src/hooks/publicMenu
 
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive

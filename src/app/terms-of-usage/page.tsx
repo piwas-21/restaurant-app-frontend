@@ -19,12 +19,13 @@ export default function TermsOfUsagePage() {
   // "last updated" line already renders today's date dynamically (no version
   // snapshot semantics exist), so the live value is the consistent choice and
   // keeps the address locale-aware (notably for the ar/ru/zh scripts).
-  const addressStreet = info?.addressLine1 ?? (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45');
-  const addressCityCountry = info
-    ? `${info.postalCode} ${info.city}, ${info.country}`
-    : isClient
-      ? t('rumi_address_city_country')
-      : '1202 Genève, Switzerland';
+  const addressStreet = info?.addressLine1 || (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45');
+  const addressCityCountry =
+    info?.postalCode && info?.city && info?.country
+      ? `${info.postalCode} ${info.city}, ${info.country}`
+      : isClient
+        ? t('rumi_address_city_country')
+        : '1202 Genève, Switzerland';
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">

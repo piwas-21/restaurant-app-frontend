@@ -11,7 +11,7 @@ interface OrderConfirmationModalProps {
   orderNumber: string;
   customerEmail: string;
   isLoggedIn: boolean;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 /**
@@ -43,13 +43,8 @@ export default function OrderConfirmationModal({
     router.push('/menu');
   };
 
-  // BaseModal requires a non-optional onClose. The caller always passes one,
-  // but the prop is historically optional — fall back to a no-op to preserve
-  // the existing contract without forcing a caller-side change.
-  const handleClose = onClose ?? (() => {});
-
   return (
-    <BaseModal isOpen={isOpen} onClose={handleClose} title={t('order_received', 'Order Received')}>
+    <BaseModal isOpen={isOpen} onClose={onClose} title={t('order_received', 'Order Received')}>
       <div className={styles.iconContainer}>
         <div className={styles.successIcon}>
           <CheckCircle size={80} />
@@ -76,18 +71,18 @@ export default function OrderConfirmationModal({
       <div className={styles.actions}>
         {isLoggedIn ? (
           <>
-            <button className={styles.primaryButton} onClick={handleViewOrders}>
+            <button type="button" className={styles.primaryButton} onClick={handleViewOrders}>
               <ShoppingBag size={20} />
               {t('track_order', 'Track Order')}
             </button>
-            <button className={styles.secondaryButton} onClick={handleBackToMenu}>
+            <button type="button" className={styles.secondaryButton} onClick={handleBackToMenu}>
               <Home size={20} />
               {t('back_to_menu', 'Back to Menu')}
             </button>
           </>
         ) : (
           <>
-            <button className={styles.primaryButton} onClick={handleBackToMenu}>
+            <button type="button" className={styles.primaryButton} onClick={handleBackToMenu}>
               <Home size={20} />
               {t('back_to_menu', 'Back to Menu')}
             </button>

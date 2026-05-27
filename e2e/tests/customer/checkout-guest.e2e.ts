@@ -144,19 +144,11 @@ test.describe('checkout-guest: public ordering as guest', () => {
     // wiring in src/app/checkout/review/page.tsx → handleCloseConfirmationModal).
     // Without an explicit dismiss the URL stays at /checkout/review, which
     // is what the early version of this test hit.
-    //
-    // NB: this modal is a hand-rolled <div> rather than the BaseModal wrapper
-    // so it has no role="dialog" / aria-labelledby. Targeting the visible
-    // h2 heading instead. Tracked for a11y migration in frontend #54.
-    await expect(page.getByRole('heading', { level: 2, name: /order received/i })).toBeVisible({ timeout: 10_000 });
-    // Click the modal's overlay directly to dismiss. The overlay has
-    // `data-testid="order-confirmation-overlay"` precisely so this test isn't
-    // dependent on viewport coordinates or the CSS-Module class hash. The
-    // overlay covers the viewport with the modal centered, so a position
-    // near the corner lands outside the inner modal box; clicking there fires
-    // onClose → handleCloseConfirmationModal → router.push(/confirmation).
-    // When the modal migrates to BaseModal (#54), switch to `getByRole('dialog')`.
-    await page.getByTestId('order-confirmation-overlay').click({ position: { x: 5, y: 5 } });
+    const dialog = page.getByRole('dialog', { name: /order received/i });
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+    // BaseModal owns ESC-to-close; firing keyboard Escape avoids depending on
+    // the X-button aria-label translation or backdrop click coordinates.
+    await page.keyboard.press('Escape');
 
     // Confirmation lands. The confirmation page reads ?orderId & orderNumber
     // from the query string and renders the receipt.

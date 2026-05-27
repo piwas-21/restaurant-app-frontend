@@ -10,21 +10,24 @@ export const useProductDetails = (productId: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Guards state writes against races when `productId` flips while a fetch is
-  // in flight. The service layer swallows fetch errors (falls back to mock
-  // data on throw), so AbortController on the underlying request isn't useful
-  // here — we use the cancellation flag pattern already established in
-  // `useGuestProfilePrefill` / `useTableStatistics`.
-  const cancelledRef = useRef(false);
+  // Request-id guard: rapid `productId` changes can race two in-flight fetches.
+  // We bump this counter on every fetch start, capture the local id, and only
+  // commit state if our local id is still the latest after each await. Same
+  // idiom as `usePublicMenuData`. This replaces the previous `cancelledRef`,
+  // which had a race where the second effect would reset the shared flag to
+  // `false` before the first fetch resolved, letting stale data overwrite the
+  // fresh state.
+  const requestIdRef = useRef(0);
 
   const fetchProductData = useCallback(async () => {
     if (!productId) return;
 
+    const localId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
       const productResponse = (await getProductById(productId)) as { success: boolean; data?: any; message?: string };
-      if (cancelledRef.current) return;
+      if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
       if (productResponse.success && productResponse.data) {
         let productData = productResponse.data;
         // If there's only one image, ensure it's primary and has a sort order of 1
@@ -32,10 +35,10 @@ export const useProductDetails = (productId: string) => {
           const image = productData.images[0];
           if (!image.isPrimary || image.sortOrder !== 1) {
             await updateProductImageDetails(productId, image.id, { ...image, isPrimary: true, sortOrder: 1 });
-            if (cancelledRef.current) return;
+            if (localId !== requestIdRef.current) return;
             // Refetch to get the updated data
             const updatedResponse = (await getProductById(productId)) as { success: boolean; data?: any };
-            if (cancelledRef.current) return;
+            if (localId !== requestIdRef.current) return;
             if (updatedResponse.success && updatedResponse.data) {
               productData = updatedResponse.data;
             }
@@ -46,23 +49,19 @@ export const useProductDetails = (productId: string) => {
         setError(productResponse.message || 'Failed to fetch product details.');
       }
     } catch {
-      if (cancelledRef.current) return;
+      if (localId !== requestIdRef.current) return;
       setError('An unexpected error occurred.');
     } finally {
-      if (!cancelledRef.current) setIsLoading(false);
+      if (localId === requestIdRef.current) setIsLoading(false);
     }
   }, [productId]);
 
   useEffect(() => {
-    cancelledRef.current = false;
     // fetchProductData has its own try/catch (sets error state); fire-and-forget.
+    // No cleanup needed: the requestIdRef guard inside fetchProductData ensures
+    // any in-flight fetch from a previous `productId` is treated as stale once
+    // the next effect run bumps the counter.
     void fetchProductData();
-    return () => {
-      // On `productId` change or unmount, suppress the trailing state writes
-      // from any in-flight fetch so a stale response can't overwrite the
-      // freshly-keyed one (or set state on an unmounted component).
-      cancelledRef.current = true;
-    };
   }, [fetchProductData]);
 
   return { product, isLoading, error, fetchProductData };

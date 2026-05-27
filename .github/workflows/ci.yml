@@ -202,9 +202,6 @@ jobs:
     needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Non-blocking until the lodash CVE-2026-4800 follow-up lands
-    # (frontend issue #16). Re-tighten after.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: google/osv-scanner-action/osv-scanner-action@6fc714450122bda9d00e4ad5d639ad6a39eedb1f # v2.0.1

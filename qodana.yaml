@@ -71,6 +71,11 @@ exclude:
       # split into src/hooks/publicMenu/* (PR #66). Local `npm run lint`
       # covers it.
       - src/hooks/publicMenu
+      # Same Qodana flat-config gap — added 2026-05-27 when
+      # duplicateEmailDetection.ts landed in PR #70 (new src/hooks/order/
+      # subdir for the inline-registration duplicate-email helpers).
+      # Local `npm run lint` covers it.
+      - src/hooks/order
 
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive

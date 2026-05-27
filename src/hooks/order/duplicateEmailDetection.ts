@@ -49,12 +49,46 @@ interface ThrownLikeError {
   response?: { status?: unknown; data?: unknown };
   data?: unknown;
   body?: unknown;
+  message?: unknown;
 }
 
-function matchesDuplicatePattern(value: unknown): boolean {
+/**
+ * Max recursion depth when walking nested response objects. Prevents
+ * runaway descent on cyclic structures (e.g. an error whose `cause`
+ * points back at itself) while still covering the deepest realistic
+ * shape we care about: ASP.NET Core's
+ *   `{response: {data: {errors: {Email: ["..."]}}}}` (depth 4).
+ */
+const MAX_RECURSION_DEPTH = 5;
+
+/**
+ * Recursively walks `value` looking for any leaf string that matches
+ * the duplicate-email pattern. Recurses into plain objects and arrays
+ * only — never functions, class instances (Date, Map, Error subclasses
+ * with extra junk, etc.), or primitives. The shape we explicitly need
+ * to cover is ASP.NET Core's ModelState envelope:
+ *   `{errors: {Email: ["User with this email already exists"]}}`
+ * which the previous string/array-only walker would miss.
+ */
+function matchesDuplicatePattern(value: unknown, depth: number = 0): boolean {
   if (typeof value === 'string') return DUPLICATE_EMAIL_PATTERN.test(value);
-  if (Array.isArray(value)) return value.some(matchesDuplicatePattern);
+  if (depth >= MAX_RECURSION_DEPTH) return false;
+  if (Array.isArray(value)) return value.some((v) => matchesDuplicatePattern(v, depth + 1));
+  if (isPlainObject(value)) {
+    return Object.values(value).some((v) => matchesDuplicatePattern(v, depth + 1));
+  }
   return false;
+}
+
+/**
+ * Recurse only into plain objects (`{}` / `Object.create(null)`) — not
+ * Date, Map, Set, Error, class instances, etc. Avoids surprising
+ * traversal of host objects whose property access can throw.
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
 }
 
 /**
@@ -90,6 +124,13 @@ export function isDuplicateEmailError(err: unknown): boolean {
   }
   if (body && typeof body === 'object') {
     return isDuplicateEmailResponse(body as RegisterCustomerFailure);
+  }
+  // Last-ditch fallback: a thrown `Error("Email already registered")` from a
+  // future apiClient that doesn't attach a structured body. We only reach
+  // here when neither status+body nor body alone confirmed the duplicate,
+  // so this is strictly additive.
+  if (typeof e.message === 'string') {
+    return DUPLICATE_EMAIL_PATTERN.test(e.message);
   }
   return false;
 }

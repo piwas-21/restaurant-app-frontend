@@ -126,39 +126,6 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
 
   const optionalIngredients = getOptionalIngredients();
 
-  // Handler for ingredient toggle
-  const _toggleIngredient = (ingredientId: string) => {
-    const newSelected = new Set(selectedIngredients);
-    if (newSelected.has(ingredientId)) {
-      newSelected.delete(ingredientId);
-    } else {
-      newSelected.add(ingredientId);
-    }
-    setSelectedIngredients(newSelected);
-  };
-
-  // Handler for side item toggle
-  const _toggleSideItem = (sideItemId: string, checked: boolean) => {
-    const newSelected = new Map(selectedSideItems);
-    if (checked) {
-      newSelected.set(sideItemId, 1);
-    } else {
-      newSelected.delete(sideItemId);
-    }
-    setSelectedSideItems(newSelected);
-  };
-
-  // Handler for side item quantity change
-  const _updateSideItemQuantity = (sideItemId: string, quantity: number) => {
-    const newSelected = new Map(selectedSideItems);
-    if (quantity > 0) {
-      newSelected.set(sideItemId, quantity);
-    } else {
-      newSelected.delete(sideItemId);
-    }
-    setSelectedSideItems(newSelected);
-  };
-
   // Calculate total price
   const calculateTotalPrice = () => {
     let total = price;

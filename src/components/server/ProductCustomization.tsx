@@ -171,17 +171,6 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
   const hasCustomizations =
     standardIngredients.length > 0 || optionalIngredients.length > 0 || variations.length > 0 || sideItems.length > 0;
 
-  // Toggle excluded ingredient
-  const _toggleExcluded = (ingredientId: string) => {
-    const newSet = new Set(excludedIngredients);
-    if (newSet.has(ingredientId)) {
-      newSet.delete(ingredientId);
-    } else {
-      newSet.add(ingredientId);
-    }
-    setExcludedIngredients(newSet);
-  };
-
   // Toggle optional ingredient
   const toggleOptional = (ingredientId: string) => {
     const newSet = new Set(addedOptionalIngredients);

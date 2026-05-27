@@ -33,14 +33,6 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
     setHasChanges(false);
   }, [menuDefinition]);
 
-  const _handleToggleAlwaysAvailable = () => {
-    setLocalMenuDefinition({
-      ...localMenuDefinition,
-      isAlwaysAvailable: !localMenuDefinition.isAlwaysAvailable,
-    });
-    setHasChanges(true);
-  };
-
   const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
     setLocalMenuDefinition({
       ...localMenuDefinition,

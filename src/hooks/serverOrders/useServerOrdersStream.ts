@@ -97,7 +97,7 @@ export function useServerOrdersStream({
     cleanup();
 
     // connectionId guards against stale closures from a superseded attempt.
-    const connectionId = `srv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const connectionId = `srv_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     connectionIdRef.current = connectionId;
     const isCurrent = () => isMountedRef.current && connectionIdRef.current === connectionId;
 
@@ -109,6 +109,15 @@ export function useServerOrdersStream({
 
       const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
+
+      // Seed lastEventTime on open so the health check can detect a
+      // connection that is silent from the very start (no `connected`
+      // event, no heartbeat) — otherwise lastEventTimeRef stays null
+      // and the OPEN-state health check would never trip.
+      eventSource.onopen = () => {
+        if (!isCurrent()) return;
+        markEvent();
+      };
 
       const setConnected = () => {
         setIsConnected(true);
@@ -154,6 +163,9 @@ export function useServerOrdersStream({
         if (check.reconnect) {
           console.warn(`⚠️ Server SSE: ${check.reason}, reconnecting...`);
           reconnectAttemptRef.current = 0;
+          // cleanup() first so connect() doesn't early-return on the
+          // still-OPEN-but-silent EventSource (readyState !== CLOSED guard).
+          cleanup();
           connect();
         }
       }, HEALTH_CHECK_INTERVAL_MS);

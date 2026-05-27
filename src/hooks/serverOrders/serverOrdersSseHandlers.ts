@@ -188,7 +188,11 @@ export function buildSseErrorHandler(ctx: SseErrorHandlerContext): () => void {
     ctx.setDown();
     ctx.cleanup();
     ctx.reconnectAttemptRef.current += 1;
-    const backoffMs = computeReconnectDelay(ctx.reconnectAttemptRef.current, ctx.maxReconnectAttempts, ctx.maxBackoffMs);
+    const backoffMs = computeReconnectDelay(
+      ctx.reconnectAttemptRef.current,
+      ctx.maxReconnectAttempts,
+      ctx.maxBackoffMs,
+    );
     if (backoffMs == null) {
       console.warn('⚠️ Server SSE: Max reconnect attempts reached, using polling only');
       ctx.setMaxReached();

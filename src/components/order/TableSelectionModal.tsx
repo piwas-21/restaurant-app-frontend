@@ -8,6 +8,12 @@ import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
 import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import styles from './TableSelectionModal.module.css';
 
+// Module-level constant — frozen at load, so the reference is stable across
+// renders. Inlining `['name', 'email']` at the call site would allocate a
+// new array per render and defeat `useGuestCustomerInfo`'s
+// `useCallback(commit, [..., requiredFields])` memoisation.
+const DINEIN_REQUIRED_FIELDS = ['name', 'email'] as const;
+
 interface TableSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,7 +45,11 @@ export default function TableSelectionModal({
   // Phone optional for DineIn — matches the pre-existing customer-info
   // schema (the customer is at the restaurant; phone is a nice-to-have,
   // not required to take the order).
-  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email'], enabled: isOpen });
+  const guest = useGuestCustomerInfo({
+    requiredFields: DINEIN_REQUIRED_FIELDS,
+    enabled: isOpen,
+    source: 'dinein_modal',
+  });
 
   // Re-sync local state when the modal re-opens with a different initial
   // (e.g. after the user changed via sticky header → welcome → reopen).

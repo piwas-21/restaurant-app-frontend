@@ -63,7 +63,11 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
   // Phone is required for delivery (driver contact). Per
   // BUGS-IMPROVEMENTS-PLAN §C1.5.e — guests fill all three; logged-in
   // users see only the fields their profile is missing.
-  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email', 'phone'], enabled: isOpen });
+  const guest = useGuestCustomerInfo({
+    requiredFields: ['name', 'email', 'phone'],
+    enabled: isOpen,
+    source: 'delivery_modal',
+  });
 
   const handleConfirm = async () => {
     if (!address.validate()) return;

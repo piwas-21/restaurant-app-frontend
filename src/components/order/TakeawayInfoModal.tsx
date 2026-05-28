@@ -41,6 +41,7 @@ export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: Takeaw
   const guest = useGuestCustomerInfo({
     requiredFields: ['name', 'email', 'phone'],
     enabled: isOpen,
+    source: 'takeaway_modal',
   });
 
   const handleConfirm = async () => {

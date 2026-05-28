@@ -58,6 +58,33 @@ describe('analytics', () => {
     });
   });
 
+  it('accepts the C1.5 funnel events with their respective payload shapes', () => {
+    // cart_opened — fired from the mobile FAB click.
+    trackEvent('cart_opened', { source: 'mobile_sheet', itemCount: 3, loggedIn: false });
+    // cart_item_added — fired after the backend confirms the add.
+    trackEvent('cart_item_added', { productId: 'prod-1', quantity: 2, loggedIn: true });
+    // customer_info_submitted — fired by the modal commit path.
+    trackEvent('customer_info_submitted', {
+      source: 'takeaway_modal',
+      fields: ['name', 'email', 'phone'],
+      loggedIn: false,
+    });
+    // register_inline_completed — fired only on backend-confirmed registration.
+    trackEvent('register_inline_completed', { loggedIn: false });
+
+    const dl = (window as unknown as { dataLayer: Array<Record<string, unknown>> }).dataLayer;
+    expect(dl.map((e) => e.event)).toEqual([
+      'cart_opened',
+      'cart_item_added',
+      'customer_info_submitted',
+      'register_inline_completed',
+    ]);
+    expect(dl[0]).toMatchObject({ source: 'mobile_sheet', itemCount: 3 });
+    expect(dl[1]).toMatchObject({ productId: 'prod-1', quantity: 2 });
+    expect(dl[2]).toMatchObject({ source: 'takeaway_modal', fields: ['name', 'email', 'phone'] });
+    expect(dl[3]).toMatchObject({ event: 'register_inline_completed', loggedIn: false });
+  });
+
   it('isLoggedInForAnalytics reads auth_token from localStorage', () => {
     expect(isLoggedInForAnalytics()).toBe(false);
     window.localStorage.setItem('auth_token', 'eyJ.fake.jwt');

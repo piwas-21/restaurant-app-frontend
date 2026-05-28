@@ -5,6 +5,7 @@ import { BasketDto, BasketItemDto } from '@/types/basket';
 import { basketService } from '@/services/basketService';
 import { useSessionContext } from '@/contexts/SessionContext';
 import { getErrorMessage } from '@/utils/apiClient';
+import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 /**
  * Extended cart item with backend basket item ID
@@ -255,6 +256,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
+
+      // Fire only after the backend has confirmed the add (rollback path
+      // below skips this). One event per genuine add — callers invoke
+      // addItem once per user click, so no debouncing needed here.
+      trackEvent('cart_item_added', {
+        productId: payload.productId,
+        quantity: payload.quantity,
+        loggedIn: isLoggedInForAnalytics(),
+      });
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });

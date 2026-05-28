@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { registerCustomer } from '@/services/authService';
+import { trackEvent } from '@/lib/analytics';
 import {
   validateRegisterField,
   type RegisterField,
@@ -118,6 +119,11 @@ export function useInlineRegistration(): UseInlineRegistrationResult {
             t('account_created_check_email', 'Account created! Check your email to activate it for fidelity points.'),
             { variant: 'success', autoHideDuration: TOAST_DURATION_MS },
           );
+          // Funnel event — fires only when the backend confirmed the
+          // register call (not on the duplicate / unknown-failure paths
+          // below). loggedIn is always false here: option-A flow strips
+          // any auto-stored tokens above, so the order continues as guest.
+          trackEvent('register_inline_completed', { loggedIn: false });
           return { status: 'ok' };
         }
         if (isDuplicateEmailResponse(result as RegisterCustomerFailure)) {

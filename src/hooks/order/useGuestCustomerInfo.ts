@@ -13,6 +13,7 @@ import {
   type RegisterFieldsErrors,
   type RegisterFieldsValue,
 } from '@/components/order/GuestCustomerInfoFields';
+import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { useInlineRegistration } from './useInlineRegistration';
 import { useGuestProfilePrefill } from './useGuestProfilePrefill';
 
@@ -33,6 +34,8 @@ export interface UseGuestCustomerInfoOptions {
    * don't fire `/api/User/profile` on every page render.
    */
   enabled: boolean;
+  /** Analytics tag for `customer_info_submitted` — see analytics.ts. */
+  source?: string;
 }
 
 interface UseGuestCustomerInfoResult {
@@ -70,16 +73,11 @@ const EMPTY_ERRORS: GuestCustomerInfoErrors = { name: '', email: '', phone: '' }
 
 /**
  * Drives the inline customer-info inputs for the order-type modals
- * (BUGS-IMPROVEMENTS-PLAN §C1.5.e + §C1.5.g). Pre-fills from server
- * profile (when logged in) or the legacy `rumi_saved_customer_info`
- * localStorage key (so a returning guest doesn't have to re-type),
- * narrows visible fields to whatever profile values are missing, and
- * `commit()`s trimmed values to `CheckoutContext.customerInfo` only
- * when valid.
- *
- * Inline registration lives in `useInlineRegistration` and is composed
- * here — `commit()` calls its `registerIfRequested()` for the actual
- * /api/User/register/customer POST.
+ * (BUGS-IMPROVEMENTS-PLAN §C1.5.e + §C1.5.g). Pre-fills from profile
+ * (logged-in) or `rumi_saved_customer_info` (returning guest), narrows
+ * visible fields to what's missing, and `commit()`s trimmed values to
+ * `CheckoutContext.customerInfo` only when valid. Inline registration
+ * is composed from `useInlineRegistration` via `registerIfRequested()`.
  */
 export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGuestCustomerInfoResult {
   const { t } = useTranslation();
@@ -97,9 +95,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
   }));
   const [errors, setErrors] = useState<GuestCustomerInfoErrors>(EMPTY_ERRORS);
 
-  // Merge resolved-profile prefill into the form once it lands. Each
-  // field keeps its current (typed) value if non-empty so a returning
-  // user who already started typing isn't clobbered.
+  // Merge prefill once it lands; user-typed values take precedence.
   useEffect(() => {
     if (isLoadingUser) return;
     setValue((prev) => ({
@@ -164,6 +160,13 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     }
 
     setCustomerInfo(trimmed);
+    // Funnel event — user-action path inside commit(), not an effect, so
+    // it can't double-fire on re-render.
+    trackEvent('customer_info_submitted', {
+      source: opts.source,
+      fields: opts.requiredFields,
+      loggedIn: isLoggedInForAnalytics(),
+    });
     if (!isLoggedIn && typeof window !== 'undefined') {
       try {
         localStorage.setItem(SAVED_INFO_KEY, JSON.stringify(trimmed));
@@ -175,7 +178,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     persistPhoneToProfileIfChanged({ isLoggedIn, user, newPhone: trimmed.phone });
 
     return trimmed;
-  }, [opts.requiredFields, value, t, phoneRequired, registration, setCustomerInfo, isLoggedIn, user]);
+  }, [opts.requiredFields, opts.source, value, t, phoneRequired, registration, setCustomerInfo, isLoggedIn, user]);
 
   return {
     value,

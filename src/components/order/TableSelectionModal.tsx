@@ -39,7 +39,7 @@ export default function TableSelectionModal({
   // Phone optional for DineIn — matches the pre-existing customer-info
   // schema (the customer is at the restaurant; phone is a nice-to-have,
   // not required to take the order).
-  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email'], enabled: isOpen });
+  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email'], enabled: isOpen, source: 'dinein_modal' });
 
   // Re-sync local state when the modal re-opens with a different initial
   // (e.g. after the user changed via sticky header → welcome → reopen).

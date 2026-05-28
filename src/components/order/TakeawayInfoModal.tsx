@@ -7,6 +7,12 @@ import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
 import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import tableModalStyles from './TableSelectionModal.module.css';
 
+// Module-level constant — frozen at load, so the reference is stable across
+// renders. Inlining `['name', 'email', 'phone']` at the call site would
+// allocate a new array per render and defeat `useGuestCustomerInfo`'s
+// `useCallback(commit, [..., requiredFields])` memoisation.
+const TAKEAWAY_REQUIRED_FIELDS = ['name', 'email', 'phone'] as const;
+
 interface TakeawayInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,7 +45,7 @@ interface TakeawayInfoModalProps {
 export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: TakeawayInfoModalProps) {
   const { t } = useTranslation();
   const guest = useGuestCustomerInfo({
-    requiredFields: ['name', 'email', 'phone'],
+    requiredFields: TAKEAWAY_REQUIRED_FIELDS,
     enabled: isOpen,
     source: 'takeaway_modal',
   });

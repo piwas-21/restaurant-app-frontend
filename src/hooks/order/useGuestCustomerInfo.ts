@@ -20,19 +20,9 @@ import { useGuestProfilePrefill } from './useGuestProfilePrefill';
 const SAVED_INFO_KEY = 'rumi_saved_customer_info';
 
 export interface UseGuestCustomerInfoOptions {
-  /**
-   * Required fields for the active flow:
-   *   - DineIn:   ['name', 'email']  (phone optional, matches existing
-   *               customer-info schema)
-   *   - Takeaway: ['name', 'email', 'phone']
-   *   - Delivery: ['name', 'email', 'phone']
-   */
+  /** Required fields for the flow. DineIn: name+email; Takeaway/Delivery: +phone. */
   requiredFields: ReadonlyArray<CustomerInfoField>;
-  /**
-   * Mount-gating: pass `true` only when the modal is open. Until then
-   * the user-fetch and saved-info read are deferred so closed modals
-   * don't fire `/api/User/profile` on every page render.
-   */
+  /** Mount-gating: `true` only when modal is open — defers /api/User/profile fetch. */
   enabled: boolean;
   /** Analytics tag for `customer_info_submitted` — see analytics.ts. */
   source?: string;
@@ -60,11 +50,8 @@ interface UseGuestCustomerInfoResult {
   isRegistering: boolean;
 
   /**
-   * Validate every required field; if `wantsRegister`, also validate
-   * passwords AND fire the register-customer call. Returns the trimmed
-   * customer-info values when ready to proceed; null when validation
-   * fails or registration fails with an inline-recoverable error
-   * (caller should keep modal open so the user can adjust).
+   * Validate + (optionally) register; returns trimmed values, or null when
+   * validation/registration fails inline (caller keeps modal open).
    */
   commit: () => Promise<GuestCustomerInfoValue | null>;
 }
@@ -178,7 +165,20 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     persistPhoneToProfileIfChanged({ isLoggedIn, user, newPhone: trimmed.phone });
 
     return trimmed;
-  }, [opts.requiredFields, opts.source, value, t, phoneRequired, registration, setCustomerInfo, isLoggedIn, user]);
+    // Depend on the stable `registerIfRequested` callback, not the whole
+    // `registration` object (fresh literal per render → would defeat memo).
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [
+    opts.requiredFields,
+    opts.source,
+    value,
+    t,
+    phoneRequired,
+    registration.registerIfRequested,
+    setCustomerInfo,
+    isLoggedIn,
+    user,
+  ]);
 
   return {
     value,

@@ -46,12 +46,13 @@ Drop `retire.js` once OSV-Scanner + npm audit are wired (redundant; retire.js is
 ```
 
 ### 2.2 Coverage thresholds (`jest.config.js`)
+**Landed (issue #21, 2026-05).** CI `npm_test` job now runs `npm test -- --ci --runInBand --coverage`, which activates `coverageThreshold` in `jest.config.js`:
 ```js
 coverageThreshold: {
-  global: { branches: 60, functions: 70, lines: 70, statements: 70 }
+  global: { branches: 0.3, functions: 0.4, lines: 0.3, statements: 0.3 }
 }
 ```
-Set to current floor first; ratchet up monthly.
+Pinned at the current honest floor (baseline measured 2026-05: stmts 0.38 / branch 0.32 / funcs 0.43 / lines 0.32). Mirrors backend coverlet gate pattern. Ratchet upward as test coverage grows — see jest.config.js header comment for the procedure.
 
 ### 2.3 File-length / pattern checker
 Port of DeelMarkt's `check_quality.dart`. Add `scripts/check-quality.mjs` enforcing [CLAUDE.md](../../CLAUDE.md):

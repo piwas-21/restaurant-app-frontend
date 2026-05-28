@@ -96,7 +96,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --prefer-offline --no-audit
-      - run: npm test -- --ci --runInBand
+      # --coverage activates the `coverageThreshold` block in jest.config.js
+      # which fails the run if global stmt/branch/func/line % drops below
+      # the pinned floor. See jest.config.js for the rationale + ratchet
+      # policy. Mirrors the backend's coverlet gate (workspace CLAUDE.md §7).
+      - run: npm test -- --ci --runInBand --coverage
 
   npm_audit:
     name: npm audit (high+)

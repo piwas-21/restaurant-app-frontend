@@ -179,6 +179,7 @@ Grep for the component / hook / type you're adding or modifying. List every call
 | Enforcement | Gate | When | What | Source of truth |
 |---|---|---|---|---|
 | **CI-enforced (blocking)** | `npm test` | CI workflow | Jest unit tests | `.github/workflows/ci.yml` (`npm_test` job) |
+| **CI-enforced (blocking)** | Jest coverage threshold | CI workflow (`npm_test` job — `--coverage` flag) | Global stmts ≥ 0.3% / branches ≥ 0.3% / funcs ≥ 0.4% / lines ≥ 0.3% — pinned at the current honest floor (baseline 2026-05, see issue #21). Mirrors backend coverlet gate. Ratchet upward as coverage grows. | [jest.config.js](jest.config.js) (`coverageThreshold`) |
 | **CI-enforced (blocking)** | `npm audit --audit-level=high` | CI workflow | No high/critical vulnerabilities | `.github/workflows/ci.yml` (`npm_audit` job) |
 | **CI-enforced (blocking)** | Gitleaks | CI workflow | No leaked credentials (allowlist via `.gitleaks.toml`) | [.gitleaks.toml](.gitleaks.toml) |
 | **CI-enforced (blocking)** | njsscan | CI workflow | Static security scan for JS | `.github/workflows/ci.yml` |

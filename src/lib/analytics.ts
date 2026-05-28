@@ -29,7 +29,17 @@ export type AnalyticsEventName =
   | 'cart_opened'
   | 'cart_item_added'
   | 'customer_info_submitted'
-  | 'register_inline_completed';
+  | 'register_inline_completed'
+  // Auth funnel (issue #76 — instrumented at the response-success site of the
+  // auth service calls, never at form-submit, so failed network requests are
+  // not double-counted as logins.)
+  | 'login_succeeded'
+  | 'login_failed'
+  | 'register_completed'
+  // Page-view-style events (issue #76 — fired ONCE on mount via a ref-guarded
+  // useEffect so re-renders / locale changes do not re-fire.)
+  | 'menu_viewed'
+  | 'checkout_review_viewed';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */
@@ -51,6 +61,10 @@ export interface AnalyticsEventPayload {
   quantity?: number;
   /** Which required fields were captured by the modal — set on customer_info_submitted. */
   fields?: ReadonlyArray<string>;
+  /** Coarse failure bucket for login_failed — 'invalid_credentials' |
+   * 'needs_verification' | 'network' | 'unknown'. Never the raw server message
+   * (PII risk + cardinality). */
+  failureReason?: string;
 }
 
 interface DataLayerEntry extends AnalyticsEventPayload {

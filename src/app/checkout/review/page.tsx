@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
@@ -71,6 +71,17 @@ export default function ReviewPage() {
       const authToken = localStorage.getItem('auth_token');
       setIsLoggedIn(!!authToken);
     }
+  }, []);
+
+  // Page-view event — fire ONCE on first client mount. Ref guard prevents
+  // re-fire under React 19 StrictMode double-invoke in dev and re-renders
+  // from cart/tax effects below. Fires even if the prereq-check effect
+  // redirects the user away — that bounce is itself a useful signal.
+  const reviewViewedFiredRef = useRef(false);
+  useEffect(() => {
+    if (reviewViewedFiredRef.current) return;
+    reviewViewedFiredRef.current = true;
+    trackEvent('checkout_review_viewed', { loggedIn: isLoggedInForAnalytics() });
   }, []);
 
   // Auto-show modal when order is confirmed

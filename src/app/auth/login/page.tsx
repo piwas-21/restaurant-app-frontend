@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { login as loginUser, sendEmailVerification } from '@/authService';
 import { useAuth } from '@/components/AuthContext';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import { trackEvent } from '@/lib/analytics';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -62,6 +63,7 @@ export default function LoginPage() {
       const response = await loginUser({ email, password });
 
       if (response.success) {
+        trackEvent('login_succeeded', { loggedIn: true });
         login(response.data);
         const userRole = response.data.role.toLowerCase();
 
@@ -86,12 +88,9 @@ export default function LoginPage() {
             break;
         }
       } else {
-        // Check if it's an email verification error
-        if (
-          response.message?.toLowerCase().includes('verify') ||
-          response.message?.toLowerCase().includes('verification') ||
-          response.errors?.[0]?.toLowerCase().includes('verify')
-        ) {
+        const msg = `${response.message ?? ''} ${response.errors?.[0] ?? ''}`.toLowerCase();
+        const isVerify = msg.includes('verify') || msg.includes('verification');
+        if (isVerify) {
           setNeedsVerification(true);
           setError(
             response.errors?.[0] ||
@@ -101,9 +100,11 @@ export default function LoginPage() {
         } else {
           setError(response.message || t('unknown_error', 'An unknown error occurred.'));
         }
+        trackEvent('login_failed', { failureReason: isVerify ? 'needs_verification' : 'invalid_credentials' });
       }
     } catch {
       setError(t('failed_to_connect_server', 'Failed to connect to the server.'));
+      trackEvent('login_failed', { failureReason: 'network' });
     }
   };
 

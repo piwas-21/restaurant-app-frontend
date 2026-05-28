@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
@@ -70,6 +70,16 @@ export default function MenuPage() {
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Page-view event — fire ONCE on first client mount. Ref guard prevents
+  // re-fire under React 19 StrictMode double-invoke in dev. Empty dep array
+  // means locale switches / cart updates do not re-trigger the event.
+  const menuViewedFiredRef = useRef(false);
+  useEffect(() => {
+    if (menuViewedFiredRef.current) return;
+    menuViewedFiredRef.current = true;
+    trackEvent('menu_viewed', { loggedIn: isLoggedInForAnalytics() });
   }, []);
 
   // Bundle handlers

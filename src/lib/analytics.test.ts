@@ -85,6 +85,38 @@ describe('analytics', () => {
     expect(dl[3]).toMatchObject({ event: 'register_inline_completed', loggedIn: false });
   });
 
+  it('accepts the issue #76 auth + page-view events with their respective payload shapes', () => {
+    // login_succeeded — fired from the auth/login response-success path.
+    trackEvent('login_succeeded', { loggedIn: true });
+    // login_failed — fired with a coarse failureReason bucket (no PII).
+    trackEvent('login_failed', { failureReason: 'invalid_credentials' });
+    trackEvent('login_failed', { failureReason: 'needs_verification' });
+    trackEvent('login_failed', { failureReason: 'network' });
+    // register_completed — fired from the full-page register response-success path.
+    trackEvent('register_completed', { source: 'register_page', loggedIn: false });
+    // menu_viewed / checkout_review_viewed — page-view-style, fire once on mount.
+    trackEvent('menu_viewed', { loggedIn: false });
+    trackEvent('checkout_review_viewed', { loggedIn: true });
+
+    const dl = (window as unknown as { dataLayer: Array<Record<string, unknown>> }).dataLayer;
+    expect(dl.map((e) => e.event)).toEqual([
+      'login_succeeded',
+      'login_failed',
+      'login_failed',
+      'login_failed',
+      'register_completed',
+      'menu_viewed',
+      'checkout_review_viewed',
+    ]);
+    expect(dl[0]).toMatchObject({ event: 'login_succeeded', loggedIn: true });
+    expect(dl[1]).toMatchObject({ failureReason: 'invalid_credentials' });
+    expect(dl[2]).toMatchObject({ failureReason: 'needs_verification' });
+    expect(dl[3]).toMatchObject({ failureReason: 'network' });
+    expect(dl[4]).toMatchObject({ source: 'register_page', loggedIn: false });
+    expect(dl[5]).toMatchObject({ event: 'menu_viewed', loggedIn: false });
+    expect(dl[6]).toMatchObject({ event: 'checkout_review_viewed', loggedIn: true });
+  });
+
   it('isLoggedInForAnalytics reads auth_token from localStorage', () => {
     expect(isLoggedInForAnalytics()).toBe(false);
     window.localStorage.setItem('auth_token', 'eyJ.fake.jwt');

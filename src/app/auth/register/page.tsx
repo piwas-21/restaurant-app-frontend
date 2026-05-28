@@ -11,6 +11,7 @@ import { customerRegistrationSchema } from '@/schemas/auth.schema';
 import { registerCustomer, sendEmailVerification } from '@/authService';
 import { useAuth } from '@/components/AuthContext';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import { trackEvent } from '@/lib/analytics';
 
 export default function RegisterPage() {
   const { t } = useTranslation();
@@ -79,6 +80,9 @@ export default function RegisterPage() {
     try {
       const response = await registerCustomer(formData);
       if (response?.success) {
+        // Fire on backend-confirmed registration only; the inline-checkout
+        // variant fires `register_inline_completed` from useInlineRegistration.
+        trackEvent('register_completed', { source: 'register_page', loggedIn: false });
         setRegistrationSuccess(true);
       } else {
         const apiErrors = Array.isArray(response?.errors) ? response.errors.join(', ') : '';

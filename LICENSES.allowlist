@@ -32,16 +32,19 @@
 # i18next stack. Almost everything ships MIT or ISC. Apache-2.0 covers
 # React Aria, Playwright, sharp, SWC. BSD-3-Clause / 0BSD / CC0-1.0
 # cover a handful of low-level utilities. CC-BY-4.0 covers
-# `caniuse-lite` (data, not code). LGPL-3.0-or-later covers
-# `@img/sharp-libvips-*` — bundled libvips native binaries that sharp
-# loads as a dynamic library; we neither redistribute modified libvips
-# nor statically link it, so LGPL §6 obligations don't bite (we ship
-# the unmodified upstream binary alongside Apache-2.0 sharp).
+# `caniuse-lite` (data, not code).
 # Dual-license compound strings (`(MIT AND Zlib)`, `(MPL-2.0 OR
 # Apache-2.0)`, `MIT AND ISC`) are listed verbatim — each is satisfied
 # by at least one permissive option. `MIT*` (asterisk = inferred from
 # README, not declared in `package.json`) is allowed only for `rgbcolor`
 # whose upstream README clearly states MIT.
+#
+# Copyleft licenses (LGPL / GPL family) are intentionally NOT on this
+# allowlist. The only LGPL-licensed packages currently in the tree are
+# the `@img/sharp-libvips-*` native binaries — those are scoped out of
+# the scan via `LICENSES.excluded.txt` (per-package exception, not a
+# global license blessing). See that file for the rationale and the
+# policy on when copyleft exclusions are acceptable.
 #
 # The project itself (`rumi-restaurant-web@0.1.0`) is marked
 # `UNLICENSED` (private, not redistributed). It is excluded from the
@@ -56,7 +59,6 @@ BSD-3-Clause
 CC-BY-4.0
 CC0-1.0
 ISC
-LGPL-3.0-or-later
 MIT
 MIT AND ISC
 MIT*

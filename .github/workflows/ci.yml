@@ -242,21 +242,31 @@ jobs:
       - run: npm ci --prefer-offline --no-audit
       - name: Install license-checker-rseidelsohn (pinned)
         run: npm install --global --no-save license-checker-rseidelsohn@4.3.0
-      - name: Build --onlyAllow list (strip comments + blank lines)
-        # The repo-tracked LICENSES.allowlist is kept in the human-friendly
-        # one-per-line + `#` comments format; the tool needs a single
-        # semicolon-separated string. Whitespace around each entry is
+      - name: Build --onlyAllow + --excludePackages lists (strip comments + blank lines)
+        # Both repo-tracked files are kept in the human-friendly
+        # one-per-line + `#` comments format; the tool needs single
+        # semicolon-separated strings. Whitespace around each entry is
         # preserved verbatim (compound strings like `MIT AND ISC` contain
         # spaces that are part of the license identifier).
+        #
+        # LICENSES.excluded.txt scopes per-package exceptions for native
+        # binaries with copyleft upstream licenses whose obligations
+        # don't attach in our usage pattern (server-side dynamic linking,
+        # no modification, no redistribution of modified binaries).
+        # See the header of that file for policy + rationale.
         run: |
           ALLOWED=$(grep -v '^#' LICENSES.allowlist | grep -v '^$' | paste -sd';' -)
+          EXCLUDED=$(grep -v '^#' LICENSES.excluded.txt | grep -v '^$' | paste -sd';' -)
           echo "Allowed licenses: $ALLOWED"
+          echo "Excluded packages: $EXCLUDED"
           echo "ALLOWED_LICENSES=$ALLOWED" >> "$GITHUB_ENV"
+          echo "EXCLUDED_PACKAGES=$EXCLUDED" >> "$GITHUB_ENV"
       - name: Scan licenses
         run: |
           license-checker-rseidelsohn \
             --production \
             --excludePrivatePackages \
+            --excludePackages "$EXCLUDED_PACKAGES" \
             --onlyAllow "$ALLOWED_LICENSES" \
             --summary
 

@@ -179,6 +179,7 @@ Grep for the component / hook / type you're adding or modifying. List every call
 | Enforcement | Gate | When | What | Source of truth |
 |---|---|---|---|---|
 | **CI-enforced (blocking)** | `npm test` | CI workflow | Jest unit tests | `.github/workflows/ci.yml` (`npm_test` job) |
+| **CI-enforced (blocking)** | Jest coverage threshold | CI workflow (`npm_test` job — `--coverage` flag) | **Per-file** thresholds for the files that have tests today (currently `BaseModal.tsx` / `FormField.tsx` / `StatusBadge.tsx`), each pinned just below its current actual pct. No global threshold — a sub-1% global floor is fragile (any new untested file would redline the gate independent of test quality, see PR #79 review). New gated files are added in the same MR as their test. Ratchet rows up as coverage grows. | [jest.config.js](jest.config.js) (`coverageThreshold`) |
 | **CI-enforced (blocking)** | `npm audit --audit-level=high` | CI workflow | No high/critical vulnerabilities | `.github/workflows/ci.yml` (`npm_audit` job) |
 | **CI-enforced (blocking)** | Gitleaks | CI workflow | No leaked credentials (allowlist via `.gitleaks.toml`) | [.gitleaks.toml](.gitleaks.toml) |
 | **CI-enforced (blocking)** | njsscan | CI workflow | Static security scan for JS | `.github/workflows/ci.yml` |

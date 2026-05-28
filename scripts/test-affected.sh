@@ -61,11 +61,14 @@ echo "test-affected: ${COUNT} changed file(s) vs ${UPSTREAM}; running Jest --fin
 # Resolve a jest binary. Prefer the local install (matches the pinned Jest
 # version); fall back to npx for environments where deps haven't been
 # installed yet (in which case the run is best-effort, not blocking).
-JEST_BIN=""
+#
+# Stored as a bash array so multi-word commands (e.g. `npx --no-install jest`)
+# expand without relying on word-splitting an unquoted string (ShellCheck SC2086).
+JEST_CMD=()
 if [[ -x "./node_modules/.bin/jest" ]]; then
-  JEST_BIN="./node_modules/.bin/jest"
+  JEST_CMD=("./node_modules/.bin/jest")
 elif command -v npx >/dev/null 2>&1; then
-  JEST_BIN="npx --no-install jest"
+  JEST_CMD=("npx" "--no-install" "jest")
 else
   echo "test-affected: no local jest and no npx available; skipping."
   exit 0
@@ -73,4 +76,4 @@ fi
 
 # Use xargs to safely pass many filenames to jest without blowing the shell
 # arg limit. NUL-delim via -0 keeps spaces/newlines in filenames intact.
-xargs -0 $JEST_BIN --findRelatedTests --passWithNoTests --bail < "$CHANGED_FILE"
+xargs -0 "${JEST_CMD[@]}" --findRelatedTests --passWithNoTests --bail < "$CHANGED_FILE"

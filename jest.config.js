@@ -43,26 +43,50 @@ module.exports = {
     '!**/.next/**',
   ],
   coverageReporters: ['json', 'lcov', 'text', 'clover', 'json-summary'],
-  // Coverage gate — pinned at the current honest floor (baseline measured
-  // 2026-05: stmts 0.38 / branch 0.32 / funcs 0.43 / lines 0.32).
-  // Mirrors the backend coverlet pattern (see workspace CLAUDE.md §7):
-  // floor pinned slightly below current actual so a no-op refactor doesn't
-  // redline the gate, then RATCHET UP as test coverage grows.
+  // Coverage gate — PER-FILE thresholds for the files that actually have
+  // tests today. The global threshold is intentionally NOT set (PR #79
+  // review, gemini): a global floor at sub-1% is fragile — any large
+  // untested file added to the tree drops the average and redlines the
+  // gate independently of test quality, so the gate's behaviour ends up
+  // driven by file size rather than the thing we care about (regressions
+  // in covered code).
   //
-  // To ratchet: after a meaningful test-coverage MR lands and
-  // `npm test -- --coverage` reports a higher % across the board, raise
-  // these values in a chore: MR and link the run that proves the new floor.
+  // Shape of the gate instead:
+  //   - Each file that has a unit test gets a per-file threshold pinned
+  //     just below its current actual coverage (actual − ~1pt, "floor
+  //     minus a hair", same pattern as backend coverlet — see workspace
+  //     CLAUDE.md §7). A real regression on that file (deleted test,
+  //     new untested branch) fails the build.
+  //   - Untested files don't drag down a global average because there
+  //     is no global average being enforced. They just sit at 0% until
+  //     somebody ships a test for them.
+  //
+  // To add a new file to the gate:
+  //   1. Ship the *.test.{ts,tsx} alongside the source file.
+  //   2. Run `npm test -- --coverage` and read the per-file pct.
+  //   3. Add a row below pinned at actual − 1pt (or 99 if the file is
+  //      at 100%). Same MR — test + gate row together.
+  //
+  // To ratchet a row up: after a test-improvement MR raises the actual
+  // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
-    global: {
-      // Current actuals: 0.32 / 0.43 / 0.32 / 0.38.
-      // Pinned just below current so unrelated refactors don't redline,
-      // but any real regression (a deleted test, a new untested branch
-      // that pushes the % down) still fails the build. Raise these as
-      // coverage improves.
-      branches: 0.3,
-      functions: 0.4,
-      lines: 0.3,
-      statements: 0.3,
+    './src/components/design-system/BaseModal.tsx': {
+      statements: 89,
+      branches: 77,
+      functions: 87,
+      lines: 94,
+    },
+    './src/components/design-system/FormField.tsx': {
+      statements: 99,
+      branches: 82,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/design-system/StatusBadge.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
     },
   },
 };

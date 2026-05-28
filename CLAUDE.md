@@ -197,6 +197,10 @@ Grep for the component / hook / type you're adding or modifying. List every call
 
 **`prettier --check`, `tsc --noEmit`, and `eslint --max-warnings=0` all automated and blocking as of Sprint 2 / 2.5**. SAST quality gate (SonarCloud) lands in Sprint 3.
 
+### Scheduled gate (weekly, not per-commit)
+
+`.github/workflows/security-audit.yml` runs deep / full-tree security scans on a **cron** (Mondays 06:00 UTC) + `workflow_dispatch` — **not** on every commit/PR. Distinct from the rows above: it is a **reporting/alerting** gate, not a merge blocker (it has no PR context). It re-scans the *unchanged* committed lockfile (npm audit + OSV full-tree `-r`), runs a full retire.js + Trivy fs sweep, and re-checks license drift — so a CVE disclosed since the last PR, or tool-DB drift, surfaces as a red ❌ on the Actions tab. Triage the finding, then bump the dep or add a scoped, justified suppression (same policy as the per-PR gate). Permissions are read-only; no issue/Slack write automation is wired in. See [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) §6. Weekly scheduled pipeline.
+
 ### Setup for a new developer
 ```bash
 bash scripts/setup_hooks.sh   # installs pre-commit hooks (one-time)

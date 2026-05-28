@@ -74,6 +74,21 @@ repos:
         pass_filenames: false
         files: \.(ts|tsx|js|mjs|cjs)$
 
+  # ── Pre-push: affected-test gate ─────────────────────────────────────
+  # Runs Jest --findRelatedTests on .ts/.tsx/.js/.jsx files changed vs
+  # origin/develop. Catches the common-case unit-test regressions before CI
+  # without paying the full `npm test` cost on every push. Playwright E2E is
+  # NOT included (too slow for a pre-push gate). See CLAUDE.md §7.
+  - repo: local
+    hooks:
+      - id: jest-affected
+        name: jest --findRelatedTests (changed files vs origin/develop)
+        entry: bash scripts/test-affected.sh
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+
   # ── Sprint 2: file-length gate ───────────────────────────────────────
   # Enforces the per-file LOC limits from CLAUDE.md §4. Existing oversized
   # files are grandfathered in scripts/file-length-baseline.txt; new

@@ -240,12 +240,28 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
+      # Required by Aspire's AddRedisDistributedCache("redis") in backend
+      # Program.cs — the e2e backend runs as a real process and tries to
+      # connect on startup. SHA-pinned to redis:7.4-alpine.
+      redis:
+        image: redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99 # 7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     env:
       # Backend runtime config (read via .AddEnvironmentVariables() —
       # double-underscore = nested key per .NET convention)
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://localhost:5221
-      ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123 # pragma: allowlist secret
+      # Aspire integration reads ConnectionStrings:restaurantdb (Npgsql) and
+      # ConnectionStrings:redis (RedisDistributedCache). See backend Program.cs:
+      # builder.AddNpgsqlDataSource("restaurantdb") + builder.AddRedisDistributedCache("redis").
+      ConnectionStrings__restaurantdb: Host=localhost;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123 # pragma: allowlist secret
+      ConnectionStrings__redis: localhost:6379
       JwtSettings__Secret: e2e-only-jwt-secret-not-for-production-at-least-32-chars-long-padding-padding # pragma: allowlist secret
       JwtSettings__Issuer: rumi-e2e
       JwtSettings__Audience: rumi-e2e

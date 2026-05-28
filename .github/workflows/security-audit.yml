@@ -1,0 +1,199 @@
+name: Security Audit (weekly)
+
+# WHAT / WHY
+# -----------------------------------------------------------------------------
+# Deep, full-tree security scans that run on a cron schedule instead of on
+# every PR. The per-PR CI (.github/workflows/ci.yml) keeps PR latency low by
+# scanning the diff / current tree once; this workflow re-runs the heavier /
+# full-tree scans weekly so that:
+#   * newly-disclosed CVEs land against the SAME committed lockfile even when
+#     no PR has touched it (a vuln disclosed today affects code merged months
+#     ago — per-PR CI never re-checks unchanged dependencies),
+#   * scan-tool rule/database drift is caught (OSV / Trivy / retire.js DBs
+#     update continuously),
+#   * a full-tree dependency + filesystem sweep surfaces issues in code that
+#     no recent PR exercised.
+#
+# CADENCE: Mondays 06:00 UTC (start of the work week — failures are visible
+# before anyone opens a PR). Also runnable on demand via workflow_dispatch.
+#
+# HOW TO READ FAILURES
+#   * A red ❌ on the Actions tab means at least one scan found a HIGH/CRITICAL
+#     (or, for npm audit, high+) finding, OR a tool errored.
+#   * Open the failed job → read the step log + the job summary. Each job writes
+#     a one-line verdict to the run summary (Actions tab → run → "Summary").
+#   * This is a REPORTING gate: a failure does NOT block any merge (it has no
+#     PR context). It is an alerting signal — triage the finding, then either
+#     bump the dependency (preferred) or, for an accepted/false-positive
+#     advisory, add a scoped suppression in the relevant config
+#     (.trivyignore / lockfile bump) with written justification, exactly as
+#     the per-PR gate requires.
+#
+# SECURITY: this workflow has no PR context and uses no untrusted-input
+# expressions (PR title/body/branch/commit) in any run: block. All third-party
+# actions are pinned to immutable commit SHAs (matching ci.yml's pins).
+# Permissions are read-only; no issue/PR/Slack write surface is wired in.
+# -----------------------------------------------------------------------------
+
+on:
+  schedule:
+    # Mondays 06:00 UTC.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+# Read-only: scans only need to read the repo. No issues:write / pull-requests:write.
+permissions:
+  contents: read
+
+# Only one weekly audit at a time; a manual dispatch supersedes an in-flight run.
+concurrency:
+  group: security-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  npm_audit:
+    name: npm audit (high+) — newly-disclosed CVEs vs committed lockfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      # Audit the COMMITTED lockfile only — do not let install rewrite it.
+      # The per-PR npm_audit runs the same command; the value here is that the
+      # weekly cron re-checks the unchanged lockfile against the advisory DB as
+      # it exists today, so a CVE disclosed since the last PR surfaces.
+      - run: npm ci --prefer-offline --no-audit
+      - name: npm audit --audit-level=high
+        run: npm audit --audit-level=high
+
+  osv_scanner:
+    name: OSV-Scanner (full-tree dependency CVEs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # Same pinned action as ci.yml. -r scans the whole tree (every lockfile
+      # found) rather than a single --lockfile, so the weekly run is broader
+      # than the per-PR OSV job and catches new advisories against unchanged deps.
+      - uses: google/osv-scanner-action/osv-scanner-action@6fc714450122bda9d00e4ad5d639ad6a39eedb1f # v2.0.1
+        with:
+          scan-args: |-
+            -r
+            --format=table
+            ./
+
+  retire_js:
+    name: retire.js (full JS dependency scan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      # Full node_modules + JS scan. retire.js exits non-zero when it finds a
+      # vulnerable library, which fails the job. Pinned version, --exitwith 13
+      # is its default non-zero-on-finding behaviour; kept explicit for clarity.
+      - name: Run retire.js (pinned)
+        run: npx --yes retire@5.2.7 --outputformat text --severity high
+
+  trivy_fs:
+    name: Trivy filesystem (HIGH/CRITICAL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # Same pinned action as ci.yml's trivy_fs. Fails on HIGH/CRITICAL.
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+  license_compliance:
+    name: license-compliance (drift re-check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Cheap weekly drift check — mirrors ci.yml's license_compliance job verbatim
+    # so a transitive license that changed upstream (or a dep added without the
+    # allowlist entry) is caught even outside a PR.
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - name: Install license-checker-rseidelsohn (pinned)
+        run: npm install --global --no-save license-checker-rseidelsohn@4.3.0
+      - name: Build --onlyAllow + --excludePackages lists (strip comments + blank lines)
+        run: |
+          ALLOWED=$(grep -v '^#' LICENSES.allowlist | grep -v '^$' | paste -sd';' -)
+          EXCLUDED=$(grep -v '^#' LICENSES.excluded.txt | grep -v '^$' | paste -sd';' -)
+          echo "Allowed licenses: $ALLOWED"
+          echo "Excluded packages: $EXCLUDED"
+          echo "ALLOWED_LICENSES=$ALLOWED" >> "$GITHUB_ENV"
+          echo "EXCLUDED_PACKAGES=$EXCLUDED" >> "$GITHUB_ENV"
+      - name: Scan licenses
+        run: |
+          license-checker-rseidelsohn \
+            --production \
+            --excludePrivatePackages \
+            --excludePackages "$EXCLUDED_PACKAGES" \
+            --onlyAllow "$ALLOWED_LICENSES" \
+            --summary
+
+  # Aggregate verdict: writes a single human-readable line to the run summary so
+  # the Actions tab shows at a glance which scans passed/failed. Runs even if a
+  # scan failed (if: always) and itself fails if any scan job failed, so the
+  # overall run is ❌ on any finding.
+  audit_summary:
+    name: weekly audit summary
+    needs: [npm_audit, osv_scanner, retire_js, trivy_fs, license_compliance]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Write summary
+        env:
+          R_NPM: ${{ needs.npm_audit.result }}
+          R_OSV: ${{ needs.osv_scanner.result }}
+          R_RETIRE: ${{ needs.retire_js.result }}
+          R_TRIVY: ${{ needs.trivy_fs.result }}
+          R_LICENSE: ${{ needs.license_compliance.result }}
+        run: |
+          {
+            echo "## Weekly security audit"
+            echo ""
+            echo "| Scan | Result |"
+            echo "| --- | --- |"
+            echo "| npm audit (high+) | $R_NPM |"
+            echo "| OSV-Scanner (full-tree) | $R_OSV |"
+            echo "| retire.js (full) | $R_RETIRE |"
+            echo "| Trivy fs (HIGH/CRITICAL) | $R_TRIVY |"
+            echo "| license-compliance | $R_LICENSE |"
+            echo ""
+            echo "A non-\`success\` row means triage the failed job's log."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail run if any scan failed
+        env:
+          R_NPM: ${{ needs.npm_audit.result }}
+          R_OSV: ${{ needs.osv_scanner.result }}
+          R_RETIRE: ${{ needs.retire_js.result }}
+          R_TRIVY: ${{ needs.trivy_fs.result }}
+          R_LICENSE: ${{ needs.license_compliance.result }}
+        run: |
+          if [ "$R_NPM" != "success" ] || [ "$R_OSV" != "success" ] || \
+             [ "$R_RETIRE" != "success" ] || [ "$R_TRIVY" != "success" ] || \
+             [ "$R_LICENSE" != "success" ]; then
+            echo "::error::One or more weekly security scans failed — see job summary."
+            exit 1
+          fi
+          echo "All weekly security scans passed."

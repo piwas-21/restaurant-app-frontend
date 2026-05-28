@@ -212,14 +212,23 @@ Quality gate: A-rating, ≥ 70% new-code coverage, no new vulnerabilities.
 
 ## 6. Weekly scheduled pipeline
 
-Cron: `0 6 * * 1`. Jobs:
-- TruffleHog full history (`--results=verified,unknown`)
-- OSV-Scanner JSON, 30-day artifact
-- `npm outdated` → artifact (best-effort)
-- ~~`license-checker --excludePrivatePackages --onlyAllow ...` (block GPL/AGPL transitives)~~ — promoted to a blocking per-PR job (`license_compliance`) in `.github/workflows/ci.yml`; allowlist lives at repo-root `LICENSES.allowlist`. Tool: `license-checker-rseidelsohn@4.3.0`, production scope only.
-- Sensitive-file audit (mirrors DeelMarkt's `infra-security` job)
-- **OWASP ZAP full-scan** against `$STAGING_URL` (only runs if variable is set; mirrors DeelMarkt's `zap-scan` job — keep `.zap/rules.tsv` in repo, parse JSON report, post Slack summary)
-- `trivy config` over the [rumi-argocd-gitops](../../rumi-argocd-gitops/) manifests for the frontend deployment
+**Landed (issue #19, 2026-05).** Implemented as `.github/workflows/security-audit.yml` — cron `0 6 * * 1` (Mondays 06:00 UTC) + `workflow_dispatch`, `permissions: contents: read`, all actions SHA-pinned to match `ci.yml`. This is a **reporting/alerting** gate: the scheduled run fails (red ❌ on the Actions tab) on any finding, but it has no PR context so it blocks no merge. Triage the finding, then bump the dep or add a scoped, justified suppression (same policy as the per-PR gate). No issue/Slack write automation is wired in — keeps the workflow read-only with no injection surface.
+
+Why it adds value beyond per-PR CI: the per-PR jobs scan the diff / current tree once, so a CVE disclosed *after* a dependency was merged is never re-checked. The weekly run re-scans the **unchanged committed lockfile** (npm audit + OSV) and does a full-tree sweep, surfacing newly-disclosed CVEs and scan-tool DB drift without needing a PR.
+
+Jobs that landed:
+- **npm audit (high+)** — re-checks the same committed lockfile against today's advisory DB.
+- **OSV-Scanner** — full-tree (`-r`) dependency CVE scan (broader than the per-PR single-`--lockfile` job).
+- **retire.js** — full JS/`node_modules` scan (`retire@5.2.7`, `--severity high`).
+- **Trivy fs** — HIGH/CRITICAL filesystem scan.
+- **license-compliance** — drift re-check, mirrors the per-PR `license_compliance` job verbatim (`license-checker-rseidelsohn@4.3.0`, production scope, `LICENSES.allowlist`).
+- **audit_summary** — aggregates the five results into the run summary and fails the run if any scan failed.
+
+Deferred (not in scope for #19; tracked for a later sweep):
+- TruffleHog full-history secret scan (`--since-commit=root`) — adds value but needs `fetch-depth: 0` + careful tuning to avoid noise.
+- `npm outdated` → artifact (best-effort, informational).
+- **OWASP ZAP full-scan** against `$STAGING_URL` — DAST, mirrors DeelMarkt's `zap-scan`; deferred until the new staging deploy lands.
+- `trivy config` over the deploy manifests — moves with the new deploy stack (legacy `rumi-argocd-gitops` being replaced).
 
 ## 7. Phased task breakdown
 

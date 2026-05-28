@@ -1,0 +1,63 @@
+# LICENSES.allowlist
+#
+# Allowed open-source license types for NPM transitive dependencies.
+# Enforced by the `license_compliance` CI job in `.github/workflows/ci.yml`
+# (uses `license-checker-rseidelsohn --onlyAllow`).
+#
+# Format: one SPDX identifier (or the literal compound-license string the
+# tool emits) per line, sorted alphabetically. Blank lines and `#`-prefixed
+# comments are ignored — comments are stripped before passing this file to
+# the tool (see the CI job).
+#
+# How to add a license:
+#   1. Confirm the license is permissive enough for our SaaS distribution
+#      model (no strong copyleft on statically-linked source; no
+#      field-of-use restrictions).
+#   2. Cross-check with legal if in doubt (anything not on this list
+#      already required a one-time decision).
+#   3. Add the SPDX identifier in alphabetical order with a one-line
+#      comment explaining which package introduced the need.
+#   4. The same PR must include the dependency upgrade or addition that
+#      pulled in the new license — never expand the allowlist
+#      speculatively.
+#
+# About compound strings: `license-checker-rseidelsohn` reports the
+# license field exactly as published in each package's `package.json`.
+# Packages dual-licensed or licensed under multiple OSI terms appear as
+# literal SPDX expressions (e.g. `(MPL-2.0 OR Apache-2.0)`). Those
+# strings must be present verbatim in this allowlist or the tool will
+# treat them as unknown.
+#
+# Baseline rationale (initial set): standard Next.js 15 + React 19 +
+# i18next stack. Almost everything ships MIT or ISC. Apache-2.0 covers
+# React Aria, Playwright, sharp, SWC. BSD-3-Clause / 0BSD / CC0-1.0
+# cover a handful of low-level utilities. CC-BY-4.0 covers
+# `caniuse-lite` (data, not code). LGPL-3.0-or-later covers
+# `@img/sharp-libvips-*` — bundled libvips native binaries that sharp
+# loads as a dynamic library; we neither redistribute modified libvips
+# nor statically link it, so LGPL §6 obligations don't bite (we ship
+# the unmodified upstream binary alongside Apache-2.0 sharp).
+# Dual-license compound strings (`(MIT AND Zlib)`, `(MPL-2.0 OR
+# Apache-2.0)`, `MIT AND ISC`) are listed verbatim — each is satisfied
+# by at least one permissive option. `MIT*` (asterisk = inferred from
+# README, not declared in `package.json`) is allowed only for `rgbcolor`
+# whose upstream README clearly states MIT.
+#
+# The project itself (`rumi-restaurant-web@0.1.0`) is marked
+# `UNLICENSED` (private, not redistributed). It is excluded from the
+# scan via `--excludePrivatePackages` in the CI job rather than added
+# here.
+(MIT AND Zlib)
+(MPL-2.0 OR Apache-2.0)
+0BSD
+Apache-2.0
+BSD-2-Clause
+BSD-3-Clause
+CC-BY-4.0
+CC0-1.0
+ISC
+LGPL-3.0-or-later
+MIT
+MIT AND ISC
+MIT*
+Unlicense

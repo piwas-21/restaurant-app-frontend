@@ -215,7 +215,7 @@ Cron: `0 6 * * 1`. Jobs:
 - TruffleHog full history (`--results=verified,unknown`)
 - OSV-Scanner JSON, 30-day artifact
 - `npm outdated` → artifact (best-effort)
-- `license-checker --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense;0BSD'` (block GPL/AGPL transitives)
+- ~~`license-checker --excludePrivatePackages --onlyAllow ...` (block GPL/AGPL transitives)~~ — promoted to a blocking per-PR job (`license_compliance`) in `.github/workflows/ci.yml`; allowlist lives at repo-root `LICENSES.allowlist`. Tool: `license-checker-rseidelsohn@4.3.0`, production scope only.
 - Sensitive-file audit (mirrors DeelMarkt's `infra-security` job)
 - **OWASP ZAP full-scan** against `$STAGING_URL` (only runs if variable is set; mirrors DeelMarkt's `zap-scan` job — keep `.zap/rules.tsv` in repo, parse JSON report, post Slack summary)
 - `trivy config` over the [rumi-argocd-gitops](../../rumi-argocd-gitops/) manifests for the frontend deployment

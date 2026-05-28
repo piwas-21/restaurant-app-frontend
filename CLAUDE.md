@@ -184,6 +184,7 @@ Grep for the component / hook / type you're adding or modifying. List every call
 | **CI-enforced (blocking)** | njsscan | CI workflow | Static security scan for JS | `.github/workflows/ci.yml` |
 | **CI-enforced (blocking)** | semgrep | CI workflow | SAST | `.github/workflows/ci.yml` |
 | **CI-enforced (blocking)** | retire.js | CI workflow | Outdated-dep CVE scan (replaced by OSV-Scanner in Sprint 4) | `.github/workflows/ci.yml` |
+| **CI-enforced (blocking)** | `license-checker-rseidelsohn` | CI workflow (`license_compliance` job) | Every production transitive NPM license in `LICENSES.allowlist` (compound dual-license strings listed verbatim) | `.github/workflows/ci.yml`, [LICENSES.allowlist](LICENSES.allowlist) |
 | **CI-enforced (blocking)** | Trivy image scan | CI workflow (`trivy` job, after `build_image`) | Zero HIGH/CRITICAL CVEs in the built image. False-positive exclusions live in `.trivyignore` with written justification. | `.github/workflows/ci.yml`, `.trivyignore` |
 | **Pre-commit** (blocking on `git commit`) | `pre-commit` hooks | Every commit | trailing-whitespace, EOF, large files, secret scan, no-commit-to-protected | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
 | **CI-enforced (blocking)** | `prettier --check` | CI workflow (`prettier_check` job) **and** pre-commit when staged file matches `^src/.*\.(ts\|tsx\|css\|json\|md)$` | Source is prettier-clean | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |

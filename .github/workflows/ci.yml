@@ -210,6 +210,56 @@ jobs:
             --lockfile=package-lock.json
             --format=table
 
+  license_compliance:
+    name: license-compliance (transitive NPM)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Mirrors trivy_fs / gitleaks: SHA-pinned checkout, capped timeout,
+    # concurrency cancellation (inherited from top-level `concurrency`).
+    #
+    # Fails the build if any installed NPM package (direct OR transitive,
+    # production-only) carries a license outside the allowlist at repo-root
+    # `LICENSES.allowlist`.
+    #
+    # Tool: license-checker-rseidelsohn (actively-maintained fork of
+    # davglass/license-checker) — `--onlyAllow` takes a semicolon-separated
+    # list and exits non-zero on the first non-matching license, which makes
+    # the CI step a one-liner.
+    #
+    # Scope: --production drops devDependencies (tests / build tooling never
+    # ship to the customer). --excludePrivatePackages drops the project
+    # itself (`rumi-restaurant-web` is marked UNLICENSED — private).
+    #
+    # To add a license: see the header in `LICENSES.allowlist`. Adding a
+    # license is intentionally a code change so the diff is auditable.
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - name: Install license-checker-rseidelsohn (pinned)
+        run: npm install --global --no-save license-checker-rseidelsohn@4.3.0
+      - name: Build --onlyAllow list (strip comments + blank lines)
+        # The repo-tracked LICENSES.allowlist is kept in the human-friendly
+        # one-per-line + `#` comments format; the tool needs a single
+        # semicolon-separated string. Whitespace around each entry is
+        # preserved verbatim (compound strings like `MIT AND ISC` contain
+        # spaces that are part of the license identifier).
+        run: |
+          ALLOWED=$(grep -v '^#' LICENSES.allowlist | grep -v '^$' | paste -sd';' -)
+          echo "Allowed licenses: $ALLOWED"
+          echo "ALLOWED_LICENSES=$ALLOWED" >> "$GITHUB_ENV"
+      - name: Scan licenses
+        run: |
+          license-checker-rseidelsohn \
+            --production \
+            --excludePrivatePackages \
+            --onlyAllow "$ALLOWED_LICENSES" \
+            --summary
+
   # Playwright HIGH-tier E2E suite. Brings up Postgres + Mailpit as service
   # containers, checks out the backend repo as a sibling (uses BACKEND_REPO_TOKEN
   # PAT — the default GITHUB_TOKEN can't read another repo), runs `dotnet ef

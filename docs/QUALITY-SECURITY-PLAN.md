@@ -31,7 +31,7 @@ Stack: **Next.js 15.5**, **React 19**, **TypeScript**, **CSS Modules**, **i18nex
 | Secret scan | gitleaks (existing) + detect-secrets (pre-commit) | belt + suspenders |
 | CSP / bundle audit | custom shell script in CI | mirrors DeelMarkt's `web-security` job |
 
-Drop `retire.js` once OSV-Scanner + npm audit are wired (redundant; retire.js is unmaintained). Keep `njsscan` as cheap layered defence.
+Drop `retire.js` from the **per-PR** pipeline once OSV-Scanner + npm audit are wired (redundant there — all three read the same lockfile, and retire.js is the least-maintained of them). **Retain it in the weekly full-tree sweep (§6)**: there it fingerprints vulnerable library *code* in `node_modules` / bundled JS, a surface that lockfile-based scanners (OSV, npm audit) never inspect. Keep `njsscan` as cheap layered defence.
 
 ## 2. Repository-level changes
 
@@ -153,7 +153,7 @@ lint → test → security → sast → build → scan → deploy_pipeline
 | lint | `quality-rules` (file-length + patterns) | node:20 | yes | new |
 | test | `unit` (existing `npm_test` → run `test:ci`, emit lcov + junit) | node:20 | yes | upgrade |
 | test | `e2e-smoke` (Playwright) | `mcr.microsoft.com/playwright:v1.56.1@sha256:...` | yes | new |
-| security | `npm-audit` (existing — keep blocking) | node:20 | yes | rename `npm_audit` → `npm-audit`; drop `retire` |
+| security | `npm-audit` (existing — keep blocking) | node:20 | yes | rename `npm_audit` → `npm-audit`; drop `retire` from per-PR (retained weekly — see §6) |
 | security | `gitleaks` (existing) | `zricethezav/gitleaks@sha256:...` | yes | pin digest |
 | security | `njsscan` (existing) | `python:3.12-slim@sha256:...` | yes | pin digest |
 | security | `osv-scanner` (lockfile) | `ghcr.io/google/osv-scanner@sha256:...` | yes | new |
@@ -219,7 +219,7 @@ Why it adds value beyond per-PR CI: the per-PR jobs scan the diff / current tree
 Jobs that landed:
 - **npm audit (high+)** — re-checks the same committed lockfile against today's advisory DB.
 - **OSV-Scanner** — full-tree (`-r`) dependency CVE scan (broader than the per-PR single-`--lockfile` job).
-- **retire.js** — full JS/`node_modules` scan (`retire@5.2.7`, `--severity high`).
+- **retire.js** — full JS/`node_modules` scan (`retire@5.2.7`, `--severity high`). Distinct from npm audit / OSV above: those read the lockfile, whereas retire.js fingerprints vulnerable library *code* in installed/bundled JS — so it's dropped from per-PR CI (§4) as lockfile-redundant but kept here for the surface only a content scan covers.
 - **Trivy fs** — HIGH/CRITICAL filesystem scan.
 - **license-compliance** — drift re-check, mirrors the per-PR `license_compliance` job verbatim (`license-checker-rseidelsohn@4.3.0`, production scope, `LICENSES.allowlist`).
 - **audit_summary** — aggregates the five results into the run summary and fails the run if any scan failed.
@@ -255,7 +255,7 @@ Deferred (not in scope for #19; tracked for a later sweep):
 14. Add `lint` stage with 4 jobs to `.gitlab-ci.yml` — all using `extends: .setup-node`
 15. Refactor existing jobs (`npm_test`, `npm_audit`) to also use `extends: .setup-node` (drops 6 lines of duplication per job)
 16. Pin all remaining images in `.gitlab-ci.yml` by digest
-17. Drop `retire` job (redundant once OSV is added)
+17. Drop `retire` job from per-PR CI (redundant with OSV on the lockfile; retained in the weekly full-tree sweep — see §6)
 18. Backfill remaining ADRs:
    - **ADR-004** Zod as form-validation source of truth — schema-first pattern, error-message i18n strategy
    - **ADR-005** BaseModal / FormField / StatusBadge as design-system primitives — why these three are mandatory wrappers (not just preferred)

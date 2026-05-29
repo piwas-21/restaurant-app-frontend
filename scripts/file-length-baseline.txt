@@ -145,7 +145,6 @@ src/components/account/AddressManagement.module.css
 src/hooks/cashier/useCashierOrdersStream.ts
 src/hooks/admin/useAdminOrdersData.ts
 src/hooks/useTableLayout.ts
-src/services/orderService.ts
 src/services/reservationService.ts
 src/services/addressService.ts
 src/services/authService.ts

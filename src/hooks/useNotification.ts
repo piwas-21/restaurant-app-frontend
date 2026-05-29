@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { NotificationSoundType } from '@/utils/notificationTones';
+import { useNotificationSound } from './notification/useNotificationSound';
 
-export type NotificationSoundType =
-  | 'chime' // Default: Pleasant 3-note chime (medium)
-  | 'bell' // Loud & Long: Classic bell sound
-  | 'ping' // Soft & Short: Gentle single ping
-  | 'alert' // Loud & Short: Urgent alert
-  | 'melody'; // Soft & Long: Calming melody
+// Re-exported so existing imports (`@/hooks/useNotification`) keep working after the split.
+export type { NotificationSoundType };
 
 export interface Notification {
   id: string;
@@ -18,342 +16,31 @@ export interface Notification {
   sound?: boolean; // play sound notification
 }
 
+/**
+ * Cashier notifications: an in-memory toast list plus order-event helpers. The Web Audio
+ * sound engine (context lifecycle, synthesis, preferences, repeat loop) lives in
+ * {@link useNotificationSound}; this hook composes it and re-exposes the same flat API the
+ * consumers (cashier page, NotificationCenter, CashierHeader, SoundSelector) already use.
+ */
 export function useNotification() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const notificationIdRef = useRef(0);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const [audioEnabled, setAudioEnabled] = useState(true);
-  const [audioReady, setAudioReady] = useState(false);
-  const [audioBlockedByPolicy, setAudioBlockedByPolicy] = useState(false);
-  const [soundType, setSoundType] = useState<NotificationSoundType>('chime');
-  const [repeatUntilMouseMoves, setRepeatUntilMouseMoves] = useState(false);
-  const repeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasUserInteractedRef = useRef(false);
 
-  // Initialize AudioContext on first user interaction
-  const initializeAudio = useCallback(() => {
-    if (audioContextRef.current) {
-      return;
-    }
-
-    try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      audioContextRef.current = new AudioContextClass();
-
-      const state = audioContextRef.current.state;
-
-      if (state === 'running') {
-        setAudioReady(true);
-        setAudioBlockedByPolicy(false);
-      } else if (state === 'suspended') {
-        setAudioBlockedByPolicy(true);
-        console.warn('⚠️ AudioContext is suspended - user interaction required');
-      }
-
-      setAudioEnabled(true);
-    } catch (error) {
-      console.error('❌ Could not initialize audio context:', error);
-      setAudioBlockedByPolicy(true);
-    }
-  }, []);
-
-  // Resume audio context (requires user gesture on Firefox)
-  const resumeAudioContext = useCallback(async () => {
-    if (!audioContextRef.current) {
-      initializeAudio();
-      return;
-    }
-
-    try {
-      if (audioContextRef.current.state === 'suspended') {
-        await audioContextRef.current.resume();
-        setAudioReady(true);
-        setAudioBlockedByPolicy(false);
-        hasUserInteractedRef.current = true;
-      } else {
-        setAudioReady(audioContextRef.current.state === 'running');
-      }
-    } catch (error) {
-      console.error('❌ Failed to resume AudioContext:', error);
-      setAudioBlockedByPolicy(true);
-    }
-  }, [initializeAudio]);
-
-  // Load sound type preference from localStorage
-  useEffect(() => {
-    const savedSoundType = localStorage.getItem('cashier_notification_sound');
-    if (savedSoundType && ['chime', 'bell', 'ping', 'alert', 'melody'].includes(savedSoundType)) {
-      setSoundType(savedSoundType as NotificationSoundType);
-    }
-
-    const savedRepeatSetting = localStorage.getItem('cashier_repeat_sound');
-    if (savedRepeatSetting === 'true') {
-      setRepeatUntilMouseMoves(true);
-    }
-  }, []);
-
-  // Auto-initialize audio on mount
-  useEffect(() => {
-    if (audioEnabled && !audioContextRef.current) {
-      requestAnimationFrame(() => {
-        initializeAudio();
-      });
-    }
-  }, [audioEnabled, initializeAudio]);
-
-  // Set up event listeners for user interaction to resume audio
-  useEffect(() => {
-    const handleUserInteraction = () => {
-      if (!hasUserInteractedRef.current) {
-        hasUserInteractedRef.current = true;
-        // resumeAudioContext has its own try/catch (logs and sets
-        // audioBlockedByPolicy on failure); fire-and-forget here.
-        void resumeAudioContext();
-      }
-    };
-
-    const events = ['click', 'touchstart', 'keydown'];
-    events.forEach((event) => {
-      document.addEventListener(event, handleUserInteraction, { once: true });
-    });
-
-    return () => {
-      events.forEach((event) => {
-        document.removeEventListener(event, handleUserInteraction);
-      });
-    };
-  }, [resumeAudioContext]);
-
-  // Resume audio context when tab becomes visible (important for Firefox/Chrome)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && audioContextRef.current) {
-        const state = audioContextRef.current.state;
-
-        if (state === 'suspended' && hasUserInteractedRef.current) {
-          audioContextRef.current
-            .resume()
-            .then(() => {
-              setAudioReady(audioContextRef.current?.state === 'running');
-              setAudioBlockedByPolicy(audioContextRef.current?.state !== 'running');
-            })
-            .catch((err) => {
-              console.warn('⚠️ Failed to resume audio on visibility change:', err);
-            });
-        } else if (state === 'running') {
-          setAudioReady(true);
-          setAudioBlockedByPolicy(false);
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
-  // Clear any pending audio-resume timeout on unmount so the deferred
-  // setState in resumeAudioContext doesn't fire on an unmounted component.
-  useEffect(() => {
-    return () => {
-      if (resumeTimeoutRef.current) {
-        clearTimeout(resumeTimeoutRef.current);
-        resumeTimeoutRef.current = null;
-      }
-    };
-  }, []);
-
-  // Toggle audio on/off
-  const toggleAudio = useCallback(async () => {
-    if (!audioContextRef.current) {
-      initializeAudio();
-      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-      resumeTimeoutRef.current = setTimeout(() => {
-        // resumeAudioContext has its own try/catch (logs and sets
-        // audioBlockedByPolicy on failure); fire-and-forget here.
-        void resumeAudioContext();
-      }, 100);
-    } else {
-      const newEnabled = !audioEnabled;
-      setAudioEnabled(newEnabled);
-
-      if (newEnabled && audioContextRef.current.state === 'suspended') {
-        await resumeAudioContext();
-      }
-    }
-  }, [initializeAudio, resumeAudioContext, audioEnabled]);
-
-  // Helper function to play notes
-  const playNotes = useCallback((audioContext: AudioContext, type: NotificationSoundType) => {
-    const now = audioContext.currentTime;
-
-    const playNote = (
-      frequency: number,
-      startTime: number,
-      duration: number,
-      volume: number,
-      waveType: OscillatorType = 'sine',
-    ) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.type = waveType;
-      oscillator.frequency.setValueAtTime(frequency, startTime);
-
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    };
-
-    switch (type) {
-      case 'chime':
-        playNote(659.25, now, 0.3, 0.2);
-        playNote(830.61, now + 0.1, 0.4, 0.15);
-        playNote(1318.51, now + 0.2, 0.6, 0.1);
-        break;
-      case 'bell':
-        playNote(1046.5, now, 0.8, 0.3);
-        playNote(1318.51, now + 0.05, 0.85, 0.25);
-        playNote(1568, now + 0.1, 0.9, 0.2);
-        playNote(2093, now + 0.15, 1.0, 0.15);
-        break;
-      case 'ping':
-        playNote(880, now, 0.15, 0.12);
-        playNote(1760, now + 0.05, 0.2, 0.08);
-        break;
-      case 'alert':
-        playNote(987.77, now, 0.15, 0.35, 'square');
-        playNote(987.77, now + 0.2, 0.15, 0.35, 'square');
-        playNote(987.77, now + 0.4, 0.15, 0.35, 'square');
-        break;
-      case 'melody':
-        playNote(523.25, now, 0.4, 0.12);
-        playNote(659.25, now + 0.3, 0.4, 0.1);
-        playNote(783.99, now + 0.6, 0.4, 0.08);
-        playNote(1046.5, now + 0.9, 0.6, 0.1);
-        playNote(783.99, now + 1.3, 0.5, 0.08);
-        break;
-    }
-  }, []);
-
-  // Play notification sound
-  const playNotificationSound = useCallback(() => {
-    if (!audioEnabled) {
-      return;
-    }
-
-    if (!audioContextRef.current) {
-      console.warn('⚠️ AudioContext not initialized');
-      setAudioBlockedByPolicy(true);
-      initializeAudio();
-      return;
-    }
-
-    const audioContext = audioContextRef.current;
-
-    // Resume context if suspended
-    if (audioContext.state === 'suspended') {
-      console.warn('⚠️ AudioContext suspended, attempting resume...');
-      audioContext
-        .resume()
-        .then(() => {
-          if (audioContext.state === 'running') {
-            setAudioReady(true);
-            setAudioBlockedByPolicy(false);
-            playNotes(audioContext, soundType);
-          }
-        })
-        .catch((err) => {
-          console.error('Failed to resume AudioContext:', err);
-          setAudioBlockedByPolicy(true);
-        });
-      return;
-    }
-
-    try {
-      playNotes(audioContext, soundType);
-    } catch (error) {
-      console.error('Could not play notification sound:', error);
-    }
-  }, [audioEnabled, soundType, initializeAudio, playNotes]);
-
-  // Play a specific sound type
-  const playSoundByType = useCallback(
-    (type: NotificationSoundType) => {
-      if (!audioContextRef.current || !audioEnabled) {
-        return;
-      }
-
-      try {
-        const audioContext = audioContextRef.current;
-
-        if (audioContext.state === 'suspended') {
-          audioContext.resume();
-        }
-
-        playNotes(audioContext, type);
-      } catch (error) {
-        console.error('Could not play notification sound:', error);
-      }
-    },
-    [audioEnabled, playNotes],
-  );
-
-  // Stop repeating sound
-  const stopRepeating = useCallback(() => {
-    if (repeatIntervalRef.current) {
-      clearInterval(repeatIntervalRef.current);
-      repeatIntervalRef.current = null;
-    }
-  }, []);
-
-  // Start repeating sound until mouse moves
-  const startRepeatingUntilMouseMoves = useCallback(() => {
-    if (!repeatUntilMouseMoves || !audioEnabled) return;
-
-    stopRepeating();
-    playNotificationSound();
-
-    const getRepeatInterval = () => {
-      switch (soundType) {
-        case 'bell':
-          return 1500;
-        case 'melody':
-          return 2200;
-        case 'ping':
-          return 600;
-        case 'alert':
-          return 1000;
-        case 'chime':
-        default:
-          return 1200;
-      }
-    };
-
-    repeatIntervalRef.current = setInterval(() => {
-      playNotificationSound();
-    }, getRepeatInterval());
-
-    const handleMouseMove = () => {
-      stopRepeating();
-      document.removeEventListener('mousemove', handleMouseMove);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove, { once: true });
-  }, [repeatUntilMouseMoves, audioEnabled, playNotificationSound, stopRepeating, soundType]);
-
-  // Clean up repeat interval on unmount
-  useEffect(() => {
-    return () => {
-      stopRepeating();
-    };
-  }, [stopRepeating]);
+  const {
+    audioEnabled,
+    audioReady,
+    audioBlockedByPolicy,
+    toggleAudio,
+    resumeAudioContext,
+    soundType,
+    changeSoundType,
+    repeatUntilMouseMoves,
+    toggleRepeatSound,
+    playNotificationSound,
+    playSoundByType,
+    playOrderUpdateSound,
+    startRepeatingUntilMouseMoves,
+  } = useNotificationSound();
 
   const addNotification = useCallback(
     (notification: Omit<Notification, 'id'>) => {
@@ -430,59 +117,6 @@ export function useNotification() {
     },
     [addNotification],
   );
-
-  // Play a different notification sound for order updates
-  const playOrderUpdateSound = useCallback(() => {
-    if (!audioContextRef.current || !audioEnabled) return;
-
-    try {
-      const audioContext = audioContextRef.current;
-
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-
-      const now = audioContext.currentTime;
-
-      const playNote = (frequency: number, startTime: number, duration: number, volume: number) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(frequency, startTime);
-
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-        oscillator.start(startTime);
-        oscillator.stop(startTime + duration);
-      };
-
-      // Lower, softer sound
-      playNote(261.63, now, 0.25, 0.15);
-      playNote(329.63, now + 0.08, 0.3, 0.12);
-      playNote(392, now + 0.16, 0.5, 0.08);
-    } catch (error) {
-      console.error('Could not play order update sound:', error);
-    }
-  }, [audioEnabled]);
-
-  // Change notification sound type
-  const changeSoundType = useCallback((newType: NotificationSoundType) => {
-    setSoundType(newType);
-    localStorage.setItem('cashier_notification_sound', newType);
-  }, []);
-
-  // Toggle repeat until mouse moves
-  const toggleRepeatSound = useCallback(() => {
-    const newValue = !repeatUntilMouseMoves;
-    setRepeatUntilMouseMoves(newValue);
-    localStorage.setItem('cashier_repeat_sound', newValue.toString());
-  }, [repeatUntilMouseMoves]);
 
   return {
     notifications,

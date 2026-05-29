@@ -143,7 +143,6 @@ src/components/account/PointsHistoryModal.module.css
 src/components/account/DeleteAccountSection.module.css
 src/components/account/AddressManagement.module.css
 src/hooks/cashier/useCashierOrdersStream.ts
-src/hooks/useNotification.ts
 src/hooks/admin/useAdminOrdersData.ts
 src/hooks/useTableLayout.ts
 src/services/orderService.ts

@@ -99,8 +99,21 @@ jobs:
       # Full node_modules + JS scan. retire.js exits non-zero when it finds a
       # vulnerable library, which fails the job. Pinned version, --exitwith 13
       # is its default non-zero-on-finding behaviour; kept explicit for clarity.
-      - name: Run retire.js (pinned)
-        run: npx --yes retire@5.2.7 --outputformat text --severity high
+      #
+      # --jsrepo pins retire's vulnerability DB to a specific RetireJS commit
+      # instead of fetching `master` live at scan time. Without this, the same
+      # commit could pass or fail between runs as the upstream DB churns (the
+      # bug tracked in #83 — findings appeared/vanished mid-investigation).
+      # Pinning makes the weekly scan reproducible: a red run reflects a real
+      # change in OUR tree, not upstream DB drift. Refresh this SHA deliberately
+      # (e.g. monthly) to ingest new advisories, reviewing any new findings then.
+      # Scoped, justified suppressions live in .retireignore.json (auto-loaded).
+      - name: Run retire.js (pinned DB)
+        run: >-
+          npx --yes retire@5.2.7
+          --jsrepo https://raw.githubusercontent.com/RetireJS/retire.js/f104b945071f01f3d0f141dbfe9a3b8d1c46b9e5/repository/jsrepository-v4.json
+          --outputformat text
+          --severity high
 
   trivy_fs:
     name: Trivy filesystem (HIGH/CRITICAL)

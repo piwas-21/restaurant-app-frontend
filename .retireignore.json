@@ -1,0 +1,6 @@
+[
+  {
+    "path": "node_modules/next/dist/compiled",
+    "justification": "Suppresses retire.js findings for code vendored under Next.js's compiled dist. Scope note: retire.js matches `path` as a substring, so this entry silences ALL findings under node_modules/next/dist/compiled, not only lodash; today the sole finding there is lodash 4.17.21 (in the babel-packages and jsonwebtoken bundles), HIGH advisory CVE-2026-4800 (lodash _.template code injection). Re-evaluate this breadth whenever Next.js is upgraded or the pinned retire DB (see security-audit.yml --jsrepo) is refreshed. Why ignored: that lodash is pre-compiled into Next's own build-tooling bundles, NOT a resolvable dependency (so package.json `overrides` cannot reach it), and NOT the app's react-big-calendar lodash (which resolves to a clean 4.18.1). It is build-tooling code only and is not part of the client runtime bundle served to users; our application code never calls this vendored lodash. We are already on the latest Next 15.5.x (15.5.18); remediation requires Next itself to re-bundle a patched lodash, which arrives on a future Next.js release — a major bump being a coordinated upgrade per frontend CLAUDE.md §9 (AI guardrails). Remove this entry once a Next.js release ships a patched bundle. Tracked: frontend issue #16."
+  }
+]

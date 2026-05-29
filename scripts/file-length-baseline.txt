@@ -9,7 +9,6 @@
 # Inspect for ratchet opportunities:
 #   bash scripts/check-file-length.sh --all
 src/types/basket.ts
-src/types/menu.ts
 src/app/kitchen-staff/page.tsx
 src/app/auth/register/RegisterSuccess.module.css
 src/app/auth/register/page.tsx

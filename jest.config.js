@@ -70,6 +70,12 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    './src/components/design-system/AlertDialog.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     './src/components/design-system/BaseModal.tsx': {
       statements: 89,
       branches: 77,

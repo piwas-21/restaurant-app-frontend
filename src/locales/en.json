@@ -1093,6 +1093,7 @@
   "no_reservations_found": "No Reservations Found",
   "no_reservations_match_filters": "No reservations match your current filters",
   "confirm": "Confirm",
+  "type_to_confirm": "Type {{text}} to confirm",
   "cancel": "Cancel",
   "list_view": "List View",
   "calendar_view": "Calendar View",

@@ -1,0 +1,117 @@
+.message {
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* Type-to-confirm field (shown only when confirmationText is set) */
+.confirmField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 1rem;
+}
+
+.confirmFieldLabel {
+  font-size: 0.875rem;
+  color: var(--text-color);
+}
+
+.confirmInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--input-background, var(--card-background));
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+.confirmInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.confirmInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Footer buttons (laid out by BaseModal's .footer flex row) */
+.cancelButton,
+.confirmButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--nav-link-hover-bg);
+}
+
+.confirmButton {
+  border: 1px solid transparent;
+  color: var(--text-on-accent);
+}
+
+.confirmButton.danger {
+  background-color: var(--danger-color);
+}
+
+.confirmButton.danger:hover:not(:disabled) {
+  background-color: var(--danger-color-dark);
+}
+
+.confirmButton.warning {
+  background-color: var(--warning-color-dark);
+}
+
+.confirmButton.warning:hover:not(:disabled) {
+  background-color: var(--warning-color);
+}
+
+.confirmButton.info {
+  background-color: var(--info-color-dark);
+}
+
+.confirmButton.info:hover:not(:disabled) {
+  background-color: var(--info-color);
+}
+
+.cancelButton:disabled,
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: alert-dialog-spin 0.8s linear infinite;
+}
+
+@keyframes alert-dialog-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

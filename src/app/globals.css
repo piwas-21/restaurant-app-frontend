@@ -55,6 +55,11 @@
   --status-confirmed: #10b981;
   --status-completed: #6b7280;
   --status-danger: #ef4444;
+  /* Order-status hues (cashier OrderDetails status badge/indicator). Same value in
+     both light and dark themes, matching the previous inline literals exactly. */
+  --status-pending: #fbbf24;
+  --status-preparing: #3b82f6;
+  --status-ready: #8b5cf6;
 }
 
 html[data-theme='dark'] {

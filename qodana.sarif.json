@@ -2114,40 +2114,6 @@
                 ]
               },
               {
-                "id": "JSClosureCompilerSyntax",
-                "shortDescription": {
-                  "text": "Incorrect usage of JSDoc tags"
-                },
-                "fullDescription": {
-                  "text": "Reports warnings implied by Google Closure Compiler annotations including correct use of '@abstract', '@interface', and '@implements' tags. Inspection ID: JSClosureCompilerSyntax",
-                  "markdown": "Reports warnings implied by *Google Closure Compiler* annotations including correct use of `@abstract`, `@interface`, and `@implements` tags.\n\nInspection ID: JSClosureCompilerSyntax"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "JSClosureCompilerSyntax",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/General",
-                      "index": 13,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "UnnecessaryContinueJS",
                 "shortDescription": {
                   "text": "Unnecessary 'continue' statement"
@@ -2171,6 +2137,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Control flow issues",
                       "index": 2,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "JSClosureCompilerSyntax",
+                "shortDescription": {
+                  "text": "Incorrect usage of JSDoc tags"
+                },
+                "fullDescription": {
+                  "text": "Reports warnings implied by Google Closure Compiler annotations including correct use of '@abstract', '@interface', and '@implements' tags. Inspection ID: JSClosureCompilerSyntax",
+                  "markdown": "Reports warnings implied by *Google Closure Compiler* annotations including correct use of `@abstract`, `@interface`, and `@implements` tags.\n\nInspection ID: JSClosureCompilerSyntax"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "JSClosureCompilerSyntax",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/General",
+                      "index": 13,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -2692,40 +2692,6 @@
                 ]
               },
               {
-                "id": "ES6ShorthandObjectProperty",
-                "shortDescription": {
-                  "text": "Property can be replaced with shorthand"
-                },
-                "fullDescription": {
-                  "text": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it. Example: 'var obj = {foo:foo}' After applying the quick-fix the code looks as follows: 'var obj = {foo}' Inspection ID: ES6ShorthandObjectProperty",
-                  "markdown": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it.\n\nExample:\n\n\n    var obj = {foo:foo}\n\nAfter applying the quick-fix the code looks as follows:\n\n\n    var obj = {foo}\n\nInspection ID: ES6ShorthandObjectProperty"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "note",
-                  "parameters": {
-                    "suppressToolId": "ES6ShorthandObjectProperty",
-                    "ideaSeverity": "INFORMATION",
-                    "qodanaSeverity": "Info",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/General",
-                      "index": 13,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "UnnecessaryLabelOnBreakStatementJS",
                 "shortDescription": {
                   "text": "Unnecessary label on 'break' statement"
@@ -2749,6 +2715,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Control flow issues",
                       "index": 2,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "ES6ShorthandObjectProperty",
+                "shortDescription": {
+                  "text": "Property can be replaced with shorthand"
+                },
+                "fullDescription": {
+                  "text": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it. Example: 'var obj = {foo:foo}' After applying the quick-fix the code looks as follows: 'var obj = {foo}' Inspection ID: ES6ShorthandObjectProperty",
+                  "markdown": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it.\n\nExample:\n\n\n    var obj = {foo:foo}\n\nAfter applying the quick-fix the code looks as follows:\n\n\n    var obj = {foo}\n\nInspection ID: ES6ShorthandObjectProperty"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "note",
+                  "parameters": {
+                    "suppressToolId": "ES6ShorthandObjectProperty",
+                    "ideaSeverity": "INFORMATION",
+                    "qodanaSeverity": "Info",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/General",
+                      "index": 13,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3202,40 +3202,6 @@
                 ]
               },
               {
-                "id": "JSReferencingMutableVariableFromClosure",
-                "shortDescription": {
-                  "text": "Referencing mutable variable from closure"
-                },
-                "fullDescription": {
-                  "text": "Reports access to outer mutable variables from functions. Example: 'for (var i = 1; i <= 3; i++) {\n    setTimeout(function() {\n        console.log(i); // bad\n    }, 0);\n  }' Inspection ID: JSReferencingMutableVariableFromClosure",
-                  "markdown": "Reports access to outer mutable variables from functions.\n\nExample:\n\n\n      for (var i = 1; i <= 3; i++) {\n        setTimeout(function() {\n            console.log(i); // bad\n        }, 0);\n      }\n\nInspection ID: JSReferencingMutableVariableFromClosure"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "JSReferencingMutableVariableFromClosure",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/General",
-                      "index": 13,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "PointlessBooleanExpressionJS",
                 "shortDescription": {
                   "text": "Pointless statement or boolean expression"
@@ -3259,6 +3225,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Control flow issues",
                       "index": 2,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "JSReferencingMutableVariableFromClosure",
+                "shortDescription": {
+                  "text": "Referencing mutable variable from closure"
+                },
+                "fullDescription": {
+                  "text": "Reports access to outer mutable variables from functions. Example: 'for (var i = 1; i <= 3; i++) {\n    setTimeout(function() {\n        console.log(i); // bad\n    }, 0);\n  }' Inspection ID: JSReferencingMutableVariableFromClosure",
+                  "markdown": "Reports access to outer mutable variables from functions.\n\nExample:\n\n\n      for (var i = 1; i <= 3; i++) {\n        setTimeout(function() {\n            console.log(i); // bad\n        }, 0);\n      }\n\nInspection ID: JSReferencingMutableVariableFromClosure"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "JSReferencingMutableVariableFromClosure",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/General",
+                      "index": 13,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3644,40 +3644,6 @@
                 ]
               },
               {
-                "id": "UnusedCatchParameterJS",
-                "shortDescription": {
-                  "text": "Unused 'catch' parameter"
-                },
-                "fullDescription": {
-                  "text": "Reports a 'catch' parameter that is not used in the corresponding block. The 'catch' parameters named 'ignore' or 'ignored' are ignored. Use the checkbox below to disable this inspection for 'catch' blocks with comments. Inspection ID: UnusedCatchParameterJS",
-                  "markdown": "Reports a `catch` parameter that is not used in the corresponding block. The `catch` parameters named `ignore` or `ignored` are ignored.\n\n\nUse the checkbox below to disable this inspection for `catch`\nblocks with comments.\n\nInspection ID: UnusedCatchParameterJS"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "UnusedCatchParameterJS",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Try statement issues",
-                      "index": 34,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "NpmUsedModulesInstalled",
                 "shortDescription": {
                   "text": "Missing module dependency"
@@ -3701,6 +3667,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Imports and dependencies",
                       "index": 46,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "UnusedCatchParameterJS",
+                "shortDescription": {
+                  "text": "Unused 'catch' parameter"
+                },
+                "fullDescription": {
+                  "text": "Reports a 'catch' parameter that is not used in the corresponding block. The 'catch' parameters named 'ignore' or 'ignored' are ignored. Use the checkbox below to disable this inspection for 'catch' blocks with comments. Inspection ID: UnusedCatchParameterJS",
+                  "markdown": "Reports a `catch` parameter that is not used in the corresponding block. The `catch` parameters named `ignore` or `ignored` are ignored.\n\n\nUse the checkbox below to disable this inspection for `catch`\nblocks with comments.\n\nInspection ID: UnusedCatchParameterJS"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "UnusedCatchParameterJS",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Try statement issues",
+                      "index": 34,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3746,40 +3746,6 @@
                 ]
               },
               {
-                "id": "JSConstantReassignment",
-                "shortDescription": {
-                  "text": "Attempt to assign to const or readonly variable"
-                },
-                "fullDescription": {
-                  "text": "Reports reassigning a value to a constant or a readonly variable. Inspection ID: JSConstantReassignment",
-                  "markdown": "Reports reassigning a value to a constant or a readonly variable.\n\nInspection ID: JSConstantReassignment"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "error",
-                  "parameters": {
-                    "suppressToolId": "JSConstantReassignment",
-                    "ideaSeverity": "ERROR",
-                    "qodanaSeverity": "Critical",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Validity issues",
-                      "index": 28,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "TypeScriptCheckImport",
                 "shortDescription": {
                   "text": "Unresolved imported name"
@@ -3803,6 +3769,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/TypeScript",
                       "index": 27,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "JSConstantReassignment",
+                "shortDescription": {
+                  "text": "Attempt to assign to const or readonly variable"
+                },
+                "fullDescription": {
+                  "text": "Reports reassigning a value to a constant or a readonly variable. Inspection ID: JSConstantReassignment",
+                  "markdown": "Reports reassigning a value to a constant or a readonly variable.\n\nInspection ID: JSConstantReassignment"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "error",
+                  "parameters": {
+                    "suppressToolId": "JSConstantReassignment",
+                    "ideaSeverity": "ERROR",
+                    "qodanaSeverity": "Critical",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Validity issues",
+                      "index": 28,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -4154,40 +4154,6 @@
                 ]
               },
               {
-                "id": "BlockStatementJS",
-                "shortDescription": {
-                  "text": "Unnecessary block statement"
-                },
-                "fullDescription": {
-                  "text": "Reports a block statement that is not used as the body of 'if', 'for', 'while', 'do', 'with', or 'try' statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for 'let' and 'const' variables, but still free-standing block statements may be confusing and result in subtle bugs when used with 'var' variables. Inspection ID: BlockStatementJS",
-                  "markdown": "Reports a block statement that is not used as the body of `if`, `for`, `while`, `do`, `with`, or `try` statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for `let` and `const` variables, but still free-standing block statements may be confusing and result in subtle bugs when used with `var` variables.\n\nInspection ID: BlockStatementJS"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "BlockStatementJS",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "AnonymousFunctionJS",
                 "shortDescription": {
                   "text": "Anonymous function"
@@ -4211,6 +4177,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially undesirable code constructs",
                       "index": 15,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "BlockStatementJS",
+                "shortDescription": {
+                  "text": "Unnecessary block statement"
+                },
+                "fullDescription": {
+                  "text": "Reports a block statement that is not used as the body of 'if', 'for', 'while', 'do', 'with', or 'try' statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for 'let' and 'const' variables, but still free-standing block statements may be confusing and result in subtle bugs when used with 'var' variables. Inspection ID: BlockStatementJS",
+                  "markdown": "Reports a block statement that is not used as the body of `if`, `for`, `while`, `do`, `with`, or `try` statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for `let` and `const` variables, but still free-standing block statements may be confusing and result in subtle bugs when used with `var` variables.\n\nInspection ID: BlockStatementJS"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "BlockStatementJS",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Potentially confusing code constructs",
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -5276,40 +5276,6 @@
                 ]
               },
               {
-                "id": "EmptyTryBlockJS",
-                "shortDescription": {
-                  "text": "Empty 'try' block"
-                },
-                "fullDescription": {
-                  "text": "Reports an empty 'try' block, which usually indicates an error. Inspection ID: EmptyTryBlockJS",
-                  "markdown": "Reports an empty `try` block, which usually indicates an error.\n\nInspection ID: EmptyTryBlockJS"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "EmptyTryBlockJS",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Try statement issues",
-                      "index": 34,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "ES6ClassMemberInitializationOrder",
                 "shortDescription": {
                   "text": "Use of possibly unassigned property in a static initializer"
@@ -5333,6 +5299,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/General",
                       "index": 13,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "EmptyTryBlockJS",
+                "shortDescription": {
+                  "text": "Empty 'try' block"
+                },
+                "fullDescription": {
+                  "text": "Reports an empty 'try' block, which usually indicates an error. Inspection ID: EmptyTryBlockJS",
+                  "markdown": "Reports an empty `try` block, which usually indicates an error.\n\nInspection ID: EmptyTryBlockJS"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "EmptyTryBlockJS",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Try statement issues",
+                      "index": 34,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -5888,22 +5888,22 @@
                 ]
               },
               {
-                "id": "JSUnfilteredForInLoop",
+                "id": "JSAnnotator",
                 "shortDescription": {
-                  "text": "Unfiltered for..in loop"
+                  "text": "ECMAScript specification is not followed"
                 },
                 "fullDescription": {
-                  "text": "Reports unfiltered 'for-in' loops. The use of this construct results in processing not only own properties of an object but properties from its prototype as well. It may be unexpected in some specific cases, for example, in utility methods that copy or modify all properties or when 'Object''s prototype may be incorrectly modified. For example, the following code will print 42 and myMethod: 'Object.prototype.myMethod = function myMethod() {};\nlet a = { foo: 42 };\nfor (let i in a) {\n  console.log(a[i]);\n}' Suggests replacing the whole loop with a 'Object.keys()' method or adding a 'hasOwnProperty()' check. After applying the quick-fix the code looks as follows: 'for (let i in a) {\n  if (a.hasOwnProperty(i)) {\n    console.log(a[i]);\n  }\n}' Inspection ID: JSUnfilteredForInLoop",
-                  "markdown": "Reports unfiltered `for-in` loops.   \n\nThe use of this construct results in processing not only own properties of an object but properties from its prototype as well. It may be unexpected in some specific cases, for example, in utility methods that copy or modify all properties or when `Object`'s prototype may be incorrectly modified. For example, the following code will print **42** and **myMethod** :   \n\n\n    Object.prototype.myMethod = function myMethod() {};\n    let a = { foo: 42 };\n    for (let i in a) {\n      console.log(a[i]);\n    }\n\nSuggests replacing the whole loop with a `Object.keys()` method or adding a `hasOwnProperty()` check. After applying the quick-fix the code looks as follows:\n\n\n    for (let i in a) {\n      if (a.hasOwnProperty(i)) {\n        console.log(a[i]);\n      }\n    }\n\nInspection ID: JSUnfilteredForInLoop"
+                  "text": "Reports basic syntax issues and inconsistencies with language specification, such as invalid usages of keywords, usages of incompatible numeric format, or multiple parameters to getters/setters. Generally, such errors must always be reported and shouldn't be disabled. But in some cases, such as issues due to the dynamic nature of JavaScript, the use of not yet supported language features, or bugs in IDE's checker, it may be handy to disable reporting these very basic errors. Inspection ID: JSAnnotator",
+                  "markdown": "Reports basic syntax issues and inconsistencies with language specification, such as invalid usages of keywords, usages of incompatible numeric format, or multiple parameters to getters/setters.   \nGenerally, such errors must always be reported and shouldn't be disabled. But in some cases, such as issues due to the dynamic nature of JavaScript, the use of not yet supported language features, or bugs in IDE's checker, it may be handy to disable reporting these very basic errors.\n\nInspection ID: JSAnnotator"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
-                  "level": "warning",
+                  "level": "error",
                   "parameters": {
-                    "suppressToolId": "JSUnfilteredForInLoop",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
+                    "suppressToolId": "JSAnnotator",
+                    "ideaSeverity": "ERROR",
+                    "qodanaSeverity": "Critical",
+                    "codeQualityCategory": "Sanity"
                   }
                 },
                 "relationships": [
@@ -5922,22 +5922,22 @@
                 ]
               },
               {
-                "id": "JSAnnotator",
+                "id": "JSUnfilteredForInLoop",
                 "shortDescription": {
-                  "text": "ECMAScript specification is not followed"
+                  "text": "Unfiltered for..in loop"
                 },
                 "fullDescription": {
-                  "text": "Reports basic syntax issues and inconsistencies with language specification, such as invalid usages of keywords, usages of incompatible numeric format, or multiple parameters to getters/setters. Generally, such errors must always be reported and shouldn't be disabled. But in some cases, such as issues due to the dynamic nature of JavaScript, the use of not yet supported language features, or bugs in IDE's checker, it may be handy to disable reporting these very basic errors. Inspection ID: JSAnnotator",
-                  "markdown": "Reports basic syntax issues and inconsistencies with language specification, such as invalid usages of keywords, usages of incompatible numeric format, or multiple parameters to getters/setters.   \nGenerally, such errors must always be reported and shouldn't be disabled. But in some cases, such as issues due to the dynamic nature of JavaScript, the use of not yet supported language features, or bugs in IDE's checker, it may be handy to disable reporting these very basic errors.\n\nInspection ID: JSAnnotator"
+                  "text": "Reports unfiltered 'for-in' loops. The use of this construct results in processing not only own properties of an object but properties from its prototype as well. It may be unexpected in some specific cases, for example, in utility methods that copy or modify all properties or when 'Object''s prototype may be incorrectly modified. For example, the following code will print 42 and myMethod: 'Object.prototype.myMethod = function myMethod() {};\nlet a = { foo: 42 };\nfor (let i in a) {\n  console.log(a[i]);\n}' Suggests replacing the whole loop with a 'Object.keys()' method or adding a 'hasOwnProperty()' check. After applying the quick-fix the code looks as follows: 'for (let i in a) {\n  if (a.hasOwnProperty(i)) {\n    console.log(a[i]);\n  }\n}' Inspection ID: JSUnfilteredForInLoop",
+                  "markdown": "Reports unfiltered `for-in` loops.   \n\nThe use of this construct results in processing not only own properties of an object but properties from its prototype as well. It may be unexpected in some specific cases, for example, in utility methods that copy or modify all properties or when `Object`'s prototype may be incorrectly modified. For example, the following code will print **42** and **myMethod** :   \n\n\n    Object.prototype.myMethod = function myMethod() {};\n    let a = { foo: 42 };\n    for (let i in a) {\n      console.log(a[i]);\n    }\n\nSuggests replacing the whole loop with a `Object.keys()` method or adding a `hasOwnProperty()` check. After applying the quick-fix the code looks as follows:\n\n\n    for (let i in a) {\n      if (a.hasOwnProperty(i)) {\n        console.log(a[i]);\n      }\n    }\n\nInspection ID: JSUnfilteredForInLoop"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
-                  "level": "error",
+                  "level": "warning",
                   "parameters": {
-                    "suppressToolId": "JSAnnotator",
-                    "ideaSeverity": "ERROR",
-                    "qodanaSeverity": "Critical",
-                    "codeQualityCategory": "Sanity"
+                    "suppressToolId": "JSUnfilteredForInLoop",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
                   }
                 },
                 "relationships": [
@@ -8166,6 +8166,40 @@
                 ]
               },
               {
+                "id": "TypeScriptDuplicateUnionOrIntersectionType",
+                "shortDescription": {
+                  "text": "Duplicate union or intersection type component"
+                },
+                "fullDescription": {
+                  "text": "Reports a duplicate type inside a union or intersection. Inspection ID: TypeScriptDuplicateUnionOrIntersectionType",
+                  "markdown": "Reports a duplicate type inside a union or intersection.\n\nInspection ID: TypeScriptDuplicateUnionOrIntersectionType"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "TypeScriptDuplicateUnionOrIntersectionType",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/TypeScript",
+                      "index": 27,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
                 "id": "TrivialConditionalJS",
                 "shortDescription": {
                   "text": "Redundant conditional expression"
@@ -8200,19 +8234,19 @@
                 ]
               },
               {
-                "id": "TypeScriptDuplicateUnionOrIntersectionType",
+                "id": "ES6UnusedImports",
                 "shortDescription": {
-                  "text": "Duplicate union or intersection type component"
+                  "text": "Unused import"
                 },
                 "fullDescription": {
-                  "text": "Reports a duplicate type inside a union or intersection. Inspection ID: TypeScriptDuplicateUnionOrIntersectionType",
-                  "markdown": "Reports a duplicate type inside a union or intersection.\n\nInspection ID: TypeScriptDuplicateUnionOrIntersectionType"
+                  "text": "Reports a redundant 'import' statement. This is usually the case if the imported symbols are not used in the source file. To avoid side-effects, consider using bare import 'import 'packageName'' instead of the regular one. Inspection ID: ES6UnusedImports",
+                  "markdown": "Reports a redundant `import` statement. This is usually the case if the imported symbols are not used in the source file. To avoid side-effects, consider using bare import `import 'packageName'` instead of the regular one.\n\nInspection ID: ES6UnusedImports"
                 },
                 "defaultConfiguration": {
                   "enabled": true,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "TypeScriptDuplicateUnionOrIntersectionType",
+                    "suppressToolId": "ES6UnusedImports",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
                     "codeQualityCategory": "Code Style"
@@ -8221,8 +8255,8 @@
                 "relationships": [
                   {
                     "target": {
-                      "id": "JavaScript and TypeScript/TypeScript",
-                      "index": 27,
+                      "id": "JavaScript and TypeScript/Imports and dependencies",
+                      "index": 46,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -8291,40 +8325,6 @@
                     "target": {
                       "id": "JavaScript and TypeScript/DOM issues",
                       "index": 51,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "ES6UnusedImports",
-                "shortDescription": {
-                  "text": "Unused import"
-                },
-                "fullDescription": {
-                  "text": "Reports a redundant 'import' statement. This is usually the case if the imported symbols are not used in the source file. To avoid side-effects, consider using bare import 'import 'packageName'' instead of the regular one. Inspection ID: ES6UnusedImports",
-                  "markdown": "Reports a redundant `import` statement. This is usually the case if the imported symbols are not used in the source file. To avoid side-effects, consider using bare import `import 'packageName'` instead of the regular one.\n\nInspection ID: ES6UnusedImports"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "ES6UnusedImports",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Imports and dependencies",
-                      "index": 46,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -8642,40 +8642,6 @@
                 ]
               },
               {
-                "id": "JSUnusedLocalSymbols",
-                "shortDescription": {
-                  "text": "Unused local symbol"
-                },
-                "fullDescription": {
-                  "text": "Reports an unused locally accessible parameter, local variable, function, class, or private member declaration. Inspection ID: JSUnusedLocalSymbols",
-                  "markdown": "Reports an unused locally accessible parameter, local variable, function, class, or private member declaration.\n\nInspection ID: JSUnusedLocalSymbols"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "JSUnusedLocalSymbols",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Unused symbols",
-                      "index": 20,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "ReturnFromFinallyBlockJS",
                 "shortDescription": {
                   "text": "'return' inside 'finally' block"
@@ -8699,6 +8665,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Try statement issues",
                       "index": 34,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "JSUnusedLocalSymbols",
+                "shortDescription": {
+                  "text": "Unused local symbol"
+                },
+                "fullDescription": {
+                  "text": "Reports an unused locally accessible parameter, local variable, function, class, or private member declaration. Inspection ID: JSUnusedLocalSymbols",
+                  "markdown": "Reports an unused locally accessible parameter, local variable, function, class, or private member declaration.\n\nInspection ID: JSUnusedLocalSymbols"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "JSUnusedLocalSymbols",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Unused symbols",
+                      "index": 20,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -10886,6 +10886,52 @@
             "isComprehensive": false
           },
           {
+            "name": "Karma",
+            "version": "261.24094.0",
+            "rules": [
+              {
+                "id": "KarmaConfigFile",
+                "shortDescription": {
+                  "text": "Invalid Karma configuration file"
+                },
+                "fullDescription": {
+                  "text": "Reports a potential error in a file path ('basePath', 'files') for a Karma configuration file, for example, 'karma.conf.js'. Inspection ID: KarmaConfigFile",
+                  "markdown": "Reports a potential error in a file path ('basePath', 'files') for a Karma configuration file, for example, `karma.conf.js`.\n\nInspection ID: KarmaConfigFile"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "KarmaConfigFile",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Unit testing",
+                      "index": 8,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "language": "en-US",
+            "contents": [
+              "localizedData",
+              "nonLocalizedData"
+            ],
+            "isComprehensive": false
+          },
+          {
             "name": "tanvd.grazi",
             "version": "261.24094.0",
             "rules": [
@@ -11049,52 +11095,6 @@
                     "target": {
                       "id": "Proofreading",
                       "index": 9,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              }
-            ],
-            "language": "en-US",
-            "contents": [
-              "localizedData",
-              "nonLocalizedData"
-            ],
-            "isComprehensive": false
-          },
-          {
-            "name": "Karma",
-            "version": "261.24094.0",
-            "rules": [
-              {
-                "id": "KarmaConfigFile",
-                "shortDescription": {
-                  "text": "Invalid Karma configuration file"
-                },
-                "fullDescription": {
-                  "text": "Reports a potential error in a file path ('basePath', 'files') for a Karma configuration file, for example, 'karma.conf.js'. Inspection ID: KarmaConfigFile",
-                  "markdown": "Reports a potential error in a file path ('basePath', 'files') for a Karma configuration file, for example, `karma.conf.js`.\n\nInspection ID: KarmaConfigFile"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "KarmaConfigFile",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Unit testing",
-                      "index": 8,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11708,22 +11708,22 @@
                 ]
               },
               {
-                "id": "SqlDtInspection",
+                "id": "SqlSideEffectsInspection",
                 "shortDescription": {
-                  "text": "Ill-formed date/time literals"
+                  "text": "Statement with side effects"
                 },
                 "fullDescription": {
-                  "text": "Reports errors in date and time literals. This inspection is available in MySQL, Oracle, Db2, and H2. Example (MySQL): 'SELECT TIME '10 -12:13:14' FROM dual;\nSELECT TIME ' 12 : 13 : 14 ' FROM dual;\nSELECT TIME '12 13 14' FROM dual;\nSELECT TIME '12-13-14' FROM dual;\nSELECT TIME '12.13.14' FROM dual;\nSELECT TIME '12:13:' FROM dual;\nSELECT TIME '12:13' FROM dual;\nSELECT TIME '12:' FROM dual;' In this example, dates ignore the MySQL standard for date and time literals. Therefore, they will be highlighted. For more information about date and time literals in MySQL, see Date and Time Literals at dev.mysql.com. The following date and type literals are valid for MySQL. 'SELECT TIME '12:13:14' FROM dual;\nSELECT TIME '12:13:14.555' FROM dual;\nSELECT TIME '12:13:14.' FROM dual;\nSELECT TIME '-12:13:14' FROM dual;\nSELECT TIME '10 12:13:14' FROM dual;\nSELECT TIME '-10 12:13:14' FROM dual;' Inspection ID: SqlDtInspection",
-                  "markdown": "Reports errors in date and time literals. This inspection is available in MySQL, Oracle, Db2, and H2.\n\nExample (MySQL):\n\n    SELECT TIME '10 -12:13:14' FROM dual;\n    SELECT TIME ' 12 : 13 : 14 ' FROM dual;\n    SELECT TIME '12 13 14' FROM dual;\n    SELECT TIME '12-13-14' FROM dual;\n    SELECT TIME '12.13.14' FROM dual;\n    SELECT TIME '12:13:' FROM dual;\n    SELECT TIME '12:13' FROM dual;\n    SELECT TIME '12:' FROM dual;\n\nIn this example, dates ignore the MySQL standard for date and time literals. Therefore, they will be highlighted.\nFor more information about date and time literals in MySQL, see [Date and Time Literals at dev.mysql.com](https://dev.mysql.com/doc/refman/8.0/en/date-and-time-literals.html).\n\nThe following date and type literals are valid for MySQL.\n\n    SELECT TIME '12:13:14' FROM dual;\n    SELECT TIME '12:13:14.555' FROM dual;\n    SELECT TIME '12:13:14.' FROM dual;\n    SELECT TIME '-12:13:14' FROM dual;\n    SELECT TIME '10 12:13:14' FROM dual;\n    SELECT TIME '-10 12:13:14' FROM dual;\n\nInspection ID: SqlDtInspection"
+                  "text": "Reports statements that might lead to modification of a database during a read-only connection. To enable read-only mode for a connection, right-click a data source in the Database tool window (View | Tool Windows | Database) and select Properties. In the Data Sources and Drivers dialog, click the Options tab and select the Read-only checkbox. Example (MySQL): 'CREATE TABLE foo(a INT);\nINSERT INTO foo VALUES (1);' As 'CREATE TABLE' and 'INSERT INTO' statements lead to a database modification, these statements will be highlighted in read-only connection mode. Inspection ID: SqlSideEffectsInspection",
+                  "markdown": "Reports statements that might lead to modification of a database during a read-only connection.\n\nTo enable read-only mode for a\nconnection,\nright-click a data source in the **Database** tool window (**View \\| Tool Windows \\| Database** ) and select **Properties** .\nIn the **Data Sources and Drivers** dialog, click the **Options** tab and select the **Read-only** checkbox.\n\nExample (MySQL):\n\n    CREATE TABLE foo(a INT);\n    INSERT INTO foo VALUES (1);\n\nAs `CREATE TABLE` and `INSERT INTO` statements lead to a database modification, these statements will be highlighted\nin read-only connection mode.\n\nInspection ID: SqlSideEffectsInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlDateTime",
+                    "suppressToolId": "SqlSideEffects",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Sanity"
+                    "codeQualityCategory": "Reliability"
                   }
                 },
                 "relationships": [
@@ -11742,22 +11742,22 @@
                 ]
               },
               {
-                "id": "SqlSideEffectsInspection",
+                "id": "SqlDtInspection",
                 "shortDescription": {
-                  "text": "Statement with side effects"
+                  "text": "Ill-formed date/time literals"
                 },
                 "fullDescription": {
-                  "text": "Reports statements that might lead to modification of a database during a read-only connection. To enable read-only mode for a connection, right-click a data source in the Database tool window (View | Tool Windows | Database) and select Properties. In the Data Sources and Drivers dialog, click the Options tab and select the Read-only checkbox. Example (MySQL): 'CREATE TABLE foo(a INT);\nINSERT INTO foo VALUES (1);' As 'CREATE TABLE' and 'INSERT INTO' statements lead to a database modification, these statements will be highlighted in read-only connection mode. Inspection ID: SqlSideEffectsInspection",
-                  "markdown": "Reports statements that might lead to modification of a database during a read-only connection.\n\nTo enable read-only mode for a\nconnection,\nright-click a data source in the **Database** tool window (**View \\| Tool Windows \\| Database** ) and select **Properties** .\nIn the **Data Sources and Drivers** dialog, click the **Options** tab and select the **Read-only** checkbox.\n\nExample (MySQL):\n\n    CREATE TABLE foo(a INT);\n    INSERT INTO foo VALUES (1);\n\nAs `CREATE TABLE` and `INSERT INTO` statements lead to a database modification, these statements will be highlighted\nin read-only connection mode.\n\nInspection ID: SqlSideEffectsInspection"
+                  "text": "Reports errors in date and time literals. This inspection is available in MySQL, Oracle, Db2, and H2. Example (MySQL): 'SELECT TIME '10 -12:13:14' FROM dual;\nSELECT TIME ' 12 : 13 : 14 ' FROM dual;\nSELECT TIME '12 13 14' FROM dual;\nSELECT TIME '12-13-14' FROM dual;\nSELECT TIME '12.13.14' FROM dual;\nSELECT TIME '12:13:' FROM dual;\nSELECT TIME '12:13' FROM dual;\nSELECT TIME '12:' FROM dual;' In this example, dates ignore the MySQL standard for date and time literals. Therefore, they will be highlighted. For more information about date and time literals in MySQL, see Date and Time Literals at dev.mysql.com. The following date and type literals are valid for MySQL. 'SELECT TIME '12:13:14' FROM dual;\nSELECT TIME '12:13:14.555' FROM dual;\nSELECT TIME '12:13:14.' FROM dual;\nSELECT TIME '-12:13:14' FROM dual;\nSELECT TIME '10 12:13:14' FROM dual;\nSELECT TIME '-10 12:13:14' FROM dual;' Inspection ID: SqlDtInspection",
+                  "markdown": "Reports errors in date and time literals. This inspection is available in MySQL, Oracle, Db2, and H2.\n\nExample (MySQL):\n\n    SELECT TIME '10 -12:13:14' FROM dual;\n    SELECT TIME ' 12 : 13 : 14 ' FROM dual;\n    SELECT TIME '12 13 14' FROM dual;\n    SELECT TIME '12-13-14' FROM dual;\n    SELECT TIME '12.13.14' FROM dual;\n    SELECT TIME '12:13:' FROM dual;\n    SELECT TIME '12:13' FROM dual;\n    SELECT TIME '12:' FROM dual;\n\nIn this example, dates ignore the MySQL standard for date and time literals. Therefore, they will be highlighted.\nFor more information about date and time literals in MySQL, see [Date and Time Literals at dev.mysql.com](https://dev.mysql.com/doc/refman/8.0/en/date-and-time-literals.html).\n\nThe following date and type literals are valid for MySQL.\n\n    SELECT TIME '12:13:14' FROM dual;\n    SELECT TIME '12:13:14.555' FROM dual;\n    SELECT TIME '12:13:14.' FROM dual;\n    SELECT TIME '-12:13:14' FROM dual;\n    SELECT TIME '10 12:13:14' FROM dual;\n    SELECT TIME '-10 12:13:14' FROM dual;\n\nInspection ID: SqlDtInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlSideEffects",
+                    "suppressToolId": "SqlDateTime",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
+                    "codeQualityCategory": "Sanity"
                   }
                 },
                 "relationships": [
@@ -12354,22 +12354,22 @@
                 ]
               },
               {
-                "id": "SqlNoDataSourceInspection",
+                "id": "SqlUnusedVariableInspection",
                 "shortDescription": {
-                  "text": "No data sources configured"
+                  "text": "Unused variable"
                 },
                 "fullDescription": {
-                  "text": "Reports the absence of data sources in the Database tool window (View | Tool Windows | Database). Inspection ID: SqlNoDataSourceInspection",
-                  "markdown": "Reports the absence of data sources in the **Database** tool window (**View \\| Tool Windows \\| Database** ).\n\nInspection ID: SqlNoDataSourceInspection"
+                  "text": "Reports unused arguments, variables, or parameters. Example (PostgreSQL): 'CREATE FUNCTION foo(PARAMUSED INT, PARAMUNUSED INT) RETURNS INT AS\n$$\nBEGIN\n    RETURN PARAMUSED;\nEND\n$$ LANGUAGE plpgsql;' The 'PARAMUNUSED' parameter is not used in the function and might be deleted. Inspection ID: SqlUnusedVariableInspection",
+                  "markdown": "Reports unused arguments, variables, or parameters.\n\nExample (PostgreSQL):\n\n    CREATE FUNCTION foo(PARAMUSED INT, PARAMUNUSED INT) RETURNS INT AS\n    $$\n    BEGIN\n        RETURN PARAMUSED;\n    END\n    $$ LANGUAGE plpgsql;\n\nThe `PARAMUNUSED` parameter is not used in the function and might be deleted.\n\nInspection ID: SqlUnusedVariableInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlNoDataSourceInspection",
+                    "suppressToolId": "SqlUnused",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Unspecified"
+                    "codeQualityCategory": "Code Style"
                   }
                 },
                 "relationships": [
@@ -12388,22 +12388,22 @@
                 ]
               },
               {
-                "id": "SqlUnusedVariableInspection",
+                "id": "SqlNoDataSourceInspection",
                 "shortDescription": {
-                  "text": "Unused variable"
+                  "text": "No data sources configured"
                 },
                 "fullDescription": {
-                  "text": "Reports unused arguments, variables, or parameters. Example (PostgreSQL): 'CREATE FUNCTION foo(PARAMUSED INT, PARAMUNUSED INT) RETURNS INT AS\n$$\nBEGIN\n    RETURN PARAMUSED;\nEND\n$$ LANGUAGE plpgsql;' The 'PARAMUNUSED' parameter is not used in the function and might be deleted. Inspection ID: SqlUnusedVariableInspection",
-                  "markdown": "Reports unused arguments, variables, or parameters.\n\nExample (PostgreSQL):\n\n    CREATE FUNCTION foo(PARAMUSED INT, PARAMUNUSED INT) RETURNS INT AS\n    $$\n    BEGIN\n        RETURN PARAMUSED;\n    END\n    $$ LANGUAGE plpgsql;\n\nThe `PARAMUNUSED` parameter is not used in the function and might be deleted.\n\nInspection ID: SqlUnusedVariableInspection"
+                  "text": "Reports the absence of data sources in the Database tool window (View | Tool Windows | Database). Inspection ID: SqlNoDataSourceInspection",
+                  "markdown": "Reports the absence of data sources in the **Database** tool window (**View \\| Tool Windows \\| Database** ).\n\nInspection ID: SqlNoDataSourceInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlUnused",
+                    "suppressToolId": "SqlNoDataSourceInspection",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
+                    "codeQualityCategory": "Unspecified"
                   }
                 },
                 "relationships": [
@@ -12762,22 +12762,22 @@
                 ]
               },
               {
-                "id": "SqlMultipleLimitClausesInspection",
+                "id": "SqlNamedArgumentsInspection",
                 "shortDescription": {
-                  "text": "Multiple row limiting/offset clauses in queries"
+                  "text": "Named arguments should be used"
                 },
                 "fullDescription": {
-                  "text": "Reports usages of multiple row limiting clauses in a single query. Example (Microsoft SQL Server): 'create table foo(a int);\nselect top 1 * from foo order by a offset 10 rows fetch next 20 rows only;' The SELECT TOP clause is used to specify that only 1 record must be returned. The FETCH clause specifies the number of rows to return after the OFFSET clause has been processed. But as we already have the SELECT TOP limiting clause, the FETCH clause might be redundant. Inspection ID: SqlMultipleLimitClausesInspection",
-                  "markdown": "Reports usages of multiple row limiting clauses in a single query.\n\nExample (Microsoft SQL Server):\n\n    create table foo(a int);\n    select top 1 * from foo order by a offset 10 rows fetch next 20 rows only;\n\nThe SELECT TOP clause is used to specify that only 1 record must be\nreturned. The FETCH clause specifies the number of rows to return after the OFFSET\nclause has been processed. But as we already have the SELECT TOP limiting clause, the FETCH clause might be redundant.\n\nInspection ID: SqlMultipleLimitClausesInspection"
+                  "text": "Reports arguments that are used without names in routine calls. By default, this inspection is disabled. For more information about the difference between named and unnamed parameters, see Binding Parameters by Name (Named Parameters) at docs.microsoft.com . Example (Microsoft SQL Server): 'CREATE FUNCTION foo(n INT, m INT) RETURNS INT AS\nBEGIN\n    RETURN n + m;\nEND;\n\nCREATE PROCEDURE test AS\nBEGIN\n    foo n = 1, m = 2;\n\n--- The following call misses parameter names and will be highlighted\n    foo 1, 2;\nEND;' Parameters '1, 2' in the 'foo 1, 2;' call are highlighted because they miss names. Inspection ID: SqlNamedArgumentsInspection",
+                  "markdown": "Reports arguments that are used without names in routine calls. By default, this inspection is disabled.\n\nFor more information about the difference between named and unnamed parameters, see [Binding Parameters by Name (Named Parameters) at docs.microsoft.com](https://docs.microsoft.com/en-us/sql/odbc/reference/develop-app/binding-parameters-by-name-named-parameters).\n\nExample (Microsoft SQL Server):\n\n    CREATE FUNCTION foo(n INT, m INT) RETURNS INT AS\n    BEGIN\n        RETURN n + m;\n    END;\n\n    CREATE PROCEDURE test AS\n    BEGIN\n        foo n = 1, m = 2;\n\n    --- The following call misses parameter names and will be highlighted\n        foo 1, 2;\n    END;\n\nParameters `1, 2` in the `foo 1, 2;` call are highlighted because they miss names.\n\nInspection ID: SqlNamedArgumentsInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlMultipleLimitClauses",
+                    "suppressToolId": "SqlNamedArguments",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
+                    "codeQualityCategory": "Code Style"
                   }
                 },
                 "relationships": [
@@ -12796,22 +12796,22 @@
                 ]
               },
               {
-                "id": "SqlNamedArgumentsInspection",
+                "id": "SqlMultipleLimitClausesInspection",
                 "shortDescription": {
-                  "text": "Named arguments should be used"
+                  "text": "Multiple row limiting/offset clauses in queries"
                 },
                 "fullDescription": {
-                  "text": "Reports arguments that are used without names in routine calls. By default, this inspection is disabled. For more information about the difference between named and unnamed parameters, see Binding Parameters by Name (Named Parameters) at docs.microsoft.com . Example (Microsoft SQL Server): 'CREATE FUNCTION foo(n INT, m INT) RETURNS INT AS\nBEGIN\n    RETURN n + m;\nEND;\n\nCREATE PROCEDURE test AS\nBEGIN\n    foo n = 1, m = 2;\n\n--- The following call misses parameter names and will be highlighted\n    foo 1, 2;\nEND;' Parameters '1, 2' in the 'foo 1, 2;' call are highlighted because they miss names. Inspection ID: SqlNamedArgumentsInspection",
-                  "markdown": "Reports arguments that are used without names in routine calls. By default, this inspection is disabled.\n\nFor more information about the difference between named and unnamed parameters, see [Binding Parameters by Name (Named Parameters) at docs.microsoft.com](https://docs.microsoft.com/en-us/sql/odbc/reference/develop-app/binding-parameters-by-name-named-parameters).\n\nExample (Microsoft SQL Server):\n\n    CREATE FUNCTION foo(n INT, m INT) RETURNS INT AS\n    BEGIN\n        RETURN n + m;\n    END;\n\n    CREATE PROCEDURE test AS\n    BEGIN\n        foo n = 1, m = 2;\n\n    --- The following call misses parameter names and will be highlighted\n        foo 1, 2;\n    END;\n\nParameters `1, 2` in the `foo 1, 2;` call are highlighted because they miss names.\n\nInspection ID: SqlNamedArgumentsInspection"
+                  "text": "Reports usages of multiple row limiting clauses in a single query. Example (Microsoft SQL Server): 'create table foo(a int);\nselect top 1 * from foo order by a offset 10 rows fetch next 20 rows only;' The SELECT TOP clause is used to specify that only 1 record must be returned. The FETCH clause specifies the number of rows to return after the OFFSET clause has been processed. But as we already have the SELECT TOP limiting clause, the FETCH clause might be redundant. Inspection ID: SqlMultipleLimitClausesInspection",
+                  "markdown": "Reports usages of multiple row limiting clauses in a single query.\n\nExample (Microsoft SQL Server):\n\n    create table foo(a int);\n    select top 1 * from foo order by a offset 10 rows fetch next 20 rows only;\n\nThe SELECT TOP clause is used to specify that only 1 record must be\nreturned. The FETCH clause specifies the number of rows to return after the OFFSET\nclause has been processed. But as we already have the SELECT TOP limiting clause, the FETCH clause might be redundant.\n\nInspection ID: SqlMultipleLimitClausesInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlNamedArguments",
+                    "suppressToolId": "SqlMultipleLimitClauses",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
+                    "codeQualityCategory": "Reliability"
                   }
                 },
                 "relationships": [
@@ -12864,22 +12864,22 @@
                 ]
               },
               {
-                "id": "SqlIdentifierInspection",
+                "id": "SqlRedundantAliasInspection",
                 "shortDescription": {
-                  "text": "Identifier should be quoted"
+                  "text": "Redundant alias expressions"
                 },
                 "fullDescription": {
-                  "text": "Reports situations when you use SQL reserved keywords as identifier names in your query. Example (Microsoft SQL Server): 'CREATE TABLE select (identity INT IDENTITY NOT NULL, order INT NOT NULL);' We use 'select', 'identity', and 'order' as table and column names. But they are also reserved keywords in Microsoft SQL Server. Therefore, in order to use them as object names in the query, you must quote these identifiers. To quote them, you can use the Quote identifier quick-fix. After the quick-fix is applied: 'CREATE TABLE [select] ([identity] INT IDENTITY NOT NULL, [order] INT NOT NULL);' Inspection ID: SqlIdentifierInspection",
-                  "markdown": "Reports situations when you use SQL reserved keywords as identifier names in your query.\n\nExample (Microsoft SQL Server):\n\n    CREATE TABLE select (identity INT IDENTITY NOT NULL, order INT NOT NULL);\n\nWe use `select`, `identity`, and `order` as table and column names.\nBut they are also reserved keywords in Microsoft SQL Server.\nTherefore, in order to use them as object names in the query, you must quote these identifiers. To quote them, you can use the\n**Quote identifier** quick-fix.\n\nAfter the quick-fix is applied:\n\n    CREATE TABLE [select] ([identity] INT IDENTITY NOT NULL, [order] INT NOT NULL);\n\nInspection ID: SqlIdentifierInspection"
+                  "text": "Reports alias expressions that duplicate names of columns in tables and might be redundant. Example (PostgreSQL): 'CREATE TABLE foo(a INT, b INT);\n\nSELECT * FROM foo foo(a, b);\nSELECT * FROM foo foo(a);\nSELECT * FROM foo foo(x);\nSELECT * FROM foo foo(x, y);' The first two aliases use the same column names as in the 'foo' table. They are considered redundant because they column names are identical. Inspection ID: SqlRedundantAliasInspection",
+                  "markdown": "Reports alias expressions that duplicate names of columns in tables and might be redundant.\n\nExample (PostgreSQL):\n\n    CREATE TABLE foo(a INT, b INT);\n\n    SELECT * FROM foo foo(a, b);\n    SELECT * FROM foo foo(a);\n    SELECT * FROM foo foo(x);\n    SELECT * FROM foo foo(x, y);\n\nThe first two aliases use the same column names as in the `foo` table. They are considered redundant because they\ncolumn names are identical.\n\nInspection ID: SqlRedundantAliasInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlIdentifier",
+                    "suppressToolId": "SqlRedundantAlias",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Sanity"
+                    "codeQualityCategory": "Code Style"
                   }
                 },
                 "relationships": [
@@ -12898,22 +12898,22 @@
                 ]
               },
               {
-                "id": "SqlRedundantAliasInspection",
+                "id": "SqlIdentifierInspection",
                 "shortDescription": {
-                  "text": "Redundant alias expressions"
+                  "text": "Identifier should be quoted"
                 },
                 "fullDescription": {
-                  "text": "Reports alias expressions that duplicate names of columns in tables and might be redundant. Example (PostgreSQL): 'CREATE TABLE foo(a INT, b INT);\n\nSELECT * FROM foo foo(a, b);\nSELECT * FROM foo foo(a);\nSELECT * FROM foo foo(x);\nSELECT * FROM foo foo(x, y);' The first two aliases use the same column names as in the 'foo' table. They are considered redundant because they column names are identical. Inspection ID: SqlRedundantAliasInspection",
-                  "markdown": "Reports alias expressions that duplicate names of columns in tables and might be redundant.\n\nExample (PostgreSQL):\n\n    CREATE TABLE foo(a INT, b INT);\n\n    SELECT * FROM foo foo(a, b);\n    SELECT * FROM foo foo(a);\n    SELECT * FROM foo foo(x);\n    SELECT * FROM foo foo(x, y);\n\nThe first two aliases use the same column names as in the `foo` table. They are considered redundant because they\ncolumn names are identical.\n\nInspection ID: SqlRedundantAliasInspection"
+                  "text": "Reports situations when you use SQL reserved keywords as identifier names in your query. Example (Microsoft SQL Server): 'CREATE TABLE select (identity INT IDENTITY NOT NULL, order INT NOT NULL);' We use 'select', 'identity', and 'order' as table and column names. But they are also reserved keywords in Microsoft SQL Server. Therefore, in order to use them as object names in the query, you must quote these identifiers. To quote them, you can use the Quote identifier quick-fix. After the quick-fix is applied: 'CREATE TABLE [select] ([identity] INT IDENTITY NOT NULL, [order] INT NOT NULL);' Inspection ID: SqlIdentifierInspection",
+                  "markdown": "Reports situations when you use SQL reserved keywords as identifier names in your query.\n\nExample (Microsoft SQL Server):\n\n    CREATE TABLE select (identity INT IDENTITY NOT NULL, order INT NOT NULL);\n\nWe use `select`, `identity`, and `order` as table and column names.\nBut they are also reserved keywords in Microsoft SQL Server.\nTherefore, in order to use them as object names in the query, you must quote these identifiers. To quote them, you can use the\n**Quote identifier** quick-fix.\n\nAfter the quick-fix is applied:\n\n    CREATE TABLE [select] ([identity] INT IDENTITY NOT NULL, [order] INT NOT NULL);\n\nInspection ID: SqlIdentifierInspection"
                 },
                 "defaultConfiguration": {
                   "enabled": false,
                   "level": "warning",
                   "parameters": {
-                    "suppressToolId": "SqlRedundantAlias",
+                    "suppressToolId": "SqlIdentifier",
                     "ideaSeverity": "WARNING",
                     "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
+                    "codeQualityCategory": "Sanity"
                   }
                 },
                 "relationships": [
@@ -13408,40 +13408,6 @@
                 ]
               },
               {
-                "id": "SqlGotoInspection",
-                "shortDescription": {
-                  "text": "Usages of GOTO statements"
-                },
-                "fullDescription": {
-                  "text": "Reports usages of backward GOTO statements and GOTO statements used to exit a loop. The extensive use of GOTO statements is generally not recommended. For details, see GOTO statement in SQL procedures at ibm.com. Instead of jumping back to a previous statement using GOTO, consider using a loop. Instead of exiting the WHILE loop with GOTO, consider using other control-of-flow statements (for example, RETURN or BREAK). Example (Oracle): 'CREATE PROCEDURE test(n INT) AS\nDECLARE\n    x INT;\nBEGIN\n    x := 0;\n    GOTO a;\n    <<a>> x := 1;\n    IF (n = 0) THEN\n        GOTO a;\n    END IF;\n    WHILE TRUE\n        LOOP\n            GOTO b;\n        END LOOP;\n    <<b>> x := 3;\nEND;' Inspection ID: SqlGotoInspection",
-                  "markdown": "Reports usages of backward GOTO statements and GOTO statements used to exit a loop.\n\nThe extensive use of GOTO statements is generally\nnot recommended. For details, see [GOTO statement in\nSQL\nprocedures at ibm.com](https://www.ibm.com/docs/no/db2/11.5?topic=procedures-goto-statement-in-sql).\n\nInstead of jumping back to a previous statement using GOTO, consider using a loop.\n\nInstead of exiting the WHILE loop with GOTO, consider using other control-of-flow statements (for example, RETURN or BREAK).\n\nExample (Oracle):\n\n    CREATE PROCEDURE test(n INT) AS\n    DECLARE\n        x INT;\n    BEGIN\n        x := 0;\n        GOTO a;\n        <<a>> x := 1;\n        IF (n = 0) THEN\n            GOTO a;\n        END IF;\n        WHILE TRUE\n            LOOP\n                GOTO b;\n            END LOOP;\n        <<b>> x := 3;\n    END;\n\nInspection ID: SqlGotoInspection"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "SqlGoto",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "SQL",
-                      "index": 29,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "MongoJSExtResolveInspection",
                 "shortDescription": {
                   "text": "Resolution problems"
@@ -13465,6 +13431,40 @@
                     "target": {
                       "id": "MongoJS",
                       "index": 11,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "SqlGotoInspection",
+                "shortDescription": {
+                  "text": "Usages of GOTO statements"
+                },
+                "fullDescription": {
+                  "text": "Reports usages of backward GOTO statements and GOTO statements used to exit a loop. The extensive use of GOTO statements is generally not recommended. For details, see GOTO statement in SQL procedures at ibm.com. Instead of jumping back to a previous statement using GOTO, consider using a loop. Instead of exiting the WHILE loop with GOTO, consider using other control-of-flow statements (for example, RETURN or BREAK). Example (Oracle): 'CREATE PROCEDURE test(n INT) AS\nDECLARE\n    x INT;\nBEGIN\n    x := 0;\n    GOTO a;\n    <<a>> x := 1;\n    IF (n = 0) THEN\n        GOTO a;\n    END IF;\n    WHILE TRUE\n        LOOP\n            GOTO b;\n        END LOOP;\n    <<b>> x := 3;\nEND;' Inspection ID: SqlGotoInspection",
+                  "markdown": "Reports usages of backward GOTO statements and GOTO statements used to exit a loop.\n\nThe extensive use of GOTO statements is generally\nnot recommended. For details, see [GOTO statement in\nSQL\nprocedures at ibm.com](https://www.ibm.com/docs/no/db2/11.5?topic=procedures-goto-statement-in-sql).\n\nInstead of jumping back to a previous statement using GOTO, consider using a loop.\n\nInstead of exiting the WHILE loop with GOTO, consider using other control-of-flow statements (for example, RETURN or BREAK).\n\nExample (Oracle):\n\n    CREATE PROCEDURE test(n INT) AS\n    DECLARE\n        x INT;\n    BEGIN\n        x := 0;\n        GOTO a;\n        <<a>> x := 1;\n        IF (n = 0) THEN\n            GOTO a;\n        END IF;\n        WHILE TRUE\n            LOOP\n                GOTO b;\n            END LOOP;\n        <<b>> x := 3;\n    END;\n\nInspection ID: SqlGotoInspection"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "SqlGoto",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "SQL",
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -15018,40 +15018,6 @@
                 ]
               },
               {
-                "id": "XmlDeprecatedElement",
-                "shortDescription": {
-                  "text": "Deprecated symbol"
-                },
-                "fullDescription": {
-                  "text": "Reports a deprecated XML element or attribute. Symbols can be marked by XML comment or documentation tag with text 'deprecated'. Inspection ID: XmlDeprecatedElement",
-                  "markdown": "Reports a deprecated XML element or attribute.\n\nSymbols can be marked by XML comment or documentation tag with text 'deprecated'.\n\nInspection ID: XmlDeprecatedElement"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "XmlDeprecatedElement",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "XML",
-                      "index": 39,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "RegExpRedundantNestedCharacterClass",
                 "shortDescription": {
                   "text": "Redundant nested character class"
@@ -15075,6 +15041,40 @@
                     "target": {
                       "id": "RegExp",
                       "index": 43,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "XmlDeprecatedElement",
+                "shortDescription": {
+                  "text": "Deprecated symbol"
+                },
+                "fullDescription": {
+                  "text": "Reports a deprecated XML element or attribute. Symbols can be marked by XML comment or documentation tag with text 'deprecated'. Inspection ID: XmlDeprecatedElement",
+                  "markdown": "Reports a deprecated XML element or attribute.\n\nSymbols can be marked by XML comment or documentation tag with text 'deprecated'.\n\nInspection ID: XmlDeprecatedElement"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "XmlDeprecatedElement",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "XML",
+                      "index": 39,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -18519,7 +18519,7 @@
       },
       "invocations": [
         {
-          "startTimeUtc": "2026-05-30T02:03:49.345124597Z",
+          "startTimeUtc": "2026-05-30T06:49:45.371764959Z",
           "exitCode": 0,
           "executionSuccessful": true
         }
@@ -18528,8 +18528,8 @@
       "versionControlProvenance": [
         {
           "repositoryUri": "https://github.com/piwas-21/restaurant-app-frontend.git",
-          "revisionId": "f7eb5c42b34b711f2407cd6a25cd36ce2e9022c1",
-          "branch": "refactor/frontend-cart-context",
+          "revisionId": "0beac6f9668b28d023a3380ce1b814814a88fbfe",
+          "branch": "refactor/frontend-reservations-page",
           "properties": {
             "repoUrl": "https://github.com/piwas-21/restaurant-app-frontend.git",
             "lastAuthorName": "mahmutkaya",
@@ -20838,6 +20838,63 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
+                  "uri": "src/utils/reservationForm.ts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 6,
+                  "snippet": {
+                    "text": "import"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 175,
+                  "snippet": {
+                    "text": "import type { TFunction } from 'i18next';\nimport type { VariantType } from 'notistack';\nimport type { TableDto, TimeSlotDto, CreateReservationDto } from '@/types/reservation';"
+                  },
+                  "sourceLanguage": "TypeScript"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "40314113a87e8e88",
+            "equalIndicator/v1": "164dd83762b69bbcac9723116bf25e08d02a8213cbfacd91ea98e7b9c2cf3ba9"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
                   "uri": "src/hooks/admin/useAdminOrdersBulkSelection.ts",
                   "uriBaseId": "SRCROOT"
                 },
@@ -22298,6 +22355,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "73dc0d711e0482e1",
             "equalIndicator/v1": "2166a6b507702e5f70e4ab28d4179ef997769a8b576229b47e53a7bde8152d47"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/hooks/reservations/useReservationsPage.ts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 59,
+                  "snippet": {
+                    "text": "'use client';\n\nimport { useState, useEffect } from 'react';"
+                  },
+                  "sourceLanguage": "TypeScript"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "861137a769f9e2a7",
+            "equalIndicator/v1": "218dab535626b77e076f16a7901ae67b2e1e20e7db362f13869968a30528329b"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -24258,63 +24372,6 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/components/menu/ProductCustomizationInBundle.tsx",
-                  "uriBaseId": "SRCROOT"
-                },
-                "region": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "charOffset": 0,
-                  "charLength": 6,
-                  "snippet": {
-                    "text": "import"
-                  },
-                  "sourceLanguage": "JavaScript"
-                },
-                "contextRegion": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "charOffset": 0,
-                  "charLength": 185,
-                  "snippet": {
-                    "text": "import React, { useState, useEffect } from 'react';\nimport styles from './ProductCustomizationInBundle.module.css';\nimport { DetailedIngredient, SuggestedSideItem } from '@/types/menu';"
-                  },
-                  "sourceLanguage": "TypeScript JSX"
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "project",
-                  "kind": "module"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v2": "a648bd6d67ec5f66",
-            "equalIndicator/v1": "3caeb93141282a31f83ec5a6fd5d636cdc645b8951d4572ef52f6f08379b2c3d"
-          },
-          "properties": {
-            "ideaSeverity": "ERROR",
-            "qodanaSeverity": "Critical",
-            "problemType": "REGULAR",
-            "tags": [
-              "JavaScript"
-            ]
-          }
-        },
-        {
-          "ruleId": "Eslint",
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "ESLint: Install the 'eslint' package",
-            "markdown": "ESLint: Install the 'eslint' package"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
                   "uri": "src/components/admin/specials-management/FeaturedSpecialCard.tsx",
                   "uriBaseId": "SRCROOT"
                 },
@@ -25490,6 +25547,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "a7642603306e6d12",
             "equalIndicator/v1": "4838a0ecf934859938f9191b137ceb594d94db172dfd3a63cef0a38d4ac9f62f"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/app/reservations/page.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 90,
+                  "snippet": {
+                    "text": "'use client';\n\nimport VisualTableLayout from '@/components/reservation/VisualTableLayout';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "95b726ca0336554b",
+            "equalIndicator/v1": "485b43713e06b787bb46ef0b03a019fa49de940769daba0d45ba4152535c8d14"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -31611,6 +31725,63 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
+                  "uri": "src/components/menu/ProductCustomizationInBundle.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 6,
+                  "snippet": {
+                    "text": "import"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 196,
+                  "snippet": {
+                    "text": "import React, { useState, useEffect } from 'react';\nimport styles from './ProductCustomizationInBundle.module.css';\nimport { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "9e039559ace1ceae",
+            "equalIndicator/v1": "90f8ec7f7f5c0787a48347a724efdca3c7f687bc055e82264a991c11039472ac"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
                   "uri": "src/components/admin/product-details/ProductDetailsGrid.tsx",
                   "uriBaseId": "SRCROOT"
                 },
@@ -35601,63 +35772,6 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/app/reservations/page.tsx",
-                  "uriBaseId": "SRCROOT"
-                },
-                "region": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "charOffset": 0,
-                  "charLength": 12,
-                  "snippet": {
-                    "text": "'use client'"
-                  },
-                  "sourceLanguage": "JavaScript"
-                },
-                "contextRegion": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "charOffset": 0,
-                  "charLength": 59,
-                  "snippet": {
-                    "text": "'use client';\n\nimport { useState, useEffect } from 'react';"
-                  },
-                  "sourceLanguage": "TypeScript JSX"
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "project",
-                  "kind": "module"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v2": "62c62d9f0785a3f5",
-            "equalIndicator/v1": "b7ce15f3e96bfcfbc58a2b4b7062ae495c63c16f975c5b80cd2ecf2c2f6e66c2"
-          },
-          "properties": {
-            "ideaSeverity": "ERROR",
-            "qodanaSeverity": "Critical",
-            "problemType": "REGULAR",
-            "tags": [
-              "JavaScript"
-            ]
-          }
-        },
-        {
-          "ruleId": "Eslint",
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "ESLint: Install the 'eslint' package",
-            "markdown": "ESLint: Install the 'eslint' package"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
                   "uri": "src/services/orderService.ts",
                   "uriBaseId": "SRCROOT"
                 },
@@ -36434,6 +36548,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "17ed6fbdb6ef5f57",
             "equalIndicator/v1": "c4cfe3597322413c458cf72b6c6dc35278d56c2499b53b1ec14ab1a8771ba550"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/hooks/reservations/useReservationAvailability.ts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 59,
+                  "snippet": {
+                    "text": "'use client';\n\nimport { useState, useEffect } from 'react';"
+                  },
+                  "sourceLanguage": "TypeScript"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "5a51344c8db4b3cd",
+            "equalIndicator/v1": "c5668720a6ebef53e5a63a1f9a28befeb58c5eafd4f1d938ab8608315fea1a3b"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -44142,9 +44313,9 @@
       ],
       "automationDetails": {
         "id": "project/qodana/2026-05-30",
-        "guid": "a0032b82-f7cd-4a9b-96af-29825d336da4",
+        "guid": "6892c37f-87ba-479c-9f7d-e0281e76bd78",
         "properties": {
-          "jobUrl": "https://github.com/piwas-21/restaurant-app-frontend/actions/runs/26671463588",
+          "jobUrl": "https://github.com/piwas-21/restaurant-app-frontend/actions/runs/26677290333",
           "analysisKind": "regular"
         }
       },
@@ -44171,26 +44342,26 @@
               {
                 "physicalLocation": {
                   "artifactLocation": {
-                    "uri": "e2e/tests/auth/register-login.e2e.ts",
+                    "uri": "src/services/authService.ts",
                     "uriBaseId": "SRCROOT"
                   },
                   "region": {
-                    "startLine": 63,
-                    "startColumn": 5,
-                    "charOffset": 2446,
-                    "charLength": 440,
+                    "startLine": 86,
+                    "startColumn": 3,
+                    "charOffset": 2302,
+                    "charLength": 456,
                     "snippet": {
-                      "text": "const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    // 3. Login — auto-redirect from verify lands at /auth/login?verified=true\n    //    after a 3s timer; navigate explicitly to avoid the race.\n    await page.goto('/auth/login');\n\n    await page.getByLabel(/^email$/i).fill(email);"
+                      "text": "const data = await response.json();\n  if (response.ok && data?.success) {\n    try {\n      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);\n      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);\n    } catch (e) {\n      // localStorage may be unavailable; ignore and let caller proceed\n      console.warn('Could not persist tokens to localStorage', e);\n    }\n  }\n  return data;"
                     },
                     "sourceLanguage": "TypeScript"
                   },
                   "contextRegion": {
-                    "startLine": 63,
+                    "startLine": 86,
                     "startColumn": 1,
-                    "charOffset": 2442,
-                    "charLength": 444,
+                    "charOffset": 2300,
+                    "charLength": 458,
                     "snippet": {
-                      "text": "    const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    // 3. Login — auto-redirect from verify lands at /auth/login?verified=true\n    //    after a 3s timer; navigate explicitly to avoid the race.\n    await page.goto('/auth/login');\n\n    await page.getByLabel(/^email$/i).fill(email);"
+                      "text": "  const data = await response.json();\n  if (response.ok && data?.success) {\n    try {\n      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);\n      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);\n    } catch (e) {\n      // localStorage may be unavailable; ignore and let caller proceed\n      console.warn('Could not persist tokens to localStorage', e);\n    }\n  }\n  return data;"
                     },
                     "sourceLanguage": "TypeScript"
                   }
@@ -44205,26 +44376,60 @@
               {
                 "physicalLocation": {
                   "artifactLocation": {
-                    "uri": "e2e/tests/auth/register-login.e2e.ts",
+                    "uri": "src/services/authService.ts",
                     "uriBaseId": "SRCROOT"
                   },
                   "region": {
-                    "startLine": 105,
-                    "startColumn": 5,
-                    "charOffset": 4401,
-                    "charLength": 293,
+                    "startLine": 247,
+                    "startColumn": 3,
+                    "charOffset": 6229,
+                    "charLength": 384,
                     "snippet": {
-                      "text": "const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    await page.goto('/auth/login');\n    await page.getByLabel(/^email$/i).fill(email);"
+                      "text": "const data = await response.json();\n  if (response.ok && data?.success) {\n    try {\n      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);\n      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);\n    } catch (e) {\n      console.warn('Could not persist tokens to localStorage', e);\n    }\n  }\n  return data;"
                     },
                     "sourceLanguage": "TypeScript"
                   },
                   "contextRegion": {
-                    "startLine": 105,
+                    "startLine": 247,
                     "startColumn": 1,
-                    "charOffset": 4397,
-                    "charLength": 297,
+                    "charOffset": 6227,
+                    "charLength": 386,
                     "snippet": {
-                      "text": "    const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    await page.goto('/auth/login');\n    await page.getByLabel(/^email$/i).fill(email);"
+                      "text": "  const data = await response.json();\n  if (response.ok && data?.success) {\n    try {\n      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);\n      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);\n    } catch (e) {\n      console.warn('Could not persist tokens to localStorage', e);\n    }\n  }\n  return data;"
+                    },
+                    "sourceLanguage": "TypeScript"
+                  }
+                },
+                "logicalLocations": [
+                  {
+                    "fullyQualifiedName": "project",
+                    "kind": "module"
+                  }
+                ]
+              },
+              {
+                "physicalLocation": {
+                  "artifactLocation": {
+                    "uri": "src/services/authService.ts",
+                    "uriBaseId": "SRCROOT"
+                  },
+                  "region": {
+                    "startLine": 278,
+                    "startColumn": 3,
+                    "charOffset": 7129,
+                    "charLength": 384,
+                    "snippet": {
+                      "text": "const data = await response.json();\n  if (response.ok && data?.success) {\n    try {\n      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);\n      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);\n    } catch (e) {\n      console.warn('Could not persist tokens to localStorage', e);\n    }\n  }\n  return data;"
+                    },
+                    "sourceLanguage": "TypeScript"
+                  },
+                  "contextRegion": {
+                    "startLine": 278,
+                    "startColumn": 1,
+                    "charOffset": 7127,
+                    "charLength": 386,
+                    "snippet": {
+                      "text": "  const data = await response.json();\n  if (response.ok && data?.success) {\n    try {\n      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);\n      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);\n    } catch (e) {\n      console.warn('Could not persist tokens to localStorage', e);\n    }\n  }\n  return data;"
                     },
                     "sourceLanguage": "TypeScript"
                   }
@@ -44238,8 +44443,8 @@
               }
             ],
             "partialFingerprints": {
-              "equalIndicator/v2": "7dfe59497350ba1e",
-              "equalIndicator/v1": "314b2a0bf65c160e3b6f7835f66c725e2efa841144f107573e7d5186ea3750f0"
+              "equalIndicator/v2": "76ea6c3d350e76d4",
+              "equalIndicator/v1": "78f4a7ae48719faced4615ab3d409c0b3687be7b15c32df284600ebd15eacf66"
             },
             "properties": {
               "ideaSeverity": "WEAK WARNING",
@@ -44348,8 +44553,8 @@
         "qodanaNewResultSummary": {
           "moderate": 10,
           "high": 50,
-          "critical": 389,
-          "total": 449
+          "critical": 392,
+          "total": 452
         }
       }
     }

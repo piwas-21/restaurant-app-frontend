@@ -67,7 +67,6 @@ src/components/admin/reservations/ReservationCalendar.module.css
 src/components/admin/OrderDetailsModal.module.css
 src/components/admin/CreateProductModal.tsx
 src/components/admin/user-groups/UserGroupModal.tsx
-src/components/admin/OrderDetailsModal.tsx
 src/components/admin/EditMenuBundleModal.tsx
 src/components/admin/product/ProductIngredientsManager.module.css
 src/components/admin/product/ProductIngredientsManager.tsx

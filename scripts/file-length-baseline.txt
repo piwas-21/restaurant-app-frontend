@@ -41,7 +41,6 @@ src/app/styles/DetailsPage.module.css
 src/app/styles/OrderTypePage.module.css
 src/app/styles/AdminPage.module.css
 src/app/menu/page.tsx
-src/app/cart/page.tsx
 src/app/account/page.tsx
 src/app/(auth)/delete-account/DeleteAccount.module.css
 src/app/(auth)/verify-email/VerifyEmail.module.css

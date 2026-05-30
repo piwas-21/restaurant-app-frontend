@@ -1,90 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useCart } from '@/components/cart/CartContext';
-import { useOrderType } from '@/contexts/OrderTypeContext';
-import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
-import styles from '../styles/CartPage.module.css';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Plus, Minus, ShoppingCart, Tag, Loader2 } from 'lucide-react';
+import { ShoppingCart, Loader2 } from 'lucide-react';
+import { useCartPage } from '@/hooks/cart/useCartPage';
+import CartItemCard from '@/components/cart/cart-page/CartItemCard';
+import CartSummary from '@/components/cart/cart-page/CartSummary';
+import styles from '../styles/CartPage.module.css';
 
 export default function CartPage() {
-  const router = useRouter();
-  const { state, removeItem, updateItem, applyPromoCode, removePromoCode, getTotal, getItemCount } = useCart();
-  const { state: orderTypeState, hasChosenOrderType } = useOrderType();
-  const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
-  const { t, i18n } = useTranslation();
-  const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
-  const [promoCode, setPromoCode] = useState('');
-  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [editingInstructions, setEditingInstructions] = useState<string | null>(null);
-  const [instructionsValue, setInstructionsValue] = useState('');
-
-  // Check if customer has active discount (for display formatting only)
-  const customerHasDiscount = (state.basket?.customerDiscount || 0) > 0 || (state.basket?.discount || 0) > 0;
-
-  const handleCheckout = () => {
-    if (hasChosenOrderType && orderTypeState.orderType) {
-      // proceedToCheckout has its own try/catch (toasts on failure); fire-and-forget.
-      // Analytics-source 'cart_page' marks the legacy /cart entry — the new
-      // C1.5 flow uses 'sidebar' / 'mobile_sheet'. Lets the funnel report on
-      // how many users still land here vs. the redesigned surfaces.
-      void proceedToCheckout(orderTypeState.orderType, 'cart_page');
-      return;
-    }
-    router.push('/menu');
-  };
-
-  const handleRemoveItem = async (basketItemId: string | undefined) => {
-    if (!basketItemId) return;
-    try {
-      await removeItem(basketItemId);
-    } catch {
-      // Error already handled by CartContext
-    }
-  };
-
-  const handleUpdateQuantity = async (basketItemId: string | undefined, newQuantity: number) => {
-    if (!basketItemId || newQuantity < 1) return;
-    try {
-      await updateItem(basketItemId, newQuantity);
-    } catch {
-      // Error already handled by CartContext
-    }
-  };
-
-  const handleApplyPromoCode = async () => {
-    if (!promoCode.trim()) return;
-    setIsApplyingPromo(true);
-    try {
-      await applyPromoCode(promoCode.trim());
-      setPromoCode('');
-    } finally {
-      setIsApplyingPromo(false);
-    }
-  };
-
-  const handleRemovePromoCode = async () => {
-    try {
-      await removePromoCode();
-    } catch {
-      // Error already handled by CartContext
-    }
-  };
-
-  const handleSaveInstructions = async (basketItemId: string | undefined, quantity: number, instructions: string) => {
-    if (!basketItemId) return;
-    try {
-      await updateItem(basketItemId, quantity, instructions);
-      setEditingInstructions(null);
-      setInstructionsValue('');
-    } catch {
-      // Error already handled by CartContext
-    }
-  };
+  const { t } = useTranslation();
+  const {
+    state,
+    getTotal,
+    getItemCount,
+    isResolving,
+    customerHasDiscount,
+    promoCode,
+    setPromoCode,
+    isApplyingPromo,
+    editingInstructions,
+    setEditingInstructions,
+    instructionsValue,
+    setInstructionsValue,
+    handleCheckout,
+    handleRemoveItem,
+    handleUpdateQuantity,
+    handleApplyPromoCode,
+    handleRemovePromoCode,
+    handleSaveInstructions,
+  } = useCartPage();
 
   if (state.items.length === 0) {
     return (
@@ -127,310 +72,36 @@ export default function CartPage() {
       <div className={styles.cartContent}>
         {/* Cart Items */}
         <div className={styles.cartItemsList}>
-          {state.items.map((item) => {
-            const itemId = item.basketItemId || item.id || item.productId;
-            const variationName =
-              item.variationContent?.[currentLanguage]?.name || item.variationContent?.en?.name || item.variationName;
-
-            return (
-              <div key={itemId} className={styles.cartItem}>
-                {/* Item Image */}
-                {item.productImageUrl && (
-                  <div className={styles.itemImageContainer}>
-                    <Image
-                      src={item.productImageUrl}
-                      alt={item.productName || 'Product'}
-                      width={120}
-                      height={120}
-                      className={styles.itemImage}
-                    />
-                  </div>
-                )}
-
-                {/* Item Details */}
-                <div className={styles.itemDetails}>
-                  <h2 className={styles.itemName}>{item.productName || 'Unknown Item'}</h2>
-                  {variationName && (
-                    <p className={styles.itemVariation}>
-                      <strong>{t('variation', 'Size/Variation')}:</strong> {variationName}
-                    </p>
-                  )}
-
-                  {/* Price Breakdown */}
-                  <div className={styles.priceBreakdownItem}>
-                    <p className={styles.itemPrice}>
-                      {t('base_price', 'Base Price')}: CHF {item.unitPrice.toFixed(2)}
-                    </p>
-                    {item.customizationPrice != null && item.customizationPrice !== 0 && (
-                      <p className={styles.customizationPrice}>
-                        {t('customization_cost', 'Customizations')}: {item.customizationPrice > 0 ? '+' : ''}CHF{' '}
-                        {item.customizationPrice.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Customizations */}
-                  {(item.selectedIngredientNames?.length ||
-                    item.excludedIngredientNames?.length ||
-                    item.selectedSideItems?.length ||
-                    item.specialInstructions) && (
-                    <div className={styles.customizationsContainer}>
-                      <h4 className={styles.customizationsTitle}>{t('customizations', 'Customizations')}:</h4>
-
-                      {item.selectedIngredientNames && item.selectedIngredientNames.length > 0 && (
-                        <div className={styles.customizationDetail}>
-                          <span className={styles.customizationLabel}>{t('added_ingredients', 'Added')}:</span>
-                          <span className={styles.customizationValue}>
-                            {item.selectedIngredientNames.map((name, idx) => {
-                              const ingredientId = item.selectedIngredients?.[idx];
-                              const qty =
-                                ingredientId && item.ingredientQuantities?.[ingredientId]
-                                  ? item.ingredientQuantities[ingredientId]
-                                  : 1;
-                              return (
-                                <span key={idx}>
-                                  {idx > 0 && ', '}
-                                  {name}
-                                  {qty > 1 && ` × ${qty}`}
-                                </span>
-                              );
-                            })}
-                          </span>
-                        </div>
-                      )}
-
-                      {item.excludedIngredientNames && item.excludedIngredientNames.length > 0 && (
-                        <div className={styles.customizationDetail}>
-                          <span className={styles.customizationLabel}>{t('removed_ingredients', 'Removed')}:</span>
-                          <span className={styles.customizationValue}>{item.excludedIngredientNames.join(', ')}</span>
-                        </div>
-                      )}
-
-                      {item.selectedSideItems && item.selectedSideItems.length > 0 && (
-                        <div className={styles.customizationDetail}>
-                          <span className={styles.customizationLabel}>{t('side_items', 'Side Items')}:</span>
-                          <span className={styles.customizationValue}>
-                            {item.selectedSideItems.map((sideItem, idx) => (
-                              <span key={sideItem.id}>
-                                {sideItem.name} x{sideItem.quantity} (CHF {sideItem.subTotal.toFixed(2)})
-                                {idx < item.selectedSideItems!.length - 1 ? ', ' : ''}
-                              </span>
-                            ))}
-                          </span>
-                        </div>
-                      )}
-
-                      {item.specialInstructions && (
-                        <div className={styles.customizationDetail}>
-                          <span className={styles.customizationLabel}>
-                            {t('special_requests', 'Special Requests')}:
-                          </span>
-                          <span className={styles.customizationValue}>{item.specialInstructions}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Special Instructions Edit Section */}
-                  {!item.selectedIngredientNames?.length && !item.excludedIngredientNames?.length && (
-                    <div className={styles.instructionsContainer}>
-                      {editingInstructions === itemId ? (
-                        <div className={styles.instructionsEdit}>
-                          <textarea
-                            value={instructionsValue}
-                            onChange={(e) => setInstructionsValue(e.target.value)}
-                            placeholder={t('special_instructions_placeholder', 'Add special instructions...')}
-                            className={styles.instructionsTextarea}
-                            rows={3}
-                          />
-                          <div className={styles.instructionsActions}>
-                            <button
-                              type="button"
-                              onClick={() => handleSaveInstructions(itemId, item.quantity, instructionsValue)}
-                              className={styles.saveButton}
-                              disabled={state.isSyncing}
-                            >
-                              {t('save', 'Save')}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingInstructions(null);
-                                setInstructionsValue('');
-                              }}
-                              className={styles.cancelButton}
-                            >
-                              {t('cancel', 'Cancel')}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {item.specialInstructions && (
-                            <p className={styles.instructionsText}>
-                              <strong>{t('special_instructions', 'Special Instructions')}:</strong>{' '}
-                              {item.specialInstructions}
-                            </p>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingInstructions(itemId || null);
-                              setInstructionsValue(item.specialInstructions || '');
-                            }}
-                            className={styles.editInstructionsButton}
-                            disabled={state.isSyncing}
-                          >
-                            {item.specialInstructions
-                              ? t('edit_instructions', 'Edit Instructions')
-                              : t('add_instructions', 'Add Instructions')}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Child Items for Menu Bundles */}
-                  {item.childItems && item.childItems.length > 0 && (
-                    <div className={styles.childItemsContainer}>
-                      <h4 className={styles.childItemsTitle}>{t('includes', 'Includes')}:</h4>
-                      <ul className={styles.childItemsList}>
-                        {item.childItems.map((childItem, idx) => (
-                          <li key={idx} className={styles.childItem}>
-                            <span className={styles.childItemName}>{childItem.productName}</span>
-                            {childItem.unitPrice > 0 && (
-                              <span className={styles.childItemPrice}>+CHF {childItem.unitPrice.toFixed(2)}</span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                {/* Item Controls */}
-                <div className={styles.itemControls}>
-                  <div className={styles.quantityControl}>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateQuantity(itemId, item.quantity - 1)}
-                      className={styles.quantityButton}
-                      disabled={state.isSyncing || item.quantity <= 1}
-                      aria-label={t('decrease_quantity', 'Decrease quantity')}
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className={styles.itemQuantity}>{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateQuantity(itemId, item.quantity + 1)}
-                      className={styles.quantityButton}
-                      disabled={state.isSyncing}
-                      aria-label={t('increase_quantity', 'Increase quantity')}
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-
-                  <p className={styles.itemSubtotal}>CHF {item.itemTotal.toFixed(2)}</p>
-
-                  {/* Remove Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(itemId)}
-                    className={styles.removeItemButton}
-                    disabled={state.isSyncing}
-                    aria-label={t('remove_item', 'Remove item')}
-                  >
-                    <Trash2 size={16} />
-                    <span>{t('remove', 'Remove')}</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {state.items.map((item) => (
+            <CartItemCard
+              key={item.basketItemId || item.id || item.productId}
+              item={item}
+              isSyncing={state.isSyncing}
+              editingInstructions={editingInstructions}
+              setEditingInstructions={setEditingInstructions}
+              instructionsValue={instructionsValue}
+              setInstructionsValue={setInstructionsValue}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveItem={handleRemoveItem}
+              onSaveInstructions={handleSaveInstructions}
+            />
+          ))}
         </div>
 
-        {/* Cart Summary */}
-        <div className={styles.cartSummary}>
-          {/* Promo Code Section */}
-          <div className={styles.promoCodeSection}>
-            <h3 className={styles.promoCodeTitle}>
-              <Tag size={20} />
-              {t('promo_code', 'Promo Code')}
-            </h3>
-
-            {state.basket?.promoCode ? (
-              <div className={styles.appliedPromoCode}>
-                <div className={styles.promoCodeInfo}>
-                  <span className={styles.promoCodeText}>{state.basket.promoCode}</span>
-                  <span className={styles.promoCodeDiscount}>
-                    -{t('discount', 'Discount')}: CHF {state.basket.discount.toFixed(2)}
-                  </span>
-                </div>
-                <button onClick={handleRemovePromoCode} className={styles.removePromoButton} disabled={state.isSyncing}>
-                  {t('remove', 'Remove')}
-                </button>
-              </div>
-            ) : (
-              <div className={styles.promoCodeInput}>
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder={t('enter_promo_code', 'Enter promo code')}
-                  className={styles.promoCodeField}
-                  disabled={state.isSyncing}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      // handleApplyPromoCode only has try/finally — applyPromoCode re-throws.
-                      handleApplyPromoCode().catch((err) => console.error('cart: failed to apply promo', err));
-                    }
-                  }}
-                />
-                <button
-                  onClick={handleApplyPromoCode}
-                  className={styles.applyPromoButton}
-                  disabled={state.isSyncing || !promoCode.trim()}
-                >
-                  {isApplyingPromo ? <Loader2 className={styles.buttonSpinner} size={16} /> : t('apply', 'Apply')}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Price Breakdown */}
-          <div className={styles.priceBreakdown}>
-            <div className={styles.priceRow}>
-              <span>{t('subtotal', 'Subtotal')}:</span>
-              <span>CHF {state.basket?.subTotal.toFixed(2) || '0.00'}</span>
-            </div>
-
-            {state.basket && state.basket.discount > 0 && (
-              <div className={styles.priceRow}>
-                <span>{t('discount', 'Discount')}:</span>
-                <span className={styles.discountAmount}>-CHF {state.basket.discount.toFixed(2)}</span>
-              </div>
-            )}
-
-            {state.basket && state.basket.customerDiscount > 0 && (
-              <div className={styles.priceRow}>
-                <span>{state.basket.customerDiscountName || t('customer_discount', 'Customer Discount')}:</span>
-                <span className={styles.discountAmount}>-CHF {state.basket.customerDiscount.toFixed(2)}</span>
-              </div>
-            )}
-
-            <div className={styles.totalRow}>
-              <span>{t('total', 'Total')}:</span>
-              <span className={styles.totalAmount}>CHF {getTotal().toFixed(customerHasDiscount ? 0 : 2)}</span>
-            </div>
-          </div>
-
-          {/* Checkout Button */}
-          <button onClick={handleCheckout} className={styles.checkoutButton} disabled={isResolving}>
-            {t('proceed_to_checkout', 'Proceed to Checkout')} ({getItemCount()} {t('items', 'items')})
-          </button>
-        </div>
+        <CartSummary
+          basket={state.basket}
+          isSyncing={state.isSyncing}
+          promoCode={promoCode}
+          setPromoCode={setPromoCode}
+          isApplyingPromo={isApplyingPromo}
+          customerHasDiscount={customerHasDiscount}
+          getTotal={getTotal}
+          getItemCount={getItemCount}
+          isResolving={isResolving}
+          onApplyPromoCode={handleApplyPromoCode}
+          onRemovePromoCode={handleRemovePromoCode}
+          onCheckout={handleCheckout}
+        />
       </div>
     </main>
   );

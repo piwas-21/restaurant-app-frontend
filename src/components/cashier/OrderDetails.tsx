@@ -77,19 +77,19 @@ export default function OrderDetails({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return '#fbbf24';
+        return 'var(--status-pending)';
       case 'confirmed':
-        return '#10b981';
+        return 'var(--status-confirmed)';
       case 'preparing':
-        return '#3b82f6';
+        return 'var(--status-preparing)';
       case 'ready':
-        return '#8b5cf6';
+        return 'var(--status-ready)';
       case 'completed':
-        return '#6b7280';
+        return 'var(--status-completed)';
       case 'cancelled':
-        return '#ef4444';
+        return 'var(--status-danger)';
       default:
-        return '#6b7280';
+        return 'var(--status-completed)';
     }
   };
 
@@ -190,10 +190,7 @@ export default function OrderDetails({
               {new Date(order.orderDate).toLocaleString()}
             </p>
           </div>
-          <span
-            className={styles.statusBadge}
-            style={{ backgroundColor: getStatusColor(order.status), color: 'white' }}
-          >
+          <span className={styles.statusBadge} style={{ backgroundColor: getStatusColor(order.status) }}>
             {t(`order_status_${order.status.toLowerCase()}`, order.status)}
           </span>
         </div>
@@ -238,10 +235,10 @@ export default function OrderDetails({
 
             {/* Delivery Address */}
             {order.type === 'Delivery' && order.deliveryAddress && (
-              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+              <div className={styles.deliveryAddressDivider}>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>
-                    <MapPin size={14} style={{ display: 'inline', marginRight: '0.25rem' }} />
+                    <MapPin size={14} className={styles.inlineLabelIcon} />
                     {t('delivery_address', 'Delivery Address')}
                   </span>
                   <span className={styles.infoValue}>
@@ -306,10 +303,10 @@ export default function OrderDetails({
             )}
             {order.discount > 0 && (
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel} style={{ color: 'var(--primary-color)' }}>
+                <span className={`${styles.summaryLabel} ${styles.discountText}`}>
                   {t('order_discount', 'Discount')}
                 </span>
-                <span className={styles.summaryValue} style={{ color: 'var(--primary-color)' }}>
+                <span className={`${styles.summaryValue} ${styles.discountText}`}>
                   -CHF {order.discount?.toFixed(2)}
                 </span>
               </div>
@@ -334,7 +331,7 @@ export default function OrderDetails({
               <span className={styles.summaryLabel}>{t('cashier.remaining', 'Remaining')}</span>
               <span
                 className={styles.summaryValue}
-                style={{ color: order.remainingAmount! > 0 ? '#ef4444' : '#10b981' }}
+                style={{ color: order.remainingAmount! > 0 ? 'var(--status-danger)' : 'var(--status-confirmed)' }}
               >
                 CHF {Math.abs(order.remainingAmount || 0).toFixed(2)}
               </span>
@@ -342,7 +339,7 @@ export default function OrderDetails({
 
             {/* Payment List */}
             {order.payments && order.payments.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
+              <div className={styles.paymentList}>
                 {order.payments.map((payment, idx) => (
                   <div key={idx} className={styles.paymentCard}>
                     <div className={styles.paymentCardHeader}>

@@ -419,6 +419,27 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  color: var(--text-on-accent);
+}
+
+/* Replaces former inline styles (CLAUDE.md §5.6) — values unchanged. */
+.deliveryAddressDivider {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.inlineLabelIcon {
+  display: inline;
+  margin-right: 0.25rem;
+}
+
+.discountText {
+  color: var(--primary-color);
+}
+
+.paymentList {
+  margin-top: 1rem;
 }
 
 /* Notes Section Redesign */

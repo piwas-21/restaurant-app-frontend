@@ -130,7 +130,6 @@ src/components/menu/ProductDetailsModal.tsx
 src/components/menu/FeaturedSpecial.module.css
 src/components/menu/MenuCustomization.module.css
 src/components/menu/FloatingCartButton.module.css
-src/components/cart/CartContext.tsx
 src/components/TableBanner.module.css
 src/components/orders/OrderCard.tsx
 src/components/account/FidelityPointsSection.module.css

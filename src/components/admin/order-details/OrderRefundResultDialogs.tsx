@@ -86,7 +86,10 @@ export default function OrderRefundResultDialogs({
             className={styles.select}
           >
             <option value="">{t('select_payment_to_refund', '-- Select Payment --')}</option>
-            {order.payments.map((payment) => (
+            {/* Optional-chain: AlertDialog evaluates its children on every render (even when
+                closed), unlike the previous `{showRefundModal && (...)}` gate — so guard against
+                an order without a payments array to avoid a crash on the closed dialog. */}
+            {order.payments?.map((payment) => (
               <option key={payment.id} value={payment.id}>
                 {getPaymentMethodLabel(payment.paymentMethod)} - {formatOrderPrice(payment.amount)}
               </option>

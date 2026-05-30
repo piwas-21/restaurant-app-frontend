@@ -69,12 +69,12 @@ export interface DetailedProductVariation {
   >;
 }
 
-// NOTE: SuggestedSideItem is declared TWICE with different bodies. TypeScript
-// declaration-merges them into one interface (union of members). This is a
-// pre-existing latent bug carried over verbatim — the two are really distinct
-// shapes (a side-item product vs. a menu-section side item). Both declarations
-// are kept together here so the merged type is byte-identical to before the split;
-// a follow-up task tracks splitting them into two named interfaces.
+/**
+ * A suggested side-item *product* offered alongside a product, featured special,
+ * or customer-facing menu item — carries the product's own name/price/images.
+ * Mirrors backend Products `SideItemDto`
+ * (RestaurantSystem.Api/Features/Products/Dtos/SideItemDto.cs).
+ */
 export interface SuggestedSideItem {
   id: string;
   name: string;
@@ -86,7 +86,13 @@ export interface SuggestedSideItem {
   images?: MenuItemImage[];
 }
 
-export interface SuggestedSideItem {
+/**
+ * A suggested side item attached to a *menu-section* item (the menu-bundle join
+ * row) — references the side-item product by id and carries its base price.
+ * Mirrors backend Menus `SuggestedSideItemDto`
+ * (RestaurantSystem.Api/Features/Menus/Dtos/MenuBundleDto.cs).
+ */
+export interface MenuSectionSuggestedSideItem {
   id: string;
   sideItemProductId: string;
   sideItemProductName?: string;

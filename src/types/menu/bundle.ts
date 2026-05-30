@@ -3,7 +3,7 @@
  * customer's selected options. Extracted from types/menu.ts (Sprint 4/6 type-file split).
  */
 
-import { DetailedIngredient, SuggestedSideItem, MenuItemImage } from './shared';
+import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
 
 /**
  * Menu bundle definition with sections and scheduling
@@ -50,7 +50,7 @@ export interface MenuSectionItem {
   ingredients?: string[];
   allergens?: string[];
   detailedIngredients?: DetailedIngredient[];
-  suggestedSideItems?: SuggestedSideItem[];
+  suggestedSideItems?: MenuSectionSuggestedSideItem[];
 }
 
 /**

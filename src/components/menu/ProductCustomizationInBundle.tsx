@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProductCustomizationInBundle.module.css';
-import { DetailedIngredient, SuggestedSideItem } from '@/types/menu';
+import { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';
 import { useTranslation } from 'react-i18next';
 import type { LanguageCode } from '@/components/LanguageSwitcher';
 
@@ -10,7 +10,7 @@ interface ProductCustomizationInBundleProps {
   productName: string;
   basePrice: number;
   detailedIngredients?: DetailedIngredient[];
-  suggestedSideItems?: SuggestedSideItem[];
+  suggestedSideItems?: MenuSectionSuggestedSideItem[];
   onConfirm: (customization: ProductCustomization) => void;
   initialCustomization?: ProductCustomization;
   currentLanguage: LanguageCode;
@@ -161,7 +161,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
     });
   };
 
-  const handleSideItemToggle = (sideItem: SuggestedSideItem) => {
+  const handleSideItemToggle = (sideItem: MenuSectionSuggestedSideItem) => {
     const newSides = new Map(selectedSideItems);
 
     if (newSides.has(sideItem.id)) {

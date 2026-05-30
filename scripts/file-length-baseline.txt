@@ -67,13 +67,11 @@ src/components/admin/reservations/ReservationCalendar.module.css
 src/components/admin/OrderDetailsModal.module.css
 src/components/admin/CreateProductModal.tsx
 src/components/admin/user-groups/UserGroupModal.tsx
-src/components/admin/OrderDetailsModal.tsx
 src/components/admin/EditMenuBundleModal.tsx
 src/components/admin/product/ProductIngredientsManager.module.css
 src/components/admin/product/ProductIngredientsManager.tsx
 src/components/admin/CreateMenuBundleModal.tsx
 src/components/admin/DateRangeFilter.module.css
-src/components/admin/CustomerDiscountForm.tsx
 src/components/admin/DeleteConfirmationModal.module.css
 src/components/admin/PointRuleForm.tsx
 src/components/admin/product-details/VariationsTable.tsx
@@ -132,7 +130,6 @@ src/components/menu/ProductDetailsModal.tsx
 src/components/menu/FeaturedSpecial.module.css
 src/components/menu/MenuCustomization.module.css
 src/components/menu/FloatingCartButton.module.css
-src/components/cart/CartContext.tsx
 src/components/TableBanner.module.css
 src/components/orders/OrderCard.tsx
 src/components/account/FidelityPointsSection.module.css

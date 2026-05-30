@@ -72,7 +72,6 @@ src/components/admin/product/ProductIngredientsManager.module.css
 src/components/admin/product/ProductIngredientsManager.tsx
 src/components/admin/CreateMenuBundleModal.tsx
 src/components/admin/DateRangeFilter.module.css
-src/components/admin/CustomerDiscountForm.tsx
 src/components/admin/DeleteConfirmationModal.module.css
 src/components/admin/PointRuleForm.tsx
 src/components/admin/product-details/VariationsTable.tsx

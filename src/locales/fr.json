@@ -1037,6 +1037,7 @@
   "cancel_reservation": "Annuler la Réservation",
   "confirm_cancel": "Êtes-vous sûr de vouloir annuler cette réservation?",
   "confirm": "Confirmer",
+  "type_to_confirm": "Saisissez {{text}} pour confirmer",
   "reservation_cancelled": "Réservation annulée",
   "failed_to_cancel": "Échec de l'annulation",
   "filter_by_date": "Filtrer par Date",

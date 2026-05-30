@@ -1032,6 +1032,7 @@
   "cancel_reservation": "Annulla Prenotazione",
   "confirm_cancel": "Sei sicuro di voler annullare questa prenotazione?",
   "confirm": "Conferma",
+  "type_to_confirm": "Digita {{text}} per confermare",
   "reservation_cancelled": "Prenotazione annullata",
   "failed_to_cancel": "Impossibile annullare",
   "filter_by_date": "Filtra per Data",

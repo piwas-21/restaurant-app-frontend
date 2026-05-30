@@ -32,10 +32,9 @@ const EMPTY_FORM: CustomerDiscountFormData = {
 };
 
 /**
- * State + handlers for CustomerDiscountForm: customer search (debounced), the discount form
- * fields, validation, and create/update submit. Extracted from CustomerDiscountForm (Sprint 6
- * god-file decomposition); behaviour unchanged. The pure validate / build-DTO / error-parse
- * logic lives in utils/customerDiscountForm.
+ * State + handlers for CustomerDiscountForm: debounced customer search, the discount form fields,
+ * validation, and create/update submit. Pure validate / build-DTO / error-parse logic lives in
+ * utils/customerDiscountForm. Extracted from CustomerDiscountForm (Sprint 6); behaviour unchanged.
  */
 export function useCustomerDiscountForm(discount: CustomerDiscountRule | null, onSuccess: () => void) {
   const { t } = useTranslation();
@@ -85,6 +84,8 @@ export function useCustomerDiscountForm(discount: CustomerDiscountRule | null, o
     }
   }, [discount]);
 
+  // Clear any pending debounced search on unmount (avoids setState-after-unmount).
+  useEffect(() => () => clearTimeout(searchTimeoutRef.current ?? undefined), []);
   const handleSearchChange = useCallback(
     (query: string) => {
       setSearchQuery(query);

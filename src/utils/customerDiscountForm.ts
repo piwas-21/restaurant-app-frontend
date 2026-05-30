@@ -75,8 +75,10 @@ export function buildCustomerDiscountDto(
       formData.hasMaxOrderAmount && formData.maxOrderAmount ? parseFloat(formData.maxOrderAmount) : undefined,
     maxUsageCount: formData.hasMaxUsageCount && formData.maxUsageCount ? parseInt(formData.maxUsageCount) : undefined,
     isActive: formData.isActive,
-    validFrom: formData.hasValidFrom ? new Date(formData.validFrom).toISOString() : undefined,
-    validUntil: formData.hasValidUntil ? new Date(formData.validUntil).toISOString() : undefined,
+    // Guard the empty-string case: a checked "valid from/until" toggle with no date picked yet
+    // would make `new Date('').toISOString()` throw RangeError. Omit the field instead.
+    validFrom: formData.hasValidFrom && formData.validFrom ? new Date(formData.validFrom).toISOString() : undefined,
+    validUntil: formData.hasValidUntil && formData.validUntil ? new Date(formData.validUntil).toISOString() : undefined,
   };
 }
 
@@ -121,9 +123,12 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
   if (typeof errorData === 'string') return errorData;
   if (data.message) return data.message;
   if (data.errors && typeof data.errors === 'object') {
-    return Object.values(data.errors as Record<string, unknown>)
+    // An empty errors object/array joins to '' — fall through to the fallback rather than
+    // surfacing a blank snackbar.
+    const joined = Object.values(data.errors as Record<string, unknown>)
       .flat()
       .join(', ');
+    if (joined) return joined;
   }
 
   return fallback;

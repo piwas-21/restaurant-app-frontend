@@ -337,10 +337,6 @@
               ]
             },
             {
-              "id": "SQL",
-              "name": "SQL"
-            },
-            {
               "id": "JavaScript and TypeScript/Potentially confusing code constructs",
               "name": "Potentially confusing code constructs",
               "relationships": [
@@ -357,6 +353,10 @@
                   ]
                 }
               ]
+            },
+            {
+              "id": "SQL",
+              "name": "SQL"
             },
             {
               "id": "CSS",
@@ -403,10 +403,6 @@
               ]
             },
             {
-              "id": "Structural search",
-              "name": "Structural search"
-            },
-            {
               "id": "JavaScript and TypeScript/Function metrics",
               "name": "Function metrics",
               "relationships": [
@@ -423,6 +419,10 @@
                   ]
                 }
               ]
+            },
+            {
+              "id": "Structural search",
+              "name": "Structural search"
             },
             {
               "id": "Dependency analysis",
@@ -1774,40 +1774,6 @@
                 ]
               },
               {
-                "id": "JSValidateJSDoc",
-                "shortDescription": {
-                  "text": "Syntax errors and unresolved references in JSDoc"
-                },
-                "fullDescription": {
-                  "text": "Reports a syntax discrepancy in a documentation comment. Inspection ID: JSValidateJSDoc",
-                  "markdown": "Reports a syntax discrepancy in a documentation comment.\n\nInspection ID: JSValidateJSDoc"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "JSValidateJSDoc",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/General",
-                      "index": 12,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "IfStatementWithTooManyBranchesJS",
                 "shortDescription": {
                   "text": "'if' statement with too many branches"
@@ -1831,6 +1797,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Control flow issues",
                       "index": 2,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "JSValidateJSDoc",
+                "shortDescription": {
+                  "text": "Syntax errors and unresolved references in JSDoc"
+                },
+                "fullDescription": {
+                  "text": "Reports a syntax discrepancy in a documentation comment. Inspection ID: JSValidateJSDoc",
+                  "markdown": "Reports a syntax discrepancy in a documentation comment.\n\nInspection ID: JSValidateJSDoc"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "JSValidateJSDoc",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/General",
+                      "index": 12,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -2340,7 +2340,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -2442,7 +2442,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -2692,40 +2692,6 @@
                 ]
               },
               {
-                "id": "ES6ShorthandObjectProperty",
-                "shortDescription": {
-                  "text": "Property can be replaced with shorthand"
-                },
-                "fullDescription": {
-                  "text": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it. Example: 'var obj = {foo:foo}' After applying the quick-fix the code looks as follows: 'var obj = {foo}' Inspection ID: ES6ShorthandObjectProperty",
-                  "markdown": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it.\n\nExample:\n\n\n    var obj = {foo:foo}\n\nAfter applying the quick-fix the code looks as follows:\n\n\n    var obj = {foo}\n\nInspection ID: ES6ShorthandObjectProperty"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "note",
-                  "parameters": {
-                    "suppressToolId": "ES6ShorthandObjectProperty",
-                    "ideaSeverity": "INFORMATION",
-                    "qodanaSeverity": "Info",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/General",
-                      "index": 12,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "UnnecessaryLabelOnBreakStatementJS",
                 "shortDescription": {
                   "text": "Unnecessary label on 'break' statement"
@@ -2749,6 +2715,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Control flow issues",
                       "index": 2,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "ES6ShorthandObjectProperty",
+                "shortDescription": {
+                  "text": "Property can be replaced with shorthand"
+                },
+                "fullDescription": {
+                  "text": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it. Example: 'var obj = {foo:foo}' After applying the quick-fix the code looks as follows: 'var obj = {foo}' Inspection ID: ES6ShorthandObjectProperty",
+                  "markdown": "Reports an object property that can be converted to ES6 shorthand style and provides a quick-fix to do it.\n\nExample:\n\n\n    var obj = {foo:foo}\n\nAfter applying the quick-fix the code looks as follows:\n\n\n    var obj = {foo}\n\nInspection ID: ES6ShorthandObjectProperty"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "note",
+                  "parameters": {
+                    "suppressToolId": "ES6ShorthandObjectProperty",
+                    "ideaSeverity": "INFORMATION",
+                    "qodanaSeverity": "Info",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/General",
+                      "index": 12,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -2884,7 +2884,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3292,7 +3292,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3326,7 +3326,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3598,7 +3598,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3644,40 +3644,6 @@
                 ]
               },
               {
-                "id": "NpmUsedModulesInstalled",
-                "shortDescription": {
-                  "text": "Missing module dependency"
-                },
-                "fullDescription": {
-                  "text": "Reports a module from a 'require()' call or an 'import' statement that is not installed or is not listed in package.json dependencies. Suggests installing the module and/or including it into package.json. For 'require()' calls, works only in the files from the scope of Node.js Core JavaScript library. Inspection ID: NpmUsedModulesInstalled",
-                  "markdown": "Reports a module from a `require()` call or an `import` statement that is not installed or is not listed in package.json dependencies.\n\nSuggests installing the module and/or including it into package.json.\n\nFor `require()` calls, works only in the files from the scope of *Node.js Core* JavaScript library.\n\nInspection ID: NpmUsedModulesInstalled"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "note",
-                  "parameters": {
-                    "suppressToolId": "NpmUsedModulesInstalled",
-                    "ideaSeverity": "WEAK WARNING",
-                    "qodanaSeverity": "Moderate",
-                    "codeQualityCategory": "Sanity"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Imports and dependencies",
-                      "index": 46,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "UnusedCatchParameterJS",
                 "shortDescription": {
                   "text": "Unused 'catch' parameter"
@@ -3701,6 +3667,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Try statement issues",
                       "index": 34,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "NpmUsedModulesInstalled",
+                "shortDescription": {
+                  "text": "Missing module dependency"
+                },
+                "fullDescription": {
+                  "text": "Reports a module from a 'require()' call or an 'import' statement that is not installed or is not listed in package.json dependencies. Suggests installing the module and/or including it into package.json. For 'require()' calls, works only in the files from the scope of Node.js Core JavaScript library. Inspection ID: NpmUsedModulesInstalled",
+                  "markdown": "Reports a module from a `require()` call or an `import` statement that is not installed or is not listed in package.json dependencies.\n\nSuggests installing the module and/or including it into package.json.\n\nFor `require()` calls, works only in the files from the scope of *Node.js Core* JavaScript library.\n\nInspection ID: NpmUsedModulesInstalled"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "note",
+                  "parameters": {
+                    "suppressToolId": "NpmUsedModulesInstalled",
+                    "ideaSeverity": "WEAK WARNING",
+                    "qodanaSeverity": "Moderate",
+                    "codeQualityCategory": "Sanity"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Imports and dependencies",
+                      "index": 46,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -3836,7 +3836,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -4154,40 +4154,6 @@
                 ]
               },
               {
-                "id": "BlockStatementJS",
-                "shortDescription": {
-                  "text": "Unnecessary block statement"
-                },
-                "fullDescription": {
-                  "text": "Reports a block statement that is not used as the body of 'if', 'for', 'while', 'do', 'with', or 'try' statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for 'let' and 'const' variables, but still free-standing block statements may be confusing and result in subtle bugs when used with 'var' variables. Inspection ID: BlockStatementJS",
-                  "markdown": "Reports a block statement that is not used as the body of `if`, `for`, `while`, `do`, `with`, or `try` statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for `let` and `const` variables, but still free-standing block statements may be confusing and result in subtle bugs when used with `var` variables.\n\nInspection ID: BlockStatementJS"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "BlockStatementJS",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "AnonymousFunctionJS",
                 "shortDescription": {
                   "text": "Anonymous function"
@@ -4211,6 +4177,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially undesirable code constructs",
                       "index": 15,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "BlockStatementJS",
+                "shortDescription": {
+                  "text": "Unnecessary block statement"
+                },
+                "fullDescription": {
+                  "text": "Reports a block statement that is not used as the body of 'if', 'for', 'while', 'do', 'with', or 'try' statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for 'let' and 'const' variables, but still free-standing block statements may be confusing and result in subtle bugs when used with 'var' variables. Inspection ID: BlockStatementJS",
+                  "markdown": "Reports a block statement that is not used as the body of `if`, `for`, `while`, `do`, `with`, or `try` statements, or as the body of a function declaration. Starting from ECMAScript 6, JavaScript blocks introduce new scopes for `let` and `const` variables, but still free-standing block statements may be confusing and result in subtle bugs when used with `var` variables.\n\nInspection ID: BlockStatementJS"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "BlockStatementJS",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Potentially confusing code constructs",
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -4312,7 +4312,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -4392,40 +4392,6 @@
                 ]
               },
               {
-                "id": "ES6PossiblyAsyncFunction",
-                "shortDescription": {
-                  "text": "'await' in non-async function"
-                },
-                "fullDescription": {
-                  "text": "Reports a usage of 'await' in a function that was possibly intended to be async but is actually missing the 'async' modifier. Although 'await' can be used as an identifier, it is likely that it was intended to be used as an operator, so the containing function should be made 'async'. Inspection ID: ES6PossiblyAsyncFunction",
-                  "markdown": "Reports a usage of `await` in a function that was possibly intended to be async but is actually missing the `async` modifier. Although `await` can be used as an identifier, it is likely that it was intended to be used as an operator, so the containing function should be made `async`.\n\nInspection ID: ES6PossiblyAsyncFunction"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "note",
-                  "parameters": {
-                    "suppressToolId": "ES6PossiblyAsyncFunction",
-                    "ideaSeverity": "WEAK WARNING",
-                    "qodanaSeverity": "Moderate",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Async code and promises",
-                      "index": 52,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "TextLabelInSwitchStatementJS",
                 "shortDescription": {
                   "text": "Text label in 'switch' statement"
@@ -4449,6 +4415,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Switch statement issues",
                       "index": 50,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "ES6PossiblyAsyncFunction",
+                "shortDescription": {
+                  "text": "'await' in non-async function"
+                },
+                "fullDescription": {
+                  "text": "Reports a usage of 'await' in a function that was possibly intended to be async but is actually missing the 'async' modifier. Although 'await' can be used as an identifier, it is likely that it was intended to be used as an operator, so the containing function should be made 'async'. Inspection ID: ES6PossiblyAsyncFunction",
+                  "markdown": "Reports a usage of `await` in a function that was possibly intended to be async but is actually missing the `async` modifier. Although `await` can be used as an identifier, it is likely that it was intended to be used as an operator, so the containing function should be made `async`.\n\nInspection ID: ES6PossiblyAsyncFunction"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "note",
+                  "parameters": {
+                    "suppressToolId": "ES6PossiblyAsyncFunction",
+                    "ideaSeverity": "WEAK WARNING",
+                    "qodanaSeverity": "Moderate",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Async code and promises",
+                      "index": 52,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -4788,7 +4788,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -5434,7 +5434,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -5502,7 +5502,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -5706,7 +5706,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -5888,40 +5888,6 @@
                 ]
               },
               {
-                "id": "JSIncompatibleTypesComparison",
-                "shortDescription": {
-                  "text": "Comparison of expressions having incompatible types"
-                },
-                "fullDescription": {
-                  "text": "Reports a comparison with operands of incompatible types or an operand with a type without possible common values. Inspection ID: JSIncompatibleTypesComparison",
-                  "markdown": "Reports a comparison with operands of incompatible types or an operand with a type without possible common values.\n\nInspection ID: JSIncompatibleTypesComparison"
-                },
-                "defaultConfiguration": {
-                  "enabled": true,
-                  "level": "note",
-                  "parameters": {
-                    "suppressToolId": "JSIncompatibleTypesComparison",
-                    "ideaSeverity": "WEAK WARNING",
-                    "qodanaSeverity": "Moderate",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Probable bugs",
-                      "index": 17,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "JSAnnotator",
                 "shortDescription": {
                   "text": "ECMAScript specification is not followed"
@@ -5979,6 +5945,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/General",
                       "index": 12,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "JSIncompatibleTypesComparison",
+                "shortDescription": {
+                  "text": "Comparison of expressions having incompatible types"
+                },
+                "fullDescription": {
+                  "text": "Reports a comparison with operands of incompatible types or an operand with a type without possible common values. Inspection ID: JSIncompatibleTypesComparison",
+                  "markdown": "Reports a comparison with operands of incompatible types or an operand with a type without possible common values.\n\nInspection ID: JSIncompatibleTypesComparison"
+                },
+                "defaultConfiguration": {
+                  "enabled": true,
+                  "level": "note",
+                  "parameters": {
+                    "suppressToolId": "JSIncompatibleTypesComparison",
+                    "ideaSeverity": "WEAK WARNING",
+                    "qodanaSeverity": "Moderate",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Probable bugs",
+                      "index": 17,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -6318,7 +6318,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -6454,7 +6454,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -6828,7 +6828,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -6896,7 +6896,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -6964,7 +6964,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -6998,7 +6998,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -7100,7 +7100,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Function metrics",
-                      "index": 36,
+                      "index": 35,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -7860,40 +7860,6 @@
                 ]
               },
               {
-                "id": "PlatformDetectionJS",
-                "shortDescription": {
-                  "text": "Inaccurate platform detection"
-                },
-                "fullDescription": {
-                  "text": "Reports a common JavaScript pattern for detecting the browser or operating system in which the script is run. In addition to pointing out non-portable constructs, these platform detection patterns are often incomplete and easily fooled. For most cases, detection of individual environment features is preferable to attempting to detect the entire platform. Patterns detected include: 'document.all' 'document.layers' 'navigator.userAgent' 'navigator.oscpu' 'navigator.appName' 'navigator.appCodeName' 'navigator.platform' Inspection ID: PlatformDetectionJS",
-                  "markdown": "Reports a common JavaScript pattern for detecting the browser or operating system in which the script is run. In addition to pointing out non-portable constructs, these platform detection patterns are often incomplete and easily fooled. For most cases, detection of individual environment features is preferable to attempting to detect the entire platform.\n\nPatterns detected include:\n\n* `document.all`\n* `document.layers`\n* `navigator.userAgent`\n* `navigator.oscpu`\n* `navigator.appName`\n* `navigator.appCodeName`\n* `navigator.platform`\n\nInspection ID: PlatformDetectionJS"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "PlatformDetectionJS",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Reliability"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/DOM issues",
-                      "index": 51,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "IfStatementWithIdenticalBranchesJS",
                 "shortDescription": {
                   "text": "'if' statement with identical branches"
@@ -7917,6 +7883,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/Control flow issues",
                       "index": 2,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "PlatformDetectionJS",
+                "shortDescription": {
+                  "text": "Inaccurate platform detection"
+                },
+                "fullDescription": {
+                  "text": "Reports a common JavaScript pattern for detecting the browser or operating system in which the script is run. In addition to pointing out non-portable constructs, these platform detection patterns are often incomplete and easily fooled. For most cases, detection of individual environment features is preferable to attempting to detect the entire platform. Patterns detected include: 'document.all' 'document.layers' 'navigator.userAgent' 'navigator.oscpu' 'navigator.appName' 'navigator.appCodeName' 'navigator.platform' Inspection ID: PlatformDetectionJS",
+                  "markdown": "Reports a common JavaScript pattern for detecting the browser or operating system in which the script is run. In addition to pointing out non-portable constructs, these platform detection patterns are often incomplete and easily fooled. For most cases, detection of individual environment features is preferable to attempting to detect the entire platform.\n\nPatterns detected include:\n\n* `document.all`\n* `document.layers`\n* `navigator.userAgent`\n* `navigator.oscpu`\n* `navigator.appName`\n* `navigator.appCodeName`\n* `navigator.platform`\n\nInspection ID: PlatformDetectionJS"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "PlatformDetectionJS",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Reliability"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/DOM issues",
+                      "index": 51,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -8052,7 +8052,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -8166,40 +8166,6 @@
                 ]
               },
               {
-                "id": "TrivialConditionalJS",
-                "shortDescription": {
-                  "text": "Redundant conditional expression"
-                },
-                "fullDescription": {
-                  "text": "Reports a conditional expression of the form 'condition ? true : false\ncondition ? false : true' These expressions may be safely converted to 'condition\n!condition' Inspection ID: TrivialConditionalJS",
-                  "markdown": "Reports a conditional expression of the form\n\n\n    condition ? true : false\n    condition ? false : true\n\n\nThese expressions may be safely converted to\n\n\n    condition\n    !condition\n\nInspection ID: TrivialConditionalJS"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "RedundantConditionalExpressionJS",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "JavaScript and TypeScript/Control flow issues",
-                      "index": 2,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "TypeScriptDuplicateUnionOrIntersectionType",
                 "shortDescription": {
                   "text": "Duplicate union or intersection type component"
@@ -8223,6 +8189,40 @@
                     "target": {
                       "id": "JavaScript and TypeScript/TypeScript",
                       "index": 27,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "TrivialConditionalJS",
+                "shortDescription": {
+                  "text": "Redundant conditional expression"
+                },
+                "fullDescription": {
+                  "text": "Reports a conditional expression of the form 'condition ? true : false\ncondition ? false : true' These expressions may be safely converted to 'condition\n!condition' Inspection ID: TrivialConditionalJS",
+                  "markdown": "Reports a conditional expression of the form\n\n\n    condition ? true : false\n    condition ? false : true\n\n\nThese expressions may be safely converted to\n\n\n    condition\n    !condition\n\nInspection ID: TrivialConditionalJS"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "RedundantConditionalExpressionJS",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "JavaScript and TypeScript/Control flow issues",
+                      "index": 2,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -8596,7 +8596,7 @@
                   {
                     "target": {
                       "id": "JavaScript and TypeScript/Potentially confusing code constructs",
-                      "index": 30,
+                      "index": 29,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11492,7 +11492,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11526,7 +11526,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11560,7 +11560,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11594,7 +11594,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11628,7 +11628,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11662,7 +11662,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11696,7 +11696,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11730,7 +11730,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11764,7 +11764,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11798,7 +11798,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11832,7 +11832,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11866,7 +11866,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11900,7 +11900,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11934,7 +11934,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -11968,7 +11968,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12002,41 +12002,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "SqlCallNotationInspection",
-                "shortDescription": {
-                  "text": "Using of named and positional arguments"
-                },
-                "fullDescription": {
-                  "text": "Reports calls in which positional arguments go after the named ones. Works in PostgreSQL, Oracle, and Db2. Example (In PostgreSQL): 'CREATE FUNCTION foo(a int, b int, c int) RETURNS int\n    LANGUAGE plpgsql AS\n$$\nBEGIN\n    RETURN a + b + c;\nEND\n$$;\nSELECT foo(a => 1, b => 2, c => 3);\n  -- `3` goes after the named argument\nSELECT foo(1, b => 2, 3);\n  -- `1` and `3` go after the named argument\nSELECT foo(b => 2, 1, 3);' Inspection ID: SqlCallNotationInspection",
-                  "markdown": "Reports calls in which positional arguments go after the named ones. Works in PostgreSQL, Oracle, and Db2.\n\nExample (In PostgreSQL):\n\n    CREATE FUNCTION foo(a int, b int, c int) RETURNS int\n        LANGUAGE plpgsql AS\n    $$\n    BEGIN\n        RETURN a + b + c;\n    END\n    $$;\n    SELECT foo(a => 1, b => 2, c => 3);\n      -- `3` goes after the named argument\n    SELECT foo(1, b => 2, 3);\n      -- `1` and `3` go after the named argument\n    SELECT foo(b => 2, 1, 3);\n\nInspection ID: SqlCallNotationInspection"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "error",
-                  "parameters": {
-                    "suppressToolId": "SqlCallNotation",
-                    "ideaSeverity": "ERROR",
-                    "qodanaSeverity": "Critical",
-                    "codeQualityCategory": "Sanity"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12071,6 +12037,40 @@
                     "target": {
                       "id": "MySQL",
                       "index": 14,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "SqlCallNotationInspection",
+                "shortDescription": {
+                  "text": "Using of named and positional arguments"
+                },
+                "fullDescription": {
+                  "text": "Reports calls in which positional arguments go after the named ones. Works in PostgreSQL, Oracle, and Db2. Example (In PostgreSQL): 'CREATE FUNCTION foo(a int, b int, c int) RETURNS int\n    LANGUAGE plpgsql AS\n$$\nBEGIN\n    RETURN a + b + c;\nEND\n$$;\nSELECT foo(a => 1, b => 2, c => 3);\n  -- `3` goes after the named argument\nSELECT foo(1, b => 2, 3);\n  -- `1` and `3` go after the named argument\nSELECT foo(b => 2, 1, 3);' Inspection ID: SqlCallNotationInspection",
+                  "markdown": "Reports calls in which positional arguments go after the named ones. Works in PostgreSQL, Oracle, and Db2.\n\nExample (In PostgreSQL):\n\n    CREATE FUNCTION foo(a int, b int, c int) RETURNS int\n        LANGUAGE plpgsql AS\n    $$\n    BEGIN\n        RETURN a + b + c;\n    END\n    $$;\n    SELECT foo(a => 1, b => 2, c => 3);\n      -- `3` goes after the named argument\n    SELECT foo(1, b => 2, 3);\n      -- `1` and `3` go after the named argument\n    SELECT foo(b => 2, 1, 3);\n\nInspection ID: SqlCallNotationInspection"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "error",
+                  "parameters": {
+                    "suppressToolId": "SqlCallNotation",
+                    "ideaSeverity": "ERROR",
+                    "qodanaSeverity": "Critical",
+                    "codeQualityCategory": "Sanity"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "SQL",
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12138,7 +12138,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12172,7 +12172,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12240,7 +12240,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12274,7 +12274,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12308,7 +12308,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12342,7 +12342,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12376,7 +12376,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12410,7 +12410,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12444,7 +12444,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12512,7 +12512,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12546,7 +12546,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12580,7 +12580,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12614,7 +12614,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12648,7 +12648,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12682,7 +12682,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12750,7 +12750,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12784,7 +12784,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12818,7 +12818,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12852,7 +12852,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12886,7 +12886,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12920,7 +12920,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12954,7 +12954,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -12988,7 +12988,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13022,7 +13022,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13090,7 +13090,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13124,7 +13124,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13158,7 +13158,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13192,7 +13192,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13226,7 +13226,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13260,7 +13260,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13294,7 +13294,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13464,7 +13464,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13498,7 +13498,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13532,7 +13532,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13566,7 +13566,7 @@
                   {
                     "target": {
                       "id": "SQL",
-                      "index": 29,
+                      "index": 30,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -13850,7 +13850,7 @@
                   {
                     "target": {
                       "id": "Structural search",
-                      "index": 35,
+                      "index": 36,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -15018,40 +15018,6 @@
                 ]
               },
               {
-                "id": "XmlDeprecatedElement",
-                "shortDescription": {
-                  "text": "Deprecated symbol"
-                },
-                "fullDescription": {
-                  "text": "Reports a deprecated XML element or attribute. Symbols can be marked by XML comment or documentation tag with text 'deprecated'. Inspection ID: XmlDeprecatedElement",
-                  "markdown": "Reports a deprecated XML element or attribute.\n\nSymbols can be marked by XML comment or documentation tag with text 'deprecated'.\n\nInspection ID: XmlDeprecatedElement"
-                },
-                "defaultConfiguration": {
-                  "enabled": false,
-                  "level": "warning",
-                  "parameters": {
-                    "suppressToolId": "XmlDeprecatedElement",
-                    "ideaSeverity": "WARNING",
-                    "qodanaSeverity": "High",
-                    "codeQualityCategory": "Code Style"
-                  }
-                },
-                "relationships": [
-                  {
-                    "target": {
-                      "id": "XML",
-                      "index": 39,
-                      "toolComponent": {
-                        "name": "QDJS"
-                      }
-                    },
-                    "kinds": [
-                      "superset"
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "RegExpRedundantNestedCharacterClass",
                 "shortDescription": {
                   "text": "Redundant nested character class"
@@ -15075,6 +15041,40 @@
                     "target": {
                       "id": "RegExp",
                       "index": 43,
+                      "toolComponent": {
+                        "name": "QDJS"
+                      }
+                    },
+                    "kinds": [
+                      "superset"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "XmlDeprecatedElement",
+                "shortDescription": {
+                  "text": "Deprecated symbol"
+                },
+                "fullDescription": {
+                  "text": "Reports a deprecated XML element or attribute. Symbols can be marked by XML comment or documentation tag with text 'deprecated'. Inspection ID: XmlDeprecatedElement",
+                  "markdown": "Reports a deprecated XML element or attribute.\n\nSymbols can be marked by XML comment or documentation tag with text 'deprecated'.\n\nInspection ID: XmlDeprecatedElement"
+                },
+                "defaultConfiguration": {
+                  "enabled": false,
+                  "level": "warning",
+                  "parameters": {
+                    "suppressToolId": "XmlDeprecatedElement",
+                    "ideaSeverity": "WARNING",
+                    "qodanaSeverity": "High",
+                    "codeQualityCategory": "Code Style"
+                  }
+                },
+                "relationships": [
+                  {
+                    "target": {
+                      "id": "XML",
+                      "index": 39,
                       "toolComponent": {
                         "name": "QDJS"
                       }
@@ -18519,7 +18519,7 @@
       },
       "invocations": [
         {
-          "startTimeUtc": "2026-05-30T08:17:39.975230106Z",
+          "startTimeUtc": "2026-05-30T09:31:10.010937207Z",
           "exitCode": 0,
           "executionSuccessful": true
         }
@@ -18528,8 +18528,8 @@
       "versionControlProvenance": [
         {
           "repositoryUri": "https://github.com/piwas-21/restaurant-app-frontend.git",
-          "revisionId": "02472a043600a9646a18a44bd42601a6d2545aa5",
-          "branch": "refactor/frontend-cashier-orderdetails",
+          "revisionId": "889f3a8a60f978ec88d186523d3edae699b8cad1",
+          "branch": "refactor/frontend-cart-page",
           "properties": {
             "repoUrl": "https://github.com/piwas-21/restaurant-app-frontend.git",
             "lastAuthorName": "mahmutkaya",
@@ -20075,6 +20075,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "56f1e45ad479ad00",
             "equalIndicator/v1": "0b816994800f6d63fdeb0e1e94508465e944654c36af66d24e54892195dcd814"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/cart/cart-page/CartItemCustomizations.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 62,
+                  "snippet": {
+                    "text": "'use client';\n\nimport { useTranslation } from 'react-i18next';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "8124d76e7077cdac",
+            "equalIndicator/v1": "0ca2aaed2325cbe054612ddbf0c2fb9aadd510705ca236792ee7904811936d4f"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -29366,63 +29423,6 @@
           "partialFingerprints": {
             "equalIndicator/v2": "8d5e8301911422b2",
             "equalIndicator/v1": "73ed98e0c4475b929cce38922f0e3bd9310f257e2fdb39962533f01b621b7932"
-          },
-          "properties": {
-            "ideaSeverity": "ERROR",
-            "qodanaSeverity": "Critical",
-            "problemType": "REGULAR",
-            "tags": [
-              "JavaScript"
-            ]
-          }
-        },
-        {
-          "ruleId": "Eslint",
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "ESLint: Install the 'eslint' package",
-            "markdown": "ESLint: Install the 'eslint' package"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/app/cart/page.tsx",
-                  "uriBaseId": "SRCROOT"
-                },
-                "region": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "charOffset": 0,
-                  "charLength": 12,
-                  "snippet": {
-                    "text": "'use client'"
-                  },
-                  "sourceLanguage": "JavaScript"
-                },
-                "contextRegion": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "charOffset": 0,
-                  "charLength": 55,
-                  "snippet": {
-                    "text": "'use client';\n\nimport React, { useState } from 'react';"
-                  },
-                  "sourceLanguage": "TypeScript JSX"
-                }
-              },
-              "logicalLocations": [
-                {
-                  "fullyQualifiedName": "project",
-                  "kind": "module"
-                }
-              ]
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v2": "775f38a3ea555488",
-            "equalIndicator/v1": "75589fe5fecc1483a869713e97025c0b3227ecafe7b0f4436627f011e705f564"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -39363,6 +39363,63 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
+                  "uri": "src/hooks/cart/useCartPage.ts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 48,
+                  "snippet": {
+                    "text": "'use client';\n\nimport { useState } from 'react';"
+                  },
+                  "sourceLanguage": "TypeScript"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "60577aef1a3c4f42",
+            "equalIndicator/v1": "e07e1548e18eb5b4ed00a40d79499b974934c983d532ba4040b2fc326be71396"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
                   "uri": "src/hooks/useMenuManagement.ts",
                   "uriBaseId": "SRCROOT"
                 },
@@ -39512,6 +39569,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "a22d03bf2b085661",
             "equalIndicator/v1": "e0ec59eec9c82196db6d3baa419dc37a4dea5eb184dae45cc884cb4491f7c870"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/cart/cart-page/CartItemCard.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 46,
+                  "snippet": {
+                    "text": "'use client';\n\nimport Image from 'next/image';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "eaefd951d5cec7a4",
+            "equalIndicator/v1": "e0ff635d0528ea04a12eec6f668799e31ab62660581899ef98281b299c458f70"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -39876,6 +39990,63 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
+                  "uri": "src/components/cart/cart-page/CartItemInstructionsEditor.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 62,
+                  "snippet": {
+                    "text": "'use client';\n\nimport { useTranslation } from 'react-i18next';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "3b9f40c14ffd655f",
+            "equalIndicator/v1": "e404bd2671e1a0d2a8cc481b59903ef945853e239cdc341616e63b9e44f32547"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
                   "uri": "src/hooks/admin/useConfirmAndResultModals.ts",
                   "uriBaseId": "SRCROOT"
                 },
@@ -40082,6 +40253,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "6fb1cf3774913a43",
             "equalIndicator/v1": "e891bbbdc019ea3692e02154ea016cfe4a330812362917e5fe1e404692547806"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/cart/cart-page/CartSummary.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 62,
+                  "snippet": {
+                    "text": "'use client';\n\nimport { useTranslation } from 'react-i18next';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "95e4cfb9d45b76af",
+            "equalIndicator/v1": "ea8ecff3c6747356bcf338176ea7148f6254af21dce841e22eb4752571296c1b"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -40538,6 +40766,63 @@
           "partialFingerprints": {
             "equalIndicator/v2": "bfc182eeaf5374a4",
             "equalIndicator/v1": "efe3a28e2a7ba17a2cefd7d818471ef2aad4095f2a8ea45ffd529af56fc592c9"
+          },
+          "properties": {
+            "ideaSeverity": "ERROR",
+            "qodanaSeverity": "Critical",
+            "problemType": "REGULAR",
+            "tags": [
+              "JavaScript"
+            ]
+          }
+        },
+        {
+          "ruleId": "Eslint",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "ESLint: Install the 'eslint' package",
+            "markdown": "ESLint: Install the 'eslint' package"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/app/cart/page.tsx",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "'use client'"
+                  },
+                  "sourceLanguage": "JavaScript"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 44,
+                  "snippet": {
+                    "text": "'use client';\n\nimport Link from 'next/link';"
+                  },
+                  "sourceLanguage": "TypeScript JSX"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "project",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "a0b155b441eedd7a",
+            "equalIndicator/v1": "f044ac59c5dd1ba6be34737f75cbf10bdc14c439e1c8889621d6f59f0057b659"
           },
           "properties": {
             "ideaSeverity": "ERROR",
@@ -44826,9 +45111,9 @@
       ],
       "automationDetails": {
         "id": "project/qodana/2026-05-30",
-        "guid": "ea0e35e3-27fa-4f33-b580-0ad781363d88",
+        "guid": "a0f9742b-b3a2-4cd5-b78f-2b2451714381",
         "properties": {
-          "jobUrl": "https://github.com/piwas-21/restaurant-app-frontend/actions/runs/26679018250",
+          "jobUrl": "https://github.com/piwas-21/restaurant-app-frontend/actions/runs/26680430856",
           "analysisKind": "regular"
         }
       },
@@ -44842,346 +45127,14 @@
             "any": 1000000
           }
         },
-        "qodana.promo.results": [
-          {
-            "ruleId": "DuplicatedCode",
-            "kind": "fail",
-            "level": "note",
-            "message": {
-              "text": "Duplicated code",
-              "markdown": "Duplicated code"
-            },
-            "locations": [
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "e2e/tests/auth/register-login.e2e.ts",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 63,
-                    "startColumn": 5,
-                    "charOffset": 2446,
-                    "charLength": 440,
-                    "snippet": {
-                      "text": "const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    // 3. Login — auto-redirect from verify lands at /auth/login?verified=true\n    //    after a 3s timer; navigate explicitly to avoid the race.\n    await page.goto('/auth/login');\n\n    await page.getByLabel(/^email$/i).fill(email);"
-                    },
-                    "sourceLanguage": "TypeScript"
-                  },
-                  "contextRegion": {
-                    "startLine": 63,
-                    "startColumn": 1,
-                    "charOffset": 2442,
-                    "charLength": 444,
-                    "snippet": {
-                      "text": "    const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    // 3. Login — auto-redirect from verify lands at /auth/login?verified=true\n    //    after a 3s timer; navigate explicitly to avoid the race.\n    await page.goto('/auth/login');\n\n    await page.getByLabel(/^email$/i).fill(email);"
-                    },
-                    "sourceLanguage": "TypeScript"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              },
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "e2e/tests/auth/register-login.e2e.ts",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 105,
-                    "startColumn": 5,
-                    "charOffset": 4401,
-                    "charLength": 293,
-                    "snippet": {
-                      "text": "const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    await page.goto('/auth/login');\n    await page.getByLabel(/^email$/i).fill(email);"
-                    },
-                    "sourceLanguage": "TypeScript"
-                  },
-                  "contextRegion": {
-                    "startLine": 105,
-                    "startColumn": 1,
-                    "charOffset": 4397,
-                    "charLength": 297,
-                    "snippet": {
-                      "text": "    const verifyUrl = await waitForVerificationLink(email, { subjectIncludes: 'verif' });\n    await page.goto(verifyUrl);\n    await expect(page.getByRole('heading', { name: /email verified/i })).toBeVisible();\n\n    await page.goto('/auth/login');\n    await page.getByLabel(/^email$/i).fill(email);"
-                    },
-                    "sourceLanguage": "TypeScript"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              }
-            ],
-            "partialFingerprints": {
-              "equalIndicator/v2": "7dfe59497350ba1e",
-              "equalIndicator/v1": "314b2a0bf65c160e3b6f7835f66c725e2efa841144f107573e7d5186ea3750f0"
-            },
-            "properties": {
-              "ideaSeverity": "WEAK WARNING",
-              "qodanaSeverity": "Moderate",
-              "problemType": "DUPLICATES",
-              "tags": [
-                "TypeScript"
-              ]
-            }
-          },
-          {
-            "ruleId": "DuplicatedCode",
-            "kind": "fail",
-            "level": "note",
-            "message": {
-              "text": "Duplicated code",
-              "markdown": "Duplicated code"
-            },
-            "locations": [
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "src/app/styles/HomePage.module.css",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 67,
-                    "startColumn": 3,
-                    "charOffset": 1278,
-                    "charLength": 307,
-                    "snippet": {
-                      "text": "padding: 0.8rem 1.5rem;\n  font-size: 1rem;\n  font-weight: bold;\n  cursor: pointer;\n  border-radius: 5px;\n  transition: all 0.3s ease-in-out;\n  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);\n  display: inline-flex;\n  align-items: center;\n  gap: 0.5rem;\n  position: relative;\n  overflow: hidden;\n  min-width: 50px;"
-                    },
-                    "sourceLanguage": "CSS"
-                  },
-                  "contextRegion": {
-                    "startLine": 67,
-                    "startColumn": 1,
-                    "charOffset": 1276,
-                    "charLength": 309,
-                    "snippet": {
-                      "text": "  padding: 0.8rem 1.5rem;\n  font-size: 1rem;\n  font-weight: bold;\n  cursor: pointer;\n  border-radius: 5px;\n  transition: all 0.3s ease-in-out;\n  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);\n  display: inline-flex;\n  align-items: center;\n  gap: 0.5rem;\n  position: relative;\n  overflow: hidden;\n  min-width: 50px;"
-                    },
-                    "sourceLanguage": "CSS"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              },
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "src/app/styles/HomePage.module.css",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 121,
-                    "startColumn": 3,
-                    "charOffset": 2318,
-                    "charLength": 307,
-                    "snippet": {
-                      "text": "padding: 0.8rem 1.5rem;\n  font-size: 1rem;\n  font-weight: bold;\n  cursor: pointer;\n  border-radius: 5px;\n  transition: all 0.3s ease-in-out;\n  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);\n  display: inline-flex;\n  align-items: center;\n  gap: 0.5rem;\n  position: relative;\n  overflow: hidden;\n  min-width: 50px;"
-                    },
-                    "sourceLanguage": "CSS"
-                  },
-                  "contextRegion": {
-                    "startLine": 121,
-                    "startColumn": 1,
-                    "charOffset": 2316,
-                    "charLength": 309,
-                    "snippet": {
-                      "text": "  padding: 0.8rem 1.5rem;\n  font-size: 1rem;\n  font-weight: bold;\n  cursor: pointer;\n  border-radius: 5px;\n  transition: all 0.3s ease-in-out;\n  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);\n  display: inline-flex;\n  align-items: center;\n  gap: 0.5rem;\n  position: relative;\n  overflow: hidden;\n  min-width: 50px;"
-                    },
-                    "sourceLanguage": "CSS"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              }
-            ],
-            "partialFingerprints": {
-              "equalIndicator/v2": "4eb9a4cf8d1a8fa1",
-              "equalIndicator/v1": "37d3a1288f15ce6443851ad1d09c3a080fc4d6313968b4120fb55cf842ebd96c"
-            },
-            "properties": {
-              "ideaSeverity": "WEAK WARNING",
-              "qodanaSeverity": "Moderate",
-              "problemType": "DUPLICATES",
-              "tags": [
-                "CSS"
-              ]
-            }
-          },
-          {
-            "ruleId": "DuplicatedCode",
-            "kind": "fail",
-            "level": "note",
-            "message": {
-              "text": "Duplicated code",
-              "markdown": "Duplicated code"
-            },
-            "locations": [
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "src/components/account/FidelityPointsSection.tsx",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 19,
-                    "startColumn": 5,
-                    "charOffset": 795,
-                    "charLength": 408,
-                    "snippet": {
-                      "text": "const fetchBalance = async () => {\n      try {\n        setLoading(true);\n        setError(null);\n        const data = await fidelityPointsService.getBalance();\n        setBalance(data);\n      } catch (err) {\n        console.error('Error loading fidelity points:', err);\n        setError(t('error_loading_points', 'Failed to load fidelity points'));\n      } finally {\n        setLoading(false);\n      }\n    };"
-                    },
-                    "sourceLanguage": "TypeScript JSX"
-                  },
-                  "contextRegion": {
-                    "startLine": 19,
-                    "startColumn": 1,
-                    "charOffset": 791,
-                    "charLength": 412,
-                    "snippet": {
-                      "text": "    const fetchBalance = async () => {\n      try {\n        setLoading(true);\n        setError(null);\n        const data = await fidelityPointsService.getBalance();\n        setBalance(data);\n      } catch (err) {\n        console.error('Error loading fidelity points:', err);\n        setError(t('error_loading_points', 'Failed to load fidelity points'));\n      } finally {\n        setLoading(false);\n      }\n    };"
-                    },
-                    "sourceLanguage": "TypeScript JSX"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              },
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "src/components/account/FidelityPointsSection.tsx",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 37,
-                    "startColumn": 3,
-                    "charOffset": 1323,
-                    "charLength": 383,
-                    "snippet": {
-                      "text": "const loadBalance = async () => {\n    try {\n      setLoading(true);\n      setError(null);\n      const data = await fidelityPointsService.getBalance();\n      setBalance(data);\n    } catch (err) {\n      console.error('Error loading fidelity points:', err);\n      setError(t('error_loading_points', 'Failed to load fidelity points'));\n    } finally {\n      setLoading(false);\n    }\n  };"
-                    },
-                    "sourceLanguage": "TypeScript JSX"
-                  },
-                  "contextRegion": {
-                    "startLine": 37,
-                    "startColumn": 1,
-                    "charOffset": 1321,
-                    "charLength": 385,
-                    "snippet": {
-                      "text": "  const loadBalance = async () => {\n    try {\n      setLoading(true);\n      setError(null);\n      const data = await fidelityPointsService.getBalance();\n      setBalance(data);\n    } catch (err) {\n      console.error('Error loading fidelity points:', err);\n      setError(t('error_loading_points', 'Failed to load fidelity points'));\n    } finally {\n      setLoading(false);\n    }\n  };"
-                    },
-                    "sourceLanguage": "TypeScript JSX"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              }
-            ],
-            "partialFingerprints": {
-              "equalIndicator/v2": "acab04b06b753d0d",
-              "equalIndicator/v1": "7e06a30b52f7568db4e001fb20350a0b5f32f88df93a4855116abedad4682002"
-            },
-            "properties": {
-              "ideaSeverity": "WEAK WARNING",
-              "qodanaSeverity": "Moderate",
-              "problemType": "DUPLICATES",
-              "tags": [
-                "TypeScript JSX"
-              ]
-            }
-          },
-          {
-            "ruleId": "UnnecessaryLocalVariableJS",
-            "kind": "fail",
-            "level": "warning",
-            "message": {
-              "text": "Local variable 'response' is redundant",
-              "markdown": "Local variable response is redundant"
-            },
-            "locations": [
-              {
-                "physicalLocation": {
-                  "artifactLocation": {
-                    "uri": "src/services/cashierService.ts",
-                    "uriBaseId": "SRCROOT"
-                  },
-                  "region": {
-                    "startLine": 271,
-                    "startColumn": 9,
-                    "charOffset": 7369,
-                    "charLength": 8,
-                    "snippet": {
-                      "text": "response"
-                    },
-                    "sourceLanguage": "JavaScript"
-                  },
-                  "contextRegion": {
-                    "startLine": 269,
-                    "startColumn": 1,
-                    "charOffset": 7285,
-                    "charLength": 237,
-                    "snippet": {
-                      "text": " */\nexport async function getEventsDiagnostics(): Promise<SseDiagnostics> {\n  const response = await apiClient.get<SseDiagnostics>('/api/events/diagnostics', {\n    requireAuth: false, // Diagnostics endpoint is public for debugging\n  });"
-                    },
-                    "sourceLanguage": "TypeScript"
-                  }
-                },
-                "logicalLocations": [
-                  {
-                    "fullyQualifiedName": "project",
-                    "kind": "module"
-                  }
-                ]
-              }
-            ],
-            "partialFingerprints": {
-              "equalIndicator/v2": "143cdc96487a109e",
-              "equalIndicator/v1": "7056e485670f1b1d8e25a854bc75816c0efc4a9797a8515d71af75f19ccc8b07"
-            },
-            "properties": {
-              "ideaSeverity": "WARNING",
-              "qodanaSeverity": "High",
-              "problemType": "REGULAR",
-              "tags": [
-                "JavaScript"
-              ]
-            }
-          }
-        ],
         "qodana.coverage.files.provided": false,
         "configProfile": "starter",
         "deviceId": "200820300000000-6206-74e3-9202-68e628d20805",
         "qodanaNewResultSummary": {
           "moderate": 10,
           "high": 50,
-          "critical": 401,
-          "total": 461
+          "critical": 406,
+          "total": 466
         }
       }
     }

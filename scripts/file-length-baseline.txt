@@ -129,7 +129,6 @@ src/components/menu/FloatingCartButton.module.css
 src/components/TableBanner.module.css
 src/components/orders/OrderCard.tsx
 src/components/account/FidelityPointsSection.module.css
-src/components/account/AddressManagement.tsx
 src/components/account/PointsHistoryModal.module.css
 src/components/account/DeleteAccountSection.module.css
 src/components/account/AddressManagement.module.css

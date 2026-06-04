@@ -1,0 +1,46 @@
+# Packages excluded from the license-compliance scan.
+# One package ID per line. `#` comments and blank lines ignored by CI
+# (collapsed to a semicolon-separated list passed to license-checker-rseidelsohn
+# via `--excludePackages`).
+#
+# Each exclusion must be justified. Policy:
+#   - NEVER exclude a production runtime dependency that ships to the
+#     browser bundle. Copyleft licenses on bundled-and-distributed code
+#     attach obligations we don't want.
+#   - Build-time-only and server-side native libraries with non-modified,
+#     non-statically-linked code are acceptable when the upstream license
+#     is copyleft (LGPL/GPL family) but the obligations don't attach in
+#     our usage pattern. Document the reasoning per package.
+#
+# Mirrors the backend's `LICENSES.ignored.txt` pattern.
+#
+# Why these are excluded rather than allowlisting LGPL-3.0-or-later
+# globally: a global allowlist entry would silently bless any FUTURE
+# LGPL-3.0-or-later dependency, including client-side packages bundled
+# into the browser, which would create copyleft obligations. Scoping to
+# named packages keeps the exception auditable — adding another LGPL
+# package requires a deliberate edit here, not an accidental transitive
+# pull.
+
+# @img/sharp-libvips-* — bundled libvips native binaries that the
+# Apache-2.0 `sharp` package loads as a dynamic library at runtime on
+# the server (Next.js image optimization). LGPL-3.0-or-later §6
+# obligations don't attach in this usage:
+#   1. Server-side only — never bundled into the browser, never shipped
+#      to end users as part of the client-side application.
+#   2. Dynamic linking — sharp dlopen()s libvips, no static linking.
+#   3. No modification — we ship the unmodified upstream binary exactly
+#      as published to npm; we do not patch, recompile, or redistribute
+#      modified libvips.
+# All 9 platform variants are listed so a CI runner on any architecture
+# (currently Linux x64; future-proofed for arm64 / musl) sees the same
+# scoped exception.
+@img/sharp-libvips-darwin-arm64
+@img/sharp-libvips-darwin-x64
+@img/sharp-libvips-linux-arm
+@img/sharp-libvips-linux-arm64
+@img/sharp-libvips-linux-ppc64
+@img/sharp-libvips-linux-s390x
+@img/sharp-libvips-linux-x64
+@img/sharp-libvips-linuxmusl-arm64
+@img/sharp-libvips-linuxmusl-x64

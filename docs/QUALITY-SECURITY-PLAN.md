@@ -31,7 +31,7 @@ Stack: **Next.js 15.5**, **React 19**, **TypeScript**, **CSS Modules**, **i18nex
 | Secret scan | gitleaks (existing) + detect-secrets (pre-commit) | belt + suspenders |
 | CSP / bundle audit | custom shell script in CI | mirrors DeelMarkt's `web-security` job |
 
-Drop `retire.js` once OSV-Scanner + npm audit are wired (redundant; retire.js is unmaintained). Keep `njsscan` as cheap layered defence.
+Drop `retire.js` from the **per-PR** pipeline once OSV-Scanner + npm audit are wired (redundant there — all three read the same lockfile, and retire.js is the least-maintained of them). **Retain it in the weekly full-tree sweep (§6)**: there it fingerprints vulnerable library *code* in `node_modules` / bundled JS, a surface that lockfile-based scanners (OSV, npm audit) never inspect. Keep `njsscan` as cheap layered defence.
 
 ## 2. Repository-level changes
 
@@ -46,12 +46,13 @@ Drop `retire.js` once OSV-Scanner + npm audit are wired (redundant; retire.js is
 ```
 
 ### 2.2 Coverage thresholds (`jest.config.js`)
+**Landed (issue #21, 2026-05).** CI `npm_test` job now runs `npm test -- --ci --runInBand --coverage`, which activates `coverageThreshold` in `jest.config.js`:
 ```js
 coverageThreshold: {
-  global: { branches: 60, functions: 70, lines: 70, statements: 70 }
+  global: { branches: 0.3, functions: 0.4, lines: 0.3, statements: 0.3 }
 }
 ```
-Set to current floor first; ratchet up monthly.
+Pinned at the current honest floor (baseline measured 2026-05: stmts 0.38 / branch 0.32 / funcs 0.43 / lines 0.32). Mirrors backend coverlet gate pattern. Ratchet upward as test coverage grows — see jest.config.js header comment for the procedure.
 
 ### 2.3 File-length / pattern checker
 Port of DeelMarkt's `check_quality.dart`. Add `scripts/check-quality.mjs` enforcing [CLAUDE.md](../../CLAUDE.md):
@@ -152,7 +153,7 @@ lint → test → security → sast → build → scan → deploy_pipeline
 | lint | `quality-rules` (file-length + patterns) | node:20 | yes | new |
 | test | `unit` (existing `npm_test` → run `test:ci`, emit lcov + junit) | node:20 | yes | upgrade |
 | test | `e2e-smoke` (Playwright) | `mcr.microsoft.com/playwright:v1.56.1@sha256:...` | yes | new |
-| security | `npm-audit` (existing — keep blocking) | node:20 | yes | rename `npm_audit` → `npm-audit`; drop `retire` |
+| security | `npm-audit` (existing — keep blocking) | node:20 | yes | rename `npm_audit` → `npm-audit`; drop `retire` from per-PR (retained weekly — see §6) |
 | security | `gitleaks` (existing) | `zricethezav/gitleaks@sha256:...` | yes | pin digest |
 | security | `njsscan` (existing) | `python:3.12-slim@sha256:...` | yes | pin digest |
 | security | `osv-scanner` (lockfile) | `ghcr.io/google/osv-scanner@sha256:...` | yes | new |
@@ -211,14 +212,23 @@ Quality gate: A-rating, ≥ 70% new-code coverage, no new vulnerabilities.
 
 ## 6. Weekly scheduled pipeline
 
-Cron: `0 6 * * 1`. Jobs:
-- TruffleHog full history (`--results=verified,unknown`)
-- OSV-Scanner JSON, 30-day artifact
-- `npm outdated` → artifact (best-effort)
-- `license-checker --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;Unlicense;0BSD'` (block GPL/AGPL transitives)
-- Sensitive-file audit (mirrors DeelMarkt's `infra-security` job)
-- **OWASP ZAP full-scan** against `$STAGING_URL` (only runs if variable is set; mirrors DeelMarkt's `zap-scan` job — keep `.zap/rules.tsv` in repo, parse JSON report, post Slack summary)
-- `trivy config` over the [rumi-argocd-gitops](../../rumi-argocd-gitops/) manifests for the frontend deployment
+**Landed (issue #19, 2026-05).** Implemented as `.github/workflows/security-audit.yml` — cron `0 6 * * 1` (Mondays 06:00 UTC) + `workflow_dispatch`, `permissions: contents: read`, all actions SHA-pinned to match `ci.yml`. This is a **reporting/alerting** gate: the scheduled run fails (red ❌ on the Actions tab) on any finding, but it has no PR context so it blocks no merge. Triage the finding, then bump the dep or add a scoped, justified suppression (same policy as the per-PR gate). No issue/Slack write automation is wired in — keeps the workflow read-only with no injection surface.
+
+Why it adds value beyond per-PR CI: the per-PR jobs scan the diff / current tree once, so a CVE disclosed *after* a dependency was merged is never re-checked. The weekly run re-scans the **unchanged committed lockfile** (npm audit + OSV) and does a full-tree sweep, surfacing newly-disclosed CVEs and scan-tool DB drift without needing a PR.
+
+Jobs that landed:
+- **npm audit (high+)** — re-checks the same committed lockfile against today's advisory DB.
+- **OSV-Scanner** — full-tree (`-r`) dependency CVE scan (broader than the per-PR single-`--lockfile` job).
+- **retire.js** — full JS/`node_modules` scan (`retire@5.2.7`, `--severity high`). Distinct from npm audit / OSV above: those read the lockfile, whereas retire.js fingerprints vulnerable library *code* in installed/bundled JS — so it's dropped from per-PR CI (§4) as lockfile-redundant but kept here for the surface only a content scan covers. **The vulnerability DB is pinned** via `--jsrepo <RetireJS-commit-SHA>` instead of fetching `master` live, so the scan is reproducible — a red run reflects a real change in our tree, not upstream DB churn (issue #83). Refresh the pinned SHA deliberately (e.g. monthly) to ingest new advisories. Scoped, justified suppressions live in `.retireignore.json` (currently: lodash 4.17.21 vendored inside Next.js's compiled `node_modules/next/dist/compiled` bundles — unreachable build-tooling, unfixable via `overrides`, issue #16).
+- **Trivy fs** — HIGH/CRITICAL filesystem scan.
+- **license-compliance** — drift re-check, mirrors the per-PR `license_compliance` job verbatim (`license-checker-rseidelsohn@4.3.0`, production scope, `LICENSES.allowlist`).
+- **audit_summary** — aggregates the five results into the run summary and fails the run if any scan failed.
+
+Deferred (not in scope for #19; tracked for a later sweep):
+- TruffleHog full-history secret scan (`--since-commit=root`) — adds value but needs `fetch-depth: 0` + careful tuning to avoid noise.
+- `npm outdated` → artifact (best-effort, informational).
+- **OWASP ZAP full-scan** against `$STAGING_URL` — DAST, mirrors DeelMarkt's `zap-scan`; deferred until the new staging deploy lands.
+- `trivy config` over the deploy manifests — moves with the new deploy stack (legacy `rumi-argocd-gitops` being replaced).
 
 ## 7. Phased task breakdown
 
@@ -245,7 +255,7 @@ Cron: `0 6 * * 1`. Jobs:
 14. Add `lint` stage with 4 jobs to `.gitlab-ci.yml` — all using `extends: .setup-node`
 15. Refactor existing jobs (`npm_test`, `npm_audit`) to also use `extends: .setup-node` (drops 6 lines of duplication per job)
 16. Pin all remaining images in `.gitlab-ci.yml` by digest
-17. Drop `retire` job (redundant once OSV is added)
+17. Drop `retire` job from per-PR CI (redundant with OSV on the lockfile; retained in the weekly full-tree sweep — see §6)
 18. Backfill remaining ADRs:
    - **ADR-004** Zod as form-validation source of truth — schema-first pattern, error-message i18n strategy
    - **ADR-005** BaseModal / FormField / StatusBadge as design-system primitives — why these three are mandatory wrappers (not just preferred)

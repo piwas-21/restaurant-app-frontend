@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
@@ -25,6 +25,7 @@ import MenuBundleDetailsModal from '@/components/menu/MenuBundleDetailsModal';
 import { MenuBundleItem, SelectedMenuOption } from '@/types/menu';
 import MenuCustomizationModal from '@/components/menu/MenuCustomizationModal';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
+import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 export default function MenuPage() {
   const { t, i18n } = useTranslation();
@@ -69,6 +70,16 @@ export default function MenuPage() {
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  // Page-view event — fire ONCE on first client mount. Ref guard prevents
+  // re-fire under React 19 StrictMode double-invoke in dev. Empty dep array
+  // means locale switches / cart updates do not re-trigger the event.
+  const menuViewedFiredRef = useRef(false);
+  useEffect(() => {
+    if (menuViewedFiredRef.current) return;
+    menuViewedFiredRef.current = true;
+    trackEvent('menu_viewed', { loggedIn: isLoggedInForAnalytics() });
   }, []);
 
   // Bundle handlers
@@ -247,7 +258,18 @@ export default function MenuPage() {
         itemCount={itemCount}
         totalPrice={cartTotal}
         onAnimate={cartAnimationTrigger}
-        onClick={() => setIsMobileCartSheetOpen(true)}
+        onClick={() => {
+          // Fire once per genuine user-action click on the FAB. The sheet
+          // open state is set in the same handler so this never re-fires
+          // on hydration / re-render. Sidebar has no equivalent open
+          // event because it's always-mounted on desktop.
+          trackEvent('cart_opened', {
+            source: 'mobile_sheet',
+            itemCount,
+            loggedIn: isLoggedInForAnalytics(),
+          });
+          setIsMobileCartSheetOpen(true);
+        }}
       />
 
       <MobileCartSheet

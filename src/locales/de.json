@@ -1035,6 +1035,7 @@
   "cancel_reservation": "Reservierung stornieren",
   "confirm_cancel": "Sind Sie sicher, dass Sie diese Reservierung stornieren möchten?",
   "confirm": "Bestätigen",
+  "type_to_confirm": "Geben Sie {{text}} ein, um zu bestätigen",
   "reservation_cancelled": "Reservierung storniert",
   "failed_to_cancel": "Reservierung konnte nicht storniert werden",
   "filter_by_date": "Nach Datum filtern",

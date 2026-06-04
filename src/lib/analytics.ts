@@ -22,12 +22,30 @@
  * SSR-safe: every call is a no-op when `window` is undefined.
  */
 
-export type AnalyticsEventName = 'order_type_selected' | 'checkout_opened' | 'checkout_completed';
+export type AnalyticsEventName =
+  | 'order_type_selected'
+  | 'checkout_opened'
+  | 'checkout_completed'
+  | 'cart_opened'
+  | 'cart_item_added'
+  | 'customer_info_submitted'
+  | 'register_inline_completed'
+  // Auth funnel (issue #76 — instrumented at the response-success site of the
+  // auth service calls, never at form-submit, so failed network requests are
+  // not double-counted as logins.)
+  | 'login_succeeded'
+  | 'login_failed'
+  | 'register_completed'
+  // Page-view-style events (issue #76 — fired ONCE on mount via a ref-guarded
+  // useEffect so re-renders / locale changes do not re-fire.)
+  | 'menu_viewed'
+  | 'checkout_review_viewed';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */
   orderType?: string;
-  /** Source surface — 'sidebar' | 'mobile_sheet' | 'welcome_modal' | 'review'. */
+  /** Source surface — 'sidebar' | 'mobile_sheet' | 'welcome_modal' | 'review' |
+   * 'takeaway_modal' | 'dinein_modal' | 'delivery_modal'. */
   source?: string;
   /** Whether the actor is logged in (vs guest) at the time of the event. */
   loggedIn?: boolean;
@@ -37,6 +55,16 @@ export interface AnalyticsEventPayload {
   orderId?: string;
   /** Human-readable order number from backend — set on checkout_completed only. */
   orderNumber?: string;
+  /** Product id — set on cart_item_added. */
+  productId?: string;
+  /** Quantity added in a single user action — set on cart_item_added. */
+  quantity?: number;
+  /** Which required fields were captured by the modal — set on customer_info_submitted. */
+  fields?: ReadonlyArray<string>;
+  /** Coarse failure bucket for login_failed — 'invalid_credentials' |
+   * 'needs_verification' | 'network' | 'unknown'. Never the raw server message
+   * (PII risk + cardinality). */
+  failureReason?: string;
 }
 
 interface DataLayerEntry extends AnalyticsEventPayload {

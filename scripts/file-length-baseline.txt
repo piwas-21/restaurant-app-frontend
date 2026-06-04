@@ -9,13 +9,10 @@
 # Inspect for ratchet opportunities:
 #   bash scripts/check-file-length.sh --all
 src/types/basket.ts
-src/types/menu.ts
-src/types/order.ts
 src/app/kitchen-staff/page.tsx
 src/app/auth/register/RegisterSuccess.module.css
 src/app/auth/register/page.tsx
 src/app/reservations/ReservationsPage.module.css
-src/app/reservations/page.tsx
 src/app/admin/customer-discounts/customer-discounts.module.css
 src/app/admin/customer-discounts/page.tsx
 src/app/admin/user-groups/[id]/page.tsx
@@ -44,14 +41,12 @@ src/app/styles/DetailsPage.module.css
 src/app/styles/OrderTypePage.module.css
 src/app/styles/AdminPage.module.css
 src/app/menu/page.tsx
-src/app/cart/page.tsx
 src/app/account/page.tsx
 src/app/(auth)/delete-account/DeleteAccount.module.css
 src/app/(auth)/verify-email/VerifyEmail.module.css
 src/app/page.tsx
 src/styles/orderStatus.module.css
 src/components/cashier/AutoPrintSettingsModal.module.css
-src/components/cashier/OrderDetails.tsx
 src/components/cashier/QuickConfirmModal.module.css
 src/components/cashier/CashierDiagnostics.module.css
 src/components/cashier/ZReportModal.tsx
@@ -69,13 +64,11 @@ src/components/admin/reservations/ReservationCalendar.module.css
 src/components/admin/OrderDetailsModal.module.css
 src/components/admin/CreateProductModal.tsx
 src/components/admin/user-groups/UserGroupModal.tsx
-src/components/admin/OrderDetailsModal.tsx
 src/components/admin/EditMenuBundleModal.tsx
 src/components/admin/product/ProductIngredientsManager.module.css
 src/components/admin/product/ProductIngredientsManager.tsx
 src/components/admin/CreateMenuBundleModal.tsx
 src/components/admin/DateRangeFilter.module.css
-src/components/admin/CustomerDiscountForm.tsx
 src/components/admin/DeleteConfirmationModal.module.css
 src/components/admin/PointRuleForm.tsx
 src/components/admin/product-details/VariationsTable.tsx
@@ -122,7 +115,6 @@ src/components/checkout/PaymentMethodSelector.module.css
 src/components/checkout/TableSelector.module.css
 src/components/menu/CustomizationModal.tsx
 src/components/menu/CategoryNav.module.css
-src/components/menu/ProductCustomizationInBundle.tsx
 src/components/menu/customization/OptionalIngredientsSection.module.css
 src/components/menu/customization/PriceCalculator.module.css
 src/components/menu/customization/SuggestedSideItemsSection.module.css
@@ -134,19 +126,15 @@ src/components/menu/ProductDetailsModal.tsx
 src/components/menu/FeaturedSpecial.module.css
 src/components/menu/MenuCustomization.module.css
 src/components/menu/FloatingCartButton.module.css
-src/components/cart/CartContext.tsx
 src/components/TableBanner.module.css
 src/components/orders/OrderCard.tsx
 src/components/account/FidelityPointsSection.module.css
-src/components/account/AddressManagement.tsx
 src/components/account/PointsHistoryModal.module.css
 src/components/account/DeleteAccountSection.module.css
 src/components/account/AddressManagement.module.css
 src/hooks/cashier/useCashierOrdersStream.ts
-src/hooks/useNotification.ts
 src/hooks/admin/useAdminOrdersData.ts
 src/hooks/useTableLayout.ts
-src/services/orderService.ts
 src/services/reservationService.ts
 src/services/addressService.ts
 src/services/authService.ts

@@ -1089,6 +1089,7 @@
   "no_reservations_found": "未找到预订",
   "no_reservations_match_filters": "当前筛选条件下无匹配预订",
   "confirm": "确认",
+  "type_to_confirm": "输入 {{text}} 以确认",
   "cancel": "取消",
   "list_view": "列表视图",
   "calendar_view": "日历视图",

@@ -10,6 +10,12 @@ import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import type { DeliveryAddress } from '@/contexts/CheckoutContext';
 import tableModalStyles from './TableSelectionModal.module.css';
 
+// Module-level constant — frozen at load, so the reference is stable across
+// renders. Inlining `['name', 'email', 'phone']` at the call site would
+// allocate a new array per render and defeat `useGuestCustomerInfo`'s
+// `useCallback(commit, [..., requiredFields])` memoisation.
+const DELIVERY_REQUIRED_FIELDS = ['name', 'email', 'phone'] as const;
+
 interface DeliveryAddressModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -63,7 +69,11 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
   // Phone is required for delivery (driver contact). Per
   // BUGS-IMPROVEMENTS-PLAN §C1.5.e — guests fill all three; logged-in
   // users see only the fields their profile is missing.
-  const guest = useGuestCustomerInfo({ requiredFields: ['name', 'email', 'phone'], enabled: isOpen });
+  const guest = useGuestCustomerInfo({
+    requiredFields: DELIVERY_REQUIRED_FIELDS,
+    enabled: isOpen,
+    source: 'delivery_modal',
+  });
 
   const handleConfirm = async () => {
     if (!address.validate()) return;

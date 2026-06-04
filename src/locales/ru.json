@@ -1021,6 +1021,7 @@
   "no_reservations_found": "Бронирования не найдены",
   "no_reservations_match_filters": "Нет бронирований, соответствующих фильтрам",
   "confirm": "Подтвердить",
+  "type_to_confirm": "Введите {{text}} для подтверждения",
   "cancel": "Отмена",
   "list_view": "Список",
   "calendar_view": "Календарь",

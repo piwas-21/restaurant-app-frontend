@@ -1031,6 +1031,7 @@
   "cancel_reservation": "إلغاء الحجز",
   "confirm_cancel": "هل أنت متأكد من إلغاء هذا الحجز؟",
   "confirm": "تأكيد",
+  "type_to_confirm": "اكتب {{text}} للتأكيد",
   "reservation_cancelled": "تم إلغاء الحجز",
   "failed_to_cancel": "فشل الإلغاء",
   "filter_by_date": "تصفية حسب التاريخ",

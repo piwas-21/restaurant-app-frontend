@@ -76,6 +76,14 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
+# Build identity, baked from CI build-args (see build-image.yml). Server-only
+# env (not NEXT_PUBLIC_*) read at request time by /api/version. Default to
+# "unknown" so a local `docker build` without args still runs.
+ARG GIT_SHA=unknown
+ARG BUILD_TIME=unknown
+ENV GIT_SHA=$GIT_SHA
+ENV BUILD_TIME=$BUILD_TIME
+
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node healthcheck.js

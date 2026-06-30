@@ -27,6 +27,17 @@ interface BackendUnreachable {
   error: string;
 }
 
+// Narrow the untyped JSON from the backend before trusting it. fetch().json()
+// is `any`; validating here keeps the response well-typed and shields callers
+// from a backend that changes shape or returns an error envelope.
+function isServiceVersion(value: unknown): value is ServiceVersion {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const v = value as Record<string, unknown>;
+  return typeof v.service === 'string' && typeof v.commit === 'string' && typeof v.buildTime === 'string';
+}
+
 // Fetch the backend's own /api/version so a single URL surfaces both services.
 // Mirrors apiClient.ts's NEXT_PUBLIC_API_URL pattern; the call is server-to-server
 // at request time. Degrades gracefully — a backend outage must not 500 this route.
@@ -46,7 +57,11 @@ async function fetchBackendVersion(): Promise<ServiceVersion | BackendUnreachabl
     if (!res.ok) {
       return { reachable: false, error: `backend returned ${res.status}` };
     }
-    return (await res.json()) as ServiceVersion;
+    const data: unknown = await res.json();
+    if (!isServiceVersion(data)) {
+      return { reachable: false, error: 'unexpected backend response shape' };
+    }
+    return data;
   } catch (err) {
     return { reachable: false, error: err instanceof Error ? err.message : 'unknown error' };
   } finally {

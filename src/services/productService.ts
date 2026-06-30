@@ -1,5 +1,4 @@
 import { apiClient } from '@/utils/apiClient';
-import { mockApiClient } from './mockApiClient';
 
 const PRODUCTS_API_URL = '/api/Products';
 
@@ -33,12 +32,10 @@ export const uploadBulkProductImages = async (productId: string, imageFiles: Fil
 };
 
 export const updateProduct = async (productId: string, productData: any) => {
-  try {
-    return await apiClient.put(`${PRODUCTS_API_URL}/${productId}`, productData);
-  } catch {
-    // Fallback to mock API if real API fails
-    return mockApiClient.updateProduct(productId, productData);
-  }
+  // No mock fallback: a failed update must surface to the caller instead of
+  // silently writing to localStorage and reporting a fake success (which made
+  // price edits appear saved while the backend rejected them).
+  return await apiClient.put(`${PRODUCTS_API_URL}/${productId}`, productData);
 };
 
 export const updateProductImageDetails = async (productId: string, imageId: string, imageData: any) => {

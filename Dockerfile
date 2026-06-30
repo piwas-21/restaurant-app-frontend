@@ -62,6 +62,13 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy the container healthcheck probe explicitly. Next.js output-file-tracing
+# only bundles files the app imports into .next/standalone; healthcheck.js is
+# invoked solely by the Docker HEALTHCHECK below (never imported), so it is NOT
+# in the standalone output and must be copied by hand. Without this the probe
+# fails with MODULE_NOT_FOUND and the container is reported unhealthy.
+COPY --from=builder --chown=nextjs:nodejs /app/healthcheck.js ./healthcheck.js
+
 USER nextjs
 
 EXPOSE 3000

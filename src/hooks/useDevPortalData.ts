@@ -75,7 +75,7 @@ async function fetchVersion(): Promise<VersionResponse> {
   if (!res.ok) {
     throw new Error(`version endpoint returned ${res.status}`);
   }
-  return res.json() as Promise<VersionResponse>;
+  return (await res.json()) as VersionResponse;
 }
 
 async function fetchDiagnostics(): Promise<DiagnosticsResponse> {

@@ -65,8 +65,7 @@ function useFetchState<T>(fetcher: () => Promise<T>): FetchState<T> {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetcher]);
 
   return state;
 }

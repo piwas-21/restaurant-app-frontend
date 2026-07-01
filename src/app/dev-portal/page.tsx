@@ -82,8 +82,15 @@ export default function DevPortalPage() {
             <>
               <div className={styles.row}>
                 <span className={styles.rowLabel}>Database</span>
-                <span>{diagnostics.data.database.canConnect ? 'Connected' : 'Disconnected'}</span>
+                <span className={diagnostics.data.database.canConnect ? '' : styles.error}>
+                  {diagnostics.data.database.canConnect ? 'Connected' : 'Disconnected'}
+                </span>
               </div>
+              {!diagnostics.data.database.canConnect && diagnostics.data.database.error && (
+                <div className={styles.error} style={{ marginTop: '0.25rem', textAlign: 'right' }}>
+                  {diagnostics.data.database.error}
+                </div>
+              )}
               <div className={styles.row}>
                 <span className={styles.rowLabel}>Last Applied Migration</span>
                 <span>{diagnostics.data.database.lastAppliedMigration ?? 'n/a'}</span>

@@ -51,6 +51,8 @@ function useFetchState<T>(fetcher: () => Promise<T>): FetchState<T> {
   useEffect(() => {
     let cancelled = false;
 
+    setState((prev) => (prev.loading ? prev : { data: null, loading: true, error: null }));
+
     fetcher()
       .then((data) => {
         if (!cancelled) setState({ data, loading: false, error: null });

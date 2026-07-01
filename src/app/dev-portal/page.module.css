@@ -1,0 +1,81 @@
+/*
+ * Deliberately not wired to the tenant design system (CSS variables in
+ * globals.css, AdminPage.module.css, etc.) — this is an internal dev/ops
+ * tool, not tenant product UI. See page.tsx header comment.
+ */
+
+.page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: #1e1e1e;
+  color: #e0e0e0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: #999;
+  margin-bottom: 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.cardTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 0.5rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+.rowLabel {
+  color: #999;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+}
+
+.loading {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #3a3a3a;
+  color: #e0e0e0;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.link:hover {
+  background: #484848;
+}

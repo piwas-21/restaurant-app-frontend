@@ -81,6 +81,14 @@ exclude:
       # StatusBadge.test.tsx) landed in PR #72. Local `npm run lint`
       # covers it.
       - src/components/design-system
+      # Same Qodana flat-config gap — added 2026-07-01 when the
+      # /api/version route moved to /api/frontend/version and the new
+      # /dev-portal page + its useDevPortalData hook landed (PR #118).
+      # All three are brand-new paths Qodana's PR-mode scan hadn't
+      # indexed before; local `npm run lint` covers them.
+      - src/app/api/frontend
+      - src/app/dev-portal
+      - src/hooks/useDevPortalData.ts
 
 # Block on any NEW finding (anything not in the baseline). Existing
 # baselined items remain reported but don't fail the build — drive

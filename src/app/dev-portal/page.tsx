@@ -11,7 +11,9 @@ import { useDevPortalData } from '@/hooks/useDevPortalData';
 import styles from './page.module.css';
 
 function isBackendUnreachable(value: unknown): value is { reachable: false; error: string } {
-  return typeof value === 'object' && value !== null && (value as { reachable?: boolean }).reachable === false;
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return v.reachable === false && typeof v.error === 'string';
 }
 
 export default function DevPortalPage() {

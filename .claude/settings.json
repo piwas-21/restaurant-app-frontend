@@ -23,6 +23,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/mahmutkaya/workspace/rumi-workspace/frontend/scripts/check-single-file.mjs",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

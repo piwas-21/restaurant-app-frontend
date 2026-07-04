@@ -61,5 +61,6 @@ test-results/
 playwright-report/
 .playwright-mcp/
 
-# Claude Code per-repo settings (machine-local).
-.claude/
+# Claude Code per-repo settings (machine-local) — EXCEPT versioned subagents.
+.claude/*
+!.claude/agents/

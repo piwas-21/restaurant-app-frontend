@@ -14,6 +14,18 @@
 - **Backend dependency**: this app talks to the [backend repo](https://github.com/piwas-21/restaurant-app-backend) via `NEXT_PUBLIC_API_URL`. DTO contracts mirror backend `Features/**/Dtos/`.
 - **In-flight workspace**: this repo is one of three under [/Users/mahmutkaya/workspace/rumi-workspace/](../). The workspace meta-repo holds cross-repo plans and the master roadmap. When this repo is cloned standalone, only this `CLAUDE.md` is in scope.
 
+## §1.5 — Subagents (delegate to the right one)
+
+Versioned Claude Code subagents live in [.claude/agents/](.claude/agents/). When a task fits one, **delegate to it** instead of doing it inline:
+
+| Agent | Lives in | Use for |
+|---|---|---|
+| **frontend** | this repo ([.claude/agents/frontend.md](.claude/agents/frontend.md)) | Next.js pages/components/hooks/i18n/tests — defers to this CLAUDE.md |
+| **backend** | backend repo | anything in `backend/` (.NET) — hand cross-repo contract work over |
+| **devops** | deploy repo (`restaurant-app-deploy`) | any infra/deploy/ops task (boxes, Caddy/TLS, DNS, secrets, release) — never do live-infra ops inline |
+
+A `PostToolUse` hook ([scripts/check-single-file.mjs](scripts/check-single-file.mjs)) also warns on file-length/convention violations right after each edit — act on its output.
+
 ## §2 — Critical files to read
 
 | When | Read |

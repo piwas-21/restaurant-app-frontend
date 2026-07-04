@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node /Users/mahmutkaya/workspace/rumi-workspace/frontend/scripts/check-single-file.mjs",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/scripts/check-single-file.mjs\"",
             "timeout": 10
           }
         ]

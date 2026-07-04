@@ -99,29 +99,7 @@ See [ADR-005](docs/adr/ADR-005-design-system-primitives.md).
 
 ## §4 — File length limits
 
-Enforced by [scripts/check-file-length.sh](scripts/check-file-length.sh) (pre-commit + CI `file_length` job, blocking).
-
-| File type | Max LOC | Action if exceeded |
-|---|---|---|
-| Page component (`src/app/**/page.tsx`) | 200 | Move logic into a custom hook in `src/hooks/` |
-| Modal component (`*Modal.tsx`) | 200 | Split form / preview / actions into sub-components |
-| UI component (other `*.tsx` in `src/`) | 250 | Extract sub-components into the same folder |
-| Custom hook (`src/hooks/use*.ts`) | 200 | Split by concern (data-fetching vs derived state vs side-effects) |
-| Service file (`src/services/**`, `src/lib/**`) | 200 | Split by resource (one service per backend feature) |
-| Type / interface file (`src/types/**`) | 150 | Split by domain |
-| CSS Module (`*.module.css`) | 200 | Extract sub-component CSS |
-
-Excluded: tests (`*.test.{ts,tsx}`, `*.spec.{ts,tsx}`), Storybook stories (`*.stories.tsx`), Playwright snapshots.
-
-**Existing oversized files** are baselined in [scripts/file-length-baseline.txt](scripts/file-length-baseline.txt) (153 entries — set at the current honest floor; ratchet down as the refactor track lands). New violations block the gate.
-
-**Per-file opt-out** (rare; needs reviewer sign-off): add `// FILE_LENGTH_EXEMPT: <reason>` within the first 5 lines of the file.
-
-**After a refactor lands** that brings a baselined file under its limit:
-```bash
-bash scripts/check-file-length.sh --regen-baseline
-```
-Commit the updated `scripts/file-length-baseline.txt` in the same MR.
+Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warned in-loop by the PostToolUse checker. Max LOC: **page.tsx 200 · `*Modal.tsx` 200 · other `*.tsx` 250 · `use*.ts` hook 200 · `services/`+`lib/` 200 · `types/` 150 · `*.module.css` 200**. Over the limit ⇒ move page logic to a hook, split modals/components/services by concern. Excludes tests/stories/snapshots. Existing violations baselined in `scripts/file-length-baseline.txt`; opt out with `// FILE_LENGTH_EXEMPT: <reason>` (first 5 lines); after a refactor drops a file under limit run `bash scripts/check-file-length.sh --regen-baseline` and commit the baseline.
 
 ---
 
@@ -179,39 +157,12 @@ Grep for the component / hook / type you're adding or modifying. List every call
 
 ---
 
-## §7 — Quality gates
+## §7 — Quality gates (all blocking; source of truth `.github/workflows/ci.yml` + `.pre-commit-config.yaml`)
 
-| Enforcement | Gate | When | What | Source of truth |
-|---|---|---|---|---|
-| **CI-enforced (blocking)** | `npm test` | CI workflow | Jest unit tests | `.github/workflows/ci.yml` (`npm_test` job) |
-| **CI-enforced (blocking)** | Jest coverage threshold | CI workflow (`npm_test` job — `--coverage` flag) | **Per-file** thresholds for the files that have tests today (currently `BaseModal.tsx` / `FormField.tsx` / `StatusBadge.tsx`), each pinned just below its current actual pct. No global threshold — a sub-1% global floor is fragile (any new untested file would redline the gate independent of test quality, see PR #79 review). New gated files are added in the same MR as their test. Ratchet rows up as coverage grows. | [jest.config.js](jest.config.js) (`coverageThreshold`) |
-| **CI-enforced (blocking)** | `npm audit --audit-level=high` | CI workflow | No high/critical vulnerabilities | `.github/workflows/ci.yml` (`npm_audit` job) |
-| **CI-enforced (blocking)** | Gitleaks | CI workflow | No leaked credentials (allowlist via `.gitleaks.toml`) | [.gitleaks.toml](.gitleaks.toml) |
-| **CI-enforced (blocking)** | njsscan | CI workflow | Static security scan for JS | `.github/workflows/ci.yml` |
-| **CI-enforced (blocking)** | semgrep | CI workflow | SAST | `.github/workflows/ci.yml` |
-| **CI-enforced (blocking)** | retire.js | CI workflow | Outdated-dep CVE scan (replaced by OSV-Scanner in Sprint 4) | `.github/workflows/ci.yml` |
-| **CI-enforced (blocking)** | `license-checker-rseidelsohn` | CI workflow (`license_compliance` job) | Every production transitive NPM license in `LICENSES.allowlist` (compound dual-license strings listed verbatim) | `.github/workflows/ci.yml`, [LICENSES.allowlist](LICENSES.allowlist) |
-| **CI-enforced (blocking)** | Trivy image scan | CI workflow (`trivy` job, after `build_image`) | Zero HIGH/CRITICAL CVEs in the built image. False-positive exclusions live in `.trivyignore` with written justification. | `.github/workflows/ci.yml`, `.trivyignore` |
-| **Pre-commit** (blocking on `git commit`) | `pre-commit` hooks | Every commit | trailing-whitespace, EOF, large files, secret scan, no-commit-to-protected | [.pre-commit-config.yaml](.pre-commit-config.yaml) |
-| **CI-enforced (blocking)** | `prettier --check` | CI workflow (`prettier_check` job) **and** pre-commit when staged file matches `^src/.*\.(ts\|tsx\|css\|json\|md)$` | Source is prettier-clean | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
-| **CI-enforced (blocking)** | `tsc --noEmit` | CI workflow (`typecheck` job) **and** pre-commit when any `.ts`/`.tsx` is staged | Whole-project typecheck passes | `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
-| **CI-enforced (blocking)** | `eslint --max-warnings=0` | CI workflow (`eslint` job) **and** pre-commit when any `.ts`/`.tsx`/`.js`/`.mjs`/`.cjs` is staged | Zero lint warnings (allow-list configured per rule, see `eslint.config.mjs`) | `.github/workflows/ci.yml`, `.pre-commit-config.yaml`, `eslint.config.mjs` |
-| **CI-enforced (blocking)** | File-length gate | CI workflow (`file_length` job) **and** pre-commit (per-file when `.ts`/`.tsx`/`.module.css` is staged) | LOC ≤ §4 limit OR file is in `scripts/file-length-baseline.txt` | [scripts/check-file-length.sh](scripts/check-file-length.sh), `.github/workflows/ci.yml`, `.pre-commit-config.yaml` |
-| **Pre-push (blocking on `git push`)** | `scripts/test-affected.sh` | Every push (pre-commit `pre-push` stage, hook id `jest-affected`) | Runs Jest's `--findRelatedTests` on changed `.ts`/`.tsx`/`.js`/`.jsx` files under `src/` vs `origin/develop`. Catches the common-case unit-test regression before CI without paying the full `npm test` cost. No changes ⇒ skip. Source files without a colocated test ⇒ `--passWithNoTests` (lint/typecheck still cover those). **Not a substitute for the CI `npm_test` job** — that remains the source of truth and runs the full suite. Playwright E2E intentionally excluded (too slow for a pre-push gate). | [scripts/test-affected.sh](scripts/test-affected.sh), `.pre-commit-config.yaml` |
-| **Sprint 1 — manual** (devs run before commit; not yet automated) | `npm run build` | Manual | Next.js build succeeds | `next.config.ts` |
-
-**`prettier --check`, `tsc --noEmit`, and `eslint --max-warnings=0` all automated and blocking as of Sprint 2 / 2.5**. SAST quality gate (SonarCloud) lands in Sprint 3.
-
-### Scheduled gate (weekly, not per-commit)
-
-`.github/workflows/security-audit.yml` runs deep / full-tree security scans on a **cron** (Mondays 06:00 UTC) + `workflow_dispatch` — **not** on every commit/PR. Distinct from the rows above: it is a **reporting/alerting** gate, not a merge blocker (it has no PR context). It re-scans the *unchanged* committed lockfile (npm audit + OSV full-tree `-r`), runs a full retire.js + Trivy fs sweep, and re-checks license drift — so a CVE disclosed since the last PR surfaces as a red ❌ on the Actions tab. retire.js's vuln DB is **pinned** (`--jsrepo <SHA>`) so the scan is reproducible rather than drifting with upstream `master`; refresh the SHA deliberately to ingest new advisories. Triage a finding, then bump the dep or add a scoped, justified suppression in `.retireignore.json` (same policy as the per-PR gate). Permissions are read-only; no issue/Slack write automation is wired in. See [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) §6. Weekly scheduled pipeline.
-
-### Setup for a new developer
-```bash
-bash scripts/setup_hooks.sh   # installs pre-commit hooks (one-time)
-bash scripts/dev-secrets.sh   # bootstraps .env.local from .env.example (one-time)
-bash scripts/dev-up.sh        # health-checks backend, then runs `npm run dev`
-```
+- **Pre-commit / pre-push** (on staged `src/` files): trailing-ws / EOF / large-files / secret-scan / no-commit-to-protected; `prettier --check`; `tsc --noEmit`; `eslint --max-warnings=0`; file-length. On push, `scripts/test-affected.sh` runs Jest `--findRelatedTests` vs `origin/develop` (not a substitute for CI `npm test`).
+- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy image scan (zero HIGH/CRITICAL, `.trivyignore`); plus prettier/tsc/eslint/file-length repeated. `npm run build` is manual pre-commit.
+- **Weekly** `security-audit.yml` (cron): deep full-tree scans (npm audit + OSV `-r`, retire.js pinned DB, Trivy fs, license drift) — reporting, not a merge blocker; suppress via `.retireignore.json` with justification.
+- **New-dev setup**: `bash scripts/setup_hooks.sh` · `bash scripts/dev-secrets.sh` · `bash scripts/dev-up.sh`.
 
 ---
 

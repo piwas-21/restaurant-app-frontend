@@ -8,6 +8,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '/flags/ar.svg' },
   { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '/flags/de.svg' },
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '/flags/fr.svg' },
+  { code: 'nl', name: 'Dutch', nativeName: 'Nederlands', flag: '/flags/nl.svg' },
   { code: 'it', name: 'Italian', nativeName: 'Italiano', flag: '/flags/it.svg' },
   { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '/flags/ru.svg' },
   { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '/flags/zh.svg' },

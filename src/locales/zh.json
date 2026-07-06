@@ -9,6 +9,7 @@
   "reserve_table": "预订餐桌",
   "view_full_website": "查看完整网站",
   "copyright_rumi": "© {{year}} RUMI 餐厅。版权所有。",
+  "home_footer_copyright": "© {{year}} {{name}}。版权所有。",
   "menu_title": "我们的菜单",
   "loading_items": "正在加载项目...",
   "error_loading_menu_items": "无法加载 {{categoryName}} 的菜单项目。请重试。",

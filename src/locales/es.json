@@ -9,6 +9,7 @@
   "reserve_table": "Reservar una Mesa",
   "view_full_website": "Ver Sitio Web Completo",
   "copyright_rumi": "© {{year}} Restaurante RUMI. Todos los derechos reservados.",
+  "home_footer_copyright": "© {{year}} {{name}}. Todos los derechos reservados.",
   "menu_title": "Nuestro Menú",
   "loading_items": "Cargando elementos...",
   "error_loading_menu_items": "Error al cargar elementos del menú para {{categoryName}}. Inténtelo de nuevo.",

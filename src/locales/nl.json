@@ -9,6 +9,7 @@
   "reserve_table": "Reserveer een tafel",
   "view_full_website": "Bekijk de volledige website",
   "copyright_rumi": "© {{year}} RUMI Restaurant. Alle rechten voorbehouden.",
+  "home_footer_copyright": "© {{year}} {{name}}. Alle rechten voorbehouden.",
   "menu_title": "Ons menu",
   "loading_items": "Items laden...",
   "error_loading_menu_items": "Kon de menu-items voor {{categoryName}} niet laden. Probeer het opnieuw.",

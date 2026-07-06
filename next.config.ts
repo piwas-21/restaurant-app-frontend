@@ -9,12 +9,15 @@ const DEV_API_ORIGIN = 'http://localhost:5221';
 
 // Unset is a valid state (bare local build → dev fallback); a set-but-invalid
 // value must fail the build — silently falling back would ship a broken CSP.
+// http(s) only: any other scheme has no meaningful origin for CSP/remotePatterns.
 const toOrigin = (name: string, value: string | undefined): string | undefined => {
   if (!value) return undefined;
   try {
-    return new URL(value).origin;
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('non-http(s)');
+    return url.origin;
   } catch {
-    throw new Error(`${name} must be an absolute URL, got: "${value}"`);
+    throw new Error(`${name} must be an absolute http(s) URL, got: "${value}"`);
   }
 };
 
@@ -32,6 +35,9 @@ const imageBaseRemotePatterns = (() => {
     {
       protocol: url.protocol === 'http:' ? ('http' as const) : ('https' as const),
       hostname: url.hostname,
+      // '' (default port) matches URLs without an explicit port; an explicit
+      // port (e.g. local dev) must match exactly.
+      port: url.port,
     },
   ];
 })();

@@ -119,12 +119,6 @@ const nextConfig: NextConfig = {
       // Tenant image host comes from NEXT_PUBLIC_IMAGE_BASE_URL (issue #123).
       ...imageBaseRemotePatterns,
       {
-        // Static menu JSON hotlinks (legacy) — retired with issue #124.
-        protocol: 'https',
-        hostname: 'restaurant-admin-api.orderhub.ch',
-        pathname: '/web-images/**',
-      },
-      {
         // Google account avatars.
         protocol: 'https',
         hostname: 'lh3.google.com',

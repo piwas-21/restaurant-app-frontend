@@ -45,7 +45,7 @@ reviewer-verified byte-equivalent + Qodana re-baselined):
 3. **Style-debt files** (inline `style={{}}` / hex, §5.5/§5.6): do a **tokenize-first chore PR** (map to CSS-var tokens, zero visual change) THEN decompose — proven on cashier OrderDetails (#100→#101).
 4. Run `tsc --noEmit`, `eslint --max-warnings=0`, `prettier`, `npm run build`; regen the file-length baseline (`bash scripts/check-file-length.sh --regen-baseline`).
 5. Have the `code-reviewer` agent verify byte-equivalence vs `HEAD` before pushing.
-6. On push, Qodana re-flags relocated code as "new" → run the **rebaseline workflow** (`gh workflow run qodana.yml --ref <branch> -f rebaseline=true` → download SARIF → commit; ensure single trailing newline). See [[memory: frontend Qodana re-baseline]].
+6. ~~On push, Qodana re-flags relocated code as "new" → run the rebaseline workflow~~ **Qodana retired 2026-07-06** (dead token) — static analysis is now SonarCloud automatic analysis (`piwas-21_restaurant-app-frontend`); no rebaseline step, new-code focus is handled by SonarCloud's new-code period.
 7. After merge, check Gemini PR comments. This track's comments have all been **pre-existing/verbatim** nits or behaviour-change suggestions (not regressions) — documented in `ROADMAP.md`, not fixed in the verbatim PR. The one genuine bug found (#99 `excludedIngredients` always `[]`, flows to the backend basket payload) was **spawned as a separate investigation task** (needs backend-contract check).
 
 **Owed before develop→main promotion:** none of the refactored surfaces have automated unit/E2E

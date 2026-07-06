@@ -9,6 +9,7 @@
   "reserve_table": "Masa Ayırt",
   "view_full_website": "Tam Web Sitesini Görüntüle",
   "copyright_rumi": "© {{year}} RUMI Restaurant. Tüm hakları saklıdır.",
+  "home_footer_copyright": "© {{year}} {{name}}. Tüm hakları saklıdır.",
   "menu_title": "Menümüz",
   "loading_items": "Ürünler yükleniyor...",
   "error_loading_menu_items": "{{categoryName}} için menü öğeleri yüklenirken hata oluştu. Lütfen tekrar deneyin.",

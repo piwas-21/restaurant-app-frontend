@@ -9,6 +9,7 @@
   "reserve_table": "Забронировать столик",
   "view_full_website": "Полная версия сайта",
   "copyright_rumi": "© {{year}} Ресторан RUMI. Все права защищены.",
+  "home_footer_copyright": "© {{year}} {{name}}. Все права защищены.",
   "menu_title": "Наше меню",
   "loading_items": "Загрузка...",
   "error_loading_menu_items": "Не удалось загрузить меню для {{categoryName}}. Пожалуйста, попробуйте снова.",

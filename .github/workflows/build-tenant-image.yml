@@ -35,6 +35,10 @@ on:
         description: "Google OAuth web client id for this tenant ('' disables Google login; the shared client only allows registered JS origins)"
         required: false
         default: ""
+      restaurant_name:
+        description: "Tenant display name baked into page metadata (registry `name`, e.g. Demo Restaurant). Empty = neutral 'Restaurant' title — pass it for any real tenant"
+        required: false
+        default: ""
 
 concurrency:
   group: build-tenant-${{ inputs.image_tag }}
@@ -81,6 +85,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=https://${{ inputs.tenant_domain }}
             NEXT_PUBLIC_IMAGE_BASE_URL=https://${{ inputs.tenant_domain }}
+            NEXT_PUBLIC_RESTAURANT_NAME=${{ inputs.restaurant_name }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
             GIT_SHA=${{ github.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}

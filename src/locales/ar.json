@@ -9,6 +9,7 @@
   "reserve_table": "احجز طاولة",
   "view_full_website": "عرض الموقع الكامل",
   "copyright_rumi": "© {{year}} مطعم RUMI. جميع الحقوق محفوظة.",
+  "home_footer_copyright": "© {{year}} {{name}}. جميع الحقوق محفوظة.",
   "menu_title": "قائمتنا",
   "loading_items": "جارٍ تحميل العناصر...",
   "error_loading_menu_items": "فشل تحميل عناصر القائمة لـ {{categoryName}}. يرجى المحاولة مرة أخرى.",

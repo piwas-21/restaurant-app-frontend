@@ -242,7 +242,15 @@ export default function HomePage() {
         </section>
 
         <footer className={styles.homeFooter}>
-          <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
+          <p>
+            {/* Name from the RestaurantInfo API (issue #125); localized
+                tenant-1 fallback while it loads / if it's unreachable. */}
+            {isClient
+              ? info?.name
+                ? t('home_footer_copyright', { year: new Date().getFullYear(), name: info.name })
+                : t('copyright_rumi', { year: new Date().getFullYear() })
+              : `© ${new Date().getFullYear()} RUMI Restaurant. All rights reserved.`}
+          </p>
           <p>
             {addressStreet}, {addressCityCountry}
           </p>

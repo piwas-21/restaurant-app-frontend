@@ -2179,5 +2179,8 @@
   "password_too_short": "密码至少为 6 个字符",
   "account_creation_failed_continuing": "无法创建账户,您的订单将以访客身份继续。",
   "register_full_name_help": "请输入完整姓名(姓和名)",
-  "field_required": "必填"
+  "field_required": "必填",
+  "enable": "启用",
+  "disable": "禁用",
+  "creating": "正在创建..."
 }

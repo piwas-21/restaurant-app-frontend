@@ -2179,5 +2179,8 @@
   "register_full_name_help": "Bitte vollständigen Namen angeben (Vor- und Nachname)",
   "field_required": "Erforderlich",
   "language_ru": "Russisch",
-  "language_zh": "Chinesisch"
+  "language_zh": "Chinesisch",
+  "enable": "Aktivieren",
+  "disable": "Deaktivieren",
+  "creating": "Erstellen..."
 }

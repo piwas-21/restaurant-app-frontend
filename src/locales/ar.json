@@ -2179,5 +2179,8 @@
   "account_creation_failed_continuing": "تعذّر إنشاء الحساب، وسيستمر طلبك كضيف.",
   "register_full_name_help": "يرجى إدخال الاسم الكامل (الاسم واللقب)",
   "field_required": "مطلوب",
-  "admin_user_groups_title": "مجموعات المستخدمين"
+  "admin_user_groups_title": "مجموعات المستخدمين",
+  "enable": "تفعيل",
+  "disable": "تعطيل",
+  "creating": "جاري الإنشاء..."
 }

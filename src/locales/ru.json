@@ -2179,5 +2179,8 @@
   "admin_welcome": "Добро пожаловать, администратор!",
   "admin_dashboard_intro": "Управляйте контентом и настройками вашего ресторана здесь.",
   "admin_manage_menu_items": "Управление позициями меню",
-  "admin_manage_daily_specials": "Управление блюдами дня"
+  "admin_manage_daily_specials": "Управление блюдами дня",
+  "enable": "Включить",
+  "disable": "Выключить",
+  "creating": "Создание..."
 }

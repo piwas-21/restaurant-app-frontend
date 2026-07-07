@@ -2179,5 +2179,8 @@
   "password_too_short": "Şifre en az 6 karakter olmalıdır",
   "account_creation_failed_continuing": "Hesap oluşturulamadı, siparişin misafir olarak devam edecek.",
   "register_full_name_help": "Lütfen ad ve soyadı birlikte gir",
-  "field_required": "Zorunlu"
+  "field_required": "Zorunlu",
+  "enable": "Etkinleştir",
+  "disable": "Devre Dışı Bırak",
+  "creating": "Oluşturuluyor..."
 }

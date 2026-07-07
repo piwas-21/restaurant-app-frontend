@@ -2179,5 +2179,8 @@
   "password_too_short": "La contraseña debe tener al menos 6 caracteres",
   "account_creation_failed_continuing": "No se pudo crear la cuenta, pero tu pedido continuará como invitado.",
   "register_full_name_help": "Ingresa tu nombre completo (nombre y apellido)",
-  "field_required": "Obligatorio"
+  "field_required": "Obligatorio",
+  "enable": "Habilitar",
+  "disable": "Deshabilitar",
+  "creating": "Creando..."
 }

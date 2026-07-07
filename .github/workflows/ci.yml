@@ -71,14 +71,12 @@ jobs:
       - run: npx tsc --noEmit
 
   i18n_parity:
-    # Locale-parity gate (ADR-003, DEV-PHASES-PLAN W1). continue-on-error while
-    # the pre-existing parity debt is repaired (ru -74 keys etc.) - flipped to
-    # blocking in the repair PR. The check itself is deterministic.
-    name: i18n parity (10 locales) [bed-in, non-blocking]
+    # Locale-parity gate (ADR-003, DEV-PHASES-PLAN W1) - BLOCKING since the
+    # parity repair landed (deterministic check, no flake surface).
+    name: i18n parity (10 locales)
     needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4

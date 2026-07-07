@@ -2179,5 +2179,8 @@
   "password_too_short": "Le mot de passe doit contenir au moins 6 caractères",
   "account_creation_failed_continuing": "Impossible de créer le compte ; votre commande se poursuit en tant qu’invité.",
   "register_full_name_help": "Veuillez saisir votre nom complet (prénom et nom)",
-  "field_required": "Requis"
+  "field_required": "Requis",
+  "enable": "Activer",
+  "disable": "Désactiver",
+  "creating": "Création..."
 }

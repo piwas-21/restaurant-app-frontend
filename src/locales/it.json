@@ -2179,5 +2179,8 @@
   "password_too_short": "La password deve contenere almeno 6 caratteri",
   "account_creation_failed_continuing": "Impossibile creare l'account; l'ordine continuerà come ospite.",
   "register_full_name_help": "Inserisci nome e cognome",
-  "field_required": "Obbligatorio"
+  "field_required": "Obbligatorio",
+  "enable": "Abilita",
+  "disable": "Disabilita",
+  "creating": "Creazione..."
 }

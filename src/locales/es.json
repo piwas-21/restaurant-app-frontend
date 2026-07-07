@@ -1099,11 +1099,6 @@
   "max_guests_count": "{{count}} invitados",
   "max_guests": "Invitados Máximos",
   "outdoor_table": "Mesa Exterior",
-  "activate": "Activar",
-  "deactivate": "Desactivar",
-  "enable": "Habilitar",
-  "disable": "Deshabilitar",
-  "creating": "Creando...",
   "update": "Actualizar",
   "qr_code_missing": "QR code is missing",
   "qr_code_invalid": "Invalid or expired QR code",
@@ -1769,9 +1764,6 @@
   "order_confirmed_message": "El cliente recibirá un correo electrónico de confirmación pronto.",
   "order_cancelled_message": "La orden ha sido cancelada.",
   "order_status_pending_approval": "En espera de aprobación",
-  "order_status_picked_up": "Recogido",
-  "order_status_rejected": "Rechazado",
-  "order_status_unknown": "Desconocido",
   "footer_privacy_policy": "Política de Privacidad",
   "footer_terms_of_usage": "Términos de Uso",
   "privacy_policy": {
@@ -2029,7 +2021,8 @@
       "error": "Error al cargar el informe Z",
       "retry": "Reintentar"
     },
-    "show_todays_orders_only": "Mostrar solo los pedidos de hoy"
+    "show_todays_orders_only": "Mostrar solo los pedidos de hoy",
+    "notes_info": "Utilice las notas para documentar los cambios solicitados que no se pueden aplicar directamente a través de esta interfaz. Es especialmente útil para cambios en el tipo de pedido, modificaciones de artículos o solicitudes especiales."
   },
   "restaurant_closed_on_date": "El restaurante está cerrado el {{day}}, {{date}}. Por favor, seleccione otra fecha.",
   "selected_tables_not_available": "La(s) mesa(s) seleccionada(s) {{tables}} ya no están disponibles para este horario. Por favor, seleccione otras mesas u otro horario.",

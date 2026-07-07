@@ -22,17 +22,18 @@ if (!/\.(tsx?|css)$/.test(file)) process.exit(0);
 if (/\.(test|spec)\.|\.d\.ts$|\/node_modules\/|\/\.next\//.test(file)) process.exit(0);
 
 // Confine reads to the repo tree (hook cwd = repo root): the path arrives from
-// tool JSON/argv and is only ever a repo file — refuse anything resolving
-// outside instead of reading it (Sonar S8707).
+// tool JSON/argv and is only ever a repo file — anything resolving outside is
+// never read (Sonar S8707; positive-branch guard so the taint engine sees it).
 const resolved = resolve(file);
-if (!resolved.startsWith(process.cwd() + sep)) process.exit(0);
-
-let src;
-try {
-  src = readFileSync(resolved, "utf8");
-} catch {
-  process.exit(0);
+let src = "";
+if (resolved.startsWith(process.cwd() + sep)) {
+  try {
+    src = readFileSync(resolved, "utf8");
+  } catch {
+    // unreadable/deleted — nothing to check
+  }
 }
+if (!src) process.exit(0);
 const lines = src.split("\n");
 const loc = lines.length;
 const warn = (msg) => process.stderr.write(`${file}: ${msg}\n`);

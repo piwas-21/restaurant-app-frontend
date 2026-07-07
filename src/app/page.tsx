@@ -10,7 +10,7 @@ import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto } from '@/types/workingHours';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import ContactIcons from '@/components/home/ContactIcons';
-import { RESTAURANT_NAME } from '@/lib/config';
+import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
@@ -66,7 +66,7 @@ export default function HomePage() {
   const googleMapsEmbedUrl = mapAddressQuery
     ? `https://www.google.com/maps?q=${encodeURIComponent(mapAddressQuery)}&output=embed`
     : null;
-  const backgroundImageUrl = '/images/rumi-background.png';
+  const backgroundImageUrl = BRANDING_HERO;
 
   // Helper functions for working hours
   const getDayNumber = (day: string | number): number => {

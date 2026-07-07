@@ -3,7 +3,7 @@ import './globals.css';
 import AppInternalLayout from './app-internal-layout';
 import ClientProviders from './client-providers';
 import { Metadata, Viewport } from 'next';
-import { RESTAURANT_NAME } from '@/lib/config';
+import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
 
 // Tenant branding is baked at build time (issue #125): build-image.yml passes
 // RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: RESTAURANT_NAME,
   description: `${RESTAURANT_NAME} - Experience authentic flavors.`,
   icons: {
-    icon: '/rumi-letter-r-icon.svg',
+    icon: BRANDING_ICON,
   },
 };
 

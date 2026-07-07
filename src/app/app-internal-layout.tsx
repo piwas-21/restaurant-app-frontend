@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
-import { RESTAURANT_NAME } from '@/lib/config';
+import { BRANDING_LOGO, BRANDING_LOGO_DARK, RESTAURANT_NAME } from '@/lib/config';
 
 const _inter = Inter({ subsets: ['latin'] });
 
@@ -59,8 +59,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   }, []);
 
   const useDarkLogoOnHome = isHomePage && theme !== 'dark';
-  const logoSrc =
-    theme === 'dark' || useDarkLogoOnHome ? '/rumi_logo_transparent_dark.png' : '/rumi_logo_transparent.png';
+  const logoSrc = theme === 'dark' || useDarkLogoOnHome ? BRANDING_LOGO_DARK : BRANDING_LOGO;
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleAdminSidebar = () => setAdminSidebarOpen(!adminSidebarOpen);

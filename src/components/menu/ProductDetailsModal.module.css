@@ -44,7 +44,7 @@
 .productDetailSection {
   margin: 1.5rem 0;
   padding: 1rem 0;
-  border-bottom: 1px solid var(--border-color, #eee);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .productDetailSection:last-child {
@@ -55,7 +55,7 @@
   margin: 0 0 0.8rem 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--primary-color, #e70b0b);
+  color: var(--primary-color);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -83,9 +83,9 @@
 
 .variationItem {
   padding: 0.8rem;
-  background-color: var(--card-background, #f9f9f9);
+  background-color: var(--card-background);
   border-radius: 8px;
-  border: 1px solid var(--border-color, #eee);
+  border: 1px solid var(--border-color);
 }
 
 .variationName {
@@ -95,7 +95,7 @@
 }
 
 .variationPrice {
-  color: var(--success-color, #4caf50);
+  color: var(--success-color);
   font-weight: 600;
   float: right;
 }
@@ -116,8 +116,8 @@
 
 .sideItemCard {
   padding: 0.8rem;
-  background-color: var(--card-background, #e3f2fd);
-  border: 1px solid var(--border-color, #eee);
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
@@ -134,13 +134,13 @@
 }
 
 .requiredBadge {
-  color: var(--error-color, #f44336);
+  color: var(--error-color);
   margin-left: 0.3rem;
   font-weight: bold;
 }
 
 .sideItemPrice {
-  color: var(--success-color, #4caf50);
+  color: var(--success-color);
   font-weight: 600;
 }
 
@@ -154,9 +154,9 @@
 .sideItem {
   display: inline-block;
   padding: 0.4rem 0.8rem;
-  background-color: var(--info-color-xlight, #e3f2fd);
-  color: var(--info-color-dark, #0d47a1);
-  border: 1px solid var(--info-color-light, #42a5f5);
+  background-color: var(--info-color-xlight);
+  color: var(--info-color-dark);
+  border: 1px solid var(--info-color-light);
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -169,7 +169,7 @@
 }
 
 .errorMessage {
-  color: var(--error-color, #f44336);
+  color: var(--error-color);
   font-style: italic;
 }
 
@@ -183,9 +183,9 @@
 .allergyTag {
   display: inline-block;
   padding: 0.4rem 0.8rem;
-  background-color: var(--card-background, #f5f5f5);
+  background-color: var(--card-background);
   color: var(--text-color);
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -194,6 +194,6 @@
 .itemPrice {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary-color, #e70b0b);
+  color: var(--primary-color);
   text-align: center;
 }

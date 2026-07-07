@@ -1,6 +1,6 @@
 .banner {
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-blue-400) 0%, var(--color-violet-600) 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 100;
@@ -120,7 +120,7 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .banner {
-    background: linear-gradient(135deg, #4c5fd5 0%, #5a3d7c 100%);
+    background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-violet-700) 100%);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   }
 
@@ -141,7 +141,7 @@
 
 /* Custom Theme Support */
 [data-theme='dark'] .banner {
-  background: linear-gradient(135deg, #4c5fd5 0%, #5a3d7c 100%);
+  background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-violet-700) 100%);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 

@@ -37,7 +37,7 @@
 }
 
 .orderNumberCard {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #a60000 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--color-red-700) 100%);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -89,7 +89,7 @@
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #a60000 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--color-red-700) 100%);
   color: white;
   border: none;
   border-radius: 8px;

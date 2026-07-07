@@ -202,12 +202,12 @@
 }
 
 [data-theme='dark'] .imageActions {
-  background-color: var(--secondary-color, #2c2c2c);
+  background-color: var(--secondary-color);
 }
 
 [data-theme='dark'] .languageSection {
-  background-color: var(--secondary-color-dark, #3a3a3a);
-  border-color: var(--border-color-dark, #555);
+  background-color: var(--color-gray-800-b);
+  border-color: var(--color-gray-700-b);
 }
 
 /* Variations table specific styling */
@@ -237,7 +237,7 @@
 }
 
 [data-theme='dark'] .variationsTable th {
-  background-color: var(--secondary-color, #2c2c2c);
+  background-color: var(--secondary-color);
   color: var(--text-color);
 }
 

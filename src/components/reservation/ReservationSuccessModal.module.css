@@ -51,7 +51,7 @@
   background: transparent;
   border: none;
   font-size: 1.5rem;
-  color: #666;
+  color: var(--color-gray-700-c);
   cursor: pointer;
   width: 36px;
   height: 36px;
@@ -63,8 +63,8 @@
 }
 
 .closeButton:hover {
-  background: #f0f0f0;
-  color: #333;
+  background: var(--border-color-extra-light);
+  color: var(--color-gray-900-f);
 }
 
 .iconContainer {
@@ -91,21 +91,21 @@
 .title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #333;
+  color: var(--color-gray-900-f);
   text-align: center;
   margin: 0 0 1rem 0;
 }
 
 .message {
   font-size: 1rem;
-  color: #666;
+  color: var(--color-gray-700-c);
   text-align: center;
   line-height: 1.6;
   margin: 0 0 1.5rem 0;
 }
 
 .emailInfo {
-  background: #f8f9fa;
+  background: var(--color-sky-50-c);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 2rem;
@@ -116,13 +116,13 @@
 
 .emailLabel {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-gray-700-c);
   font-weight: 500;
 }
 
 .email {
   font-size: 1rem;
-  color: #333;
+  color: var(--color-gray-900-f);
   font-weight: 600;
 }
 
@@ -133,8 +133,8 @@
 }
 
 .primaryButton {
-  background: #f4c430;
-  color: #333;
+  background: var(--color-gold-500);
+  color: var(--color-gray-900-f);
   border: none;
   border-radius: 8px;
   padding: 0.875rem 1.5rem;
@@ -146,15 +146,15 @@
 }
 
 .primaryButton:hover {
-  background: #e0b020;
+  background: var(--color-gold-600);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
 }
 
 .secondaryButton {
   background: transparent;
-  color: #666;
-  border: 2px solid #ddd;
+  color: var(--color-gray-700-c);
+  border: 2px solid var(--color-gray-200-b);
   border-radius: 8px;
   padding: 0.875rem 1.5rem;
   font-size: 1rem;
@@ -165,81 +165,81 @@
 }
 
 .secondaryButton:hover {
-  border-color: #bbb;
-  color: #333;
-  background: #f8f9fa;
+  border-color: var(--color-gray-300-c);
+  color: var(--color-gray-900-f);
+  background: var(--color-sky-50-c);
 }
 
 .guestNote {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-gray-700-c);
   text-align: center;
   margin: 0.5rem 0 0 0;
   line-height: 1.5;
   padding: 0.75rem;
-  background: #fff8e1;
+  background: var(--color-gold-100-c);
   border-radius: 8px;
 }
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   .modal {
-    background: #1a1a1a;
+    background: var(--color-gray-950);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   }
 
   .closeButton {
-    color: #999;
+    color: var(--color-gray-500);
   }
 
   .closeButton:hover {
-    background: #2a2a2a;
-    color: #fff;
+    background: var(--color-gray-900-e);
+    color: var(--text-on-accent);
   }
 
   .title {
-    color: #fff;
+    color: var(--text-on-accent);
   }
 
   .message {
-    color: #ccc;
+    color: var(--color-gray-300-b);
   }
 
   .emailInfo {
-    background: #2a2a2a;
+    background: var(--color-gray-900-e);
   }
 
   .emailLabel {
-    color: #999;
+    color: var(--color-gray-500);
   }
 
   .email {
-    color: #fff;
+    color: var(--text-on-accent);
   }
 
   .primaryButton {
-    background: #f4c430;
-    color: #000;
+    background: var(--color-gold-500);
+    color: var(--color-black);
   }
 
   .primaryButton:hover {
-    background: #ffcc33;
+    background: var(--color-gold-500-c);
   }
 
   .secondaryButton {
-    color: #ccc;
-    border-color: #444;
+    color: var(--color-gray-300-b);
+    border-color: var(--color-gray-800-c);
   }
 
   .secondaryButton:hover {
-    border-color: #666;
-    color: #fff;
-    background: #2a2a2a;
+    border-color: var(--color-gray-700-c);
+    color: var(--text-on-accent);
+    background: var(--color-gray-900-e);
   }
 
   .guestNote {
-    color: #ccc;
-    background: #2a2a1a;
+    color: var(--color-gray-300-b);
+    background: var(--color-yellow-900-b);
   }
 }
 
@@ -331,7 +331,7 @@
 
   .closeButton:hover {
     background: rgba(244, 196, 48, 0.1);
-    color: #333;
+    color: var(--color-gray-900-f);
   }
 
   .iconContainer {

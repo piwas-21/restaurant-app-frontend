@@ -1,7 +1,7 @@
 /* Tip Card Container */
 .tipCard {
-  background: var(--background-color, white);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -10,7 +10,7 @@
 }
 
 [data-theme='dark'] .tipCard {
-  background: var(--secondary-color, #2c2c2c);
+  background: var(--secondary-color);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -38,12 +38,8 @@
 }
 
 .heartIcon {
-  color: var(--primary-color, #007bff);
+  color: var(--primary-color);
   flex-shrink: 0;
-}
-
-[data-theme='dark'] .heartIcon {
-  color: var(--primary-color, #4a9eff);
 }
 
 .tipTitle {
@@ -57,7 +53,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-secondary);
-  background: var(--secondary-color, #f3f4f6);
+  background: var(--secondary-color);
   padding: 0.25rem 0.625rem;
   border-radius: 12px;
   text-transform: uppercase;
@@ -83,8 +79,8 @@
   align-items: center;
   justify-content: center;
   padding: 0.875rem 0.5rem;
-  background: var(--background-color, white);
-  border: 2px solid var(--border-color, #e5e7eb);
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -98,27 +94,22 @@
 }
 
 .tipButton:hover {
-  border-color: var(--primary-color, #007bff);
-  background: var(--primary-color-light, #f0f7ff);
+  border-color: var(--primary-color);
+  background: var(--color-sky-50-b);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
 }
 
 [data-theme='dark'] .tipButton:hover {
-  border-color: var(--primary-color, #4a9eff);
+  border-color: var(--primary-color);
   background: rgba(74, 158, 255, 0.1);
 }
 
 .tipButton.selected {
-  border-color: var(--primary-color, #007bff);
-  background: var(--primary-color, #007bff);
+  border-color: var(--primary-color);
+  background: var(--primary-color);
   color: white;
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-
-[data-theme='dark'] .tipButton.selected {
-  border-color: var(--primary-color, #4a9eff);
-  background: var(--primary-color, #4a9eff);
 }
 
 .tipLabel {
@@ -154,7 +145,7 @@
 /* Custom Tip Section */
 .customTipContainer {
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  border-top: 1px solid var(--border-color);
 }
 
 [data-theme='dark'] .customTipContainer {
@@ -187,12 +178,12 @@
 .customTipInput {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 3.5rem;
-  border: 2px solid var(--border-color, #e5e7eb);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
-  background: var(--background-color, white);
+  background: var(--background-color);
   color: var(--text-color);
 }
 
@@ -204,12 +195,12 @@
 
 .customTipInput:focus {
   outline: none;
-  border-color: var(--primary-color, #007bff);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 [data-theme='dark'] .customTipInput:focus {
-  border-color: var(--primary-color, #4a9eff);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
 }
 

@@ -25,7 +25,7 @@
 }
 
 .errorText {
-  color: var(--error-color, #dc2626);
+  color: var(--error-color);
   text-align: center;
   padding: 1rem 0;
   margin: 0;
@@ -35,8 +35,8 @@
   display: block;
   margin: 1rem auto 0;
   padding: 0.5rem 1rem;
-  background-color: var(--primary-color, #667eea);
-  color: var(--button-text-color, white);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -45,27 +45,19 @@
 }
 
 .retryButton:hover {
-  background-color: var(--primary-hover, #5568d3);
-}
-
-[data-theme='dark'] .retryButton {
-  background-color: var(--primary-color, #5568d3);
+  background-color: var(--color-blue-500-b);
 }
 
 [data-theme='dark'] .retryButton:hover {
-  background-color: var(--primary-hover, #4557b8);
+  background-color: var(--color-blue-600);
 }
 
 .pointsBalanceCard {
-  background: var(--success-color, #667eea);
-  color: var(--button-text-color, white);
+  background: var(--success-color);
+  color: var(--button-text-color);
   padding: 1.5rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
-}
-
-[data-theme='dark'] .pointsBalanceCard {
-  background: var(--success-color, #5568d3);
 }
 
 .pointsMainInfo {
@@ -149,8 +141,8 @@
 }
 
 .viewHistoryButton {
-  background-color: var(--primary-color, #5568d3);
-  color: var(--button-text-color, white);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
 }
 
 .viewHistoryButton:hover {
@@ -159,23 +151,23 @@
 }
 
 .learnMoreButton {
-  background-color: var(--card-background, white);
-  color: var(--primary-color, #667eea);
-  border: 1px solid var(--border-color, #e0e0e0);
+  background-color: var(--card-background);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
 }
 
 .learnMoreButton:hover {
-  background-color: var(--secondary-color-light, #f8f9fa);
+  background-color: var(--secondary-color-light);
 }
 
 [data-theme='dark'] .learnMoreButton {
-  background-color: var(--secondary-color, #3a3a3a);
+  background-color: var(--secondary-color);
   color: white;
-  border-color: var(--border-color, #555);
+  border-color: var(--border-color);
 }
 
 [data-theme='dark'] .learnMoreButton:hover {
-  background-color: var(--background-color, #222);
+  background-color: var(--background-color);
 }
 
 @media (max-width: 640px) {
@@ -214,7 +206,7 @@
 }
 
 .modalContent {
-  background: var(--card-background, white);
+  background: var(--card-background);
   border-radius: 12px;
   max-width: 600px;
   width: 100%;
@@ -229,7 +221,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modalTitle {
@@ -256,7 +248,7 @@
 }
 
 .closeButton:hover {
-  background-color: var(--secondary-color-light, #f3f4f6);
+  background-color: var(--secondary-color-light);
   color: var(--text-color);
 }
 
@@ -287,7 +279,7 @@
   gap: 1rem;
   justify-content: flex-end;
   padding: 20px 24px;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  border-top: 1px solid var(--border-color);
 }
 
 .closeModalButton {
@@ -307,15 +299,15 @@
 }
 
 [data-theme='dark'] .modalContent {
-  background: var(--secondary-color, #2c2c2c);
+  background: var(--secondary-color);
 }
 
 [data-theme='dark'] .modalHeader {
-  border-bottom-color: var(--border-color, #444);
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme='dark'] .closeButton:hover {
-  background-color: var(--background-color, #333);
+  background-color: var(--background-color);
   color: var(--text-color);
 }
 

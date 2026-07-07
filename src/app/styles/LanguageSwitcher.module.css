@@ -113,23 +113,6 @@ html[data-theme='dark'] .dropdownContainer {
 }
 
 /* Dark mode considerations */
-html[data-theme='dark'] .dropdownToggle {
-  background-color: transparent;
-  color: var(--text-color);
-  border: none;
-}
-
-html[data-theme='dark'] .dropdownToggle:hover {
-  background-color: var(--nav-link-hover-bg);
-}
-
-html[data-theme='dark'] .dropdownItem {
-  color: var(--text-color);
-}
-
-html[data-theme='dark'] .dropdownItem:hover {
-  background-color: var(--secondary-color);
-}
 
 /* Scrollbar styling */
 .dropdownMenu::-webkit-scrollbar {

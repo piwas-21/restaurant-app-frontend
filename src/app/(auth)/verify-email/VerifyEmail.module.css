@@ -50,15 +50,15 @@
 .spinner {
   width: 70px;
   height: 70px;
-  border: 5px solid #e0f2fe;
-  border-top-color: #0ea5e9;
+  border: 5px solid var(--color-sky-100);
+  border-top-color: var(--color-sky-500);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 [data-theme='dark'] .spinner {
-  border-color: #1e3a5f;
-  border-top-color: #38bdf8;
+  border-color: var(--color-sky-800);
+  border-top-color: var(--color-sky-400);
 }
 
 @keyframes spin {
@@ -70,22 +70,22 @@
 .loadingTitle {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #0ea5e9;
+  color: var(--color-sky-500);
   margin: 0;
 }
 
 [data-theme='dark'] .loadingTitle {
-  color: #38bdf8;
+  color: var(--color-sky-400);
 }
 
 .loadingText {
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 1rem;
   margin: 0;
 }
 
 [data-theme='dark'] .loadingText {
-  color: #94a3b8;
+  color: var(--color-slate-400);
 }
 
 /* Success State */
@@ -99,7 +99,7 @@
   width: 100px;
   height: 100px;
   margin-bottom: 2rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-confirmed) 0%, var(--color-emerald-600) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -127,7 +127,7 @@
   position: absolute;
   width: 120px;
   height: 120px;
-  border: 3px solid #10b981;
+  border: 3px solid var(--status-confirmed);
   border-radius: 50%;
   opacity: 0.3;
   animation: ripple 1.5s ease-out infinite;
@@ -151,28 +151,28 @@
 .successTitle {
   font-size: 2rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--status-confirmed);
   margin: 0 0 1rem;
   letter-spacing: -0.02em;
 }
 
 [data-theme='dark'] .successTitle {
-  color: #34d399;
+  color: var(--color-emerald-400);
 }
 
 .successMessage {
-  color: #475569;
+  color: var(--color-slate-600);
   font-size: 1.05rem;
   line-height: 1.6;
   margin: 0 0 1.5rem;
 }
 
 [data-theme='dark'] .successMessage {
-  color: #cbd5e1;
+  color: var(--color-slate-300);
 }
 
 .redirectText {
-  color: #94a3b8;
+  color: var(--color-slate-400);
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
   display: flex;
@@ -182,7 +182,7 @@
 }
 
 [data-theme='dark'] .redirectText {
-  color: #64748b;
+  color: var(--color-slate-500);
 }
 
 .redirectText .dots {
@@ -193,7 +193,7 @@
 .redirectText .dots span {
   width: 6px;
   height: 6px;
-  background: #94a3b8;
+  background: var(--color-slate-400);
   border-radius: 50%;
   animation: bounce 1.4s ease-in-out infinite;
 }
@@ -222,7 +222,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  background: linear-gradient(135deg, var(--color-sky-500) 0%, var(--color-sky-600) 100%);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -254,7 +254,7 @@
   width: 100px;
   height: 100px;
   margin-bottom: 2rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--status-danger) 0%, var(--color-red-600) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -282,38 +282,38 @@
 .errorTitle {
   font-size: 2rem;
   font-weight: 800;
-  color: #ef4444;
+  color: var(--status-danger);
   margin: 0 0 1rem;
   letter-spacing: -0.02em;
 }
 
 [data-theme='dark'] .errorTitle {
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .errorMessage {
-  color: #64748b;
+  color: var(--color-slate-500);
   font-size: 1rem;
   line-height: 1.6;
   margin: 0 0 2rem;
   padding: 1rem;
-  background: #fef2f2;
+  background: var(--color-red-50);
   border-radius: 8px;
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid var(--status-danger);
 }
 
 [data-theme='dark'] .errorMessage {
   background: rgba(127, 29, 29, 0.2);
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .backButton {
   padding: 1rem 2.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #ef4444;
+  color: var(--status-danger);
   background: white;
-  border: 2px solid #ef4444;
+  border: 2px solid var(--status-danger);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -324,20 +324,20 @@
 }
 
 [data-theme='dark'] .backButton {
-  background: #1f1f1f;
-  color: #fca5a5;
-  border-color: #7f1d1d;
+  background: var(--color-gray-900);
+  color: var(--color-red-300);
+  border-color: var(--color-red-900-b);
 }
 
 .backButton:hover {
-  background: #ef4444;
+  background: var(--status-danger);
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 [data-theme='dark'] .backButton:hover {
-  background: #7f1d1d;
+  background: var(--color-red-900-b);
   color: white;
 }
 

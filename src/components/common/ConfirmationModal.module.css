@@ -24,7 +24,7 @@
 }
 
 .modalContent {
-  background: var(--background-color, #ffffff);
+  background: var(--background-color);
   color: var(--text-color);
   padding: 2rem;
   border-radius: 12px;
@@ -48,7 +48,7 @@
 }
 
 [data-theme='dark'] .modalContent {
-  background: var(--secondary-color, #2c2c2c);
+  background: var(--secondary-color);
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.4),
     0 10px 10px -5px rgba(0, 0, 0, 0.2);
@@ -86,12 +86,12 @@
 }
 
 .submitButton {
-  background-color: var(--primary-color, #c0392b);
-  color: var(--button-text-color, white);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
 }
 
 .submitButton:hover {
-  background-color: var(--primary-color-dark, #a52a1e);
+  background-color: var(--primary-color-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -103,12 +103,12 @@
 .cancelButton {
   background-color: transparent;
   color: var(--text-color);
-  border: 2px solid var(--border-color, #d1d5db);
+  border: 2px solid var(--border-color);
 }
 
 .cancelButton:hover {
-  background-color: var(--hover-background, #f3f4f6);
-  border-color: var(--border-color-hover, #9ca3af);
+  background-color: var(--color-gray-100-c);
+  border-color: var(--color-gray-400-b);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -117,23 +117,9 @@
   transform: translateY(0);
 }
 
-[data-theme='dark'] .submitButton {
-  background-color: var(--primary-color, #e06666);
-}
-
-[data-theme='dark'] .submitButton:hover {
-  background-color: var(--primary-color-dark, #c94d4d);
-}
-
-[data-theme='dark'] .cancelButton {
-  background-color: transparent;
-  color: var(--text-color);
-  border: 2px solid var(--border-color, #4a5568);
-}
-
 [data-theme='dark'] .cancelButton:hover {
-  background-color: var(--hover-background, #374151);
-  border-color: var(--border-color-hover, #6b7280);
+  background-color: var(--color-gray-700-d);
+  border-color: var(--status-completed);
 }
 
 /* Responsive */

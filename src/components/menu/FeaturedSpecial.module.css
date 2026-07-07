@@ -6,7 +6,7 @@
 }
 
 .featuredSpecialContainer {
-  background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+  background: linear-gradient(135deg, var(--color-gold-100-b) 0%, var(--color-gold-50) 100%);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -16,8 +16,8 @@
 }
 
 [data-theme='dark'] .featuredSpecialContainer {
-  background: linear-gradient(135deg, #2a2510 0%, #3a3520 100%);
-  border-color: #daa520;
+  background: linear-gradient(135deg, var(--color-yellow-950) 0%, var(--color-yellow-900) 100%);
+  border-color: var(--color-gold-600-d);
 }
 
 .featuredSpecialBadge {
@@ -25,7 +25,7 @@
   align-items: center;
   gap: 0.5rem;
   background: gold;
-  color: #333;
+  color: var(--color-gray-900-f);
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
   font-weight: 700;
@@ -92,12 +92,12 @@
 
 .priceLabel {
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
 [data-theme='dark'] .priceLabel {
-  color: #aaa;
+  color: var(--color-gray-400);
 }
 
 .priceValue {
@@ -114,39 +114,39 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
 [data-theme='dark'] .featuredSpecialTime {
-  color: #aaa;
+  color: var(--color-gray-400);
 }
 
 .featuredSpecialIngredients {
   font-size: 0.95rem;
-  color: #555;
+  color: var(--color-gray-700-b);
   margin-bottom: 1rem;
   padding: 0.75rem;
   background: rgba(100, 149, 237, 0.08);
   border-radius: 8px;
-  border-left: 3px solid #6495ed;
+  border-left: 3px solid var(--color-blue-400-b);
   line-height: 1.6;
 }
 
 [data-theme='dark'] .featuredSpecialIngredients {
   background: rgba(100, 149, 237, 0.15);
-  color: #ccc;
+  color: var(--color-gray-300-b);
 }
 
 .featuredSpecialIngredients strong {
-  color: #333;
+  color: var(--color-gray-900-f);
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.05em;
 }
 
 [data-theme='dark'] .featuredSpecialIngredients strong {
-  color: #6495ed;
+  color: var(--color-blue-400-b);
 }
 
 .featuredSpecialAllergens {

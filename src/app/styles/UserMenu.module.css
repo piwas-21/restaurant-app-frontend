@@ -87,7 +87,7 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
-  color: #d9534f;
+  color: var(--color-red-500);
   font-size: 0.9rem;
   transition: background-color 0.2s ease;
   border-top: 1px solid var(--border-color);

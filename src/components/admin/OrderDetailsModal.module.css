@@ -1303,9 +1303,10 @@
     position: relative !important;
   }
 
-  /* Restaurant name on the left */
+  /* Restaurant name on the left — fed from the data-restaurant attribute set
+     by OrderDetailsHeader.tsx (issue #125: no hardcoded tenant branding) */
   .header::before {
-    content: 'Rumi Restaurant';
+    content: attr(data-restaurant);
     position: absolute;
     left: 16px;
     top: 16px;

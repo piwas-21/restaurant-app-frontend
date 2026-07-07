@@ -9,6 +9,7 @@ import statusStyles from '../../styles/orderStatus.module.css';
 import { Calendar, Clock, Users, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import CancelReservationModal from './CancelReservationModal';
 import CancelSuccessModal from './CancelSuccessModal';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 export default function MyReservations() {
   const { t } = useTranslation();
@@ -177,7 +178,7 @@ export default function MyReservations() {
                   <div className={styles.detailItem}>
                     <MapPin size={16} className={styles.icon} />
                     <span className={styles.detailLabel}>{t('restaurant', 'Restaurant')}:</span>
-                    <span className={styles.detailValue}>Rumi Restaurant</span>
+                    <span className={styles.detailValue}>{RESTAURANT_NAME}</span>
                   </div>
 
                   {reservation.tableNumber && (

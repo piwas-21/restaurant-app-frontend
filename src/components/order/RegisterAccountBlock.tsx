@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Star } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
 import { MIN_PASSWORD_LENGTH } from '@/schemas/customerInfo.schema';
+import { RESTAURANT_NAME } from '@/lib/config';
 import type { RegisterField, RegisterFieldsErrors, RegisterFieldsValue } from './GuestCustomerInfoFields';
 import styles from './GuestCustomerInfoFields.module.css';
 
@@ -44,7 +45,10 @@ export default function RegisterAccountBlock({
     <div className={styles.registerBlock}>
       <h3 className={styles.registerHeading}>{t('dont_have_account', "Don't have an account yet?")}</h3>
       <p className={styles.registerSubtitle}>
-        {t('register_benefits', 'Create a RUMI account to unlock exclusive benefits')}
+        {t('register_benefits', {
+          defaultValue: 'Create an account to unlock exclusive benefits',
+          name: RESTAURANT_NAME,
+        })}
       </p>
       <ul className={styles.benefits}>
         <li>

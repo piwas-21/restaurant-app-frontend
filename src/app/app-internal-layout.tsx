@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/components/cart/CartContext';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 const _inter = Inter({ subsets: ['latin'] });
 
@@ -240,7 +241,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
               >
                 <Image
                   src={logoSrc}
-                  alt="RUMI Restaurant Logo"
+                  alt={`${restaurantInfo?.name ?? RESTAURANT_NAME} Logo`}
                   width={180}
                   height={90}
                   style={{ marginRight: '10px', objectFit: 'contain', maxHeight: `calc(${headerHeight} - 10px)` }}
@@ -291,15 +292,22 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
         <main style={mainStyles}>{children}</main>
         {!isHomePage && (
           <footer style={footerStyles}>
-            <p>&copy; {new Date().getFullYear()} RUMI Restaurant. All rights reserved.</p>
             <p>
-              {restaurantInfo?.addressLine1 ?? (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45')},{' '}
-              {restaurantInfo
-                ? `${restaurantInfo.postalCode} ${restaurantInfo.city}, ${restaurantInfo.country}`
-                : isClient
-                  ? t('rumi_address_city_country')
-                  : '1202 Genève, Switzerland'}
+              {/* Name from the RestaurantInfo API (issue #125); baked build-time
+                  name while it loads / if it's unreachable. */}
+              {isClient
+                ? t('home_footer_copyright', {
+                    year: new Date().getFullYear(),
+                    name: restaurantInfo?.name ?? RESTAURANT_NAME,
+                  })
+                : `© ${new Date().getFullYear()} ${RESTAURANT_NAME}. All rights reserved.`}
             </p>
+            {restaurantInfo && (
+              <p>
+                {restaurantInfo.addressLine1}, {restaurantInfo.postalCode} {restaurantInfo.city},{' '}
+                {restaurantInfo.country}
+              </p>
+            )}
             <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
               <Link
                 href="/privacy-policy"

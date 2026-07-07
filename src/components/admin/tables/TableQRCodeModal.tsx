@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { X, Download, Printer, RefreshCw } from 'lucide-react';
 import { generateQRCodeURL, downloadQRCode, printQRCode, formatQRGeneratedDate } from '@/utils/qrCode';
 import styles from './TableQRCodeModal.module.css';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 interface TableQRCodeModalProps {
   isOpen: boolean;
@@ -93,7 +94,7 @@ export default function TableQRCodeModal({
         scanToOrder: t('qr_print_scan_to_order'),
         table: t('qr_print_table'),
         instructions: t('qr_print_instructions'),
-        footer: t('qr_print_footer'),
+        footer: t('qr_print_footer', { name: RESTAURANT_NAME }),
       };
 
       printQRCode(canvas, tableNumber, translations);

@@ -10,6 +10,7 @@ import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto } from '@/types/workingHours';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import ContactIcons from '@/components/home/ContactIcons';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 export default function HomePage() {
   const { t, i18n } = useTranslation();
@@ -52,12 +53,19 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isClient) {
-      document.title = t('home_page_title');
+      document.title = t('home_page_title', { name: info?.name ?? RESTAURANT_NAME, city: info?.city ?? '' });
     }
-  }, [isClient, t, i18n.language]);
+  }, [isClient, t, i18n.language, info]);
 
-  const googleMapsEmbedUrl =
-    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2761.009531572909!2d6.139046315578307!3d46.21753897911699!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478c6508101d6e5f%3A0x34a0d1c0b2f5c303!2sRue%20du%20Grand-Pr%C3%A9%2045%2C%201202%20Gen%C3%A8ve%2C%20Switzerland!5e0';
+  // Maps embed built from the RestaurantInfo API address (issue #125) —
+  // no tenant coordinates are hardcoded; the iframe renders only once the
+  // API address is available.
+  const mapAddressQuery = info?.addressLine1
+    ? [info.addressLine1, info.postalCode, info.city, info.country].filter(Boolean).join(', ')
+    : null;
+  const googleMapsEmbedUrl = mapAddressQuery
+    ? `https://www.google.com/maps?q=${encodeURIComponent(mapAddressQuery)}&output=embed`
+    : null;
   const backgroundImageUrl = '/images/rumi-background.png';
 
   // Helper functions for working hours
@@ -139,18 +147,14 @@ export default function HomePage() {
     return days.map((d) => getDayName(d)).join(', ');
   };
 
-  // Restaurant info from the admin singleton; fall back to the i18n
-  // strings (and ultimately the SSR literal) so the page never blanks
-  // out if the API is unreachable on first paint.
-  const addressStreet = info?.addressLine1 ?? (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45');
-  const addressCityCountry = info
-    ? `${info.postalCode} ${info.city}, ${info.country}`
-    : isClient
-      ? t('rumi_address_city_country')
-      : '1202 Genève, Switzerland';
+  // Restaurant identity comes exclusively from the RestaurantInfo API
+  // (issue #125): no tenant-1 literals — sections stay blank until it loads.
+  const restaurantName = info?.name ?? RESTAURANT_NAME;
+  const addressStreet = info?.addressLine1 ?? '';
+  const addressCityCountry = info ? `${info.postalCode} ${info.city}, ${info.country}` : '';
   const primaryPhone = info?.phoneNumbers.find((p) => p.isActive) ?? info?.phoneNumbers[0] ?? null;
-  const phoneDisplay = primaryPhone?.number ?? (isClient ? t('rumi_phone_number') : '+41 22 786 33 33');
-  const phoneTel = (primaryPhone?.number ?? t('rumi_phone_number')).replace(/\s/g, '');
+  const phoneDisplay = primaryPhone?.number ?? '';
+  const phoneTel = phoneDisplay.replace(/\s/g, '');
 
   return (
     <div className={styles.homeContainer}>
@@ -185,8 +189,8 @@ export default function HomePage() {
           <h2 id="story-heading">{isClient ? t('home_story_title') : 'Our Story'}</h2>
           <p>
             {isClient
-              ? t('home_story_content')
-              : "RUMI is more than just a restaurant; it's a place where Turkish culinary traditions are celebrated with a modern twist. Our chefs use the freshest ingredients to bring you an unforgettable dining experience."}
+              ? t('home_story_content', { name: restaurantName, city: info?.city ?? '' })
+              : `${RESTAURANT_NAME} is more than just a restaurant; it's a place where Turkish culinary traditions are celebrated with a modern twist. Our chefs use the freshest ingredients to bring you an unforgettable dining experience.`}
           </p>
         </section>
 
@@ -222,38 +226,46 @@ export default function HomePage() {
             <br />
             {addressCityCountry}
             <br />
-            {isClient ? t('phone_label') : 'Phone'}: <a href={`tel:${phoneTel}`}>{phoneDisplay}</a>
+            {phoneDisplay && (
+              <>
+                {isClient ? t('phone_label') : 'Phone'}: <a href={`tel:${phoneTel}`}>{phoneDisplay}</a>
+              </>
+            )}
           </address>
-          <div className={styles.mapContainer}>
-            <iframe
-              src={googleMapsEmbedUrl}
-              width="100%"
-              height="450"
-              style={{ border: 0 }}
-              allowFullScreen={true}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title={isClient ? t('google_maps_iframe_title') : 'Location of RUMI Restaurant'}
-              aria-label={
-                isClient ? t('google_maps_iframe_aria_label') : 'Google Maps showing location of RUMI Restaurant'
-              }
-            ></iframe>
-          </div>
+          {googleMapsEmbedUrl && (
+            <div className={styles.mapContainer}>
+              <iframe
+                src={googleMapsEmbedUrl}
+                width="100%"
+                height="450"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title={
+                  isClient ? t('google_maps_iframe_title', { name: restaurantName }) : `Location of ${RESTAURANT_NAME}`
+                }
+                aria-label={
+                  isClient ? t('google_maps_iframe_aria_label') : `Google Maps showing location of ${RESTAURANT_NAME}`
+                }
+              ></iframe>
+            </div>
+          )}
         </section>
 
         <footer className={styles.homeFooter}>
           <p>
-            {/* Name from the RestaurantInfo API (issue #125); localized
-                tenant-1 fallback while it loads / if it's unreachable. */}
+            {/* Name from the RestaurantInfo API (issue #125); baked build-time
+                name while it loads / if it's unreachable. */}
             {isClient
-              ? info?.name
-                ? t('home_footer_copyright', { year: new Date().getFullYear(), name: info.name })
-                : t('copyright_rumi', { year: new Date().getFullYear() })
-              : `© ${new Date().getFullYear()} RUMI Restaurant. All rights reserved.`}
+              ? t('home_footer_copyright', { year: new Date().getFullYear(), name: restaurantName })
+              : `© ${new Date().getFullYear()} ${RESTAURANT_NAME}. All rights reserved.`}
           </p>
-          <p>
-            {addressStreet}, {addressCityCountry}
-          </p>
+          {info && (
+            <p>
+              {addressStreet}, {addressCityCountry}
+            </p>
+          )}
           <div
             style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}
           >

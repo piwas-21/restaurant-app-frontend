@@ -5,6 +5,7 @@
 import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -109,7 +110,7 @@ export const generateSimpleReceiptHtml = (order: OrderDto, t?: TranslationFuncti
       </head>
       <body>
         <div class="header">
-          <h1>Rumi Restaurant</h1>
+          <h1>${escapeHtml(RESTAURANT_NAME)}</h1>
           <div>${translate('online_order', 'ONLINE ORDER')}</div>
         </div>
 

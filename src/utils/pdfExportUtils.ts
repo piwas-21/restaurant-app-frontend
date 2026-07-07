@@ -5,6 +5,7 @@
  * HTML templates are in ./templates/ directory.
  */
 import { OrderDto } from '@/types/order';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 // Import templates
 import { generateSimpleReceiptHtml, generateKitchenReceiptHtml } from './templates';
@@ -207,7 +208,7 @@ export const exportOrdersToPDF = (orders: OrderDto[], t?: TranslationFunction): 
       </head>
       <body>
         <div class="header">
-          <h1>Rumi Restaurant</h1>
+          <h1>${RESTAURANT_NAME}</h1>
           <p>${translate('orders_report', 'Orders Report')} - ${new Date().toLocaleDateString()}</p>
         </div>
 

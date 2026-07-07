@@ -149,7 +149,7 @@
 .input:disabled,
 .select:disabled {
   background: var(--secondary-color-light, #f9fafb);
-  color: var(--text-tertiary, #9ca3af);
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
@@ -163,7 +163,7 @@
 [data-theme='dark'] .input:disabled,
 [data-theme='dark'] .select:disabled {
   background: var(--background-color, #222);
-  color: var(--text-tertiary, #666);
+  color: var(--text-muted);
 }
 
 .checkbox {
@@ -212,7 +212,7 @@
 
 .cancelButton:hover {
   background: var(--secondary-color-light, #f9fafb);
-  border-color: var(--text-tertiary, #9ca3af);
+  border-color: var(--text-muted);
 }
 
 .cancelButton:disabled {

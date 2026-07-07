@@ -95,7 +95,7 @@
 .balanceValueCurrency {
   font-size: 0.8125rem;
   font-weight: 400;
-  color: var(--text-tertiary, #9ca3af);
+  color: var(--text-muted);
 }
 
 [data-theme='dark'] .balanceSection {
@@ -268,7 +268,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: var(--text-tertiary, #9ca3af);
+  color: var(--text-muted);
   margin-top: 0.25rem;
 }
 

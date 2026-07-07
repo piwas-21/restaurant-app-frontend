@@ -100,7 +100,7 @@
 }
 
 .filterInput::placeholder {
-  color: var(--text-tertiary, #999);
+  color: var(--text-muted);
 }
 
 [data-theme='dark'] .filterGroup {
@@ -316,12 +316,12 @@
 }
 
 .dateTo {
-  color: var(--text-tertiary, #999);
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
 .dateUnlimited {
-  color: var(--text-tertiary, #999);
+  color: var(--text-muted);
   font-style: italic;
 }
 

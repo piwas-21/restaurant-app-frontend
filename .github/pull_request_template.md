@@ -9,7 +9,7 @@
 - ...
 
 ## Sprint task / issue
-<!-- Link the sprint task (docs/SPRINT-PLAN.md task ID) or GitLab issue number. -->
+<!-- Link the sprint task (docs/SPRINT-PLAN.md task ID) or GitHub issue number. -->
 - Closes #
 - Sprint task:
 
@@ -75,7 +75,7 @@
 - [ ] No raw `process.env.NEXT_PUBLIC_*` scattered — read via `src/lib/config.ts`
 - [ ] Sibling file conventions matched (default export, hook usage, CSS Module naming)
 - [ ] Pre-commit hooks pass locally (`pre-commit run --all-files`)
-- [ ] Branch is off `develop`; MR targets `develop`
+- [ ] Branch is off `main`; PR targets `main` (merge = prod deploy — CLAUDE.md §8)
 
 ## Test plan
 <!-- Manual testing steps; specific scenarios to verify. -->

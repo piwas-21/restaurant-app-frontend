@@ -16,14 +16,12 @@ interface CartItemCustomizationsProps {
 export default function CartItemCustomizations({ item }: CartItemCustomizationsProps) {
   const { t } = useTranslation();
 
-  if (
-    !(
-      item.selectedIngredientNames?.length ||
-      item.excludedIngredientNames?.length ||
-      item.selectedSideItems?.length ||
-      item.specialInstructions
-    )
-  ) {
+  if (!(
+    item.selectedIngredientNames?.length ||
+    item.excludedIngredientNames?.length ||
+    item.selectedSideItems?.length ||
+    item.specialInstructions
+  )) {
     return null;
   }
 

@@ -5,6 +5,7 @@
 // on success, warnings to stderr as `path: <rule>: <details>`.
 // Path from argv[2], else from the PostToolUse hook JSON on stdin (.tool_input.file_path).
 import { readFileSync } from "node:fs";
+import { resolve, sep } from "node:path";
 
 function getPathFromStdin() {
   try {
@@ -20,12 +21,19 @@ if (!file) process.exit(0);
 if (!/\.(tsx?|css)$/.test(file)) process.exit(0);
 if (/\.(test|spec)\.|\.d\.ts$|\/node_modules\/|\/\.next\//.test(file)) process.exit(0);
 
-let src;
-try {
-  src = readFileSync(file, "utf8");
-} catch {
-  process.exit(0);
+// Confine reads to the repo tree (hook cwd = repo root): the path arrives from
+// tool JSON/argv and is only ever a repo file — anything resolving outside is
+// never read (Sonar S8707; positive-branch guard so the taint engine sees it).
+const resolved = resolve(file);
+let src = "";
+if (resolved.startsWith(process.cwd() + sep)) {
+  try {
+    src = readFileSync(resolved, "utf8");
+  } catch {
+    // unreadable/deleted — nothing to check
+  }
 }
+if (!src) process.exit(0);
 const lines = src.split("\n");
 const loc = lines.length;
 const warn = (msg) => process.stderr.write(`${file}: ${msg}\n`);

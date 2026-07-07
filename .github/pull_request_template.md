@@ -22,6 +22,16 @@
 - [ ] `test` — tests only
 - [ ] `perf` — performance / bundle-size
 
+## NFR triage (DEV-PHASES-PLAN P1 — one line per touched dimension, "rest: n/a because …")
+<!--
+  D1 security · D2 performance (CWV/bundle) · D3 cpu/mem · D4 UX (loading/empty/error, light+dark) ·
+  D5 a11y (WCAG 2.2 AA, keyboard, contrast) · D6 i18n (10-locale parity, RTL) · D7 privacy/PII ·
+  D8 observability · D9 testing · D10 conventions (tokens, file-length, primitives).
+  Auth/payment/PII/new-endpoint changes: add 3–5 threat-model-lite bullets under D1.
+-->
+- D…:
+- Rest: n/a because …
+
 ## Acceptance criteria coverage
 <!--
   For each acceptance criterion in the linked issue / sprint task, state coverage.

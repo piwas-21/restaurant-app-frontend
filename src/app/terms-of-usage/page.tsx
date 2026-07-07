@@ -2,22 +2,12 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
+import { useRestaurantAddress } from '@/hooks/useRestaurantAddress';
 import { RESTAURANT_NAME } from '@/lib/config';
 
 export default function TermsOfUsagePage() {
   const { t } = useTranslation();
-  const { info } = useRestaurantInfo();
-
-  // Address resolution mirrors src/app/page.tsx and src/app/app-internal-layout.tsx:
-  // admin-edited live value (API) only — blank until it loads (issue #125:
-  // no tenant-1 literals). Issue #3 considered pinning the address at print
-  // time for legal stability, but the page's "last updated" line already
-  // renders today's date dynamically (no version snapshot semantics exist),
-  // so the live value is the consistent choice.
-  const addressStreet = info?.addressLine1 ?? '';
-  const addressCityCountry =
-    info?.postalCode && info?.city && info?.country ? `${info.postalCode} ${info.city}, ${info.country}` : '';
+  const { info, addressStreet, addressCityCountry } = useRestaurantAddress();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">

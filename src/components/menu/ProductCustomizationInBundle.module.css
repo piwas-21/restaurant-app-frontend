@@ -99,7 +99,7 @@
 .groupTitle {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 0.75rem 0;
@@ -342,12 +342,8 @@
 
 /* Dark Mode Styles */
 [data-theme='dark'] .section h4 {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
   border-bottom-color: var(--border-color, #444);
-}
-
-[data-theme='dark'] .groupTitle {
-  color: var(--text-secondary, #9ca3af);
 }
 
 [data-theme='dark'] .customizationItem {
@@ -379,17 +375,13 @@
   accent-color: var(--success-color, #4caf50);
 }
 
-[data-theme='dark'] .itemName {
-  color: var(--text-color, #e0e0e0);
-}
-
 [data-theme='dark'] .itemPrice {
   color: var(--success-color, #81c784);
 }
 
 [data-theme='dark'] .quantityButton {
   background-color: var(--border-color, #444);
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .quantityButton:hover:not(:disabled) {
@@ -397,19 +389,19 @@
 }
 
 [data-theme='dark'] .quantityValue {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .textarea {
   background-color: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .modalHeader h3,
 [data-theme='dark'] .priceDisplay,
 [data-theme='dark'] .totalPrice span {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .priceDisplay {
@@ -417,7 +409,7 @@
 }
 
 [data-theme='dark'] .closeButton {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .closeButton:hover {

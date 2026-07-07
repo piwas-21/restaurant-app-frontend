@@ -80,7 +80,7 @@
 
 .balanceLabel {
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 
 .balanceValue {
@@ -137,7 +137,7 @@
 
 .redemptionInfo {
   font-size: 0.8125rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0 0 1rem 0;
 }
 
@@ -173,7 +173,7 @@
 .sliderLabel {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .maxButton {
@@ -190,10 +190,6 @@
 
 .maxButton:hover {
   background-color: var(--primary-hover, #5568d3);
-}
-
-[data-theme='dark'] .sliderLabel {
-  color: var(--text-color, #e0e0e0);
 }
 
 .slider {
@@ -252,7 +248,7 @@
 .pointsSelected {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .discountAmount {
@@ -270,10 +266,6 @@
   font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 0.25rem;
-}
-
-[data-theme='dark'] .pointsSelected {
-  color: var(--text-color, #e0e0e0);
 }
 
 /* Apply Button */
@@ -304,7 +296,7 @@
 
 .balanceAfterRedemption {
   font-size: 0.8125rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   text-align: center;
   margin: 0;
 }

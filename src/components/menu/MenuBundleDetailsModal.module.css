@@ -62,7 +62,7 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   padding: 0.5rem;
   line-height: 1;
   border-radius: 50%;
@@ -97,7 +97,7 @@
 
 .section p {
   margin: 0;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   line-height: 1.5;
 }
 
@@ -141,7 +141,7 @@
 
 .sectionMeta {
   font-size: 0.8rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
 }
 
 .itemsList {
@@ -184,13 +184,13 @@
 }
 
 .itemPrice {
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   font-size: 0.85rem;
 }
 
 .itemIngredients {
   font-size: 0.8rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   font-style: italic;
 }
 

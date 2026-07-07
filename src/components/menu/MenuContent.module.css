@@ -37,14 +37,10 @@
 
 .paginationInfo {
   text-align: center;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 0.9375rem;
   margin: 1rem 0 2rem 0;
   font-weight: 500;
-}
-
-[data-theme='dark'] .paginationInfo {
-  color: var(--text-secondary, #9ca3af);
 }
 
 /* Tablet */

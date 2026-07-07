@@ -76,7 +76,7 @@
 .modalTitle {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   margin: 1rem 0;
   text-align: center;
 }
@@ -87,7 +87,7 @@
 }
 
 .successMessage {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
@@ -123,14 +123,6 @@
 
 [data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
-}
-
-[data-theme='dark'] .modalTitle {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .successMessage {
-  color: var(--text-secondary, #b0b0b0);
 }
 
 /* Responsive */

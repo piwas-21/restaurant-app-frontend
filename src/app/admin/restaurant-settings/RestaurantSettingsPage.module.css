@@ -11,22 +11,14 @@
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.5rem 0;
-}
-
-[data-theme='dark'] .title {
-  color: var(--text-color, #e0e0e0);
 }
 
 .subtitle {
   font-size: 1rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0;
-}
-
-[data-theme='dark'] .subtitle {
-  color: var(--text-secondary, #9ca3af);
 }
 
 /* Tabs */
@@ -51,22 +43,18 @@
   border-bottom: 3px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-weight: 500;
   margin-bottom: -2px;
 }
 
-[data-theme='dark'] .tab {
-  color: var(--text-secondary, #9ca3af);
-}
-
 .tab:hover {
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   background: var(--hover-bg, #f3f4f6);
 }
 
 [data-theme='dark'] .tab:hover {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -117,22 +105,14 @@
 .comingSoon p {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0;
-}
-
-[data-theme='dark'] .comingSoon p {
-  color: var(--text-color, #e0e0e0);
 }
 
 .comingSoonDesc {
   font-size: 1rem !important;
   font-weight: 400 !important;
-  color: var(--text-secondary, #6b7280) !important;
-}
-
-[data-theme='dark'] .comingSoonDesc {
-  color: var(--text-secondary, #9ca3af) !important;
+  color: var(--text-secondary) !important;
 }
 
 /* Responsive */

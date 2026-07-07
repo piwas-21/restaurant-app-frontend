@@ -33,7 +33,7 @@
 .modalTitle {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -106,17 +106,13 @@
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme='dark'] .modalTitle {
-  color: var(--text-color, #e0e0e0);
-}
-
 [data-theme='dark'] .confirmMessage {
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .cancelButton {
   background-color: var(--secondary-color, #3a3a3a);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .cancelButton:hover:not(:disabled) {

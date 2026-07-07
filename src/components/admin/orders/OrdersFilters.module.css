@@ -13,7 +13,7 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-color, #94a3b8);
+  color: var(--text-color);
   opacity: 0.6;
 }
 
@@ -25,7 +25,7 @@
   font-size: 1rem;
   transition: all 0.2s;
   background-color: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
 }
 
 .searchInput:focus {
@@ -37,7 +37,7 @@
 @media (prefers-color-scheme: dark) {
   .searchInput {
     background: var(--card-background, #252525);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     border-color: var(--border-color, #444444);
   }
 
@@ -57,12 +57,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-color, #64748b);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .filterGroup {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.8;
   }
 }
@@ -73,7 +73,7 @@
   border-radius: 8px;
   font-size: 0.875rem;
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -86,7 +86,7 @@
 @media (prefers-color-scheme: dark) {
   .filterSelect {
     background: var(--card-background, #252525);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     border-color: var(--border-color, #444444);
   }
 }
@@ -102,7 +102,7 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
 }
 
 .checkboxLabel:hover {
@@ -112,7 +112,7 @@
 @media (prefers-color-scheme: dark) {
   .checkboxLabel {
     background: var(--card-background, #252525);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     border-color: var(--border-color, #444444);
   }
 }
@@ -123,14 +123,14 @@
 
 .resultsInfo {
   margin-top: 1rem;
-  color: var(--text-color, #64748b);
+  color: var(--text-color);
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 @media (prefers-color-scheme: dark) {
   .resultsInfo {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }

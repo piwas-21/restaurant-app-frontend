@@ -11,7 +11,7 @@
   text-align: center;
   padding: 4rem 2rem;
   font-size: 1.25rem;
-  color: var(--text-muted, #666);
+  color: var(--text-muted);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -124,7 +124,7 @@
   }
 
   .loading {
-    color: var(--text-muted, #9ca3af);
+    color: var(--text-muted);
   }
 
   .message {
@@ -134,10 +134,6 @@
 
 [data-theme='dark'] .container {
   background: var(--background-color, #111827);
-}
-
-[data-theme='dark'] .loading {
-  color: var(--text-muted, #9ca3af);
 }
 
 @media (max-width: 1400px) {

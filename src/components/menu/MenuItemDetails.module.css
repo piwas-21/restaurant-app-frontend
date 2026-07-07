@@ -51,7 +51,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   opacity: 0.8;
 }
 
@@ -97,7 +97,7 @@
 
 .allergyTag.halal {
   background-color: var(--secondary-color-light, #e2e3e5);
-  color: var(--text-secondary, #383d41);
+  color: var(--text-secondary);
   border-color: var(--border-color-light, #d6d8db);
 }
 

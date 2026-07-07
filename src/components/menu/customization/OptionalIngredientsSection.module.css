@@ -6,14 +6,14 @@
 .sectionTitle {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--border-color, #e5e7eb);
 }
 
 [data-theme='dark'] .sectionTitle {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
   border-bottom-color: var(--border-color, #444);
 }
 
@@ -29,14 +29,10 @@
 .groupTitle {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 0.75rem 0;
-}
-
-[data-theme='dark'] .groupTitle {
-  color: var(--text-secondary, #9ca3af);
 }
 
 /* Ingredient List */
@@ -119,7 +115,7 @@
   flex: 1;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,7 +123,7 @@
 }
 
 [data-theme='dark'] .ingredientName {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 /* Ingredient Price */
@@ -202,7 +198,7 @@
   height: 24px;
   border: none;
   background-color: var(--secondary-color-light, #f3f4f6);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
@@ -223,7 +219,7 @@
 
 [data-theme='dark'] .quantityBtn {
   background-color: var(--border-color, #444);
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .quantityBtn:hover:not(:disabled) {
@@ -235,11 +231,7 @@
   font-weight: 600;
   min-width: 1.5rem;
   text-align: center;
-  color: var(--text-color, #1a1a1a);
-}
-
-[data-theme='dark'] .quantityValue {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 /* Ingredient Info */
@@ -255,12 +247,12 @@
 .emptyState {
   padding: 2rem 1rem;
   text-align: center;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 [data-theme='dark'] .emptyState {
-  color: var(--text-secondary, #9ca3af);
+  color: var(--text-secondary);
 }
 
 /* Responsive Design */

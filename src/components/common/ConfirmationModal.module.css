@@ -25,7 +25,7 @@
 
 .modalContent {
   background: var(--background-color, #ffffff);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   padding: 2rem;
   border-radius: 12px;
   width: 90%;
@@ -57,22 +57,14 @@
 .modalContent h2 {
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
-  color: var(--text-color, #1a1a1a);
-}
-
-[data-theme='dark'] .modalContent h2 {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .modalContent p {
   margin: 0 0 1.5rem 0;
   font-size: 1rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   line-height: 1.5;
-}
-
-[data-theme='dark'] .modalContent p {
-  color: var(--text-secondary, #9ca3af);
 }
 
 .buttonGroup {
@@ -110,7 +102,7 @@
 
 .cancelButton {
   background-color: transparent;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   border: 2px solid var(--border-color, #d1d5db);
 }
 
@@ -135,7 +127,7 @@
 
 [data-theme='dark'] .cancelButton {
   background-color: transparent;
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   border: 2px solid var(--border-color, #4a5568);
 }
 

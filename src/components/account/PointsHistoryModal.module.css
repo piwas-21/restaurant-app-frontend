@@ -36,7 +36,7 @@
 .modalTitle {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -48,15 +48,11 @@
   border-bottom-color: var(--border-color, #444);
 }
 
-[data-theme='dark'] .modalTitle {
-  color: var(--text-color, #e0e0e0);
-}
-
 .closeButton {
   background: none;
   border: none;
   font-size: 2rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -70,12 +66,12 @@
 
 .closeButton:hover {
   background-color: var(--secondary-color-light, #f3f4f6);
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .closeButton:hover {
   background-color: var(--background-color, #333);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .modalBody {
@@ -92,7 +88,7 @@
 }
 
 .loading p {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 1rem;
 }
 
@@ -117,7 +113,7 @@
 }
 
 .emptyState p {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 1rem;
   margin-bottom: 8px;
 }
@@ -193,7 +189,7 @@
 
 .transactionType {
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   font-size: 0.9375rem;
 }
 
@@ -212,7 +208,7 @@
 }
 
 .transactionDescription {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 0.875rem;
   margin: 4px 0;
   line-height: 1.4;
@@ -228,10 +224,6 @@
   color: var(--text-muted);
   font-size: 0.75rem;
   margin-top: 4px;
-}
-
-[data-theme='dark'] .transactionType {
-  color: var(--text-color, #e0e0e0);
 }
 
 .loadMoreContainer {

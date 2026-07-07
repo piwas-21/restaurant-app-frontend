@@ -12,7 +12,7 @@
 
 [data-theme='dark'] .popup {
   background: var(--secondary-color, #2c2c2c);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   border: 1px solid var(--border-color, #444);
 }
@@ -43,11 +43,7 @@
   margin: 0 0 0.375rem 0;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-color, #34393e);
-}
-
-[data-theme='dark'] .popupHeader h3 {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .tableBadge {
@@ -62,7 +58,7 @@
 }
 
 [data-theme='dark'] .tableBadge {
-  color: var(--text-muted, #9ca3af);
+  color: var(--text-muted);
 }
 
 .badgeIcon {
@@ -93,7 +89,7 @@
 
 [data-theme='dark'] .actionButton {
   background: var(--secondary-color, #2c2c2c);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   border-bottom: 1px solid var(--border-color, #444);
 }
 
@@ -123,7 +119,7 @@
 }
 
 [data-theme='dark'] .actionButton svg {
-  color: var(--text-muted, #9ca3af);
+  color: var(--text-muted);
 }
 
 .actionButton:hover svg {
@@ -131,7 +127,7 @@
 }
 
 [data-theme='dark'] .actionButton:hover svg {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .deleteButton {

@@ -263,19 +263,19 @@
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border-color, #ddd);
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .adminContent h2 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .adminContent p {
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--text-secondary, #555);
+  color: var(--text-secondary);
 }
 
 .adminTableContainer {
@@ -311,14 +311,14 @@
   padding: 0.75rem;
   text-align: left;
   white-space: nowrap;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   vertical-align: middle; /* Align content vertically in cells */
 }
 
 .adminTable th {
   background-color: var(--secondary-color-light, #e9ecef);
   font-weight: 600;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -342,7 +342,7 @@
 
 .adminButton.edit {
   background-color: var(--warning-color, #ffc107);
-  color: var(--text-color, #212529);
+  color: var(--text-color);
 }
 
 .adminButton.delete {
@@ -375,7 +375,7 @@
   padding: 0.5rem 1rem;
   border: 1px solid var(--border-color, #ced4da);
   background-color: transparent;
-  color: var(--text-secondary, #555);
+  color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
   transition:
@@ -452,7 +452,7 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--text-color, #555);
+  color: var(--text-color);
 }
 
 .adminForm .formGroup input[type='text'],
@@ -467,7 +467,7 @@
   box-sizing: border-box;
   font-size: 1rem;
   background-color: var(--background-color, #fff);
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .adminForm textarea {
@@ -478,12 +478,12 @@
 /* Dark Mode Styles */
 [data-theme='dark'] .adminContainer {
   background-color: var(--background-color, #121212);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminHeader {
   background-color: var(--primary-color-dark, #1f1f1f);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminNav {
@@ -504,15 +504,7 @@
 [data-theme='dark'] .adminContent {
   background-color: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .adminContent h2 {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .adminContent p {
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminTable {
@@ -522,12 +514,12 @@
 [data-theme='dark'] .adminTable th,
 [data-theme='dark'] .adminTable td {
   border-color: var(--border-color, #444);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminTable th {
   background-color: var(--secondary-color, #2c2c2c);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminTable tr:nth-child(even) {
@@ -536,7 +528,7 @@
 
 [data-theme='dark'] .adminButton.edit {
   background-color: var(--warning-color-dark, #b8860b);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminButton.delete {
@@ -545,15 +537,11 @@
 
 [data-theme='dark'] .adminButton.view {
   background-color: var(--info-color-dark, #17a2b8);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .adminButton.add {
   background-color: var(--success-color-dark, #38761d);
-}
-
-[data-theme='dark'] .adminForm .formGroup label {
-  color: var(--text-color, #c7c7c7);
 }
 
 [data-theme='dark'] .adminForm .formGroup input[type='text'],
@@ -562,7 +550,7 @@
 [data-theme='dark'] .adminForm .formGroup textarea,
 [data-theme='dark'] .adminForm .formGroup select {
   background-color: var(--secondary-color, #3a3a3a);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   border-color: var(--border-color, #555);
 }
 
@@ -780,7 +768,7 @@
 
 .pagination span {
   font-size: 0.9rem;
-  color: var(--text-secondary, #555);
+  color: var(--text-secondary);
   margin: 0 0.5rem;
 }
 
@@ -797,10 +785,6 @@
 [data-theme='dark'] .pagination button:hover:not(:disabled) {
   background-color: var(--link-color, #8ab4f8);
   color: var(--background-color, #121212);
-}
-
-[data-theme='dark'] .pagination span {
-  color: var(--text-secondary, #b0b0b0);
 }
 
 /* Featured Special Card Styles */
@@ -1172,7 +1156,7 @@
 
 .existingImagesList p {
   margin-bottom: 0.5rem;
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .existingImagesList ul {
@@ -1182,7 +1166,7 @@
 
 .existingImagesList li {
   margin-bottom: 0.25rem;
-  color: var(--text-secondary, #555);
+  color: var(--text-secondary);
   word-break: break-all;
 }
 

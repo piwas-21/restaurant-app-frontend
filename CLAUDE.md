@@ -10,7 +10,7 @@
 - **Stack**: Next.js 15.5 (App Router) · React 19 · TypeScript · CSS Modules · i18next (10 locales)
 - **Test**: Jest + React Testing Library (unit) · Playwright (E2E)
 - **Hosted on**: GitHub — https://github.com/piwas-21/restaurant-app-frontend
-- **Production**: deployed from `main` (currently `develop` until cutover); test environment from `develop`
+- **Production**: auto-deployed from `main` (merge → `build-image.yml` publishes `:latest` → `deploy.yml` rolls the prod box; per-container Docker healthcheck only — rollback is a manual `workflow_dispatch` to a prior tag). Staging tracks `develop` (`:staging` image). Cutover done 2026-06-30.
 - **Backend dependency**: this app talks to the [backend repo](https://github.com/piwas-21/restaurant-app-backend) via `NEXT_PUBLIC_API_URL`. DTO contracts mirror backend `Features/**/Dtos/`.
 - **In-flight workspace**: this repo is one of three under [/Users/mahmutkaya/workspace/rumi-workspace/](../). The workspace meta-repo holds cross-repo plans and the master roadmap. When this repo is cloned standalone, only this `CLAUDE.md` is in scope.
 
@@ -171,16 +171,13 @@ Grep for the component / hook / type you're adding or modifying. List every call
 ### Branch strategy
 
 ```
-main                    ← production (currently develop; cutover pending)
-  └── develop           ← test environment (auto-deployed)
-       ├── feature/<x>
-       ├── fix/<x>
-       ├── chore/<x>
-       └── docs/<x>
+main                    ← production (auto-deploys on merge since 2026-06-30)
+  ├── feature/<x> …     ← branch off main, PR to main
+  └── develop           ← staging channel (`:staging` image; kept in sync via main→develop back-merges)
 ```
 
 - **Never push to `main` or `develop` directly** — pre-commit hook blocks this.
-- Branch off **`develop`**. Open PR to `develop`. After merge to `develop` and test-env validation, `develop` is promoted to `main` for prod.
+- Branch off **`main`**. Open PR to **`main`** (merging = prod deploy — treat every merge as a release). Use `develop` only to stage something on the test env before prod, then promote; back-merge `main`→`develop` afterwards to keep the branches converged.
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`, `test/`.
 
 ### Commit messages
@@ -229,7 +226,7 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 2. Read [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) if picking up a refactor task.
 3. Read the relevant ADR if working on a load-bearing pattern (state mgmt, styling, i18n, forms, design system).
 4. Run `npm run lint && npm run build` — confirm baseline green.
-5. Check `git status` — start from clean tree on `develop`.
+5. Check `git status` — start from a clean tree on `main`.
 
 ### During implementation
 1. Output the §6 verification block before writing code.

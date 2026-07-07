@@ -184,12 +184,12 @@
 
 .optionPrice {
   font-size: 0.9rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
 }
 
 .optionIngredients {
   font-size: 0.8rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   font-style: italic;
 }
 

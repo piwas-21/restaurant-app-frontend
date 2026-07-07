@@ -733,14 +733,10 @@
 .customizationsTitle {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-[data-theme='dark'] .customizationsTitle {
-  color: var(--text-color, #e0e0e0);
 }
 
 .customizationDetail {
@@ -756,21 +752,13 @@
 
 .customizationLabel {
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
-[data-theme='dark'] .customizationLabel {
-  color: var(--text-secondary, #9ca3af);
-}
-
 .customizationValue {
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   flex: 1;
-}
-
-[data-theme='dark'] .customizationValue {
-  color: var(--text-color, #e0e0e0);
 }
 
 /* Child Items (Menu Bundle Includes) */
@@ -857,7 +845,7 @@
 .childItemName {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   flex: 1;
   display: flex;
   align-items: center;
@@ -869,10 +857,6 @@
   color: var(--primary-color, #0369a1);
   font-weight: bold;
   font-size: 1.2rem;
-}
-
-[data-theme='dark'] .childItemName {
-  color: var(--text-color, #e0e0e0);
 }
 
 [data-theme='dark'] .childItemName::before {

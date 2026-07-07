@@ -72,7 +72,7 @@
 
 .description {
   font-size: 0.9rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;

@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 
 /* Status Banner */
@@ -76,13 +76,9 @@
   text-align: left;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-[data-theme='dark'] .table th {
-  color: var(--text-color, #e0e0e0);
 }
 
 .table td {
@@ -108,11 +104,7 @@
 
 .dayCell {
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
-}
-
-[data-theme='dark'] .dayCell {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 /* Form Elements */
@@ -176,14 +168,14 @@
   font-size: 0.875rem;
   transition: all 0.2s ease;
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .timeInput,
 [data-theme='dark'] .notesInput {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .timeInput:focus,
@@ -204,7 +196,7 @@
 }
 
 .notesInput::placeholder {
-  color: var(--text-secondary, #9ca3af);
+  color: var(--text-secondary);
 }
 
 /* Actions */

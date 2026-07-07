@@ -59,7 +59,7 @@
 .registerSubtitle {
   margin: 0;
   font-size: 0.9rem;
-  color: var(--text-secondary, var(--text-color));
+  color: var(--text-secondary);
 }
 
 .benefits {

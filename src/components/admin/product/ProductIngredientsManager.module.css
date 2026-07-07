@@ -21,23 +21,15 @@
 .title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   margin: 0;
-}
-
-[data-theme='dark'] .title {
-  color: var(--text-primary, #ffffff);
 }
 
 .description {
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
   line-height: 1.5;
-}
-
-[data-theme='dark'] .description {
-  color: var(--text-secondary, #aaa);
 }
 
 .addButton {
@@ -62,12 +54,8 @@
 .emptyState {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-size: 0.875rem;
-}
-
-[data-theme='dark'] .emptyState {
-  color: var(--text-secondary, #aaa);
 }
 
 .ingredientsList {
@@ -128,7 +116,7 @@
   width: 28px;
   height: 28px;
   background: var(--background-secondary, #f0f0f0);
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   border-radius: 50%;
   font-size: 0.75rem;
   font-weight: 600;
@@ -137,7 +125,7 @@
 
 [data-theme='dark'] .ingredientNumber {
   background: var(--background-secondary, #333);
-  color: var(--text-secondary, #aaa);
+  color: var(--text-secondary);
 }
 
 .ingredientNameInput {
@@ -146,7 +134,7 @@
   border: 1px solid var(--border-color, #e0e0e0);
   border-radius: 6px;
   font-size: 0.875rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   background: var(--background-primary, white);
 }
 
@@ -159,7 +147,7 @@
 [data-theme='dark'] .ingredientNameInput {
   background: var(--background-secondary, #2a2a2a);
   border-color: var(--border-color, #444);
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
 }
 
 .removeButton {
@@ -196,7 +184,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   cursor: pointer;
   user-select: none;
 }
@@ -205,10 +193,6 @@
   width: 18px;
   height: 18px;
   cursor: pointer;
-}
-
-[data-theme='dark'] .checkbox {
-  color: var(--text-primary, #ffffff);
 }
 
 .priceField {
@@ -222,12 +206,8 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   font-weight: 500;
-}
-
-[data-theme='dark'] .priceField label {
-  color: var(--text-primary, #ffffff);
 }
 
 .priceInput {
@@ -236,7 +216,7 @@
   border: 1px solid var(--border-color, #e0e0e0);
   border-radius: 6px;
   font-size: 0.875rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   background: var(--background-primary, white);
 }
 
@@ -249,22 +229,18 @@
 [data-theme='dark'] .priceInput {
   background: var(--background-secondary, #2a2a2a);
   border-color: var(--border-color, #444);
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
 }
 
 .currency {
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-weight: 500;
-}
-
-[data-theme='dark'] .currency {
-  color: var(--text-secondary, #aaa);
 }
 
 .pricePreview {
   font-size: 0.75rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   padding: 0.25rem 0.5rem;
   background: var(--background-secondary, #f0f0f0);
   border-radius: 4px;
@@ -272,7 +248,7 @@
 }
 
 [data-theme='dark'] .pricePreview {
-  color: var(--text-secondary, #aaa);
+  color: var(--text-secondary);
   background: var(--background-secondary, #333);
 }
 
@@ -288,7 +264,7 @@
 
 .translationsSummary {
   font-size: 0.875rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   cursor: pointer;
   font-weight: 500;
   padding: 0.5rem 0;
@@ -297,10 +273,6 @@
 
 .translationsSummary:hover {
   color: var(--primary-color, #4a90e2);
-}
-
-[data-theme='dark'] .translationsSummary {
-  color: var(--text-secondary, #aaa);
 }
 
 .translationsGrid {
@@ -315,12 +287,8 @@
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.75rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-weight: 500;
-}
-
-[data-theme='dark'] .translationField label {
-  color: var(--text-secondary, #aaa);
 }
 
 .translationInput {
@@ -329,7 +297,7 @@
   border: 1px solid var(--border-color, #e0e0e0);
   border-radius: 6px;
   font-size: 0.875rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   background: var(--background-primary, white);
 }
 
@@ -342,7 +310,7 @@
 [data-theme='dark'] .translationInput {
   background: var(--background-secondary, #2a2a2a);
   border-color: var(--border-color, #444);
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
 }
 
 /* Responsive */
@@ -373,12 +341,8 @@
 
 .priceHint {
   font-size: 0.75rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-style: italic;
-}
-
-[data-theme='dark'] .priceHint {
-  color: var(--text-secondary, #aaa);
 }
 
 /* Autocomplete suggestions */
@@ -431,20 +395,12 @@
 
 .suggestionItem span:first-child {
   font-size: 0.875rem;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--text-primary);
   font-weight: 500;
-}
-
-[data-theme='dark'] .suggestionItem span:first-child {
-  color: var(--text-primary, #ffffff);
 }
 
 .suggestionHint {
   font-size: 0.75rem;
-  color: var(--text-secondary, #999);
+  color: var(--text-secondary);
   font-style: italic;
-}
-
-[data-theme='dark'] .suggestionHint {
-  color: var(--text-secondary, #666);
 }

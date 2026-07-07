@@ -70,28 +70,20 @@
 .title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.25rem 0;
 }
 
 .subtitle {
   font-size: 0.9rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   margin: 0;
-}
-
-[data-theme='dark'] .title {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .subtitle {
-  color: var(--text-secondary, #b0b0b0);
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
@@ -104,12 +96,12 @@
 
 .closeButton:hover {
   background: var(--hover-background, #f0f0f0);
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .closeButton:hover {
   background: var(--hover-background-dark, #444);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .content {
@@ -121,33 +113,29 @@
 .loading {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
 }
 
 .emptyState {
   text-align: center;
   padding: 3rem 2rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
 }
 
 .emptyState svg {
-  color: var(--text-secondary, #999);
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
 .emptyState p {
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .emptyState small {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-size: 0.9rem;
-}
-
-[data-theme='dark'] .emptyState p {
-  color: var(--text-color, #e0e0e0);
 }
 
 .taxList {
@@ -200,22 +188,14 @@
 .taxName {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.5rem 0;
 }
 
 .taxDescription {
   font-size: 0.9rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   margin: 0 0 0.75rem 0;
-}
-
-[data-theme='dark'] .taxName {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .taxDescription {
-  color: var(--text-secondary, #b0b0b0);
 }
 
 .applicableTypes {
@@ -298,7 +278,7 @@
 
 .cancelButton {
   background: transparent;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   border: 1px solid var(--border-color, #e0e0e0);
 }
 
@@ -323,7 +303,7 @@
 }
 
 [data-theme='dark'] .cancelButton {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   border-color: var(--border-color-dark, #444);
 }
 

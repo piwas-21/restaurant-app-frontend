@@ -23,7 +23,7 @@
 
 .modalContent {
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   padding: 2rem;
   border-radius: 12px;
   max-width: 500px;
@@ -35,7 +35,7 @@
 
 [data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -69,13 +69,9 @@
 
 .modalContent h2 {
   margin: 0 0 1.5rem 0;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   font-size: 1.5rem;
   font-weight: 600;
-}
-
-[data-theme='dark'] .modalContent h2 {
-  color: var(--text-color, #e0e0e0);
 }
 
 /* Order Info Section */
@@ -107,35 +103,27 @@
 }
 
 .label {
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 0.875rem;
   font-weight: 500;
 }
 
-[data-theme='dark'] .label {
-  color: var(--text-secondary, #9ca3af);
-}
-
 .value {
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   font-size: 0.875rem;
   font-weight: 600;
-}
-
-[data-theme='dark'] .value {
-  color: var(--text-color, #e0e0e0);
 }
 
 /* Warning Text */
 .warningText {
   margin: 0 0 1.5rem 0;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-size: 0.9375rem;
   line-height: 1.6;
 }
 
 [data-theme='dark'] .warningText {
-  color: var(--text-secondary, #9ca3af);
+  color: var(--text-secondary);
 }
 
 /* Confirmation Section */
@@ -147,13 +135,9 @@
 .confirmLabel {
   display: block;
   margin-bottom: 0.5rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   font-size: 0.875rem;
   font-weight: 600;
-}
-
-[data-theme='dark'] .confirmLabel {
-  color: var(--text-color, #e0e0e0);
 }
 
 .confirmInput {
@@ -165,13 +149,13 @@
   font-family: 'Courier New', monospace;
   transition: all 0.2s ease;
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .confirmInput {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .confirmInput:focus {

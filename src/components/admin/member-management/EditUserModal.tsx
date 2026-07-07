@@ -236,7 +236,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
               <p
                 style={{
                   fontSize: '0.875rem',
-                  color: 'var(--text-secondary, #999)',
+                  color: 'var(--text-secondary)',
                   marginTop: '0.5rem',
                   marginLeft: '0.25rem',
                 }}

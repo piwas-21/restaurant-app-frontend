@@ -59,12 +59,12 @@
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 12px 0;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .title {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -78,12 +78,12 @@
 .orderNumber {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .orderNumber {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -149,7 +149,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -157,7 +157,7 @@
 
 .iconButton:hover {
   background-color: var(--border-color, #e5e7eb);
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 .exportMenu {
@@ -186,7 +186,7 @@
   text-align: left;
   cursor: pointer;
   font-size: 14px;
-  color: var(--text-color, #374151);
+  color: var(--text-color);
   transition: background-color 0.2s;
 }
 
@@ -197,12 +197,12 @@
 @media (prefers-color-scheme: dark) {
   .iconButton {
     background-color: var(--secondary-color, #2c2c2c);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .iconButton:hover {
     background-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .exportMenu {
@@ -211,7 +211,7 @@
   }
 
   .exportMenuItem {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .exportMenuItem:hover {
@@ -224,21 +224,21 @@
   border: none;
   background-color: transparent;
   cursor: pointer;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   transition: color 0.2s;
 }
 
 .closeButton:hover {
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .closeButton {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .closeButton:hover {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.8;
   }
 }
@@ -264,12 +264,12 @@
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 16px 0;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .sectionTitle {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -288,14 +288,14 @@
 .infoLabel {
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 @media (prefers-color-scheme: dark) {
   .infoLabel {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -306,12 +306,12 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .infoValue {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -326,12 +326,12 @@
   align-items: center;
   gap: 12px;
   font-size: 14px;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .customerDetail {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -367,7 +367,7 @@
 .addressLine {
   margin: 0 0 4px 0;
   font-size: 14px;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 .addressLine:last-child {
@@ -376,7 +376,7 @@
 
 @media (prefers-color-scheme: dark) {
   .addressLine {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -388,14 +388,14 @@
   padding-top: 12px;
   border-top: 1px solid var(--border-color, #e5e7eb);
   font-size: 14px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   font-style: italic;
 }
 
 @media (prefers-color-scheme: dark) {
   .deliveryInstructions {
     border-top-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -441,24 +441,24 @@
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .itemName {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
 .itemVariation {
   font-size: 14px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   margin: 0;
 }
 
 @media (prefers-color-scheme: dark) {
   .itemVariation {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -468,27 +468,27 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   font-style: italic;
   margin: 0;
 }
 
 @media (prefers-color-scheme: dark) {
   .itemInstructions {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
 
 .itemQuantity {
   font-size: 14px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   margin-top: 4px;
 }
 
 @media (prefers-color-scheme: dark) {
   .itemQuantity {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -497,13 +497,13 @@
   flex-shrink: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   align-self: flex-start;
 }
 
 @media (prefers-color-scheme: dark) {
   .itemTotal {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -528,7 +528,7 @@
   padding: 12px 0;
   border-bottom: 1px solid var(--border-color, #e5e7eb);
   font-size: 14px;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 .summaryRow:last-child {
@@ -538,7 +538,7 @@
 @media (prefers-color-scheme: dark) {
   .summaryRow {
     border-bottom-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -616,24 +616,24 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .paymentMethod {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
 .paymentAmount {
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .paymentAmount {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -652,7 +652,7 @@
   border-radius: 8px;
   border: 1px solid var(--border-color, #e5e7eb);
   font-size: 14px;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   line-height: 1.6;
 }
 
@@ -660,7 +660,7 @@
   .notesCard {
     background-color: var(--secondary-color, #2c2c2c);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -723,49 +723,49 @@
 .timelineStatus {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .timelineStatus {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
 .timelineDate {
   font-size: 12px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .timelineDate {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
 
 .timelineNotes {
   font-size: 13px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   margin-top: 4px;
   font-style: italic;
 }
 
 @media (prefers-color-scheme: dark) {
   .timelineNotes {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
 
 .timelineBy {
   font-size: 12px;
-  color: var(--text-color, #9ca3af);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .timelineBy {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.6;
   }
 }
@@ -912,7 +912,7 @@
   padding: 8px 16px;
   border: 1px solid var(--border-color, #d1d5db);
   background-color: var(--background-color, white);
-  color: var(--text-color, #374151);
+  color: var(--text-color);
   font-size: 14px;
   font-weight: 500;
   border-radius: 6px;
@@ -940,7 +940,7 @@
   .delayOption {
     background-color: var(--secondary-color, #2c2c2c);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .delayOption:hover {
@@ -996,7 +996,7 @@
   padding: 10px 24px;
   border: 1px solid var(--border-color, #d1d5db);
   background-color: var(--background-color, white);
-  color: var(--text-color, #374151);
+  color: var(--text-color);
   font-size: 14px;
   font-weight: 600;
   border-radius: 8px;
@@ -1013,7 +1013,7 @@
   .closeButtonFooter {
     background-color: var(--secondary-color, #2c2c2c);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .closeButtonFooter:hover {
@@ -1063,25 +1063,25 @@
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 12px 0;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .confirmModalTitle {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
 .confirmModalMessage {
   font-size: 14px;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   margin: 0 0 20px 0;
   line-height: 1.5;
 }
 
 @media (prefers-color-scheme: dark) {
   .confirmModalMessage {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -1094,13 +1094,13 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color, #374151);
+  color: var(--text-color);
   margin-bottom: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
   .formGroup label {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -1112,7 +1112,7 @@
   border: 1px solid var(--border-color, #d1d5db);
   border-radius: 8px;
   font-size: 14px;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   transition: border-color 0.2s;
   background-color: var(--background-color, white);
 }
@@ -1130,7 +1130,7 @@
   .textarea {
     background-color: var(--card-background, #252525);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .input:focus,
@@ -1174,7 +1174,7 @@
   padding: 10px 20px;
   border: 1px solid var(--border-color, #d1d5db);
   background-color: var(--background-color, white);
-  color: var(--text-color, #374151);
+  color: var(--text-color);
   font-size: 14px;
   font-weight: 600;
   border-radius: 8px;
@@ -1196,7 +1196,7 @@
   .cancelButton {
     background-color: var(--secondary-color, #2c2c2c);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .cancelButton:hover {

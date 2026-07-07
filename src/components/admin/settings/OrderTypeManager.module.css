@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 
 .configurationsGrid {
@@ -77,12 +77,12 @@
 
 .configCard.disabled .iconWrapper {
   background: var(--hover-bg, #f3f4f6);
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .configCard.disabled .iconWrapper {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary, #9ca3af);
+  color: var(--text-secondary);
 }
 
 .cardInfo {
@@ -92,23 +92,15 @@
 .cardTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.5rem 0;
-}
-
-[data-theme='dark'] .cardTitle {
-  color: var(--text-color, #e0e0e0);
 }
 
 .cardDescription {
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.5;
-}
-
-[data-theme='dark'] .cardDescription {
-  color: var(--text-secondary, #9ca3af);
 }
 
 .cardActions {

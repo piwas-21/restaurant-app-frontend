@@ -47,7 +47,9 @@ src/
 │   ├── (route-groups)/
 │   ├── api/                      # API route handlers (proxy to backend)
 │   ├── layout.tsx                # Root layout
-│   └── globals.css               # Global CSS variables (design tokens)
+│   └── globals.css               # imports design-system/tokens + legacy var aliases
+├── design-system/
+│   └── tokens/                   # semantic design tokens — single source for color values
 ├── components/                   # Shared UI components
 │   ├── design-system/            # BaseModal, FormField, StatusBadge, etc.
 │   ├── menu/                     # Feature-area folders
@@ -72,7 +74,7 @@ Pages are **thin orchestrators** (≤ 200 LOC). Logic lives in custom hooks (`sr
 ### Styling — CSS Modules + design tokens
 
 - Every component has `<Component>.module.css` colocated.
-- Colours / spacing / typography come from CSS variables defined in `src/app/globals.css`. **Never** hardcode hex values in module CSS.
+- Colours come from the **semantic token layer** in `src/design-system/tokens/` (imported by `globals.css`, which also keeps the legacy-name aliases). New code uses the semantic names (`--brand-*`, `--surface-*`, `--feedback-*`, `--border-*`, `--link-*`, `--status-*`). **Never** hardcode hex values in module CSS. ⚠️ `--text-primary`/`--text-secondary` are deliberately not defined yet — see DESIGN-SYSTEM.md §2 status note; keep using `--text-color`/`--text-secondary-color` until that slice lands.
 - Dark mode via `html[data-theme="dark"]` selector. **Never** `@media (prefers-color-scheme: dark)`. See [ADR-002](docs/adr/ADR-002-css-modules-and-tokens.md).
 
 ### Internationalisation — i18next, 10 locales
@@ -109,7 +111,7 @@ Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warn
 2. **Modals use `BaseModal`** wrapper. Filename suffix is `Modal` (not `Dialog`).
 3. **Forms use `FormField`** for label+input+error pattern.
 4. **Status display uses `StatusBadge`** — never inline status pills.
-5. **No inline hex colours** in `*.tsx` or `*.module.css` — use CSS variables from `src/app/globals.css`. Dynamically computed colours (e.g. user avatar bg from hash) are the only exception.
+5. **No inline hex colours** in `*.tsx` or `*.module.css` — use CSS variables (semantic tokens in `src/design-system/tokens/`, legacy aliases in `globals.css`). Raw color values belong only in `src/design-system/tokens/` for component CSS; `globals.css` still holds raw values for the not-yet-migrated text/nav vars (see DESIGN-SYSTEM.md §2 note). Dynamically computed colours (e.g. user avatar bg from hash) are the only exception.
 6. **CSS Modules required** — no inline `style={{}}` except for dynamic computed values (positions, dimensions from props).
 7. **Dark mode** via `html[data-theme="dark"]` — **never** `@media (prefers-color-scheme: dark)`.
 8. **No `: any`** in TypeScript — use `unknown` with type guards. (ESLint rule currently disabled at the config level; will be flipped in Sprint 2 — until then, code review enforces.)

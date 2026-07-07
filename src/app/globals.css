@@ -1,94 +1,75 @@
+@import '../design-system/tokens/index.css';
+
 :root {
-  --background-color: #ffffff;
+  /* Legacy aliases → semantic tokens. Color VALUES (light + dark) live in
+     src/design-system/tokens/colors.css — the single source. These old names
+     stay until every module migrates to the semantic names (S15 T1 /
+     DESIGN-SYSTEM.md §2.5); new code uses the semantic names directly. */
+  --background-color: var(--surface-primary);
+  --secondary-color: var(--surface-secondary);
+  --secondary-color-light: var(--surface-secondary-light);
+  --card-background: var(--surface-card);
+  --primary-color: var(--brand-primary); /* RUMI Red */
+  --primary-color-dark: var(--brand-primary-dark);
+  --accent-color: var(--brand-accent);
+  --button-text-color: var(--text-on-primary);
+  --link-color: var(--link-default);
+  --link-hover-color: var(--link-hover);
+  --border-color: var(--border-default);
+  --border-color-light: var(--border-light);
+  --border-color-extra-light: var(--border-extra-light);
+  --success-color: var(--feedback-success);
+  --success-color-light: var(--feedback-success-light);
+  --success-color-xlight: var(--feedback-success-xlight);
+  --success-color-dark: var(--feedback-success-dark);
+  --success-color-darker: var(--feedback-success-darker);
+  --error-color: var(--feedback-error);
+  --error-background: var(--feedback-error-bg);
+  --error-border: var(--feedback-error-border);
+  --danger-color: var(--feedback-danger);
+  --danger-color-dark: var(--feedback-danger-dark);
+  --danger-color-light: var(--feedback-danger-light);
+  --danger-color-xlight: var(--feedback-danger-xlight);
+  --warning-color: var(--feedback-warning);
+  --warning-color-light: var(--feedback-warning-light);
+  --warning-color-xlight: var(--feedback-warning-xlight);
+  --warning-color-dark: var(--feedback-warning-dark);
+  --info-color: var(--feedback-info);
+  --info-color-light: var(--feedback-info-light);
+  --info-color-xlight: var(--feedback-info-xlight);
+  --info-color-dark: var(--feedback-info-dark);
+
+  /* Not yet migrated to semantic tokens.
+     Body-text pair: ~390 pre-existing usages reference --text-primary /
+     --text-secondary while UNDEFINED (resolving via inheritance or var()
+     fallbacks) — defining those names blind would flip computed colors, so
+     their adoption is a dedicated audited slice (DESIGN-SYSTEM.md §2 note). */
   --text-color: #1a1a1a;
   --text-secondary-color: #666;
-  --primary-color: #c00000; /* RUMI Red */
-  --secondary-color: #f0f0f0;
-  --accent-color: #d9534f;
-  --border-color: #dddddd;
-  --card-background: #f9f9f9;
-  --button-text-color: #ffffff;
-  --link-color: #c00000;
-  --link-hover-color: #a00000;
-  --success-color: #4caf50;
-  --error-color: #f44336;
-  --error-background: #fdecea;
-  --error-border: #f5c2c0;
+  /* Misnomer kept verbatim: the value is BLUE (a selection highlight), not the
+     brand red the name implies — renamed in the text/status token slice. */
+  --primary-color-xlight: rgba(0, 123, 255, 0.1);
+
   --font-family-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol';
   --font-family-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
-  --info-color: #28c2d9;
-  --info-color-light: #66bcc9;
-  --info-color-xlight: #8ae0ee;
-  --info-color-dark: #156a77;
+
   --nav-link-color: var(--text-color);
   --nav-link-hover-bg: rgba(0, 0, 0, 0.1);
   --nav-link-active-color: var(--primary-color);
   --nav-link-active-bg: rgba(0, 0, 0, 0.05);
-  --primary-color-dark: #890303;
-  --success-color-dark: #388e3c; /* ~4.1:1 on white — used as text colour or as background where contrast against white text isn't required. Below WCAG AA for normal text on white. */
-  --success-color-darker: #2e7d32; /* CTA button background in light mode (~5.7:1 on white, WCAG AA). */
-  --text-on-accent: #ffffff; /* Foreground colour for text on AA-darker accents (--success-color-darker, --primary-color-dark, etc.). Same value across themes — accent backgrounds are deliberately dark in both. */
-  --warning-color: #ffa500;
-  --warning-color-light: #ffdab9;
-  --warning-color-xlight: #fff5e1;
-  --warning-color-dark: #a06000;
-  --danger-color: #dc3545;
-  --danger-color-dark: #c82333;
-  --danger-color-light: #f5c6cb;
-  --danger-color-xlight: #f8d7da;
-  --primary-color-xlight: rgba(0, 123, 255, 0.1);
-  --success-color-light: #c8e6c9;
-  --success-color-xlight: #e8f5e9;
-  --border-color-light: #e0e0e0;
-  --border-color-extra-light: #f0f0f0;
-  --secondary-color-light: #f5f5f5;
-
-  /* Chart-status palette — used for status/breakdown bars across admin
-     dashboards (table-statistics, future analytics). Distinct from the
-     primary --success/--info palettes since charts often need a contrasting
-     hue per series rather than the brand colour. */
-  --status-warning: #ff9800;
-  --status-info: #2196f3;
-  --status-success-light: #8bc34a;
-  --status-confirmed: #10b981;
-  --status-completed: #6b7280;
-  --status-danger: #ef4444;
-  /* Order-status hues (cashier OrderDetails status badge/indicator). Same value in
-     both light and dark themes, matching the previous inline literals exactly. */
-  --status-pending: #fbbf24;
-  --status-preparing: #3b82f6;
-  --status-ready: #8b5cf6;
 }
 
 html[data-theme='dark'] {
-  --background-color: #1a1a1a;
+  /* Semantic dark values live in tokens/colors.css; only the not-yet-migrated
+     text pair + nav vars are overridden here. */
   --text-color: #f0f0f0;
   --text-secondary-color: #cdcbcb;
-  --primary-color: #e06666; /* Lighter RUMI Red for dark mode */
-  --secondary-color: #2c2c2c; /* Dark Gray */
-  --accent-color: #ec7063; /* Lighter accent red */
-  --border-color: #444444;
-  --card-background: #252525;
-  --button-text-color: #1a1a1a; /* Dark text on light buttons in dark mode, or adjust button bg */
-  --link-color: #e06666;
-  --link-hover-color: #f08080;
-  --success-color: #81c784;
-  --success-color-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a). */
-  --text-on-accent: #ffffff; /* Mirror of light-mode value — accent backgrounds are dark in both themes. */
-  --error-color: #ff8a80;
-  --error-background: #3a1f1f;
-  --error-border: #5a2a2a;
-  --danger-color-dark: #ff6b6b;
-  --danger-color-light: #ee5a6f;
-  --danger-color-xlight: #ffe0e6;
-  /* Added variables for nav styling in dark mode */
   --nav-link-color: var(--text-color);
   --nav-link-hover-bg: rgba(255, 255, 255, 0.1);
   --nav-link-active-color: var(--primary-color);
   --nav-link-active-bg: rgba(255, 255, 255, 0.05);
-  --secondary-color-light: #3e3d3d;
 }
 
 html,
@@ -179,7 +160,10 @@ html:not([data-theme='dark']) body.is-homepage .hamburgerMenu {
   color: #f0f0f0;
 }
 
-/* Homepage overlay header: override variables to dark-like values for controls */
+/* Homepage overlay header: override variables to dark-like values for controls.
+   NOTE: this block overrides the LEGACY names — when a component in this subtree
+   migrates to semantic names (--surface-*, --text-*), add the semantic overrides
+   here too or the override silently stops applying to it. */
 html:not([data-theme='dark']) .home-overlay-header {
   --text-color: #f0f0f0;
   --border-color: rgba(255, 255, 255, 0.4);

@@ -1,0 +1,104 @@
+/* Design tokens — colors (semantic layer). Single source of truth for every
+   color value in the app: raw hex/rgb() belongs ONLY in this directory.
+   Light values on :root, dark overrides on html[data-theme='dark'] (§5.7).
+   Legacy names alias to these in globals.css until modules migrate
+   (S15 T1 / DESIGN-SYSTEM.md §2). Tenant templates will ship their own values
+   for this same set (ADR-006). */
+
+:root {
+  /* Brand */
+  --brand-primary: #c00000; /* RUMI Red */
+  --brand-primary-dark: #890303;
+  --brand-accent: #d9534f;
+
+  /* Surfaces */
+  --surface-primary: #ffffff;
+  --surface-secondary: #f0f0f0;
+  --surface-secondary-light: #f5f5f5;
+  --surface-card: #f9f9f9;
+
+  /* Text on colored backgrounds. The body-text pair (--text-primary/-secondary)
+     is deliberately NOT defined yet — see DESIGN-SYSTEM.md §2 status note. */
+  --text-on-primary: #ffffff;
+  --text-on-accent: #ffffff; /* accent backgrounds are deliberately dark in both themes */
+
+  /* Links */
+  --link-default: #c00000;
+  --link-hover: #a00000;
+
+  /* Borders */
+  --border-default: #dddddd;
+  --border-light: #e0e0e0;
+  --border-extra-light: #f0f0f0;
+
+  /* Feedback — success */
+  --feedback-success: #4caf50;
+  --feedback-success-light: #c8e6c9;
+  --feedback-success-xlight: #e8f5e9;
+  --feedback-success-dark: #388e3c; /* ~4.1:1 on white — text/bg where white-text contrast isn't required; below AA for normal text on white */
+  --feedback-success-darker: #2e7d32; /* CTA button background in light mode (~5.7:1 on white, WCAG AA) */
+
+  /* Feedback — error (form/API errors) */
+  --feedback-error: #f44336;
+  --feedback-error-bg: #fdecea;
+  --feedback-error-border: #f5c2c0;
+
+  /* Feedback — danger (destructive actions; separate hue family from error, kept as-is) */
+  --feedback-danger: #dc3545;
+  --feedback-danger-dark: #c82333;
+  --feedback-danger-light: #f5c6cb;
+  --feedback-danger-xlight: #f8d7da;
+
+  /* Feedback — warning */
+  --feedback-warning: #ffa500;
+  --feedback-warning-light: #ffdab9;
+  --feedback-warning-xlight: #fff5e1;
+  --feedback-warning-dark: #a06000;
+
+  /* Feedback — info */
+  --feedback-info: #28c2d9;
+  --feedback-info-light: #66bcc9;
+  --feedback-info-xlight: #8ae0ee;
+  --feedback-info-dark: #156a77;
+
+  /* Status hues (charts + order-status indicators) — same value in both themes,
+     moved verbatim from globals.css; the DESIGN-SYSTEM.md §2.3 bg/text/border/dot
+     matrix is a later slice. */
+  --status-warning: #ff9800;
+  --status-info: #2196f3;
+  --status-success-light: #8bc34a;
+  --status-confirmed: #10b981;
+  --status-completed: #6b7280;
+  --status-danger: #ef4444;
+  --status-pending: #fbbf24;
+  --status-preparing: #3b82f6;
+  --status-ready: #8b5cf6;
+}
+
+html[data-theme='dark'] {
+  --brand-primary: #e06666; /* lighter RUMI Red for dark mode */
+  --brand-accent: #ec7063;
+
+  --surface-primary: #1a1a1a;
+  --surface-secondary: #2c2c2c;
+  --surface-secondary-light: #3e3d3d;
+  --surface-card: #252525;
+
+  --text-on-primary: #1a1a1a; /* dark text on the lighter dark-mode button colors */
+
+  --link-default: #e06666;
+  --link-hover: #f08080;
+
+  --border-default: #444444;
+
+  --feedback-success: #81c784;
+  --feedback-success-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a) */
+
+  --feedback-error: #ff8a80;
+  --feedback-error-bg: #3a1f1f;
+  --feedback-error-border: #5a2a2a;
+
+  --feedback-danger-dark: #ff6b6b;
+  --feedback-danger-light: #ee5a6f;
+  --feedback-danger-xlight: #ffe0e6;
+}

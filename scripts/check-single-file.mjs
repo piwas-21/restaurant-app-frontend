@@ -59,6 +59,13 @@ if (/\.tsx$/.test(file) && /style=\{\{[^}]*#[0-9a-fA-F]{3,6}/.test(src))
   warn("inline hex in a style={{}} — use a CSS variable / CSS module (§5.5/§5.6)");
 if (/\.css$/.test(file) && /@media[^{]*prefers-color-scheme:\s*dark/.test(src))
   warn("`@media (prefers-color-scheme: dark)` — use `html[data-theme=\"dark\"]` (§5.7)");
+if (
+  /\.css$/.test(file) &&
+  /\/(design-system|templates)\//.test(file) &&
+  !/\/design-system\/tokens\//.test(file) &&
+  /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/.test(src)
+)
+  warn("raw color outside design-system/tokens — use var(--*); color values live in src/design-system/tokens/ (S15 T1 ratchet)");
 if (!/\/lib\/config\.ts$/.test(file) && /process\.env\.NEXT_PUBLIC_/.test(src))
   warn("`process.env.NEXT_PUBLIC_*` outside src/lib/config.ts — read typed constants from config (§5.12)");
 

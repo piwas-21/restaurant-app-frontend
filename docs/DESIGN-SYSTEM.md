@@ -42,6 +42,10 @@ design-system/
 
 ## 2. Color System
 
+> **Implementation status (2026-07-07 — S15 T1 slice 1):** the semantic layer + §2.5 backward-compat aliases are **LIVE** in `src/design-system/tokens/colors.css` for brand / surface / link / border / feedback (+ the pre-existing chart/status hues moved verbatim), with `globals.css` legacy names aliasing into it.
+> **Deliberately NOT yet defined: `--text-primary` / `--text-secondary`.** ~390 pre-existing usages across ~100 files already reference these names *while undefined* — resolving via inheritance or `var(…, fallback)`s with inconsistent fallbacks (`#666`, `#6b7280`, `#9ca3af`, `#b0b0b0`, even `#ffffff` ×7). Defining them globally would silently change those computed colors. Their adoption is a dedicated audited slice: fix or no-op-verify each usage, then define the tokens. Until then, use `--text-color` / `--text-secondary-color`. (`--surface-color` is a similar dangling name in 2 server components.)
+> Also pending: §2.1 primitives, the §2.3 status matrix, and the §3–§7 token files (spacing/typography/shadows/borders/z-index/animations).
+
 ### 2.1 Primitive Palette
 Raw color scales, never used directly in components:
 

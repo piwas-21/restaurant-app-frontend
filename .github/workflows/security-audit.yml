@@ -78,7 +78,7 @@ jobs:
       # Same pinned action as ci.yml. -r scans the whole tree (every lockfile
       # found) rather than a single --lockfile, so the weekly run is broader
       # than the per-PR OSV job and catches new advisories against unchanged deps.
-      - uses: google/osv-scanner-action/osv-scanner-action@6fc714450122bda9d00e4ad5d639ad6a39eedb1f # v2.0.1
+      - uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
         with:
           scan-args: |-
             -r

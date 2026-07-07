@@ -1,0 +1,4 @@
+/* Barrel import for the design-token layer (DESIGN-SYSTEM.md §1).
+   Later slices add spacing.css, typography.css, shadows.css, borders.css,
+   z-index.css, animations.css here. */
+@import './colors.css';

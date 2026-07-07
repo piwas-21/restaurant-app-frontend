@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthContext';
 import { reservationService } from '@/services/reservationService';
 import { ReservationFormData, AvailableTimeSlotsDto } from '@/types/reservation';
 import styles from './ReservationWizard.module.css';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 type WizardStep = 'guests' | 'date' | 'time' | 'table' | 'details' | 'summary';
 
@@ -152,7 +153,7 @@ export default function ReservationWizard() {
     <div className={styles.wizard}>
       <div className={styles.header}>
         <h1>{t('reservation_title')}</h1>
-        <p>{t('reservation_subtitle')}</p>
+        <p>{t('reservation_subtitle', { name: RESTAURANT_NAME })}</p>
       </div>
 
       <div className={styles.progressBar}>

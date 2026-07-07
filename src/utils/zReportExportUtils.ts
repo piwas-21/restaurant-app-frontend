@@ -1,6 +1,7 @@
 import { ZReportDto } from '@/types/order';
 import { printHtmlContent } from './pdfExportUtils';
 import { formatCurrency } from './currency';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 const formatDate = (dateStr: string): string => {
   return new Date(dateStr).toLocaleDateString('de-CH', {
@@ -54,7 +55,7 @@ export const exportZReportToPDF = (report: ZReportDto): void => {
 </head>
 <body>
   <div class="header">
-    <h1>Rumi Restaurant</h1>
+    <h1>${RESTAURANT_NAME}</h1>
     <div class="subtitle">Z-Report / End of Day Summary</div>
     <div class="date">${formatDate(report.reportDate)}</div>
   </div>
@@ -177,7 +178,7 @@ export const exportZReportToPDF = (report: ZReportDto): void => {
   }
 
   <div class="footer">
-    Generated: ${formatTimestamp(report.generatedAt)} | Rumi Restaurant Z-Report
+    Generated: ${formatTimestamp(report.generatedAt)} | ${RESTAURANT_NAME} Z-Report
   </div>
 </body>
 </html>`;

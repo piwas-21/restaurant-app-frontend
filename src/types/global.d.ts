@@ -4,10 +4,10 @@
 // type does not depend on a specific event-payload shape. Concrete
 // typing for entries lives in src/lib/analytics.ts (DataLayerEntry).
 //
-// Moved out of src/lib/analytics.ts because Qodana's ESLint
-// integration cannot parse `declare global` blocks inside a regular
-// module and reports "ESLint: Install the 'eslint' package" on the
-// whole file. .d.ts files are skipped by that integration.
+// Moved out of src/lib/analytics.ts because whole-tree analyzer
+// ESLint integrations (historically Qodana, retired 2026-07) could not
+// parse `declare global` blocks inside a regular module; .d.ts files
+// are skipped by such integrations.
 
 interface Window {
   dataLayer?: unknown[];

@@ -7,7 +7,7 @@
 
 ## §1 — Identity
 
-- **Stack**: Next.js 15.5 (App Router) · React 19 · TypeScript · CSS Modules · i18next (9 locales)
+- **Stack**: Next.js 15.5 (App Router) · React 19 · TypeScript · CSS Modules · i18next (10 locales)
 - **Test**: Jest + React Testing Library (unit) · Playwright (E2E)
 - **Hosted on**: GitHub — https://github.com/piwas-21/restaurant-app-frontend
 - **Production**: deployed from `main` (currently `develop` until cutover); test environment from `develop`
@@ -56,7 +56,7 @@ src/
 ├── contexts/                     # React Context providers (Auth, Cart, Theme, etc.)
 ├── hooks/                        # Custom hooks (page-level logic lives here)
 ├── lib/                          # apiClient, config, formatters
-├── locales/                      # i18next JSON files (9 locales)
+├── locales/                      # i18next JSON files (10 locales)
 ├── services/                     # Backend API service files (one per resource)
 ├── styles/                       # Shared CSS Modules + globals
 ├── types/                        # TypeScript types/interfaces
@@ -75,11 +75,11 @@ Pages are **thin orchestrators** (≤ 200 LOC). Logic lives in custom hooks (`sr
 - Colours / spacing / typography come from CSS variables defined in `src/app/globals.css`. **Never** hardcode hex values in module CSS.
 - Dark mode via `html[data-theme="dark"]` selector. **Never** `@media (prefers-color-scheme: dark)`. See [ADR-002](docs/adr/ADR-002-css-modules-and-tokens.md).
 
-### Internationalisation — i18next, 9 locales
+### Internationalisation — i18next, 10 locales
 
-Locales: `en`, `de`, `tr`, `it`, `ar`, `fr`, `es`, `ru`, `zh`. Every UI string MUST be in `src/locales/<locale>.json`. **Never hardcode UI text** in components.
+Locales: `en`, `de`, `tr`, `it`, `ar`, `fr`, `nl`, `es`, `ru`, `zh` (nl added 2026-07-06, PR #126). Every UI string MUST be in `src/locales/<locale>.json`. **Never hardcode UI text** in components.
 
-**Locale parity** is required: every key added to `en.json` must be added to all 8 other locales in the same MR. See [ADR-003](docs/adr/ADR-003-i18next-locale-parity.md).
+**Locale parity** is required: every key added to `en.json` must be added to all 9 other locales in the same MR. See [ADR-003](docs/adr/ADR-003-i18next-locale-parity.md).
 
 ### Forms — Zod + react-hook-form
 
@@ -115,7 +115,7 @@ Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warn
 8. **No `: any`** in TypeScript — use `unknown` with type guards. (ESLint rule currently disabled at the config level; will be flipped in Sprint 2 — until then, code review enforces.)
 9. **API calls** go through `src/lib/apiClient.ts`, organised by resource in `src/services/<resource>Service.ts`.
 10. **Component exports**: `export default function ComponentName(...)` (not arrow functions assigned to consts).
-11. **No hardcoded UI text** — every string in `src/locales/*.json`. Locale parity required across all 9 locales.
+11. **No hardcoded UI text** — every string in `src/locales/*.json`. Locale parity required across all 10 locales.
 12. **No hardcoded `process.env.NEXT_PUBLIC_*`** literals scattered across components — read once in `src/lib/config.ts`, export typed constants.
 13. **No hardcoded URLs** — backend URL via `NEXT_PUBLIC_API_URL`, image base via `NEXT_PUBLIC_IMAGE_BASE_URL`, etc.
 14. **Cross-feature imports** (`src/features/X/` reaching into `src/features/Y/`) are forbidden. Shared code goes in `src/components/` or `src/lib/`.
@@ -235,7 +235,7 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 1. Output the §6 verification block before writing code.
 2. After non-trivial changes, run `npm run lint` (catches type / hook / import errors fast).
 3. Use design-system primitives: `BaseModal`, `FormField`, `StatusBadge`.
-4. Read translation values from `t('key')`, never hardcode strings. Add the key to all 9 locales in the same change.
+4. Read translation values from `t('key')`, never hardcode strings. Add the key to all 10 locales in the same change.
 5. Read env vars via `src/lib/config.ts`, never `process.env.NEXT_PUBLIC_*` scattered.
 
 ### Before ending

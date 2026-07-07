@@ -3,12 +3,17 @@ import './globals.css';
 import AppInternalLayout from './app-internal-layout';
 import ClientProviders from './client-providers';
 import { Metadata, Viewport } from 'next';
+import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
 
+// Tenant branding is baked at build time (issue #125): build-image.yml passes
+// RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.
+// Baked (not fetched in generateMetadata) so crawlers never see a fallback
+// title while an ISR cache warms up after a deploy.
 export const metadata: Metadata = {
-  title: 'RUMI Restaurant',
-  description: 'RUMI Restaurant - Experience authentic flavors.',
+  title: RESTAURANT_NAME,
+  description: `${RESTAURANT_NAME} - Experience authentic flavors.`,
   icons: {
-    icon: '/rumi-letter-r-icon.svg',
+    icon: BRANDING_ICON,
   },
 };
 

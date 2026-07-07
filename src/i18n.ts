@@ -10,6 +10,7 @@ import translationTR from './locales/tr.json';
 import translationIT from './locales/it.json';
 import translationAR from './locales/ar.json';
 import translationFR from './locales/fr.json';
+import translationNL from './locales/nl.json';
 import translationES from './locales/es.json';
 import translationRU from './locales/ru.json';
 import translationZH from './locales/zh.json';
@@ -21,6 +22,7 @@ const resources = {
   it: { translation: translationIT },
   ar: { translation: translationAR },
   fr: { translation: translationFR },
+  nl: { translation: translationNL },
   es: { translation: translationES },
   ru: { translation: translationRU },
   zh: { translation: translationZH },

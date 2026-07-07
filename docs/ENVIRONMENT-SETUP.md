@@ -19,7 +19,8 @@ The base URL for the backend API.
 ### `NEXT_PUBLIC_IMAGE_BASE_URL`
 The base URL for serving images and assets.
 
-- **Default**: `https://rumi-test-backend-bucket.s3.eu-central-1.amazonaws.com`
+- **Local Development**: `http://localhost:5221` (same-origin as the dev backend, serves `/uploads`)
+- **Production**: `https://www.rumirestaurant.ch` (baked by `build-image.yml`; per-tenant images bake their own domain)
 
 ## Setup Instructions
 
@@ -84,7 +85,7 @@ metadata:
   name: rumi-app-config
 data:
   NEXT_PUBLIC_API_URL: "https://rumirestaurant.ch/api"
-  NEXT_PUBLIC_IMAGE_BASE_URL: "https://rumi-test-backend-bucket.s3.eu-central-1.amazonaws.com"
+  NEXT_PUBLIC_IMAGE_BASE_URL: "https://www.rumirestaurant.ch"
 ```
 
 ## Important Notes

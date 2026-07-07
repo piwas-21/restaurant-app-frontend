@@ -1,0 +1,143 @@
+name: build-tenant-image
+
+# Builds a PER-TENANT frontend image for Sofra instance-per-tenant provisioning
+# (sofra ADR-001/ADR-003; deploy repo provision-tenant.sh pulls the result).
+#
+# WHY a separate image per tenant: NEXT_PUBLIC_* are baked into the bundle at
+# BUILD time (Next.js), so each tenant domain needs its own bake of the SAME
+# source — this is the staging-image pattern (build-image.yml build-staging)
+# generalised to an on-demand workflow_dispatch. The prod :latest chain is
+# untouched; this is deliberately a SEPARATE workflow file so deploy.yml's
+# workflow_run trigger (which matches build-image by name) never fires from a
+# tenant build.
+#
+# Usage (founder-run today; the control plane calls the same entry point later):
+#   gh workflow run build-tenant-image.yml -f tenant_domain=demo.sofrapiwas.com -f image_tag=tenant-demo
+# Publishes ghcr.io/piwas-21/restaurant-app-frontend:<image_tag> (moving) plus
+# :<image_tag>-sha-<commit> (immutable, for rollback), built from the ref the
+# workflow is dispatched on (normally main).
+#
+# Security: same posture as build-image.yml — no untrusted-input expressions
+# inlined in any run: step (inputs appear in `with:` blocks, or — for
+# branding_url only — are passed via `env:` into the script and validated;
+# dispatch is restricted to users with write access anyway); all third-party
+# actions pinned to immutable SHAs; token is the workflow-scoped GITHUB_TOKEN
+# with packages:write only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tenant_domain:
+        description: "Tenant's public domain (no scheme), e.g. demo.sofrapiwas.com"
+        required: true
+      image_tag:
+        description: "GHCR tag to publish, e.g. tenant-demo (convention: tenant-<registry slug>)"
+        required: true
+      google_client_id:
+        description: "Google OAuth web client id for this tenant ('' disables Google login; the shared client only allows registered JS origins)"
+        required: false
+        default: ""
+      restaurant_name:
+        description: "Tenant display name baked into page metadata (registry `name`, e.g. Demo Restaurant). Empty = neutral 'Restaurant' title — pass it for any real tenant"
+        required: false
+        default: ""
+      branding_url:
+        description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: logo.png, logo-dark.png, icon.svg, hero.png). Empty = repo default assets"
+        required: false
+        default: ""
+
+concurrency:
+  group: build-tenant-${{ inputs.image_tag }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push:
+    name: build & push tenant image (GHCR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Apply tenant branding overrides
+        # Replaces the repo-default branding assets in public/branding/ with
+        # the tenant's own set BEFORE the Docker build, so a tenant image
+        # carries its own logo/hero/favicon without a repo change (#125).
+        # Expected archive layout (.tar.gz, files at the archive ROOT):
+        #   logo.png       — light-theme logo
+        #   logo-dark.png  — dark-theme logo
+        #   icon.svg       — favicon
+        #   hero.png       — home-page hero background
+        # Only these four filenames are copied (no arbitrary extraction into
+        # the workspace); a file missing from the archive keeps the repo
+        # default. NOTE: the repo defaults are still tenant-1 (RUMI) assets —
+        # shipping a neutral default set is a possible follow-up.
+        # Security: input is operator-supplied (workflow_dispatch, write
+        # access required); still passed via env — never inlined in the
+        # script — quoted, and required to start with https://.
+        if: inputs.branding_url != ''
+        env:
+          BRANDING_URL: ${{ inputs.branding_url }}
+        run: |
+          set -euo pipefail
+          case "$BRANDING_URL" in
+            https://*) ;;
+            *) echo "branding_url must start with https://" >&2; exit 1 ;;
+          esac
+          tmp="$(mktemp -d)"
+          curl --fail --silent --show-error --location --max-time 60 \
+            --output "$tmp/branding.tar.gz" "$BRANDING_URL"
+          tar -xzf "$tmp/branding.tar.gz" -C "$tmp"
+          applied=0
+          for f in logo.png logo-dark.png icon.svg hero.png; do
+            if [ -f "$tmp/$f" ]; then
+              cp "$tmp/$f" "public/branding/$f"
+              echo "branding override applied: $f"
+              applied=1
+            fi
+          done
+          if [ "$applied" -eq 0 ]; then
+            echo "branding archive contained none of logo.png/logo-dark.png/icon.svg/hero.png" >&2
+            exit 1
+          fi
+
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: buildmeta
+        # ISO-8601 UTC build timestamp, baked into the image alongside the commit
+        # SHA. No workflow inputs are referenced here (see security note above).
+        run: echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ inputs.image_tag }}
+            type=sha,format=long,prefix=${{ inputs.image_tag }}-
+
+      - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://${{ inputs.tenant_domain }}
+            NEXT_PUBLIC_IMAGE_BASE_URL=https://${{ inputs.tenant_domain }}
+            NEXT_PUBLIC_RESTAURANT_NAME=${{ inputs.restaurant_name }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
+            GIT_SHA=${{ github.sha }}
+            BUILD_TIME=${{ steps.buildmeta.outputs.time }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

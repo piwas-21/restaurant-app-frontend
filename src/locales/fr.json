@@ -1110,11 +1110,6 @@
   "max_guests_count": "{{count}} invités",
   "max_guests": "Invités Maximum",
   "outdoor_table": "Table Extérieure",
-  "activate": "Activer",
-  "deactivate": "Désactiver",
-  "enable": "Activer",
-  "disable": "Désactiver",
-  "creating": "Création...",
   "update": "Mettre à Jour",
   "qr_code_missing": "QR code is missing",
   "qr_code_invalid": "Invalid or expired QR code",
@@ -2184,5 +2179,8 @@
   "password_too_short": "Le mot de passe doit contenir au moins 6 caractères",
   "account_creation_failed_continuing": "Impossible de créer le compte ; votre commande se poursuit en tant qu’invité.",
   "register_full_name_help": "Veuillez saisir votre nom complet (prénom et nom)",
-  "field_required": "Requis"
+  "field_required": "Requis",
+  "enable": "Activer",
+  "disable": "Désactiver",
+  "creating": "Création..."
 }

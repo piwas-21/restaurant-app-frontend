@@ -2179,5 +2179,8 @@
   "password_too_short": "Wachtwoord moet minstens 6 tekens lang zijn",
   "account_creation_failed_continuing": "Kon je account niet aanmaken, maar je bestelling gaat door als gast.",
   "register_full_name_help": "Vul je volledige naam in (voor- en achternaam)",
-  "field_required": "Verplicht"
+  "field_required": "Verplicht",
+  "enable": "Inschakelen",
+  "disable": "Uitschakelen",
+  "creating": "Aanmaken..."
 }

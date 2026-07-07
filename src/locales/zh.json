@@ -1142,11 +1142,6 @@
   "max_guests_count": "最多 {{count}} 位客人",
   "max_guests": "最大人数",
   "outdoor_table": "室外桌位",
-  "activate": "启用",
-  "deactivate": "禁用",
-  "enable": "启用",
-  "disable": "禁用",
-  "creating": "正在创建...",
   "update": "更新",
   "select_your_table": "选择您的桌位",
   "book_your_table": "预订您的桌位",
@@ -2184,5 +2179,8 @@
   "password_too_short": "密码至少为 6 个字符",
   "account_creation_failed_continuing": "无法创建账户,您的订单将以访客身份继续。",
   "register_full_name_help": "请输入完整姓名(姓和名)",
-  "field_required": "必填"
+  "field_required": "必填",
+  "enable": "启用",
+  "disable": "禁用",
+  "creating": "正在创建..."
 }

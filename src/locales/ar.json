@@ -1104,11 +1104,6 @@
   "max_guests_count": "{{count}} ضيف",
   "max_guests": "الحد الأقصى للضيوف",
   "outdoor_table": "طاولة خارجية",
-  "activate": "تنشيط",
-  "deactivate": "إلغاء التنشيط",
-  "enable": "تفعيل",
-  "disable": "تعطيل",
-  "creating": "جاري الإنشاء...",
   "update": "تحديث",
   "qr_code_missing": "QR code is missing",
   "qr_code_invalid": "Invalid or expired QR code",
@@ -2183,5 +2178,9 @@
   "password_too_short": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
   "account_creation_failed_continuing": "تعذّر إنشاء الحساب، وسيستمر طلبك كضيف.",
   "register_full_name_help": "يرجى إدخال الاسم الكامل (الاسم واللقب)",
-  "field_required": "مطلوب"
+  "field_required": "مطلوب",
+  "admin_user_groups_title": "مجموعات المستخدمين",
+  "enable": "تفعيل",
+  "disable": "تعطيل",
+  "creating": "جاري الإنشاء..."
 }

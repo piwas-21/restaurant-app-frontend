@@ -5,6 +5,7 @@ import { X, Star, FileText, Printer, Download, ChevronDown } from 'lucide-react'
 import { OrderDto } from '@/types/order';
 import { getStatusBadgeClasses, getFocusBadgeClass } from '@/utils/orderStatusStyles';
 import styles from '../OrderDetailsModal.module.css';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 interface OrderDetailsHeaderProps {
   order: OrderDto;
@@ -33,7 +34,9 @@ export default function OrderDetailsHeader({
   const { t } = useTranslation();
 
   return (
-    <div className={styles.header}>
+    // data-restaurant feeds the print-only .header::before pseudo-element
+    // (OrderDetailsModal.module.css @media print) — issue #125.
+    <div className={styles.header} data-restaurant={RESTAURANT_NAME}>
       <div className={styles.headerLeft}>
         <h2 className={styles.title}>{t('order_details', 'Order Details')}</h2>
         <div className={styles.orderMeta}>

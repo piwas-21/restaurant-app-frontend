@@ -1,31 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
+import { useRestaurantAddress } from '@/hooks/useRestaurantAddress';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 export default function TermsOfUsagePage() {
   const { t } = useTranslation();
-  const { info } = useRestaurantInfo();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Address resolution mirrors src/app/page.tsx and src/app/app-internal-layout.tsx:
-  // admin-edited live value (API) → i18n string → SSR literal. Issue #3 considered
-  // pinning the address at print time for legal stability, but the page's
-  // "last updated" line already renders today's date dynamically (no version
-  // snapshot semantics exist), so the live value is the consistent choice and
-  // keeps the address locale-aware (notably for the ar/ru/zh scripts).
-  const addressStreet = info?.addressLine1 || (isClient ? t('rumi_address_street') : 'Rue du Grand-Pré 45');
-  const addressCityCountry =
-    info?.postalCode && info?.city && info?.country
-      ? `${info.postalCode} ${info.city}, ${info.country}`
-      : isClient
-        ? t('rumi_address_city_country')
-        : '1202 Genève, Switzerland';
+  const { info, addressStreet, addressCityCountry } = useRestaurantAddress();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -38,7 +20,7 @@ export default function TermsOfUsagePage() {
           <h2 className="text-2xl font-semibold mb-3">
             {t('terms_of_usage.agreement_title', '1. Agreement to Terms')}
           </h2>
-          <p>{t('terms_of_usage.agreement_text')}</p>
+          <p>{t('terms_of_usage.agreement_text', { name: info?.name ?? RESTAURANT_NAME })}</p>
         </section>
 
         <section className="mb-6">
@@ -82,7 +64,7 @@ export default function TermsOfUsagePage() {
           <h2 className="text-2xl font-semibold mb-3">{t('terms_of_usage.contact_title', '4. Contact Us')}</h2>
           <p>{t('terms_of_usage.contact_text')}</p>
           <address className="mt-2 not-italic">
-            {info?.name ?? 'RUMI Restaurant'}
+            {info?.name ?? RESTAURANT_NAME}
             <br />
             {addressStreet}
             <br />

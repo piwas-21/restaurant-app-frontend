@@ -2,6 +2,7 @@
  * QR Code Utility Functions
  * Helpers for QR code generation, download, and print functionality
  */
+import { RESTAURANT_NAME } from '@/lib/config';
 
 /**
  * Generate full URL with QR data for table ordering
@@ -83,7 +84,7 @@ export function printQRCode(
       table: 'Table',
       instructions:
         'Scan this QR code with your phone camera to view our menu and place your order directly from your table.',
-      footer: 'Rumi Restaurant - Digital Ordering System',
+      footer: `${RESTAURANT_NAME} - Digital Ordering System`,
     };
 
     // Create print window

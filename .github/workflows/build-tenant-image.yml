@@ -17,10 +17,12 @@ name: build-tenant-image
 # :<image_tag>-sha-<commit> (immutable, for rollback), built from the ref the
 # workflow is dispatched on (normally main).
 #
-# Security: same posture as build-image.yml — no untrusted-input expressions in
-# any run: step (inputs appear only in `with:` blocks; dispatch is restricted to
-# users with write access anyway); all third-party actions pinned to immutable
-# SHAs; token is the workflow-scoped GITHUB_TOKEN with packages:write only.
+# Security: same posture as build-image.yml — no untrusted-input expressions
+# inlined in any run: step (inputs appear in `with:` blocks, or — for
+# branding_url only — are passed via `env:` into the script and validated;
+# dispatch is restricted to users with write access anyway); all third-party
+# actions pinned to immutable SHAs; token is the workflow-scoped GITHUB_TOKEN
+# with packages:write only.
 
 on:
   workflow_dispatch:
@@ -39,6 +41,10 @@ on:
         description: "Tenant display name baked into page metadata (registry `name`, e.g. Demo Restaurant). Empty = neutral 'Restaurant' title — pass it for any real tenant"
         required: false
         default: ""
+      branding_url:
+        description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: logo.png, logo-dark.png, icon.svg, hero.png). Empty = repo default assets"
+        required: false
+        default: ""
 
 concurrency:
   group: build-tenant-${{ inputs.image_tag }}
@@ -55,6 +61,48 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Apply tenant branding overrides
+        # Replaces the repo-default branding assets in public/branding/ with
+        # the tenant's own set BEFORE the Docker build, so a tenant image
+        # carries its own logo/hero/favicon without a repo change (#125).
+        # Expected archive layout (.tar.gz, files at the archive ROOT):
+        #   logo.png       — light-theme logo
+        #   logo-dark.png  — dark-theme logo
+        #   icon.svg       — favicon
+        #   hero.png       — home-page hero background
+        # Only these four filenames are copied (no arbitrary extraction into
+        # the workspace); a file missing from the archive keeps the repo
+        # default. NOTE: the repo defaults are still tenant-1 (RUMI) assets —
+        # shipping a neutral default set is a possible follow-up.
+        # Security: input is operator-supplied (workflow_dispatch, write
+        # access required); still passed via env — never inlined in the
+        # script — quoted, and required to start with https://.
+        if: inputs.branding_url != ''
+        env:
+          BRANDING_URL: ${{ inputs.branding_url }}
+        run: |
+          set -euo pipefail
+          case "$BRANDING_URL" in
+            https://*) ;;
+            *) echo "branding_url must start with https://" >&2; exit 1 ;;
+          esac
+          tmp="$(mktemp -d)"
+          curl --fail --silent --show-error --location --max-time 60 \
+            --output "$tmp/branding.tar.gz" "$BRANDING_URL"
+          tar -xzf "$tmp/branding.tar.gz" -C "$tmp"
+          applied=0
+          for f in logo.png logo-dark.png icon.svg hero.png; do
+            if [ -f "$tmp/$f" ]; then
+              cp "$tmp/$f" "public/branding/$f"
+              echo "branding override applied: $f"
+              applied=1
+            fi
+          done
+          if [ "$applied" -eq 0 ]; then
+            echo "branding archive contained none of logo.png/logo-dark.png/icon.svg/hero.png" >&2
+            exit 1
+          fi
 
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 

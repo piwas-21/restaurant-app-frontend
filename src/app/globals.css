@@ -15,6 +15,8 @@
   --button-text-color: var(--text-on-primary);
   --link-color: var(--link-default);
   --link-hover-color: var(--link-hover);
+  --text-color: var(--text-primary);
+  --text-secondary-color: var(--text-secondary);
   --border-color: var(--border-default);
   --border-color-light: var(--border-light);
   --border-color-extra-light: var(--border-extra-light);
@@ -40,13 +42,7 @@
   --info-color-dark: var(--feedback-info-dark);
 
   /* Not yet migrated to semantic tokens.
-     Body-text pair: ~390 pre-existing usages reference --text-primary /
-     --text-secondary while UNDEFINED (resolving via inheritance or var()
-     fallbacks) — defining those names blind would flip computed colors, so
-     their adoption is a dedicated audited slice (DESIGN-SYSTEM.md §2 note). */
-  --text-color: #1a1a1a;
-  --text-secondary-color: #666;
-  /* Misnomer kept verbatim: the value is BLUE (a selection highlight), not the
+     Misnomer kept verbatim: the value is BLUE (a selection highlight), not the
      brand red the name implies — renamed in the text/status token slice. */
   --primary-color-xlight: rgba(0, 123, 255, 0.1);
 
@@ -62,11 +58,8 @@
 }
 
 html[data-theme='dark'] {
-  /* Semantic dark values live in tokens/colors.css; only the not-yet-migrated
-     text pair + nav vars are overridden here. */
-  --text-color: #f0f0f0;
-  --text-secondary-color: #cdcbcb;
-  --nav-link-color: var(--text-color);
+  /* Semantic dark values live in tokens/colors.css; only the nav vars are
+     overridden here. */
   --nav-link-hover-bg: rgba(255, 255, 255, 0.1);
   --nav-link-active-color: var(--primary-color);
   --nav-link-active-bg: rgba(255, 255, 255, 0.05);
@@ -161,11 +154,16 @@ html:not([data-theme='dark']) body.is-homepage .hamburgerMenu {
 }
 
 /* Homepage overlay header: override variables to dark-like values for controls.
-   NOTE: this block overrides the LEGACY names — when a component in this subtree
-   migrates to semantic names (--surface-*, --text-*), add the semantic overrides
-   here too or the override silently stops applying to it. */
+   NOTE: aliases substitute per-element, so overriding a semantic token here does
+   NOT flow into a legacy alias defined on :root (and vice versa) — override BOTH
+   the semantic name and, on this element, re-derive the legacy alias from it.
+   Raw hex is deliberate: these are fixed "dark-on-light" values with no token. */
 html:not([data-theme='dark']) .home-overlay-header {
-  --text-color: #f0f0f0;
+  --text-primary: #f0f0f0;
+  --text-secondary: #cdcbcb;
+  --text-muted: #9ca3af;
+  --text-color: var(--text-primary);
+  --text-secondary-color: var(--text-secondary);
   --border-color: rgba(255, 255, 255, 0.4);
   --secondary-color: rgba(255, 255, 255, 0.12); /* hover backgrounds, etc. */
   --background-color: rgba(0, 0, 0, 0.85); /* dropdown backgrounds */

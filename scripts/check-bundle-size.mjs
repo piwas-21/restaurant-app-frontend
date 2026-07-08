@@ -63,7 +63,7 @@ const update = process.argv.includes('--update');
 if (update) {
   const sorted = Object.fromEntries(
     Object.keys(current)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .map((r) => [r, current[r]]),
   );
   // Preserve a hand-tuned tolerance if the baseline already sets one.

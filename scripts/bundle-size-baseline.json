@@ -1,5 +1,5 @@
 {
-  "_comment": "First Load JS (gzipped kB) per route — DEV-PHASES W2 D2 budget. Regenerate with `node scripts/check-bundle-size.mjs --update` after an intended change; a route may not grow >10% over its value here without re-baselining.",
+  "_comment": "First Load JS (gzipped kB) per route — DEV-PHASES W2 D2 budget. Regenerate with `node scripts/check-bundle-size.mjs --update` after an intended change; a route may not grow past its value here by more than `tolerancePct` without re-baselining.",
   "tolerancePct": 10,
   "routes": {
     "/": 127.7,

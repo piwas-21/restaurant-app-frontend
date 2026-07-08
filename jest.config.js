@@ -37,6 +37,7 @@ module.exports = {
   collectCoverageFrom: [
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
+    'src/utils/reservationForm.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.spec.tsx',
     '!**/node_modules/**',
@@ -89,6 +90,14 @@ module.exports = {
       lines: 99,
     },
     './src/components/design-system/StatusBadge.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // reservationForm helpers ship at 100% (see reservationForm.test.ts); pinned
+    // at 99 per the "at 100% → 99" rule above.
+    './src/utils/reservationForm.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

@@ -61,17 +61,12 @@ export function buildDefaultIngredientSelections(detailedIngredients: DetailedIn
   const selected = new Set<string>();
   const quantities: Record<string, number> = {};
 
+  // Every ingredient starts selected with quantity 1 — non-optional stays that
+  // way, optional ones can be deselected in the UI. (Both cases are identical, so
+  // no per-ingredient branch is needed.)
   detailedIngredients.forEach((ing) => {
-    // Always select non-optional ingredients
-    if (!ing.isOptional) {
-      selected.add(ing.id);
-      quantities[ing.id] = 1;
-    }
-    // Also select all optional ingredients by default (users can deselect if they don't want)
-    else {
-      selected.add(ing.id);
-      quantities[ing.id] = 1;
-    }
+    selected.add(ing.id);
+    quantities[ing.id] = 1;
   });
 
   return { selected, quantities };

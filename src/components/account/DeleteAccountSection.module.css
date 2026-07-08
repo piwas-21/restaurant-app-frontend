@@ -200,7 +200,7 @@
 }
 
 .helpText {
-  color: var(--status-completed);
+  color: var(--color-gray-500-b);
   font-size: 0.8rem;
   font-style: italic;
 }

@@ -198,7 +198,7 @@
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--status-completed);
+  color: var(--color-gray-500-b);
   background: white;
   border: 2px solid var(--color-gray-200);
   border-radius: 10px;
@@ -240,7 +240,7 @@
 }
 
 .processingText {
-  color: var(--status-completed);
+  color: var(--color-gray-500-b);
   font-size: 1rem;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .successMessage {
-  color: var(--status-completed);
+  color: var(--color-gray-500-b);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -337,7 +337,7 @@
 }
 
 .errorMessage {
-  color: var(--status-completed);
+  color: var(--color-gray-500-b);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;

@@ -119,7 +119,7 @@
 
 [data-theme='dark'] .cancelButton:hover {
   background-color: var(--color-gray-700-d);
-  border-color: var(--status-completed);
+  border-color: var(--color-gray-500-b);
 }
 
 /* Responsive */

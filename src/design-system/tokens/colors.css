@@ -150,6 +150,7 @@
   --color-gray-400-b: #9ca3af;
   --color-gray-50: #f9fafb;
   --color-gray-500: #999999;
+  --color-gray-500-b: #6b7280; /* Tailwind gray-500; neutral muted-gray text/border on customer surfaces */
   --color-gray-600: #777777;
   --color-gray-700: #525252;
   --color-gray-700-b: #555555;

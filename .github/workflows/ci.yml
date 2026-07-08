@@ -116,6 +116,30 @@ jobs:
       # policy. Mirrors the backend's coverlet gate (workspace CLAUDE.md §7).
       - run: npm test -- --ci --runInBand --coverage
 
+  bundle_size:
+    # First-Load-JS budget gate (DEV-PHASES-PLAN W2, D2 performance) — fails if
+    # any route's gzipped first-load JS grows >10% past the committed baseline
+    # (scripts/bundle-size-baseline.json). Deterministic: needs the production
+    # build but no running server and no backend. `.env.production` is auto-read
+    # by `next build`; the NEXT_PUBLIC_* build-args are optional (string values
+    # don't change bundle shape). Re-baseline via `--update` when growth is
+    # intended — see scripts/check-bundle-size.mjs.
+    name: bundle size (First Load JS budget)
+    needs: install_deps
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline --no-audit
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: node scripts/check-bundle-size.mjs
+
   npm_audit:
     name: npm audit (high+)
     needs: install_deps

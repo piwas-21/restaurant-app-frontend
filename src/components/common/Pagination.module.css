@@ -21,8 +21,8 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem;
-  border: 1px solid var(--border-color, #e5e7eb);
-  background-color: var(--card-background, #ffffff);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
   color: var(--text-color);
   border-radius: 8px;
   cursor: pointer;
@@ -32,8 +32,8 @@
 }
 
 .pageButton:hover:not(:disabled) {
-  background-color: var(--secondary-color-light, #f3f4f6);
-  border-color: var(--primary-color, #c0392b);
+  background-color: var(--secondary-color-light);
+  border-color: var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -43,9 +43,9 @@
 }
 
 .pageButton.active {
-  background-color: var(--primary-color, #c0392b);
-  color: var(--button-text-color, white);
-  border-color: var(--primary-color, #c0392b);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -70,19 +70,9 @@
 
 /* Dark mode */
 [data-theme='dark'] .pageButton {
-  background-color: var(--secondary-color, #2c2c2c);
+  background-color: var(--secondary-color);
   color: var(--text-color);
-  border-color: var(--border-color, #555);
-}
-
-[data-theme='dark'] .pageButton:hover:not(:disabled) {
-  background-color: var(--secondary-color-light, #3a3a3a);
-  border-color: var(--primary-color, #e06666);
-}
-
-[data-theme='dark'] .pageButton.active {
-  background-color: var(--primary-color, #e06666);
-  border-color: var(--primary-color, #e06666);
+  border-color: var(--border-color);
 }
 
 /* Responsive */

@@ -8,7 +8,7 @@
   align-items: center;
   text-align: center;
   margin-bottom: 1.5rem;
-  color: #6b7280;
+  color: var(--color-gray-500-b);
   font-size: 0.875rem;
 }
 
@@ -16,7 +16,7 @@
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
 .divider span {
@@ -43,9 +43,9 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  background-color: #000;
-  color: #fff;
-  border: 1px solid #000;
+  background-color: var(--color-black);
+  color: var(--text-on-accent);
+  border: 1px solid var(--color-black);
   border-radius: 4px;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
@@ -57,8 +57,8 @@
 }
 
 .appleButton:hover {
-  background-color: #333;
-  border-color: #333;
+  background-color: var(--color-gray-900-f);
+  border-color: var(--color-gray-900-f);
 }
 
 .appleIcon {

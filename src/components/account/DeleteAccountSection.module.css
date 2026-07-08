@@ -2,7 +2,7 @@
 
 .dangerZone {
   background: linear-gradient(135deg, rgba(254, 242, 242, 0.5) 0%, rgba(254, 226, 226, 0.3) 100%);
-  border: 2px solid #fecaca;
+  border: 2px solid var(--color-red-200);
   border-radius: 12px;
   padding: 2rem;
   position: relative;
@@ -17,12 +17,12 @@
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(180deg, var(--color-red-600) 0%, var(--color-red-800) 100%);
 }
 
 [data-theme='dark'] .dangerZone {
   background: linear-gradient(135deg, rgba(127, 29, 29, 0.2) 0%, rgba(153, 27, 27, 0.1) 100%);
-  border-color: #7f1d1d;
+  border-color: var(--color-red-900-b);
 }
 
 .dangerZoneHeader {
@@ -38,26 +38,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #dc2626;
+  background: var(--color-red-600);
   border-radius: 8px;
   color: white;
   flex-shrink: 0;
 }
 
 [data-theme='dark'] .dangerZoneIcon {
-  background: #991b1b;
+  background: var(--color-red-800);
 }
 
 .dangerZoneTitle {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #dc2626;
+  color: var(--color-red-600);
   margin: 0;
   letter-spacing: -0.01em;
 }
 
 [data-theme='dark'] .dangerZoneTitle {
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .dangerZoneContent {
@@ -65,14 +65,14 @@
 }
 
 .warningText {
-  color: #7f1d1d;
+  color: var(--color-red-900-b);
   font-size: 0.95rem;
   line-height: 1.6;
   margin-bottom: 1rem;
 }
 
 [data-theme='dark'] .warningText {
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .infoList {
@@ -85,19 +85,19 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  color: #991b1b;
+  color: var(--color-red-800);
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
   padding-left: 0.25rem;
 }
 
 [data-theme='dark'] .infoList li {
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .infoList li::before {
   content: '•';
-  color: #dc2626;
+  color: var(--color-red-600);
   font-weight: bold;
   font-size: 1.2rem;
   line-height: 1.4;
@@ -126,27 +126,27 @@
 }
 
 .alertBox.success {
-  background: #d1fae5;
-  border: 1px solid #6ee7b7;
-  color: #065f46;
+  background: var(--color-emerald-100);
+  border: 1px solid var(--color-emerald-300);
+  color: var(--color-emerald-800);
 }
 
 [data-theme='dark'] .alertBox.success {
   background: rgba(6, 95, 70, 0.2);
-  border-color: #047857;
-  color: #6ee7b7;
+  border-color: var(--color-emerald-700);
+  color: var(--color-emerald-300);
 }
 
 .alertBox.error {
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  color: #991b1b;
+  background: var(--color-red-100);
+  border: 1px solid var(--color-red-300);
+  color: var(--color-red-800);
 }
 
 [data-theme='dark'] .alertBox.error {
   background: rgba(127, 29, 29, 0.2);
-  border-color: #991b1b;
-  color: #fca5a5;
+  border-color: var(--color-red-800);
+  color: var(--color-red-300);
 }
 
 .alertIcon {
@@ -167,7 +167,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--color-red-600) 0%, var(--color-red-800) 100%);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -181,7 +181,7 @@
 .deleteButton:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+  background: linear-gradient(135deg, var(--color-red-700-b) 0%, var(--color-red-900-b) 100%);
 }
 
 .deleteButton:active:not(:disabled) {
@@ -200,13 +200,13 @@
 }
 
 .helpText {
-  color: #6b7280;
+  color: var(--color-gray-500-b);
   font-size: 0.8rem;
   font-style: italic;
 }
 
 [data-theme='dark'] .helpText {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 /* Responsive */

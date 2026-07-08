@@ -20,8 +20,8 @@
 .textarea {
   width: 100%;
   padding: 0.875rem 1rem;
-  background-color: var(--secondary-color-light, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.9375rem;
@@ -40,18 +40,18 @@
 
 .textarea:focus {
   outline: none;
-  border-color: var(--primary-color, #c0392b);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
 }
 
 [data-theme='dark'] .textarea {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
   color: var(--text-color);
 }
 
 [data-theme='dark'] .textarea:focus {
-  border-color: var(--primary-color, #e06666);
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(224, 102, 102, 0.1);
 }
 
@@ -61,10 +61,6 @@
   justify-content: flex-end;
   margin-top: 0.5rem;
   font-size: 0.8125rem;
-  color: var(--text-secondary);
-}
-
-[data-theme='dark'] .characterCount {
   color: var(--text-secondary);
 }
 

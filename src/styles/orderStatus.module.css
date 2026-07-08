@@ -13,112 +13,112 @@
 
 /* Status Colors - Light Theme */
 .statusPending {
-  background-color: #fef3c7;
-  color: #92400e;
-  border-color: #fbbf24;
+  background-color: var(--color-amber-100);
+  color: var(--color-amber-800);
+  border-color: var(--status-pending);
 }
 
 .statusConfirmed {
-  background-color: #dbeafe;
-  color: #1e40af;
-  border-color: #60a5fa;
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-800);
+  border-color: var(--color-blue-400-c);
 }
 
 .statusPreparing {
-  background-color: #e0e7ff;
-  color: #4338ca;
-  border-color: #818cf8;
+  background-color: var(--color-indigo-100);
+  color: var(--color-indigo-700);
+  border-color: var(--color-indigo-400);
 }
 
 .statusReady {
-  background-color: #d1fae5;
-  color: #065f46;
-  border-color: #34d399;
+  background-color: var(--color-emerald-100);
+  color: var(--color-emerald-800);
+  border-color: var(--color-emerald-400);
 }
 
 .statusInTransit {
-  background-color: #ddd6fe;
-  color: #5b21b6;
-  border-color: #a78bfa;
+  background-color: var(--color-violet-200);
+  color: var(--color-violet-800-b);
+  border-color: var(--color-violet-400);
 }
 
 .statusDelivered {
-  background-color: #d1fae5;
-  color: #065f46;
-  border-color: #10b981;
+  background-color: var(--color-emerald-100);
+  color: var(--color-emerald-800);
+  border-color: var(--status-confirmed);
 }
 
 .statusCompleted {
-  background-color: #d1fae5;
-  color: #047857;
-  border-color: #10b981;
+  background-color: var(--color-emerald-100);
+  color: var(--color-emerald-700);
+  border-color: var(--status-confirmed);
 }
 
 .statusCancelled {
-  background-color: #fee2e2;
-  color: #991b1b;
-  border-color: #f87171;
+  background-color: var(--color-red-100);
+  color: var(--color-red-800);
+  border-color: var(--color-red-400-c);
 }
 
 .statusNoShow {
-  background-color: #fecaca;
-  color: #7f1d1d;
-  border-color: #f87171;
+  background-color: var(--color-red-200);
+  color: var(--color-red-900-b);
+  border-color: var(--color-red-400-c);
 }
 
 /* Dark Theme Support - uses data-theme attribute to match the app's theme toggle */
 :global(html[data-theme='dark']) .statusPending {
   background-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  border-color: #fbbf24;
+  color: var(--status-pending);
+  border-color: var(--status-pending);
 }
 
 :global(html[data-theme='dark']) .statusConfirmed {
   background-color: rgba(96, 165, 250, 0.2);
-  color: #60a5fa;
-  border-color: #60a5fa;
+  color: var(--color-blue-400-c);
+  border-color: var(--color-blue-400-c);
 }
 
 :global(html[data-theme='dark']) .statusPreparing {
   background-color: rgba(129, 140, 248, 0.2);
-  color: #818cf8;
-  border-color: #818cf8;
+  color: var(--color-indigo-400);
+  border-color: var(--color-indigo-400);
 }
 
 :global(html[data-theme='dark']) .statusReady {
   background-color: rgba(52, 211, 153, 0.2);
-  color: #34d399;
-  border-color: #34d399;
+  color: var(--color-emerald-400);
+  border-color: var(--color-emerald-400);
 }
 
 :global(html[data-theme='dark']) .statusInTransit {
   background-color: rgba(167, 139, 250, 0.2);
-  color: #a78bfa;
-  border-color: #a78bfa;
+  color: var(--color-violet-400);
+  border-color: var(--color-violet-400);
 }
 
 :global(html[data-theme='dark']) .statusDelivered {
   background-color: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-  border-color: #10b981;
+  color: var(--status-confirmed);
+  border-color: var(--status-confirmed);
 }
 
 :global(html[data-theme='dark']) .statusCompleted {
   background-color: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-  border-color: #10b981;
+  color: var(--status-confirmed);
+  border-color: var(--status-confirmed);
 }
 
 :global(html[data-theme='dark']) .statusCancelled {
   background-color: rgba(248, 113, 113, 0.2);
-  color: #f87171;
-  border-color: #f87171;
+  color: var(--color-red-400-c);
+  border-color: var(--color-red-400-c);
 }
 
 :global(html[data-theme='dark']) .statusNoShow {
   background-color: rgba(248, 113, 113, 0.2);
-  color: #f87171;
-  border-color: #f87171;
+  color: var(--color-red-400-c);
+  border-color: var(--color-red-400-c);
 }
 
 /* Payment Status Badges */
@@ -134,63 +134,63 @@
 }
 
 .paymentPending {
-  background-color: #fef3c7;
-  color: #92400e;
-  border-color: #fbbf24;
+  background-color: var(--color-amber-100);
+  color: var(--color-amber-800);
+  border-color: var(--status-pending);
 }
 
 .paymentPaid {
-  background-color: #d1fae5;
-  color: #065f46;
-  border-color: #10b981;
+  background-color: var(--color-emerald-100);
+  color: var(--color-emerald-800);
+  border-color: var(--status-confirmed);
 }
 
 .paymentPartiallyPaid {
-  background-color: #fed7aa;
-  color: #9a3412;
-  border-color: #fb923c;
+  background-color: var(--color-orange-200);
+  color: var(--color-orange-800-b);
+  border-color: var(--color-orange-400);
 }
 
 .paymentRefunded {
-  background-color: #e0e7ff;
-  color: #3730a3;
-  border-color: #818cf8;
+  background-color: var(--color-indigo-100);
+  color: var(--color-indigo-800);
+  border-color: var(--color-indigo-400);
 }
 
 .paymentFailed {
-  background-color: #fee2e2;
-  color: #991b1b;
-  border-color: #f87171;
+  background-color: var(--color-red-100);
+  color: var(--color-red-800);
+  border-color: var(--color-red-400-c);
 }
 
 :global(html[data-theme='dark']) .paymentPending {
   background-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  border-color: #fbbf24;
+  color: var(--status-pending);
+  border-color: var(--status-pending);
 }
 
 :global(html[data-theme='dark']) .paymentPaid {
   background-color: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-  border-color: #10b981;
+  color: var(--status-confirmed);
+  border-color: var(--status-confirmed);
 }
 
 :global(html[data-theme='dark']) .paymentPartiallyPaid {
   background-color: rgba(251, 146, 60, 0.2);
-  color: #fb923c;
-  border-color: #fb923c;
+  color: var(--color-orange-400);
+  border-color: var(--color-orange-400);
 }
 
 :global(html[data-theme='dark']) .paymentRefunded {
   background-color: rgba(129, 140, 248, 0.2);
-  color: #818cf8;
-  border-color: #818cf8;
+  color: var(--color-indigo-400);
+  border-color: var(--color-indigo-400);
 }
 
 :global(html[data-theme='dark']) .paymentFailed {
   background-color: rgba(248, 113, 113, 0.2);
-  color: #f87171;
-  border-color: #f87171;
+  color: var(--color-red-400-c);
+  border-color: var(--color-red-400-c);
 }
 
 /* Focus Badge */
@@ -202,13 +202,13 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  background-color: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fbbf24;
+  background-color: var(--color-amber-100);
+  color: var(--color-amber-800);
+  border: 1px solid var(--status-pending);
 }
 
 :global(html[data-theme='dark']) .focusBadge {
   background-color: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  border-color: #fbbf24;
+  color: var(--status-pending);
+  border-color: var(--status-pending);
 }

@@ -106,12 +106,12 @@
 }
 
 .error {
-  background: #fee;
-  color: #c00;
+  background: var(--color-red-100-b);
+  color: var(--color-red-700-d);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  border: 1px solid #fcc;
+  border: 1px solid var(--color-red-200-b);
 }
 
 /* Guest Selector */

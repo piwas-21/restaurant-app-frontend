@@ -15,7 +15,7 @@
 }
 
 .modal {
-  background: var(--card-background, white);
+  background: var(--card-background);
   border-radius: 12px;
   max-width: 600px;
   width: 100%;
@@ -30,7 +30,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modalTitle {
@@ -41,11 +41,11 @@
 }
 
 [data-theme='dark'] .modal {
-  background: var(--secondary-color, #2c2c2c);
+  background: var(--secondary-color);
 }
 
 [data-theme='dark'] .modalHeader {
-  border-bottom-color: var(--border-color, #444);
+  border-bottom-color: var(--border-color);
 }
 
 .closeButton {
@@ -65,12 +65,12 @@
 }
 
 .closeButton:hover {
-  background-color: var(--secondary-color-light, #f3f4f6);
+  background-color: var(--secondary-color-light);
   color: var(--text-color);
 }
 
 [data-theme='dark'] .closeButton:hover {
-  background-color: var(--background-color, #333);
+  background-color: var(--background-color);
   color: var(--text-color);
 }
 
@@ -93,13 +93,13 @@
 }
 
 .error p {
-  color: var(--error-color, #dc2626);
+  color: var(--error-color);
   margin-bottom: 16px;
 }
 
 .retryButton {
-  background-color: var(--primary-color, #3b82f6);
-  color: var(--button-text-color, white);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -109,7 +109,7 @@
 }
 
 .retryButton:hover {
-  background-color: var(--primary-hover, #2563eb);
+  background-color: var(--color-blue-600-b);
 }
 
 .emptyState p {
@@ -133,28 +133,28 @@
   display: flex;
   gap: 12px;
   padding: 16px;
-  background-color: var(--secondary-color-light, #f9fafb);
+  background-color: var(--secondary-color-light);
   border-radius: 8px;
   transition: background-color 0.2s;
 }
 
 .transactionItem:hover {
-  background-color: var(--background-light, #f3f4f6);
+  background-color: var(--color-gray-100-c);
 }
 
 .transactionItem.positive {
-  border-left: 3px solid var(--success-color, #10b981);
+  border-left: 3px solid var(--success-color);
 }
 
 .transactionItem.negative {
-  border-left: 3px solid var(--info-color, #3b82f6);
+  border-left: 3px solid var(--info-color);
 }
 
 .transactionIcon {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--card-background, white);
+  background-color: var(--card-background);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,15 +163,15 @@
 }
 
 [data-theme='dark'] .transactionItem {
-  background-color: var(--background-color, #222);
+  background-color: var(--background-color);
 }
 
 [data-theme='dark'] .transactionItem:hover {
-  background-color: var(--secondary-color, #2c2c2c);
+  background-color: var(--secondary-color);
 }
 
 [data-theme='dark'] .transactionIcon {
-  background-color: var(--secondary-color, #3a3a3a);
+  background-color: var(--secondary-color);
 }
 
 .transactionDetails {
@@ -200,11 +200,11 @@
 }
 
 .pointsPositive {
-  color: var(--success-color, #10b981);
+  color: var(--success-color);
 }
 
 .pointsNegative {
-  color: var(--info-color, #3b82f6);
+  color: var(--info-color);
 }
 
 .transactionDescription {
@@ -233,9 +233,9 @@
 }
 
 .loadMoreButton {
-  background-color: var(--card-background, white);
-  color: var(--primary-color, #3b82f6);
-  border: 1px solid var(--primary-color, #3b82f6);
+  background-color: var(--card-background);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
   padding: 10px 24px;
   border-radius: 6px;
   cursor: pointer;
@@ -245,8 +245,8 @@
 }
 
 .loadMoreButton:hover:not(:disabled) {
-  background-color: var(--primary-color, #3b82f6);
-  color: var(--button-text-color, white);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
 }
 
 .loadMoreButton:disabled {
@@ -255,14 +255,9 @@
 }
 
 [data-theme='dark'] .loadMoreButton {
-  background-color: var(--secondary-color, #2c2c2c);
-  border-color: var(--primary-color, #5568d3);
-  color: var(--primary-color, #5568d3);
-}
-
-[data-theme='dark'] .loadMoreButton:hover:not(:disabled) {
-  background-color: var(--primary-color, #5568d3);
-  color: var(--button-text-color, white);
+  background-color: var(--secondary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 /* Responsive */

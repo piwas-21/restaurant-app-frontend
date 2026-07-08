@@ -4,7 +4,7 @@
   align-items: center;
   padding: 1rem;
   background: rgba(244, 196, 48, 0.1);
-  border: 2px solid #f4c430;
+  border: 2px solid var(--color-gold-500);
   border-radius: 8px;
   gap: 1rem;
   box-sizing: border-box;
@@ -19,7 +19,7 @@
 .tableValue {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f4c430;
+  color: var(--color-gold-500);
 }
 
 .combineChip {
@@ -53,14 +53,14 @@
 }
 
 .combineChipActive {
-  background: linear-gradient(135deg, #f4c430 0%, #d4a62a 100%);
-  border-color: #f4c430;
-  color: #000;
+  background: linear-gradient(135deg, var(--color-gold-500) 0%, var(--color-gold-600-f) 100%);
+  border-color: var(--color-gold-500);
+  color: var(--color-black);
   box-shadow: 0 2px 12px rgba(244, 196, 48, 0.3);
 }
 
 .combineChipActive:hover {
-  background: linear-gradient(135deg, #ffcc33 0%, #e6b230 100%);
+  background: linear-gradient(135deg, var(--color-gold-500-c) 0%, var(--color-gold-500-d) 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(244, 196, 48, 0.4);
 }

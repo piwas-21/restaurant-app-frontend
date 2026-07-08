@@ -9,12 +9,12 @@
   color: var(--text-color);
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border-color, #e5e7eb);
+  border-bottom: 2px solid var(--border-color);
 }
 
 [data-theme='dark'] .sectionTitle {
   color: var(--text-color);
-  border-bottom-color: var(--border-color, #444);
+  border-bottom-color: var(--border-color);
 }
 
 /* Ingredient Groups */
@@ -48,7 +48,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  background-color: var(--secondary-color-light, #f9fafb);
+  background-color: var(--secondary-color-light);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -61,35 +61,35 @@
 }
 
 .ingredientItem:hover {
-  background-color: var(--secondary-color-light, #f3f4f6);
-  border-color: var(--primary-color, #c0392b);
+  background-color: var(--secondary-color-light);
+  border-color: var(--primary-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .ingredientItem:has(:disabled):hover {
-  background-color: var(--secondary-color-light, #f9fafb);
-  border-color: var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border-color: var(--border-color);
   box-shadow: none;
 }
 
 .ingredientItem:has(:checked) {
-  background-color: var(--success-color-xlight, #d1fae5);
-  border-color: var(--success-color, #28a745);
+  background-color: var(--success-color-xlight);
+  border-color: var(--success-color);
 }
 
 [data-theme='dark'] .ingredientItem {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 [data-theme='dark'] .ingredientItem:hover {
-  background-color: var(--background-color, #2c2c2c);
-  border-color: var(--primary-color, #e06666);
+  background-color: var(--background-color);
+  border-color: var(--primary-color);
 }
 
 [data-theme='dark'] .ingredientItem:has(:checked) {
-  background-color: var(--success-color-dark, #065f46);
-  border-color: var(--success-color, #4caf50);
+  background-color: var(--success-color-dark);
+  border-color: var(--success-color);
 }
 
 /* Checkbox */
@@ -97,17 +97,13 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: var(--success-color, #28a745);
+  accent-color: var(--success-color);
   flex-shrink: 0;
 }
 
 .checkbox:disabled {
   cursor: not-allowed;
   opacity: 0.7;
-}
-
-[data-theme='dark'] .checkbox {
-  accent-color: var(--success-color, #4caf50);
 }
 
 /* Ingredient Name */
@@ -122,21 +118,13 @@
   white-space: nowrap;
 }
 
-[data-theme='dark'] .ingredientName {
-  color: var(--text-color);
-}
-
 /* Ingredient Price */
 .ingredientPrice {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--success-color, #28a745);
+  color: var(--success-color);
   flex-shrink: 0;
   white-space: nowrap;
-}
-
-[data-theme='dark'] .ingredientPrice {
-  color: var(--success-color, #81c784);
 }
 
 /* Ingredient Item Wrapper */
@@ -144,8 +132,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: var(--secondary-color-light, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding-right: 0.75rem;
 }
@@ -159,19 +147,19 @@
 }
 
 .ingredientItemWrapper:hover {
-  background-color: var(--secondary-color-light, #f3f4f6);
-  border-color: var(--primary-color, #c0392b);
+  background-color: var(--secondary-color-light);
+  border-color: var(--primary-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme='dark'] .ingredientItemWrapper {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 [data-theme='dark'] .ingredientItemWrapper:hover {
-  background-color: var(--background-color, #2c2c2c);
-  border-color: var(--primary-color, #e06666);
+  background-color: var(--background-color);
+  border-color: var(--primary-color);
 }
 
 /* Quantity Controls */
@@ -180,14 +168,14 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem;
-  background-color: var(--background-color, #ffffff);
+  background-color: var(--background-color);
   border-radius: 6px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-color);
 }
 
 [data-theme='dark'] .quantityControls {
-  background-color: var(--secondary-color, #2c2c2c);
-  border-color: var(--border-color, #555);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 .quantityBtn {
@@ -197,7 +185,7 @@
   width: 24px;
   height: 24px;
   border: none;
-  background-color: var(--secondary-color-light, #f3f4f6);
+  background-color: var(--secondary-color-light);
   color: var(--text-color);
   border-radius: 4px;
   cursor: pointer;
@@ -208,7 +196,7 @@
 }
 
 .quantityBtn:hover:not(:disabled) {
-  background-color: var(--primary-color, #c0392b);
+  background-color: var(--primary-color);
   color: white;
 }
 
@@ -218,12 +206,8 @@
 }
 
 [data-theme='dark'] .quantityBtn {
-  background-color: var(--border-color, #444);
+  background-color: var(--border-color);
   color: var(--text-color);
-}
-
-[data-theme='dark'] .quantityBtn:hover:not(:disabled) {
-  background-color: var(--primary-color, #e06666);
 }
 
 .quantityValue {
@@ -249,10 +233,6 @@
   text-align: center;
   color: var(--text-secondary);
   font-style: italic;
-}
-
-[data-theme='dark'] .emptyState {
-  color: var(--text-secondary);
 }
 
 /* Responsive Design */

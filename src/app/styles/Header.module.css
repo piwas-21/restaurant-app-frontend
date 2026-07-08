@@ -33,10 +33,6 @@
   display: block;
 }
 
-[data-theme='dark'] .hamburgerMenu {
-  color: var(--text-color); /* text-color variable is updated for dark theme */
-}
-
 .switcherGroup {
   display: contents;
 }
@@ -200,7 +196,7 @@
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  background-color: var(--primary-color-dark, #343a40);
+  background-color: var(--primary-color-dark);
   border: none;
   color: white;
   cursor: pointer;
@@ -218,7 +214,7 @@
 }
 
 .adminSidebarToggleFloating:hover {
-  background-color: var(--primary-color, #1f3a3a);
+  background-color: var(--primary-color);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
   transform: translateY(-50%) scale(1.05);
 }
@@ -232,11 +228,11 @@
 }
 
 [data-theme='dark'] .adminSidebarToggleFloating {
-  background-color: #1f1f1f;
+  background-color: var(--color-gray-900);
 }
 
 [data-theme='dark'] .adminSidebarToggleFloating:hover {
-  background-color: #2a2a2a;
+  background-color: var(--color-gray-900-e);
 }
 
 /* Admin sidebar backdrop for mobile */

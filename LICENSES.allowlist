@@ -54,6 +54,10 @@
 (MPL-2.0 OR Apache-2.0)
 0BSD
 Apache-2.0
+# BlueOak-1.0.0: pulled in by @sentry/nextjs → glob@13 (error tracking, W3).
+# Blue Oak Model License 1.0.0 — modern OSI-approved permissive license, no
+# copyleft, no field-of-use restrictions.
+BlueOak-1.0.0
 BSD-2-Clause
 BSD-3-Clause
 CC-BY-4.0

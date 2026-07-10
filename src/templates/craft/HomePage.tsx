@@ -75,7 +75,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {info && info.phoneNumbers.some((p) => p.isActive) && <ContactIcons phones={info.phoneNumbers} />}
+        {info && info.phoneNumbers?.some((p) => p.isActive) && <ContactIcons phones={info.phoneNumbers} />}
 
         <section aria-labelledby="hours-heading">
           <h2 id="hours-heading" className={craft.tapeLabel}>

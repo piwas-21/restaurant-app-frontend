@@ -15,8 +15,10 @@ import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
 const formatTime = (time: string): string => {
+  if (!time || !time.includes(':')) return time || '';
   const [hours, minutes] = time.split(':');
   const hour = parseInt(hours, 10);
+  if (Number.isNaN(hour)) return time;
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour % 12 || 12;
   return `${hour12}:${minutes} ${ampm}`;
@@ -50,7 +52,7 @@ export function useCraftHomeData() {
     const fetchWorkingHours = async () => {
       try {
         const hours = await workingHoursService.getAll();
-        const sorted = hours.sort((a, b) => dayNameToNumber(a.dayOfWeek) - dayNameToNumber(b.dayOfWeek));
+        const sorted = [...hours].sort((a, b) => dayNameToNumber(a.dayOfWeek) - dayNameToNumber(b.dayOfWeek));
         setWorkingHours(sorted);
       } catch (error) {
         console.error('Failed to fetch working hours:', error);
@@ -128,7 +130,7 @@ export function useCraftHomeData() {
   const restaurantName = info?.name ?? RESTAURANT_NAME;
   const addressStreet = info?.addressLine1 ?? '';
   const addressCityCountry = info ? `${info.postalCode} ${info.city}, ${info.country}` : '';
-  const primaryPhone = info?.phoneNumbers.find((p) => p.isActive) ?? info?.phoneNumbers[0] ?? null;
+  const primaryPhone = info?.phoneNumbers?.find((p) => p.isActive) ?? info?.phoneNumbers?.[0] ?? null;
   const phoneDisplay = primaryPhone?.number ?? '';
   const phoneTel = phoneDisplay.replace(/\s/g, '');
 

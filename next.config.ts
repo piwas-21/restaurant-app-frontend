@@ -71,8 +71,11 @@ const nextConfig: NextConfig = {
   },
 
   // Tenant UI template alias (ADR-006) — `next build` uses webpack; `next
-  // dev --turbopack` reads turbopack.resolveAlias. tsconfig.json carries the
-  // matching path (pointed at `classic` as the type-source) for tsc/editors.
+  // dev --turbopack` reads turbopack.resolveAlias. This is the SOLE resolver:
+  // tsc/editors type-check via ambient declarations in
+  // src/templates/active-template.d.ts (a former tsconfig.json `paths` entry
+  // pointing at `classic` shadowed this alias during webpack builds, silently
+  // bundling `classic` for every non-classic template — removed in S15 T3).
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,

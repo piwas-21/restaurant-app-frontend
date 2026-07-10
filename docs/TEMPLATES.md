@@ -25,9 +25,13 @@ deploy registry `template:`  →  build-tenant-image.yml `template` input
   ARG plumbing bakes an **empty string** when the build-arg is omitted).
 - An unknown value **fails the build at config load** with
   `NEXT_PUBLIC_TEMPLATE="<x>" is not a known UI template …` — no silent fallback.
-- `tsconfig.json` maps `@active-template` to `classic` as the **type-source**
-  (tsc/editors always check against classic); `jest.config.js` mirrors this.
-  Every template must therefore stay assignable to `TemplateDefinition`.
+- The build-time alias in `next.config.ts` is the **sole resolver**. tsc/editors
+  type-check via ambient declarations in `src/templates/active-template.d.ts`;
+  `jest.config.js` maps `@active-template` → `classic` for tests. Every template
+  must stay assignable to `TemplateDefinition`. **Do not re-add a `@active-template`
+  `tsconfig.json` `paths` entry** — Next's webpack build honors `paths` OVER
+  `resolve.alias`, which silently bundles `classic` for every non-classic template
+  (the S15 T3 bug this file's history records).
 - Only the active template's code, CSS, and fonts end up in the bundle
   (dead-code elimination — no runtime branching). Verified for `classic`:
   a default build and an explicit `NEXT_PUBLIC_TEMPLATE=classic` build

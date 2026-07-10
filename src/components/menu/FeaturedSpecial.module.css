@@ -16,7 +16,7 @@
 }
 
 [data-theme='dark'] .featuredSpecialContainer {
-  background: linear-gradient(135deg, var(--color-yellow-950) 0%, var(--color-yellow-900) 100%);
+  background: linear-gradient(135deg, var(--color-yellow-950) 0%, var(--color-yellow-900-b) 100%);
   border-color: var(--color-gold-600-d);
 }
 
@@ -97,7 +97,7 @@
 }
 
 [data-theme='dark'] .priceLabel {
-  color: var(--color-gray-400);
+  color: var(--color-gray-400-b);
 }
 
 .priceValue {
@@ -119,7 +119,7 @@
 }
 
 [data-theme='dark'] .featuredSpecialTime {
-  color: var(--color-gray-400);
+  color: var(--color-gray-400-b);
 }
 
 .featuredSpecialIngredients {

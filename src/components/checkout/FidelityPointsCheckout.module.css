@@ -189,7 +189,7 @@
 }
 
 .maxButton:hover {
-  background-color: var(--color-blue-500-b);
+  background-color: var(--color-iris-500);
 }
 
 .slider {
@@ -280,7 +280,7 @@
 }
 
 .applyButton:hover:not(:disabled) {
-  background-color: var(--color-blue-500-b);
+  background-color: var(--color-iris-500);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

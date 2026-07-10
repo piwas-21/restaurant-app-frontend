@@ -10,7 +10,7 @@
 }
 
 [data-theme='dark'] .container {
-  background: linear-gradient(135deg, var(--color-red-950) 0%, var(--color-red-950-b) 50%, var(--color-red-900) 100%);
+  background: linear-gradient(135deg, var(--color-red-950) 0%, var(--color-red-950-b) 50%, var(--color-red-900-b) 100%);
 }
 
 .card {
@@ -119,11 +119,11 @@
 
 [data-theme='dark'] .warningBox {
   background: rgba(127, 29, 29, 0.2);
-  border-color: var(--color-red-900-b);
+  border-color: var(--color-red-900);
 }
 
 .warningText {
-  color: var(--color-red-900-b);
+  color: var(--color-red-900);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1rem;
@@ -198,7 +198,7 @@
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-gray-500-b);
+  color: var(--color-gray-500);
   background: white;
   border: 2px solid var(--color-gray-200);
   border-radius: 10px;
@@ -208,7 +208,7 @@
 
 [data-theme='dark'] .cancelButton {
   background: var(--color-gray-900-b);
-  border-color: var(--color-gray-800);
+  border-color: var(--color-neutral-700);
   color: var(--text-muted);
 }
 
@@ -218,8 +218,8 @@
 }
 
 [data-theme='dark'] .cancelButton:hover {
-  border-color: var(--color-gray-700);
-  background: var(--color-gray-800-b);
+  border-color: var(--color-neutral-600);
+  background: var(--color-gray-800);
 }
 
 /* Processing State */
@@ -240,7 +240,7 @@
 }
 
 .processingText {
-  color: var(--color-gray-500-b);
+  color: var(--color-gray-500);
   font-size: 1rem;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .successMessage {
-  color: var(--color-gray-500-b);
+  color: var(--color-gray-500);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -337,7 +337,7 @@
 }
 
 .errorMessage {
-  color: var(--color-gray-500-b);
+  color: var(--color-gray-500);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;
@@ -362,7 +362,7 @@
 [data-theme='dark'] .backButton {
   background: var(--color-gray-900);
   color: var(--color-red-300);
-  border-color: var(--color-red-900-b);
+  border-color: var(--color-red-900);
 }
 
 .backButton:hover {
@@ -371,7 +371,7 @@
 }
 
 [data-theme='dark'] .backButton:hover {
-  background: var(--color-red-900-b);
+  background: var(--color-red-900);
   color: white;
 }
 

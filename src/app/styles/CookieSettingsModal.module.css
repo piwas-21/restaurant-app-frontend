@@ -167,7 +167,7 @@ input:checked + .slider:before {
 /* Dark Mode Adjustments */
 html[data-theme='dark'] .modalContent {
   background-color: var(--color-gray-900-b);
-  color: var(--color-gray-100-b);
+  color: var(--color-gray-100-c);
 }
 
 html[data-theme='dark'] .modalHeader,
@@ -176,7 +176,7 @@ html[data-theme='dark'] .modalFooter {
 }
 
 html[data-theme='dark'] .preferenceItem {
-  border-bottom-color: var(--color-gray-800-b);
+  border-bottom-color: var(--color-gray-800);
 }
 
 html[data-theme='dark'] .closeButton {
@@ -184,7 +184,7 @@ html[data-theme='dark'] .closeButton {
 }
 
 html[data-theme='dark'] .preferenceDetails p {
-  color: var(--color-gray-400);
+  color: var(--color-gray-400-b);
 }
 
 html[data-theme='dark'] .slider {

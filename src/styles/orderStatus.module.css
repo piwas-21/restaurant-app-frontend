@@ -21,7 +21,7 @@
 .statusConfirmed {
   background-color: var(--color-blue-100);
   color: var(--color-blue-800);
-  border-color: var(--color-blue-400-c);
+  border-color: var(--color-blue-400);
 }
 
 .statusPreparing {
@@ -38,7 +38,7 @@
 
 .statusInTransit {
   background-color: var(--color-violet-200);
-  color: var(--color-violet-800-b);
+  color: var(--color-violet-800);
   border-color: var(--color-violet-400);
 }
 
@@ -57,13 +57,13 @@
 .statusCancelled {
   background-color: var(--color-red-100);
   color: var(--color-red-800);
-  border-color: var(--color-red-400-c);
+  border-color: var(--color-red-400);
 }
 
 .statusNoShow {
   background-color: var(--color-red-200);
-  color: var(--color-red-900-b);
-  border-color: var(--color-red-400-c);
+  color: var(--color-red-900);
+  border-color: var(--color-red-400);
 }
 
 /* Dark Theme Support - uses data-theme attribute to match the app's theme toggle */
@@ -75,8 +75,8 @@
 
 :global(html[data-theme='dark']) .statusConfirmed {
   background-color: rgba(96, 165, 250, 0.2);
-  color: var(--color-blue-400-c);
-  border-color: var(--color-blue-400-c);
+  color: var(--color-blue-400);
+  border-color: var(--color-blue-400);
 }
 
 :global(html[data-theme='dark']) .statusPreparing {
@@ -111,14 +111,14 @@
 
 :global(html[data-theme='dark']) .statusCancelled {
   background-color: rgba(248, 113, 113, 0.2);
-  color: var(--color-red-400-c);
-  border-color: var(--color-red-400-c);
+  color: var(--color-red-400);
+  border-color: var(--color-red-400);
 }
 
 :global(html[data-theme='dark']) .statusNoShow {
   background-color: rgba(248, 113, 113, 0.2);
-  color: var(--color-red-400-c);
-  border-color: var(--color-red-400-c);
+  color: var(--color-red-400);
+  border-color: var(--color-red-400);
 }
 
 /* Payment Status Badges */
@@ -147,7 +147,7 @@
 
 .paymentPartiallyPaid {
   background-color: var(--color-orange-200);
-  color: var(--color-orange-800-b);
+  color: var(--color-orange-800);
   border-color: var(--color-orange-400);
 }
 
@@ -160,7 +160,7 @@
 .paymentFailed {
   background-color: var(--color-red-100);
   color: var(--color-red-800);
-  border-color: var(--color-red-400-c);
+  border-color: var(--color-red-400);
 }
 
 :global(html[data-theme='dark']) .paymentPending {
@@ -189,8 +189,8 @@
 
 :global(html[data-theme='dark']) .paymentFailed {
   background-color: rgba(248, 113, 113, 0.2);
-  color: var(--color-red-400-c);
-  border-color: var(--color-red-400-c);
+  color: var(--color-red-400);
+  border-color: var(--color-red-400);
 }
 
 /* Focus Badge */

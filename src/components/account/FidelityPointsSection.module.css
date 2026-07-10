@@ -45,11 +45,11 @@
 }
 
 .retryButton:hover {
-  background-color: var(--color-blue-500-b);
+  background-color: var(--color-iris-500);
 }
 
 [data-theme='dark'] .retryButton:hover {
-  background-color: var(--color-blue-600);
+  background-color: var(--color-iris-700);
 }
 
 .pointsBalanceCard {

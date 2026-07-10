@@ -326,7 +326,7 @@
 [data-theme='dark'] .backButton {
   background: var(--color-gray-900);
   color: var(--color-red-300);
-  border-color: var(--color-red-900-b);
+  border-color: var(--color-red-900);
 }
 
 .backButton:hover {
@@ -337,7 +337,7 @@
 }
 
 [data-theme='dark'] .backButton:hover {
-  background: var(--color-red-900-b);
+  background: var(--color-red-900);
   color: white;
 }
 

@@ -203,7 +203,7 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .floatingButton {
-    background: linear-gradient(135deg, var(--color-red-400-b) 0%, var(--color-red-700-c) 100%);
+    background: linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%);
     box-shadow:
       0 8px 32px rgba(224, 102, 102, 0.3),
       0 2px 8px rgba(0, 0, 0, 0.3);

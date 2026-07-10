@@ -63,25 +63,27 @@ for a raw hex is zero-delta at every site (including inside dark rules).
 Naming: `--color-<family>-<step>` by Tailwind step where the value matches a
 Tailwind colour exactly (e.g. `--color-gray-200: #e5e7eb`, `--color-red-600: #dc2626`),
 else by hue+lightness bucket (approximate; `-b`/`-c` suffixes disambiguate distinct
-values that fall in the same bucket, e.g. two near-identical dark surfaces). Non-Tailwind
-families that recur get sensible names — e.g. `--color-gold-500: #f4c430`, the
-indigo/violet gradient family (`#667eea`/`#764ba2`/`#5568d3`), `--color-black`.
+values that fall in the same bucket, e.g. two near-identical dark surfaces).
 
-> **Follow-up owed (naming hygiene, not correctness).** This slice minted the
-> primitives value-first and mechanically, so in ~10 buckets the *unsuffixed*
-> `--color-<family>-<step>` slot did NOT land on the exact-Tailwind value (e.g.
-> `--color-gray-400` is `#aaaaaa`, while Tailwind's `#9ca3af` is `--color-gray-400-b`),
-> and ~15 Material/gradient/brown values carry Tailwind-looking names (e.g.
-> `--color-orange-700`/`--color-red-800-c` are browns). Values + zero-delta are
-> correct; the *names* are not a reliable Tailwind reference. A follow-up `chore`
-> slice should reassign the canonical slot to the exact-Tailwind value per bucket
-> and move the non-Tailwind hues to their own namespace — a pure rename (nothing
-> references these except by exact name), safest done while the set is fresh.
+> **Naming hygiene (slice-4 follow-up): DONE.** The primitives were audited
+> against the Tailwind v3 default palette and renamed — a pure rename, zero
+> visual delta (proven by a before/after `var()`-chain resolver over every css
+> declaration in both themes, plus the committed screenshot baseline). Names are
+> now a reliable Tailwind reference: an **unsuffixed** `--color-<family>-<step>`
+> in a Tailwind-named family always holds the **exact** Tailwind v3 value
+> whenever that value exists among our primitives; `-b`/`-c` suffixes mark
+> near-bucket approximations only. Non-Tailwind hues live in their own honest
+> namespaces: `--color-material-<family>-<step>` (exact Material Design 2014
+> values, e.g. `--color-material-red-400: #ef5350`), `--color-brown-*` (Material
+> browns formerly misfiled as `orange-700`/`red-800-c`), `--color-iris-*` /
+> `--color-plum-*` (the `#667eea`/`#764ba2` gradient family), `--color-neutral-*`
+> (exact Tailwind *neutral* greys formerly filed under `gray`), plus the
+> pre-existing `--color-gold-*` and `--color-black`.
 
 ```css
 /* excerpt — see the full block in src/design-system/tokens/colors.css */
 --color-gray-200: #e5e7eb;   --color-red-600: #dc2626;    --color-emerald-500 → --status-confirmed;
---color-gold-500: #f4c430;   --color-blue-400: #667eea;   --color-violet-600: #764ba2;
+--color-gold-500: #f4c430;   --color-iris-400: #667eea;   --color-plum-600: #764ba2;
 ```
 
 > These are **primitives only** — they carry no semantic meaning. New code should

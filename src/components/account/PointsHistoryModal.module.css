@@ -109,7 +109,7 @@
 }
 
 .retryButton:hover {
-  background-color: var(--color-blue-600-b);
+  background-color: var(--color-blue-600);
 }
 
 .emptyState p {
@@ -139,7 +139,7 @@
 }
 
 .transactionItem:hover {
-  background-color: var(--color-gray-100-c);
+  background-color: var(--color-gray-100);
 }
 
 .transactionItem.positive {

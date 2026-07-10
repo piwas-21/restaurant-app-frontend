@@ -17,7 +17,7 @@
   overflow-x: auto;
   padding-bottom: 0.5rem;
   scrollbar-width: thin;
-  scrollbar-color: #f4c430 rgba(244, 196, 48, 0.1);
+  scrollbar-color: var(--color-gold-500) rgba(244, 196, 48, 0.1);
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
@@ -31,13 +31,13 @@
 }
 
 .dateSelector::-webkit-scrollbar-thumb {
-  background: #f4c430;
+  background: var(--color-gold-500);
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 .dateSelector::-webkit-scrollbar-thumb:hover {
-  background: #e0b020;
+  background: var(--color-gold-600);
 }
 
 .dateButton {
@@ -56,13 +56,13 @@
 }
 
 .dateButton:hover {
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
   background: rgba(244, 196, 48, 0.1);
 }
 
 .dateButton.selected {
-  background: #f4c430;
-  border-color: #f4c430;
+  background: var(--color-gold-500);
+  border-color: var(--color-gold-500);
 }
 
 .dateDay {
@@ -72,7 +72,7 @@
 }
 
 .dateButton.selected .dateDay {
-  color: #000;
+  color: var(--color-black);
 }
 
 .dateDayName {
@@ -81,7 +81,7 @@
 }
 
 .dateButton.selected .dateDayName {
-  color: #000;
+  color: var(--color-black);
 }
 
 /* Time Selector */
@@ -108,7 +108,7 @@
 }
 
 .timeButton:hover:not(:disabled) {
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
   background: rgba(244, 196, 48, 0.1);
 }
 
@@ -117,9 +117,9 @@
 }
 
 .timeButton.selected {
-  background: #f4c430;
-  border-color: #f4c430;
-  color: #000;
+  background: var(--color-gold-500);
+  border-color: var(--color-gold-500);
+  color: var(--color-black);
 }
 
 .timeButton:disabled {
@@ -156,11 +156,11 @@
 
 .customInput:focus {
   outline: none;
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
 }
 
 .customInput:hover {
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
 }
 
 /* Date picker calendar icon color */
@@ -193,12 +193,6 @@
 [data-theme='dark'] .timeButton:hover:not(:disabled) {
   background: rgba(244, 196, 48, 0.15);
   border-color: rgba(244, 196, 48, 0.5);
-}
-
-[data-theme='dark'] .timeButton.selected {
-  background: #f4c430;
-  border-color: #f4c430;
-  color: #000;
 }
 
 /* Dark mode calendar picker */

@@ -1,0 +1,108 @@
+/* craft template tokens (ADR-006, S15 T3 slice 1 — SOFRA-TENANT-TEMPLATES-PLAN
+   §3.3 source spec). Re-exports the shared semantic token layer (same as
+   classic/tokens.css) then overrides the color VALUES with the craft
+   palette — a template overrides semantic names, it does not fork the
+   shared token files (docs/TEMPLATES.md). The root layout imports this
+   file FIRST, before globals.css, so globals.css's legacy-name aliases
+   (--primary-color etc.) pick up these values through the normal CSS
+   cascade — same mechanism classic relies on.
+
+   Palette: cream/ink/terracotta/olive/saffron/kraft/brick (light) —
+   "late-evening kitchen" aubergine/apricot (dark, html[data-theme='dark'],
+   NOT prefers-color-scheme). Ported from sofra/app/globals.css's HSL
+   tokens (--background/--primary/--secondary/--accent/--muted/
+   --destructive); this app's semantic layer uses different names, so the
+   sofra roles are re-homed onto the EXISTING names actually consumed
+   app-wide (verified by grepping the CSS tree before choosing):
+     - primary/accent      -> --brand-primary / --brand-accent
+     - background/card     -> --surface-primary / --surface-card
+     - secondary (olive)    -> --text-secondary. Sofra's own contrast note
+       calls olive-text (not the raw #7C8450 swatch) the AA-safe choice for
+       TEXT use ("--craft-olive-text, 5.2:1") — --text-secondary is a text
+       role in this codebase, so olive lands there, not on a background.
+     - muted (kraft)        -> --surface-secondary / --surface-secondary-light
+       + --border-* (subtle panel fill / divider tone — matches how those
+       tokens are actually consumed: hover backgrounds, panel fills,
+       dividers; sofra itself maps --border to the same HSL slot as
+       --muted, i.e. the same precedent).
+     - destructive (brick)  -> --feedback-danger family (this codebase's
+       existing "destructive action" hue, kept separate from
+       --feedback-error per colors.css's own comment).
+
+   a11y note (WCAG AA guard, plan §3.3): --feedback-danger is darkened from
+   the spec's literal #CC5A50 to #B44F46 (4.84:1 on cream vs 3.90:1)
+   because grep confirmed the BASE token (not just -dark/-light/-xlight) is
+   read directly as *text* color in several shared customer modules
+   (MenuPage, MyReservations, MyOrders, DetailsPage). All other pairings
+   below were spot-checked (surface-primary/secondary/card x
+   text-primary/secondary/muted, brand-primary x text-on-primary, link
+   pairs) and clear 4.5:1+; a full per-route axe/contrast sweep is T3 DoD /
+   T4 surface-polish work and is intentionally not repeated here (Playwright
+   e2e is out of scope for this slice). */
+@import '../../design-system/tokens/index.css';
+
+:root {
+  /* Brand */
+  --brand-primary: #a84b2f; /* terracotta clay */
+  --brand-primary-dark: #7a3a24; /* pressed/hover shade */
+  --brand-accent: #d9a441; /* saffron threads */
+
+  /* Surfaces */
+  --surface-primary: #fff9f2; /* warm cream paper */
+  --surface-secondary: #eae0d2; /* kraft paper */
+  --surface-secondary-light: #f3ede1;
+  --surface-card: #fffcf8; /* warm white plate */
+
+  /* Text */
+  --text-primary: #3b2e26; /* roasted-coffee ink */
+  --text-secondary: #5a6139; /* olive-text, 6.3:1 on cream */
+  --text-muted: #746b5e; /* warm taupe, 5.0:1 on cream */
+  --text-on-primary: #fff9f2; /* cream text on terracotta buttons */
+  --text-on-accent: #fffcf8; /* text over the hero photo overlay */
+
+  /* Links */
+  --link-default: #a84b2f;
+  --link-hover: #8f4128;
+
+  /* Borders */
+  --border-default: #eae0d2; /* kraft */
+  --border-light: #f1eae0;
+  --border-extra-light: #f8f3ec;
+
+  /* Feedback — destructive/"brick" (see a11y note above) */
+  --feedback-danger: #b44f46;
+  --feedback-danger-dark: #8f3f38;
+  --feedback-danger-light: #e8b8b0;
+  --feedback-danger-xlight: #fbeae7;
+}
+
+html[data-theme='dark'] {
+  /* "Late-evening kitchen" — a different atmosphere, not an invert. */
+  --brand-primary: #f2b48c; /* luminous apricot, 9.5:1 on the aubergine bg */
+  --brand-accent: #e8c87c; /* pale saffron */
+
+  --surface-primary: #211a16; /* deep warm aubergine */
+  --surface-secondary: #3e3630; /* dark umber */
+  --surface-secondary-light: #4a403a;
+  --surface-card: #2c241f;
+
+  --text-primary: #f2e9dd; /* warm cream */
+  --text-secondary: #b5bc8a; /* pale olive */
+  --text-muted: #a69885;
+
+  --text-on-primary: #211a16; /* dark text on the light apricot buttons */
+
+  --link-default: #f2b48c;
+  --link-hover: #f7cbae;
+
+  --border-default: #3e3630;
+
+  /* Unlike the shared layer (which leaves --feedback-danger's base value
+     unset in dark, at a known sub-AA 3.8:1 gap it already ships with —
+     see colors.css), craft explicitly overrides the base here too: the
+     un-flipped light value would drop to ~3.4:1 on the aubergine bg. */
+  --feedback-danger: #e8948c; /* soft terracotta glow */
+  --feedback-danger-dark: #f0afa8;
+  --feedback-danger-light: #5c3430;
+  --feedback-danger-xlight: #3a211e;
+}

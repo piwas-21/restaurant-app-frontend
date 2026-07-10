@@ -51,7 +51,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   opacity: 0.8;
 }
 
@@ -65,10 +65,10 @@
 .ingredientTag {
   display: inline-block;
   padding: 0.3rem 0.6rem;
-  background-color: var(--background-subtle, #f5f5f5);
+  background-color: var(--surface-secondary-light);
   border-radius: 12px;
   font-size: 0.85rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   opacity: 0.9;
 }
 
@@ -84,27 +84,27 @@
 }
 
 .allergyTag.vegan {
-  background-color: var(--success-color-xlight, #d4edda);
-  color: var(--success-color-dark, #155724);
-  border-color: var(--success-color-light, #c3e6cb);
+  background-color: var(--success-color-xlight);
+  color: var(--success-color-dark);
+  border-color: var(--success-color-light);
 }
 
 .allergyTag.vegetarian {
-  background-color: var(--info-color-xlight, #cce5ff);
-  color: var(--info-color-dark, #004085);
-  border-color: var(--info-color-light, #b8daff);
+  background-color: var(--info-color-xlight);
+  color: var(--info-color-dark);
+  border-color: var(--info-color-light);
 }
 
 .allergyTag.halal {
-  background-color: var(--secondary-color-light, #e2e3e5);
-  color: var(--text-secondary, #383d41);
-  border-color: var(--border-color-light, #d6d8db);
+  background-color: var(--secondary-color-light);
+  color: var(--text-secondary);
+  border-color: var(--border-color-light);
 }
 
 .allergyTag.gluten-free {
-  background-color: var(--warning-color-xlight, #fff3cd);
-  color: var(--warning-color-dark, #856404);
-  border-color: var(--warning-color-light, #ffeeba);
+  background-color: var(--warning-color-xlight);
+  color: var(--warning-color-dark);
+  border-color: var(--warning-color-light);
 }
 
 /* Responsive adjustments */

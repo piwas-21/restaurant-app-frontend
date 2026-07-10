@@ -257,7 +257,12 @@ test-results/
 These are local-only. **Do not gitignore the whole `e2e/` directory** —
 tests must be committed. (This was the bug in the original config.)
 
-Never commit a snapshot, screenshot, or trace.
+Never commit a snapshot, screenshot, or trace — **with one deliberate
+exception**: the golden baselines of the screenshot suite under
+`e2e/screenshots/__screenshots__/` are committed by design (linux-generated
+inside the pinned Playwright image; the tenant-templates T2 zero-diff gate).
+They are regenerated only via `npm run test:screenshots:docker:update`,
+never hand-edited. See `e2e/README.md` §Screenshot baseline.
 
 ## Adding a new scenario — the checklist
 

@@ -1,0 +1,293 @@
+/* Design tokens — colors (semantic layer). Single source of truth for every
+   color value in the app: raw hex/rgb() belongs ONLY in this directory.
+   Light values on :root, dark overrides on html[data-theme='dark'] (§5.7).
+   Legacy names alias to these in globals.css until modules migrate
+   (S15 T1 / DESIGN-SYSTEM.md §2). Tenant templates will ship their own values
+   for this same set (ADR-006). */
+
+:root {
+  /* Brand */
+  --brand-primary: #c00000; /* RUMI Red */
+  --brand-primary-dark: #890303;
+  --brand-accent: #d9534f;
+
+  /* Surfaces */
+  --surface-primary: #ffffff;
+  --surface-secondary: #f0f0f0;
+  --surface-secondary-light: #f5f5f5;
+  --surface-card: #f9f9f9;
+
+  /* Body text (S15 T1 slice 2 — every pre-existing usage audited before
+     definition; see DESIGN-SYSTEM.md §2 status note). Values match the legacy
+     --text-color / --text-secondary-color pair, which now alias into these.
+     --text-muted: lightest text still WCAG AA on --surface-primary (4.8:1). */
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #6b7280;
+
+  /* Text on colored backgrounds */
+  --text-on-primary: #ffffff;
+  --text-on-accent: #ffffff; /* accent backgrounds are deliberately dark in both themes */
+
+  /* Links */
+  --link-default: #c00000;
+  --link-hover: #a00000;
+
+  /* Borders */
+  --border-default: #dddddd;
+  --border-light: #e0e0e0;
+  --border-extra-light: #f0f0f0;
+
+  /* Feedback — success */
+  --feedback-success: #4caf50;
+  --feedback-success-light: #c8e6c9;
+  --feedback-success-xlight: #e8f5e9;
+  --feedback-success-dark: #388e3c; /* ~4.1:1 on white — text/bg where white-text contrast isn't required; below AA for normal text on white */
+  --feedback-success-darker: #2e7d32; /* CTA button background in light mode (~5.7:1 on white, WCAG AA) */
+
+  /* Feedback — error (form/API errors) */
+  --feedback-error: #f44336;
+  --feedback-error-bg: #fdecea;
+  --feedback-error-border: #f5c2c0;
+
+  /* Feedback — danger (destructive actions; separate hue family from error, kept as-is) */
+  --feedback-danger: #dc3545;
+  --feedback-danger-dark: #c82333;
+  --feedback-danger-light: #f5c6cb;
+  --feedback-danger-xlight: #f8d7da;
+
+  /* Feedback — warning */
+  --feedback-warning: #ffa500;
+  --feedback-warning-light: #ffdab9;
+  --feedback-warning-xlight: #fff5e1;
+  --feedback-warning-dark: #a06000;
+
+  /* Feedback — info */
+  --feedback-info: #28c2d9;
+  --feedback-info-light: #66bcc9;
+  --feedback-info-xlight: #8ae0ee;
+  --feedback-info-dark: #156a77;
+
+  /* Status hues (charts + order-status indicators) — same value in both themes,
+     moved verbatim from globals.css; the DESIGN-SYSTEM.md §2.3 bg/text/border/dot
+     matrix is a later slice. */
+  --status-warning: #ff9800;
+  --status-info: #2196f3;
+  --status-success-light: #8bc34a;
+  --status-confirmed: #10b981;
+  --status-completed: #6b7280;
+  --status-danger: #ef4444;
+  --status-pending: #fbbf24;
+  --status-preparing: #3b82f6;
+  --status-ready: #8b5cf6;
+
+  /* Primitives (S15 T1 slice 4) — raw palette values frozen verbatim from the
+     customer-module hex burndown (var(--x, #hex) live fallbacks on undefined vars
+     + bare hex with no matching semantic token). Theme-INVARIANT: identical in
+     light and dark, no override in the dark block below — so substituting a
+     primitive for a raw hex is zero-delta at every site, including inside
+     [data-theme='dark'] rules. Named by Tailwind step where the value matches a
+     Tailwind v3 color exactly — an UNSUFFIXED --color-<family>-<step> in a
+     Tailwind-named family always holds the exact Tailwind value when one exists
+     here — else by hue+lightness (approximate; -b/-c suffixes disambiguate
+     distinct values in the same bucket). Non-Tailwind hues use honest
+     namespaces: --color-material-<family>-<step> (exact Material 2014 values),
+     --color-brown-*, --color-iris-* and --color-plum-* (the #667eea/#764ba2
+     gradient family), --color-neutral-* (exact Tailwind neutral),
+     --color-gold-*. No semantic meaning — components reference the semantic
+     tokens above, never these. */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-800: #92400e;
+  --color-black: #000000;
+  --color-blue-50: #f5f7fa;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-400: #60a5fa;
+  --color-blue-400-b: #6495ed;
+  --color-blue-600: #2563eb;
+  --color-blue-800: #1e40af;
+  --color-brown-600: #6d4c41;
+  --color-brown-700: #5d4037;
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-gold-50: #fffbf0;
+  --color-gold-100: #fff3e0;
+  --color-gold-100-b: #fff9e6;
+  --color-gold-100-c: #fff8e1;
+  --color-gold-200: #ffe0b2;
+  --color-gold-200-b: #ffecb3;
+  --color-gold-300: #ffd700;
+  --color-gold-400: #ffb74d;
+  --color-gold-500: #f4c430;
+  --color-gold-500-b: #ffa726;
+  --color-gold-500-c: #ffcc33;
+  --color-gold-500-d: #e6b230;
+  --color-gold-600: #e0b020;
+  --color-gold-600-b: #d4a020;
+  --color-gold-600-c: #ffcc02;
+  --color-gold-600-d: #daa520;
+  --color-gold-600-e: #f57c00;
+  --color-gold-600-f: #d4a62a;
+  --color-gold-700: #6b5d3f;
+  --color-gold-800: #4a3f2a;
+  --color-gray-50: #f9fafb;
+  --color-gray-50-b: #f8f9fa;
+  --color-gray-100: #f3f4f6;
+  --color-gray-100-b: #f2f2f2;
+  --color-gray-100-c: #eeeeee;
+  --color-gray-200: #e5e7eb;
+  --color-gray-200-b: #dddddd;
+  --color-gray-200-c: #e9ecef;
+  --color-gray-300: #d1d5db;
+  --color-gray-300-b: #cccccc;
+  --color-gray-300-c: #bbbbbb;
+  --color-gray-400: #9ca3af;
+  --color-gray-400-b: #aaaaaa;
+  --color-gray-500: #6b7280; /* Tailwind gray-500; neutral muted-gray text/border on customer surfaces */
+  --color-gray-500-b: #999999;
+  --color-gray-600: #777777;
+  --color-gray-700: #374151;
+  --color-gray-700-b: #555555;
+  --color-gray-700-c: #666666;
+  --color-gray-800: #3a3a3a;
+  --color-gray-800-b: #444444;
+  --color-gray-900: #1f1f1f;
+  --color-gray-900-b: #2d2d2d;
+  --color-gray-900-c: #383838;
+  --color-gray-900-d: #222222;
+  --color-gray-900-e: #2a2a2a;
+  --color-gray-900-f: #333333;
+  --color-gray-950: #1a1a1a;
+  --color-gray-950-b: #1e1e1e;
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-100-b: #e8f5e8;
+  --color-green-200: #bbf7d0;
+  --color-green-600: #16a34a;
+  --color-green-800: #166534;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-400: #818cf8;
+  --color-indigo-700: #4338ca;
+  --color-indigo-800: #3730a3;
+  --color-iris-400: #667eea;
+  --color-iris-500: #5568d3;
+  --color-iris-600: #4c5fd5;
+  --color-iris-700: #4557b8;
+  --color-material-blue-50: #e3f2fd;
+  --color-material-blue-400: #42a5f5;
+  --color-material-blue-700: #1976d2;
+  --color-material-blue-900: #0d47a1;
+  --color-material-green-200: #a5d6a7;
+  --color-material-green-300: #81c784;
+  --color-material-green-500: #4caf50;
+  --color-material-green-900: #1b5e20;
+  --color-material-lightgreen-50: #f1f8e9;
+  --color-material-lightgreen-900: #33691e;
+  --color-material-orange-900: #e65100;
+  --color-material-pink-50: #fce4ec;
+  --color-material-pink-500: #e91e63;
+  --color-material-pink-900: #880e4f;
+  --color-material-purple-50: #f3e5f5;
+  --color-material-purple-400: #ab47bc;
+  --color-material-purple-900: #4a148c;
+  --color-material-red-50: #ffebee;
+  --color-material-red-400: #ef5350;
+  --color-material-red-800: #c62828;
+  --color-material-teal-50: #e0f2f1;
+  --color-material-teal-400: #26a69a;
+  --color-material-teal-900: #004d40;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-orange-200: #fed7aa;
+  --color-orange-400: #fb923c;
+  --color-orange-800: #9a3412;
+  --color-plum-600: #764ba2;
+  --color-plum-700: #5a3d7c;
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-100-b: #ffeeee;
+  --color-red-200: #fecaca;
+  --color-red-200-b: #ffcccc;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-400-b: #f56565;
+  --color-red-400-c: #e06666;
+  --color-red-500: #d9534f;
+  --color-red-600: #dc2626;
+  --color-red-600-b: #c82333;
+  --color-red-700: #b91c1c;
+  --color-red-700-b: #a60000;
+  --color-red-700-c: #c00000;
+  --color-red-700-d: #cc0000;
+  --color-red-800: #991b1b;
+  --color-red-800-b: #a00000;
+  --color-red-900: #7f1d1d;
+  --color-red-900-b: #3f0f0f;
+  --color-red-950: #1a0505;
+  --color-red-950-b: #2d0a0a;
+  --color-sky-50: #f0f9ff;
+  --color-sky-50-b: #f0f7ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-sky-500-b: #3394ff;
+  --color-sky-500-c: #3da9fc;
+  --color-sky-600: #0284c7;
+  --color-sky-800: #1e3a5f;
+  --color-sky-900: #0c4a6e;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-violet-200: #ddd6fe;
+  --color-violet-400: #a78bfa;
+  --color-violet-800: #5b21b6;
+  --color-yellow-500: #eab308;
+  --color-yellow-900: #713f12;
+  --color-yellow-900-b: #3a3520;
+  --color-yellow-900-c: #2a2a1a;
+  --color-yellow-950: #2a2510;
+}
+
+html[data-theme='dark'] {
+  --brand-primary: #e06666; /* lighter RUMI Red for dark mode */
+  --brand-accent: #ec7063;
+
+  --surface-primary: #1a1a1a;
+  --surface-secondary: #2c2c2c;
+  --surface-secondary-light: #3e3d3d;
+  --surface-card: #252525;
+
+  --text-primary: #f0f0f0;
+  --text-secondary: #cdcbcb;
+  --text-muted: #9ca3af;
+
+  --text-on-primary: #1a1a1a; /* dark text on the lighter dark-mode button colors */
+
+  --link-default: #e06666;
+  --link-hover: #f08080;
+
+  --border-default: #444444;
+
+  --feedback-success: #81c784;
+  --feedback-success-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a) */
+
+  --feedback-error: #ff8a80;
+  --feedback-error-bg: #3a1f1f;
+  --feedback-error-border: #5a2a2a;
+
+  --feedback-danger-dark: #ff6b6b;
+  --feedback-danger-light: #ee5a6f;
+  --feedback-danger-xlight: #ffe0e6;
+}

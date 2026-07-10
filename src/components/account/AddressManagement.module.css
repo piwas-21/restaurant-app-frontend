@@ -34,12 +34,12 @@
 
 /* Error Message */
 .error {
-  background-color: var(--error-background, #fee);
-  color: var(--error-color, #c00);
+  background-color: var(--error-background);
+  color: var(--error-color);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  border: 1px solid var(--error-border, #fcc);
+  border: 1px solid var(--error-border);
 }
 
 /* Empty State */
@@ -87,7 +87,7 @@
 
 .defaultCard {
   border-color: var(--primary-color);
-  background-color: var(--primary-background, rgba(255, 68, 0, 0.05));
+  background-color: rgba(255, 68, 0, 0.05);
 }
 
 .defaultBadge {
@@ -157,16 +157,16 @@
 }
 
 .setDefaultButton {
-  background-color: var(--secondary-color, #f0f0f0);
+  background-color: var(--secondary-color);
   color: var(--text-color);
 }
 
 .setDefaultButton:hover {
-  background-color: var(--secondary-hover, #e0e0e0);
+  background-color: var(--border-color-light);
 }
 
 .deleteButton {
-  background-color: var(--danger-color, #dc3545);
+  background-color: var(--danger-color);
   color: var(--text-color);
   border-radius: 8px;
   font-size: 1rem;
@@ -175,7 +175,7 @@
 }
 
 .deleteButton:hover {
-  background-color: var(--danger-hover, #c82333);
+  background-color: var(--color-red-600-b);
 }
 
 .addButton {
@@ -236,8 +236,8 @@
 }
 
 .formError {
-  background-color: var(--error-background, #fee);
-  color: var(--error-color, #c00);
+  background-color: var(--error-background);
+  color: var(--error-color);
   padding: 0.75rem;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -262,7 +262,7 @@
   border-radius: 8px;
   font-size: 1rem;
   color: var(--text-color);
-  background-color: var(--input-background, var(--background-color));
+  background-color: var(--background-color);
   transition: border-color 0.2s ease;
 }
 
@@ -273,11 +273,11 @@
 }
 
 .inputError {
-  border-color: var(--error-color, #c00) !important;
+  border-color: var(--error-color) !important;
 }
 
 .errorText {
-  color: var(--error-color, #c00);
+  color: var(--error-color);
   font-size: 0.85rem;
   margin-top: 0.25rem;
 }
@@ -299,7 +299,7 @@
 
 .cancelButton {
   padding: 0.75rem 1.5rem;
-  background-color: var(--secondary-color, #f0f0f0);
+  background-color: var(--secondary-color);
   color: var(--text-color);
   border: none;
   border-radius: 8px;
@@ -310,7 +310,7 @@
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: var(--secondary-hover, #e0e0e0);
+  background-color: var(--border-color-light);
 }
 
 .saveButton {

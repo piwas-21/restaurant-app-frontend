@@ -48,11 +48,11 @@
 .formInput:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--secondary-color-light, #f5f5f5);
+  background-color: var(--secondary-color-light);
 }
 
 [data-theme='dark'] .formInput:disabled {
-  background-color: var(--secondary-color, #3a3a3a);
+  background-color: var(--secondary-color);
 }
 
 .saveButton {

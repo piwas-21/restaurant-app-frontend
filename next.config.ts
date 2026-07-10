@@ -1,4 +1,24 @@
 import type { NextConfig } from 'next';
+import { existsSync, readdirSync } from 'fs';
+import path from 'path';
+
+// --- Tenant UI template selection (ADR-006, S15 T2) ---------------------
+// `@active-template` resolves at BUILD time to src/templates/<name>, so each
+// tenant image bundles exactly one template (dead-code elimination — no
+// runtime branching). `||` not `??`: the Docker ARG plumbing bakes an empty
+// string when the build-arg is omitted, which must also mean "classic".
+const ACTIVE_TEMPLATE = process.env.NEXT_PUBLIC_TEMPLATE || 'classic';
+const activeTemplateDir = path.join(__dirname, 'src', 'templates', ACTIVE_TEMPLATE);
+if (!existsSync(activeTemplateDir)) {
+  const available = readdirSync(path.join(__dirname, 'src', 'templates'), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .join(', ');
+  throw new Error(
+    `NEXT_PUBLIC_TEMPLATE="${ACTIVE_TEMPLATE}" is not a known UI template ` +
+      `(no such directory: ${activeTemplateDir}). Available templates: ${available}. See docs/TEMPLATES.md.`
+  );
+}
 
 // Tenant hosts are derived from the NEXT_PUBLIC_* build args baked into each
 // image (Dockerfile ARGs; per-tenant images bake their own domain — sofra
@@ -48,6 +68,26 @@ const nextConfig: NextConfig = {
 
   experimental: {
     // allowedDevOrigins can be added if needed for cloud workstations
+  },
+
+  // Tenant UI template alias (ADR-006) — `next build` uses webpack; `next
+  // dev --turbopack` reads turbopack.resolveAlias. This is the SOLE resolver:
+  // tsc/editors type-check via ambient declarations in
+  // src/templates/active-template.d.ts (a former tsconfig.json `paths` entry
+  // pointing at `classic` shadowed this alias during webpack builds, silently
+  // bundling `classic` for every non-classic template — removed in S15 T3).
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@active-template': activeTemplateDir,
+    };
+    return config;
+  },
+  turbopack: {
+    resolveAlias: {
+      '@active-template': `./src/templates/${ACTIVE_TEMPLATE}`,
+      '@active-template/*': `./src/templates/${ACTIVE_TEMPLATE}/*`,
+    },
   },
 
   /* Security Configuration */

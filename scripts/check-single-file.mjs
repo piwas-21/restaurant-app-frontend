@@ -59,6 +59,31 @@ if (/\.tsx$/.test(file) && /style=\{\{[^}]*#[0-9a-fA-F]{3,6}/.test(src))
   warn("inline hex in a style={{}} — use a CSS variable / CSS module (§5.5/§5.6)");
 if (/\.css$/.test(file) && /@media[^{]*prefers-color-scheme:\s*dark/.test(src))
   warn("`@media (prefers-color-scheme: dark)` — use `html[data-theme=\"dark\"]` (§5.7)");
+if (
+  /\.css$/.test(file) &&
+  /\/(design-system|templates)\//.test(file) &&
+  !/\/design-system\/tokens\//.test(file) &&
+  /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/.test(src)
+)
+  warn("raw color outside design-system/tokens — use var(--*); color values live in src/design-system/tokens/ (S15 T1 ratchet)");
+// Customer-surface hex ratchet (S15 T1 slice 4): the customer-flow module CSS
+// was burned down to zero raw hex (colors come from src/design-system/tokens as
+// var(--*)). Warn (non-blocking) if raw hex reappears anywhere on that surface —
+// i.e. any *.module.css EXCEPT the staff/admin surface (app/admin, app/dev-portal,
+// components/{admin,cashier,server}, and the staff pages still in app/styles) and
+// EXCEPT design-system (its component CSS is covered by the rule above) + tokens.
+// rgba()/hsla() are deliberately still allowed here — no shadow/overlay token
+// layer exists yet, so those are left untouched until a later slice.
+if (
+  /\.module\.css$/.test(file) &&
+  !/\/(app\/admin|app\/dev-portal|components\/(admin|cashier|server))\//.test(file) &&
+  !/\/(AdminOrdersPage|AdminPage|CashierPage|KitchenStaffPage|RegisterStaffModal|ServerPage)\.module\.css$/.test(file) &&
+  !/\/design-system\//.test(file) &&
+  /#[0-9a-fA-F]{3,8}\b/.test(src)
+)
+  warn(
+    "raw hex on the customer surface — define the colour in src/design-system/tokens/ and reference var(--*) (S15 T1 slice 4 ratchet)"
+  );
 if (!/\/lib\/config\.ts$/.test(file) && /process\.env\.NEXT_PUBLIC_/.test(src))
   warn("`process.env.NEXT_PUBLIC_*` outside src/lib/config.ts — read typed constants from config (§5.12)");
 

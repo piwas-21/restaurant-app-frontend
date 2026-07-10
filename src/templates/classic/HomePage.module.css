@@ -16,7 +16,7 @@
   justify-content: center;
   padding: calc(80px + 1.5rem) 2rem 1.5rem 2rem;
   position: relative;
-  color: #ffffff;
+  color: var(--text-on-accent);
 }
 
 .glassOverlay {
@@ -98,8 +98,8 @@
 
 .ctaButtonPrimary:hover {
   background-color: transparent;
-  color: #ffffff;
-  border-color: #ffffff;
+  color: var(--text-on-accent);
+  border-color: var(--text-on-accent);
   text-shadow: none;
   padding-right: 1.5rem;
 }
@@ -116,8 +116,8 @@
 
 .ctaButtonSecondary {
   background-color: transparent;
-  color: #ffffff;
-  border: 2px solid #ffffff;
+  color: var(--text-on-accent);
+  border: 2px solid var(--text-on-accent);
   padding: 0.8rem 1.5rem;
   font-size: 1rem;
   font-weight: bold;

@@ -15,7 +15,7 @@
 }
 
 .modalContent {
-  background: var(--card-background, white);
+  background: var(--card-background);
   border-radius: 12px;
   max-width: 500px;
   width: 100%;
@@ -27,13 +27,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modalTitle {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -53,12 +53,12 @@
   gap: 1rem;
   justify-content: flex-end;
   padding: 20px 24px;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  border-top: 1px solid var(--border-color);
 }
 
 .cancelButton {
   padding: 0.75rem 1.5rem;
-  background-color: var(--secondary-color, #f0f0f0);
+  background-color: var(--secondary-color);
   color: var(--text-color);
   border: none;
   border-radius: 8px;
@@ -69,7 +69,7 @@
 }
 
 .cancelButton:hover:not(:disabled) {
-  background-color: var(--secondary-hover, #e0e0e0);
+  background-color: var(--border-color-light);
 }
 
 .cancelButton:disabled {
@@ -79,7 +79,7 @@
 
 .confirmButton {
   padding: 0.75rem 1.5rem;
-  background-color: var(--danger-color, #dc3545);
+  background-color: var(--danger-color);
   color: white;
   border: none;
   border-radius: 8px;
@@ -90,7 +90,7 @@
 }
 
 .confirmButton:hover:not(:disabled) {
-  background-color: var(--danger-hover, #c82333);
+  background-color: var(--color-red-600-b);
 }
 
 .confirmButton:disabled {
@@ -99,28 +99,19 @@
 }
 
 [data-theme='dark'] .modalContent {
-  background: var(--secondary-color, #2c2c2c);
+  background: var(--secondary-color);
 }
 
 [data-theme='dark'] .modalHeader {
-  border-bottom-color: var(--border-color, #444);
-}
-
-[data-theme='dark'] .modalTitle {
-  color: var(--text-color, #e0e0e0);
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme='dark'] .confirmMessage {
-  color: var(--text-secondary, #b0b0b0);
-}
-
-[data-theme='dark'] .cancelButton {
-  background-color: var(--secondary-color, #3a3a3a);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .cancelButton:hover:not(:disabled) {
-  background-color: var(--background-color, #444);
+  background-color: var(--background-color);
 }
 
 /* Responsive */

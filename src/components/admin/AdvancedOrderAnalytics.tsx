@@ -157,9 +157,9 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
                     borderRadius: '8px',
                     color: '#f1f5f9',
                   }}
-                  formatter={(value: number, name: string) => {
-                    if (name === 'revenue') return [formatCurrency(value), t('revenue', 'Revenue')];
-                    return [value, t('orders', 'Orders')];
+                  formatter={(value, name) => {
+                    if (name === 'revenue') return [formatCurrency(Number(value)), t('revenue', 'Revenue')];
+                    return [String(value), t('orders', 'Orders')];
                   }}
                 />
                 <Legend />
@@ -241,7 +241,7 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
                     borderRadius: '8px',
                     color: '#f1f5f9',
                   }}
-                  formatter={(value: number) => [formatCurrency(value), t('revenue', 'Revenue')]}
+                  formatter={(value) => [formatCurrency(Number(value)), t('revenue', 'Revenue')]}
                 />
                 <Bar dataKey="revenue" fill="#c00000" radius={[8, 8, 0, 0]} />
               </BarChart>

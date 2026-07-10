@@ -232,7 +232,7 @@
 .outdoorBadge {
   font-size: 11px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-confirmed) 0%, var(--color-emerald-600) 100%);
   color: white;
   border-radius: 5px;
   font-weight: 600;
@@ -243,7 +243,7 @@
 .reservedBadge {
   font-size: 11px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--color-amber-500) 0%, var(--color-amber-600) 100%);
   color: white;
   border-radius: 5px;
   font-weight: 600;
@@ -255,8 +255,8 @@
 .tableCard.reserved {
   opacity: 0.6;
   cursor: not-allowed;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-color: #f59e0b;
+  background: linear-gradient(135deg, var(--color-amber-100) 0%, var(--color-amber-200) 100%);
+  border-color: var(--color-amber-500);
 }
 
 .tableCard.reserved:hover {
@@ -268,7 +268,7 @@
 .occupiedBadge {
   font-size: 11px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--status-preparing) 0%, var(--color-blue-600) 100%);
   color: white;
   border-radius: 5px;
   font-weight: 600;
@@ -278,12 +278,12 @@
 }
 
 .tableCard.occupied {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, var(--color-blue-100) 0%, var(--color-blue-200) 100%);
+  border-color: var(--status-preparing);
 }
 
 .tableCard.occupied:hover {
-  border-color: #2563eb;
+  border-color: var(--color-blue-600);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
@@ -292,7 +292,7 @@
 .fullBadge {
   font-size: 11px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--status-danger) 0%, var(--color-red-600) 100%);
   color: white;
   border-radius: 5px;
   font-weight: 600;
@@ -304,8 +304,8 @@
 .tableCard.full {
   opacity: 0.6;
   cursor: not-allowed;
-  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
-  border-color: #ef4444;
+  background: linear-gradient(135deg, var(--color-red-200) 0%, var(--color-red-300) 100%);
+  border-color: var(--status-danger);
 }
 
 .tableCard.full:hover {
@@ -379,8 +379,8 @@
 }
 
 .modalIcon {
-  color: #3b82f6;
-  background-color: #dbeafe;
+  color: var(--status-preparing);
+  background-color: var(--color-blue-100);
   padding: 1rem;
   border-radius: 50%;
 }

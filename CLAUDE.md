@@ -10,7 +10,7 @@
 - **Stack**: Next.js 15.5 (App Router) · React 19 · TypeScript · CSS Modules · i18next (10 locales)
 - **Test**: Jest + React Testing Library (unit) · Playwright (E2E)
 - **Hosted on**: GitHub — https://github.com/piwas-21/restaurant-app-frontend
-- **Production**: deployed from `main` (currently `develop` until cutover); test environment from `develop`
+- **Production**: auto-deployed from `main` (merge → `build-image.yml` publishes `:latest` → `deploy.yml` rolls the prod box; per-container Docker healthcheck only — rollback is a manual `workflow_dispatch` to a prior tag). Staging tracks `develop` (`:staging` image). Cutover done 2026-06-30.
 - **Backend dependency**: this app talks to the [backend repo](https://github.com/piwas-21/restaurant-app-backend) via `NEXT_PUBLIC_API_URL`. DTO contracts mirror backend `Features/**/Dtos/`.
 - **In-flight workspace**: this repo is one of three under [/Users/mahmutkaya/workspace/rumi-workspace/](../). The workspace meta-repo holds cross-repo plans and the master roadmap. When this repo is cloned standalone, only this `CLAUDE.md` is in scope.
 
@@ -26,6 +26,7 @@
 | Any task | This file |
 | Refactoring sprint task | [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) — find the task ID, read its acceptance criteria |
 | Design / component patterns | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) |
+| Tenant UI template work (`src/templates/`, `@active-template`) | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md) |
 | Coding conventions | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) |
 | Test work | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) |
 | Adding/changing a Playwright E2E | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules |
@@ -46,8 +47,13 @@ src/
 ├── app/                          # Next.js App Router routes
 │   ├── (route-groups)/
 │   ├── api/                      # API route handlers (proxy to backend)
-│   ├── layout.tsx                # Root layout
-│   └── globals.css               # Global CSS variables (design tokens)
+│   ├── layout.tsx                # Root layout — imports @active-template tokens/fonts/Shell
+│   └── globals.css               # legacy var aliases + global classes (tokens come via the template)
+├── templates/                    # tenant UI templates (ADR-006, docs/TEMPLATES.md)
+│   ├── types.ts                  # TemplateDefinition contract
+│   └── classic/                  # current RUMI look; selected via NEXT_PUBLIC_TEMPLATE → @active-template alias
+├── design-system/
+│   └── tokens/                   # semantic design tokens — single source for color values
 ├── components/                   # Shared UI components
 │   ├── design-system/            # BaseModal, FormField, StatusBadge, etc.
 │   ├── menu/                     # Feature-area folders
@@ -72,7 +78,7 @@ Pages are **thin orchestrators** (≤ 200 LOC). Logic lives in custom hooks (`sr
 ### Styling — CSS Modules + design tokens
 
 - Every component has `<Component>.module.css` colocated.
-- Colours / spacing / typography come from CSS variables defined in `src/app/globals.css`. **Never** hardcode hex values in module CSS.
+- Colours come from the **semantic token layer** in `src/design-system/tokens/` (imported by `globals.css`, which also keeps the legacy-name aliases). New code uses the semantic names (`--brand-*`, `--surface-*`, `--text-*`, `--feedback-*`, `--border-*`, `--link-*`, `--status-*`). **Never** hardcode hex values in module CSS. Text tokens are `--text-primary`/`--text-secondary`/`--text-muted` (defined in S15 T1 slice 2; legacy `--text-color`/`--text-secondary-color` alias into them — see DESIGN-SYSTEM.md §2 status note, including the per-element alias-substitution trap for subtree overrides).
 - Dark mode via `html[data-theme="dark"]` selector. **Never** `@media (prefers-color-scheme: dark)`. See [ADR-002](docs/adr/ADR-002-css-modules-and-tokens.md).
 
 ### Internationalisation — i18next, 10 locales
@@ -109,7 +115,7 @@ Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warn
 2. **Modals use `BaseModal`** wrapper. Filename suffix is `Modal` (not `Dialog`).
 3. **Forms use `FormField`** for label+input+error pattern.
 4. **Status display uses `StatusBadge`** — never inline status pills.
-5. **No inline hex colours** in `*.tsx` or `*.module.css` — use CSS variables from `src/app/globals.css`. Dynamically computed colours (e.g. user avatar bg from hash) are the only exception.
+5. **No inline hex colours** in `*.tsx` or `*.module.css` — use CSS variables (semantic tokens in `src/design-system/tokens/`, legacy aliases in `globals.css`). Raw color values belong only in `src/design-system/tokens/` for component CSS; `globals.css` still holds raw values for the not-yet-migrated nav vars + the `.home-overlay-header` subtree overrides (see DESIGN-SYSTEM.md §2 note). Dynamically computed colours (e.g. user avatar bg from hash) are the only exception.
 6. **CSS Modules required** — no inline `style={{}}` except for dynamic computed values (positions, dimensions from props).
 7. **Dark mode** via `html[data-theme="dark"]` — **never** `@media (prefers-color-scheme: dark)`.
 8. **No `: any`** in TypeScript — use `unknown` with type guards. (ESLint rule currently disabled at the config level; will be flipped in Sprint 2 — until then, code review enforces.)
@@ -160,7 +166,7 @@ Grep for the component / hook / type you're adding or modifying. List every call
 ## §7 — Quality gates (all blocking; source of truth `.github/workflows/ci.yml` + `.pre-commit-config.yaml`)
 
 - **Pre-commit / pre-push** (on staged `src/` files): trailing-ws / EOF / large-files / secret-scan / no-commit-to-protected; `prettier --check`; `tsc --noEmit`; `eslint --max-warnings=0`; file-length. On push, `scripts/test-affected.sh` runs Jest `--findRelatedTests` vs `origin/develop` (not a substitute for CI `npm test`).
-- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy image scan (zero HIGH/CRITICAL, `.trivyignore`); plus prettier/tsc/eslint/file-length repeated. `npm run build` is manual pre-commit.
+- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy image scan (zero HIGH/CRITICAL, `.trivyignore`); **bundle size** (`bundle_size` job: `next build` → `scripts/check-bundle-size.mjs`, fails on any route's gzipped First Load JS growing >10% past `scripts/bundle-size-baseline.json` — DEV-PHASES W2 D2; re-baseline via `--update` when growth is intended); plus prettier/tsc/eslint/file-length repeated. `npm run build` is still manual pre-commit locally, but now also runs in CI for the bundle gate.
 - **Weekly** `security-audit.yml` (cron): deep full-tree scans (npm audit + OSV `-r`, retire.js pinned DB, Trivy fs, license drift) — reporting, not a merge blocker; suppress via `.retireignore.json` with justification.
 - **New-dev setup**: `bash scripts/setup_hooks.sh` · `bash scripts/dev-secrets.sh` · `bash scripts/dev-up.sh`.
 
@@ -171,16 +177,13 @@ Grep for the component / hook / type you're adding or modifying. List every call
 ### Branch strategy
 
 ```
-main                    ← production (currently develop; cutover pending)
-  └── develop           ← test environment (auto-deployed)
-       ├── feature/<x>
-       ├── fix/<x>
-       ├── chore/<x>
-       └── docs/<x>
+main                    ← production (auto-deploys on merge since 2026-06-30)
+  ├── feature/<x> …     ← branch off main, PR to main
+  └── develop           ← staging channel (`:staging` image; kept in sync via main→develop back-merges)
 ```
 
 - **Never push to `main` or `develop` directly** — pre-commit hook blocks this.
-- Branch off **`develop`**. Open PR to `develop`. After merge to `develop` and test-env validation, `develop` is promoted to `main` for prod.
+- Branch off **`main`**. Open PR to **`main`** (merging = prod deploy — treat every merge as a release). Use `develop` only to stage something on the test env before prod, then promote; back-merge `main`→`develop` afterwards to keep the branches converged.
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`, `test/`.
 
 ### Commit messages
@@ -200,7 +203,7 @@ Never auto-edit these files / take these actions without explicit user instructi
 ### Hard refusals
 - **`next.config.ts` security headers** (CSP, frame-options, HSTS). Changing these can break the production deployment in subtle ways. Treat as a deploy event, not a code change.
 - **Major version bumps** of `next`, `react`, `react-dom` in `package.json`. Breaking-changes class — coordinated upgrade only.
-- **Playwright golden snapshots** in `tests/**/*-snapshots/` — never hand-edit; only regenerate via explicit `npx playwright test --update-snapshots`.
+- **Playwright golden snapshots** (`e2e/screenshots/__screenshots__/`, or any `*-snapshots/` dir) — never hand-edit; only regenerate via the documented update command (`npm run test:screenshots:docker:update` — baselines are linux-only, see `e2e/README.md`).
 - **`src/locales/*.json` for languages the agent doesn't read** (typically `ar`, `ru`, `zh`). Adding/removing keys is fine (locale parity), but **rephrasing existing translations** in those locales requires a human translator or explicit user instruction.
 - **Branch protection bypass**: never `git commit --no-verify`, `git push --force-with-lease` to `develop`/`main`, `git reset --hard` on `develop`/`main`.
 
@@ -229,7 +232,7 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 2. Read [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) if picking up a refactor task.
 3. Read the relevant ADR if working on a load-bearing pattern (state mgmt, styling, i18n, forms, design system).
 4. Run `npm run lint && npm run build` — confirm baseline green.
-5. Check `git status` — start from clean tree on `develop`.
+5. Check `git status` — start from a clean tree on `main`.
 
 ### During implementation
 1. Output the §6 verification block before writing code.

@@ -80,8 +80,8 @@
 .errorContainer {
   padding: 1rem;
   margin-bottom: 1.5rem;
-  background-color: #fee;
-  border: 1px solid #fcc;
+  background-color: var(--color-red-100-b);
+  border: 1px solid var(--color-red-200-b);
   border-radius: 6px;
 }
 
@@ -367,8 +367,8 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   background-color: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  color: var(--status-danger);
+  border: 1px solid var(--status-danger);
   border-radius: 4px;
   font-size: 0.9rem;
   cursor: pointer;
@@ -382,7 +382,7 @@
 }
 
 .removeItemButton:hover:not(:disabled) {
-  background-color: #ef4444;
+  background-color: var(--status-danger);
   color: white;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
@@ -493,7 +493,7 @@
 
 .promoCodeDiscount {
   font-size: 0.85rem;
-  color: #4caf50;
+  color: var(--color-material-green-500);
   font-weight: 500;
 }
 
@@ -536,7 +536,7 @@
 }
 
 .discountAmount {
-  color: #4caf50;
+  color: var(--color-material-green-500);
   font-weight: 600;
 }
 
@@ -711,7 +711,7 @@
 
 .customizationPrice {
   font-size: 0.875rem;
-  color: var(--success-color, #28a745);
+  color: var(--success-color);
   font-weight: 600;
   margin-top: 0.25rem;
 }
@@ -720,27 +720,23 @@
 .customizationsContainer {
   margin-top: 1rem;
   padding: 0.875rem;
-  background-color: var(--secondary-color-light, #f9fafb);
+  background-color: var(--secondary-color-light);
   border-radius: 6px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-color);
 }
 
 [data-theme='dark'] .customizationsContainer {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 .customizationsTitle {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-[data-theme='dark'] .customizationsTitle {
-  color: var(--text-color, #e0e0e0);
 }
 
 .customizationDetail {
@@ -756,41 +752,33 @@
 
 .customizationLabel {
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
-[data-theme='dark'] .customizationLabel {
-  color: var(--text-secondary, #9ca3af);
-}
-
 .customizationValue {
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   flex: 1;
-}
-
-[data-theme='dark'] .customizationValue {
-  color: var(--text-color, #e0e0e0);
 }
 
 /* Child Items (Menu Bundle Includes) */
 .childItemsContainer {
   margin-top: 1rem;
   padding: 1rem;
-  background-color: var(--secondary-color-light, #f0f9ff);
+  background-color: var(--secondary-color-light);
   border-radius: 8px;
-  border: 1px solid var(--border-color, #bae6fd);
+  border: 1px solid var(--border-color);
 }
 
 [data-theme='dark'] .childItemsContainer {
-  background-color: var(--secondary-color, #1e3a5f);
-  border-color: var(--border-color, #2563eb);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 .childItemsTitle {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--primary-color, #0369a1);
+  color: var(--primary-color);
   margin: 0 0 0.875rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -806,15 +794,11 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  background-color: var(--primary-color, #0369a1);
+  background-color: var(--primary-color);
   color: white;
   border-radius: 50%;
   font-size: 0.75rem;
   font-weight: bold;
-}
-
-[data-theme='dark'] .childItemsTitle {
-  color: var(--primary-color, #60a5fa);
 }
 
 .childItemsList {
@@ -831,9 +815,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background-color: var(--background-color, white);
+  background-color: var(--background-color);
   border-radius: 6px;
-  border: 1px solid var(--border-color, #e0f2fe);
+  border: 1px solid var(--border-color);
   transition: all 0.2s ease;
   gap: 1rem;
 }
@@ -841,23 +825,23 @@
 .childItem:hover {
   transform: translateX(4px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  border-color: var(--primary-color, #0369a1);
+  border-color: var(--primary-color);
 }
 
 [data-theme='dark'] .childItem {
-  background-color: var(--card-background, #2a2a2a);
-  border-color: var(--border-color, #3b82f6);
+  background-color: var(--card-background);
+  border-color: var(--border-color);
 }
 
 [data-theme='dark'] .childItem:hover {
-  border-color: var(--primary-color, #60a5fa);
+  border-color: var(--primary-color);
   box-shadow: 0 2px 6px rgba(96, 165, 250, 0.2);
 }
 
 .childItemName {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   flex: 1;
   display: flex;
   align-items: center;
@@ -866,23 +850,15 @@
 
 .childItemName::before {
   content: '+';
-  color: var(--primary-color, #0369a1);
+  color: var(--primary-color);
   font-weight: bold;
   font-size: 1.2rem;
-}
-
-[data-theme='dark'] .childItemName {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .childItemName::before {
-  color: var(--primary-color, #60a5fa);
 }
 
 .childItemPrice {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--success-color, #16a34a);
+  color: var(--success-color);
   background-color: rgba(22, 163, 74, 0.1);
   padding: 0.25rem 0.625rem;
   border-radius: 12px;
@@ -890,6 +866,6 @@
 }
 
 [data-theme='dark'] .childItemPrice {
-  color: var(--success-color, #4ade80);
+  color: var(--success-color);
   background-color: rgba(74, 222, 128, 0.15);
 }

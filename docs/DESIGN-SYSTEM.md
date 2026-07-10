@@ -6,7 +6,7 @@
 
 ## 1. Token Architecture
 
-All design tokens live in `src/design-system/tokens/` as CSS variable files, imported via `globals.css`.
+All design tokens live in `src/design-system/tokens/` as CSS variable files. Since S15 T2 (ADR-006) the entrypoint is the active template's `tokens.css` (`src/templates/classic/tokens.css` re-exports this layer; the root layout imports `@active-template/tokens.css` immediately before `globals.css`, preserving the pre-T2 CSS order — see [TEMPLATES.md](TEMPLATES.md)). `globals.css` keeps the legacy-name aliases.
 
 ```
 design-system/
@@ -42,24 +42,54 @@ design-system/
 
 ## 2. Color System
 
+> **Implementation status (2026-07-07 — S15 T1 slices 1+2):** the semantic layer + §2.5 backward-compat aliases are **LIVE** in `src/design-system/tokens/colors.css` for brand / surface / link / border / feedback (+ the pre-existing chart/status hues moved verbatim), with `globals.css` legacy names aliasing into it.
+> **Slice 2 (text tokens): `--text-primary` / `--text-secondary` / `--text-muted` are now DEFINED** (`#1a1a1a`/`#666`/`#6b7280` light, `#f0f0f0`/`#cdcbcb`/`#9ca3af` dark) after a per-usage audit of all 444 pre-existing references (93 CSS modules + 3 inline styles). Legacy `--text-color`/`--text-secondary-color` now alias into them. Audit outcomes: bare usages previously resolved via inheritance (secondary/muted text silently rendered as body color — now correct); `var(…, hex)` fallbacks previously froze one hex across both themes (dark mode now themes properly); no colored-ancestor contexts existed. `--text-tertiary` (a fourth dangling name) was migrated to `--text-muted`; `--surface-color` (2 server components) fixed to `--surface-card`/`--surface-primary`; `AllergenDisplay`/`MenuItemDetails` tag backgrounds moved off undefined `--background-subtle` to surface tokens so dark-mode text stays readable. ⚠️ Trap for template authors: **aliases substitute per-element** — a subtree override of `--text-primary` does not flow into `--text-color` (or vice versa) unless both are (re)declared on that subtree; see the `.home-overlay-header` block in `globals.css`.
+> **Slice 3 (text-token cleanup — #153): DONE.** The ~680 now-dead `var(--text-*, hex)` fallbacks and the `[data-theme='dark']`-only rules that merely restated the same text token were removed mechanically (zero visual delta, proven by a post-hoc verifier).
+> **Slice 4 (customer-module hex burndown): DONE.** Every customer-flow `*.module.css` (menu / checkout / reservation / account / auth / common / cart / home / order pages) is now at **zero raw hex** — colours resolve through `var(--*)` into `colors.css`. Mechanics, all zero-delta by construction and checked by **two independent** postcss verifiers that resolve each `(selector, property)` site's computed colour in **both** themes before/after, honouring the `[data-theme='dark']` override cascade (0 mismatches in both — one per-declaration pass, one cascade-effective pass): (1) dead `var(--alias, #hex)` fallbacks on **defined** aliases stripped; (2) live `var(--undef, #hex)` fallbacks on **undefined** vars collapsed to their rendered value; (3) bare hex matching a theme-invariant existing token (e.g. `--status-*`, `--feedback-danger`) substituted with that token, or — when it matched a themed token's dark value inside a dark rule / a light+dark pair — the corresponding semantic token; (4) everything else → a **new theme-invariant primitive** (see §2.1); (5) `[data-theme='dark']` rules left fully redundant after (1)/(3) deleted. `rgba()/rgb()` were left **untouched** (no shadow/overlay token layer yet). `@media (prefers-color-scheme: dark)` blocks (a §5.7 anti-pattern in a handful of pre-existing files) were treated as their own cascade axis — hex inside them was frozen to primitives, never merged into the base rule.
+> **Ratchet:** `scripts/check-single-file.mjs` now also warns (non-blocking) on raw hex in any customer-surface `*.module.css` — i.e. all module CSS except the staff/admin surface (`app/admin`, `app/dev-portal`, `components/{admin,cashier,server}`, the staff pages still in `app/styles`), `design-system/` (covered by the sibling rule) and the token source. This holds the customer surface at zero.
+> **Screenshot baseline (S15 T1 close-out, 2026-07-10): DONE.** The customer surface is pinned by a committed Playwright screenshot baseline — 7 routes (home, menu, empty cart, checkout review, reservations, login, register) × 2 themes × 2 viewports, full-page, linux-generated inside the pinned Playwright image (`e2e/screenshots/`, config `playwright.screenshots.config.ts`, non-blocking CI workflow `screenshots.yml`). This is the **T2 gate input**: the `classic` template extraction must produce zero visual diff against it. Regenerate only via `npm run test:screenshots:docker:update` (see `e2e/README.md` §Screenshot baseline).
+> Still pending: the §2.3 status matrix, the staff/admin module burndown, and the §3–§7 token files (spacing/typography/shadows/borders/z-index/animations).
+
 ### 2.1 Primitive Palette
-Raw color scales, never used directly in components:
+Raw colour values, **never referenced directly by components** — only by semantic
+tokens, or (transitionally) frozen verbatim where a raw hex had no semantic token.
+The real primitive set now **LIVE** in `colors.css` is the one produced by the
+slice-4 burndown (§2 status note): ~160 `--color-<family>-<step>` entries in a
+clearly-commented `Primitives (S15 T1 slice 4)` block inside `:root`. Each is
+**theme-invariant** — identical in light and dark, with **no override** in the
+`html[data-theme='dark']` block — which is exactly why substituting a primitive
+for a raw hex is zero-delta at every site (including inside dark rules).
+
+Naming: `--color-<family>-<step>` by Tailwind step where the value matches a
+Tailwind colour exactly (e.g. `--color-gray-200: #e5e7eb`, `--color-red-600: #dc2626`),
+else by hue+lightness bucket (approximate; `-b`/`-c` suffixes disambiguate distinct
+values that fall in the same bucket, e.g. two near-identical dark surfaces).
+
+> **Naming hygiene (slice-4 follow-up): DONE.** The primitives were audited
+> against the Tailwind v3 default palette and renamed — a pure rename, zero
+> visual delta (proven by a before/after `var()`-chain resolver over every css
+> declaration in both themes, plus the committed screenshot baseline). Names are
+> now a reliable Tailwind reference: an **unsuffixed** `--color-<family>-<step>`
+> in a Tailwind-named family always holds the **exact** Tailwind v3 value
+> whenever that value exists among our primitives; `-b`/`-c` suffixes mark
+> near-bucket approximations only. Non-Tailwind hues live in their own honest
+> namespaces: `--color-material-<family>-<step>` (exact Material Design 2014
+> values, e.g. `--color-material-red-400: #ef5350`), `--color-brown-*` (Material
+> browns formerly misfiled as `orange-700`/`red-800-c`), `--color-iris-*` /
+> `--color-plum-*` (the `#667eea`/`#764ba2` gradient family), `--color-neutral-*`
+> (exact Tailwind *neutral* greys formerly filed under `gray`), plus the
+> pre-existing `--color-gold-*` and `--color-black`.
 
 ```css
-/* Red (RUMI Brand) */
---color-red-50: #fff5f5;   --color-red-100: #fee2e2;  --color-red-200: #fecaca;
---color-red-300: #fca5a5;  --color-red-400: #f87171;  --color-red-500: #ef4444;
---color-red-600: #dc3545;  --color-red-700: #c00000;  /* RUMI Red */
---color-red-800: #991b1b;  --color-red-900: #7f1d1d;
-
-/* Gray */
---color-gray-50: #f9fafb;  --color-gray-100: #f3f4f6; --color-gray-200: #e5e7eb;
---color-gray-300: #d1d5db;  --color-gray-400: #9ca3af; --color-gray-500: #6b7280;
---color-gray-600: #4b5563;  --color-gray-700: #374151; --color-gray-800: #1f2937;
---color-gray-900: #111827;
-
-/* + Amber, Green, Blue, Purple, Orange, Cyan scales */
+/* excerpt — see the full block in src/design-system/tokens/colors.css */
+--color-gray-200: #e5e7eb;   --color-red-600: #dc2626;    --color-emerald-500 → --status-confirmed;
+--color-gold-500: #f4c430;   --color-iris-400: #667eea;   --color-plum-600: #764ba2;
 ```
+
+> These are **primitives only** — they carry no semantic meaning. New code should
+> reference a semantic token (§2.2); a raw value that recurs enough to deserve
+> meaning should graduate into a semantic token whose light/dark pair is defined
+> in `colors.css`, not stay a primitive.
 
 ### 2.2 Semantic Tokens
 What components actually reference:

@@ -14,7 +14,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color, #374151);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,7 +24,7 @@
   }
 
   .label {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -38,7 +38,7 @@
   padding: 8px 16px;
   border: 1px solid var(--border-color, #d1d5db);
   background-color: var(--background-color, white);
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   font-size: 14px;
   font-weight: 500;
   border-radius: 6px;
@@ -67,7 +67,7 @@
   .presetButton {
     background-color: var(--card-background, #252525);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.8;
   }
 
@@ -109,14 +109,14 @@
 .dateInputGroup label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-color, #6b7280);
+  color: var(--text-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 @media (prefers-color-scheme: dark) {
   .dateInputGroup label {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -126,7 +126,7 @@
   border: 1px solid var(--border-color, #d1d5db);
   border-radius: 6px;
   font-size: 14px;
-  color: var(--text-color, #111827);
+  color: var(--text-color);
   transition: border-color 0.2s;
   background-color: var(--background-color, white);
 }
@@ -140,7 +140,7 @@
   .dateInput {
     background-color: var(--card-background, #252525);
     border-color: var(--border-color, #444444);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 
   .dateInput:focus {
@@ -173,7 +173,7 @@
 @media (prefers-color-scheme: dark) {
   .applyButton {
     background-color: var(--primary-color, #e06666);
-    color: var(--text-color, #1a1a1a);
+    color: var(--text-color);
   }
 
   .applyButton:hover {

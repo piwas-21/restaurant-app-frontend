@@ -23,7 +23,7 @@
 
 .modalContent {
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   padding: 2rem;
   border-radius: 12px;
   max-width: 500px;
@@ -36,7 +36,7 @@
 
 [data-theme='dark'] .modalContent {
   background: var(--secondary-color, #2c2c2c);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -53,12 +53,8 @@
 
 .modalContent h2 {
   margin: 0 0 1.5rem 0;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   font-size: 1.5rem;
-}
-
-[data-theme='dark'] .modalContent h2 {
-  color: var(--text-color, #e0e0e0);
 }
 
 .error {
@@ -77,13 +73,9 @@
 .formGroup label {
   display: block;
   margin-bottom: 0.5rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   font-weight: 500;
   font-size: 0.875rem;
-}
-
-[data-theme='dark'] .formGroup label {
-  color: var(--text-color, #e0e0e0);
 }
 
 .formGroup input[type='text'],
@@ -94,7 +86,7 @@
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--border-color, #e0e0e0);
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   border-radius: 6px;
   font-size: 0.875rem;
   transition: border-color 0.2s ease;
@@ -106,7 +98,7 @@
 [data-theme='dark'] .formGroup textarea {
   border: 1px solid var(--border-color, #444);
   background: var(--input-background, #1a1a1a);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .formGroup input[type='text']:focus,
@@ -140,13 +132,9 @@
 
 .charCounter {
   display: block;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
   font-size: 0.875rem;
   margin-top: 0.25rem;
-}
-
-[data-theme='dark'] .charCounter {
-  color: var(--text-muted, #9ca3af);
 }
 
 .chipGroup {
@@ -162,7 +150,7 @@
   padding: 0.5rem 1rem;
   border: 2px solid var(--border-color, #e0e0e0);
   background: var(--background-color, white);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -174,7 +162,7 @@
 [data-theme='dark'] .chip {
   border: 2px solid var(--border-color, #444);
   background: var(--input-background, #1a1a1a);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .chip:hover:not(:disabled) {
@@ -234,7 +222,7 @@
 
 .cancelButton {
   background: var(--secondary-color, #6c757d);
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .cancelButton {

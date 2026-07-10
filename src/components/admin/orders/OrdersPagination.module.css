@@ -13,7 +13,7 @@
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
   background: var(--background-color, white);
-  color: var(--text-color, #475569);
+  color: var(--text-color);
   border: 2px solid var(--border-color, #e2e8f0);
   border-radius: 8px;
   font-size: 0.875rem;
@@ -36,7 +36,7 @@
 @media (prefers-color-scheme: dark) {
   .paginationButton {
     background: var(--card-background, #252525);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     border-color: var(--border-color, #444444);
   }
 
@@ -50,11 +50,11 @@
 .pageInfo {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-color, #475569);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .pageInfo {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }

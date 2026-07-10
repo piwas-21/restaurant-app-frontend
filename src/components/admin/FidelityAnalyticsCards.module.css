@@ -75,7 +75,7 @@
 .cardTitle {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -90,19 +90,15 @@
 .cardValue {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0;
   line-height: 1.2;
 }
 
 .cardSubtitle {
   font-size: 0.85rem;
-  color: var(--text-secondary, #9ca3af);
+  color: var(--text-secondary);
   margin: 0;
-}
-
-[data-theme='dark'] .cardValue {
-  color: var(--text-color, #e0e0e0);
 }
 
 .loading {

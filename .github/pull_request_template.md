@@ -9,7 +9,7 @@
 - ...
 
 ## Sprint task / issue
-<!-- Link the sprint task (docs/SPRINT-PLAN.md task ID) or GitLab issue number. -->
+<!-- Link the sprint task (docs/SPRINT-PLAN.md task ID) or GitHub issue number. -->
 - Closes #
 - Sprint task:
 
@@ -21,6 +21,16 @@
 - [ ] `docs` — documentation only
 - [ ] `test` — tests only
 - [ ] `perf` — performance / bundle-size
+
+## NFR triage (DEV-PHASES-PLAN P1 — one line per touched dimension, "rest: n/a because …")
+<!--
+  D1 security · D2 performance (CWV/bundle) · D3 cpu/mem · D4 UX (loading/empty/error, light+dark) ·
+  D5 a11y (WCAG 2.2 AA, keyboard, contrast) · D6 i18n (10-locale parity, RTL) · D7 privacy/PII ·
+  D8 observability · D9 testing · D10 conventions (tokens, file-length, primitives).
+  Auth/payment/PII/new-endpoint changes: add 3–5 threat-model-lite bullets under D1.
+-->
+- D…:
+- Rest: n/a because …
 
 ## Acceptance criteria coverage
 <!--
@@ -75,7 +85,7 @@
 - [ ] No raw `process.env.NEXT_PUBLIC_*` scattered — read via `src/lib/config.ts`
 - [ ] Sibling file conventions matched (default export, hook usage, CSS Module naming)
 - [ ] Pre-commit hooks pass locally (`pre-commit run --all-files`)
-- [ ] Branch is off `develop`; MR targets `develop`
+- [ ] Branch is off `main`; PR targets `main` (merge = prod deploy — CLAUDE.md §8)
 
 ## Test plan
 <!-- Manual testing steps; specific scenarios to verify. -->

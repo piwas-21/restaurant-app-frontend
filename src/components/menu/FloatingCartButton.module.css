@@ -12,8 +12,8 @@
   min-width: 160px;
   height: 64px;
 
-  background: linear-gradient(135deg, var(--color-primary, #c00000) 0%, #a00000 100%);
-  color: var(--color-white, #ffffff);
+  background: linear-gradient(135deg, var(--color-red-700-c) 0%, var(--color-red-800-b) 100%);
+  color: var(--text-on-accent);
 
   border: none;
   border-radius: 32px;
@@ -101,11 +101,11 @@
   height: 20px;
   padding: 0 6px;
 
-  background: #dc3545;
+  background: var(--feedback-danger);
   color: white;
 
   border-radius: 10px;
-  border: 2px solid var(--color-white, #ffffff);
+  border: 2px solid var(--text-on-accent);
 
   font-size: 12px;
   font-weight: 700;
@@ -203,7 +203,7 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .floatingButton {
-    background: linear-gradient(135deg, #e06666 0%, #c00000 100%);
+    background: linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%);
     box-shadow:
       0 8px 32px rgba(224, 102, 102, 0.3),
       0 2px 8px rgba(0, 0, 0, 0.3);

@@ -15,6 +15,7 @@ Index of ADRs for the RUMI Frontend. New ADRs are numbered sequentially with no 
 | [003](ADR-003-i18next-locale-parity.md) | i18next + 9 locales with parity rule | Accepted | 2026-04-27 | i18n |
 | [004](ADR-004-zod-form-validation.md) | Zod as form-validation source of truth | Accepted | 2026-04-27 | forms, validation |
 | [005](ADR-005-design-system-primitives.md) | BaseModal, FormField, StatusBadge as mandatory wrappers | Accepted | 2026-04-27 | design-system |
+| [006](ADR-006-tenant-ui-templates.md) | Tenant UI templates: build-time template selection (`classic`/`craft`) | Accepted | 2026-07-07 | design-system, multi-tenant, styling |
 
 ## Conventions
 

@@ -45,6 +45,10 @@ on:
         description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: logo.png, logo-dark.png, icon.svg, hero.png). Empty = repo default assets"
         required: false
         default: ""
+      template:
+        description: "UI template baked into the bundle (registry `template:` field, ADR-006): classic | craft"
+        required: false
+        default: "classic"
 
 concurrency:
   group: build-tenant-${{ inputs.image_tag }}
@@ -60,7 +64,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Validate template input
+        # Allowlist mirrors the registry contract (deploy repo registry.yml
+        # `template:` values, ADR-006). NOTE: `craft` is accepted here per
+        # that contract but FAILS the Docker build until T3 ships
+        # src/templates/craft/ (next.config.ts aborts on a missing template
+        # dir). Input is operator-supplied (workflow_dispatch, write access
+        # required); still passed via env, never inlined in the script.
+        env:
+          TEMPLATE: ${{ inputs.template }}
+        run: |
+          case "$TEMPLATE" in
+            classic|craft) ;;
+            *) echo "template must be 'classic' or 'craft', got: '$TEMPLATE'" >&2; exit 1 ;;
+          esac
 
       - name: Apply tenant branding overrides
         # Replaces the repo-default branding assets in public/branding/ with
@@ -106,7 +125,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
-      - uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+      - uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -135,6 +154,7 @@ jobs:
             NEXT_PUBLIC_IMAGE_BASE_URL=https://${{ inputs.tenant_domain }}
             NEXT_PUBLIC_RESTAURANT_NAME=${{ inputs.restaurant_name }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
+            NEXT_PUBLIC_TEMPLATE=${{ inputs.template }}
             GIT_SHA=${{ github.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}
           tags: ${{ steps.meta.outputs.tags }}

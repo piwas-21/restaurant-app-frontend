@@ -28,7 +28,7 @@
 .input:focus,
 .textarea:focus {
   outline: none;
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
 }
 
 .textarea {
@@ -46,7 +46,7 @@
 
 [data-theme='dark'] .input:focus,
 [data-theme='dark'] .textarea:focus {
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -130,6 +130,6 @@
   .input:focus,
   .textarea:focus {
     background: rgba(255, 255, 255, 0.9);
-    border-color: #f4c430;
+    border-color: var(--color-gold-500);
   }
 }

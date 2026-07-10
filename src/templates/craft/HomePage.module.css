@@ -1,0 +1,173 @@
+/* craft HomePage (ADR-006, S15 T3 slice 1). Asymmetric hero + tilted
+   letterpress cards + a dotted-leader menu-board section, reusing the same
+   restaurant-info/working-hours data as classic/HomePage.tsx but composed
+   distinctly (see useCraftHomeData.ts + craft.module.css for the shared
+   motif classes). Zero gradients; colors via ./tokens.css only. */
+
+.homeContainer {
+  padding-bottom: 3rem;
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  min-height: 88vh;
+  padding-top: 80px;
+}
+
+.heroImage {
+  composes: roundedCraft from './craft.module.css';
+  flex: 1 1 55%;
+  min-height: 320px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 1.5rem;
+  transform: rotate(-1deg);
+}
+
+.heroText {
+  composes: roundedCraft from './craft.module.css';
+  composes: letterpress from './craft.module.css';
+  flex: 1 1 40%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  margin: 1.5rem 1.5rem 1.5rem 0;
+  padding: 2.5rem 2rem;
+  background: var(--surface-card);
+}
+
+.heroTitle {
+  font-family: 'Amatic SC', cursive;
+  font-size: 4rem;
+  line-height: 1.05;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.heroSubtitle {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  composes: roundedCraft from './craft.module.css';
+  composes: letterpressBtn from './craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.6rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.ctaPrimary {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  border: 2px solid var(--brand-primary);
+}
+
+.ctaSecondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border-default);
+}
+
+.pageContentWrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem 1rem;
+  font-family: 'Quicksand', var(--font-family-sans);
+}
+
+.storyCard,
+.locationCard {
+  composes: roundedCraft from './craft.module.css';
+  composes: letterpress from './craft.module.css';
+  background: var(--surface-card);
+  padding: 2rem;
+  margin: 2rem 0.5rem;
+  color: var(--text-primary);
+  transform: rotate(-0.6deg);
+}
+
+.locationCard {
+  transform: rotate(0.6deg);
+}
+
+.menuBoard {
+  composes: roundedCraft from './craft.module.css';
+  background: var(--surface-secondary-light);
+  padding: 2rem;
+  margin: 1.5rem 0.5rem 2rem;
+  color: var(--text-primary);
+}
+
+.mapFrame {
+  composes: roundedCraft from './craft.module.css';
+  margin-top: 1.5rem;
+  overflow: hidden;
+  border: 2px solid var(--border-default);
+}
+
+.homeFooter {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 2rem 0;
+  border-top: 2px dotted var(--border-default);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.footerLink {
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .heroImage {
+    min-height: 240px;
+  }
+  .heroTitle {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    flex-direction: column;
+    min-height: unset;
+  }
+  .heroImage,
+  .heroText {
+    margin: 1rem;
+  }
+  /* Reserve space below the fold for the fixed ContactIcons bar, matching
+     classic/HomePage.module.css. */
+  .homeContainer {
+    padding-bottom: 5.5rem;
+  }
+}

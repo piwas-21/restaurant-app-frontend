@@ -279,10 +279,6 @@
 [data-theme='dark'] .statusPreparing:hover {
   background-color: var(--warning-color);
 }
-
-[data-theme='dark'] .itemStatusTextPending {
-  color: var(--text-secondary);
-}
 [data-theme='dark'] .itemStatusTextPreparing {
   background-color: var(--warning-color-dark);
   color: var(--warning-color-light);

@@ -1,6 +1,5 @@
 'use client';
 
-import { Inter } from 'next/font/google';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useEffect, useState, CSSProperties } from 'react';
@@ -32,7 +31,9 @@ import { useCart } from '@/components/cart/CartContext';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_LOGO, BRANDING_LOGO_DARK, RESTAURANT_NAME } from '@/lib/config';
 
-const _inter = Inter({ subsets: ['latin'] });
+// Fonts moved behind the template definition (ADR-006): the root layout
+// applies the active template's next/font classNames to <body>. The unused
+// Inter load that used to sit here is gone with it.
 
 export default function AppInternalLayout({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);

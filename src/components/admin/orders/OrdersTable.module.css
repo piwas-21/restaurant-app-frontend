@@ -35,7 +35,7 @@
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: var(--text-color, #475569);
+  color: var(--text-color);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
@@ -44,7 +44,7 @@
 
 @media (prefers-color-scheme: dark) {
   .ordersTable th {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.8;
     border-bottom-color: var(--border-color, #444444);
   }
@@ -81,12 +81,12 @@
 
 .ordersTable td {
   padding: 1rem;
-  color: var(--text-color, #334155);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .ordersTable td {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
@@ -122,24 +122,24 @@
 
 .customerName {
   font-weight: 600;
-  color: var(--text-color, #1e293b);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .customerName {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
 .customerEmail {
   font-size: 0.75rem;
-  color: var(--text-color, #64748b);
+  color: var(--text-color);
   opacity: 0.7;
 }
 
 @media (prefers-color-scheme: dark) {
   .customerEmail {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.6;
   }
 }
@@ -148,12 +148,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-color, #475569);
+  color: var(--text-color);
 }
 
 @media (prefers-color-scheme: dark) {
   .typeCell {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.8;
   }
 }
@@ -177,24 +177,24 @@
 
 .totalCell {
   font-weight: 700;
-  color: var(--text-color, #1e293b);
+  color: var(--text-color);
   font-size: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .totalCell {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
   }
 }
 
 .dateCell {
-  color: var(--text-color, #64748b);
+  color: var(--text-color);
   font-size: 0.813rem;
 }
 
 @media (prefers-color-scheme: dark) {
   .dateCell {
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     opacity: 0.7;
   }
 }
@@ -212,7 +212,7 @@
   height: 32px;
   padding: 0;
   background: var(--secondary-color, #f1f5f9);
-  color: var(--text-color, #475569);
+  color: var(--text-color);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 6px;
   cursor: pointer;
@@ -238,7 +238,7 @@
 @media (prefers-color-scheme: dark) {
   .actionButton {
     background: var(--secondary-color, #2c2c2c);
-    color: var(--text-color, #f0f0f0);
+    color: var(--text-color);
     border-color: var(--border-color, #444444);
   }
 

@@ -6,11 +6,21 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-emerald-50) 0%,
+    var(--color-emerald-100) 50%,
+    var(--color-emerald-200) 100%
+  );
 }
 
 [data-theme='dark'] .successContainer {
-  background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-emerald-900) 0%,
+    var(--color-emerald-800) 50%,
+    var(--color-emerald-700) 100%
+  );
 }
 
 .successCard {
@@ -24,7 +34,7 @@
 }
 
 [data-theme='dark'] .successCard {
-  background: #1f1f1f;
+  background: var(--color-gray-900);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -48,7 +58,7 @@
   width: 120px;
   height: 120px;
   margin: 0 auto 2rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-confirmed) 0%, var(--color-emerald-600) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -76,7 +86,7 @@
   position: absolute;
   width: 140px;
   height: 140px;
-  border: 3px solid #10b981;
+  border: 3px solid var(--status-confirmed);
   border-radius: 50%;
   opacity: 0.3;
   animation: emailPulse 2s ease-out infinite;
@@ -126,21 +136,21 @@
 }
 
 .checkmark svg {
-  color: #10b981;
+  color: var(--status-confirmed);
   filter: none;
 }
 
 .successTitle {
   font-size: 2.25rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--status-confirmed);
   margin: 0 0 1rem;
   letter-spacing: -0.02em;
   animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
 [data-theme='dark'] .successTitle {
-  color: #34d399;
+  color: var(--color-emerald-400);
 }
 
 @keyframes fadeInUp {
@@ -155,8 +165,8 @@
 }
 
 .instructionsBox {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 2px solid #bbf7d0;
+  background: linear-gradient(135deg, var(--color-green-50) 0%, var(--color-green-100) 100%);
+  border: 2px solid var(--color-green-200);
   border-radius: 12px;
   padding: 1.75rem;
   margin: 2rem 0;
@@ -165,18 +175,18 @@
 
 [data-theme='dark'] .instructionsBox {
   background: linear-gradient(135deg, rgba(6, 78, 59, 0.3) 0%, rgba(6, 95, 70, 0.2) 100%);
-  border-color: #065f46;
+  border-color: var(--color-emerald-800);
 }
 
 .instructionsText {
-  color: #065f46;
+  color: var(--color-emerald-800);
   font-size: 1.05rem;
   line-height: 1.7;
   margin: 0 0 1rem;
 }
 
 [data-theme='dark'] .instructionsText {
-  color: #a7f3d0;
+  color: var(--color-emerald-200);
 }
 
 .emailHighlight {
@@ -185,14 +195,14 @@
   background: white;
   border-radius: 6px;
   font-weight: 700;
-  color: #059669;
+  color: var(--color-emerald-600);
   margin: 0.5rem 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme='dark'] .emailHighlight {
-  background: #1f1f1f;
-  color: #34d399;
+  background: var(--color-gray-900);
+  color: var(--color-emerald-400);
 }
 
 .stepsList {
@@ -206,7 +216,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  color: #047857;
+  color: var(--color-emerald-700);
   font-size: 0.95rem;
   margin-bottom: 0.75rem;
   padding: 0.75rem;
@@ -216,7 +226,7 @@
 }
 
 [data-theme='dark'] .stepsList li {
-  color: #6ee7b7;
+  color: var(--color-emerald-300);
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -228,7 +238,7 @@
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  background: #10b981;
+  background: var(--status-confirmed);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -244,7 +254,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-confirmed) 0%, var(--color-emerald-600) 100%);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -278,9 +288,9 @@
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #10b981;
+  color: var(--status-confirmed);
   background: white;
-  border: 2px solid #10b981;
+  border: 2px solid var(--status-confirmed);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -291,20 +301,20 @@
 }
 
 [data-theme='dark'] .resendButton {
-  background: #1f1f1f;
-  border-color: #059669;
-  color: #34d399;
+  background: var(--color-gray-900);
+  border-color: var(--color-emerald-600);
+  color: var(--color-emerald-400);
 }
 
 .resendButton:hover:not(:disabled) {
-  background: #10b981;
+  background: var(--status-confirmed);
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 [data-theme='dark'] .resendButton:hover:not(:disabled) {
-  background: #059669;
+  background: var(--color-emerald-600);
   color: white;
 }
 
@@ -323,10 +333,10 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border: 2px solid #10b981;
+  background: linear-gradient(135deg, var(--color-emerald-100) 0%, var(--color-emerald-200) 100%);
+  border: 2px solid var(--status-confirmed);
   border-radius: 10px;
-  color: #065f46;
+  color: var(--color-emerald-800);
   font-size: 0.95rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -335,8 +345,8 @@
 
 [data-theme='dark'] .resendMessage {
   background: linear-gradient(135deg, rgba(6, 95, 70, 0.3) 0%, rgba(6, 95, 70, 0.2) 100%);
-  border-color: #059669;
-  color: #6ee7b7;
+  border-color: var(--color-emerald-600);
+  color: var(--color-emerald-300);
 }
 
 @keyframes slideIn {
@@ -351,24 +361,24 @@
 }
 
 .helpText {
-  color: #6b7280;
+  color: var(--color-gray-500);
   font-size: 0.875rem;
   margin-top: 1.5rem;
   animation: fadeInUp 0.6s ease-out 0.8s both;
 }
 
 [data-theme='dark'] .helpText {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .helpText a {
-  color: #10b981;
+  color: var(--status-confirmed);
   text-decoration: underline;
   font-weight: 600;
 }
 
 [data-theme='dark'] .helpText a {
-  color: #34d399;
+  color: var(--color-emerald-400);
 }
 
 /* Responsive */

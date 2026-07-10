@@ -1,0 +1,8 @@
+/* classic template tokens (ADR-006, S15 T2).
+   The classic look IS the shared semantic token layer (DESIGN-SYSTEM.md §1-2),
+   so v1 pragmatically re-exports it rather than forking values — the token
+   files in src/design-system/tokens/ stay the single shared source. A future
+   template (craft, T3) overrides the semantic names here with its own values.
+   The root layout imports this file FIRST (before globals.css), preserving
+   the exact CSS order globals.css produced when it held this import. */
+@import '../../design-system/tokens/index.css';

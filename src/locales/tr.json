@@ -1110,11 +1110,6 @@
   "max_guests_count": "{{count}} misafir",
   "max_guests": "Maksimum Misafir",
   "outdoor_table": "Dış Mekan Masası",
-  "activate": "Etkinleştir",
-  "deactivate": "Devre Dışı Bırak",
-  "enable": "Etkinleştir",
-  "disable": "Devre Dışı Bırak",
-  "creating": "Oluşturuluyor...",
   "update": "Güncelle",
   "qr_code_missing": "QR kodu eksik",
   "qr_code_invalid": "Geçersiz veya süresi dolmuş QR kodu",
@@ -1503,7 +1498,12 @@
       "error": "Z-Raporu yüklenemedi",
       "retry": "Tekrar dene"
     },
-    "show_todays_orders_only": "Sadece bugünün siparişlerini göster"
+    "show_todays_orders_only": "Sadece bugünün siparişlerini göster",
+    "save_note": "Notu Kaydet",
+    "pending": "Beklemede",
+    "confirmed": "Onaylandı",
+    "preparing": "Hazırlanıyor",
+    "ready": "Hazır"
   },
   "cashier.completed": "Tamamlandı",
   "cashier.unpaid": "Ödenmemiş",
@@ -2179,5 +2179,8 @@
   "password_too_short": "Şifre en az 6 karakter olmalıdır",
   "account_creation_failed_continuing": "Hesap oluşturulamadı, siparişin misafir olarak devam edecek.",
   "register_full_name_help": "Lütfen ad ve soyadı birlikte gir",
-  "field_required": "Zorunlu"
+  "field_required": "Zorunlu",
+  "enable": "Etkinleştir",
+  "disable": "Devre Dışı Bırak",
+  "creating": "Oluşturuluyor..."
 }

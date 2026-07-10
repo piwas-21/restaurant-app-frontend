@@ -6,11 +6,11 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 50%, #fecaca 100%);
+  background: linear-gradient(135deg, var(--color-red-50) 0%, var(--color-red-100) 50%, var(--color-red-200) 100%);
 }
 
 [data-theme='dark'] .container {
-  background: linear-gradient(135deg, #1a0505 0%, #2d0a0a 50%, #3f0f0f 100%);
+  background: linear-gradient(135deg, var(--color-red-950) 0%, var(--color-red-950-b) 50%, var(--color-red-900-b) 100%);
 }
 
 .card {
@@ -24,7 +24,7 @@
 }
 
 [data-theme='dark'] .card {
-  background: #1f1f1f;
+  background: var(--color-gray-900);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -40,7 +40,7 @@
 }
 
 .header {
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--color-red-600) 0%, var(--color-red-800) 100%);
   padding: 2.5rem 2rem;
   text-align: center;
   position: relative;
@@ -110,8 +110,8 @@
 
 /* Confirming State */
 .warningBox {
-  background: #fef2f2;
-  border: 2px solid #fecaca;
+  background: var(--color-red-50);
+  border: 2px solid var(--color-red-200);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -119,18 +119,18 @@
 
 [data-theme='dark'] .warningBox {
   background: rgba(127, 29, 29, 0.2);
-  border-color: #7f1d1d;
+  border-color: var(--color-red-900);
 }
 
 .warningText {
-  color: #7f1d1d;
+  color: var(--color-red-900);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1rem;
 }
 
 [data-theme='dark'] .warningText {
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .consequencesList {
@@ -144,7 +144,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  color: #991b1b;
+  color: var(--color-red-800);
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
   padding: 0.5rem;
@@ -153,7 +153,7 @@
 }
 
 [data-theme='dark'] .consequencesList li {
-  color: #fca5a5;
+  color: var(--color-red-300);
   background: rgba(220, 38, 38, 0.1);
 }
 
@@ -174,7 +174,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--color-red-600) 0%, var(--color-red-800) 100%);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -198,36 +198,36 @@
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--color-gray-500);
   background: white;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--color-gray-200);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 [data-theme='dark'] .cancelButton {
-  background: #2d2d2d;
-  border-color: #404040;
-  color: #9ca3af;
+  background: var(--color-gray-900-b);
+  border-color: var(--color-neutral-700);
+  color: var(--text-muted);
 }
 
 .cancelButton:hover {
-  border-color: #d1d5db;
-  background: #f9fafb;
+  border-color: var(--color-gray-300);
+  background: var(--color-gray-50);
 }
 
 [data-theme='dark'] .cancelButton:hover {
-  border-color: #525252;
-  background: #3a3a3a;
+  border-color: var(--color-neutral-600);
+  background: var(--color-gray-800);
 }
 
 /* Processing State */
 .spinner {
   width: 60px;
   height: 60px;
-  border: 4px solid #fecaca;
-  border-top-color: #dc2626;
+  border: 4px solid var(--color-red-200);
+  border-top-color: var(--color-red-600);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1.5rem;
@@ -240,12 +240,12 @@
 }
 
 .processingText {
-  color: #6b7280;
+  color: var(--color-gray-500);
   font-size: 1rem;
 }
 
 [data-theme='dark'] .processingText {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 /* Success State */
@@ -253,7 +253,7 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--status-confirmed) 0%, var(--color-emerald-600) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -277,22 +277,22 @@
 .successTitle {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #10b981;
+  color: var(--status-confirmed);
   margin: 0 0 0.75rem;
 }
 
 [data-theme='dark'] .successTitle {
-  color: #34d399;
+  color: var(--color-emerald-400);
 }
 
 .successMessage {
-  color: #6b7280;
+  color: var(--color-gray-500);
   font-size: 1rem;
   line-height: 1.6;
 }
 
 [data-theme='dark'] .successMessage {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 /* Error State */
@@ -300,7 +300,7 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  background: linear-gradient(135deg, var(--color-red-600) 0%, var(--color-red-800) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -328,50 +328,50 @@
 .errorTitle {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #dc2626;
+  color: var(--color-red-600);
   margin: 0 0 0.75rem;
 }
 
 [data-theme='dark'] .errorTitle {
-  color: #fca5a5;
+  color: var(--color-red-300);
 }
 
 .errorMessage {
-  color: #6b7280;
+  color: var(--color-gray-500);
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
 
 [data-theme='dark'] .errorMessage {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .backButton {
   padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #dc2626;
+  color: var(--color-red-600);
   background: white;
-  border: 2px solid #dc2626;
+  border: 2px solid var(--color-red-600);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 [data-theme='dark'] .backButton {
-  background: #1f1f1f;
-  color: #fca5a5;
-  border-color: #7f1d1d;
+  background: var(--color-gray-900);
+  color: var(--color-red-300);
+  border-color: var(--color-red-900);
 }
 
 .backButton:hover {
-  background: #dc2626;
+  background: var(--color-red-600);
   color: white;
 }
 
 [data-theme='dark'] .backButton:hover {
-  background: #7f1d1d;
+  background: var(--color-red-900);
   color: white;
 }
 

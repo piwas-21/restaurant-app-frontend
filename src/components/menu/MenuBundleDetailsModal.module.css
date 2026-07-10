@@ -62,7 +62,7 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   padding: 0.5rem;
   line-height: 1;
   border-radius: 50%;
@@ -70,7 +70,7 @@
 }
 
 .closeButton:hover {
-  background-color: var(--background-color, #f5f5f5);
+  background-color: var(--background-color);
   color: var(--text-color);
 }
 
@@ -97,7 +97,7 @@
 
 .section p {
   margin: 0;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   line-height: 1.5;
 }
 
@@ -111,7 +111,7 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1rem;
-  background-color: var(--background-color, #f9f9f9);
+  background-color: var(--background-color);
 }
 
 .sectionInfo {
@@ -141,7 +141,7 @@
 
 .sectionMeta {
   font-size: 0.8rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
 }
 
 .itemsList {
@@ -176,7 +176,7 @@
 }
 
 .defaultBadge {
-  background-color: var(--secondary-color, #4caf50);
+  background-color: var(--secondary-color);
   color: white;
   font-size: 0.7rem;
   padding: 2px 6px;
@@ -184,13 +184,13 @@
 }
 
 .itemPrice {
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   font-size: 0.85rem;
 }
 
 .itemIngredients {
   font-size: 0.8rem;
-  color: var(--text-secondary-color, #666);
+  color: var(--text-secondary-color);
   font-style: italic;
 }
 
@@ -209,11 +209,11 @@
 }
 
 .allergenTag {
-  background-color: #fff3e0;
-  color: #e65100;
+  background-color: var(--color-gold-100);
+  color: var(--color-material-orange-900);
   padding: 1px 6px;
   border-radius: 4px;
-  border: 1px solid #ffe0b2;
+  border: 1px solid var(--color-gold-200);
 }
 
 .footer {
@@ -251,7 +251,7 @@
 }
 
 .addToCartButton:hover {
-  background-color: var(--primary-color-dark, #b71c1c);
+  background-color: var(--primary-color-dark);
 }
 
 @media (max-width: 600px) {

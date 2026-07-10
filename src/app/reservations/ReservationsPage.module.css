@@ -55,7 +55,7 @@
 
 .selectionCount {
   margin-left: 1rem;
-  color: #f4c430;
+  color: var(--color-gold-500);
   font-weight: normal;
   font-size: 0.9rem;
 }
@@ -87,8 +87,8 @@
 .bookButton {
   width: 100%;
   padding: 1rem;
-  background: #f4c430;
-  color: #000;
+  background: var(--color-gold-500);
+  color: var(--color-black);
   border: none;
   border-radius: 8px;
   font-size: 1.125rem;
@@ -99,7 +99,7 @@
 }
 
 .bookButton:hover:not(:disabled) {
-  background: #e0b020;
+  background: var(--color-gold-600);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
 }
@@ -372,7 +372,7 @@
   }
 
   .bookButton:active:not(:disabled) {
-    background: #d4a020;
+    background: var(--color-gold-600-b);
     transform: scale(0.98);
   }
 

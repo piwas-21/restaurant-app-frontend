@@ -19,7 +19,7 @@
 }
 
 .viewDetailsButton {
-  background-color: var(--secondary-color, #f1f3f5);
+  background-color: var(--secondary-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
   padding: 0.8rem 1.3rem;
@@ -33,17 +33,16 @@
 }
 
 .viewDetailsButton:hover {
-  background-color: var(--secondary-color-light, #e9ecef);
+  background-color: var(--secondary-color-light);
   transform: translateY(-1px);
 }
 
 .addToOrderButton {
-  /* WCAG AA contrast against #ffffff button text in light mode
-     (#2e7d32 → ~5.5:1) and against #1a1a1a in dark mode (#66bb6a →
-     ~5.7:1). The original --success-color (#4caf50) gave only ~2.7:1
-     on white; the intermediate --success-color-dark (#388e3c) was 4.11:1,
-     still under AA's 4.5 threshold. The menu-and-cart e2e test catches
-     regressions to either via axe-core. */
+  /* --success-color-darker is the WCAG-AA success tier: ~5.5:1 against white
+     button text in light mode and ~5.7:1 against the dark-surface text in dark
+     mode. The plain --success-color gave only ~2.7:1 on white; the intermediate
+     --success-color-dark was 4.11:1, still under AA's 4.5 threshold. The
+     menu-and-cart e2e test catches regressions to either via axe-core. */
   background-color: var(--success-color-darker);
 }
 

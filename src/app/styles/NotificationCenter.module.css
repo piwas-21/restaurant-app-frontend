@@ -28,27 +28,27 @@
 
 /* Notification Types */
 .info {
-  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-  border-left-color: #0284c7;
-  color: #0c4a6e;
+  background: linear-gradient(135deg, var(--color-sky-100) 0%, var(--color-sky-50) 100%);
+  border-left-color: var(--color-sky-600);
+  color: var(--color-sky-900);
 }
 
 .success {
-  background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
-  border-left-color: #16a34a;
-  color: #166534;
+  background: linear-gradient(135deg, var(--color-green-100) 0%, var(--color-green-50) 100%);
+  border-left-color: var(--color-green-600);
+  color: var(--color-green-800);
 }
 
 .warning {
-  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
-  border-left-color: #eab308;
-  color: #713f12;
+  background: linear-gradient(135deg, var(--color-amber-100) 0%, var(--color-amber-50) 100%);
+  border-left-color: var(--color-yellow-500);
+  color: var(--color-yellow-900);
 }
 
 .error {
-  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
-  border-left-color: #ef4444;
-  color: #7f1d1d;
+  background: linear-gradient(135deg, var(--color-red-100) 0%, var(--color-red-50) 100%);
+  border-left-color: var(--status-danger);
+  color: var(--color-red-900);
 }
 
 /* Content */

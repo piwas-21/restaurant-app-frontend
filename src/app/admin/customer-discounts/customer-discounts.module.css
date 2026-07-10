@@ -19,22 +19,14 @@
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.5rem 0;
 }
 
 .subtitle {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-size: 0.95rem;
   margin: 0;
-}
-
-[data-theme='dark'] .title {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .subtitle {
-  color: var(--text-secondary, #b0b0b0);
 }
 
 .createButton {
@@ -85,7 +77,7 @@
 }
 
 .filterGroup svg {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -94,22 +86,18 @@
   border: none;
   outline: none;
   font-size: 0.95rem;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   background: transparent;
   padding: 0.25rem;
 }
 
 .filterInput::placeholder {
-  color: var(--text-tertiary, #999);
+  color: var(--text-muted);
 }
 
 [data-theme='dark'] .filterGroup {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
-}
-
-[data-theme='dark'] .filterInput {
-  color: var(--text-color, #e0e0e0);
 }
 
 .clearFilter {
@@ -118,14 +106,14 @@
   border: none;
   border-radius: 4px;
   font-size: 0.85rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .clearFilter:hover {
   background: var(--border-color, #e0e0e0);
-  color: var(--text-color, #333);
+  color: var(--text-color);
 }
 
 .checkboxLabel {
@@ -133,7 +121,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.95rem;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   cursor: pointer;
   user-select: none;
   padding: 0.5rem 1rem;
@@ -156,18 +144,18 @@
 
 [data-theme='dark'] .clearFilter {
   background: var(--secondary-color, #3a3a3a);
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .clearFilter:hover {
   background: var(--background-color, #222);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .checkboxLabel {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .checkboxLabel:hover {
@@ -196,7 +184,7 @@
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: var(--text-secondary, #495057);
+  color: var(--text-secondary);
   border-bottom: 2px solid var(--border-color, #dee2e6);
   white-space: nowrap;
 }
@@ -212,7 +200,7 @@
 
 .table td {
   padding: 1rem;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   vertical-align: middle;
 }
 
@@ -226,7 +214,7 @@
 }
 
 [data-theme='dark'] .table th {
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary);
   border-bottom-color: var(--border-color, #444);
 }
 
@@ -238,13 +226,9 @@
   background-color: var(--background-color, #222);
 }
 
-[data-theme='dark'] .table td {
-  color: var(--text-color, #e0e0e0);
-}
-
 .nameCell {
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   max-width: 200px;
 }
 
@@ -252,7 +236,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
 }
 
 .userInfo {
@@ -263,28 +247,20 @@
 
 .userName {
   font-weight: 500;
-  color: var(--text-color, #333);
+  color: var(--text-color);
   font-size: 0.9rem;
 }
 
 .userEmail {
   font-size: 0.8rem;
-  color: var(--text-secondary, #666);
-}
-
-[data-theme='dark'] .userName {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .userEmail {
-  color: var(--text-secondary, #999);
+  color: var(--text-secondary);
 }
 
 .userId {
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
   background: var(--secondary-color-light, #f5f5f5);
-  color: var(--text-color, #333);
+  color: var(--text-color);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
 }
@@ -296,7 +272,7 @@
 }
 
 .rangeCell {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -306,7 +282,7 @@
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.85rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
 }
 
 .dateCell svg {
@@ -316,22 +292,18 @@
 }
 
 .dateTo {
-  color: var(--text-tertiary, #999);
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
 .dateUnlimited {
-  color: var(--text-tertiary, #999);
+  color: var(--text-muted);
   font-style: italic;
-}
-
-[data-theme='dark'] .nameCell {
-  color: var(--text-color, #e0e0e0);
 }
 
 [data-theme='dark'] .userId {
   background: var(--background-color, #222);
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 .badge {
@@ -356,7 +328,7 @@
 
 .badgeInactive {
   background: var(--secondary-color-light, #e5e7eb);
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
 }
 
 .badgeExpired {
@@ -373,7 +345,7 @@
   display: inline-block;
   padding: 0.35rem 0.75rem;
   background: var(--secondary-color-light, #f3f4f6);
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -395,7 +367,7 @@
 
 [data-theme='dark'] .badgeInactive {
   background: var(--secondary-color, #3a3a3a);
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .badgeExpired {
@@ -408,7 +380,7 @@
 
 [data-theme='dark'] .usageBadge {
   background: var(--secondary-color, #3a3a3a);
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary);
 }
 
 .actions {
@@ -427,7 +399,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
 }
 
 .actionButton:hover {
@@ -447,7 +419,7 @@
 [data-theme='dark'] .actionButton {
   background: var(--secondary-color, #3a3a3a);
   border-color: var(--border-color, #555);
-  color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .actionButton:hover {
@@ -468,7 +440,7 @@
   justify-content: center;
   padding: 4rem 2rem;
   gap: 1rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
 }
 
 .spinner {
@@ -506,12 +478,12 @@
 
 .empty h3 {
   font-size: 1.25rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.5rem 0;
 }
 
 .empty p {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary);
   margin: 0 0 1.5rem 0;
 }
 
@@ -544,10 +516,6 @@
 [data-theme='dark'] .empty {
   background: var(--secondary-color, #2c2c2c);
   border-color: var(--border-color, #444);
-}
-
-[data-theme='dark'] .empty h3 {
-  color: var(--text-color, #e0e0e0);
 }
 
 [data-theme='dark'] .emptyButton {

@@ -6,22 +6,14 @@
 .sectionTitle {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.5rem 0;
-}
-
-[data-theme='dark'] .sectionTitle {
-  color: var(--text-color, #f0f0f0);
 }
 
 .sectionDescription {
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0 0 1rem 0;
-}
-
-[data-theme='dark'] .sectionDescription {
-  color: var(--text-secondary, #9ca3af);
 }
 
 /* Side Items List */
@@ -38,24 +30,20 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--secondary-color-light, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   transition: all 0.2s;
 }
 
 .sideItem:hover {
-  border-color: var(--primary-color, #c0392b);
+  border-color: var(--primary-color);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme='dark'] .sideItem {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
-}
-
-[data-theme='dark'] .sideItem:hover {
-  border-color: var(--primary-color, #e06666);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 /* Side Item Info */
@@ -67,20 +55,16 @@
 .sideItemName {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
+  color: var(--text-color);
   margin: 0 0 0.25rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-[data-theme='dark'] .sideItemName {
-  color: var(--text-color, #e0e0e0);
-}
-
 .sideItemDescription {
   font-size: 0.8125rem;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   margin: 0 0 0.5rem 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -89,18 +73,10 @@
   -webkit-box-orient: vertical;
 }
 
-[data-theme='dark'] .sideItemDescription {
-  color: var(--text-secondary, #9ca3af);
-}
-
 .sideItemPrice {
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--primary-color, #c0392b);
-}
-
-[data-theme='dark'] .sideItemPrice {
-  color: var(--primary-color, #e06666);
+  color: var(--primary-color);
 }
 
 /* Side Item Actions */
@@ -111,8 +87,8 @@
 /* Add Button */
 .addButton {
   padding: 0.5rem 1rem;
-  background-color: var(--primary-color, #c0392b);
-  color: var(--button-text-color, white);
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
   border: none;
   border-radius: 6px;
   font-size: 0.875rem;
@@ -125,7 +101,7 @@
 }
 
 .addButton:hover {
-  background-color: var(--primary-color-dark, #a33026);
+  background-color: var(--primary-color-dark);
   transform: translateY(-1px);
 }
 
@@ -134,16 +110,16 @@
 }
 
 .addButton:focus-visible {
-  outline: 2px solid var(--primary-color, #c0392b);
+  outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
 
 [data-theme='dark'] .addButton {
-  background-color: var(--primary-color-dark, #e06666);
+  background-color: var(--primary-color-dark);
 }
 
 [data-theme='dark'] .addButton:hover {
-  background-color: var(--primary-color, #ec7063);
+  background-color: var(--primary-color);
 }
 
 /* Quantity Control */
@@ -151,15 +127,15 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: var(--background-color, white);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 0.25rem;
 }
 
 [data-theme='dark'] .quantityControl {
-  background-color: var(--background-color, #1a1a1a);
-  border-color: var(--border-color, #555);
+  background-color: var(--background-color);
+  border-color: var(--border-color);
 }
 
 .quantityButton {
@@ -168,8 +144,8 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background-color: var(--secondary-color-light, #f3f4f6);
-  color: var(--text-color, #1a1a1a);
+  background-color: var(--secondary-color-light);
+  color: var(--text-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -178,21 +154,21 @@
 }
 
 .quantityButton:hover {
-  background-color: var(--border-color, #e5e7eb);
+  background-color: var(--border-color);
 }
 
 .quantityButton:focus-visible {
-  outline: 2px solid var(--primary-color, #c0392b);
+  outline: 2px solid var(--primary-color);
   outline-offset: 1px;
 }
 
 [data-theme='dark'] .quantityButton {
-  background-color: var(--secondary-color, #3a3a3a);
-  color: var(--text-color, #e0e0e0);
+  background-color: var(--secondary-color);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .quantityButton:hover {
-  background-color: var(--secondary-color, #4a4a4a);
+  background-color: var(--secondary-color);
 }
 
 .quantity {
@@ -200,23 +176,15 @@
   text-align: center;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--text-color, #1a1a1a);
-}
-
-[data-theme='dark'] .quantity {
-  color: var(--text-color, #e0e0e0);
+  color: var(--text-color);
 }
 
 /* Empty State */
 .emptyState {
   padding: 2rem 1rem;
   text-align: center;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   font-style: italic;
-}
-
-[data-theme='dark'] .emptyState {
-  color: var(--text-secondary, #9ca3af);
 }
 
 /* Responsive Design */

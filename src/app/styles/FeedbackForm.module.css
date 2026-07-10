@@ -45,11 +45,11 @@
 }
 
 .starFilled {
-  color: #ffd700; /* Gold color for filled stars */
+  color: var(--color-gold-300); /* Gold color for filled stars */
 }
 
 .starEmpty {
-  color: #ccc; /* Light gray color for empty stars */
+  color: var(--color-gray-300-b); /* Light gray color for empty stars */
 }
 
 .textareaInput,

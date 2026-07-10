@@ -33,7 +33,7 @@
 }
 
 .guestButton:hover {
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
   background: rgba(244, 196, 48, 0.1);
 }
 
@@ -42,9 +42,9 @@
 }
 
 .guestButton.selected {
-  background: #f4c430;
-  border-color: #f4c430;
-  color: #000;
+  background: var(--color-gold-500);
+  border-color: var(--color-gold-500);
+  color: var(--color-black);
 }
 
 .customInputWrapper {
@@ -74,7 +74,7 @@
 
 .customInput:focus {
   outline: none;
-  border-color: #f4c430;
+  border-color: var(--color-gold-500);
 }
 
 /* Dark Mode Support */
@@ -86,12 +86,6 @@
 [data-theme='dark'] .guestButton:hover {
   background: rgba(244, 196, 48, 0.15);
   border-color: rgba(244, 196, 48, 0.5);
-}
-
-[data-theme='dark'] .guestButton.selected {
-  background: #f4c430;
-  border-color: #f4c430;
-  color: #000;
 }
 
 /* Responsive Design */

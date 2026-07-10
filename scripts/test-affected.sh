@@ -2,16 +2,20 @@
 # scripts/test-affected.sh — pre-push affected-test gate
 #
 # Runs Jest's --findRelatedTests on the source files changed vs the upstream
-# branch (default: origin/develop). The goal is to catch the common-case unit
+# branch (default: origin/main). The goal is to catch the common-case unit
 # test regressions before they reach CI, without paying the full `npm test`
 # cost on every push.
+#
+# Base is origin/main (the repo cut over 2026-06-30; develop is legacy). Basing
+# on the stale develop would treat the whole main-vs-develop delta as "changed"
+# and run far more related tests than the branch actually touched.
 #
 # Wired into .pre-commit-config.yaml under default_stages: [pre-push].
 # Source of truth referenced from CLAUDE.md §7.
 #
 # Usage:
-#   scripts/test-affected.sh                 # diff vs origin/develop
-#   scripts/test-affected.sh origin/main     # diff vs alternate upstream
+#   scripts/test-affected.sh                 # diff vs origin/main
+#   scripts/test-affected.sh origin/develop  # diff vs alternate upstream
 #
 # Behavior:
 #   - Determine changed .ts/.tsx/.js/.jsx files under src/ between $UPSTREAM and HEAD.
@@ -23,10 +27,10 @@
 
 set -euo pipefail
 
-UPSTREAM="${1:-origin/develop}"
+UPSTREAM="${1:-origin/main}"
 
 # Verify upstream ref exists; if not, skip with a friendly message rather than
-# failing the push. (e.g. detached HEAD, fresh clone without origin/develop.)
+# failing the push. (e.g. detached HEAD, fresh clone without origin/main.)
 if ! git rev-parse --verify --quiet "$UPSTREAM" >/dev/null; then
   echo "test-affected: upstream ref '$UPSTREAM' not found; skipping."
   exit 0

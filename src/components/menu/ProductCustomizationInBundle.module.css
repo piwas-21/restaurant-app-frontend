@@ -28,7 +28,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color-light);
 }
 
 .modalHeader h3 {
@@ -43,7 +43,7 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   padding: 0;
   width: 32px;
   height: 32px;
@@ -55,7 +55,7 @@
 }
 
 .closeButton:hover {
-  background-color: #f5f5f5;
+  background-color: var(--surface-secondary-light);
 }
 
 .modalBody {
@@ -85,7 +85,7 @@
   font-weight: 700;
   color: var(--text-color);
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border-color, #e5e7eb);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .ingredientGroup {
@@ -99,7 +99,7 @@
 .groupTitle {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary, #6b7280);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 0.75rem 0;
@@ -116,8 +116,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  background-color: var(--secondary-color-light, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -130,43 +130,43 @@
 }
 
 .customizationItem:hover {
-  background-color: var(--secondary-color-light, #f3f4f6);
-  border-color: var(--primary-color, #c0392b);
+  background-color: var(--secondary-color-light);
+  border-color: var(--primary-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Fix for disabled items on hover - keep selected color if selected */
 .customizationItem:has(:disabled):not(:has(:checked)):hover {
-  background-color: var(--secondary-color-light, #f9fafb);
-  border-color: var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border-color: var(--border-color);
   box-shadow: none;
 }
 
 .customizationItem:has(:checked):has(:disabled) {
-  background-color: var(--success-color-xlight, #d1fae5);
-  border-color: var(--success-color, #28a745);
+  background-color: var(--success-color-xlight);
+  border-color: var(--success-color);
 }
 
 .customizationItem:has(:checked):has(:disabled):hover {
-  background-color: var(--success-color-xlight, #d1fae5);
-  border-color: var(--success-color, #28a745);
+  background-color: var(--success-color-xlight);
+  border-color: var(--success-color);
   box-shadow: none;
 }
 
 .customizationItem.disabled:not(.selected):hover {
-  background-color: var(--secondary-color-light, #f9fafb);
-  border-color: var(--border-color, #e5e7eb);
+  background-color: var(--secondary-color-light);
+  border-color: var(--border-color);
   box-shadow: none;
 }
 
 .customizationItem.selected.disabled {
-  background-color: var(--success-color-xlight, #d1fae5);
-  border-color: var(--success-color, #28a745);
+  background-color: var(--success-color-xlight);
+  border-color: var(--success-color);
 }
 
 .customizationItem.selected.disabled:hover {
-  background-color: var(--success-color-xlight, #d1fae5);
-  border-color: var(--success-color, #28a745);
+  background-color: var(--success-color-xlight);
+  border-color: var(--success-color);
   box-shadow: none;
 }
 
@@ -183,7 +183,7 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: var(--success-color, #28a745);
+  accent-color: var(--success-color);
   flex-shrink: 0;
 }
 
@@ -214,7 +214,7 @@
 .itemPrice {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--success-color, #28a745);
+  color: var(--success-color);
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -228,13 +228,13 @@
 }
 
 .includedBadge {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: var(--color-material-blue-50);
+  color: var(--color-material-blue-700);
 }
 
 .requiredBadge {
-  background-color: #fff3e0;
-  color: #f57c00;
+  background-color: var(--color-gold-100);
+  color: var(--color-gold-600-e);
 }
 
 .quantityControl {
@@ -247,7 +247,7 @@
 .quantityButton {
   width: 28px;
   height: 28px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-gray-200-b);
   background: white;
   border-radius: 4px;
   cursor: pointer;
@@ -259,8 +259,8 @@
 }
 
 .quantityButton:hover:not(:disabled) {
-  background-color: #f5f5f5;
-  border-color: #ccc;
+  background-color: var(--surface-secondary-light);
+  border-color: var(--color-gray-300-b);
 }
 
 .quantityButton:disabled {
@@ -277,7 +277,7 @@
 .textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color-light);
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.9rem;
@@ -292,7 +292,7 @@
 
 .noCustomization {
   text-align: center;
-  color: #666;
+  color: var(--color-gray-700-c);
   padding: 2rem;
   font-style: italic;
 }
@@ -302,7 +302,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color-light);
   gap: 1rem;
 }
 
@@ -314,7 +314,7 @@
 
 .totalPrice span:first-child {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--color-gray-700-c);
 }
 
 .price {
@@ -337,89 +337,73 @@
 }
 
 .confirmButton:hover {
-  background-color: var(--primary-color-dark, #d32f2f);
+  background-color: var(--primary-color-dark);
 }
 
 /* Dark Mode Styles */
 [data-theme='dark'] .section h4 {
-  color: var(--text-color, #f0f0f0);
-  border-bottom-color: var(--border-color, #444);
-}
-
-[data-theme='dark'] .groupTitle {
-  color: var(--text-secondary, #9ca3af);
+  color: var(--text-color);
+  border-bottom-color: var(--border-color);
 }
 
 [data-theme='dark'] .customizationItem {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
 }
 
 [data-theme='dark'] .customizationItem:hover {
-  background-color: var(--background-color, #2c2c2c);
-  border-color: var(--primary-color, #e06666);
+  background-color: var(--background-color);
+  border-color: var(--primary-color);
 }
 
 [data-theme='dark'] .customizationItem:has(:checked) {
-  background-color: var(--success-color-dark, #065f46);
-  border-color: var(--success-color, #4caf50);
+  background-color: var(--success-color-dark);
+  border-color: var(--success-color);
 }
 
 [data-theme='dark'] .customizationItem:has(:checked):has(:disabled) {
-  background-color: var(--success-color-dark, #065f46);
-  border-color: var(--success-color, #4caf50);
+  background-color: var(--success-color-dark);
+  border-color: var(--success-color);
 }
 
 [data-theme='dark'] .customizationItem.selected.disabled {
-  background-color: var(--success-color-dark, #065f46);
-  border-color: var(--success-color, #4caf50);
-}
-
-[data-theme='dark'] .checkbox {
-  accent-color: var(--success-color, #4caf50);
-}
-
-[data-theme='dark'] .itemName {
-  color: var(--text-color, #e0e0e0);
-}
-
-[data-theme='dark'] .itemPrice {
-  color: var(--success-color, #81c784);
+  background-color: var(--success-color-dark);
+  border-color: var(--success-color);
 }
 
 [data-theme='dark'] .quantityButton {
-  background-color: var(--border-color, #444);
-  color: var(--text-color, #f0f0f0);
+  background-color: var(--border-color);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .quantityButton:hover:not(:disabled) {
-  background-color: var(--primary-color, #e06666);
+  background-color: var(--primary-color);
 }
 
 [data-theme='dark'] .quantityValue {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .textarea {
-  background-color: var(--secondary-color, #3a3a3a);
-  border-color: var(--border-color, #555);
-  color: var(--text-color, #f0f0f0);
+  background-color: var(--secondary-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .modalHeader h3,
 [data-theme='dark'] .priceDisplay,
 [data-theme='dark'] .totalPrice span {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .priceDisplay {
-  background-color: var(--secondary-color, #3a3a3a);
+  background-color: var(--secondary-color);
 }
 
 [data-theme='dark'] .closeButton {
-  color: var(--text-color, #f0f0f0);
+  color: var(--text-color);
 }
 
 [data-theme='dark'] .closeButton:hover {
-  background-color: var(--secondary-color, #3a3a3a);
+  background-color: var(--secondary-color);
 }

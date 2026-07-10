@@ -36,13 +36,13 @@
 .warningTitle {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-orange-600);
+  color: var(--color-material-orange-900);
   margin: 0 0 0.5rem 0;
 }
 
 .warningMessage {
   font-size: 0.95rem;
-  color: var(--color-red-800-c);
+  color: var(--color-brown-700);
   margin: 0 0 0.75rem 0;
   line-height: 1.5;
   word-wrap: break-word;
@@ -51,7 +51,7 @@
 
 .warningAction {
   font-size: 0.9rem;
-  color: var(--color-orange-700);
+  color: var(--color-brown-600);
   margin: 0;
   font-weight: 600;
   font-style: italic;

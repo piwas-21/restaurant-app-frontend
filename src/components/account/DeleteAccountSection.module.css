@@ -22,7 +22,7 @@
 
 [data-theme='dark'] .dangerZone {
   background: linear-gradient(135deg, rgba(127, 29, 29, 0.2) 0%, rgba(153, 27, 27, 0.1) 100%);
-  border-color: var(--color-red-900-b);
+  border-color: var(--color-red-900);
 }
 
 .dangerZoneHeader {
@@ -65,7 +65,7 @@
 }
 
 .warningText {
-  color: var(--color-red-900-b);
+  color: var(--color-red-900);
   font-size: 0.95rem;
   line-height: 1.6;
   margin-bottom: 1rem;
@@ -181,7 +181,7 @@
 .deleteButton:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-  background: linear-gradient(135deg, var(--color-red-700-b) 0%, var(--color-red-900-b) 100%);
+  background: linear-gradient(135deg, var(--color-red-700) 0%, var(--color-red-900) 100%);
 }
 
 .deleteButton:active:not(:disabled) {
@@ -200,7 +200,7 @@
 }
 
 .helpText {
-  color: var(--color-gray-500-b);
+  color: var(--color-gray-500);
   font-size: 0.8rem;
   font-style: italic;
 }

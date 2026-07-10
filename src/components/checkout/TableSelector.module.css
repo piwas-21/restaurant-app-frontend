@@ -268,7 +268,7 @@
 .occupiedBadge {
   font-size: 11px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, var(--status-preparing) 0%, var(--color-blue-600-b) 100%);
+  background: linear-gradient(135deg, var(--status-preparing) 0%, var(--color-blue-600) 100%);
   color: white;
   border-radius: 5px;
   font-weight: 600;
@@ -283,7 +283,7 @@
 }
 
 .tableCard.occupied:hover {
-  border-color: var(--color-blue-600-b);
+  border-color: var(--color-blue-600);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }

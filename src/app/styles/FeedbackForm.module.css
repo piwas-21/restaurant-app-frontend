@@ -45,7 +45,7 @@
 }
 
 .starFilled {
-  color: var(--color-yellow-600); /* Gold color for filled stars */
+  color: var(--color-gold-300); /* Gold color for filled stars */
 }
 
 .starEmpty {

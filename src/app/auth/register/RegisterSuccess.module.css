@@ -361,7 +361,7 @@
 }
 
 .helpText {
-  color: var(--color-gray-500-b);
+  color: var(--color-gray-500);
   font-size: 0.875rem;
   margin-top: 1.5rem;
   animation: fadeInUp 0.6s ease-out 0.8s both;

@@ -493,7 +493,7 @@
 
 .promoCodeDiscount {
   font-size: 0.85rem;
-  color: var(--color-green-600);
+  color: var(--color-material-green-500);
   font-weight: 500;
 }
 
@@ -536,7 +536,7 @@
 }
 
 .discountAmount {
-  color: var(--color-green-600);
+  color: var(--color-material-green-500);
   font-weight: 600;
 }
 

@@ -105,7 +105,7 @@
 }
 
 .emailInfo {
-  background: var(--color-sky-50-c);
+  background: var(--color-gray-50-b);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 2rem;
@@ -167,7 +167,7 @@
 .secondaryButton:hover {
   border-color: var(--color-gray-300-c);
   color: var(--color-gray-900-f);
-  background: var(--color-sky-50-c);
+  background: var(--color-gray-50-b);
 }
 
 .guestNote {
@@ -189,7 +189,7 @@
   }
 
   .closeButton {
-    color: var(--color-gray-500);
+    color: var(--color-gray-500-b);
   }
 
   .closeButton:hover {
@@ -210,7 +210,7 @@
   }
 
   .emailLabel {
-    color: var(--color-gray-500);
+    color: var(--color-gray-500-b);
   }
 
   .email {
@@ -228,7 +228,7 @@
 
   .secondaryButton {
     color: var(--color-gray-300-b);
-    border-color: var(--color-gray-800-c);
+    border-color: var(--color-gray-800-b);
   }
 
   .secondaryButton:hover {
@@ -239,7 +239,7 @@
 
   .guestNote {
     color: var(--color-gray-300-b);
-    background: var(--color-yellow-900-b);
+    background: var(--color-yellow-900-c);
   }
 }
 

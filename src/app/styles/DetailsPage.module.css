@@ -206,7 +206,7 @@
 }
 
 [data-theme='dark'] .languageSection {
-  background-color: var(--color-gray-800-b);
+  background-color: var(--color-gray-800);
   border-color: var(--color-gray-700-b);
 }
 

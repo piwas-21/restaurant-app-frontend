@@ -65,50 +65,50 @@
 
 .allergenTag.glutenFree {
   background-color: var(--color-gold-100);
-  color: var(--color-orange-600);
+  color: var(--color-material-orange-900);
   border-color: var(--color-gold-400);
 }
 
 .allergenTag.dairyFree {
-  background-color: var(--color-sky-100-b);
-  color: var(--color-blue-700);
-  border-color: var(--color-sky-500-d);
+  background-color: var(--color-material-blue-50);
+  color: var(--color-material-blue-900);
+  border-color: var(--color-material-blue-400);
 }
 
 .allergenTag.nutFree {
-  background-color: var(--color-purple-100);
-  color: var(--color-violet-800);
-  border-color: var(--color-purple-600);
+  background-color: var(--color-material-purple-50);
+  color: var(--color-material-purple-900);
+  border-color: var(--color-material-purple-400);
 }
 
 .allergenTag.halal {
   background-color: var(--color-green-100-b);
-  color: var(--color-green-800-b);
-  border-color: var(--color-green-600);
+  color: var(--color-material-green-900);
+  border-color: var(--color-material-green-500);
 }
 
 .allergenTag.kosher {
-  background-color: var(--color-sky-100-b);
-  color: var(--color-blue-700);
+  background-color: var(--color-material-blue-50);
+  color: var(--color-material-blue-900);
   border-color: var(--status-info);
 }
 
 .allergenTag.organic {
-  background-color: var(--color-lime-100);
-  color: var(--color-green-800-c);
+  background-color: var(--color-material-lightgreen-50);
+  color: var(--color-material-lightgreen-900);
   border-color: var(--status-success-light);
 }
 
 .allergenTag.sugarFree {
-  background-color: var(--color-rose-100);
-  color: var(--color-pink-800);
-  border-color: var(--color-rose-600);
+  background-color: var(--color-material-pink-50);
+  color: var(--color-material-pink-900);
+  border-color: var(--color-material-pink-500);
 }
 
 .allergenTag.lowSodium {
-  background-color: var(--color-cyan-200);
-  color: var(--color-teal-900);
-  border-color: var(--color-teal-700);
+  background-color: var(--color-material-teal-50);
+  color: var(--color-material-teal-900);
+  border-color: var(--color-material-teal-400);
 }
 
 .allergenTag.warning {
@@ -118,9 +118,9 @@
 }
 
 .allergenTag.spicy {
-  background-color: var(--color-red-100-c);
-  color: var(--color-red-600-c);
-  border-color: var(--color-red-500-b);
+  background-color: var(--color-material-red-50);
+  color: var(--color-material-red-800);
+  border-color: var(--color-material-red-400);
 }
 
 .allergenTag.default {
@@ -141,13 +141,13 @@
 @media (prefers-color-scheme: dark) {
   .allergenTag.vegan {
     background-color: rgba(76, 175, 80, 0.15);
-    color: var(--color-green-400);
+    color: var(--color-material-green-300);
     border-color: rgba(76, 175, 80, 0.3);
   }
 
   .allergenTag.vegetarian {
     background-color: rgba(102, 187, 106, 0.15);
-    color: var(--color-green-300);
+    color: var(--color-material-green-200);
     border-color: rgba(102, 187, 106, 0.3);
   }
 

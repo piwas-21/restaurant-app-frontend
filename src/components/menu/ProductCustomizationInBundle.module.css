@@ -228,8 +228,8 @@
 }
 
 .includedBadge {
-  background-color: var(--color-sky-100-b);
-  color: var(--color-sky-600-b);
+  background-color: var(--color-material-blue-50);
+  color: var(--color-material-blue-700);
 }
 
 .requiredBadge {

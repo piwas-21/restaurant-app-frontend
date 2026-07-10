@@ -107,8 +107,8 @@
 }
 
 .cancelButton:hover {
-  background-color: var(--color-gray-100-c);
-  border-color: var(--color-gray-400-b);
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-400);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -118,8 +118,8 @@
 }
 
 [data-theme='dark'] .cancelButton:hover {
-  background-color: var(--color-gray-700-d);
-  border-color: var(--color-gray-500-b);
+  background-color: var(--color-gray-700);
+  border-color: var(--color-gray-500);
 }
 
 /* Responsive */

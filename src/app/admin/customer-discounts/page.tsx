@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
@@ -261,7 +262,7 @@ export default function CustomerDiscountsPage() {
                     <td className={styles.rangeCell}>
                       {discount.minOrderAmount
                         ? adminFidelityService.formatCurrency(discount.minOrderAmount)
-                        : t('currency_zero', 'CHF 0')}
+                        : formatPlainCurrency(0, 0)}
                       {' → '}
                       {discount.maxOrderAmount ? adminFidelityService.formatCurrency(discount.maxOrderAmount) : '∞'}
                     </td>

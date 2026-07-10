@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ServerTableDto, closeTable, openTable, releaseTable, completeAllTableOrders } from '@/services/serverService';
@@ -266,7 +267,7 @@ export default function TableDetailsModal({
                       ))}
                     </div>
                     <div className={styles.orderFooter}>
-                      <span className={styles.orderTotal}>CHF {order.total.toFixed(2)}</span>
+                      <span className={styles.orderTotal}>{formatPlainCurrency(order.total)}</span>
                       {order.status === 'Ready' && (
                         <button
                           className={styles.completeButton}

@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getProductById } from '@/services/menuService';
@@ -227,7 +228,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
         <div className={styles.header}>
           <div className={styles.productInfo}>
             <h2 className={styles.productName}>{product.name}</h2>
-            <span className={styles.basePrice}>CHF {product.basePrice.toFixed(2)}</span>
+            <span className={styles.basePrice}>{formatPlainCurrency(product.basePrice)}</span>
           </div>
           <button className={styles.closeButton} onClick={onClose}>
             ✕
@@ -259,7 +260,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                       >
                         <span className={styles.variationName}>{getLocalizedName(variation)}</span>
                         <span className={styles.variationPrice}>
-                          CHF {variation.finalPrice.toFixed(2)}
+                          {formatPlainCurrency(variation.finalPrice)}
                           {variation.priceModifier !== 0 && (
                             <span className={styles.modifier}>
                               ({variation.priceModifier > 0 ? '+' : ''}
@@ -336,7 +337,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                           {side.name}
                           {side.isRequired && <span className={styles.requiredBadge}>*</span>}
                         </span>
-                        <span className={styles.sidePrice}>+CHF {side.price.toFixed(2)}</span>
+                        <span className={styles.sidePrice}>+{formatPlainCurrency(side.price)}</span>
                       </button>
                     ))}
                   </div>
@@ -369,7 +370,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
             </button>
           </div>
           <button className={styles.confirmButton} onClick={handleConfirm}>
-            {t('server.add_to_order', 'Add to Order')} · CHF {totalPrice.toFixed(2)}
+            {t('server.add_to_order', 'Add to Order')} · {formatPlainCurrency(totalPrice)}
           </button>
         </div>
       </div>

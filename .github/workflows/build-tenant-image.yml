@@ -49,6 +49,10 @@ on:
         description: "UI template baked into the bundle (registry `template:` field, ADR-006): classic | craft"
         required: false
         default: "classic"
+      currency:
+        description: "ISO 4217 currency code baked into price formatting (registry `currency:` field, deploy repo; pairs with backend LocalizationSettings.Currency), e.g. CHF, EUR"
+        required: false
+        default: "CHF"
 
 concurrency:
   group: build-tenant-${{ inputs.image_tag }}
@@ -80,6 +84,20 @@ jobs:
             classic|craft) ;;
             *) echo "template must be 'classic' or 'craft', got: '$TEMPLATE'" >&2; exit 1 ;;
           esac
+
+      - name: Validate currency input
+        # Mirrors the src/lib/config.ts validation (3-letter uppercase ISO
+        # 4217 code). An invalid code would silently fall back to CHF inside
+        # the bundle, so fail the build loudly here instead. Input is
+        # operator-supplied (workflow_dispatch, write access required); still
+        # passed via env, never inlined in the script.
+        env:
+          CURRENCY: ${{ inputs.currency }}
+        run: |
+          if ! printf '%s\n' "$CURRENCY" | grep -Eq '^[A-Z]{3}$'; then
+            echo "currency must be a 3-letter uppercase ISO 4217 code, got: '$CURRENCY'" >&2
+            exit 1
+          fi
 
       - name: Apply tenant branding overrides
         # Replaces the repo-default branding assets in public/branding/ with
@@ -155,6 +173,7 @@ jobs:
             NEXT_PUBLIC_RESTAURANT_NAME=${{ inputs.restaurant_name }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
             NEXT_PUBLIC_TEMPLATE=${{ inputs.template }}
+            NEXT_PUBLIC_TENANT_CURRENCY=${{ inputs.currency }}
             GIT_SHA=${{ github.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}
           tags: ${{ steps.meta.outputs.tags }}

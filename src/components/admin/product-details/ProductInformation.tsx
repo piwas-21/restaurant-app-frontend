@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
@@ -105,7 +106,8 @@ const ProductInformation: React.FC<ProductInformationProps> = ({ product, onUpda
             <strong>{t('description')}:</strong> {getLocalizedDescription()}
           </p>
           <p>
-            <strong>{t('base_price')}:</strong> CHF{product.basePrice.toFixed(2)}
+            <strong>{t('base_price')}:</strong> {TENANT_CURRENCY}
+            {product.basePrice.toFixed(2)}
           </p>
           <p>
             <strong>{t('status')}:</strong> {product.isActive ? t('active') : t('inactive')} |{' '}

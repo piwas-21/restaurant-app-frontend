@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
@@ -48,7 +49,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             products.map((product) => (
               <tr key={product.id}>
                 <td>{product.name}</td>
-                <td>CHF {product.basePrice.toFixed(2)}</td>
+                <td>{formatPlainCurrency(product.basePrice)}</td>
                 <td>{product.isActive ? t('yes') : t('no')}</td>
                 <td>{product.isAvailable ? t('yes') : t('no')}</td>
                 <td className={styles.actionsCell}>

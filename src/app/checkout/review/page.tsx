@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency, formatCurrency } from '@/utils/currency';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -180,12 +181,7 @@ export default function ReviewPage() {
     );
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   // Check if customer has active discount (for display formatting only)
   const customerHasDiscount = (cartState.basket?.customerDiscount || 0) > 0 || (cartState.basket?.discount || 0) > 0;
@@ -193,7 +189,7 @@ export default function ReviewPage() {
   // Format total with appropriate decimals (backend already handles rounding)
   const formatTotal = (total: number) => {
     const decimals = customerHasDiscount ? 0 : 2;
-    return `CHF ${total.toFixed(decimals)}`;
+    return formatPlainCurrency(total, decimals);
   };
 
   const handlePlaceOrder = async () => {

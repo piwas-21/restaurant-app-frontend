@@ -1,3 +1,4 @@
+import { formatCurrency as formatCurrencyUtil } from '@/utils/currency';
 import { apiClient } from '@/utils/apiClient';
 import type { PointEarningRule, CustomerDiscountRule } from '@/types/fidelity';
 
@@ -200,10 +201,7 @@ export const adminFidelityService = {
    * Format currency value
    */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-    }).format(value);
+    return formatCurrencyUtil(value);
   },
 
   /**

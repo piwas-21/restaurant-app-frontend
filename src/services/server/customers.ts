@@ -6,7 +6,7 @@
 import { apiClient } from '@/utils/apiClient';
 import { ApiResponse } from '@/types/reservation';
 
-const POINTS_PER_CHF = 100;
+const POINTS_PER_CURRENCY_UNIT = 100;
 
 export interface UserDto {
   id: string;
@@ -88,12 +88,12 @@ export async function getUserDiscountRules(userId: string): Promise<CustomerDisc
   }
 }
 
-/** 100 points = CHF 1. */
+/** 100 points = 1 currency unit. */
 export function calculateDiscountFromPoints(points: number): number {
-  return points / POINTS_PER_CHF;
+  return points / POINTS_PER_CURRENCY_UNIT;
 }
 
-/** 1 CHF = 1 point. */
+/** 1 currency unit = 1 point. */
 export function calculatePointsToEarn(orderTotal: number): number {
   return Math.floor(orderTotal);
 }

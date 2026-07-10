@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Clock } from 'lucide-react';
@@ -64,7 +65,7 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({ special, onAddToCart,
             <div className={styles.featuredSpecialMeta}>
               <div className={styles.featuredSpecialPrice}>
                 {/* <span className={styles.priceLabel}>{t('price', 'Price')}:</span> */}
-                <span className={styles.priceValue}>CHF {special.basePrice.toFixed(2)}</span>
+                <span className={styles.priceValue}>{formatPlainCurrency(special.basePrice)}</span>
               </div>
             </div>
 

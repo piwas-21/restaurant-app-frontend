@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto, OrderType } from '@/types/order';
@@ -104,7 +105,7 @@ export default function QuickConfirmModal({ order, isOpen, onClose, onConfirm, o
             )}
             <div className={styles.summaryRow}>
               <span className={styles.label}>{t('total', 'Total')}</span>
-              <span className={styles.valueTotal}>CHF {order.total?.toFixed(2)}</span>
+              <span className={styles.valueTotal}>{formatPlainCurrency(order.total)}</span>
             </div>
           </div>
 

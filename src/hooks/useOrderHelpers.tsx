@@ -1,3 +1,4 @@
+import { formatCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderStatus } from '@/types/order';
@@ -9,12 +10,7 @@ import { UtensilsCrossed, Store, Truck, Package } from 'lucide-react';
 export const useOrderHelpers = () => {
   const { t } = useTranslation();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('de-CH', {

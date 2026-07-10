@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -96,7 +97,7 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
                             {item.isDefault && <span className={styles.defaultBadge}>{t('default')}</span>}
                           </span>
                           {item.additionalPrice > 0 && (
-                            <span className={styles.itemPrice}>+CHF {item.additionalPrice.toFixed(2)}</span>
+                            <span className={styles.itemPrice}>+{formatPlainCurrency(item.additionalPrice)}</span>
                           )}
                         </div>
 
@@ -123,7 +124,7 @@ const MenuBundleDetailsModal: React.FC<MenuBundleDetailsModalProps> = ({
 
           <div className={styles.footer}>
             <div className={styles.priceContainer}>
-              <span className={styles.totalPrice}>CHF {bundle.basePrice.toFixed(2)}</span>
+              <span className={styles.totalPrice}>{formatPlainCurrency(bundle.basePrice)}</span>
             </div>
             <button className={styles.addToCartButton} onClick={handleAddToCart}>
               {t('add_to_order')}

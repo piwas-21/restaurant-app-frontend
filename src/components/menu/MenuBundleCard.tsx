@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MenuBundleItem } from '@/types/menu';
@@ -63,7 +64,7 @@ const MenuBundleCard: React.FC<MenuBundleCardProps> = ({ bundle, currentLanguage
         </div>
 
         <div className={styles.footer}>
-          <div className={styles.price}>CHF {bundle.basePrice.toFixed(2)}</div>
+          <div className={styles.price}>{formatPlainCurrency(bundle.basePrice)}</div>
           <MenuItemActions
             onAdd={handleAdd}
             onFeedback={() => {}} // Feedback not implemented for bundles yet

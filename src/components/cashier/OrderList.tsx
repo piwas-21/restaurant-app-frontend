@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../../app/styles/CashierPage.module.css';
@@ -122,7 +123,7 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
               </div>
 
               <div className={styles.orderCardFooter}>
-                <span className={styles.orderTotal}>CHF {order.total?.toFixed(2) || '0.00'}</span>
+                <span className={styles.orderTotal}>{formatPlainCurrency(order.total ?? 0)}</span>
                 <span className={styles.orderTime}>{getTimeAgo(order.orderDate)}</span>
               </div>
             </div>

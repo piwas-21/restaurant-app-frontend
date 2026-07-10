@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { MenuSectionSuggestedSideItem } from '@/types/menu';
 import styles from '../ProductCustomizationInBundle.module.css';
@@ -45,7 +46,7 @@ export default function CustomizationSideItemsSection({
                     {sideItem.sideItemProductName}
                     {sideItem.isRequired && <span className={styles.requiredBadge}>{t('required')}</span>}
                   </span>
-                  <span className={styles.itemPrice}>+CHF {sideItem.sideItemBasePrice.toFixed(2)}</span>
+                  <span className={styles.itemPrice}>+{formatPlainCurrency(sideItem.sideItemBasePrice)}</span>
                 </div>
               </label>
 

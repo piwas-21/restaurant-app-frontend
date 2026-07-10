@@ -4,6 +4,7 @@
  * This file contains orchestration logic for printing/exporting orders.
  * HTML templates are in ./templates/ directory.
  */
+import { formatPlainCurrency } from '@/utils/currency';
 import { OrderDto } from '@/types/order';
 import { RESTAURANT_NAME } from '@/lib/config';
 
@@ -122,7 +123,7 @@ const formatDate = (dateString: string): string => {
 };
 
 const formatCurrency = (amount: number): string => {
-  return `CHF ${amount.toFixed(2)}`;
+  return formatPlainCurrency(amount);
 };
 
 const escapeHtml = (text: string): string => {

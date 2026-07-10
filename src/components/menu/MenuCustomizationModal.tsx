@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import styles from './MenuCustomization.module.css';
 import { MenuDefinition, MenuSection, SelectedMenuOption } from '@/types/menu';
@@ -229,7 +230,7 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
         <div className={styles.modalBody}>
           <div className={styles.priceInfo}>
             <span>{t('base_price')}:</span>
-            <span className={styles.price}>CHF {basePrice.toFixed(2)}</span>
+            <span className={styles.price}>{formatPlainCurrency(basePrice)}</span>
           </div>
 
           {menuDefinition.sections.map((section) => {
@@ -322,7 +323,7 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
         <div className={styles.modalFooter}>
           <div className={styles.totalPrice}>
             <span>{t('total')}:</span>
-            <span className={styles.price}>CHF {totalPrice.toFixed(2)}</span>
+            <span className={styles.price}>{formatPlainCurrency(totalPrice)}</span>
           </div>
           <button onClick={handleAddToBasket} className={styles.addButton}>
             {t('add_to_basket')}

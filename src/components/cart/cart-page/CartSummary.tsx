@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { Tag, Loader2 } from 'lucide-react';
 import { BasketDto } from '@/types/basket';
@@ -54,7 +55,7 @@ export default function CartSummary({
             <div className={styles.promoCodeInfo}>
               <span className={styles.promoCodeText}>{basket.promoCode}</span>
               <span className={styles.promoCodeDiscount}>
-                -{t('discount', 'Discount')}: CHF {basket.discount.toFixed(2)}
+                -{t('discount', 'Discount')}: {formatPlainCurrency(basket.discount)}
               </span>
             </div>
             <button onClick={onRemovePromoCode} className={styles.removePromoButton} disabled={isSyncing}>
@@ -92,26 +93,26 @@ export default function CartSummary({
       <div className={styles.priceBreakdown}>
         <div className={styles.priceRow}>
           <span>{t('subtotal', 'Subtotal')}:</span>
-          <span>CHF {basket?.subTotal.toFixed(2) || '0.00'}</span>
+          <span>{formatPlainCurrency(basket?.subTotal ?? 0)}</span>
         </div>
 
         {basket && basket.discount > 0 && (
           <div className={styles.priceRow}>
             <span>{t('discount', 'Discount')}:</span>
-            <span className={styles.discountAmount}>-CHF {basket.discount.toFixed(2)}</span>
+            <span className={styles.discountAmount}>-{formatPlainCurrency(basket.discount)}</span>
           </div>
         )}
 
         {basket && basket.customerDiscount > 0 && (
           <div className={styles.priceRow}>
             <span>{basket.customerDiscountName || t('customer_discount', 'Customer Discount')}:</span>
-            <span className={styles.discountAmount}>-CHF {basket.customerDiscount.toFixed(2)}</span>
+            <span className={styles.discountAmount}>-{formatPlainCurrency(basket.customerDiscount)}</span>
           </div>
         )}
 
         <div className={styles.totalRow}>
           <span>{t('total', 'Total')}:</span>
-          <span className={styles.totalAmount}>CHF {getTotal().toFixed(customerHasDiscount ? 0 : 2)}</span>
+          <span className={styles.totalAmount}>{formatPlainCurrency(getTotal(), customerHasDiscount ? 0 : 2)}</span>
         </div>
       </div>
 

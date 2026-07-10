@@ -1,3 +1,4 @@
+import { formatCurrency as formatCurrencyUtil, TENANT_CURRENCY } from '@/utils/currency';
 import React, { useMemo, useState } from 'react';
 import { OrderDto } from '@/types/order';
 import {
@@ -104,14 +105,7 @@ export default function AdvancedOrderAnalytics({ orders }: AdvancedOrderAnalytic
   const COLORS = ['#c00000', '#e06666', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   // Format currency
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-CH', {
-      style: 'currency',
-      currency: 'CHF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const formatCurrency = (value: number) => formatCurrencyUtil(value, 'en-CH', TENANT_CURRENCY, 0);
 
   return (
     <div className={styles.container}>

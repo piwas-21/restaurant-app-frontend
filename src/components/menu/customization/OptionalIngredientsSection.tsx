@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ProductIngredient } from '@/types/menu';
@@ -89,9 +90,7 @@ export default function OptionalIngredientsSection({
                 />
                 <span className={styles.ingredientName}>{getIngredientName(ingredient)}</span>
                 {ingredient.price > 0 && (
-                  <span className={styles.ingredientPrice}>
-                    {t('ingredient_price', { price: ingredient.price.toFixed(2) })}
-                  </span>
+                  <span className={styles.ingredientPrice}>+{formatPlainCurrency(ingredient.price)}</span>
                 )}
               </label>
             ))}
@@ -126,8 +125,8 @@ export default function OptionalIngredientsSection({
                           {ingredient.isIncludedInBasePrice
                             ? isSelected
                               ? '' // Already in base price, no indicator needed
-                              : `-CHF ${ingredient.price.toFixed(2)}` // Deducted when deselected
-                            : `+CHF ${ingredient.price.toFixed(2)}`}{' '}
+                              : `-${formatPlainCurrency(ingredient.price)}` // Deducted when deselected
+                            : `+${formatPlainCurrency(ingredient.price)}`}{' '}
                           {/* Added when selected */}
                         </span>
                       )}

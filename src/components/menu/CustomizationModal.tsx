@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -201,7 +202,7 @@ export default function CustomizationModal({ isOpen, onClose, product, onAddToCa
             <div className={styles.productDetails}>
               <h2 className={styles.productName}>{productName}</h2>
               <p className={styles.basePrice}>
-                {t('base_price')}: CHF {basePrice.toFixed(2)}
+                {t('base_price')}: {formatPlainCurrency(basePrice)}
               </p>
             </div>
           </div>

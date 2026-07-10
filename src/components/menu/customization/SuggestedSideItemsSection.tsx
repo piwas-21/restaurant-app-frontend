@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Minus } from 'lucide-react';
@@ -72,7 +73,7 @@ export default function SuggestedSideItemsSection({
               <div className={styles.sideItemInfo}>
                 <h4 className={styles.sideItemName}>{sideItem.name}</h4>
                 {sideItem.description && <p className={styles.sideItemDescription}>{sideItem.description}</p>}
-                <span className={styles.sideItemPrice}>CHF {sideItem.price.toFixed(2)}</span>
+                <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
               </div>
 
               <div className={styles.sideItemActions}>

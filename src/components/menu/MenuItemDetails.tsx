@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import styles from './MenuItemDetails.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
@@ -103,8 +104,8 @@ export default function MenuItemDetails({
       {/* Allergens section - display below ingredients */}
       <AllergenDisplay allergens={allergens} id={id} maxVisible={3} showLabel={true} variant="full" />
 
-      <p className={styles.itemPrice} aria-label={`${t('checkout_total_label')} CHF ${price.toFixed(2)}`}>
-        CHF {price.toFixed(2)}
+      <p className={styles.itemPrice} aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}>
+        {formatPlainCurrency(price)}
       </p>
 
       {/* <AverageRating dishId={id} initialRatingData={initialRatingData} /> */}

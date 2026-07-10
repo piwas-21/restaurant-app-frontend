@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Minus } from 'lucide-react';
@@ -110,7 +111,7 @@ export default function PriceCalculator({
       <div className={styles.priceBreakdown}>
         <div className={styles.priceRow}>
           <span className={styles.priceLabel}>{t('base_price')}:</span>
-          <span className={styles.priceValue}>CHF {adjustedBasePrice.toFixed(2)}</span>
+          <span className={styles.priceValue}>{formatPlainCurrency(adjustedBasePrice)}</span>
         </div>
 
         {/* Show customization details if any */}
@@ -133,7 +134,7 @@ export default function PriceCalculator({
                 </span>
               )}
             </span>
-            <span className={styles.priceValue}>CHF {ingredientsCost.toFixed(2)}</span>
+            <span className={styles.priceValue}>{formatPlainCurrency(ingredientsCost)}</span>
           </div>
         )}
 
@@ -148,7 +149,7 @@ export default function PriceCalculator({
                 <span className={styles.priceLabel}>
                   {sideItem.name} × {selectedItem.quantity}:
                 </span>
-                <span className={styles.priceValue}>CHF {(sideItem.price * selectedItem.quantity).toFixed(2)}</span>
+                <span className={styles.priceValue}>{formatPlainCurrency(sideItem.price * selectedItem.quantity)}</span>
               </div>
             );
           })}
@@ -160,7 +161,7 @@ export default function PriceCalculator({
         {quantity > 1 && (
           <div className={styles.priceRow}>
             <span className={styles.priceLabel}>{t('subtotal')}:</span>
-            <span className={styles.priceValue}>CHF {subtotal.toFixed(2)}</span>
+            <span className={styles.priceValue}>{formatPlainCurrency(subtotal)}</span>
           </div>
         )}
       </div>
@@ -196,7 +197,7 @@ export default function PriceCalculator({
         {/* Total */}
         <div className={styles.totalPrice}>
           <span className={styles.totalLabel}>{t('total_price')}:</span>
-          <span className={styles.totalValue}>CHF {total.toFixed(2)}</span>
+          <span className={styles.totalValue}>{formatPlainCurrency(total)}</span>
         </div>
       </div>
     </div>

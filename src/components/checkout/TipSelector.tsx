@@ -1,3 +1,4 @@
+import { formatCurrency, TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart } from 'lucide-react';
@@ -91,14 +92,7 @@ export default function TipSelector({ subtotal, selectedTipAmount, onTipChange }
     return roundTipAmount(subtotal * (percentage / 100));
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   return (
     <div className={styles.tipCard}>
@@ -161,7 +155,7 @@ export default function TipSelector({ subtotal, selectedTipAmount, onTipChange }
           {t('custom_tip', 'Custom Amount')}
         </label>
         <div className={styles.customTipInputWrapper}>
-          <span className={styles.currencySymbol}>CHF</span>
+          <span className={styles.currencySymbol}>{TENANT_CURRENCY}</span>
           <input
             id="custom-tip"
             type="number"

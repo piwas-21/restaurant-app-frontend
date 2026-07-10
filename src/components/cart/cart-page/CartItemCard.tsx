@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus } from 'lucide-react';
@@ -69,12 +70,12 @@ export default function CartItemCard({
         {/* Price Breakdown */}
         <div className={styles.priceBreakdownItem}>
           <p className={styles.itemPrice}>
-            {t('base_price', 'Base Price')}: CHF {item.unitPrice.toFixed(2)}
+            {t('base_price', 'Base Price')}: {formatPlainCurrency(item.unitPrice)}
           </p>
           {item.customizationPrice != null && item.customizationPrice !== 0 && (
             <p className={styles.customizationPrice}>
-              {t('customization_cost', 'Customizations')}: {item.customizationPrice > 0 ? '+' : ''}CHF{' '}
-              {item.customizationPrice.toFixed(2)}
+              {t('customization_cost', 'Customizations')}: {item.customizationPrice > 0 ? '+' : ''}
+              {formatPlainCurrency(item.customizationPrice)}
             </p>
           )}
         </div>
@@ -101,7 +102,7 @@ export default function CartItemCard({
                 <li key={idx} className={styles.childItem}>
                   <span className={styles.childItemName}>{childItem.productName}</span>
                   {childItem.unitPrice > 0 && (
-                    <span className={styles.childItemPrice}>+CHF {childItem.unitPrice.toFixed(2)}</span>
+                    <span className={styles.childItemPrice}>+{formatPlainCurrency(childItem.unitPrice)}</span>
                   )}
                 </li>
               ))}
@@ -134,7 +135,7 @@ export default function CartItemCard({
           </button>
         </div>
 
-        <p className={styles.itemSubtotal}>CHF {item.itemTotal.toFixed(2)}</p>
+        <p className={styles.itemSubtotal}>{formatPlainCurrency(item.itemTotal)}</p>
 
         {/* Remove Button */}
         <button

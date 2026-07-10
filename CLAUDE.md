@@ -174,16 +174,22 @@ Grep for the component / hook / type you're adding or modifying. List every call
 
 ## §8 — Git workflow
 
-### Branch strategy
+### Branch strategy (GitFlow — updated 2026-07-10; supersedes the retired 2026-06-30 main-based model)
 
 ```
-main                    ← production (auto-deploys on merge since 2026-06-30)
-  ├── feature/<x> …     ← branch off main, PR to main
-  └── develop           ← staging channel (`:staging` image; kept in sync via main→develop back-merges)
+develop                 ← DEFAULT + integration branch; all feature work targets it
+  ├── feature/<x>       → PR to develop
+  ├── fix/<x>           → PR to develop
+  ├── chore/<x>         → PR to develop
+  └── docs/<x>          → PR to develop
+
+main                    ← production RELEASES ONLY; updated solely via a develop→main release PR
 ```
 
-- **Never push to `main` or `develop` directly** — pre-commit hook blocks this.
-- Branch off **`main`**. Open PR to **`main`** (merging = prod deploy — treat every merge as a release). Use `develop` only to stage something on the test env before prod, then promote; back-merge `main`→`develop` afterwards to keep the branches converged.
+- **Never push directly to `main` or `develop`** — a GitHub **Ruleset** (`main-develop`, **no bypass**) blocks it server-side (direct push / force-push / deletion), and the pre-commit `no-commit-to-branch` hook blocks it locally. Always open a PR.
+- **Branch off `develop`; open every `feature/`·`fix/`·`chore/`·`docs/`·`test/` PR to `develop`.** Merge only when **all CI checks are green and review comments are resolved** (the ruleset requires it).
+- **Releases:** open a PR **`develop` → `main`**. Merging it is the release — a merge to `main` auto-builds + deploys to prod. A merge to `develop` publishes the `:staging` image (staging tracks develop).
+- One issue = one branch. Delete branch after merge (`gh pr merge --delete-branch`).
 - Branch naming: `feature/`, `fix/`, `chore/`, `docs/`, `test/`.
 
 ### Commit messages

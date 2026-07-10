@@ -3,6 +3,13 @@
 > How the build-time template system works and how to add a template.
 > Decision record: [ADR-006](adr/ADR-006-tenant-ui-templates.md). Master plan: workspace `docs/plans/SOFRA-TENANT-TEMPLATES-PLAN.md`.
 
+## Templates shipped
+
+| Template | Status |
+|---|---|
+| `classic` | Current RUMI look — extracted as-is (T2). |
+| `craft` | Sofra-mirror look (T3 slice 1, 2026-07-10): `tokens.css` (craft palette per plan §3.3), `fonts.ts` (Quicksand/Amatic SC/Caveat), a distinct `HomePage.tsx` (asymmetric hero, tilted letterpress cards, dotted-leader menu-board section for opening hours) + `craft.module.css` (letterpress shadow, `roundedCraft`, tape label, dotted leader utility classes). `Shell.tsx` still re-exports the shared chrome (composition, same rationale as classic) — craft's own customer chrome (sticky header, hand-lettered wordmark) is slice 2. Build: `NEXT_PUBLIC_TEMPLATE=craft npm run build` / `npm run dev`.
+
 ## The mechanism
 
 One tenant image bakes exactly **one** template, selected at build time:

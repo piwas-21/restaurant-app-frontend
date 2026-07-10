@@ -1,6 +1,13 @@
-import { Inter } from 'next/font/google';
+// CSS order is load-bearing (screenshot-verified): template tokens first,
+// then globals.css (whose legacy aliases read them), then component CSS
+// modules pulled in via the template import below — the same effective
+// order as when globals.css itself imported the token layer.
+import '@active-template/tokens.css';
 import './globals.css';
-import AppInternalLayout from './app-internal-layout';
+// Tenant UI template (ADR-006): `@active-template` is a build-time alias to
+// src/templates/${NEXT_PUBLIC_TEMPLATE} (next.config.ts), so exactly one
+// template's chrome/fonts/tokens end up in each tenant image.
+import { template } from '@active-template';
 import ClientProviders from './client-providers';
 import { Metadata, Viewport } from 'next';
 import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
@@ -24,14 +31,15 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-const inter = Inter({ subsets: ['latin'] });
+const { Shell, fonts } = template;
+const bodyClassName = fonts.map((font) => font.className).join(' ');
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={inter.className}>
+      <body className={bodyClassName}>
         <ClientProviders>
-          <AppInternalLayout>{children}</AppInternalLayout>
+          <Shell>{children}</Shell>
         </ClientProviders>
       </body>
     </html>

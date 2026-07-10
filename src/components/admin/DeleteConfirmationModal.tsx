@@ -4,6 +4,7 @@
  * Confirmation dialog for deleting orders with safety checks
  */
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
@@ -70,7 +71,7 @@ export default function DeleteConfirmationModal({ order, onClose, onConfirm }: D
           </div>
           <div className={styles.infoRow}>
             <span className={styles.label}>{t('total', 'Total')}:</span>
-            <span className={styles.value}>CHF {order.total.toFixed(2)}</span>
+            <span className={styles.value}>{formatPlainCurrency(order.total)}</span>
           </div>
         </div>
 

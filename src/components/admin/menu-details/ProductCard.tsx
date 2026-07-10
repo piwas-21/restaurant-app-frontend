@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { getProductById } from '@/services/menuService';
@@ -91,9 +92,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
           {product.description && <p className={styles.productDescription}>{product.description}</p>}
 
           <div className={styles.productPrice}>
-            CHF {displayPrice.toFixed(2)}
+            {formatPlainCurrency(displayPrice)}
             {hasAdditionalPrice && (
-              <span className={styles.additionalPrice}>+CHF {item.additionalPrice.toFixed(2)}</span>
+              <span className={styles.additionalPrice}>+{formatPlainCurrency(item.additionalPrice)}</span>
             )}
           </div>
 

@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
@@ -114,7 +115,7 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
           <h1 className={styles.heroTitle}>{product.name}</h1>
           {product.description && <p className={styles.heroDescription}>{product.description}</p>}
           <div className={styles.heroBadges}>
-            <div className={styles.priceTag}>CHF {product.basePrice.toFixed(2)}</div>
+            <div className={styles.priceTag}>{formatPlainCurrency(product.basePrice)}</div>
             <span className={`${styles.statusBadge} ${product.isActive ? styles.statusActive : styles.statusInactive}`}>
               {product.isActive ? t('active') : t('inactive')}
             </span>

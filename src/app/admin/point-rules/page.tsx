@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminFidelityService } from '@/services/adminFidelityService';
@@ -151,8 +152,8 @@ export default function PointRulesPage() {
                   <tr key={rule.id}>
                     <td className={styles.nameCell}>{rule.name}</td>
                     <td>
-                      CHF {rule.minOrderAmount.toFixed(2)} -{' '}
-                      {rule.maxOrderAmount ? `CHF ${rule.maxOrderAmount.toFixed(2)}` : '∞'}
+                      {formatPlainCurrency(rule.minOrderAmount)} -{' '}
+                      {rule.maxOrderAmount ? formatPlainCurrency(rule.maxOrderAmount) : '∞'}
                     </td>
                     <td className={styles.pointsCell}>
                       <span className={styles.pointsBadge}>{rule.pointsAwarded} pts</span>

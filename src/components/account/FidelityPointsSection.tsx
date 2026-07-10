@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fidelityPointsService } from '@/services/fidelityPointsService';
@@ -88,7 +89,10 @@ export default function FidelityPointsSection() {
             <span className={styles.pointsLabel}>{t('points', 'Points')}</span>
           </div>
           <div className={styles.pointsValue}>
-            <span className={styles.currencyValue}>≈ CHF{currentPointsValue.toFixed(2)}</span>
+            <span className={styles.currencyValue}>
+              ≈ {TENANT_CURRENCY}
+              {currentPointsValue.toFixed(2)}
+            </span>
             <span className={styles.valueLabel}>{t('available_discount', 'Available Discount')}</span>
           </div>
         </div>
@@ -123,9 +127,7 @@ export default function FidelityPointsSection() {
         </p>
       )}
       {currentPoints === 0 && (
-        <p className={styles.fidelityMessage}>
-          {t('earn_more_points_message', 'Earn points with every order! 100 points = CHF1 discount.')}
-        </p>
+        <p className={styles.fidelityMessage}>{t('earn_more_points_message', 'Earn more points with every order!')}</p>
       )}
 
       {/* TODO: Integrate PointsHistoryModal component when created */}

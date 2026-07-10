@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +61,7 @@ const FeaturedSpecialCard: React.FC<FeaturedSpecialCardProps> = ({ featuredSpeci
         <div className={styles.featuredSpecialDetails}>
           <h4>{featuredSpecial.name}</h4>
           {featuredSpecial.description && <p>{featuredSpecial.description}</p>}
-          <div className={styles.featuredSpecialPrice}>CHF {featuredSpecial.basePrice.toFixed(2)}</div>
+          <div className={styles.featuredSpecialPrice}>{formatPlainCurrency(featuredSpecial.basePrice)}</div>
           {featuredSpecial.featuredDate && (
             <div className={styles.featuredSpecialDate}>
               {t('featured_since', 'Featured since')}: {new Date(featuredSpecial.featuredDate).toLocaleDateString()}

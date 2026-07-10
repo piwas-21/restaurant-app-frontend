@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { DetailedIngredient } from '@/types/menu';
 import styles from '../ProductCustomizationInBundle.module.css';
@@ -59,7 +60,7 @@ export default function CustomizationIngredientsSection({
                       <div className={styles.itemInfo}>
                         <span className={styles.itemName}>{getIngredientName(ingredient)}</span>
                         {ingredient.price > 0 && !ingredient.isIncludedInBasePrice && (
-                          <span className={styles.itemPrice}>+CHF {ingredient.price.toFixed(2)}</span>
+                          <span className={styles.itemPrice}>+{formatPlainCurrency(ingredient.price)}</span>
                         )}
                       </div>
                     </label>
@@ -121,10 +122,10 @@ export default function CustomizationIngredientsSection({
                             {ingredient.isIncludedInBasePrice
                               ? isSelected
                                 ? quantity > 1
-                                  ? `+CHF ${(ingredient.price * (quantity - 1)).toFixed(2)}` // Show extra cost when quantity > 1
+                                  ? `+${formatPlainCurrency(ingredient.price * (quantity - 1))}` // Show extra cost when quantity > 1
                                   : '' // Quantity 1 is already in base price
-                                : `-CHF ${ingredient.price.toFixed(2)}` // Deducted when deselected
-                              : `+CHF ${(ingredient.price * quantity).toFixed(2)}`}{' '}
+                                : `-${formatPlainCurrency(ingredient.price)}` // Deducted when deselected
+                              : `+${formatPlainCurrency(ingredient.price * quantity)}`}{' '}
                             {/* Added when selected */}
                           </span>
                         )}

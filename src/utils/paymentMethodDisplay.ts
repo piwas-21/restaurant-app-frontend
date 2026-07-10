@@ -4,6 +4,7 @@
  * Provides functions to get proper display names for payment methods
  */
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { PaymentMethod } from '@/types/order';
 import { PAYMENT_METHODS } from '@/config/paymentMethods';
 
@@ -57,7 +58,7 @@ export function getPaymentMethodLabel(method: string | PaymentMethod | number): 
 export function formatPaymentMethod(method: string | PaymentMethod | number, amount?: number): string {
   const label = getPaymentMethodLabel(method);
   if (amount !== undefined) {
-    return `${label} - CHF ${amount.toFixed(2)}`;
+    return `${label} - ${formatPlainCurrency(amount)}`;
   }
   return label;
 }

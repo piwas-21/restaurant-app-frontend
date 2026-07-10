@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -317,7 +318,7 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
                   {filteredProducts.map((product) => (
                     <button key={product.id} className={styles.productCard} onClick={() => handleProductClick(product)}>
                       <span className={styles.productName}>{product.name}</span>
-                      <span className={styles.productPrice}>CHF {product.basePrice.toFixed(2)}</span>
+                      <span className={styles.productPrice}>{formatPlainCurrency(product.basePrice)}</span>
                     </button>
                   ))}
                   {filteredProducts.length === 0 && !isLoading && (
@@ -366,7 +367,9 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
                           {item.variationName && <span className={styles.variationLabel}> ({item.variationName})</span>}
                         </span>
                         {item.notes && <span className={styles.orderItemNotes}>{item.notes}</span>}
-                        <span className={styles.orderItemPrice}>CHF {(item.unitPrice * item.quantity).toFixed(2)}</span>
+                        <span className={styles.orderItemPrice}>
+                          {formatPlainCurrency(item.unitPrice * item.quantity)}
+                        </span>
                       </div>
                       <div className={styles.orderItemActions}>
                         <button className={styles.qtyButton} onClick={() => updateQuantity(index, item.quantity - 1)}>
@@ -398,7 +401,7 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
               <div className={styles.orderFooter}>
                 <div className={styles.orderTotal}>
                   <span>{t('server.total', 'Total')}</span>
-                  <span className={styles.totalAmount}>CHF {orderTotal.toFixed(2)}</span>
+                  <span className={styles.totalAmount}>{formatPlainCurrency(orderTotal)}</span>
                 </div>
 
                 <button

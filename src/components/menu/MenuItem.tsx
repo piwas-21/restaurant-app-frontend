@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useCallback } from 'react';
 import { useCart } from '@/components/cart/CartContext';
 import { useTranslation } from 'react-i18next';
@@ -168,7 +169,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onFeedbackSuccess, getFallbac
           initialRatingData={{ average: 0, count: 0 }}
         />
         <div className={styles.priceActionsRow}>
-          <span className={styles.mobilePrice}>CHF {numericPrice.toFixed(2)}</span>
+          <span className={styles.mobilePrice}>{formatPlainCurrency(numericPrice)}</span>
           <MenuItemActions
             onAdd={handleAddItemToCart}
             onFeedback={() => setShowFeedbackForm(item.id)}

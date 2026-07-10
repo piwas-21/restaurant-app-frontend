@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { GroupDiscountDto, DiscountType } from '@/types/userGroupTypes';
@@ -42,10 +43,10 @@ const DiscountsTable: React.FC<DiscountsTableProps> = ({ discounts, isLoading, o
               <td>{discount.name}</td>
               <td>{discount.type === DiscountType.Percentage ? t('percentage') : t('fixed_amount')}</td>
               <td>
-                {discount.type === DiscountType.Percentage ? `${discount.value}%` : `CHF ${discount.value.toFixed(2)}`}
+                {discount.type === DiscountType.Percentage ? `${discount.value}%` : formatPlainCurrency(discount.value)}
               </td>
-              <td>{discount.minimumOrderAmount ? `CHF ${discount.minimumOrderAmount.toFixed(2)}` : '-'}</td>
-              <td>{discount.maximumDiscountAmount ? `CHF ${discount.maximumDiscountAmount.toFixed(2)}` : '-'}</td>
+              <td>{discount.minimumOrderAmount ? formatPlainCurrency(discount.minimumOrderAmount) : '-'}</td>
+              <td>{discount.maximumDiscountAmount ? formatPlainCurrency(discount.maximumDiscountAmount) : '-'}</td>
               <td>
                 <span className={discount.isActive ? styles.statusActive : styles.statusInactive}>
                   {discount.isActive ? t('active') : t('inactive')}

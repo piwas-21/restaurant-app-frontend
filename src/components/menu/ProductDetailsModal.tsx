@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './ProductDetailsModal.module.css';
@@ -270,7 +271,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
                       <div key={`${item.id}-variation-${idx}`} className={styles.variationItem}>
                         <span className={styles.variationName}>{varName}</span>
                         <span className={styles.variationPrice}>
-                          CHF {variation.finalPrice.toFixed(2)}
+                          {formatPlainCurrency(variation.finalPrice)}
                           {variation.priceModifier !== 0 && (
                             <span className={styles.priceModifier}>
                               {variation.priceModifier > 0
@@ -300,7 +301,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
                           {sideItem.name}
                           {sideItem.isRequired && <span className={styles.requiredBadge}>{t('required', '*')}</span>}
                         </span>
-                        <span className={styles.sideItemPrice}>CHF {sideItem.price.toFixed(2)}</span>
+                        <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
                       </div>
                       {sideItem.description && <p className={styles.sideItemDescription}>{sideItem.description}</p>}
                     </div>
@@ -310,7 +311,7 @@ export default function ProductDetailsModal({ isOpen, item, onClose }: Props) {
           )}
 
           <div className={styles.productDetailSection}>
-            <p className={styles.itemPrice}>CHF {price.toFixed(2)}</p>
+            <p className={styles.itemPrice}>{formatPlainCurrency(price)}</p>
           </div>
         </div>
       </div>

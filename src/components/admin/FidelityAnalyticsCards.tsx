@@ -1,5 +1,6 @@
 'use client';
 
+import { formatCurrency as formatCurrencyUtil, TENANT_CURRENCY } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown, DollarSign, Users, Award, Gift } from 'lucide-react';
@@ -52,14 +53,7 @@ export default function FidelityAnalyticsCards({ analytics, loading }: FidelityA
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const formatCurrency = (value: number) => formatCurrencyUtil(value, 'de-CH', TENANT_CURRENCY, 0);
 
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value);

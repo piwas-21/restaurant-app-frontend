@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect, useRef } from 'react';
 import { Variation } from '@/app/admin/menu-management/interfaces';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
@@ -315,7 +316,7 @@ const VariationsTable: React.FC<VariationsTableProps> = ({ variations, productId
                     onChange={(e) => setDraft({ ...draft, priceModifier: parseFloat(e.target.value) })}
                   />
                 ) : (
-                  `CHF${v.priceModifier.toFixed(2)}`
+                  `${TENANT_CURRENCY}${v.priceModifier.toFixed(2)}`
                 )}
               </td>
               <td>

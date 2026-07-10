@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import AlertDialog from '@/components/design-system/AlertDialog';
 import BaseModal from '@/components/design-system/BaseModal';
@@ -97,7 +98,9 @@ export default function OrderRefundResultDialogs({
           </select>
         </div>
         <div className={styles.formGroup}>
-          <label htmlFor="refundAmount">{t('refund_amount', 'Refund Amount')} (CHF) *</label>
+          <label htmlFor="refundAmount">
+            {t('refund_amount', 'Refund Amount')} ({TENANT_CURRENCY}) *
+          </label>
           <input
             id="refundAmount"
             type="number"

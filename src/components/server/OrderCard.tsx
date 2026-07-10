@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
@@ -107,7 +108,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
       <div className={styles.footer}>
         <div className={styles.total}>
           <span className={styles.totalLabel}>{t('server.total', 'Total')}</span>
-          <span className={styles.totalAmount}>CHF {order.total.toFixed(2)}</span>
+          <span className={styles.totalAmount}>{formatPlainCurrency(order.total)}</span>
         </div>
 
         {nextStatus && nextStatusLabel && (

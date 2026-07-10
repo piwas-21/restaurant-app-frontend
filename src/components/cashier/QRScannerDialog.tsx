@@ -1,3 +1,4 @@
+import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, QrCode, CheckCircle, AlertCircle } from 'lucide-react';
@@ -131,8 +132,11 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({ isOpen, onClose, onAp
                     {result.applicableDiscounts.map((discount) => (
                       <li key={discount.id} style={{ marginBottom: '5px' }}>
                         <strong>{discount.name}</strong>:
-                        {discount.type === 'Percentage' ? ` ${discount.value}%` : ` CHF ${discount.value}`}
-                        {discount.minimumOrderAmount && ` (Min Order: CHF ${discount.minimumOrderAmount})`}
+                        {discount.type === 'Percentage'
+                          ? ` ${discount.value}%`
+                          : ` ${TENANT_CURRENCY} ${discount.value}`}
+                        {discount.minimumOrderAmount &&
+                          ` (Min Order: ${TENANT_CURRENCY} ${discount.minimumOrderAmount})`}
                       </li>
                     ))}
                   </ul>

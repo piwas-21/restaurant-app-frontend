@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fidelityPointsService } from '@/services/fidelityPointsService';
@@ -93,7 +94,8 @@ export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedempti
           <p className={styles.earnPoints}>
             +{pointsToEarn} {t('points', 'points')}
             <span className={styles.earnValue}>
-              (≈ CHF{(pointsToEarn / 100).toFixed(2)} {t('future_discount', 'future discount')})
+              (≈ {TENANT_CURRENCY}
+              {(pointsToEarn / 100).toFixed(2)} {t('future_discount', 'future discount')})
             </span>
           </p>
         </div>

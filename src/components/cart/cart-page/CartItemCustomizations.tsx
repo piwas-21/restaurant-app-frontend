@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { CartItem } from '@/components/cart/cartTypes';
 import styles from '@/app/styles/CartPage.module.css';
@@ -62,7 +63,7 @@ export default function CartItemCustomizations({ item }: CartItemCustomizationsP
           <span className={styles.customizationValue}>
             {item.selectedSideItems.map((sideItem, idx) => (
               <span key={sideItem.id}>
-                {sideItem.name} x{sideItem.quantity} (CHF {sideItem.subTotal.toFixed(2)})
+                {sideItem.name} x{sideItem.quantity} ({formatPlainCurrency(sideItem.subTotal)})
                 {idx < item.selectedSideItems!.length - 1 ? ', ' : ''}
               </span>
             ))}

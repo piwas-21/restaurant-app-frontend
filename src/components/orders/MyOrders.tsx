@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getMyOrders } from '@/services/orderService';
@@ -175,7 +176,7 @@ export default function MyOrders() {
                   </div>
                   <div>
                     <span className={styles.orderDetailLabel}>{t('order_total_label', 'Total')}</span>
-                    <span className={styles.orderDetailValue}>CHF {order.totalAmount.toFixed(2)}</span>
+                    <span className={styles.orderDetailValue}>{formatPlainCurrency(order.totalAmount)}</span>
                   </div>
                   <div>
                     <button
@@ -208,8 +209,8 @@ export default function MyOrders() {
                             <tr key={item.id}>
                               <td>{item.name}</td>
                               <td>{item.quantity}</td>
-                              <td>CHF {item.price.toFixed(2)}</td>
-                              <td>CHF {(item.quantity * item.price).toFixed(2)}</td>
+                              <td>{formatPlainCurrency(item.price)}</td>
+                              <td>{formatPlainCurrency(item.quantity * item.price)}</td>
                             </tr>
                           ))}
                         </tbody>

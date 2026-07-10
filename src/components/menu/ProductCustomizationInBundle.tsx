@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import styles from './ProductCustomizationInBundle.module.css';
 import { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';
@@ -73,7 +74,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
         <div className={styles.modalBody}>
           <div className={styles.priceDisplay}>
             <span>{t('base_price')}:</span>
-            <span className={styles.price}>CHF {basePrice.toFixed(2)}</span>
+            <span className={styles.price}>{formatPlainCurrency(basePrice)}</span>
           </div>
 
           {!hasCustomizableItems && <p className={styles.noCustomization}>{t('no_customization_available')}</p>}
@@ -114,7 +115,7 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
         <div className={styles.modalFooter}>
           <div className={styles.totalPrice}>
             <span>{t('total')}:</span>
-            <span className={styles.price}>CHF {totalPrice.toFixed(2)}</span>
+            <span className={styles.price}>{formatPlainCurrency(totalPrice)}</span>
           </div>
           <button onClick={handleConfirm} className={styles.confirmButton}>
             {t('confirm')}

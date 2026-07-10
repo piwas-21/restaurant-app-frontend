@@ -1,5 +1,5 @@
-export const formatPrice = (price: number) =>
-  new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' }).format(price);
+import { formatCurrency } from '@/utils/currency';
+export const formatPrice = (price: number) => formatCurrency(price);
 
 export const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleString('de-CH', {

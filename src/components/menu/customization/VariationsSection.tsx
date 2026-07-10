@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency, TENANT_CURRENCY } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './VariationsSection.module.css';
@@ -70,7 +71,7 @@ export default function VariationsSection({
           <div className={styles.variationContent}>
             <div className={styles.variationInfo}>
               <span className={styles.variationName}>{productName}</span>
-              {basePrice > 0 && <span className={styles.variationPrice}>CHF {basePrice.toFixed(2)}</span>}
+              {basePrice > 0 && <span className={styles.variationPrice}>{formatPlainCurrency(basePrice)}</span>}
             </div>
           </div>
         </label>
@@ -83,8 +84,8 @@ export default function VariationsSection({
           const varPrice = basePrice + variation.priceModifier;
           const priceChangeText =
             variation.priceModifier >= 0
-              ? ` +${variation.priceModifier.toFixed(2)} CHF`
-              : ` ${variation.priceModifier.toFixed(2)} CHF`;
+              ? ` +${variation.priceModifier.toFixed(2)} ${TENANT_CURRENCY}`
+              : ` ${variation.priceModifier.toFixed(2)} ${TENANT_CURRENCY}`;
 
           const variationId = variation.id || variation.name;
 
@@ -104,7 +105,7 @@ export default function VariationsSection({
                 </div>
                 {varPrice > 0 && (
                   <span className={styles.variationPrice}>
-                    CHF {varPrice.toFixed(2)}
+                    {formatPlainCurrency(varPrice)}
                     {priceChangeText && <span className={styles.priceModifier}>{priceChangeText}</span>}
                   </span>
                 )}

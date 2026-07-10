@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -71,7 +72,7 @@ export default function CustomerInfoPanel({
     if (rule.discountType === 'Percentage') {
       return `${rule.discountValue}%`;
     }
-    return `CHF ${rule.discountValue.toFixed(2)}`;
+    return formatPlainCurrency(rule.discountValue);
   };
 
   if (isLoading) {
@@ -156,7 +157,7 @@ export default function CustomerInfoPanel({
                   className={styles.slider}
                 />
                 <span className={styles.pointsValue}>
-                  {pointsToRedeem} pts = CHF {discountAmount.toFixed(2)}
+                  {pointsToRedeem} pts = {formatPlainCurrency(discountAmount)}
                 </span>
               </label>
               <div className={styles.quickButtons}>
@@ -172,7 +173,7 @@ export default function CustomerInfoPanel({
             {pointsToRedeem > 0 && (
               <div className={styles.discountPreview}>
                 <span>{t('server.points_discount', 'Points Discount')}:</span>
-                <span className={styles.discountValue}>-CHF {discountAmount.toFixed(2)}</span>
+                <span className={styles.discountValue}>-{formatPlainCurrency(discountAmount)}</span>
               </div>
             )}
           </>

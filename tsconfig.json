@@ -27,6 +27,12 @@
         "./src/services/*",
         "./src/app/*",
         "./src/app/styles/*"
+      ],
+      "@active-template": [
+        "./src/templates/classic"
+      ],
+      "@active-template/*": [
+        "./src/templates/classic/*"
       ]
     },
     "target": "ES2017"

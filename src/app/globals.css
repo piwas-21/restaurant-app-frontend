@@ -1,4 +1,7 @@
-@import '../design-system/tokens/index.css';
+/* The design-token layer is no longer imported here: the root layout imports
+   `@active-template/tokens.css` (the active template's token entrypoint,
+   ADR-006) immediately BEFORE this file, so the effective CSS order is
+   unchanged. The classic template re-exports src/design-system/tokens/. */
 
 :root {
   /* Legacy aliases → semantic tokens. Color VALUES (light + dark) live in

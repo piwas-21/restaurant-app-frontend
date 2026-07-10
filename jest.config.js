@@ -27,6 +27,11 @@ module.exports = {
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
+    // Tenant UI template alias (ADR-006). Jest always resolves to `classic`,
+    // matching the tsconfig type-source; templates get covered by the
+    // per-template Playwright screenshot suite, not unit tests.
+    '^@active-template$': '<rootDir>/src/templates/classic',
+    '^@active-template/(.*)$': '<rootDir>/src/templates/classic/$1',
     'next/router': '<rootDir>/__mocks__/nextRouterMock.js',
   },
   transformIgnorePatterns: [

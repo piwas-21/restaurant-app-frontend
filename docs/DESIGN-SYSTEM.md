@@ -6,7 +6,7 @@
 
 ## 1. Token Architecture
 
-All design tokens live in `src/design-system/tokens/` as CSS variable files, imported via `globals.css`.
+All design tokens live in `src/design-system/tokens/` as CSS variable files. Since S15 T2 (ADR-006) the entrypoint is the active template's `tokens.css` (`src/templates/classic/tokens.css` re-exports this layer; the root layout imports `@active-template/tokens.css` immediately before `globals.css`, preserving the pre-T2 CSS order — see [TEMPLATES.md](TEMPLATES.md)). `globals.css` keeps the legacy-name aliases.
 
 ```
 design-system/

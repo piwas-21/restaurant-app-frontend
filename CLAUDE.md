@@ -26,6 +26,7 @@
 | Any task | This file |
 | Refactoring sprint task | [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) — find the task ID, read its acceptance criteria |
 | Design / component patterns | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) |
+| Tenant UI template work (`src/templates/`, `@active-template`) | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md) |
 | Coding conventions | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) |
 | Test work | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) |
 | Adding/changing a Playwright E2E | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules |
@@ -46,8 +47,11 @@ src/
 ├── app/                          # Next.js App Router routes
 │   ├── (route-groups)/
 │   ├── api/                      # API route handlers (proxy to backend)
-│   ├── layout.tsx                # Root layout
-│   └── globals.css               # imports design-system/tokens + legacy var aliases
+│   ├── layout.tsx                # Root layout — imports @active-template tokens/fonts/Shell
+│   └── globals.css               # legacy var aliases + global classes (tokens come via the template)
+├── templates/                    # tenant UI templates (ADR-006, docs/TEMPLATES.md)
+│   ├── types.ts                  # TemplateDefinition contract
+│   └── classic/                  # current RUMI look; selected via NEXT_PUBLIC_TEMPLATE → @active-template alias
 ├── design-system/
 │   └── tokens/                   # semantic design tokens — single source for color values
 ├── components/                   # Shared UI components

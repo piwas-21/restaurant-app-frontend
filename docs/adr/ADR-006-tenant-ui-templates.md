@@ -1,6 +1,6 @@
 # ADR-006 — Tenant UI templates: build-time template selection
 
-**Status:** Accepted
+**Status:** Accepted — **implemented (T2) 2026-07-10**: `src/templates/` contract + `@active-template` alias + `classic` extraction live; screenshot-verified zero visual diff (28/28 baselines). Working notes: [docs/TEMPLATES.md](../TEMPLATES.md). v1 Shell = composition (re-export of the shared `app-internal-layout.tsx`, customer/staff chrome split deferred to the craft template, T3 — see `src/templates/classic/Shell.tsx`). `craft` itself is not yet implemented.
 **Date:** 2026-07-07
 **Author:** mahmutkaya (analysis + drafting: Claude)
 **Reviewers:** mahmutkaya

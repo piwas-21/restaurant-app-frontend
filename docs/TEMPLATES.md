@@ -3,6 +3,13 @@
 > How the build-time template system works and how to add a template.
 > Decision record: [ADR-006](adr/ADR-006-tenant-ui-templates.md). Master plan: workspace `docs/plans/SOFRA-TENANT-TEMPLATES-PLAN.md`.
 
+## Templates shipped
+
+| Template | Status |
+|---|---|
+| `classic` | Current RUMI look — extracted as-is (T2). |
+| `craft` | Sofra-mirror look (T3 slice 1, 2026-07-10): `tokens.css` (craft palette per plan §3.3), `fonts.ts` (Quicksand/Amatic SC/Caveat), a distinct `HomePage.tsx` (asymmetric hero, tilted letterpress cards, dotted-leader menu-board section for opening hours) + `craft.module.css` (letterpress shadow, `roundedCraft`, tape label, dotted leader utility classes). `Shell.tsx` still re-exports the shared chrome (composition, same rationale as classic) — craft's own customer chrome (sticky header, hand-lettered wordmark) is slice 2. Build: `NEXT_PUBLIC_TEMPLATE=craft npm run build` / `npm run dev`.
+
 ## The mechanism
 
 One tenant image bakes exactly **one** template, selected at build time:
@@ -18,9 +25,13 @@ deploy registry `template:`  →  build-tenant-image.yml `template` input
   ARG plumbing bakes an **empty string** when the build-arg is omitted).
 - An unknown value **fails the build at config load** with
   `NEXT_PUBLIC_TEMPLATE="<x>" is not a known UI template …` — no silent fallback.
-- `tsconfig.json` maps `@active-template` to `classic` as the **type-source**
-  (tsc/editors always check against classic); `jest.config.js` mirrors this.
-  Every template must therefore stay assignable to `TemplateDefinition`.
+- The build-time alias in `next.config.ts` is the **sole resolver**. tsc/editors
+  type-check via ambient declarations in `src/templates/active-template.d.ts`;
+  `jest.config.js` maps `@active-template` → `classic` for tests. Every template
+  must stay assignable to `TemplateDefinition`. **Do not re-add a `@active-template`
+  `tsconfig.json` `paths` entry** — Next's webpack build honors `paths` OVER
+  `resolve.alias`, which silently bundles `classic` for every non-classic template
+  (the S15 T3 bug this file's history records).
 - Only the active template's code, CSS, and fonts end up in the bundle
   (dead-code elimination — no runtime branching). Verified for `classic`:
   a default build and an explicit `NEXT_PUBLIC_TEMPLATE=classic` build

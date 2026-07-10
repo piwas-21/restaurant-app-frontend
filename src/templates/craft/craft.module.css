@@ -1,0 +1,75 @@
+/* Craft motif utility classes (ADR-006, S15 T3 slice 1 —
+   SOFRA-TENANT-TEMPLATES-PLAN §3.3 subset). Translated from sofra's
+   Tailwind `@utility` rules (sofra/app/globals.css) into CSS-Module
+   classes over this app's design tokens. Zero gradients throughout.
+   Split out of HomePage.module.css to keep both files under the
+   *.module.css 200 LOC limit (CLAUDE.md §4). */
+
+/* Flat letterpress shadow + hover-lift/active-press (sofra's
+   `.btn-artisanal` / `btn-primary`). Composable onto cards and buttons. */
+.letterpress {
+  box-shadow: 3px 3px 0 var(--border-default);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.letterpress:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--border-default);
+}
+
+.letterpressBtn {
+  composes: letterpress;
+}
+
+.letterpressBtn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--border-default);
+}
+
+/* Organic border-radius (sofra's `--radius-craft`). */
+.roundedCraft {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+/* Masking-tape section label (sofra's `.masking-tape`, translated from a
+   clip-path polygon onto a tokenized background). */
+.tapeLabel {
+  display: inline-block;
+  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  padding: 0.3rem 1.1rem;
+  transform: rotate(-1.5deg);
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+/* Dotted menu leader (item ..... price / day ..... hours) — sofra's
+   `.menu-leaders`, translated onto --border-default. */
+.menuLeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+}
+
+.menuLeader::before {
+  content: '';
+  order: 2;
+  flex: 1;
+  border-bottom: 2px dotted var(--border-default);
+  margin-bottom: 0.3em;
+  min-width: 2rem;
+}
+
+.menuLeader > :first-child {
+  order: 1;
+}
+
+.menuLeader > :last-child {
+  order: 3;
+  color: var(--text-secondary);
+}

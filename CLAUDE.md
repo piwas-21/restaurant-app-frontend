@@ -199,7 +199,7 @@ Never auto-edit these files / take these actions without explicit user instructi
 ### Hard refusals
 - **`next.config.ts` security headers** (CSP, frame-options, HSTS). Changing these can break the production deployment in subtle ways. Treat as a deploy event, not a code change.
 - **Major version bumps** of `next`, `react`, `react-dom` in `package.json`. Breaking-changes class — coordinated upgrade only.
-- **Playwright golden snapshots** in `tests/**/*-snapshots/` — never hand-edit; only regenerate via explicit `npx playwright test --update-snapshots`.
+- **Playwright golden snapshots** (`e2e/screenshots/__screenshots__/`, or any `*-snapshots/` dir) — never hand-edit; only regenerate via the documented update command (`npm run test:screenshots:docker:update` — baselines are linux-only, see `e2e/README.md`).
 - **`src/locales/*.json` for languages the agent doesn't read** (typically `ar`, `ru`, `zh`). Adding/removing keys is fine (locale parity), but **rephrasing existing translations** in those locales requires a human translator or explicit user instruction.
 - **Branch protection bypass**: never `git commit --no-verify`, `git push --force-with-lease` to `develop`/`main`, `git reset --hard` on `develop`/`main`.
 

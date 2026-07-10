@@ -16,7 +16,11 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:screenshots": "playwright test --config playwright.screenshots.config.ts",
+    "test:screenshots:update": "playwright test --config playwright.screenshots.config.ts --update-snapshots",
+    "test:screenshots:docker": "bash scripts/screenshots-docker.sh",
+    "test:screenshots:docker:update": "bash scripts/screenshots-docker.sh --update"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

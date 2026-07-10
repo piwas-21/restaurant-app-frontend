@@ -71,6 +71,8 @@ npx playwright test --repeat-each=10 --workers=4 \
 | Path | Contains |
 |---|---|
 | `tests/<surface>/*.e2e.ts` | One file per **flow** (not per page). Surfaces map to RUMI roles (public, auth, customer, cashier, server, kitchen, admin). |
+| `screenshots/*.screen.ts` | **Screenshot-baseline suite** — separate config ([../playwright.screenshots.config.ts](../playwright.screenshots.config.ts)); see §Screenshot baseline below. |
+| `screenshots/__screenshots__/` | **Committed** golden baselines (linux-generated PNGs). Never hand-edit; regenerate only via `npm run test:screenshots:docker:update`. |
 | `pages/*.ts` | Page Objects — selectors + action methods. **No assertions.** |
 | `fixtures/*.ts` | Playwright fixtures. The per-role auth fixtures (`customerUser`, `cashierUser`, `serverUser`, `kitchenUser`, `adminUser`) own `storageState`. |
 | `helpers/*.ts` | Shared utilities — `expectNoA11yViolations`, network waiters, locale switchers. Pure-ish: take a `Page`, do a thing, return data. |
@@ -87,3 +89,54 @@ npx playwright test --repeat-each=10 --workers=4 \
 6. Tests are committed — only outputs (`.auth/`, `playwright-report/`, `test-results/`) are gitignored.
 
 Full ruleset and the HIGH/MED/LOW scenario list: [../docs/E2E-STRATEGY.md](../docs/E2E-STRATEGY.md).
+
+## Screenshot baseline (visual regression — S15 T1 close-out)
+
+`screenshots/customer-routes.screen.ts` captures the customer-facing surface
+(staff/admin is NOT templated in v1) as **committed** `toHaveScreenshot()`
+baselines. This is the tenant-templates **T2 gate**: extracting the current
+RUMI look into the `classic` template must produce zero diff against them.
+
+**Matrix** — 7 routes (`/`, `/menu`, `/cart` empty, `/checkout/review` via the
+guest smart-skip driver, `/reservations`, `/auth/login`, `/auth/register`)
+× 2 themes (`html[data-theme]` light/dark, pre-seeded via `rumiTheme` in
+localStorage) × 2 viewports (desktop 1280×720, mobile 375×812), full-page →
+**28 PNGs** in `screenshots/__screenshots__/<project>/`.
+
+**Determinism** (`screenshots/helpers.ts`): frozen clock
+(`page.clock.setFixedTime`), `locale en-US` + `TZ UTC`, reduced motion +
+animation-kill stylesheet (`screenshots/screenshot.css`), fonts + images +
+network-idle waits, cookie-consent pre-accepted, Google Maps/GSI endpoints
+neutralised. Data comes from the same seeded backend the functional suite
+uses. Tolerance is `maxDiffPixelRatio: 0.001` — do not raise it to hide
+flake; fix the determinism instead.
+
+**Platform rule — baselines are LINUX-only.** Font rasterisation differs on
+macOS, so captures are taken inside the pinned Playwright image
+(`mcr.microsoft.com/playwright:v<@playwright/test version>-noble`); the CI
+job runs the comparison inside the same image. The snapshot path template
+deliberately omits `{platform}`.
+
+```bash
+# One-time stack (same as functional e2e): backend on :5221 + seed applied
+psql "$E2E_DATABASE_URL" -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+
+npm run test:screenshots:docker           # compare against committed baselines
+npm run test:screenshots:docker:update    # regenerate baselines (then commit)
+```
+
+The suite builds and serves a **production** Next.js bundle on `:3100`
+(`webServer` in the config — overwrites your local `.next` when run outside
+docker; on macOS the docker script shadows `.next`/`node_modules` with named
+volumes). The backend must allow CORS origin `http://localhost:3100`
+(the CI workflow sets `CorsSettings__AllowedOrigins__0` accordingly).
+
+`npm run test:screenshots` (host-native, no docker) is for quick iteration on
+the *tests themselves* only — comparisons against committed baselines will
+fail on macOS; never `--update-snapshots` from a mac.
+
+**CI**: [.github/workflows/screenshots.yml](../.github/workflows/screenshots.yml)
+— separate, non-required workflow (non-blocking while it beds in) on PRs +
+`workflow_dispatch`. Failures upload `*-actual`/`*-diff` PNGs as artifacts.
+Dispatch with `update_snapshots=true` to regenerate baselines in CI and
+download them as an artifact (commit them on a branch afterwards).

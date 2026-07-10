@@ -1,0 +1,26 @@
+/*
+ * Injected ONLY while toHaveScreenshot() captures (expect.toHaveScreenshot.stylePath
+ * in playwright.screenshots.config.ts) — runtime behaviour is untouched.
+ *
+ * height:auto — globals.css sets `html, body { height: 100%; overflow-x: hidden }`,
+ * which makes the body the effective scroll container; Chromium's fullPage
+ * capture (captureBeyondViewport) then paints ONLY the first viewport and
+ * leaves everything below the fold blank. Relaxing the height during capture
+ * restores normal document flow so the full page paints. Verified: no layout
+ * shift in the captured area (the app sizes sections with vh/content, not %).
+ *
+ * caret-color — belt-and-braces on top of caret:'hide'.
+ *
+ * Deliberately NO `animation: none` / `transition: none` here: Playwright's
+ * animations:'disabled' fast-forwards finite animations to their END state,
+ * while `animation: none` would freeze fill-forwards entrance animations at
+ * their INITIAL state (e.g. opacity 0) and blank out real content.
+ */
+html,
+body {
+  height: auto !important;
+}
+
+* {
+  caret-color: transparent !important;
+}

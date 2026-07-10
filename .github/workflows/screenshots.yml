@@ -1,0 +1,214 @@
+name: Screenshots
+
+# Visual-regression baseline comparison (S15 T1 close-out; the T2 gate for
+# the tenant-templates plan — docs/plans/SOFRA-TENANT-TEMPLATES-PLAN.md in
+# the workspace meta-repo).
+#
+# NON-BLOCKING BY DESIGN: this is a separate workflow that is NOT in the
+# required checks while the suite beds in. Promote to required once it has
+# proven stable across a few weeks of PRs.
+#
+# Determinism: the Playwright step runs INSIDE the pinned
+# mcr.microsoft.com/playwright image (tag = @playwright/test version from
+# package-lock.json) with --network host, i.e. the exact environment
+# `scripts/screenshots-docker.sh` uses to (re)generate baselines locally.
+# Baselines are linux-only — see e2e/README.md §Screenshot baseline.
+#
+# The backend stack (postgres + redis services, sibling backend checkout,
+# EF migrations, SQL seed, native `dotnet run`) mirrors the playwright_e2e
+# job in ci.yml. Mailpit is omitted: no screenshot page sends email.
+#
+# Security: no untrusted-input expressions in run: commands (the
+# update_snapshots boolean input is passed via env). All third-party
+# actions SHA-pinned. Minimal permissions.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: 'Regenerate baselines (--update-snapshots) and upload them as an artifact'
+        type: boolean
+        default: false
+
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  screenshot_diff:
+    name: playwright screenshots (visual baseline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres123 # pragma: allowlist secret
+          POSTGRES_DB: restaurantdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      # Required by Aspire's AddRedisDistributedCache("redis") in backend
+      # Program.cs. SHA-pinned to redis:7.4-alpine (same pin as ci.yml).
+      redis:
+        image: redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99 # 7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Backend runtime config — mirrors ci.yml playwright_e2e, except the
+      # allowed CORS origin: the screenshot production server listens on 3100.
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://localhost:5221
+      ConnectionStrings__restaurantdb: Host=localhost;Port=5432;Database=restaurantdb;Username=postgres;Password=postgres123 # pragma: allowlist secret
+      ConnectionStrings__redis: localhost:6379
+      JwtSettings__Secret: e2e-only-jwt-secret-not-for-production-at-least-32-chars-long-padding-padding # pragma: allowlist secret
+      JwtSettings__Issuer: rumi-e2e
+      JwtSettings__Audience: rumi-e2e
+      EmailSettings__SmtpHost: localhost
+      EmailSettings__SmtpPort: '1025'
+      EmailSettings__EnableSsl: 'false'
+      EmailSettings__UseAuthentication: 'false'
+      EmailSettings__Username: e2e
+      EmailSettings__Password: e2e # pragma: allowlist secret
+      EmailSettings__FromEmail: noreply@test.local
+      EmailSettings__FromName: RUMI E2E
+      EmailSettings__AdminEmail: e2e-admin@test.local
+      EmailSettings__FrontendBaseUrl: http://localhost:3100
+      EmailSettings__BackendBaseUrl: http://localhost:5221
+      CorsSettings__AllowedOrigins__0: http://localhost:3100
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+      E2E_API_BASE_URL: http://localhost:5221
+      UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots == true && 'true' || 'false' }}
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Checkout backend (sibling repo at ./backend)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: piwas-21/restaurant-app-backend
+          ref: develop
+          path: backend
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+
+      - name: Setup Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install npm deps
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Restore + build backend
+        working-directory: backend
+        run: dotnet build RestaurantSystem.sln --configuration Release --nologo
+
+      - name: Apply EF migrations
+        working-directory: backend
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.*
+          dotnet ef database update \
+            --project RestaurantSystem.Infrastructure \
+            --startup-project RestaurantSystem.Api \
+            --no-build --configuration Release
+
+      - name: Seed test data
+        env:
+          PGPASSWORD: postgres123 # pragma: allowlist secret
+        run: |
+          psql -h localhost -U postgres -d restaurantdb \
+            -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+
+      - name: Start backend
+        working-directory: backend
+        run: |
+          nohup dotnet run --project RestaurantSystem.Api --no-build --configuration Release \
+            > /tmp/backend.log 2>&1 &
+          echo $! > /tmp/backend.pid
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 90); do
+            if curl -fsS --max-time 2 http://localhost:5221/api/health >/dev/null 2>&1; then
+              echo "Backend ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Backend never came up. Last 200 log lines:"
+          tail -200 /tmp/backend.log || true
+          exit 1
+
+      # Runs inside the version-pinned Playwright image so rendering matches
+      # the committed (linux-generated) baselines byte-for-byte. The host
+      # node_modules are reused — host and container are both linux x64.
+      - name: Run screenshot suite (pinned Playwright container)
+        run: |
+          PW_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
+          UPDATE_FLAG=""
+          if [ "$UPDATE_SNAPSHOTS" = "true" ]; then
+            UPDATE_FLAG="--update-snapshots"
+            echo "Regenerating baselines (--update-snapshots)"
+          fi
+          docker run --rm --init --ipc=host --network host \
+            -v "$PWD":/work -w /work \
+            -e CI=1 \
+            -e E2E_API_BASE_URL="$E2E_API_BASE_URL" \
+            "mcr.microsoft.com/playwright:v${PW_VERSION}-noble" \
+            npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG
+
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/backend.pid ]; then
+            kill "$(cat /tmp/backend.pid)" 2>/dev/null || true
+          fi
+
+      - name: Dump backend log on failure
+        if: failure()
+        run: tail -300 /tmp/backend.log || true
+
+      # On a comparison failure the *-actual/*-diff PNGs land in test-results/.
+      - name: Upload diff images + report
+        if: failure()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
+        with:
+          name: screenshot-diffs-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # workflow_dispatch + update_snapshots=true: download this artifact and
+      # commit its contents to e2e/screenshots/__screenshots__/ on a branch.
+      - name: Upload regenerated baselines
+        if: env.UPDATE_SNAPSHOTS == 'true'
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
+        with:
+          name: screenshot-baselines-${{ github.run_id }}
+          path: e2e/screenshots/__screenshots__/
+          retention-days: 14
+          if-no-files-found: error

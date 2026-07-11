@@ -1,11 +1,22 @@
-// classic template Shell (ADR-006, S15 T2).
+'use client';
+
+// classic template Shell (ADR-006, S15 T3 slice 2 — customer/staff split).
 //
-// v1 extraction = COMPOSITION, not rewrite: app-internal-layout.tsx still
-// interleaves customer chrome (header/nav/footer) with the staff/admin
-// chrome (Sidebar, admin toggles) that is deliberately NOT templated in v1.
-// Splitting that 330-LOC file risks visual drift on live prod for zero v1
-// benefit, so the classic Shell re-exports it unchanged — visual parity
-// beats structural purity (screenshot suite is the gate). When the craft
-// template (T3) needs its own customer chrome, the customer/staff split
-// happens then, against the baseline this extraction preserves.
-export { default } from '@/app/app-internal-layout';
+// Customer routes render the template-owned chrome (./chrome/CustomerChrome,
+// a verbatim extraction of app-internal-layout.tsx's customer path — zero
+// visual delta is the gate). Staff/admin routes render the SHARED
+// app-internal-layout.tsx untouched: staff/admin is not templated in v1
+// (types.ts contract), so every template shows the identical chrome there.
+import { usePathname } from 'next/navigation';
+import AppInternalLayout from '@/app/app-internal-layout';
+import { isSharedChromeRoute } from '../shared-chrome';
+import type { ShellProps } from '../types';
+import CustomerChrome from './chrome/CustomerChrome';
+
+export default function Shell({ children }: Readonly<ShellProps>) {
+  const pathname = usePathname();
+  if (isSharedChromeRoute(pathname)) {
+    return <AppInternalLayout>{children}</AppInternalLayout>;
+  }
+  return <CustomerChrome>{children}</CustomerChrome>;
+}

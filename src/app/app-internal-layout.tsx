@@ -34,6 +34,18 @@ import { BRANDING_LOGO, BRANDING_LOGO_DARK, RESTAURANT_NAME } from '@/lib/config
 // Fonts moved behind the template definition (ADR-006): the root layout
 // applies the active template's next/font classNames to <body>. The unused
 // Inter load that used to sit here is gone with it.
+//
+// ROLE since S15 T3 slice 2 (customer/staff split): this file is the SHARED
+// staff/admin chrome. Both templates' Shells dispatch /admin, /cashier,
+// /server and /kitchen-staff here (src/templates/shared-chrome.ts) because
+// staff/admin is NOT templated in v1 — every template must render the
+// identical chrome on those routes, including the role-based header/footer
+// staff see today. Customer routes render each template's own chrome
+// (classic: a verbatim extraction of this file's customer path; the nav
+// links also exist as the shared src/components/RoleNavLinks.tsx). The
+// inline customer-path code below is deliberately left byte-identical —
+// zero visual delta on the untouched staff surface beats DRY here;
+// consolidation is T4 polish work.
 
 export default function AppInternalLayout({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);

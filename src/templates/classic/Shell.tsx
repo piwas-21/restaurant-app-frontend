@@ -13,7 +13,7 @@ import { isSharedChromeRoute } from '../shared-chrome';
 import type { ShellProps } from '../types';
 import CustomerChrome from './chrome/CustomerChrome';
 
-export default function Shell({ children }: ShellProps) {
+export default function Shell({ children }: Readonly<ShellProps>) {
   const pathname = usePathname();
   if (isSharedChromeRoute(pathname)) {
     return <AppInternalLayout>{children}</AppInternalLayout>;

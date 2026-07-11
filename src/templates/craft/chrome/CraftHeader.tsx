@@ -36,6 +36,9 @@ export default function CraftHeader() {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const restaurantName = restaurantInfo?.name ?? RESTAURANT_NAME;
+  // Pre-hydration fallback mirrors classic: a static label until t() is safe.
+  const menuToggleTranslated = mobileMenuOpen ? t('close_menu') : t('open_menu');
+  const menuToggleLabel = isClient ? menuToggleTranslated : 'Open menu';
 
   return (
     <header className={styles.header}>
@@ -46,7 +49,7 @@ export default function CraftHeader() {
         <button
           className={styles.hamburger}
           onClick={toggleMobileMenu}
-          aria-label={isClient ? (mobileMenuOpen ? t('close_menu') : t('open_menu')) : 'Open menu'}
+          aria-label={menuToggleLabel}
           aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}

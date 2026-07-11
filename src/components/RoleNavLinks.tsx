@@ -26,7 +26,7 @@ interface RoleNavLinksProps {
   onNavigate: () => void;
 }
 
-export default function RoleNavLinks({ onNavigate }: RoleNavLinksProps) {
+export default function RoleNavLinks({ onNavigate }: Readonly<RoleNavLinksProps>) {
   const { user, isLoading } = useAuth();
   const { state: cartState } = useCart();
   const pathname = usePathname();
@@ -41,24 +41,20 @@ export default function RoleNavLinks({ onNavigate }: RoleNavLinksProps) {
   // Cashier: Show only Cashier link
   if (role === 'cashier') {
     return (
-      <>
-        <Link href="/cashier" className={`nav-link ${pathname === '/cashier' ? 'active' : ''}`} onClick={onNavigate}>
-          <Receipt size={18} />
-          <span>{t('nav_cashier', 'Cashier')}</span>
-        </Link>
-      </>
+      <Link href="/cashier" className={`nav-link ${pathname === '/cashier' ? 'active' : ''}`} onClick={onNavigate}>
+        <Receipt size={18} />
+        <span>{t('nav_cashier', 'Cashier')}</span>
+      </Link>
     );
   }
 
   // Server: Show only Server link
   if (role === 'server') {
     return (
-      <>
-        <Link href="/server" className={`nav-link ${pathname === '/server' ? 'active' : ''}`} onClick={onNavigate}>
-          <UtensilsCrossed size={18} />
-          <span>{t('nav_server', 'Server')}</span>
-        </Link>
-      </>
+      <Link href="/server" className={`nav-link ${pathname === '/server' ? 'active' : ''}`} onClick={onNavigate}>
+        <UtensilsCrossed size={18} />
+        <span>{t('nav_server', 'Server')}</span>
+      </Link>
     );
   }
 

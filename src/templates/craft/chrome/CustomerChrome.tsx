@@ -14,7 +14,7 @@ import CraftHeader from './CraftHeader';
 import CraftFooter from './CraftFooter';
 import styles from './chrome.module.css';
 
-export default function CustomerChrome({ children }: { children: React.ReactNode }) {
+export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 

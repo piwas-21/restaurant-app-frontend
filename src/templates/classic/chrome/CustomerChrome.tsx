@@ -29,7 +29,7 @@ import { Menu, X } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_LOGO, BRANDING_LOGO_DARK, RESTAURANT_NAME } from '@/lib/config';
 
-export default function CustomerChrome({ children }: { children: React.ReactNode }) {
+export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isClient, setIsClient] = useState(false);
   const { theme } = useTheme();
   const { user, isLoading } = useAuth();

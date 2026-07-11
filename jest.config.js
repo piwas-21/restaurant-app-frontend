@@ -45,6 +45,7 @@ module.exports = {
     'src/app/**/*.tsx',
     'src/utils/reservationForm.ts',
     'src/utils/productCustomization.ts',
+    'src/utils/orderItemsPayload.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.spec.tsx',
     '!**/node_modules/**',
@@ -113,6 +114,14 @@ module.exports = {
     // productCustomization helpers ship at 100% (see productCustomization.test.ts);
     // pinned at 99 per the "100 → 99" rule above.
     './src/utils/productCustomization.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // orderItemsPayload ships at 100% (see orderItemsPayload.test.ts);
+    // pinned at 99 per the "100 → 99" rule above.
+    './src/utils/orderItemsPayload.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

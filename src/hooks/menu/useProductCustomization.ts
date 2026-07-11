@@ -95,10 +95,13 @@ export function useProductCustomization({
       return;
     }
 
-    // Optional ingredient: toggle selection
+    // Optional ingredient: toggle selection. Deselection keeps the map entry at 0 (instead
+    // of deleting it) so the explicit removal survives to the basket/order payload and the
+    // kitchen ticket can show it (backend derives IsRemoved from quantity == 0 — issue #150).
+    // Price/UI are unaffected: both read quantities via `|| 1` and gate on selectedIngredients.
     if (newSelected.has(ingredient.id)) {
       newSelected.delete(ingredient.id);
-      delete newQuantities[ingredient.id];
+      newQuantities[ingredient.id] = 0;
     } else {
       newSelected.add(ingredient.id);
       newQuantities[ingredient.id] = 1;

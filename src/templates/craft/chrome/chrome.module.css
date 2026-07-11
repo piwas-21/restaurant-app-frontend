@@ -1,0 +1,18 @@
+/* craft customer chrome — shell frame (ADR-006, S15 T3 slice 2).
+   Header/footer styles live in their own modules (CLAUDE.md §4 limits). */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.mainHome {
+  flex-grow: 1;
+  padding: 0;
+}

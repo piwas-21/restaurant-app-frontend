@@ -1,0 +1,60 @@
+/* craft footer (ADR-006, S15 T3 slice 2). Tokens only; dark values flip
+   via html[data-theme="dark"] in ../tokens.css.
+   Contrast (AA): ink on kraft 10.0:1, olive-text on kraft 5.0:1,
+   link-hover on kraft 5.5:1; dark: cream on umber 12.4:1, pale olive on
+   umber 5.9:1. The saffron dotted rule is decorative (non-text). */
+
+.footer {
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  border-top: 3px dotted var(--brand-accent);
+}
+
+.footerInner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Hand-written sign-off — Caveat is loaded by ../fonts.ts. */
+.footerWordmark {
+  font-family: 'Caveat', cursive;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+  transform: rotate(-1.5deg);
+}
+
+.footerText {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.footerAddress {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.footerLink {
+  color: var(--text-primary);
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+.footerLink:hover {
+  color: var(--link-hover);
+}

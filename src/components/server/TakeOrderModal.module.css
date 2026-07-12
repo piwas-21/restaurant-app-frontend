@@ -51,8 +51,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
-  color: var(--button-text-color, #fff);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+  color: var(--button-text-color);
 }
 
 .headerInfo h2 {
@@ -72,7 +72,7 @@
   border-radius: 50%;
   border: none;
   background-color: rgba(255, 255, 255, 0.2);
-  color: var(--button-text-color, #fff);
+  color: var(--button-text-color);
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;

@@ -19,7 +19,7 @@
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 8px;
-  color: #ef4444;
+  color: var(--status-danger);
   font-size: 0.8rem;
   margin-bottom: 0.75rem;
 }
@@ -105,7 +105,7 @@
 .qtyButton:hover {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
-  color: var(--button-text-color, #fff);
+  color: var(--button-text-color);
 }
 
 .qtyValue {
@@ -168,8 +168,8 @@
 .submitButton {
   width: 100%;
   padding: 0.875rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
-  color: var(--button-text-color, #fff);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+  color: var(--button-text-color);
   border: none;
   border-radius: 10px;
   font-size: 1rem;

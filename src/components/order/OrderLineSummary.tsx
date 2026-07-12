@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
-import { type LineSummary, type LineIngredientDiff, isLineSummaryEmpty } from './lineSummary';
+import { type LineSummary, type LineIngredientDiff } from './lineSummary';
 import styles from './OrderLineSummary.module.css';
 
 function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
@@ -36,6 +36,8 @@ function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
 
 interface OrderLineSummaryProps {
   readonly line: LineSummary;
+  /** Hide the line's own special-instructions row (e.g. the cart shows an editable editor instead). */
+  readonly hideInstructions?: boolean;
 }
 
 /**
@@ -44,10 +46,17 @@ interface OrderLineSummaryProps {
  * nothing when there is nothing to show. The two order/cart shapes feed it via the adapters in
  * lineSummary.ts (menu-bundles redesign slice 2, #174).
  */
-export default function OrderLineSummary({ line }: OrderLineSummaryProps) {
+export default function OrderLineSummary({ line, hideInstructions = false }: OrderLineSummaryProps) {
   const { t } = useTranslation();
+  const showInstructions = !hideInstructions && !!line.specialInstructions;
 
-  if (isLineSummaryEmpty(line)) return null;
+  const nothingToShow =
+    line.diff.added.length === 0 &&
+    line.diff.removed.length === 0 &&
+    line.sideItems.length === 0 &&
+    line.children.length === 0 &&
+    !showInstructions;
+  if (nothingToShow) return null;
 
   return (
     <div className={styles.summary}>
@@ -69,7 +78,7 @@ export default function OrderLineSummary({ line }: OrderLineSummaryProps) {
         </div>
       )}
 
-      {line.specialInstructions && (
+      {showInstructions && (
         <div className={styles.row}>
           <span className={styles.label}>{t('special_requests', 'Special Requests')}:</span>
           <span className={styles.value}>{line.specialInstructions}</span>

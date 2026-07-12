@@ -1,4 +1,5 @@
 import type { OrderItemDto, OrderItemIngredientDto } from '@/types/order';
+import type { BasketItemDto } from '@/types/basket';
 
 /**
  * Normalized, read-only view-model for one order/cart line's customizations, shared by
@@ -79,6 +80,42 @@ export function orderItemToLineSummary(item: OrderItemDto): LineSummary {
       name: c.productName ?? '',
       quantity: c.quantity,
       diff: orderDiff(c.ingredientCustomizations),
+      specialInstructions: c.specialInstructions || undefined,
+    })),
+  };
+}
+
+/**
+ * Diff from a basket item. Unlike the order shape, the basket carries an explicit added-ingredient
+ * name list (`selectedIngredientNames`), so every added ingredient is surfaced with its quantity
+ * (index-aligned with `selectedIngredients`/`ingredientQuantities`), matching the existing cart
+ * customizations display.
+ */
+function basketDiff(item: BasketItemDto): LineIngredientDiff {
+  const added = (item.selectedIngredientNames ?? []).map((name, idx) => {
+    const id = item.selectedIngredients?.[idx];
+    const quantity = id && item.ingredientQuantities?.[id] ? item.ingredientQuantities[id] : 1;
+    return { name, quantity };
+  });
+  return { added, removed: item.excludedIngredientNames ?? [] };
+}
+
+/** Adapt a `BasketItemDto` (cart shape) into a `LineSummary`. Child items are bundle components. */
+export function basketItemToLineSummary(item: BasketItemDto): LineSummary {
+  return {
+    diff: basketDiff(item),
+    sideItems: (item.selectedSideItems ?? []).map((s) => ({
+      id: s.id,
+      name: s.name,
+      quantity: s.quantity,
+      price: s.subTotal,
+    })),
+    specialInstructions: item.specialInstructions || undefined,
+    children: (item.childItems ?? []).map((c) => ({
+      id: c.id,
+      name: c.productName ?? '',
+      quantity: c.quantity,
+      diff: basketDiff(c),
       specialInstructions: c.specialInstructions || undefined,
     })),
   };

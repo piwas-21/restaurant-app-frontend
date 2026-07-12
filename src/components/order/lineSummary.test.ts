@@ -1,5 +1,6 @@
-import { orderItemToLineSummary, isLineSummaryEmpty } from './lineSummary';
+import { orderItemToLineSummary, basketItemToLineSummary, isLineSummaryEmpty } from './lineSummary';
 import type { OrderItemDto } from '@/types/order';
+import type { BasketItemDto } from '@/types/basket';
 
 const orderItem = (over: Partial<OrderItemDto>): OrderItemDto => ({
   id: 'i1',
@@ -72,6 +73,43 @@ describe('orderItemToLineSummary', () => {
     const summary = orderItemToLineSummary(orderItem({ specialInstructions: 'No salt' }));
     expect(summary.specialInstructions).toBe('No salt');
     expect(isLineSummaryEmpty(summary)).toBe(false);
+  });
+});
+
+describe('basketItemToLineSummary', () => {
+  it('maps added (with quantity) / removed names, sides, and child components', () => {
+    const item: BasketItemDto = {
+      quantity: 1,
+      unitPrice: 10,
+      itemTotal: 10,
+      productName: 'Pizza',
+      selectedIngredients: ['id-cheese', 'id-bacon'],
+      selectedIngredientNames: ['Cheese', 'Bacon'],
+      ingredientQuantities: { 'id-cheese': 2 },
+      excludedIngredientNames: ['Onion'],
+      selectedSideItems: [{ id: 's1', name: 'Fries', price: 3, quantity: 2, subTotal: 6 }],
+      specialInstructions: 'Crispy',
+      childItems: [
+        { id: 'c1', quantity: 1, unitPrice: 0, itemTotal: 0, productName: 'Coke', excludedIngredientNames: ['Ice'] },
+      ],
+    };
+    const summary = basketItemToLineSummary(item);
+
+    expect(summary.diff.added).toEqual([
+      { name: 'Cheese', quantity: 2 },
+      { name: 'Bacon', quantity: 1 },
+    ]);
+    expect(summary.diff.removed).toEqual(['Onion']);
+    expect(summary.sideItems).toEqual([{ id: 's1', name: 'Fries', quantity: 2, price: 6 }]);
+    expect(summary.specialInstructions).toBe('Crispy');
+    expect(summary.children).toHaveLength(1);
+    expect(summary.children[0]).toMatchObject({ id: 'c1', name: 'Coke', quantity: 1 });
+    expect(summary.children[0].diff.removed).toEqual(['Ice']);
+  });
+
+  it('is empty for a plain basket item', () => {
+    const summary = basketItemToLineSummary({ quantity: 1, unitPrice: 5, itemTotal: 5, productName: 'Water' });
+    expect(isLineSummaryEmpty(summary)).toBe(true);
   });
 });
 

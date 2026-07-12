@@ -31,4 +31,17 @@ describe('OrderLineSummary', () => {
     expect(screen.getByText(/Coke/)).toBeInTheDocument();
     expect(screen.getByText(/Ice/)).toBeInTheDocument();
   });
+
+  it('hides the line special-instructions row when hideInstructions is set (child instructions still show)', () => {
+    const line: LineSummary = {
+      diff: { added: [], removed: [] },
+      sideItems: [],
+      specialInstructions: 'Line note',
+      children: [{ name: 'Coke', quantity: 1, diff: { added: [], removed: [] }, specialInstructions: 'Child note' }],
+    };
+    render(<OrderLineSummary line={line} hideInstructions />);
+
+    expect(screen.queryByText('Line note')).not.toBeInTheDocument();
+    expect(screen.getByText('Child note')).toBeInTheDocument();
+  });
 });

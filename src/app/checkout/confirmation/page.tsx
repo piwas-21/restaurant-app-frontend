@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { getOrderById } from '@/services/orderService';
 import { OrderDto } from '@/types/order';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import {
@@ -303,14 +305,10 @@ function ConfirmationContent() {
                     <div className={styles.itemDetails}>
                       <h3 className={styles.itemName}>{item.productName}</h3>
                       {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
-                      {item.specialInstructions && (
-                        <p className={styles.itemInstructions}>
-                          <i>{item.specialInstructions}</i>
-                        </p>
-                      )}
                       <p className={styles.itemQuantity}>
                         {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                       </p>
+                      <OrderLineSummary line={orderItemToLineSummary(item)} />
                     </div>
                     <div className={styles.itemPrice}>{formatPrice(item.itemTotal)}</div>
                   </div>

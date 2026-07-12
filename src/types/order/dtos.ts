@@ -76,7 +76,8 @@ export interface OrderItemDto extends CreateOrderItemDto {
   itemTotal: number;
   kitchenType?: string; // FrontKitchen, BackKitchen, or None
   ingredientCustomizations?: OrderItemIngredientDto[]; // Selected/removed ingredients
-  sideItems?: OrderItemDto[]; // Child order items (additionals)
+  sideItems?: OrderItemDto[]; // Child order items: bundle components + true add-on sides (see kind)
+  kind?: 'BundleChild' | 'SideItem'; // Set on child items only (backend #158): bundle component vs true side
 }
 
 /**

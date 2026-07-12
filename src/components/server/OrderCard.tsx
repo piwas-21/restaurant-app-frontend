@@ -2,6 +2,8 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './OrderCard.module.css';
 
 interface OrderCardProps {
@@ -90,11 +92,14 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
 
       <div className={styles.items}>
         {order.items.map((item, index) => (
-          <div key={item.id || index} className={styles.item}>
-            <span className={styles.itemQuantity}>{item.quantity}×</span>
-            <span className={styles.itemName}>{item.productName || 'Unknown Item'}</span>
-            {item.variationName && <span className={styles.itemVariation}>({item.variationName})</span>}
-          </div>
+          <React.Fragment key={item.id || index}>
+            <div className={styles.item}>
+              <span className={styles.itemQuantity}>{item.quantity}×</span>
+              <span className={styles.itemName}>{item.productName || 'Unknown Item'}</span>
+              {item.variationName && <span className={styles.itemVariation}>({item.variationName})</span>}
+            </div>
+            <OrderLineSummary line={orderItemToLineSummary(item)} />
+          </React.Fragment>
         ))}
       </div>
 

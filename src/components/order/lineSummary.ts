@@ -15,6 +15,7 @@ export interface LineIngredientDiff {
 
 /** A bundle component (one level deep) with its own ingredient diff + instructions. */
 export interface LineChild {
+  id?: string;
   name: string;
   quantity: number;
   diff: LineIngredientDiff;
@@ -24,7 +25,7 @@ export interface LineChild {
 export interface LineSummary {
   diff: LineIngredientDiff;
   /** True add-on side items ordered alongside the line (not bundle components). */
-  sideItems: { name: string; quantity: number; price?: number }[];
+  sideItems: { id?: string; name: string; quantity: number; price?: number }[];
   specialInstructions?: string;
   /** Bundle components, rendered indented one level. */
   children: LineChild[];
@@ -71,9 +72,10 @@ export function orderItemToLineSummary(item: OrderItemDto): LineSummary {
 
   return {
     diff: orderDiff(item.ingredientCustomizations),
-    sideItems: sides.map((s) => ({ name: s.productName ?? '', quantity: s.quantity, price: s.itemTotal })),
+    sideItems: sides.map((s) => ({ id: s.id, name: s.productName ?? '', quantity: s.quantity, price: s.itemTotal })),
     specialInstructions: item.specialInstructions || undefined,
     children: components.map((c) => ({
+      id: c.id,
       name: c.productName ?? '',
       quantity: c.quantity,
       diff: orderDiff(c.ingredientCustomizations),

@@ -6,7 +6,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { type LineSummary, type LineIngredientDiff, isLineSummaryEmpty } from './lineSummary';
 import styles from './OrderLineSummary.module.css';
 
-function DiffRows({ diff }: { diff: LineIngredientDiff }) {
+function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
   const { t } = useTranslation();
   return (
     <>
@@ -15,7 +15,7 @@ function DiffRows({ diff }: { diff: LineIngredientDiff }) {
           <span className={styles.label}>{t('added_ingredients', 'Added')}:</span>
           <span className={styles.value}>
             {diff.added.map((ing, i) => (
-              <span key={i}>
+              <span key={ing.name}>
                 {i > 0 && ', '}
                 {ing.name}
                 {ing.quantity > 1 && ` × ${ing.quantity}`}
@@ -35,7 +35,7 @@ function DiffRows({ diff }: { diff: LineIngredientDiff }) {
 }
 
 interface OrderLineSummaryProps {
-  line: LineSummary;
+  readonly line: LineSummary;
 }
 
 /**
@@ -58,7 +58,7 @@ export default function OrderLineSummary({ line }: OrderLineSummaryProps) {
           <span className={styles.label}>{t('side_items', 'Side Items')}:</span>
           <span className={styles.value}>
             {line.sideItems.map((side, i) => (
-              <span key={i}>
+              <span key={side.id ?? side.name}>
                 {i > 0 && ', '}
                 {side.name}
                 {side.quantity > 1 && ` × ${side.quantity}`}
@@ -78,11 +78,11 @@ export default function OrderLineSummary({ line }: OrderLineSummaryProps) {
 
       {line.children.length > 0 && (
         <ul className={styles.children}>
-          {line.children.map((child, i) => {
+          {line.children.map((child) => {
             const hasDetails =
               child.diff.added.length > 0 || child.diff.removed.length > 0 || !!child.specialInstructions;
             return (
-              <li key={i} className={styles.child}>
+              <li key={child.id ?? child.name} className={styles.child}>
                 <span className={styles.childName}>
                   {child.name}
                   {child.quantity > 1 && ` × ${child.quantity}`}

@@ -55,7 +55,7 @@ describe('orderItemToLineSummary', () => {
     expect(summary.children).toHaveLength(1);
     expect(summary.children[0]).toMatchObject({ name: 'Coke', quantity: 1 });
     expect(summary.children[0].diff.removed).toEqual(['Ice']);
-    expect(summary.sideItems).toEqual([{ name: 'Fries', quantity: 2, price: 6 }]);
+    expect(summary.sideItems).toEqual([{ id: 's1', name: 'Fries', quantity: 2, price: 6 }]);
   });
 
   it('treats undefined kind (pre-#158 historical orders) as a bundle component', () => {

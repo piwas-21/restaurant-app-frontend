@@ -82,7 +82,6 @@ src/components/admin/orders/StatusUpdateModal.module.css
 src/components/admin/orders/BulkStatusUpdateModal.module.css
 src/components/admin/orders/OrdersTable.module.css
 src/components/admin/orders/FocusOrderModal.module.css
-src/components/admin/AdvancedOrderAnalytics.tsx
 src/components/admin/menu-editor/MenuEditor.module.css
 src/components/admin/menu-editor/MenuSectionEditor.tsx
 src/components/admin/menu-editor/MenuItemSelector.tsx
@@ -97,10 +96,8 @@ src/components/reservation/MyReservations.tsx
 src/components/reservation/DateTimeSelector.module.css
 src/components/reservation/ReservationWizard.tsx
 src/components/server/ProductCustomization.tsx
-src/components/server/TakeOrderModal.module.css
 src/components/server/CustomerInfoPanel.module.css
 src/components/server/ProductCustomization.module.css
-src/components/server/TakeOrderModal.tsx
 src/components/server/TableDetailsModal.tsx
 src/components/server/OrderCard.module.css
 src/components/server/TableDetailsModal.module.css

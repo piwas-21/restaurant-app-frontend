@@ -14,7 +14,7 @@ interface DiagnosticsTipsProps {
  * autoplay policy or the SSE connection is in the error state — otherwise
  * nothing (mirrors the parent's original conditional render).
  */
-export default function DiagnosticsTips({ audioBlockedByPolicy, sseConnectionState }: DiagnosticsTipsProps) {
+export default function DiagnosticsTips({ audioBlockedByPolicy, sseConnectionState }: Readonly<DiagnosticsTipsProps>) {
   const { t } = useTranslation();
 
   if (!(audioBlockedByPolicy || sseConnectionState === 'error')) {

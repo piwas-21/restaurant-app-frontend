@@ -34,10 +34,13 @@ export default function ServerDiagnosticsSection() {
     }
   }, []);
 
-  // Fetch on mount
+  // Fetch on mount. fetchServerDiagnostics surfaces its own errors via
+  // serverError state, so the mount promise never rejects; the catch is a
+  // defensive no-op that keeps it from being an unhandled floating promise.
   useEffect(() => {
-    // fetchServerDiagnostics has its own try/catch (sets error state); fire-and-forget.
-    void fetchServerDiagnostics();
+    fetchServerDiagnostics().catch(() => {
+      /* handled via serverError state */
+    });
   }, [fetchServerDiagnostics]);
 
   // Auto-refresh every 5 seconds if enabled
@@ -144,13 +147,16 @@ export default function ServerDiagnosticsSection() {
                 Recent Server Logs
               </h5>
               <div className={styles.logsList}>
-                {serverDiagnostics.recentLogs.slice(0, 10).map((log: LogEntry, index: number) => (
-                  <div key={index} className={`${styles.logEntry} ${styles[`log${log.level}`]}`}>
-                    <span className={styles.logTime}>{formatTimestamp(log.timestamp)}</span>
-                    <span className={styles.logLevel}>[{log.level}]</span>
-                    <span className={styles.logMessage}>{log.message}</span>
-                  </div>
-                ))}
+                {serverDiagnostics.recentLogs.slice(0, 10).map((log: LogEntry, index: number) => {
+                  const levelClass = styles[`log${log.level}`];
+                  return (
+                    <div key={index} className={`${styles.logEntry} ${levelClass}`}>
+                      <span className={styles.logTime}>{formatTimestamp(log.timestamp)}</span>
+                      <span className={styles.logLevel}>[{log.level}]</span>
+                      <span className={styles.logMessage}>{log.message}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -184,7 +190,7 @@ export default function ServerDiagnosticsSection() {
           {/* Auto-refresh toggle */}
           <div className={styles.row} style={{ marginTop: '12px' }}>
             <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
+              <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />{' '}
               Auto-refresh every 5s
             </label>
             <span className={styles.timestamp}>Updated: {formatTimestamp(serverDiagnostics.timestamp)}</span>

@@ -23,7 +23,7 @@ export default function AudioStatusSection({
   audioBlockedByPolicy,
   onEnableAudio,
   onTestSound,
-}: AudioStatusSectionProps) {
+}: Readonly<AudioStatusSectionProps>) {
   const { t } = useTranslation();
 
   const getAudioStatusClass = () => {
@@ -33,14 +33,22 @@ export default function AudioStatusSection({
     return '';
   };
 
+  const getAudioDotClass = () => {
+    if (audioReady) return styles.dotConnected;
+    if (audioBlockedByPolicy) return styles.dotConnecting;
+    return styles.dotInactive;
+  };
+
+  const getAudioStatusText = () => {
+    if (audioReady) return 'Ready';
+    if (audioBlockedByPolicy) return 'Blocked';
+    return 'Disabled';
+  };
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
-        <div
-          className={`${styles.dot} ${
-            audioReady ? styles.dotConnected : audioBlockedByPolicy ? styles.dotConnecting : styles.dotInactive
-          }`}
-        />
+        <div className={`${styles.dot} ${getAudioDotClass()}`} />
         <h4 className={styles.sectionTitle}>{t('notification_sound') || 'Notification Sound'}</h4>
       </div>
 
@@ -51,9 +59,7 @@ export default function AudioStatusSection({
         </div>
         <div className={styles.row}>
           <span className={styles.label}>{t('audio_status') || 'Audio Status'}</span>
-          <span className={`${styles.badge} ${getAudioStatusClass()}`}>
-            {audioReady ? 'Ready' : audioBlockedByPolicy ? 'Blocked' : 'Disabled'}
-          </span>
+          <span className={`${styles.badge} ${getAudioStatusClass()}`}>{getAudioStatusText()}</span>
         </div>
       </div>
 

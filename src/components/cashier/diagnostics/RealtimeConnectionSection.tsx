@@ -21,12 +21,12 @@ export default function RealtimeConnectionSection({
   sseLastEventTime,
   sseError,
   onRefreshConnection,
-}: RealtimeConnectionSectionProps) {
+}: Readonly<RealtimeConnectionSectionProps>) {
   const { t } = useTranslation();
 
   const getTimeSinceLastEvent = () => {
     if (!sseLastEventTime) return 'Never';
-    const seconds = Math.floor((new Date().getTime() - sseLastEventTime.getTime()) / 1000);
+    const seconds = Math.floor((Date.now() - sseLastEventTime.getTime()) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -47,20 +47,23 @@ export default function RealtimeConnectionSection({
     }
   };
 
+  const getConnectionDotClass = () => {
+    switch (sseConnectionState) {
+      case 'connected':
+        return styles.dotConnected;
+      case 'connecting':
+        return styles.dotConnecting;
+      case 'error':
+        return styles.dotError;
+      default:
+        return styles.dotInactive;
+    }
+  };
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
-        <div
-          className={`${styles.dot} ${
-            sseConnectionState === 'connected'
-              ? styles.dotConnected
-              : sseConnectionState === 'connecting'
-                ? styles.dotConnecting
-                : sseConnectionState === 'error'
-                  ? styles.dotError
-                  : styles.dotInactive
-          }`}
-        />
+        <div className={`${styles.dot} ${getConnectionDotClass()}`} />
         <h4 className={styles.sectionTitle}>{t('real_time_connection') || 'Real-time Connection'}</h4>
       </div>
 

@@ -51,7 +51,6 @@ src/components/cashier/ZReportModal.tsx
 src/components/cashier/OrderDetails.module.css
 src/components/admin/settings/WorkingHoursManager.module.css
 src/components/admin/settings/OrderTypeManager.module.css
-src/components/admin/settings/TaxConfigurationManager.tsx
 src/components/admin/settings/TaxConfigurationManager.module.css
 src/components/admin/tables/TableQRCodeModal.module.css
 src/components/admin/CustomerDiscountForm.module.css

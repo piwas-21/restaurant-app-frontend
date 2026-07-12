@@ -48,7 +48,6 @@ src/components/cashier/AutoPrintSettingsModal.module.css
 src/components/cashier/QuickConfirmModal.module.css
 src/components/cashier/CashierDiagnostics.module.css
 src/components/cashier/ZReportModal.tsx
-src/components/cashier/CashierDiagnostics.tsx
 src/components/cashier/OrderDetails.module.css
 src/components/admin/settings/WorkingHoursManager.module.css
 src/components/admin/settings/OrderTypeManager.module.css

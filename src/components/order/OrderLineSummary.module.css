@@ -1,0 +1,52 @@
+.summary {
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  line-height: 1.35;
+}
+
+.label {
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.value {
+  color: var(--text-secondary);
+}
+
+.children {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.child {
+  padding-left: 0.75rem;
+  border-left: 2px dashed var(--border-color);
+}
+
+.childName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.childDetails {
+  margin-top: 0.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}

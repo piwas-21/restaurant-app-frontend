@@ -1,4 +1,4 @@
-import type { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';
+import type { DetailedIngredient } from '@/types/menu';
 import { calculateCustomizationPrice, buildDefaultIngredientSelections } from '@/utils/productCustomization';
 
 const ing = (partial: Partial<DetailedIngredient> & Pick<DetailedIngredient, 'id'>): DetailedIngredient => ({
@@ -12,23 +12,12 @@ const ing = (partial: Partial<DetailedIngredient> & Pick<DetailedIngredient, 'id
   ...partial,
 });
 
-const side = (
-  partial: Partial<MenuSectionSuggestedSideItem> & Pick<MenuSectionSuggestedSideItem, 'id' | 'sideItemBasePrice'>,
-): MenuSectionSuggestedSideItem => ({
-  sideItemProductId: `p-${partial.id}`,
-  isRequired: false,
-  displayOrder: 0,
-  ...partial,
-});
-
 const price = (
   base: number,
   ingredients: DetailedIngredient[] = [],
   selected: string[] = [],
   quantities: Record<string, number> = {},
-  sides: Map<string, number> = new Map(),
-  suggested: MenuSectionSuggestedSideItem[] = [],
-) => calculateCustomizationPrice(base, ingredients, new Set(selected), quantities, sides, suggested);
+) => calculateCustomizationPrice(base, ingredients, new Set(selected), quantities);
 
 describe('calculateCustomizationPrice', () => {
   it('returns the base price when there is nothing to adjust', () => {
@@ -71,24 +60,11 @@ describe('calculateCustomizationPrice', () => {
     });
   });
 
-  describe('side items', () => {
-    const fries = side({ id: 's1', sideItemBasePrice: 4 });
-
-    it('adds sideItemBasePrice × quantity for a matched side', () => {
-      expect(price(10, [], [], {}, new Map([['s1', 2]]), [fries])).toBe(18); // 10 + 4*2
-    });
-
-    it('ignores a selected side that is not in the suggested list', () => {
-      expect(price(10, [], [], {}, new Map([['unknown', 5]]), [fries])).toBe(10);
-    });
-  });
-
-  it('combines base, ingredient deductions/additions, and sides', () => {
+  it('combines base and ingredient deductions/additions', () => {
     const cheese = ing({ id: 'cheese', price: 2, isIncludedInBasePrice: true, isOptional: true }); // deselect → −2
     const bacon = ing({ id: 'bacon', price: 3, isIncludedInBasePrice: false, isOptional: true }); // ×2 → +6
-    const fries = side({ id: 's1', sideItemBasePrice: 4 }); // ×1 → +4
-    const total = price(10, [cheese, bacon], ['bacon'], { bacon: 2 }, new Map([['s1', 1]]), [fries]);
-    expect(total).toBe(18); // 10 − 2 + 6 + 4
+    const total = price(10, [cheese, bacon], ['bacon'], { bacon: 2 });
+    expect(total).toBe(14); // 10 − 2 + 6
   });
 });
 

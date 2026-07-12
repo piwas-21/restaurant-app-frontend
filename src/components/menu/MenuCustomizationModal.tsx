@@ -177,7 +177,6 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
             selectedIngredients: customization.selectedIngredients,
             excludedIngredients: customization.excludedIngredients,
             ingredientQuantities: customization.ingredientQuantities,
-            selectedSideItems: customization.selectedSideItems,
             specialInstructions: customization.specialInstructions,
           }),
         };
@@ -299,7 +298,7 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
                           )}
 
                           {/* Customize button for selected items with customizable options */}
-                          {isSelected && (item.detailedIngredients?.length || item.suggestedSideItems?.length) && (
+                          {isSelected && !!item.detailedIngredients?.length && (
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
@@ -339,7 +338,6 @@ const MenuCustomizationModal: React.FC<MenuCustomizationModalProps> = ({
           productName={getItemForCustomization()?.productName || ''}
           basePrice={getItemForCustomization()?.additionalPrice || 0}
           detailedIngredients={getItemForCustomization()?.detailedIngredients}
-          suggestedSideItems={getItemForCustomization()?.suggestedSideItems}
           onConfirm={handleCustomizationConfirm}
           initialCustomization={itemCustomizations.get(`${customizingItem.sectionId}-${customizingItem.itemId}`)}
           currentLanguage={currentLanguage}

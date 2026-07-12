@@ -1,12 +1,11 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import styles from './ProductCustomizationInBundle.module.css';
-import { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';
+import { DetailedIngredient } from '@/types/menu';
 import { useTranslation } from 'react-i18next';
 import type { LanguageCode } from '@/components/LanguageSwitcher';
 import { useProductCustomization, type ProductCustomization } from '@/hooks/menu/useProductCustomization';
 import CustomizationIngredientsSection from './bundle-customization/CustomizationIngredientsSection';
-import CustomizationSideItemsSection from './bundle-customization/CustomizationSideItemsSection';
 
 export type { ProductCustomization };
 
@@ -16,7 +15,6 @@ interface ProductCustomizationInBundleProps {
   productName: string;
   basePrice: number;
   detailedIngredients?: DetailedIngredient[];
-  suggestedSideItems?: MenuSectionSuggestedSideItem[];
   onConfirm: (customization: ProductCustomization) => void;
   initialCustomization?: ProductCustomization;
   currentLanguage: LanguageCode;
@@ -28,7 +26,6 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
   productName,
   basePrice,
   detailedIngredients = [],
-  suggestedSideItems = [],
   onConfirm,
   initialCustomization,
   currentLanguage,
@@ -37,14 +34,11 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
   const {
     selectedIngredients,
     ingredientQuantities,
-    selectedSideItems,
     specialInstructions,
     setSpecialInstructions,
     getIngredientName,
     handleIngredientToggle,
     handleIngredientQuantityChange,
-    handleSideItemToggle,
-    handleSideItemQuantityChange,
     handleConfirm,
     totalPrice,
     hasCustomizableItems,
@@ -52,7 +46,6 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
     isOpen,
     basePrice,
     detailedIngredients,
-    suggestedSideItems,
     initialCustomization,
     currentLanguage,
     onConfirm,
@@ -87,15 +80,6 @@ const ProductCustomizationInBundle: React.FC<ProductCustomizationInBundleProps> 
               getIngredientName={getIngredientName}
               onToggle={handleIngredientToggle}
               onQuantityChange={handleIngredientQuantityChange}
-            />
-          )}
-
-          {suggestedSideItems.length > 0 && (
-            <CustomizationSideItemsSection
-              suggestedSideItems={suggestedSideItems}
-              selectedSideItems={selectedSideItems}
-              onToggle={handleSideItemToggle}
-              onQuantityChange={handleSideItemQuantityChange}
             />
           )}
 

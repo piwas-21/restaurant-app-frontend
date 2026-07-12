@@ -137,6 +137,22 @@ describe('TaxConfigurationManager', () => {
     await waitFor(() => expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ name: 'GST', rate: 8 })));
   });
 
+  it('does not submit a stale rate when the form is submitted while the rate is invalid', async () => {
+    mockGetAll.mockReset();
+    mockGetAll.mockResolvedValue([]);
+    render(<TaxConfigurationManager />);
+    const rateInput = await openCreateForm();
+    fireEvent.change(screen.getByPlaceholderText('e.g., VAT, Sales Tax'), { target: { value: 'GST' } });
+    fireEvent.change(rateInput, { target: { value: '8.1abc' } });
+    // Submit the <form> directly, as an Enter keypress in another field would —
+    // this bypasses the disabled submit button, so handleSubmit must self-guard.
+    const form = rateInput.closest('form');
+    expect(form).not.toBeNull();
+    fireEvent.submit(form as HTMLFormElement);
+    expect(screen.getByText(ERROR_MSG)).toBeInTheDocument();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
   it('edits a configuration via updateTaxConfiguration carrying the id', async () => {
     render(<TaxConfigurationManager />);
     await screen.findByText('VAT');

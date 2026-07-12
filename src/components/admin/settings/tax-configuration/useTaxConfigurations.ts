@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import { OrderType } from '@/types/order';
+import { validateRateInput } from './taxRate';
 
 export interface TaxFormData {
   name: string;
@@ -100,6 +101,9 @@ export function useTaxConfigurations() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    // Mirror the submit button's disabled guard so an Enter keypress in another
+    // field can't submit a stale/previous rate while the input is invalid/empty.
+    if (!isRateValid || !rateInput) return;
     try {
       if (editingConfig) {
         await adminTaxConfigurationService.updateTaxConfiguration({ ...formData, id: editingConfig.id });
@@ -145,18 +149,11 @@ export function useTaxConfigurations() {
 
   const handleRateChange = (value: string) => {
     setRateInput(value);
-    if (value === '') {
-      setIsRateValid(true);
-      setFormData({ ...formData, rate: 0 });
-      return;
+    const { valid, rate } = validateRateInput(value);
+    setIsRateValid(valid);
+    if (rate !== undefined) {
+      setFormData({ ...formData, rate });
     }
-    const numValue = Number.parseFloat(value);
-    if (Number.isNaN(numValue) || numValue < 0 || numValue > 100) {
-      setIsRateValid(false);
-      return;
-    }
-    setIsRateValid(true);
-    setFormData({ ...formData, rate: numValue });
   };
   const getOrderTypeLabel = (orderType: OrderType): string => {
     switch (orderType) {

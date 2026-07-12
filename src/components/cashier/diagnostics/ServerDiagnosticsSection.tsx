@@ -59,7 +59,7 @@ export default function ServerDiagnosticsSection() {
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
-        <Server size={16} style={{ color: '#2196f3' }} />
+        <Server size={16} style={{ color: 'var(--status-info)' }} />
         <h4 className={styles.sectionTitle}>{t('server_diagnostics') || 'Server Diagnostics'}</h4>
         <button
           onClick={fetchServerDiagnostics}
@@ -106,19 +106,19 @@ export default function ServerDiagnosticsSection() {
             </div>
             <div className={styles.row}>
               <span className={styles.label}>
-                <CheckCircle size={14} style={{ marginRight: '6px', color: '#4caf50' }} />
+                <CheckCircle size={14} style={{ marginRight: '6px', color: 'var(--color-material-green-500)' }} />
                 Successful Sends
               </span>
               <span className={styles.value}>{serverDiagnostics.totalSuccessfulSends}</span>
             </div>
             <div className={styles.row}>
               <span className={styles.label}>
-                <XCircle size={14} style={{ marginRight: '6px', color: '#f44336' }} />
+                <XCircle size={14} style={{ marginRight: '6px', color: 'var(--color-material-red-500)' }} />
                 Failed Sends
               </span>
               <span
                 className={styles.value}
-                style={{ color: serverDiagnostics.totalFailedSends > 0 ? '#f44336' : 'inherit' }}
+                style={{ color: serverDiagnostics.totalFailedSends > 0 ? 'var(--color-material-red-500)' : 'inherit' }}
               >
                 {serverDiagnostics.totalFailedSends}
               </span>
@@ -126,10 +126,10 @@ export default function ServerDiagnosticsSection() {
             {serverDiagnostics.clientsWithErrors > 0 && (
               <div className={styles.row}>
                 <span className={styles.label}>
-                  <AlertCircle size={14} style={{ marginRight: '6px', color: '#ff9800' }} />
+                  <AlertCircle size={14} style={{ marginRight: '6px', color: 'var(--status-warning)' }} />
                   Clients with Errors
                 </span>
-                <span className={styles.value} style={{ color: '#ff9800' }}>
+                <span className={styles.value} style={{ color: 'var(--status-warning)' }}>
                   {serverDiagnostics.clientsWithErrors}
                 </span>
               </div>
@@ -158,7 +158,7 @@ export default function ServerDiagnosticsSection() {
           {/* Recent Errors */}
           {serverDiagnostics.recentErrors && serverDiagnostics.recentErrors.length > 0 && (
             <div className={styles.errorsSection}>
-              <h5 className={styles.subSectionTitle} style={{ color: '#f44336' }}>
+              <h5 className={styles.subSectionTitle} style={{ color: 'var(--color-material-red-500)' }}>
                 <AlertCircle size={14} />
                 Recent Errors ({serverDiagnostics.recentErrors.length})
               </h5>

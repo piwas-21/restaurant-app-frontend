@@ -23,7 +23,7 @@ export default function DiagnosticsTips({ audioBlockedByPolicy, sseConnectionSta
 
   return (
     <div className={styles.tipsBox}>
-      <Info size={16} style={{ color: '#2196f3', flexShrink: 0 }} />
+      <Info size={16} style={{ color: 'var(--status-info)', flexShrink: 0 }} />
       <div>
         <h5 className={styles.tipsTitle}>{t('tips') || 'Tips'}</h5>
         <ul className={styles.tipsList}>

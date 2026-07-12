@@ -9,25 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, Edit } from 'lucide-react';
 import Image from 'next/image';
+import { CartItem } from '@/components/cart/cartTypes';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { basketItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './OrderItemsList.module.css';
-
-interface CartItem {
-  id?: string;
-  productName?: string;
-  productImageUrl?: string;
-  variationName?: string;
-  variationContent?: Record<
-    string,
-    {
-      name: string;
-      description?: string;
-    }
-  >;
-  quantity: number;
-  unitPrice: number;
-  itemTotal: number;
-  specialInstructions?: string;
-}
 
 interface OrderItemsListProps {
   items: CartItem[];
@@ -72,14 +57,10 @@ export default function OrderItemsList({ items, formatPrice }: OrderItemsListPro
               <div className={styles.itemDetails}>
                 <h3 className={styles.itemName}>{item.productName}</h3>
                 {variationName && <p className={styles.itemVariation}>{variationName}</p>}
-                {item.specialInstructions && (
-                  <p className={styles.itemInstructions}>
-                    <i>{item.specialInstructions}</i>
-                  </p>
-                )}
                 <p className={styles.itemQuantity}>
                   {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                 </p>
+                <OrderLineSummary line={basketItemToLineSummary(item)} />
               </div>
               <div className={styles.itemPrice}>{formatPrice(item.itemTotal)}</div>
             </div>

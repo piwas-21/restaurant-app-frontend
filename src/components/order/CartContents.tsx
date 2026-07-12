@@ -9,6 +9,8 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import type { OrderType } from '@/types/order';
 import OrderTypeToggle from './OrderTypeToggle';
+import OrderLineSummary from './OrderLineSummary';
+import { basketItemToLineSummary } from './lineSummary';
 import styles from './CartContents.module.css';
 
 interface CartContentsProps {
@@ -91,6 +93,7 @@ export default function CartContents({ pickType, onProceed, analyticsSource = 's
                   <span className={styles.itemName}>{item.productName}</span>
                   <span className={styles.itemPrice}>{formatPlainCurrency(item.itemTotal)}</span>
                 </div>
+                <OrderLineSummary line={basketItemToLineSummary(item)} />
                 <div className={styles.itemControls}>
                   <button
                     type="button"

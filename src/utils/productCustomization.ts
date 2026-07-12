@@ -1,18 +1,18 @@
-import type { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';
+import type { DetailedIngredient } from '@/types/menu';
 
 /**
- * Total price for a bundle product customization: base price, plus/minus ingredient adjustments
+ * Total price for a bundle product customization: base price plus/minus ingredient adjustments
  * (included-in-base ingredients are deducted when deselected and charged for extra quantity; other
- * selected ingredients are charged per quantity), plus selected side items. Extracted verbatim from
- * ProductCustomizationInBundle.calculateTotalPrice (Sprint 4/6 god-file decomposition).
+ * selected ingredients are charged per quantity). Extracted from
+ * ProductCustomizationInBundle.calculateTotalPrice (Sprint 4/6 god-file decomposition). Bundle-child
+ * side items were dropped in the menu-bundles redesign slice 1 (backend #151) — a combo's sides
+ * belong in the bundle definition as their own section, not as per-option extras.
  */
 export function calculateCustomizationPrice(
   basePrice: number,
   detailedIngredients: DetailedIngredient[],
   selectedIngredients: Set<string>,
   ingredientQuantities: Record<string, number>,
-  selectedSideItems: Map<string, number>,
-  suggestedSideItems: MenuSectionSuggestedSideItem[],
 ): number {
   let total = basePrice;
 
@@ -35,14 +35,6 @@ export function calculateCustomizationPrice(
       // Regular optional ingredient (not included in base) — add price if user selected it
       const quantity = ingredientQuantities[ing.id] || 1;
       total += ing.price * quantity;
-    }
-  });
-
-  // Add side item costs
-  selectedSideItems.forEach((quantity, sideId) => {
-    const side = suggestedSideItems.find((s) => s.id === sideId);
-    if (side) {
-      total += side.sideItemBasePrice * quantity;
     }
   });
 

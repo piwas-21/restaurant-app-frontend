@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DetailedIngredient, MenuSectionSuggestedSideItem } from '@/types/menu';
+import { DetailedIngredient } from '@/types/menu';
 import type { LanguageCode } from '@/components/LanguageSwitcher';
 import { calculateCustomizationPrice, buildDefaultIngredientSelections } from '@/utils/productCustomization';
 
-/** The result of customizing a bundle product (ingredients, side items, instructions, price). */
+/** The result of customizing a bundle child (ingredients, instructions, price). */
 export interface ProductCustomization {
   selectedIngredients: string[];
   excludedIngredients: string[];
   ingredientQuantities: Record<string, number>;
-  selectedSideItems: Array<{ id: string; quantity: number }>;
   specialInstructions?: string;
   totalPrice: number;
 }
@@ -19,7 +18,6 @@ interface UseProductCustomizationArgs {
   isOpen: boolean;
   basePrice: number;
   detailedIngredients: DetailedIngredient[];
-  suggestedSideItems: MenuSectionSuggestedSideItem[];
   initialCustomization?: ProductCustomization;
   currentLanguage: LanguageCode;
   onConfirm: (customization: ProductCustomization) => void;
@@ -27,16 +25,16 @@ interface UseProductCustomizationArgs {
 }
 
 /**
- * State, initialization, pricing, and handlers for the bundle product-customization modal. The
+ * State, initialization, pricing, and handlers for the bundle-child customization modal. The
  * component renders from this hook's return value. Pure pricing/default logic lives in
  * utils/productCustomization. Extracted from ProductCustomizationInBundle.tsx (Sprint 4/6);
- * behaviour unchanged.
+ * bundle-child side items were dropped in the menu-bundles redesign slice 1 (backend #151) — a
+ * combo's sides belong in the bundle definition, so children only customize ingredients + notes.
  */
 export function useProductCustomization({
   isOpen,
   basePrice,
   detailedIngredients,
-  suggestedSideItems,
   initialCustomization,
   currentLanguage,
   onConfirm,
@@ -45,7 +43,6 @@ export function useProductCustomization({
   const [selectedIngredients, setSelectedIngredients] = useState<Set<string>>(new Set());
   const [excludedIngredients, setExcludedIngredients] = useState<Set<string>>(new Set());
   const [ingredientQuantities, setIngredientQuantities] = useState<Record<string, number>>({});
-  const [selectedSideItems, setSelectedSideItems] = useState<Map<string, number>>(new Map());
   const [specialInstructions, setSpecialInstructions] = useState('');
 
   // Translated ingredient name, falling back to English then the raw name.
@@ -60,30 +57,19 @@ export function useProductCustomization({
         setSelectedIngredients(new Set(initialCustomization.selectedIngredients));
         setExcludedIngredients(new Set(initialCustomization.excludedIngredients));
         setIngredientQuantities(initialCustomization.ingredientQuantities);
-        const sidesMap = new Map<string, number>();
-        initialCustomization.selectedSideItems.forEach((si) => sidesMap.set(si.id, si.quantity));
-        setSelectedSideItems(sidesMap);
         setSpecialInstructions(initialCustomization.specialInstructions || '');
       } else {
         const { selected, quantities } = buildDefaultIngredientSelections(detailedIngredients);
         setSelectedIngredients(selected);
         setExcludedIngredients(new Set());
         setIngredientQuantities(quantities);
-        setSelectedSideItems(new Map());
         setSpecialInstructions('');
       }
     }
   }, [isOpen, detailedIngredients, initialCustomization]);
 
   const calculateTotalPrice = (): number =>
-    calculateCustomizationPrice(
-      basePrice,
-      detailedIngredients,
-      selectedIngredients,
-      ingredientQuantities,
-      selectedSideItems,
-      suggestedSideItems,
-    );
+    calculateCustomizationPrice(basePrice, detailedIngredients, selectedIngredients, ingredientQuantities);
 
   const handleIngredientToggle = (ingredient: DetailedIngredient) => {
     const newSelected = new Set(selectedIngredients);
@@ -125,36 +111,11 @@ export function useProductCustomization({
     });
   };
 
-  const handleSideItemToggle = (sideItem: MenuSectionSuggestedSideItem) => {
-    const newSides = new Map(selectedSideItems);
-
-    if (newSides.has(sideItem.id)) {
-      newSides.delete(sideItem.id);
-    } else {
-      newSides.set(sideItem.id, 1);
-    }
-
-    setSelectedSideItems(newSides);
-  };
-
-  const handleSideItemQuantityChange = (sideId: string, delta: number) => {
-    const newSides = new Map(selectedSideItems);
-    const currentQty = newSides.get(sideId) || 1;
-    const newQty = Math.max(1, currentQty + delta);
-
-    newSides.set(sideId, newQty);
-    setSelectedSideItems(newSides);
-  };
-
   const handleConfirm = () => {
     const customization: ProductCustomization = {
       selectedIngredients: Array.from(selectedIngredients),
       excludedIngredients: Array.from(excludedIngredients),
       ingredientQuantities,
-      selectedSideItems: Array.from(selectedSideItems.entries()).map(([id, quantity]) => ({
-        id,
-        quantity,
-      })),
       specialInstructions: specialInstructions.trim() || undefined,
       totalPrice: calculateTotalPrice(),
     };
@@ -164,19 +125,16 @@ export function useProductCustomization({
   };
 
   const totalPrice = calculateTotalPrice();
-  const hasCustomizableItems = detailedIngredients.length > 0 || suggestedSideItems.length > 0;
+  const hasCustomizableItems = detailedIngredients.length > 0;
 
   return {
     selectedIngredients,
     ingredientQuantities,
-    selectedSideItems,
     specialInstructions,
     setSpecialInstructions,
     getIngredientName,
     handleIngredientToggle,
     handleIngredientQuantityChange,
-    handleSideItemToggle,
-    handleSideItemQuantityChange,
     handleConfirm,
     totalPrice,
     hasCustomizableItems,

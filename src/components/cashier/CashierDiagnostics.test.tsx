@@ -147,6 +147,35 @@ describe('CashierDiagnostics', () => {
     expect(screen.queryByText('Total Clients')).not.toBeInTheDocument();
   });
 
+  it('caps the rendered server logs at 10 and recent errors at 5 (slice bounds)', async () => {
+    const manyLogs = Array.from({ length: 12 }, (_, i) => ({
+      timestamp: '2026-07-12T10:00:00.000Z',
+      level: 'Info',
+      message: `log-entry-${i + 1}`,
+    }));
+    const manyErrors = Array.from({ length: 7 }, (_, i) => ({
+      clientId: `c${i + 1}`,
+      clientType: 'kitchen',
+      ipAddress: '10.0.0.1',
+      country: 'CH',
+      timestamp: '2026-07-12T10:00:00.000Z',
+      errorType: 'SendFailed',
+      message: `error-entry-${i + 1}`,
+    }));
+    mockGetEventsDiagnostics.mockResolvedValue({
+      ...sampleDiagnostics,
+      recentLogs: manyLogs,
+      recentErrors: manyErrors,
+      clientsWithErrors: manyErrors.length,
+    });
+    renderDiagnostics();
+    // Logs are sliced to the first 10, recent errors to the first 5.
+    expect(await screen.findByText('log-entry-10')).toBeInTheDocument();
+    expect(screen.queryByText('log-entry-11')).not.toBeInTheDocument();
+    expect(screen.getByText('error-entry-5')).toBeInTheDocument();
+    expect(screen.queryByText('error-entry-6')).not.toBeInTheDocument();
+  });
+
   it('calls onClose when the close button is clicked', async () => {
     const onClose = jest.fn();
     renderDiagnostics({ onClose });

@@ -22,7 +22,7 @@ export default function TaxConfigurationList({
   onEdit,
   onDelete,
   getOrderTypeLabel,
-}: TaxConfigurationListProps) {
+}: Readonly<TaxConfigurationListProps>) {
   const { t } = useTranslation();
 
   return (

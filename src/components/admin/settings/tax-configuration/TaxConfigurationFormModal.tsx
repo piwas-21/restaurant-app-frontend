@@ -35,7 +35,7 @@ export default function TaxConfigurationFormModal({
   onRateChange,
   onClose,
   onSubmit,
-}: TaxConfigurationFormModalProps) {
+}: Readonly<TaxConfigurationFormModalProps>) {
   const { t } = useTranslation();
 
   return (

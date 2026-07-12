@@ -150,8 +150,8 @@ export function useTaxConfigurations() {
       setFormData({ ...formData, rate: 0 });
       return;
     }
-    const numValue = parseFloat(value);
-    if (isNaN(numValue) || numValue < 0 || numValue > 100) {
+    const numValue = Number.parseFloat(value);
+    if (Number.isNaN(numValue) || numValue < 0 || numValue > 100) {
       setIsRateValid(false);
       return;
     }

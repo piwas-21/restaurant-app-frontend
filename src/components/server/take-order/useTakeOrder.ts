@@ -149,7 +149,7 @@ export function useTakeOrder({ tableNumber, onClose, onOrderCreated }: UseTakeOr
       }));
 
       await createServerOrder(
-        parseInt(tableNumber, 10),
+        Number.parseInt(tableNumber, 10),
         items,
         customerName || undefined,
         orderNotes || undefined,

@@ -42,7 +42,7 @@ export default function TakeOrderSummaryPanel({
   orderTotal,
   isSubmitting,
   onSubmit,
-}: TakeOrderSummaryPanelProps) {
+}: Readonly<TakeOrderSummaryPanelProps>) {
   const { t } = useTranslation();
 
   return (

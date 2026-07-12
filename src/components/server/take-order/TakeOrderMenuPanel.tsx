@@ -23,7 +23,7 @@ export default function TakeOrderMenuPanel({
   isLoading,
   filteredProducts,
   onProductClick,
-}: TakeOrderMenuPanelProps) {
+}: Readonly<TakeOrderMenuPanelProps>) {
   const { t } = useTranslation();
 
   return (

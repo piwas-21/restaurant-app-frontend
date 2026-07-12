@@ -36,10 +36,10 @@ interface RawMenuProduct {
   isActive: boolean;
   isAvailable: boolean;
   type: string;
-  categories?: Product['categories'];
+  categories?: NonNullable<Product['categories']>;
   primaryCategoryId?: string;
   imageUrl?: string;
-  variations?: Product['variations'];
+  variations?: NonNullable<Product['variations']>;
 }
 
 /** Project the raw paginated `/api/Products` items onto the server `Product` type. */

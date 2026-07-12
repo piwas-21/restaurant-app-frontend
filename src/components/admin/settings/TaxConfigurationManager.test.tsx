@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import TaxConfigurationManager from './TaxConfigurationManager';
+import TaxConfigurationFormModal from './tax-configuration/TaxConfigurationFormModal';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import { OrderType } from '@/types/order';
@@ -194,5 +195,28 @@ describe('TaxConfigurationManager', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByText('Create Tax Configuration')).not.toBeInTheDocument();
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+});
+
+describe('TaxConfigurationFormModal', () => {
+  // Since the BaseModal migration dropped the component's own `if (!isOpen) return
+  // null`, the children JSX is now constructed even while closed. Guard the
+  // #93→#96 closed-children-eval trap: render nothing and never throw when closed.
+  it('renders nothing and does not throw when closed (editingConfig null)', () => {
+    const { container } = render(
+      <TaxConfigurationFormModal
+        isOpen={false}
+        editingConfig={null}
+        formData={{ name: '', rate: 0, isEnabled: false, description: '', applicableOrderTypes: [] }}
+        setFormData={jest.fn()}
+        rateInput=""
+        isRateValid
+        onRateChange={jest.fn()}
+        onClose={jest.fn()}
+        onSubmit={jest.fn()}
+      />,
+    );
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByText('Create Tax Configuration')).not.toBeInTheDocument();
   });
 });

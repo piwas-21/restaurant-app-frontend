@@ -49,6 +49,25 @@ export interface CreateOrderCommand {
 }
 
 /**
+ * Body for POST /api/Orders/from-basket (menu-bundles redesign #157, slice 5). The server reads the
+ * user's persisted basket (resolved from the X-Session-Id header, added by apiClient) and derives the
+ * order items itself — so, unlike CreateOrderCommand, this carries no `items`, and drops the
+ * server/session-owned or staff/POS-only fields (`sessionId`, `userId`, focus-order, user-limit
+ * discount).
+ */
+export type CreateOrderFromBasketCommand = Omit<
+  CreateOrderCommand,
+  | 'items'
+  | 'sessionId'
+  | 'userId'
+  | 'isFocusOrder'
+  | 'priority'
+  | 'focusReason'
+  | 'hasUserLimitDiscount'
+  | 'userLimitAmount'
+>;
+
+/**
  * Complete order data (response)
  */
 export interface OrderDto {

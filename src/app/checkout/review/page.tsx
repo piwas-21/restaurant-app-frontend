@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { useCart } from '@/components/cart/CartContext';
 import { useSession } from '@/hooks/useSession';
-import { createOrder } from '@/services/orderService';
+import { createOrderFromBasket } from '@/services/orderService';
 import { sendOrderConfirmationEmails } from '@/services/emailService';
 import FidelityPointsCheckout from '@/components/checkout/FidelityPointsCheckout';
 import OrderTypeSection from '@/components/checkout/OrderTypeSection';
@@ -18,13 +18,11 @@ import TipSelector from '@/components/checkout/TipSelector';
 import OrderSummaryCard from '@/components/checkout/OrderSummaryCard';
 import OrderConfirmationModal from '@/components/checkout/OrderConfirmationModal';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
-import { buildOrderItems } from '@/utils/orderItemsPayload';
 import { getTranslatedOrderError } from '@/utils/orderErrorHandler';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import {
   PaymentMethod,
-  CreateOrderCommand,
-  CreateOrderItemDto,
+  CreateOrderFromBasketCommand,
   CreateOrderDeliveryAddressDto,
   OrderType as OrderTypeEnum,
 } from '@/types/order';
@@ -39,7 +37,9 @@ export default function ReviewPage() {
   const { enqueueSnackbar } = useSnackbar();
   const { state: checkoutState, clearCheckout, setTipAmount } = useCheckout();
   const { state: cartState, clearCart } = useCart();
-  const { sessionId } = useSession();
+  // Ensure a session exists on mount (auto-create side effect) — the from-basket order call
+  // resolves the basket from the X-Session-Id header apiClient attaches, so no id is read here.
+  useSession();
 
   // Payment method state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
@@ -198,10 +198,6 @@ export default function ReviewPage() {
     setSubmitError('');
 
     try {
-      // Convert basket items to order items (incl. bundle children + their
-      // per-option ingredient customizations — issue #150)
-      const orderItems: CreateOrderItemDto[] = buildOrderItems(cartState.items);
-
       // Prepare delivery address if delivery order
       let deliveryAddress: CreateOrderDeliveryAddressDto | undefined;
       if (checkoutState.orderType === 'Delivery' && checkoutState.deliveryAddress) {
@@ -214,9 +210,10 @@ export default function ReviewPage() {
         };
       }
 
-      // Build order command
-      const orderCommand: CreateOrderCommand = {
-        sessionId: sessionId || undefined,
+      // Build the from-basket order command. The server reads the persisted basket (via the
+      // X-Session-Id header apiClient attaches) and derives the order items itself — the client no
+      // longer builds the item payload (menu-bundles redesign #157, slice 5).
+      const orderCommand: CreateOrderFromBasketCommand = {
         customerName: checkoutState.customerInfo?.name,
         customerEmail: checkoutState.customerInfo?.email,
         customerPhone: checkoutState.customerInfo?.phone,
@@ -227,7 +224,6 @@ export default function ReviewPage() {
             : undefined,
         notes: checkoutState.specialInstructions || undefined,
         deliveryAddress,
-        items: orderItems,
         payments: [
           {
             paymentMethod: selectedPaymentMethod,
@@ -248,7 +244,7 @@ export default function ReviewPage() {
       };
 
       // Submit order
-      const createdOrder = await createOrder(orderCommand);
+      const createdOrder = await createOrderFromBasket(orderCommand);
 
       // Funnel terminator — fired right after the backend confirms the
       // order. Lives inside the try-block so a backend 4xx/5xx doesn't

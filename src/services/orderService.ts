@@ -8,11 +8,24 @@
  */
 
 export { buildQueryString } from './order/orderQuery';
-export { createOrder, updateOrderStatus, cancelOrder, deleteOrder, toggleFocusOrder } from './order/orderCommands';
+export {
+  createOrder,
+  createOrderFromBasket,
+  updateOrderStatus,
+  cancelOrder,
+  deleteOrder,
+  toggleFocusOrder,
+} from './order/orderCommands';
 export { getMyOrders, getOrders, getOrderById, getFocusOrders, getZReport } from './order/orderQueries';
 export { addPaymentToOrder, refundPayment } from './order/orderPayments';
 
-import { createOrder, updateOrderStatus, cancelOrder, toggleFocusOrder } from './order/orderCommands';
+import {
+  createOrder,
+  createOrderFromBasket,
+  updateOrderStatus,
+  cancelOrder,
+  toggleFocusOrder,
+} from './order/orderCommands';
 import { getMyOrders, getOrders, getOrderById, getFocusOrders, getZReport } from './order/orderQueries';
 import { addPaymentToOrder, refundPayment } from './order/orderPayments';
 
@@ -22,6 +35,7 @@ import { addPaymentToOrder, refundPayment } from './order/orderPayments';
  */
 export const orderService = {
   createOrder,
+  createOrderFromBasket,
   getOrders,
   getMyOrders,
   getOrderById,

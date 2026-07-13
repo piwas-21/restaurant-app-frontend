@@ -36,7 +36,7 @@ module.exports = {
     '^@active-template/(.*)$': '<rootDir>/src/templates/classic/$1',
     'next/router': '<rootDir>/__mocks__/nextRouterMock.js',
   },
-  transformIgnorePatterns: ['/node_modules/', '^.+\.module\.(css|sass|scss)$'],
+  transformIgnorePatterns: ['/node_modules/', '^.+\\.module\\.(css|sass|scss)$'],
   collectCoverage: false,
   collectCoverageFrom: [
     'src/components/**/*.tsx',

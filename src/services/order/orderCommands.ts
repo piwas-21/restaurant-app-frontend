@@ -41,8 +41,10 @@ export async function createOrderFromBasket(command: CreateOrderFromBasketComman
     const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders/from-basket', command, {
       requireAuth: false,
     });
-    if (!response.data) {
-      throw new Error('Failed to create order');
+    // Surface envelope failures (200 OK with success:false — e.g. the backend's "empty basket"
+    // rejection) with the server's own message rather than a generic fallback.
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to create order');
     }
     return response.data;
   } catch (error) {

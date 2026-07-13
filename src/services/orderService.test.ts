@@ -120,7 +120,7 @@ describe('OrderService', () => {
       };
 
       const mockOrder = createMockOrder({ subTotal: 25.0, tax: 1.93, total: 26.93 });
-      mockApiClient.post.mockResolvedValue({ data: mockOrder });
+      mockApiClient.post.mockResolvedValue({ success: true, data: mockOrder });
 
       const result = await orderServiceModule.createOrderFromBasket(command);
 
@@ -132,11 +132,18 @@ describe('OrderService', () => {
       expect(result).toEqual(mockOrder);
     });
 
-    it('should surface a null-data response as an error', async () => {
+    it('should surface an envelope failure with the server message', async () => {
       const command: CreateOrderFromBasketCommand = { type: OrderType.DineIn };
-      mockApiClient.post.mockResolvedValue({ data: undefined } as OrderDtoApiResponse);
+      // 200 OK with success:false — the backend's empty-basket rejection shape.
+      mockApiClient.post.mockResolvedValue({
+        success: false,
+        message: 'Cannot create an order from an empty basket.',
+        data: undefined,
+      } as OrderDtoApiResponse);
 
-      await expect(orderServiceModule.createOrderFromBasket(command)).rejects.toThrow('Failed to create order');
+      await expect(orderServiceModule.createOrderFromBasket(command)).rejects.toThrow(
+        'Cannot create an order from an empty basket.',
+      );
     });
   });
 

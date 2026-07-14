@@ -2174,5 +2174,6 @@
   "field_required": "必填",
   "enable": "启用",
   "disable": "禁用",
-  "creating": "正在创建..."
+  "creating": "正在创建...",
+  "error_loading_product": "无法加载产品详情"
 }

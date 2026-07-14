@@ -2174,5 +2174,6 @@
   "admin_user_groups_title": "مجموعات المستخدمين",
   "enable": "تفعيل",
   "disable": "تعطيل",
-  "creating": "جاري الإنشاء..."
+  "creating": "جاري الإنشاء...",
+  "error_loading_product": "فشل تحميل تفاصيل المنتج"
 }

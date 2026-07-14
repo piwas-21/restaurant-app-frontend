@@ -2174,5 +2174,6 @@
   "field_required": "Verplicht",
   "enable": "Inschakelen",
   "disable": "Uitschakelen",
-  "creating": "Aanmaken..."
+  "creating": "Aanmaken...",
+  "error_loading_product": "Kan productdetails niet laden"
 }

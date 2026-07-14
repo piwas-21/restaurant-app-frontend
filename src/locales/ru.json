@@ -2174,5 +2174,6 @@
   "admin_manage_daily_specials": "Управление блюдами дня",
   "enable": "Включить",
   "disable": "Выключить",
-  "creating": "Создание..."
+  "creating": "Создание...",
+  "error_loading_product": "Не удалось загрузить сведения о товаре"
 }

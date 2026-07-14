@@ -47,25 +47,47 @@ export interface LinePrice {
  * guest toggles ingredients/options without duplicating (or drifting from) the server's rules.
  */
 export function useLinePrice(args: UseLinePriceArgs): LinePrice {
+  // Destructure so the memo depends on the individual fields, not the (usually inline, so
+  // per-render fresh) `args` object reference — otherwise the memo would never hit.
+  const { kind, basePrice, quantity } = args;
+  const variations = args.kind === 'product' ? args.variations : undefined;
+  const selectedVariationId = args.kind === 'product' ? args.selectedVariationId : undefined;
+  const ingredients = args.kind === 'product' ? args.ingredients : undefined;
+  const selectedIngredientIds = args.kind === 'product' ? args.selectedIngredientIds : undefined;
+  const ingredientQuantities = args.kind === 'product' ? args.ingredientQuantities : undefined;
+  const sides = args.kind === 'product' ? args.sides : undefined;
+  const selectedSides = args.kind === 'product' ? args.selectedSides : undefined;
+  const sections = args.kind === 'bundle' ? args.sections : undefined;
+  const selectedOptions = args.kind === 'bundle' ? args.selectedOptions : undefined;
+
   return useMemo(() => {
     const unitPrice =
-      args.kind === 'bundle'
-        ? bundleLineUnitPrice({
-            basePrice: args.basePrice,
-            sections: args.sections,
-            selectedOptions: args.selectedOptions,
-          })
+      kind === 'bundle'
+        ? bundleLineUnitPrice({ basePrice, sections: sections ?? [], selectedOptions: selectedOptions ?? [] })
         : productLineUnitPrice({
-            basePrice: args.basePrice,
-            variations: args.variations,
-            selectedVariationId: args.selectedVariationId,
-            ingredients: args.ingredients,
-            selectedIngredientIds: args.selectedIngredientIds,
-            ingredientQuantities: args.ingredientQuantities,
-            sides: args.sides,
-            selectedSides: args.selectedSides,
+            basePrice,
+            variations,
+            selectedVariationId,
+            ingredients,
+            selectedIngredientIds: selectedIngredientIds ?? [],
+            ingredientQuantities,
+            sides,
+            selectedSides,
           });
 
-    return { unitPrice, total: lineTotal(unitPrice, args.quantity) };
-  }, [args]);
+    return { unitPrice, total: lineTotal(unitPrice, quantity) };
+  }, [
+    kind,
+    basePrice,
+    quantity,
+    variations,
+    selectedVariationId,
+    ingredients,
+    selectedIngredientIds,
+    ingredientQuantities,
+    sides,
+    selectedSides,
+    sections,
+    selectedOptions,
+  ]);
 }

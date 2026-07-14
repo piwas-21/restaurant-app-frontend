@@ -2174,5 +2174,6 @@
   "field_required": "Obbligatorio",
   "enable": "Abilita",
   "disable": "Disabilita",
-  "creating": "Creazione..."
+  "creating": "Creazione...",
+  "error_loading_product": "Impossibile caricare i dettagli del prodotto"
 }

@@ -2174,5 +2174,6 @@
   "language_zh": "Chinesisch",
   "enable": "Aktivieren",
   "disable": "Deaktivieren",
-  "creating": "Erstellen..."
+  "creating": "Erstellen...",
+  "error_loading_product": "Produktdetails konnten nicht geladen werden"
 }

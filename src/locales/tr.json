@@ -2174,5 +2174,6 @@
   "field_required": "Zorunlu",
   "enable": "Etkinleştir",
   "disable": "Devre Dışı Bırak",
-  "creating": "Oluşturuluyor..."
+  "creating": "Oluşturuluyor...",
+  "error_loading_product": "Ürün ayrıntıları yüklenemedi"
 }

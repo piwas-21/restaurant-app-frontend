@@ -2174,5 +2174,6 @@
   "field_required": "Required",
   "enable": "Enable",
   "disable": "Disable",
-  "creating": "Creating..."
+  "creating": "Creating...",
+  "error_loading_product": "Failed to load product details"
 }

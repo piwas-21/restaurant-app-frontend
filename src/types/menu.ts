@@ -9,3 +9,4 @@ export * from './menu/shared';
 export * from './menu/bundle';
 export * from './menu/menuItem';
 export * from './menu/product';
+export * from './menu/catalogItem';

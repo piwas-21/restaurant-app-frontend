@@ -16,6 +16,7 @@ import { submitEditProductForm } from './product/productFormUtils';
 import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEditor';
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
 import { MenuDefinition } from '@/types/menu';
+import { stripTemporaryMenuSectionIds, isPersistedMenuId } from '@/utils/menuSectionDraft';
 
 const EditMenuBundleModal: React.FC<EditProductModalProps> = ({ isOpen, onClose, onProductUpdated, product }) => {
   const { t, i18n } = useTranslation();
@@ -130,41 +131,12 @@ const EditMenuBundleModal: React.FC<EditProductModalProps> = ({ isOpen, onClose,
   const onSubmit = async (data: EditMenuBundleFormData) => {
     try {
       // Attach menu definition, removing temporary IDs
-      const cleanedSections = menuDefinition.sections.map((s) => {
-        const sectionData: any = {
-          name: s.name,
-          description: s.description,
-          displayOrder: s.displayOrder,
-          isRequired: s.isRequired,
-          minSelection: s.minSelection,
-          maxSelection: s.maxSelection,
-          items: s.items.map((i) => {
-            const itemData: any = {
-              productId: i.productId,
-              additionalPrice: i.additionalPrice,
-              displayOrder: i.displayOrder,
-              isDefault: i.isDefault,
-            };
-            // Only include id if it's not temporary
-            if (i.id && !i.id.startsWith('temp-')) {
-              itemData.id = i.id;
-            }
-            return itemData;
-          }),
-        };
-        // Only include section id if it's not temporary
-        if (s.id && !s.id.startsWith('temp-')) {
-          sectionData.id = s.id;
-        }
-        return sectionData;
-      });
-
       (data as any).menuDefinition = {
         ...menuDefinition,
-        sections: cleanedSections,
+        sections: stripTemporaryMenuSectionIds(menuDefinition.sections),
       };
       // Only include menuDefinition id if it's not temporary
-      if (!menuDefinition.id || menuDefinition.id.startsWith('temp-')) {
+      if (!isPersistedMenuId(menuDefinition.id)) {
         delete (data as any).menuDefinition.id;
       }
 

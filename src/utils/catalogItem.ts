@@ -24,7 +24,7 @@ export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
 
 export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
   const bundleItemNames = bundle.menuDefinition?.sections
-    ?.flatMap((section) => section.items.filter((i) => i.isDefault))
+    ?.flatMap((section) => section?.items?.filter((i) => i.isDefault) ?? [])
     .map((i) => i.productName)
     .filter((name): name is string => !!name);
 

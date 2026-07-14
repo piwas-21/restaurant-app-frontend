@@ -30,7 +30,7 @@ export default function MenuCard({ item, onAdd, onFeedbackSuccess, getFallbackIm
   const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
+  const currentLanguage = (i18n.language || 'en').split('-')[0] as LanguageCode;
   const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
 
   const ingredientsText =

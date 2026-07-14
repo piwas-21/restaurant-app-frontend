@@ -25,11 +25,12 @@ export function useItemCustomizationSheet() {
   const { addItem } = useCart();
   const { t, i18n } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
-  const currentLanguage = i18n.language.split('-')[0] || 'en';
+  const currentLanguage = (i18n.language || 'en').split('-')[0];
 
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
@@ -80,7 +81,7 @@ export function useItemCustomizationSheet() {
         setSelectedSideItems(
           (detail.suggestedSideItems ?? []).filter((s) => s.isRequired).map((s) => ({ id: s.id, quantity: 1 })),
         );
-        setSelectedVariationId(null);
+        setSelectedVariationId(detail.variations?.[0]?.id ?? null);
         setQuantity(1);
         setSpecialInstructions('');
         setProduct(detail);
@@ -109,7 +110,9 @@ export function useItemCustomizationSheet() {
   });
 
   const addToCart = useCallback(async () => {
-    if (!product) return;
+    // Guard the money-path add against double submission (rapid clicks / Enter key).
+    if (!product || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       await addItem({
         productId: product.id,
@@ -128,12 +131,15 @@ export function useItemCustomizationSheet() {
       });
     } catch {
       enqueueSnackbar(t('error_adding_to_cart', 'Failed to add item to cart'), { variant: 'error' });
+    } finally {
+      setIsSubmitting(false);
     }
   }, [
     addItem,
     close,
     enqueueSnackbar,
     ingredientQuantities,
+    isSubmitting,
     product,
     quantity,
     resolveName,
@@ -147,6 +153,7 @@ export function useItemCustomizationSheet() {
   return {
     isOpen,
     isLoading,
+    isSubmitting,
     product,
     currentLanguage,
     quantity,

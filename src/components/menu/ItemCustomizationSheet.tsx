@@ -41,6 +41,7 @@ export default function ItemCustomizationSheet({ controller }: { controller: She
     specialInstructions,
     setSpecialInstructions,
     linePrice,
+    isSubmitting,
     addToCart,
     close,
   } = controller;
@@ -72,7 +73,7 @@ export default function ItemCustomizationSheet({ controller }: { controller: She
           <Plus size={16} />
         </button>
       </div>
-      <button type="button" className={styles.addButton} onClick={addToCart}>
+      <button type="button" className={styles.addButton} onClick={addToCart} disabled={isSubmitting}>
         {t('add_to_order')} • {formatPlainCurrency(linePrice.total)}
       </button>
     </div>
@@ -104,7 +105,7 @@ export default function ItemCustomizationSheet({ controller }: { controller: She
             ingredientQuantities={ingredientQuantities}
             onSelectionChange={setSelectedIngredients}
             onQuantityChange={(ingredientId, qty) =>
-              setIngredientQuantities({ ...ingredientQuantities, [ingredientId]: qty })
+              setIngredientQuantities((prev) => ({ ...prev, [ingredientId]: qty }))
             }
             currentLanguage={currentLanguage}
           />

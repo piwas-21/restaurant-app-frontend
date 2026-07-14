@@ -22,7 +22,7 @@ type SheetController = ReturnType<typeof useItemCustomizationSheet>;
  * (through the controller hook), and gates a sticky "Add • CHF X" footer. Bundle bodies + featured
  * specials migrate onto this sheet in the following slice-6 increment.
  */
-export default function ItemCustomizationSheet({ controller }: { controller: SheetController }) {
+export default function ItemCustomizationSheet({ controller }: Readonly<{ controller: SheetController }>) {
   const { t } = useTranslation();
   const {
     isOpen,

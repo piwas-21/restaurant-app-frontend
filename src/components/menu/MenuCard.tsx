@@ -25,7 +25,7 @@ interface MenuCardProps {
  * goes through the shared `ItemCustomizationSheet` (via `onAdd`) instead of a self-contained rogue
  * `fetch()` + `CustomizationModal`. The read-only details view still uses `ProductDetailsModal`.
  */
-export default function MenuCard({ item, onAdd, onFeedbackSuccess, getFallbackImage }: MenuCardProps) {
+export default function MenuCard({ item, onAdd, onFeedbackSuccess, getFallbackImage }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
   const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -33,20 +33,19 @@ export default function MenuCard({ item, onAdd, onFeedbackSuccess, getFallbackIm
   const currentLanguage = (i18n.language || 'en').split('-')[0] as LanguageCode;
   const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
 
-  const ingredientsText =
-    item.detailedIngredients && item.detailedIngredients.length > 0
-      ? item.detailedIngredients
-          .filter((ing) => ing.isActive)
-          .map((ing) => ing.content?.[currentLanguage]?.name || ing.content?.en?.name || ing.name)
-          .join(', ')
-      : Array.isArray(item.ingredients)
-        ? item.ingredients.join(', ')
-        : '';
+  const getIngredientsText = (): string => {
+    const active = item.detailedIngredients?.filter((ing) => ing.isActive) ?? [];
+    if (active.length > 0) {
+      return active.map((ing) => ing.content?.[currentLanguage]?.name || ing.content?.en?.name || ing.name).join(', ');
+    }
+    return Array.isArray(item.ingredients) ? item.ingredients.join(', ') : '';
+  };
+  const ingredientsText = getIngredientsText();
 
   const productDescription =
     item.content?.[currentLanguage]?.description || item.content?.en?.description || item.longDescription || '';
   const mainImageAlt = itemName || t('menu_item_image_alt');
-  const numericPrice = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+  const numericPrice = typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price;
 
   return (
     <div className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>

@@ -2175,5 +2175,6 @@
   "enable": "Aktivieren",
   "disable": "Deaktivieren",
   "creating": "Erstellen...",
-  "error_loading_product": "Produktdetails konnten nicht geladen werden"
+  "error_loading_product": "Produktdetails konnten nicht geladen werden",
+  "customize": "Anpassen"
 }

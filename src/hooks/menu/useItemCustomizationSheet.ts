@@ -96,6 +96,9 @@ export function useItemCustomizationSheet() {
     [addItem, enqueueSnackbar, resolveName, t],
   );
 
+  const title = product ? resolveName(product) : '';
+  const description = product?.content?.[currentLanguage]?.description || product?.content?.en?.description;
+
   const linePrice = useLinePrice({
     kind: 'product',
     basePrice: product?.basePrice ?? 0,
@@ -151,10 +154,13 @@ export function useItemCustomizationSheet() {
   ]);
 
   return {
+    kind: 'product' as const,
     isOpen,
     isLoading,
     isSubmitting,
     product,
+    title,
+    description,
     currentLanguage,
     quantity,
     setQuantity,

@@ -2175,5 +2175,6 @@
   "enable": "Activer",
   "disable": "Désactiver",
   "creating": "Création...",
-  "error_loading_product": "Échec du chargement des détails du produit"
+  "error_loading_product": "Échec du chargement des détails du produit",
+  "customize": "Personnaliser"
 }

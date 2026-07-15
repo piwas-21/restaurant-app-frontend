@@ -2175,5 +2175,6 @@
   "enable": "تفعيل",
   "disable": "تعطيل",
   "creating": "جاري الإنشاء...",
-  "error_loading_product": "فشل تحميل تفاصيل المنتج"
+  "error_loading_product": "فشل تحميل تفاصيل المنتج",
+  "customize": "تخصيص"
 }

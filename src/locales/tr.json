@@ -2175,5 +2175,6 @@
   "enable": "Etkinleştir",
   "disable": "Devre Dışı Bırak",
   "creating": "Oluşturuluyor...",
-  "error_loading_product": "Ürün ayrıntıları yüklenemedi"
+  "error_loading_product": "Ürün ayrıntıları yüklenemedi",
+  "customize": "Özelleştir"
 }

@@ -1,0 +1,89 @@
+.option {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-default, var(--border-color));
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+}
+
+.row.selected {
+  background: var(--surface-muted, var(--surface-secondary));
+}
+
+.row.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  accent-color: var(--brand-primary);
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.price {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--brand-primary);
+}
+
+.ingredients {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--text-muted, var(--text-secondary));
+}
+
+.customizeButton {
+  align-self: flex-start;
+  margin: 0 0.75rem 0.75rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--brand-primary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.customizeButton:hover {
+  background: var(--surface-muted, var(--surface-secondary));
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-default, var(--border-color));
+  background: var(--surface-muted, var(--surface-secondary));
+}

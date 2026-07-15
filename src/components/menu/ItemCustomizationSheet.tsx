@@ -5,51 +5,24 @@ import { useTranslation } from 'react-i18next';
 import { Plus, Minus } from 'lucide-react';
 import { formatPlainCurrency } from '@/utils/currency';
 import BaseModal from '@/components/design-system/BaseModal';
-import AllergenDisplay from '@/components/common/AllergenDisplay';
-import VariationsSection from '@/components/menu/customization/VariationsSection';
-import OptionalIngredientsSection from '@/components/menu/customization/OptionalIngredientsSection';
-import SuggestedSideItemsSection from '@/components/menu/customization/SuggestedSideItemsSection';
-import SpecialRequestSection from '@/components/menu/customization/SpecialRequestSection';
-import type { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
+import ProductSheetBody, { type ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
+import BundleSheetBody, { type BundleSheetController } from '@/components/menu/customization/BundleSheetBody';
 import styles from './ItemCustomizationSheet.module.css';
 
-type SheetController = ReturnType<typeof useItemCustomizationSheet>;
+export type SheetController = ProductSheetController | BundleSheetController;
 
 /**
- * The single customer product-customization surface (menu-bundles redesign #175, slice 6) — a
- * `BaseModal`-based sheet that replaces `CustomizationModal` + `ProductDetailsModal` for the product
- * catalog. Composes the existing customization sections, prices live via the shared `useLinePrice`
- * (through the controller hook), and gates a sticky "Add • CHF X" footer. Bundle bodies + featured
- * specials migrate onto this sheet in the following slice-6 increment.
+ * The single customer customization surface (menu-bundles redesign #175, slice 6) — a `BaseModal`
+ * sheet that replaces `CustomizationModal`, `ProductDetailsModal` and `MenuCustomizationModal`.
+ * One chrome (title, description, sticky quantity + live-priced "Add • CHF X" footer) over a body
+ * that varies by `controller.kind`; both controllers price through the same backend-faithful
+ * `useLinePrice`, so a product line and a bundle line can never drift apart again.
  */
 export default function ItemCustomizationSheet({ controller }: Readonly<{ controller: SheetController }>) {
   const { t } = useTranslation();
-  const {
-    isOpen,
-    product,
-    currentLanguage,
-    quantity,
-    setQuantity,
-    selectedVariationId,
-    setSelectedVariationId,
-    selectedIngredients,
-    setSelectedIngredients,
-    ingredientQuantities,
-    setIngredientQuantities,
-    selectedSideItems,
-    setSelectedSideItems,
-    specialInstructions,
-    setSpecialInstructions,
-    linePrice,
-    isSubmitting,
-    addToCart,
-    close,
-  } = controller;
+  const { isOpen, title, description, quantity, setQuantity, linePrice, isSubmitting, addToCart, close } = controller;
 
-  if (!isOpen || !product) return null;
-
-  const productName = product.content?.[currentLanguage]?.name || product.content?.en?.name || product.name;
-  const description = product.content?.[currentLanguage]?.description || product.content?.en?.description;
+  if (!isOpen) return null;
 
   const footer = (
     <div className={styles.footer}>
@@ -80,50 +53,14 @@ export default function ItemCustomizationSheet({ controller }: Readonly<{ contro
   );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={close} title={productName} size="lg" footer={footer}>
+    <BaseModal isOpen={isOpen} onClose={close} title={title} size="lg" footer={footer}>
       <div className={styles.body}>
         {description && <p className={styles.description}>{description}</p>}
-        {product.allergens && product.allergens.length > 0 && (
-          <AllergenDisplay allergens={product.allergens} variant="compact" maxVisible={8} />
+        {controller.kind === 'bundle' ? (
+          <BundleSheetBody controller={controller} />
+        ) : (
+          <ProductSheetBody controller={controller} />
         )}
-
-        {product.variations && product.variations.length > 0 && (
-          <VariationsSection
-            variations={product.variations}
-            selectedVariationId={selectedVariationId}
-            onVariationChange={setSelectedVariationId}
-            basePrice={product.basePrice}
-            currentLanguage={currentLanguage}
-            productName={productName}
-          />
-        )}
-
-        {product.detailedIngredients && product.detailedIngredients.length > 0 && (
-          <OptionalIngredientsSection
-            ingredients={product.detailedIngredients}
-            selectedIngredients={selectedIngredients}
-            ingredientQuantities={ingredientQuantities}
-            onSelectionChange={setSelectedIngredients}
-            onQuantityChange={(ingredientId, qty) =>
-              setIngredientQuantities((prev) => ({ ...prev, [ingredientId]: qty }))
-            }
-            currentLanguage={currentLanguage}
-          />
-        )}
-
-        {product.suggestedSideItems && product.suggestedSideItems.length > 0 && (
-          <SuggestedSideItemsSection
-            sideItems={product.suggestedSideItems}
-            selectedSideItems={selectedSideItems}
-            onSelectionChange={setSelectedSideItems}
-            currentLanguage={currentLanguage}
-          />
-        )}
-
-        <SpecialRequestSection
-          specialInstructions={specialInstructions}
-          onInstructionsChange={setSpecialInstructions}
-        />
       </div>
     </BaseModal>
   );

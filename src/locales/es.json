@@ -2175,5 +2175,6 @@
   "enable": "Habilitar",
   "disable": "Deshabilitar",
   "creating": "Creando...",
-  "error_loading_product": "No se pudieron cargar los detalles del producto"
+  "error_loading_product": "No se pudieron cargar los detalles del producto",
+  "customize": "Personalizar"
 }

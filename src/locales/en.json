@@ -2175,5 +2175,6 @@
   "enable": "Enable",
   "disable": "Disable",
   "creating": "Creating...",
-  "error_loading_product": "Failed to load product details"
+  "error_loading_product": "Failed to load product details",
+  "customize": "Customize"
 }

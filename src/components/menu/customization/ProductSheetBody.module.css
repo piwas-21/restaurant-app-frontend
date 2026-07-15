@@ -1,0 +1,5 @@
+.preparationTime {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted, var(--text-secondary));
+}

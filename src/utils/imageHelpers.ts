@@ -6,12 +6,6 @@ import type { LanguageCode } from '@/components/LanguageSwitcher';
  */
 export const FALLBACK_IMAGE = '/images/placeholder-app.png';
 
-export function setFallbackImage(menuItem: MenuItem): void {
-  if (menuItem && menuItem.image !== FALLBACK_IMAGE) {
-    menuItem.image = FALLBACK_IMAGE;
-  }
-}
-
 /**
  * Gets image gallery for a menu item
  */

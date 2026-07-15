@@ -1914,15 +1914,12 @@
   "update_menu_bundle": "Update Menu Bundle",
   "confirm_delete_menu_bundle_message": "Are you sure you want to delete this menu bundle?",
   "no_menu_bundles_found": "No menu bundles found",
-  "bundle_includes": "This bundle includes",
   "select_your_options": "Select Your Options",
   "section_required": "Required",
   "section_optional": "Optional",
-  "select_min_max": "Select {{min}} to {{max}} items",
   "default_selection": "Default Selection",
   "customize_bundle": "Customize Bundle",
   "bundle_details": "Bundle Details",
-  "add_bundle_to_cart": "Add Bundle to Cart",
   "more": "more",
   "loading_menu_bundles": "Loading menu bundles...",
   "no_bundles_available": "No menu bundles available at the moment",
@@ -2180,5 +2177,6 @@
   "choose_count": "Choose {{count}}",
   "choose_range": "Choose {{min}}-{{max}}",
   "please_select_at_least_options": "Please select at least {{count}} option(s)",
-  "selected_count": "({{count}} selected)"
+  "selected_count": "({{count}} selected)",
+  "special": "Special"
 }

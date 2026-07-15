@@ -1914,15 +1914,12 @@
   "update_menu_bundle": "Menubundel bijwerken",
   "confirm_delete_menu_bundle_message": "Weet je zeker dat je deze menubundel wilt verwijderen?",
   "no_menu_bundles_found": "Geen menubundels gevonden",
-  "bundle_includes": "Deze bundel bevat",
   "select_your_options": "Kies je opties",
   "section_required": "Verplicht",
   "section_optional": "Optioneel",
-  "select_min_max": "Kies {{min}} tot {{max}} items",
   "default_selection": "Standaardselectie",
   "customize_bundle": "Bundel aanpassen",
   "bundle_details": "Bundelgegevens",
-  "add_bundle_to_cart": "Bundel toevoegen aan winkelwagen",
   "more": "meer",
   "loading_menu_bundles": "Menubundels laden...",
   "no_bundles_available": "Momenteel geen menubundels beschikbaar",
@@ -2180,5 +2177,6 @@
   "choose_count": "Kies {{count}}",
   "choose_range": "Kies {{min}}-{{max}}",
   "please_select_at_least_options": "Selecteer minimaal {{count}} optie(s)",
-  "selected_count": "({{count}} geselecteerd)"
+  "selected_count": "({{count}} geselecteerd)",
+  "special": "Speciaal"
 }

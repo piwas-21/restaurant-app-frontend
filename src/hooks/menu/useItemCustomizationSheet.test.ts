@@ -110,6 +110,102 @@ describe('useItemCustomizationSheet', () => {
     );
   });
 
+  // A bundle IS a product with type 'menu', so an entry point holding only an id (the featured
+  // special) can land on one. The retired ProductDetailsModal handled this by rendering a second
+  // modal from inside itself and adding via addItemToBasket — bypassing CartContext entirely.
+  it('routes a product id that turns out to be a combo to the bundle sheet, and never opens itself', async () => {
+    const onBundleDetected = jest.fn();
+    mockGetProductById.mockResolvedValue({
+      data: {
+        id: 'combo',
+        name: 'Lunch Combo',
+        type: 'menu',
+        basePrice: 20,
+        content: { en: { name: 'Lunch Combo' } },
+        variations: [],
+        suggestedSideItems: [],
+        detailedIngredients: [],
+        images: [],
+        categories: [],
+        allergens: [],
+        ingredients: [],
+        isActive: true,
+        isAvailable: true,
+        isSpecial: false,
+        displayOrder: 1,
+        menuDefinition: { id: 'md1', sections: [] },
+      },
+    });
+    const { result } = renderHook(() => useItemCustomizationSheet({ onBundleDetected }));
+
+    await act(async () => {
+      await result.current.openForProduct('combo');
+    });
+
+    expect(onBundleDetected).toHaveBeenCalledWith(expect.objectContaining({ id: 'combo', basePrice: 20 }));
+    expect(result.current.isOpen).toBe(false);
+    // Critically: it must not fall through to the no-options branch and silently add the combo
+    // with none of its sections chosen.
+    expect(mockAddItem).not.toHaveBeenCalled();
+  });
+
+  // The whole point of unifying the two controllers behind useCatalogSheet: the menu page's cart
+  // animation must fire for a plain product too, not just for bundles.
+  it('fires onAdded on both add paths — the direct add and the sheet Add', async () => {
+    const onAdded = jest.fn();
+    mockGetProductById.mockResolvedValue({
+      data: { id: 'p2', name: 'Water', content: { en: { name: 'Water' } }, basePrice: 2 },
+    });
+    const { result, rerender } = renderHook(() => useItemCustomizationSheet({ onAdded }));
+
+    // No options → added directly, sheet never opens.
+    await act(async () => {
+      await result.current.openForProduct('p2');
+    });
+    expect(onAdded).toHaveBeenCalledTimes(1);
+    expect(result.current.isOpen).toBe(false);
+
+    mockGetProductById.mockResolvedValue({ data: productWithOptions });
+    rerender();
+    await act(async () => {
+      await result.current.openForProduct('p1');
+    });
+    await waitFor(() => expect(result.current.isOpen).toBe(true));
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(onAdded).toHaveBeenCalledTimes(2);
+  });
+
+  // The direct-add branch has no isSubmitting guard of its own, so without an entry guard a second
+  // tap during the fetch adds the line twice.
+  it('ignores a second open while the first fetch is still in flight', async () => {
+    let release: (value: unknown) => void = () => {};
+    mockGetProductById.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    let first: Promise<void> | undefined;
+    let second: Promise<void> | undefined;
+    act(() => {
+      first = result.current.openForProduct('p2');
+      second = result.current.openForProduct('p2');
+    });
+
+    await act(async () => {
+      release({ data: { id: 'p2', name: 'Water', content: { en: { name: 'Water' } }, basePrice: 2 } });
+      await Promise.all([first, second]);
+    });
+
+    expect(mockGetProductById).toHaveBeenCalledTimes(1);
+    expect(mockAddItem).toHaveBeenCalledTimes(1);
+  });
+
   it('adds a no-options product straight to the cart without opening the sheet', async () => {
     mockGetProductById.mockResolvedValue({
       data: {

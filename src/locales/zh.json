@@ -1851,15 +1851,12 @@
   "update_menu_bundle": "更新菜单套餐",
   "confirm_delete_menu_bundle_message": "您确定要删除此菜单套餐吗？",
   "no_menu_bundles_found": "未找到菜单套餐",
-  "bundle_includes": "此套餐包含",
   "select_your_options": "选择您的选项",
   "section_required": "必选",
   "section_optional": "可选",
-  "select_min_max": "选择 {{min}} 到 {{max}} 项",
   "default_selection": "默认选择",
   "customize_bundle": "自定义套餐",
   "bundle_details": "套餐详情",
-  "add_bundle_to_cart": "将套餐添加到购物车",
   "more": "更多",
   "loading_menu_bundles": "正在加载菜单套餐...",
   "no_bundles_available": "目前没有可用的菜单套餐",
@@ -2180,5 +2177,6 @@
   "choose_count": "选择 {{count}} 项",
   "choose_range": "选择 {{min}}-{{max}} 项",
   "please_select_at_least_options": "请至少选择 {{count}} 项",
-  "selected_count": "({{count}} 已选)"
+  "selected_count": "({{count}} 已选)",
+  "special": "特色"
 }

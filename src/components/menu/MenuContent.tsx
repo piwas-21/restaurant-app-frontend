@@ -1,11 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MenuItem, MenuBundleItem, ApiCategory } from '@/types/menu';
+import type { MenuItem, MenuBundleItem, ApiCategory, CatalogItem } from '@/types/menu';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import CategoryNav from '@/components/menu/CategoryNav';
 import MenuList from '@/components/menu/MenuList';
-import MenuBundleCard from '@/components/menu/MenuBundleCard';
-import type { LanguageCode } from '@/components/LanguageSwitcher';
 import Pagination from '@/components/common/Pagination';
 import styles from './MenuContent.module.css';
 
@@ -22,10 +20,8 @@ interface MenuContentProps {
   totalPages: number;
   totalCount: number;
   onPageChange: (page: number) => void;
-  getFallbackImage: (menuItem: MenuItem) => void;
-  currentLanguage: LanguageCode;
-  onAddBundleToCart: (bundle: MenuBundleItem) => void;
-  onViewBundleDetails: (bundle: MenuBundleItem) => void;
+  /** Opens the shared customization sheet, which the page owns. */
+  onOpenItem: (item: CatalogItem) => void;
 }
 
 export default function MenuContent({
@@ -41,10 +37,7 @@ export default function MenuContent({
   totalPages,
   totalCount,
   onPageChange,
-  getFallbackImage,
-  currentLanguage,
-  onAddBundleToCart,
-  onViewBundleDetails,
+  onOpenItem,
 }: MenuContentProps) {
   const { t } = useTranslation();
 
@@ -95,24 +88,15 @@ export default function MenuContent({
         {/* Empty State */}
         {!isLoadingItems && !displayError && displayItems.length === 0 && <p>{emptyMessage}</p>}
 
-        {/* Menu Items or Bundles */}
+        {/* Menu Items or Bundles — one grid, one card; the view only picks which list feeds it. */}
         {!isLoadingItems && !displayError && displayItems.length > 0 && (
           <>
-            {isMenuBundlesView ? (
-              <div className={styles.bundlesGrid}>
-                {menuBundles.map((bundle) => (
-                  <MenuBundleCard
-                    key={bundle.id}
-                    bundle={bundle}
-                    onAdd={onAddBundleToCart}
-                    onDetails={onViewBundleDetails}
-                    currentLanguage={currentLanguage}
-                  />
-                ))}
-              </div>
-            ) : (
-              <MenuList items={currentMenuItems} onFeedbackSuccess={() => {}} getFallbackImage={getFallbackImage} />
-            )}
+            <MenuList
+              products={isMenuBundlesView ? [] : currentMenuItems}
+              bundles={isMenuBundlesView ? menuBundles : []}
+              onOpenItem={onOpenItem}
+              onFeedbackSuccess={() => {}}
+            />
 
             {/* Pagination */}
             <Pagination

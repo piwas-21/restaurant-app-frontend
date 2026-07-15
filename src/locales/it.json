@@ -1851,15 +1851,12 @@
   "update_menu_bundle": "Aggiorna Pacchetto Menu",
   "confirm_delete_menu_bundle_message": "Sei sicuro di voler eliminare questo pacchetto menu?",
   "no_menu_bundles_found": "Nessun pacchetto menu trovato",
-  "bundle_includes": "Questo pacchetto include",
   "select_your_options": "Seleziona le Tue Opzioni",
   "section_required": "Obbligatorio",
   "section_optional": "Opzionale",
-  "select_min_max": "Seleziona da {{min}} a {{max}} articoli",
   "default_selection": "Selezione Predefinita",
   "customize_bundle": "Personalizza Pacchetto",
   "bundle_details": "Dettagli Pacchetto",
-  "add_bundle_to_cart": "Aggiungi Pacchetto al Carrello",
   "more": "altro",
   "loading_menu_bundles": "Caricamento pacchetti menu...",
   "no_bundles_available": "Nessun pacchetto menu disponibile al momento",
@@ -2180,5 +2177,6 @@
   "choose_count": "Scegli {{count}}",
   "choose_range": "Scegli {{min}}-{{max}}",
   "please_select_at_least_options": "Seleziona almeno {{count}} opzione/i",
-  "selected_count": "({{count}} selezionato/i)"
+  "selected_count": "({{count}} selezionato/i)",
+  "special": "Speciale"
 }

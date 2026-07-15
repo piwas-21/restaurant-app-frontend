@@ -1851,15 +1851,12 @@
   "update_menu_bundle": "Mettre à jour le Pack Menu",
   "confirm_delete_menu_bundle_message": "Êtes-vous sûr de vouloir supprimer ce pack menu ?",
   "no_menu_bundles_found": "Aucun pack menu trouvé",
-  "bundle_includes": "Ce pack comprend",
   "select_your_options": "Sélectionnez vos options",
   "section_required": "Obligatoire",
   "section_optional": "Facultatif",
-  "select_min_max": "Sélectionnez {{min}} à {{max}} articles",
   "default_selection": "Sélection par défaut",
   "customize_bundle": "Personnaliser le pack",
   "bundle_details": "Détails du pack",
-  "add_bundle_to_cart": "Ajouter le pack au panier",
   "more": "plus",
   "loading_menu_bundles": "Chargement des packs menu...",
   "no_bundles_available": "Aucun pack menu disponible pour le moment",
@@ -2180,5 +2177,6 @@
   "choose_count": "Choisissez {{count}}",
   "choose_range": "Choisissez {{min}}-{{max}}",
   "please_select_at_least_options": "Veuillez sélectionner au moins {{count}} option(s)",
-  "selected_count": "({{count}} sélectionné(s))"
+  "selected_count": "({{count}} sélectionné(s))",
+  "special": "Spécial"
 }

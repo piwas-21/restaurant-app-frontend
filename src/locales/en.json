@@ -2175,5 +2175,10 @@
   "enable": "Enable",
   "disable": "Disable",
   "creating": "Creating...",
-  "error_loading_product": "Failed to load product details"
+  "error_loading_product": "Failed to load product details",
+  "customize": "Customize",
+  "choose_count": "Choose {{count}}",
+  "choose_range": "Choose {{min}}-{{max}}",
+  "please_select_at_least_options": "Please select at least {{count}} option(s)",
+  "selected_count": "({{count}} selected)"
 }

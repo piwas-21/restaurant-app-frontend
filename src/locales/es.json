@@ -2175,5 +2175,10 @@
   "enable": "Habilitar",
   "disable": "Deshabilitar",
   "creating": "Creando...",
-  "error_loading_product": "No se pudieron cargar los detalles del producto"
+  "error_loading_product": "No se pudieron cargar los detalles del producto",
+  "customize": "Personalizar",
+  "choose_count": "Elige {{count}}",
+  "choose_range": "Elige {{min}}-{{max}}",
+  "please_select_at_least_options": "Selecciona al menos {{count}} opción(es)",
+  "selected_count": "({{count}} seleccionado(s))"
 }

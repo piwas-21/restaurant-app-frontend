@@ -2175,5 +2175,10 @@
   "enable": "Включить",
   "disable": "Выключить",
   "creating": "Создание...",
-  "error_loading_product": "Не удалось загрузить сведения о товаре"
+  "error_loading_product": "Не удалось загрузить сведения о товаре",
+  "customize": "Настроить",
+  "choose_count": "Выберите {{count}}",
+  "choose_range": "Выберите {{min}}-{{max}}",
+  "please_select_at_least_options": "Выберите не менее {{count}} опции(й)",
+  "selected_count": "({{count}} выбрано)"
 }

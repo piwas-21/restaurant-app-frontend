@@ -2175,5 +2175,10 @@
   "enable": "Inschakelen",
   "disable": "Uitschakelen",
   "creating": "Aanmaken...",
-  "error_loading_product": "Kan productdetails niet laden"
+  "error_loading_product": "Kan productdetails niet laden",
+  "customize": "Aanpassen",
+  "choose_count": "Kies {{count}}",
+  "choose_range": "Kies {{min}}-{{max}}",
+  "please_select_at_least_options": "Selecteer minimaal {{count}} optie(s)",
+  "selected_count": "({{count}} geselecteerd)"
 }

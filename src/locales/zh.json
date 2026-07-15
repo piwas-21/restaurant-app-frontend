@@ -2175,5 +2175,10 @@
   "enable": "启用",
   "disable": "禁用",
   "creating": "正在创建...",
-  "error_loading_product": "无法加载产品详情"
+  "error_loading_product": "无法加载产品详情",
+  "customize": "自定义",
+  "choose_count": "选择 {{count}} 项",
+  "choose_range": "选择 {{min}}-{{max}} 项",
+  "please_select_at_least_options": "请至少选择 {{count}} 项",
+  "selected_count": "({{count}} 已选)"
 }

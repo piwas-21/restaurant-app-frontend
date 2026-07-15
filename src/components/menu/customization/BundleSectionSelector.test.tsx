@@ -3,12 +3,20 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import BundleSectionSelector from './BundleSectionSelector';
 import type { MenuSection, SelectedMenuOption } from '@/types/menu';
 
-// Stub react-i18next so t() returns the key (or its string fallback), matching how the component
-// renders without an i18next provider. The second argument is an interpolation object for some
-// keys (e.g. the special-request counter), which must not be returned as a React child.
+// Stub react-i18next without a provider. A string second argument is i18next's defaultValue; an
+// object is interpolation, which we render as `key(a=1)` so tests can assert the values actually
+// reach the translation rather than being concatenated around it.
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, fallback?: unknown) => (typeof fallback === 'string' ? fallback : key),
+    t: (key: string, arg?: unknown) => {
+      if (typeof arg === 'string') return arg;
+      if (arg && typeof arg === 'object') {
+        return `${key}(${Object.entries(arg)
+          .map(([name, value]) => `${name}=${value}`)
+          .join(',')})`;
+      }
+      return key;
+    },
   }),
 }));
 
@@ -128,7 +136,18 @@ describe('BundleSectionSelector', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
     rerender(<BundleSectionSelector {...props({ minSelectionError: 1 })} />);
-    expect(screen.getByRole('alert')).toHaveTextContent('please_select_at_least 1 options');
+    // The count is interpolated into the key, not concatenated around it — so a locale that puts
+    // the number elsewhere in the sentence still reads correctly.
+    expect(screen.getByRole('alert')).toHaveTextContent('please_select_at_least_options(count=1)');
+  });
+
+  it('interpolates the selection hint rather than concatenating translated fragments', () => {
+    const { rerender } = render(<BundleSectionSelector {...props()} />);
+    // minSelection === maxSelection → the single-count phrasing.
+    expect(screen.getByText(/choose_count\(count=1\)/)).toBeInTheDocument();
+
+    rerender(<BundleSectionSelector {...props({ section: { ...section, minSelection: 1, maxSelection: 3 } })} />);
+    expect(screen.getByText(/choose_range\(min=1,max=3\)/)).toBeInTheDocument();
   });
 
   it('offers the drill-in only for a selected option that has ingredients', () => {

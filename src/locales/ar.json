@@ -2176,5 +2176,9 @@
   "disable": "تعطيل",
   "creating": "جاري الإنشاء...",
   "error_loading_product": "فشل تحميل تفاصيل المنتج",
-  "customize": "تخصيص"
+  "customize": "تخصيص",
+  "choose_count": "اختر {{count}}",
+  "choose_range": "اختر {{min}}-{{max}}",
+  "please_select_at_least_options": "يرجى اختيار {{count}} خيار على الأقل",
+  "selected_count": "({{count}} محدد)"
 }

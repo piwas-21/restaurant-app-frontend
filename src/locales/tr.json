@@ -2176,5 +2176,9 @@
   "disable": "Devre Dışı Bırak",
   "creating": "Oluşturuluyor...",
   "error_loading_product": "Ürün ayrıntıları yüklenemedi",
-  "customize": "Özelleştir"
+  "customize": "Özelleştir",
+  "choose_count": "{{count}} adet seçin",
+  "choose_range": "{{min}}-{{max}} adet seçin",
+  "please_select_at_least_options": "Lütfen en az {{count}} seçenek seçin",
+  "selected_count": "({{count}} seçildi)"
 }

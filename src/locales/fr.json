@@ -2176,5 +2176,9 @@
   "disable": "Désactiver",
   "creating": "Création...",
   "error_loading_product": "Échec du chargement des détails du produit",
-  "customize": "Personnaliser"
+  "customize": "Personnaliser",
+  "choose_count": "Choisissez {{count}}",
+  "choose_range": "Choisissez {{min}}-{{max}}",
+  "please_select_at_least_options": "Veuillez sélectionner au moins {{count}} option(s)",
+  "selected_count": "({{count}} sélectionné(s))"
 }

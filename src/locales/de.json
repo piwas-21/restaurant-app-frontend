@@ -2176,5 +2176,9 @@
   "disable": "Deaktivieren",
   "creating": "Erstellen...",
   "error_loading_product": "Produktdetails konnten nicht geladen werden",
-  "customize": "Anpassen"
+  "customize": "Anpassen",
+  "choose_count": "Wähle {{count}}",
+  "choose_range": "Wähle {{min}}-{{max}}",
+  "please_select_at_least_options": "Bitte wähle mindestens {{count}} Option(en)",
+  "selected_count": "({{count}} ausgewählt)"
 }

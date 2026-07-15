@@ -40,10 +40,12 @@ export default function BundleSectionSelector({
   const isRadio = section.maxSelection === 1;
   const errorId = `bundle-section-error-${section.id}`;
 
+  // Interpolated, not concatenated: word order varies by locale (tr renders the verb last —
+  // "{{count}} adet seçin" — which `t('choose') + count` could never express).
   const selectionHint =
     section.minSelection === section.maxSelection
-      ? `${t('choose')} ${section.maxSelection}`
-      : `${t('choose')} ${section.minSelection}-${section.maxSelection}`;
+      ? t('choose_count', { count: section.maxSelection })
+      : t('choose_range', { min: section.minSelection, max: section.maxSelection });
 
   return (
     <fieldset className={styles.section} aria-describedby={minSelectionError ? errorId : undefined}>
@@ -62,12 +64,12 @@ export default function BundleSectionSelector({
 
       <p className={styles.hint}>
         {selectionHint}
-        {selectedCount > 0 && ` (${selectedCount} ${t('selected')})`}
+        {selectedCount > 0 && ` ${t('selected_count', { count: selectedCount })}`}
       </p>
 
       {minSelectionError !== undefined && (
         <p className={styles.error} id={errorId} role="alert">
-          {`${t('please_select_at_least')} ${minSelectionError} ${t('options')}`}
+          {t('please_select_at_least_options', { count: minSelectionError })}
         </p>
       )}
 

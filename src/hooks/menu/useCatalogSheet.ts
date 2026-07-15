@@ -33,7 +33,10 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
   /** Open by id. Fetches the detail, and routes to the bundle body if the id is a combo. */
   const openForProductId = useCallback(
     (productId: string) => {
-      void openForProduct(productId);
+      // `openForProduct` catches its own failures and surfaces a snackbar, so this should never
+      // fire — but the promise still has to be consumed, and logging keeps a future throw loud
+      // rather than swallowing it.
+      openForProduct(productId).catch((error) => console.error('Failed to open the customization sheet:', error));
     },
     [openForProduct],
   );

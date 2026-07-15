@@ -1,3 +1,5 @@
+import type { ProductIngredient, DietaryTag } from './shared';
+
 /**
  * CatalogItem — the unified card view-model for the merged `MenuCard` (menu-bundles redesign #175,
  * slice 6). A single mapper normalises both a plain product (`MenuItem`) and a combo
@@ -15,12 +17,20 @@ export interface CatalogItem {
   description?: string;
   content?: Partial<Record<string, { name: string; description?: string }>>;
   imageUrl?: string;
+  /** How many images the item has — the card badges the count. */
+  imageCount?: number;
   /** Starting price — a bundle displays this as a "from" price. */
   price: number;
   isBundle: boolean;
   allergens?: string[];
   isSpecial?: boolean;
   isAvailable?: boolean;
-  /** For bundles: the default option names, for a "Includes: Pizza, Cola" card preview. */
+  /** Products only: the card's summary line resolves these to localized names. */
+  detailedIngredients?: ProductIngredient[];
+  /** Products only: legacy fallback when `detailedIngredients` is absent. */
+  ingredients?: string[];
+  /** Products only — bundles carry no dietary tags. */
+  dietaryTags?: DietaryTag[];
+  /** Bundles only: the default option names, for an "Includes: Pizza + Cola" card summary. */
   bundleItemNames?: string[];
 }

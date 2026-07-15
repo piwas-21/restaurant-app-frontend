@@ -110,6 +110,45 @@ describe('useItemCustomizationSheet', () => {
     );
   });
 
+  // A bundle IS a product with type 'menu', so an entry point holding only an id (the featured
+  // special) can land on one. The retired ProductDetailsModal handled this by rendering a second
+  // modal from inside itself and adding via addItemToBasket — bypassing CartContext entirely.
+  it('routes a product id that turns out to be a combo to the bundle sheet, and never opens itself', async () => {
+    const onBundleDetected = jest.fn();
+    mockGetProductById.mockResolvedValue({
+      data: {
+        id: 'combo',
+        name: 'Lunch Combo',
+        type: 'menu',
+        basePrice: 20,
+        content: { en: { name: 'Lunch Combo' } },
+        variations: [],
+        suggestedSideItems: [],
+        detailedIngredients: [],
+        images: [],
+        categories: [],
+        allergens: [],
+        ingredients: [],
+        isActive: true,
+        isAvailable: true,
+        isSpecial: false,
+        displayOrder: 1,
+        menuDefinition: { id: 'md1', sections: [] },
+      },
+    });
+    const { result } = renderHook(() => useItemCustomizationSheet({ onBundleDetected }));
+
+    await act(async () => {
+      await result.current.openForProduct('combo');
+    });
+
+    expect(onBundleDetected).toHaveBeenCalledWith(expect.objectContaining({ id: 'combo', basePrice: 20 }));
+    expect(result.current.isOpen).toBe(false);
+    // Critically: it must not fall through to the no-options branch and silently add the combo
+    // with none of its sections chosen.
+    expect(mockAddItem).not.toHaveBeenCalled();
+  });
+
   it('adds a no-options product straight to the cart without opening the sheet', async () => {
     mockGetProductById.mockResolvedValue({
       data: {

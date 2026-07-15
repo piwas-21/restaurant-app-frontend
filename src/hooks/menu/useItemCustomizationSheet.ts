@@ -6,12 +6,19 @@ import { useSnackbar } from 'notistack';
 import { useCart } from '@/components/cart/CartContext';
 import { getProductById } from '@/services/menuService';
 import { buildBaseIngredientSelection } from '@/utils/ingredientSelection';
+import { toBundleItemFromDetail } from '@/utils/catalogItem';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
-import type { DetailedProduct } from '@/types/menu';
+import type { SelectedSide } from '@/utils/linePrice';
+import type { DetailedProduct, MenuBundleItem } from '@/types/menu';
 
-interface SelectedSide {
-  id: string;
-  quantity: number;
+interface UseItemCustomizationSheetArgs {
+  /**
+   * Hand-off for a product id that turns out to be a combo. A bundle is a `Product` with
+   * `type === 'menu'`, so an entry point holding only an id (the featured special) cannot know
+   * which it has until the fetch lands. Without this the guest would get a product sheet with none
+   * of the combo's sections.
+   */
+  onBundleDetected?: (bundle: MenuBundleItem) => void;
 }
 
 /**
@@ -21,7 +28,7 @@ interface SelectedSide {
  * `useLinePrice`, and adds the customised line to the basket. Products with no customization options
  * are added straight to the cart without opening the sheet — matching the previous behaviour.
  */
-export function useItemCustomizationSheet() {
+export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
   const { t, i18n } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
@@ -60,6 +67,14 @@ export function useItemCustomizationSheet() {
           throw new Error('Missing product detail');
         }
 
+        // The id turned out to be a combo — hand it to the bundle sheet rather than render a
+        // product body with none of its sections.
+        const bundle = toBundleItemFromDetail(detail);
+        if (bundle && onBundleDetected) {
+          onBundleDetected(bundle);
+          return;
+        }
+
         const hasCustomization =
           (detail.variations?.length ?? 0) > 0 ||
           (detail.detailedIngredients?.length ?? 0) > 0 ||
@@ -93,7 +108,7 @@ export function useItemCustomizationSheet() {
         setIsLoading(false);
       }
     },
-    [addItem, enqueueSnackbar, resolveName, t],
+    [addItem, enqueueSnackbar, onBundleDetected, resolveName, t],
   );
 
   const title = product ? resolveName(product) : '';

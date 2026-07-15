@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
 import TableBanner from '@/components/TableBanner';
 
-import type { LanguageCode } from '@/components/LanguageSwitcher';
 import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
@@ -14,28 +13,20 @@ import OrderFlowModals from '@/components/order/OrderFlowModals';
 import OrderFlowSidebar from '@/components/order/OrderFlowSidebar';
 import MobileCartSheet from '@/components/order/MobileCartSheet';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
-import { setFallbackImage } from '@/utils/imageHelpers';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuContent from '@/components/menu/MenuContent';
-import MenuModals from '@/components/menu/MenuModals';
 import FeaturedSpecialComponent from '@/components/menu/FeaturedSpecial';
-import MenuBundleDetailsModal from '@/components/menu/MenuBundleDetailsModal';
-import { MenuBundleItem } from '@/types/menu';
 import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
-import { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
+import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 export default function MenuPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedBundle, setSelectedBundle] = useState<MenuBundleItem | null>(null);
-  const [showBundleDetails, setShowBundleDetails] = useState(false);
   const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
   const [isMobileCartSheetOpen, setIsMobileCartSheetOpen] = useState(false);
-
-  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
   // Custom hooks
   const {
@@ -52,23 +43,16 @@ export default function MenuPage() {
     onPageChange,
   } = usePublicMenu();
 
-  const {
-    featuredSpecial,
-    showFeaturedDetails,
-    showFeaturedCustomization,
-    handleAddFeaturedToCart,
-    handleFeaturedCustomizationConfirm,
-    handleViewFeaturedDetails,
-    handleCloseFeaturedDetails,
-    setShowFeaturedCustomization,
-  } = useFeaturedSpecial();
+  const { featuredSpecial } = useFeaturedSpecial();
 
   const { state: cartState } = useCart();
   const orderTypeFollowUp = useOrderTypeFollowUp();
 
-  // The unified customization sheet drives the bundle add flow (menu-bundles redesign #175,
-  // slice 6) — it owns the section selection, live pricing and the add itself.
-  const bundleSheet = useBundleCustomizationSheet({
+  // One customization sheet for the whole page (menu-bundles redesign #175, slice 6): the browse
+  // grid and the featured banner both open it, and it owns the selection, live pricing and the add.
+  const bundlesById = useMemo(() => new Map(menuBundles.map((bundle) => [bundle.id, bundle])), [menuBundles]);
+  const sheet = useCatalogSheet({
+    findBundle: (id) => bundlesById.get(id),
     onAdded: () => {
       setCartAnimationTrigger(true);
       setTimeout(() => setCartAnimationTrigger(false), 100);
@@ -88,11 +72,6 @@ export default function MenuPage() {
     menuViewedFiredRef.current = true;
     trackEvent('menu_viewed', { loggedIn: isLoggedInForAnalytics() });
   }, []);
-
-  const handleViewBundleDetails = (bundle: MenuBundleItem) => {
-    setSelectedBundle(bundle);
-    setShowBundleDetails(true);
-  };
 
   if (!isMounted || !selectedView) {
     return null;
@@ -125,8 +104,8 @@ export default function MenuPage() {
           {featuredSpecial && (
             <FeaturedSpecialComponent
               special={featuredSpecial}
-              onAddToCart={handleAddFeaturedToCart}
-              onViewDetails={handleViewFeaturedDetails}
+              onAddToCart={() => sheet.openForProductId(featuredSpecial.id)}
+              onViewDetails={() => sheet.openForProductId(featuredSpecial.id)}
             />
           )}
 
@@ -143,10 +122,7 @@ export default function MenuPage() {
             totalPages={totalPages}
             totalCount={totalCount}
             onPageChange={onPageChange}
-            getFallbackImage={setFallbackImage}
-            currentLanguage={currentLanguage}
-            onAddBundleToCart={bundleSheet.openForBundle}
-            onViewBundleDetails={handleViewBundleDetails}
+            onOpenItem={sheet.openForCatalogItem}
           />
         </div>
 
@@ -155,25 +131,8 @@ export default function MenuPage() {
         </div>
       </div>
 
-      <MenuModals
-        featuredSpecial={featuredSpecial}
-        showFeaturedDetails={showFeaturedDetails}
-        showFeaturedCustomization={showFeaturedCustomization}
-        onCloseFeaturedDetails={handleCloseFeaturedDetails}
-        onCloseFeaturedCustomization={() => setShowFeaturedCustomization(false)}
-        onFeaturedCustomizationConfirm={handleFeaturedCustomizationConfirm}
-      />
-
-      {/* Menu Bundle Details Modal */}
-      <MenuBundleDetailsModal
-        bundle={selectedBundle}
-        isOpen={showBundleDetails}
-        onClose={() => setShowBundleDetails(false)}
-        onAddToCart={bundleSheet.openForBundle}
-        currentLanguage={currentLanguage}
-      />
-
-      <ItemCustomizationSheet controller={bundleSheet} />
+      <ItemCustomizationSheet controller={sheet.product} />
+      <ItemCustomizationSheet controller={sheet.bundle} />
 
       {/* Floating Cart Button */}
       <FloatingCartButton

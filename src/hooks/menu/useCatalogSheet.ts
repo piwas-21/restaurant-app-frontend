@@ -24,12 +24,18 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
   const bundle = useBundleCustomizationSheet({ onAdded });
   const product = useItemCustomizationSheet({ onBundleDetected: bundle.openForBundle, onAdded });
 
+  // Depend on the individual openers, not the controller objects: each hook returns a fresh object
+  // every render, so `[product]` would rebuild these callbacks every render and the memo would
+  // never hit. The openers themselves are `useCallback`-stable.
+  const { openForProduct } = product;
+  const { openForBundle } = bundle;
+
   /** Open by id. Fetches the detail, and routes to the bundle body if the id is a combo. */
   const openForProductId = useCallback(
     (productId: string) => {
-      void product.openForProduct(productId);
+      void openForProduct(productId);
     },
-    [product],
+    [openForProduct],
   );
 
   const openForCatalogItem = useCallback(
@@ -43,12 +49,12 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
       // A miss falls back to the id path, which re-fetches and routes back here via onBundleDetected.
       const found = findBundle?.(item.id);
       if (found) {
-        bundle.openForBundle(found);
+        openForBundle(found);
         return;
       }
       openForProductId(item.id);
     },
-    [bundle, findBundle, openForProductId],
+    [openForBundle, findBundle, openForProductId],
   );
 
   return { product, bundle, openForCatalogItem, openForProductId };

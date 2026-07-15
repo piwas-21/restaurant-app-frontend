@@ -22,7 +22,7 @@ interface UseCatalogSheetArgs {
  */
 export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {}) {
   const bundle = useBundleCustomizationSheet({ onAdded });
-  const product = useItemCustomizationSheet({ onBundleDetected: bundle.openForBundle });
+  const product = useItemCustomizationSheet({ onBundleDetected: bundle.openForBundle, onAdded });
 
   /** Open by id. Fetches the detail, and routes to the bundle body if the id is a combo. */
   const openForProductId = useCallback(

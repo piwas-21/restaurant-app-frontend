@@ -59,12 +59,14 @@ describe('MenuCard — one card for both catalog kinds', () => {
   });
 
   it('keeps a combo description and its default picks — the bundle card rendered both itself', () => {
-    render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+    const { container } = render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.getByText('Lunch Combo')).toBeInTheDocument();
     expect(screen.getByText('Main + drink')).toBeInTheDocument();
     expect(screen.getByText('Pizza + Cola')).toBeInTheDocument();
-    expect(screen.getByText('special')).toBeInTheDocument();
+    // Assert the badge element, not its text: the i18n stub echoes the key, so asserting on
+    // "special" would pass whether or not the key exists in the locales.
+    expect(container.querySelector('[data-testid="special-badge"]')).toBeInTheDocument();
   });
 
   it('omits the combo summary block when there is nothing to summarise', () => {
@@ -81,9 +83,9 @@ describe('MenuCard — one card for both catalog kinds', () => {
   });
 
   it('badges only the items flagged special', () => {
-    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+    const { container } = render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
-    expect(screen.queryByText('special')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-testid="special-badge"]')).not.toBeInTheDocument();
   });
 
   it('opens the sheet from Add and from Details — one surface, not two', () => {

@@ -45,7 +45,11 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
 
   return (
     <div className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
-      {item.isSpecial && <div className={styles.specialBadge}>{t('special')}</div>}
+      {item.isSpecial && (
+        <div className={styles.specialBadge} data-testid="special-badge">
+          {t('special')}
+        </div>
+      )}
 
       <MenuItemImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}

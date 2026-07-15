@@ -1,39 +1,38 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { useCart } from '@/components/cart/CartContext';
 import { getProductById } from '@/services/menuService';
-import { buildBaseIngredientSelection } from '@/utils/ingredientSelection';
+import { buildInitialSheetState, hasCustomizationOptions } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import type { SelectedSide } from '@/utils/linePrice';
 import type { DetailedProduct, MenuBundleItem } from '@/types/menu';
 
 interface UseItemCustomizationSheetArgs {
-  /**
-   * Hand-off for a product id that turns out to be a combo. A bundle is a `Product` with
-   * `type === 'menu'`, so an entry point holding only an id (the featured special) cannot know
-   * which it has until the fetch lands. Without this the guest would get a product sheet with none
-   * of the combo's sections.
-   */
+  /** Hand-off for an id that turns out to be a combo — see `toBundleItemFromDetail` for why. */
   onBundleDetected?: (bundle: MenuBundleItem) => void;
+  /** Fired after a successful add — the menu page uses it to animate the cart button. */
+  onAdded?: () => void;
 }
 
 /**
  * Drives the customer product-customization sheet (menu-bundles redesign #175, slice 6): fetches the
- * full product detail on open (via the `getProductById` service — replacing `MenuItem`'s rogue
- * `fetch()`), seeds the selection from the one base-recipe default rule, live-prices with the shared
- * `useLinePrice`, and adds the customised line to the basket. Products with no customization options
- * are added straight to the cart without opening the sheet — matching the previous behaviour.
+ * detail on open via the `getProductById` service, seeds from `buildInitialSheetState`, live-prices
+ * with the shared `useLinePrice`, and adds the line. A product with nothing to choose is added
+ * straight to the cart without opening — matching the previous behaviour.
  */
-export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomizationSheetArgs = {}) {
+export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItemCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
   const { t, i18n } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const currentLanguage = (i18n.language || 'en').split('-')[0];
 
+  // Guards the whole open path, not just Add: the no-options branch adds straight to the cart, so
+  // a second tap during the fetch would add the line twice.
+  const isOpeningRef = useRef(false);
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +51,20 @@ export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomiza
     [currentLanguage],
   );
 
+  // One add-success path for both the direct-add and the sheet's Add button — they had drifted
+  // into two copies of the same snackbar, and each would now need its own `onAdded` call.
+  const notifyAdded = useCallback(
+    (added: Pick<DetailedProduct, 'content' | 'name'>) => {
+      enqueueSnackbar(t('item_added_to_cart_toast', { itemName: resolveName(added) }), {
+        variant: 'success',
+        autoHideDuration: 2000,
+        anchorOrigin: { vertical: 'top', horizontal: 'center' },
+      });
+      onAdded?.();
+    },
+    [enqueueSnackbar, onAdded, resolveName, t],
+  );
+
   const close = useCallback(() => {
     setIsOpen(false);
     setProduct(null);
@@ -59,6 +72,8 @@ export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomiza
 
   const openForProduct = useCallback(
     async (productId: string) => {
+      if (isOpeningRef.current) return;
+      isOpeningRef.current = true;
       setIsLoading(true);
       try {
         const response = (await getProductById(productId)) as { data?: DetailedProduct };
@@ -75,28 +90,17 @@ export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomiza
           return;
         }
 
-        const hasCustomization =
-          (detail.variations?.length ?? 0) > 0 ||
-          (detail.detailedIngredients?.length ?? 0) > 0 ||
-          (detail.suggestedSideItems?.length ?? 0) > 0;
-
-        if (!hasCustomization) {
+        if (!hasCustomizationOptions(detail)) {
           await addItem({ productId: detail.id, quantity: 1 });
-          enqueueSnackbar(t('item_added_to_cart_toast', { itemName: resolveName(detail) }), {
-            variant: 'success',
-            autoHideDuration: 2000,
-            anchorOrigin: { vertical: 'top', horizontal: 'center' },
-          });
+          notifyAdded(detail);
           return;
         }
 
-        const base = buildBaseIngredientSelection(detail.detailedIngredients ?? []);
-        setSelectedIngredients(base.selectedIngredients);
-        setIngredientQuantities(base.ingredientQuantities);
-        setSelectedSideItems(
-          (detail.suggestedSideItems ?? []).filter((s) => s.isRequired).map((s) => ({ id: s.id, quantity: 1 })),
-        );
-        setSelectedVariationId(detail.variations?.[0]?.id ?? null);
+        const seed = buildInitialSheetState(detail);
+        setSelectedIngredients(seed.selectedIngredients);
+        setIngredientQuantities(seed.ingredientQuantities);
+        setSelectedSideItems(seed.selectedSideItems);
+        setSelectedVariationId(seed.selectedVariationId);
         setQuantity(1);
         setSpecialInstructions('');
         setProduct(detail);
@@ -106,9 +110,10 @@ export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomiza
         enqueueSnackbar(t('error_loading_product', 'Failed to load product details'), { variant: 'error' });
       } finally {
         setIsLoading(false);
+        isOpeningRef.current = false;
       }
     },
-    [addItem, enqueueSnackbar, onBundleDetected, resolveName, t],
+    [addItem, enqueueSnackbar, notifyAdded, onBundleDetected, t],
   );
 
   const title = product ? resolveName(product) : '';
@@ -142,11 +147,7 @@ export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomiza
         selectedSideItems,
       });
       close();
-      enqueueSnackbar(t('item_added_to_cart_toast', { itemName: resolveName(product) }), {
-        variant: 'success',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
+      notifyAdded(product);
     } catch {
       enqueueSnackbar(t('error_adding_to_cart', 'Failed to add item to cart'), { variant: 'error' });
     } finally {
@@ -158,9 +159,9 @@ export function useItemCustomizationSheet({ onBundleDetected }: UseItemCustomiza
     enqueueSnackbar,
     ingredientQuantities,
     isSubmitting,
+    notifyAdded,
     product,
     quantity,
-    resolveName,
     selectedIngredients,
     selectedSideItems,
     selectedVariationId,

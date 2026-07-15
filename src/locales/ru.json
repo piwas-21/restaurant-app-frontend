@@ -1770,15 +1770,12 @@
   "update_menu_bundle": "Обновить набор меню",
   "confirm_delete_menu_bundle_message": "Вы уверены, что хотите удалить этот набор меню?",
   "no_menu_bundles_found": "Наборы меню не найдены",
-  "bundle_includes": "Этот набор включает",
   "select_your_options": "Выберите свои варианты",
   "section_required": "Обязательно",
   "section_optional": "Необязательно",
-  "select_min_max": "Выберите от {{min}} до {{max}} элементов",
   "default_selection": "Выбор по умолчанию",
   "customize_bundle": "Настроить набор",
   "bundle_details": "Детали набора",
-  "add_bundle_to_cart": "Добавить набор в корзину",
   "more": "еще",
   "loading_menu_bundles": "Загрузка наборов меню...",
   "no_bundles_available": "Наборы меню в данный момент недоступны",
@@ -2180,5 +2177,6 @@
   "choose_count": "Выберите {{count}}",
   "choose_range": "Выберите {{min}}-{{max}}",
   "please_select_at_least_options": "Выберите не менее {{count}} опции(й)",
-  "selected_count": "({{count}} выбрано)"
+  "selected_count": "({{count}} выбрано)",
+  "special": "Специальное"
 }

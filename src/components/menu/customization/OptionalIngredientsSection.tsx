@@ -46,10 +46,12 @@ export default function OptionalIngredientsSection({
       onSelectionChange(selectedIngredients.filter((id) => id !== ingredientId));
       // Deselection records an explicit quantity 0 (not 1) so the removal survives into the
       // basket payload and the kitchen ticket can print "NO xxx" — the backend derives IsRemoved
-      // from quantity 0 (issue #150), and its bundle-child backfill lets an explicit client
-      // quantity win, so a 1 here would silently re-add the ingredient to the ticket.
-      // Price and rendering are unaffected: the quantity only reads back for a *selected*
-      // ingredient, and both call sites resolve it via `|| 1`.
+      // from quantity 0 (issue #150), and it lets an explicit client quantity win (verbatim for a
+      // regular line, over the backfill for a bundle child), so a 1 here silently re-added the
+      // ingredient to the ticket.
+      // Price and rendering are unaffected, because a deselected ingredient's quantity is never
+      // read: pricing only consults it on the selected branches (utils/linePrice.ts), and the
+      // quantity stepper renders only while `isSelected`.
       onQuantityChange(ingredientId, 0);
     } else {
       onSelectionChange([...selectedIngredients, ingredientId]);

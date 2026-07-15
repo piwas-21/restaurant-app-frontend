@@ -217,6 +217,39 @@ describe('useBundleCustomizationSheet', () => {
     );
   });
 
+  it('deducts a removed included-in-base child ingredient and sends the removal as quantity 0', async () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(bundle));
+    act(() => result.current.toggleOption(bundle.menuDefinition.sections[1], 'coke'));
+
+    // Guest drops the cheese that comes free in the base: −2 off the 24 advertised. The explicit
+    // 0 is what lets the kitchen ticket print "NO Cheese" (issue #150).
+    act(() =>
+      result.current.setOptionCustomization('main', 'burger', {
+        selectedIngredients: [],
+        ingredientQuantities: { cheese: 0 },
+      }),
+    );
+
+    expect(result.current.linePrice.unitPrice).toBe(22);
+
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(mockAddItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedMenuOptions: expect.arrayContaining([
+          expect.objectContaining({
+            itemId: 'burger',
+            selectedIngredients: [],
+            ingredientQuantities: { cheese: 0 },
+          }),
+        ]),
+      }),
+    );
+  });
+
   it('multiplies the line by quantity and carries a bundle-level special request', async () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
     act(() => result.current.openForBundle(bundle));

@@ -89,6 +89,9 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
 
   const toggleOption = useCallback((section: MenuSection, itemId: string) => {
     setSelectedOptions((prev) => toggleBundleOption(section, prev, itemId));
+    // Collapse the drill-in if its option just went away, so re-picking the option later doesn't
+    // silently reopen a panel the guest had closed.
+    setExpandedOptionKey((prev) => (prev === bundleOptionKey(section.id, itemId) ? null : prev));
   }, []);
 
   const setOptionCustomization = useCallback(

@@ -80,6 +80,36 @@ describe('useItemCustomizationSheet', () => {
     expect(result.current.isOpen).toBe(false);
   });
 
+  // The product half of the #150 removal convention. `OptionalIngredientsSection` is shared with
+  // the bundle drill-in, and the regular-item backend branch persists the client quantity map
+  // verbatim — so a deselection must reach the payload as an explicit 0, or the kitchen ticket
+  // never learns the ingredient was removed.
+  it('deducts a removed included-in-base ingredient and sends the removal as quantity 0', async () => {
+    mockGetProductById.mockResolvedValue({ data: productWithOptions });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1');
+    });
+    await waitFor(() => expect(result.current.isOpen).toBe(true));
+
+    // Drop the cheese that comes free in the base: −2 off the 14 the default line prices at.
+    act(() => {
+      result.current.setSelectedIngredients([]);
+      result.current.setIngredientQuantities((prev) => ({ ...prev, cheese: 0 }));
+    });
+
+    expect(result.current.linePrice.total).toBe(12);
+
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(mockAddItem).toHaveBeenCalledWith(
+      expect.objectContaining({ selectedIngredients: [], ingredientQuantities: { cheese: 0 } }),
+    );
+  });
+
   it('adds a no-options product straight to the cart without opening the sheet', async () => {
     mockGetProductById.mockResolvedValue({
       data: {

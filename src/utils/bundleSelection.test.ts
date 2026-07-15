@@ -182,8 +182,10 @@ describe('updateBundleOption / findBundleOption / countSectionSelections', () =>
     expect(findBundleOption(next, 's1', 'a')?.specialInstructions).toBeUndefined();
   });
 
-  it('counts a section by option quantity, not option count', () => {
-    expect(countSectionSelections(selected, 's1')).toBe(3);
+  it('counts options, not their quantities — matching the server gate', () => {
+    // BasketItemFactory gates Min/MaxSelection on sectionSelections.Count, so 'b' at quantity 2
+    // still counts once.
+    expect(countSectionSelections(selected, 's1')).toBe(2);
     expect(countSectionSelections(selected, 'missing')).toBe(0);
   });
 });
@@ -204,9 +206,19 @@ describe('findBundleSelectionErrors — required-group gating', () => {
     expect(errors).toEqual([]);
   });
 
-  it('measures against quantity, so one option covering minSelection 2 satisfies the section', () => {
+  it('needs minSelection distinct options — a single option at quantity 2 does not satisfy it', () => {
+    // Mirrors the server, which would reject this payload with a 400 (BasketItemFactory gates on
+    // sectionSelections.Count).
     const twoOf = [section({ id: 'required', isRequired: true, minSelection: 2, maxSelection: 2 })];
 
-    expect(findBundleSelectionErrors(twoOf, [{ sectionId: 'required', itemId: 'x', quantity: 2 }])).toEqual([]);
+    expect(findBundleSelectionErrors(twoOf, [{ sectionId: 'required', itemId: 'x', quantity: 2 }])).toEqual([
+      { sectionId: 'required', minSelection: 2 },
+    ]);
+    expect(
+      findBundleSelectionErrors(twoOf, [
+        { sectionId: 'required', itemId: 'x', quantity: 1 },
+        { sectionId: 'required', itemId: 'y', quantity: 1 },
+      ]),
+    ).toEqual([]);
   });
 });

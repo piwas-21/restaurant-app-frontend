@@ -15,12 +15,17 @@ export const bundleOptionKey = (sectionId: string, itemId: string) => `${section
  * One chosen option, seeded with the base-recipe ingredient selection so the line starts at the
  * advertised price (the single default rule — see `buildBaseIngredientSelection`).
  *
- * The selection is only attached when the payload actually carries the child's ingredients. That
- * matters on the money path: the backend treats a missing selection exactly like an empty one
+ * The selection is only attached when the payload actually carries the child's ingredients, and the
+ * reason is the *kitchen ticket*, not the price: `LineCustomizationBuilder.BuildIngredientQuantitiesJson`
+ * only backfills quantities when `selectedIngredients != null`, so an explicit `[]` would zero every
+ * optional and print "NO <everything>", while omitting the field writes no ingredient lines at all.
+ *
+ * Price safety here rests on `MenuBundleMapper` always projecting the child's active
+ * `DetailedIngredients` into both the list and detail payloads: an empty projection therefore means
+ * the child has no active ingredients, so the server's delta is 0 and matches ours. Note the server
+ * treats a missing selection *identically* to an empty one for pricing
  * (`BasketPricingService.CalculateIngredientCustomizationPrice` builds an empty `HashSet` from
- * null), so an explicit empty selection for a child whose ingredients we cannot see would make the
- * server deduct every included-in-base optional. Omitting the field keeps such an option on the
- * legacy behaviour instead of guessing.
+ * null) — this guard buys no price protection, and none is needed.
  */
 export function buildBundleOption(sectionId: string, item: MenuSectionItem): SelectedMenuOption {
   const option: SelectedMenuOption = { sectionId, itemId: item.productId, quantity: 1 };
@@ -52,8 +57,15 @@ export function findBundleOption(
   return selectedOptions.find((option) => option.sectionId === sectionId && option.itemId === itemId);
 }
 
+/**
+ * How many options a section has picked. Counts *options*, not their quantities, to match the
+ * server: `BasketItemFactory.BuildMenuItemAsync` gates `MinSelection`/`MaxSelection` on
+ * `sectionSelections.Count`. (Every option is quantity 1 today — nothing in the sheet sets a
+ * per-option quantity — so the two only diverge if that ever changes, and then the server's rule is
+ * the one that decides whether the add is a 400.)
+ */
 export function countSectionSelections(selectedOptions: readonly SelectedMenuOption[], sectionId: string): number {
-  return selectedOptions.reduce((sum, option) => (option.sectionId === sectionId ? sum + option.quantity : sum), 0);
+  return selectedOptions.filter((option) => option.sectionId === sectionId).length;
 }
 
 /**

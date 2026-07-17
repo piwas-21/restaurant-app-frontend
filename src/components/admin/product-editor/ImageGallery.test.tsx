@@ -69,7 +69,7 @@ describe('ImageGallery — immediate, no rival Save (slice 7 PR2e)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'delete' }));
     fireEvent.click(screen.getByRole('button', { name: 'yes' }));
 
-    await waitFor(() => expect(screen.getByText('image_update_failed')).toBeInTheDocument());
+    expect(await screen.findByText('image_update_failed')).toBeInTheDocument();
     // The failed delete left the image in place.
     expect(container.querySelector('img[alt="second"]')).not.toBeNull();
   });

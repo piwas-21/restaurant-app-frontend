@@ -55,13 +55,9 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   // stricter server bounds a fresh row must meet. Four structurally-different schemas mean the
   // ternary widens past zodResolver's overloads with no single shape for useForm to infer —
   // hence FieldValues + a `never` cast (the modals used `as any`; `never` keeps §5.8's rule).
-  const schema = isBundle
-    ? mode === 'create'
-      ? createMenuBundleSchema
-      : editMenuBundleSchema
-    : mode === 'create'
-      ? createProductSchema
-      : editProductSchema;
+  const bundleSchema = mode === 'create' ? createMenuBundleSchema : editMenuBundleSchema;
+  const itemSchema = mode === 'create' ? createProductSchema : editProductSchema;
+  const schema = isBundle ? bundleSchema : itemSchema;
   const form = useForm<FieldValues>({
     resolver: zodResolver(schema as never) as Resolver<FieldValues>,
     defaultValues: editorDefaults,

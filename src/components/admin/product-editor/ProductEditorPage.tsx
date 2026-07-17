@@ -56,8 +56,10 @@ export default function ProductEditorPage({
 
   const isCreate = mode === 'create';
   const typeLabel = isBundle ? t('product_type_menu') : t(`product_type_${product.type || 'mainItem'}`);
-  const pageTitle = isCreate ? (isBundle ? t('create_new_menu_bundle') : t('create_new_product')) : product.name;
-  const saveLabel = isCreate ? (isBundle ? t('create_menu_bundle') : t('create_product')) : t('save_changes');
+  const createTitle = isBundle ? t('create_new_menu_bundle') : t('create_new_product');
+  const createLabel = isBundle ? t('create_menu_bundle') : t('create_product');
+  const pageTitle = isCreate ? createTitle : product.name;
+  const saveLabel = isCreate ? createLabel : t('save_changes');
   // Create starts from an empty form (nothing "dirty" yet) but must still be submittable —
   // the resolver blocks an incomplete one. Edit gates on isDirty so the commit is deliberate.
   const saveDisabled = editor.isSubmitting || (!isCreate && !editor.isDirty);

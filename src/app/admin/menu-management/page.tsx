@@ -52,15 +52,12 @@ const MenuManagementContent = () => {
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
 
-  // Edit NAVIGATES to the editor page (slice 7 PR2d) instead of opening a modal — the page
-  // is the editor now, with one page-level Save (owner call, plan §7). No `?type=` hint (PR2e):
-  // the editor route derives the kind by fetching the product itself, so the link is clean.
+  // Edit NAVIGATES to the editor page; no `?type=` hint (PR2e) — the route derives the kind itself.
   const handleEdit = (product: Product) => {
     router.push(`/admin/menu-management/${product.id}`);
   };
 
-  // Type is chosen once here (menu item vs bundle): the two load different fields and the
-  // backend can't migrate between them, so the create page opens already fixed to a kind.
+  // Type is chosen once (item vs bundle load different fields; the backend can't migrate between them).
   const handleCreateSelect = (isBundle: boolean) => {
     setIsTypeModalOpen(false);
     router.push(isBundle ? `/admin/menu-management/new?type=${MENU_BUNDLE_TYPE}` : '/admin/menu-management/new');
@@ -127,7 +124,11 @@ const MenuManagementContent = () => {
             </select>
             {/* One "New product" entry → a type choice (owner call, slice 7 PR2e). The filter
                 is a VIEW, not a mode, so create is a single action regardless of the active chip. */}
-            <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsTypeModalOpen(true)}>
+            <button
+              type="button"
+              className={`${styles.adminButton} ${styles.add}`}
+              onClick={() => setIsTypeModalOpen(true)}
+            >
               {t('create_new_product')}
             </button>
           </div>

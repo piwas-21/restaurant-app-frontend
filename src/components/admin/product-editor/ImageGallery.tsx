@@ -18,6 +18,16 @@ interface ImageGalleryProps {
   readonly productName: string;
 }
 
+// Pure optimistic-update transforms for the image list, hoisted so the handlers below stay
+// flat (nesting them inline trips S2004's 4-deep function limit).
+const withPrimary = (list: ProductImage[], id: string): ProductImage[] =>
+  list.map((img) => ({ ...img, isPrimary: img.id === id }));
+
+const withSortOrder = (list: ProductImage[], id: string, sortOrder: number): ProductImage[] =>
+  list.map((img) => (img.id === id ? { ...img, sortOrder } : img)).sort((a, b) => a.sortOrder - b.sortOrder);
+
+const withoutImage = (list: ProductImage[], id: string): ProductImage[] => list.filter((img) => img.id !== id);
+
 /**
  * Existing-image management on the unified editor (menu-bundles #176, slice 7 PR2e).
  *
@@ -79,21 +89,17 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
     void run(
       () => updateProductImageDetails(productId, id, { ...selectedImage, isPrimary: true }),
       // The backend unsets the previous primary, so mirror that locally.
-      () => setImageList((list) => list.map((img) => ({ ...img, isPrimary: img.id === id }))),
+      () => setImageList((list) => withPrimary(list, id)),
     );
   };
 
   const handleSortCommit = () => {
     if (!selectedImage || sortValue === selectedImage.sortOrder) return;
     const id = selectedImage.id;
+    const sortOrder = sortValue;
     void run(
-      () => updateProductImageDetails(productId, id, { ...selectedImage, sortOrder: sortValue }),
-      () =>
-        setImageList((list) =>
-          list
-            .map((img) => (img.id === id ? { ...img, sortOrder: sortValue } : img))
-            .sort((a, b) => a.sortOrder - b.sortOrder),
-        ),
+      () => updateProductImageDetails(productId, id, { ...selectedImage, sortOrder }),
+      () => setImageList((list) => withSortOrder(list, id, sortOrder)),
     );
   };
 
@@ -103,7 +109,7 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
     setIsConfirmationOpen(false);
     void run(
       () => deleteProductImage(productId, id),
-      () => setImageList((list) => list.filter((img) => img.id !== id)),
+      () => setImageList((list) => withoutImage(list, id)),
     );
   };
 

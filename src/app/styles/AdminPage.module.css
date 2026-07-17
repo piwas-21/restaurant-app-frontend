@@ -1125,6 +1125,15 @@
   margin-right: auto;
 }
 
+/* Strips the fieldset chrome so a semantic <fieldset> lays out exactly like the
+   former <div>. Scoped, because .tabs is shared with restaurant-settings + orders. */
+.chipGroup {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
 .tabButton {
   padding: 0.5rem 1rem;
   border: none;

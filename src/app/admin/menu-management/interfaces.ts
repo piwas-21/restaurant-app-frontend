@@ -70,6 +70,20 @@ export interface ProductDetails {
   content?: any; // To match the full product object for the edit modal
 }
 
+/**
+ * The fetched detail payload behind the edit modals. Its shape differs per kind
+ * (`MenuBundleDto` formats times as strings; `ProductDto` does not), so it stays
+ * opaque rather than a union to narrow at every prop. Slice 7 PR2c collapses both
+ * modals into one editor and can type this properly.
+ */
+export type ProductDetailResponse = Record<string, unknown>;
+
+/** An id plus the kind, resolved at click time so the delete path never re-derives it. */
+export interface PendingDelete {
+  id: string;
+  isBundle: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -78,6 +92,13 @@ export interface Product {
   isActive: boolean;
   isAvailable: boolean;
   isSpecial?: boolean;
+  /**
+   * Mirrors backend `ProductSummaryDto.Type` (`ProductType` enum, serialized to its
+   * `[EnumMember]` value — e.g. 'mainItem', 'menu'). The list has always received this
+   * field; it was simply undeclared here, which is why the old code could only branch
+   * on it through an `any`. Compare via `isMenuBundle()`, never a bare string literal.
+   */
+  type: string;
   imageUrl: string | null;
   images: ProductImage[];
 }

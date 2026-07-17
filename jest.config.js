@@ -42,7 +42,9 @@ module.exports = {
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
     'src/utils/reservationForm.ts',
+    'src/utils/productTypeFilter.ts',
     '!src/**/*.test.tsx',
+    '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
     '!**/node_modules/**',
     '!**/.next/**',
@@ -75,6 +77,21 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Slice 7 PR2b — the admin catalog's type filter. `productTypeFilter` is pure and
+    // fully covered; `ProductsTable`'s uncovered branches are the loading/error early
+    // returns, not the per-row type logic the tests pin.
+    './src/utils/productTypeFilter.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/menu-management/ProductsTable.tsx': {
+      statements: 82,
+      branches: 69,
+      functions: 99,
+      lines: 99,
+    },
     './src/components/design-system/AlertDialog.tsx': {
       statements: 99,
       branches: 99,

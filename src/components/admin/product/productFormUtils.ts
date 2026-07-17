@@ -1,6 +1,6 @@
 import { UseFormSetError, UseFormReset } from 'react-hook-form';
 import { FormData, EditFormData } from './schemas';
-import { createProduct, createMenuBundle } from '@/services/menuService';
+import { createProduct, createMenuBundle, updateMenuBundle } from '@/services/menuService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
 
@@ -27,6 +27,23 @@ interface SubmitEditProductFormParams {
   onProductUpdated: () => void;
   onClose: () => void;
 }
+
+/**
+ * The two update commands disagree on `Content`: UpdateProductCommand takes it nullable and its
+ * handler no-ops on an empty map (`if (contentMap.Any())` guards the RemoveRange), while
+ * UpdateMenuBundleCommand takes it non-null and its handler enumerates it directly after an
+ * UNCONDITIONAL `RemoveRange(product.Descriptions)`. The form yields `undefined` once every
+ * language row is removed, which the bundle endpoint would deserialize to null and NRE on.
+ *
+ * So `{}` is not a neutral default: on the bundle path it means "delete every description", where
+ * the identical UI action on the product path means "change nothing". That asymmetry is the
+ * backend's, and this mirrors what MenuBundleDetails already sends (`product.content || {}`) —
+ * chosen deliberately over inventing a different rule for this one caller.
+ */
+const toMenuBundlePayload = <T extends { content?: unknown }>(productData: T) => ({
+  ...productData,
+  content: productData.content ?? {},
+});
 
 export const submitProductForm = async ({
   data,
@@ -350,6 +367,12 @@ export const submitEditProductForm = async ({
       variations: cleanedVariations,
       content: formattedContent,
       detailedIngredients: cleanedIngredients,
+      // TODO(PR2d): this strips the SECTION id only — nested item ids ride through `...section`
+      // untouched. Safe today because both bundle modals pre-strip via
+      // `stripTemporaryMenuSectionIds` (src/utils/menuSectionDraft.ts), which handles items too.
+      // A `temp-…` item id is NOT ignored server-side: MenuSectionItemDto.Id is Guid?, so STJ
+      // fails to convert it and the request 400s. When the unified editor page calls this write
+      // path directly, it must pre-strip the same way — or this block should adopt that util.
       menuDefinition: data.menuDefinition
         ? {
             ...data.menuDefinition,
@@ -373,7 +396,14 @@ export const submitEditProductForm = async ({
         : undefined,
     } as any;
 
-    const response = (await updateProduct(product.id, productData)) as { success: boolean; message?: string };
+    // A bundle must be updated through the bundle endpoint, mirroring the create path above.
+    // PUT /api/Products requires at least one category (UpdateProductCommandValidator), which a
+    // bundle can never satisfy: editMenuBundleSchema has no category field and MenuBundleDto
+    // carries none, so this always sent categoryIds: [] and every bundle edit failed with
+    // "At least one category is required". PUT /api/Menus takes CategoryIds as optional.
+    const response = (await (data.menuDefinition
+      ? updateMenuBundle(product.id, toMenuBundlePayload(productData))
+      : updateProduct(product.id, productData))) as { success: boolean; message?: string };
     if (response.success) {
       if (imageFiles.length > 0) {
         await uploadBulkProductImages(product.id, imageFiles);

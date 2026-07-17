@@ -74,8 +74,13 @@ export function resolveSideItemIds(product: ProductDetails): string[] {
  * fields: `MenuBundleDto` returns none of them, so there is nothing to seed and
  * `editMenuBundleSchema` declares none. A bundle's categories are preserved server-side
  * (backend #192) precisely because the client never sends them.
+ *
+ * The two shapes are NOT interchangeable — an item is validated by `editProductSchema`
+ * (which requires at least one category) and a bundle by `editMenuBundleSchema` (no category
+ * field, requires a menuDefinition) — so the caller picks the one matching its resolver
+ * rather than passing a selector flag through one function.
  */
-function toBundleDefaults(product: ProductDetails) {
+export function toBundleDefaults(product: ProductDetails) {
   return {
     id: product.id,
     name: product.name || '',
@@ -97,7 +102,7 @@ function toBundleDefaults(product: ProductDetails) {
 }
 
 /** Form defaults for a plain item. */
-function toItemDefaults(product: ProductDetails) {
+export function toItemDefaults(product: ProductDetails) {
   const categoryIds = resolveCategoryIds(product);
 
   return {
@@ -118,16 +123,6 @@ function toItemDefaults(product: ProductDetails) {
     displayOrder: product.displayOrder || 0,
     suggestedSideItemIds: resolveSideItemIds(product),
   };
-}
-
-/**
- * The `reset()` payload for the editor. The two kinds are NOT interchangeable — an item is
- * validated by `editProductSchema` (which requires at least one category) and a bundle by
- * `editMenuBundleSchema` (which has no category field at all and requires a menuDefinition),
- * so seeding one shape into the other's resolver would make the form unsubmittable.
- */
-export function toEditorDefaults(product: ProductDetails, isBundle: boolean) {
-  return isBundle ? toBundleDefaults(product) : toItemDefaults(product);
 }
 
 /** A bundle's schedule/sections state, which lives outside the form (it is not a field). */

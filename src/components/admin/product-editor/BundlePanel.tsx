@@ -11,12 +11,13 @@ import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 interface BundlePanelProps {
-  register: UseFormRegister<FieldValues>;
-  errors: FieldErrors<FieldValues>;
-  menuDefinition: MenuDefinition;
-  onChange: (menuDefinition: MenuDefinition) => void;
-  imageFiles: File[];
-  setImageFiles: (files: File[]) => void;
+  // readonly: S6759 — component props are never mutated.
+  readonly register: UseFormRegister<FieldValues>;
+  readonly errors: FieldErrors<FieldValues>;
+  readonly menuDefinition: MenuDefinition;
+  readonly onChange: (menuDefinition: MenuDefinition) => void;
+  readonly imageFiles: File[];
+  readonly setImageFiles: (files: File[]) => void;
 }
 
 /**

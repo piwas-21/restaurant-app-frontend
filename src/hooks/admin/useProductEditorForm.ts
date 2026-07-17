@@ -11,7 +11,7 @@ import type { Category } from '@/components/admin/product/types';
 import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
 import { isPersistedMenuId, stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
-import { toEditorDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
+import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -27,6 +27,7 @@ interface UseProductEditorFormOptions {
  */
 export function useProductEditorForm({ product, isBundle, onSaved }: UseProductEditorFormOptions) {
   const { i18n } = useTranslation();
+  const editorDefaults = isBundle ? toBundleDefaults(product) : toItemDefaults(product);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -49,7 +50,7 @@ export function useProductEditorForm({ product, isBundle, onSaved }: UseProductE
   // modals cast the same boundary with `as any`; `never` keeps §5.8's no-any rule.
   const form = useForm<FieldValues>({
     resolver: zodResolver((isBundle ? editMenuBundleSchema : editProductSchema) as never) as Resolver<FieldValues>,
-    defaultValues: toEditorDefaults(product, isBundle),
+    defaultValues: editorDefaults,
   });
 
   const { control, reset, setError, watch, setValue } = form;
@@ -68,7 +69,7 @@ export function useProductEditorForm({ product, isBundle, onSaved }: UseProductE
   }, [isBundle]);
 
   useEffect(() => {
-    reset(toEditorDefaults(product, isBundle));
+    reset(isBundle ? toBundleDefaults(product) : toItemDefaults(product));
     setSelectedSideItemIds(isBundle ? [] : (product.suggestedSideItems ?? []).map((s) => s.id).filter(Boolean));
     setDetailedIngredients(isBundle ? [] : (product.detailedIngredients ?? []));
     setMenuDefinition(toMenuDefinitionState(product));

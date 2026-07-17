@@ -19,11 +19,12 @@ import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 interface ProductEditorPageProps {
-  product: ProductDetails;
-  isBundle: boolean;
-  onSaved: () => void;
-  onDelete: () => void;
-  onBack: () => void;
+  // readonly: S6759 — component props are never mutated.
+  readonly product: ProductDetails;
+  readonly isBundle: boolean;
+  readonly onSaved: () => void;
+  readonly onDelete: () => void;
+  readonly onBack: () => void;
 }
 
 /**

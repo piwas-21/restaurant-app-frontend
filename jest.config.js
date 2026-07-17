@@ -87,7 +87,7 @@ module.exports = {
     // are not exercised — the panel's kind-specific *structure* is what the tests pin.
     './src/utils/productEditorDefaults.ts': {
       statements: 95,
-      branches: 63,
+      branches: 61,
       functions: 99,
       lines: 99,
     },

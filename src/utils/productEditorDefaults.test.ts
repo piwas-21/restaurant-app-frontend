@@ -4,7 +4,8 @@ import {
   resolveCategoryIds,
   resolvePrimaryCategoryId,
   resolveSideItemIds,
-  toEditorDefaults,
+  toBundleDefaults,
+  toItemDefaults,
   toMenuDefinitionState,
 } from './productEditorDefaults';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
@@ -71,13 +72,13 @@ describe('resolvePrimaryCategoryId', () => {
   });
 });
 
-describe('toEditorDefaults', () => {
+describe('toItemDefaults / toBundleDefaults', () => {
   // The two kinds are validated by different schemas, so seeding the wrong shape makes the
   // form unsubmittable: editProductSchema requires categoryIds.min(1), which a bundle can
   // never satisfy, and editMenuBundleSchema requires a menuDefinition and declares no
   // category field.
   it('seeds an item with the fields editProductSchema requires', () => {
-    const defaults = toEditorDefaults(product({ primaryCategory: { id: CAT_B, name: 'Specials' } }), false) as Record<
+    const defaults = toItemDefaults(product({ primaryCategory: { id: CAT_B, name: 'Specials' } })) as Record<
       string,
       unknown
     >;
@@ -89,7 +90,7 @@ describe('toEditorDefaults', () => {
   });
 
   it('seeds a bundle with no category fields at all', () => {
-    const defaults = toEditorDefaults(product({ type: 'menu' }), true) as Record<string, unknown>;
+    const defaults = toBundleDefaults(product({ type: 'menu' })) as Record<string, unknown>;
 
     expect(defaults.type).toBe('menu');
     expect(defaults).not.toHaveProperty('categoryIds');

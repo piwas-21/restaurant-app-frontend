@@ -78,7 +78,11 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `npm run build && npm run start -- --port ${PORT}`,
+    // `rm -rf .next` FIRST: NEXT_PUBLIC_TEMPLATE is inlined at build time and the
+    // template also swings the @active-template alias (which modules bundle), so a
+    // reused .next/cache from a prior template would serve a stale build → wrong
+    // baselines. CI is fresh per matrix leg; this guards local template switches.
+    command: `rm -rf .next && npm run build && npm run start -- --port ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',

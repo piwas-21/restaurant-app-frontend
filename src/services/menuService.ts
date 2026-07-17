@@ -1,6 +1,7 @@
 import { apiClient } from '@/utils/apiClient';
 import { mockApiClient } from './mockApiClient';
 import { Product } from '@/app/admin/menu-management/interfaces';
+import type { ProductTypeQuery } from '@/utils/productTypeFilter';
 
 const API_BASE_URL = '/api';
 const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
@@ -83,11 +84,17 @@ export const getProducts = async (
   pageNumber: number = 1,
   pageSize: number = 10,
   categoryId?: string | null,
+  typeQuery?: ProductTypeQuery,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
   try {
     let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
     if (categoryId) {
       url += `&CategoryId=${categoryId}`;
+    }
+    if (typeQuery?.type) {
+      url += `&Type=${typeQuery.type}`;
+    } else if (typeQuery?.includeMenus) {
+      url += `&IncludeMenus=true`;
     }
     return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
   } catch {

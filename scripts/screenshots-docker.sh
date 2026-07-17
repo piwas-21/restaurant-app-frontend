@@ -84,6 +84,7 @@ info "Mode:     ${UPDATE_FLAG:-compare}"
 docker run "${DOCKER_ARGS[@]}" \
   -e E2E_API_BASE_URL="$API_URL" \
   -e SCREENSHOT_PORT="${SCREENSHOT_PORT:-3100}" \
+  -e SCREENSHOT_TEMPLATE="${SCREENSHOT_TEMPLATE:-classic}" \
   "$IMAGE" \
   bash -c "$IN_CONTAINER_SETUP && npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG"
 

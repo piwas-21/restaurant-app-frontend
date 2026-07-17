@@ -101,7 +101,14 @@ RUMI look into the `classic` template must produce zero diff against them.
 guest smart-skip driver, `/reservations`, `/auth/login`, `/auth/register`)
 × 2 themes (`html[data-theme]` light/dark, pre-seeded via `rumiTheme` in
 localStorage) × 2 viewports (desktop 1280×720, mobile 375×812), full-page →
-**28 PNGs** in `screenshots/__screenshots__/<project>/`.
+**28 PNGs per template** in `screenshots/__screenshots__/<template>/<project>/`.
+
+**Per-template baselines (S15 T3 DoD).** `SCREENSHOT_TEMPLATE` (default
+`classic`) is baked into the build via `NEXT_PUBLIC_TEMPLATE` and segments the
+snapshot path, so each UI template keeps its own baseline set. CI runs one matrix
+leg per template (`classic`, `craft`). Regenerate one template's baselines with
+`SCREENSHOT_TEMPLATE=craft npm run test:screenshots:docker:update` (then commit
+`__screenshots__/craft/`).
 
 **Determinism** (`screenshots/helpers.ts`): frozen clock
 (`page.clock.setFixedTime`), `locale en-US` + `TZ UTC`, reduced motion +

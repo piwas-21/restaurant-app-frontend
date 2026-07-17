@@ -39,7 +39,6 @@ src/app/styles/AdminOrdersPage.module.css
 src/app/styles/DetailsPage.module.css
 src/app/styles/OrderTypePage.module.css
 src/app/styles/AdminPage.module.css
-src/app/menu/page.tsx
 src/app/account/page.tsx
 src/app/(auth)/delete-account/DeleteAccount.module.css
 src/app/(auth)/verify-email/VerifyEmail.module.css
@@ -83,7 +82,6 @@ src/components/admin/orders/BulkStatusUpdateModal.module.css
 src/components/admin/orders/OrdersTable.module.css
 src/components/admin/orders/FocusOrderModal.module.css
 src/components/admin/menu-editor/MenuEditor.module.css
-src/components/admin/menu-editor/MenuSectionEditor.tsx
 src/components/admin/menu-editor/MenuItemSelector.tsx
 src/components/admin/menu-details/MenuBundleDetails.tsx
 src/components/admin/menu-details/MenuBundleDetails.module.css
@@ -106,18 +104,10 @@ src/components/checkout/OrderConfirmationModal.module.css
 src/components/checkout/TipSelector.module.css
 src/components/checkout/PaymentMethodSelector.module.css
 src/components/checkout/TableSelector.module.css
-src/components/menu/CustomizationModal.tsx
 src/components/menu/CategoryNav.module.css
 src/components/menu/customization/OptionalIngredientsSection.module.css
-src/components/menu/customization/PriceCalculator.module.css
 src/components/menu/customization/SuggestedSideItemsSection.module.css
-src/components/menu/CustomizationModal.module.css
-src/components/menu/ProductCustomizationInBundle.module.css
-src/components/menu/MenuCustomizationModal.tsx
-src/components/menu/MenuBundleDetailsModal.module.css
-src/components/menu/ProductDetailsModal.tsx
 src/components/menu/FeaturedSpecial.module.css
-src/components/menu/MenuCustomization.module.css
 src/components/menu/FloatingCartButton.module.css
 src/components/TableBanner.module.css
 src/components/orders/OrderCard.tsx

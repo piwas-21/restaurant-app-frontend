@@ -37,7 +37,10 @@ export function useMenuSectionDraft({ sections, onChange, commitMode = 'explicit
   const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Reset local state when sections prop changes
+  // Resync when the sections prop changes. In `live` mode the parent echoes back the
+  // very array we emitted, so this re-sets the array we already hold and React bails
+  // on Object.is — the echo is an identity operation, not a clobber. See the PR #212
+  // thread: an echo guard here was measured to change nothing.
   useEffect(() => {
     setLocalSections(sections);
     setHasChanges(false);

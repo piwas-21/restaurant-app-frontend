@@ -124,7 +124,6 @@ export interface AddToBasketDto {
     selectedIngredients?: string[];
     excludedIngredients?: string[];
     ingredientQuantities?: Record<string, number>;
-    selectedSideItems?: Array<{ id: string; quantity: number }>;
   }>;
 }
 

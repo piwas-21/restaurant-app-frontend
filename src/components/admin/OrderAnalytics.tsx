@@ -1,5 +1,6 @@
 'use client';
 
+import { formatCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
@@ -12,12 +13,7 @@ interface OrderAnalyticsProps {
 
 export default function OrderAnalytics({ orders }: OrderAnalyticsProps) {
   const { t } = useTranslation();
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   // Get today's date range
   const today = new Date();

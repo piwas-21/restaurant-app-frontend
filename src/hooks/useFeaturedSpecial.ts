@@ -1,20 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useCart } from '@/components/cart/CartContext';
-import { useSnackbar } from 'notistack';
-import type { FeaturedSpecial, FeaturedSpecialResponse, ProductCustomization } from '@/types/menu';
+import { useState, useEffect } from 'react';
+import type { FeaturedSpecial, FeaturedSpecialResponse } from '@/types/menu';
 import { getFeaturedSpecial } from '@/services/menuService';
 
+/**
+ * Loads today's featured special for the menu banner.
+ *
+ * Adding it is no longer this hook's job (menu-bundles redesign #175, slice 6): both the banner's
+ * Add and its Details now open the shared `ItemCustomizationSheet` by product id, which fetches the
+ * detail, applies the one base-recipe default rule, prices the line backend-faithfully, and adds
+ * straight to the cart when the product has no options. That replaced this hook's own
+ * has-customization check + its `ProductCustomization` add path, and the two hand-built product
+ * literals `MenuModals` fed to the retired `CustomizationModal` / `ProductDetailsModal`.
+ */
 export function useFeaturedSpecial() {
-  const { t } = useTranslation();
-  const { addItem } = useCart();
-  const { enqueueSnackbar } = useSnackbar();
-
   const [featuredSpecial, setFeaturedSpecial] = useState<FeaturedSpecial | null>(null);
-  const [showFeaturedDetails, setShowFeaturedDetails] = useState(false);
-  const [showFeaturedCustomization, setShowFeaturedCustomization] = useState(false);
 
-  // Load featured special on mount
   useEffect(() => {
     const loadFeaturedSpecial = async () => {
       try {
@@ -23,7 +23,7 @@ export function useFeaturedSpecial() {
           setFeaturedSpecial(response.data);
         }
       } catch {
-        // Silently fail if featured special cannot be loaded
+        // Silently fail if featured special cannot be loaded — the banner just doesn't render.
       }
     };
 
@@ -31,92 +31,5 @@ export function useFeaturedSpecial() {
     void loadFeaturedSpecial();
   }, []);
 
-  const handleAddFeaturedToCart = useCallback(async () => {
-    if (!featuredSpecial) return;
-
-    // Check if product has customization options
-    const hasCustomizationOptions =
-      (featuredSpecial.variations && featuredSpecial.variations.length > 0) ||
-      (featuredSpecial.detailedIngredients && featuredSpecial.detailedIngredients.some((ing) => ing.isOptional)) ||
-      (featuredSpecial.suggestedSideItems && featuredSpecial.suggestedSideItems.length > 0);
-
-    // If product has customization options, show customization modal
-    if (hasCustomizationOptions) {
-      setShowFeaturedCustomization(true);
-      return;
-    }
-
-    // Otherwise, add directly to cart. `addItem` is async — must await
-    // so the success/error snackbar reflects the actual outcome.
-    // Pre-fix: the sync try/catch couldn't catch an async rejection,
-    // so the success snackbar fired even when addItem failed.
-    try {
-      await addItem({
-        productId: featuredSpecial.id,
-        quantity: 1,
-      });
-
-      enqueueSnackbar(t('item_added_to_cart', 'Item added to cart'), {
-        variant: 'success',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
-    } catch {
-      enqueueSnackbar(t('error_adding_to_cart', 'Error adding item to cart'), {
-        variant: 'error',
-        autoHideDuration: 3000,
-      });
-    }
-  }, [featuredSpecial, addItem, enqueueSnackbar, t]);
-
-  const handleFeaturedCustomizationConfirm = useCallback(
-    async (customization: ProductCustomization) => {
-      if (!featuredSpecial) return;
-
-      try {
-        await addItem({
-          productId: customization.productId,
-          productVariationId: customization.selectedVariationId || undefined,
-          quantity: customization.quantity,
-          specialInstructions: customization.specialInstructions,
-          selectedIngredients: customization.selectedIngredients,
-          excludedIngredients: customization.excludedIngredients,
-          ingredientQuantities: customization.ingredientQuantities,
-          selectedSideItems: customization.selectedSideItems,
-        });
-
-        setShowFeaturedCustomization(false);
-        enqueueSnackbar(t('item_added_to_cart', 'Item added to cart'), {
-          variant: 'success',
-          autoHideDuration: 2000,
-          anchorOrigin: { vertical: 'top', horizontal: 'center' },
-        });
-      } catch {
-        enqueueSnackbar(t('error_adding_to_cart', 'Error adding item to cart'), {
-          variant: 'error',
-          autoHideDuration: 3000,
-        });
-      }
-    },
-    [featuredSpecial, addItem, enqueueSnackbar, t],
-  );
-
-  const handleViewFeaturedDetails = useCallback(() => {
-    setShowFeaturedDetails(true);
-  }, []);
-
-  const handleCloseFeaturedDetails = useCallback(() => {
-    setShowFeaturedDetails(false);
-  }, []);
-
-  return {
-    featuredSpecial,
-    showFeaturedDetails,
-    showFeaturedCustomization,
-    handleAddFeaturedToCart,
-    handleFeaturedCustomizationConfirm,
-    handleViewFeaturedDetails,
-    handleCloseFeaturedDetails,
-    setShowFeaturedCustomization,
-  };
+  return { featuredSpecial };
 }

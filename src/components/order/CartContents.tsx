@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus, ShoppingCart, ChevronRight } from 'lucide-react';
@@ -8,6 +9,8 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
 import type { OrderType } from '@/types/order';
 import OrderTypeToggle from './OrderTypeToggle';
+import OrderLineSummary from './OrderLineSummary';
+import { basketItemToLineSummary } from './lineSummary';
 import styles from './CartContents.module.css';
 
 interface CartContentsProps {
@@ -88,8 +91,9 @@ export default function CartContents({ pickType, onProceed, analyticsSource = 's
               <li key={itemId} className={styles.item}>
                 <div className={styles.itemRow}>
                   <span className={styles.itemName}>{item.productName}</span>
-                  <span className={styles.itemPrice}>CHF {item.itemTotal.toFixed(2)}</span>
+                  <span className={styles.itemPrice}>{formatPlainCurrency(item.itemTotal)}</span>
                 </div>
+                <OrderLineSummary line={basketItemToLineSummary(item)} />
                 <div className={styles.itemControls}>
                   <button
                     type="button"
@@ -130,7 +134,7 @@ export default function CartContents({ pickType, onProceed, analyticsSource = 's
 
       <div className={styles.totalRow}>
         <span>{t('cart_total_label', 'Total')}</span>
-        <span className={styles.totalValue}>CHF {subtotal.toFixed(2)}</span>
+        <span className={styles.totalValue}>{formatPlainCurrency(subtotal)}</span>
       </div>
 
       <button

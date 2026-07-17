@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
-import { useSnackbar } from 'notistack';
 import TableBanner from '@/components/TableBanner';
 
-import type { LanguageCode } from '@/components/LanguageSwitcher';
 import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
@@ -15,28 +13,20 @@ import OrderFlowModals from '@/components/order/OrderFlowModals';
 import OrderFlowSidebar from '@/components/order/OrderFlowSidebar';
 import MobileCartSheet from '@/components/order/MobileCartSheet';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
-import { setFallbackImage } from '@/utils/imageHelpers';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuContent from '@/components/menu/MenuContent';
-import MenuModals from '@/components/menu/MenuModals';
 import FeaturedSpecialComponent from '@/components/menu/FeaturedSpecial';
-import MenuBundleDetailsModal from '@/components/menu/MenuBundleDetailsModal';
-import { MenuBundleItem, SelectedMenuOption } from '@/types/menu';
-import MenuCustomizationModal from '@/components/menu/MenuCustomizationModal';
+import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
+import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 export default function MenuPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedBundle, setSelectedBundle] = useState<MenuBundleItem | null>(null);
-  const [showBundleDetails, setShowBundleDetails] = useState(false);
-  const [selectedBundleForCustomization, setSelectedBundleForCustomization] = useState<MenuBundleItem | null>(null);
   const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
   const [isMobileCartSheetOpen, setIsMobileCartSheetOpen] = useState(false);
-
-  const currentLanguage = (i18n.language.split('-')[0] || 'en') as LanguageCode;
 
   // Custom hooks
   const {
@@ -53,20 +43,21 @@ export default function MenuPage() {
     onPageChange,
   } = usePublicMenu();
 
-  const {
-    featuredSpecial,
-    showFeaturedDetails,
-    showFeaturedCustomization,
-    handleAddFeaturedToCart,
-    handleFeaturedCustomizationConfirm,
-    handleViewFeaturedDetails,
-    handleCloseFeaturedDetails,
-    setShowFeaturedCustomization,
-  } = useFeaturedSpecial();
+  const { featuredSpecial } = useFeaturedSpecial();
 
-  const { addItem, state: cartState } = useCart();
-  const { enqueueSnackbar } = useSnackbar();
+  const { state: cartState } = useCart();
   const orderTypeFollowUp = useOrderTypeFollowUp();
+
+  // One customization sheet for the whole page (menu-bundles redesign #175, slice 6): the browse
+  // grid and the featured banner both open it, and it owns the selection, live pricing and the add.
+  const bundlesById = useMemo(() => new Map(menuBundles.map((bundle) => [bundle.id, bundle])), [menuBundles]);
+  const sheet = useCatalogSheet({
+    findBundle: (id) => bundlesById.get(id),
+    onAdded: () => {
+      setCartAnimationTrigger(true);
+      setTimeout(() => setCartAnimationTrigger(false), 100);
+    },
+  });
 
   useEffect(() => {
     setIsMounted(true);
@@ -81,78 +72,6 @@ export default function MenuPage() {
     menuViewedFiredRef.current = true;
     trackEvent('menu_viewed', { loggedIn: isLoggedInForAnalytics() });
   }, []);
-
-  // Bundle handlers
-  const handleCustomizeBundle = (bundle: MenuBundleItem) => {
-    setSelectedBundleForCustomization(bundle);
-  };
-
-  const handleAddBundleToCart = async (
-    bundle: MenuBundleItem,
-    selectedOptions?: SelectedMenuOption[],
-    totalPrice?: number,
-  ) => {
-    const bundleName = bundle.content?.[currentLanguage]?.name || bundle.content?.en?.name || bundle.name;
-
-    try {
-      if (!bundle.menuDefinition) {
-        enqueueSnackbar(t('error_adding_to_cart', 'Failed to add bundle to cart'), {
-          variant: 'error',
-        });
-        return;
-      }
-
-      // If selectedOptions are provided (from customization modal), use them
-      // Otherwise use default items (respecting maxSelection)
-      const optionsToAdd =
-        selectedOptions ||
-        bundle.menuDefinition.sections?.flatMap((section) => {
-          const defaultItems = section.items.filter((item) => item.isDefault);
-
-          // Respect maxSelection when selecting defaults
-          const itemsToSelect = defaultItems.slice(0, section.maxSelection);
-
-          return itemsToSelect.map((item) => ({
-            sectionId: section.id,
-            itemId: item.productId,
-            quantity: 1,
-          }));
-        }) ||
-        [];
-
-      // Use provided totalPrice or bundle base price
-      const _price = totalPrice || bundle.basePrice;
-
-      await addItem({
-        productId: bundle.id,
-        quantity: 1,
-        selectedMenuOptions: optionsToAdd,
-      });
-
-      // Close customization modal if open
-      setSelectedBundleForCustomization(null);
-
-      enqueueSnackbar(t('item_added_to_cart_toast', { itemName: bundleName }), {
-        variant: 'success',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
-
-      // Trigger cart animation
-      setCartAnimationTrigger(true);
-      setTimeout(() => setCartAnimationTrigger(false), 100);
-    } catch (error) {
-      console.error('Error adding bundle to cart:', error);
-      enqueueSnackbar(t('error_adding_to_cart', 'Failed to add bundle to cart'), {
-        variant: 'error',
-      });
-    }
-  };
-
-  const handleViewBundleDetails = (bundle: MenuBundleItem) => {
-    setSelectedBundle(bundle);
-    setShowBundleDetails(true);
-  };
 
   if (!isMounted || !selectedView) {
     return null;
@@ -185,8 +104,8 @@ export default function MenuPage() {
           {featuredSpecial && (
             <FeaturedSpecialComponent
               special={featuredSpecial}
-              onAddToCart={handleAddFeaturedToCart}
-              onViewDetails={handleViewFeaturedDetails}
+              onAddToCart={() => sheet.openForProductId(featuredSpecial.id)}
+              onViewDetails={() => sheet.openForProductId(featuredSpecial.id)}
             />
           )}
 
@@ -203,10 +122,7 @@ export default function MenuPage() {
             totalPages={totalPages}
             totalCount={totalCount}
             onPageChange={onPageChange}
-            getFallbackImage={setFallbackImage}
-            currentLanguage={currentLanguage}
-            onAddBundleToCart={handleCustomizeBundle}
-            onViewBundleDetails={handleViewBundleDetails}
+            onOpenItem={sheet.openForCatalogItem}
           />
         </div>
 
@@ -215,43 +131,8 @@ export default function MenuPage() {
         </div>
       </div>
 
-      <MenuModals
-        featuredSpecial={featuredSpecial}
-        showFeaturedDetails={showFeaturedDetails}
-        showFeaturedCustomization={showFeaturedCustomization}
-        onCloseFeaturedDetails={handleCloseFeaturedDetails}
-        onCloseFeaturedCustomization={() => setShowFeaturedCustomization(false)}
-        onFeaturedCustomizationConfirm={handleFeaturedCustomizationConfirm}
-      />
-
-      {/* Menu Bundle Details Modal */}
-      <MenuBundleDetailsModal
-        bundle={selectedBundle}
-        isOpen={showBundleDetails}
-        onClose={() => setShowBundleDetails(false)}
-        onAddToCart={handleCustomizeBundle}
-        currentLanguage={currentLanguage}
-      />
-
-      {/* Menu Customization Modal */}
-      {selectedBundleForCustomization && selectedBundleForCustomization.menuDefinition && (
-        <MenuCustomizationModal
-          isOpen={!!selectedBundleForCustomization}
-          onClose={() => setSelectedBundleForCustomization(null)}
-          productId={selectedBundleForCustomization.id}
-          productName={
-            selectedBundleForCustomization.content?.[currentLanguage]?.name ||
-            selectedBundleForCustomization.content?.en?.name ||
-            selectedBundleForCustomization.name
-          }
-          basePrice={selectedBundleForCustomization.basePrice}
-          menuDefinition={selectedBundleForCustomization.menuDefinition}
-          onAddToBasket={(selectedOptions, totalPrice) =>
-            handleAddBundleToCart(selectedBundleForCustomization, selectedOptions, totalPrice)
-          }
-          currentLanguage={currentLanguage}
-        />
-      )}
+      <ItemCustomizationSheet controller={sheet.product} />
+      <ItemCustomizationSheet controller={sheet.bundle} />
 
       {/* Floating Cart Button */}
       <FloatingCartButton

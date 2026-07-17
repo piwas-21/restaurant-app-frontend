@@ -2,6 +2,9 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TableDto, UpdateTableDto, CreateTableDto } from '@/types/reservation';
 import tableLayoutService from '@/services/tableLayoutService';
+import { useTableEntrance } from './table-layout/useTableEntrance';
+import { useTableDragState } from './table-layout/useTableDragState';
+import { useTableSelection } from './table-layout/useTableSelection';
 
 const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 500;
@@ -10,14 +13,9 @@ export function useTableLayout() {
   const { t } = useTranslation();
   const [tables, setTables] = useState<TableDto[]>([]);
   const [selectedTable, setSelectedTable] = useState<TableDto | null>(null);
-  const [draggingTable, setDraggingTable] = useState<string | null>(null);
-  const [draggingEntrance, setDraggingEntrance] = useState(false);
-  const [entrancePosition, setEntrancePosition] = useState({ x: 50, y: 10 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [selectedTableIds, setSelectedTableIds] = useState<Set<string>>(new Set());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteModalData, setDeleteModalData] = useState<{ tableNumber?: string; tableCount?: number }>({});
 
@@ -38,21 +36,16 @@ export function useTableLayout() {
     }
   }, [showMessage, t]);
 
-  const loadEntrancePosition = useCallback(() => {
-    const saved = localStorage.getItem('entrancePosition');
-    if (saved) {
-      try {
-        const position = JSON.parse(saved);
-        setEntrancePosition(position);
-      } catch {
-        // Use default
-      }
-    }
-  }, []);
-
-  const saveEntrancePosition = useCallback((position: { x: number; y: number }) => {
-    localStorage.setItem('entrancePosition', JSON.stringify(position));
-  }, []);
+  const entrance = useTableEntrance();
+  const dragState = useTableDragState();
+  const selection = useTableSelection({
+    tables,
+    loadTables,
+    showMessage,
+    setSaving,
+    setShowDeleteModal,
+    setDeleteModalData,
+  });
 
   const updateSelectedTable = useCallback(
     (updates: Partial<TableDto>) => {
@@ -144,150 +137,25 @@ export function useTableLayout() {
     }
   }, [tables, loadTables, showMessage, t]);
 
-  const toggleTableSelection = useCallback((tableId: string) => {
-    setSelectedTableIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(tableId)) {
-        newSet.delete(tableId);
-      } else {
-        newSet.add(tableId);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const bulkActivateTables = useCallback(async () => {
-    if (selectedTableIds.size === 0) {
-      showMessage('error', t('no_tables_selected', 'No tables selected'));
-      return;
-    }
-
-    try {
-      setSaving(true);
-      const updates = Array.from(selectedTableIds).map(async (tableId) => {
-        const table = tables.find((t) => t.id === tableId);
-        if (table && !table.isActive) {
-          const updateData: UpdateTableDto = {
-            ...table,
-            isActive: true,
-            shape: table.shape || 'circle',
-          };
-          await tableLayoutService.updateTable(tableId, updateData);
-          return tableId;
-        }
-        return null;
-      });
-
-      const updated = (await Promise.all(updates)).filter(Boolean);
-      if (updated.length > 0) {
-        await loadTables();
-        showMessage(
-          'success',
-          t('tables_activated', 'Activated {{count}} table(s)').replace('{{count}}', updated.length.toString()),
-        );
-        setSelectedTableIds(new Set());
-      } else {
-        showMessage('error', t('no_inactive_tables', 'No inactive tables to activate'));
-      }
-    } catch (error: any) {
-      showMessage('error', error.message || t('failed_to_activate_tables', 'Failed to activate tables'));
-    } finally {
-      setSaving(false);
-    }
-  }, [selectedTableIds, tables, loadTables, showMessage, t]);
-
-  const bulkDeactivateTables = useCallback(async () => {
-    if (selectedTableIds.size === 0) {
-      showMessage('error', t('no_tables_selected', 'No tables selected'));
-      return;
-    }
-
-    try {
-      setSaving(true);
-      const updates = Array.from(selectedTableIds).map(async (tableId) => {
-        const table = tables.find((t) => t.id === tableId);
-        if (table && table.isActive) {
-          const updateData: UpdateTableDto = {
-            ...table,
-            isActive: false,
-            shape: table.shape || 'circle',
-          };
-          await tableLayoutService.updateTable(tableId, updateData);
-          return tableId;
-        }
-        return null;
-      });
-
-      const updated = (await Promise.all(updates)).filter(Boolean);
-      if (updated.length > 0) {
-        await loadTables();
-        showMessage(
-          'success',
-          t('tables_deactivated', 'Deactivated {{count}} table(s)').replace('{{count}}', updated.length.toString()),
-        );
-        setSelectedTableIds(new Set());
-      } else {
-        showMessage('error', t('no_active_tables', 'No active tables to deactivate'));
-      }
-    } catch (error: any) {
-      showMessage('error', error.message || t('failed_to_deactivate_tables', 'Failed to deactivate tables'));
-    } finally {
-      setSaving(false);
-    }
-  }, [selectedTableIds, tables, loadTables, showMessage, t]);
-
-  const bulkDeleteTables = useCallback(async () => {
-    if (selectedTableIds.size === 0) {
-      showMessage('error', t('no_tables_selected', 'No tables selected'));
-      return;
-    }
-
-    setDeleteModalData({ tableCount: selectedTableIds.size });
-    setShowDeleteModal(true);
-  }, [selectedTableIds.size, showMessage, t]);
-
-  const confirmBulkDeleteTables = useCallback(async () => {
-    if (selectedTableIds.size === 0) return;
-
-    try {
-      setSaving(true);
-      const deletes = Array.from(selectedTableIds).map(async (tableId) => {
-        await tableLayoutService.deleteTable(tableId);
-        return tableId;
-      });
-
-      const count = selectedTableIds.size;
-      await Promise.all(deletes);
-      await loadTables();
-      setShowDeleteModal(false);
-      showMessage('success', t('tables_deleted', 'Deleted {{count}} table(s)').replace('{{count}}', count.toString()));
-      setSelectedTableIds(new Set());
-    } catch (error: any) {
-      showMessage('error', error.message || t('failed_to_delete_tables', 'Failed to delete tables'));
-    } finally {
-      setSaving(false);
-    }
-  }, [selectedTableIds, loadTables, showMessage, t]);
-
   return {
     // State
     tables,
     setTables,
     selectedTable,
     setSelectedTable,
-    draggingTable,
-    setDraggingTable,
-    draggingEntrance,
-    setDraggingEntrance,
-    entrancePosition,
-    setEntrancePosition,
-    dragOffset,
-    setDragOffset,
+    draggingTable: dragState.draggingTable,
+    setDraggingTable: dragState.setDraggingTable,
+    draggingEntrance: dragState.draggingEntrance,
+    setDraggingEntrance: dragState.setDraggingEntrance,
+    entrancePosition: entrance.entrancePosition,
+    setEntrancePosition: entrance.setEntrancePosition,
+    dragOffset: dragState.dragOffset,
+    setDragOffset: dragState.setDragOffset,
     loading,
     saving,
     message,
-    selectedTableIds,
-    setSelectedTableIds,
+    selectedTableIds: selection.selectedTableIds,
+    setSelectedTableIds: selection.setSelectedTableIds,
     showDeleteModal,
     setShowDeleteModal,
     deleteModalData,
@@ -295,18 +163,18 @@ export function useTableLayout() {
     // Actions
     showMessage,
     loadTables,
-    loadEntrancePosition,
-    saveEntrancePosition,
+    loadEntrancePosition: entrance.loadEntrancePosition,
+    saveEntrancePosition: entrance.saveEntrancePosition,
     updateSelectedTable,
     handleCreateTable,
     handleDeleteTable,
     confirmDeleteTable,
     handleSaveLayout,
-    toggleTableSelection,
-    bulkActivateTables,
-    bulkDeactivateTables,
-    bulkDeleteTables,
-    confirmBulkDeleteTables,
+    toggleTableSelection: selection.toggleTableSelection,
+    bulkActivateTables: selection.bulkActivateTables,
+    bulkDeactivateTables: selection.bulkDeactivateTables,
+    bulkDeleteTables: selection.bulkDeleteTables,
+    confirmBulkDeleteTables: selection.confirmBulkDeleteTables,
 
     // Constants
     CANVAS_WIDTH,

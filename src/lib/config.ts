@@ -13,6 +13,18 @@
 export const RESTAURANT_NAME = process.env.NEXT_PUBLIC_RESTAURANT_NAME || 'Restaurant';
 
 /**
+ * ISO 4217 currency code for every user-facing price, baked in at build time
+ * (deploy repo registry `currency:` field → build-tenant-image.yml `currency`
+ * input → Dockerfile ARG). Pairs with the backend's
+ * `LocalizationSettings.Currency` (backend PR #147, deploy PR #33). Trimmed
+ * and validated: anything other than a 3-letter uppercase code (unset, empty,
+ * junk) falls back to CHF, so the default (RUMI) build renders byte-identical
+ * strings everywhere. Consumers format via src/utils/currency.ts helpers.
+ */
+const rawTenantCurrency = (process.env.NEXT_PUBLIC_TENANT_CURRENCY ?? '').trim();
+export const TENANT_CURRENCY: string = /^[A-Z]{3}$/.test(rawTenantCurrency) ? rawTenantCurrency : 'CHF';
+
+/**
  * Brand-neutral tenant asset convention (issue #125 part 3). The repo ships
  * tenant-1 (RUMI) defaults at these paths; a tenant image overrides them by
  * extracting a branding archive into `public/branding/` at build time (see

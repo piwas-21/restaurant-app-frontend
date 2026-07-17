@@ -9,11 +9,12 @@
 }
 
 .hero {
+  /* No header offset (slice 2): craft's own chrome is a sticky in-flow
+     header, not the classic transparent overlay this padding compensated. */
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
   min-height: 88vh;
-  padding-top: 80px;
 }
 
 .heroImage {

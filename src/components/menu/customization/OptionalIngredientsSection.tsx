@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ProductIngredient } from '@/types/menu';
@@ -43,8 +44,15 @@ export default function OptionalIngredientsSection({
 
     if (selectedIngredients.includes(ingredientId)) {
       onSelectionChange(selectedIngredients.filter((id) => id !== ingredientId));
-      // Reset quantity when deselected
-      onQuantityChange(ingredientId, 1);
+      // Deselection records an explicit quantity 0 (not 1) so the removal survives into the
+      // basket payload and the kitchen ticket can print "NO xxx" — the backend derives IsRemoved
+      // from quantity 0 (issue #150), and it lets an explicit client quantity win (verbatim for a
+      // regular line, over the backfill for a bundle child), so a 1 here silently re-added the
+      // ingredient to the ticket.
+      // Price and rendering are unaffected, because a deselected ingredient's quantity is never
+      // read: pricing only consults it on the selected branches (utils/linePrice.ts), and the
+      // quantity stepper renders only while `isSelected`.
+      onQuantityChange(ingredientId, 0);
     } else {
       onSelectionChange([...selectedIngredients, ingredientId]);
       // Default quantity is 1 when selected
@@ -89,9 +97,7 @@ export default function OptionalIngredientsSection({
                 />
                 <span className={styles.ingredientName}>{getIngredientName(ingredient)}</span>
                 {ingredient.price > 0 && (
-                  <span className={styles.ingredientPrice}>
-                    {t('ingredient_price', { price: ingredient.price.toFixed(2) })}
-                  </span>
+                  <span className={styles.ingredientPrice}>+{formatPlainCurrency(ingredient.price)}</span>
                 )}
               </label>
             ))}
@@ -126,8 +132,8 @@ export default function OptionalIngredientsSection({
                           {ingredient.isIncludedInBasePrice
                             ? isSelected
                               ? '' // Already in base price, no indicator needed
-                              : `-CHF ${ingredient.price.toFixed(2)}` // Deducted when deselected
-                            : `+CHF ${ingredient.price.toFixed(2)}`}{' '}
+                              : `-${formatPlainCurrency(ingredient.price)}` // Deducted when deselected
+                            : `+${formatPlainCurrency(ingredient.price)}`}{' '}
                           {/* Added when selected */}
                         </span>
                       )}

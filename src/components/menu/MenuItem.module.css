@@ -1,4 +1,44 @@
 /* Menu Item Card Container Styles */
+
+/* Carried from the retired MenuBundleCard when one card started rendering both kinds
+   (menu-bundles redesign #175, slice 6); anchors on .menuItem's `position: relative`. */
+.specialBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: var(--brand-primary);
+  color: var(--brand-on-primary, var(--surface-primary));
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* A combo's description + "Pizza + Cola" line. Carried from the retired MenuBundleCard, which
+   rendered both in its own markup — MenuItemDetails keeps its equivalents commented out. */
+.bundleSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.25rem 0;
+}
+
+.bundleDescription {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.bundleIncludes {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .menuItem {
   border: 1px solid var(--border-color);
   border-radius: 12px;

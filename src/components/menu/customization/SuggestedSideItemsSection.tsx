@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Minus } from 'lucide-react';
@@ -70,9 +71,19 @@ export default function SuggestedSideItemsSection({
           return (
             <div key={sideItem.id} className={styles.sideItem}>
               <div className={styles.sideItemInfo}>
-                <h4 className={styles.sideItemName}>{sideItem.name}</h4>
+                <h4 className={styles.sideItemName}>
+                  {sideItem.name}
+                  {/* The retired ProductDetailsModal marked required sides and the sheet did not,
+                      so absorbing its details view would otherwise have lost the marker. The side
+                      is preselected but still removable — gating it is a product decision. */}
+                  {sideItem.isRequired && (
+                    <span className={styles.requiredMarker} aria-label={t('required')}>
+                      *
+                    </span>
+                  )}
+                </h4>
                 {sideItem.description && <p className={styles.sideItemDescription}>{sideItem.description}</p>}
-                <span className={styles.sideItemPrice}>CHF {sideItem.price.toFixed(2)}</span>
+                <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
               </div>
 
               <div className={styles.sideItemActions}>

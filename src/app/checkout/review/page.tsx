@@ -1,12 +1,13 @@
 'use client';
 
+import { formatPlainCurrency, formatCurrency } from '@/utils/currency';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { useCart } from '@/components/cart/CartContext';
 import { useSession } from '@/hooks/useSession';
-import { createOrder } from '@/services/orderService';
+import { createOrderFromBasket } from '@/services/orderService';
 import { sendOrderConfirmationEmails } from '@/services/emailService';
 import FidelityPointsCheckout from '@/components/checkout/FidelityPointsCheckout';
 import OrderTypeSection from '@/components/checkout/OrderTypeSection';
@@ -21,8 +22,7 @@ import { getTranslatedOrderError } from '@/utils/orderErrorHandler';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import {
   PaymentMethod,
-  CreateOrderCommand,
-  CreateOrderItemDto,
+  CreateOrderFromBasketCommand,
   CreateOrderDeliveryAddressDto,
   OrderType as OrderTypeEnum,
 } from '@/types/order';
@@ -37,7 +37,9 @@ export default function ReviewPage() {
   const { enqueueSnackbar } = useSnackbar();
   const { state: checkoutState, clearCheckout, setTipAmount } = useCheckout();
   const { state: cartState, clearCart } = useCart();
-  const { sessionId } = useSession();
+  // Ensure a session exists on mount (auto-create side effect) — the from-basket order call
+  // resolves the basket from the X-Session-Id header apiClient attaches, so no id is read here.
+  useSession();
 
   // Payment method state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash);
@@ -180,12 +182,7 @@ export default function ReviewPage() {
     );
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   // Check if customer has active discount (for display formatting only)
   const customerHasDiscount = (cartState.basket?.customerDiscount || 0) > 0 || (cartState.basket?.discount || 0) > 0;
@@ -193,7 +190,7 @@ export default function ReviewPage() {
   // Format total with appropriate decimals (backend already handles rounding)
   const formatTotal = (total: number) => {
     const decimals = customerHasDiscount ? 0 : 2;
-    return `CHF ${total.toFixed(decimals)}`;
+    return formatPlainCurrency(total, decimals);
   };
 
   const handlePlaceOrder = async () => {
@@ -201,48 +198,6 @@ export default function ReviewPage() {
     setSubmitError('');
 
     try {
-      // Convert basket items to order items
-      const orderItems: CreateOrderItemDto[] = cartState.items.map((item) => {
-        // Process ingredient quantities - set to 0 for deselected ingredients
-        let processedIngredientQuantities: Record<string, number> | undefined;
-        if (item.ingredientQuantities && Object.keys(item.ingredientQuantities).length > 0) {
-          processedIngredientQuantities = { ...item.ingredientQuantities };
-
-          // If selectedIngredients exists, mark deselected ingredients with quantity 0
-          if (item.selectedIngredients && Array.isArray(item.selectedIngredients)) {
-            Object.keys(processedIngredientQuantities).forEach((ingredientId) => {
-              // If ingredient is NOT in selectedIngredients, it was deselected
-              if (!item.selectedIngredients!.includes(ingredientId)) {
-                processedIngredientQuantities![ingredientId] = 0;
-              }
-            });
-          }
-        }
-
-        const orderItem: CreateOrderItemDto = {
-          productId: item.productId || '',
-          productVariationId: item.productVariationId,
-          menuId: item.menuId,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          customizationPrice: item.customizationPrice || 0,
-          specialInstructions: item.specialInstructions,
-          ingredientQuantities: processedIngredientQuantities, // Use processed quantities
-        };
-
-        // Map side items to child items if they exist
-        if (item.selectedSideItems && item.selectedSideItems.length > 0) {
-          orderItem.childItems = item.selectedSideItems.map((sideItem) => ({
-            productId: sideItem.id,
-            quantity: sideItem.quantity,
-            unitPrice: sideItem.price || 0,
-            customizationPrice: 0,
-          }));
-        }
-
-        return orderItem;
-      });
-
       // Prepare delivery address if delivery order
       let deliveryAddress: CreateOrderDeliveryAddressDto | undefined;
       if (checkoutState.orderType === 'Delivery' && checkoutState.deliveryAddress) {
@@ -255,9 +210,10 @@ export default function ReviewPage() {
         };
       }
 
-      // Build order command
-      const orderCommand: CreateOrderCommand = {
-        sessionId: sessionId || undefined,
+      // Build the from-basket order command. The server reads the persisted basket (via the
+      // X-Session-Id header apiClient attaches) and derives the order items itself — the client no
+      // longer builds the item payload (menu-bundles redesign #157, slice 5).
+      const orderCommand: CreateOrderFromBasketCommand = {
         customerName: checkoutState.customerInfo?.name,
         customerEmail: checkoutState.customerInfo?.email,
         customerPhone: checkoutState.customerInfo?.phone,
@@ -268,7 +224,6 @@ export default function ReviewPage() {
             : undefined,
         notes: checkoutState.specialInstructions || undefined,
         deliveryAddress,
-        items: orderItems,
         payments: [
           {
             paymentMethod: selectedPaymentMethod,
@@ -289,7 +244,7 @@ export default function ReviewPage() {
       };
 
       // Submit order
-      const createdOrder = await createOrder(orderCommand);
+      const createdOrder = await createOrderFromBasket(orderCommand);
 
       // Funnel terminator — fired right after the backend confirms the
       // order. Lives inside the try-block so a backend 4xx/5xx doesn't

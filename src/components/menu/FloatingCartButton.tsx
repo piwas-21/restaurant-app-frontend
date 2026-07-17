@@ -7,6 +7,7 @@
 
 'use client';
 
+import { formatCurrency } from '@/utils/currency';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -64,14 +65,7 @@ export default function FloatingCartButton({
     router.push('/cart');
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('de-CH', {
-      style: 'currency',
-      currency: 'CHF',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   return (
     <button

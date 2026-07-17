@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { User, ShoppingBag, MapPin } from 'lucide-react';
 import { OrderDto } from '@/types/order';
@@ -90,7 +91,7 @@ export default function OrderDetailsLeftColumn({ order }: OrderDetailsLeftColumn
               </div>
               <div className={styles.itemPricing}>
                 <div className={styles.itemQuantity}>×{item.quantity}</div>
-                <div className={styles.itemPrice}>CHF {item.itemTotal?.toFixed(2)}</div>
+                <div className={styles.itemPrice}>{formatPlainCurrency(item.itemTotal)}</div>
               </div>
             </div>
           ))}

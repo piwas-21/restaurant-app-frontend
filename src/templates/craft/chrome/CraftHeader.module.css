@@ -1,0 +1,185 @@
+/* craft sticky header (ADR-006, S15 T3 slice 2). Tokens only — the craft
+   palette (../tokens.css) flips light/dark via html[data-theme="dark"].
+   Shared `nav-link` links (globals.css) re-skin themselves through the
+   `--nav-link-*` variables, which already resolve to craft tokens; this
+   module only adds the craft-specific shapes (organic radius, letterpress
+   CTA) and the mobile slide-in mechanics (aria parity with classic).
+   Contrast (AA, spot-checked against the craft tokens): ink on card
+   12.4:1 / terracotta on cream 5.4:1 / cream on terracotta 5.4:1; dark:
+   cream on aubergine 13.9:1 / aubergine on apricot 9.5:1. */
+
+.header {
+  --craft-header-h: 76px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--craft-header-h);
+  padding: 0 1rem;
+  background-color: var(--surface-card);
+  box-shadow: 0 3px 0 var(--border-default);
+}
+
+.headerInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* Hand-lettered wordmark — Amatic SC is loaded by ../fonts.ts. */
+.wordmark {
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 2.3rem;
+  line-height: 1;
+  color: var(--text-primary);
+  text-decoration: none;
+  transform: rotate(-2deg);
+  transition: color 0.2s ease-in-out;
+}
+
+.wordmark:hover {
+  color: var(--brand-primary);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Organic hover/active pill on the shared nav links. */
+.nav :global(.nav-link) {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+/* Letterpress reservations CTA (motifs from ../craft.module.css). */
+.headerCta {
+  composes: letterpressBtn from '../craft.module.css';
+  composes: roundedCraft from '../craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.1rem;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  text-decoration: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.switchers {
+  display: contents;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  z-index: 1101;
+  padding: 0.5rem;
+}
+
+.hamburger svg {
+  display: block;
+}
+
+/* Mobile menu backdrop (same mechanics as the classic chrome). */
+.backdrop {
+  display: none;
+  position: fixed;
+  top: var(--craft-header-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1099;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.backdropVisible {
+  display: block;
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .nav {
+    display: none;
+    flex-direction: column;
+    position: fixed;
+    top: var(--craft-header-h);
+    right: 0;
+    width: 280px;
+    max-width: 80vw;
+    height: calc(100vh - var(--craft-header-h));
+    background-color: var(--surface-card);
+    border-left: 2px solid var(--border-default);
+    padding: 1rem 0;
+    z-index: 1100;
+    gap: 0;
+    align-items: stretch;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .navOpen {
+    display: flex;
+    transform: translateX(0);
+  }
+
+  .navOpen > *,
+  .navOpen :global(.nav-link) {
+    padding: 0.75rem 1.5rem;
+    width: 100%;
+    text-align: left;
+    border-bottom: 1px dotted var(--text-muted);
+    box-sizing: border-box;
+    border-radius: 0;
+  }
+
+  .navOpen > *:last-child {
+    border-bottom: none;
+  }
+
+  .navOpen .switchers {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    width: 100%;
+    border-bottom: none;
+  }
+
+  .navOpen .switchers > * {
+    width: 100%;
+    border-bottom: 1px dotted var(--text-muted);
+  }
+
+  .navOpen .switchers button {
+    padding: 0.75rem 1.5rem;
+  }
+
+  .navOpen .switchers > *:last-child {
+    border-bottom: none;
+  }
+
+  .navOpen .headerCta {
+    width: auto;
+    margin: 1rem 1.5rem;
+    justify-content: center;
+    border-bottom: none;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  }
+}

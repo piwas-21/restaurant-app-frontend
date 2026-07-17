@@ -20,6 +20,8 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { formatPrice, formatDate } from './orderFormatters';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import StatusBadge, { StatusBadgeTone } from '@/components/design-system/StatusBadge';
 import styles from '@/app/styles/OrdersPage.module.css';
 
@@ -208,11 +210,7 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
                   <div className={styles.itemDetails}>
                     <h5 className={styles.itemName}>{item.productName}</h5>
                     {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
-                    {item.specialInstructions && (
-                      <p className={styles.itemInstructions}>
-                        <i>{item.specialInstructions}</i>
-                      </p>
-                    )}
+                    <OrderLineSummary line={orderItemToLineSummary(item)} />
                   </div>
                   <div className={styles.itemQuantity}>
                     <span>×{item.quantity}</span>

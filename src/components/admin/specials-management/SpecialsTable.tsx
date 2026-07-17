@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star } from 'lucide-react';
@@ -67,7 +68,7 @@ const SpecialsTable: React.FC<SpecialsTableProps> = ({ specialProducts, isLoadin
                     : product.description
                   : '-'}
               </td>
-              <td>CHF {product.basePrice.toFixed(2)}</td>
+              <td>{formatPlainCurrency(product.basePrice)}</td>
               <td>
                 {product.isFeaturedSpecial ? (
                   <span className={styles.featuredBadge}>{t('featured', 'Featured')}</span>

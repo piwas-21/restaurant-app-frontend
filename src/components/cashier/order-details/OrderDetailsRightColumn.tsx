@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, Printer } from 'lucide-react';
 import { OrderDto } from '@/types/order';
@@ -28,29 +29,31 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
         <h3 className={styles.infoCardHeader}>{t('order_summary', 'Order Summary')}</h3>
         <div className={styles.summaryRow}>
           <span className={styles.summaryLabel}>{t('subtotal', 'Subtotal')}</span>
-          <span className={styles.summaryValue}>CHF {order.subTotal?.toFixed(2)}</span>
+          <span className={styles.summaryValue}>{formatPlainCurrency(order.subTotal)}</span>
         </div>
         {order.tax > 0 && (
           <div className={styles.summaryRow}>
             <span className={styles.summaryLabel}>{t('tax', 'Tax')}</span>
-            <span className={styles.summaryValue}>CHF {order.tax?.toFixed(2)}</span>
+            <span className={styles.summaryValue}>{formatPlainCurrency(order.tax)}</span>
           </div>
         )}
         {order.deliveryFee > 0 && (
           <div className={styles.summaryRow}>
             <span className={styles.summaryLabel}>{t('delivery_fee', 'Delivery Fee')}</span>
-            <span className={styles.summaryValue}>CHF {order.deliveryFee?.toFixed(2)}</span>
+            <span className={styles.summaryValue}>{formatPlainCurrency(order.deliveryFee)}</span>
           </div>
         )}
         {order.discount > 0 && (
           <div className={styles.summaryRow}>
             <span className={`${styles.summaryLabel} ${styles.discountText}`}>{t('order_discount', 'Discount')}</span>
-            <span className={`${styles.summaryValue} ${styles.discountText}`}>-CHF {order.discount?.toFixed(2)}</span>
+            <span className={`${styles.summaryValue} ${styles.discountText}`}>
+              -{formatPlainCurrency(order.discount)}
+            </span>
           </div>
         )}
         <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
           <span className={styles.summaryLabel}>{t('order_total', 'Total')}</span>
-          <span className={styles.summaryValue}>CHF {order.total?.toFixed(2)}</span>
+          <span className={styles.summaryValue}>{formatPlainCurrency(order.total)}</span>
         </div>
       </div>
 
@@ -62,7 +65,7 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
         </h3>
         <div className={styles.summaryRow}>
           <span className={styles.summaryLabel}>{t('cashier.total_paid', 'Total Paid')}</span>
-          <span className={styles.summaryValue}>CHF {order.totalPaid?.toFixed(2)}</span>
+          <span className={styles.summaryValue}>{formatPlainCurrency(order.totalPaid)}</span>
         </div>
         <div className={styles.summaryRow}>
           <span className={styles.summaryLabel}>{t('cashier.remaining', 'Remaining')}</span>
@@ -70,7 +73,7 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
             className={styles.summaryValue}
             style={{ color: order.remainingAmount! > 0 ? 'var(--status-danger)' : 'var(--status-confirmed)' }}
           >
-            CHF {Math.abs(order.remainingAmount || 0).toFixed(2)}
+            {formatPlainCurrency(Math.abs(order.remainingAmount || 0))}
           </span>
         </div>
 
@@ -86,7 +89,7 @@ export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColu
                       {payment.paymentDate ? new Date(payment.paymentDate).toLocaleString() : 'N/A'}
                     </div>
                   </div>
-                  <div className={styles.paymentAmount}>CHF {payment.amount?.toFixed(2)}</div>
+                  <div className={styles.paymentAmount}>{formatPlainCurrency(payment.amount)}</div>
                 </div>
               </div>
             ))}

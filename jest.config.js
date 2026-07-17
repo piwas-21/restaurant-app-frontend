@@ -1,4 +1,3 @@
-
 module.exports = {
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
@@ -21,11 +20,14 @@ module.exports = {
   },
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+      '<rootDir>/__mocks__/fileMock.js',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
+    '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
     // Tenant UI template alias (ADR-006). Jest always resolves to `classic`,
     // matching the tsconfig type-source; templates get covered by the
@@ -34,16 +36,12 @@ module.exports = {
     '^@active-template/(.*)$': '<rootDir>/src/templates/classic/$1',
     'next/router': '<rootDir>/__mocks__/nextRouterMock.js',
   },
-  transformIgnorePatterns: [
-    '/node_modules/',
-    '^.+\.module\.(css|sass|scss)$',
-  ],
+  transformIgnorePatterns: ['/node_modules/', String.raw`^.+\.module\.(css|sass|scss)$`],
   collectCoverage: false,
   collectCoverageFrom: [
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
     'src/utils/reservationForm.ts',
-    'src/utils/productCustomization.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.spec.tsx',
     '!**/node_modules/**',
@@ -104,14 +102,6 @@ module.exports = {
     // reservationForm helpers ship at 100% (see reservationForm.test.ts); pinned
     // at 99 per the "at 100% → 99" rule above.
     './src/utils/reservationForm.ts': {
-      statements: 99,
-      branches: 99,
-      functions: 99,
-      lines: 99,
-    },
-    // productCustomization helpers ship at 100% (see productCustomization.test.ts);
-    // pinned at 99 per the "100 → 99" rule above.
-    './src/utils/productCustomization.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

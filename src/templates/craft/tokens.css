@@ -42,6 +42,14 @@
 @import '../../design-system/tokens/index.css';
 
 :root {
+  /* Type (slice 2) — plan §3.3: Quicksand is the craft BODY family.
+     globals.css consumers of --font-family-sans (buttons, inputs, form
+     classes, notistack) pick it up through the var; the literal family
+     name is registered by ../fonts.ts (see its comment). */
+  --font-family-sans:
+    'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+
   /* Brand */
   --brand-primary: #a84b2f; /* terracotta clay */
   --brand-primary-dark: #7a3a24; /* pressed/hover shade */
@@ -105,4 +113,14 @@ html[data-theme='dark'] {
   --feedback-danger-dark: #f0afa8;
   --feedback-danger-light: #5c3430;
   --feedback-danger-xlight: #3a211e;
+}
+
+/* The root layout joins ALL of this template's next/font classNames onto
+   <body> (v1 contract), so the last-injected family (Caveat) would win the
+   inherited body font. Quicksand is the craft body face (plan §3.3):
+   `body[class]` (0-1-1) outranks the single font className (0-1-0) without
+   resorting to !important — <body> always carries the font classes.
+   globals.css's own `html, body` rule (0-0-1) reads the same var anyway. */
+body[class] {
+  font-family: var(--font-family-sans);
 }

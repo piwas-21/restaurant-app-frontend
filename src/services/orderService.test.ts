@@ -6,7 +6,15 @@
 
 import * as orderServiceModule from './orderService';
 import { apiClient } from '@/utils/apiClient';
-import type { CreateOrderCommand, OrderDto, OrderStatus, UpdateOrderStatusCommand } from '@/types/order';
+import type {
+  CreateOrderCommand,
+  CreateOrderFromBasketCommand,
+  OrderDto,
+  OrderDtoApiResponse,
+  OrderStatus,
+  UpdateOrderStatusCommand,
+} from '@/types/order';
+import { OrderType } from '@/types/order';
 
 // Mock the apiClient
 jest.mock('@/utils/apiClient');
@@ -99,6 +107,43 @@ describe('OrderService', () => {
       mockApiClient.post.mockRejectedValue(error);
 
       await expect(orderServiceModule.createOrder(command)).rejects.toThrow('Validation failed');
+    });
+  });
+
+  describe('createOrderFromBasket', () => {
+    it('should post to /from-basket (server derives items from the session basket)', async () => {
+      const command: CreateOrderFromBasketCommand = {
+        type: OrderType.DineIn,
+        tableNumber: 5,
+        customerName: 'John Doe',
+        tip: 0,
+      };
+
+      const mockOrder = createMockOrder({ subTotal: 25.0, tax: 1.93, total: 26.93 });
+      mockApiClient.post.mockResolvedValue({ success: true, data: mockOrder });
+
+      const result = await orderServiceModule.createOrderFromBasket(command);
+
+      // No `items` in the payload — the server builds them from the basket. apiClient attaches the
+      // X-Session-Id header itself, so the call carries no session id.
+      expect(mockApiClient.post).toHaveBeenCalledWith('/api/Orders/from-basket', command, {
+        requireAuth: false,
+      });
+      expect(result).toEqual(mockOrder);
+    });
+
+    it('should surface an envelope failure with the server message', async () => {
+      const command: CreateOrderFromBasketCommand = { type: OrderType.DineIn };
+      // 200 OK with success:false — the backend's empty-basket rejection shape.
+      mockApiClient.post.mockResolvedValue({
+        success: false,
+        message: 'Cannot create an order from an empty basket.',
+        data: undefined,
+      } as OrderDtoApiResponse);
+
+      await expect(orderServiceModule.createOrderFromBasket(command)).rejects.toThrow(
+        'Cannot create an order from an empty basket.',
+      );
     });
   });
 

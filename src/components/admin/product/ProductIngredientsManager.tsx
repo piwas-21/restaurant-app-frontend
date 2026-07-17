@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY, formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
@@ -317,13 +318,13 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
                         placeholder="0,00"
                         className={styles.priceInput}
                       />
-                      <span className={styles.currency}>CHF</span>
+                      <span className={styles.currency}>{TENANT_CURRENCY}</span>
                     </label>
                     <span className={styles.priceHint}>{t('use_comma_for_decimals')}</span>
                     {ingredient.price > 0 && (
                       <span className={styles.pricePreview}>
-                        {t('customer_pays')}: CHF{' '}
-                        {(Number(productBasePrice || 0) + (Number(ingredient.price) || 0)).toFixed(2)}
+                        {t('customer_pays')}:{' '}
+                        {formatPlainCurrency(Number(productBasePrice || 0) + (Number(ingredient.price) || 0))}
                       </span>
                     )}
 

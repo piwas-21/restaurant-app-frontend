@@ -1,5 +1,6 @@
 'use client';
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminFidelityService, CreatePointRuleDto } from '@/services/adminFidelityService';
@@ -171,13 +172,13 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
 
           // Check for overlap error
           if (firstError.toLowerCase().includes('overlap')) {
-            // Extract range information: "Rule overlaps with existing rule. Range: CHF 0 - CHF 11"
+            // Extract range information, e.g. "Rule overlaps with existing rule. Range: <code> 0 - <code> 11"
             const rangeMatch = firstError.match(/Range:\s*\$?([\d.]+)\s*-\s*\$?([\d.]+|unlimited)/i);
 
             if (rangeMatch) {
               const minAmount = rangeMatch[1];
               const maxAmount = rangeMatch[2];
-              errorMessage = `This rule overlaps with an existing rule covering CHF ${minAmount} - ${maxAmount === 'unlimited' ? 'unlimited' : 'CHF ' + maxAmount}. Please adjust your order amount range to avoid conflicts with existing rules.`;
+              errorMessage = `This rule overlaps with an existing rule covering ${TENANT_CURRENCY} ${minAmount} - ${maxAmount === 'unlimited' ? 'unlimited' : `${TENANT_CURRENCY} ${maxAmount}`}. Please adjust your order amount range to avoid conflicts with existing rules.`;
             } else {
               errorMessage = `This rule overlaps with an existing rule. Please adjust the order amount range to avoid conflicts.`;
             }
@@ -246,7 +247,7 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label htmlFor="minOrderAmount" className={styles.label}>
-                {t('min_order_amount', 'Min Order Amount')} * (CHF)
+                {t('min_order_amount', 'Min Order Amount')} * ({TENANT_CURRENCY})
               </label>
               <input
                 type="text"
@@ -263,7 +264,7 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
 
             <div className={styles.formGroup}>
               <label htmlFor="maxOrderAmount" className={styles.label}>
-                {t('max_order_amount', 'Max Order Amount')} (CHF)
+                {t('max_order_amount', 'Max Order Amount')} ({TENANT_CURRENCY})
               </label>
               <input
                 type="text"

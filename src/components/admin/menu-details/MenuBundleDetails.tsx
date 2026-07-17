@@ -1,3 +1,4 @@
+import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,7 @@ import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEdito
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
 import ProductCard from './ProductCard';
 import { updateMenuBundle } from '@/services/menuService';
+import { stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
 import { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
 interface MenuBundleDetailsProps {
@@ -29,35 +31,7 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
       const updatedMenuDefinition = { ...product.menuDefinition, ...updates };
 
       // Clean up temporary IDs from sections and items
-      const cleanedSections =
-        updatedMenuDefinition.sections?.map((s) => {
-          const sectionData: any = {
-            name: s.name,
-            description: s.description,
-            displayOrder: s.displayOrder,
-            isRequired: s.isRequired,
-            minSelection: s.minSelection,
-            maxSelection: s.maxSelection,
-            items: s.items.map((i) => {
-              const itemData: any = {
-                productId: i.productId,
-                additionalPrice: i.additionalPrice,
-                displayOrder: i.displayOrder,
-                isDefault: i.isDefault,
-              };
-              // Only include id if it's not temporary
-              if (i.id && !i.id.startsWith('temp-')) {
-                itemData.id = i.id;
-              }
-              return itemData;
-            }),
-          };
-          // Only include section id if it's not temporary
-          if (s.id && !s.id.startsWith('temp-')) {
-            sectionData.id = s.id;
-          }
-          return sectionData;
-        }) || [];
+      const cleanedSections = stripTemporaryMenuSectionIds(updatedMenuDefinition.sections ?? []);
 
       const payload = {
         id: product.id,
@@ -114,7 +88,7 @@ const MenuBundleDetails: React.FC<MenuBundleDetailsProps> = ({ product, onUpdate
           <h1 className={styles.heroTitle}>{product.name}</h1>
           {product.description && <p className={styles.heroDescription}>{product.description}</p>}
           <div className={styles.heroBadges}>
-            <div className={styles.priceTag}>CHF {product.basePrice.toFixed(2)}</div>
+            <div className={styles.priceTag}>{formatPlainCurrency(product.basePrice)}</div>
             <span className={`${styles.statusBadge} ${product.isActive ? styles.statusActive : styles.statusInactive}`}>
               {product.isActive ? t('active') : t('inactive')}
             </span>

@@ -14,7 +14,7 @@ name: build-image
 
 on:
   push:
-    branches: [main, develop]   # develop builds are a dry-run; :latest only on the default branch (main)
+    branches: [main, develop]   # develop builds are a dry-run; :latest is tagged on main only (see the meta step)
     tags: ['v*']
 
 concurrency:
@@ -55,8 +55,15 @@ jobs:
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ghcr.io/${{ github.repository }}
+          # Gate :latest on the main branch explicitly, NOT {{is_default_branch}}:
+          # under GitFlow (2026-07-10) the repo's default branch is `develop`, so
+          # is_default_branch made every develop merge re-point :latest at develop
+          # while the prod box pins FRONTEND_TAG=latest — one deploy.sh away from
+          # shipping unreleased code. Releases must be the only thing :latest moves
+          # for (fix 2026-07-15; same root cause as sofra's 2026-07-12 fix).
+          # Staging is unaffected: it tracks develop via the :staging tag below.
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,format=long
             type=ref,event=tag
 

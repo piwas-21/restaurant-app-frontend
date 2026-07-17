@@ -22,6 +22,10 @@ ARG NEXT_PUBLIC_RESTAURANT_NAME
 # UI template baked into this image (ADR-006): classic | craft.
 # Empty/unset falls back to classic in next.config.ts.
 ARG NEXT_PUBLIC_TEMPLATE
+# ISO 4217 currency code baked into price formatting (registry `currency:` →
+# build-tenant-image.yml `currency` input). Empty/unset/invalid falls back to
+# CHF in src/lib/config.ts, keeping the default (RUMI) build byte-identical.
+ARG NEXT_PUBLIC_TENANT_CURRENCY
 
 # Set environment variables for the build
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
@@ -29,6 +33,7 @@ ENV NEXT_PUBLIC_IMAGE_BASE_URL=${NEXT_PUBLIC_IMAGE_BASE_URL}
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 ENV NEXT_PUBLIC_RESTAURANT_NAME=${NEXT_PUBLIC_RESTAURANT_NAME}
 ENV NEXT_PUBLIC_TEMPLATE=${NEXT_PUBLIC_TEMPLATE}
+ENV NEXT_PUBLIC_TENANT_CURRENCY=${NEXT_PUBLIC_TENANT_CURRENCY}
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

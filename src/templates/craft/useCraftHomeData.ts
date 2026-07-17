@@ -38,14 +38,11 @@ export function useCraftHomeData() {
 
   useEffect(() => {
     setIsClient(true);
-    // Shared shell mechanism (globals.css `body.is-homepage` + `.home-overlay-header`,
-    // driven independently by app-internal-layout.tsx's own pathname check) —
-    // keeps the nav readable over the hero image. Slice 2 gives craft its own
-    // chrome; until then this matches classic's behaviour exactly.
-    document.body.classList.add('is-homepage');
-    return () => {
-      document.body.classList.remove('is-homepage');
-    };
+    // No `body.is-homepage` here (unlike classic/HomePage.tsx): that global
+    // hook exists for the classic overlay header (transparent over the hero,
+    // globals.css recolors `.nav-link` for contrast). Craft's own chrome
+    // (slice 2) uses an opaque sticky header on every route, so the overlay
+    // recoloring would actively break nav contrast on the craft home page.
   }, []);
 
   useEffect(() => {

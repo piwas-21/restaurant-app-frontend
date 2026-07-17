@@ -3,6 +3,7 @@
  * Helper functions for exporting data in various formats
  */
 
+import { TENANT_CURRENCY } from '@/utils/currency';
 import { OrderDto } from '@/types/order';
 
 // Translation function type
@@ -64,11 +65,11 @@ export function ordersToCSV(orders: OrderDto[], t?: TranslationFunction): string
     translate('order_type', 'Order Type'),
     translate('status', 'Status'),
     translate('payment_status', 'Payment Status'),
-    translate('subtotal', 'Subtotal') + ' (CHF)',
-    translate('tax', 'Tax') + ' (CHF)',
-    translate('discount', 'Discount') + ' (CHF)',
-    translate('delivery_fee', 'Delivery Fee') + ' (CHF)',
-    translate('total', 'Total') + ' (CHF)',
+    translate('subtotal', 'Subtotal') + ` (${TENANT_CURRENCY})`,
+    translate('tax', 'Tax') + ` (${TENANT_CURRENCY})`,
+    translate('discount', 'Discount') + ` (${TENANT_CURRENCY})`,
+    translate('delivery_fee', 'Delivery Fee') + ` (${TENANT_CURRENCY})`,
+    translate('total', 'Total') + ` (${TENANT_CURRENCY})`,
     translate('fully_paid', 'Fully Paid'),
     translate('order_date', 'Order Date'),
     translate('notes', 'Notes'),

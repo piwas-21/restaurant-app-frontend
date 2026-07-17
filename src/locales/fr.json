@@ -535,6 +535,8 @@
   "category_image_edit": "Modifier l’image de la catégorie (optionnel)",
   "saving...": "Enregistrement...",
   "save_changes": "Enregistrer les modifications",
+  "unsaved_changes": "Modifications non enregistrées",
+  "discard_unsaved_changes_message": "Vous avez des modifications non enregistrées. Quitter sans enregistrer ?",
   "delete_category_confirmation_message": "Êtes-vous sûr de vouloir supprimer la catégorie « {{name}} » ?",
   "category_deleted_successfully": "Catégorie supprimée avec succès",
   "failed_to_delete_category": "Échec de la suppression de la catégorie",

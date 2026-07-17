@@ -524,6 +524,8 @@
   "category_image_edit": "Cambiar imagen de la categoría (opcional)",
   "saving...": "Guardando...",
   "save_changes": "Guardar cambios",
+  "unsaved_changes": "Cambios sin guardar",
+  "discard_unsaved_changes_message": "Tienes cambios sin guardar. ¿Salir sin guardar?",
   "delete_category_confirmation_message": "¿Está seguro de que desea eliminar la categoría '{{name}}'?",
   "category_deleted_successfully": "Categoría eliminada con éxito",
   "failed_to_delete_category": "No se pudo eliminar la categoría",

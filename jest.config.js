@@ -24,6 +24,7 @@ module.exports = {
       '<rootDir>/__mocks__/fileMock.js',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '^@/config/(.*)$': '<rootDir>/src/config/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -43,6 +44,7 @@ module.exports = {
     'src/app/**/*.tsx',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
+    'src/utils/productEditorDefaults.ts',
     'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
@@ -78,6 +80,29 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Slice 7 PR2d — the unified admin editor. `productEditorDefaults` is the pure
+    // fetched-product → form-state mapping (the load-bearing half, incl. the real
+    // primary-category resolution); `ProductEditorPage` is the composition + the single
+    // Save. `BundlePanel` sits lower because its file-picker and section-change handlers
+    // are not exercised — the panel's kind-specific *structure* is what the tests pin.
+    './src/utils/productEditorDefaults.ts': {
+      statements: 95,
+      branches: 63,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/ProductEditorPage.tsx': {
+      statements: 92,
+      branches: 80,
+      functions: 74,
+      lines: 92,
+    },
+    './src/components/admin/product-editor/BundlePanel.tsx': {
+      statements: 49,
+      branches: 39,
+      functions: 32,
+      lines: 49,
+    },
     // Slice 7 — the admin write path. These tests pin the create/update endpoint
     // dispatch on both halves (a bundle must go to /api/Menus, an item to
     // /api/Products) and the shared menu-definition mapping. The remainder — the

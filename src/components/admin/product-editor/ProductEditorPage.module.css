@@ -1,0 +1,46 @@
+.panel {
+  margin-bottom: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.panel:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+/*
+  The single commit point. Sticky so Save stays reachable on a long editor — the whole
+  screen is one form, so the button must not be a scroll hunt.
+*/
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-default);
+}
+
+.saveHint {
+  margin-right: auto;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .saveBar {
+    flex-wrap: wrap;
+  }
+
+  .saveHint {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+}

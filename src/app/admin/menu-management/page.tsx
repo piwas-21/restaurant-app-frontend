@@ -2,11 +2,12 @@
 
 import React, { useState, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
-import { getProductById, deleteMenuBundle, getMenuBundleById } from '@/services/menuService';
+import { deleteMenuBundle } from '@/services/menuService';
 import { deleteProduct } from '@/services/productService';
 import {
+  MENU_BUNDLE_TYPE,
   MENU_TYPE_FILTERS,
   MENU_TYPE_FILTER_LABEL_KEYS,
   MenuTypeFilter,
@@ -15,18 +16,17 @@ import {
 import styles from '@/app/styles/AdminPage.module.css';
 import CreateProductModal from '@/components/admin/CreateProductModal';
 import CreateMenuBundleModal from '@/components/admin/CreateMenuBundleModal';
-import EditProductModal from '@/components/admin/EditProductModal';
-import EditMenuBundleModal from '@/components/admin/EditMenuBundleModal';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import Pagination from '@/components/common/Pagination';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
-import { Product, ProductDetailResponse, PendingDelete } from '@/app/admin/menu-management/interfaces';
+import { Product, PendingDelete } from '@/app/admin/menu-management/interfaces';
 
 const MenuManagementContent = () => {
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const categoryName = searchParams.get('categoryName');
   const [typeFilter, setTypeFilter] = useState<MenuTypeFilter>('all');
@@ -48,47 +48,23 @@ const MenuManagementContent = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreateMenuModalOpen, setIsCreateMenuModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isEditMenuModalOpen, setIsEditMenuModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductDetailResponse | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<PendingDelete | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
 
-  // The ROW is the discriminator — passed in, never re-found by id. A `.find()` can miss
-  // (the list refetches while a modal is open) and would fall back to the item branch;
-  // `getProductById` has no type filter, so it returns a bundle as a ProductDto and the
-  // bundle editor gets the wrong wire shape. The filter never decides a row's kind.
-  const handleOpenEditModal = async (product: Product) => {
-    try {
-      const rowIsBundle = isMenuBundle(product);
-      const response = (await (rowIsBundle ? getMenuBundleById(product.id) : getProductById(product.id))) as {
-        success: boolean;
-        data?: ProductDetailResponse;
-        message?: string;
-      };
-
-      if (response.success) {
-        setSelectedProduct(response.data ?? null);
-        // Keyed off the row, so the fetch and the editor can never disagree.
-        if (rowIsBundle) {
-          setIsEditMenuModalOpen(true);
-        } else {
-          setIsEditModalOpen(true);
-        }
-      } else {
-        setResultModalMessage(response.message || 'Failed to load product details');
-        setIsResultModalSuccess(false);
-        setIsResultModalOpen(true);
-      }
-    } catch (error) {
-      console.error('Error loading product:', error);
-      setResultModalMessage('Failed to load product details');
-      setIsResultModalSuccess(false);
-      setIsResultModalOpen(true);
-    }
+  // Edit NAVIGATES to the editor page (slice 7 PR2d) instead of opening a modal — the page
+  // is the editor now, with one page-level Save (owner call, plan §7).
+  //
+  // The ROW still carries the kind, exactly as PR2b established: a `.find()` by id can miss
+  // when the list refetches, and `getProductById` has no type filter, so it would hand back
+  // a bundle as a ProductDto. The `?type=` hint only picks which endpoint the page TRIES;
+  // the fetched product's own type decides what renders, so a stale hint cannot mis-render.
+  // PR2e drops the param entirely.
+  const handleEdit = (product: Product) => {
+    const query = isMenuBundle(product) ? `?type=${MENU_BUNDLE_TYPE}` : '';
+    router.push(`/admin/menu-management/${product.id}${query}`);
   };
 
   // Kind captured at CLICK time: the confirm modal has no focus trap, so the chips stay
@@ -168,7 +144,7 @@ const MenuManagementContent = () => {
             products={products}
             isLoading={isLoading}
             error={error}
-            onEdit={handleOpenEditModal}
+            onEdit={handleEdit}
             onDelete={handleDeleteClick}
             typeFilter={typeFilter}
           />
@@ -210,29 +186,6 @@ const MenuManagementContent = () => {
         onProductCreated={fetchProducts}
         categoryId={selectedCategoryId}
       />
-      {selectedProduct && isMenuBundle(selectedProduct) ? (
-        <EditMenuBundleModal
-          isOpen={isEditMenuModalOpen}
-          onClose={() => setIsEditMenuModalOpen(false)}
-          onProductUpdated={() => {
-            setIsEditMenuModalOpen(false);
-            void fetchProducts();
-          }}
-          product={selectedProduct}
-        />
-      ) : (
-        selectedProduct && (
-          <EditProductModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            onProductUpdated={() => {
-              setIsEditModalOpen(false);
-              void fetchProducts();
-            }}
-            product={selectedProduct}
-          />
-        )
-      )}
       <ConfirmationModal
         isOpen={isConfirmationOpen}
         onClose={() => setIsConfirmationOpen(false)}

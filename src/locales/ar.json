@@ -530,6 +530,8 @@
   "category_image_edit": "تغيير صورة الفئة (اختياري)",
   "saving...": "جارٍ الحفظ...",
   "save_changes": "حفظ التغييرات",
+  "unsaved_changes": "تغييرات غير محفوظة",
+  "discard_unsaved_changes_message": "لديك تغييرات غير محفوظة. المغادرة دون حفظ؟",
   "delete_category_confirmation_message": "هل أنت متأكد أنك تريد حذف الفئة '{{name}}'؟",
   "category_deleted_successfully": "تم حذف الفئة بنجاح",
   "failed_to_delete_category": "فشل في حذف الفئة",

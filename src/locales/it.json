@@ -530,6 +530,8 @@
   "category_image_edit": "Cambia immagine della categoria (opzionale)",
   "saving...": "Salvataggio...",
   "save_changes": "Salva modifiche",
+  "unsaved_changes": "Modifiche non salvate",
+  "discard_unsaved_changes_message": "Hai modifiche non salvate. Uscire senza salvare?",
   "delete_category_confirmation_message": "Sei sicuro di voler eliminare la categoria '{{name}}'?",
   "category_deleted_successfully": "Categoria eliminata con successo",
   "failed_to_delete_category": "Impossibile eliminare la categoria",

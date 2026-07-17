@@ -641,6 +641,8 @@
   "loading_categories": "Loading categories...",
   "delete_image_confirmation_message": "Are you sure you want to delete this image?",
   "image_gallery": "Image Gallery",
+  "no_images_yet": "No images yet",
+  "image_update_failed": "Failed to update image",
   "delete_product": "Delete Product",
   "delete_product_confirmation_message": "Are you sure you want to delete this product?",
   "upload_more_images": "Upload More Images",

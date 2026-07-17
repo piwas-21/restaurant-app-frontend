@@ -119,13 +119,11 @@ export default function BundlePanel({
 
       <section className={styles.panel}>
         {/*
-          `live`, not the modals' `explicit`: the page owns the single Save (owner call), and
-          an explicit draft would put a second, competing Save inside it. The flag dies with
-          the modals in PR2e.
+          The section editor propagates every mutation to the page (owner call, slice 7):
+          the page owns the single Save, so there is no nested commit point competing with it.
         */}
         <MenuSectionEditor
           sections={menuDefinition.sections}
-          commitMode="live"
           onChange={(sections) => onChange({ ...menuDefinition, sections })}
         />
       </section>

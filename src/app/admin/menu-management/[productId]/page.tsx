@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
 import { deleteMenuBundle, getMenuBundleById, getProductById } from '@/services/menuService';
@@ -25,12 +25,7 @@ const ProductEditorRoute = () => {
   const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const productId = params.productId as string;
-  // `?type=menu` is the list's legacy hint. It only picks which endpoint to TRY; the fetched
-  // product's own type decides what is rendered, so a wrong hint cannot mis-render.
-  // PR2e drops the param once the list links carry no type.
-  const typeHint = searchParams.get('type');
 
   const [product, setProduct] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,24 +41,43 @@ const ProductEditorRoute = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const fetchAsBundle = isMenuBundle({ type: typeHint });
-      const response = (await (fetchAsBundle ? getMenuBundleById(productId) : getProductById(productId))) as {
+      // No `?type=` hint (PR2e): derive the kind by fetching. GET /api/Products/{id} has no
+      // type filter, so it returns a bundle too, carrying `type: 'menu'`. A bundle then needs
+      // its proper shape — MenuBundleDto formats the schedule times as strings, ProductDto as
+      // raw TimeSpans — so re-fetch via the Menus endpoint. One extra request, bundles only.
+      const productResponse = (await getProductById(productId)) as {
         success: boolean;
         data?: ProductDetails;
         message?: string;
       };
 
-      if (response.success && response.data) {
-        setProduct(response.data);
+      if (!productResponse.success || !productResponse.data) {
+        setError(productResponse.message || t('product_not_found'));
+        return;
+      }
+
+      if (!isMenuBundle(productResponse.data)) {
+        setProduct(productResponse.data);
+        return;
+      }
+
+      const bundleResponse = (await getMenuBundleById(productId)) as {
+        success: boolean;
+        data?: ProductDetails;
+        message?: string;
+      };
+
+      if (bundleResponse.success && bundleResponse.data) {
+        setProduct(bundleResponse.data);
       } else {
-        setError(response.message || t('product_not_found'));
+        setError(bundleResponse.message || t('product_not_found'));
       }
     } catch {
       setError(t('product_not_found'));
     } finally {
       setIsLoading(false);
     }
-  }, [productId, typeHint, t]);
+  }, [productId, t]);
 
   useEffect(() => {
     // fetchProductData sets its own error state; fire-and-forget.

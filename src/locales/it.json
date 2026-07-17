@@ -644,6 +644,8 @@
   "loading_categories": "Caricamento categorie...",
   "delete_image_confirmation_message": "Sei sicuro di voler eliminare questa immagine?",
   "image_gallery": "Galleria di immagini",
+  "no_images_yet": "Nessuna immagine",
+  "image_update_failed": "Aggiornamento dell'immagine non riuscito",
   "delete_product": "Elimina prodotto",
   "delete_product_confirmation_message": "Sei sicuro di voler eliminare questo prodotto?",
   "upload_more_images": "Carica altre immagini",

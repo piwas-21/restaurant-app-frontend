@@ -572,6 +572,8 @@
   "loading_categories": "Загрузка категорий...",
   "delete_image_confirmation_message": "Вы уверены, что хотите удалить это изображение?",
   "image_gallery": "Галерея изображений",
+  "no_images_yet": "Пока нет изображений",
+  "image_update_failed": "Не удалось обновить изображение",
   "delete_product": "Удалить товар",
   "delete_product_confirmation_message": "Вы уверены, что хотите удалить этот товар?",
   "upload_more_images": "Загрузить еще изображения",

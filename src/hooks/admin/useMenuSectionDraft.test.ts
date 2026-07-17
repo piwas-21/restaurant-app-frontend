@@ -15,64 +15,28 @@ const section = (over: Partial<MenuSection> = {}): MenuSection => ({
   ...over,
 });
 
-function setup(commitMode: 'explicit' | 'live' = 'explicit', sections: MenuSection[] = [section()]) {
+function setup(sections: MenuSection[] = [section()]) {
   const onChange = jest.fn();
-  const view = renderHook(({ s }) => useMenuSectionDraft({ sections: s, onChange, commitMode }), {
+  const view = renderHook(({ s }) => useMenuSectionDraft({ sections: s, onChange }), {
     initialProps: { s: sections },
   });
   return { ...view, onChange };
 }
 
-describe('useMenuSectionDraft — explicit mode (what the bundle modals do)', () => {
-  it('holds edits locally until commit', () => {
-    const { result, onChange } = setup('explicit');
+describe('useMenuSectionDraft — every mutation propagates to the page', () => {
+  // The draft is `live`: the page owns the single Save, so there is no buffered commit
+  // step. A field edit must reach the parent immediately or it would be stranded here.
+  it('propagates a field edit immediately', () => {
+    const { result, onChange } = setup();
 
     act(() => result.current.updateSection(0, { name: 'Renamed' }));
 
-    // The whole point of explicit mode: the parent has not heard about it yet.
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ name: 'Renamed' })]);
     expect(result.current.localSections[0].name).toBe('Renamed');
-    expect(result.current.hasChanges).toBe(true);
-
-    act(() => result.current.commit());
-    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ name: 'Renamed' })]);
-    expect(result.current.hasChanges).toBe(false);
-  });
-
-  it('reset discards the draft without telling the parent', () => {
-    const { result, onChange } = setup('explicit');
-
-    act(() => result.current.updateSection(0, { name: 'Renamed' }));
-    act(() => result.current.reset());
-
-    expect(result.current.localSections[0].name).toBe('Choose a main');
-    expect(result.current.hasChanges).toBe(false);
-    expect(onChange).not.toHaveBeenCalled();
-  });
-});
-
-describe('useMenuSectionDraft — live mode (what the editor page needs)', () => {
-  it('propagates every mutation immediately', () => {
-    const { result, onChange } = setup('live');
-
-    act(() => result.current.updateSection(0, { name: 'Renamed' }));
-
-    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ name: 'Renamed' })]);
-  });
-
-  it('never reports pending changes, so no second Save can appear', () => {
-    // The page owns the only Save (owner call). A nested Save/Cancel pair renders on
-    // `hasChanges`, so live mode must never raise it — two competing commit points on
-    // one screen is exactly what this mode exists to prevent.
-    const { result } = setup('live');
-
-    act(() => result.current.updateSection(0, { name: 'Renamed' }));
-
-    expect(result.current.hasChanges).toBe(false);
   });
 
   it('propagates adds and removes too, not just field edits', () => {
-    const { result, onChange } = setup('live');
+    const { result, onChange } = setup();
 
     act(() => result.current.addSection());
     expect(onChange).toHaveBeenLastCalledWith([expect.objectContaining({ name: '' }), expect.anything()]);
@@ -85,7 +49,7 @@ describe('useMenuSectionDraft — live mode (what the editor page needs)', () =>
 
 describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', () => {
   it('adds a new section at the top and pushes the others down', () => {
-    const { result } = setup('explicit', [section({ id: 'a', displayOrder: 0 })]);
+    const { result } = setup([section({ id: 'a', displayOrder: 0 })]);
 
     act(() => result.current.addSection());
 
@@ -95,7 +59,7 @@ describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', (
   });
 
   it('mints a temp- id that the submit transform later strips', () => {
-    const { result } = setup('explicit', []);
+    const { result } = setup([]);
 
     act(() => result.current.addSection());
     const draftId = result.current.localSections[0].id;
@@ -106,7 +70,7 @@ describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', (
   });
 
   it('moveSection swaps neighbours and renumbers displayOrder', () => {
-    const { result } = setup('explicit', [
+    const { result } = setup([
       section({ id: 'a', name: 'A', displayOrder: 0 }),
       section({ id: 'b', name: 'B', displayOrder: 1 }),
     ]);
@@ -118,27 +82,27 @@ describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', (
   });
 
   it('moveSection is a no-op at the edges', () => {
-    const { result } = setup('explicit', [section({ id: 'a', name: 'A' }), section({ id: 'b', name: 'B' })]);
+    const { result, onChange } = setup([section({ id: 'a', name: 'A' }), section({ id: 'b', name: 'B' })]);
 
     act(() => result.current.moveSection(0, 'up'));
     act(() => result.current.moveSection(1, 'down'));
 
     expect(result.current.localSections.map((s) => s.name)).toEqual(['A', 'B']);
-    expect(result.current.hasChanges).toBe(false);
+    // A no-op move must not propagate — the page would otherwise see a spurious change.
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('resyncs when the sections prop changes', () => {
-    const { result, rerender } = setup('explicit', [section({ name: 'First' })]);
+    const { result, rerender } = setup([section({ name: 'First' })]);
 
     act(() => result.current.updateSection(0, { name: 'Dirty' }));
     rerender({ s: [section({ name: 'Second' })] });
 
     expect(result.current.localSections[0].name).toBe('Second');
-    expect(result.current.hasChanges).toBe(false);
   });
 
   it('toggleSection opens and closes a row', () => {
-    const { result } = setup('explicit');
+    const { result } = setup();
 
     act(() => result.current.toggleSection('sec-1'));
     expect(result.current.expandedSections.has('sec-1')).toBe(true);
@@ -148,7 +112,7 @@ describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', (
   });
 
   it('a delete is staged behind a confirm, and cancelling keeps the section', () => {
-    const { result } = setup('explicit');
+    const { result, onChange } = setup();
 
     act(() => result.current.confirmRemoveSection(0));
     expect(result.current.sectionToDelete).toBe(0);
@@ -156,5 +120,7 @@ describe('useMenuSectionDraft — behaviour preserved from MenuSectionEditor', (
     act(() => result.current.cancelRemoveSection());
     expect(result.current.sectionToDelete).toBeNull();
     expect(result.current.localSections).toHaveLength(1);
+    // Staging + cancelling a delete touches only local UI state, never the parent.
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

@@ -650,6 +650,8 @@
   "loading_categories": "Kategorien werden geladen...",
   "delete_image_confirmation_message": "Sind Sie sicher, dass Sie dieses Bild löschen möchten?",
   "image_gallery": "Bildergalerie",
+  "no_images_yet": "Noch keine Bilder",
+  "image_update_failed": "Bild konnte nicht aktualisiert werden",
   "delete_product": "Produkt löschen",
   "delete_product_confirmation_message": "Sind Sie sicher, dass Sie dieses Produkt löschen möchten?",
   "upload_more_images": "Weitere Bilder hochladen",

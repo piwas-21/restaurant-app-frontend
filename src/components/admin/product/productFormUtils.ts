@@ -28,6 +28,44 @@ interface SubmitEditProductFormParams {
   onClose: () => void;
 }
 
+type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
+
+/**
+ * The create/update wire shape for a bundle's menu definition. Extracted from the two byte-identical
+ * copies that sat in `submitProductForm` and `submitEditProductForm` (menu-bundles redesign #176,
+ * slice 7) — behaviour-identical to both, including the two quirks below, which are preserved rather
+ * than reconciled: changing either is a behaviour change, not a move (slice-3 precedent).
+ *
+ * 1. It strips the SECTION id only — nested item ids pass through untouched. Nothing is broken
+ *    today because both bundle modals pre-strip via `stripTemporaryMenuSectionIds`
+ *    (src/utils/menuSectionDraft.ts), which handles items too. But a `temp-…` item id is NOT
+ *    ignored server-side: `MenuSectionItemDto.Id` is `Guid?`, so STJ fails the conversion and the
+ *    request 400s. The unified editor page (PR2d) must pre-strip the same way, or adopt that util
+ *    here — this is the landmine that fires if it calls this write path directly.
+ * 2. The `section.id === ''` arm is unreachable — `section.id &&` already short-circuits on ''.
+ *    An empty-string id therefore survives as '' rather than becoming null.
+ *
+ * The ':00' padding is load-bearing: `MenuDefinitionDto.StartTime/EndTime` are `TimeSpan?`, which
+ * STJ will not parse from the "HH:mm" that `MenuScheduleEditor`'s `<input type="time">` emits.
+ */
+const toMenuDefinitionPayload = (menuDefinition: MenuDefinitionInput | undefined) => {
+  if (!menuDefinition) return undefined;
+
+  const padTime = (time: string | null | undefined) => (time ? (time.length === 5 ? `${time}:00` : time) : null);
+
+  return {
+    ...menuDefinition,
+    id: menuDefinition.id || null,
+    sections:
+      menuDefinition.sections?.map((section) => ({
+        ...section,
+        id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
+      })) || [],
+    startTime: padTime(menuDefinition.startTime),
+    endTime: padTime(menuDefinition.endTime),
+  };
+};
+
 /**
  * The two update commands disagree on `Content`: UpdateProductCommand takes it nullable and its
  * handler no-ops on an empty map (`if (contentMap.Any())` guards the RemoveRange), while
@@ -152,27 +190,7 @@ export const submitProductForm = async ({
       primaryCategoryId: data.primaryCategoryId || null,
       variations: data.variations || [],
       detailedIngredients: cleanedIngredients,
-      menuDefinition: data.menuDefinition
-        ? {
-            ...data.menuDefinition,
-            id: data.menuDefinition.id || null,
-            sections:
-              data.menuDefinition.sections?.map((section: any) => ({
-                ...section,
-                id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
-              })) || [],
-            startTime: data.menuDefinition.startTime
-              ? data.menuDefinition.startTime.length === 5
-                ? `${data.menuDefinition.startTime}:00`
-                : data.menuDefinition.startTime
-              : null,
-            endTime: data.menuDefinition.endTime
-              ? data.menuDefinition.endTime.length === 5
-                ? `${data.menuDefinition.endTime}:00`
-                : data.menuDefinition.endTime
-              : null,
-          }
-        : undefined,
+      menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     };
 
     let productResponse;
@@ -367,33 +385,7 @@ export const submitEditProductForm = async ({
       variations: cleanedVariations,
       content: formattedContent,
       detailedIngredients: cleanedIngredients,
-      // TODO(PR2d): this strips the SECTION id only — nested item ids ride through `...section`
-      // untouched. Safe today because both bundle modals pre-strip via
-      // `stripTemporaryMenuSectionIds` (src/utils/menuSectionDraft.ts), which handles items too.
-      // A `temp-…` item id is NOT ignored server-side: MenuSectionItemDto.Id is Guid?, so STJ
-      // fails to convert it and the request 400s. When the unified editor page calls this write
-      // path directly, it must pre-strip the same way — or this block should adopt that util.
-      menuDefinition: data.menuDefinition
-        ? {
-            ...data.menuDefinition,
-            id: data.menuDefinition.id || null,
-            sections:
-              data.menuDefinition.sections?.map((section: any) => ({
-                ...section,
-                id: section.id && (section.id.startsWith('temp-') || section.id === '') ? null : section.id,
-              })) || [],
-            startTime: data.menuDefinition.startTime
-              ? data.menuDefinition.startTime.length === 5
-                ? `${data.menuDefinition.startTime}:00`
-                : data.menuDefinition.startTime
-              : null,
-            endTime: data.menuDefinition.endTime
-              ? data.menuDefinition.endTime.length === 5
-                ? `${data.menuDefinition.endTime}:00`
-                : data.menuDefinition.endTime
-              : null,
-          }
-        : undefined,
+      menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     } as any;
 
     // A bundle must be updated through the bundle endpoint, mirroring the create path above.

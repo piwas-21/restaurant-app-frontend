@@ -1,4 +1,4 @@
-import { submitEditProductForm } from './productFormUtils';
+import { submitEditProductForm, submitProductForm } from './productFormUtils';
 
 jest.mock('@/services/productService', () => ({
   updateProduct: jest.fn(async () => ({ success: true })),
@@ -6,8 +6,8 @@ jest.mock('@/services/productService', () => ({
 }));
 
 jest.mock('@/services/menuService', () => ({
-  createProduct: jest.fn(),
-  createMenuBundle: jest.fn(),
+  createProduct: jest.fn(async () => ({ success: true, data: { id: 'new-product' } })),
+  createMenuBundle: jest.fn(async () => ({ success: true, data: { id: 'new-bundle' } })),
   updateMenuBundle: jest.fn(async () => ({ success: true })),
 }));
 
@@ -17,7 +17,7 @@ jest.mock('@/services/globalIngredientService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
-import { updateMenuBundle } from '@/services/menuService';
+import { updateMenuBundle, createMenuBundle, createProduct } from '@/services/menuService';
 
 /** The shape EditMenuBundleModal builds — editMenuBundleSchema has no category field at all. */
 const bundleFormData = (overrides: Record<string, unknown> = {}) => ({
@@ -135,5 +135,58 @@ describe('submitEditProductForm — update endpoint dispatch', () => {
 
     const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
     expect(payload.content).toEqual({});
+  });
+});
+
+// submitProductForm shares toMenuDefinitionPayload with the edit path, and it is the reference the
+// edit dispatch was modelled on — but it had no coverage, so the extraction would have been an
+// unguarded refactor. These pin the create side of both.
+describe('submitProductForm — create endpoint dispatch', () => {
+  const create = (data: Record<string, unknown>) =>
+    submitProductForm({
+      data: data as never,
+      imageFiles: [],
+      currentLanguage: 'en',
+      detailedIngredients: [],
+      setSubmissionStatus: () => {},
+      setError,
+      onProductCreated: () => {},
+      onClose: () => {},
+      reset: () => {},
+      setImageFiles: () => {},
+    });
+
+  it('sends a new bundle to the bundle endpoint', async () => {
+    await create(bundleFormData());
+
+    expect(createMenuBundle).toHaveBeenCalledTimes(1);
+    expect(createProduct).not.toHaveBeenCalled();
+    expect(setError).not.toHaveBeenCalled();
+  });
+
+  it('sends a new plain item to the product endpoint', async () => {
+    await create(itemFormData());
+
+    expect(createProduct).toHaveBeenCalledTimes(1);
+    expect(createMenuBundle).not.toHaveBeenCalled();
+    expect(setError).not.toHaveBeenCalled();
+  });
+
+  it('pads schedule times on create too, via the shared menu-definition mapping', async () => {
+    await create(
+      bundleFormData({
+        menuDefinition: {
+          id: 'temp-123',
+          isAlwaysAvailable: false,
+          startTime: '09:15',
+          endTime: '11:00',
+          sections: [],
+        },
+      }),
+    );
+
+    const [payload] = (createMenuBundle as jest.Mock).mock.calls[0];
+    expect(payload.menuDefinition.startTime).toBe('09:15:00');
+    expect(payload.menuDefinition.endTime).toBe('11:00:00');
   });
 });

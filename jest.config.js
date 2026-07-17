@@ -78,16 +78,17 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
-    // Slice 7 — the admin write path. The pct is low by design: these tests pin
-    // `submitEditProductForm`'s update-endpoint dispatch (a bundle must go to
-    // PUT /api/Menus, not PUT /api/Products), while the create half of the file
-    // (`submitProductForm`) and the global-ingredient reconciliation are still
-    // untested. Slice 7 PR2d/PR2e ratchet this up as the editor page takes over.
+    // Slice 7 — the admin write path. These tests pin the create/update endpoint
+    // dispatch on both halves (a bundle must go to /api/Menus, an item to
+    // /api/Products) and the shared menu-definition mapping. The remainder — the
+    // global-ingredient reconciliation and the error branches — is still untested,
+    // hence the modest pct. Slice 7 PR2d/PR2e ratchet this up as the editor page
+    // takes the file over.
     './src/components/admin/product/productFormUtils.ts': {
-      statements: 21,
-      branches: 22,
-      functions: 32,
-      lines: 21,
+      statements: 40,
+      branches: 32,
+      functions: 51,
+      lines: 39,
     },
     // Slice 7 PR2b — the admin catalog's type filter. `productTypeFilter` is pure and
     // fully covered; `ProductsTable`'s uncovered branches are the loading/error early

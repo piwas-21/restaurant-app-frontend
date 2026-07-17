@@ -52,7 +52,6 @@ const MenuManagementContent = () => {
   const [isEditMenuModalOpen, setIsEditMenuModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductDetailResponse | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  // The kind travels WITH the id so the delete path never has to re-derive it.
   const [productToDelete, setProductToDelete] = useState<PendingDelete | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
@@ -125,9 +124,10 @@ const MenuManagementContent = () => {
       <div className={styles.adminContainer}>
         <PageHeader title={pageTitle}>
           <div className={styles.pageActions}>
-            {/* Group is named for what it filters — labelling it "All Types" would
-                announce the group identically to one of its own options. */}
-            <div className={styles.tabs} role="group" aria-label={t('product_type')}>
+            {/* fieldset+legend IS the grouping semantic — no role="group" needed (S6819).
+                The legend names what is filtered; "All Types" would name it after an option. */}
+            <fieldset className={`${styles.tabs} ${styles.chipGroup}`}>
+              <legend className="sr-only">{t('product_type')}</legend>
               {MENU_TYPE_FILTERS.map((filter) => (
                 <button
                   key={filter}
@@ -139,7 +139,7 @@ const MenuManagementContent = () => {
                   {t(MENU_TYPE_FILTER_LABEL_KEYS[filter])}
                 </button>
               ))}
-            </div>
+            </fieldset>
 
             {/* Category filter — applies to every chip now that one endpoint serves them all */}
             <select onChange={handleCategoryChange} value={selectedCategoryId || 'all'} className={styles.adminSelect}>

@@ -51,7 +51,10 @@ type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
 const toMenuDefinitionPayload = (menuDefinition: MenuDefinitionInput | undefined) => {
   if (!menuDefinition) return undefined;
 
-  const padTime = (time: string | null | undefined) => (time ? (time.length === 5 ? `${time}:00` : time) : null);
+  const padTime = (time: string | null | undefined) => {
+    if (!time) return null;
+    return time.length === 5 ? `${time}:00` : time;
+  };
 
   return {
     ...menuDefinition,

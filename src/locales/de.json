@@ -535,6 +535,8 @@
   "category_image_edit": "Kategoriebild ändern (optional)",
   "saving...": "Wird gespeichert...",
   "save_changes": "Änderungen speichern",
+  "unsaved_changes": "Nicht gespeicherte Änderungen",
+  "discard_unsaved_changes_message": "Sie haben nicht gespeicherte Änderungen. Ohne Speichern verlassen?",
   "delete_category_confirmation_message": "Sind Sie sicher, dass Sie die Kategorie '{{name}}' löschen möchten?",
   "category_deleted_successfully": "Kategorie erfolgreich gelöscht",
   "failed_to_delete_category": "Kategorie konnte nicht gelöscht werden",

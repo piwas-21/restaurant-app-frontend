@@ -530,6 +530,8 @@
   "category_image_edit": "Kategori Görselini Değiştir (isteğe bağlı)",
   "saving...": "Kaydediliyor...",
   "save_changes": "Değişiklikleri Kaydet",
+  "unsaved_changes": "Kaydedilmemiş değişiklikler",
+  "discard_unsaved_changes_message": "Kaydedilmemiş değişiklikleriniz var. Kaydetmeden çıkılsın mı?",
   "delete_category_confirmation_message": "‘{{name}}’ kategorisini silmek istediğinizden emin misiniz?",
   "category_deleted_successfully": "Kategori başarıyla silindi",
   "failed_to_delete_category": "Kategori silinemedi",

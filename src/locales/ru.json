@@ -456,6 +456,8 @@
   "category_image_edit": "Изменить изображение (опционально)",
   "saving...": "Сохранение...",
   "save_changes": "Сохранить изменения",
+  "unsaved_changes": "Несохранённые изменения",
+  "discard_unsaved_changes_message": "У вас есть несохранённые изменения. Выйти без сохранения?",
   "delete_category_confirmation_message": "Вы уверены, что хотите удалить категорию '{{name}}'?",
   "category_deleted_successfully": "Категория успешно удалена",
   "failed_to_delete_category": "Не удалось удалить категорию",

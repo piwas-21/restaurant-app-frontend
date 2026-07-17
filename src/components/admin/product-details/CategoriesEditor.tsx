@@ -64,6 +64,7 @@ const CategoriesEditor: React.FC<Props> = ({ product, onUpdated }) => {
     const updated: ProductDetails = {
       ...product,
       categories: selected.map((id) => ({
+        categoryId: id,
         categoryName: categories.find((c) => c.id === id)?.name || '',
         isPrimary: id === primary,
       })),

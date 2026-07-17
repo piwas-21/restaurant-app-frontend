@@ -1,6 +1,6 @@
 // src/interfaces/Product.ts
 
-import { MenuDefinition } from '@/types/menu';
+import { KitchenType, MenuDefinition } from '@/types/menu';
 
 export interface ProductImage {
   id: string;
@@ -28,9 +28,16 @@ export interface Variation {
   displayOrder?: number;
 }
 
+/** Mirrors backend `ProductCategoryDto`. */
 export interface ProductCategory {
+  /**
+   * Was undeclared here, so every read went through an `any` — the edit modal's
+   * `product.categories.map((c: any) => c.categoryId)` has always relied on it.
+   */
+  categoryId: string;
   categoryName: string;
   isPrimary: boolean;
+  displayOrder?: number;
 }
 
 export interface ProductIngredient {
@@ -59,10 +66,19 @@ export interface ProductDetails {
   preparationTimeMinutes: number;
   displayOrder?: number;
   type: string;
+  /** Mirrors backend `ProductDto.KitchenType`. Undeclared until PR2d, so the edit modal read it through `any`. */
+  kitchenType?: KitchenType;
   ingredients: string[]; // Legacy field - kept for backward compatibility
   detailedIngredients?: ProductIngredient[];
   allergens: string[];
   categories: ProductCategory[];
+  /**
+   * Mirrors backend `ProductDto.PrimaryCategory` — an OBJECT, projected from whichever
+   * ProductCategory has `IsPrimary`. There is no `primaryCategoryId` field on any response
+   * DTO; the edit modal reads one anyway, which is why it always fell back to the first
+   * category. See `toEditorDefaults` in `utils/productEditorDefaults.ts`.
+   */
+  primaryCategory?: { id: string; name: string };
   variations: Variation[];
   images: ProductImage[];
   suggestedSideItems: SideItem[];

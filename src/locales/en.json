@@ -524,6 +524,8 @@
   "category_image_edit": "Change Category Image (optional)",
   "saving...": "Saving...",
   "save_changes": "Save Changes",
+  "unsaved_changes": "Unsaved changes",
+  "discard_unsaved_changes_message": "You have unsaved changes. Leave without saving?",
   "delete_category_confirmation_message": "Are you sure you want to delete category '{{name}}'?",
   "category_deleted_successfully": "Category deleted successfully",
   "failed_to_delete_category": "Failed to delete category",

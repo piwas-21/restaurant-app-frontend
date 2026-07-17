@@ -103,17 +103,38 @@ module.exports = {
       functions: 32,
       lines: 49,
     },
+    // Slice 7 PR2e — existing-image management, migrated to immediate per-image endpoint
+    // calls (no rival Save), self-managing its list so an op never discards the form's edits.
+    // Set-primary, sort-on-blur, delete, and the failure path are all pinned.
+    './src/components/admin/product-editor/ImageGallery.tsx': {
+      statements: 92,
+      branches: 82,
+      functions: 95,
+      lines: 97,
+    },
+    './src/components/admin/product-editor/ImageActions.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // Slice 7 PR2e — the "New product" type chooser (create entry). Fully covered.
+    './src/components/admin/menu-management/NewProductTypeModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     // Slice 7 — the admin write path. These tests pin the create/update endpoint
     // dispatch on both halves (a bundle must go to /api/Menus, an item to
-    // /api/Products) and the shared menu-definition mapping. The remainder — the
-    // global-ingredient reconciliation and the error branches — is still untested,
-    // hence the modest pct. Slice 7 PR2d/PR2e ratchet this up as the editor page
-    // takes the file over.
+    // /api/Products) and the shared menu-definition mapping. PR2e's create route now
+    // exercises the create half too; the global-ingredient reconciliation and the
+    // error branches are the untested remainder.
     './src/components/admin/product/productFormUtils.ts': {
-      statements: 40,
-      branches: 32,
-      functions: 51,
-      lines: 39,
+      statements: 42,
+      branches: 35,
+      functions: 56,
+      lines: 40,
     },
     // Slice 7 PR2b — the admin catalog's type filter. `productTypeFilter` is pure and
     // fully covered; `ProductsTable`'s uncovered branches are the loading/error early

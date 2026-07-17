@@ -8,6 +8,33 @@ import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
  * rendering a form — it is the load-bearing part of the editor.
  */
 
+/**
+ * A blank product for the create route (`/new`). It is the same `ProductDetails` shape the
+ * fetched-product mappers read, so create reuses `toItemDefaults` / `toBundleDefaults` with
+ * empty values instead of a second set of create-defaults — a bundle's empty `menuDefinition`
+ * falls through to `EMPTY_MENU_DEFINITION` in `toMenuDefinitionState`.
+ */
+export function emptyProductDetails(isBundle: boolean): ProductDetails {
+  return {
+    id: '',
+    name: '',
+    description: '',
+    basePrice: 0,
+    isActive: true,
+    isAvailable: true,
+    isSpecial: false,
+    preparationTimeMinutes: 0,
+    type: isBundle ? 'menu' : 'mainItem',
+    ingredients: [],
+    allergens: [],
+    categories: [],
+    variations: [],
+    images: [],
+    suggestedSideItems: [],
+    content: {},
+  };
+}
+
 /** A bundle with no saved definition still needs one to edit against. */
 export const EMPTY_MENU_DEFINITION: MenuDefinition = {
   id: '',

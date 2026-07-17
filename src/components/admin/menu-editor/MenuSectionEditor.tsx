@@ -6,24 +6,17 @@ import { MenuSection } from '@/types/menu';
 import MenuItemSelector from './MenuItemSelector';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import { useMenuSectionDraft, MenuSectionCommitMode } from '@/hooks/admin/useMenuSectionDraft';
+import { useMenuSectionDraft } from '@/hooks/admin/useMenuSectionDraft';
 
 interface MenuSectionEditorProps {
   sections: MenuSection[];
   onChange: (sections: MenuSection[]) => void;
-  /**
-   * Defaults to `explicit` — the modals' behaviour, byte-identical. The unified
-   * editor page passes `live` so its single page-level Save is the only commit
-   * point (owner call, slice 7 PR2c). Goes away with the modals in PR2d.
-   */
-  commitMode?: MenuSectionCommitMode;
 }
 
-const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChange, commitMode = 'explicit' }) => {
+const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChange }) => {
   const { t } = useTranslation();
   const {
     localSections,
-    hasChanges,
     expandedSections,
     sectionToDelete,
     draggedIndex,
@@ -38,9 +31,7 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChang
     handleDragStart,
     handleDragOver,
     handleDragEnd,
-    commit,
-    reset,
-  } = useMenuSectionDraft({ sections, onChange, commitMode });
+  } = useMenuSectionDraft({ sections, onChange });
 
   return (
     <div className={styles.scheduleEditor}>
@@ -196,18 +187,9 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChang
         </div>
       )}
 
-      {/* Save/Cancel Buttons */}
-      {hasChanges && (
-        <div className={styles.editorActions}>
-          <button type="button" onClick={reset} className={styles.cancelButton}>
-            {t('cancel')}
-          </button>
-          <button type="button" onClick={commit} className={styles.saveButton}>
-            {t('save')}
-          </button>
-        </div>
-      )}
-
+      {/* No Save/Cancel pair here: the section editor is `live` — every mutation
+          propagates to the page, whose single Save is the only commit point (owner
+          call, slice 7). */}
       <ConfirmationModal
         isOpen={sectionToDelete !== null}
         onClose={cancelRemoveSection}

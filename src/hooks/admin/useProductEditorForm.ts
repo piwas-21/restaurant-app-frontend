@@ -5,8 +5,13 @@ import { useFieldArray, useForm, type FieldValues, type Resolver } from 'react-h
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { getCategories } from '@/services/categoryService';
-import { editMenuBundleSchema, editProductSchema } from '@/components/admin/product/schemas';
-import { submitEditProductForm } from '@/components/admin/product/productFormUtils';
+import {
+  createMenuBundleSchema,
+  createProductSchema,
+  editMenuBundleSchema,
+  editProductSchema,
+} from '@/components/admin/product/schemas';
+import { submitEditProductForm, submitProductForm } from '@/components/admin/product/productFormUtils';
 import type { Category } from '@/components/admin/product/types';
 import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
@@ -17,15 +22,19 @@ interface UseProductEditorFormOptions {
   product: ProductDetails;
   /** Fixed for the hook's lifetime — the page mounts the editor only once the kind is known. */
   isBundle: boolean;
+  /** `create` on the /new route (empty defaults → POST), `edit` on `[productId]` (→ PUT). */
+  mode?: 'create' | 'edit';
   onSaved: () => void;
 }
 
 /**
- * The unified admin editor's form (menu-bundles redesign #176, slice 7 PR2d): one
- * react-hook-form + Zod instance and ONE write path, replacing the modal's form and the
- * self-saving detail tables' second write path (owner call, plan §7).
+ * The unified admin editor's form (menu-bundles redesign #176, slice 7): one
+ * react-hook-form + Zod instance and ONE product write path, replacing the four modals'
+ * forms and the self-saving detail tables' second write path (owner call, plan §7). It
+ * drives both the create (`/new`) and edit (`[productId]`) routes — the kind and the mode
+ * pick the schema and the endpoint.
  */
-export function useProductEditorForm({ product, isBundle, onSaved }: UseProductEditorFormOptions) {
+export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved }: UseProductEditorFormOptions) {
   const { i18n } = useTranslation();
   const editorDefaults = isBundle ? toBundleDefaults(product) : toItemDefaults(product);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,16 +49,21 @@ export function useProductEditorForm({ product, isBundle, onSaved }: UseProductE
   const [isMenuDefinitionDirty, setIsMenuDefinitionDirty] = useState(false);
   const [isIngredientsDirty, setIsIngredientsDirty] = useState(false);
 
-  // The resolver is chosen by kind and never swapped. editProductSchema REQUIRES
-  // categoryIds.min(1) + primaryCategoryId, which a bundle can never satisfy — its form has
-  // no category field and MenuBundleDto returns none — so a single resolver would make every
-  // bundle unsubmittable. editMenuBundleSchema conversely requires a menuDefinition.
-  // The two schemas are structurally different, so the ternary widens to a union that
-  // zodResolver's overloads reject, and there is no single static shape for useForm to infer
-  // — hence FieldValues (the panels already take register/errors/control untyped). The
-  // modals cast the same boundary with `as any`; `never` keeps §5.8's no-any rule.
+  // The resolver is chosen by kind + mode and never swapped. The item schema requires
+  // categoryIds.min(1) + primaryCategoryId (a bundle has neither — MenuBundleDto returns no
+  // categories); the bundle schema requires a menuDefinition; the create schemas add the
+  // stricter server bounds a fresh row must meet. Four structurally-different schemas mean the
+  // ternary widens past zodResolver's overloads with no single shape for useForm to infer —
+  // hence FieldValues + a `never` cast (the modals used `as any`; `never` keeps §5.8's rule).
+  const schema = isBundle
+    ? mode === 'create'
+      ? createMenuBundleSchema
+      : editMenuBundleSchema
+    : mode === 'create'
+      ? createProductSchema
+      : editProductSchema;
   const form = useForm<FieldValues>({
-    resolver: zodResolver((isBundle ? editMenuBundleSchema : editProductSchema) as never) as Resolver<FieldValues>,
+    resolver: zodResolver(schema as never) as Resolver<FieldValues>,
     defaultValues: editorDefaults,
   });
 
@@ -118,14 +132,37 @@ export function useProductEditorForm({ product, isBundle, onSaved }: UseProductE
       payload.menuDefinition = definition;
     }
 
+    // UpdateMenuBundleCommand / CreateMenuBundleCommand have no DetailedIngredients, so
+    // anything sent here for a bundle is silently dropped — but the reconciliation still runs
+    // and CREATES global ingredient rows as a side effect. Don't feed it.
+    const ingredientsForKind = isBundle ? [] : detailedIngredients;
+
+    if (mode === 'create') {
+      await submitProductForm({
+        data: payload as never,
+        imageFiles,
+        currentLanguage: i18n.language || 'en',
+        detailedIngredients: ingredientsForKind,
+        // submitProductForm reports 'creating' | 'uploading' | 'idle'; the page only needs a
+        // boolean. On success it navigates away via onSaved, so no dirty flags to clear here.
+        setSubmissionStatus: (status) => setIsSubmitting(status !== 'idle'),
+        setError,
+        onProductCreated: onSaved,
+        onClose: () => {},
+        // reset is typed for the concrete create schema; the hook holds FieldValues (four
+        // structurally-different schemas share one useForm), so the boundary is cast — the
+        // same `never` seam as the resolver above.
+        reset: reset as never,
+        setImageFiles,
+      });
+      return;
+    }
+
     await submitEditProductForm({
       data: payload as never,
       product,
       imageFiles,
-      // UpdateMenuBundleCommand has no DetailedIngredients, so anything sent here for a
-      // bundle is silently dropped — but the reconciliation still runs and CREATES global
-      // ingredient rows as a side effect. Don't feed it.
-      detailedIngredients: isBundle ? [] : detailedIngredients,
+      detailedIngredients: ingredientsForKind,
       setIsSubmitting,
       setError,
       onProductUpdated: () => {

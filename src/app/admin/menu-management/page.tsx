@@ -14,8 +14,7 @@ import {
   isMenuBundle,
 } from '@/utils/productTypeFilter';
 import styles from '@/app/styles/AdminPage.module.css';
-import CreateProductModal from '@/components/admin/CreateProductModal';
-import CreateMenuBundleModal from '@/components/admin/CreateMenuBundleModal';
+import NewProductTypeModal from '@/components/admin/menu-management/NewProductTypeModal';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
@@ -46,8 +45,7 @@ const MenuManagementContent = () => {
     fetchProducts,
   } = useMenuManagement(typeFilter);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isCreateMenuModalOpen, setIsCreateMenuModalOpen] = useState(false);
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<PendingDelete | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
@@ -55,16 +53,17 @@ const MenuManagementContent = () => {
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
 
   // Edit NAVIGATES to the editor page (slice 7 PR2d) instead of opening a modal — the page
-  // is the editor now, with one page-level Save (owner call, plan §7).
-  //
-  // The ROW still carries the kind, exactly as PR2b established: a `.find()` by id can miss
-  // when the list refetches, and `getProductById` has no type filter, so it would hand back
-  // a bundle as a ProductDto. The `?type=` hint only picks which endpoint the page TRIES;
-  // the fetched product's own type decides what renders, so a stale hint cannot mis-render.
-  // PR2e drops the param entirely.
+  // is the editor now, with one page-level Save (owner call, plan §7). No `?type=` hint (PR2e):
+  // the editor route derives the kind by fetching the product itself, so the link is clean.
   const handleEdit = (product: Product) => {
-    const query = isMenuBundle(product) ? `?type=${MENU_BUNDLE_TYPE}` : '';
-    router.push(`/admin/menu-management/${product.id}${query}`);
+    router.push(`/admin/menu-management/${product.id}`);
+  };
+
+  // Type is chosen once here (menu item vs bundle): the two load different fields and the
+  // backend can't migrate between them, so the create page opens already fixed to a kind.
+  const handleCreateSelect = (isBundle: boolean) => {
+    setIsTypeModalOpen(false);
+    router.push(isBundle ? `/admin/menu-management/new?type=${MENU_BUNDLE_TYPE}` : '/admin/menu-management/new');
   };
 
   // Kind captured at CLICK time: the confirm modal has no focus trap, so the chips stay
@@ -126,17 +125,11 @@ const MenuManagementContent = () => {
                 </option>
               ))}
             </select>
-            {/* Both create actions always show: the filter is a VIEW, not a mode, and
-                hiding one behind it is what made the old tabs feel modal. PR2c collapses
-                this pair into one "New product" → type choice. */}
-            <div className={styles.tooltipContainer}>
-              <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsCreateModalOpen(true)}>
-                {t('create_new_product')}
-              </button>
-              <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsCreateMenuModalOpen(true)}>
-                {t('create_menu_bundle')}
-              </button>
-            </div>
+            {/* One "New product" entry → a type choice (owner call, slice 7 PR2e). The filter
+                is a VIEW, not a mode, so create is a single action regardless of the active chip. */}
+            <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsTypeModalOpen(true)}>
+              {t('create_new_product')}
+            </button>
           </div>
         </PageHeader>
         <div className={styles.adminContent}>
@@ -174,17 +167,10 @@ const MenuManagementContent = () => {
           )}
         </div>
       </div>
-      <CreateProductModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onProductCreated={fetchProducts}
-        categoryId={selectedCategoryId}
-      />
-      <CreateMenuBundleModal
-        isOpen={isCreateMenuModalOpen}
-        onClose={() => setIsCreateMenuModalOpen(false)}
-        onProductCreated={fetchProducts}
-        categoryId={selectedCategoryId}
+      <NewProductTypeModal
+        isOpen={isTypeModalOpen}
+        onClose={() => setIsTypeModalOpen(false)}
+        onSelect={handleCreateSelect}
       />
       <ConfirmationModal
         isOpen={isConfirmationOpen}

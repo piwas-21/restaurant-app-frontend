@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 import styles from './MenuEditor.module.css';
@@ -24,40 +24,13 @@ const DAYS_OF_WEEK = [
 
 const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition, onChange }) => {
   const { t } = useTranslation();
-  const [localMenuDefinition, setLocalMenuDefinition] = useState<MenuDefinition>(menuDefinition);
-  const [hasChanges, setHasChanges] = useState(false);
 
-  // Reset local state when menuDefinition prop changes
-  useEffect(() => {
-    setLocalMenuDefinition(menuDefinition);
-    setHasChanges(false);
-  }, [menuDefinition]);
-
-  const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
-    setLocalMenuDefinition({
-      ...localMenuDefinition,
-      [field]: value,
-    });
-    setHasChanges(true);
-  };
-
-  const handleDayToggle = (dayKey: string) => {
-    setLocalMenuDefinition({
-      ...localMenuDefinition,
-      [dayKey]: !localMenuDefinition[dayKey as keyof MenuDefinition],
-    });
-    setHasChanges(true);
-  };
-
-  const handleSave = () => {
-    onChange(localMenuDefinition);
-    setHasChanges(false);
-  };
-
-  const handleCancel = () => {
-    setLocalMenuDefinition(menuDefinition);
-    setHasChanges(false);
-  };
+  // Controlled/live (slice 7 PR2e): every edit propagates straight to the page's form state,
+  // whose single Save is the only commit point (owner call). This used to buffer locally behind
+  // its OWN Save/Cancel — on the unified editor that stranded a schedule edit unless the nested
+  // Save was clicked, and stood a second commit point next to the page's. Now BundlePanel-only
+  // (the bundle modals + MenuBundleDetails that also used it are gone), so no flag is needed.
+  const patch = (updates: Partial<MenuDefinition>) => onChange({ ...menuDefinition, ...updates });
 
   return (
     <div className={styles.scheduleEditor}>
@@ -68,51 +41,38 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
         <label>{t('availability_mode')}</label>
         <div className={styles.chipGroup}>
           <div className={styles.chip}>
+            {/* The radio's own onChange drives the toggle, and the label is associated via
+                htmlFor — replacing the old no-op onChange + label onClick (unreachable by
+                keyboard). */}
             <input
               type="radio"
               id="always-available"
               name="availability-mode"
-              checked={localMenuDefinition.isAlwaysAvailable}
-              onChange={() => {}}
+              checked={menuDefinition.isAlwaysAvailable}
+              onChange={() => patch({ isAlwaysAvailable: true })}
             />
-            <label
-              onClick={() => {
-                setLocalMenuDefinition({ ...localMenuDefinition, isAlwaysAvailable: true });
-                setHasChanges(true);
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {t('always_available')}
-            </label>
+            <label htmlFor="always-available">{t('always_available')}</label>
           </div>
           <div className={styles.chip}>
             <input
               type="radio"
               id="custom-schedule"
               name="availability-mode"
-              checked={!localMenuDefinition.isAlwaysAvailable}
-              onChange={() => {}}
+              checked={!menuDefinition.isAlwaysAvailable}
+              onChange={() => patch({ isAlwaysAvailable: false })}
             />
-            <label
-              onClick={() => {
-                setLocalMenuDefinition({ ...localMenuDefinition, isAlwaysAvailable: false });
-                setHasChanges(true);
-              }}
-              style={{ cursor: 'pointer' }}
-            >
-              {t('custom_schedule')}
-            </label>
+            <label htmlFor="custom-schedule">{t('custom_schedule')}</label>
           </div>
         </div>
         <p className={styles.helpText}>
-          {localMenuDefinition.isAlwaysAvailable
+          {menuDefinition.isAlwaysAvailable
             ? t('always_available_help')
             : t('custom_schedule_help', { defaultValue: 'Set specific days and times when this menu is available' })}
         </p>
       </div>
 
       {/* Time Range */}
-      {!localMenuDefinition.isAlwaysAvailable && (
+      {!menuDefinition.isAlwaysAvailable && (
         <>
           <div className={styles.timeRange}>
             <div className={modalStyles.formGroup}>
@@ -120,8 +80,8 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
               <input
                 id="startTime"
                 type="time"
-                value={localMenuDefinition.startTime || ''}
-                onChange={(e) => handleTimeChange('startTime', e.target.value)}
+                value={menuDefinition.startTime || ''}
+                onChange={(e) => patch({ startTime: e.target.value })}
                 className={styles.timeInput}
               />
             </div>
@@ -131,8 +91,8 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
               <input
                 id="endTime"
                 type="time"
-                value={localMenuDefinition.endTime || ''}
-                onChange={(e) => handleTimeChange('endTime', e.target.value)}
+                value={menuDefinition.endTime || ''}
+                onChange={(e) => patch({ endTime: e.target.value })}
                 className={styles.timeInput}
               />
             </div>
@@ -147,8 +107,10 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
                   <input
                     type="checkbox"
                     id={`day-${key}`}
-                    checked={localMenuDefinition[key as keyof MenuDefinition] as boolean}
-                    onChange={() => handleDayToggle(key)}
+                    checked={menuDefinition[key as keyof MenuDefinition] as boolean}
+                    onChange={() =>
+                      patch({ [key]: !menuDefinition[key as keyof MenuDefinition] } as Partial<MenuDefinition>)
+                    }
                   />
                   <label htmlFor={`day-${key}`}>{t(label)}</label>
                 </div>
@@ -156,18 +118,6 @@ const MenuScheduleEditor: React.FC<MenuScheduleEditorProps> = ({ menuDefinition,
             </div>
           </div>
         </>
-      )}
-
-      {/* Save/Cancel Buttons */}
-      {hasChanges && (
-        <div className={styles.editorActions}>
-          <button onClick={handleCancel} className={styles.cancelButton}>
-            {t('cancel')}
-          </button>
-          <button onClick={handleSave} className={styles.saveButton}>
-            {t('save')}
-          </button>
-        </div>
       )}
     </div>
   );

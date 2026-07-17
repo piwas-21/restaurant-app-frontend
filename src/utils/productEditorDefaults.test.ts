@@ -1,5 +1,6 @@
 import {
   EMPTY_MENU_DEFINITION,
+  emptyProductDetails,
   flattenContent,
   resolveCategoryIds,
   resolvePrimaryCategoryId,
@@ -133,6 +134,25 @@ describe('resolveCategoryIds / resolveSideItemIds', () => {
     const p = product({ suggestedSideItems: [{ id: 's1' }, { id: 's2' }] as ProductDetails['suggestedSideItems'] });
 
     expect(resolveSideItemIds(p)).toEqual(['s1', 's2']);
+  });
+});
+
+describe('emptyProductDetails — the create route blank', () => {
+  it('types a plain item, with every collection empty', () => {
+    const p = emptyProductDetails(false);
+    expect(p.type).toBe('mainItem');
+    expect(p.id).toBe('');
+    expect(p.categories).toEqual([]);
+    expect(p.variations).toEqual([]);
+    expect(p.images).toEqual([]);
+    // Feeds toItemDefaults → the same shape CreateProductModal seeded from.
+    expect(toItemDefaults(p).categoryIds).toEqual([]);
+  });
+
+  it('types a bundle, whose empty definition falls through to EMPTY_MENU_DEFINITION', () => {
+    const p = emptyProductDetails(true);
+    expect(p.type).toBe('menu');
+    expect(toMenuDefinitionState(p)).toEqual(EMPTY_MENU_DEFINITION);
   });
 });
 

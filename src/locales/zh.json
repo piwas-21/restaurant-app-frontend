@@ -641,6 +641,8 @@
   "loading_categories": "加载分类...",
   "delete_image_confirmation_message": "确定要删除此图片吗？",
   "image_gallery": "图片画廊",
+  "no_images_yet": "暂无图片",
+  "image_update_failed": "更新图片失败",
   "delete_product": "删除商品",
   "delete_product_confirmation_message": "确定要删除此商品吗？",
   "upload_more_images": "上传更多图片",

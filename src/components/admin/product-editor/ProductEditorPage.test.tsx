@@ -11,10 +11,12 @@ jest.mock('react-i18next', () => ({
 jest.mock('@/services/productService', () => ({
   updateProduct: jest.fn(async () => ({ success: true })),
   uploadBulkProductImages: jest.fn(async () => ({ success: true })),
+  updateProductImageDetails: jest.fn(async () => ({ success: true })),
+  deleteProductImage: jest.fn(async () => ({ success: true })),
 }));
 jest.mock('@/services/menuService', () => ({
-  createProduct: jest.fn(),
-  createMenuBundle: jest.fn(),
+  createProduct: jest.fn(async () => ({ success: true, data: { id: 'new-1' } })),
+  createMenuBundle: jest.fn(async () => ({ success: true, data: { id: 'new-1' } })),
   updateMenuBundle: jest.fn(async () => ({ success: true })),
 }));
 jest.mock('@/services/globalIngredientService', () => ({
@@ -26,7 +28,8 @@ jest.mock('@/services/categoryService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
-import { updateMenuBundle } from '@/services/menuService';
+import { createProduct, createMenuBundle, updateMenuBundle } from '@/services/menuService';
+import { emptyProductDetails } from '@/utils/productEditorDefaults';
 
 const item: ProductDetails = {
   id: 'item-1',
@@ -73,11 +76,18 @@ const bundle: ProductDetails = {
   },
 } as ProductDetails;
 
-const renderEditor = async (product: ProductDetails, isBundle: boolean) => {
+const renderEditor = async (product: ProductDetails, isBundle: boolean, mode: 'create' | 'edit' = 'edit') => {
   const onSaved = jest.fn();
   const onBack = jest.fn();
   const { container } = render(
-    <ProductEditorPage product={product} isBundle={isBundle} onSaved={onSaved} onDelete={jest.fn()} onBack={onBack} />,
+    <ProductEditorPage
+      product={product}
+      isBundle={isBundle}
+      mode={mode}
+      onSaved={onSaved}
+      onDelete={jest.fn()}
+      onBack={onBack}
+    />,
   );
   // The categories fetch resolves after mount; flush it so that state update lands inside
   // act() rather than warning.
@@ -85,7 +95,7 @@ const renderEditor = async (product: ProductDetails, isBundle: boolean) => {
   // The product's own name field, not the same-valued `content.0.name` translation row —
   // ProductBasicInfo's input carries no label to query by.
   const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement;
-  return { onSaved, onBack, nameInput };
+  return { onSaved, onBack, nameInput, container };
 };
 
 beforeEach(() => jest.clearAllMocks());
@@ -229,5 +239,52 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     // which MenuDefinitionDto.Id (Guid?) accepts. The point is that "temp-555" never lands.
     expect(wire.menuDefinition.id).toBeNull();
     expect(JSON.stringify(wire)).not.toContain('temp-');
+  });
+});
+
+describe('ProductEditorPage — the create route drives the same page', () => {
+  // Same editor, different mode: an empty product, the create schema, a POST. The type is
+  // fixed by the /new entry choice and shown as the badge — never a chooser (owner call §7).
+  it('shows the create title, no delete, and a Save that is ready before any edit', async () => {
+    await renderEditor(emptyProductDetails(false), false, 'create');
+
+    expect(screen.getByRole('heading', { name: 'create_new_product' })).toBeInTheDocument();
+    // Edit gates Save on isDirty; create must be submittable from the empty form (the resolver
+    // is what rejects an incomplete one), so the button is not disabled on mount.
+    expect(screen.getByRole('button', { name: 'create_product' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'delete_product' })).not.toBeInTheDocument();
+  });
+
+  it('routes a new bundle to the create-bundle endpoint, not update', async () => {
+    const { nameInput, container } = await renderEditor(emptyProductDetails(true), true, 'create');
+
+    fireEvent.change(nameInput, { target: { value: 'Lunch Combo' } });
+    // createMenuBundleSchema requires basePrice > 0 (stricter than the item schema).
+    fireEvent.change(container.querySelector('input[name="basePrice"]') as HTMLInputElement, {
+      target: { value: '20' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'create_menu_bundle' }));
+
+    await waitFor(() => expect(createMenuBundle).toHaveBeenCalledTimes(1));
+    expect(createProduct).not.toHaveBeenCalled();
+    expect(updateMenuBundle).not.toHaveBeenCalled();
+  });
+});
+
+describe('ProductEditorPage — existing-image management', () => {
+  // The gallery re-added in PR2e: edit-mode items only. Bundles keep the file-input-only
+  // path they always had; a brand-new product has no images yet.
+  it('mounts the image gallery when editing an item', async () => {
+    await renderEditor(item, false);
+
+    expect(screen.getByRole('heading', { name: 'image_gallery' })).toBeInTheDocument();
+  });
+
+  it('does not mount the gallery on create, nor for a bundle', async () => {
+    await renderEditor(emptyProductDetails(false), false, 'create');
+    expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
+
+    await renderEditor(bundle, true);
+    expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
   });
 });

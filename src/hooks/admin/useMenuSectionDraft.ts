@@ -3,62 +3,45 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { MenuSection, MenuSectionItem } from '@/types/menu';
 
-/**
- * How a draft reaches its parent.
- *
- * - `explicit` — the draft is held locally until `commit()`. What the bundle modals
- *   do today: the section editor renders its own Save/Cancel pair.
- * - `live` — every mutation propagates immediately. What the unified editor page
- *   needs, since it owns a single page-level Save (owner call, slice 7 PR2c) and a
- *   nested second Save would be two competing commit points on one screen.
- *
- * Both modes ship because PR2c leaves the modals alive — PR2d deletes them, and this
- * flag goes with them. Same shape as slice 3's `preferProvidedQuantities`: preserve
- * the divergent behaviour behind a documented flag rather than reconcile it mid-move.
- */
-export type MenuSectionCommitMode = 'explicit' | 'live';
-
 interface UseMenuSectionDraftOptions {
   sections: MenuSection[];
   onChange: (sections: MenuSection[]) => void;
-  commitMode?: MenuSectionCommitMode;
 }
 
 /**
- * Owns the menu-section draft: the local copy, its dirty flag, which rows are open,
- * and the drag/delete interaction state. Extracted verbatim from `MenuSectionEditor`
- * (redesign #176, slice 7) — the fuller half of the split `utils/menuSectionDraft.ts`
- * (PR1) promised, so the component is left rendering only.
+ * Owns the menu-section draft: the local copy, which rows are open, and the
+ * drag/delete interaction state. Extracted from `MenuSectionEditor` (redesign #176,
+ * slice 7) — the fuller half of the split `utils/menuSectionDraft.ts` (PR1) promised,
+ * so the component is left rendering only.
+ *
+ * Every mutation propagates immediately (`onChange`). This used to be the `live` half
+ * of a `commitMode` flag whose `explicit` half buffered edits behind the bundle modals'
+ * own Save/Cancel; those modals were deleted in PR2e and the flag with them, since the
+ * unified editor page owns the single page-level Save (owner call, slice 7) and a nested
+ * second commit point would compete with it.
  */
-export function useMenuSectionDraft({ sections, onChange, commitMode = 'explicit' }: UseMenuSectionDraftOptions) {
+export function useMenuSectionDraft({ sections, onChange }: UseMenuSectionDraftOptions) {
   const [localSections, setLocalSections] = useState<MenuSection[]>(sections);
-  const [hasChanges, setHasChanges] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Resync when the sections prop changes. In `live` mode the parent echoes back the
-  // very array we emitted, so this re-sets the array we already hold and React bails
-  // on Object.is — the echo is an identity operation, not a clobber. See the PR #212
-  // thread: an echo guard here was measured to change nothing.
+  // Resync when the sections prop changes. The parent echoes back the very array we
+  // emitted, so this re-sets the array we already hold and React bails on Object.is —
+  // the echo is an identity operation, not a clobber. See the PR #212 thread: an echo
+  // guard here was measured to change nothing.
   useEffect(() => {
     setLocalSections(sections);
-    setHasChanges(false);
   }, [sections]);
 
-  /**
-   * The one write point. In `live` mode it also pushes upward, so the page's form
-   * state is always the draft — there is no way to leave an edit stranded in here.
-   */
+  /** The one write point. It always pushes upward, so the page's form state is always
+   *  the draft — there is no way to leave an edit stranded in here. */
   const applySections = useCallback(
     (next: MenuSection[]) => {
       setLocalSections(next);
-      setHasChanges(true);
-      if (commitMode === 'live') {
-        onChange(next);
-      }
+      onChange(next);
     },
-    [commitMode, onChange],
+    [onChange],
   );
 
   const toggleSection = useCallback((sectionId: string) => {
@@ -157,22 +140,8 @@ export function useMenuSectionDraft({ sections, onChange, commitMode = 'explicit
     [draggedIndex, localSections, applySections],
   );
 
-  /** No-op in `live` mode — every mutation has already propagated. */
-  const commit = useCallback(() => {
-    onChange(localSections);
-    setHasChanges(false);
-  }, [onChange, localSections]);
-
-  const reset = useCallback(() => {
-    setLocalSections(sections);
-    setHasChanges(false);
-  }, [sections]);
-
   return {
     localSections,
-    // `live` drafts have no separate commit step, so there is never a pending state
-    // for a Save/Cancel pair to act on — the page's own Save is the only one.
-    hasChanges: commitMode === 'live' ? false : hasChanges,
     expandedSections,
     sectionToDelete,
     draggedIndex,
@@ -187,7 +156,5 @@ export function useMenuSectionDraft({ sections, onChange, commitMode = 'explicit
     handleDragStart,
     handleDragOver,
     handleDragEnd,
-    commit,
-    reset,
   };
 }

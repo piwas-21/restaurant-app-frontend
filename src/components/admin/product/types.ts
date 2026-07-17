@@ -12,20 +12,6 @@ export interface Category {
   name: string;
 }
 
-export interface CreateProductModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onProductCreated: () => void;
-  categoryId?: string | null;
-}
-
-export interface EditProductModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onProductUpdated: () => void;
-  product: any; // Product entity from API
-}
-
 export interface Variation {
   id?: string; // Optional for create, required for edit
   name: string;
@@ -108,7 +94,6 @@ export interface ProductDetailsProps {
   control: any;
   imageFiles: File[];
   setImageFiles: (files: File[]) => void;
-  existingImages?: { id: string; url: string; altText?: string; isPrimary: boolean }[];
 }
 
 export interface MultilingualContentProps {

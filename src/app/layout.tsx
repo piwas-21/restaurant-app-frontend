@@ -35,7 +35,7 @@ export const viewport: Viewport = {
 const { Shell, fonts } = template;
 const bodyClassName = fonts.map((font) => font.className).join(' ');
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   // Runtime colour palette (ADR-007): fetched server-side, injected as a
   // hoisted <style> (React 19 lifts it into <head>). The doubled-specificity
   // selectors in paletteToCss win over the baked template tokens regardless of

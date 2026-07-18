@@ -67,7 +67,7 @@ COLOUR PALETTE — solid flat colours only, NO gradients:
 
 - Dark theme ("late-evening kitchen" — a different atmosphere, NOT an invert):
   Background: deep warm aubergine (#211A16), like a dim kitchen, not black
-  Card surface: (#2C241F)
+  Card surface: warm charcoal plate (#2C241F)
   Secondary surface: dark umber (#3E3630)
   Text: warm cream (#F2E9DD)
   Secondary text: pale olive (#B5BC8A)

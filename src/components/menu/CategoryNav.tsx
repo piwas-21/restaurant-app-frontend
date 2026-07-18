@@ -2,17 +2,19 @@
 
 import styles from './CategoryNav.module.css';
 import type { ApiCategory } from '@/types/menu';
-import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 import { useCategoryNavScroll } from '@/hooks/menu/useCategoryNavScroll';
 import { useCategoryTabs } from '@/hooks/menu/useCategoryTabs';
 import CategoryNavShell from './CategoryNavShell';
 
-export type CategoryNavSelection = string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY;
-
 export interface CategoryNavProps {
   categories: ApiCategory[];
-  selectedView: CategoryNavSelection;
-  onSelect: (value: CategoryNavSelection) => void;
+  /**
+   * The selected view: an API category id, or one of the `ALL_ITEMS_KEY` /
+   * `MENU_BUNDLES_KEY` sentinels — all strings (see `publicMenu/constants`,
+   * `PublicMenuView`). Typed `string` because those literals are subsumed by it.
+   */
+  selectedView: string;
+  onSelect: (value: string) => void;
   allLabel: string;
 }
 

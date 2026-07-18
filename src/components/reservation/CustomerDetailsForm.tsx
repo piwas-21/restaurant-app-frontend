@@ -28,8 +28,12 @@ export default function CustomerDetailsForm({
     <div className={styles.formSection}>
       <label className={styles.label}>{t('your_details', 'Your Details')}</label>
 
+      {/* Design uses placeholders as the visual label (no per-field labels), so
+          each control also carries an aria-label for an accessible name — axe's
+          `label` rule doesn't accept placeholder alone. */}
       <input
         type="text"
+        aria-label={t('your_name', 'Your Name')}
         placeholder={t('your_name', 'Your Name')}
         value={customerName}
         onChange={(e) => onNameChange(e.target.value)}
@@ -39,6 +43,7 @@ export default function CustomerDetailsForm({
 
       <input
         type="email"
+        aria-label={t('your_email', 'Your Email')}
         placeholder={t('your_email', 'Your Email')}
         value={customerEmail}
         onChange={(e) => onEmailChange(e.target.value)}
@@ -48,6 +53,7 @@ export default function CustomerDetailsForm({
 
       <input
         type="tel"
+        aria-label={t('your_phone_optional', 'Your Phone')}
         placeholder={t('your_phone_optional', 'Your Phone')}
         value={customerPhone}
         onChange={(e) => onPhoneChange(e.target.value)}
@@ -56,6 +62,7 @@ export default function CustomerDetailsForm({
       />
 
       <textarea
+        aria-label={t('special_requests', 'Special requests')}
         placeholder={t('special_requests_placeholder', 'Allergies, dietary requirements, special occasions, etc.')}
         value={specialRequests}
         onChange={(e) => onSpecialRequestsChange(e.target.value)}

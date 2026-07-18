@@ -1,0 +1,57 @@
+name: deploy-demo-staging
+
+# Auto-rolls the DEMO tenant's frontend on the STAGING box after build-demo-tenant
+# succeeds on develop, so demo.sofrapiwas.com serves the develop-tip craft build.
+# This is the tenant counterpart of deploy-staging.yml (which rolls the RUMI :staging
+# frontend), but targets the tenant-demo compose project instead of the RUMI stack.
+#
+#   - auto:   after build-demo-tenant succeeds on develop (workflow_run) -> roll frontend-demo
+#   - manual: workflow_dispatch -> re-roll the current tenant-demo tag (no rebuild)
+#
+# SCOPED to the frontend-demo service in /opt/rumi/tenants/demo (compose project
+# tenant-demo): it never touches the RUMI stack, the shared caddy, or backend-demo.
+# The tenant .env pins FRONTEND_TAG=tenant-demo (a moving tag), so a scoped
+# `pull frontend-demo` + `up -d frontend-demo` fetches the freshly built digest and
+# recreates only that container. Rollback = re-point the tenant .env at an earlier
+# immutable :tenant-demo-sha-<sha> and re-roll (or workflow_dispatch a prior build).
+#
+# Reuses repo secrets STAGING_DEPLOY_{HOST,USER,SSH_KEY,SSH_FINGERPRINT} (same staging
+# box + key as deploy-staging.yml).
+
+on:
+  workflow_run:
+    workflows: ["build-demo-tenant"]
+    types: [completed]
+    branches: [develop]
+  workflow_dispatch: {}
+
+concurrency:
+  group: demo-tenant-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: deploy frontend-demo (staging box)
+    # Auto path only when the build actually succeeded; manual path always runs.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: SSH → roll frontend-demo (scoped tenant-demo project)
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.STAGING_DEPLOY_HOST }}
+          username: ${{ secrets.STAGING_DEPLOY_USER }}
+          key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          fingerprint: ${{ secrets.STAGING_DEPLOY_SSH_FINGERPRINT }}
+          command_timeout: 18m
+          # Shares /tmp/rumi-deploy.lock with the RUMI staging roll so the two never
+          # hit the Docker daemon at once (GitHub concurrency groups don't span
+          # workflows). Scoped to the tenant-demo project dir; auto-loads its .env
+          # (FRONTEND_TAG=tenant-demo). frontend-demo never touches app-secrets.json.
+          script: |
+            flock -n /tmp/rumi-deploy.lock -c "cd /opt/rumi/tenants/demo && docker compose pull frontend-demo && docker compose up -d frontend-demo && docker image prune -f" \
+              || { echo "::error::another RUMI deploy holds the lock; skipping this run"; exit 1; }

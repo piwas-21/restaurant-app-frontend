@@ -1,0 +1,43 @@
+name: build-demo-tenant
+
+# Auto-builds the tenant-demo (craft) frontend image from DEVELOP-TIP so that
+# demo.sofrapiwas.com tracks develop as live craft staging (mirrors how build-image's
+# build-staging job tracks develop for RUMI :staging). Thin caller of the reusable
+# build-tenant-image.yml with the demo registry values hardcoded (deploy repo
+# registry.yml `demo` entry: template=craft, currency=EUR, name="Sofra Demo").
+#
+#   - auto:   push to develop  -> rebuild ghcr.io/…:tenant-demo (+ :tenant-demo-sha-<sha>)
+#   - manual: workflow_dispatch -> rebuild the current develop tip on demand
+#
+# Deliberately a SEPARATE workflow with its OWN name (NOT "build-image"): deploy.yml
+# (prod) and deploy-staging.yml (RUMI staging) key their workflow_run triggers off
+# "build-image", so this tenant build never fires a RUMI deploy. The demo roll is
+# driven by deploy-demo-staging.yml keyed off THIS workflow's name.
+#
+# A `push` trigger (not workflow_run) is used on purpose: it builds develop-tip from a
+# plain checkout, whereas a workflow_run job would check out the default ref.
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-demo-tenant
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-demo:
+    # Reusable build; GITHUB_TOKEN is passed automatically to same-repo reusable
+    # workflows, and packages:write above flows down for the GHCR push.
+    uses: ./.github/workflows/build-tenant-image.yml
+    with:
+      tenant_domain: demo.sofrapiwas.com
+      image_tag: tenant-demo
+      template: craft
+      currency: EUR
+      restaurant_name: Sofra Demo

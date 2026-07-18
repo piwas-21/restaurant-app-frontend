@@ -2,14 +2,18 @@
    palette (../tokens.css) flips light/dark via html[data-theme="dark"].
    Shared `nav-link` links (globals.css) re-skin themselves through the
    `--nav-link-*` variables, which already resolve to craft tokens; this
-   module only adds the craft-specific shapes (organic radius, letterpress
-   CTA) and the mobile slide-in mechanics (aria parity with classic).
-   Contrast (AA, spot-checked against the craft tokens): ink on card
-   12.4:1 / terracotta on cream 5.4:1 / cream on terracotta 5.4:1; dark:
-   cream on aubergine 13.9:1 / aubergine on apricot 9.5:1. */
+   module only adds the craft-specific shapes (organic wobbly-radius pill on
+   nav-link hover/active) and the mobile slide-in mechanics (aria parity with
+   classic). There is deliberately NO reservation CTA here — Reservations is
+   already a shared nav link (RoleNavLinks) and the home hero owns the
+   "Book a Table" CTA, so a header button would be a third copy of the same
+   action (craft-stitch-prompts.md Prompt 3). Contrast (AA, spot-checked
+   against the craft tokens): wordmark ink on card 12.4:1, terracotta
+   wordmark-hover on card 5.4:1 (light); cream on aubergine 13.9:1 (dark). */
 
 .header {
-  --craft-header-h: 76px;
+  /* --craft-header-h is defined on craft :root (../tokens.css) so the home
+     hero can offset by it too; this module just consumes it. */
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -54,21 +58,6 @@
 /* Organic hover/active pill on the shared nav links. */
 .nav :global(.nav-link) {
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-}
-
-/* Letterpress reservations CTA (motifs from ../craft.module.css). */
-.headerCta {
-  composes: letterpressBtn from '../craft.module.css';
-  composes: roundedCraft from '../craft.module.css';
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.1rem;
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
-  text-decoration: none;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 .switchers {
@@ -173,13 +162,5 @@
 
   .navOpen .switchers > *:last-child {
     border-bottom: none;
-  }
-
-  .navOpen .headerCta {
-    width: auto;
-    margin: 1rem 1.5rem;
-    justify-content: center;
-    border-bottom: none;
-    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   }
 }

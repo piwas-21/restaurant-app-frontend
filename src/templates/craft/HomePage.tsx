@@ -4,7 +4,8 @@
 // classic/HomePage.tsx (useRestaurantInfo, workingHoursService,
 // ContactIcons, BRANDING_HERO/RESTAURANT_NAME, FooterCookieLink,
 // useTranslation via useCraftHomeData.ts) composed as a distinct craft
-// layout: asymmetric hero, tilted letterpress cards, a dotted-leader
+// layout: a full-bleed photo hero with a warm tint overlay + centered
+// craft content, tilted letterpress cards, and a dotted-leader
 // menu-board section for opening hours. Zero gradients — styled
 // exclusively via craft tokens (./tokens.css) + craft utility classes
 // (./craft.module.css). Reuses every existing i18n key; no
@@ -36,9 +37,13 @@ export default function HomePage() {
 
   return (
     <div className={styles.homeContainer}>
-      <section className={styles.hero} aria-labelledby="hero-heading">
-        <div className={styles.heroImage} style={{ backgroundImage: `url(${backgroundImageUrl})` }} />
-        <div className={styles.heroText}>
+      <section
+        className={styles.hero}
+        style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+        aria-labelledby="hero-heading"
+      >
+        <div className={styles.heroOverlay} aria-hidden="true" />
+        <div className={styles.heroContent}>
           <span className={craft.tapeLabel}>
             {isClient ? t('authentic_turkish_cuisine') : 'Authentic Turkish Cuisine'}
           </span>

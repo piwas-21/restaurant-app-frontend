@@ -42,6 +42,20 @@
 @import '../../design-system/tokens/index.css';
 
 :root {
+  /* Layout — craft sticky-header height. Declared here (not only inside
+     chrome/CraftHeader.module.css's .header subtree) so surfaces BELOW the
+     header can offset by it: the full-bleed home hero fills the viewport
+     under the in-flow header via min-height: calc(100vh - var(...)). The
+     header module reads this same :root value (single source of truth). */
+  --craft-header-h: 76px;
+
+  /* Home-hero photo scrim — a FLAT warm-charcoal wash (not a gradient) over
+     the full-bleed hero image, just enough that the cream --text-on-accent
+     hand-lettering clears WCAG-AA for large text on any tenant photo (worst
+     case, a pure-white photo: ~3.5:1; realistic warm food photos give far
+     more, plus the titles carry a text-shadow). Deepened in dark below. */
+  --craft-hero-scrim: rgba(38, 30, 24, 0.55);
+
   /* Type (slice 2) — plan §3.3: Quicksand is the craft BODY family.
      globals.css consumers of --font-family-sans (buttons, inputs, form
      classes, notistack) pick it up through the var; the literal family
@@ -86,6 +100,11 @@
 
 html[data-theme='dark'] {
   /* "Late-evening kitchen" — a different atmosphere, not an invert. */
+
+  /* Deeper hero scrim for the dark theme (cream on it clears ~5.2:1 worst
+     case). Same flat wash, just more of it. */
+  --craft-hero-scrim: rgba(18, 13, 10, 0.62);
+
   --brand-primary: #f2b48c; /* luminous apricot, 9.5:1 on the aubergine bg */
   --brand-accent: #e8c87c; /* pale saffron */
 

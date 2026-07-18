@@ -3,15 +3,17 @@
 // craft sticky header (ADR-006, S15 T3 slice 2): hand-lettered wordmark
 // (Amatic SC, from the RestaurantInfo API with the baked build-time name
 // as fallback — same identity sources as the classic chrome), the SHARED
-// role-based <RoleNavLinks/> re-skinned via tokens, a letterpress
-// reservations CTA, and a mobile slide-in menu with the same keyboard/aria
-// mechanics as the classic one (aria-expanded + translated open/close
-// labels + aria-hidden backdrop).
+// role-based <RoleNavLinks/> re-skinned via tokens, and a mobile slide-in
+// menu with the same keyboard/aria mechanics as the classic one
+// (aria-expanded + translated open/close labels + aria-hidden backdrop).
+// NOTE: no reservation CTA here — Reservations is already a RoleNavLinks
+// nav link and the home hero owns the "Book a Table" CTA, so a header
+// button would be a redundant third copy (craft-stitch-prompts.md Prompt 3).
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { CalendarCheck, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import UserMenu from '@/components/UserMenu';
@@ -80,10 +82,6 @@ export default function CraftHeader() {
               </div>
             </>
           )}
-          <Link href="/reservations" className={styles.headerCta} onClick={closeMobileMenu}>
-            <CalendarCheck size={18} strokeWidth={2.5} />
-            <span>{isClient ? t('home_reservations_cta') : 'Book a Table'}</span>
-          </Link>
         </nav>
       </div>
     </header>

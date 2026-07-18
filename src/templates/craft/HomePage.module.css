@@ -9,57 +9,65 @@
 }
 
 .hero {
-  /* No header offset (slice 2): craft's own chrome is a sticky in-flow
-     header, not the classic transparent overlay this padding compensated. */
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  min-height: 88vh;
-}
-
-.heroImage {
-  composes: roundedCraft from './craft.module.css';
-  flex: 1 1 55%;
-  min-height: 320px;
+  /* Full-bleed photo hero (mirrors classic/HomePage.module.css). No top
+     offset: craft's chrome is a sticky IN-FLOW header (not the classic
+     transparent overlay), so the hero just fills the viewport left below it
+     — --craft-header-h lives on craft :root (./tokens.css). */
+  position: relative;
+  min-height: calc(100vh - var(--craft-header-h));
+  width: 100%;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  margin: 1.5rem;
-  transform: rotate(-1deg);
-}
-
-.heroText {
-  composes: roundedCraft from './craft.module.css';
-  composes: letterpress from './craft.module.css';
-  flex: 1 1 40%;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-on-accent);
+}
+
+/* Flat warm-charcoal wash over the photo for text contrast (see the
+   --craft-hero-scrim token note); NOT a gradient. */
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--craft-hero-scrim);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 1rem;
-  margin: 1.5rem 1.5rem 1.5rem 0;
-  padding: 2.5rem 2rem;
-  background: var(--surface-card);
+  max-width: 900px;
 }
 
 .heroTitle {
   font-family: 'Amatic SC', cursive;
-  font-size: 4rem;
+  font-size: 4.5rem;
   line-height: 1.05;
-  color: var(--text-primary);
+  color: var(--text-on-accent);
   margin: 0;
+  text-shadow: 0 2px 6px rgba(28, 22, 18, 0.65);
 }
 
 .heroSubtitle {
   font-family: 'Caveat', cursive;
   font-size: 1.5rem;
-  color: var(--text-secondary);
+  color: var(--text-on-accent);
   margin: 0;
+  max-width: 40ch;
+  text-shadow: 0 1px 4px rgba(28, 22, 18, 0.6);
 }
 
 .ctaRow {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 1rem;
   margin-top: 0.5rem;
 }
@@ -83,10 +91,12 @@
   border: 2px solid var(--brand-primary);
 }
 
+/* Outline pill, light-on-photo: cream text + cream border so the secondary
+   CTA stays legible directly on the hero photo. */
 .ctaSecondary {
   background: transparent;
-  color: var(--text-primary);
-  border: 2px solid var(--border-default);
+  color: var(--text-on-accent);
+  border: 2px solid var(--text-on-accent);
 }
 
 .pageContentWrapper {
@@ -149,22 +159,17 @@
 }
 
 @media (max-width: 900px) {
-  .heroImage {
-    min-height: 240px;
-  }
   .heroTitle {
-    font-size: 3rem;
+    font-size: 3.25rem;
   }
 }
 
 @media (max-width: 640px) {
-  .hero {
-    flex-direction: column;
-    min-height: unset;
+  .heroTitle {
+    font-size: 2.5rem;
   }
-  .heroImage,
-  .heroText {
-    margin: 1rem;
+  .heroSubtitle {
+    font-size: 1.2rem;
   }
   /* Reserve space below the fold for the fixed ContactIcons bar, matching
      classic/HomePage.module.css. */

@@ -2182,5 +2182,15 @@
   "choose_range": "Kies {{min}}-{{max}}",
   "please_select_at_least_options": "Selecteer minimaal {{count}} optie(s)",
   "selected_count": "({{count}} geselecteerd)",
-  "special": "Speciaal"
+  "special": "Speciaal",
+  "appearance_settings": "Weergave",
+  "appearance_title": "Kleurenpalet",
+  "appearance_desc": "Kies een kleurenpalet voor uw openbare site. Wijzigingen worden bij het volgende laden van de pagina toegepast — geen herbouw nodig.",
+  "appearance_save_success": "Palet opgeslagen — herlaad de site om het te zien",
+  "appearance_palette_default": "Standaard (sjabloon)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

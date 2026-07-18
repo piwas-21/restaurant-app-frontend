@@ -30,6 +30,7 @@ module.exports = {
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
+    '^@/design-system/(.*)$': '<rootDir>/src/design-system/$1',
     // Tenant UI template alias (ADR-006). Jest always resolves to `classic`,
     // matching the tsconfig type-source; templates get covered by the
     // per-template Playwright screenshot suite, not unit tests.

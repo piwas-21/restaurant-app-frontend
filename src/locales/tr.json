@@ -2182,5 +2182,15 @@
   "choose_range": "{{min}}-{{max}} adet seçin",
   "please_select_at_least_options": "Lütfen en az {{count}} seçenek seçin",
   "selected_count": "({{count}} seçildi)",
-  "special": "Özel"
+  "special": "Özel",
+  "appearance_settings": "Görünüm",
+  "appearance_title": "Renk paleti",
+  "appearance_desc": "Herkese açık siteniz için bir renk paleti seçin. Değişiklikler bir sonraki sayfa yüklemesinde uygulanır — yeniden derleme gerekmez.",
+  "appearance_save_success": "Palet kaydedildi — görmek için siteyi yeniden yükleyin",
+  "appearance_palette_default": "Varsayılan (şablon)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

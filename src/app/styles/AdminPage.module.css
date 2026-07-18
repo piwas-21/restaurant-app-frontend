@@ -1125,6 +1125,15 @@
   margin-right: auto;
 }
 
+/* Strips the fieldset chrome so a semantic <fieldset> lays out exactly like the
+   former <div>. Scoped, because .tabs is shared with restaurant-settings + orders. */
+.chipGroup {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+
 .tabButton {
   padding: 0.5rem 1rem;
   border: none;
@@ -1144,35 +1153,6 @@
 .activeTab {
   color: var(--link-hover-color);
   border-bottom-color: var(--link-hover-color);
-}
-
-.existingImagesList {
-  margin-top: 1rem;
-  background-color: var(--secondary-color-light, #f8f9fa);
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-color, #dee2e6);
-}
-
-.existingImagesList p {
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-}
-
-.existingImagesList ul {
-  padding-left: 1.5rem;
-  margin: 0;
-}
-
-.existingImagesList li {
-  margin-bottom: 0.25rem;
-  color: var(--text-secondary);
-  word-break: break-all;
-}
-
-[data-theme='dark'] .existingImagesList {
-  background-color: var(--secondary-color, #2c2c2c);
-  border-color: var(--border-color, #444);
 }
 
 .errorBanner {

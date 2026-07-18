@@ -24,6 +24,7 @@ module.exports = {
       '<rootDir>/__mocks__/fileMock.js',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '^@/config/(.*)$': '<rootDir>/src/config/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -42,7 +43,11 @@ module.exports = {
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
     'src/utils/reservationForm.ts',
+    'src/utils/productTypeFilter.ts',
+    'src/utils/productEditorDefaults.ts',
+    'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
+    '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
     '!**/node_modules/**',
     '!**/.next/**',
@@ -75,6 +80,77 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Slice 7 PR2d — the unified admin editor. `productEditorDefaults` is the pure
+    // fetched-product → form-state mapping (the load-bearing half, incl. the real
+    // primary-category resolution); `ProductEditorPage` is the composition + the single
+    // Save. `BundlePanel` sits lower because its file-picker and section-change handlers
+    // are not exercised — the panel's kind-specific *structure* is what the tests pin.
+    './src/utils/productEditorDefaults.ts': {
+      statements: 95,
+      branches: 61,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/ProductEditorPage.tsx': {
+      statements: 92,
+      branches: 80,
+      functions: 74,
+      lines: 92,
+    },
+    './src/components/admin/product-editor/BundlePanel.tsx': {
+      statements: 49,
+      branches: 39,
+      functions: 32,
+      lines: 49,
+    },
+    // Slice 7 PR2e — existing-image management, migrated to immediate per-image endpoint
+    // calls (no rival Save), self-managing its list so an op never discards the form's edits.
+    // Set-primary, sort-on-blur, delete, and the failure path are all pinned.
+    './src/components/admin/product-editor/ImageGallery.tsx': {
+      statements: 92,
+      branches: 82,
+      functions: 95,
+      lines: 97,
+    },
+    './src/components/admin/product-editor/ImageActions.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // Slice 7 PR2e — the "New product" type chooser (create entry). Fully covered.
+    './src/components/admin/menu-management/NewProductTypeModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // Slice 7 — the admin write path. These tests pin the create/update endpoint
+    // dispatch on both halves (a bundle must go to /api/Menus, an item to
+    // /api/Products) and the shared menu-definition mapping. PR2e's create route now
+    // exercises the create half too; the global-ingredient reconciliation and the
+    // error branches are the untested remainder.
+    './src/components/admin/product/productFormUtils.ts': {
+      statements: 42,
+      branches: 35,
+      functions: 56,
+      lines: 40,
+    },
+    // Slice 7 PR2b — the admin catalog's type filter. `productTypeFilter` is pure and
+    // fully covered; `ProductsTable`'s uncovered branches are the loading/error early
+    // returns, not the per-row type logic the tests pin.
+    './src/utils/productTypeFilter.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/menu-management/ProductsTable.tsx': {
+      statements: 82,
+      branches: 69,
+      functions: 99,
+      lines: 99,
+    },
     './src/components/design-system/AlertDialog.tsx': {
       statements: 99,
       branches: 99,

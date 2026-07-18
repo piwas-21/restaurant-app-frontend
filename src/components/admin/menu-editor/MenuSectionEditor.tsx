@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from './MenuEditor.module.css';
-import { MenuSection, MenuSectionItem } from '@/types/menu';
+import { MenuSection } from '@/types/menu';
 import MenuItemSelector from './MenuItemSelector';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import { useMenuSectionDraft } from '@/hooks/admin/useMenuSectionDraft';
 
 interface MenuSectionEditorProps {
   sections: MenuSection[];
@@ -14,134 +15,23 @@ interface MenuSectionEditorProps {
 
 const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChange }) => {
   const { t } = useTranslation();
-  const [localSections, setLocalSections] = useState<MenuSection[]>(sections);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
-  // Reset local state when sections prop changes
-  useEffect(() => {
-    setLocalSections(sections);
-    setHasChanges(false);
-  }, [sections]);
-
-  const toggleSection = (sectionId: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(sectionId)) {
-      newExpanded.delete(sectionId);
-    } else {
-      newExpanded.add(sectionId);
-    }
-    setExpandedSections(newExpanded);
-  };
-
-  const addSection = () => {
-    const newSection: MenuSection = {
-      id: `temp-${Date.now()}`,
-      name: '',
-      description: '',
-      displayOrder: 0, // New section goes to top
-      isRequired: true,
-      minSelection: 1,
-      maxSelection: 1,
-      items: [],
-    };
-
-    // Update display orders for existing sections
-    const updatedSections = localSections.map((s) => ({
-      ...s,
-      displayOrder: s.displayOrder + 1,
-    }));
-
-    // Add new section at the beginning
-    setLocalSections([newSection, ...updatedSections]);
-    setExpandedSections(new Set([...expandedSections, newSection.id]));
-    setHasChanges(true);
-  };
-
-  const updateSection = (index: number, updates: Partial<MenuSection>) => {
-    const newSections = [...localSections];
-    newSections[index] = { ...newSections[index], ...updates };
-    setLocalSections(newSections);
-    setHasChanges(true);
-  };
-
-  const confirmRemoveSection = (index: number) => {
-    setSectionToDelete(index);
-  };
-
-  const handleRemoveSection = () => {
-    if (sectionToDelete !== null) {
-      const newSections = localSections.filter((_, i) => i !== sectionToDelete);
-      setLocalSections(newSections);
-      setSectionToDelete(null);
-      setHasChanges(true);
-    }
-  };
-
-  const moveSection = (index: number, direction: 'up' | 'down') => {
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === localSections.length - 1)) {
-      return;
-    }
-
-    const newSections = [...localSections];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
-
-    // Update display orders
-    newSections.forEach((section, i) => {
-      section.displayOrder = i;
-    });
-
-    setLocalSections(newSections);
-    setHasChanges(true);
-  };
-
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-
-    if (draggedIndex === null || draggedIndex === index) return;
-
-    const newSections = [...localSections];
-    const draggedSection = newSections[draggedIndex];
-
-    // Remove from old position
-    newSections.splice(draggedIndex, 1);
-    // Insert at new position
-    newSections.splice(index, 0, draggedSection);
-
-    // Update display orders
-    newSections.forEach((section, i) => {
-      section.displayOrder = i;
-    });
-
-    setLocalSections(newSections);
-    setDraggedIndex(index);
-    setHasChanges(true);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
-  const updateSectionItems = (index: number, items: MenuSectionItem[]) => {
-    updateSection(index, { items });
-  };
-
-  const handleSave = () => {
-    onChange(localSections);
-    setHasChanges(false);
-  };
-
-  const handleCancel = () => {
-    setLocalSections(sections);
-    setHasChanges(false);
-  };
+  const {
+    localSections,
+    expandedSections,
+    sectionToDelete,
+    draggedIndex,
+    toggleSection,
+    addSection,
+    updateSection,
+    updateSectionItems,
+    confirmRemoveSection,
+    cancelRemoveSection,
+    handleRemoveSection,
+    moveSection,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useMenuSectionDraft({ sections, onChange });
 
   return (
     <div className={styles.scheduleEditor}>
@@ -297,21 +187,12 @@ const MenuSectionEditor: React.FC<MenuSectionEditorProps> = ({ sections, onChang
         </div>
       )}
 
-      {/* Save/Cancel Buttons */}
-      {hasChanges && (
-        <div className={styles.editorActions}>
-          <button type="button" onClick={handleCancel} className={styles.cancelButton}>
-            {t('cancel')}
-          </button>
-          <button type="button" onClick={handleSave} className={styles.saveButton}>
-            {t('save')}
-          </button>
-        </div>
-      )}
-
+      {/* No Save/Cancel pair here: the section editor is `live` — every mutation
+          propagates to the page, whose single Save is the only commit point (owner
+          call, slice 7). */}
       <ConfirmationModal
         isOpen={sectionToDelete !== null}
-        onClose={() => setSectionToDelete(null)}
+        onClose={cancelRemoveSection}
         onConfirm={handleRemoveSection}
         message={t('confirm_delete_section', 'Are you sure you want to delete this section?')}
       />

@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getProducts, getMenuBundles } from '@/services/menuService';
+import { getProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
 import { Product, Category } from '@/app/admin/menu-management/interfaces';
+import { MenuTypeFilter, toProductTypeQuery } from '@/utils/productTypeFilter';
 
-export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') => {
+export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
   const _router = useRouter();
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
-  const activeTabRef = useRef(activeTab);
+  const typeFilterRef = useRef(typeFilter);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -24,21 +25,17 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
 
   const fetchProducts = useCallback(
     async (page: number = 1) => {
-      const requestTab = activeTab; // Capture which tab this request is for
+      const requestFilter = typeFilter; // Capture which filter this request is for
       setIsLoading(true);
       setError(null);
       try {
-        let response: any;
-        if (activeTab === 'menus') {
-          // Use dedicated endpoint for menu bundles (category-free)
-          response = await getMenuBundles(page, pageSize);
-        } else {
-          // Use generic products endpoint (backend now excludes menus by default)
-          response = await getProducts(page, pageSize, selectedCategoryId);
-        }
+        // One endpoint for all three chips, so paging + the category filter behave
+        // identically across them (the old tabs hit two endpoints with independent
+        // pagination, which is why "All" was not expressible — backend #189).
+        const response = await getProducts(page, pageSize, selectedCategoryId, toProductTypeQuery(typeFilter));
 
-        // Only update state if we're still on the same tab (check against ref)
-        if (requestTab === activeTabRef.current) {
+        // Only update state if we're still on the same filter (check against ref)
+        if (requestFilter === typeFilterRef.current) {
           if (response.success) {
             setProducts(response.data.items);
             setTotalPages(response.data.totalPages || 1);
@@ -47,20 +44,19 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
           } else {
             setError(response.message || 'Failed to fetch items');
           }
-        } else {
         }
       } catch {
-        if (requestTab === activeTabRef.current) {
+        if (requestFilter === typeFilterRef.current) {
           setError('An unexpected error occurred.');
         }
       } finally {
-        if (requestTab === activeTabRef.current) {
+        if (requestFilter === typeFilterRef.current) {
           setIsLoading(false);
         }
       }
     },
-    [activeTab, selectedCategoryId, pageSize],
-  ); // selectedCategoryId only affects products tab
+    [typeFilter, selectedCategoryId, pageSize],
+  );
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -79,18 +75,32 @@ export const useMenuManagement = (activeTab: 'products' | 'menus' = 'products') 
     void fetchCategories();
   }, []);
 
-  // Fetch when tab or category changes
+  // Fetch when the type filter or category changes
   useEffect(() => {
-    activeTabRef.current = activeTab; // Update ref to current tab
-    // Only reset products on tab change to avoid flash, but consistent behavior is key
-    // for category change we might want to keep showing old until new loads?
-    // accepted pattern: setProducts([]) to show loading state cleanly or keep it.
-    // Existing code did setProducts([]) on tab change.
-
-    // We want to reset page to 1 when tab OR category changes
+    typeFilterRef.current = typeFilter; // Update ref so a stale in-flight response is dropped
+    // Reset to page 1 when the filter OR category changes — the old page number is
+    // meaningless against a different result set.
     setCurrentPage(1);
     void fetchProducts(1);
-  }, [activeTab, selectedCategoryId, fetchProducts]);
+  }, [typeFilter, selectedCategoryId, fetchProducts]);
+
+  // Clear the category when the type chip changes.
+  //
+  // The old Bundles TAB hid the category select and ignored the param entirely
+  // (`MenusController` hardcoded `null` into `GetMenuBundlesQuery`), so bundles were
+  // never category-filtered. One endpoint now applies CategoryId to every type, and a
+  // bundle's `CategoryIds` is optional — so carrying a category across a chip switch
+  // would silently empty the list for uncategorized bundles, with the deep link this
+  // page already supports (`?categoryId=`) landing straight in it. Clearing keeps a
+  // chip switch showing the chip's contents; the category is then re-applied by choice.
+  const isFirstFilterRender = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterRender.current) {
+      isFirstFilterRender.current = false; // Honour a ?categoryId= deep link on load
+      return;
+    }
+    setSelectedCategoryId(null);
+  }, [typeFilter]);
 
   const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const categoryId = event.target.value;

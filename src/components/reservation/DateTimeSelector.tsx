@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useId, useState, useEffect } from 'react';
 import styles from './DateTimeSelector.module.css';
 
 interface DateTimeSelectorProps {
@@ -20,6 +20,8 @@ export default function DateTimeSelector({
   availableTimeSlots,
 }: DateTimeSelectorProps) {
   const { t, i18n } = useTranslation();
+  const dateId = useId();
+  const timeId = useId();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -72,8 +74,11 @@ export default function DateTimeSelector({
             })}
         </div>
         <div className={styles.customInputWrapper}>
-          <label className={styles.customLabel}>{t('or_pick_date', 'Or pick a date')}:</label>
+          <label htmlFor={dateId} className={styles.customLabel}>
+            {t('or_pick_date', 'Or pick a date')}:
+          </label>
           <input
+            id={dateId}
             type="date"
             value={selectedDate}
             onChange={(e) => onDateChange(e.target.value)}
@@ -100,8 +105,11 @@ export default function DateTimeSelector({
           ))}
         </div>
         <div className={styles.customInputWrapper}>
-          <label className={styles.customLabel}>{t('or_select_time', 'Or select time')}:</label>
+          <label htmlFor={timeId} className={styles.customLabel}>
+            {t('or_select_time', 'Or select time')}:
+          </label>
           <select
+            id={timeId}
             value={selectedTime}
             onChange={(e) => onTimeChange(e.target.value)}
             className={styles.customInput}

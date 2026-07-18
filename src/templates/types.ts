@@ -1,9 +1,14 @@
-// Tenant UI template contract (ADR-006, S15 T2 — see docs/TEMPLATES.md).
+// Tenant UI template contract (ADR-006, S15 T2/T4 — see docs/TEMPLATES.md).
 // Every template under src/templates/<name>/ exports a TemplateDefinition;
 // the build-time `@active-template` alias (next.config.ts) selects exactly
 // one per tenant image, so only the active template's code/CSS/fonts are
-// bundled. v1 keeps this contract deliberately minimal: per-surface slots
-// (MenuList, CheckoutSummary, …) are explicitly a v2 mechanism.
+// bundled. T2 shipped Shell + HomePage; T4 (owner decision 2026-07-18, over the
+// plan's v1 deferral) adds the `surfaces` slot map so a template can override a
+// shared customer surface (MenuCard, …) with genuinely-distinct DOM — resolved
+// via `surfaceOr()` (src/templates/resolve-surface.tsx). A template omitting a
+// slot renders the shared default, so classic is untouched by construction.
+
+import type { MenuCardProps } from '@/components/menu/MenuCard';
 
 /**
  * A loaded `next/font` instance. Structural subset of next/font's return
@@ -18,6 +23,22 @@ export interface TemplateFont {
 
 export interface ShellProps {
   children: React.ReactNode;
+}
+
+/**
+ * Per-surface component overrides (S15 T4). A shared customer surface renders the
+ * active template's override when present, else its own default (via `surfaceOr`).
+ * Add a slot here only when a template actually ships a distinct version — an
+ * omitted slot costs nothing (the shared default renders).
+ *
+ * Exposed via the SEPARATE `@active-template/surfaces` module (each template's
+ * `surfaces.ts`), NOT on `TemplateDefinition` — so importing a slot into a surface
+ * component never drags the eager `template` object (Shell/HomePage/fonts) into
+ * that surface's client bundle. `surfaceOr()` resolves them.
+ */
+export interface TemplateSurfaces {
+  /** The customer browse-grid card (menu page). */
+  MenuCard?: React.ComponentType<MenuCardProps>;
 }
 
 export interface TemplateDefinition {

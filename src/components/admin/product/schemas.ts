@@ -94,11 +94,17 @@ export const createProductSchema = baseProductSchema.extend({
   menuDefinition: menuDefinitionSchema.optional(),
 });
 
-// Dedicated schema for Menu Bundles (cleaner, no redundant fields)
+// Dedicated schema for Menu Bundles (cleaner, no redundant fields).
+//
+// The bounds below mirror MenuBundleCommandValidatorBase, which is STRICTER than the product
+// validator: base price must be > 0 (not >= 0), name <= 100 (not 200), description <= 500.
+// They were unreachable while every bundle edit 400'd on the product endpoint (#213); now
+// that bundles reach /api/Menus, an unbounded field 400s server-side with no field-level
+// error surfaced, so the client has to state the same contract.
 const baseMenuBundleSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  basePrice: z.coerce.number().min(0),
+  name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
+  description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
+  basePrice: z.coerce.number().gt(0, 'Base price must be greater than 0'),
   isActive: z.boolean().default(true),
   isAvailable: z.boolean().default(true),
   isSpecial: z.boolean().default(false),

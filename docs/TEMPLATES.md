@@ -47,9 +47,25 @@ deploy registry `template:`  →  build-tenant-image.yml `template` input
 | `Shell`      | `Shell.tsx`                 | Customer-facing chrome (header/nav/footer). Staff/admin chrome is NOT templated in v1: every Shell dispatches `/admin`, `/cashier`, `/server`, `/kitchen-staff` (helper `src/templates/shared-chrome.ts`) to the SHARED `app-internal-layout.tsx`, untouched, so both templates render identical chrome there. Customer routes render the template's own chrome under `<template>/chrome/` (`classic`: verbatim extraction of app-internal-layout's customer path; `craft`: its own design). Role-based nav links live once in the shared `src/components/RoleNavLinks.tsx` (skinned via the `--nav-link-*` vars, never forked); app-internal-layout keeps its original inline copy on purpose — the untouched staff surface beats DRY until T4 consolidation. |
 | `HomePage`   | `HomePage.tsx` + module CSS | The whole landing composition. `src/app/page.tsx` is a thin re-export.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
-Everything else (menu, cart, checkout, reservations, auth) stays **shared**
-and is skinned via semantic tokens only. Per-surface component slots are
-explicitly a v2 mechanism — do not add contract fields for one-off needs.
+The shared customer surfaces (menu, cart, checkout, reservations, auth) are
+skinned via semantic tokens by default. **Per-surface component slots — the
+`TemplateSurfaces` map — are LIVE since T4** (owner decision 2026-07-18, over the
+plan's original v2 deferral): a template may replace a shared surface with
+genuinely-distinct DOM.
+
+### Per-surface slots (T4)
+
+- Each template exports a `surfaces.ts` → `@active-template/surfaces` (kept OUT of
+  the eager `template` object so importing a slot never drags Shell/HomePage/fonts
+  into that surface's client bundle).
+- A shared surface resolves its component at build time:
+  `const MenuCard = surfaceOr('MenuCard', DefaultMenuCard)` (`src/templates/resolve-surface.tsx`).
+  A template omitting the slot renders the shared default — **classic is untouched
+  by construction** (verified: the craft menu motifs never appear in a classic
+  build). To add a slot: add the optional field to `TemplateSurfaces`
+  (`types.ts`), have the surface host resolve it via `surfaceOr`, and ship the
+  override under `<template>/surfaces/`. Add a slot only when a template actually
+  provides a distinct version.
 
 ## Rules (from ADR-006 / plan §3.4)
 

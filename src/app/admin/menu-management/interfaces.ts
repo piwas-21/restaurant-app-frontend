@@ -1,6 +1,6 @@
 // src/interfaces/Product.ts
 
-import { MenuDefinition } from '@/types/menu';
+import { KitchenType, MenuDefinition } from '@/types/menu';
 
 export interface ProductImage {
   id: string;
@@ -28,9 +28,16 @@ export interface Variation {
   displayOrder?: number;
 }
 
+/** Mirrors backend `ProductCategoryDto`. */
 export interface ProductCategory {
+  /**
+   * Was undeclared here, so every read went through an `any` — the edit modal's
+   * `product.categories.map((c: any) => c.categoryId)` has always relied on it.
+   */
+  categoryId: string;
   categoryName: string;
   isPrimary: boolean;
+  displayOrder?: number;
 }
 
 export interface ProductIngredient {
@@ -59,15 +66,38 @@ export interface ProductDetails {
   preparationTimeMinutes: number;
   displayOrder?: number;
   type: string;
+  /** Mirrors backend `ProductDto.KitchenType`. Undeclared until PR2d, so the edit modal read it through `any`. */
+  kitchenType?: KitchenType;
   ingredients: string[]; // Legacy field - kept for backward compatibility
   detailedIngredients?: ProductIngredient[];
   allergens: string[];
   categories: ProductCategory[];
+  /**
+   * Mirrors backend `ProductDto.PrimaryCategory` — an OBJECT, projected from whichever
+   * ProductCategory has `IsPrimary`. There is no `primaryCategoryId` field on any response
+   * DTO; the edit modal reads one anyway, which is why it always fell back to the first
+   * category. See `toEditorDefaults` in `utils/productEditorDefaults.ts`.
+   */
+  primaryCategory?: { id: string; name: string };
   variations: Variation[];
   images: ProductImage[];
   suggestedSideItems: SideItem[];
   menuDefinition?: MenuDefinition; // For menu bundle products
   content?: any; // To match the full product object for the edit modal
+}
+
+/**
+ * The fetched detail payload behind the edit modals. Its shape differs per kind
+ * (`MenuBundleDto` formats times as strings; `ProductDto` does not), so it stays
+ * opaque rather than a union to narrow at every prop. Slice 7 PR2c collapses both
+ * modals into one editor and can type this properly.
+ */
+export type ProductDetailResponse = Record<string, unknown>;
+
+/** An id plus the kind, resolved at click time so the delete path never re-derives it. */
+export interface PendingDelete {
+  id: string;
+  isBundle: boolean;
 }
 
 export interface Product {
@@ -78,6 +108,13 @@ export interface Product {
   isActive: boolean;
   isAvailable: boolean;
   isSpecial?: boolean;
+  /**
+   * Mirrors backend `ProductSummaryDto.Type` (`ProductType` enum, serialized to its
+   * `[EnumMember]` value — e.g. 'mainItem', 'menu'). The list has always received this
+   * field; it was simply undeclared here, which is why the old code could only branch
+   * on it through an `any`. Compare via `isMenuBundle()`, never a bare string literal.
+   */
+  type: string;
   imageUrl: string | null;
   images: ProductImage[];
 }

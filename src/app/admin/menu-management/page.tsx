@@ -2,27 +2,33 @@
 
 import React, { useState, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
-import { getProductById, deleteMenuBundle, getMenuBundleById } from '@/services/menuService';
+import { deleteMenuBundle } from '@/services/menuService';
 import { deleteProduct } from '@/services/productService';
+import {
+  MENU_BUNDLE_TYPE,
+  MENU_TYPE_FILTERS,
+  MENU_TYPE_FILTER_LABEL_KEYS,
+  MenuTypeFilter,
+  isMenuBundle,
+} from '@/utils/productTypeFilter';
 import styles from '@/app/styles/AdminPage.module.css';
-import CreateProductModal from '@/components/admin/CreateProductModal';
-import CreateMenuBundleModal from '@/components/admin/CreateMenuBundleModal';
-import EditProductModal from '@/components/admin/EditProductModal';
-import EditMenuBundleModal from '@/components/admin/EditMenuBundleModal';
+import NewProductTypeModal from '@/components/admin/menu-management/NewProductTypeModal';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import Pagination from '@/components/common/Pagination';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
+import { Product, PendingDelete } from '@/app/admin/menu-management/interfaces';
 
 const MenuManagementContent = () => {
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const categoryName = searchParams.get('categoryName');
-  const [activeTab, setActiveTab] = useState<'products' | 'menus'>('products');
+  const [typeFilter, setTypeFilter] = useState<MenuTypeFilter>('all');
 
   const {
     products,
@@ -37,68 +43,41 @@ const MenuManagementContent = () => {
     handleCategoryChange,
     handlePageChange,
     fetchProducts,
-  } = useMenuManagement(activeTab);
+  } = useMenuManagement(typeFilter);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isCreateMenuModalOpen, setIsCreateMenuModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isEditMenuModalOpen, setIsEditMenuModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<PendingDelete | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
 
-  const handleOpenEditModal = async (productId: string) => {
-    try {
-      let response;
-      // Use the correct endpoint based on active tab
-      if (activeTab === 'menus') {
-        // Menu bundles use the /api/Menus endpoint
-        response = (await getMenuBundleById(productId)) as { success: boolean; data?: any; message?: string };
-      } else {
-        // Regular products use the /api/Products endpoint
-        response = (await getProductById(productId)) as { success: boolean; data?: any; message?: string };
-      }
-
-      if (response.success) {
-        setSelectedProduct(response.data);
-        // Open the appropriate modal based on product type
-        if (response.data.type === 'menu' || activeTab === 'menus') {
-          setIsEditMenuModalOpen(true);
-        } else {
-          setIsEditModalOpen(true);
-        }
-      } else {
-        setResultModalMessage(response.message || 'Failed to load product details');
-        setIsResultModalSuccess(false);
-        setIsResultModalOpen(true);
-      }
-    } catch (error) {
-      console.error('Error loading product:', error);
-      setResultModalMessage('Failed to load product details');
-      setIsResultModalSuccess(false);
-      setIsResultModalOpen(true);
-    }
+  // Edit NAVIGATES to the editor page; no `?type=` hint (PR2e) — the route derives the kind itself.
+  const handleEdit = (product: Product) => {
+    router.push(`/admin/menu-management/${product.id}`);
   };
 
-  const handleDeleteClick = (productId: string) => {
-    setProductToDelete(productId);
+  // Type is chosen once (item vs bundle load different fields; the backend can't migrate between them).
+  const handleCreateSelect = (isBundle: boolean) => {
+    setIsTypeModalOpen(false);
+    router.push(isBundle ? `/admin/menu-management/new?type=${MENU_BUNDLE_TYPE}` : '/admin/menu-management/new');
+  };
+
+  // Kind captured at CLICK time: the confirm modal has no focus trap, so the chips stay
+  // keyboard-reachable and the list can refetch before Confirm — see the miss above.
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete({ id: product.id, isBundle: isMenuBundle(product) });
     setIsConfirmationOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (productToDelete) {
-      let response;
-      // We need to know if it's a menu bundle or product to call the right API
-      // Since we only have ID here, we might need to check the current tab or fetch details first.
-      // However, for delete, we can try to infer from the active tab.
-      if (activeTab === 'menus') {
-        response = (await deleteMenuBundle(productToDelete)) as { success: boolean; message?: string; data?: string };
-      } else {
-        response = (await deleteProduct(productToDelete)) as { success: boolean; message?: string; data?: string };
-      }
+      const { id, isBundle } = productToDelete;
+      const response = (await (isBundle ? deleteMenuBundle(id) : deleteProduct(id))) as {
+        success: boolean;
+        message?: string;
+        data?: string;
+      };
 
       setIsConfirmationOpen(false);
       setResultModalMessage(response.data || response.message || '');
@@ -117,50 +96,41 @@ const MenuManagementContent = () => {
       <div className={styles.adminContainer}>
         <PageHeader title={pageTitle}>
           <div className={styles.pageActions}>
-            <div className={styles.tabs}>
-              <button
-                className={`${styles.tabButton} ${activeTab === 'products' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('products')}
-              >
-                {t('products')}
-              </button>
-              <button
-                className={`${styles.tabButton} ${activeTab === 'menus' ? styles.activeTab : ''}`}
-                onClick={() => setActiveTab('menus')}
-              >
-                {t('menu_bundles')}
-              </button>
-            </div>
-
-            {/* Category filter - only show for Products tab */}
-            {activeTab === 'products' && (
-              <select
-                onChange={handleCategoryChange}
-                value={selectedCategoryId || 'all'}
-                className={styles.adminSelect}
-              >
-                <option value="all">{t('all_categories_nav')}</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <div className={styles.tooltipContainer}>
-              {activeTab === 'products' ? (
-                <button className={`${styles.adminButton} ${styles.add}`} onClick={() => setIsCreateModalOpen(true)}>
-                  {t('create_new_product')}
-                </button>
-              ) : (
+            {/* fieldset+legend IS the grouping semantic — no role="group" needed (S6819).
+                The legend names what is filtered; "All Types" would name it after an option. */}
+            <fieldset className={`${styles.tabs} ${styles.chipGroup}`}>
+              <legend className="sr-only">{t('product_type')}</legend>
+              {MENU_TYPE_FILTERS.map((filter) => (
                 <button
-                  className={`${styles.adminButton} ${styles.add}`}
-                  onClick={() => setIsCreateMenuModalOpen(true)}
+                  key={filter}
+                  type="button"
+                  aria-pressed={typeFilter === filter}
+                  className={`${styles.tabButton} ${typeFilter === filter ? styles.activeTab : ''}`}
+                  onClick={() => setTypeFilter(filter)}
                 >
-                  {t('create_menu_bundle')}
+                  {t(MENU_TYPE_FILTER_LABEL_KEYS[filter])}
                 </button>
-              )}
-            </div>
+              ))}
+            </fieldset>
+
+            {/* Category filter — applies to every chip now that one endpoint serves them all */}
+            <select onChange={handleCategoryChange} value={selectedCategoryId || 'all'} className={styles.adminSelect}>
+              <option value="all">{t('all_categories_nav')}</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {/* One "New product" entry → a type choice (owner call, slice 7 PR2e). The filter
+                is a VIEW, not a mode, so create is a single action regardless of the active chip. */}
+            <button
+              type="button"
+              className={`${styles.adminButton} ${styles.add}`}
+              onClick={() => setIsTypeModalOpen(true)}
+            >
+              {t('create_new_product')}
+            </button>
           </div>
         </PageHeader>
         <div className={styles.adminContent}>
@@ -168,9 +138,9 @@ const MenuManagementContent = () => {
             products={products}
             isLoading={isLoading}
             error={error}
-            onEdit={handleOpenEditModal}
+            onEdit={handleEdit}
             onDelete={handleDeleteClick}
-            activeTab={activeTab}
+            typeFilter={typeFilter}
           />
 
           {/* Pagination */}
@@ -198,41 +168,11 @@ const MenuManagementContent = () => {
           )}
         </div>
       </div>
-      <CreateProductModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onProductCreated={fetchProducts}
-        categoryId={selectedCategoryId}
+      <NewProductTypeModal
+        isOpen={isTypeModalOpen}
+        onClose={() => setIsTypeModalOpen(false)}
+        onSelect={handleCreateSelect}
       />
-      <CreateMenuBundleModal
-        isOpen={isCreateMenuModalOpen}
-        onClose={() => setIsCreateMenuModalOpen(false)}
-        onProductCreated={fetchProducts}
-        categoryId={selectedCategoryId}
-      />
-      {selectedProduct && selectedProduct.type === 'menu' ? (
-        <EditMenuBundleModal
-          isOpen={isEditMenuModalOpen}
-          onClose={() => setIsEditMenuModalOpen(false)}
-          onProductUpdated={() => {
-            setIsEditMenuModalOpen(false);
-            void fetchProducts();
-          }}
-          product={selectedProduct}
-        />
-      ) : (
-        selectedProduct && (
-          <EditProductModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            onProductUpdated={() => {
-              setIsEditModalOpen(false);
-              void fetchProducts();
-            }}
-            product={selectedProduct}
-          />
-        )
-      )}
       <ConfirmationModal
         isOpen={isConfirmationOpen}
         onClose={() => setIsConfirmationOpen(false)}

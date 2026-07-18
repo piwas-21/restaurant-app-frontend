@@ -1,0 +1,128 @@
+/* Craft menu section heading + states (S15 T4 surface). Amatic heading over a
+   dotted rule; kraft skeleton plates (loading); soft-brick handwritten note
+   (error); hand-drawn empty plate + Caveat line (empty). Tokens only — no raw
+   hex (CLAUDE.md §5). */
+
+.section {
+  margin-bottom: 1rem;
+}
+
+/* Hand-lettered section heading with a dotted menu-board rule under it. */
+.heading {
+  font-family: 'Amatic SC', cursive;
+  font-size: 2.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0 0 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px dotted var(--border-default);
+}
+
+/* Loading — a Caveat "preparing…" line above a grid of pulsing kraft plates.
+   `.loading` is an <output> (semantic status live region); reset its inline
+   default to block so it lays its children out full-width. */
+.loading {
+  display: block;
+}
+
+.loadingText {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0 0 1.5rem;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+}
+
+/* Kraft placeholder "plate" — the letterpress offset shadow gives it a visible
+   edge on the cream page (a kraft border would be invisible: kraft-on-kraft). */
+.skeleton {
+  composes: roundedCraft letterpress from '../craft.module.css';
+  min-height: 280px;
+  background: var(--surface-secondary); /* kraft */
+  animation: craftPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes craftPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Error — a soft-brick handwritten note, never a harsh red box. */
+.error {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--feedback-danger);
+  text-align: center;
+  padding: 2.5rem 1rem;
+  margin: 0;
+}
+
+/* Empty — a hand-drawn plate (muted) + the Caveat empty message. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.emptyPlate {
+  width: 88px;
+  height: 88px;
+  color: var(--text-muted);
+  transform: rotate(-3deg);
+}
+
+.emptyText {
+  font-family: 'Caveat', cursive;
+  font-size: 1.7rem;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 32ch;
+}
+
+@media (max-width: 968px) {
+  .heading {
+    font-size: 2.5rem;
+  }
+  .skeletonGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .heading {
+    font-size: 2.2rem;
+  }
+  .skeletonGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .skeleton {
+    min-height: 220px;
+  }
+}
+
+/* Respect reduced-motion: hold the skeletons steady. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

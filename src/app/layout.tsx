@@ -11,7 +11,7 @@ import { template } from '@active-template';
 import ClientProviders from './client-providers';
 import { Metadata, Viewport } from 'next';
 import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
-import { getTenantPaletteCss } from '@/lib/tenantTheme';
+import { getTenantPaletteCss } from '@/services/tenantThemeService';
 
 // Tenant branding is baked at build time (issue #125): build-image.yml passes
 // RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.

@@ -9,6 +9,7 @@
 // slot renders the shared default, so classic is untouched by construction.
 
 import type { MenuCardProps } from '@/components/menu/MenuCard';
+import type { CategoryNavProps } from '@/components/menu/CategoryNav';
 
 /**
  * A loaded `next/font` instance. Structural subset of next/font's return
@@ -39,6 +40,8 @@ export interface ShellProps {
 export interface TemplateSurfaces {
   /** The customer browse-grid card (menu page). */
   MenuCard?: React.ComponentType<MenuCardProps>;
+  /** The menu category navigation (tabs). Craft ships masking-tape tabs. */
+  CategoryNav?: React.ComponentType<CategoryNavProps>;
 }
 
 export interface TemplateDefinition {

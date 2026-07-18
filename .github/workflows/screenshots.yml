@@ -222,3 +222,21 @@ jobs:
           path: e2e/screenshots/__screenshots__/
           retention-days: 14
           if-no-files-found: error
+
+  # Aggregate gate carrying the EXACT branch-protection check name. The ruleset
+  # requires a single context "playwright screenshots (visual baseline)", but the
+  # per-template matrix suffixes its checks with "(classic)"/"(craft)". This job
+  # restores the stable required name and passes iff EVERY matrix leg passed — so
+  # the required check tracks the matrix without a ruleset edit.
+  screenshots_result:
+    name: playwright screenshots (visual baseline)
+    if: always()
+    needs: screenshot_diff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on matrix result
+        env:
+          RESULT: ${{ needs.screenshot_diff.result }}
+        run: |
+          echo "screenshot matrix result: $RESULT"
+          [ "$RESULT" = "success" ] || { echo "::error::a screenshot template leg did not pass"; exit 1; }

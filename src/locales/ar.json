@@ -2182,5 +2182,15 @@
   "choose_range": "اختر {{min}}-{{max}}",
   "please_select_at_least_options": "يرجى اختيار {{count}} خيار على الأقل",
   "selected_count": "({{count}} محدد)",
-  "special": "خاص"
+  "special": "خاص",
+  "appearance_settings": "المظهر",
+  "appearance_title": "لوحة الألوان",
+  "appearance_desc": "اختر لوحة ألوان لموقعك العام. تُطبَّق التغييرات عند تحميل الصفحة التالي — دون الحاجة إلى إعادة بناء.",
+  "appearance_save_success": "تم حفظ اللوحة — أعد تحميل الموقع لرؤيتها",
+  "appearance_palette_default": "افتراضي (القالب)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

@@ -11,6 +11,7 @@ import { template } from '@active-template';
 import ClientProviders from './client-providers';
 import { Metadata, Viewport } from 'next';
 import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
+import { getTenantPaletteCss } from '@/lib/tenantTheme';
 
 // Tenant branding is baked at build time (issue #125): build-image.yml passes
 // RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.
@@ -34,10 +35,20 @@ export const viewport: Viewport = {
 const { Shell, fonts } = template;
 const bodyClassName = fonts.map((font) => font.className).join(' ');
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Runtime colour palette (ADR-007): fetched server-side, injected as a
+  // hoisted <style> (React 19 lifts it into <head>). The doubled-specificity
+  // selectors in paletteToCss win over the baked template tokens regardless of
+  // order; an empty string (no/unknown key) renders nothing — the safe default.
+  const paletteCss = await getTenantPaletteCss();
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className={bodyClassName}>
+        {paletteCss ? (
+          <style href="tenant-palette" precedence="high">
+            {paletteCss}
+          </style>
+        ) : null}
         <ClientProviders>
           <Shell>{children}</Shell>
         </ClientProviders>

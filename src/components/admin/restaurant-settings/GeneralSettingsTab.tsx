@@ -58,6 +58,9 @@ export default function GeneralSettingsTab() {
         longitude: data.longitude,
         email: data.email,
         website: data.website || null,
+        // Full-upsert PUT: preserve the palette key this tab doesn't edit, or
+        // saving general settings would wipe it (ADR-007; set on the Appearance tab).
+        themePaletteKey: info?.themePaletteKey ?? null,
       });
       if (response.success) {
         invalidateRestaurantInfoCache();

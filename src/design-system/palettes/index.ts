@@ -21,13 +21,17 @@ function block(selector: string, vars: PaletteVars): string {
 }
 
 /**
- * Serialise a preset to the paired `:root` + dark-override CSS the SSR `<style>`
- * emits AFTER the template tokens (ADR-007 decision 4), so it wins by source
- * order. Unknown/empty key → empty string: the SAFE DEFAULT — the template's
+ * Serialise a preset to the paired override CSS the SSR `<style>` emits (ADR-007
+ * decision 4). Selectors are DOUBLED (`:root:root` and `html[data-theme='dark']:root`)
+ * so the runtime block wins by SPECIFICITY over the template's plain `:root` /
+ * `html[data-theme='dark']` tokens — regardless of where the `<style>` lands in the
+ * document, so it is robust against head-injection / style-hoisting order (no reliance
+ * on source order). In dark mode the dark selector (0,2,1) still outranks the light
+ * one (0,2,0). Unknown/empty key → empty string: the SAFE DEFAULT — the template's
  * baked palette renders byte-identical, so an un-themed tenant is never touched.
  */
 export function paletteToCss(key: string | null | undefined): string {
   const palette = getPalette(key);
   if (!palette) return '';
-  return block(':root', palette.light) + block("html[data-theme='dark']", palette.dark);
+  return block(':root:root', palette.light) + block("html[data-theme='dark']:root", palette.dark);
 }

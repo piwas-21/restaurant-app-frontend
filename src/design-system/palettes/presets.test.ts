@@ -79,10 +79,10 @@ describe('palette presets (ADR-007)', () => {
     expect(paletteToCss('does-not-exist')).toBe('');
   });
 
-  it('paletteToCss emits paired :root + dark blocks for a known key', () => {
+  it('paletteToCss emits doubled-specificity light + dark blocks for a known key', () => {
     const css = paletteToCss('terracotta');
-    expect(css).toContain(':root{');
-    expect(css).toContain("html[data-theme='dark']{");
+    expect(css).toContain(':root:root{');
+    expect(css).toContain("html[data-theme='dark']:root{");
     expect(css).toContain('--brand-primary:#a84b2f');
     expect(css).toContain('--surface-primary:#fff9f2');
   });

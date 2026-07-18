@@ -40,8 +40,7 @@
 /* Kraft placeholder "plate" — the letterpress offset shadow gives it a visible
    edge on the cream page (a kraft border would be invisible: kraft-on-kraft). */
 .skeleton {
-  composes: roundedCraft from '../craft.module.css';
-  composes: letterpress from '../craft.module.css';
+  composes: roundedCraft letterpress from '../craft.module.css';
   min-height: 280px;
   background: var(--surface-secondary); /* kraft */
   animation: craftPulse 1.5s ease-in-out infinite;

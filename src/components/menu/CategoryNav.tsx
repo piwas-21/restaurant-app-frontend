@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './CategoryNav.module.css';
 import type { ApiCategory } from '@/types/menu';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 import { useCategoryNavScroll } from '@/hooks/menu/useCategoryNavScroll';
 import { useCategoryTabs } from '@/hooks/menu/useCategoryTabs';
+import CategoryNavShell from './CategoryNavShell';
 
 export type CategoryNavSelection = string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY;
 
@@ -19,51 +18,21 @@ export interface CategoryNavProps {
 
 export default function CategoryNav({ categories, selectedView, onSelect, allLabel }: Readonly<CategoryNavProps>) {
   const tabs = useCategoryTabs(categories, allLabel);
-  const { scrollContainerRef, canScrollLeft, canScrollRight, scroll } = useCategoryNavScroll(categories.length);
+  const nav = useCategoryNavScroll(categories.length);
 
-  // Show the scroll arrows only once the tabs can't all fit at once.
-  const showNavArrows = tabs.length > 5;
-
+  // Rounded-pill tabs (classic); the sticky bar + scroll arrows live in the shared shell.
   return (
-    <nav className={styles.stickyNav} aria-label="Category Navigation">
-      <div className={styles.navWrapper}>
-        {showNavArrows && canScrollLeft && (
-          <button
-            className={`${styles.navArrow} ${styles.navArrowLeft}`}
-            onClick={() => scroll('left')}
-            aria-label="Scroll left"
-            type="button"
-          >
-            <ChevronLeft size={24} />
-          </button>
-        )}
-
-        <div ref={scrollContainerRef} className={styles.navScrollContainer}>
-          <div className={styles.navButtonsContainer}>
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`${styles.navButton} ${selectedView === tab.id ? styles.navButtonActive : ''}`}
-                onClick={() => onSelect(tab.id)}
-                aria-pressed={selectedView === tab.id}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {showNavArrows && canScrollRight && (
-          <button
-            className={`${styles.navArrow} ${styles.navArrowRight}`}
-            onClick={() => scroll('right')}
-            aria-label="Scroll right"
-            type="button"
-          >
-            <ChevronRight size={24} />
-          </button>
-        )}
-      </div>
-    </nav>
+    <CategoryNavShell styles={styles} showNavArrows={tabs.length > 5} {...nav}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          className={`${styles.navButton} ${selectedView === tab.id ? styles.navButtonActive : ''}`}
+          onClick={() => onSelect(tab.id)}
+          aria-pressed={selectedView === tab.id}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </CategoryNavShell>
   );
 }

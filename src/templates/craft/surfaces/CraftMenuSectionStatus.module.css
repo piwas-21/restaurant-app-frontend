@@ -20,7 +20,13 @@
   border-bottom: 3px dotted var(--border-default);
 }
 
-/* Loading — a Caveat "preparing…" line above a grid of pulsing kraft plates. */
+/* Loading — a Caveat "preparing…" line above a grid of pulsing kraft plates.
+   `.loading` is an <output> (semantic status live region); reset its inline
+   default to block so it lays its children out full-width. */
+.loading {
+  display: block;
+}
+
 .loadingText {
   font-family: 'Caveat', cursive;
   font-size: 1.5rem;

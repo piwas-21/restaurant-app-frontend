@@ -27,14 +27,14 @@ export default function CraftMenuSectionStatus({
       </h2>
 
       {isLoading && (
-        <div className={styles.loading} role="status">
+        <output className={styles.loading}>
           <p className={styles.loadingText}>{loadingMessage}</p>
           <div className={styles.skeletonGrid} aria-hidden="true">
             {SKELETON_KEYS.map((key) => (
               <div key={key} className={styles.skeleton} />
             ))}
           </div>
-        </div>
+        </output>
       )}
 
       {errorMessage && (

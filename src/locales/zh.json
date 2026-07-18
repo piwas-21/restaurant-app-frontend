@@ -2182,5 +2182,15 @@
   "choose_range": "选择 {{min}}-{{max}} 项",
   "please_select_at_least_options": "请至少选择 {{count}} 项",
   "selected_count": "({{count}} 已选)",
-  "special": "特色"
+  "special": "特色",
+  "appearance_settings": "外观",
+  "appearance_title": "调色板",
+  "appearance_desc": "为您的公开网站选择一个调色板。更改将在下次加载页面时生效，无需重新构建。",
+  "appearance_save_success": "调色板已保存——重新加载网站即可查看",
+  "appearance_palette_default": "默认（模板）",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

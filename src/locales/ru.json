@@ -2182,5 +2182,15 @@
   "choose_range": "Выберите {{min}}-{{max}}",
   "please_select_at_least_options": "Выберите не менее {{count}} опции(й)",
   "selected_count": "({{count}} выбрано)",
-  "special": "Специальное"
+  "special": "Специальное",
+  "appearance_settings": "Оформление",
+  "appearance_title": "Цветовая палитра",
+  "appearance_desc": "Выберите цветовую палитру для вашего публичного сайта. Изменения применяются при следующей загрузке страницы — пересборка не требуется.",
+  "appearance_save_success": "Палитра сохранена — перезагрузите сайт, чтобы увидеть её",
+  "appearance_palette_default": "По умолчанию (шаблон)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

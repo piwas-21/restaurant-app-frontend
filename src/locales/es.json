@@ -2182,5 +2182,15 @@
   "choose_range": "Elige {{min}}-{{max}}",
   "please_select_at_least_options": "Selecciona al menos {{count}} opción(es)",
   "selected_count": "({{count}} seleccionado(s))",
-  "special": "Especial"
+  "special": "Especial",
+  "appearance_settings": "Apariencia",
+  "appearance_title": "Paleta de colores",
+  "appearance_desc": "Elige una paleta de colores para tu sitio público. Los cambios se aplican en la siguiente carga de página, sin necesidad de recompilar.",
+  "appearance_save_success": "Paleta guardada: recarga el sitio para verla",
+  "appearance_palette_default": "Predeterminado (plantilla)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

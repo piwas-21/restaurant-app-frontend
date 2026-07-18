@@ -2182,5 +2182,15 @@
   "choose_range": "Scegli {{min}}-{{max}}",
   "please_select_at_least_options": "Seleziona almeno {{count}} opzione/i",
   "selected_count": "({{count}} selezionato/i)",
-  "special": "Speciale"
+  "special": "Speciale",
+  "appearance_settings": "Aspetto",
+  "appearance_title": "Tavolozza colori",
+  "appearance_desc": "Scegli una tavolozza di colori per il tuo sito pubblico. Le modifiche vengono applicate al successivo caricamento della pagina — nessuna ricompilazione necessaria.",
+  "appearance_save_success": "Tavolozza salvata — ricarica il sito per vederla",
+  "appearance_palette_default": "Predefinito (modello)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

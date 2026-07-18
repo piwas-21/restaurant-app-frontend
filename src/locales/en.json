@@ -2182,5 +2182,15 @@
   "choose_range": "Choose {{min}}-{{max}}",
   "please_select_at_least_options": "Please select at least {{count}} option(s)",
   "selected_count": "({{count}} selected)",
-  "special": "Special"
+  "special": "Special",
+  "appearance_settings": "Appearance",
+  "appearance_title": "Colour palette",
+  "appearance_desc": "Choose a colour palette for your public site. Changes apply on the next page load — no rebuild needed.",
+  "appearance_save_success": "Palette saved — reload the site to see it",
+  "appearance_palette_default": "Default (template)",
+  "palette_terracotta": "Terracotta",
+  "palette_olive_grove": "Olive Grove",
+  "palette_saffron": "Saffron",
+  "palette_aubergine": "Aubergine",
+  "palette_rose_clay": "Rose Clay"
 }

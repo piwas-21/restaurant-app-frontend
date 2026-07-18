@@ -1,0 +1,72 @@
+/* Craft browse-grid card (S15 T4). Motifs (letterpress shadow, organic corners,
+   masking-tape label, dotted leader) come from craft.module.css; this file is the
+   card's own composition. Tokens only — no raw hex (CLAUDE.md §5). Craft-only
+   bundle (surfaces/ under the template dir). */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--card-background);
+  border: 2px solid var(--border-default);
+  padding: 0.9rem;
+  position: relative;
+}
+
+.special {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 1;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0 0.25rem 0.25rem;
+}
+
+/* The hand-lettered `name ..... price` header (menuLeader supplies the dotted
+   fill + baseline layout). A button so the whole line opens the sheet. */
+.leader {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.name {
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text-primary);
+}
+
+.price {
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.description {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.includes {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.allergens {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}

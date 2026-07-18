@@ -317,14 +317,16 @@ Generate both login and register, light and dark.
 
 | # | Surface | Status | Screenshot(s) |
 |---|---|---|---|
-| 1 | Design system (palette / type / motifs) | ✅ Generated (reference) | Prompt-1 specimen generated; the craft design system already ships in `src/templates/craft/` |
-| 2 | Home hero (full-bleed) | ✅ Implemented (#228) | Prompt 2 (light + dark generated); craft baselines in `__screenshots__/craft/` |
-| 3 | Main header (no redundant reservation CTA) | ✅ Implemented (#228) | Prompt 3 (desktop light/dark + mobile generated) |
-| 4 | Menu page | 🔨 Tabs shipped (#229); heading + states next | Prompt 4 (light + dark generated) |
-| 5 | Cart / basket | ☐ To generate | — |
-| 6 | Checkout | ☐ To generate | — |
-| 7 | Reservations | ☐ To generate | — |
-| 8 | Auth (login / register) | ☐ To generate | — |
+| 1 | Design system (palette / type / motifs) | ✅ Generated (reference) | [`stitch_the_craft_kitchen_specimen/`](stitch-screens/stitch_the_craft_kitchen_specimen/) + [`artisanal_kitchen/`](stitch-screens/artisanal_kitchen/); the system already ships in `src/templates/craft/` |
+| 2 | Home hero (full-bleed) | ✅ Implemented (#228) | [`home_hero_light_mode/`](stitch-screens/home_hero_light_mode/) · [`_dark_mode/`](stitch-screens/home_hero_dark_mode/) |
+| 3 | Main header (no redundant reservation CTA) | ✅ Implemented (#228) | [`header_light_mode_desktop/`](stitch-screens/header_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/header_dark_mode_desktop/) · [`_light_mode_mobile/`](stitch-screens/header_light_mode_mobile/) |
+| 4 | Menu page | 🔨 Tabs shipped (#229); heading + states next | [`menu_light_mode/`](stitch-screens/menu_light_mode/) · [`_dark_mode/`](stitch-screens/menu_dark_mode/) |
+| 5 | Cart / basket | ✅ Design ready (to implement) | [`cart_light_mode_desktop/`](stitch-screens/cart_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/cart_dark_mode_desktop/) |
+| 6 | Checkout | ✅ Design ready (to implement) | [`checkout_light_mode_desktop/`](stitch-screens/checkout_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/checkout_dark_mode_desktop/) |
+| 7 | Reservations | ✅ Design ready (to implement) | [`reservations_light_mode/`](stitch-screens/reservations_light_mode/) · [`_dark_mode/`](stitch-screens/reservations_dark_mode/) |
+| 8 | Auth (login / register) | ✅ Design ready (to implement) | login [`_light`](stitch-screens/login_light_mode_desktop/) · [`_dark`](stitch-screens/login_dark_mode_desktop/) · register [`_light`](stitch-screens/register_light_mode_desktop/) · [`_dark`](stitch-screens/register_dark_mode_desktop/) |
+
+> Saved design PNGs are **downscaled to ≤1200px** (≤1000KB, the `check-added-large-files` limit) — reference resolution, not pixel-perfect; each folder also keeps Stitch's `code.html`. Regenerate full-res from the prompt if needed.
 
 > After a design is generated and saved, change ☐ → ✅ and link the screenshot folder. When a surface is implemented, note its PR (e.g. `✅ Implemented (#NNN)`), mirroring the domainio tracker's prompt→design→PR loop.
 

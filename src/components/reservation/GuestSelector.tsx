@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './GuestSelector.module.css';
 
@@ -8,6 +9,7 @@ interface GuestSelectorProps {
 
 export default function GuestSelector({ numberOfGuests, onGuestsChange }: GuestSelectorProps) {
   const { t } = useTranslation();
+  const customId = useId();
 
   const presetNumbers = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -27,8 +29,11 @@ export default function GuestSelector({ numberOfGuests, onGuestsChange }: GuestS
         ))}
       </div>
       <div className={styles.customInputWrapper}>
-        <label className={styles.customLabel}>{t('or_custom', 'Or custom')}:</label>
+        <label htmlFor={customId} className={styles.customLabel}>
+          {t('or_custom', 'Or custom')}:
+        </label>
         <input
+          id={customId}
           type="number"
           min="1"
           max="50"

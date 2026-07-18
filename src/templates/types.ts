@@ -10,6 +10,7 @@
 
 import type { MenuCardProps } from '@/components/menu/MenuCard';
 import type { CategoryNavProps } from '@/components/menu/CategoryNav';
+import type { MenuSectionStatusProps } from '@/components/menu/MenuSectionStatus';
 
 /**
  * A loaded `next/font` instance. Structural subset of next/font's return
@@ -42,6 +43,9 @@ export interface TemplateSurfaces {
   MenuCard?: React.ComponentType<MenuCardProps>;
   /** The menu category navigation (tabs). Craft ships masking-tape tabs. */
   CategoryNav?: React.ComponentType<CategoryNavProps>;
+  /** The menu section heading + loading/error/empty states. Craft ships an
+   *  Amatic heading + kraft skeleton plates + a hand-drawn empty plate. */
+  MenuSectionStatus?: React.ComponentType<MenuSectionStatusProps>;
 }
 
 export interface TemplateDefinition {

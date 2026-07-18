@@ -4,8 +4,10 @@
 import type { TemplateSurfaces } from '../types';
 import CraftMenuCard from './surfaces/CraftMenuCard';
 import CraftCategoryNav from './surfaces/CraftCategoryNav';
+import CraftMenuSectionStatus from './surfaces/CraftMenuSectionStatus';
 
 export const surfaces: TemplateSurfaces = {
   MenuCard: CraftMenuCard,
   CategoryNav: CraftCategoryNav,
+  MenuSectionStatus: CraftMenuSectionStatus,
 };

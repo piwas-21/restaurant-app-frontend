@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import MenuCard from './MenuCard';
+import DefaultMenuCard from './MenuCard';
+import { surfaceOr } from '@/templates/resolve-surface';
 import { toCatalogItemFromBundle, toCatalogItemFromProduct } from '@/utils/catalogItem';
 import type { CatalogItem, MenuItem, MenuBundleItem } from '@/types/menu';
 import styles from './MenuContent.module.css';
@@ -20,6 +21,10 @@ interface MenuListProps {
  * the `CatalogItem` mappers — replaces the products-grid / bundles-grid fork and its two card
  * components.
  */
+// The active template's card override (craft) or the shared default (classic) —
+// resolved at build time, so classic never bundles a craft card (T4).
+const MenuCard = surfaceOr('MenuCard', DefaultMenuCard);
+
 export default function MenuList({ products, bundles, onOpenItem, onFeedbackSuccess }: Readonly<MenuListProps>) {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language.split('-')[0] || 'en';

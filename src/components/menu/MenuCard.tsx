@@ -11,7 +11,7 @@ import MenuItemActions from './MenuItemActions';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
 
-interface MenuCardProps {
+export interface MenuCardProps {
   item: CatalogItem;
   /** Open the customization sheet — the one surface for both adding and viewing details. */
   onOpen: (item: CatalogItem) => void;

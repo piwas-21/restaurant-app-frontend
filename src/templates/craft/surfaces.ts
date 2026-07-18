@@ -3,7 +3,9 @@
 // bundled only in the craft build.
 import type { TemplateSurfaces } from '../types';
 import CraftMenuCard from './surfaces/CraftMenuCard';
+import CraftCategoryNav from './surfaces/CraftCategoryNav';
 
 export const surfaces: TemplateSurfaces = {
   MenuCard: CraftMenuCard,
+  CategoryNav: CraftCategoryNav,
 };

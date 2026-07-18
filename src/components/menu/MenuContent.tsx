@@ -2,10 +2,16 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MenuItem, MenuBundleItem, ApiCategory, CatalogItem } from '@/types/menu';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
-import CategoryNav from '@/components/menu/CategoryNav';
+import DefaultCategoryNav from '@/components/menu/CategoryNav';
 import MenuList from '@/components/menu/MenuList';
 import Pagination from '@/components/common/Pagination';
+import { surfaceOr } from '@/templates/resolve-surface';
 import styles from './MenuContent.module.css';
+
+// The active template's category-nav override (craft = masking-tape tabs) or the
+// shared default (classic) — resolved at build time, so classic never bundles the
+// craft nav (T4).
+const CategoryNav = surfaceOr('CategoryNav', DefaultCategoryNav);
 
 interface MenuContentProps {
   categoriesForNav: ApiCategory[];

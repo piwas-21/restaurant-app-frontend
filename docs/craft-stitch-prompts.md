@@ -317,10 +317,10 @@ Generate both login and register, light and dark.
 
 | # | Surface | Status | Screenshot(s) |
 |---|---|---|---|
-| 1 | Design system (palette / type / motifs) | ☐ To generate | — |
-| 2 | Home hero (full-bleed) | ✅ Implemented (#228) | Design-first from Prompt 2 (no separate Stitch export); craft baselines in `__screenshots__/craft/` |
-| 3 | Main header (no redundant reservation CTA) | ✅ Implemented (#228) | Design-first from Prompt 3 (no separate Stitch export) |
-| 4 | Menu page | ☐ To generate | — |
+| 1 | Design system (palette / type / motifs) | ✅ Generated (reference) | Prompt-1 specimen generated; the craft design system already ships in `src/templates/craft/` |
+| 2 | Home hero (full-bleed) | ✅ Implemented (#228) | Prompt 2 (light + dark generated); craft baselines in `__screenshots__/craft/` |
+| 3 | Main header (no redundant reservation CTA) | ✅ Implemented (#228) | Prompt 3 (desktop light/dark + mobile generated) |
+| 4 | Menu page | 🔨 Tabs shipped (#229); heading + states next | Prompt 4 (light + dark generated) |
 | 5 | Cart / basket | ☐ To generate | — |
 | 6 | Checkout | ☐ To generate | — |
 | 7 | Reservations | ☐ To generate | — |

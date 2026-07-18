@@ -18,7 +18,10 @@ import styles from './CraftMenuCard.module.css';
  * behaviour (open the customization sheet) is identical; only the composition
  * differs. Rendered only in the craft build (resolved via `surfaceOr`).
  */
-export default function CraftMenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<MenuCardProps>) {
+// `onFeedbackSuccess` is intentionally not destructured — craft's card doesn't
+// surface feedback (parity with the shared card, whose feedback button is dormant),
+// so the prop stays in the contract but is unused here.
+export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -27,9 +30,6 @@ export default function CraftMenuCard({ item, onOpen, onFeedbackSuccess }: Reado
   const description = item.content?.[lang]?.description || item.content?.en?.description || item.description;
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
   const open = () => onOpen(item);
-  // Feedback stays a shared/classic affordance; craft's card doesn't surface it
-  // (parity with the shared card, whose feedback button is also dormant).
-  void onFeedbackSuccess;
 
   return (
     <article

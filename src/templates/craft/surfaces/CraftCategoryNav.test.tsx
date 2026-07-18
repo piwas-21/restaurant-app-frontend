@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import CraftCategoryNav from './CraftCategoryNav';
+import type { CategoryNavProps } from '@/components/menu/CategoryNav';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/publicMenu/constants';
 import type { ApiCategory } from '@/types/menu';
 
@@ -10,7 +11,7 @@ jest.mock('react-i18next', () => ({
 
 const cat = (id: string, name: string) => ({ id, name }) as unknown as ApiCategory;
 
-const renderNav = (props: Partial<React.ComponentProps<typeof CraftCategoryNav>> = {}) =>
+const renderNav = (props: Partial<CategoryNavProps> = {}) =>
   render(
     <CraftCategoryNav
       categories={[cat('c1', 'Grills')]}

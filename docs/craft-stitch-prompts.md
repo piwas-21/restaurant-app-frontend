@@ -318,8 +318,8 @@ Generate both login and register, light and dark.
 | # | Surface | Status | Screenshot(s) |
 |---|---|---|---|
 | 1 | Design system (palette / type / motifs) | ☐ To generate | — |
-| 2 | Home hero (full-bleed) | ☐ To generate | — |
-| 3 | Main header (no redundant reservation CTA) | ☐ To generate | — |
+| 2 | Home hero (full-bleed) | ✅ Implemented (#228) | Design-first from Prompt 2 (no separate Stitch export); craft baselines in `__screenshots__/craft/` |
+| 3 | Main header (no redundant reservation CTA) | ✅ Implemented (#228) | Design-first from Prompt 3 (no separate Stitch export) |
 | 4 | Menu page | ☐ To generate | — |
 | 5 | Cart / basket | ☐ To generate | — |
 | 6 | Checkout | ☐ To generate | — |

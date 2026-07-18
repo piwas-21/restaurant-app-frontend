@@ -22,6 +22,10 @@ import { defineConfig } from '@playwright/test';
 const API_BASE_URL = process.env.E2E_API_BASE_URL ?? 'http://localhost:5221';
 const PORT = Number(process.env.SCREENSHOT_PORT ?? 3100);
 const BASE_URL = `http://localhost:${PORT}`;
+// Which UI template to build + baseline (S15 T3 DoD — per-template baselines).
+// The build bakes it via NEXT_PUBLIC_TEMPLATE; the snapshot path is segmented by
+// it so craft PNGs never overwrite classic. Default classic (the existing suite).
+const TEMPLATE = process.env.SCREENSHOT_TEMPLATE ?? 'classic';
 
 export default defineConfig({
   testDir: './e2e/screenshots',
@@ -39,8 +43,9 @@ export default defineConfig({
       stylePath: './e2e/screenshots/screenshot.css',
     },
   },
-  // No {platform} token — see PLATFORM RULE above.
-  snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{arg}{ext}',
+  // No {platform} token — see PLATFORM RULE above. Segmented by TEMPLATE so each
+  // template has its own baseline set (S15 T3 DoD).
+  snapshotPathTemplate: `{testDir}/__screenshots__/${TEMPLATE}/{projectName}/{arg}{ext}`,
 
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -73,7 +78,11 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `npm run build && npm run start -- --port ${PORT}`,
+    // `rm -rf .next` FIRST: NEXT_PUBLIC_TEMPLATE is inlined at build time and the
+    // template also swings the @active-template alias (which modules bundle), so a
+    // reused .next/cache from a prior template would serve a stale build → wrong
+    // baselines. CI is fresh per matrix leg; this guards local template switches.
+    command: `rm -rf .next && npm run build && npm run start -- --port ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',
@@ -87,6 +96,8 @@ export default defineConfig({
       NEXT_PUBLIC_API_URL: API_BASE_URL,
       NEXT_PUBLIC_IMAGE_BASE_URL: API_BASE_URL,
       NEXT_PUBLIC_RESTAURANT_NAME: 'RUMI Restaurant',
+      // Bake the template under test (default classic). Segments the baselines.
+      NEXT_PUBLIC_TEMPLATE: TEMPLATE,
     },
   },
 });

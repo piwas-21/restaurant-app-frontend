@@ -44,6 +44,12 @@ jobs:
     name: playwright screenshots (visual baseline)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # One leg per UI template (S15 T3 DoD): each builds with its own
+    # NEXT_PUBLIC_TEMPLATE and compares against its own baseline segment.
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [classic, craft]
     services:
       postgres:
         image: postgres:16-alpine
@@ -95,6 +101,9 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
       E2E_API_BASE_URL: http://localhost:5221
       UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots == true && 'true' || 'false' }}
+      # Trusted (hardcoded matrix literal). Baked into the build + segments the
+      # baseline path via playwright.screenshots.config.ts.
+      SCREENSHOT_TEMPLATE: ${{ matrix.template }}
     steps:
       - name: Checkout frontend
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -176,6 +185,7 @@ jobs:
             -v "$PWD":/work -w /work \
             -e CI=1 \
             -e E2E_API_BASE_URL="$E2E_API_BASE_URL" \
+            -e SCREENSHOT_TEMPLATE="$SCREENSHOT_TEMPLATE" \
             "mcr.microsoft.com/playwright:v${PW_VERSION}-noble" \
             npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG
 
@@ -195,7 +205,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
-          name: screenshot-diffs-${{ github.run_id }}
+          name: screenshot-diffs-${{ matrix.template }}-${{ github.run_id }}
           path: |
             test-results/
             playwright-report/
@@ -208,7 +218,25 @@ jobs:
         if: env.UPDATE_SNAPSHOTS == 'true'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
-          name: screenshot-baselines-${{ github.run_id }}
+          name: screenshot-baselines-${{ matrix.template }}-${{ github.run_id }}
           path: e2e/screenshots/__screenshots__/
           retention-days: 14
           if-no-files-found: error
+
+  # Aggregate gate carrying the EXACT branch-protection check name. The ruleset
+  # requires a single context "playwright screenshots (visual baseline)", but the
+  # per-template matrix suffixes its checks with "(classic)"/"(craft)". This job
+  # restores the stable required name and passes iff EVERY matrix leg passed — so
+  # the required check tracks the matrix without a ruleset edit.
+  screenshots_result:
+    name: playwright screenshots (visual baseline)
+    if: always()
+    needs: screenshot_diff
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on matrix result
+        env:
+          RESULT: ${{ needs.screenshot_diff.result }}
+        run: |
+          echo "screenshot matrix result: $RESULT"
+          [ "$RESULT" = "success" ] || { echo "::error::a screenshot template leg did not pass"; exit 1; }

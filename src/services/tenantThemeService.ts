@@ -7,7 +7,10 @@ import type { ApiResponse, RestaurantInfoDto } from '@/types/restaurantInfo';
 // localStorage and does token refresh — cannot provide. This is the sanctioned
 // "service file that wraps the RSC-specific caching options" for the one server
 // read the app makes (ADR-007).
-const SERVER_API_BASE = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5221';
+// From env only (API_INTERNAL_URL for an internal service URL, else the baked
+// public NEXT_PUBLIC_API_URL) — no hardcoded fallback URL. If neither is set, the
+// fetch is skipped and the baked template palette shows (safe default).
+const SERVER_API_BASE = process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Fetch the tenant's palette key and return the CSS the root layout injects
@@ -17,6 +20,7 @@ const SERVER_API_BASE = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_
  * unchanged, so a theming error can never break the page).
  */
 export async function getTenantPaletteCss(): Promise<string> {
+  if (!SERVER_API_BASE) return '';
   try {
     const res = await fetch(`${SERVER_API_BASE}/api/restaurant-info`, {
       next: { revalidate: 30, tags: ['tenant-theme'] },

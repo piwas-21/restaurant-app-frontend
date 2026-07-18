@@ -4,6 +4,11 @@
 // surface contrast is proven once and every preset stays WCAG-AA. The paired
 // light + dark brands are chosen so cream-on-brand (buttons) and brand-on-cream
 // (links/icons) both clear 4.5:1 — enforced by presets.test.ts.
+//
+// Raw hex is BY DESIGN here: this is a token-VALUE source (the ADR-007 counterpart
+// of src/templates/*/tokens.css), not component styling — no component reads these
+// literals; they only feed the CSS variables paletteToCss() emits. The S15
+// "hex only in src/design-system/tokens/" rule targets component CSS, which this is not.
 import type { Palette, PaletteVars } from './types';
 
 // Shared neutral base — a palette varies the brand, not the paper.

@@ -11,7 +11,6 @@ import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import {
-  CheckCircle,
   Clock,
   MapPin,
   User,
@@ -26,6 +25,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import styles from '../../styles/ConfirmationPage.module.css';
+import ConfirmationSuccessHeader from './ConfirmationSuccessHeader';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 
 function ConfirmationContent() {
@@ -157,29 +157,12 @@ function ConfirmationContent() {
       return (
         <main className={styles.container}>
           <div className={styles.content}>
-            <div className={styles.successHeader}>
-              <div className={styles.successIcon}>
-                <CheckCircle size={80} />
-              </div>
-              <h1 className={styles.successTitle}>{t('order_received', 'Order Received')}</h1>
-              <p className={styles.successSubtitle}>
-                {t(
-                  'order_confirmation_message',
-                  'Thank you for your order. We have received it and will start preparing it shortly.',
-                )}
-              </p>
-              <div className={styles.orderNumber}>
-                <Receipt size={24} />
-                <div>
-                  <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
-                  <span className={styles.orderNumberValue}>{orderNumber}</span>
-                </div>
-              </div>
+            <ConfirmationSuccessHeader orderNumber={orderNumber}>
               <button onClick={() => router.push('/menu')} className={styles.menuButton}>
                 <Home size={20} />
                 {t('back_to_menu', 'Back to Menu')}
               </button>
-            </div>
+            </ConfirmationSuccessHeader>
           </div>
         </main>
       );
@@ -202,26 +185,7 @@ function ConfirmationContent() {
   return (
     <main className={styles.container}>
       <div className={styles.content}>
-        {/* Success Header */}
-        <div className={styles.successHeader}>
-          <div className={styles.successIcon}>
-            <CheckCircle size={80} />
-          </div>
-          <h1 className={styles.successTitle}>{t('order_received', 'Order Received')}</h1>
-          <p className={styles.successSubtitle}>
-            {t(
-              'order_confirmation_message',
-              'Thank you for your order. We have received it and will start preparing it shortly.',
-            )}
-          </p>
-          <div className={styles.orderNumber}>
-            <Receipt size={24} />
-            <div>
-              <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
-              <span className={styles.orderNumberValue}>{orderNumber || order.orderNumber}</span>
-            </div>
-          </div>
-        </div>
+        <ConfirmationSuccessHeader orderNumber={orderNumber || order.orderNumber} />
 
         {/* Estimated Time */}
         <div className={styles.estimatedTime}>

@@ -5,9 +5,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
+import dynamic from 'next/dynamic';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
-import OrderFlowModals from '@/components/order/OrderFlowModals';
 import { useCart } from '@/components/cart/CartContext';
 import { useSession } from '@/hooks/useSession';
 import { createOrderFromBasket } from '@/services/orderService';
@@ -33,6 +33,10 @@ import { useSnackbar } from 'notistack';
 import { Loader2 } from 'lucide-react';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import styles from '../../styles/ReviewPage.module.css';
+
+// The order-type/contact edit modals are only needed after an "Edit" click, so keep them out of the
+// review page's initial First Load JS (loaded on demand).
+const OrderFlowModals = dynamic(() => import('@/components/order/OrderFlowModals'), { ssr: false });
 
 export default function ReviewPage() {
   const { t } = useTranslation();

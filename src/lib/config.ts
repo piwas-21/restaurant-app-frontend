@@ -34,3 +34,5 @@ export const BRANDING_LOGO = '/branding/logo.png';
 export const BRANDING_LOGO_DARK = '/branding/logo-dark.png';
 export const BRANDING_ICON = '/branding/icon.svg';
 export const BRANDING_HERO = '/branding/hero.png';
+/** Fallback image for menu items with no photo — per-tenant like the rest of /branding/. */
+export const BRANDING_PLACEHOLDER = '/branding/placeholder.png';

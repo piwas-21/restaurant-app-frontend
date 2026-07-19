@@ -3,3 +3,8 @@ node_modules
 Dockerfile
 .dockerignore
 .git
+
+# Sofra demo branding SOURCE set — the demo build copies it into public/branding/
+# (in the runner, pre-build) via build-demo-tenant.yml `branding_dir`; the source dir
+# itself must not ship in any tenant image (esp. the RUMI/prod one).
+public/branding-sofra

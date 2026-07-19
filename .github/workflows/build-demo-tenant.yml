@@ -41,3 +41,6 @@ jobs:
       template: craft
       currency: EUR
       restaurant_name: Sofra Demo
+      # Sofra-branded favicon + menu-item placeholder for the demo (this is the
+      # Sofra SaaS showcase, not the RUMI tenant). Committed set, no download.
+      branding_dir: public/branding-sofra

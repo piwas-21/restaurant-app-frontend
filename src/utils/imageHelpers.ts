@@ -1,13 +1,13 @@
 import type { MenuItem } from '@/types/menu';
 import type { LanguageCode } from '@/components/LanguageSwitcher';
-import { BRANDING_PLACEHOLDER } from '@/lib/config';
 
 /**
- * Fallback image for menu items with no photo. Points at the per-tenant branding
- * asset (`/branding/placeholder.png`) so a tenant can override it like its logo /
- * icon — the demo (craft) ships a Sofra placeholder, prod keeps the RUMI default.
+ * Fallback image for menu items with no photo — the per-tenant branding asset
+ * (`/branding/placeholder.png`) so a tenant can override it like its logo / icon.
+ * The demo (craft) ships a Sofra placeholder; prod keeps the RUMI default.
+ * Re-exported from config so it stays a single source of truth.
  */
-export const FALLBACK_IMAGE = BRANDING_PLACEHOLDER;
+export { BRANDING_PLACEHOLDER as FALLBACK_IMAGE } from '@/lib/config';
 
 /**
  * Gets image gallery for a menu item

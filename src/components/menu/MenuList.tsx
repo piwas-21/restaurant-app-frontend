@@ -5,6 +5,7 @@ import DefaultMenuCard from './MenuCard';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { toCatalogItemFromBundle, toCatalogItemFromProduct } from '@/utils/catalogItem';
 import type { CatalogItem, MenuItem, MenuBundleItem } from '@/types/menu';
+import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import styles from './MenuContent.module.css';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +13,7 @@ interface MenuListProps {
   products: MenuItem[];
   bundles: MenuBundleItem[];
   /** Opens the shared customization sheet — the page owns it, so the featured banner shares it. */
-  onOpenItem: (item: CatalogItem) => void;
+  onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   onFeedbackSuccess: (dishId: string) => void;
 }
 

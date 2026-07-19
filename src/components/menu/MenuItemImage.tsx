@@ -17,7 +17,12 @@ type Props = {
 export default function MenuItemImage({ imageUrl, alt, imageCount, countLabel, onClick, onError }: Props) {
   const fullUrl = getFullImageUrl(imageUrl);
   return (
-    <div className={styles.itemImageContainer} onClick={onClick} style={{ cursor: 'pointer' }}>
+    <div
+      className={styles.itemImageContainer}
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}
+      data-testid="menu-item-image"
+    >
       <Image
         src={fullUrl}
         alt={alt}

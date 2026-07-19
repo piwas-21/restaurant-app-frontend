@@ -4,6 +4,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CatalogItem } from '@/types/menu';
+import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import MenuCardImage from './MenuCardImage';
 import MenuItemDetails from './MenuItemDetails';
@@ -13,19 +14,22 @@ import styles from './MenuItem.module.css';
 
 export interface MenuCardProps {
   item: CatalogItem;
-  /** Open the customization sheet — the one surface for both adding and viewing details. */
-  onOpen: (item: CatalogItem) => void;
+  /**
+   * Open the customization sheet. `opts.forceSheet` (Details/title) always opens it to view the
+   * item; without it (Add to Order) a simple product adds straight to the cart.
+   */
+  onOpen: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   onFeedbackSuccess: (dishId: string) => void;
 }
 
 /**
  * The single customer catalog card (menu-bundles redesign #175, slice 6). Renders a plain product
  * and a combo from one `CatalogItem` view-model, replacing the `MenuItem` + `MenuBundleCard` fork.
- * The title, Add, and Details affordances all open the shared `ItemCustomizationSheet`: it shows
- * everything the old read-only details modals did (ingredients, allergens, prep time, variations
- * and, for a combo, its sections) and lets the guest act on it, so there is no separate details
- * surface to keep in sync. Clicking the image is the one exception — it opens the enlarge-on-click
- * gallery (`MenuCardImage`), not the sheet.
+ * The title and Details affordances open the shared `ItemCustomizationSheet` to VIEW the item
+ * (`forceSheet` — it shows ingredients, allergens, prep time, variations and, for a combo, its
+ * sections, and lets the guest act on it). Add to Order opens the same sheet to customize, but a
+ * simple product with nothing to choose adds straight to the cart. Clicking the image opens the
+ * enlarge-on-click gallery (`MenuCardImage`).
  */
 export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
@@ -42,7 +46,10 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
   // renders them here or loses them.
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
 
+  // Add to Order: a simple product adds straight to the cart. Details/title: always open the sheet
+  // to view the item (never silently add it).
   const open = () => onOpen(item);
+  const openDetails = () => onOpen(item, { forceSheet: true });
 
   return (
     <div className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
@@ -72,7 +79,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
           price={item.price}
           dietaryTags={item.dietaryTags ?? []}
           t={t}
-          onTitleClick={open}
+          onTitleClick={openDetails}
           initialRatingData={{ average: 0, count: 0 }}
         />
 
@@ -90,7 +97,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
             onFeedback={() => setShowFeedbackForm(true)}
             addAria={t('add_item_to_order', { itemName })}
             addLabel={t('add_to_order')}
-            onDetails={open}
+            onDetails={openDetails}
             detailsLabel={t('details')}
             feedbackAria={`${t('feedback_form_heading')} ${itemName}`}
             feedbackLabel={t('feedback_form_heading')}

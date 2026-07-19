@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
+import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
 import type { CatalogItem, MenuBundleItem } from '@/types/menu';
 
@@ -32,30 +33,31 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
 
   /** Open by id. Fetches the detail, and routes to the bundle body if the id is a combo. */
   const openForProductId = useCallback(
-    (productId: string) => {
+    (productId: string, opts?: OpenSheetOptions) => {
       // `openForProduct` catches its own failures and surfaces a snackbar, so this should never
       // fire — but the promise still has to be consumed, and logging keeps a future throw loud
       // rather than swallowing it.
-      openForProduct(productId).catch((error) => console.error('Failed to open the customization sheet:', error));
+      openForProduct(productId, opts).catch((error) => console.error('Failed to open the customization sheet:', error));
     },
     [openForProduct],
   );
 
   const openForCatalogItem = useCallback(
-    (item: CatalogItem) => {
+    (item: CatalogItem, opts?: OpenSheetOptions) => {
       if (!item.isBundle) {
-        openForProductId(item.id);
+        openForProductId(item.id, opts);
         return;
       }
 
       // The browse list already carries the full menuDefinition, so a combo opens without a fetch.
       // A miss falls back to the id path, which re-fetches and routes back here via onBundleDetected.
+      // (Bundles always open their sheet, so `opts.forceSheet` is a product-only concern.)
       const found = findBundle?.(item.id);
       if (found) {
         openForBundle(found);
         return;
       }
-      openForProductId(item.id);
+      openForProductId(item.id, opts);
     },
     [openForBundle, findBundle, openForProductId],
   );

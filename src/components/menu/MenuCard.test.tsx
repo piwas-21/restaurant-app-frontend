@@ -88,22 +88,29 @@ describe('MenuCard — one card for both catalog kinds', () => {
     expect(container.querySelector('[data-testid="special-badge"]')).not.toBeInTheDocument();
   });
 
-  it('opens the sheet from Add and from Details — one surface, not two', () => {
+  it('Add opens without forcing (fast-add allowed) but Details forces the sheet — never a silent add', () => {
     const onOpen = jest.fn();
     render(<MenuCard item={product} onOpen={onOpen} onFeedbackSuccess={jest.fn()} />);
 
+    // Add to Order: no forceSheet, so a simple product can add straight to the cart.
     fireEvent.click(screen.getByRole('button', { name: 'add_item_to_order(Margherita)' }));
-    expect(onOpen).toHaveBeenCalledWith(product);
+    expect(onOpen).toHaveBeenLastCalledWith(product);
 
+    // Details: forceSheet so the sheet ALWAYS opens to view the item (the #234 regression).
     fireEvent.click(screen.getByRole('button', { name: 'details' }));
-    expect(onOpen).toHaveBeenCalledTimes(2);
+    expect(onOpen).toHaveBeenLastCalledWith(product, { forceSheet: true });
+
+    // The clickable title is a view affordance too — it forces the sheet, never adds.
+    // Exact name so it doesn't also match the Add button's "add_item_to_order(Margherita)".
+    fireEvent.click(screen.getByRole('button', { name: 'Margherita' }));
+    expect(onOpen).toHaveBeenLastCalledWith(product, { forceSheet: true });
   });
 
-  it('opens the sheet for a bundle too — no separate bundle details modal', () => {
+  it("forces the sheet for a bundle's Details too — no separate bundle details modal", () => {
     const onOpen = jest.fn();
     render(<MenuCard item={bundle} onOpen={onOpen} onFeedbackSuccess={jest.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'details' }));
-    expect(onOpen).toHaveBeenCalledWith(bundle);
+    expect(onOpen).toHaveBeenCalledWith(bundle, { forceSheet: true });
   });
 });

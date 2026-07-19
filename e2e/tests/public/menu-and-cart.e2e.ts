@@ -155,10 +155,12 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
   const detailsButton = page.getByRole('button', { name: /^details$/i }).first();
   await expect(detailsButton).toBeVisible({ timeout: 15_000 });
 
-  // Count any basket write — there must be none for a Details click.
+  // Capture any basket write the moment it's INITIATED (request event, not response), so a
+  // quick-add is caught immediately without an artificial wait. Attached after the menu has
+  // loaded, so it only counts writes caused by the Details click.
   let basketWrites = 0;
-  page.on('response', (r) => {
-    if (r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method())) basketWrites += 1;
+  page.on('request', (req) => {
+    if (req.url().includes('/api/Basket') && ['POST', 'PUT'].includes(req.method())) basketWrites += 1;
   });
 
   await detailsButton.click();
@@ -169,8 +171,8 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
   await expect(dialog).toBeVisible({ timeout: 5_000 });
   await expect(dialog.getByRole('button', { name: /add to order/i })).toBeVisible();
 
-  // Give any (erroneous) quick-add time to land, then assert the cart was untouched.
-  await page.waitForTimeout(750);
+  // The sheet opened — a quick-add would have skipped the dialog and POSTed instead — so the cart
+  // must be untouched.
   expect(basketWrites).toBe(0);
 });
 

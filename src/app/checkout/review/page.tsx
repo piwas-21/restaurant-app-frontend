@@ -124,15 +124,6 @@ export default function ReviewPage() {
     }
   };
 
-  // "Edit" on the review page: re-open the order-type/contact modal for the chosen type IN PLACE
-  // (the modals mirror into CheckoutContext, so the review sections update live). `true` forces the
-  // modal open even for a takeaway user whose profile is already complete.
-  const handleEditOrder = () => {
-    if (checkoutState.orderType) {
-      orderTypeFollowUp.pickType(checkoutState.orderType, 'checkout_review', true);
-    }
-  };
-
   // Fetch tax configuration based on order type
   useEffect(() => {
     const fetchTaxConfig = async () => {
@@ -346,15 +337,19 @@ export default function ReviewPage() {
           <div className={styles.gridLayout}>
             {/* Left Column - Order Details */}
             <div className={styles.leftColumn}>
+              {/* "Edit Order Details" changes the order type (+ its table/address detail); "Edit
+                  Customer Information" edits name/email/phone only — two distinct editors so the
+                  Order Details edit no longer opens the contact modal. Both edit in place (the
+                  follow-up modals mirror into CheckoutContext, so these sections update live). */}
               <OrderTypeSection
                 orderType={checkoutState.orderType || 'Takeaway'}
                 tableNumber={checkoutState.tableNumber}
                 deliveryAddress={checkoutState.deliveryAddress || undefined}
-                onEdit={handleEditOrder}
+                onEdit={orderTypeFollowUp.editOrderType}
               />
 
               {/* Non-null: the prereq guard above redirects away when customerInfo is absent. */}
-              <CustomerInfoSection customerInfo={checkoutState.customerInfo!} onEdit={handleEditOrder} />
+              <CustomerInfoSection customerInfo={checkoutState.customerInfo!} onEdit={orderTypeFollowUp.editContact} />
 
               <OrderItemsList items={cartState.items} formatPrice={formatPrice} />
 

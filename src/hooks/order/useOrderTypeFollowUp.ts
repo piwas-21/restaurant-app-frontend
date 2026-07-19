@@ -8,8 +8,12 @@ import { OrderType } from '@/types/order';
 import { getCurrentUser } from '@/services/userService';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
-/** Which follow-up modal to display after a type is picked. */
-export type OrderTypeFollowUp = 'table' | 'address' | 'takeaway' | null;
+/**
+ * Which follow-up modal to display. `table`/`address`/`takeaway` open after a
+ * type is picked; `ordertype`/`contact` are the review-page "Edit" editors
+ * (change the order type, or the contact info alone).
+ */
+export type OrderTypeFollowUp = 'table' | 'address' | 'takeaway' | 'ordertype' | 'contact' | null;
 
 interface FollowUpState {
   /**
@@ -35,6 +39,17 @@ interface FollowUpState {
    */
   pickType: (type: OrderType, source?: string, forceModal?: boolean) => void;
   closeFollowUp: () => void;
+  /**
+   * Open the order-type editor (the segmented toggle) — the review page's
+   * "Edit Order Details". Picking a type there calls `pickType`, which commits
+   * the type and opens its detail modal (table/address) in turn.
+   */
+  editOrderType: () => void;
+  /**
+   * Open the contact-only editor (name/email/phone) — the review page's "Edit
+   * Customer Information". Does NOT change the order type.
+   */
+  editContact: () => void;
 }
 
 function isLoggedInClient(): boolean {
@@ -109,8 +124,10 @@ export function useOrderTypeFollowUp(): FollowUpState {
   );
 
   const closeFollowUp = useCallback(() => setFollowUp(null), []);
+  const editOrderType = useCallback(() => setFollowUp('ordertype'), []);
+  const editContact = useCallback(() => setFollowUp('contact'), []);
 
-  return { followUp, pickType, closeFollowUp };
+  return { followUp, pickType, closeFollowUp, editOrderType, editContact };
 }
 
 async function needsTakeawayInfoModal(

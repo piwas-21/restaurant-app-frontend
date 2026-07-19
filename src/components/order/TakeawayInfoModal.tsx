@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
-import GuestCustomerInfoFields from './GuestCustomerInfoFields';
+import GuestCustomerInfoFields, { type CustomerInfoField } from './GuestCustomerInfoFields';
 import tableModalStyles from './TableSelectionModal.module.css';
 
 // Module-level constant — frozen at load, so the reference is stable across
@@ -23,6 +23,19 @@ interface TakeawayInfoModalProps {
    * since CheckoutContext.customerInfo is now populated.
    */
   onConfirm: () => void;
+  /**
+   * Optional heading override. Defaults to the takeaway copy; the review page's
+   * "Edit Customer Information" reuses this modal with an edit-flavoured title
+   * (the fields + commit are identical — it just edits contact info in place).
+   */
+  title?: string;
+  /**
+   * Which contact fields are required. Defaults to name+email+phone (Takeaway).
+   * The review page's contact editor passes the order-type-appropriate set so a
+   * Dine-In edit doesn't force a phone number (Dine-In requires only name+email).
+   * Pass a stable reference — it feeds `useGuestCustomerInfo`'s memoised commit.
+   */
+  requiredFields?: ReadonlyArray<CustomerInfoField>;
 }
 
 /**
@@ -42,10 +55,16 @@ interface TakeawayInfoModalProps {
  * non-critical duplication; promote to design-system if a fourth modal
  * lands with the same footer shape.
  */
-export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: TakeawayInfoModalProps) {
+export default function TakeawayInfoModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  requiredFields,
+}: Readonly<TakeawayInfoModalProps>) {
   const { t } = useTranslation();
   const guest = useGuestCustomerInfo({
-    requiredFields: TAKEAWAY_REQUIRED_FIELDS,
+    requiredFields: requiredFields ?? TAKEAWAY_REQUIRED_FIELDS,
     enabled: isOpen,
     source: 'takeaway_modal',
   });
@@ -61,7 +80,7 @@ export default function TakeawayInfoModal({ isOpen, onClose, onConfirm }: Takeaw
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={t('takeaway_info_title', 'Almost there — your details')}
+      title={title ?? t('takeaway_info_title', 'Almost there — your details')}
       footer={
         <>
           <button

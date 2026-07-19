@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import styles from './MenuItemImage.module.css';
 import { getFullImageUrl } from '@/utils/image';
@@ -28,22 +27,18 @@ export default function MenuItemImage({
   enlargeLabel,
   onClick,
   onError,
-}: Props) {
+}: Readonly<Props>) {
   const fullUrl = getFullImageUrl(imageUrl);
   return (
-    <div
+    // A real <button> (not a div+role): natively focusable and Enter/Space
+    // activated, so the enlarge affordance is keyboard-accessible with no custom
+    // key handling. `enlargeLabel` gives it an accessible name distinct from the
+    // dish title. `.itemImageContainer` resets the native button chrome.
+    <button
+      type="button"
       className={styles.itemImageContainer}
       onClick={onClick}
-      onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      role="button"
-      tabIndex={0}
       aria-label={enlargeLabel}
-      style={{ cursor: 'pointer' }}
       data-testid="menu-item-image"
     >
       <Image
@@ -62,6 +57,6 @@ export default function MenuItemImage({
           {imageCount} {countLabel}
         </span>
       )}
-    </div>
+    </button>
   );
 }

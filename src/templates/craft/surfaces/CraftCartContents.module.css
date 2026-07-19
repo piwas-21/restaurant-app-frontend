@@ -1,0 +1,195 @@
+/* Craft cart contents (S15 T4 surface) — the "order pad". Amatic dish names on a
+   dotted leader, kraft − n + steppers, a kraft totals panel with an Amatic
+   terracotta grand total, and a letterpress terracotta CTA. Craft primitives
+   (menuLeader / roundedCraft / letterpressBtn) come in via `composes`; the
+   CartLineControls keys (itemControls/iconButton/qtyGroup/qtyButton/qty) match
+   the classic module so the shared controls restyle cleanly. Tokens only — no
+   raw hex (CLAUDE.md §5). */
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* A torn page line — a dashed rule under each item, no card frame (the panel is
+   the "paper"). */
+.item {
+  padding: 0 0 1rem;
+  border-bottom: 2px dashed var(--border-default);
+}
+
+.item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Hand-lettered `name ..... price` header (menuLeader supplies the dotted fill +
+   baseline layout). */
+.leader {
+  composes: menuLeader from '../craft.module.css';
+}
+
+.itemName {
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text-primary);
+}
+
+/* menuLeader colours its last child --text-secondary (olive) — same treatment as
+   the browse-card price; the grand total below is the terracotta accent. */
+.itemPrice {
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Controls cluster (shared CartLineControls). Remove on the left, kraft stepper
+   pill on the right. */
+.itemControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--feedback-danger);
+  background-color: var(--surface-secondary-light);
+}
+
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Kraft stepper pill (torn-strip clip-path, hand-drawn feel). */
+.qtyGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--surface-secondary);
+  clip-path: polygon(3% 10%, 97% 0%, 100% 90%, 1% 100%);
+  padding: 0.25rem 0.5rem;
+}
+
+.qtyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  color: var(--brand-primary);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.15s ease;
+}
+
+.qtyButton:hover:not(:disabled) {
+  background-color: var(--surface-card);
+}
+
+.qtyButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qty {
+  min-width: 1.6rem;
+  text-align: center;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: var(--text-primary);
+}
+
+/* Kraft totals panel with an Amatic terracotta grand total. */
+.totals {
+  composes: roundedCraft from '../craft.module.css';
+  margin-top: 1.25rem;
+  padding: 0.9rem 1.1rem;
+  background-color: var(--surface-secondary);
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.totalLabel {
+  font-family: 'Caveat', cursive;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.totalValue {
+  font-family: 'Amatic SC', cursive;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--brand-primary);
+}
+
+/* Letterpress terracotta CTA pill (Caveat), organic corners. */
+.checkoutButton {
+  composes: letterpressBtn roundedCraft from '../craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.8rem 1.25rem;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border: none;
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.checkoutButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty order pad — a Caveat note. */
+.empty {
+  padding: 1.75rem 0;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+}

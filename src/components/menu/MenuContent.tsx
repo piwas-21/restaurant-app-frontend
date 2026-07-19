@@ -1,11 +1,20 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MenuItem, MenuBundleItem, ApiCategory, CatalogItem } from '@/types/menu';
+import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
-import CategoryNav from '@/components/menu/CategoryNav';
+import DefaultCategoryNav from '@/components/menu/CategoryNav';
+import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import MenuList from '@/components/menu/MenuList';
 import Pagination from '@/components/common/Pagination';
+import { surfaceOr } from '@/templates/resolve-surface';
 import styles from './MenuContent.module.css';
+
+// The active template's overrides (craft = masking-tape tabs + Amatic heading /
+// kraft skeleton / hand-drawn empty plate) or the shared defaults (classic) —
+// resolved at build time, so classic never bundles the craft versions (T4).
+const CategoryNav = surfaceOr('CategoryNav', DefaultCategoryNav);
+const MenuSectionStatus = surfaceOr('MenuSectionStatus', DefaultMenuSectionStatus);
 
 interface MenuContentProps {
   categoriesForNav: ApiCategory[];
@@ -20,8 +29,8 @@ interface MenuContentProps {
   totalPages: number;
   totalCount: number;
   onPageChange: (page: number) => void;
-  /** Opens the shared customization sheet, which the page owns. */
-  onOpenItem: (item: CatalogItem) => void;
+  /** Opens the shared customization sheet, which the page owns. `opts.forceSheet` = view-only. */
+  onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
 }
 
 export default function MenuContent({
@@ -75,18 +84,16 @@ export default function MenuContent({
 
       {/* Menu Items Section */}
       <section className={styles.categorySection} aria-labelledby={`category-heading-${selectedView}`}>
-        <h2 id={`category-heading-${selectedView}`} className={styles.categoryTitle}>
-          {categoryDisplayName}
-        </h2>
-
-        {/* Loading State */}
-        {isLoadingItems && <p>{loadingMessage}</p>}
-
-        {/* Error State */}
-        {displayError && <p className={styles.errorMessage}>{displayError}</p>}
-
-        {/* Empty State */}
-        {!isLoadingItems && !displayError && displayItems.length === 0 && <p>{emptyMessage}</p>}
+        {/* Heading + loading/error/empty states (craft re-skins this via the slot). */}
+        <MenuSectionStatus
+          headingId={`category-heading-${selectedView}`}
+          title={categoryDisplayName}
+          isLoading={isLoadingItems}
+          errorMessage={displayError}
+          isEmpty={displayItems.length === 0}
+          loadingMessage={loadingMessage}
+          emptyMessage={emptyMessage}
+        />
 
         {/* Menu Items or Bundles — one grid, one card; the view only picks which list feeds it. */}
         {!isLoadingItems && !displayError && displayItems.length > 0 && (

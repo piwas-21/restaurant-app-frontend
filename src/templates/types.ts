@@ -9,6 +9,10 @@
 // slot renders the shared default, so classic is untouched by construction.
 
 import type { MenuCardProps } from '@/components/menu/MenuCard';
+import type { CategoryNavProps } from '@/components/menu/CategoryNav';
+import type { MenuSectionStatusProps } from '@/components/menu/MenuSectionStatus';
+import type { OrderFlowSidebarProps } from '@/components/order/OrderFlowSidebar';
+import type { CartContentsProps } from '@/components/order/CartContents';
 
 /**
  * A loaded `next/font` instance. Structural subset of next/font's return
@@ -39,6 +43,17 @@ export interface ShellProps {
 export interface TemplateSurfaces {
   /** The customer browse-grid card (menu page). */
   MenuCard?: React.ComponentType<MenuCardProps>;
+  /** The menu category navigation (tabs). Craft ships masking-tape tabs. */
+  CategoryNav?: React.ComponentType<CategoryNavProps>;
+  /** The menu section heading + loading/error/empty states. Craft ships an
+   *  Amatic heading + kraft skeleton plates + a hand-drawn empty plate. */
+  MenuSectionStatus?: React.ComponentType<MenuSectionStatusProps>;
+  /** The desktop cart rail chrome (menu page). Craft ships a ruled-paper
+   *  "order pad" panel. */
+  OrderFlowSidebar?: React.ComponentType<OrderFlowSidebarProps>;
+  /** The cart-half contents (shared by the desktop rail + mobile sheet). Craft
+   *  ships the hand-written order-pad list + kraft totals + terracotta CTA. */
+  CartContents?: React.ComponentType<CartContentsProps>;
 }
 
 export interface TemplateDefinition {

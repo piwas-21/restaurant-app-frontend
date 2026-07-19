@@ -124,6 +124,15 @@ test.describe('checkout-guest: public ordering as guest', () => {
     await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
     await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
 
+    // --- Regression (bug 1): "Edit" opens the order/contact editor IN PLACE and does NOT bounce
+    // to /menu (the buttons used to route to the retired /checkout/order-type + /menu stubs). ---
+    await page.getByRole('button', { name: /^edit$/i }).first().click();
+    const editModal = page.getByRole('dialog');
+    await expect(editModal).toBeVisible({ timeout: 5_000 });
+    await expect(page).toHaveURL(/\/checkout\/review$/); // stayed on review — no redirect
+    await page.keyboard.press('Escape'); // close without changing anything
+    await expect(editModal).toBeHidden({ timeout: 5_000 });
+
     // Place the order from /checkout/review. The submit button label can
     // shift between locales / progress states (e.g. "Placing…"); match a
     // permissive name regex so the test doesn't bounce on copy tweaks.
@@ -138,21 +147,24 @@ test.describe('checkout-guest: public ordering as guest', () => {
     const orderResponse = await orderResponsePromise;
     expect(orderResponse.ok(), `place order: ${orderResponse.status()} ${await orderResponse.text()}`).toBeTruthy();
 
-    // /checkout/review renders an OrderConfirmationModal on successful POST
-    // — the user reviews the order number, then dismisses the modal which
-    // is what navigates to /checkout/confirmation (see OrderConfirmationModal
-    // wiring in src/app/checkout/review/page.tsx → handleCloseConfirmationModal).
-    // Without an explicit dismiss the URL stays at /checkout/review, which
-    // is what the early version of this test hit.
+    // /checkout/review renders an OrderConfirmationModal on success — the guest sees the order
+    // number in the modal, then dismisses it.
     const dialog = page.getByRole('dialog', { name: /order received/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
-    // BaseModal owns ESC-to-close; firing keyboard Escape avoids depending on
-    // the X-button aria-label translation or backdrop click coordinates.
-    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape'); // BaseModal owns ESC-to-close.
 
-    // Confirmation lands. The confirmation page reads ?orderId & orderNumber
-    // from the query string and renders the receipt.
-    await expect(page).toHaveURL(/\/checkout\/confirmation/, { timeout: 15_000 });
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 });
+    // --- Regression (bug 2): a GUEST can't read the auth-gated /checkout/confirmation order-details
+    // page, so dismissing the modal must land on /menu — NOT a "Failed to load order details"
+    // error page. ---
+    await expect(page).toHaveURL(/\/menu$/, { timeout: 15_000 });
+    await expect(page.getByText(/failed to load order/i)).toHaveCount(0);
+
+    // --- Regression (bug 3): placing an order resets the order type (both contexts), so the next
+    // order starts from a clean toggle — no stale "active" selection that leaves Proceed a no-op. ---
+    const orderTypeGroup = page
+      .getByRole('complementary', { name: /shopping basket/i })
+      .getByRole('group', { name: /order type/i });
+    await expect(orderTypeGroup).toBeVisible({ timeout: 10_000 });
+    await expect(orderTypeGroup.getByRole('button', { pressed: true })).toHaveCount(0);
   });
 });

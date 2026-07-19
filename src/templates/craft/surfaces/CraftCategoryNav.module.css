@@ -1,0 +1,133 @@
+/* Craft menu category nav (S15 T4 surface). Masking-tape tabs — a torn kraft
+   strip per category, tilted at hand-varied angles (the per-tab --tab-tilt set
+   by the component), Caveat font; the active tab is terracotta. Reuses the
+   shared horizontal-scroll behaviour (useCategoryNavScroll) so RUMI's many
+   categories still scroll. Tokens only — no raw hex (CLAUDE.md §5). */
+
+.stickyNav {
+  position: sticky;
+  top: var(--craft-header-h);
+  z-index: 100;
+  background-color: var(--surface-primary);
+  padding: 0.9rem 0 1.1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px dotted var(--border-default);
+}
+
+.navWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.navScrollContainer {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  flex: 1;
+  min-width: 0;
+  max-width: 900px;
+}
+
+.navScrollContainer::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.navButtonsContainer {
+  display: flex;
+  gap: 0.75rem;
+  /* Extra vertical padding so the rotated tapes + hover-lift don't clip. */
+  padding: 0.45rem 0.75rem;
+  min-width: min-content;
+}
+
+/* Masking-tape tab (the torn-strip clip-path from craft.module.css .tapeLabel,
+   but as a button with an active state and a per-tab tilt). */
+.tab {
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
+  background: var(--surface-secondary); /* kraft */
+  color: var(--text-primary);
+  padding: 0.45rem 1.3rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+  transform: rotate(var(--tab-tilt, 0deg));
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.tab:hover {
+  transform: rotate(var(--tab-tilt, 0deg)) translateY(-2px);
+}
+
+/* `.tab.tabActive` (0-2-0) beats the base `.tab`; the terracotta fill is
+   clipped to the tape shape. Keeps its tilt (transform stays the base rule). */
+.tab.tabActive {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+/* Scroll arrows — small letterpress kraft discs (same behaviour as classic). */
+.navArrow {
+  composes: letterpress from '../craft.module.css';
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.navArrowLeft {
+  margin-right: 0.75rem;
+}
+
+.navArrowRight {
+  margin-left: 0.75rem;
+}
+
+/* Tablet + mobile: the sticky nav clears the header + the TableBanner, and the
+   tapes get larger touch targets (parity with the shared nav's 44px minimum). */
+@media (max-width: 768px) {
+  .stickyNav {
+    top: calc(var(--craft-header-h) + 50px);
+  }
+
+  .navWrapper {
+    padding: 0 0.75rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 1.3rem;
+    padding: 0.4rem 1.1rem;
+  }
+
+  .navArrow {
+    width: 44px;
+    height: 44px;
+  }
+}

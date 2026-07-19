@@ -7,8 +7,9 @@ import WorkingHoursManager from '@/components/admin/settings/WorkingHoursManager
 import OrderTypeManager from '@/components/admin/settings/OrderTypeManager';
 import TaxConfigurationManager from '@/components/admin/settings/TaxConfigurationManager';
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
+import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
 
-type TabType = 'hours' | 'order-types' | 'tax' | 'general';
+type TabType = 'hours' | 'order-types' | 'tax' | 'general' | 'appearance';
 
 export default function RestaurantSettingsPage() {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export default function RestaurantSettingsPage() {
     { id: 'order-types' as TabType, label: t('order_types', 'Order Types'), icon: '📋' },
     { id: 'tax' as TabType, label: t('tax_configuration', 'Tax Configuration'), icon: '💰' },
     { id: 'general' as TabType, label: t('general_settings', 'General Settings'), icon: '⚙️' },
+    { id: 'appearance' as TabType, label: t('appearance_settings', 'Appearance'), icon: '🎨' },
   ];
 
   return (
@@ -50,6 +52,7 @@ export default function RestaurantSettingsPage() {
         {activeTab === 'order-types' && <OrderTypeManager />}
         {activeTab === 'tax' && <TaxConfigurationManager />}
         {activeTab === 'general' && <GeneralSettingsTab />}
+        {activeTab === 'appearance' && <AppearanceTab />}
       </div>
     </div>
   );

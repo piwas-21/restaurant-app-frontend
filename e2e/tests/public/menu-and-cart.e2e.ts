@@ -138,3 +138,63 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
   await proceed.click();
   await expect(page).toHaveURL(/\/menu$/);
 });
+
+/**
+ * Regression guard — "Details" must OPEN the item, never silently add it.
+ *
+ * The sheet has a fast path: a product with no customization options is added
+ * straight to the cart on open. "Details" used to run that same opener, so on a
+ * simple item (the e2e seed has no variations/ingredients) clicking Details
+ * *added to the basket* instead of showing the modal — reported on demo AND prod.
+ * The fix routes Details/title through `forceSheet`, which always opens the sheet.
+ * This test would have failed before the fix (no dialog + a basket write).
+ */
+test('clicking Details opens the item modal and does NOT add it to the cart', async ({ page }) => {
+  await page.goto('/menu');
+
+  const detailsButton = page.getByRole('button', { name: /^details$/i }).first();
+  await expect(detailsButton).toBeVisible({ timeout: 15_000 });
+
+  // Capture any basket write the moment it's INITIATED (request event, not response), so a
+  // quick-add is caught immediately without an artificial wait. Attached after the menu has
+  // loaded, so it only counts writes caused by the Details click.
+  let basketWrites = 0;
+  page.on('request', (req) => {
+    if (req.url().includes('/api/Basket') && ['POST', 'PUT'].includes(req.method())) basketWrites += 1;
+  });
+
+  await detailsButton.click();
+
+  // The customization/details sheet opens — a BaseModal dialog whose footer confirm reads
+  // "Add to Order • <price>" (non-anchored match — it ends with the live price, not "to order").
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible({ timeout: 5_000 });
+  await expect(dialog.getByRole('button', { name: /add to order/i })).toBeVisible();
+
+  // The sheet opened — a quick-add would have skipped the dialog and POSTed instead — so the cart
+  // must be untouched.
+  expect(basketWrites).toBe(0);
+});
+
+/**
+ * Regression guard — clicking a menu item's image opens the enlarge-on-click
+ * lightbox (restored in #234 after f3f1269 deleted it and wired the image to
+ * details). The lightbox is NOT the customization sheet: it shows the enlarged
+ * image and carries no "Add to Order" button.
+ */
+test('clicking a menu item image opens the enlarged-image lightbox', async ({ page }) => {
+  await page.goto('/menu');
+
+  const thumbnail = page.getByTestId('menu-item-image').first();
+  await expect(thumbnail).toBeVisible({ timeout: 15_000 });
+
+  await thumbnail.click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible({ timeout: 5_000 });
+  // It's the image lightbox, not the customization sheet: an enlarged <img> photo is shown
+  // (locator('img') targets the real image tag, not the close-button SVG that maps to role=img),
+  // and there is NO "Add to Order" footer (the sheet's signature) inside the dialog.
+  await expect(dialog.locator('img').first()).toBeVisible();
+  await expect(dialog.getByRole('button', { name: /add to order/i })).toHaveCount(0);
+});

@@ -33,6 +33,8 @@ export interface RestaurantInfoDto {
   longitude: number | null;
   email: string;
   website: string | null;
+  /** Runtime colour-palette key (ADR-007); null = the template's baked palette. */
+  themePaletteKey: string | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
 }
 
@@ -49,6 +51,7 @@ export interface UpdateRestaurantInfoCommand {
   longitude: number | null;
   email: string;
   website: string | null;
+  themePaletteKey: string | null;
 }
 
 export interface AddPhoneNumberCommand {

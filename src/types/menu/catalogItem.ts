@@ -1,4 +1,4 @@
-import type { ProductIngredient, DietaryTag } from './shared';
+import type { ProductIngredient, DietaryTag, MenuItemImage } from './shared';
 
 /**
  * CatalogItem — the unified card view-model for the merged `MenuCard` (menu-bundles redesign #175,
@@ -19,6 +19,8 @@ export interface CatalogItem {
   imageUrl?: string;
   /** How many images the item has — the card badges the count. */
   imageCount?: number;
+  /** All of the item's images, for the enlarge-on-click gallery lightbox. */
+  images?: MenuItemImage[];
   /** Starting price — a bundle displays this as a "from" price. */
   price: number;
   isBundle: boolean;

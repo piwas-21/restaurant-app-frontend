@@ -53,6 +53,46 @@ on:
         description: "ISO 4217 currency code baked into price formatting (registry `currency:` field, deploy repo; pairs with backend LocalizationSettings.Currency), e.g. CHF, EUR"
         required: false
         default: "CHF"
+  # Reusable entry point (same inputs, typed) so an automated caller can rebuild a
+  # tenant image from the caller's ref without duplicating the build logic — used by
+  # build-demo-tenant.yml to rebuild tenant-demo from develop-tip on every develop push
+  # (demo.sofrapiwas.com = craft staging). GITHUB_TOKEN reaches same-repo reusable
+  # workflows automatically; the caller must grant packages:write.
+  workflow_call:
+    inputs:
+      tenant_domain:
+        description: "Tenant's public domain (no scheme), e.g. demo.sofrapiwas.com"
+        required: true
+        type: string
+      image_tag:
+        description: "GHCR tag to publish, e.g. tenant-demo"
+        required: true
+        type: string
+      google_client_id:
+        description: "Google OAuth web client id ('' disables Google login)"
+        required: false
+        default: ""
+        type: string
+      restaurant_name:
+        description: "Tenant display name baked into page metadata"
+        required: false
+        default: ""
+        type: string
+      branding_url:
+        description: "HTTPS URL of a .tar.gz branding archive (empty = repo defaults)"
+        required: false
+        default: ""
+        type: string
+      template:
+        description: "UI template baked into the bundle: classic | craft"
+        required: false
+        default: "classic"
+        type: string
+      currency:
+        description: "ISO 4217 currency code, e.g. CHF, EUR"
+        required: false
+        default: "CHF"
+        type: string
 
 concurrency:
   group: build-tenant-${{ inputs.image_tag }}

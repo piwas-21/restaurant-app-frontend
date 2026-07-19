@@ -7,19 +7,6 @@
   margin-bottom: 1rem;
 }
 
-/* Hand-lettered section heading with a dotted menu-board rule under it. */
-.heading {
-  font-family: 'Amatic SC', cursive;
-  font-size: 2.9rem;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--text-primary);
-  text-align: center;
-  margin: 0 0 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 3px dotted var(--border-default);
-}
-
 /* Loading — a Caveat "preparing…" line above a grid of pulsing kraft plates.
    `.loading` is an <output> (semantic status live region); reset its inline
    default to block so it lays its children out full-width. */
@@ -98,9 +85,6 @@
 }
 
 @media (max-width: 968px) {
-  .heading {
-    font-size: 2.5rem;
-  }
   .skeletonGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
@@ -108,9 +92,6 @@
 }
 
 @media (max-width: 600px) {
-  .heading {
-    font-size: 2.2rem;
-  }
   .skeletonGrid {
     grid-template-columns: 1fr;
     gap: 1rem;

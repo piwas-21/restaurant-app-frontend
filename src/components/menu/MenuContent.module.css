@@ -1,13 +1,4 @@
 /* Menu Content Section */
-.categoryTitle {
-  font-size: 2rem;
-  color: var(--primary-color);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border-color);
-  text-align: center;
-}
-
 .itemsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -45,11 +36,6 @@
 
 /* Tablet */
 @media (max-width: 968px) {
-  .categoryTitle {
-    font-size: 1.75rem;
-    margin-bottom: 1.25rem;
-  }
-
   .itemsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
@@ -64,11 +50,6 @@
 
 /* Mobile */
 @media (max-width: 600px) {
-  .categoryTitle {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
   .itemsGrid {
     grid-template-columns: 1fr;
     gap: 1rem;

@@ -30,7 +30,10 @@ export default function MenuSectionStatus({
 }: Readonly<MenuSectionStatusProps>) {
   return (
     <>
-      <h2 id={headingId} className={styles.categoryTitle}>
+      {/* sr-only: the category nav already shows + highlights the active category,
+          so the visible sub-title is redundant; kept for the section's accessible
+          name (aria-labelledby target) and as a screen-reader landmark. */}
+      <h2 id={headingId} className="sr-only">
         {title}
       </h2>
       {isLoading && <p>{loadingMessage}</p>}

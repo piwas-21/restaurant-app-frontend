@@ -10,9 +10,10 @@ interface CartItemCustomizationsProps {
 }
 
 /**
- * The read-only customizations summary for a cart item (added/removed ingredients, side items,
- * special requests). Renders nothing when the item has no customizations. Extracted verbatim from
- * app/cart/page.tsx (Sprint 4/6 god-file decomposition).
+ * The read-only customizations summary for a cart item (added/removed ingredients, side items).
+ * Renders nothing when the item has no ingredient/side customizations. Special instructions are
+ * owned by CartItemInstructionsEditor (display + edit) for every item, so they are NOT shown here —
+ * that avoids a duplicate "special requests" line. Extracted from app/cart/page.tsx (Sprint 4/6).
  */
 export default function CartItemCustomizations({ item }: CartItemCustomizationsProps) {
   const { t } = useTranslation();
@@ -20,8 +21,7 @@ export default function CartItemCustomizations({ item }: CartItemCustomizationsP
   if (!(
     item.selectedIngredientNames?.length ||
     item.excludedIngredientNames?.length ||
-    item.selectedSideItems?.length ||
-    item.specialInstructions
+    item.selectedSideItems?.length
   )) {
     return null;
   }
@@ -68,13 +68,6 @@ export default function CartItemCustomizations({ item }: CartItemCustomizationsP
               </span>
             ))}
           </span>
-        </div>
-      )}
-
-      {item.specialInstructions && (
-        <div className={styles.customizationDetail}>
-          <span className={styles.customizationLabel}>{t('special_requests', 'Special Requests')}:</span>
-          <span className={styles.customizationValue}>{item.specialInstructions}</span>
         </div>
       )}
     </div>

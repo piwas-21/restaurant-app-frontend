@@ -4,8 +4,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import type { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
-import CartContents from './CartContents';
+import { surfaceOr } from '@/templates/resolve-surface';
+import DefaultCartContents from './CartContents';
 import styles from './MobileCartSheet.module.css';
+
+// The active template's cart-half override (craft = order-pad list) or the shared
+// default (classic) — resolved at build time, so classic never bundles craft (T4).
+const CartContents = surfaceOr('CartContents', DefaultCartContents);
 
 interface MobileCartSheetProps {
   isOpen: boolean;

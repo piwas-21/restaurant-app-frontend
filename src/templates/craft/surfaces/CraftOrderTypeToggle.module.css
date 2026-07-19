@@ -1,0 +1,67 @@
+/* Craft order-type picker (S15 T4 cart surface). Hand-torn kraft chips (Caveat),
+   the active one terracotta — same class-name keys the shared OrderTypeToggleShell
+   expects (group/button/active/icon/label/skeleton), craft styling. Tokens only —
+   no raw hex (CLAUDE.md §5). */
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.15rem 0;
+}
+
+/* Torn-strip kraft chip (the .tapeLabel clip-path, as a toggle button). */
+.button {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
+  background: var(--surface-secondary); /* kraft */
+  color: var(--text-primary);
+  border: none;
+  padding: 0.5rem 0.75rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.button:hover,
+.button:focus-visible {
+  transform: translateY(-2px);
+  outline: none;
+}
+
+/* `.button.active` (0-2-0) beats the base `.button`; terracotta clipped to the
+   tape shape. */
+.button.active {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.skeleton {
+  height: 46px;
+  background-color: var(--surface-secondary);
+  clip-path: polygon(1% 6%, 99% 0%, 100% 92%, 1% 100%);
+}

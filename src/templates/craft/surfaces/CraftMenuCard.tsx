@@ -53,7 +53,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
         images={item.images}
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
-        enlargeLabel={t('menu_item_image_enlarge_aria', { itemName })}
+        enlargeLabel={t('menu_item_image_enlarge_aria', 'Enlarge {{itemName}} image', { itemName })}
         onError={() => setImageFailed(true)}
       />
 

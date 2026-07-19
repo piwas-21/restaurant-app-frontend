@@ -227,4 +227,27 @@ describe('useItemCustomizationSheet', () => {
     expect(result.current.isOpen).toBe(false);
     expect(mockAddItem).toHaveBeenCalledWith({ productId: 'p2', quantity: 1 });
   });
+
+  it('with forceSheet, OPENS the sheet for a no-options product instead of quick-adding (Details never adds)', async () => {
+    // The regression this whole change fixes: "Details" must view the item, never silently add it.
+    mockGetProductById.mockResolvedValue({
+      data: {
+        id: 'p2',
+        name: 'Water',
+        content: { en: { name: 'Water' } },
+        basePrice: 2,
+        variations: [],
+        suggestedSideItems: [],
+        detailedIngredients: [],
+      },
+    });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p2', { forceSheet: true });
+    });
+
+    expect(result.current.isOpen).toBe(true);
+    expect(mockAddItem).not.toHaveBeenCalled();
+  });
 });

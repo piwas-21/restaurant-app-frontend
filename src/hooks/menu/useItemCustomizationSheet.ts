@@ -8,6 +8,7 @@ import { getProductById } from '@/services/menuService';
 import { buildInitialSheetState, hasCustomizationOptions } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
+import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { SelectedSide } from '@/utils/linePrice';
 import type { DetailedProduct, MenuBundleItem } from '@/types/menu';
 
@@ -22,7 +23,8 @@ interface UseItemCustomizationSheetArgs {
  * Drives the customer product-customization sheet (menu-bundles redesign #175, slice 6): fetches the
  * detail on open via the `getProductById` service, seeds from `buildInitialSheetState`, live-prices
  * with the shared `useLinePrice`, and adds the line. A product with nothing to choose is added
- * straight to the cart without opening — matching the previous behaviour.
+ * straight to the cart without opening (the "Add to Order" fast path) — UNLESS the caller passes
+ * `forceSheet` (the "Details"/title affordances), which always opens the sheet to view the item.
  */
 export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItemCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
@@ -30,8 +32,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
   const { enqueueSnackbar } = useSnackbar();
   const currentLanguage = (i18n.language || 'en').split('-')[0];
 
-  // Guards the whole open path, not just Add: the no-options branch adds straight to the cart, so
-  // a second tap during the fetch would add the line twice.
+  // Entry guard: the no-options branch adds directly, so a second tap mid-fetch can't double-add.
   const isOpeningRef = useRef(false);
   const [product, setProduct] = useState<DetailedProduct | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -71,7 +72,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
   }, []);
 
   const openForProduct = useCallback(
-    async (productId: string) => {
+    async (productId: string, opts?: OpenSheetOptions) => {
       if (isOpeningRef.current) return;
       isOpeningRef.current = true;
       setIsLoading(true);
@@ -90,7 +91,8 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
           return;
         }
 
-        if (!hasCustomizationOptions(detail)) {
+        // Fast path: a plain product adds straight to the cart — unless the caller forced the sheet.
+        if (!opts?.forceSheet && !hasCustomizationOptions(detail)) {
           await addItem({ productId: detail.id, quantity: 1 });
           notifyAdded(detail);
           return;

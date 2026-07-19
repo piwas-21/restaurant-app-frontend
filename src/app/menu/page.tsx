@@ -111,7 +111,7 @@ export default function MenuPage() {
             <FeaturedSpecialComponent
               special={featuredSpecial}
               onAddToCart={() => sheet.openForProductId(featuredSpecial.id)}
-              onViewDetails={() => sheet.openForProductId(featuredSpecial.id)}
+              onViewDetails={() => sheet.openForProductId(featuredSpecial.id, { forceSheet: true })}
             />
           )}
 

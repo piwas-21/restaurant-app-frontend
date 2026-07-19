@@ -30,7 +30,10 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
   const itemName = item.content?.[lang]?.name || item.content?.en?.name || item.name;
   const description = item.content?.[lang]?.description || item.content?.en?.description || item.description;
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
+  // Add to Order adds a simple item straight to the cart; title/Details always open the sheet to
+  // view the item (parity with the classic card).
   const open = () => onOpen(item);
+  const openDetails = () => onOpen(item, { forceSheet: true });
 
   return (
     <article
@@ -57,7 +60,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
         <button
           type="button"
           className={`${craft.menuLeader} ${styles.leader}`}
-          onClick={open}
+          onClick={openDetails}
           id={`item-name-${item.id}`}
         >
           <span className={styles.name}>{itemName}</span>
@@ -74,10 +77,10 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
 
         <MenuItemActions
           onAdd={open}
-          onFeedback={open}
+          onFeedback={openDetails}
           addAria={t('add_item_to_order', { itemName })}
           addLabel={t('add_to_order')}
-          onDetails={open}
+          onDetails={openDetails}
           detailsLabel={t('details')}
           feedbackAria={t('details')}
           feedbackLabel=""

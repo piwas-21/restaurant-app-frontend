@@ -82,6 +82,22 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // B2 (cart instructions) — the /cart special-instructions editor is now the single owner of
+    // item notes for EVERY item (the gate that hid it for customized items on prod is gone), and
+    // the customizations summary no longer duplicates the notes line. The editor's display/edit/
+    // save/cancel paths are pinned; the customizations summary pins its ingredient/side structure.
+    './src/components/cart/cart-page/CartItemInstructionsEditor.tsx': {
+      statements: 99,
+      branches: 80,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/cart/cart-page/CartItemCustomizations.tsx': {
+      statements: 87,
+      branches: 58,
+      functions: 66,
+      lines: 87,
+    },
     // Slice 7 PR2d — the unified admin editor. `productEditorDefaults` is the pure
     // fetched-product → form-state mapping (the load-bearing half, incl. the real
     // primary-category resolution); `ProductEditorPage` is the composition + the single

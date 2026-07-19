@@ -6,7 +6,6 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
 import { ShoppingBag, MapPin, Edit } from 'lucide-react';
 import styles from './OrderTypeSection.module.css';
 
@@ -22,11 +21,12 @@ interface OrderTypeSectionProps {
   orderType: 'DineIn' | 'Takeaway' | 'Delivery';
   tableNumber?: string;
   deliveryAddress?: DeliveryAddress;
+  /** Re-opens the order-type/contact editor in place (review page owns the modal). */
+  onEdit: () => void;
 }
 
-export default function OrderTypeSection({ orderType, tableNumber, deliveryAddress }: OrderTypeSectionProps) {
+export default function OrderTypeSection({ orderType, tableNumber, deliveryAddress, onEdit }: OrderTypeSectionProps) {
   const { t } = useTranslation();
-  const router = useRouter();
 
   return (
     <section className={styles.section}>
@@ -35,7 +35,7 @@ export default function OrderTypeSection({ orderType, tableNumber, deliveryAddre
           <ShoppingBag size={20} />
           {t('order_details', 'Order Details')}
         </h2>
-        <button onClick={() => router.push('/checkout/order-type')} className={styles.editButton}>
+        <button onClick={onEdit} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>

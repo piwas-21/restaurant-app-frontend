@@ -5,6 +5,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
+import { useOrderType } from '@/contexts/OrderTypeContext';
+import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
+import OrderFlowModals from '@/components/order/OrderFlowModals';
 import { useCart } from '@/components/cart/CartContext';
 import { useSession } from '@/hooks/useSession';
 import { createOrderFromBasket } from '@/services/orderService';
@@ -36,7 +39,11 @@ export default function ReviewPage() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const { state: checkoutState, clearCheckout, setTipAmount } = useCheckout();
+  const { clearOrderType } = useOrderType();
   const { state: cartState, clearCart } = useCart();
+  // Order-type follow-up modals, hosted here so the "Edit" buttons re-open the order-type/contact
+  // editor IN PLACE instead of bouncing to the retired /checkout/* pages (which redirect to /menu).
+  const orderTypeFollowUp = useOrderTypeFollowUp();
   // Ensure a session exists on mount (auto-create side effect) — the from-basket order call
   // resolves the basket from the X-Session-Id header apiClient attaches, so no id is read here.
   useSession();
@@ -99,12 +106,26 @@ export default function ReviewPage() {
     setPointsDiscount(discountAmount);
   };
 
-  // Handler for closing confirmation modal
+  // Handler for closing confirmation modal (X / ESC / backdrop / "Back to Menu").
+  // The full confirmation page fetches the order from an auth-gated endpoint, so a GUEST would land
+  // on "Failed to load order details". Only logged-in users can view it; guests go back to /menu
+  // (the modal already showed them the order number + emailed confirmation).
   const handleCloseConfirmationModal = () => {
     setShowConfirmationModal(false);
-    if (confirmedOrder) {
-      // Navigate to confirmation page
+    if (!confirmedOrder) return;
+    if (isLoggedIn) {
       router.push(`/checkout/confirmation?orderId=${confirmedOrder.id}&orderNumber=${confirmedOrder.orderNumber}`);
+    } else {
+      router.push('/menu');
+    }
+  };
+
+  // "Edit" on the review page: re-open the order-type/contact modal for the chosen type IN PLACE
+  // (the modals mirror into CheckoutContext, so the review sections update live). `true` forces the
+  // modal open even for a takeaway user whose profile is already complete.
+  const handleEditOrder = () => {
+    if (checkoutState.orderType) {
+      orderTypeFollowUp.pickType(checkoutState.orderType, 'checkout_review', true);
     }
   };
 
@@ -266,9 +287,13 @@ export default function ReviewPage() {
         customerEmail: checkoutState.customerInfo?.email || '',
       });
 
-      // Clear cart and checkout state
+      // Clear cart and checkout state. Reset BOTH contexts: clearCheckout() wipes CheckoutContext
+      // (customerInfo/tip/…) but OrderTypeContext persists its own copy, so without clearOrderType()
+      // the next order has a chosen type (button enabled) yet empty customerInfo — Proceed then
+      // silently no-ops. Resetting both makes the toggle require a fresh pick for the next order.
       await clearCart();
       clearCheckout();
+      clearOrderType();
 
       // Send confirmation emails to both customer and admin (fire and forget)
       try {
@@ -321,9 +346,11 @@ export default function ReviewPage() {
                 orderType={checkoutState.orderType || 'Takeaway'}
                 tableNumber={checkoutState.tableNumber}
                 deliveryAddress={checkoutState.deliveryAddress || undefined}
+                onEdit={handleEditOrder}
               />
 
-              <CustomerInfoSection customerInfo={checkoutState.customerInfo as any} />
+              {/* Non-null: the prereq guard above redirects away when customerInfo is absent. */}
+              <CustomerInfoSection customerInfo={checkoutState.customerInfo!} onEdit={handleEditOrder} />
 
               <OrderItemsList items={cartState.items} formatPrice={formatPrice} />
 
@@ -370,6 +397,10 @@ export default function ReviewPage() {
           </div>
         </div>
       </main>
+
+      {/* Edit-in-place: the "Edit" buttons open these to change order type / table / address /
+          contact info without leaving the review page. */}
+      <OrderFlowModals followUp={orderTypeFollowUp} />
     </>
   );
 }

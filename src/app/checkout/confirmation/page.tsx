@@ -149,6 +149,42 @@ function ConfirmationContent() {
   }
 
   if (error || !order) {
+    // Graceful fallback: if the order number is known (the order WAS placed) but the full details
+    // couldn't load — a guest can't read the auth-gated order endpoint, or this is a deep-link /
+    // browser-back — show a minimal confirmation instead of a scary "Failed to load" error. The
+    // primary guard is the review modal sending guests to /menu; this protects the remaining paths.
+    if (orderNumber) {
+      return (
+        <main className={styles.container}>
+          <div className={styles.content}>
+            <div className={styles.successHeader}>
+              <div className={styles.successIcon}>
+                <CheckCircle size={80} />
+              </div>
+              <h1 className={styles.successTitle}>{t('order_received', 'Order Received')}</h1>
+              <p className={styles.successSubtitle}>
+                {t(
+                  'order_confirmation_message',
+                  'Thank you for your order. We have received it and will start preparing it shortly.',
+                )}
+              </p>
+              <div className={styles.orderNumber}>
+                <Receipt size={24} />
+                <div>
+                  <span className={styles.orderNumberLabel}>{t('order_number', 'Order Number')}</span>
+                  <span className={styles.orderNumberValue}>{orderNumber}</span>
+                </div>
+              </div>
+              <button onClick={() => router.push('/menu')} className={styles.menuButton}>
+                <Home size={20} />
+                {t('back_to_menu', 'Back to Menu')}
+              </button>
+            </div>
+          </div>
+        </main>
+      );
+    }
+
     return (
       <main className={styles.container}>
         <div className={styles.errorState}>

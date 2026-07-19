@@ -38,10 +38,14 @@ export default function CartLineList({
 }: Readonly<CartLineListProps>) {
   return (
     <ul className={styles.itemList}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const itemId = item.basketItemId || item.id || item.productId;
         return (
-          <li key={itemId} className={styles.item}>
+          // Real cart items always carry basketItemId/id/productId; the index
+          // fallback only guards the degenerate all-undefined case (avoids a
+          // `key={undefined}` warning). Keys are not rendered, so classic DOM
+          // stays byte-identical.
+          <li key={itemId ?? index} className={styles.item}>
             <div className={headerClassName}>
               <span className={styles.itemName}>{item.productName}</span>
               <span className={styles.itemPrice}>{formatPlainCurrency(item.itemTotal)}</span>

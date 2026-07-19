@@ -152,6 +152,7 @@
   "menu_page_description": "Explore el delicioso y auténtico menú turco del {{name}} en Ginebra. Desde sabrosos kebabs hasta deliciosos mezes y postres tradicionales. Opciones halal disponibles.",
   "menu_categories_label": "Categorías del Menú",
   "menu_item_image_alt": "Imagen del elemento del menú",
+  "menu_item_image_enlarge_aria": "Ampliar la imagen de {{itemName}}",
   "dietary_information_label": "Información Dietética",
   "category_navigation_label": "Categorías",
   "category_not_found_in_menu_data": "Los elementos del menú para {{categoryName}} no están disponibles en este momento.",

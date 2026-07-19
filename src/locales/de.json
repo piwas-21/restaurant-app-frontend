@@ -158,6 +158,7 @@
   "menu_page_description": "Entdecken Sie die köstliche und authentische türkische Speisekarte im {{name}} in Genf. Von herzhaften Kebabs bis zu köstlichen Mezes und traditionellen Desserts. Halal-Optionen verfügbar.",
   "menu_categories_label": "Menü-Kategorien",
   "menu_item_image_alt": "Menüpunkt-Bild",
+  "menu_item_image_enlarge_aria": "Bild von {{itemName}} vergrößern",
   "dietary_information_label": "Ernährungsinformationen",
   "category_navigation_label": "Kategorien",
   "category_not_found_in_menu_data": "Menüpunkte für {{categoryName}} sind im Moment nicht verfügbar.",

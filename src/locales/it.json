@@ -158,6 +158,7 @@
   "menu_page_description": "Scopri il delizioso e autentico menù turco del {{name}} a Ginevra. Dai kebab saporiti ai meze e dolci tradizionali. Opzioni halal disponibili.",
   "menu_categories_label": "Categorie del Menù",
   "menu_item_image_alt": "Immagine voce di menu",
+  "menu_item_image_enlarge_aria": "Ingrandisci l'immagine di {{itemName}}",
   "dietary_information_label": "Informazioni Dietetiche",
   "category_navigation_label": "Categorie",
   "category_not_found_in_menu_data": "Gli articoli del menù per {{categoryName}} non sono attualmente disponibili.",

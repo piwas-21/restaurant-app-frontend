@@ -158,6 +158,7 @@
   "menu_page_description": "Découvrez notre menu turc authentique à Genève. Kebab, meze, desserts traditionnels. Options halal disponibles.",
   "menu_categories_label": "Catégories du menu",
   "menu_item_image_alt": "Image d'élément de menu",
+  "menu_item_image_enlarge_aria": "Agrandir l'image de {{itemName}}",
   "dietary_information_label": "Informations diététiques",
   "category_navigation_label": "Catégories",
   "category_not_found_in_menu_data": "Les articles de la catégorie {{categoryName}} ne sont pas disponibles actuellement.",

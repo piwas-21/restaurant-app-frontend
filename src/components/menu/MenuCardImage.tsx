@@ -12,6 +12,8 @@ interface MenuCardImageProps {
   images?: MenuItemImageType[];
   imageCount?: number;
   countLabel?: string;
+  /** Accessible name for the enlarge-on-click button (distinct from the dish name). */
+  enlargeLabel: string;
   onError?: () => void;
 }
 
@@ -28,6 +30,7 @@ export default function MenuCardImage({
   images,
   imageCount,
   countLabel,
+  enlargeLabel,
   onError,
 }: Readonly<MenuCardImageProps>) {
   const gallery = images && images.length > 0 ? images : [{ url: imageUrl, alt }];
@@ -40,6 +43,7 @@ export default function MenuCardImage({
         alt={alt}
         imageCount={imageCount}
         countLabel={countLabel}
+        enlargeLabel={enlargeLabel}
         onClick={() => state.open()}
         onError={onError}
       />

@@ -151,6 +151,7 @@
   "menu_page_description": "探索日内瓦 {{name}}的正宗土耳其菜单。从烤肉到传统甜点。提供清真选项。",
   "menu_categories_label": "菜单分类",
   "menu_item_image_alt": "菜单项目图片",
+  "menu_item_image_enlarge_aria": "图片画廊",
   "dietary_information_label": "饮食信息",
   "category_navigation_label": "分类",
   "category_not_found_in_menu_data": "{{categoryName}} 的菜单暂不可用。",

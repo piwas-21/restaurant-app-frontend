@@ -492,7 +492,3 @@ Generate light and dark versions.
 - Re-skin, not re-flow — the same IA + all four data states, dressed in craft
 
 > These map 1:1 onto the shipped craft primitives in `src/templates/craft/` — `craft.module.css` (`.letterpress`, `.roundedCraft`, `.tapeLabel`, `.menuLeader`), `tokens.css` (the exact palette above), and `fonts.ts` (Amatic SC / Caveat / Quicksand). Implement each generated design against those, via the per-surface slot mechanism, so nothing drifts from the design system.
-
-```
-
-```

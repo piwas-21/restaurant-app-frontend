@@ -85,14 +85,14 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
             aria-label={t('add_item_to_order', { itemName })}
           >
             <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
-            {t('add_to_order')}
+            {t('add_to_order', 'Add to Order')}
           </button>
           <button
             type="button"
             className={`${craft.letterpressBtn} ${craft.roundedCraft} ${styles.detailsButton}`}
             onClick={openDetails}
           >
-            {t('details')}
+            {t('details', 'Details')}
           </button>
         </div>
       </div>

@@ -43,7 +43,7 @@ describe('CraftMenuCard', () => {
     expect(onOpen).toHaveBeenLastCalledWith(product);
 
     // Details: forceSheet so the sheet ALWAYS opens to view the item.
-    fireEvent.click(screen.getByRole('button', { name: 'details' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
     expect(onOpen).toHaveBeenLastCalledWith(product, { forceSheet: true });
 
     // The dotted-leader title is a view affordance too — forces the sheet, never adds.

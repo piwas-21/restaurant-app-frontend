@@ -151,6 +151,7 @@
   "menu_page_description": "Изучите вкусное и аутентичное турецкое меню в {{name}} в Женеве. От пикантных кебабов до восхитительных мезе и традиционных десертов. Доступны халяльные блюда.",
   "menu_categories_label": "Категории меню",
   "menu_item_image_alt": "Изображение блюда",
+  "menu_item_image_enlarge_aria": "Галерея изображений",
   "dietary_information_label": "Диетическая информация",
   "category_navigation_label": "Категории",
   "category_not_found_in_menu_data": "Блюда для категории {{categoryName}} в данный момент недоступны.",

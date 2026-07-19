@@ -10,16 +10,39 @@ type Props = {
   alt: string;
   imageCount?: number;
   countLabel?: string;
+  /**
+   * Accessible name for the enlarge-on-click button. Deliberately distinct from
+   * `alt` (the dish name): the card title is already a button carrying the dish
+   * name, so reusing it here would collide for screen-reader/test lookups.
+   */
+  enlargeLabel: string;
   onClick: () => void;
   onError?: () => void;
 };
 
-export default function MenuItemImage({ imageUrl, alt, imageCount, countLabel, onClick, onError }: Props) {
+export default function MenuItemImage({
+  imageUrl,
+  alt,
+  imageCount,
+  countLabel,
+  enlargeLabel,
+  onClick,
+  onError,
+}: Props) {
   const fullUrl = getFullImageUrl(imageUrl);
   return (
     <div
       className={styles.itemImageContainer}
       onClick={onClick}
+      onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={enlargeLabel}
       style={{ cursor: 'pointer' }}
       data-testid="menu-item-image"
     >

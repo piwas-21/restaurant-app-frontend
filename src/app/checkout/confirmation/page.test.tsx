@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import ConfirmationPage from './page';
 
 jest.mock('react-i18next', () => ({
@@ -33,7 +33,7 @@ describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
 
     render(<ConfirmationPage />);
 
-    await waitFor(() => expect(screen.getByText('Order Received')).toBeInTheDocument());
+    expect(await screen.findByText('Order Received')).toBeInTheDocument();
     expect(screen.getByText('ORD-123')).toBeInTheDocument();
     expect(screen.queryByText(/failed to load order/i)).not.toBeInTheDocument();
   });
@@ -44,6 +44,6 @@ describe('ConfirmationPage — guest fallback (bug 2 hardening)', () => {
 
     render(<ConfirmationPage />);
 
-    await waitFor(() => expect(screen.getByText('Failed to load order details')).toBeInTheDocument());
+    expect(await screen.findByText('Failed to load order details')).toBeInTheDocument();
   });
 });

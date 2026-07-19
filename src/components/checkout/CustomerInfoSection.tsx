@@ -21,7 +21,7 @@ interface CustomerInfoSectionProps {
   onEdit: () => void;
 }
 
-export default function CustomerInfoSection({ customerInfo, onEdit }: CustomerInfoSectionProps) {
+export default function CustomerInfoSection({ customerInfo, onEdit }: Readonly<CustomerInfoSectionProps>) {
   const { t } = useTranslation();
 
   return (

@@ -25,7 +25,12 @@ interface OrderTypeSectionProps {
   onEdit: () => void;
 }
 
-export default function OrderTypeSection({ orderType, tableNumber, deliveryAddress, onEdit }: OrderTypeSectionProps) {
+export default function OrderTypeSection({
+  orderType,
+  tableNumber,
+  deliveryAddress,
+  onEdit,
+}: Readonly<OrderTypeSectionProps>) {
   const { t } = useTranslation();
 
   return (

@@ -158,7 +158,7 @@ function ConfirmationContent() {
         <main className={styles.container}>
           <div className={styles.content}>
             <ConfirmationSuccessHeader orderNumber={orderNumber}>
-              <button onClick={() => router.push('/menu')} className={styles.menuButton}>
+              <button type="button" onClick={() => router.push('/menu')} className={styles.menuButton}>
                 <Home size={20} />
                 {t('back_to_menu', 'Back to Menu')}
               </button>

@@ -15,7 +15,7 @@ interface ConfirmationSuccessHeaderProps {
  * The "Order Received" success banner (icon + title + order number), shared by the full confirmation
  * view and the guest fallback so the markup isn't duplicated.
  */
-export default function ConfirmationSuccessHeader({ orderNumber, children }: ConfirmationSuccessHeaderProps) {
+export default function ConfirmationSuccessHeader({ orderNumber, children }: Readonly<ConfirmationSuccessHeaderProps>) {
   const { t } = useTranslation();
   return (
     <div className={styles.successHeader}>

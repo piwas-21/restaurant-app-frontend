@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { useOrderTypeFollowUp } from './useOrderTypeFollowUp';
 
@@ -22,23 +22,18 @@ jest.mock('@/lib/analytics', () => ({ isLoggedInForAnalytics: () => false, track
 describe('useOrderTypeFollowUp', () => {
   it('forceModal opens the Takeaway modal even when the profile is already complete (Edit path)', async () => {
     const { result } = renderHook(() => useOrderTypeFollowUp());
-    act(() => {
-      void result.current.pickType(OrderType.Takeaway, 'checkout_review', true);
-    });
+    // pickType is async + drives its own state updates; waitFor absorbs the flush (no manual act).
+    void result.current.pickType(OrderType.Takeaway, 'checkout_review', true);
     await waitFor(() => expect(result.current.followUp).toBe('takeaway'));
   });
 
   it('without forceModal, a Takeaway pick with complete info opens no modal', async () => {
     const { result } = renderHook(() => useOrderTypeFollowUp());
     // Open a modal first so the null assertion is meaningful (a real table→null transition).
-    act(() => {
-      void result.current.pickType(OrderType.DineIn);
-    });
+    void result.current.pickType(OrderType.DineIn);
     await waitFor(() => expect(result.current.followUp).toBe('table'));
 
-    act(() => {
-      void result.current.pickType(OrderType.Takeaway);
-    });
+    void result.current.pickType(OrderType.Takeaway);
     await waitFor(() => expect(result.current.followUp).toBeNull());
   });
 });

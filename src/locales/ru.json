@@ -2092,6 +2092,8 @@
   "shopping_basket": "Корзина",
   "tell_us_how_to_reach_you": "Как с вами связаться",
   "takeaway_info_title": "Почти готово — ваши данные",
+  "edit_order_type_title": "Изменить тип заказа",
+  "edit_contact_title": "Изменить ваши данные",
   "phone_required": "Требуется телефон",
   "create_account_with_details": "Создать аккаунт с этими данными",
   "account_created_check_email": "Аккаунт создан! Подтвердите email, чтобы получать бонусы лояльности.",

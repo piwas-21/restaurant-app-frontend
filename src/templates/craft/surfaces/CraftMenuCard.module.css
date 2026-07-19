@@ -65,8 +65,52 @@
   margin: 0;
 }
 
-.allergens {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin: 0;
+/* Action row — terracotta letterpress "Add" + kraft "Details", Caveat lettering
+   and organic corners (composed from craft.letterpressBtn / roundedCraft). */
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  flex: 1;
+  padding: 0.5rem 0.9rem;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border: 2px solid var(--border-default);
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.detailsButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-default);
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  /* Cover the letterpressBtn motion (box-shadow/transform) plus our own bg swap,
+     so the cascade order between the composed class and this one is irrelevant. */
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.detailsButton:hover {
+  background-color: var(--surface-card);
 }

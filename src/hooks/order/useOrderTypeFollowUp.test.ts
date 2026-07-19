@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { useOrderTypeFollowUp } from './useOrderTypeFollowUp';
 
@@ -35,5 +35,19 @@ describe('useOrderTypeFollowUp', () => {
 
     void result.current.pickType(OrderType.Takeaway);
     await waitFor(() => expect(result.current.followUp).toBeNull());
+  });
+
+  it('editOrderType / editContact open the review-page editors without committing a type', () => {
+    const { result } = renderHook(() => useOrderTypeFollowUp());
+    mockSetOrderType.mockClear(); // ignore any commits from earlier tests sharing this mock
+
+    act(() => result.current.editOrderType());
+    expect(result.current.followUp).toBe('ordertype');
+
+    act(() => result.current.editContact());
+    expect(result.current.followUp).toBe('contact');
+
+    // Opening an editor never commits an order type — that is pickType's job.
+    expect(mockSetOrderType).not.toHaveBeenCalled();
   });
 });

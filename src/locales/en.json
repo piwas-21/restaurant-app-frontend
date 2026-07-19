@@ -151,6 +151,7 @@
   "menu_page_description": "Explore the delicious and authentic Turkish menu at {{name}} in {{city}}. From savory kebabs to delightful mezes and traditional desserts. Halal options available.",
   "menu_categories_label": "Menu Categories",
   "menu_item_image_alt": "Menu item image",
+  "menu_item_image_enlarge_aria": "Enlarge {{itemName}} image",
   "dietary_information_label": "Dietary Information",
   "category_navigation_label": "Categories",
   "category_not_found_in_menu_data": "Menu items for {{categoryName}} are not available at the moment.",

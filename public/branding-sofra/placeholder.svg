@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#FFF9F2"/>
+  <!-- Sofra plate mark (from the brand favicon) + wordmark; terracotta on cream.
+       Brand-only, no translatable copy — a language-neutral "no image" fallback,
+       matching how the classic template uses the RUMI logo as its placeholder. -->
+  <g transform="translate(176 150) scale(7)" fill="none" stroke="#A84B2F" stroke-width="3.4" stroke-linecap="round">
+    <path d="M32 10.6c11.9-.3 21.6 9.2 21.8 21.1C54 43.7 44.3 53.3 32.3 53.4 20.2 53.5 10.4 44 10.2 32.1 10 20.3 19.9 10.9 32 10.6z"/>
+    <path d="M32 21.4c6-.2 10.8 4.5 10.9 10.5.1 6-4.7 10.9-10.7 11-6.1.1-11-4.7-11.1-10.7-.1-5.9 4.8-10.6 10.9-10.8z"/>
+  </g>
+  <text x="400" y="700" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="140" fill="#A84B2F" letter-spacing="6">Sofra</text>
+</svg>

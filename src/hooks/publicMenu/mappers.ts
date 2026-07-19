@@ -1,7 +1,8 @@
 import type { MenuBundleItem, MenuItem, MenuItemContent, MenuItemImage } from '@/types/menu';
 import type { MenuBundleDto, ProductContentDto, ProductContentEntryDto, ProductDto, ProductImageDto } from './types';
+import { BRANDING_PLACEHOLDER } from '@/lib/config';
 
-const PLACEHOLDER_IMAGE = '/images/placeholder-app.png';
+const PLACEHOLDER_IMAGE = BRANDING_PLACEHOLDER;
 
 /** Coerce wire `basePrice` (number | string | missing) into a number. */
 function parseBasePrice(value: number | string | undefined): number {

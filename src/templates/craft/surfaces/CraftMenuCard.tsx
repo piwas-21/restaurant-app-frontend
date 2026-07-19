@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { MenuCardProps } from '@/components/menu/MenuCard';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
+import { Plus } from 'lucide-react';
 import MenuCardImage from '@/components/menu/MenuCardImage';
-import MenuItemActions from '@/components/menu/MenuItemActions';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
 import craft from '../craft.module.css';
 import styles from './CraftMenuCard.module.css';
 
@@ -53,6 +54,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
         images={item.images}
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
+        enlargeLabel={t('menu_item_image_enlarge_aria', 'Enlarge {{itemName}} image', { itemName })}
         onError={() => setImageFailed(true)}
       />
 
@@ -69,22 +71,30 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
 
         {description && <p className={styles.description}>{description}</p>}
         {bundleIncludes && <p className={styles.includes}>{bundleIncludes}</p>}
-        {item.allergens && item.allergens.length > 0 && (
-          <p className={styles.allergens}>
-            {t('allergens')}: {item.allergens.join(', ')}
-          </p>
-        )}
+        {/* Shared allergen tags (emoji icon + translated label) — the craft card
+            previously printed raw, icon-less keys. `compact` renders null when empty. */}
+        <AllergenDisplay allergens={item.allergens} id={`craft-allergen-${item.id}`} variant="compact" />
 
-        <MenuItemActions
-          onAdd={open}
-          onFeedback={openDetails}
-          addAria={t('add_item_to_order', { itemName })}
-          addLabel={t('add_to_order')}
-          onDetails={openDetails}
-          detailsLabel={t('details')}
-          feedbackAria={t('details')}
-          feedbackLabel=""
-        />
+        {/* Craft action row: a terracotta letterpress "Add" (+ glyph) and a kraft
+            "Details" — both organic-cornered, instead of the shared classic pills. */}
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={`${craft.letterpressBtn} ${craft.roundedCraft} ${styles.addButton}`}
+            onClick={open}
+            aria-label={t('add_item_to_order', { itemName })}
+          >
+            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+            {t('add_to_order', 'Add to Order')}
+          </button>
+          <button
+            type="button"
+            className={`${craft.letterpressBtn} ${craft.roundedCraft} ${styles.detailsButton}`}
+            onClick={openDetails}
+          >
+            {t('details', 'Details')}
+          </button>
+        </div>
       </div>
     </article>
   );

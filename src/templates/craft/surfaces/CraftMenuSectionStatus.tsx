@@ -22,7 +22,10 @@ export default function CraftMenuSectionStatus({
 }: Readonly<MenuSectionStatusProps>) {
   return (
     <div className={styles.section}>
-      <h2 id={headingId} className={styles.heading}>
+      {/* sr-only: the masking-tape category nav already shows + highlights the
+          active category, so the visible Amatic sub-title is redundant; kept for
+          the section's accessible name (aria-labelledby target). */}
+      <h2 id={headingId} className="sr-only">
         {title}
       </h2>
 

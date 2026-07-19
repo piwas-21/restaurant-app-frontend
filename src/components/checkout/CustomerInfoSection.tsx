@@ -31,7 +31,7 @@ export default function CustomerInfoSection({ customerInfo, onEdit }: Readonly<C
           <User size={20} />
           {t('customer_information', 'Customer Information')}
         </h2>
-        <button onClick={onEdit} className={styles.editButton}>
+        <button type="button" onClick={onEdit} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>

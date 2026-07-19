@@ -40,7 +40,7 @@ export default function OrderTypeSection({
           <ShoppingBag size={20} />
           {t('order_details', 'Order Details')}
         </h2>
-        <button onClick={onEdit} className={styles.editButton}>
+        <button type="button" onClick={onEdit} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { MenuCardProps } from '@/components/menu/MenuCard';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
-import MenuItemImage from '@/components/menu/MenuItemImage';
+import MenuCardImage from '@/components/menu/MenuCardImage';
 import MenuItemActions from '@/components/menu/MenuItemActions';
 import craft from '../craft.module.css';
 import styles from './CraftMenuCard.module.css';
@@ -15,8 +15,9 @@ import styles from './CraftMenuCard.module.css';
  * entry — a letterpress + organic-corner card with a masking-tape "special"
  * label and a dotted-leader `name ..... price` header — genuinely distinct DOM
  * from the shared classic image-card. Reuses the shared image + actions so the
- * behaviour (open the customization sheet) is identical; only the composition
- * differs. Rendered only in the craft build (resolved via `surfaceOr`).
+ * behaviour is identical to classic — the actions/title open the customization
+ * sheet, the image opens the enlarge-on-click gallery (`MenuCardImage`); only the
+ * composition differs. Rendered only in the craft build (resolved via `surfaceOr`).
  */
 // `onFeedbackSuccess` is intentionally not destructured — craft's card doesn't
 // surface feedback (parity with the shared card, whose feedback button is dormant),
@@ -43,12 +44,12 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
         </span>
       )}
 
-      <MenuItemImage
+      <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
         alt={itemName || t('menu_item_image_alt')}
+        images={item.images}
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
-        onClick={open}
         onError={() => setImageFailed(true)}
       />
 

@@ -1,0 +1,65 @@
+/* Menu image lightbox (restored gallery). Sits inside BaseModal — only the
+   viewer + nav chrome live here. Tokens only, no raw color values (CLAUDE.md §5). */
+
+.galleryDialog {
+  width: min(92vw, 900px);
+}
+
+.viewer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 70vh;
+}
+
+.image {
+  object-fit: contain;
+}
+
+/* Prev/next discs, overlaid on the image edges. */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-default);
+  border-radius: 50%;
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.navButton:hover,
+.navButton:focus-visible {
+  background-color: var(--surface-secondary);
+  outline: none;
+}
+
+.prev {
+  left: 0.5rem;
+}
+
+.next {
+  right: 0.5rem;
+}
+
+.counter {
+  display: block;
+  margin-top: 0.75rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

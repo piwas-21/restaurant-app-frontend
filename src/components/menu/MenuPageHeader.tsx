@@ -1,14 +1,18 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { UtensilsCrossed } from 'lucide-react';
-import styles from './MenuPageHeader.module.css';
 
+/**
+ * The menu page's main heading, kept as a visually-hidden (sr-only) <h1> so the
+ * page retains its top-level landmark + accessible name for screen readers while
+ * the previous decorative fork-and-knife icon is no longer shown. The category
+ * nav already signals "you're on the menu" and highlights the active section, so
+ * a visible page heading here is redundant.
+ */
 export default function MenuPageHeader() {
   const { t } = useTranslation();
 
   return (
-    <h1 id="menu-page-heading" className={styles.pageTitle}>
-      <UtensilsCrossed size={48} strokeWidth={2} aria-label={t('menu_title')} />
+    <h1 id="menu-page-heading" className="sr-only">
+      {t('menu_title', 'Our Menu')}
     </h1>
   );
 }

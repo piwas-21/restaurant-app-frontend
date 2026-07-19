@@ -24,7 +24,7 @@ The craft template mirrors the Sofra marketing site's "Pastel / Handmade" craft 
 
 ### What we embrace (the craft vocabulary — already shipped, reuse it)
 
-- **Colour**: solid, flat, pigment-like — terracotta clay, warm cream paper, olive, saffron; a "late-evening kitchen" aubergine/apricot dark mode that is a *different atmosphere*, not an inversion.
+- **Colour**: solid, flat, pigment-like — terracotta clay, warm cream paper, olive, saffron; a "late-evening kitchen" aubergine/apricot dark mode that is a _different atmosphere_, not an inversion.
 - **Type**: hand-lettered display (Amatic SC), flowing handwriting for accents/headings (Caveat), a rounded friendly body face (Quicksand). Three families max (perf budget).
 - **Motifs**: flat **letterpress** shadow (`3px 3px 0`) with a hover-lift / active-press; **organic radius** (`255px 15px 225px 15px / 15px 225px 15px 255px`); **masking-tape** section labels (irregular clip-path, tilted ~-1.5°); **dotted menu-leaders** (`name ····· price`). Slight, deliberate rotations (±1–2°) so things look placed by hand.
 - **Whitespace is texture** — generous, breathing sections.
@@ -38,7 +38,7 @@ The craft template mirrors the Sofra marketing site's "Pastel / Handmade" craft 
 3. Save the generated design screenshot into `docs/stitch-screens/` (one subfolder per prompt; keep the light + dark pair).
 4. Tick the row in the **Progress Tracker** when done.
 
-> **Re-skin, not re-flow.** For data surfaces (menu, cart, checkout, reservations, auth) keep the existing information architecture and **all four UI states — loading, empty, error, success**. Stitch is generating a *look* for structure that already exists, not a new flow.
+> **Re-skin, not re-flow.** For data surfaces (menu, cart, checkout, reservations, auth) keep the existing information architecture and **all four UI states — loading, empty, error, success**. Stitch is generating a _look_ for structure that already exists, not a new flow.
 
 ---
 
@@ -313,18 +313,159 @@ Generate both login and register, light and dark.
 
 ---
 
+## Modals & overlays (the missed layer)
+
+The eight prompts above cover every _page_, but nothing that _overlays_ a page. The craft template's surface mechanism (T4) only re-skins non-modal surfaces, so **every modal, sheet, and dialog still renders through the shared, un-skinned `BaseModal` chrome** — uniform 16px corners, a soft blurred `shadow-md`, no Amatic title, no masking-tape, no letterpress. That is why the item **Details / customisation sheet** (and every other overlay) looks off in craft even though the page behind it is fully skinned.
+
+**Prompt 9 (the modal shell) is the foundation — like Prompt 1 is for pages.** Generate it first; the other modal prompts build on it. Implementation note (for whoever wires these up): make Prompt 9 a craft `BaseModal` treatment (a craft surface for the shell) so all seven `BaseModal`-based customer modals inherit it at once — the content prompts then only dress what's _inside_ each.
+
+## Prompt 9 — Modal / dialog shell: a note pinned to the table
+
+```
+Design the MODAL / DIALOG SHELL for the craft restaurant app — the shared chrome
+EVERY overlay uses (item details, table/address/contact forms, confirmations, image
+lightbox). Craft aesthetic (Prompt 1). This is the FRAME, not the contents.
+
+LAYOUT — a card/docket laid on the cream page, not a floating glass panel:
+- BACKDROP: a warm, semi-opaque INK wash over the page (never a cold black or a
+  heavy blur); a faint paper grain is fine. Zero gradients.
+- PANEL: a warm-white plate with the organic wobbly radius and a FLAT letterpress
+  offset shadow (never a soft blurred shadow-md), a 2px kraft border, and optionally
+  a hair of rotation (≤0.5°) so it reads hand-placed — like a torn card set on the
+  table. Centred on desktop; on mobile a bottom-SHEET slid up from the bottom edge
+  with a small kraft "pull" tab.
+- HEADER: the title in Amatic SC (ink), optionally on a masking-tape strip; a
+  hand-drawn close "✕" top-right (a scribbled kraft mark, not a lucide icon).
+- BODY: Quicksand text; whitespace used as texture.
+- FOOTER: actions right-aligned — primary as a terracotta letterpress pill,
+  secondary ("Cancel") as a quiet kraft outline pill.
+
+Generate light and dark versions (dark = aubergine panel, cream lettering, apricot
+primary pill, warm-ink backdrop).
+```
+
+---
+
+## Prompt 10 — Item details / customisation sheet: a recipe card
+
+```
+Design the ITEM DETAILS / CUSTOMISATION sheet for the craft restaurant app — the
+overlay that opens from a menu card's "Details" and when customising an item. Craft
+aesthetic (Prompt 1); it sits inside the modal shell (Prompt 9). Re-skin the existing
+content — keep the photo, name, price, description, allergens, the variation/size
+picker, add/remove ingredients, side items, a quantity stepper, a special-requests
+note field, and the add-to-order total CTA. Preserve every state.
+
+LAYOUT — an item "recipe card":
+- A large photo with a wobbly-radius mask at the top (or left on wide screens); the
+  dish name in Amatic SC, the price as a Caveat price tag, description in Quicksand,
+  allergens as small kraft tag chips WITH their icons.
+- VARIATIONS / SIZES as letterpress paper-tab toggles (selected = terracotta).
+- INGREDIENTS to add/remove as a checklist of small kraft letterpress chips — ticked
+  = terracotta with a hand-drawn check, a "+price" in Caveat where it adds cost;
+  a removal reads like a struck-through handwritten note.
+- SIDE ITEMS as the same chip pattern under a masking-tape "Sides" label.
+- SPECIAL REQUESTS as a craft-paper textarea (warm fill, irregular kraft underline,
+  Caveat placeholder "add a note for the kitchen…").
+- QUANTITY as a hand-drawn stepper (kraft − / number / + letterpress buttons).
+- FOOTER CTA: a wide terracotta letterpress pill "Add to order · <total>", the live
+  total in Amatic SC.
+- STATES: a required-choice-missing hint as a soft-brick Caveat note (never a red
+  box); a bundle/combo variant lists its included items as a small dotted menu-leader.
+
+Generate light and dark versions.
+```
+
+---
+
+## Prompt 11 — Order-flow form modals: table / delivery / contact
+
+```
+Design the THREE short ORDER-FLOW modals for the craft restaurant app — inside the
+modal shell (Prompt 9), craft aesthetic (Prompt 1). Re-skin the existing forms;
+preserve validation-error and submitting states. All three share the shell and the
+craft-paper input styling from checkout (Prompt 6).
+
+1. TABLE SELECTION ("Select your table"): a hand-drawn table-number picker — kraft
+   letterpress number chips laid out like a little floor plan, the chosen one
+   terracotta — plus guest name/email craft-paper inputs beneath.
+2. DELIVERY ADDRESS ("Where should we deliver?"): craft-paper inputs for street /
+   city / postcode / country / notes under a masking-tape label; guest
+   name/email/phone below.
+3. TAKEAWAY / EDIT CONTACT ("Almost there — your details" / "Edit your details"):
+   name / email / phone craft-paper inputs only, with the optional guest "create an
+   account" opt-in as a small kraft-tape checkbox note.
+
+Also include the ORDER-TYPE editor: the Dine In / Takeaway / Delivery choice as
+letterpress paper-tab toggles (the active one terracotta) — the "Edit order details"
+overlay.
+
+Each: an Amatic SC title, craft-paper fields, a terracotta letterpress "Confirm" pill
++ a quiet "Cancel" outline pill; field errors as soft-brick Caveat notes.
+
+Generate light and dark versions.
+```
+
+---
+
+## Prompt 12 — Outcome dialogs: seals, confirms, results
+
+```
+Design the OUTCOME dialogs for the craft restaurant app — inside the modal shell
+(Prompt 9), craft aesthetic (Prompt 1). Short confirm / success overlays; re-skin the
+existing ones.
+
+1. ORDER RECEIVED (post-checkout): a hand-drawn stamped "order received" wax-seal
+   motif, the order number in Amatic SC, a Caveat "we've emailed your receipt" line,
+   and a terracotta "Back to menu" pill.
+2. RESERVATION booked / cancelled: the same seal treatment — a warm "table booked"
+   confirmation and a soft "reservation cancelled" note (kraft, not harsh).
+3. GENERIC CONFIRM ("are you sure?" — cancel reservation, remove item, refund): an
+   Amatic title, a Quicksand body line, a terracotta primary + kraft-outline
+   secondary; destructive actions use the palette's soft-brick, never a harsh red.
+4. RESULT (success / error): a small hand-drawn tick or a soft-brick cross + a Caveat
+   message.
+
+Generate light and dark versions.
+```
+
+---
+
+## Prompt 13 — Image lightbox: a matted print
+
+```
+Design the IMAGE LIGHTBOX for the craft restaurant app — opens when a menu photo is
+tapped to view it larger. Photo-first, but on the modal shell's warm-ink backdrop
+(Prompt 9). Craft aesthetic (Prompt 1).
+
+LAYOUT: the enlarged photo matted like a print on a warm-white plate with a
+wobbly-radius mask and a flat letterpress shadow; the dish name on a small
+masking-tape caption. Prev / next as hand-drawn arrow marks (kraft letterpress round
+buttons), a counter ("2 / 4") in Caveat, and the hand-drawn "✕" close. Single-image
+items show no arrows.
+
+Generate light and dark versions.
+```
+
+---
+
 ## Progress Tracker
 
-| # | Surface | Status | Screenshot(s) |
-|---|---|---|---|
-| 1 | Design system (palette / type / motifs) | ✅ Generated (reference) | [`stitch_the_craft_kitchen_specimen/`](stitch-screens/stitch_the_craft_kitchen_specimen/); the system already ships in `src/templates/craft/` |
-| 2 | Home hero (full-bleed) | ✅ Implemented (#228) | [`home_hero_light_mode/`](stitch-screens/home_hero_light_mode/) · [`_dark_mode/`](stitch-screens/home_hero_dark_mode/) |
-| 3 | Main header (no redundant reservation CTA) | ✅ Implemented (#228) | [`header_light_mode_desktop/`](stitch-screens/header_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/header_dark_mode_desktop/) · [`_light_mode_mobile/`](stitch-screens/header_light_mode_mobile/) |
-| 4 | Menu page | 🔨 Tabs shipped (#229); heading + states next | [`menu_light_mode/`](stitch-screens/menu_light_mode/) · [`_dark_mode/`](stitch-screens/menu_dark_mode/) |
-| 5 | Cart / basket | ✅ Design ready (to implement) | [`cart_light_mode_desktop/`](stitch-screens/cart_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/cart_dark_mode_desktop/) |
-| 6 | Checkout | ✅ Design ready (to implement) | [`checkout_light_mode_desktop/`](stitch-screens/checkout_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/checkout_dark_mode_desktop/) |
-| 7 | Reservations | ✅ Design ready (to implement) | [`reservations_light_mode/`](stitch-screens/reservations_light_mode/) · [`_dark_mode/`](stitch-screens/reservations_dark_mode/) |
-| 8 | Auth (login / register) | ✅ Design ready (to implement) | login [`_light`](stitch-screens/login_light_mode_desktop/) · [`_dark`](stitch-screens/login_dark_mode_desktop/) · register [`_light`](stitch-screens/register_light_mode_desktop/) · [`_dark`](stitch-screens/register_dark_mode_desktop/) |
+| #   | Surface                                                    | Status                                        | Screenshot(s)                                                                                                                                                                                                                              |
+| --- | ---------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Design system (palette / type / motifs)                    | ✅ Generated (reference)                      | [`stitch_the_craft_kitchen_specimen/`](stitch-screens/stitch_the_craft_kitchen_specimen/); the system already ships in `src/templates/craft/`                                                                                              |
+| 2   | Home hero (full-bleed)                                     | ✅ Implemented (#228)                         | [`home_hero_light_mode/`](stitch-screens/home_hero_light_mode/) · [`_dark_mode/`](stitch-screens/home_hero_dark_mode/)                                                                                                                     |
+| 3   | Main header (no redundant reservation CTA)                 | ✅ Implemented (#228)                         | [`header_light_mode_desktop/`](stitch-screens/header_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/header_dark_mode_desktop/) · [`_light_mode_mobile/`](stitch-screens/header_light_mode_mobile/)                          |
+| 4   | Menu page                                                  | 🔨 Tabs shipped (#229); heading + states next | [`menu_light_mode/`](stitch-screens/menu_light_mode/) · [`_dark_mode/`](stitch-screens/menu_dark_mode/)                                                                                                                                    |
+| 5   | Cart / basket                                              | ✅ Design ready (to implement)                | [`cart_light_mode_desktop/`](stitch-screens/cart_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/cart_dark_mode_desktop/)                                                                                                    |
+| 6   | Checkout                                                   | ✅ Design ready (to implement)                | [`checkout_light_mode_desktop/`](stitch-screens/checkout_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/checkout_dark_mode_desktop/)                                                                                        |
+| 7   | Reservations                                               | ✅ Design ready (to implement)                | [`reservations_light_mode/`](stitch-screens/reservations_light_mode/) · [`_dark_mode/`](stitch-screens/reservations_dark_mode/)                                                                                                            |
+| 8   | Auth (login / register)                                    | ✅ Design ready (to implement)                | login [`_light`](stitch-screens/login_light_mode_desktop/) · [`_dark`](stitch-screens/login_dark_mode_desktop/) · register [`_light`](stitch-screens/register_light_mode_desktop/) · [`_dark`](stitch-screens/register_dark_mode_desktop/) |
+| 9   | Modal / dialog shell (BaseModal chrome)                    | ☐ To generate                                 | maps to `BaseModal` (+ `AlertDialog`) — skinning the shell re-skins the 7 `BaseModal` customer modals at once                                                                                                                              |
+| 10  | Item details / customisation sheet                         | ☐ To generate                                 | `ItemCustomizationSheet` — the user-flagged "Details / customise" overlay                                                                                                                                                                  |
+| 11  | Order-flow modals (table / address / contact / order-type) | ☐ To generate                                 | `TableSelectionModal`, `DeliveryAddressModal`, `TakeawayInfoModal`, `EditOrderTypeModal`                                                                                                                                                   |
+| 12  | Outcome dialogs (confirm / success / result)               | ☐ To generate                                 | `OrderConfirmationModal`, reservation `Cancel*` / `*Success`, `ConfirmationModal`, `ResultModal`                                                                                                                                           |
+| 13  | Image lightbox                                             | ☐ To generate                                 | `ImageGalleryModal`                                                                                                                                                                                                                        |
 
 > Saved design PNGs are **downscaled to ≤1200px** (≤1000KB, the `check-added-large-files` limit) — reference resolution, not pixel-perfect. Stitch's raw `code.html` exports are omitted (generated clutter; the screenshots are the record). Regenerate full-res from the prompt if needed.
 
@@ -351,4 +492,7 @@ Generate both login and register, light and dark.
 - Re-skin, not re-flow — the same IA + all four data states, dressed in craft
 
 > These map 1:1 onto the shipped craft primitives in `src/templates/craft/` — `craft.module.css` (`.letterpress`, `.roundedCraft`, `.tapeLabel`, `.menuLeader`), `tokens.css` (the exact palette above), and `fonts.ts` (Amatic SC / Caveat / Quicksand). Implement each generated design against those, via the per-surface slot mechanism, so nothing drifts from the design system.
+
+```
+
 ```

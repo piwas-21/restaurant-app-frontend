@@ -6,7 +6,6 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
 import { User, Edit } from 'lucide-react';
 import styles from './CustomerInfoSection.module.css';
 
@@ -18,11 +17,12 @@ interface CustomerInfo {
 
 interface CustomerInfoSectionProps {
   customerInfo: CustomerInfo;
+  /** Re-opens the order-type/contact editor in place (review page owns the modal). */
+  onEdit: () => void;
 }
 
-export default function CustomerInfoSection({ customerInfo }: CustomerInfoSectionProps) {
+export default function CustomerInfoSection({ customerInfo, onEdit }: Readonly<CustomerInfoSectionProps>) {
   const { t } = useTranslation();
-  const router = useRouter();
 
   return (
     <section className={styles.section}>
@@ -31,7 +31,7 @@ export default function CustomerInfoSection({ customerInfo }: CustomerInfoSectio
           <User size={20} />
           {t('customer_information', 'Customer Information')}
         </h2>
-        <button onClick={() => router.push('/menu')} className={styles.editButton}>
+        <button type="button" onClick={onEdit} className={styles.editButton}>
           <Edit size={16} />
           {t('edit', 'Edit')}
         </button>

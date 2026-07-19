@@ -16,8 +16,12 @@ interface CartItemInstructionsEditorProps {
 }
 
 /**
- * The special-instructions edit section for a cart item (only shown for items without ingredient
- * customizations). Extracted verbatim from app/cart/page.tsx (Sprint 4/6 god-file decomposition).
+ * The special-instructions display + edit section for a cart item — the single owner of the
+ * item's notes for EVERY item (customized or not). Previously gated to items without ingredient
+ * customizations, which hid the "Add/Edit Instructions" button on prod, where menu dishes carry
+ * recipes; the backend update only writes quantity + notes, so editing preserves customizations.
+ * The read-only echo lives here, not in CartItemCustomizations, to avoid a double "special requests"
+ * line. Extracted from app/cart/page.tsx (Sprint 4/6 god-file decomposition).
  */
 export default function CartItemInstructionsEditor({
   item,
@@ -30,10 +34,6 @@ export default function CartItemInstructionsEditor({
   onSaveInstructions,
 }: CartItemInstructionsEditorProps) {
   const { t } = useTranslation();
-
-  if (item.selectedIngredientNames?.length || item.excludedIngredientNames?.length) {
-    return null;
-  }
 
   return (
     <div className={styles.instructionsContainer}>

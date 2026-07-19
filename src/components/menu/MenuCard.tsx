@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CatalogItem } from '@/types/menu';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
-import MenuItemImage from './MenuItemImage';
+import MenuCardImage from './MenuCardImage';
 import MenuItemDetails from './MenuItemDetails';
 import MenuItemActions from './MenuItemActions';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
@@ -21,10 +21,11 @@ export interface MenuCardProps {
 /**
  * The single customer catalog card (menu-bundles redesign #175, slice 6). Renders a plain product
  * and a combo from one `CatalogItem` view-model, replacing the `MenuItem` + `MenuBundleCard` fork.
- * Both the Add and the Details affordances open the shared `ItemCustomizationSheet`: it shows
+ * The title, Add, and Details affordances all open the shared `ItemCustomizationSheet`: it shows
  * everything the old read-only details modals did (ingredients, allergens, prep time, variations
  * and, for a combo, its sections) and lets the guest act on it, so there is no separate details
- * surface to keep in sync.
+ * surface to keep in sync. Clicking the image is the one exception — it opens the enlarge-on-click
+ * gallery (`MenuCardImage`), not the sheet.
  */
 export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
@@ -51,12 +52,12 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
         </div>
       )}
 
-      <MenuItemImage
+      <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
         alt={itemName || t('menu_item_image_alt')}
+        images={item.images}
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
-        onClick={open}
         onError={() => setImageFailed(true)}
       />
       <div className={styles.contentWrapper}>

@@ -28,8 +28,12 @@ interface FollowUpState {
    * `source` is the analytics surface tag forwarded to
    * `order_type_selected` so the funnel can distinguish desktop sidebar
    * vs. mobile bottom-sheet. Defaults to 'sidebar'.
+   *
+   * `forceModal` opens the follow-up modal even when Takeaway would normally
+   * skip it (complete profile) — used by the review page's "Edit" so the guest
+   * can always change their details.
    */
-  pickType: (type: OrderType, source?: string) => void;
+  pickType: (type: OrderType, source?: string, forceModal?: boolean) => void;
   closeFollowUp: () => void;
 }
 
@@ -76,7 +80,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
   }, [hasTableContext, tableContext.tableNumber, hasChosenOrderType, setOrderType, setTable]);
 
   const pickType = useCallback(
-    async (type: OrderType, source = 'sidebar') => {
+    async (type: OrderType, source = 'sidebar', forceModal = false) => {
       setOrderType(type);
       // Funnel anchor — fires once per click, regardless of whether a
       // follow-up modal opens (the modal is a sub-step of the same intent).
@@ -94,8 +98,8 @@ export function useOrderTypeFollowUp(): FollowUpState {
         return;
       }
 
-      // Takeaway: open the info modal only when something is needed.
-      if (await needsTakeawayInfoModal(checkoutState.customerInfo)) {
+      // Takeaway: open the info modal only when something is needed (or when forced, e.g. Edit).
+      if (forceModal || (await needsTakeawayInfoModal(checkoutState.customerInfo))) {
         setFollowUp('takeaway');
       } else {
         setFollowUp(null);

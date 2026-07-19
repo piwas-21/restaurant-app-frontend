@@ -10,8 +10,9 @@ import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import OrderFlowModals from '@/components/order/OrderFlowModals';
-import OrderFlowSidebar from '@/components/order/OrderFlowSidebar';
+import DefaultOrderFlowSidebar from '@/components/order/OrderFlowSidebar';
 import MobileCartSheet from '@/components/order/MobileCartSheet';
+import { surfaceOr } from '@/templates/resolve-surface';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
@@ -21,6 +22,11 @@ import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
+
+// The active template's cart-rail override (craft = ruled-paper order pad) or the
+// shared default (classic) — resolved at build time, so classic never bundles
+// craft (T4).
+const OrderFlowSidebar = surfaceOr('OrderFlowSidebar', DefaultOrderFlowSidebar);
 
 export default function MenuPage() {
   const { t } = useTranslation();

@@ -1,0 +1,32 @@
+/* Craft desktop cart rail (S15 T4 surface) — a ruled-paper "order pad" panel.
+   Organic corners via roundedCraft; a flat letterpress shadow (static, no
+   hover-lift — the rail is sticky); a hand-lettered Caveat heading. Tokens only
+   — no raw hex (CLAUDE.md §5). */
+
+.sidebar {
+  composes: roundedCraft from '../craft.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.4rem 1.3rem;
+  /* Ruled-paper texture: faint horizontal rules on the warm plate. This is a
+     repeating RULE pattern (paper lines), not a decorative colour gradient, so
+     it keeps craft's flat, zero-colour-gradient look. */
+  background-color: var(--surface-card);
+  background-image: repeating-linear-gradient(var(--surface-card), var(--surface-card) 31px, var(--border-light) 32px);
+  border: 2px solid var(--border-default);
+  box-shadow: 3px 3px 0 var(--border-default);
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Amatic SC', cursive;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+}

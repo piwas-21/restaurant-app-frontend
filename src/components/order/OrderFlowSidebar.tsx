@@ -6,7 +6,7 @@ import type { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import CartContents from './CartContents';
 import styles from './OrderFlowSidebar.module.css';
 
-interface OrderFlowSidebarProps {
+export interface OrderFlowSidebarProps {
   /** Wired so the toggle's clicks can trigger the table/address modals. */
   followUp: ReturnType<typeof useOrderTypeFollowUp>;
 }

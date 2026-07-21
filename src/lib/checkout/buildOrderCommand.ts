@@ -62,7 +62,7 @@ export function buildOrderCommand(params: Readonly<BuildOrderCommandParams>): Cr
     customerEmail,
     customerPhone,
     type: orderType,
-    tableNumber: orderType === 'DineIn' && tableNumber ? parseInt(tableNumber, 10) : undefined,
+    tableNumber: orderType === 'DineIn' && tableNumber ? Number.parseInt(tableNumber, 10) : undefined,
     notes: specialInstructions || undefined,
     deliveryAddress: deliveryAddressDto,
     payments: [{ paymentMethod, amount: payableTotal }],

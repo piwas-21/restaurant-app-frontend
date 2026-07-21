@@ -27,9 +27,13 @@ export function useRegisterForm() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
   const firstNameInputRef = useRef<HTMLInputElement>(null);
+  const resendTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     firstNameInputRef.current?.focus();
+    return () => {
+      if (resendTimeoutRef.current) clearTimeout(resendTimeoutRef.current);
+    };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +111,7 @@ export function useRegisterForm() {
     } finally {
       setResendLoading(false);
       // Clear message after 5 seconds
-      setTimeout(() => setResendMessage(''), 5000);
+      resendTimeoutRef.current = setTimeout(() => setResendMessage(''), 5000);
     }
   };
 

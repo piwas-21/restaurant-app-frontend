@@ -49,6 +49,17 @@ describe('useLoginForm', () => {
     expect(mockPush).toHaveBeenCalledWith(route);
   });
 
+  it('falls back to home (no crash) when the success envelope has no role', async () => {
+    mockLoginUser.mockResolvedValue({ success: true, data: {} });
+    const { result } = renderHook(() => useLoginForm());
+    act(() => {
+      result.current.setEmail('a@b.co');
+      result.current.setPassword('secret1');
+    });
+    await act(async () => result.current.handleSubmit(submit));
+    expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
   it('flags needs-verification when the backend rejects an unverified email', async () => {
     mockLoginUser.mockResolvedValue({ success: false, message: 'Please verify your email', errors: [] });
     const { result } = renderHook(() => useLoginForm());

@@ -32,11 +32,15 @@ export function useLoginForm() {
   const [resendMessage, setResendMessage] = useState('');
   const [resendSucceeded, setResendSucceeded] = useState(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const resendTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
   const { login } = useAuth();
 
   useEffect(() => {
     emailInputRef.current?.focus();
+    return () => {
+      if (resendTimeoutRef.current) clearTimeout(resendTimeoutRef.current);
+    };
   }, []);
 
   const handleResendVerification = async () => {
@@ -59,7 +63,7 @@ export function useLoginForm() {
       setResendMessage(t('resend_error', 'An error occurred. Please try again.'));
     } finally {
       setResendLoading(false);
-      setTimeout(() => setResendMessage(''), 5000);
+      resendTimeoutRef.current = setTimeout(() => setResendMessage(''), 5000);
     }
   };
 
@@ -80,7 +84,9 @@ export function useLoginForm() {
       if (response.success) {
         trackEvent('login_succeeded', { loggedIn: true });
         login(response.data);
-        const userRole = response.data.role.toLowerCase();
+        // Guard the role lookup: a malformed envelope (missing role) falls back
+        // to the home route rather than crashing on `.toLowerCase()`.
+        const userRole = response.data.role?.toLowerCase() ?? '';
         router.push(ROLE_ROUTES[userRole] ?? '/');
       } else {
         const msg = `${response.message ?? ''} ${response.errors?.[0] ?? ''}`.toLowerCase();

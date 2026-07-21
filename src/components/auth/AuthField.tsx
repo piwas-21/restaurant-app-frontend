@@ -43,6 +43,13 @@ export default function AuthField({
   withErrorSlot,
   error,
 }: Readonly<AuthFieldProps>) {
+  // Register fields always carry a className (inputError when errored, else '');
+  // login fields carry none — matching the original per-page markup exactly.
+  let inputClassName: string | undefined;
+  if (withErrorSlot) {
+    inputClassName = error ? styles.inputError : '';
+  }
+
   return (
     <div className={styles.formGroup}>
       <label htmlFor={id}>{label}</label>
@@ -56,7 +63,7 @@ export default function AuthField({
         required={required}
         aria-required={ariaRequired ? 'true' : undefined}
         autoComplete={autoComplete}
-        className={withErrorSlot ? (error ? styles.inputError : '') : undefined}
+        className={inputClassName}
       />
       {withErrorSlot && error && <p className={styles.fieldError}>{error}</p>}
     </div>

@@ -1,0 +1,116 @@
+/* craft checkout review page (ADR-006 — Prompt 6): warm-cream two-column
+   canvas with an Amatic SC heading. The special-instructions card + its label
+   reuse the shared craft section shell. Craft tokens only. */
+.container {
+  min-height: 100vh;
+  padding: 2.5rem 1rem;
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  margin: 0 0 0.15rem;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 3.6rem;
+  line-height: 1.02;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.45rem;
+  color: var(--text-secondary);
+}
+
+.gridLayout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rightColumn {
+  position: sticky;
+  top: 1rem;
+}
+
+.section {
+  composes: section from './sections.module.css';
+}
+
+.sectionTitle {
+  composes: sectionTitle from './sections.module.css';
+}
+
+.infoCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.infoCard p {
+  margin: 0;
+  font-family: 'Quicksand', var(--font-family-sans);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--brand-primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+  .gridLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .title {
+    font-size: 3rem;
+  }
+}

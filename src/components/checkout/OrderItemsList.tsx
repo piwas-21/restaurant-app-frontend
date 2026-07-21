@@ -12,14 +12,17 @@ import Image from 'next/image';
 import { CartItem } from '@/components/cart/cartTypes';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { basketItemToLineSummary } from '@/components/order/lineSummary';
-import styles from './OrderItemsList.module.css';
+import defaultStyles from './OrderItemsList.module.css';
 
 interface OrderItemsListProps {
   items: CartItem[];
   formatPrice: (price: number) => string;
+  /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
+   *  callers that omit it — and classic — render byte-identically. */
+  styles?: Readonly<Record<string, string>>;
 }
 
-export default function OrderItemsList({ items, formatPrice }: OrderItemsListProps) {
+export default function OrderItemsList({ items, formatPrice, styles = defaultStyles }: OrderItemsListProps) {
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const router = useRouter();

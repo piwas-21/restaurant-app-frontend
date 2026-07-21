@@ -7,7 +7,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ShoppingBag, MapPin, Edit } from 'lucide-react';
-import styles from './OrderTypeSection.module.css';
+import defaultStyles from './OrderTypeSection.module.css';
 
 interface DeliveryAddress {
   street: string;
@@ -23,6 +23,9 @@ interface OrderTypeSectionProps {
   deliveryAddress?: DeliveryAddress;
   /** Re-opens the order-type/contact editor in place (review page owns the modal). */
   onEdit: () => void;
+  /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
+   *  callers that omit it — and classic — render byte-identically. */
+  styles?: Readonly<Record<string, string>>;
 }
 
 export default function OrderTypeSection({
@@ -30,6 +33,7 @@ export default function OrderTypeSection({
   tableNumber,
   deliveryAddress,
   onEdit,
+  styles = defaultStyles,
 }: Readonly<OrderTypeSectionProps>) {
   const { t } = useTranslation();
 

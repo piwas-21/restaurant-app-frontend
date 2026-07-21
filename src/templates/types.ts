@@ -77,4 +77,9 @@ export interface TemplateDefinition {
   /** The register-page composition (consumed via the
    *  `@active-template/RegisterPage` re-export). */
   RegisterPage: React.ComponentType;
+  /** The checkout review/confirm page (consumed via the
+   *  `@active-template/CheckoutReviewPage` re-export in
+   *  src/app/checkout/review/page.tsx). Craft ships a two-column
+   *  hand-written-bill re-skin around the shared `CheckoutReviewLayout`. */
+  CheckoutReviewPage: React.ComponentType;
 }

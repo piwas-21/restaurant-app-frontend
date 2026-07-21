@@ -420,7 +420,10 @@ jobs:
       - name: Apply EF migrations
         working-directory: backend
         run: |
-          dotnet tool install --global dotnet-ef --version 10.*
+          # backend pins dotnet-ef via .config/dotnet-tools.json (local manifest,
+          # isRoot); a --global install is shadowed by it, so restore the pinned
+          # local tool instead (a global install now errors "run dotnet tool restore").
+          dotnet tool restore
           dotnet ef database update \
             --project RestaurantSystem.Infrastructure \
             --startup-project RestaurantSystem.Api \

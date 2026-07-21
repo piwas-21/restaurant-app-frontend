@@ -4,7 +4,7 @@ name: build-demo-tenant
 # demo.sofrapiwas.com tracks develop as live craft staging (mirrors how build-image's
 # build-staging job tracks develop for RUMI :staging). Thin caller of the reusable
 # build-tenant-image.yml with the demo registry values hardcoded (deploy repo
-# registry.yml `demo` entry: template=craft, currency=EUR, name="Sofra Demo").
+# registry.yml `demo` entry: template=craft, currency=EUR, name="SofraPiwas Demo").
 #
 #   - auto:   push to develop  -> rebuild ghcr.io/…:tenant-demo (+ :tenant-demo-sha-<sha>)
 #   - manual: workflow_dispatch -> rebuild the current develop tip on demand
@@ -40,7 +40,7 @@ jobs:
       image_tag: tenant-demo
       template: craft
       currency: EUR
-      restaurant_name: Sofra Demo
-      # Sofra-branded favicon + menu-item placeholder for the demo (this is the
-      # Sofra SaaS showcase, not the RUMI tenant). Committed set, no download.
+      restaurant_name: SofraPiwas Demo
+      # SofraPiwas-branded favicon + menu-item placeholder for the demo (this is the
+      # SofraPiwas SaaS showcase, not the RUMI tenant). Committed set, no download.
       branding_dir: public/branding-sofra

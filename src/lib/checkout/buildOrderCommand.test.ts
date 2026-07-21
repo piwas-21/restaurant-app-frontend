@@ -1,5 +1,6 @@
 import { buildOrderCommand, type BuildOrderCommandParams } from './buildOrderCommand';
-import { PaymentMethod } from '@/types/order';
+import { PaymentMethod, OrderType } from '@/types/order';
+import type { DeliveryAddress } from '@/contexts/CheckoutContext';
 import type { BasketDto } from '@/types/basket';
 
 const basket = {
@@ -12,7 +13,7 @@ const basket = {
 } as unknown as BasketDto;
 
 const base: BuildOrderCommandParams = {
-  orderType: 'Takeaway' as BuildOrderCommandParams['orderType'],
+  orderType: OrderType.Takeaway,
   customerName: 'Ada',
   customerEmail: 'ada@calc.co',
   customerPhone: '+41790000000',
@@ -33,7 +34,7 @@ describe('buildOrderCommand', () => {
       customerName: 'Ada',
       customerEmail: 'ada@calc.co',
       customerPhone: '+41790000000',
-      type: 'Takeaway',
+      type: OrderType.Takeaway,
       promoCode: 'SAVE10',
       basketSubTotal: 100,
       basketTax: 8,
@@ -53,14 +54,14 @@ describe('buildOrderCommand', () => {
   });
 
   it('builds a delivery address only for a Delivery order with an address', () => {
-    const address = {
+    const address: DeliveryAddress = {
       street: 'Rue 1',
       city: 'Geneva',
       postalCode: '1201',
       country: 'CH',
       additionalInfo: 'ring twice',
-    } as BuildOrderCommandParams['deliveryAddress'];
-    const cmd = buildOrderCommand({ ...base, orderType: 'Delivery' as never, deliveryAddress: address });
+    };
+    const cmd = buildOrderCommand({ ...base, orderType: OrderType.Delivery, deliveryAddress: address });
     expect(cmd.deliveryAddress).toEqual({
       addressLine1: 'Rue 1',
       city: 'Geneva',
@@ -71,16 +72,16 @@ describe('buildOrderCommand', () => {
   });
 
   it('omits the delivery address for a non-Delivery order even if one is present', () => {
-    const address = { street: 'x', city: 'y', postalCode: 'z', country: 'CH' } as never;
-    const cmd = buildOrderCommand({ ...base, orderType: 'Takeaway' as never, deliveryAddress: address });
+    const address: DeliveryAddress = { street: 'x', city: 'y', postalCode: 'z', country: 'CH' };
+    const cmd = buildOrderCommand({ ...base, orderType: OrderType.Takeaway, deliveryAddress: address });
     expect(cmd.deliveryAddress).toBeUndefined();
   });
 
   it('parses the table number only for a DineIn order with a table', () => {
-    expect(buildOrderCommand({ ...base, orderType: 'DineIn' as never, tableNumber: '12' }).tableNumber).toBe(12);
-    expect(buildOrderCommand({ ...base, orderType: 'DineIn' as never, tableNumber: '' }).tableNumber).toBeUndefined();
+    expect(buildOrderCommand({ ...base, orderType: OrderType.DineIn, tableNumber: '12' }).tableNumber).toBe(12);
+    expect(buildOrderCommand({ ...base, orderType: OrderType.DineIn, tableNumber: '' }).tableNumber).toBeUndefined();
     expect(
-      buildOrderCommand({ ...base, orderType: 'Takeaway' as never, tableNumber: '12' }).tableNumber,
+      buildOrderCommand({ ...base, orderType: OrderType.Takeaway, tableNumber: '12' }).tableNumber,
     ).toBeUndefined();
   });
 

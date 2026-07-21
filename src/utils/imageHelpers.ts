@@ -4,7 +4,7 @@ import type { LanguageCode } from '@/components/LanguageSwitcher';
 /**
  * Fallback image for menu items with no photo — the per-tenant branding asset
  * (`/branding/placeholder.png`) so a tenant can override it like its logo / icon.
- * The demo (craft) ships a Sofra placeholder; prod keeps the RUMI default.
+ * The demo (craft) ships a SofraPiwas placeholder; prod keeps the RUMI default.
  * Re-exported from config so it stays a single source of truth.
  */
 export { BRANDING_PLACEHOLDER as FALLBACK_IMAGE } from '@/lib/config';

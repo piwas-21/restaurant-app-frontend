@@ -8,9 +8,16 @@ import { useTheme } from '@/components/ThemeContext';
 import { useAuth } from '@/components/AuthContext';
 import { googleLogin } from '@/services/authService';
 import toast from 'react-hot-toast';
-import styles from './SocialLoginButtons.module.css';
+import defaultStyles from './SocialLoginButtons.module.css';
 
-export default function SocialLoginButtons() {
+interface SocialLoginButtonsProps {
+  /** CSS module override so a template can re-skin the divider + button chrome
+   *  (supplies container / divider / buttons / googleWrapper). The classic
+   *  module is the default; craft passes its own. */
+  styles?: Readonly<Record<string, string>>;
+}
+
+export default function SocialLoginButtons({ styles = defaultStyles }: Readonly<SocialLoginButtonsProps>) {
   const { t } = useTranslation();
   const router = useRouter();
   const { login } = useAuth();

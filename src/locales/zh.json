@@ -2195,5 +2195,9 @@
   "palette_olive_grove": "Olive Grove",
   "palette_saffron": "Saffron",
   "palette_aubergine": "Aubergine",
-  "palette_rose_clay": "Rose Clay"
+  "palette_rose_clay": "Rose Clay",
+  "craft_auth_login_tape": "欢迎回来",
+  "craft_auth_login_subhead": "再次围坐一桌。",
+  "craft_auth_register_tape": "加入我们",
+  "craft_auth_register_subhead": "请入座，我们来创建您的账户。"
 }

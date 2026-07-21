@@ -71,4 +71,10 @@ export interface TemplateDefinition {
   Shell: React.ComponentType<ShellProps>;
   /** The landing-page composition. */
   HomePage: React.ComponentType;
+  /** The login-page composition (consumed via the `@active-template/LoginPage`
+   *  re-export in src/app/auth/login/page.tsx). */
+  LoginPage: React.ComponentType;
+  /** The register-page composition (consumed via the
+   *  `@active-template/RegisterPage` re-export). */
+  RegisterPage: React.ComponentType;
 }

@@ -28,6 +28,7 @@ module.exports = {
     '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
+    '^@/schemas/(.*)$': '<rootDir>/src/schemas/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',

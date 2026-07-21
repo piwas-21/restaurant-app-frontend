@@ -1,0 +1,200 @@
+/* craft auth surface (ADR-006 — Prompt 8): a warm split "welcome card" (photo
+   + craft-paper form) shared by login + register. Craft tokens only. */
+.authContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - var(--craft-header-h));
+  padding: 2.5rem 1rem;
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.card {
+  composes: roundedCraft from './craft.module.css';
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 880px;
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+  box-shadow: 5px 5px 0 var(--border-default);
+  overflow: hidden;
+}
+
+.photo {
+  background-color: var(--surface-secondary);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 460px;
+}
+
+.formSide {
+  position: relative;
+  padding: 3rem 2.5rem;
+}
+
+.tape {
+  composes: tapeLabel from './craft.module.css';
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  background: var(--brand-accent);
+}
+
+.heading {
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 3.6rem;
+  line-height: 1.02;
+  margin: 0.25rem 0 0.15rem;
+  color: var(--text-primary);
+}
+
+.subhead {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.75rem;
+}
+
+.formGroup {
+  margin-bottom: 1.35rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 0.55rem 0.15rem;
+  border: none;
+  border-bottom: 2px solid var(--border-default);
+  background-color: transparent;
+  color: var(--text-primary);
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-bottom-color: var(--brand-primary);
+}
+
+.formGroup input::placeholder {
+  font-family: 'Caveat', cursive;
+  color: var(--text-muted);
+}
+
+.inputError {
+  border-bottom-color: var(--feedback-danger) !important;
+}
+
+.submitButton {
+  composes: letterpressBtn roundedCraft from './craft.module.css';
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border: none;
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.errorMessage {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--feedback-danger);
+  margin: 0 0 1rem;
+}
+
+.fieldError {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--feedback-danger);
+  margin: 0.25rem 0 0;
+}
+
+.switchFormText {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+}
+
+.switchFormText a {
+  color: var(--link-default);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.switchFormText a:hover {
+  text-decoration: underline;
+  color: var(--link-hover);
+}
+
+.resendBlock {
+  margin-top: 1rem;
+}
+
+.resendMessage {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  margin-bottom: 0.6rem;
+}
+
+.resendMessageSuccess {
+  color: var(--text-secondary);
+}
+
+.resendMessageError {
+  color: var(--feedback-danger);
+}
+
+.resendButton {
+  composes: letterpressBtn roundedCraft from './craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.1rem;
+  background-color: var(--surface-card);
+  color: var(--brand-primary);
+  border: 2px solid var(--brand-primary);
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.resendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .card {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+  }
+  .photo {
+    display: none;
+  }
+  .formSide {
+    padding: 2.5rem 1.75rem;
+  }
+  .heading {
+    font-size: 3rem;
+  }
+}

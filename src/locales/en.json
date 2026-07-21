@@ -2195,5 +2195,9 @@
   "palette_olive_grove": "Olive Grove",
   "palette_saffron": "Saffron",
   "palette_aubergine": "Aubergine",
-  "palette_rose_clay": "Rose Clay"
+  "palette_rose_clay": "Rose Clay",
+  "craft_auth_login_tape": "Welcome back",
+  "craft_auth_login_subhead": "Gather 'round the table once more.",
+  "craft_auth_register_tape": "Join us",
+  "craft_auth_register_subhead": "Pull up a chair — let's get you set up."
 }

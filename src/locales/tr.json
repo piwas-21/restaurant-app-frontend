@@ -2195,5 +2195,9 @@
   "palette_olive_grove": "Olive Grove",
   "palette_saffron": "Saffron",
   "palette_aubergine": "Aubergine",
-  "palette_rose_clay": "Rose Clay"
+  "palette_rose_clay": "Rose Clay",
+  "craft_auth_login_tape": "Tekrar hoş geldin",
+  "craft_auth_login_subhead": "Yeniden sofraya buyurun.",
+  "craft_auth_register_tape": "Aramıza katıl",
+  "craft_auth_register_subhead": "Buyur otur, hesabını oluşturalım."
 }

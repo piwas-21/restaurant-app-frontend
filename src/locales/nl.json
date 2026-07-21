@@ -2195,5 +2195,9 @@
   "palette_olive_grove": "Olive Grove",
   "palette_saffron": "Saffron",
   "palette_aubergine": "Aubergine",
-  "palette_rose_clay": "Rose Clay"
+  "palette_rose_clay": "Rose Clay",
+  "craft_auth_login_tape": "Welkom terug",
+  "craft_auth_login_subhead": "Schuif weer aan tafel aan.",
+  "craft_auth_register_tape": "Doe mee",
+  "craft_auth_register_subhead": "Neem plaats, we maken je account aan."
 }

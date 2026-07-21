@@ -22,6 +22,16 @@ declare module '@active-template/HomePage' {
   export default HomePage;
 }
 
+declare module '@active-template/LoginPage' {
+  const LoginPage: import('react').ComponentType;
+  export default LoginPage;
+}
+
+declare module '@active-template/RegisterPage' {
+  const RegisterPage: import('react').ComponentType;
+  export default RegisterPage;
+}
+
 // Per-surface overrides (T4), kept out of the eager `template` object so a slot
 // import doesn't pull Shell/HomePage into the surface's bundle.
 declare module '@active-template/surfaces' {

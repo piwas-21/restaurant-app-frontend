@@ -5,10 +5,14 @@ import type { TemplateDefinition } from '../types';
 import { fonts } from './fonts';
 import Shell from './Shell';
 import HomePage from './HomePage';
+import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 
 export const template: TemplateDefinition = {
   name: 'craft',
   fonts,
   Shell,
   HomePage,
+  LoginPage,
+  RegisterPage,
 };

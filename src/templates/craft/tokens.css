@@ -49,6 +49,20 @@
      full-viewport page backgrounds go see-through. */
   --page-canvas: transparent;
 
+  /* Modal chrome (ADR-006 — Prompt 9): re-skins EVERY BaseModal shell at once —
+     organic (whittled) radius, flat letterpress shadow, kraft border, dashed
+     hand-torn header/footer rules, and a big hand-lettered Amatic title. Just
+     token overrides; BaseModal's DOM is untouched (classic stays byte-identical
+     via the shared defaults). Per-modal body polish (item sheet, lightbox,
+     seal) rides on top in later prompts. */
+  --modal-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --modal-border: 2px solid var(--border-default);
+  --modal-shadow: 5px 5px 0 var(--border-default);
+  --modal-rule: 2px dashed var(--border-default);
+  --modal-title-font: 'Amatic SC', cursive;
+  --modal-title-size: 2.1rem;
+  --modal-title-weight: 700;
+
   /* Layout — craft sticky-header height. Declared here (not only inside
      chrome/CraftHeader.module.css's .header subtree) so surfaces BELOW the
      header can offset by it: the full-bleed home hero fills the viewport

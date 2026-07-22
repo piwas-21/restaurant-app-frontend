@@ -4,19 +4,17 @@
    — no raw hex (CLAUDE.md §5). */
 
 .sidebar {
-  composes: roundedCraft from '../craft.module.css';
+  /* Flat warm plate (cardStatic — deliberately static, no hover-lift: the rail
+     is sticky). (An earlier ruled-paper repeating-linear-gradient was dropped:
+     its fixed 32px rules aren't baseline-aligned to the cart text, so lines cut
+     through it — and --border-light has no dark override, so in dark mode the
+     rules turned bright and sliced the text. The per-item dashed rules in
+     CraftCartContents already carry the "order pad" feel.) */
+  composes: cardStatic from '../primitives.module.css';
   display: flex;
   flex-direction: column;
   gap: 1rem;
   padding: 1.4rem 1.3rem;
-  /* Flat warm plate. (An earlier ruled-paper repeating-linear-gradient was
-     dropped: its fixed 32px rules aren't baseline-aligned to the cart text, so
-     lines cut through it — and --border-light has no dark override, so in dark
-     mode the rules turned bright and sliced the text. The per-item dashed rules
-     in CraftCartContents already carry the "order pad" feel.) */
-  background-color: var(--surface-card);
-  border: 2px solid var(--border-default);
-  box-shadow: 3px 3px 0 var(--border-default);
   position: sticky;
   top: 1rem;
   max-height: calc(100vh - 2rem);

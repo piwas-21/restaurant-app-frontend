@@ -49,13 +49,21 @@
      full-viewport page backgrounds go see-through. */
   --page-canvas: transparent;
 
+  /* Shape motifs (PR A primitives) — the single source for the organic
+     "whittled" corner radius and the torn-tape clip shape. Craft-owned CSS
+     reaches these through craft.module.css's .roundedCraft / .tapeLabel or
+     primitives.module.css; the few non-composable sites (:global rules,
+     shell tokens below) read the vars directly. */
+  --craft-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --craft-tape-clip: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
+
   /* Modal chrome (ADR-006 — Prompt 9): re-skins EVERY BaseModal shell at once —
      organic (whittled) radius, flat letterpress shadow, kraft border, dashed
      hand-torn header/footer rules, and a big hand-lettered Amatic title. Just
      token overrides; BaseModal's DOM is untouched (classic stays byte-identical
      via the shared defaults). Per-modal body polish (item sheet, lightbox,
      seal) rides on top in later prompts. */
-  --modal-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --modal-radius: var(--craft-radius);
   --modal-border: 2px solid var(--border-default);
   --modal-shadow: 5px 5px 0 var(--border-default);
   --modal-rule: 2px dashed var(--border-default);
@@ -77,7 +85,7 @@
   --modal-body-accent-font: 'Caveat', cursive; /* prices, labels, notes, counters */
   --modal-body-accent-size: 1.15rem;
   --modal-body-label-transform: none; /* Caveat reads wrong uppercased */
-  --modal-body-option-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --modal-body-option-radius: var(--craft-radius);
   --modal-body-option-border: 2px solid var(--border-default);
   --modal-body-option-shadow: 3px 3px 0 var(--border-default);
   --modal-body-rule: 2px dashed var(--border-default);

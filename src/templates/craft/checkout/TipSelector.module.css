@@ -3,9 +3,7 @@
    craft-paper underline custom-amount input. Craft tokens only; complete class
    set. */
 .tipCard {
-  composes: roundedCraft letterpress from '../craft.module.css';
-  background-color: var(--surface-card);
-  border: 2px solid var(--border-default);
+  composes: cardLift from '../primitives.module.css';
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.5rem;
 }
@@ -36,13 +34,9 @@
 }
 
 .optionalBadge {
-  display: inline-block;
+  composes: tapeLabel from '../craft.module.css';
   padding: 0.15rem 0.7rem;
-  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
-  background: var(--surface-secondary);
   color: var(--text-secondary);
-  transform: rotate(-1.5deg);
-  font-family: 'Caveat', cursive;
   font-size: 1.05rem;
 }
 
@@ -54,20 +48,16 @@
 }
 
 .tipButton {
-  composes: letterpressBtn roundedCraft from '../craft.module.css';
+  composes: optionCard from '../primitives.module.css';
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.15rem;
   padding: 0.6rem 0.4rem;
-  background-color: var(--surface-card);
-  border: 2px solid var(--border-default);
-  cursor: pointer;
 }
 
-.tipButton.selected {
-  background-color: var(--brand-primary);
-  border-color: var(--brand-primary);
+.selected {
+  composes: optionCardSelected from '../primitives.module.css';
 }
 
 .tipLabel,

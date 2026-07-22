@@ -1,0 +1,197 @@
+/* Craft interactive primitives (ADR-006 follow-on): ONE source for every
+   button / tape-chip / paper-card look (before: ~10 files re-declared the CTA
+   pill, 8 the paper card, 6 the tape chip — 2026-07-22 survey). Sites
+   `composes` these and keep only layout plus genuinely-local overrides — an
+   override IS deterministic: `composes` makes this file a dependency, so its
+   CSS is emitted first. Tokens only — no raw hex (CLAUDE.md §5). */
+
+/* ---------- buttons ---------- */
+
+/* Shared skeleton: Caveat lettering on a letterpress organic pill. The
+   transparent 2px border keeps filled variants the same height as outlined
+   ones (background paints under it — border-box clip). */
+.btnBase {
+  composes: letterpressBtn roundedCraft from './craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid transparent;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+.btnBase:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Terracotta filled CTA — the flagship craft button. */
+.btnPrimary {
+  composes: btnBase;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  font-size: 1.4rem;
+  padding: 0.75rem 1.25rem;
+}
+
+/* Compact fill (menu-card "Add"). */
+.btnPrimarySm {
+  composes: btnPrimary;
+  font-size: 1.35rem;
+  padding: 0.5rem 0.9rem;
+}
+
+/* Full-width page CTAs (submit / checkout / place order). */
+.btnPrimaryLg {
+  composes: btnPrimary;
+  font-size: 1.6rem;
+  padding: 0.8rem 1.25rem;
+}
+
+/* Brand-outlined secondary pill (resend / edit). */
+.btnOutline {
+  composes: btnBase;
+  background-color: var(--surface-card);
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  font-size: 1.25rem;
+  padding: 0.5rem 1.1rem;
+}
+
+.btnOutlineSm {
+  composes: btnOutline;
+  font-size: 1.15rem;
+  padding: 0.3rem 0.85rem;
+}
+
+/* Kraft secondary (menu-card "Details"): kraft fill, lightens on hover. */
+.btnKraft {
+  composes: btnBase;
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  font-size: 1.35rem;
+  padding: 0.5rem 0.9rem;
+  /* Cover the letterpressBtn motion plus our own bg swap so cascade order
+     between the composed class and this one is irrelevant. */
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.btnKraft:hover {
+  background-color: var(--surface-card);
+}
+
+/* On-photo outline (hero secondary CTA): cream border + lettering so it
+   stays legible directly on the scrimmed hero photo. */
+.btnOnPhoto {
+  composes: btnBase;
+  background-color: transparent;
+  color: var(--text-on-accent);
+  border-color: var(--text-on-accent);
+  font-size: 1.4rem;
+  padding: 0.75rem 1.25rem;
+}
+
+/* Quiet ghost pill ("back" under a big CTA): kraft outline, olive
+   lettering, NO letterpress lift — just a border tint on hover. */
+.btnGhost {
+  composes: roundedCraft from './craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border-default);
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.3rem;
+  padding: 0.65rem 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.btnGhost:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+}
+
+.btnGhost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- torn-tape chips ---------- */
+
+/* .tapeLabel's torn-strip geometry as an INTERACTIVE chip (nav tab /
+   order-type toggle); compose .tapeChipActive alongside for the terracotta
+   selected state. Transforms (tilt, hover lift) stay at the call site. */
+.tapeChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  clip-path: var(--craft-tape-clip);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  border: none;
+  padding: 0.45rem 1.1rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.tapeChipActive {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+/* ---------- craft-paper cards ---------- */
+
+/* Section card — hover-lifts (letterpress). Sites add their own padding. */
+.cardLift {
+  composes: roundedCraft letterpress from './craft.module.css';
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+}
+
+/* Static panel — same paper, fixed 3px shadow (sticky rails etc.). */
+.cardStatic {
+  composes: roundedCraft from './craft.module.css';
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+  box-shadow: 3px 3px 0 var(--border-default);
+}
+
+/* Centerpiece plate — the big static 5px-shadow card (auth / success). */
+.cardPlate {
+  composes: cardStatic;
+  box-shadow: 5px 5px 0 var(--border-default);
+}
+
+/* Selectable option card (tip % / payment method): paper card that
+   letterpress-lifts; compose .optionCardSelected alongside for the filled
+   terracotta selected state (flip inner text to --text-on-primary at the
+   site). */
+.optionCard {
+  composes: letterpressBtn roundedCraft from './craft.module.css';
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+  cursor: pointer;
+}
+
+.optionCardSelected {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}

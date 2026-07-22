@@ -3,9 +3,8 @@
    terracotta letterpress "Place order" pill, and a soft-brick (never harsh-red)
    handwritten error note. Craft tokens only. */
 .summaryCard {
-  composes: roundedCraft letterpress from '../craft.module.css';
+  composes: cardLift from '../primitives.module.css';
   background-color: var(--surface-secondary-light);
-  border: 2px solid var(--border-default);
   padding: 1.75rem;
   position: sticky;
   top: 1rem;
@@ -29,31 +28,17 @@
   margin-bottom: 0.5rem;
 }
 
-/* Dotted menu-leader row: label ....... value. */
+/* Dotted menu-leader row: label ....... value (the shared craft motif). */
 .summaryRow {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  composes: menuLeader from '../craft.module.css';
+  padding: 0;
   font-family: 'Quicksand', var(--font-family-sans);
   font-size: 0.95rem;
   color: var(--text-secondary);
 }
 
-.summaryRow::before {
-  content: '';
-  order: 2;
-  flex: 1;
-  min-width: 1.5rem;
-  margin-bottom: 0.28em;
-  border-bottom: 2px dotted var(--border-default);
-}
-
-.summaryRow > span:first-child {
-  order: 1;
-}
-
+/* menuLeader tints its last child olive; the bill's value column is ink. */
 .summaryRow > span:last-child {
-  order: 3;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -90,7 +75,7 @@
   margin-top: 1rem;
   padding: 0.75rem 0.9rem;
   border: 2px solid var(--feedback-danger-light);
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border-radius: var(--craft-radius);
   background-color: var(--feedback-danger-xlight);
   color: var(--feedback-danger);
   font-family: 'Caveat', cursive;
@@ -107,26 +92,9 @@
 }
 
 .placeOrderButton {
-  composes: letterpressBtn roundedCraft from '../craft.module.css';
+  composes: btnPrimaryLg from '../primitives.module.css';
   width: 100%;
   margin-top: 1.5rem;
-  padding: 0.85rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
-  border: none;
-  font-family: 'Caveat', cursive;
-  font-size: 1.7rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.placeOrderButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .spinner {
@@ -143,25 +111,7 @@
 }
 
 .backButton {
-  composes: roundedCraft from '../craft.module.css';
+  composes: btnGhost from '../primitives.module.css';
   width: 100%;
   margin-top: 0.9rem;
-  padding: 0.65rem 1.25rem;
-  background-color: transparent;
-  border: 2px solid var(--border-default);
-  color: var(--text-secondary);
-  font-family: 'Caveat', cursive;
-  font-size: 1.3rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-
-.backButton:hover:not(:disabled) {
-  border-color: var(--brand-primary);
-}
-
-.backButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }

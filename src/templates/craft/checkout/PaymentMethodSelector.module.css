@@ -19,7 +19,7 @@
   margin-bottom: 1.1rem;
   padding: 0.6rem 0.85rem;
   border: 2px dashed var(--border-default);
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border-radius: var(--craft-radius);
   background-color: var(--surface-secondary-light);
   color: var(--text-secondary);
   font-family: 'Caveat', cursive;
@@ -42,22 +42,33 @@
 }
 
 .paymentMethod {
-  composes: letterpressBtn roundedCraft from '../craft.module.css';
+  composes: optionCard from '../primitives.module.css';
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.75rem 0.9rem;
-  background-color: var(--surface-card);
-  border: 2px solid var(--border-default);
-  cursor: pointer;
 }
 
-.paymentMethod.selected {
-  border-color: var(--brand-primary);
-  background-color: var(--surface-secondary-light);
+/* Selected = the shared filled-terracotta treatment (same vocabulary as the
+   tip toggles / tape chips — was a one-off outline before the primitives
+   pass), so every inner tone flips to --text-on-primary below. */
+.selected {
+  composes: optionCardSelected from '../primitives.module.css';
 }
 
-.paymentMethod.disabled {
+.selected .paymentLabel,
+.selected .paymentDescription,
+.selected .paymentIcon,
+.selected .comingSoon,
+.selected .checkmark {
+  color: var(--text-on-primary);
+}
+
+.selected .paymentRadio {
+  accent-color: var(--text-on-primary);
+}
+
+.disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

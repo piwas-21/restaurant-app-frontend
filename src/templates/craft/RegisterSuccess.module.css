@@ -14,14 +14,11 @@
 }
 
 .successCard {
-  composes: roundedCraft from './craft.module.css';
+  composes: cardPlate from './primitives.module.css';
   width: 100%;
   max-width: 520px;
   padding: 3rem 2.5rem;
   text-align: center;
-  background-color: var(--surface-card);
-  border: 2px solid var(--border-default);
-  box-shadow: 5px 5px 0 var(--border-default);
 }
 
 .successContent {
@@ -121,39 +118,12 @@
 }
 
 .loginButton {
-  composes: letterpressBtn roundedCraft from './craft.module.css';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
+  composes: btnPrimary from './primitives.module.css';
   text-decoration: none;
-  font-family: 'Caveat', cursive;
-  font-size: 1.4rem;
-  font-weight: 700;
 }
 
 .resendButton {
-  composes: letterpressBtn roundedCraft from './craft.module.css';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.25rem;
-  background-color: var(--surface-card);
-  color: var(--brand-primary);
-  border: 2px solid var(--brand-primary);
-  font-family: 'Caveat', cursive;
-  font-size: 1.25rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.resendButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  composes: btnOutline from './primitives.module.css';
 }
 
 .helpText {

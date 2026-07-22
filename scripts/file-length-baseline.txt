@@ -10,7 +10,6 @@
 #   bash scripts/check-file-length.sh --all
 src/types/basket.ts
 src/app/kitchen-staff/page.tsx
-src/templates/classic/RegisterSuccess.module.css
 src/app/reservations/ReservationsPage.module.css
 src/app/admin/customer-discounts/customer-discounts.module.css
 src/app/admin/customer-discounts/page.tsx
@@ -23,10 +22,8 @@ src/app/admin/table-statistics/styles.module.css
 src/app/app-internal-layout.tsx
 src/app/scan/page.tsx
 src/app/checkout/confirmation/page.tsx
-src/app/checkout/review/page.tsx
 src/app/styles/RegisterStaffModal.module.css
 src/app/styles/ServerPage.module.css
-src/app/styles/Reservations.module.css
 src/app/styles/KitchenStaffPage.module.css
 src/app/styles/CashierPage.module.css
 src/app/styles/ConfirmationPage.module.css
@@ -65,9 +62,7 @@ src/components/admin/member-management/EditUserModal.module.css
 src/components/admin/member-management/EditUserModal.tsx
 src/components/admin/table-layout/TableActionsPopup.module.css
 src/components/admin/table-layout/CreateTableModal.module.css
-src/components/admin/table-layout/TableCanvas.module.css
 src/components/admin/table-layout/TablePropertiesModal.module.css
-src/components/admin/table-layout/CreateTableModal.tsx
 src/components/admin/PointRuleForm.module.css
 src/components/admin/orders/StatusUpdateModal.module.css
 src/components/admin/orders/BulkStatusUpdateModal.module.css
@@ -78,11 +73,8 @@ src/components/admin/menu-editor/MenuItemSelector.tsx
 src/components/admin/KeyboardShortcutsModal.module.css
 src/components/reservation/ReservationSuccessModal.module.css
 src/components/reservation/MyReservations.module.css
-src/components/reservation/VisualTableLayout.module.css
-src/components/reservation/ReservationWizard.module.css
 src/components/reservation/MyReservations.tsx
 src/components/reservation/DateTimeSelector.module.css
-src/components/reservation/ReservationWizard.tsx
 src/components/server/ProductCustomization.tsx
 src/components/server/CustomerInfoPanel.module.css
 src/components/server/ProductCustomization.module.css
@@ -108,6 +100,7 @@ src/components/account/AddressManagement.module.css
 src/hooks/cashier/useCashierOrdersStream.ts
 src/hooks/admin/useAdminOrdersData.ts
 src/templates/classic/HomePage.module.css
+src/templates/classic/RegisterSuccess.module.css
 src/templates/classic/HomePage.tsx
 src/services/reservationService.ts
 src/services/addressService.ts

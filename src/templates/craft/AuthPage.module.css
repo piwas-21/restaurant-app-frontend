@@ -33,11 +33,10 @@
 }
 
 .tape {
-  composes: tapeLabel from './craft.module.css';
+  composes: tapeLabelAccent from './craft.module.css';
   position: absolute;
   top: 1.25rem;
   right: 1.5rem;
-  background: var(--brand-accent);
 }
 
 .heading {

@@ -47,6 +47,15 @@
   letter-spacing: 0.02em;
 }
 
+/* Saffron tape variant — accent background needs a fixed ink: the base
+   label's --text-primary flips to cream in dark, which sits ~1.35:1 on the
+   pale saffron (--craft-tape-ink holds ≥5.8:1 in both themes — tokens.css). */
+.tapeLabelAccent {
+  composes: tapeLabel;
+  background: var(--brand-accent);
+  color: var(--craft-tape-ink);
+}
+
 /* Dotted menu leader (item ..... price / day ..... hours) — sofra's
    `.menu-leaders`, translated onto --border-default. */
 .menuLeader {

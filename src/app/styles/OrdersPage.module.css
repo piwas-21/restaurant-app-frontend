@@ -6,6 +6,14 @@
   transition: background-color 0.3s ease;
 }
 
+/* Customer order-history canvas. `.container` is shared with the staff admin
+   orders page (which must stay an opaque neutral surface), so only the customer
+   route opts into the page canvas — transparent in craft to reveal the <body>
+   wallpaper, the page surface in classic (identical to .container). */
+.customerCanvas {
+  background: var(--page-canvas);
+}
+
 .content {
   max-width: 1200px;
   margin: 0 auto;

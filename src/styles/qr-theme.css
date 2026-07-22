@@ -70,24 +70,6 @@
   --qr-z-toast: 1100;
 }
 
-/* Dark Mode Variables */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --qr-background: #111827;
-    --qr-card-bg: #1f2937;
-    --qr-text: #f9fafb;
-    --qr-text-muted: #9ca3af;
-    --qr-border: rgba(255, 255, 255, 0.1);
-    --qr-hover-bg: rgba(255, 255, 255, 0.05);
-
-    /* Adjusted shadows for dark mode */
-    --qr-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --qr-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --qr-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --qr-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
-  }
-}
-
 /* Custom Data Theme Attribute Support */
 [data-theme='dark'] {
   --qr-background: #111827;

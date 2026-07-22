@@ -690,7 +690,4 @@
   }
 }
 
-/* Dark Mode Support - Uses CSS variables, no additional styling needed */
-@media (prefers-color-scheme: dark) {
-  /* Dark mode colors are handled by CSS variables in globals.css */
-}
+/* Dark mode support: colors are handled by CSS variables in globals.css — no additional rules needed */

@@ -182,65 +182,63 @@
 }
 
 /* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .modal {
-    background: var(--color-gray-950);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-  }
+[data-theme='dark'] .modal {
+  background: var(--color-gray-950);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
 
-  .closeButton {
-    color: var(--color-gray-500-b);
-  }
+[data-theme='dark'] .closeButton {
+  color: var(--color-gray-500-b);
+}
 
-  .closeButton:hover {
-    background: var(--color-gray-900-e);
-    color: var(--text-on-accent);
-  }
+[data-theme='dark'] .closeButton:hover {
+  background: var(--color-gray-900-e);
+  color: var(--text-on-accent);
+}
 
-  .title {
-    color: var(--text-on-accent);
-  }
+[data-theme='dark'] .title {
+  color: var(--text-on-accent);
+}
 
-  .message {
-    color: var(--color-gray-300-b);
-  }
+[data-theme='dark'] .message {
+  color: var(--color-gray-300-b);
+}
 
-  .emailInfo {
-    background: var(--color-gray-900-e);
-  }
+[data-theme='dark'] .emailInfo {
+  background: var(--color-gray-900-e);
+}
 
-  .emailLabel {
-    color: var(--color-gray-500-b);
-  }
+[data-theme='dark'] .emailLabel {
+  color: var(--color-gray-500-b);
+}
 
-  .email {
-    color: var(--text-on-accent);
-  }
+[data-theme='dark'] .email {
+  color: var(--text-on-accent);
+}
 
-  .primaryButton {
-    background: var(--color-gold-500);
-    color: var(--color-black);
-  }
+[data-theme='dark'] .primaryButton {
+  background: var(--color-gold-500);
+  color: var(--color-black);
+}
 
-  .primaryButton:hover {
-    background: var(--color-gold-500-c);
-  }
+[data-theme='dark'] .primaryButton:hover {
+  background: var(--color-gold-500-c);
+}
 
-  .secondaryButton {
-    color: var(--color-gray-300-b);
-    border-color: var(--color-gray-800-b);
-  }
+[data-theme='dark'] .secondaryButton {
+  color: var(--color-gray-300-b);
+  border-color: var(--color-gray-800-b);
+}
 
-  .secondaryButton:hover {
-    border-color: var(--color-gray-700-c);
-    color: var(--text-on-accent);
-    background: var(--color-gray-900-e);
-  }
+[data-theme='dark'] .secondaryButton:hover {
+  border-color: var(--color-gray-700-c);
+  color: var(--text-on-accent);
+  background: var(--color-gray-900-e);
+}
 
-  .guestNote {
-    color: var(--color-gray-300-b);
-    background: var(--color-yellow-900-c);
-  }
+[data-theme='dark'] .guestNote {
+  color: var(--color-gray-300-b);
+  background: var(--color-yellow-900-c);
 }
 
 /* Tablet responsive */

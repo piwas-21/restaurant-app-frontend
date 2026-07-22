@@ -52,6 +52,7 @@ module.exports = {
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
+    'src/lib/tableCanvasGeometry.ts',
     'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
@@ -205,6 +206,35 @@ module.exports = {
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    // Reservations floor-plan core (B1) — the shared canvas-geometry contract
+    // (600x500, centre-anchored marker maths) at 100% → 99; the customer map's
+    // marker interaction/entrance-fallback paths at 100% → 99; the docket at
+    // 100% stmts (branches 85.71 → 84); the time-chip selector measured
+    // 79.16/83.33/54.54/82.6 → pinned at actual − ~1pt.
+    './src/lib/tableCanvasGeometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/VisualTableLayout.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/SelectedTableInfo.tsx': {
+      statements: 99,
+      branches: 84,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/DateTimeSelector.tsx': {
+      statements: 78,
+      branches: 82,
+      functions: 53,
+      lines: 81,
     },
   },
 };

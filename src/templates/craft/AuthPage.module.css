@@ -6,7 +6,7 @@
   align-items: center;
   min-height: calc(100vh - var(--craft-header-h));
   padding: 2.5rem 1rem;
-  background-color: var(--surface-primary);
+  background-color: var(--page-canvas);
   color: var(--text-primary);
 }
 

@@ -9,6 +9,13 @@
      stay until every module migrates to the semantic names (S15 T1 /
      DESIGN-SYSTEM.md §2.5); new code uses the semantic names directly. */
   --background-color: var(--surface-primary);
+  /* Full-page canvas background for page-root containers. Defaults to the page
+     surface colour so classic renders identically; a template can override it
+     (craft sets it `transparent` to reveal the kitchen wallpaper it paints on
+     <body>). Use this ONLY on the element that fills the viewport behind a
+     page — never on cards, panels, inputs, or dropdowns (those keep an opaque
+     fill). */
+  --page-canvas: var(--surface-primary);
   --secondary-color: var(--surface-secondary);
   --secondary-color-light: var(--surface-secondary-light);
   --card-background: var(--surface-card);

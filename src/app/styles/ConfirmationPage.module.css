@@ -2,7 +2,7 @@
 .container {
   min-height: calc(100vh - 80px);
   padding: 2rem 1rem;
-  background: var(--background-color);
+  background: var(--page-canvas);
 }
 
 .content {

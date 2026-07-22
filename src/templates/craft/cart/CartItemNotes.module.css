@@ -1,0 +1,114 @@
+/* craft cart item notes (Prompt 5 order-pad) — the read-only customizations
+   summary, bundle child items, and the special-instructions editor, split from
+   CartItemRow.module.css for the 200-LOC module limit; the craft CartPage
+   merges both objects into the single `item` styles module the shared bodies
+   expect. Primitives via composes; tokens only. */
+
+/* Read-only customizations — Caveat kitchen shorthand. */
+.customizationsContainer {
+  margin-top: 0.4rem;
+}
+
+.customizationsTitle,
+.childItemsTitle {
+  margin: 0 0 0.2rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.customizationDetail {
+  font-size: 0.85rem;
+}
+
+.customizationLabel {
+  margin-right: 0.3rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+}
+
+.customizationValue {
+  color: var(--text-primary);
+}
+
+/* Bundle child items. */
+.childItemsContainer {
+  margin-top: 0.4rem;
+}
+
+.childItemsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.childItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.childItemName {
+  flex: 1;
+  min-width: 0;
+}
+
+.childItemPrice {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Special-instructions display + editor — craft-paper note. */
+.instructionsContainer {
+  margin-top: 0.5rem;
+}
+
+.instructionsText {
+  margin: 0 0 0.3rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.editInstructionsButton {
+  composes: btnOutlineSm from '../primitives.module.css';
+}
+
+.instructionsEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instructionsTextarea {
+  composes: roundedCraft from '../craft.module.css';
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--border-default);
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.instructionsTextarea:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+
+.instructionsActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveButton {
+  composes: btnPrimarySm from '../primitives.module.css';
+}
+
+.cancelButton {
+  composes: btnKraft from '../primitives.module.css';
+}

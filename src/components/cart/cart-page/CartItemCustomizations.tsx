@@ -3,10 +3,11 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { CartItem } from '@/components/cart/cartTypes';
-import styles from '@/app/styles/CartPage.module.css';
 
 interface CartItemCustomizationsProps {
   item: CartItem;
+  /** Host template's CSS module (the auth "cart pattern"). */
+  styles: Readonly<Record<string, string>>;
 }
 
 /**
@@ -15,7 +16,7 @@ interface CartItemCustomizationsProps {
  * owned by CartItemInstructionsEditor (display + edit) for every item, so they are NOT shown here —
  * that avoids a duplicate "special requests" line. Extracted from app/cart/page.tsx (Sprint 4/6).
  */
-export default function CartItemCustomizations({ item }: CartItemCustomizationsProps) {
+export default function CartItemCustomizations({ item, styles }: Readonly<CartItemCustomizationsProps>) {
   const { t } = useTranslation();
 
   if (!(

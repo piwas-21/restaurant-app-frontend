@@ -82,4 +82,9 @@ export interface TemplateDefinition {
    *  src/app/checkout/review/page.tsx). Craft ships a two-column
    *  hand-written-bill re-skin around the shared `CheckoutReviewLayout`. */
   CheckoutReviewPage: React.ComponentType;
+  /** The standalone /cart page (consumed via the `@active-template/CartPage`
+   *  re-export in src/app/cart/page.tsx). Both templates orchestrate the same
+   *  `useCartPage` hook + shared cart-page bodies (each taking a `styles`
+   *  module — the auth "cart pattern"); craft ships an order-pad re-skin. */
+  CartPage: React.ComponentType;
 }

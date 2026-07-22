@@ -37,6 +37,11 @@ declare module '@active-template/CheckoutReviewPage' {
   export default CheckoutReviewPage;
 }
 
+declare module '@active-template/CartPage' {
+  const CartPage: import('react').ComponentType;
+  export default CartPage;
+}
+
 // Per-surface overrides (T4), kept out of the eager `template` object so a slot
 // import doesn't pull Shell/HomePage into the surface's bundle.
 declare module '@active-template/surfaces' {

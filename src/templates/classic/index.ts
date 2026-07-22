@@ -8,6 +8,7 @@ import HomePage from './HomePage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import CheckoutReviewPage from './CheckoutReviewPage';
+import CartPage from './CartPage';
 
 export const template: TemplateDefinition = {
   name: 'classic',
@@ -17,4 +18,5 @@ export const template: TemplateDefinition = {
   LoginPage,
   RegisterPage,
   CheckoutReviewPage,
+  CartPage,
 };

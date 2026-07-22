@@ -265,27 +265,174 @@ Generate light and dark versions.
 
 ---
 
-## Prompt 7 — Reservations: a table booking on a reservation card
+## Prompt 7 — Reservations: a hand-drawn seating chart + booking docket
+
+> **Revised 2026-07-22.** The original prompt (and the old `reservations_light/dark_mode`
+> screens) assumed a form-only page with an inline "my reservations" list. The real
+> `/reservations` page is a **two-column floor-plan booking screen** — an interactive visual
+> table map + a booking panel — and "my reservations" is its own page (`/my-reservations`).
+> **Regenerated 2026-07-22** from the prompts below (7a desktop · 7b tablet/mobile ·
+> 7c my-reservations) — screens committed under `reservations_*_{desktop,tablet,mobile}/`
+> and `my_reservations_*/`; the old form-only `reservations_light_mode/` /
+> `reservations_dark_mode/` dirs are superseded (kept as historical record).
+
+### Prompt 7a — Reservations page, desktop / wide
 
 ```
-Design the RESERVATIONS page for the craft restaurant app. Craft aesthetic
-(Prompt 1). Re-skin the existing booking form + "my reservations" list; preserve
-loading, empty, error, and confirmed states.
+Design the RESERVATIONS page for the craft restaurant app, DESKTOP width
+(~1280px). Craft aesthetic (Prompt 1). This is a two-column screen: an
+interactive restaurant floor plan on the left, a booking panel on the right.
+Re-skin the existing structure; preserve loading, empty, error, and success
+states. Do NOT invent a step wizard.
 
-LAYOUT:
-- The booking form is a single letterpress reservation card (warm-white plate,
-  wobbly radius, offset shadow), introduced by a masking-tape "Book a Table" label.
-  Party-size, date, and time are hand-drawn steppers / a craft-styled calendar &
-  time chips (letterpress pills, the selected one terracotta). Name / phone / notes
-  are craft-paper inputs (as in checkout). A wide terracotta "Reserve" pill submits.
-- Below (for signed-in guests): "Your reservations" as a small stack of docket
-  cards, each with the date/time in Amatic SC, party size, and a status as a
-  handwritten Caveat badge (confirmed / pending / cancelled — use the palette's
-  state colours, soft not harsh).
-- EMPTY: a hand-drawn empty-table illustration + a Caveat "no bookings yet" line.
+LEFT — THE FLOOR PLAN (the centrepiece):
+- A large kraft-paper panel styled like a hand-drawn seating chart pinned to the
+  wall: wobbly organic border, letterpress offset shadow, a masking-tape
+  "Choose your table" label stuck on top at a slight angle, and a small
+  hand-drawn compass/door mark for the entrance.
+- Tables are ONLY circles, squares, and rectangles (no rotated shapes), drawn
+  like rubber-stamped shapes on the paper, each with its table number in
+  Amatic SC and a tiny seat-count. Sizes vary with capacity (a 2-seat round is
+  visibly smaller than an 8-seat rectangle) and tables never touch — generous
+  hand-placed spacing.
+- Availability states, soft not harsh: AVAILABLE = olive-inked outline stamp;
+  SELECTED = solid terracotta fill with cream number (like a wax-crayon
+  fill-in), slight lift; BOOKED = faded kraft stamp with a small handwritten
+  "taken" note, clearly non-interactive. Multiple tables can be selected.
+- A hand-drawn legend row under the chart (three stamped swatches + Caveat
+  labels). NO floating popups over the map — details of a clicked table appear
+  in the booking panel, not on the chart.
+- When the party is too big for any single table: a soft saffron sticky-note
+  banner suggesting combining tables (not a red alert).
+
+RIGHT — THE BOOKING DOCKET (a letterpress reservation card):
+- Masking-tape "Book a table" label, then in order:
+  1. PARTY SIZE: stamped number pills 1–8 (selected = terracotta) + a small
+     hand-drawn "more" stepper for larger groups.
+  2. DATE: a horizontal strip of the next days as small tear-off calendar
+     leaves (selected leaf terracotta).
+  3. TIME: letterpress time chips; unavailable ones faded; loading state =
+     softly pulsing blank chips.
+  4. YOUR TABLES: a small docket listing each selected table (number, seats,
+     indoor/outdoor, any table note) as handwritten ticket lines — this
+     replaces the map popup; includes a "combine tables" checkbox chip when
+     2+ tables are selected.
+  5. GUEST DETAILS: craft-paper inputs (name, email, phone optional, special
+     requests textarea), as in checkout.
+  6. A wide terracotta letterpress "Book Now" pill.
+- ERRORS as soft-brick handwritten notes under the field, never harsh red.
 
 Generate light and dark versions.
 ```
+
+### Prompt 7b — Reservations page, tablet + mobile
+
+```
+Design the same craft RESERVATIONS page (Prompt 7a) at TABLET (~768px) and
+MOBILE (~390px) widths. Same content, single-column stacked: title → floor
+plan → booking docket.
+
+- The floor plan keeps its EXACT aspect ratio (6:5) at every width — it scales
+  down as one piece, tables shrink proportionally with it and never overlap or
+  spill outside the paper. Never crop it or squash it vertically.
+- On mobile the chart is still comfortably tappable: table stamps keep a
+  minimum finger-size touch target; the legend wraps to two lines.
+- The booking docket goes full-width below the chart; date leaves and time
+  chips become horizontally swipeable strips; the "Book Now" pill stays
+  full-width and thumb-reachable.
+- Show the selected-tables docket collapsed to a compact one-line ticket per
+  table on mobile.
+
+Generate tablet and mobile, light and dark.
+```
+
+### Prompt 7c — My Reservations: a stack of docket cards
+
+```
+Design the MY RESERVATIONS page for the craft restaurant app. Craft aesthetic
+(Prompt 1). Re-skin the existing list; preserve loading, empty, and error
+states.
+
+- Masking-tape "Your reservations" label above an Amatic SC heading.
+- Each reservation is a docket card (warm-white plate, wobbly radius, offset
+  shadow, slight alternating tilt): date + time big in Amatic SC, party size
+  and table number as Quicksand ticket lines, and the status as a handwritten
+  Caveat badge — pending (saffron), confirmed (olive), cancelled (soft kraft),
+  completed (muted), no-show (soft brick). Soft, stamped — never traffic-light
+  pills.
+- Cards expand to show restaurant notes / special requests as a handwritten
+  footnote. Pending/confirmed cards get a quiet "Cancel" outline pill.
+- EMPTY: a hand-drawn empty-table illustration + a Caveat "no bookings yet"
+  line and a terracotta "Book a table" pill.
+
+Generate light and dark versions.
+```
+
+> **Implementation notes (ride the Prompt 7 PRs — behaviour fixes + decided deviations, not just re-skin).**
+> Audited + corrected 2026-07-23 (adversarial code verify); owner decisions 2026-07-23: table details in
+> the DOCKET (no map popup), ONE uniform table icon (shape system removed end-to-end, adapt the generated
+> stamps in implementation — no regeneration), entrance position becomes backend data, field required-ness
+> becomes admin-configurable (workspace `docs/plans/RESERVATIONS-REVAMP-PLAN.md`).
+>
+> 1. **Kill the map popup.** `VisualTableLayout` sets `activeTooltipTableId` on every non-booked
+>    click (so it also fires on *deselect*) and the tooltip visually covers neighbouring tables
+>    (it is `pointer-events: none`, so it hides rather than blocks — same UX damage). Remove it;
+>    per-table details (seats, indoor/outdoor, notes) move to the booking-panel "Your Tables"
+>    docket — `SelectedTableInfo` already receives full `TableDto`s and renders only the numbers.
+> 2. **One table icon — shapes removed end-to-end.** Replace the circle/square/rectangle stamp
+>    system with a single hand-drawn table icon + table number + seat count. Delete the per-shape
+>    size matrices and the admin shape picker; stop sending `shape`/`width`/`height`; backend
+>    drops those columns (with `rotation`) in one migration.
+> 3. **Admin↔customer position parity.** The real bug is the ANCHOR MISMATCH: the admin canvas
+>    centres tables on (x,y) via `translate(-50%,-50%)`, the customer map anchors them top-left —
+>    every table renders shifted by half its size for customers. (The floor plan's 2rem padding is
+>    NOT a cause — absolute children resolve % against the padding box.) Fix: one shared
+>    canvas-geometry module (the 600×500 constant is defined in 3 frontend files + the backend
+>    seeder comment), the same centre anchor in both renderers, aspect-ratio preserved at every
+>    breakpoint (scale, don't re-flow — today ≤768/640/480px swap 6:5 for fixed 350/300/240px
+>    heights, vertically distorting positions).
+> 4. **Remove rotation entirely.** Delete `useTableRotation`, the ↻ handle in `TableCanvas`,
+>    `rotate()` transforms in both renderers, `persistRotation` in `useTableLayoutMutations`, and
+>    the `rotation` field from save payloads. Backend `Rotation` isn't validator-required and
+>    `UpdateTableCommand` assigns it unconditionally, so omitting it zeroes stored values — the
+>    desired outcome; the column is dropped with the shape columns. Bonus: the admin-canvas bug
+>    where an inline `rotate()` REPLACES the centring translate (rotated tables jump by half
+>    their size) disappears with the feature.
+> 5. **Entrance marker becomes backend data.** Today the admin editor saves the entrance position
+>    to the ADMIN's own browser localStorage and the customer map reads the CUSTOMER's — real
+>    customers always see the default {50,10}. Add entrance-position fields to RestaurantInfo
+>    (backend), write from the admin editor, read on the customer map; delete the localStorage
+>    mechanism (`useTableEntrance`).
+> 6. **Delete dead code.** `ReservationWizard.tsx` (396 LOC) + `ReservationWizard.module.css` +
+>    `src/app/styles/Reservations.module.css` have zero importers. No jest coverage rows reference
+>    them (the covered-file-deletion trap does NOT apply here), but all three are in
+>    `scripts/file-length-baseline.txt` — regen the baseline in the same PR. Sweep wizard-only
+>    i18n keys.
+> 7. **CSS consolidation.** `ReservationsPage.module.css`: 6 breakpoints, the whole 600px block
+>    redundant, `.layout`/`.bookingPanel` defined 7× each. `VisualTableLayout.module.css`: size
+>    matrix declared 5× (goes away with note 2), dead `.tableLabel`/`.entranceDoor`/`.entranceLabel`
+>    rules, selected glow blue at base but gold at ≤640/480px. Root cause of the dead label rules:
+>    the JSX renders `styles.tableNumber`, which the module never defines — the table number is
+>    completely unstyled today; fix the name, don't just delete rules. Rebuild both on a small
+>    breakpoint set (e.g. 1024/768/480) with fluid sizing between, and tokenize the raw
+>    rgba()/blue/gold literals while touching them (the no-inline-hex gate will flag them).
+> 8. **BaseModal migration** of `CancelReservationModal` / `CancelSuccessModal` /
+>    `ReservationSuccessModal` (hand-rolled overlays) so they inherit the craft shell —
+>    already noted in the Prompt 12 row; do it in this PR.
+> 9. **Time chips: show unavailable slots struck-through/disabled** (as the generated mobile
+>    design does) instead of silently filtering them out — the unfiltered list is already
+>    client-side (`getFilteredTimeSlots`). Drop the unreachable booked-table "available at HH:mm"
+>    toast path while there.
+> 10. **My-reservations fixes (with the 7c re-skin):** the status pill compares the numeric enum
+>    against label strings so it never gets a colour class (hidden by `reservation: any`) — type
+>    it and use the `StatusBadge` primitive; `formatDate` hardcodes `en-US` — use the active
+>    i18next locale; drop the "Modify" `alert()` stub (feature doesn't exist); give the empty
+>    state the designed illustration + "Book a table" CTA.
+> 11. **A11y:** floor-plan tables are `<div onClick>` — make them real buttons (role, tabIndex,
+>    keyboard activation) and label the map for screen readers (sibling of the closed #217 fixes).
+> 12. **Form fields:** guest-details required-ness (phone today: HTML-`required` but
+>    logic-optional) is resolved by the admin-configurable form-fields module — the reservation
+>    form consumes its config; until it ships, align on optional phone (drop the HTML `required`).
 
 ---
 
@@ -459,7 +606,7 @@ Generate light and dark versions.
 | 4   | Menu page                                                  | ✅ Implemented (#229 tabs · #231 heading/states)    | [`menu_light_mode/`](stitch-screens/menu_light_mode/) · [`_dark_mode/`](stitch-screens/menu_dark_mode/)                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 5   | Cart / basket                                              | ✅ Implemented (#233)                               | [`cart_light_mode_desktop/`](stitch-screens/cart_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/cart_dark_mode_desktop/)                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 6   | Checkout                                                   | ✅ Implemented (#254 shell+bill · #258 payment/tip) | [`checkout_light_mode_desktop/`](stitch-screens/checkout_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/checkout_dark_mode_desktop/)                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| 7   | Reservations                                               | ✅ Design ready (to implement)                      | [`reservations_light_mode/`](stitch-screens/reservations_light_mode/) · [`_dark_mode/`](stitch-screens/reservations_dark_mode/)                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 7   | Reservations (7a desktop · 7b tablet/mobile · 7c my-reservations) | 🎨 Designs generated 2026-07-22 — to implement per the implementation notes in the Prompt 7 section above (decided deviations 2026-07-23: uniform table icon replaces shaped stamps; docket, no popup) | 7a/7b: [`reservations_light_mode_desktop/`](stitch-screens/reservations_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/reservations_dark_mode_desktop/) · [`_light_mode_tablet/`](stitch-screens/reservations_light_mode_tablet/) · [`_dark_mode_tablet/`](stitch-screens/reservations_dark_mode_tablet/) · [`_light_mode_mobile/`](stitch-screens/reservations_light_mode_mobile/) · [`_dark_mode_mobile/`](stitch-screens/reservations_dark_mode_mobile/); 7c: [`my_reservations_light_mode_desktop/`](stitch-screens/my_reservations_light_mode_desktop/) · [`_dark_mode_desktop/`](stitch-screens/my_reservations_dark_mode_desktop/). Old form-only `reservations_light/dark_mode` superseded. |
 | 8   | Auth (login / register)                                    | ✅ Implemented (#252)                               | login [`_light`](stitch-screens/login_light_mode_desktop/) · [`_dark`](stitch-screens/login_dark_mode_desktop/) · register [`_light`](stitch-screens/register_light_mode_desktop/) · [`_dark`](stitch-screens/register_dark_mode_desktop/)                                                                                                                                                                                                                                                                                                                             |
 | 9   | Modal / dialog shell (BaseModal chrome)                    | ✅ Implemented (#259)                               | `BaseModal` chrome re-skinned via `--modal-*` tokens (radius/shadow/border/rules/Amatic title) — hits all ~11 modals at once. [`_light`](stitch-screens/modal_shell_light_mode/) · [`_dark`](stitch-screens/modal_shell_dark_mode/)                                                                                                                                                                                                                                                                                                                                    |
 | 10  | Item details / customisation sheet                         | ✅ Implemented (#261, body polish via tokens)       | `ItemCustomizationSheet` — the "Details / customise" overlay. [`_light`](stitch-screens/item_details_light_mode/) · [`_dark`](stitch-screens/item_details_dark_mode/)                                                                                                                                                                                                                                                                                                                                                                                                  |

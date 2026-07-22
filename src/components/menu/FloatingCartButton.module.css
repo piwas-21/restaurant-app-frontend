@@ -201,28 +201,25 @@
   }
 }
 
-/* Dark mode support. Pre-existing §5.7 violation (prefers-color-scheme
-   instead of html[data-theme]) kept as-is for classic byte-parity — tracked
-   separately. Craft's --fab-* vars win inside this block too (its own dark
-   values ride the semantic tokens' data-theme flips). */
-@media (prefers-color-scheme: dark) {
-  .floatingButton {
-    background: var(--fab-bg, linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%));
-    box-shadow: var(--fab-shadow, 0 8px 32px rgba(224, 102, 102, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3));
-  }
+/* Dark mode support (data-theme selector since #263). These 0-2-0 rules beat
+   the var-hooked 0-1-0 base rules, so craft's --fab-* hooks must ride here
+   too — classic keeps the exact dark literals as fallbacks. */
+[data-theme='dark'] .floatingButton {
+  background: var(--fab-bg, linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%));
+  box-shadow: var(--fab-shadow, 0 8px 32px rgba(224, 102, 102, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3));
+}
 
-  .floatingButton:hover {
-    box-shadow: var(--fab-shadow-hover, 0 12px 48px rgba(224, 102, 102, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4));
-  }
+[data-theme='dark'] .floatingButton:hover {
+  box-shadow: var(--fab-shadow-hover, 0 12px 48px rgba(224, 102, 102, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4));
+}
 
-  .floatingButton:focus {
-    box-shadow: var(
-      --fab-shadow-focus,
-      0 8px 32px rgba(224, 102, 102, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.3),
-      0 0 0 4px rgba(224, 102, 102, 0.2)
-    );
-  }
+[data-theme='dark'] .floatingButton:focus {
+  box-shadow: var(
+    --fab-shadow-focus,
+    0 8px 32px rgba(224, 102, 102, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 0 4px rgba(224, 102, 102, 0.2)
+  );
 }
 
 /* Accessibility - Reduce motion */

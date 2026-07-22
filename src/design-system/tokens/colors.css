@@ -45,6 +45,21 @@
   --border-light: #e0e0e0;
   --border-extra-light: #f0f0f0;
 
+  /* Modal chrome (BaseModal). Structural values pulled into tokens so a template
+     can re-skin EVERY modal's shell at once (ADR-006 — Prompt 9) with no
+     per-call-site change. Declared HERE (the shared layer both templates import
+     before their :root), NOT in globals.css, so a template override wins
+     regardless of import order (the --page-canvas lesson). Classic defaults are
+     the exact current literals — byte-identical. Craft overrides them for a
+     letterpress / organic-radius / Amatic-title look. */
+  --modal-radius: 16px;
+  --modal-border: none;
+  --modal-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --modal-rule: 1px solid var(--border-color);
+  --modal-title-font: inherit;
+  --modal-title-size: 1.25rem;
+  --modal-title-weight: 600;
+
   /* Feedback — success */
   --feedback-success: #4caf50;
   --feedback-success-light: #c8e6c9;

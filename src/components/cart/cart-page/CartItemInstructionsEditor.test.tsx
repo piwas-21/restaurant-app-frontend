@@ -21,6 +21,7 @@ function renderEditor(props: Partial<Props> = {}) {
     instructionsValue: '',
     setInstructionsValue: jest.fn(),
     onSaveInstructions: jest.fn(),
+    styles: {},
   };
   return render(<CartItemInstructionsEditor {...defaults} {...props} />);
 }

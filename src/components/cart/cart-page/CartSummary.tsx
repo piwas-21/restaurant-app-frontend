@@ -4,7 +4,6 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { Tag, Loader2 } from 'lucide-react';
 import { BasketDto } from '@/types/basket';
-import styles from '@/app/styles/CartPage.module.css';
 
 interface CartSummaryProps {
   basket: BasketDto | null;
@@ -19,6 +18,8 @@ interface CartSummaryProps {
   onApplyPromoCode: () => Promise<void>;
   onRemovePromoCode: () => void;
   onCheckout: () => void;
+  /** Host template's CSS module (the auth "cart pattern"). */
+  styles: Readonly<Record<string, string>>;
 }
 
 /**
@@ -38,6 +39,7 @@ export default function CartSummary({
   onApplyPromoCode,
   onRemovePromoCode,
   onCheckout,
+  styles,
 }: CartSummaryProps) {
   const { t } = useTranslation();
 

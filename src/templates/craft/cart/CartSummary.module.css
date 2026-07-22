@@ -1,0 +1,165 @@
+/* craft cart summary (Prompt 5 order-pad) — kraft totals panel: tape-label
+   promo code, underline promo input, dotted-leader price rows, Amatic
+   terracotta grand total, letterpress checkout CTA. Complete class set for
+   CartSummary. Primitives via composes; tokens only. */
+
+.cartSummary {
+  composes: cardStatic from '../primitives.module.css';
+  background-color: var(--surface-secondary-light);
+  padding: 1.5rem 1.6rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.promoCodeSection {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px dashed var(--border-default);
+}
+
+.promoCodeTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.6rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.promoCodeInput {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+/* Craft-paper underline input (the auth-page pattern). */
+.promoCodeField {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.15rem;
+  border: none;
+  border-bottom: 2px solid var(--border-default);
+  background-color: transparent;
+  color: var(--text-primary);
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+}
+
+.promoCodeField:focus {
+  outline: none;
+  border-bottom-color: var(--brand-primary);
+}
+
+.promoCodeField::placeholder {
+  font-family: 'Caveat', cursive;
+  color: var(--text-muted);
+}
+
+.applyPromoButton {
+  composes: btnOutlineSm from '../primitives.module.css';
+}
+
+.appliedPromoCode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.promoCodeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+/* The applied code as a saffron masking-tape label. */
+.promoCodeText {
+  composes: tapeLabel from '../craft.module.css';
+  background: var(--brand-accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.promoCodeDiscount {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+}
+
+.removePromoButton {
+  composes: btnKraft from '../primitives.module.css';
+  font-size: 1.05rem;
+  padding: 0.3rem 0.7rem;
+}
+
+.priceBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+/* Dotted menu-leader row: label ....... value (the shared craft motif). */
+.priceRow {
+  composes: menuLeader from '../craft.module.css';
+  padding: 0;
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.priceRow > span:last-child {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Must out-rank the generic :last-child value rule above (equal 0-2-1
+   specificity → later source order wins) or discounts lose their olive cue. */
+.priceRow > span.discountAmount {
+  color: var(--text-secondary);
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 2px solid var(--border-default);
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.totalAmount {
+  font-family: 'Amatic SC', cursive;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--brand-primary);
+}
+
+.checkoutButton {
+  composes: btnPrimaryLg from '../primitives.module.css';
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.buttonSpinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

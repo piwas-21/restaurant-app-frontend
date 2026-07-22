@@ -1223,7 +1223,6 @@
   "qr_print_success": "Printdialoog openen...",
   "qr_generation_failed": "Kon QR-code niet genereren",
   "qr_code_ready": "QR-code is klaar",
-  "rotate_table": "Tafel draaien",
   "delete_table": "Tafel verwijderen?",
   "delete_multiple_tables": "Meerdere tafels verwijderen?",
   "delete_table_confirmation": "Weet je zeker dat je tafel {{tableNumber}} wilt verwijderen?",

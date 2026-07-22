@@ -1147,7 +1147,6 @@
   "qr_print_success": "Ouverture de la fenêtre d'impression...",
   "qr_generation_failed": "Échec de la génération du code QR",
   "qr_code_ready": "Code QR est prêt",
-  "rotate_table": "Faire Pivoter la Table",
   "showing_items": "Affichage de {{start}}-{{end}} sur {{total}} éléments",
   "point_rules_desc": "Gérer les règles d'obtention de points en fonction des montants des commandes",
   "create_rule": "Créer une Règle",

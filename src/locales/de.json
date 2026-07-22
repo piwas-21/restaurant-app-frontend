@@ -1145,7 +1145,6 @@
   "qr_print_success": "Druckdialog wird geöffnet...",
   "qr_generation_failed": "QR-Code konnte nicht generiert werden",
   "qr_code_ready": "QR-Code ist bereit",
-  "rotate_table": "Tisch Drehen",
   "showing_items": "{{start}}-{{end}} von {{total}} Elementen werden angezeigt",
   "point_rules_desc": "Punktevergabe-Regeln basierend auf Bestellbeträgen verwalten",
   "create_rule": "Regel Erstellen",

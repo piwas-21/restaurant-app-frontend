@@ -1162,7 +1162,6 @@
   "qr_print_success": "正在打开打印窗口...",
   "qr_generation_failed": "QR 码生成失败",
   "qr_code_ready": "QR 码已准备好",
-  "rotate_table": "旋转桌位",
   "delete_table": "删除桌位？",
   "delete_multiple_tables": "删除多个桌位？",
   "delete_table_confirmation": "确定删除桌号 {{tableNumber}}？",

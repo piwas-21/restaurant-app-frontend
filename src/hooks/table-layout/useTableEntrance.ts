@@ -1,33 +1,15 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { DEFAULT_ENTRANCE_POSITION } from '@/lib/tableCanvasGeometry';
+import { toFullUpdateCommand } from '@/services/restaurantInfoCommand';
 import { getRestaurantInfo, updateRestaurantInfo } from '@/services/restaurantInfoService';
-import type { RestaurantInfoDto, UpdateRestaurantInfoCommand } from '@/types/restaurantInfo';
 
 export interface EntrancePosition {
   x: number;
   y: number;
-}
-
-function toUpdateCommand(info: RestaurantInfoDto, position: EntrancePosition): UpdateRestaurantInfoCommand {
-  return {
-    name: info.name,
-    addressLine1: info.addressLine1,
-    addressLine2: info.addressLine2,
-    city: info.city,
-    postalCode: info.postalCode,
-    country: info.country,
-    latitude: info.latitude,
-    longitude: info.longitude,
-    email: info.email,
-    website: info.website,
-    themePaletteKey: info.themePaletteKey,
-    entrancePositionX: position.x,
-    entrancePositionY: position.y,
-  };
 }
 
 /**
@@ -35,34 +17,48 @@ function toUpdateCommand(info: RestaurantInfoDto, position: EntrancePosition): U
  * singleton (`entrancePositionX`/`entrancePositionY`, canvas percentages) so
  * customers see the admin-placed position. Falls back to the shared default
  * until the backend exposes the fields (additive contract) or they are set.
+ * A failed save reverts the marker to the last server-confirmed position.
  */
 export function useTableEntrance(showMessage?: (type: 'success' | 'error', text: string) => void) {
   const { t } = useTranslation();
   const [entrancePosition, setEntrancePosition] = useState<EntrancePosition>({ ...DEFAULT_ENTRANCE_POSITION });
+  // Last position the server confirmed (loaded or successfully saved) — the
+  // revert target when a save fails, so the canvas never shows unsaved state.
+  const lastPersistedPosition = useRef<EntrancePosition>({ ...DEFAULT_ENTRANCE_POSITION });
 
   const loadEntrancePosition = useCallback(async () => {
     try {
       const response = await getRestaurantInfo();
       const info = response.data;
       if (info?.entrancePositionX != null && info.entrancePositionY != null) {
-        setEntrancePosition({ x: info.entrancePositionX, y: info.entrancePositionY });
+        const position = { x: info.entrancePositionX, y: info.entrancePositionY };
+        lastPersistedPosition.current = position;
+        setEntrancePosition(position);
       }
     } catch {
-      // Keep the default — the canvas still renders.
+      // Keep the default so the canvas still renders, but tell the admin —
+      // a silently stale entrance would get re-saved as truth.
+      showMessage?.('error', t('general_settings_load_failed', 'Failed to load restaurant info'));
     }
-  }, []);
+  }, [showMessage, t]);
 
   const saveEntrancePosition = useCallback(
     async (position: EntrancePosition) => {
+      const fallbackMessage = t('failed_to_save_layout', 'Failed to save layout');
       try {
         const response = await getRestaurantInfo();
         const info = response.data;
-        if (!info) throw new Error('Restaurant info unavailable');
-        const result = await updateRestaurantInfo(toUpdateCommand(info, position));
-        if (!result.success) throw new Error(result.message || 'Update failed');
+        if (!info) throw new Error(fallbackMessage);
+        const result = await updateRestaurantInfo(
+          toFullUpdateCommand(info, { entrancePositionX: position.x, entrancePositionY: position.y }),
+        );
+        if (!result.success) throw new Error(result.message || fallbackMessage);
+        lastPersistedPosition.current = position;
         invalidateRestaurantInfoCache();
-      } catch {
-        showMessage?.('error', t('failed_to_save_layout', 'Failed to save layout'));
+      } catch (err) {
+        setEntrancePosition({ ...lastPersistedPosition.current });
+        const message = err instanceof Error && err.message ? err.message : fallbackMessage;
+        showMessage?.('error', message);
       }
     },
     [showMessage, t],

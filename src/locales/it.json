@@ -1142,7 +1142,6 @@
   "qr_print_success": "Apertura finestra di stampa...",
   "qr_generation_failed": "Impossibile generare il codice QR",
   "qr_code_ready": "Codice QR è pronto",
-  "rotate_table": "Ruota Tavolo",
   "showing_items": "Visualizzazione di {{start}}-{{end}} su {{total}} elementi",
   "point_rules_desc": "Gestisci le regole di guadagno punti in base agli importi degli ordini",
   "create_rule": "Crea Regola",

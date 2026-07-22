@@ -1136,7 +1136,6 @@
   "qr_print_success": "Abriendo diálogo de impresión...",
   "qr_generation_failed": "No se pudo generar el código QR",
   "qr_code_ready": "Código QR está listo",
-  "rotate_table": "Rotar Mesa",
   "showing_items": "Mostrando {{start}}-{{end}} de {{total}} elementos",
   "point_rules_desc": "Gestionar reglas de obtención de puntos según montos de pedidos",
   "create_rule": "Crear Regla",

@@ -1093,7 +1093,6 @@
   "qr_print_success": "Открытие диалога печати...",
   "qr_generation_failed": "Не удалось сгенерировать QR-код",
   "qr_code_ready": "QR-код готов",
-  "rotate_table": "Повернуть столик",
   "delete_table": "Удалить столик?",
   "delete_multiple_tables": "Удалить несколько столиков?",
   "delete_table_confirmation": "Вы уверены, что хотите удалить столик {{tableNumber}}?",

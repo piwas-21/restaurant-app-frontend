@@ -35,11 +35,15 @@ export default function TableLayoutEditorPage() {
 
   const layout = useTableLayout();
 
+  // Depend on the two stable callbacks, NOT the composed `layout` object — it
+  // is a fresh object every render, so [layout] re-fires the effect (and its
+  // network fetches) on every commit.
+  const { loadTables, loadEntrancePosition } = layout;
   useEffect(() => {
     // Both have their own try/catch; fire-and-forget.
-    void layout.loadTables();
-    void layout.loadEntrancePosition();
-  }, [layout]);
+    void loadTables();
+    void loadEntrancePosition();
+  }, [loadTables, loadEntrancePosition]);
 
   const mutations = useTableLayoutMutations({
     tables: layout.tables,

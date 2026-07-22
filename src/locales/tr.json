@@ -1147,7 +1147,6 @@
   "qr_print_success": "Yazdırma penceresi açılıyor...",
   "qr_generation_failed": "QR kodu oluşturulamadı",
   "qr_code_ready": "QR Kodu hazır",
-  "rotate_table": "Masayı Döndür",
   "showing_items": "{{total}} öğeden {{start}}-{{end}} gösteriliyor",
   "point_rules_desc": "Sipariş tutarlarına göre puan kazanma kurallarını yönetin",
   "create_rule": "Kural Oluştur",

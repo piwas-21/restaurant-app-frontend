@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useId, useState, useEffect } from 'react';
+import type { TimeSlotOption } from '@/utils/reservationForm';
 import styles from './DateTimeSelector.module.css';
+
+const FALLBACK_TIMES = ['11:00', '12:00', '13:00', '14:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
 
 interface DateTimeSelectorProps {
   selectedDate: string;
@@ -8,7 +11,8 @@ interface DateTimeSelectorProps {
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   loading?: boolean;
-  availableTimeSlots?: string[];
+  /** Every slot for the day; unavailable ones render disabled + struck-through. */
+  timeSlotOptions?: TimeSlotOption[];
 }
 
 export default function DateTimeSelector({
@@ -17,8 +21,8 @@ export default function DateTimeSelector({
   onDateChange,
   onTimeChange,
   loading = false,
-  availableTimeSlots,
-}: DateTimeSelectorProps) {
+  timeSlotOptions,
+}: Readonly<DateTimeSelectorProps>) {
   const { t, i18n } = useTranslation();
   const dateId = useId();
   const timeId = useId();
@@ -36,17 +40,7 @@ export default function DateTimeSelector({
   });
 
   // Use provided time slots or fallback (though fallback shouldn't be needed with proper logic)
-  const timeSlots = availableTimeSlots || [
-    '11:00',
-    '12:00',
-    '13:00',
-    '14:00',
-    '17:00',
-    '18:00',
-    '19:00',
-    '20:00',
-    '21:00',
-  ];
+  const timeSlots: TimeSlotOption[] = timeSlotOptions ?? FALLBACK_TIMES.map((time) => ({ time, available: true }));
 
   return (
     <>
@@ -92,13 +86,13 @@ export default function DateTimeSelector({
       <div className={styles.formSection}>
         <label className={styles.label}>{t('time', 'Time')}</label>
         <div className={styles.timeSelector}>
-          {timeSlots.map((time) => (
+          {timeSlots.map(({ time, available }) => (
             <button
               key={time}
               type="button"
-              className={`${styles.timeButton} ${selectedTime === time ? styles.selected : ''}`}
+              className={`${styles.timeButton} ${selectedTime === time ? styles.selected : ''} ${available ? '' : styles.unavailable}`}
               onClick={() => onTimeChange(time)}
-              disabled={loading}
+              disabled={loading || !available}
             >
               {time}
             </button>
@@ -113,11 +107,11 @@ export default function DateTimeSelector({
             value={selectedTime}
             onChange={(e) => onTimeChange(e.target.value)}
             className={styles.customInput}
-            disabled={loading || !availableTimeSlots || availableTimeSlots.length === 0}
+            disabled={loading || !timeSlotOptions || timeSlotOptions.length === 0}
           >
             <option value="">{t('select_time', 'Select a time...')}</option>
-            {timeSlots.map((time) => (
-              <option key={time} value={time}>
+            {timeSlots.map(({ time, available }) => (
+              <option key={time} value={time} disabled={!available}>
                 {time}
               </option>
             ))}

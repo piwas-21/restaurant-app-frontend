@@ -39,10 +39,6 @@ function makeTable(overrides: Partial<TableDto> = {}): TableDto {
     isOutdoor: false,
     positionX: 100,
     positionY: 100,
-    width: 60,
-    height: 60,
-    shape: 'circle',
-    rotation: 0,
     ...overrides,
   };
 }
@@ -100,7 +96,7 @@ describe('useTableSelection', () => {
         await result.current.bulkActivateTables();
       });
 
-      expect(svc.updateTable).toHaveBeenCalledWith('t1', expect.objectContaining({ isActive: true, shape: 'circle' }));
+      expect(svc.updateTable).toHaveBeenCalledWith('t1', expect.objectContaining({ isActive: true }));
       expect(opts.loadTables).toHaveBeenCalledTimes(1);
       expect(opts.showMessage).toHaveBeenCalledWith('success', 'Activated 1 table(s)');
       expect(result.current.selectedTableIds.size).toBe(0);
@@ -170,7 +166,7 @@ describe('useTableSelection', () => {
         await result.current.bulkDeactivateTables();
       });
 
-      expect(svc.updateTable).toHaveBeenCalledWith('t1', expect.objectContaining({ isActive: false, shape: 'circle' }));
+      expect(svc.updateTable).toHaveBeenCalledWith('t1', expect.objectContaining({ isActive: false }));
       expect(opts.loadTables).toHaveBeenCalledTimes(1);
       expect(opts.showMessage).toHaveBeenCalledWith('success', 'Deactivated 1 table(s)');
       expect(result.current.selectedTableIds.size).toBe(0);

@@ -8,11 +8,16 @@ interface SelectedTableInfoProps {
   onToggleCombine: () => void;
 }
 
+/**
+ * The booking-panel "Your Tables" docket: one line per selected table with its
+ * number, seat count, indoor/outdoor location and any table note. This is the
+ * single place table details appear — the floor plan has no popup.
+ */
 export default function SelectedTableInfo({
   selectedTables,
   requestCombineTables,
   onToggleCombine,
-}: SelectedTableInfoProps) {
+}: Readonly<SelectedTableInfoProps>) {
   const { t } = useTranslation();
 
   if (selectedTables.length === 0) {
@@ -21,12 +26,23 @@ export default function SelectedTableInfo({
 
   return (
     <>
-      {/* Selected Table Display */}
+      {/* Selected tables docket */}
       <div className={styles.selectedTableInfo}>
         <div className={styles.tableLabel}>
           {selectedTables.length === 1 ? t('table', 'Table') : t('tables', 'Tables')}:
         </div>
-        <div className={styles.tableValue}>{selectedTables.map((t) => t.tableNumber).join(', ')}</div>
+        <ul className={styles.tableList}>
+          {selectedTables.map((table) => (
+            <li key={table.id} className={styles.tableLine}>
+              <span className={styles.tableLineNumber}>{table.tableNumber}</span>
+              <span className={styles.tableLineMeta}>
+                {table.maxGuests} {t('seats', 'seats')} ·{' '}
+                {table.isOutdoor ? t('outdoor', 'Outdoor') : t('indoor', 'Indoor')}
+              </span>
+              {table.notes && <span className={styles.tableLineNotes}>{table.notes}</span>}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Combine Tables Chip */}

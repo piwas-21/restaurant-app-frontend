@@ -17,7 +17,7 @@ export default function ReservationsPage() {
     selectedTableIds,
     bookedTableIds,
     selectedTables,
-    filteredTimeSlots,
+    timeSlotOptions,
     capacityWarning,
     handleTableSelect,
     selectedDate,
@@ -85,7 +85,7 @@ export default function ReservationsPage() {
                 onDateChange={setSelectedDate}
                 onTimeChange={setSelectedTime}
                 loading={loading}
-                availableTimeSlots={filteredTimeSlots}
+                timeSlotOptions={timeSlotOptions}
               />
 
               <SelectedTableInfo

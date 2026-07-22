@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTableHelpers } from '@/hooks/useTableHelpers';
 import { X } from 'lucide-react';
 import type { TableDto } from '@/types/reservation';
 import styles from './TablePropertiesModal.module.css';
@@ -21,7 +20,6 @@ export default function TablePropertiesModal({
   onSave,
 }: TablePropertiesModalProps) {
   const { t } = useTranslation();
-  const { allShapes, getShapeLabel } = useTableHelpers();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +34,6 @@ export default function TablePropertiesModal({
       const updates: Partial<TableDto> = {
         tableNumber: table.tableNumber,
         maxGuests: table.maxGuests,
-        shape: table.shape,
         isActive: table.isActive,
         isOutdoor: table.isOutdoor,
         notes: table.notes,
@@ -91,22 +88,6 @@ export default function TablePropertiesModal({
             max="20"
             disabled={saving}
           />
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>{t('shape', 'Shape')}</label>
-          <select
-            value={table.shape || 'circle'}
-            onChange={(e) => onUpdateTable({ shape: e.target.value })}
-            className={styles.select}
-            disabled={saving}
-          >
-            {allShapes.map((shape) => (
-              <option key={shape} value={shape}>
-                {getShapeLabel(shape)}
-              </option>
-            ))}
-          </select>
         </div>
 
         <div className={styles.formGroup}>

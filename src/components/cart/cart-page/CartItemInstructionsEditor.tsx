@@ -34,7 +34,7 @@ export default function CartItemInstructionsEditor({
   setInstructionsValue,
   onSaveInstructions,
   styles,
-}: CartItemInstructionsEditorProps) {
+}: Readonly<CartItemInstructionsEditorProps>) {
   const { t } = useTranslation();
 
   return (

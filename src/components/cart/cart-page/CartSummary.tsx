@@ -40,7 +40,7 @@ export default function CartSummary({
   onRemovePromoCode,
   onCheckout,
   styles,
-}: CartSummaryProps) {
+}: Readonly<CartSummaryProps>) {
   const { t } = useTranslation();
 
   return (

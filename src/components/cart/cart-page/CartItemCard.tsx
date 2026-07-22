@@ -42,7 +42,7 @@ export default function CartItemCard({
   onRemoveItem,
   onSaveInstructions,
   styles,
-}: CartItemCardProps) {
+}: Readonly<CartItemCardProps>) {
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const itemId = item.basketItemId || item.id || item.productId;

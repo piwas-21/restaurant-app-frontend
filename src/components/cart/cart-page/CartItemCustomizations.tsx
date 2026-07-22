@@ -16,7 +16,7 @@ interface CartItemCustomizationsProps {
  * owned by CartItemInstructionsEditor (display + edit) for every item, so they are NOT shown here —
  * that avoids a duplicate "special requests" line. Extracted from app/cart/page.tsx (Sprint 4/6).
  */
-export default function CartItemCustomizations({ item, styles }: CartItemCustomizationsProps) {
+export default function CartItemCustomizations({ item, styles }: Readonly<CartItemCustomizationsProps>) {
   const { t } = useTranslation();
 
   if (!(

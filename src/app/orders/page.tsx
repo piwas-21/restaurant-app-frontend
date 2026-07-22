@@ -81,7 +81,7 @@ export default function OrdersPage() {
 
   if (authLoading || isLoading) {
     return (
-      <main className={styles.container}>
+      <main className={`${styles.container} ${styles.customerCanvas}`}>
         <div className={styles.loadingState}>
           <Loader2 size={64} className={styles.spinner} />
           <p>
@@ -93,7 +93,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <main className={styles.container}>
+    <main className={`${styles.container} ${styles.customerCanvas}`}>
       <div className={styles.content}>
         <div className={styles.header}>
           <div className={styles.titleSection}>

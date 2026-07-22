@@ -42,6 +42,13 @@
 @import '../../design-system/tokens/index.css';
 
 :root {
+  /* Page canvas — craft paints a hand-drawn kitchen wallpaper on <body>
+     (below), so page-root containers must be transparent to reveal it. The
+     shared default is --surface-primary (opaque cream); craft flips it. Cards,
+     panels, inputs and dropdowns keep their own opaque tokens, so only the
+     full-viewport page backgrounds go see-through. */
+  --page-canvas: transparent;
+
   /* Layout — craft sticky-header height. Declared here (not only inside
      chrome/CraftHeader.module.css's .header subtree) so surfaces BELOW the
      header can offset by it: the full-bleed home hero fills the viewport
@@ -142,4 +149,20 @@ html[data-theme='dark'] {
    globals.css's own `html, body` rule (0-0-1) reads the same var anyway. */
 body[class] {
   font-family: var(--font-family-sans);
+
+  /* Hand-drawn kitchen wallpaper behind every craft customer page. It tiles
+     over the warm-cream base (--surface-primary stays the fallback fill under
+     the image). Page-root containers set `background: var(--page-canvas)`
+     (transparent in craft) so this shows through, with cards floating on top.
+     Dark theme swaps to the aubergine/apricot version below. The <body> font
+     classes give this rule 0-1-1 specificity, beating globals.css's plain
+     `body` (0-0-1) without !important. */
+  background-image: url('/craft/kitchen-bg-light.jpg');
+  background-repeat: repeat;
+  background-size: 460px auto;
+  background-position: top center;
+}
+
+html[data-theme='dark'] body[class] {
+  background-image: url('/craft/kitchen-bg-dark.jpg');
 }

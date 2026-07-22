@@ -22,7 +22,7 @@ interface OrderItemsListProps {
   styles?: Readonly<Record<string, string>>;
 }
 
-export default function OrderItemsList({ items, formatPrice, styles = defaultStyles }: OrderItemsListProps) {
+export default function OrderItemsList({ items, formatPrice, styles = defaultStyles }: Readonly<OrderItemsListProps>) {
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const router = useRouter();

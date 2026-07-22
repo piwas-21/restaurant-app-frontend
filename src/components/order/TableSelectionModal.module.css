@@ -9,8 +9,9 @@
   color: var(--modal-body-confirm-fg, var(--text-on-accent));
   border: none;
   padding: 0.65rem 1.4rem;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 0.95rem);
+  font-weight: var(--modal-body-btn-weight, 500);
   border-radius: var(--modal-body-btn-radius, 8px);
   box-shadow: var(--modal-body-btn-shadow, none);
   cursor: pointer;
@@ -35,8 +36,9 @@
   color: var(--text-color);
   border: var(--modal-body-option-border, 1px solid var(--border-color));
   padding: 0.65rem 1.4rem;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 0.95rem);
+  font-weight: var(--modal-body-btn-weight, 500);
   border-radius: var(--modal-body-btn-radius, 8px);
   cursor: pointer;
   transition: background-color 0.15s ease;

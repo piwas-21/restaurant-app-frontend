@@ -119,8 +119,9 @@
   border-radius: var(--modal-body-btn-radius, 8px);
   box-shadow: var(--modal-body-btn-shadow, none);
   padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;
@@ -132,7 +133,7 @@
 
 .primaryButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(192, 0, 0, 0.2);
+  box-shadow: var(--modal-body-btn-shadow-hover, 0 8px 20px rgba(192, 0, 0, 0.2));
 }
 
 .secondaryButton {
@@ -141,8 +142,9 @@
   border: var(--modal-body-option-border, 1px solid var(--border-color));
   border-radius: var(--modal-body-btn-radius, 8px);
   padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;

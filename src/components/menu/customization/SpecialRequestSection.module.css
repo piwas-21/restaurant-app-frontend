@@ -3,8 +3,10 @@
   margin-bottom: 2rem;
 }
 
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .sectionTitle {
-  font-size: 1.125rem;
+  font-family: var(--modal-body-title-font, inherit);
+  font-size: var(--modal-body-title-size, 1.125rem);
   font-weight: 700;
   color: var(--text-color);
   margin: 0 0 0.5rem 0;
@@ -21,8 +23,8 @@
   width: 100%;
   padding: 0.875rem 1rem;
   background-color: var(--secondary-color-light);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: var(--modal-body-option-border, 1px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 8px);
   font-family: inherit;
   font-size: 0.9375rem;
   color: var(--text-color);
@@ -34,6 +36,8 @@
 }
 
 .textarea::placeholder {
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, inherit);
   color: var(--text-secondary);
   opacity: 0.7;
 }
@@ -71,7 +75,7 @@
   }
 
   .sectionTitle {
-    font-size: 1rem;
+    font-size: var(--modal-body-title-size, 1rem);
   }
 
   .textarea {

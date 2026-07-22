@@ -4,8 +4,10 @@
   gap: 0.25rem;
 }
 
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .label {
-  font-size: 0.875rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.875rem);
   color: var(--text-secondary-color);
 }
 
@@ -21,7 +23,9 @@
   border: 0;
 }
 
+/* Field errors — craft renders these as soft-brick Caveat notes (Prompt 11). */
 .error {
-  color: var(--error-color);
-  font-size: 0.8125rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  color: var(--modal-body-error-color, var(--error-color));
+  font-size: var(--modal-body-accent-size, 0.8125rem);
 }

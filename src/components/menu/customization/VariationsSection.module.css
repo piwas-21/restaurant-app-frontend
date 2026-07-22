@@ -2,8 +2,10 @@
   margin-bottom: 1.5rem;
 }
 
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .sectionTitle {
-  font-size: 1.125rem;
+  font-family: var(--modal-body-title-font, inherit);
+  font-size: var(--modal-body-title-size, 1.125rem);
   font-weight: 600;
   color: var(--text-color);
   margin-bottom: 1rem;
@@ -20,8 +22,9 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: 0.5rem;
+  border: var(--modal-body-option-border, 2px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 0.5rem);
+  box-shadow: var(--modal-body-option-shadow, none);
   cursor: pointer;
   transition: all 0.2s ease;
   background-color: var(--card-background);
@@ -76,9 +79,10 @@
 }
 
 .variationPrice {
+  font-family: var(--modal-body-accent-font, inherit);
   font-weight: 600;
   color: var(--primary-color);
-  font-size: 1rem;
+  font-size: var(--modal-body-accent-size, 1rem);
   white-space: nowrap;
   display: flex;
   flex-direction: column;
@@ -110,6 +114,6 @@
   }
 
   .sectionTitle {
-    font-size: 1rem;
+    font-size: var(--modal-body-title-size, 1rem);
   }
 }

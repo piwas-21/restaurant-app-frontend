@@ -106,6 +106,9 @@
 }
 
 /* Table Card */
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
+   Craft lays the table picker out as kraft letterpress number chips, the
+   chosen one terracotta (Prompt 11). */
 .tableCard {
   position: relative;
   display: flex;
@@ -114,8 +117,9 @@
   gap: 0.75rem;
   padding: 1.5rem 1rem;
   background-color: var(--card-background);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
+  border: var(--modal-body-option-border, 2px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 12px);
+  box-shadow: var(--modal-body-option-shadow, none);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
@@ -167,7 +171,8 @@
 }
 
 .tableNumber {
-  font-size: 1.25rem;
+  font-family: var(--modal-body-title-font, inherit);
+  font-size: var(--modal-body-title-size, 1.25rem);
   font-weight: 700;
   color: var(--text-color);
 }
@@ -511,7 +516,7 @@
   }
 
   .tableNumber {
-    font-size: 1.125rem;
+    font-size: var(--modal-body-title-size, 1.125rem);
   }
 
   .modal {
@@ -544,7 +549,7 @@
   }
 
   .tableNumber {
-    font-size: 1rem;
+    font-size: var(--modal-body-title-size, 1rem);
   }
 
   .tableDetails {

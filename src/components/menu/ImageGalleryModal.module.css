@@ -12,11 +12,19 @@
   justify-content: center;
 }
 
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
+   Craft mats the photo like a print — wobbly-radius mask, kraft border, flat
+   letterpress offset, warm plate showing through the letterbox (Prompt 13). */
 .imageWrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   max-height: 70vh;
+  overflow: hidden;
+  border: var(--modal-body-option-border, none);
+  border-radius: var(--modal-body-option-radius, 0);
+  box-shadow: var(--modal-body-option-shadow, none);
+  background: var(--modal-body-mat-bg, transparent);
 }
 
 .image {
@@ -34,10 +42,11 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border-default);
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
   border-radius: 50%;
   background-color: var(--surface-card);
   color: var(--text-primary);
+  box-shadow: var(--modal-body-btn-shadow, none);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
@@ -56,10 +65,12 @@
   right: 0.5rem;
 }
 
+/* "2 / 4" — a Caveat hand-count in craft. */
 .counter {
   display: block;
   margin-top: 0.75rem;
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.9rem);
 }

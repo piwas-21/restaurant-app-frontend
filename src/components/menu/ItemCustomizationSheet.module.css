@@ -22,7 +22,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid var(--border-default, var(--border-color));
+  /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
+  border: var(--modal-body-option-border, 1px solid var(--border-default, var(--border-color)));
   border-radius: 999px;
   padding: 0.25rem 0.5rem;
 }
@@ -59,8 +60,10 @@
   border-radius: 999px;
   background: var(--brand-primary);
   color: var(--brand-on-primary, var(--surface-primary));
+  font-family: var(--modal-body-title-font, inherit);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: var(--modal-body-cta-size, 1rem);
+  box-shadow: var(--modal-body-btn-shadow, none);
   cursor: pointer;
 }
 

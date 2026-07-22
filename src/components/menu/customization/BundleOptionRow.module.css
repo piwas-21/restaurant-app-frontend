@@ -1,8 +1,9 @@
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .option {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border-default, var(--border-color));
-  border-radius: 0.6rem;
+  border: var(--modal-body-option-border, 1px solid var(--border-default, var(--border-color)));
+  border-radius: var(--modal-body-option-radius, 0.6rem);
   overflow: hidden;
 }
 
@@ -51,8 +52,9 @@
 
 .price {
   flex-shrink: 0;
+  font-family: var(--modal-body-accent-font, inherit);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--modal-body-accent-size, 0.9rem);
   color: var(--brand-primary);
 }
 

@@ -63,6 +63,43 @@
   --modal-title-size: 2.1rem;
   --modal-title-weight: 700;
 
+  /* Modal BODY polish (ADR-006 — Prompts 10–13), riding on the shell above:
+     recipe-card chips (item sheet), craft-paper inputs (order-flow forms),
+     wax-seal order-received, matted lightbox. Consumed by the SHARED modal-body
+     modules via `var(--modal-body-*, <classic literal>)` — unlike the shell's
+     --modal-* set these have NO shared-layer declaration, because the classic
+     defaults differ per call site (radius 0.5rem/6/8/9/12px, borders 1px/2px…),
+     so each site keeps its own exact literal as the fallback. Undefined outside
+     craft ⇒ classic stays byte-identical; defined here ⇒ craft wins everywhere
+     (no import-order dependence — an undefined var always takes the fallback). */
+  --modal-body-title-font: 'Amatic SC', cursive; /* section titles, table numbers, CTA */
+  --modal-body-title-size: 1.6rem;
+  --modal-body-accent-font: 'Caveat', cursive; /* prices, labels, notes, counters */
+  --modal-body-accent-size: 1.15rem;
+  --modal-body-label-transform: none; /* Caveat reads wrong uppercased */
+  --modal-body-option-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --modal-body-option-border: 2px solid var(--border-default);
+  --modal-body-option-shadow: 3px 3px 0 var(--border-default);
+  --modal-body-rule: 2px dashed var(--border-default);
+  --modal-body-btn-radius: 999px;
+  --modal-body-btn-shadow: 3px 3px 0 var(--border-default);
+  --modal-body-confirm-bg: var(--brand-primary); /* terracotta Confirm (classic keeps green) */
+  --modal-body-confirm-fg: var(--text-on-primary);
+  --modal-body-error-color: var(--feedback-danger); /* soft-brick notes, never harsh red */
+  --modal-body-flat-card-bg: var(--brand-primary); /* replaces classic's red gradients — zero gradients */
+  --modal-body-flat-card-fg: var(
+    --text-on-primary
+  ); /* dark ink on the apricot dark-mode plate (white would be ~1.9:1) */
+  --modal-body-flat-card-shadow: 5px 5px 0 var(--border-default);
+  --modal-body-seal-bg: var(--brand-primary); /* "order received" wax seal */
+  --modal-body-seal-fg: var(--text-on-primary);
+  --modal-body-seal-pad: 1.1rem;
+  --modal-body-seal-rotate: -6deg;
+  --modal-body-seal-shadow: 3px 3px 0 var(--border-default);
+  --modal-body-seal-play: paused; /* a stamped seal doesn't pulse — held at frame 0 */
+  --modal-body-cta-size: 1.45rem;
+  --modal-body-mat-bg: var(--surface-card); /* lightbox mat behind letterboxed photos */
+
   /* Layout — craft sticky-header height. Declared here (not only inside
      chrome/CraftHeader.module.css's .header subtree) so surfaces BELOW the
      header can offset by it: the full-bleed home hero fills the viewport

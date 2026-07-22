@@ -102,7 +102,9 @@
 .comingSoon {
   font-family: 'Caveat', cursive;
   font-size: 0.95rem;
-  color: var(--brand-accent);
+  /* --craft-saffron-text, NOT --brand-accent: the raw saffron swatch is
+     ~2.2:1 on the card in light theme (tokens.css a11y note). */
+  color: var(--craft-saffron-text);
 }
 
 .paymentDescription {

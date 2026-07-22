@@ -198,6 +198,14 @@
   --text-on-primary: #fff9f2; /* cream text on terracotta buttons */
   --text-on-accent: #fffcf8; /* text over the hero photo overlay */
 
+  /* Saffron as TEXT (a11y, same guard as --feedback-danger above): the raw
+     --brand-accent swatch (#d9a441) is a background/border tone — as normal
+     text it's only ~2.2:1 on --surface-card. This darkened cut clears AA on
+     every light craft surface (5.25:1 card, 5.13:1 cream, 4.60:1 kraft-lt),
+     mirroring sofra's own olive-text-vs-olive-swatch split. Use THIS token,
+     never --brand-accent, for saffron-colored copy. */
+  --craft-saffron-text: #8a6414;
+
   /* Links */
   --link-default: #a84b2f;
   --link-hover: #8f4128;
@@ -232,6 +240,10 @@ html[data-theme='dark'] {
   --text-primary: #f2e9dd; /* warm cream */
   --text-secondary: #b5bc8a; /* pale olive */
   --text-muted: #a69885;
+
+  /* Dark saffron text = the pale-saffron accent itself: 9.4:1 on
+     --surface-card, 10.6:1 on the aubergine bg — already well past AA. */
+  --craft-saffron-text: #e8c87c;
 
   --text-on-primary: #211a16; /* dark text on the light apricot buttons */
 

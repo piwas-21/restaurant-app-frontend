@@ -9,14 +9,21 @@ import { useTranslation } from 'react-i18next';
 import { CreditCard, Info, CheckCircle } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
 import { PAYMENT_METHODS } from '@/config/paymentMethods';
-import styles from './PaymentMethodSelector.module.css';
+import defaultStyles from './PaymentMethodSelector.module.css';
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod;
   onMethodChange: (method: PaymentMethod) => void;
+  /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
+   *  callers that omit it — and classic — render byte-identically. */
+  styles?: Readonly<Record<string, string>>;
 }
 
-export default function PaymentMethodSelector({ selectedMethod, onMethodChange }: PaymentMethodSelectorProps) {
+export default function PaymentMethodSelector({
+  selectedMethod,
+  onMethodChange,
+  styles = defaultStyles,
+}: Readonly<PaymentMethodSelectorProps>) {
   const { t } = useTranslation();
 
   return (

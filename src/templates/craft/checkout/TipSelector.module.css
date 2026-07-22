@@ -1,0 +1,138 @@
+/* craft tip selector (ADR-006 — Prompt 6, PR C). A craft-paper card with
+   letterpress paper-tab % toggles (the active one terracotta-filled) and a
+   craft-paper underline custom-amount input. Craft tokens only; complete class
+   set. */
+.tipCard {
+  composes: roundedCraft letterpress from '../craft.module.css';
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tipHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.tipHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.heartIcon {
+  color: var(--brand-primary);
+}
+
+.tipTitle {
+  margin: 0;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 1.9rem;
+  color: var(--text-primary);
+}
+
+.optionalBadge {
+  display: inline-block;
+  padding: 0.15rem 0.7rem;
+  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  transform: rotate(-1.5deg);
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+}
+
+.tipOptions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+
+.tipButton {
+  composes: letterpressBtn roundedCraft from '../craft.module.css';
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.6rem 0.4rem;
+  background-color: var(--surface-card);
+  border: 2px solid var(--border-default);
+  cursor: pointer;
+}
+
+.tipButton.selected {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.tipLabel,
+.tipPercentage {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tipAmount {
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.selected .tipLabel,
+.selected .tipPercentage,
+.selected .tipAmount {
+  color: var(--text-on-primary);
+}
+
+.customTipContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.customTipLabel {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.customTipInputWrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  border-bottom: 2px solid var(--border-default);
+  padding-bottom: 0.2rem;
+}
+
+.customTipInputWrapper:focus-within {
+  border-bottom-color: var(--brand-primary);
+}
+
+.currencySymbol {
+  font-family: 'Quicksand', var(--font-family-sans);
+  color: var(--text-secondary);
+}
+
+.customTipInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 1rem;
+}
+
+.customTipInput:focus {
+  outline: none;
+}
+
+.customTipInput::placeholder {
+  font-family: 'Caveat', cursive;
+  color: var(--text-muted);
+}

@@ -197,6 +197,10 @@
   --text-muted: #746b5e; /* warm taupe, 5.0:1 on cream */
   --text-on-primary: #fff9f2; /* cream text on terracotta buttons */
   --text-on-accent: #fffcf8; /* text over the hero photo overlay */
+  --craft-tape-ink: #3b2e26; /* ink on saffron --brand-accent tape labels.
+     Deliberately NOT flipped in dark: both saffrons are light fills, so the
+     roasted-coffee ink holds AA in both themes (5.8:1 on #d9a441 light,
+     8.1:1 on #e8c87c dark) — --text-primary would drop to 1.35:1 in dark. */
 
   /* Links */
   --link-default: #a84b2f;

@@ -15,16 +15,15 @@
   margin-bottom: 1.1rem;
 }
 
-/* Masking-tape label — the shared .tapeLabel strip in saffron, inline-flex so
-   the icon can sit in line (site overrides of a composed dependency are
+/* Masking-tape label — the shared saffron .tapeLabelAccent strip, inline-flex
+   so the icon can sit in line (site overrides of a composed dependency are
    deterministic — see primitives.module.css header). */
 .sectionTitle {
-  composes: tapeLabel from '../craft.module.css';
+  composes: tapeLabelAccent from '../craft.module.css';
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   margin: 0;
-  background: var(--brand-accent);
   font-weight: 700;
   font-size: 1.4rem;
 }

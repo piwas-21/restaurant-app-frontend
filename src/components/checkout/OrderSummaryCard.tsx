@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
-import styles from './OrderSummaryCard.module.css';
+import defaultStyles from './OrderSummaryCard.module.css';
 
 interface Basket {
   subTotal: number;
@@ -32,6 +32,11 @@ interface OrderSummaryCardProps {
   formatPrice: (price: number) => string;
   formatTotal: (total: number) => string;
   onPlaceOrder: () => void;
+  /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
+   *  callers that omit it — and classic — render byte-identically. Craft passes a
+   *  hand-written-bill module (dotted leaders, Amatic terracotta total, letterpress
+   *  place-order pill). */
+  styles?: Readonly<Record<string, string>>;
 }
 
 export default function OrderSummaryCard({
@@ -46,6 +51,7 @@ export default function OrderSummaryCard({
   formatPrice,
   formatTotal,
   onPlaceOrder,
+  styles = defaultStyles,
 }: OrderSummaryCardProps) {
   const { t } = useTranslation();
   const router = useRouter();

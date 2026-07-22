@@ -7,7 +7,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Edit } from 'lucide-react';
-import styles from './CustomerInfoSection.module.css';
+import defaultStyles from './CustomerInfoSection.module.css';
 
 interface CustomerInfo {
   name: string;
@@ -19,9 +19,16 @@ interface CustomerInfoSectionProps {
   customerInfo: CustomerInfo;
   /** Re-opens the order-type/contact editor in place (review page owns the modal). */
   onEdit: () => void;
+  /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
+   *  callers that omit it — and classic — render byte-identically. */
+  styles?: Readonly<Record<string, string>>;
 }
 
-export default function CustomerInfoSection({ customerInfo, onEdit }: Readonly<CustomerInfoSectionProps>) {
+export default function CustomerInfoSection({
+  customerInfo,
+  onEdit,
+  styles = defaultStyles,
+}: Readonly<CustomerInfoSectionProps>) {
   const { t } = useTranslation();
 
   return (

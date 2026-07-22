@@ -7,6 +7,7 @@ import Shell from './Shell';
 import HomePage from './HomePage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
+import CheckoutReviewPage from './CheckoutReviewPage';
 
 export const template: TemplateDefinition = {
   name: 'classic',
@@ -15,4 +16,5 @@ export const template: TemplateDefinition = {
   HomePage,
   LoginPage,
   RegisterPage,
+  CheckoutReviewPage,
 };

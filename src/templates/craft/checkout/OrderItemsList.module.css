@@ -1,0 +1,80 @@
+/* craft order-items list (ADR-006 — Prompt 6). Reuses the shared craft section
+   shell (card + masking-tape title + edit pill) and lays the items out as a
+   dotted-leader bill: Amatic dish names, terracotta line prices. */
+.section {
+  composes: section from './sections.module.css';
+}
+.sectionHeader {
+  composes: sectionHeader from './sections.module.css';
+}
+.sectionTitle {
+  composes: sectionTitle from './sections.module.css';
+}
+.editButton {
+  composes: editButton from './sections.module.css';
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 0;
+  border-bottom: 2px dotted var(--border-default);
+}
+
+.cartItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemImage {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+  border: 2px solid var(--border-default);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+.itemDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.itemName {
+  margin: 0;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.itemVariation {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.itemQuantity {
+  margin: 0;
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.itemPrice {
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--brand-primary);
+  white-space: nowrap;
+}

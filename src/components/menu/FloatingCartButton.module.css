@@ -201,26 +201,24 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .floatingButton {
-    background: linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%);
-    box-shadow:
-      0 8px 32px rgba(224, 102, 102, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.3);
-  }
+[data-theme='dark'] .floatingButton {
+  background: linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%);
+  box-shadow:
+    0 8px 32px rgba(224, 102, 102, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
 
-  .floatingButton:hover {
-    box-shadow:
-      0 12px 48px rgba(224, 102, 102, 0.4),
-      0 4px 12px rgba(0, 0, 0, 0.4);
-  }
+[data-theme='dark'] .floatingButton:hover {
+  box-shadow:
+    0 12px 48px rgba(224, 102, 102, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
 
-  .floatingButton:focus {
-    box-shadow:
-      0 8px 32px rgba(224, 102, 102, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.3),
-      0 0 0 4px rgba(224, 102, 102, 0.2);
-  }
+[data-theme='dark'] .floatingButton:focus {
+  box-shadow:
+    0 8px 32px rgba(224, 102, 102, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 0 4px rgba(224, 102, 102, 0.2);
 }
 
 /* Accessibility - Reduce motion */

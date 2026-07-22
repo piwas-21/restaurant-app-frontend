@@ -1,11 +1,14 @@
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
+   Craft renders the Dine In / Takeaway / Delivery choice as letterpress
+   paper-tab toggles, the active one terracotta (Prompt 11). */
 .group {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   gap: 0.5rem;
   background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: var(--modal-body-option-border, 1px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 12px);
   padding: 0.35rem;
 }
 
@@ -19,7 +22,7 @@
   background: transparent;
   color: var(--text-color);
   border: none;
-  border-radius: 9px;
+  border-radius: var(--modal-body-btn-radius, 9px);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
@@ -35,8 +38,8 @@
 }
 
 .button.active {
-  background-color: var(--success-color-darker);
-  color: var(--text-on-accent);
+  background-color: var(--modal-body-confirm-bg, var(--success-color-darker));
+  color: var(--modal-body-confirm-fg, var(--text-on-accent));
 }
 
 .icon {
@@ -55,8 +58,8 @@
 .skeleton {
   height: 50px;
   background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: var(--modal-body-option-border, 1px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 12px);
 }
 
 @media (max-width: 540px) {

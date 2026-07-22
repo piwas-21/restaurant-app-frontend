@@ -47,37 +47,24 @@
   min-width: min-content;
 }
 
-/* Masking-tape tab (the torn-strip clip-path from craft.module.css .tapeLabel,
-   but as a button with an active state and a per-tab tilt). */
+/* Masking-tape tab — the shared .tapeChip primitive with a per-tab tilt and
+   roomier nav padding. */
 .tab {
+  composes: tapeChip from '../primitives.module.css';
   flex-shrink: 0;
   white-space: nowrap;
-  cursor: pointer;
-  border: none;
-  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
-  background: var(--surface-secondary); /* kraft */
-  color: var(--text-primary);
   padding: 0.45rem 1.3rem;
-  font-family: 'Caveat', cursive;
   font-size: 1.4rem;
-  font-weight: 700;
-  line-height: 1.2;
   transform: rotate(var(--tab-tilt, 0deg));
-  transition:
-    transform 0.15s ease,
-    background-color 0.15s ease,
-    color 0.15s ease;
 }
 
 .tab:hover {
   transform: rotate(var(--tab-tilt, 0deg)) translateY(-2px);
 }
 
-/* `.tab.tabActive` (0-2-0) beats the base `.tab`; the terracotta fill is
-   clipped to the tape shape. Keeps its tilt (transform stays the base rule). */
-.tab.tabActive {
-  background: var(--brand-primary);
-  color: var(--text-on-primary);
+/* Terracotta fill clipped to the tape shape (tilt stays the base rule). */
+.tabActive {
+  composes: tapeChipActive from '../primitives.module.css';
 }
 
 /* Scroll arrows — small letterpress kraft discs (same behaviour as classic). */

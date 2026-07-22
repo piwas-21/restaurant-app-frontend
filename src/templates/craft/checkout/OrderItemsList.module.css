@@ -38,7 +38,7 @@
   height: 60px;
   overflow: hidden;
   border: 2px solid var(--border-default);
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border-radius: var(--craft-radius);
 }
 
 .itemDetails {

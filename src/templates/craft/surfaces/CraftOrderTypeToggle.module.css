@@ -10,28 +10,13 @@
   padding: 0.15rem 0;
 }
 
-/* Torn-strip kraft chip (the .tapeLabel clip-path, as a toggle button). */
+/* Torn-strip kraft chip — the shared .tapeChip primitive, compacted to the
+   order-pad rail. */
 .button {
+  composes: tapeChip from '../primitives.module.css';
   flex: 1 1 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
   min-width: 0;
-  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
-  background: var(--surface-secondary); /* kraft */
-  color: var(--text-primary);
-  border: none;
   padding: 0.5rem 0.75rem;
-  font-family: 'Caveat', cursive;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.1;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    background-color 0.15s ease,
-    color 0.15s ease;
 }
 
 .button:hover,
@@ -40,11 +25,9 @@
   outline: none;
 }
 
-/* `.button.active` (0-2-0) beats the base `.button`; terracotta clipped to the
-   tape shape. */
-.button.active {
-  background: var(--brand-primary);
-  color: var(--text-on-primary);
+/* Terracotta clipped to the tape shape. */
+.active {
+  composes: tapeChipActive from '../primitives.module.css';
 }
 
 .icon {

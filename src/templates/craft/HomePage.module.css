@@ -72,31 +72,14 @@
   margin-top: 0.5rem;
 }
 
-.ctaPrimary,
-.ctaSecondary {
-  composes: roundedCraft from './craft.module.css';
-  composes: letterpressBtn from './craft.module.css';
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.6rem;
-  font-family: 'Caveat', cursive;
-  font-size: 1.35rem;
-  font-weight: 700;
-}
-
 .ctaPrimary {
-  background: var(--brand-primary);
-  color: var(--text-on-primary);
-  border: 2px solid var(--brand-primary);
+  composes: btnPrimary from './primitives.module.css';
 }
 
-/* Outline pill, light-on-photo: cream text + cream border so the secondary
-   CTA stays legible directly on the hero photo. */
+/* Outline pill, light-on-photo (primitive): cream text + cream border so the
+   secondary CTA stays legible directly on the hero photo. */
 .ctaSecondary {
-  background: transparent;
-  color: var(--text-on-accent);
-  border: 2px solid var(--text-on-accent);
+  composes: btnOnPhoto from './primitives.module.css';
 }
 
 .pageContentWrapper {
@@ -108,9 +91,7 @@
 
 .storyCard,
 .locationCard {
-  composes: roundedCraft from './craft.module.css';
-  composes: letterpress from './craft.module.css';
-  background: var(--surface-card);
+  composes: cardLift from './primitives.module.css';
   padding: 2rem;
   margin: 2rem 0.5rem;
   color: var(--text-primary);

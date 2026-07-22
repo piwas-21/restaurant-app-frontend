@@ -23,7 +23,7 @@ export default function PaymentMethodSelector({
   selectedMethod,
   onMethodChange,
   styles = defaultStyles,
-}: PaymentMethodSelectorProps) {
+}: Readonly<PaymentMethodSelectorProps>) {
   const { t } = useTranslation();
 
   return (

@@ -20,7 +20,7 @@ export default function TipSelector({
   selectedTipAmount,
   onTipChange,
   styles = defaultStyles,
-}: TipSelectorProps) {
+}: Readonly<TipSelectorProps>) {
   const { t } = useTranslation();
   const [selectedOption, setSelectedOption] = useState<TipOption>('none');
   const [customAmount, setCustomAmount] = useState('');

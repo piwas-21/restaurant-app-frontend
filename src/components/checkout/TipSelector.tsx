@@ -2,17 +2,25 @@ import { formatCurrency, TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart } from 'lucide-react';
-import styles from './TipSelector.module.css';
+import defaultStyles from './TipSelector.module.css';
 
 interface TipSelectorProps {
   subtotal: number;
   selectedTipAmount: number;
   onTipChange: (amount: number) => void;
+  /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
+   *  callers that omit it — and classic — render byte-identically. */
+  styles?: Readonly<Record<string, string>>;
 }
 
 type TipOption = 'none' | 10 | 15 | 20 | 'custom';
 
-export default function TipSelector({ subtotal, selectedTipAmount, onTipChange }: TipSelectorProps) {
+export default function TipSelector({
+  subtotal,
+  selectedTipAmount,
+  onTipChange,
+  styles = defaultStyles,
+}: TipSelectorProps) {
   const { t } = useTranslation();
   const [selectedOption, setSelectedOption] = useState<TipOption>('none');
   const [customAmount, setCustomAmount] = useState('');

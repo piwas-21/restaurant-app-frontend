@@ -35,6 +35,10 @@ export interface CheckoutReviewStyles {
   orderType: CssModule;
   customerInfo: CssModule;
   orderItems: CssModule;
+  /** The payment-method options (craft: letterpress paper-tab cards). */
+  payment: CssModule;
+  /** The tip selector (craft: paper-tab % toggles + craft-paper custom input). */
+  tip: CssModule;
   /** The hand-written-bill / order-summary card (holds the place-order button). */
   summary: CssModule;
 }
@@ -126,7 +130,11 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
 
               <OrderItemsList items={cartState.items} formatPrice={formatPrice} styles={bundle.orderItems} />
 
-              <PaymentMethodSelector selectedMethod={selectedPaymentMethod} onMethodChange={setSelectedPaymentMethod} />
+              <PaymentMethodSelector
+                selectedMethod={selectedPaymentMethod}
+                onMethodChange={setSelectedPaymentMethod}
+                styles={bundle.payment}
+              />
 
               {/* Special Instructions */}
               {checkoutState.specialInstructions && (
@@ -145,6 +153,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
                 subtotal={cartState.basket?.subTotal || 0}
                 selectedTipAmount={checkoutState.tipAmount || 0}
                 onTipChange={setTipAmount}
+                styles={bundle.tip}
               />
 
               <FidelityPointsCheckout

@@ -13,8 +13,14 @@ import CheckoutReviewLayout from '@/components/checkout/CheckoutReviewLayout';
 import page from './checkout/CheckoutReviewPage.module.css';
 import sections from './checkout/sections.module.css';
 import orderItems from './checkout/OrderItemsList.module.css';
+import payment from './checkout/PaymentMethodSelector.module.css';
+import tip from './checkout/TipSelector.module.css';
 import summary from './checkout/OrderSummaryCard.module.css';
 
 export default function CheckoutReviewPage() {
-  return <CheckoutReviewLayout styles={{ page, orderType: sections, customerInfo: sections, orderItems, summary }} />;
+  return (
+    <CheckoutReviewLayout
+      styles={{ page, orderType: sections, customerInfo: sections, orderItems, payment, tip, summary }}
+    />
+  );
 }

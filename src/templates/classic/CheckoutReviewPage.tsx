@@ -10,8 +10,10 @@ import page from './CheckoutReviewPage.module.css';
 import orderType from '@/components/checkout/OrderTypeSection.module.css';
 import customerInfo from '@/components/checkout/CustomerInfoSection.module.css';
 import orderItems from '@/components/checkout/OrderItemsList.module.css';
+import payment from '@/components/checkout/PaymentMethodSelector.module.css';
+import tip from '@/components/checkout/TipSelector.module.css';
 import summary from '@/components/checkout/OrderSummaryCard.module.css';
 
 export default function CheckoutReviewPage() {
-  return <CheckoutReviewLayout styles={{ page, orderType, customerInfo, orderItems, summary }} />;
+  return <CheckoutReviewLayout styles={{ page, orderType, customerInfo, orderItems, payment, tip, summary }} />;
 }

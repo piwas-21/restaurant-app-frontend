@@ -36,7 +36,7 @@
   height: 2rem;
   border: none;
   border-radius: 50%;
-  background: var(--surface-muted, var(--surface-secondary));
+  background: var(--surface-secondary);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -59,8 +59,13 @@
   border: none;
   border-radius: 999px;
   background: var(--brand-primary);
-  color: var(--brand-on-primary, var(--surface-primary));
-  font-family: var(--modal-body-title-font, inherit);
+  /* --modal-body-confirm-fg (cream in craft); classic fallback keeps the
+     surface-primary it always computed to (--brand-on-primary was never
+     defined anywhere — the old chain only worked by fallback coincidence). */
+  color: var(--modal-body-confirm-fg, var(--surface-primary));
+  /* Caveat like every craft CTA (was the Amatic title font — owner decision
+     2026-07-22: ALL primary CTAs use Caveat); classic still inherits. */
+  font-family: var(--modal-body-btn-font, inherit);
   font-weight: 700;
   font-size: var(--modal-body-cta-size, 1rem);
   box-shadow: var(--modal-body-btn-shadow, none);

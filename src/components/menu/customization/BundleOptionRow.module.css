@@ -16,7 +16,7 @@
 }
 
 .row.selected {
-  background: var(--surface-muted, var(--surface-secondary));
+  background: var(--surface-secondary);
 }
 
 .row.disabled {
@@ -78,7 +78,7 @@
 }
 
 .customizeButton:hover {
-  background: var(--surface-muted, var(--surface-secondary));
+  background: var(--surface-secondary);
 }
 
 .panel {
@@ -87,5 +87,5 @@
   gap: 1rem;
   padding: 0.75rem;
   border-top: 1px solid var(--border-default, var(--border-color));
-  background: var(--surface-muted, var(--surface-secondary));
+  background: var(--surface-secondary);
 }

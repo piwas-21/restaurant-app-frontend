@@ -108,6 +108,51 @@
   --modal-body-cta-size: 1.45rem;
   --modal-body-mat-bg: var(--surface-card); /* lightbox mat behind letterboxed photos */
 
+  /* Shared-control skin (PR B of the consistency pass) — Caveat lettering on
+     EVERY shared control that renders under craft: modal footer buttons, the
+     order-type toggle (tape chips, matching CraftOrderTypeToggle), the
+     item-sheet CTA (was Amatic — owner decision 2026-07-22: ALL primary CTAs
+     are Caveat), the customization stepper. Same mechanism as --modal-body-*
+     above: per-site classic-literal fallbacks, classic stays byte-identical. */
+  --modal-body-btn-font: 'Caveat', cursive;
+  --modal-body-btn-weight: 700;
+  --modal-body-btn-size: 1.2rem;
+  --modal-body-btn-shadow-hover: 5px 5px 0 var(--border-default);
+  --modal-body-toggle-clip: var(--craft-tape-clip);
+  --modal-body-toggle-bg: var(--surface-secondary); /* kraft inactive chip */
+  --modal-body-toggle-radius: 0; /* a pill radius would round away the torn corners */
+  --modal-body-toggle-hover-bg: var(--surface-secondary-light); /* keep kraft on hover */
+  --modal-body-toggle-size: 1.15rem;
+  --modal-body-toggle-size-sm: 1.05rem; /* ≤540px — Caveat at 0.85rem is illegible */
+
+  /* Floating cart pill (menu page) — flat terracotta letterpress replacing
+     classic's red gradient (zero gradients in craft). The dark values ride the
+     semantic tokens' own dark flips. */
+  --fab-bg: var(--brand-primary);
+  --fab-fg: var(--text-on-primary);
+  --fab-radius: 999px;
+  --fab-shadow: 3px 3px 0 var(--border-default);
+  --fab-shadow-hover: 5px 5px 0 var(--border-default);
+  --fab-shadow-focus: 3px 3px 0 var(--border-default), 0 0 0 3px var(--brand-accent);
+  --fab-label-font: 'Caveat', cursive;
+  --fab-label-size: 1rem;
+  --fab-label-transform: none; /* Caveat reads wrong uppercased */
+  --fab-badge-fg: var(--text-on-primary);
+
+  /* Cookie-consent banner buttons (non-modal shared chrome). */
+  --ctl-btn-radius: 999px;
+  --ctl-btn-font: 'Caveat', cursive;
+  --ctl-btn-weight: 700;
+  --ctl-btn-size: 1.1rem;
+  --ctl-btn-shadow: 3px 3px 0 var(--border-default);
+  --ctl-decline-bg: var(--surface-secondary);
+  --ctl-decline-fg: var(--text-primary);
+  --ctl-decline-border: 1px solid var(--border-default);
+  --ctl-decline-hover-bg: var(--surface-secondary-light);
+  --ctl-accept-hover-bg: var(--link-hover); /* AA on cream/dark text in both themes */
+  --ctl-banner-bg-dark: var(--surface-card);
+  --ctl-banner-fg-dark: var(--text-primary);
+
   /* Layout — craft sticky-header height. Declared here (not only inside
      chrome/CraftHeader.module.css's .header subtree) so surfaces BELOW the
      header can offset by it: the full-bleed home hero fills the viewport
@@ -142,6 +187,11 @@
   --surface-card: #fffcf8; /* warm white plate */
 
   /* Text */
+  --brand-on-primary: var(
+    --text-on-primary
+  ); /* consumed by MenuItem badge —
+     was never defined anywhere before the 2026-07-22 consistency pass (its
+     var() chains only worked by fallback coincidence). */
   --text-primary: #3b2e26; /* roasted-coffee ink */
   --text-secondary: #5a6139; /* olive-text, 6.3:1 on cream */
   --text-muted: #746b5e; /* warm taupe, 5.0:1 on cream */

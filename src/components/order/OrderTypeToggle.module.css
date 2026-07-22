@@ -19,13 +19,19 @@
   gap: 0.35rem;
   padding: 0.6rem 0.4rem;
   min-width: 0;
-  background: transparent;
+  /* craft: kraft torn-tape chips (same vocabulary as CraftOrderTypeToggle on
+     the menu rail) — classic keeps transparent rounded segments. */
+  background: var(--modal-body-toggle-bg, transparent);
   color: var(--text-color);
   border: none;
-  border-radius: var(--modal-body-btn-radius, 9px);
+  /* Dedicated radius hook — craft sets 0 so the pill radius can't round away
+     the tape polygon's torn corners (the painted area is the intersection). */
+  border-radius: var(--modal-body-toggle-radius, 9px);
+  clip-path: var(--modal-body-toggle-clip, none);
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-toggle-size, 0.9rem);
+  font-weight: var(--modal-body-btn-weight, 500);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
@@ -33,7 +39,7 @@
 
 .button:hover,
 .button:focus-visible {
-  background-color: var(--nav-link-hover-bg);
+  background-color: var(--modal-body-toggle-hover-bg, var(--nav-link-hover-bg));
   outline: none;
 }
 
@@ -64,6 +70,6 @@
 
 @media (max-width: 540px) {
   .label {
-    font-size: 0.85rem;
+    font-size: var(--modal-body-toggle-size-sm, 0.85rem);
   }
 }

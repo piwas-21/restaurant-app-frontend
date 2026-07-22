@@ -12,15 +12,15 @@
   min-width: 160px;
   height: 64px;
 
-  background: linear-gradient(135deg, var(--color-red-700-c) 0%, var(--color-red-800-b) 100%);
-  color: var(--text-on-accent);
+  /* craft hooks (consistency pass): var fallback = exact classic literal.
+     Craft flattens the gradient to a terracotta letterpress pill. */
+  background: var(--fab-bg, linear-gradient(135deg, var(--color-red-700-c) 0%, var(--color-red-800-b) 100%));
+  color: var(--fab-fg, var(--text-on-accent));
 
   border: none;
-  border-radius: 32px;
+  border-radius: var(--fab-radius, 32px);
 
-  box-shadow:
-    0 8px 32px rgba(192, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--fab-shadow, 0 8px 32px rgba(192, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15));
 
   cursor: pointer;
 
@@ -40,9 +40,7 @@
 
 .floatingButton:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow:
-    0 12px 48px rgba(192, 0, 0, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--fab-shadow-hover, 0 12px 48px rgba(192, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2));
 }
 
 .floatingButton:active {
@@ -51,10 +49,12 @@
 
 .floatingButton:focus {
   outline: none;
-  box-shadow:
+  box-shadow: var(
+    --fab-shadow-focus,
     0 8px 32px rgba(192, 0, 0, 0.3),
     0 2px 8px rgba(0, 0, 0, 0.15),
-    0 0 0 4px rgba(192, 0, 0, 0.2);
+    0 0 0 4px rgba(192, 0, 0, 0.2)
+  );
 }
 
 /* Pulse animation when item added */
@@ -102,7 +102,7 @@
   padding: 0 6px;
 
   background: var(--feedback-danger);
-  color: white;
+  color: var(--fab-badge-fg, white);
 
   border-radius: 10px;
   border: 2px solid var(--text-on-accent);
@@ -135,9 +135,10 @@
 }
 
 .totalLabel {
-  font-size: 11px;
+  font-family: var(--fab-label-font, inherit);
+  font-size: var(--fab-label-size, 11px);
   opacity: 0.9;
-  text-transform: uppercase;
+  text-transform: var(--fab-label-transform, uppercase);
   letter-spacing: 0.5px;
 }
 
@@ -160,7 +161,7 @@
     height: 56px;
     padding: 12px 20px;
 
-    border-radius: 28px;
+    border-radius: var(--fab-radius, 28px);
   }
 
   .priceContainer {
@@ -168,7 +169,7 @@
   }
 
   .totalLabel {
-    font-size: 10px;
+    font-size: var(--fab-label-size, 10px);
   }
 
   .totalPrice {
@@ -200,26 +201,27 @@
   }
 }
 
-/* Dark mode support */
+/* Dark mode support. Pre-existing §5.7 violation (prefers-color-scheme
+   instead of html[data-theme]) kept as-is for classic byte-parity — tracked
+   separately. Craft's --fab-* vars win inside this block too (its own dark
+   values ride the semantic tokens' data-theme flips). */
 @media (prefers-color-scheme: dark) {
   .floatingButton {
-    background: linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%);
-    box-shadow:
-      0 8px 32px rgba(224, 102, 102, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.3);
+    background: var(--fab-bg, linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%));
+    box-shadow: var(--fab-shadow, 0 8px 32px rgba(224, 102, 102, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3));
   }
 
   .floatingButton:hover {
-    box-shadow:
-      0 12px 48px rgba(224, 102, 102, 0.4),
-      0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--fab-shadow-hover, 0 12px 48px rgba(224, 102, 102, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4));
   }
 
   .floatingButton:focus {
-    box-shadow:
+    box-shadow: var(
+      --fab-shadow-focus,
       0 8px 32px rgba(224, 102, 102, 0.3),
       0 2px 8px rgba(0, 0, 0, 0.3),
-      0 0 0 4px rgba(224, 102, 102, 0.2);
+      0 0 0 4px rgba(224, 102, 102, 0.2)
+    );
   }
 }
 

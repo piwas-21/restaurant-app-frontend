@@ -35,13 +35,17 @@
   align-items: center;
 }
 
+/* craft hooks (consistency pass): var fallback = exact classic literal. Craft
+   turns both buttons into Caveat letterpress pills. */
 .bannerButton {
   padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 5px;
+  border-radius: var(--ctl-btn-radius, 5px);
+  box-shadow: var(--ctl-btn-shadow, none);
   cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-family: var(--ctl-btn-font, inherit);
+  font-weight: var(--ctl-btn-weight, 500);
+  font-size: var(--ctl-btn-size, 0.9rem);
   transition:
     background-color 0.2s ease,
     opacity 0.2s ease;
@@ -53,7 +57,7 @@
 }
 
 .acceptButton:hover {
-  background-color: var(--primary-color-dark);
+  background-color: var(--ctl-accept-hover-bg, var(--primary-color-dark));
 }
 
 .declineButton {
@@ -66,25 +70,26 @@
   background-color: var(--border-color-light);
 }
 
-/* Dark mode adjustments */
+/* Dark mode adjustments — the gray/sky literals are classic's; craft's --ctl-*
+   overrides win in both themes and ride the semantic tokens' dark flips. */
 html[data-theme='dark'] .bannerContainer {
-  background-color: var(--color-gray-900-d);
-  color: var(--color-gray-100-c);
+  background-color: var(--ctl-banner-bg-dark, var(--color-gray-900-d));
+  color: var(--ctl-banner-fg-dark, var(--color-gray-100-c));
   border-top: 1px solid var(--border-default);
 }
 
 html[data-theme='dark'] .acceptButton:hover {
-  background-color: var(--color-sky-500-b);
+  background-color: var(--ctl-accept-hover-bg, var(--color-sky-500-b));
 }
 
 html[data-theme='dark'] .declineButton {
-  background-color: var(--color-gray-700-b);
-  color: var(--color-gray-100-c);
-  border: 1px solid var(--color-gray-600);
+  background-color: var(--ctl-decline-bg, var(--color-gray-700-b));
+  color: var(--ctl-decline-fg, var(--color-gray-100-c));
+  border: var(--ctl-decline-border, 1px solid var(--color-gray-600));
 }
 
 html[data-theme='dark'] .declineButton:hover {
-  background-color: var(--color-gray-700-c);
+  background-color: var(--ctl-decline-hover-bg, var(--color-gray-700-c));
 }
 
 /* Responsive adjustments for smaller screens */

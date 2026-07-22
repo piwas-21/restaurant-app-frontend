@@ -96,8 +96,9 @@
   border: none;
   border-radius: var(--modal-body-btn-radius, 6px);
   box-shadow: var(--modal-body-btn-shadow, none);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 0.875rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition:
     background-color 0.2s,

@@ -167,14 +167,16 @@
 }
 
 /* Quantity Controls */
+/* craft modal-body hooks: var fallback = exact classic literal (this stepper
+   sits inside the item sheet and was the last unskinned control there). */
 .quantityControls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem;
   background-color: var(--background-color);
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
+  border-radius: var(--modal-body-option-radius, 6px);
+  border: var(--modal-body-option-border, 1px solid var(--border-color));
 }
 
 [data-theme='dark'] .quantityControls {
@@ -191,7 +193,7 @@
   border: none;
   background-color: var(--secondary-color-light);
   color: var(--text-color);
-  border-radius: 4px;
+  border-radius: var(--modal-body-btn-radius, 4px);
   cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
@@ -201,7 +203,7 @@
 
 .quantityBtn:hover:not(:disabled) {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--modal-body-confirm-fg, white);
 }
 
 .quantityBtn:disabled {

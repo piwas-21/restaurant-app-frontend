@@ -7,10 +7,13 @@ import { useAuth } from '@/components/AuthContext';
 import { reservationService } from '@/services/reservationService';
 import {
   validateReservation,
+  areRequiredReservationDetailsFilled,
   buildSpecialRequests,
   buildReservationPayload,
   extractReservationErrorMessage,
 } from '@/utils/reservationForm';
+import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
+import { FORM_KEYS } from '@/types/formFieldConfig';
 import { useReservationAvailability } from './useReservationAvailability';
 
 /**
@@ -34,6 +37,9 @@ export function useReservationsPage() {
     numberOfGuests,
   } = availability;
 
+  // Admin-configured field visibility/requiredness (safe fallback = today's behaviour).
+  const { rules: fieldRules } = useCustomerFormFields(FORM_KEYS.reservation);
+
   const [customerName, setCustomerName] = useState<string>('');
   const [customerEmail, setCustomerEmail] = useState<string>('');
   const [customerPhone, setCustomerPhone] = useState<string>('');
@@ -56,8 +62,19 @@ export function useReservationsPage() {
     e.preventDefault();
 
     const validationToast = validateReservation(
-      { selectedTableIds, selectedDate, selectedTime, customerName, customerEmail, bookedTableIds, allTables },
+      {
+        selectedTableIds,
+        selectedDate,
+        selectedTime,
+        customerName,
+        customerEmail,
+        customerPhone,
+        specialRequests,
+        bookedTableIds,
+        allTables,
+      },
       t,
+      fieldRules,
     );
     if (validationToast) {
       enqueueSnackbar(validationToast.message, { variant: validationToast.variant });
@@ -106,7 +123,11 @@ export function useReservationsPage() {
     }
   };
 
-  const canSubmit = selectedTableIds.length > 0 && selectedDate && selectedTime && customerName && customerEmail;
+  const canSubmit =
+    selectedTableIds.length > 0 &&
+    Boolean(selectedDate) &&
+    Boolean(selectedTime) &&
+    areRequiredReservationDetailsFilled({ customerName, customerEmail, customerPhone, specialRequests }, fieldRules);
 
   return {
     t,

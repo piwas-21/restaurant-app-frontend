@@ -49,6 +49,9 @@ module.exports = {
   collectCoverageFrom: [
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
+    'src/services/formFieldConfigService.ts',
+    'src/hooks/useCustomerFormFields.ts',
+    'src/hooks/admin/useCustomerFormsAdmin.ts',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
@@ -235,6 +238,42 @@ module.exports = {
       branches: 82,
       functions: 53,
       lines: 81,
+    },
+    // Reservations revamp D2 — configurable customer form fields. The service
+    // (fetch/update shapes), the admin page + tri-state hook (locked
+    // immutability, whole-form save), and the FormField-migrated reservation
+    // guest-details form are at 100% → 99. The two hooks' uncovered remainder
+    // is console.error noise + the fresh-cache fast path / unknown-form guard,
+    // pinned at actual − ~1pt.
+    './src/services/formFieldConfigService.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/useCustomerFormFields.ts': {
+      statements: 94,
+      branches: 84,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/admin/useCustomerFormsAdmin.ts': {
+      statements: 93,
+      branches: 79,
+      functions: 99,
+      lines: 99,
+    },
+    './src/app/admin/customer-forms/page.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/CustomerDetailsForm.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
     },
   },
 };

@@ -1,6 +1,9 @@
 import type { TFunction } from 'i18next';
 import type { VariantType } from 'notistack';
 import type { TableDto, TimeSlotDto, CreateReservationDto } from '@/types/reservation';
+import { DEFAULT_FORM_FIELD_RULES, FORM_KEYS, type FormFieldRules } from '@/types/formFieldConfig';
+
+const DEFAULT_RESERVATION_RULES = DEFAULT_FORM_FIELD_RULES[FORM_KEYS.reservation];
 
 /** A snackbar to surface — returned by the pure helpers so the hook owns the side effect. */
 export interface ReservationToast {
@@ -79,13 +82,35 @@ export function getTimeSlotOptions(selectedTableIds: string[], availableTimeSlot
   }));
 }
 
+/** The customer-detail values checked against the configured field rules. */
+export interface ReservationDetailValues {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  specialRequests: string;
+}
+
+/**
+ * True when every field the admin config marks visible + required is filled.
+ * Mirrors the backend's config-required enforcement on reservation create so
+ * users never hit the raw 400. Name/email are locked-required server-side, so
+ * they are always checked; phone/special requests only when configured so.
+ */
+export function areRequiredReservationDetailsFilled(
+  values: ReservationDetailValues,
+  rules: FormFieldRules = DEFAULT_RESERVATION_RULES,
+): boolean {
+  return (Object.keys(values) as (keyof ReservationDetailValues)[]).every((key) => {
+    const rule = rules[key] ?? DEFAULT_RESERVATION_RULES[key];
+    return !(rule.isVisible && rule.isRequired) || values[key].trim().length > 0;
+  });
+}
+
 /** Form inputs needed to validate a reservation before submit. */
-export interface ReservationValidationInput {
+export interface ReservationValidationInput extends ReservationDetailValues {
   selectedTableIds: string[];
   selectedDate: string;
   selectedTime: string;
-  customerName: string;
-  customerEmail: string;
   bookedTableIds: string[];
   allTables: TableDto[];
 }
@@ -93,15 +118,29 @@ export interface ReservationValidationInput {
 /**
  * Returns the first validation problem as a ready-to-show toast (preserving the original per-rule
  * variant — `warning` for missing fields, `error` for a now-unavailable table), or null when valid.
+ * `rules` carries the admin-configured field requirements (default: registry defaults).
  */
-export function validateReservation(input: ReservationValidationInput, t: TFunction): ReservationToast | null {
-  const { selectedTableIds, selectedDate, selectedTime, customerName, customerEmail, bookedTableIds, allTables } =
-    input;
+export function validateReservation(
+  input: ReservationValidationInput,
+  t: TFunction,
+  rules: FormFieldRules = DEFAULT_RESERVATION_RULES,
+): ReservationToast | null {
+  const {
+    selectedTableIds,
+    selectedDate,
+    selectedTime,
+    customerName,
+    customerEmail,
+    customerPhone,
+    specialRequests,
+    bookedTableIds,
+    allTables,
+  } = input;
 
   if (selectedTableIds.length === 0 || !selectedDate || !selectedTime) {
     return { message: t('please_complete_all_fields', 'Please complete all fields'), variant: 'warning' };
   }
-  if (!customerName || !customerEmail) {
+  if (!areRequiredReservationDetailsFilled({ customerName, customerEmail, customerPhone, specialRequests }, rules)) {
     return { message: t('please_fill_customer_details', 'Please fill in your details'), variant: 'warning' };
   }
 

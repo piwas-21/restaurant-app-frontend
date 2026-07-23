@@ -46,7 +46,7 @@ export default function VisualTableLayout({
 
   return (
     <div className={styles.container}>
-      <div className={styles.floorPlan} role="group" aria-label={t('select_your_tables', 'Select your Table(s)')}>
+      <section className={styles.floorPlan} aria-label={t('select_your_tables', 'Select your Table(s)')}>
         {/* Entrance marker */}
         <div
           className={styles.entrance}
@@ -79,7 +79,7 @@ export default function VisualTableLayout({
             />
           );
         })}
-      </div>
+      </section>
 
       {/* Legend */}
       <div className={styles.legend}>

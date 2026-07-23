@@ -3,7 +3,7 @@ module.exports = {
   // Stale per-session git worktrees (gitignored, local-only) duplicate the
   // whole tree; their test copies resolve `@/` aliases against the MAIN tree
   // and go red on any API change. CI never has them — ignore them locally too.
-  testPathIgnorePatterns: ['/node_modules/', '/\\.claude/'],
+  testPathIgnorePatterns: ['/node_modules/', String.raw`/\.claude/`],
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   transform: {
     '^.+\.(js|jsx|ts|tsx)$': [

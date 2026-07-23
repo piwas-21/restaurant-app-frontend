@@ -66,9 +66,9 @@ describe('VisualTableLayout markers', () => {
     expect(onSelectTable).toHaveBeenCalledWith(tables[2]);
   });
 
-  it('labels the floor plan as a group for screen readers', () => {
+  it('labels the floor plan as a named region for screen readers', () => {
     render(<VisualTableLayout tables={tables} onSelectTable={jest.fn()} />);
-    expect(screen.getByRole('group', { name: 'Select your Table(s)' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Select your Table(s)' })).toBeInTheDocument();
   });
 });
 

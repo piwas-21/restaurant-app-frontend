@@ -111,6 +111,30 @@ describe('useCustomerFormsAdmin', () => {
     expect(mockEnqueue).toHaveBeenCalledWith(expect.stringContaining('saved'), { variant: 'success' });
   });
 
+  it('preserves unsaved edits on OTHER forms when one form is saved', async () => {
+    mockGetAll.mockResolvedValue(makeForms());
+    const { result } = renderHook(() => useCustomerFormsAdmin());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    // Edit BOTH form cards, then save only the reservation form.
+    act(() => result.current.setFieldState('reservation', 'customerPhone', 'hidden'));
+    act(() => result.current.setFieldState('checkout_contact', 'phone', 'required'));
+
+    const saved = makeForms();
+    saved[0].fields[1] = { ...saved[0].fields[1], isVisible: false, isRequired: false };
+    mockUpdate.mockResolvedValue(saved); // server still has checkout phone optional
+
+    await act(() => result.current.saveForm('reservation'));
+
+    // Saved form matches the server response and reads clean.
+    expect(result.current.forms[0].fields[1]).toMatchObject({ isVisible: false, isRequired: false });
+    expect(result.current.isDirty('reservation')).toBe(false);
+    // The other form's in-progress edit survives AND still reads dirty
+    // against the refreshed saved baseline.
+    expect(result.current.forms[1].fields[0]).toMatchObject({ isVisible: true, isRequired: true });
+    expect(result.current.isDirty('checkout_contact')).toBe(true);
+  });
+
   it('keeps the edits and toasts an error when the save fails', async () => {
     mockGetAll.mockResolvedValue(makeForms());
     const { result } = renderHook(() => useCustomerFormsAdmin());

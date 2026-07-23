@@ -102,7 +102,13 @@ export function useCustomerFormsAdmin() {
           isRequired: field.isRequired,
         })),
       );
-      setForms(updated);
+      // The PUT returns the full grouped configuration for ALL forms. Merge
+      // only the saved form into the editable state so in-progress edits on
+      // the OTHER form cards survive; the response as a whole is the new
+      // saved baseline (so those other edits still compare as dirty).
+      setForms((prev) =>
+        prev.map((f) => (f.formKey === formKey ? (updated.find((u) => u.formKey === f.formKey) ?? f) : f)),
+      );
       setSavedForms(updated);
       invalidateFormFieldConfigCache();
       enqueueSnackbar(t('customer_forms_saved', 'Customer form settings saved'), { variant: 'success' });

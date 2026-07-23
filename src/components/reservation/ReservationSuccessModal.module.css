@@ -1,71 +1,12 @@
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 2.5rem;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  position: relative;
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.closeButton {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--color-gray-700-c);
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.closeButton:hover {
-  background: var(--border-color-extra-light);
-  color: var(--color-gray-900-f);
-}
+/*
+ * Component-local styles for ReservationSuccessModal. The overlay, dialog
+ * shell, close button, title and animations moved to the design-system
+ * BaseModal primitive (B3 migration) — what remains is the body: pending
+ * clock, message, email info and the CTA branches. The
+ * `var(--modal-body-*, <classic literal>)` hooks let craft re-skin the
+ * pieces (terracotta CTA, Caveat hand-notes, stilled clock) while classic
+ * keeps its exact previous look via the fallbacks.
+ */
 
 .iconContainer {
   display: flex;
@@ -73,9 +14,13 @@
   margin-bottom: 1.5rem;
 }
 
+/* Craft holds the hourglass still (a stamped docket doesn't pulse) by
+   pausing the animation at frame 0 — the play-state longhand must come
+   after the shorthand, which resets it. */
 .clockIcon {
   font-size: 4rem;
   animation: pulse 2s ease-in-out infinite;
+  animation-play-state: var(--modal-body-seal-play, running);
 }
 
 @keyframes pulse {
@@ -88,14 +33,6 @@
   }
 }
 
-.title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-gray-900-f);
-  text-align: center;
-  margin: 0 0 1rem 0;
-}
-
 .message {
   font-size: 1rem;
   color: var(--color-gray-700-c);
@@ -106,7 +43,7 @@
 
 .emailInfo {
   background: var(--color-gray-50-b);
-  border-radius: 8px;
+  border-radius: var(--modal-body-option-radius, 8px);
   padding: 1rem;
   margin-bottom: 2rem;
   display: flex;
@@ -114,8 +51,10 @@
   gap: 0.5rem;
 }
 
+/* "Confirmation will be sent to" — a Caveat hand-note in craft. */
 .emailLabel {
-  font-size: 0.875rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.875rem);
   color: var(--color-gray-700-c);
   font-weight: 500;
 }
@@ -133,32 +72,35 @@
 }
 
 .primaryButton {
-  background: var(--color-gold-500);
-  color: var(--color-gray-900-f);
+  background: var(--modal-body-confirm-bg, var(--color-gold-500));
+  color: var(--modal-body-confirm-fg, var(--color-gray-900-f));
   border: none;
-  border-radius: 8px;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  box-shadow: var(--modal-body-btn-shadow, none);
   padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;
 }
 
 .primaryButton:hover {
-  background: var(--color-gold-600);
+  background: var(--modal-body-confirm-bg, var(--color-gold-600));
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
+  box-shadow: var(--modal-body-btn-shadow-hover, 0 4px 12px rgba(244, 196, 48, 0.3));
 }
 
 .secondaryButton {
   background: transparent;
   color: var(--color-gray-700-c);
-  border: 2px solid var(--color-gray-200-b);
-  border-radius: 8px;
+  border: var(--modal-body-option-border, 2px solid var(--color-gray-200-b));
+  border-radius: var(--modal-body-btn-radius, 8px);
   padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;
@@ -171,35 +113,18 @@
 }
 
 .guestNote {
-  font-size: 0.875rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.875rem);
   color: var(--color-gray-700-c);
   text-align: center;
   margin: 0.5rem 0 0 0;
   line-height: 1.5;
   padding: 0.75rem;
   background: var(--color-gold-100-c);
-  border-radius: 8px;
+  border-radius: var(--modal-body-option-radius, 8px);
 }
 
-/* Dark mode */
-[data-theme='dark'] .modal {
-  background: var(--color-gray-950);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-}
-
-[data-theme='dark'] .closeButton {
-  color: var(--color-gray-500-b);
-}
-
-[data-theme='dark'] .closeButton:hover {
-  background: var(--color-gray-900-e);
-  color: var(--text-on-accent);
-}
-
-[data-theme='dark'] .title {
-  color: var(--text-on-accent);
-}
-
+/* Dark mode (body pieces only — the shell's dark look is BaseModal's). */
 [data-theme='dark'] .message {
   color: var(--color-gray-300-b);
 }
@@ -217,12 +142,12 @@
 }
 
 [data-theme='dark'] .primaryButton {
-  background: var(--color-gold-500);
-  color: var(--color-black);
+  background: var(--modal-body-confirm-bg, var(--color-gold-500));
+  color: var(--modal-body-confirm-fg, var(--color-black));
 }
 
 [data-theme='dark'] .primaryButton:hover {
-  background: var(--color-gold-500-c);
+  background: var(--modal-body-confirm-bg, var(--color-gold-500-c));
 }
 
 [data-theme='dark'] .secondaryButton {
@@ -243,32 +168,12 @@
 
 /* Tablet responsive */
 @media (max-width: 768px) {
-  .overlay {
-    padding: 0.75rem;
-  }
-
-  .modal {
-    padding: 2rem 1.5rem;
-    border-radius: 12px;
-  }
-
-  .closeButton {
-    width: 32px;
-    height: 32px;
-    font-size: 1.35rem;
-  }
-
   .iconContainer {
     margin-bottom: 1.25rem;
   }
 
   .clockIcon {
     font-size: 3.5rem;
-  }
-
-  .title {
-    font-size: 1.5rem;
-    margin-bottom: 0.875rem;
   }
 
   .message {
@@ -283,7 +188,7 @@
   }
 
   .emailLabel {
-    font-size: 0.8rem;
+    font-size: var(--modal-body-accent-size, 0.8rem);
   }
 
   .email {
@@ -297,11 +202,11 @@
   .primaryButton,
   .secondaryButton {
     padding: 0.8rem 1.25rem;
-    font-size: 0.95rem;
+    font-size: var(--modal-body-btn-size, 0.95rem);
   }
 
   .guestNote {
-    font-size: 0.8rem;
+    font-size: var(--modal-body-accent-size, 0.8rem);
     padding: 0.65rem;
     margin-top: 0.4rem;
   }
@@ -309,41 +214,12 @@
 
 /* Mobile responsive */
 @media (max-width: 640px) {
-  .overlay {
-    padding: 0.5rem;
-  }
-
-  .modal {
-    padding: 1.75rem 1.25rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-  }
-
-  .closeButton {
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 30px;
-    height: 30px;
-    font-size: 1.25rem;
-  }
-
-  .closeButton:hover {
-    background: rgba(244, 196, 48, 0.1);
-    color: var(--color-gray-900-f);
-  }
-
   .iconContainer {
     margin-bottom: 1rem;
   }
 
   .clockIcon {
     font-size: 3rem;
-  }
-
-  .title {
-    font-size: 1.35rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
   }
 
   .message {
@@ -354,11 +230,11 @@
   .emailInfo {
     padding: 0.75rem;
     margin-bottom: 1.25rem;
-    border-radius: 6px;
+    border-radius: var(--modal-body-option-radius, 6px);
   }
 
   .emailLabel {
-    font-size: 0.75rem;
+    font-size: var(--modal-body-accent-size, 0.75rem);
   }
 
   .email {
@@ -372,90 +248,14 @@
   .primaryButton,
   .secondaryButton {
     padding: 0.7rem 1rem;
-    font-size: 0.9rem;
-    border-radius: 6px;
+    font-size: var(--modal-body-btn-size, 0.9rem);
+    border-radius: var(--modal-body-btn-radius, 6px);
   }
 
   .guestNote {
-    font-size: 0.75rem;
+    font-size: var(--modal-body-accent-size, 0.75rem);
     padding: 0.6rem;
     margin-top: 0.4rem;
-    border-radius: 6px;
-  }
-}
-
-@media (max-width: 480px) {
-  .overlay {
-    padding: 0.5rem;
-  }
-
-  .modal {
-    padding: 1.5rem 1rem;
-    border-radius: 10px;
-    max-width: 100%;
-  }
-
-  .closeButton {
-    top: 0.6rem;
-    right: 0.6rem;
-    width: 28px;
-    height: 28px;
-    font-size: 1.1rem;
-  }
-
-  .iconContainer {
-    margin-bottom: 0.875rem;
-  }
-
-  .clockIcon {
-    font-size: 2.75rem;
-  }
-
-  .title {
-    font-size: 1.2rem;
-    margin-bottom: 0.65rem;
-  }
-
-  .message {
-    font-size: 0.85rem;
-    margin-bottom: 0.875rem;
-    line-height: 1.4;
-  }
-
-  .emailInfo {
-    padding: 0.65rem;
-    margin-bottom: 1rem;
-    gap: 0.3rem;
-  }
-
-  .emailLabel {
-    font-size: 0.7rem;
-  }
-
-  .email {
-    font-size: 0.85rem;
-  }
-
-  .actions {
-    gap: 0.4rem;
-  }
-
-  .primaryButton,
-  .secondaryButton {
-    padding: 0.65rem 0.9rem;
-    font-size: 0.85rem;
-    border-radius: 5px;
-    min-height: 40px;
-  }
-
-  .primaryButton:hover {
-    transform: translateY(-1px);
-  }
-
-  .guestNote {
-    font-size: 0.7rem;
-    padding: 0.5rem;
-    margin-top: 0.35rem;
-    line-height: 1.3;
+    border-radius: var(--modal-body-option-radius, 6px);
   }
 }

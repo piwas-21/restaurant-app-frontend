@@ -1,0 +1,200 @@
+/* craft reservation docket card (Prompt 7c): warm-white plate, wobbly radius,
+   offset shadow, alternating tilt; Amatic date/time, Quicksand ticket lines,
+   soft stamped Caveat status badge (never traffic-light), handwritten footnote,
+   quiet terracotta "Cancel" outline pill. Primitives via composes; tokens only.
+   The doubled .statusBadge selector out-specifies StatusBadge's tone classes
+   deterministically (file order becomes irrelevant). */
+
+.reservationCard {
+  composes: cardLift from '../primitives.module.css';
+  padding: 1.4rem 1.6rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Hand-placed alternating tilt; the :hover variants re-add the letterpress
+   lift the base tilt would otherwise override (composed rules emit first). */
+.reservationCard:nth-child(odd) {
+  transform: rotate(-0.35deg);
+}
+
+.reservationCard:nth-child(even) {
+  transform: rotate(0.4deg);
+}
+
+.reservationCard:nth-child(odd):hover {
+  transform: rotate(-0.35deg) translate(-2px, -2px);
+}
+
+.reservationCard:nth-child(even):hover {
+  transform: rotate(0.4deg) translate(-2px, -2px);
+}
+
+.cardCancelled,
+.cardCompleted,
+.cardNoShow {
+  opacity: 0.78;
+}
+
+.reservationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.reservationMainInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.dateTimeInfo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1.4rem;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* Date + time big in Amatic SC — the docket headline; their little icons
+   would fight the lettering, so the ink alone carries them. */
+.dateItem .icon,
+.timeItem .icon {
+  display: none;
+}
+
+.dateItem .infoText,
+.timeItem .infoText {
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 2.1rem;
+  line-height: 1;
+}
+
+.guestsItem {
+  width: 100%;
+}
+
+/* Soft stamped Caveat status badge. Per status: pending = saffron sticky
+   fill (dark ink stays AA on the pale saffron), confirmed = olive-inked
+   outline, cancelled = faded kraft outline, completed = filed-away kraft
+   fill, no-show = soft brick outline — never a red alert. */
+.statusBadge.statusBadge {
+  align-self: flex-start;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+  padding: 0.1rem 0.8rem;
+  border-radius: 3px;
+  border: 2px solid currentColor;
+  background: transparent;
+  rotate: -2deg;
+}
+
+.statusBadge.statusPending {
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
+  color: var(--text-primary);
+}
+
+html[data-theme='dark'] .statusBadge.statusPending {
+  color: var(--text-on-primary);
+}
+
+.statusBadge.statusConfirmed {
+  color: var(--text-secondary);
+}
+
+.statusBadge.statusCancelled {
+  color: var(--text-muted);
+}
+
+.statusBadge.statusCompleted {
+  background: var(--surface-secondary);
+  border-color: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.statusBadge.statusNoShow {
+  color: var(--feedback-danger);
+}
+
+.expandButton {
+  background: transparent;
+  border: 2px solid var(--border-default);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.expandButton:hover {
+  border-color: var(--brand-primary);
+}
+
+/* Expanded details — a handwritten footnote under a torn dashed rule. */
+.reservationDetails {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 2px dashed var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.detailLabel {
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.cancelButton {
+  composes: btnOutlineSm from '../primitives.module.css';
+}
+
+@media (max-width: 480px) {
+  .reservationCard {
+    padding: 1.1rem 1.15rem;
+  }
+
+  .dateItem .infoText,
+  .timeItem .infoText {
+    font-size: 1.8rem;
+  }
+}

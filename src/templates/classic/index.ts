@@ -10,6 +10,7 @@ import RegisterPage from './RegisterPage';
 import CheckoutReviewPage from './CheckoutReviewPage';
 import CartPage from './CartPage';
 import ReservationsPage from './ReservationsPage';
+import MyReservationsPage from './MyReservationsPage';
 
 export const template: TemplateDefinition = {
   name: 'classic',
@@ -21,4 +22,5 @@ export const template: TemplateDefinition = {
   CheckoutReviewPage,
   CartPage,
   ReservationsPage,
+  MyReservationsPage,
 };

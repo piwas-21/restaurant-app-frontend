@@ -1,66 +1,29 @@
-/* Cancel Success Modal Styles */
+/*
+ * Component-local styles for CancelSuccessModal. The overlay, dialog shell,
+ * header/title and animations moved to the design-system BaseModal primitive
+ * (B3 migration) — what remains is the body (success icon + message) and the
+ * footer close button. The `var(--modal-body-*, <classic literal>)` hooks let
+ * craft stamp the icon as a terracotta wax seal and hand-letter the button
+ * while classic keeps its exact previous look via the fallbacks.
+ */
 
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modalContent {
-  background: var(--card-background);
-  border-radius: 12px;
-  max-width: 450px;
-  width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modalHeader {
+.iconContainer {
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 30px 24px 20px;
+  margin-bottom: 1rem;
 }
 
 .successIcon {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background-color: var(--success-color);
+  background-color: var(--modal-body-seal-bg, var(--success-color));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--modal-body-seal-fg, white);
+  rotate: var(--modal-body-seal-rotate, 0deg);
+  box-shadow: var(--modal-body-seal-shadow, none);
   animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -73,41 +36,24 @@
   }
 }
 
-.modalTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 1rem 0;
-  text-align: center;
-}
-
-.modalBody {
-  padding: 0 24px 20px;
-  text-align: center;
-}
-
 .successMessage {
   color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
-}
-
-.modalActions {
-  display: flex;
-  justify-content: center;
-  padding: 20px 24px;
-  border-top: 1px solid var(--border-color);
+  text-align: center;
 }
 
 .closeButton {
   padding: 0.75rem 2rem;
-  background-color: var(--success-color);
-  color: white;
+  background-color: var(--modal-body-confirm-bg, var(--success-color));
+  color: var(--modal-body-confirm-fg, white);
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  box-shadow: var(--modal-body-btn-shadow, none);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -121,41 +67,10 @@
   transform: translateY(0);
 }
 
-[data-theme='dark'] .modalContent {
-  background: var(--secondary-color);
-}
-
-/* Responsive */
 @media (max-width: 640px) {
-  .modalOverlay {
-    padding: 16px;
-  }
-
-  .modalContent {
-    max-width: 100%;
-    border-radius: 12px 12px 0 0;
-  }
-
-  .modalHeader {
-    padding: 20px 20px 16px;
-  }
-
   .successIcon {
     width: 60px;
     height: 60px;
-  }
-
-  .modalTitle {
-    font-size: 1.1rem;
-    margin: 0.75rem 0;
-  }
-
-  .modalBody {
-    padding: 0 20px 16px;
-  }
-
-  .modalActions {
-    padding: 16px 20px;
   }
 
   .closeButton {

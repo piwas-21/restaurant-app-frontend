@@ -95,4 +95,11 @@ export interface TemplateDefinition {
    *  pattern); craft ships the hand-drawn seating-chart + booking-docket
    *  re-skin (Prompt 7a/7b). */
   ReservationsPage: React.ComponentType;
+  /** The /my-reservations list page (consumed via the
+   *  `@active-template/MyReservationsPage` re-export in
+   *  src/app/my-reservations/page.tsx). Both templates render the shared
+   *  `MyReservationsLayout` (one `useMyReservations` wiring, one DOM) and
+   *  differ only in the `styles` modules they pass; craft ships the
+   *  docket-card stack re-skin (Prompt 7c). */
+  MyReservationsPage: React.ComponentType;
 }

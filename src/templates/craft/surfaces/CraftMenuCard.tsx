@@ -7,6 +7,7 @@ import type { MenuCardProps } from '@/components/menu/MenuCard';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import { Plus } from 'lucide-react';
 import MenuCardImage from '@/components/menu/MenuCardImage';
+import AdminMenuCardControls from '@/components/menu/AdminMenuCardControls';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import styles from './CraftMenuCard.module.css';
 
@@ -42,6 +43,8 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
           {t('special')}
         </span>
       )}
+
+      <AdminMenuCardControls item={item} />
 
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}

@@ -9,6 +9,7 @@ import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import MenuCardImage from './MenuCardImage';
 import MenuItemDetails from './MenuItemDetails';
 import MenuItemActions from './MenuItemActions';
+import AdminMenuCardControls from './AdminMenuCardControls';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
 
@@ -58,6 +59,8 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
           {t('special')}
         </div>
       )}
+
+      <AdminMenuCardControls item={item} />
 
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}

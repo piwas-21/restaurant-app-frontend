@@ -2180,5 +2180,6 @@
   "customer_forms_locked_hint": "Immer sichtbar und erforderlich — für diesen Ablauf notwendig",
   "customer_forms_saved": "Formulareinstellungen gespeichert",
   "customer_forms_save_failed": "Formulareinstellungen konnten nicht gespeichert werden",
-  "customer_forms_load_failed": "Formulareinstellungen konnten nicht geladen werden"
+  "customer_forms_load_failed": "Formulareinstellungen konnten nicht geladen werden",
+  "admin_edit_menu_item": "Diesen Artikel bearbeiten"
 }

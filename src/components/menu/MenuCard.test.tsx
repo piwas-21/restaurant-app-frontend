@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import MenuCard from './MenuCard';
 import type { CatalogItem } from '@/types/menu';
+import { useOptionalAuth } from '@/components/AuthContext';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -14,6 +15,12 @@ jest.mock('react-i18next', () => ({
       return key;
     },
   }),
+}));
+
+// The admin edit affordance reads auth via useOptionalAuth. Default to a guest so the
+// existing (provider-less) tests keep rendering no control; individual tests opt into admin.
+jest.mock('@/components/AuthContext', () => ({
+  useOptionalAuth: jest.fn(() => null),
 }));
 
 const product: CatalogItem = {
@@ -112,5 +119,25 @@ describe('MenuCard — one card for both catalog kinds', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'details' }));
     expect(onOpen).toHaveBeenCalledWith(bundle, { forceSheet: true });
+  });
+});
+
+describe('MenuCard — admin quick-edit', () => {
+  afterEach(() => (useOptionalAuth as jest.Mock).mockReturnValue(null));
+
+  it('deep-links an admin to the item editor', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByTestId('admin-edit-item')).toHaveAttribute('href', '/admin/menu-management/p1');
+  });
+
+  it('shows no edit affordance for a guest', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue(null);
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.queryByTestId('admin-edit-item')).not.toBeInTheDocument();
   });
 });

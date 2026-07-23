@@ -2180,5 +2180,6 @@
   "customer_forms_locked_hint": "Всегда видно и обязательно — необходимо для этого процесса",
   "customer_forms_saved": "Настройки форм клиентов сохранены",
   "customer_forms_save_failed": "Не удалось сохранить настройки форм клиентов",
-  "customer_forms_load_failed": "Не удалось загрузить настройки форм клиентов"
+  "customer_forms_load_failed": "Не удалось загрузить настройки форм клиентов",
+  "admin_edit_menu_item": "Редактировать этот элемент"
 }

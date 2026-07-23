@@ -1,0 +1,36 @@
+/* Admin edit affordance overlaid on a menu card. Tokens only — no raw hex (CLAUDE.md §5). */
+.controls {
+  position: absolute;
+  top: 0.5rem;
+  /* Top-LEFT: the classic special badge and the shared image-count badge both sit top-right,
+     so anchoring here keeps the pencil clear of them. */
+  left: 0.5rem;
+  /* Above the classic special badge (z-index 10) so the pencil is never covered / unclickable. */
+  z-index: 11;
+  display: flex;
+  gap: 0.375rem;
+}
+
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.editButton:hover,
+.editButton:focus-visible {
+  background: var(--brand-primary);
+  color: var(--brand-on-primary, var(--surface-primary));
+  border-color: var(--brand-primary);
+}

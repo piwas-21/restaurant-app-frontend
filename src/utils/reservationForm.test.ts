@@ -5,6 +5,7 @@ import {
   computeTableAvailability,
   getTimeSlotOptions,
   validateReservation,
+  areRequiredReservationDetailsFilled,
   buildSpecialRequests,
   buildReservationPayload,
   extractReservationErrorMessage,
@@ -112,6 +113,8 @@ describe('validateReservation', () => {
     selectedTime: '12:00',
     customerName: 'Ada',
     customerEmail: 'ada@example.com',
+    customerPhone: '',
+    specialRequests: '',
     bookedTableIds: [] as string[],
     allTables: [t1, t2],
   };
@@ -135,6 +138,42 @@ describe('validateReservation', () => {
 
   it('returns null for a fully valid reservation', () => {
     expect(validateReservation(base, t)).toBeNull();
+  });
+
+  it('leaves phone/special requests optional under the default rules (empty is fine)', () => {
+    expect(validateReservation({ ...base, customerPhone: '', specialRequests: '' }, t)).toBeNull();
+  });
+
+  it('warns when a config-required phone is empty (mirrors the backend enforcement)', () => {
+    const rules = { customerPhone: { isVisible: true, isRequired: true } };
+    const toast = validateReservation(base, t, rules);
+    expect(toast?.variant).toBe('warning');
+    expect(toast?.message).toContain('fill in your details');
+    expect(validateReservation({ ...base, customerPhone: '+41 22 000 00 00' }, t, rules)).toBeNull();
+  });
+});
+
+describe('areRequiredReservationDetailsFilled', () => {
+  const values = { customerName: 'Ada', customerEmail: 'ada@example.com', customerPhone: '', specialRequests: '' };
+
+  it('passes under the default rules (locked name/email filled, the rest optional)', () => {
+    expect(areRequiredReservationDetailsFilled(values)).toBe(true);
+  });
+
+  it('always requires the locked name/email — whitespace does not count', () => {
+    expect(areRequiredReservationDetailsFilled({ ...values, customerName: '  ' })).toBe(false);
+    expect(areRequiredReservationDetailsFilled({ ...values, customerEmail: '' })).toBe(false);
+  });
+
+  it('enforces config-required fields, falling back to defaults for missing rules', () => {
+    const rules = { specialRequests: { isVisible: true, isRequired: true } };
+    expect(areRequiredReservationDetailsFilled(values, rules)).toBe(false);
+    expect(areRequiredReservationDetailsFilled({ ...values, specialRequests: 'window seat' }, rules)).toBe(true);
+  });
+
+  it('never enforces a hidden field, even if a corrupt config marks it required', () => {
+    const rules = { customerPhone: { isVisible: false, isRequired: true } };
+    expect(areRequiredReservationDetailsFilled(values, rules)).toBe(true);
   });
 });
 

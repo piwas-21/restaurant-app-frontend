@@ -7,10 +7,11 @@ import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
 import GuestCustomerInfoFields, { type CustomerInfoField } from './GuestCustomerInfoFields';
 import tableModalStyles from './TableSelectionModal.module.css';
 
-// Module-level constant — frozen at load, so the reference is stable across
-// renders. Inlining `['name', 'email', 'phone']` at the call site would
-// allocate a new array per render and defeat `useGuestCustomerInfo`'s
-// `useCallback(commit, [..., requiredFields])` memoisation.
+// Order-type floor for Takeaway: phone is the pickup contact, so the admin
+// `checkout_contact` config can add requiredness/visibility on top but never
+// remove these (merge in `mergeContactFieldRules`). Module-level constant —
+// frozen at load, so the reference is stable across renders (inlining the
+// array would allocate per render and defeat the hook's memoised commit).
 const TAKEAWAY_REQUIRED_FIELDS = ['name', 'email', 'phone'] as const;
 
 interface TakeawayInfoModalProps {
@@ -30,9 +31,10 @@ interface TakeawayInfoModalProps {
    */
   title?: string;
   /**
-   * Which contact fields are required. Defaults to name+email+phone (Takeaway).
-   * The review page's contact editor passes the order-type-appropriate set so a
-   * Dine-In edit doesn't force a phone number (Dine-In requires only name+email).
+   * Order-type floor for the contact fields. Defaults to name+email+phone
+   * (Takeaway). The review page's contact editor passes the order-type-
+   * appropriate set so a Dine-In edit doesn't force a phone number (its floor
+   * is name+email); the admin config merges on top of whichever floor is given.
    * Pass a stable reference — it feeds `useGuestCustomerInfo`'s memoised commit.
    */
   requiredFields?: ReadonlyArray<CustomerInfoField>;
@@ -106,6 +108,7 @@ export default function TakeawayInfoModal({
         value={guest.value}
         errors={guest.errors}
         visibleFields={guest.visibleFields}
+        requiredFields={guest.requiredFields}
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}

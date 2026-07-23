@@ -11,8 +11,10 @@ import DeliveryAddressModal from './DeliveryAddressModal';
 import TakeawayInfoModal from './TakeawayInfoModal';
 import EditOrderTypeModal from './EditOrderTypeModal';
 
-// Stable references (feeding useGuestCustomerInfo's memoised commit). Dine-In
-// requires only name+email; Takeaway/Delivery also require phone.
+// Stable references (feeding useGuestCustomerInfo's memoised commit). These
+// are the per-order-type FLOORS — Dine-In requires only name+email while
+// Takeaway/Delivery also require phone; the admin `checkout_contact` config
+// merges on top (can add, never remove — see `mergeContactFieldRules`).
 const CONTACT_FIELDS_DINEIN: ReadonlyArray<CustomerInfoField> = ['name', 'email'];
 const CONTACT_FIELDS_FULL: ReadonlyArray<CustomerInfoField> = ['name', 'email', 'phone'];
 

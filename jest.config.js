@@ -52,6 +52,11 @@ module.exports = {
     'src/services/formFieldConfigService.ts',
     'src/hooks/useCustomerFormFields.ts',
     'src/hooks/admin/useCustomerFormsAdmin.ts',
+    'src/hooks/order/registrationOutcome.ts',
+    'src/hooks/order/useGuestProfilePrefill.ts',
+    'src/hooks/checkout/useDeliveryAddress.ts',
+    'src/lib/checkout/contactFieldRules.ts',
+    'src/schemas/deliveryAddress.schema.ts',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
@@ -274,6 +279,56 @@ module.exports = {
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    // Reservations revamp D3 — checkout contact + delivery address wired to
+    // the form-field config. The pure merge (`contactFieldRules`) and the
+    // extracted registration-outcome mapper are at 100% → 99; the
+    // schema-from-config builder's only uncovered branch is the defensive
+    // missing-rule `??` default. The contact fields component pins the
+    // per-field required rendering (register-CTA branches untested); the
+    // delivery hook/section pin the config paths (saved-addresses fetch and
+    // persistence flows are the untested remainder), pinned at actual − ~1pt.
+    './src/lib/checkout/contactFieldRules.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/order/registrationOutcome.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/order/useGuestProfilePrefill.ts': {
+      statements: 88,
+      branches: 69,
+      functions: 99,
+      lines: 93,
+    },
+    './src/hooks/checkout/useDeliveryAddress.ts': {
+      statements: 41,
+      branches: 41,
+      functions: 49,
+      lines: 41,
+    },
+    './src/schemas/deliveryAddress.schema.ts': {
+      statements: 99,
+      branches: 84,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/order/GuestCustomerInfoFields.tsx': {
+      statements: 66,
+      branches: 68,
+      functions: 53,
+      lines: 62,
+    },
+    './src/components/checkout/order-type/DeliveryAddressSection.tsx': {
+      statements: 64,
+      branches: 73,
+      functions: 52,
+      lines: 59,
     },
   },
 };

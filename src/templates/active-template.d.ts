@@ -47,6 +47,11 @@ declare module '@active-template/ReservationsPage' {
   export default ReservationsPage;
 }
 
+declare module '@active-template/MyReservationsPage' {
+  const MyReservationsPage: import('react').ComponentType;
+  export default MyReservationsPage;
+}
+
 // Per-surface overrides (T4), kept out of the eager `template` object so a slot
 // import doesn't pull Shell/HomePage into the surface's bundle.
 declare module '@active-template/surfaces' {

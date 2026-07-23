@@ -1,45 +1,11 @@
-/* Cancel Reservation Modal Styles */
-
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.modalContent {
-  background: var(--card-background);
-  border-radius: 12px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.modalTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: 0;
-}
-
-.modalBody {
-  padding: 24px;
-}
+/*
+ * Component-local styles for CancelReservationModal. The overlay, dialog
+ * shell, header and title moved to the design-system BaseModal primitive
+ * (B3 migration) — what remains is the body copy and the footer buttons.
+ * The `var(--modal-body-*, <classic literal>)` hooks let craft re-skin the
+ * buttons (Caveat pill, letterpress shadow) while classic keeps its exact
+ * previous look via the fallbacks (the Prompts 10-13 mechanism).
+ */
 
 .confirmMessage {
   color: var(--text-color);
@@ -48,22 +14,16 @@
   margin: 0;
 }
 
-.modalActions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding: 20px 24px;
-  border-top: 1px solid var(--border-color);
-}
-
 .cancelButton {
   padding: 0.75rem 1.5rem;
   background-color: var(--secondary-color);
   color: var(--text-color);
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  box-shadow: var(--modal-body-btn-shadow, none);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 500);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -82,9 +42,11 @@
   background-color: var(--danger-color);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  box-shadow: var(--modal-body-btn-shadow, none);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -98,52 +60,10 @@
   cursor: not-allowed;
 }
 
-[data-theme='dark'] .modalContent {
-  background: var(--secondary-color);
-}
-
-[data-theme='dark'] .modalHeader {
-  border-bottom-color: var(--border-color);
-}
-
-[data-theme='dark'] .confirmMessage {
-  color: var(--text-secondary);
-}
-
-[data-theme='dark'] .cancelButton:hover:not(:disabled) {
-  background-color: var(--background-color);
-}
-
-/* Responsive */
 @media (max-width: 640px) {
-  .modalOverlay {
-    padding: 16px;
-  }
-
-  .modalContent {
-    max-width: 100%;
-    border-radius: 12px 12px 0 0;
-  }
-
-  .modalHeader {
-    padding: 16px 20px;
-  }
-
-  .modalTitle {
-    font-size: 1.1rem;
-  }
-
-  .modalBody {
-    padding: 20px;
-  }
-
-  .modalActions {
-    padding: 16px 20px;
-    flex-direction: column-reverse;
-  }
-
   .cancelButton,
   .confirmButton {
-    width: 100%;
+    padding: 0.65rem 1.1rem;
+    font-size: var(--modal-body-btn-size, 0.9rem);
   }
 }

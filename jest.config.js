@@ -50,6 +50,7 @@ module.exports = {
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
     'src/services/formFieldConfigService.ts',
+    'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/useCustomerFormFields.ts',
     'src/hooks/admin/useCustomerFormsAdmin.ts',
     'src/hooks/order/registrationOutcome.ts',
@@ -329,6 +330,47 @@ module.exports = {
       branches: 73,
       functions: 52,
       lines: 59,
+    },
+    // Reservations revamp B3 — my-reservations layout/card + the three
+    // BaseModal-migrated reservation dialogs. Card, both cancel dialogs and
+    // ReservationSuccessModal at 100% → 99; the layout's uncovered branch is
+    // the defensive cancelTargetId guard (91.66 → 90); the hook's is the
+    // toggle collapse arm (83.33 → 82).
+    './src/components/reservation/my-reservations/MyReservationsLayout.tsx': {
+      statements: 99,
+      branches: 90,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/my-reservations/MyReservationCard.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/CancelReservationModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/CancelSuccessModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/ReservationSuccessModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/reservations/useMyReservations.ts': {
+      statements: 99,
+      branches: 82,
+      functions: 99,
+      lines: 99,
     },
   },
 };

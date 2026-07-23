@@ -20,9 +20,9 @@ export interface UseGuestProfilePrefillResult {
    */
   prefill: GuestCustomerInfoValue;
   /**
-   * Required fields the user still needs to provide — anything that
-   * isn't pre-filled from their server profile. Logged-in users with
-   * a complete profile see no fields at all.
+   * Fields the form should still render — anything in the collected set
+   * that isn't pre-filled from the user's server profile. Logged-in
+   * users with a complete profile see no fields at all.
    */
   visibleFields: ReadonlyArray<CustomerInfoField>;
 }
@@ -30,13 +30,15 @@ export interface UseGuestProfilePrefillResult {
 /**
  * Resolves auth + profile state once the modal opens, then exposes
  * `prefill` and `visibleFields` derived from the resolved user.
+ * `fields` is the merged shown set (order-type floor + admin config —
+ * see `mergeContactFieldRules`); the narrowing composes on top of it.
  * Cancellable so a close-then-reopen race doesn't write stale state
  * into a remounted hook. Extracted from `useGuestCustomerInfo` to keep
  * each hook under the §4 LOC limit.
  */
 export function useGuestProfilePrefill(
   enabled: boolean,
-  requiredFields: ReadonlyArray<CustomerInfoField>,
+  fields: ReadonlyArray<CustomerInfoField>,
 ): UseGuestProfilePrefillResult {
   const [user, setUser] = useState<UserDto | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -92,8 +94,8 @@ export function useGuestProfilePrefill(
   }, [enabled]);
 
   const visibleFields = useMemo<ReadonlyArray<CustomerInfoField>>(() => {
-    return requiredFields.filter((f) => !(user && hasProfileValue(user, f)));
-  }, [requiredFields, user]);
+    return fields.filter((f) => !(user && hasProfileValue(user, f)));
+  }, [fields, user]);
 
   return { user, isLoggedIn, isLoadingUser, prefill, visibleFields };
 }

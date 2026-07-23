@@ -49,6 +49,7 @@ export interface FieldRule {
 export type FormFieldRules = Record<string, FieldRule>;
 
 const visible = (isRequired: boolean): FieldRule => ({ isVisible: true, isRequired });
+const hidden: FieldRule = { isVisible: false, isRequired: false };
 
 /**
  * Defaults mirroring the backend registry (`FormFieldRegistry.cs`) — which in
@@ -66,7 +67,10 @@ export const DEFAULT_FORM_FIELD_RULES: Record<FormKey, FormFieldRules> = {
   [FORM_KEYS.checkoutContact]: {
     name: visible(true),
     email: visible(true),
-    phone: visible(false),
+    // Hidden by default (backend seed, #208): DineIn collects only name+email.
+    // Takeaway/Delivery still get a required phone via the per-order-type floor
+    // (mergeContactFieldRules) — the floor forces it regardless of this default.
+    phone: hidden,
   },
   [FORM_KEYS.deliveryAddress]: {
     street: visible(true),

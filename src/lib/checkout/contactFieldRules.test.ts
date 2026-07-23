@@ -123,15 +123,28 @@ describe('mergeContactFieldRules — locked fields + floor precedence', () => {
 });
 
 describe('mergeContactFieldRules — fallback (config fetch fails → DEFAULT rules)', () => {
+  // The checkout_contact phone default is HIDDEN (backend seed #208) — DineIn
+  // must show only name+email, exactly today's behaviour. Takeaway/Delivery
+  // still get a required phone because the order-type floor forces it.
   it("Takeaway/Delivery keep exactly today's behaviour: all three fields shown + required", () => {
     const merged = mergeContactFieldRules(TAKEAWAY, DEFAULTS);
     expect(merged.fields).toEqual(['name', 'email', 'phone']);
     expect(merged.requiredFields).toEqual(['name', 'email', 'phone']);
   });
 
-  it('DineIn keeps name+email required; the default-visible phone renders as optional', () => {
+  it('DineIn shows only name+email (the hidden phone default is never surfaced)', () => {
     const merged = mergeContactFieldRules(DINEIN, DEFAULTS);
-    expect(merged.fields).toEqual(['name', 'email', 'phone']);
+    expect(merged.fields).toEqual(['name', 'email']);
     expect(merged.requiredFields).toEqual(['name', 'email']);
+  });
+
+  it('config-fetch failure: DineIn → no phone, Takeaway & Delivery → required phone', () => {
+    // Both order types resolve against the same DEFAULT (hidden phone).
+    expect(mergeContactFieldRules(DINEIN, DEFAULTS).fields).not.toContain('phone');
+    for (const floor of [TAKEAWAY, DELIVERY]) {
+      const merged = mergeContactFieldRules(floor, DEFAULTS);
+      expect(merged.fields).toContain('phone');
+      expect(merged.requiredFields).toContain('phone');
+    }
   });
 });

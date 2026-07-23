@@ -68,8 +68,14 @@ describe('useGuestProfilePrefill — narrowing over the merged shown set', () =>
   it('composes with mergeContactFieldRules: a config-shown optional phone still narrows away when on file', async () => {
     localStorage.setItem('auth_token', 'tok');
     mockGetCurrentUser.mockResolvedValue(baseUser);
-    // DineIn floor + default config → phone shown as optional (D3 merge).
-    const merged = mergeContactFieldRules(['name', 'email'], DEFAULT_FORM_FIELD_RULES[FORM_KEYS.checkoutContact]);
+    // Admin surfaces phone as visible+optional on top of the DineIn floor → the
+    // merge shows all three; the profile-narrowing then drops what's on file.
+    // (The default checkout phone is HIDDEN — an explicit config makes it show.)
+    const config = {
+      ...DEFAULT_FORM_FIELD_RULES[FORM_KEYS.checkoutContact],
+      phone: { isVisible: true, isRequired: false },
+    };
+    const merged = mergeContactFieldRules(['name', 'email'], config);
     expect(merged.fields).toEqual(['name', 'email', 'phone']);
 
     const { result } = renderHook(() => useGuestProfilePrefill(true, merged.fields));

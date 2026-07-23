@@ -41,6 +41,20 @@ function getSessionId(): string | null {
 }
 
 /**
+ * Clear auth state and bounce to the login/home route. Called only for a
+ * definitive session end — never for a transient refresh failure (see
+ * refreshToken's `transient` flag), which would otherwise log users out on a
+ * rate-limit or network blip.
+ */
+function clearAuthAndRedirect(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  window.location.href = '/';
+}
+
+/**
  * Request configuration options
  */
 interface RequestConfig extends RequestInit {
@@ -94,41 +108,27 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
       headers,
     });
 
-    // Handle 401 Unauthorized - try to refresh token and retry
+    // Handle 401 Unauthorized - try to refresh the token and retry once.
     if (response.status === 401 && token) {
-      try {
-        const refreshResponse = await refreshToken();
-        if (refreshResponse.success) {
-          // Get the new token
-          token = getAuthToken();
-          if (token) {
-            // Update Authorization header with new token
-            headers['Authorization'] = `Bearer ${token}`;
+      const refreshResponse = await refreshToken();
 
-            // Retry the original request with new token
-            response = await fetch(url, {
-              ...fetchConfig,
-              headers,
-            });
-          }
-        } else {
-          // Refresh failed - redirect to login
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            window.location.href = '/';
-          }
-          throw new ApiError(401, 'Session expired. Please login again.');
+      if (refreshResponse.success) {
+        // Retry the original request with the freshly-stored token.
+        token = getAuthToken();
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+          response = await fetch(url, {
+            ...fetchConfig,
+            headers,
+          });
         }
-      } catch {
-        // Refresh failed - redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('user');
-          window.location.href = '/';
-        }
+      } else if (refreshResponse.transient) {
+        // Rate-limited (429) or network blip while refreshing — the session may
+        // still be valid, so do NOT sign the user out. Surface a retriable error.
+        throw new ApiError(429, refreshResponse.message || 'Too many requests. Please try again shortly.');
+      } else {
+        // Genuine invalid/expired session — sign out and send to login.
+        clearAuthAndRedirect();
         throw new ApiError(401, 'Session expired. Please login again.');
       }
     }

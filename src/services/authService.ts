@@ -68,11 +68,9 @@ interface RefreshPayload {
 let inFlightRefresh: Promise<RefreshResult> | null = null;
 
 export function refreshToken(): Promise<RefreshResult> {
-  if (!inFlightRefresh) {
-    inFlightRefresh = performRefresh().finally(() => {
-      inFlightRefresh = null;
-    });
-  }
+  inFlightRefresh ??= performRefresh().finally(() => {
+    inFlightRefresh = null;
+  });
   return inFlightRefresh;
 }
 

@@ -1,5 +1,6 @@
 import { apiClient } from '@/utils/apiClient';
 import { mockApiClient } from './mockApiClient';
+import { compressImageForUpload } from '@/utils/imageCompression';
 
 const CATEGORIES_API_URL = '/api/Categories';
 
@@ -40,7 +41,7 @@ export const deleteCategory = async (categoryId: string) => {
 
 export const uploadCategoryImage = async (categoryId: string, imageFile: File) => {
   const formData = new FormData();
-  formData.append('Image', imageFile);
+  formData.append('Image', await compressImageForUpload(imageFile));
 
   return await apiClient.putFormData(`${CATEGORIES_API_URL}/${categoryId}/image`, formData);
 };

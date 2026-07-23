@@ -33,6 +33,20 @@
   color: var(--text-secondary);
 }
 
+/*
+  Dirty-state emphasis. The Save buttons already flip from disabled (grey) to the
+  brand primary when the form becomes dirty; this accents the sticky bar and the
+  hint so the pending commit is unmistakable. Token-only (no raw colours).
+*/
+.saveBarDirty {
+  border-top: 2px solid var(--brand-primary);
+}
+
+.saveHintDirty {
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
   .saveBar {
     flex-wrap: wrap;

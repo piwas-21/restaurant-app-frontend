@@ -2180,5 +2180,7 @@
   "customer_forms_locked_hint": "Always visible and required — needed for this flow",
   "customer_forms_saved": "Customer form settings saved",
   "customer_forms_save_failed": "Failed to save the customer form settings",
-  "customer_forms_load_failed": "Failed to load the customer form settings"
+  "customer_forms_load_failed": "Failed to load the customer form settings",
+  "admin_edit_menu_item": "Edit this item",
+  "admin_edit_price": "Edit price"
 }

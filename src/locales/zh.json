@@ -2180,5 +2180,7 @@
   "customer_forms_locked_hint": "始终可见且必填——此流程必需",
   "customer_forms_saved": "客户表单设置已保存",
   "customer_forms_save_failed": "客户表单设置保存失败",
-  "customer_forms_load_failed": "客户表单设置加载失败"
+  "customer_forms_load_failed": "客户表单设置加载失败",
+  "admin_edit_menu_item": "编辑此项",
+  "admin_edit_price": "编辑价格"
 }

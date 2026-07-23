@@ -42,6 +42,7 @@ describe('toCatalogItemFromProduct', () => {
       imageCount: undefined,
       price: 12.5,
       isBundle: false,
+      priceEditable: true,
       allergens: ['gluten'],
       isSpecial: true,
       isAvailable: true,
@@ -49,6 +50,15 @@ describe('toCatalogItemFromProduct', () => {
       ingredients: undefined,
       dietaryTags: [],
     });
+  });
+
+  it('marks a variation-priced product as NOT inline-price-editable (its card price is a "from" value)', () => {
+    const withVariations: MenuItem = {
+      ...base,
+      variations: [{ name: 'Large', isActive: true, priceModifier: 3, displayOrder: 1 }],
+    };
+
+    expect(toCatalogItemFromProduct(withVariations).priceEditable).toBe(false);
   });
 
   it('carries the card summary fields a product renders', () => {

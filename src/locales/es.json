@@ -2180,5 +2180,7 @@
   "customer_forms_locked_hint": "Siempre visible y obligatorio — necesario para este flujo",
   "customer_forms_saved": "Configuración de formularios de clientes guardada",
   "customer_forms_save_failed": "No se pudo guardar la configuración de formularios de clientes",
-  "customer_forms_load_failed": "No se pudo cargar la configuración de formularios de clientes"
+  "customer_forms_load_failed": "No se pudo cargar la configuración de formularios de clientes",
+  "admin_edit_menu_item": "Editar este artículo",
+  "admin_edit_price": "Editar precio"
 }

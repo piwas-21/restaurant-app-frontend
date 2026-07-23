@@ -147,7 +147,25 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   it('disables Save until something changes, so the only commit point is deliberate', async () => {
     await renderEditor(item, false);
 
-    expect(screen.getByRole('button', { name: 'save_changes' })).toBeDisabled();
+    expect(screen.getByTestId('editor-save')).toBeDisabled();
+  });
+
+  it('offers a header Save that mirrors the sticky one', async () => {
+    await renderEditor(item, false);
+
+    const headerSave = screen.getByTestId('editor-save-top');
+    expect(headerSave).toBeDisabled(); // clean: gated like the bottom Save
+    fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
+    expect(headerSave).toBeEnabled(); // dirty: both Saves light up
+  });
+
+  it('submits from the header Save button', async () => {
+    const { nameInput } = await renderEditor(item, false);
+
+    fireEvent.change(nameInput, { target: { value: 'Margherita Verde' } });
+    fireEvent.click(screen.getByTestId('editor-save-top'));
+
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   });
 
   // Ingredients are React state, not a registered RHF field, so form.isDirty can't see them.
@@ -156,9 +174,9 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   it('enables Save after an ingredient-only change', async () => {
     await renderEditor(item, false);
 
-    expect(screen.getByRole('button', { name: 'save_changes' })).toBeDisabled();
+    expect(screen.getByTestId('editor-save')).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
-    expect(screen.getByRole('button', { name: 'save_changes' })).toBeEnabled();
+    expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
 
   // The owner asked for an unsaved-changes guard. Save is gated on isDirty, so Back is the
@@ -189,7 +207,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(item, false);
 
     fireEvent.change(nameInput, { target: { value: 'Margherita Bianca' } });
-    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+    fireEvent.click(screen.getByTestId('editor-save'));
 
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
     expect(updateMenuBundle).not.toHaveBeenCalled();
@@ -199,7 +217,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(bundle, true);
 
     fireEvent.change(nameInput, { target: { value: 'Pizza Combo XL' } });
-    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+    fireEvent.click(screen.getByTestId('editor-save'));
 
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
     expect(updateProduct).not.toHaveBeenCalled();
@@ -229,7 +247,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     const { nameInput } = await renderEditor(fresh, true);
 
     fireEvent.change(nameInput, { target: { value: 'Brand New Combo' } });
-    fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
+    fireEvent.click(screen.getByTestId('editor-save'));
 
     await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
 
@@ -251,7 +269,7 @@ describe('ProductEditorPage — the create route drives the same page', () => {
     expect(screen.getByRole('heading', { name: 'create_new_product' })).toBeInTheDocument();
     // Edit gates Save on isDirty; create must be submittable from the empty form (the resolver
     // is what rejects an incomplete one), so the button is not disabled on mount.
-    expect(screen.getByRole('button', { name: 'create_product' })).toBeEnabled();
+    expect(screen.getByTestId('editor-save')).toBeEnabled();
     expect(screen.queryByRole('button', { name: 'delete_product' })).not.toBeInTheDocument();
   });
 
@@ -263,7 +281,7 @@ describe('ProductEditorPage — the create route drives the same page', () => {
     fireEvent.change(container.querySelector('input[name="basePrice"]') as HTMLInputElement, {
       target: { value: '20' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'create_menu_bundle' }));
+    fireEvent.click(screen.getByTestId('editor-save'));
 
     await waitFor(() => expect(createMenuBundle).toHaveBeenCalledTimes(1));
     expect(createProduct).not.toHaveBeenCalled();

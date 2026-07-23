@@ -2180,5 +2180,7 @@
   "customer_forms_locked_hint": "Toujours visible et obligatoire — indispensable à ce parcours",
   "customer_forms_saved": "Paramètres des formulaires clients enregistrés",
   "customer_forms_save_failed": "Échec de l'enregistrement des paramètres des formulaires clients",
-  "customer_forms_load_failed": "Échec du chargement des paramètres des formulaires clients"
+  "customer_forms_load_failed": "Échec du chargement des paramètres des formulaires clients",
+  "admin_edit_menu_item": "Modifier cet article",
+  "admin_edit_price": "Modifier le prix"
 }

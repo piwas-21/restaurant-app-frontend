@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Pencil, Tag, Check, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -30,8 +30,12 @@ export default function AdminMenuCardControls({ item, onPriceChange }: Readonly<
   const [value, setValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
 
   const isAdmin = auth?.user?.role?.toLowerCase() === 'admin';
   if (!mounted || auth?.isLoading || !isAdmin) {
@@ -49,8 +53,11 @@ export default function AdminMenuCardControls({ item, onPriceChange }: Readonly<
   };
 
   const save = async () => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed < 0) {
+    // Number('') === 0, so guard the empty/cleared field explicitly — otherwise clearing the input
+    // and saving would silently retag the item to a free 0.00.
+    const trimmed = value.trim();
+    const parsed = Number(trimmed);
+    if (trimmed === '' || !Number.isFinite(parsed) || parsed < 0) {
       setFailed(true);
       return;
     }
@@ -59,7 +66,8 @@ export default function AdminMenuCardControls({ item, onPriceChange }: Readonly<
     try {
       const result = await updateProductPrice(item.id, parsed);
       if (result?.success) {
-        onPriceChange?.(parsed);
+        // Prefer the backend's echoed (possibly rounded) price over the typed value.
+        onPriceChange?.(typeof result.data === 'number' ? result.data : parsed);
         setEditing(false);
       } else {
         setFailed(true);
@@ -75,11 +83,19 @@ export default function AdminMenuCardControls({ item, onPriceChange }: Readonly<
     return (
       <div className={`${styles.controls} ${styles.editing}`}>
         <input
+          ref={inputRef}
           type="number"
           step="0.01"
           min="0"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setFailed(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void save();
+            if (e.key === 'Escape') setEditing(false);
+          }}
           className={`${styles.priceInput} ${failed ? styles.priceInputError : ''}`}
           aria-label={priceLabel}
           aria-invalid={failed}

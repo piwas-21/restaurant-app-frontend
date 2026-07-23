@@ -57,5 +57,5 @@
 }
 
 .priceInputError {
-  border-color: var(--brand-primary);
+  border-color: var(--feedback-error);
 }

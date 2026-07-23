@@ -58,6 +58,8 @@ const bundle: CatalogItem = {
   bundleItemNames: ['Pizza', 'Cola'],
 };
 
+beforeEach(() => jest.clearAllMocks());
+
 describe('MenuCard — one card for both catalog kinds', () => {
   it('renders a product with its title, allergens and price', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
@@ -175,5 +177,33 @@ describe('MenuCard — admin quick-edit', () => {
 
     await waitFor(() => expect(updateProductPrice).toHaveBeenCalledWith('p1', 14.5));
     await waitFor(() => expect(screen.getAllByText('CHF 14.50').length).toBeGreaterThan(0));
+  });
+
+  it('keeps the editor open and the price unchanged when the save fails', async () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+    (updateProductPrice as jest.Mock).mockRejectedValue(new Error('forbidden'));
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+    fireEvent.change(screen.getByTestId('admin-price-input'), { target: { value: '99' } });
+    fireEvent.click(screen.getByTestId('admin-price-save'));
+
+    await waitFor(() => expect(updateProductPrice).toHaveBeenCalled());
+    expect(screen.getByTestId('admin-price-input')).toBeInTheDocument(); // still editing
+    expect(screen.getAllByText('CHF 12.50').length).toBeGreaterThan(0); // original price kept
+  });
+
+  it('refuses to save a cleared price — no accidental free item', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+    fireEvent.change(screen.getByTestId('admin-price-input'), { target: { value: '' } });
+    fireEvent.click(screen.getByTestId('admin-price-save'));
+
+    expect(updateProductPrice).not.toHaveBeenCalled();
+    expect(screen.getByTestId('admin-price-input')).toHaveAttribute('aria-invalid', 'true');
   });
 });

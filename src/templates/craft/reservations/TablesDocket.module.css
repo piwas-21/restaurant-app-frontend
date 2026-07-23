@@ -97,7 +97,7 @@
 
 /* Dark ink on the pale dark-mode saffron — the inherited cream text would
    not clear AA there (tokens only, no new saffron values). */
-[data-theme='dark'] .capacityWarning {
+html[data-theme='dark'] .capacityWarning {
   color: var(--text-on-primary);
 }
 

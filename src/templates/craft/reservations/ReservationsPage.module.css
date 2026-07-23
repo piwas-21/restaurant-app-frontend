@@ -84,8 +84,8 @@
 
 /* Dark ink on the pale dark-mode saffron — the inherited cream text would
    not clear AA there (tokens only, no new saffron values). */
-[data-theme='dark'] .sectionTitle,
-[data-theme='dark'] .panelTitle {
+html[data-theme='dark'] .sectionTitle,
+html[data-theme='dark'] .panelTitle {
   color: var(--text-on-primary);
 }
 

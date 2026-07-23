@@ -91,3 +91,10 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+/**
+ * Like {@link useAuth} but returns null instead of throwing when there is no AuthProvider.
+ * For optional admin affordances rendered on public/customer surfaces (and in unit tests) that
+ * must not require an auth context to exist.
+ */
+export const useOptionalAuth = (): AuthContextType | null => useContext(AuthContext) ?? null;

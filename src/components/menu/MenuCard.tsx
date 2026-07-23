@@ -1,7 +1,7 @@
 'use client';
 
 import { formatPlainCurrency } from '@/utils/currency';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CatalogItem } from '@/types/menu';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
@@ -9,6 +9,7 @@ import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import MenuCardImage from './MenuCardImage';
 import MenuItemDetails from './MenuItemDetails';
 import MenuItemActions from './MenuItemActions';
+import AdminMenuCardControls from './AdminMenuCardControls';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
 
@@ -35,6 +36,9 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
   const { t, i18n } = useTranslation();
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  // Locally reflect an admin inline price edit; resync if the item prop changes.
+  const [price, setPrice] = useState(item.price);
+  useEffect(() => setPrice(item.price), [item.price]);
 
   const currentLanguage = (i18n.language || 'en').split('-')[0];
   const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
@@ -59,6 +63,8 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
         </div>
       )}
 
+      <AdminMenuCardControls item={item} onPriceChange={setPrice} />
+
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
         alt={itemName || t('menu_item_image_alt')}
@@ -77,7 +83,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
           // whenever that block is uncommented.
           ingredients={resolveIngredientSummary(item, currentLanguage)}
           allergens={item.allergens}
-          price={item.price}
+          price={price}
           dietaryTags={item.dietaryTags ?? []}
           t={t}
           onTitleClick={openDetails}
@@ -92,7 +98,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
         )}
 
         <div className={styles.priceActionsRow}>
-          <span className={styles.mobilePrice}>{formatPlainCurrency(item.price)}</span>
+          <span className={styles.mobilePrice}>{formatPlainCurrency(price)}</span>
           <MenuItemActions
             onAdd={open}
             onFeedback={() => setShowFeedbackForm(true)}

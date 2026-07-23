@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import type { TableDto } from '@/types/reservation';
 import SelectedTableInfo from './SelectedTableInfo';
+import styles from './SelectedTableInfo.module.css';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_k: string, f?: string) => f ?? _k }),
@@ -19,7 +20,12 @@ const makeTable = (partial: Partial<TableDto> & Pick<TableDto, 'id' | 'tableNumb
 describe('SelectedTableInfo docket', () => {
   it('renders nothing when no tables are selected', () => {
     const { container } = render(
-      <SelectedTableInfo selectedTables={[]} requestCombineTables={false} onToggleCombine={jest.fn()} />,
+      <SelectedTableInfo
+        selectedTables={[]}
+        requestCombineTables={false}
+        onToggleCombine={jest.fn()}
+        styles={styles}
+      />,
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -29,7 +35,14 @@ describe('SelectedTableInfo docket', () => {
       makeTable({ id: 'a', tableNumber: '1', maxGuests: 2, isOutdoor: false }),
       makeTable({ id: 'b', tableNumber: '7', maxGuests: 6, isOutdoor: true, notes: 'Near the window' }),
     ];
-    render(<SelectedTableInfo selectedTables={selected} requestCombineTables={false} onToggleCombine={jest.fn()} />);
+    render(
+      <SelectedTableInfo
+        selectedTables={selected}
+        requestCombineTables={false}
+        onToggleCombine={jest.fn()}
+        styles={styles}
+      />,
+    );
 
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByText('1')).toBeInTheDocument();
@@ -50,6 +63,7 @@ describe('SelectedTableInfo docket', () => {
         selectedTables={[makeTable({ id: 'a', tableNumber: '1' })]}
         requestCombineTables={false}
         onToggleCombine={jest.fn()}
+        styles={styles}
       />,
     );
 

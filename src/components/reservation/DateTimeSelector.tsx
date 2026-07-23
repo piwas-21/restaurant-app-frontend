@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useId, useState, useEffect } from 'react';
 import type { TimeSlotOption } from '@/utils/reservationForm';
-import styles from './DateTimeSelector.module.css';
 
 const FALLBACK_TIMES = ['11:00', '12:00', '13:00', '14:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
 
@@ -13,6 +12,9 @@ interface DateTimeSelectorProps {
   loading?: boolean;
   /** Every slot for the day; unavailable ones render disabled + struck-through. */
   timeSlotOptions?: TimeSlotOption[];
+  /** Per-template CSS module (ADR-006 reservations surface — the CartPage
+   *  pattern): classic passes ./DateTimeSelector.module.css, craft its re-skin. */
+  styles: Readonly<Record<string, string>>;
 }
 
 export default function DateTimeSelector({
@@ -22,6 +24,7 @@ export default function DateTimeSelector({
   onTimeChange,
   loading = false,
   timeSlotOptions,
+  styles,
 }: Readonly<DateTimeSelectorProps>) {
   const { t, i18n } = useTranslation();
   const dateId = useId();

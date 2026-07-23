@@ -10,7 +10,6 @@
 #   bash scripts/check-file-length.sh --all
 src/types/basket.ts
 src/app/kitchen-staff/page.tsx
-src/app/reservations/ReservationsPage.module.css
 src/app/admin/customer-discounts/customer-discounts.module.css
 src/app/admin/customer-discounts/page.tsx
 src/app/admin/user-groups/[id]/page.tsx

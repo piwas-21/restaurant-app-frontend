@@ -1,13 +1,15 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from './GuestSelector.module.css';
 
 interface GuestSelectorProps {
   numberOfGuests: number;
   onGuestsChange: (guests: number) => void;
+  /** Per-template CSS module (ADR-006 reservations surface — the CartPage
+   *  pattern): classic passes ./GuestSelector.module.css, craft its re-skin. */
+  styles: Readonly<Record<string, string>>;
 }
 
-export default function GuestSelector({ numberOfGuests, onGuestsChange }: GuestSelectorProps) {
+export default function GuestSelector({ numberOfGuests, onGuestsChange, styles }: Readonly<GuestSelectorProps>) {
   const { t } = useTranslation();
   const customId = useId();
 

@@ -1,0 +1,87 @@
+/* craft party-size picker (Prompt 7a docket section 1): Amatic section label
+   over a dashed hand-torn rule, stamped number pills 1-8 (selected = solid
+   terracotta) and a craft-paper custom input for larger groups. Same class
+   keys as the classic GuestSelector module. Tokens only. */
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.label {
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-bottom: 0.3rem;
+  border-bottom: 2px dashed var(--border-default);
+}
+
+.guestSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Stamped number pill — an inked circle stamp. */
+.guestButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.guestButton:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-primary);
+}
+
+.guestButton.selected {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.customInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.customLabel {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+/* Craft-paper input, as in checkout. */
+.customInput {
+  width: 7rem;
+  padding: 0.45rem 0.75rem;
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  border: 2px solid var(--border-default);
+  border-radius: var(--craft-radius);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.customInput:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}

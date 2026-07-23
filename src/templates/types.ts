@@ -87,4 +87,12 @@ export interface TemplateDefinition {
    *  `useCartPage` hook + shared cart-page bodies (each taking a `styles`
    *  module — the auth "cart pattern"); craft ships an order-pad re-skin. */
   CartPage: React.ComponentType;
+  /** The /reservations floor-plan booking page (consumed via the
+   *  `@active-template/ReservationsPage` re-export in
+   *  src/app/reservations/page.tsx). Both templates render the shared
+   *  `ReservationsPageLayout` (one `useReservationsPage` wiring, one DOM) and
+   *  differ only in the per-area `styles` modules they pass (the CartPage
+   *  pattern); craft ships the hand-drawn seating-chart + booking-docket
+   *  re-skin (Prompt 7a/7b). */
+  ReservationsPage: React.ComponentType;
 }

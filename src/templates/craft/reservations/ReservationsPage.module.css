@@ -1,0 +1,169 @@
+/* craft /reservations page chrome (Prompt 7a/7b): transparent page canvas
+   (kitchen wallpaper shows through), Amatic heading, kraft chart plate with a
+   masking-tape "Choose your table" label, letterpress booking docket with a
+   tape "Book a table" label and the terracotta "Book Now" pill. Primitives
+   via composes; tokens only. */
+
+.container {
+  min-height: calc(100vh - var(--craft-header-h));
+  background-color: var(--page-canvas);
+  padding: 2.5rem 0 3rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.title {
+  margin: 0 0 2.5rem;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1.05;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 430px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* The seating-chart plate — a kraft panel pinned to the wallpaper. */
+.floorPlanSection {
+  composes: cardStatic from '../primitives.module.css';
+  background-color: var(--surface-secondary);
+  padding: 2rem 2rem 1.75rem;
+  min-width: 0; /* Prevent grid overflow */
+}
+
+/* Masking-tape label stuck over the plate's top edge (saffron, like the
+   checkout section tapes; site overrides of a composed dependency are
+   deterministic — see primitives.module.css header). */
+.sectionTitle {
+  composes: tapeLabel from '../craft.module.css';
+  margin: -2.9rem 0 1.25rem;
+  background: var(--brand-accent);
+  font-size: 1.45rem;
+  font-weight: 700;
+}
+
+.selectionCount {
+  margin-left: 0.5rem;
+  font-size: 1.1rem;
+}
+
+/* The booking docket — a letterpress reservation card. min-width: 0 zeroes
+   the grid item's automatic minimum so the unshrinkable date-leaf strip
+   scrolls inside the docket instead of widening the single-column track past
+   the viewport on mobile. */
+.bookingPanel {
+  composes: cardPlate from '../primitives.module.css';
+  padding: 2rem 1.75rem;
+  position: sticky;
+  top: calc(var(--craft-header-h) + 1.25rem);
+  min-width: 0;
+}
+
+.panelTitle {
+  composes: tapeLabel from '../craft.module.css';
+  margin: -2.9rem 0 1.5rem;
+  background: var(--brand-accent);
+  font-size: 1.45rem;
+  font-weight: 700;
+  transform: rotate(1.5deg);
+}
+
+/* Dark ink on the pale dark-mode saffron — the inherited cream text would
+   not clear AA there (tokens only, no new saffron values). */
+[data-theme='dark'] .sectionTitle,
+[data-theme='dark'] .panelTitle {
+  color: var(--text-on-primary);
+}
+
+.bookingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.bookButton {
+  composes: btnPrimaryLg from '../primitives.module.css';
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .bookingPanel {
+    position: static;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .content {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.75rem 0 2.5rem;
+  }
+
+  .content {
+    padding: 0 0.75rem;
+  }
+
+  .title {
+    font-size: 2.6rem;
+    margin-bottom: 2.25rem;
+  }
+
+  .floorPlanSection {
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+
+  .bookingPanel {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .sectionTitle,
+  .panelTitle {
+    font-size: 1.3rem;
+    margin-top: -2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 0 0.5rem;
+  }
+
+  .title {
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+  }
+
+  .floorPlanSection {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .bookingPanel {
+    padding: 1.25rem 1rem;
+  }
+}

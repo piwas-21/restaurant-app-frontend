@@ -9,6 +9,7 @@ import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import CheckoutReviewPage from './CheckoutReviewPage';
 import CartPage from './CartPage';
+import ReservationsPage from './ReservationsPage';
 
 export const template: TemplateDefinition = {
   name: 'craft',
@@ -19,4 +20,5 @@ export const template: TemplateDefinition = {
   RegisterPage,
   CheckoutReviewPage,
   CartPage,
+  ReservationsPage,
 };

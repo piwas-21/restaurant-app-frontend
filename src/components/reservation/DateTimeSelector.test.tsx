@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import DateTimeSelector from './DateTimeSelector';
+import styles from './DateTimeSelector.module.css';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_k: string, f?: string) => f ?? _k, i18n: { language: 'en' } }),
@@ -18,6 +19,7 @@ describe('DateTimeSelector accessibility', () => {
           { time: '18:00', available: true },
           { time: '19:00', available: true },
         ]}
+        styles={styles}
       />,
     );
     expect(screen.getByLabelText('Or pick a date:')).toHaveAttribute('type', 'date');
@@ -37,6 +39,7 @@ describe('DateTimeSelector unavailable slots', () => {
           { time: '18:00', available: true },
           { time: '19:00', available: false },
         ]}
+        styles={styles}
       />,
     );
 

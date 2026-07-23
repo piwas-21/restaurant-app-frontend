@@ -5,13 +5,15 @@ import TableMarker from '@/components/table-layout/TableMarker';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { DEFAULT_ENTRANCE_POSITION } from '@/lib/tableCanvasGeometry';
 import { TableDto } from '@/types/reservation';
-import styles from './VisualTableLayout.module.css';
 
 interface VisualTableLayoutProps {
   tables: TableDto[];
   selectedTableIds?: string[];
   onSelectTable: (table: TableDto) => void;
   bookedTableIds?: string[];
+  /** Per-template CSS module (ADR-006 reservations surface — the CartPage
+   *  pattern): classic passes ./VisualTableLayout.module.css, craft its re-skin. */
+  styles: Readonly<Record<string, string>>;
 }
 
 type TableStatus = 'available' | 'booked' | 'selected';
@@ -21,6 +23,7 @@ export default function VisualTableLayout({
   selectedTableIds = [],
   onSelectTable,
   bookedTableIds = [],
+  styles,
 }: Readonly<VisualTableLayoutProps>) {
   const { t } = useTranslation();
   const { info } = useRestaurantInfo();

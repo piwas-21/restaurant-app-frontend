@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { TableDto } from '@/types/reservation';
-import styles from './SelectedTableInfo.module.css';
 
 interface SelectedTableInfoProps {
   selectedTables: TableDto[];
   requestCombineTables: boolean;
   onToggleCombine: () => void;
+  /** Per-template CSS module (ADR-006 reservations surface — the CartPage
+   *  pattern): classic passes ./SelectedTableInfo.module.css, craft its re-skin. */
+  styles: Readonly<Record<string, string>>;
 }
 
 /**
@@ -17,6 +19,7 @@ export default function SelectedTableInfo({
   selectedTables,
   requestCombineTables,
   onToggleCombine,
+  styles,
 }: Readonly<SelectedTableInfoProps>) {
   const { t } = useTranslation();
 

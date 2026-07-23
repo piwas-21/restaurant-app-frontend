@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import type { TableDto } from '@/types/reservation';
 import tableLayoutService from '@/services/tableLayoutService';
+import { getRestaurantInfo } from '@/services/restaurantInfoService';
 import { useTableLayout } from '../../useTableLayout';
 
 // Stub react-i18next so t() returns the English fallback without a provider.
@@ -22,6 +23,12 @@ jest.mock('@/services/tableLayoutService', () => {
   };
   return { __esModule: true, default: svc, tableLayoutService: svc };
 });
+
+// The entrance sub-hook persists via the RestaurantInfo singleton; mock it.
+jest.mock('@/services/restaurantInfoService', () => ({
+  getRestaurantInfo: jest.fn(),
+  updateRestaurantInfo: jest.fn(),
+}));
 
 const svc = tableLayoutService as unknown as {
   getAllTables: jest.Mock;
@@ -81,17 +88,12 @@ function makeTable(overrides: Partial<TableDto> = {}): TableDto {
     isOutdoor: false,
     positionX: 100,
     positionY: 100,
-    width: 60,
-    height: 60,
-    shape: 'circle',
-    rotation: 0,
     ...overrides,
   };
 }
 
 describe('useTableLayout (orchestrator)', () => {
   beforeEach(() => jest.clearAllMocks());
-  afterEach(() => localStorage.clear());
 
   it('exposes the full public API surface unchanged after decomposition', () => {
     svc.getAllTables.mockResolvedValue([]);
@@ -102,12 +104,15 @@ describe('useTableLayout (orchestrator)', () => {
     expect(result.current.CANVAS_HEIGHT).toBe(500);
   });
 
-  it('wires the entrance sub-hook: loadEntrancePosition hydrates from localStorage', () => {
+  it('wires the entrance sub-hook: loadEntrancePosition hydrates from restaurant info', async () => {
     svc.getAllTables.mockResolvedValue([]);
-    localStorage.setItem('entrancePosition', JSON.stringify({ x: 22, y: 33 }));
+    (getRestaurantInfo as jest.Mock).mockResolvedValue({
+      success: true,
+      data: { entrancePositionX: 22, entrancePositionY: 33 },
+    });
     const { result } = renderHook(() => useTableLayout());
 
-    act(() => result.current.loadEntrancePosition());
+    await act(() => result.current.loadEntrancePosition());
 
     expect(result.current.entrancePosition).toEqual({ x: 22, y: 33 });
   });

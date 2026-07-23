@@ -14,9 +14,6 @@ interface TableStatisticsChartsProps {
   activePercentage: number;
   indoorPercentage: number;
   outdoorPercentage: number;
-  circularTables: number;
-  squareTables: number;
-  rectangularTables: number;
   smallTables: number;
   mediumTables: number;
   largeTables: number;
@@ -30,7 +27,7 @@ interface TableStatisticsChartsProps {
 
 /**
  * Top-of-page metrics + the two breakdown charts (status, location) +
- * the three detail cards (shapes, capacity, reservation status).
+ * the two detail cards (capacity, reservation status).
  */
 export default function TableStatisticsCharts(p: TableStatisticsChartsProps) {
   const { t } = useTranslation();
@@ -91,11 +88,6 @@ export default function TableStatisticsCharts(p: TableStatisticsChartsProps) {
       </div>
 
       <div className={styles.detailsGrid}>
-        <DetailCard title={t('table_shapes', 'Table Shapes')}>
-          <DetailItem icon="⭕" label={t('circular', 'Circular')} value={p.circularTables} />
-          <DetailItem icon="⬜" label={t('square', 'Square')} value={p.squareTables} />
-          <DetailItem icon="▭" label={t('rectangular', 'Rectangular')} value={p.rectangularTables} />
-        </DetailCard>
         <DetailCard title={t('capacity_distribution', 'Capacity Distribution')}>
           <DetailItem label={t('small_tables', 'Small (1-2 seats)')} value={p.smallTables} />
           <DetailItem label={t('medium_tables', 'Medium (3-4 seats)')} value={p.mediumTables} />

@@ -14,10 +14,38 @@ describe('DateTimeSelector accessibility', () => {
         selectedTime=""
         onDateChange={() => {}}
         onTimeChange={() => {}}
-        availableTimeSlots={['18:00', '19:00']}
+        timeSlotOptions={[
+          { time: '18:00', available: true },
+          { time: '19:00', available: true },
+        ]}
       />,
     );
     expect(screen.getByLabelText('Or pick a date:')).toHaveAttribute('type', 'date');
     expect(screen.getByLabelText('Or select time:').tagName).toBe('SELECT');
+  });
+});
+
+describe('DateTimeSelector unavailable slots', () => {
+  it('renders unavailable slots disabled (chip + select option) instead of hiding them', () => {
+    render(
+      <DateTimeSelector
+        selectedDate=""
+        selectedTime=""
+        onDateChange={() => {}}
+        onTimeChange={() => {}}
+        timeSlotOptions={[
+          { time: '18:00', available: true },
+          { time: '19:00', available: false },
+        ]}
+      />,
+    );
+
+    const availableChip = screen.getByRole('button', { name: '18:00' });
+    const unavailableChip = screen.getByRole('button', { name: '19:00' });
+    expect(availableChip).toBeEnabled();
+    expect(unavailableChip).toBeDisabled();
+
+    expect(screen.getByRole('option', { name: '18:00' })).toBeEnabled();
+    expect(screen.getByRole('option', { name: '19:00' })).toBeDisabled();
   });
 });

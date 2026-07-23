@@ -93,7 +93,6 @@ export function useTableSelection({
             const updateData: UpdateTableDto = {
               ...table,
               isActive: makeActive,
-              shape: table.shape || 'circle',
             };
             await tableLayoutService.updateTable(tableId, updateData);
             return tableId;

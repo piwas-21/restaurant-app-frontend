@@ -1,4 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import TableMarker from '@/components/table-layout/TableMarker';
+import { CANVAS_ASPECT_PADDING_PCT } from '@/lib/tableCanvasGeometry';
 import type { TableDto } from '@/types/reservation';
 import styles from './TableCanvas.module.css';
 
@@ -22,14 +25,7 @@ interface TableCanvasProps {
   onEntranceMouseDown: (e: React.MouseEvent) => void;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
-  onRotationStart?: (tableId: string, e: React.MouseEvent) => void;
-  onRotationMove?: (e: React.MouseEvent) => void;
-  onRotationEnd?: () => void;
-  rotatingTable?: string | null;
 }
-
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 500;
 
 export default function TableCanvas({
   canvasRef,
@@ -46,11 +42,9 @@ export default function TableCanvas({
   onEntranceMouseDown,
   onMouseMove,
   onMouseUp,
-  onRotationStart,
-  onRotationMove,
-  onRotationEnd,
-  rotatingTable,
-}: TableCanvasProps) {
+}: Readonly<TableCanvasProps>) {
+  const { t } = useTranslation();
+
   const filteredTables = tables.filter((table) => {
     if (!filters.showIndoor && !table.isOutdoor) return false;
     if (!filters.showOutdoor && table.isOutdoor) return false;
@@ -59,28 +53,23 @@ export default function TableCanvas({
     return true;
   });
 
+  const getCursor = (tableId: string): string => {
+    if (draggingTable === tableId) return 'grabbing';
+    return selectionMode ? 'pointer' : 'grab';
+  };
+
   const renderTable = (table: TableDto) => {
     const isSelected = selectedTable?.id === table.id;
     const isInSelectionSet = selectedTableIds.has(table.id);
-    const isRotating = rotatingTable === table.id;
-    const shape = table.shape || 'circle';
-    const isRound = shape === 'circle';
-    const isSquare = shape === 'square';
+    const stateClasses = [
+      isSelected ? styles.selected : '',
+      isInSelectionSet ? styles.inSelection : '',
+      table.isActive ? '' : styles.inactive,
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-    const shapeStyle: React.CSSProperties = isRound
-      ? { borderRadius: '50%', width: '8%', height: '10%' }
-      : isSquare
-        ? { width: '8%', height: '8%' }
-        : { width: '12%', height: '14%' };
-
-    const leftPercent = (table.positionX / CANVAS_WIDTH) * 100;
-    const topPercent = (table.positionY / CANVAS_HEIGHT) * 100;
-
-    // Apply rotation if defined
-    const rotation = table.rotation || 0;
-    const transformStyle = rotation !== 0 ? `rotate(${rotation}deg)` : undefined;
-
-    const handleClick = (e: React.MouseEvent) => {
+    const handleMouseDown = (e: React.MouseEvent) => {
       if (selectionMode) {
         e.stopPropagation();
         onToggleTableSelection(table.id);
@@ -89,43 +78,26 @@ export default function TableCanvas({
       }
     };
 
-    const handleRotationHandleMouseDown = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (onRotationStart) {
-        onRotationStart(table.id, e);
-      }
-    };
-
     return (
-      <div
+      <TableMarker
         key={table.id}
-        className={`${styles.table} ${isSelected ? styles.selected : ''} ${isInSelectionSet ? styles.inSelection : ''} ${!table.isActive ? styles.inactive : ''}`}
-        style={{
-          left: `${leftPercent}%`,
-          top: `${topPercent}%`,
-          ...shapeStyle,
-          transform: transformStyle,
-          cursor: draggingTable === table.id ? 'grabbing' : selectionMode ? 'pointer' : 'grab',
-        }}
-        onMouseDown={handleClick}
+        tableNumber={table.tableNumber}
+        maxGuests={table.maxGuests}
+        positionX={table.positionX}
+        positionY={table.positionY}
+        className={stateClasses}
+        cursor={getCursor(table.id)}
+        ariaLabel={t('table_marker_aria', 'Table {{number}}, {{seats}} seats, {{status}}', {
+          number: table.tableNumber,
+          seats: table.maxGuests,
+          status: table.isActive ? t('active', 'Active') : t('inactive', 'Inactive'),
+        })}
+        onMouseDown={handleMouseDown}
       >
-        <span className={styles.tableNumber}>{table.tableNumber}</span>
-        <span className={styles.guestCount}>👤 {table.maxGuests}</span>
         {table.isOutdoor && <span className={styles.outdoorBadge}>🌤️</span>}
         {!table.isActive && <span className={styles.inactiveBadge}>❌</span>}
         {isInSelectionSet && <span className={styles.checkmark}>✓</span>}
-
-        {/* Rotation Handle - only show for non-round tables when selected */}
-        {isSelected && !isRound && (
-          <div
-            className={`${styles.rotationHandle} ${isRotating ? styles.rotating : ''}`}
-            onMouseDown={handleRotationHandleMouseDown}
-            title="Drag to rotate"
-          >
-            ↻
-          </div>
-        )}
-      </div>
+      </TableMarker>
     );
   };
 
@@ -133,30 +105,12 @@ export default function TableCanvas({
     <div
       ref={canvasRef}
       className={styles.canvas}
-      onMouseMove={(e) => {
-        if (rotatingTable && onRotationMove) {
-          onRotationMove(e);
-        } else {
-          onMouseMove(e);
-        }
-      }}
-      onMouseUp={() => {
-        if (rotatingTable && onRotationEnd) {
-          onRotationEnd();
-        } else {
-          onMouseUp();
-        }
-      }}
-      onMouseLeave={() => {
-        if (rotatingTable && onRotationEnd) {
-          onRotationEnd();
-        } else {
-          onMouseUp();
-        }
-      }}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
       style={{
         width: '100%',
-        paddingBottom: `${(CANVAS_HEIGHT / CANVAS_WIDTH) * 100}%`,
+        paddingBottom: `${CANVAS_ASPECT_PADDING_PCT}%`,
       }}
     >
       <div className={styles.canvasContent}>

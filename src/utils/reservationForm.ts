@@ -61,64 +61,22 @@ export function computeTableAvailability(
   return { bookedTableIds, capacityWarning };
 }
 
-/**
- * Builds the snackbar shown when a user taps a booked table — listing the times it *is* free, or
- * explaining it's unavailable. Mirrors the former `handleTableSelect` booked-branch.
- */
-export function getBookedTableToast(
-  table: TableDto,
-  selectedDate: string,
-  availableTimeSlots: TimeSlotDto[],
-  numberOfGuests: number,
-  t: TFunction,
-): ReservationToast {
-  if (selectedDate && availableTimeSlots.length > 0) {
-    const availableTimes = availableTimeSlots
-      .filter((slot) => slot.availableTables.some((tbl) => tbl.id === table.id))
-      .map((slot) => slot.startTime.substring(0, 5)); // HH:mm
-
-    if (availableTimes.length > 0) {
-      return {
-        message: t(
-          'table_booked_available_at',
-          'Table {{tableNumber}} is booked at this time. Available at: {{times}}',
-          {
-            tableNumber: table.tableNumber,
-            times: availableTimes.join(', '),
-          },
-        ),
-        variant: 'info',
-        autoHideDuration: 5000,
-      };
-    }
-    return {
-      message: t('table_not_available_today', 'Table {{tableNumber}} is not available today for {{guests}} guests', {
-        tableNumber: table.tableNumber,
-        guests: numberOfGuests,
-      }),
-      variant: 'warning',
-    };
-  }
-  return {
-    message: t('table_booked', 'Table {{tableNumber}} is currently booked', { tableNumber: table.tableNumber }),
-    variant: 'warning',
-  };
+/** A time chip in the picker: HH:mm plus whether every selected table is free then. */
+export interface TimeSlotOption {
+  time: string;
+  available: boolean;
 }
 
 /**
- * The times to offer in the picker: when tables are selected, only slots where ALL of them are
- * free; otherwise every slot. Returns HH:mm strings.
+ * The times to offer in the picker. EVERY slot is returned; a slot where any selected table is
+ * busy is marked unavailable (rendered disabled + struck-through) instead of being filtered out.
+ * With no tables selected every slot is available.
  */
-export function getFilteredTimeSlots(selectedTableIds: string[], availableTimeSlots: TimeSlotDto[]): string[] {
-  if (selectedTableIds.length === 0) {
-    return availableTimeSlots.map((s) => s.startTime.substring(0, 5));
-  }
-  return availableTimeSlots
-    .filter((slot) => {
-      const slotTableIds = slot.availableTables.map((tbl) => tbl.id);
-      return selectedTableIds.every((selectedId) => slotTableIds.includes(selectedId));
-    })
-    .map((s) => s.startTime.substring(0, 5));
+export function getTimeSlotOptions(selectedTableIds: string[], availableTimeSlots: TimeSlotDto[]): TimeSlotOption[] {
+  return availableTimeSlots.map((slot) => ({
+    time: slot.startTime.substring(0, 5),
+    available: selectedTableIds.every((selectedId) => slot.availableTables.some((tbl) => tbl.id === selectedId)),
+  }));
 }
 
 /** Form inputs needed to validate a reservation before submit. */

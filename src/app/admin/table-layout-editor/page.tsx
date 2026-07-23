@@ -13,7 +13,6 @@ import { DeleteTableModal } from '@/components/admin/table-layout/DeleteTableMod
 import TableQRCodeModal from '@/components/admin/tables/TableQRCodeModal';
 import { useTableLayout } from '@/hooks/useTableLayout';
 import { useTableDragAndDrop } from '@/hooks/table-layout/useTableDragAndDrop';
-import { useTableRotation } from '@/hooks/table-layout/useTableRotation';
 import { useTableActionsPopup } from '@/hooks/table-layout/useTableActionsPopup';
 import { useTableLayoutMutations } from '@/hooks/table-layout/useTableLayoutMutations';
 import type { TableDto } from '@/types/reservation';
@@ -36,11 +35,15 @@ export default function TableLayoutEditorPage() {
 
   const layout = useTableLayout();
 
+  // Depend on the two stable callbacks, NOT the composed `layout` object — it
+  // is a fresh object every render, so [layout] re-fires the effect (and its
+  // network fetches) on every commit.
+  const { loadTables, loadEntrancePosition } = layout;
   useEffect(() => {
-    // loadTables has its own try/catch; loadEntrancePosition is synchronous.
-    void layout.loadTables();
-    layout.loadEntrancePosition();
-  }, [layout]);
+    // Both have their own try/catch; fire-and-forget.
+    void loadTables();
+    void loadEntrancePosition();
+  }, [loadTables, loadEntrancePosition]);
 
   const mutations = useTableLayoutMutations({
     tables: layout.tables,
@@ -48,7 +51,6 @@ export default function TableLayoutEditorPage() {
     setSelectedTable: layout.setSelectedTable,
     setQRModalTable,
     showMessage: layout.showMessage,
-    loadTables: layout.loadTables,
   });
 
   const popup = useTableActionsPopup({
@@ -77,16 +79,6 @@ export default function TableLayoutEditorPage() {
     setSelectedTable: layout.setSelectedTable,
     setTables: layout.setTables,
     onTableClick: popup.openForTable,
-  });
-
-  const rotation = useTableRotation({
-    canvasRef,
-    canvasWidth: layout.CANVAS_WIDTH,
-    canvasHeight: layout.CANVAS_HEIGHT,
-    tables: layout.tables,
-    setTables: layout.setTables,
-    setSelectedTable: layout.setSelectedTable,
-    persistRotation: mutations.persistRotation,
   });
 
   if (layout.loading) {
@@ -133,10 +125,6 @@ export default function TableLayoutEditorPage() {
               onEntranceMouseDown={drag.handleEntranceMouseDown}
               onMouseMove={drag.handleMouseMove}
               onMouseUp={drag.handleMouseUp}
-              onRotationStart={rotation.handleRotationStart}
-              onRotationMove={rotation.handleRotationMove}
-              onRotationEnd={rotation.handleRotationEnd}
-              rotatingTable={rotation.rotatingTable}
             />
 
             {popup.isOpen && layout.selectedTable && (

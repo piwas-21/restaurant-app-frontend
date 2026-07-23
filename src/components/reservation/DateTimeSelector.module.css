@@ -127,6 +127,14 @@
   cursor: not-allowed;
 }
 
+/* Slot exists but a selected table is busy then — visible, struck-through. */
+.timeButton.unavailable {
+  text-decoration: line-through;
+  opacity: 0.45;
+  background: var(--surface-secondary-light);
+  color: var(--text-muted);
+}
+
 /* Custom Input Wrapper */
 .customInputWrapper {
   display: flex;

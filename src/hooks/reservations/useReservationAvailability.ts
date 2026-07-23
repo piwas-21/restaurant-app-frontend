@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { enqueueSnackbar } from 'notistack';
 import { reservationService } from '@/services/reservationService';
 import { TableDto, TimeSlotDto } from '@/types/reservation';
-import { computeTableAvailability, getBookedTableToast, getFilteredTimeSlots } from '@/utils/reservationForm';
+import { computeTableAvailability, getTimeSlotOptions } from '@/utils/reservationForm';
 
 /**
  * Table / date / time / slot selection + availability for the reservations page: loads tables,
@@ -126,10 +126,8 @@ export function useReservationAvailability() {
     const isBooked = bookedTableIds.includes(table.id);
     const isSelected = selectedTableIds.includes(table.id);
 
-    // Booked tables can't be selected — explain when (and if) they're free instead.
+    // Booked tables can't be selected (their markers are disabled; this guards direct calls).
     if (isBooked && !isSelected) {
-      const toast = getBookedTableToast(table, selectedDate, availableTimeSlots, numberOfGuests, t);
-      enqueueSnackbar(toast.message, { variant: toast.variant, autoHideDuration: toast.autoHideDuration });
       return;
     }
 
@@ -139,7 +137,7 @@ export function useReservationAvailability() {
   };
 
   const selectedTables = allTables.filter((tbl) => selectedTableIds.includes(tbl.id));
-  const filteredTimeSlots = getFilteredTimeSlots(selectedTableIds, availableTimeSlots);
+  const timeSlotOptions = getTimeSlotOptions(selectedTableIds, availableTimeSlots);
 
   return {
     allTables,
@@ -147,7 +145,7 @@ export function useReservationAvailability() {
     setSelectedTableIds,
     bookedTableIds,
     selectedTables,
-    filteredTimeSlots,
+    timeSlotOptions,
     capacityWarning,
     handleTableSelect,
     selectedDate,

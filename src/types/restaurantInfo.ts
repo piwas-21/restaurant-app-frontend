@@ -35,6 +35,14 @@ export interface RestaurantInfoDto {
   website: string | null;
   /** Runtime colour-palette key (ADR-007); null = the template's baked palette. */
   themePaletteKey: string | null;
+  /**
+   * Floor-plan entrance marker (canvas percentages, 0–100). Optional AND
+   * nullable: absent until the backend entrance-position PR deploys, null
+   * until the admin places the marker. Consumers fall back to
+   * `DEFAULT_ENTRANCE_POSITION` (lib/tableCanvasGeometry).
+   */
+  entrancePositionX?: number | null;
+  entrancePositionY?: number | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
 }
 
@@ -52,6 +60,9 @@ export interface UpdateRestaurantInfoCommand {
   email: string;
   website: string | null;
   themePaletteKey: string | null;
+  /** Optional until the backend entrance-position PR deploys (additive). */
+  entrancePositionX?: number | null;
+  entrancePositionY?: number | null;
 }
 
 export interface AddPhoneNumberCommand {

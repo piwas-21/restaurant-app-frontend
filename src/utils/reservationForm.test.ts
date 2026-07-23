@@ -3,8 +3,7 @@ import type { TableDto, TimeSlotDto } from '@/types/reservation';
 import {
   getCapacityWarningMessage,
   computeTableAvailability,
-  getBookedTableToast,
-  getFilteredTimeSlots,
+  getTimeSlotOptions,
   validateReservation,
   buildSpecialRequests,
   buildReservationPayload,
@@ -21,8 +20,6 @@ const makeTable = (partial: Partial<TableDto> & Pick<TableDto, 'id' | 'tableNumb
   isOutdoor: false,
   positionX: 0,
   positionY: 0,
-  width: 1,
-  height: 1,
   ...partial,
 });
 
@@ -81,39 +78,30 @@ describe('computeTableAvailability', () => {
   });
 });
 
-describe('getBookedTableToast', () => {
-  const slots = [slot('12:00:00', [t1]), slot('13:00:00', [t2])];
-
-  it('lists the HH:mm times a booked table is actually free (info)', () => {
-    const toast = getBookedTableToast(t1, '2026-08-15', slots, 2, t);
-    expect(toast.variant).toBe('info');
-    expect(toast.autoHideDuration).toBe(5000);
-    expect(toast.message).toContain('12:00');
-  });
-
-  it('says not-available-today (warning) when the table is free in no slot', () => {
-    const toast = getBookedTableToast(t3, '2026-08-15', slots, 2, t);
-    expect(toast.variant).toBe('warning');
-    expect(toast.message).toContain('not available today');
-  });
-
-  it('falls back to currently-booked (warning) with no date or slots', () => {
-    const toast = getBookedTableToast(t1, '', [], 2, t);
-    expect(toast.variant).toBe('warning');
-    expect(toast.message).toContain('currently booked');
-  });
-});
-
-describe('getFilteredTimeSlots', () => {
+describe('getTimeSlotOptions', () => {
   const slots = [slot('12:00:00', [t1, t2]), slot('13:00:00', [t2])];
 
-  it('returns every slot as HH:mm when no tables are selected', () => {
-    expect(getFilteredTimeSlots([], slots)).toEqual(['12:00', '13:00']);
+  it('returns every slot as available HH:mm when no tables are selected', () => {
+    expect(getTimeSlotOptions([], slots)).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: true },
+    ]);
   });
 
-  it('keeps only slots where ALL selected tables are free', () => {
-    expect(getFilteredTimeSlots(['a', 'b'], slots)).toEqual(['12:00']); // t1 only free at 12:00
-    expect(getFilteredTimeSlots(['b'], slots)).toEqual(['12:00', '13:00']);
+  it('keeps every slot but marks those where ANY selected table is busy as unavailable', () => {
+    // t1 is only free at 12:00 → 13:00 stays in the list, struck as unavailable.
+    expect(getTimeSlotOptions(['a', 'b'], slots)).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: false },
+    ]);
+    expect(getTimeSlotOptions(['b'], slots)).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: true },
+    ]);
+  });
+
+  it('returns an empty list when the day has no slots', () => {
+    expect(getTimeSlotOptions(['a'], [])).toEqual([]);
   });
 });
 

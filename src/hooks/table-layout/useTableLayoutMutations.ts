@@ -11,13 +11,11 @@ export interface UseTableLayoutMutationsOptions {
   setSelectedTable: Dispatch<SetStateAction<TableDto | null>>;
   setQRModalTable: Dispatch<SetStateAction<TableDto | null>>;
   showMessage: (type: 'success' | 'error', text: string) => void;
-  loadTables: () => void;
 }
 
 /**
  * The two non-drag mutations the page issues directly: persist a
- * properties update for one table (also reused by the rotation hook
- * to save the final angle) and regenerate a table's QR code.
+ * properties update for one table and regenerate a table's QR code.
  */
 export function useTableLayoutMutations({
   tables,
@@ -25,7 +23,6 @@ export function useTableLayoutMutations({
   setSelectedTable,
   setQRModalTable,
   showMessage,
-  loadTables,
 }: UseTableLayoutMutationsOptions) {
   const { t } = useTranslation();
 
@@ -42,10 +39,6 @@ export function useTableLayoutMutations({
         isOutdoor: updates.isOutdoor ?? current.isOutdoor,
         positionX: updates.positionX ?? current.positionX,
         positionY: updates.positionY ?? current.positionY,
-        width: updates.width ?? current.width,
-        height: updates.height ?? current.height,
-        shape: updates.shape ?? current.shape ?? 'rectangle',
-        rotation: updates.rotation ?? current.rotation ?? 0,
         notes: updates.notes ?? current.notes,
       };
 
@@ -58,19 +51,6 @@ export function useTableLayoutMutations({
       }
     },
     [tables, setTables, showMessage, t],
-  );
-
-  /** Persist a rotation only; revert via `loadTables` on failure. */
-  const persistRotation = useCallback(
-    async (table: TableDto) => {
-      try {
-        await saveTableProperties(table.id, { rotation: table.rotation || 0 });
-      } catch (err) {
-        showMessage('error', (err as Error).message || t('failed_to_rotate_table', 'Failed to rotate table'));
-        loadTables();
-      }
-    },
-    [saveTableProperties, showMessage, loadTables, t],
   );
 
   const regenerateQRCode = useCallback(
@@ -89,5 +69,5 @@ export function useTableLayoutMutations({
     [setTables, setQRModalTable, setSelectedTable, showMessage, t],
   );
 
-  return { saveTableProperties, persistRotation, regenerateQRCode };
+  return { saveTableProperties, regenerateQRCode };
 }

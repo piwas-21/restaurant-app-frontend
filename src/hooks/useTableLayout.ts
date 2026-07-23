@@ -2,12 +2,10 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TableDto, UpdateTableDto, CreateTableDto } from '@/types/reservation';
 import tableLayoutService from '@/services/tableLayoutService';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/tableCanvasGeometry';
 import { useTableEntrance } from './table-layout/useTableEntrance';
 import { useTableDragState } from './table-layout/useTableDragState';
 import { useTableSelection } from './table-layout/useTableSelection';
-
-const CANVAS_WIDTH = 600;
-const CANVAS_HEIGHT = 500;
 
 export function useTableLayout() {
   const { t } = useTranslation();
@@ -36,7 +34,7 @@ export function useTableLayout() {
     }
   }, [showMessage, t]);
 
-  const entrance = useTableEntrance();
+  const entrance = useTableEntrance(showMessage);
   const dragState = useTableDragState();
   const selection = useTableSelection({
     tables,
@@ -118,10 +116,6 @@ export function useTableLayout() {
           isOutdoor: table.isOutdoor,
           positionX: table.positionX,
           positionY: table.positionY,
-          width: table.width,
-          height: table.height,
-          shape: table.shape || 'circle',
-          rotation: table.rotation || 0,
           notes: table.notes,
         };
         await tableLayoutService.updateTable(table.id, updateData);

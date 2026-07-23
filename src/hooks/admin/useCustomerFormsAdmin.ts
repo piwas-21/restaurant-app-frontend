@@ -23,6 +23,32 @@ export function fromTriState(state: FieldTriState): { isVisible: boolean; isRequ
   return { isVisible: state !== 'hidden', isRequired: state === 'required' };
 }
 
+/** Pure state transform: applies a 3-state change to one configurable field of one form. */
+function applyFieldState(
+  forms: FormFieldsDto[],
+  formKey: string,
+  fieldKey: string,
+  state: FieldTriState,
+): FormFieldsDto[] {
+  return forms.map((form) => {
+    if (form.formKey !== formKey) return form;
+    return {
+      ...form,
+      fields: form.fields.map((field) =>
+        field.fieldKey === fieldKey && !field.isLocked ? { ...field, ...fromTriState(state) } : field,
+      ),
+    };
+  });
+}
+
+/**
+ * Pure state transform: merges only the saved form's server entry into the
+ * editable state, so in-progress edits on the OTHER form cards survive a save.
+ */
+function mergeSavedForm(forms: FormFieldsDto[], formKey: string, updated: FormFieldsDto[]): FormFieldsDto[] {
+  return forms.map((f) => (f.formKey === formKey ? (updated.find((u) => u.formKey === f.formKey) ?? f) : f));
+}
+
 /**
  * State + actions for the admin "Customer forms" page: loads the grouped
  * configuration, tracks per-field 3-state edits (locked fields are immutable),
@@ -65,17 +91,7 @@ export function useCustomerFormsAdmin() {
 
   /** Applies a 3-state change to one configurable field. Locked fields are ignored. */
   const setFieldState = (formKey: string, fieldKey: string, state: FieldTriState) => {
-    setForms((prev) =>
-      prev.map((form) => {
-        if (form.formKey !== formKey) return form;
-        return {
-          ...form,
-          fields: form.fields.map((field) =>
-            field.fieldKey === fieldKey && !field.isLocked ? { ...field, ...fromTriState(state) } : field,
-          ),
-        };
-      }),
-    );
+    setForms((prev) => applyFieldState(prev, formKey, fieldKey, state));
   };
 
   const isDirty = (formKey: string): boolean => {
@@ -106,9 +122,7 @@ export function useCustomerFormsAdmin() {
       // only the saved form into the editable state so in-progress edits on
       // the OTHER form cards survive; the response as a whole is the new
       // saved baseline (so those other edits still compare as dirty).
-      setForms((prev) =>
-        prev.map((f) => (f.formKey === formKey ? (updated.find((u) => u.formKey === f.formKey) ?? f) : f)),
-      );
+      setForms((prev) => mergeSavedForm(prev, formKey, updated));
       setSavedForms(updated);
       invalidateFormFieldConfigCache();
       enqueueSnackbar(t('customer_forms_saved', 'Customer form settings saved'), { variant: 'success' });

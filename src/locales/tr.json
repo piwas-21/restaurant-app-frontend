@@ -2181,5 +2181,6 @@
   "customer_forms_saved": "Müşteri formu ayarları kaydedildi",
   "customer_forms_save_failed": "Müşteri formu ayarları kaydedilemedi",
   "customer_forms_load_failed": "Müşteri formu ayarları yüklenemedi",
-  "admin_edit_menu_item": "Bu öğeyi düzenle"
+  "admin_edit_menu_item": "Bu öğeyi düzenle",
+  "admin_edit_price": "Fiyatı düzenle"
 }

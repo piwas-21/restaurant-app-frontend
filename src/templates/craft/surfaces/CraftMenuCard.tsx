@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import type { MenuCardProps } from '@/components/menu/MenuCard';
@@ -26,6 +26,9 @@ import styles from './CraftMenuCard.module.css';
 export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
   const [imageFailed, setImageFailed] = useState(false);
+  // Locally reflect an admin inline price edit; resync if the item prop changes.
+  const [price, setPrice] = useState(item.price);
+  useEffect(() => setPrice(item.price), [item.price]);
 
   const lang = (i18n.language || 'en').split('-')[0];
   const itemName = item.content?.[lang]?.name || item.content?.en?.name || item.name;
@@ -44,7 +47,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
         </span>
       )}
 
-      <AdminMenuCardControls item={item} />
+      <AdminMenuCardControls item={item} onPriceChange={setPrice} />
 
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
@@ -59,7 +62,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
       <div className={styles.body}>
         <button type="button" className={styles.leader} onClick={openDetails} id={`item-name-${item.id}`}>
           <span className={styles.name}>{itemName}</span>
-          <span className={styles.price}>{formatPlainCurrency(item.price)}</span>
+          <span className={styles.price}>{formatPlainCurrency(price)}</span>
         </button>
 
         {description && <p className={styles.description}>{description}</p>}

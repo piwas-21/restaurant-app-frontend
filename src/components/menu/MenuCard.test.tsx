@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import MenuCard from './MenuCard';
 import type { CatalogItem } from '@/types/menu';
 import { useOptionalAuth } from '@/components/AuthContext';
+import { updateProductPrice } from '@/services/productService';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -23,6 +24,10 @@ jest.mock('@/components/AuthContext', () => ({
   useOptionalAuth: jest.fn(() => null),
 }));
 
+jest.mock('@/services/productService', () => ({
+  updateProductPrice: jest.fn(),
+}));
+
 const product: CatalogItem = {
   kind: 'product',
   id: 'p1',
@@ -31,6 +36,7 @@ const product: CatalogItem = {
   imageUrl: 'pizza.jpg',
   price: 12.5,
   isBundle: false,
+  priceEditable: true,
   allergens: ['gluten'],
   dietaryTags: [],
   detailedIngredients: [
@@ -139,5 +145,35 @@ describe('MenuCard — admin quick-edit', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.queryByTestId('admin-edit-item')).not.toBeInTheDocument();
+  });
+
+  it('offers an inline price editor for an admin on a priceEditable product', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByTestId('admin-edit-price')).toBeInTheDocument();
+  });
+
+  it('hides the price editor when the product is not priceEditable (e.g. has variations)', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    render(<MenuCard item={{ ...product, priceEditable: false }} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.queryByTestId('admin-edit-price')).not.toBeInTheDocument();
+  });
+
+  it('persists an inline price edit and reflects the new price on the card', async () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+    (updateProductPrice as jest.Mock).mockResolvedValue({ success: true, data: 14.5 });
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+    fireEvent.change(screen.getByTestId('admin-price-input'), { target: { value: '14.50' } });
+    fireEvent.click(screen.getByTestId('admin-price-save'));
+
+    await waitFor(() => expect(updateProductPrice).toHaveBeenCalledWith('p1', 14.5));
+    await waitFor(() => expect(screen.getAllByText('CHF 14.50').length).toBeGreaterThan(0));
   });
 });

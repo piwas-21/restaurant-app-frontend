@@ -2181,5 +2181,6 @@
   "customer_forms_saved": "Instellingen voor klantformulieren opgeslagen",
   "customer_forms_save_failed": "Instellingen voor klantformulieren konden niet worden opgeslagen",
   "customer_forms_load_failed": "Instellingen voor klantformulieren konden niet worden geladen",
-  "admin_edit_menu_item": "Dit item bewerken"
+  "admin_edit_menu_item": "Dit item bewerken",
+  "admin_edit_price": "Prijs bewerken"
 }

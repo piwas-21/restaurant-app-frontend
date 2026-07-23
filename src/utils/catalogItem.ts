@@ -19,6 +19,9 @@ export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
     images: item.images,
     price: item.price,
     isBundle: false,
+    // Inline price-edit is safe only when the card price IS the editable base price — i.e. no
+    // variations (a variation product's displayed price is a derived "from" value).
+    priceEditable: (item.variations?.length ?? 0) === 0,
     allergens: item.allergens,
     isSpecial: item.isSpecial,
     isAvailable: item.isAvailable,

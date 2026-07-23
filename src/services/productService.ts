@@ -22,6 +22,14 @@ export const getProductImages = async (productId: string) => {
   return await apiClient.get(`${PRODUCTS_API_URL}/${productId}/images`);
 };
 
+/** Admin quick-edit: update only a product's base price (PATCH /api/Products/{id}/price). */
+export const updateProductPrice = async (productId: string, price: number) => {
+  return await apiClient.patch<{ success: boolean; data: number; message?: string }>(
+    `${PRODUCTS_API_URL}/${productId}/price`,
+    { price },
+  );
+};
+
 export const uploadBulkProductImages = async (productId: string, imageFiles: File[]) => {
   const formData = new FormData();
   imageFiles.forEach((file) => {

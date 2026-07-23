@@ -2181,5 +2181,6 @@
   "customer_forms_saved": "تم حفظ إعدادات نماذج العملاء",
   "customer_forms_save_failed": "تعذر حفظ إعدادات نماذج العملاء",
   "customer_forms_load_failed": "تعذر تحميل إعدادات نماذج العملاء",
-  "admin_edit_menu_item": "تعديل هذا العنصر"
+  "admin_edit_menu_item": "تعديل هذا العنصر",
+  "admin_edit_price": "تعديل السعر"
 }

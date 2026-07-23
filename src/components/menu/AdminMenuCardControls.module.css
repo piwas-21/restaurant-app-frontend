@@ -34,3 +34,28 @@
   color: var(--brand-on-primary, var(--surface-primary));
   border-color: var(--brand-primary);
 }
+
+.editButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Inline price editor (input + save/cancel). */
+.editing {
+  max-width: calc(100% - 1rem);
+  align-items: center;
+}
+
+.priceInput {
+  width: 4.5rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.priceInputError {
+  border-color: var(--brand-primary);
+}

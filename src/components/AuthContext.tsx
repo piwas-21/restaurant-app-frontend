@@ -34,22 +34,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const refreshTokenValue = localStorage.getItem('refresh_token');
 
         if (storedUser && authToken && refreshTokenValue) {
-          // Validate the token by attempting a refresh
-          try {
-            const refreshResponse = await refreshToken();
+          // Validate the stored session by attempting a refresh (single-flighted
+          // in authService, so this shares any concurrent refresh).
+          const refreshResponse = await refreshToken();
 
-            if (refreshResponse.success) {
-              // Token is valid or successfully refreshed
-              setUser(JSON.parse(storedUser));
-            } else {
-              // Token refresh failed - clear auth state
-              localStorage.removeItem('auth_token');
-              localStorage.removeItem('refresh_token');
-              localStorage.removeItem('user');
-              setUser(null);
-            }
-          } catch {
-            // Token validation/refresh failed - clear auth state
+          if (refreshResponse.success || refreshResponse.transient) {
+            // Valid/refreshed — or a transient (rate-limit/offline) blip at
+            // startup, in which case keep the stored session rather than logging
+            // the user out; the next API call will re-validate.
+            setUser(JSON.parse(storedUser));
+          } else {
+            // Genuine invalid session - clear auth state.
             localStorage.removeItem('auth_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');

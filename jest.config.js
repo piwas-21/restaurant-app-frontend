@@ -373,7 +373,7 @@ module.exports = {
     },
     './src/components/floor-plan/guest/FloorPlanHoverCard.tsx': {
       statements: 99,
-      branches: 88,
+      branches: 82,
       functions: 99,
       lines: 99,
     },

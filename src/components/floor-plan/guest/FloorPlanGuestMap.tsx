@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FloorPlanScene from '../FloorPlanScene';
 import type { TableRenderState } from '../sceneTypes';
@@ -106,17 +106,29 @@ export default function FloorPlanGuestMap({
     return () => window.removeEventListener('keydown', onKey);
   }, [hoverId, clearHover]);
 
-  const onStageKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      focusAdjacentTable(viewport.stageRef.current, 1);
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      focusAdjacentTable(viewport.stageRef.current, -1);
-    } else if (e.key === 'Escape') {
-      clearHover();
+  // Arrow-key roving between tables. Attached natively (not a JSX handler) so
+  // the stage stays a plain container rather than a static element carrying
+  // keyboard listeners (jsx-a11y S6847/S6848); the labelled SVG group + its
+  // focusable table buttons carry the semantics, and the List is the linear
+  // screen-reader path.
+  const { stageRef } = viewport;
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || status !== 'ready' || view !== 'map') {
+      return;
     }
-  };
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        focusAdjacentTable(el, 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        focusAdjacentTable(el, -1);
+      }
+    };
+    el.addEventListener('keydown', onKey);
+    return () => el.removeEventListener('keydown', onKey);
+  }, [stageRef, status, view]);
 
   if (status === 'loading') {
     return <div className={styles.stateMessage}>{t('loading', 'Loading…')}</div>;
@@ -143,14 +155,12 @@ export default function FloorPlanGuestMap({
       />
       {view === 'map' ? (
         <>
-          {/* An application region: it manages its own pan/zoom + arrow-key
-              roving focus, so AT hands keys through (the List is the linear SR
-              path). */}
+          {/* A plain pan/hover surface — pointer handlers only (keyboard roving
+              is attached natively above). The labelled SVG group inside carries
+              the region semantics. */}
           <div
             ref={viewport.stageRef}
             className={styles.stage}
-            role="application"
-            aria-label={t('restaurant_floor_plan', 'Restaurant floor plan')}
             onPointerDown={viewport.stageHandlers.onPointerDown}
             onPointerMove={(e) => {
               viewport.stageHandlers.onPointerMove(e);
@@ -159,7 +169,6 @@ export default function FloorPlanGuestMap({
             onPointerUp={viewport.stageHandlers.onPointerUp}
             onPointerCancel={viewport.stageHandlers.onPointerCancel}
             onPointerLeave={hover.onStagePointerLeave}
-            onKeyDown={onStageKeyDown}
           >
             <FloorPlanScene
               document={{ ...plan, tables: activeTables }}

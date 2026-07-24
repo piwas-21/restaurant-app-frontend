@@ -108,28 +108,31 @@ INSERT INTO "Tables" (
 -- Pre-seeding every number it knows keeps the screenshot pinned to the pixel
 -- layout until S5 renders metres (which will regenerate the baseline). Values
 -- are the pre-S3 TableSeeder coordinates verbatim.
+-- `shape` is intentionally omitted (defaults to ''): the post-B1 reservations
+-- renderer draws one uniform marker and ignores shape, so it has no effect on
+-- the screenshot — and listing it would just repeat 'circle'/'square' literals.
 INSERT INTO "Tables" (
     table_number, max_guests, is_active, is_outdoor,
-    position_x, position_y, width, height, shape, created_by
+    position_x, position_y, width, height, created_by
 ) VALUES
-    ('1', 4, TRUE, FALSE, 80, 40, 100, 100, 'circle', 'e2e-seed'),
-    ('2', 4, TRUE, FALSE, 160, 40, 100, 100, 'circle', 'e2e-seed'),
-    ('3', 4, TRUE, FALSE, 40, 120, 100, 100, 'circle', 'e2e-seed'),
-    ('4', 4, TRUE, FALSE, 40, 180, 100, 100, 'circle', 'e2e-seed'),
-    ('5', 4, TRUE, FALSE, 40, 240, 100, 100, 'circle', 'e2e-seed'),
-    ('6', 4, TRUE, FALSE, 40, 320, 100, 100, 'circle', 'e2e-seed'),
-    ('7', 4, TRUE, FALSE, 140, 160, 100, 100, 'circle', 'e2e-seed'),
-    ('8', 4, TRUE, FALSE, 140, 220, 100, 100, 'circle', 'e2e-seed'),
-    ('9', 4, TRUE, FALSE, 260, 120, 100, 100, 'circle', 'e2e-seed'),
-    ('10', 4, TRUE, FALSE, 260, 180, 100, 100, 'circle', 'e2e-seed'),
-    ('11a', 2, TRUE, TRUE, 100, 400, 60, 60, 'square', 'e2e-seed'),
-    ('11b', 2, TRUE, TRUE, 160, 400, 60, 60, 'square', 'e2e-seed'),
-    ('12a', 2, TRUE, TRUE, 220, 400, 60, 60, 'square', 'e2e-seed'),
-    ('12b', 2, TRUE, TRUE, 280, 400, 60, 60, 'square', 'e2e-seed'),
-    ('13a', 2, TRUE, TRUE, 340, 400, 60, 60, 'square', 'e2e-seed'),
-    ('13b', 2, TRUE, TRUE, 400, 400, 60, 60, 'square', 'e2e-seed'),
-    ('14a', 2, TRUE, TRUE, 460, 400, 60, 60, 'square', 'e2e-seed'),
-    ('14b', 2, TRUE, TRUE, 520, 400, 60, 60, 'square', 'e2e-seed')
+    ('1', 4, TRUE, FALSE, 80, 40, 100, 100, 'e2e-seed'),
+    ('2', 4, TRUE, FALSE, 160, 40, 100, 100, 'e2e-seed'),
+    ('3', 4, TRUE, FALSE, 40, 120, 100, 100, 'e2e-seed'),
+    ('4', 4, TRUE, FALSE, 40, 180, 100, 100, 'e2e-seed'),
+    ('5', 4, TRUE, FALSE, 40, 240, 100, 100, 'e2e-seed'),
+    ('6', 4, TRUE, FALSE, 40, 320, 100, 100, 'e2e-seed'),
+    ('7', 4, TRUE, FALSE, 140, 160, 100, 100, 'e2e-seed'),
+    ('8', 4, TRUE, FALSE, 140, 220, 100, 100, 'e2e-seed'),
+    ('9', 4, TRUE, FALSE, 260, 120, 100, 100, 'e2e-seed'),
+    ('10', 4, TRUE, FALSE, 260, 180, 100, 100, 'e2e-seed'),
+    ('11a', 2, TRUE, TRUE, 100, 400, 60, 60, 'e2e-seed'),
+    ('11b', 2, TRUE, TRUE, 160, 400, 60, 60, 'e2e-seed'),
+    ('12a', 2, TRUE, TRUE, 220, 400, 60, 60, 'e2e-seed'),
+    ('12b', 2, TRUE, TRUE, 280, 400, 60, 60, 'e2e-seed'),
+    ('13a', 2, TRUE, TRUE, 340, 400, 60, 60, 'e2e-seed'),
+    ('13b', 2, TRUE, TRUE, 400, 400, 60, 60, 'e2e-seed'),
+    ('14a', 2, TRUE, TRUE, 460, 400, 60, 60, 'e2e-seed'),
+    ('14b', 2, TRUE, TRUE, 520, 400, 60, 60, 'e2e-seed')
 ON CONFLICT (table_number) DO NOTHING;
 
 -- 6) Working hours — override the migration's 10:00–23:00 default to

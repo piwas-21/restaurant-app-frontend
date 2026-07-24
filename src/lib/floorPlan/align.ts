@@ -82,7 +82,8 @@ export function distributeTables(doc: FloorPlanDocument, ids: readonly string[],
     return doc;
   }
   const first = centreOn(tables[0], axis);
-  const step = (centreOn(tables[tables.length - 1], axis) - first) / (tables.length - 1);
+  // Non-null: the length guard above already rules out an empty list.
+  const step = (centreOn(tables.at(-1)!, axis) - first) / (tables.length - 1);
   const centres = new Map(tables.map((t, index) => [t.id, first + step * index] as const));
   return applyCentres(doc, axis, centres);
 }

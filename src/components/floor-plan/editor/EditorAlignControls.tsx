@@ -51,7 +51,9 @@ interface IconRowProps<T extends string> {
 function IconRow<T extends string>({ group, items, disabled, onPick }: Readonly<IconRowProps<T>>) {
   const { t } = useTranslation();
   return (
-    <div className={styles.iconRow} role="group" aria-label={group}>
+    // A native <fieldset> carries the grouping semantics that role="group" only
+    // approximates, and reads correctly on every screen reader (Sonar S6819).
+    <fieldset className={styles.iconRow} aria-label={group}>
       {items.map(({ key, Icon, label, fallback }) => (
         <button
           key={key}
@@ -65,7 +67,7 @@ function IconRow<T extends string>({ group, items, disabled, onPick }: Readonly<
           <Icon size={16} aria-hidden="true" />
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }
 

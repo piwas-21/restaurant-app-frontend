@@ -108,12 +108,16 @@
   cursor: not-allowed;
 }
 
-/* Align / distribute: one wrapping row of equal-weight icon buttons. */
+/* Align / distribute: one wrapping row of equal-weight icon buttons. A native
+   <fieldset> for the grouping semantics, so its chrome has to be reset. */
 .iconRow {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
 }
 
 .iconRow .iconButton {

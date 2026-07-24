@@ -97,7 +97,9 @@ function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<T
       tabIndex={clickable ? 0 : undefined}
       aria-pressed={clickable ? state === 'selected' : undefined}
       aria-label={label}
-      onClick={clickable ? (e) => onSelectTable?.(table.id, { additive: e.shiftKey }) : undefined}
+      onClick={
+        clickable ? (e) => onSelectTable?.(table.id, { additive: e.shiftKey, synthetic: e.detail === 0 }) : undefined
+      }
       onKeyDown={clickable ? handleKeyDown : undefined}
     >
       <g transform={`rotate(${table.rotation})`}>

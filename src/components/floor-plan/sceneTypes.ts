@@ -27,6 +27,12 @@ export interface SelectTableSource {
   /** Shift was held — add to / remove from the selection rather than replace it. */
   additive?: boolean;
   viaKeyboard?: boolean;
+  /**
+   * No pointer produced this click (`MouseEvent.detail === 0`) — assistive tech,
+   * voice control or `element.click()`. Such a click has no preceding
+   * `pointerdown`, so a consumer that selects on pointer-down must honour it.
+   */
+  synthetic?: boolean;
 }
 
 export type SelectTable = (id: string, source?: SelectTableSource) => void;

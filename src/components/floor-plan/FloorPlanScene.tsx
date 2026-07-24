@@ -1,7 +1,7 @@
 'use client';
 
 import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
-import { computeViewBox, metresToCm } from '@/lib/floorPlan/geometry';
+import { computeViewBox, metresToCm, type ViewBox } from '@/lib/floorPlan/geometry';
 import RoomsLayer from './RoomsLayer';
 import WallsLayer from './WallsLayer';
 import ItemsLayer from './ItemsLayer';
@@ -32,6 +32,8 @@ interface FloorPlanSceneProps {
   formatTableLabel?: (table: FloorPlanTableGeometry, state: TableRenderState) => string;
   /** Draw the editor grid (admin only). */
   showGrid?: boolean;
+  /** Override the fitted viewBox — the guest map drives zoom/pan through this. */
+  viewBox?: ViewBox;
   role?: 'group' | 'application';
   ariaLabel?: string;
 }
@@ -73,10 +75,11 @@ export default function FloorPlanScene({
   onSelectTable,
   formatTableLabel,
   showGrid = false,
+  viewBox,
   role = 'group',
   ariaLabel = 'Restaurant floor plan',
 }: Readonly<FloorPlanSceneProps>) {
-  const vb = computeViewBox(document.widthMeters, document.heightMeters);
+  const vb = viewBox ?? computeViewBox(document.widthMeters, document.heightMeters);
   const className = [styles.scene, skinClassName].filter(Boolean).join(' ');
   return (
     <svg

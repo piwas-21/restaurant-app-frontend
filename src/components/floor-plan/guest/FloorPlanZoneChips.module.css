@@ -1,0 +1,39 @@
+/* Guest map chips + Map|List toggle (FLOOR-PLAN-REVAMP §4.2). Semantic-token
+   driven, so it inherits each template's palette + dark mode — no hex. */
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.viewToggle,
+.zoneChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.zoneChips {
+  margin-left: auto;
+}
+.chip {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 12px;
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-default);
+  background: transparent;
+  color: var(--text-primary);
+}
+.chip[aria-pressed='true'] {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+.chip:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

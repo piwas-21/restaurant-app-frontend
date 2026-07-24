@@ -1,0 +1,37 @@
+/* Guest floor-plan map — the orchestrator's own chrome (FLOOR-PLAN-REVAMP §4.2).
+   The chips, controls, hover card and list each carry their own colocated
+   module (kept under the 200-LOC CSS cap); all are semantic-token driven, so the
+   chrome inherits each template's palette and dark mode automatically — no hex
+   in module CSS (S15 T1 gate), no per-template copy. The scene inside is skinned
+   separately via its skinClassName. */
+
+.map {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.stateMessage {
+  padding: 24px 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.retry {
+  border: 1.5px solid var(--brand-primary);
+  background: transparent;
+  color: var(--brand-primary);
+  border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.stage {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  touch-action: none;
+}

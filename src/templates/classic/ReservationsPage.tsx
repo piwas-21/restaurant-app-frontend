@@ -11,7 +11,7 @@
 import ReservationsPageLayout from '@/components/reservation/reservations-page/ReservationsPageLayout';
 import chrome from '@/app/styles/ReservationsPage.module.css';
 import panel from '@/app/styles/ReservationsBookingPanel.module.css';
-import floorPlan from '@/components/reservation/VisualTableLayout.module.css';
+import scene from './floor-plan/FloorPlanScene.module.css';
 import guests from '@/components/reservation/GuestSelector.module.css';
 import dateTime from '@/components/reservation/DateTimeSelector.module.css';
 import selectedTables from '@/components/reservation/SelectedTableInfo.module.css';
@@ -23,5 +23,7 @@ import capacity from '@/components/reservation/CapacityWarning.module.css';
 const page = { ...chrome, ...panel };
 
 export default function ReservationsPage() {
-  return <ReservationsPageLayout styles={{ page, floorPlan, guests, dateTime, selectedTables, capacity }} />;
+  return (
+    <ReservationsPageLayout styles={{ page, floorPlanSkin: scene.skin, guests, dateTime, selectedTables, capacity }} />
+  );
 }

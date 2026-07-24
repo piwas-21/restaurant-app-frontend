@@ -5,7 +5,6 @@ import { useReservationsPage } from '@/hooks/reservations/useReservationsPage';
 import ReservationsPageLayout from './ReservationsPageLayout';
 import chrome from '@/app/styles/ReservationsPage.module.css';
 import panel from '@/app/styles/ReservationsBookingPanel.module.css';
-import floorPlan from '@/components/reservation/VisualTableLayout.module.css';
 import guests from '@/components/reservation/GuestSelector.module.css';
 import dateTime from '@/components/reservation/DateTimeSelector.module.css';
 import selectedTables from '@/components/reservation/SelectedTableInfo.module.css';
@@ -27,8 +26,14 @@ jest.mock('@/hooks/reservations/useReservationsPage', () => ({
   useReservationsPage: jest.fn(),
 }));
 
-jest.mock('@/hooks/useRestaurantInfo', () => ({
-  useRestaurantInfo: () => ({ info: null, isLoading: false, error: null, refetch: jest.fn() }),
+// The floor-plan guest map (its own async fetch + interactions) is covered by
+// its own test; here it is stubbed so the layout test stays focused on the
+// page orchestration and synchronous.
+jest.mock('@/components/floor-plan/guest/FloorPlanGuestMap', () => ({
+  __esModule: true,
+  default: ({ selectedTableIds }: { selectedTableIds: string[] }) => (
+    <div data-testid="floor-plan-map">selected:{selectedTableIds.join(',')}</div>
+  ),
 }));
 
 // The success modal needs AuthContext; the layout only mounts it closed.
@@ -53,7 +58,7 @@ const table: TableDto = {
 
 const styles = {
   page: { ...chrome, ...panel },
-  floorPlan,
+  floorPlanSkin: 'skin',
   guests,
   dateTime,
   selectedTables,
@@ -103,8 +108,8 @@ describe('ReservationsPageLayout', () => {
 
     expect(screen.getByRole('heading', { name: 'Make a Reservation' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Select your Table/ })).toBeInTheDocument();
-    // The selected table renders on the map AND as a docket line.
-    expect(screen.getByRole('button', { name: 'Table 4, 4 seats, Selected' })).toBeInTheDocument();
+    // The floor-plan map receives the selected table; the docket shows its line.
+    expect(screen.getByTestId('floor-plan-map')).toHaveTextContent('selected:a');
     expect(screen.getByText(/4 seats/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Book Now' })).toBeEnabled();
   });

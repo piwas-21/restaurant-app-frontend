@@ -1,0 +1,60 @@
+/* Guest map legend + zoom controls (FLOOR-PLAN-REVAMP §4.4). The zoom buttons
+   sit beside the legend, never over the plan. Semantic-token driven — no hex. */
+
+.mapTools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 2px solid var(--text-primary);
+  background: var(--surface-card);
+}
+.swatchSelected {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+.swatchBooked {
+  opacity: 0.5;
+  border-style: dashed;
+}
+.swatchSmall {
+  opacity: 0.32;
+}
+.zoomer {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.zoomer button {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+.zoomer button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

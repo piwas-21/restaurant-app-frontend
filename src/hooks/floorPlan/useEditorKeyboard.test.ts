@@ -10,18 +10,20 @@ function setup(overrides: Partial<Parameters<typeof useEditorKeyboard>[0]> = {})
   const undo = jest.fn();
   const redo = jest.fn();
   const onDeleteSelected = jest.fn();
+  const clearSelection = jest.fn();
   const props = {
     enabled: true,
     document: floorPlanFixture(),
-    selectedId: 't1' as string | null,
+    selectedIds: ['t1'],
     apply,
     undo,
     redo,
+    clearSelection,
     onDeleteSelected,
     ...overrides,
   };
   renderHook(() => useEditorKeyboard(props));
-  return { apply, undo, redo, onDeleteSelected, props };
+  return { apply, undo, redo, clearSelection, onDeleteSelected, props };
 }
 
 const press = (key: string, init: KeyboardEventInit = {}) =>
@@ -59,7 +61,7 @@ describe('useEditorKeyboard', () => {
   });
 
   it('resets rotation with 0', () => {
-    const { apply } = setup({ selectedId: 't2' }); // t2 starts at 30°
+    const { apply } = setup({ selectedIds: ['t2'] }); // t2 starts at 30°
     press('0');
     expect(table(apply.mock.calls[0][0], 't2').rotation).toBe(0);
   });
@@ -91,7 +93,7 @@ describe('useEditorKeyboard', () => {
   });
 
   it('does nothing on arrows when no table is selected but still undoes', () => {
-    const { apply, undo } = setup({ selectedId: null });
+    const { apply, undo } = setup({ selectedIds: [] });
     press('ArrowRight');
     expect(apply).not.toHaveBeenCalled();
     press('z', { ctrlKey: true });
@@ -101,6 +103,40 @@ describe('useEditorKeyboard', () => {
   it('binds nothing when disabled', () => {
     const { apply } = setup({ enabled: false });
     press('ArrowRight');
+    expect(apply).not.toHaveBeenCalled();
+  });
+
+  it('nudges every selected table, so a group moves from the keyboard too', () => {
+    const doc = floorPlanFixture();
+    const { apply } = setup({ document: doc, selectedIds: doc.tables.map((t) => t.id) });
+    press('ArrowRight');
+    const next = apply.mock.calls[0][0];
+    doc.tables.forEach((before, i) => expect(next.tables[i].positionX).toBeCloseTo(before.positionX + 0.25, 5));
+  });
+
+  it('leaves unselected tables where they are', () => {
+    const doc = floorPlanFixture();
+    const { apply } = setup({ document: doc, selectedIds: ['t1'] });
+    press('ArrowRight');
+    expect(apply.mock.calls[0][0].tables[1]).toEqual(doc.tables[1]);
+  });
+
+  it('nudges nothing when the selection is empty', () => {
+    const { apply } = setup({ selectedIds: [] });
+    press('ArrowRight');
+    expect(apply).not.toHaveBeenCalled();
+  });
+
+  it('clears the selection on Escape', () => {
+    const { clearSelection } = setup();
+    press('Escape');
+    expect(clearSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('rotates only a single selection — a group turn is a different operation', () => {
+    const doc = floorPlanFixture();
+    const { apply } = setup({ document: doc, selectedIds: doc.tables.map((t) => t.id) });
+    press(']');
     expect(apply).not.toHaveBeenCalled();
   });
 });

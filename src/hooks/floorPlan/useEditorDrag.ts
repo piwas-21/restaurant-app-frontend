@@ -1,49 +1,35 @@
 'use client';
 
 import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
-import { screenToPlanMetres, type ViewBox } from '@/lib/floorPlan/geometry';
+import type { ViewBox } from '@/lib/floorPlan/geometry';
 import type { AlignmentGuide } from '@/lib/floorPlan/snapping';
-import { updateTable } from '@/lib/floorPlan/document';
-import { gestureFromTarget, resolveGesture, type Gesture, type GestureKind } from '@/lib/floorPlan/editorGestures';
-import { geometrySnapshot, sameGeometry, type TableGeometrySnapshot } from '@/lib/floorPlan/editorGeometry';
+import { gestureFromTarget, resolveGesture } from '@/lib/floorPlan/editorGestures';
+import { applyGesture } from '@/lib/floorPlan/document';
+import { toggleSelection } from '@/lib/floorPlan/selection';
+import { geometrySnapshot, sameGeometry } from '@/lib/floorPlan/editorGeometry';
+import { alignToleranceMeters, useStageProjection } from './editorStage';
+import type { ActiveGesture, GestureSession, StagePointerHandlers } from './editorStage';
 import type { FloorPlanDocument } from '@/types/floorPlan';
 
-/** Alignment guides appear/snap within this many screen pixels (§4.3). */
-const ALIGN_THRESHOLD_PX = 6;
-
 /**
- * How far a press must travel (screen pixels) before it edits anything. Without
- * it a *tap* on a grip is an edit: snapping quantises absolutely, so the first
- * jittered move rounds an off-grid size or off-lattice angle onto the lattice and
- * pushes a history entry nobody asked for. The touch figure tracks the platforms'
- * own tap slop (Android ~8dp, iOS ~10pt) — a finger drifts far more than a mouse.
+ * How far a press must travel (screen pixels) before it edits: snapping quantises
+ * absolutely, so without this a *tap* rounds an off-lattice value onto the lattice
+ * and pushes a history entry nobody asked for. Touch tracks the platforms' own tap
+ * slop (Android ~8dp, iOS ~10pt) — a finger drifts far more than a mouse.
  */
 const DRAG_THRESHOLD_PX = 3;
 const TOUCH_DRAG_THRESHOLD_PX = 10;
-
-/** The live gesture as the overlay needs it: what is happening, and from where. */
-export interface ActiveGesture {
-  kind: GestureKind;
-  origin: TableGeometrySnapshot;
-}
-
-export interface StagePointerHandlers {
-  onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerUp: (e: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerCancel: (e: ReactPointerEvent<HTMLDivElement>) => void;
-}
 
 interface EditorDragArgs {
   stageRef: RefObject<HTMLDivElement | null>;
   viewBox: ViewBox;
   document: FloorPlanDocument;
   snapEnabled: boolean;
-  /** Grips belong to the selection, so a grip press acts on this table. */
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  /** The whole selection: grips act on it, and a move carries all of it. */
+  selectedIds: readonly string[];
+  onSelect: (id: string, additive: boolean) => void;
   onCommit: (doc: FloorPlanDocument) => void;
-  /** Empty-space pan/pinch handlers to defer to when nothing is grabbed. */
+  /** The next pointer layer (marquee, then pan/pinch) when nothing is grabbed. */
   fallback: StagePointerHandlers;
 }
 
@@ -51,45 +37,29 @@ interface EditorDragArgs {
  * Pointer gestures for the editor (FLOOR-PLAN-REVAMP §4.3). One pipeline, three
  * gestures: press a table to **move** it, press the rotate grip to **rotate**,
  * press a resize grip to **resize** — all snapping through
- * {@link resolveGesture}. A gesture never commits mid-move; the canvas renders
- * `previewDoc` and exactly one History entry is pushed on pointer-up, so an undo
- * reverses the whole gesture. A press that misses everything falls back to
- * pan / pinch. Every gesture also has a no-drag equivalent in the inspector and
- * on the keyboard (SC 2.5.7).
+ * {@link resolveGesture}. A move carries the whole selection. A gesture never
+ * commits mid-move; the canvas renders `previewDoc` and exactly one History
+ * entry is pushed on pointer-up, so an undo reverses the whole gesture. A press
+ * that misses everything falls through to the marquee/pan layer. Every gesture
+ * also has a no-drag equivalent in the inspector and on the keyboard (SC 2.5.7).
  */
 export function useEditorDrag({
   stageRef,
   viewBox,
   document: doc,
   snapEnabled,
-  selectedId,
+  selectedIds,
   onSelect,
   onCommit,
   fallback,
 }: EditorDragArgs) {
-  const active = useRef<{
-    gesture: Gesture;
-    origin: TableGeometrySnapshot;
-    startX: number;
-    startY: number;
-    /** Latches once the press clears {@link DRAG_THRESHOLD_PX} — a tap never edits. */
-    moved: boolean;
-  } | null>(null);
+  const active = useRef<GestureSession | null>(null);
   const previewRef = useRef<FloorPlanDocument | null>(null);
   const [previewDoc, setPreviewDoc] = useState<FloorPlanDocument | null>(null);
   const [guides, setGuides] = useState<AlignmentGuide[]>([]);
   const [gesture, setGesture] = useState<ActiveGesture | null>(null);
 
-  const project = useCallback(
-    (clientX: number, clientY: number) => {
-      const rect = stageRef.current?.getBoundingClientRect();
-      if (!rect) {
-        return null;
-      }
-      return { rect, point: screenToPlanMetres(clientX, clientY, viewBox, rect) };
-    },
-    [stageRef, viewBox],
-  );
+  const project = useStageProjection(stageRef, viewBox);
 
   const reset = useCallback(() => {
     active.current = null;
@@ -102,19 +72,42 @@ export function useEditorDrag({
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       const projected = project(e.clientX, e.clientY);
-      const next = projected ? gestureFromTarget(e.target as Element, doc, selectedId, projected.point) : null;
+      const next = projected ? gestureFromTarget(e.target as Element, doc, selectedIds, projected.point) : null;
       const table = next ? doc.tables.find((tt) => tt.id === next.id) : undefined;
       if (!next || !table) {
         fallback.onPointerDown(e);
         return;
       }
+      // Pressing a table that is already part of a multi-selection must NOT
+      // collapse the selection, or a group could never be dragged.
+      const grouped = !e.shiftKey && selectedIds.length > 1 && selectedIds.includes(next.id);
+      // `onSelect` is a setState, so `selectedIds` is still the PRE-press
+      // selection for the rest of this handler. Derive what it is about to
+      // become through the same pure function the store uses, or a move would
+      // drag whatever happened to be selected before the press.
+      const nextIds = grouped ? selectedIds : toggleSelection(selectedIds, next.id, e.shiftKey);
+      if (!grouped) {
+        onSelect(next.id, e.shiftKey);
+      }
+      if (!nextIds.includes(next.id)) {
+        // A shift-press that DEselected the table under the cursor: that is the
+        // whole interaction, not the start of a drag.
+        return;
+      }
       const origin = geometrySnapshot(table);
-      active.current = { gesture: next, origin, startX: e.clientX, startY: e.clientY, moved: false };
+      active.current = {
+        gesture: next,
+        origin,
+        ids: nextIds,
+        startX: e.clientX,
+        startY: e.clientY,
+        moved: false,
+        collapseTo: grouped ? next.id : null,
+      };
       setGesture({ kind: next.kind, origin });
-      onSelect(next.id);
       stageRef.current?.setPointerCapture?.(e.pointerId);
     },
-    [doc, project, selectedId, onSelect, stageRef, fallback],
+    [doc, project, selectedIds, onSelect, stageRef, fallback],
   );
 
   const onPointerMove = useCallback(
@@ -135,18 +128,17 @@ export function useEditorDrag({
       if (!projected) {
         return;
       }
-      const pxPerCm = Math.min(projected.rect.width / viewBox.w, projected.rect.height / viewBox.h);
       const result = resolveGesture(current.gesture, {
         document: doc,
         point: projected.point,
         modifiers: { alt: e.altKey, shift: e.shiftKey },
         snapEnabled,
-        toleranceMeters: pxPerCm > 0 ? ALIGN_THRESHOLD_PX / pxPerCm / 100 : 0,
+        toleranceMeters: alignToleranceMeters(projected.rect, viewBox),
       });
       if (!result) {
         return;
       }
-      const next = updateTable(doc, current.gesture.id, result.patch);
+      const next = applyGesture(doc, current.gesture, result, current.ids);
       previewRef.current = next;
       setPreviewDoc(next);
       setGuides(result.guides);
@@ -158,16 +150,23 @@ export function useEditorDrag({
     const current = active.current;
     const pending = previewRef.current;
     reset();
-    if (!current || !pending) {
+    if (!current) {
       return;
     }
-    const edited = pending.tables.find((t) => t.id === current.gesture.id);
-    // Skip the history push when a gesture ended where it started (a click, or a
-    // wobble that snapped back) so undo only reverses real edits.
-    if (edited && !sameGeometry(geometrySnapshot(edited), current.origin)) {
+    if (!current.moved) {
+      // A tap on one table of a group narrows the selection to it.
+      if (current.collapseTo) {
+        onSelect(current.collapseTo, false);
+      }
+      return;
+    }
+    const edited = pending?.tables.find((t) => t.id === current.gesture.id);
+    // Skip the history push when a gesture ended where it started (a wobble that
+    // snapped back) so undo only reverses real edits.
+    if (pending && edited && !sameGeometry(geometrySnapshot(edited), current.origin)) {
       onCommit(pending);
     }
-  }, [onCommit, reset]);
+  }, [onCommit, onSelect, reset]);
 
   const onPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {

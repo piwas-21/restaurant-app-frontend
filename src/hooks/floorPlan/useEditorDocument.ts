@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getFloorPlan, saveFloorPlan } from '@/services/floorPlanService';
 import { ApiError } from '@/utils/apiClient';
@@ -15,6 +15,7 @@ import {
   type History,
 } from '@/lib/floorPlan/history';
 import { updateTable } from '@/lib/floorPlan/document';
+import { pruneSelection, toggleSelection } from '@/lib/floorPlan/selection';
 
 export type EditorStatus = 'loading' | 'ready' | 'error';
 export type EditorMessage = { type: 'success' | 'error'; text: string } | null;
@@ -32,7 +33,7 @@ export function useEditorDocument() {
   const [history, setHistory] = useState<History<FloorPlanDocument> | null>(null);
   const [saved, setSaved] = useState<FloorPlanDocument | null>(null);
   const [status, setStatus] = useState<EditorStatus>('loading');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<EditorMessage>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -74,11 +75,19 @@ export function useEditorDocument() {
     setHistory((h) => (h ? commit(h, updateTable(h.present, id, patch)) : h));
   }, []);
 
+  /** Click selects one table; shift-click adds to / removes from the selection. */
+  const select = useCallback(
+    (id: string, additive = false) => setSelectedIds((ids) => toggleSelection(ids, id, additive)),
+    [],
+  );
+  const selectMany = useCallback((ids: string[]) => setSelectedIds(ids), []);
+  const clearSelection = useCallback(() => setSelectedIds([]), []);
+
   const undo = useCallback(() => setHistory((h) => (h ? undoOf(h) : h)), []);
   const redo = useCallback(() => setHistory((h) => (h ? redoOf(h) : h)), []);
 
   const reload = useCallback(() => {
-    setSelectedId(null);
+    setSelectedIds([]);
     setReloadKey((k) => k + 1);
   }, []);
 
@@ -110,11 +119,21 @@ export function useEditorDocument() {
     }
   }, [present, t]);
 
+  // Undo can bring a table back and a lifecycle op can take one away, so the
+  // selection is filtered against the live document rather than trusted. Memoised
+  // because it is a dependency of the keyboard listener and the align callbacks —
+  // a fresh array each render would re-subscribe them on every pointer move.
+  const liveIds = useMemo(() => (present ? pruneSelection(selectedIds, present.tables) : []), [present, selectedIds]);
+
   return {
     status,
     document: present,
-    selectedId,
-    select: setSelectedId,
+    selectedIds: liveIds,
+    /** The single selection, or null when zero or several are picked. */
+    selectedId: liveIds.length === 1 ? liveIds[0] : null,
+    select,
+    selectMany,
+    clearSelection,
     apply,
     mutateTable,
     undo,

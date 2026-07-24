@@ -76,7 +76,10 @@ module.exports = {
     'src/lib/floorPlan/editorGeometry.ts',
     'src/lib/floorPlan/handles.ts',
     'src/lib/floorPlan/editorGestures.ts',
+    'src/lib/floorPlan/selection.ts',
+    'src/lib/floorPlan/align.ts',
     'src/hooks/floorPlan/useEditorDrag.ts',
+    'src/hooks/floorPlan/useEditorMarquee.ts',
     'src/hooks/floorPlan/useStageScale.ts',
     'src/components/floor-plan/editor/EditorHandles.tsx',
     'src/components/floor-plan/guest/guestMapState.ts',
@@ -390,6 +393,18 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    './src/lib/floorPlan/selection.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/align.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     './src/hooks/floorPlan/useStageScale.ts': {
       statements: 99,
       branches: 99,
@@ -402,14 +417,20 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    // The gesture dispatcher's uncovered lines are defensive guards for states
-    // jsdom can't produce (an unmeasurable stage rect) or that only a mid-drag
-    // reload reaches (the gesture's table vanishing from the document).
+    // The two pointer layers' uncovered lines are defensive guards for states
+    // jsdom can't produce (an unmeasurable stage rect, a disabled listener) or
+    // that only a mid-drag reload reaches (the table vanishing from the document).
     './src/hooks/floorPlan/useEditorDrag.ts': {
       statements: 95,
-      branches: 85,
+      branches: 88,
       functions: 99,
       lines: 95,
+    },
+    './src/hooks/floorPlan/useEditorMarquee.ts': {
+      statements: 93,
+      branches: 79,
+      functions: 99,
+      lines: 93,
     },
     './src/components/floor-plan/guest/guestMapState.ts': {
       statements: 99,

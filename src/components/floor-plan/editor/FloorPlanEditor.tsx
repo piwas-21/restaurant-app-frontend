@@ -37,7 +37,9 @@ export default function FloorPlanEditor() {
   const [showProps, setShowProps] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  const editor = useFloorPlanEditor({ onDeleteSelected: () => setShowDelete(true) });
+  // Escape and the arrow keys belong to whichever modal is on top, not the canvas.
+  const modalOpen = showCreate || showDelete || showProps || showPreview || Boolean(tables.qrTable);
+  const editor = useFloorPlanEditor({ onDeleteSelected: () => setShowDelete(true), modalOpen });
   const selectedDto = editor.selectedId ? tables.tables.find((tt) => tt.id === editor.selectedId) : undefined;
 
   const afterTableChange = useCallback(() => {

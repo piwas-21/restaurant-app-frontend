@@ -49,12 +49,12 @@ describe('editorGestures — gestureFromTarget', () => {
     return svg;
   };
 
-  const at = (id: string, selectedId: string | null = 'a') => {
+  const at = (id: string, selectedIds: string[] = ['a']) => {
     const target = scene().querySelector(`#${id}`);
     if (!target) {
       throw new Error(`fixture is missing #${id}`);
     }
-    return gestureFromTarget(target, plan, selectedId, { x: 2.5, y: 2.5 });
+    return gestureFromTarget(target, plan, selectedIds, { x: 2.5, y: 2.5 });
   };
 
   it('starts a move from anywhere inside a table, grabbing at the offset pressed', () => {
@@ -79,7 +79,7 @@ describe('editorGestures — gestureFromTarget', () => {
   });
 
   it('ignores grips when nothing is selected', () => {
-    expect(at('grip', null)).toBeNull();
+    expect(at('grip', [])).toBeNull();
   });
 });
 

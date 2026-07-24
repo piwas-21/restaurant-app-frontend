@@ -9,7 +9,7 @@ import ItemsLayer from './ItemsLayer';
 import TablesLayer from './TablesLayer';
 import LabelsLayer from './LabelsLayer';
 import SceneDefs from './SceneDefs';
-import type { TableRenderState } from './sceneTypes';
+import type { SelectTable, TableRenderState } from './sceneTypes';
 import styles from './FloorPlanScene.module.css';
 
 /**
@@ -29,7 +29,7 @@ interface FloorPlanSceneProps {
   skinClassName?: string;
   /** Per-table render state (default: every table `available`). */
   tableStates?: Readonly<Record<string, TableRenderState>>;
-  onSelectTable?: (id: string) => void;
+  onSelectTable?: SelectTable;
   formatTableLabel?: (table: FloorPlanTableGeometry, state: TableRenderState) => string;
   /** Draw the editor grid (admin only). */
   showGrid?: boolean;

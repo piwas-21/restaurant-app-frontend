@@ -16,5 +16,20 @@ export type SceneStyles = Readonly<Record<string, string>>;
  */
 export type TableRenderState = 'available' | 'selected' | 'booked' | 'small' | 'dim';
 
+/**
+ * How a table's selection was triggered. The guest map ignores this and just
+ * picks the table; the admin editor needs it because a *pointer* press is
+ * already handled by its gesture layer (which must not collapse a
+ * multi-selection on the trailing click), while `Enter`/`Space` on a focused
+ * table is the keyboard path and is the only one it should act on.
+ */
+export interface SelectTableSource {
+  /** Shift was held — add to / remove from the selection rather than replace it. */
+  additive?: boolean;
+  viaKeyboard?: boolean;
+}
+
+export type SelectTable = (id: string, source?: SelectTableSource) => void;
+
 /** The class a symbol primitive's ink variant maps to (keys match the module). */
 export const variantClass = (styles: SceneStyles, variant: SymbolVariant): string | undefined => styles[variant];

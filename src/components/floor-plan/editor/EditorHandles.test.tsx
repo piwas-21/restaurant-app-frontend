@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import EditorHandles from './EditorHandles';
-import type { ActiveGesture } from '@/hooks/floorPlan/useEditorDrag';
+import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
 import type { FloorPlanTableGeometry } from '@/types/floorPlan';
 
 jest.mock('react-i18next', () => ({

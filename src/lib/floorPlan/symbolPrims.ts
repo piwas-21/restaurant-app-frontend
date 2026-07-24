@@ -119,17 +119,19 @@ export function potPlantPrims(
       d: `M${cx} ${stemY} L${((cx + tx) / 2).toFixed(1)} ${((stemY + ty) / 2).toFixed(1)}`,
     });
   }
-  const prims: SymbolPrim[] = [...blades, ...veins];
   const bW = potTopW * 0.76;
-  prims.push({
-    tag: 'path',
-    variant: 'sceneryFill',
-    d: `M${cx - potTopW / 2} ${baseY} L${cx + potTopW / 2} ${baseY} L${cx + bW / 2} ${baseY + potH} L${cx - bW / 2} ${baseY + potH} Z`,
-  });
-  prims.push({
-    tag: 'path',
-    variant: 'sceneryFill',
-    d: `M${cx - potTopW / 2 - 3} ${baseY - 5} L${cx + potTopW / 2 + 3} ${baseY - 5} L${cx + potTopW / 2} ${baseY + 2} L${cx - potTopW / 2} ${baseY + 2} Z`,
-  });
-  return prims;
+  const pot: SymbolPrim[] = [
+    {
+      tag: 'path',
+      variant: 'sceneryFill',
+      d: `M${cx - potTopW / 2} ${baseY} L${cx + potTopW / 2} ${baseY} L${cx + bW / 2} ${baseY + potH} L${cx - bW / 2} ${baseY + potH} Z`,
+    },
+    {
+      tag: 'path',
+      variant: 'sceneryFill',
+      d: `M${cx - potTopW / 2 - 3} ${baseY - 5} L${cx + potTopW / 2 + 3} ${baseY - 5} L${cx + potTopW / 2} ${baseY + 2} L${cx - potTopW / 2} ${baseY + 2} Z`,
+    },
+  ];
+  // Blades, then veins, then the pot on top (single assembly — no repeated push).
+  return [...blades, ...veins, ...pot];
 }

@@ -70,6 +70,46 @@ function TableShape({ parts, styles }: Readonly<{ parts: TableParts; styles: Sce
   );
 }
 
+interface TableGraphicProps {
+  table: FloorPlanTableGeometry;
+  state: TableRenderState;
+  styles: SceneStyles;
+  label: string;
+  onSelectTable?: (id: string) => void;
+}
+
+function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<TableGraphicProps>) {
+  const parts = tableParts(table.shape, table.maxGuests, table.width, table.height);
+  const clickable = Boolean(onSelectTable) && state !== 'booked' && state !== 'small';
+  const handleKeyDown = (e: KeyboardEvent<SVGGElement>) => {
+    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onSelectTable?.(table.id);
+    }
+  };
+  return (
+    <g
+      data-table-id={table.id}
+      data-state={state}
+      className={[styles.table, clickable ? styles.tableHit : undefined].filter(Boolean).join(' ')}
+      transform={`translate(${metresToCm(table.positionX).toFixed(1)} ${metresToCm(table.positionY).toFixed(1)})`}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-pressed={clickable ? state === 'selected' : undefined}
+      aria-label={label}
+      onClick={clickable ? () => onSelectTable?.(table.id) : undefined}
+      onKeyDown={clickable ? handleKeyDown : undefined}
+    >
+      <g transform={`rotate(${table.rotation})`}>
+        <TableShape parts={parts} styles={styles} />
+      </g>
+      <text className={styles.num} x={0} y={0} fontSize={numberFontCm(table)}>
+        {table.tableNumber}
+      </text>
+    </g>
+  );
+}
+
 export default function TablesLayer({
   tables,
   states,
@@ -82,38 +122,15 @@ export default function TablesLayer({
     <g>
       {tables.map((table) => {
         const state = states?.[table.id] ?? 'available';
-        const parts = tableParts(table.shape, table.maxGuests, table.width, table.height);
-        const clickable = Boolean(onSelectTable) && state !== 'booked' && state !== 'small';
-        const select = clickable ? () => onSelectTable?.(table.id) : undefined;
-        const onKeyDown = clickable
-          ? (e: KeyboardEvent<SVGGElement>) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onSelectTable?.(table.id);
-              }
-            }
-          : undefined;
         return (
-          <g
+          <TableGraphic
             key={table.id}
-            data-table-id={table.id}
-            data-state={state}
-            className={[styles.table, clickable ? styles.tableHit : undefined].filter(Boolean).join(' ')}
-            transform={`translate(${metresToCm(table.positionX).toFixed(1)} ${metresToCm(table.positionY).toFixed(1)})`}
-            role={clickable ? 'button' : undefined}
-            tabIndex={clickable ? 0 : undefined}
-            aria-pressed={clickable ? state === 'selected' : undefined}
-            aria-label={label(table, state)}
-            onClick={select}
-            onKeyDown={onKeyDown}
-          >
-            <g transform={`rotate(${table.rotation})`}>
-              <TableShape parts={parts} styles={styles} />
-            </g>
-            <text className={styles.num} x={0} y={0} fontSize={numberFontCm(table)}>
-              {table.tableNumber}
-            </text>
-          </g>
+            table={table}
+            state={state}
+            styles={styles}
+            label={label(table, state)}
+            onSelectTable={onSelectTable}
+          />
         );
       })}
     </g>

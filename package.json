@@ -61,7 +61,7 @@
     "@types/react": "^19",
     "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19",
-    "babel-jest": "^29.7.0",
+    "babel-jest": "^30.4.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.20",
     "identity-obj-proxy": "^3.0.0",

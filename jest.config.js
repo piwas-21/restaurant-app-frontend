@@ -61,7 +61,6 @@ module.exports = {
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
-    'src/lib/tableCanvasGeometry.ts',
     'src/lib/floorPlan/geometry.ts',
     'src/lib/floorPlan/walls.ts',
     'src/lib/floorPlan/tableGeometry.ts',
@@ -74,6 +73,7 @@ module.exports = {
     'src/lib/floorPlan/snapping.ts',
     'src/lib/floorPlan/history.ts',
     'src/lib/floorPlan/document.ts',
+    'src/lib/floorPlan/editorGeometry.ts',
     'src/components/floor-plan/guest/guestMapState.ts',
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
@@ -233,15 +233,6 @@ module.exports = {
     },
     // Reservations floor-plan core (B1) — the shared canvas-geometry contract
     // (600x500, centre-anchored marker maths) at 100% → 99; the customer map's
-    // marker interaction/entrance-fallback paths at 100% → 99; the docket at
-    // 100% stmts (branches 85.71 → 84); the time-chip selector measured
-    // 79.16/83.33/54.54/82.6 → pinned at actual − ~1pt.
-    './src/lib/tableCanvasGeometry.ts': {
-      statements: 99,
-      branches: 99,
-      functions: 99,
-      lines: 99,
-    },
     // FLOOR-PLAN-REVAMP S4 foundation — geometry/walls/service all at 100% → 99.
     './src/lib/floorPlan/geometry.ts': {
       statements: 99,
@@ -371,6 +362,12 @@ module.exports = {
       lines: 99,
     },
     './src/lib/floorPlan/document.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/editorGeometry.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

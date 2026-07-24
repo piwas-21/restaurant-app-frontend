@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
 import { computeViewBox, metresToCm, type ViewBox } from '@/lib/floorPlan/geometry';
 import RoomsLayer from './RoomsLayer';
@@ -36,6 +37,12 @@ interface FloorPlanSceneProps {
   viewBox?: ViewBox;
   role?: 'group' | 'application';
   ariaLabel?: string;
+  /**
+   * Editor chrome drawn in the same centimetre space as the scene but *outside*
+   * the rough filter, so selection boxes, snap guides and handles stay crisp
+   * (FLOOR-PLAN-REVAMP §4.0 — the overlay lives inside the one `<svg>`).
+   */
+  overlay?: ReactNode;
 }
 
 function Grid({ widthCm, heightCm, stepCm }: Readonly<{ widthCm: number; heightCm: number; stepCm: number }>) {
@@ -78,6 +85,7 @@ export default function FloorPlanScene({
   viewBox,
   role = 'group',
   ariaLabel = 'Restaurant floor plan',
+  overlay,
 }: Readonly<FloorPlanSceneProps>) {
   const vb = viewBox ?? computeViewBox(document.widthMeters, document.heightMeters);
   const className = [styles.scene, skinClassName].filter(Boolean).join(' ');
@@ -110,6 +118,7 @@ export default function FloorPlanScene({
         />
         <LabelsLayer items={document.items} styles={styles} />
       </g>
+      {overlay}
     </svg>
   );
 }

@@ -1,0 +1,142 @@
+/* Editor inspector (FLOOR-PLAN-REVAMP §4.3). Semantic tokens only — no hex. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  min-width: 240px;
+}
+
+.empty {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.meta {
+  margin: -4px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.number,
+.select {
+  width: 100%;
+  padding: 7px 9px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+}
+
+.number:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
+}
+
+.rotation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.chip {
+  padding: 6px 0;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  color: var(--text-on-primary);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.steppers {
+  display: flex;
+  gap: 8px;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.action,
+.actionDanger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.actionDanger {
+  color: var(--feedback-danger);
+  border-color: var(--feedback-danger);
+}
+
+.action:disabled,
+.actionDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lockHint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}

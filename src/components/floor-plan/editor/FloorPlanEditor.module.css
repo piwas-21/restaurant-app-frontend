@@ -1,0 +1,54 @@
+/* Floor-plan editor layout (FLOOR-PLAN-REVAMP §4.3). Toolbar on top, canvas +
+   inspector below; the inspector drops beneath the canvas on narrow screens. */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.state {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.retry {
+  color: var(--link-default);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.message {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.success {
+  color: var(--feedback-success-dark);
+  background: var(--feedback-success-xlight);
+}
+
+.error {
+  color: var(--feedback-error);
+  background: var(--feedback-error-bg);
+}

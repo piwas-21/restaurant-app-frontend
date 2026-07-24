@@ -1,0 +1,180 @@
+/* Shared structural styles for the floor-plan scene (FLOOR-PLAN-REVAMP §5.3).
+   ONE module, both skins: every colour is a `--fp-*` token mapped onto the
+   existing semantic layer here, so the plan inherits each template's palette AND
+   its dark mode for free (no hex lives in a *.module.css — S15 T1 gate). Only
+   the NON-colour scalars (stroke weight, number font, the craft rough filter)
+   differ per skin and are overridden by the template `skinClassName`. Structure
+   is skin-invariant, which is what keeps the guest map and admin editor
+   pixel-identical. */
+
+.scene {
+  /* colour roles → semantic tokens (identical expression per skin; the token
+     VALUES differ per template + dark mode, so the plan re-skins automatically) */
+  --fp-paper: var(--surface-primary);
+  --fp-panel: var(--surface-card);
+  --fp-ink: var(--text-primary);
+  --fp-fill: var(--surface-card);
+  --fp-floor: var(--surface-secondary);
+  --fp-scenery: var(--text-secondary);
+  --fp-accent: var(--brand-primary);
+  --fp-flag: var(--brand-accent);
+  --fp-on-accent: var(--text-on-primary);
+  --fp-faint: var(--border-default);
+
+  /* skin scalars — classic defaults; the craft skin class overrides them */
+  --fp-w: 1.7;
+  --fp-w-thin: 1.05;
+  --fp-num-font: inherit;
+  --fp-rough: none;
+
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--fp-paper);
+  touch-action: none;
+}
+
+.scene text {
+  user-select: none;
+}
+
+.rough {
+  filter: var(--fp-rough);
+}
+
+/* ── ink variants (mapped from symbol primitives) ─────────────────────────── */
+.ln,
+.scenery {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ln {
+  stroke: var(--fp-ink);
+  stroke-width: var(--fp-w);
+}
+.lnThin {
+  fill: none;
+  stroke: var(--fp-ink);
+  stroke-width: var(--fp-w-thin);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fill {
+  fill: var(--fp-fill);
+  stroke: var(--fp-ink);
+  stroke-width: var(--fp-w);
+  stroke-linejoin: round;
+}
+.scenery {
+  stroke: var(--fp-scenery);
+  stroke-width: var(--fp-w);
+}
+.sceneryFill {
+  fill: var(--fp-fill);
+  stroke: var(--fp-scenery);
+  stroke-width: var(--fp-w);
+  stroke-linejoin: round;
+}
+.scenerySolid {
+  fill: var(--fp-scenery);
+  stroke: none;
+}
+.faint {
+  fill: none;
+  stroke: var(--fp-faint);
+  stroke-width: var(--fp-w-thin);
+}
+
+/* ── walls (stroke width is per-wall data → an attribute; colour is the skin) ─ */
+.wall,
+.window {
+  fill: none;
+  stroke: var(--fp-ink);
+}
+
+/* ── floors + wayfinding text ─────────────────────────────────────────────── */
+.roomName {
+  fill: var(--fp-scenery);
+  font-family: var(--fp-num-font);
+  font-weight: 700;
+  text-anchor: start;
+  dominant-baseline: central;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+}
+.num,
+.tagText {
+  fill: var(--fp-ink);
+  font-family: var(--fp-num-font);
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.flag {
+  fill: var(--fp-flag);
+  stroke: var(--fp-ink);
+  stroke-width: var(--fp-w-thin);
+}
+.zoneRegion {
+  fill: none;
+  stroke: var(--fp-scenery);
+  stroke-width: var(--fp-w-thin);
+  stroke-dasharray: 18 12;
+  opacity: 0.55;
+}
+
+/* ── tables + states (state drives fill/opacity only, never geometry) ─────── */
+.tableTop {
+  fill: var(--fp-fill);
+  stroke: var(--fp-ink);
+  stroke-width: var(--fp-w);
+}
+.chair {
+  fill: var(--fp-fill);
+  stroke: var(--fp-ink);
+  stroke-width: var(--fp-w-thin);
+}
+.tableHit {
+  cursor: pointer;
+}
+.table:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 2px;
+}
+.table[data-state='selected'] .tableTop,
+.table[data-state='selected'] .chair {
+  fill: var(--fp-accent);
+  stroke: var(--fp-accent);
+}
+.table[data-state='selected'] .num {
+  fill: var(--fp-on-accent);
+}
+.table[data-state='booked'] {
+  opacity: 0.5;
+}
+.table[data-state='booked'] .tableTop {
+  fill: url(#fp-hatch);
+}
+.table[data-state='small'] {
+  opacity: 0.32;
+}
+.table[data-state='dim'] {
+  opacity: 0.24;
+}
+.tableHit[data-state='available']:hover .tableTop {
+  stroke-width: calc(var(--fp-w) * 1.6);
+}
+
+/* ── editor grid ──────────────────────────────────────────────────────────── */
+.gridLine,
+.gridMajor {
+  stroke: var(--fp-faint);
+  stroke-width: 1;
+}
+.gridLine {
+  opacity: 0.5;
+}
+.gridMajor {
+  opacity: 0.9;
+}

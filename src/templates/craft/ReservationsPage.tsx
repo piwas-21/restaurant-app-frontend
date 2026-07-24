@@ -11,7 +11,9 @@
 // the terracotta letterpress "Book Now" pill from the primitives layer.
 import ReservationsPageLayout from '@/components/reservation/reservations-page/ReservationsPageLayout';
 import page from './reservations/ReservationsPage.module.css';
-import floorPlan from './reservations/FloorPlan.module.css';
+// The floor plan is now the shared FloorPlanGuestMap (self-styled from semantic
+// tokens); the template only supplies the scene's craft skin scalars.
+import scene from './floor-plan/FloorPlanScene.module.css';
 import guests from './reservations/PartySize.module.css';
 import dateTime from './reservations/DateTimePicker.module.css';
 // One module serves both docket areas (selected tables + capacity note) —
@@ -20,6 +22,8 @@ import docket from './reservations/TablesDocket.module.css';
 
 export default function ReservationsPage() {
   return (
-    <ReservationsPageLayout styles={{ page, floorPlan, guests, dateTime, selectedTables: docket, capacity: docket }} />
+    <ReservationsPageLayout
+      styles={{ page, floorPlanSkin: scene.skin, guests, dateTime, selectedTables: docket, capacity: docket }}
+    />
   );
 }

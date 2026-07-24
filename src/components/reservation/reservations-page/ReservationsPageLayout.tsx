@@ -1,6 +1,6 @@
 'use client';
 
-import VisualTableLayout from '@/components/reservation/VisualTableLayout';
+import FloorPlanGuestMap from '@/components/floor-plan/guest/FloorPlanGuestMap';
 import GuestSelector from '@/components/reservation/GuestSelector';
 import DateTimeSelector from '@/components/reservation/DateTimeSelector';
 import CustomerDetailsForm from '@/components/reservation/CustomerDetailsForm';
@@ -22,7 +22,8 @@ interface ReservationsPageLayoutProps {
    */
   styles: {
     page: CssModule;
-    floorPlan: CssModule;
+    /** The template's floor-plan scene skin class (craft / classic scalars). */
+    floorPlanSkin: string;
     guests: CssModule;
     dateTime: CssModule;
     selectedTables: CssModule;
@@ -90,12 +91,17 @@ export default function ReservationsPageLayout({ styles }: Readonly<Reservations
             {/* Capacity Warning */}
             {capacityWarning && <CapacityWarning numberOfGuests={numberOfGuests} styles={styles.capacity} />}
 
-            <VisualTableLayout
-              tables={allTables}
+            <FloorPlanGuestMap
+              skinClassName={styles.floorPlanSkin}
               selectedTableIds={selectedTableIds}
-              onSelectTable={handleTableSelect}
               bookedTableIds={bookedTableIds}
-              styles={styles.floorPlan}
+              numberOfGuests={numberOfGuests}
+              onSelectTable={(id) => {
+                const table = allTables.find((candidate) => candidate.id === id);
+                if (table) {
+                  handleTableSelect(table);
+                }
+              }}
             />
           </div>
 

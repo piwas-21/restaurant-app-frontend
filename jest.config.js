@@ -69,6 +69,10 @@ module.exports = {
     'src/lib/floorPlan/symbolPrims.ts',
     'src/lib/floorPlan/symbolsStructure.ts',
     'src/lib/floorPlan/symbolsDecor.ts',
+    'src/lib/floorPlan/zones.ts',
+    'src/lib/floorPlan/viewport.ts',
+    'src/components/floor-plan/guest/guestMapState.ts',
+    'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
@@ -333,13 +337,65 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    './src/services/floorPlanService.ts': {
+    // FLOOR-PLAN-REVAMP S5 guest map — the pure zone/viewport/state/placement
+    // helpers at 100% → 99; the map components at actual − ~a hair. The
+    // pointer/wheel/pinch paths of the viewport + hover hooks are exercised in
+    // the browser (S9 e2e/axe), not jsdom, so those hooks are left ungated.
+    './src/lib/floorPlan/zones.ts': {
       statements: 99,
       branches: 99,
       functions: 99,
       lines: 99,
     },
-    './src/components/reservation/VisualTableLayout.tsx': {
+    './src/lib/floorPlan/viewport.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/guestMapState.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/hoverCardPosition.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/FloorPlanGuestMap.tsx': {
+      statements: 95,
+      branches: 88,
+      functions: 99,
+      lines: 94,
+    },
+    './src/components/floor-plan/guest/FloorPlanHoverCard.tsx': {
+      statements: 99,
+      branches: 82,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/FloorPlanMapControls.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/FloorPlanTableList.tsx': {
+      statements: 90,
+      branches: 60,
+      functions: 84,
+      lines: 94,
+    },
+    './src/components/floor-plan/guest/FloorPlanZoneChips.tsx': {
+      statements: 84,
+      branches: 99,
+      functions: 82,
+      lines: 84,
+    },
+    './src/services/floorPlanService.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

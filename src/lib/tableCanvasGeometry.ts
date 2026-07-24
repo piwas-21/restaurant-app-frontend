@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react';
 
 /**
- * Single source of truth for the table floor-plan canvas geometry, shared by
- * the customer map (`VisualTableLayout`), the admin editor (`TableCanvas` via
- * `useTableLayout`) and the table marker component. Positions are stored in
- * backend canvas units (600×500 — must match the backend seeder comment) and
- * rendered as percentages so both canvases scale identically; markers are
- * centre-anchored on (positionX, positionY) in BOTH renderers.
+ * Legacy 600×500 pixel-canvas geometry for the OLD admin table editor
+ * (`TableCanvas` via `useTableLayout`) and its table marker. The guest map moved
+ * to the metre-scale `FloorPlanScene` in FLOOR-PLAN-REVAMP S5 (so the former
+ * `VisualTableLayout` consumer is gone); this module is retired when S6 replaces
+ * the admin editor. Positions are backend canvas units (600×500) rendered as
+ * percentages; markers are centre-anchored on (positionX, positionY).
  */
 export const CANVAS_WIDTH = 600;
 export const CANVAS_HEIGHT = 500;

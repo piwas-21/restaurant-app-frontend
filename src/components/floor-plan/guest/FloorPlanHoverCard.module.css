@@ -1,0 +1,45 @@
+/* Guest map hover card (FLOOR-PLAN-REVAMP §4.2, WCAG SC 1.4.13). Semantic-token
+   driven — no hex; the shadow uses a theme-invariant rgba (gate allows rgba). */
+
+.hoverCard {
+  position: absolute;
+  z-index: 12;
+  min-width: 170px;
+  max-width: 230px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+}
+.hoverClose {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1;
+}
+.hoverTitle {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+.hoverList {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+}
+.hoverList dt {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.hoverList dd {
+  margin: 0;
+  font-size: 12.5px;
+}

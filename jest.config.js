@@ -62,6 +62,9 @@ module.exports = {
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
     'src/lib/tableCanvasGeometry.ts',
+    'src/lib/floorPlan/geometry.ts',
+    'src/lib/floorPlan/walls.ts',
+    'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
@@ -222,6 +225,25 @@ module.exports = {
     // 100% stmts (branches 85.71 → 84); the time-chip selector measured
     // 79.16/83.33/54.54/82.6 → pinned at actual − ~1pt.
     './src/lib/tableCanvasGeometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S4 foundation — geometry/walls/service all at 100% → 99.
+    './src/lib/floorPlan/geometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/walls.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/services/floorPlanService.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

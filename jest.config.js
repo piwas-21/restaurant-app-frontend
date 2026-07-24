@@ -71,6 +71,9 @@ module.exports = {
     'src/lib/floorPlan/symbolsDecor.ts',
     'src/lib/floorPlan/zones.ts',
     'src/lib/floorPlan/viewport.ts',
+    'src/lib/floorPlan/snapping.ts',
+    'src/lib/floorPlan/history.ts',
+    'src/lib/floorPlan/document.ts',
     'src/components/floor-plan/guest/guestMapState.ts',
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
@@ -348,6 +351,26 @@ module.exports = {
       lines: 99,
     },
     './src/lib/floorPlan/viewport.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S6 editor foundation — snapping maths, the undo/redo
+    // command stack, and immutable document ops, all fully covered.
+    './src/lib/floorPlan/snapping.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/history.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/document.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

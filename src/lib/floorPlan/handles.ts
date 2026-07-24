@@ -16,11 +16,14 @@ export const ROTATE_HANDLE = 'rotate';
 /** The eight resize grips, named for the direction they pull. */
 export type ResizeHandleId = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
-/** A grip's pull direction in the rect's unrotated frame (−1, 0 or +1 per axis). */
+/** Which way a grip pulls on one axis: towards the low edge, neither, or the high one. */
+export type AxisSign = -1 | 0 | 1;
+
+/** A grip's pull direction in the rect's unrotated frame. */
 export interface HandleAnchor {
   id: ResizeHandleId;
-  sx: -1 | 0 | 1;
-  sy: -1 | 0 | 1;
+  sx: AxisSign;
+  sy: AxisSign;
 }
 
 export const RESIZE_HANDLES: readonly HandleAnchor[] = [
@@ -102,7 +105,7 @@ interface AxisOptions {
 }
 
 /** The new extent and local centre on one axis, keeping the opposite edge pinned. */
-function resizeAxis(sign: -1 | 0 | 1, sizeMeters: number, local: number, options: AxisOptions) {
+function resizeAxis(sign: AxisSign, sizeMeters: number, local: number, options: AxisOptions) {
   if (sign === 0) {
     return { size: sizeMeters, centre: 0 };
   }

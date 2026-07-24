@@ -41,7 +41,7 @@ describe('FloorPlanHoverCard', () => {
         onPointerLeave={jest.fn()}
       />,
     );
-    expect(screen.getByRole('dialog', { name: 'Table 7' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Table 7' })).toBeInTheDocument();
     expect(screen.getByText('Terrace · outdoor')).toBeInTheDocument();
     expect(screen.getByText('By the window')).toBeInTheDocument();
     expect(screen.getByText('Available')).toBeInTheDocument();
@@ -76,7 +76,8 @@ describe('FloorPlanHoverCard', () => {
         onPointerLeave={jest.fn()}
       />,
     );
-    fireEvent.pointerEnter(screen.getByRole('dialog'));
+    const card = screen.getByRole('heading', { name: 'Table 7' }).parentElement as HTMLElement;
+    fireEvent.pointerEnter(card);
     expect(onPointerEnter).toHaveBeenCalled();
     expect(screen.getByText('Booked')).toBeInTheDocument();
   });

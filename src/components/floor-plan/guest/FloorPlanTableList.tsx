@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { GuestTableInfo } from './guestMapState';
+import { tableStatusLabel } from './tableStatusLabel';
 import styles from './FloorPlanTableList.module.css';
 
 // Stable, non-index keys for the decorative seat pips (Sonar S6479); one per
@@ -62,12 +63,7 @@ export default function FloorPlanTableList({
             const { table } = info;
             const selected = info.state === 'selected';
             const disabled = info.state === 'booked' || info.state === 'small';
-            const status =
-              info.state === 'booked'
-                ? t('booked', 'Booked')
-                : table.maxGuests < party
-                  ? t('table_seats_party', 'Seats {{seats}}, you are {{party}}', { seats: table.maxGuests, party })
-                  : t('available', 'Available');
+            const status = tableStatusLabel(info.state, table.maxGuests, party, t);
             return (
               <div key={table.id} className={styles.listCard} data-selected={selected}>
                 <div className={styles.listCardTop}>

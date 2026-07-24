@@ -29,7 +29,7 @@ export default function FloorPlanZoneChips({
   const { t } = useTranslation();
   return (
     <div className={styles.chips}>
-      <div className={styles.viewToggle} role="group" aria-label={t('floor_plan_view', 'View')}>
+      <div className={styles.viewToggle}>
         <button type="button" className={styles.chip} aria-pressed={view === 'map'} onClick={() => onViewChange('map')}>
           {t('map', 'Map')}
         </button>
@@ -43,7 +43,7 @@ export default function FloorPlanZoneChips({
         </button>
       </div>
       {zones.length > 0 && (
-        <div className={styles.zoneChips} role="group" aria-label={t('zones', 'Zones')}>
+        <div className={styles.zoneChips}>
           <button
             type="button"
             className={styles.chip}

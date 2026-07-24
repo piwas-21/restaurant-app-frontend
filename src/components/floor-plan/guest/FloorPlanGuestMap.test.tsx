@@ -103,10 +103,10 @@ describe('FloorPlanGuestMap', () => {
     const table = container.querySelector('[data-table-id="t1"]')!;
 
     fireEvent.pointerMove(table, { pointerType: 'mouse', clientX: 20, clientY: 20 });
-    expect(screen.getByRole('dialog', { name: 'Table 1' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Table 1' })).toBeInTheDocument();
 
     fireEvent.keyDown(table, { key: 'Escape' });
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Table 1' })).not.toBeInTheDocument();
   });
 
   it('moves focus between tables with the arrow keys', async () => {

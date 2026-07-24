@@ -44,7 +44,7 @@ function focusAdjacentTable(stage: HTMLElement | null, direction: 1 | -1) {
   if (tables.length === 0) {
     return;
   }
-  const current = tables.findIndex((el) => el === document.activeElement);
+  const current = tables.indexOf(document.activeElement as SVGGElement);
   const next = tables[(current + direction + tables.length) % tables.length];
   next?.focus();
 }
@@ -143,9 +143,14 @@ export default function FloorPlanGuestMap({
       />
       {view === 'map' ? (
         <>
+          {/* An application region: it manages its own pan/zoom + arrow-key
+              roving focus, so AT hands keys through (the List is the linear SR
+              path). */}
           <div
             ref={viewport.stageRef}
             className={styles.stage}
+            role="application"
+            aria-label={t('restaurant_floor_plan', 'Restaurant floor plan')}
             onPointerDown={viewport.stageHandlers.onPointerDown}
             onPointerMove={(e) => {
               viewport.stageHandlers.onPointerMove(e);

@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import type { CSSProperties } from 'react';
 import type { GuestTableInfo } from './guestMapState';
+import { tableStatusLabel } from './tableStatusLabel';
 import styles from './FloorPlanHoverCard.module.css';
 
 /**
@@ -32,22 +33,12 @@ export default function FloorPlanHoverCard({
 }: Readonly<FloorPlanHoverCardProps>) {
   const { t } = useTranslation();
   const { table, zone } = info;
-  const statusText =
-    info.state === 'booked'
-      ? t('booked', 'Booked')
-      : table.maxGuests < party
-        ? t('table_seats_party', 'Seats {{seats}}, you are {{party}}', { seats: table.maxGuests, party })
-        : t('available', 'Available');
+  const statusText = tableStatusLabel(info.state, table.maxGuests, party, t);
 
+  // A supplementary preview (not a modal) — no ARIA landmark role; the h4 gives
+  // it a name and it stays dismissible/hoverable/persistent (SC 1.4.13).
   return (
-    <div
-      className={styles.hoverCard}
-      style={position}
-      role="dialog"
-      aria-label={t('table_number', 'Table {{number}}', { number: table.tableNumber })}
-      onPointerEnter={onPointerEnter}
-      onPointerLeave={onPointerLeave}
-    >
+    <div className={styles.hoverCard} style={position} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>
       <button type="button" className={styles.hoverClose} onClick={onClose} aria-label={t('dismiss', 'Dismiss')}>
         ×
       </button>

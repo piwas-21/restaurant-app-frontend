@@ -60,7 +60,7 @@ export function useGuestHover(stageRef: RefObject<HTMLDivElement | null>) {
       if (e.pointerType === 'touch') {
         return;
       }
-      const id = (e.target as Element).closest('[data-table-id]')?.getAttribute('data-table-id');
+      const id = (e.target as Element).closest<SVGGElement>('[data-table-id]')?.dataset.tableId;
       if (id) {
         cancelClose();
         setHoverId(id);

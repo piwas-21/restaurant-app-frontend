@@ -2,7 +2,7 @@ import type { KeyboardEvent } from 'react';
 import type { FloorPlanTableGeometry } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
 import { tableParts, type TableParts } from '@/lib/floorPlan/tableGeometry';
-import type { SceneStyles, TableRenderState } from './sceneTypes';
+import type { SceneStyles, SelectTable, TableRenderState } from './sceneTypes';
 
 /**
  * The tables — the interactive layer. Each table's top and chairs live inside a
@@ -18,7 +18,7 @@ interface TablesLayerProps {
   states?: Readonly<Record<string, TableRenderState>>;
   styles: SceneStyles;
   /** When provided, non-booked / non-small tables become clickable buttons. */
-  onSelectTable?: (id: string) => void;
+  onSelectTable?: SelectTable;
   /** Accessible label for a table in a given state (i18n from the consumer). */
   formatTableLabel?: (table: FloorPlanTableGeometry, state: TableRenderState) => string;
 }
@@ -75,7 +75,7 @@ interface TableGraphicProps {
   state: TableRenderState;
   styles: SceneStyles;
   label: string;
-  onSelectTable?: (id: string) => void;
+  onSelectTable?: SelectTable;
 }
 
 function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<TableGraphicProps>) {
@@ -84,7 +84,7 @@ function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<T
   const handleKeyDown = (e: KeyboardEvent<SVGGElement>) => {
     if (clickable && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
-      onSelectTable?.(table.id);
+      onSelectTable?.(table.id, { additive: e.shiftKey, viaKeyboard: true });
     }
   };
   return (
@@ -97,7 +97,9 @@ function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<T
       tabIndex={clickable ? 0 : undefined}
       aria-pressed={clickable ? state === 'selected' : undefined}
       aria-label={label}
-      onClick={clickable ? () => onSelectTable?.(table.id) : undefined}
+      onClick={
+        clickable ? (e) => onSelectTable?.(table.id, { additive: e.shiftKey, synthetic: e.detail === 0 }) : undefined
+      }
       onKeyDown={clickable ? handleKeyDown : undefined}
     >
       <g transform={`rotate(${table.rotation})`}>

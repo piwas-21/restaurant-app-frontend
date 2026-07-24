@@ -1,7 +1,8 @@
 import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
 import type { AlignmentGuide } from '@/lib/floorPlan/snapping';
-import type { ActiveGesture } from '@/hooks/floorPlan/useEditorDrag';
+import type { MarqueeRect } from '@/lib/floorPlan/selection';
+import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
 import EditorHandles from './EditorHandles';
 import styles from './EditorOverlay.module.css';
 
@@ -15,7 +16,9 @@ import styles from './EditorOverlay.module.css';
  */
 interface EditorOverlayProps {
   document: FloorPlanDocument;
-  selectedId: string | null;
+  selectedIds: readonly string[];
+  /** The live rubber band, while one is being swept. */
+  marquee: MarqueeRect | null;
   guides: AlignmentGuide[];
   overlaps: ReadonlySet<string>;
   /** Screen pixels per plan centimetre — sizes the constant-screen-size grips. */
@@ -47,7 +50,8 @@ function Footprint({
 
 export default function EditorOverlay({
   document: doc,
-  selectedId,
+  selectedIds,
+  marquee,
   guides,
   overlaps,
   pxPerCm,
@@ -55,7 +59,10 @@ export default function EditorOverlay({
 }: Readonly<EditorOverlayProps>) {
   const widthCm = metresToCm(doc.widthMeters);
   const heightCm = metresToCm(doc.heightMeters);
-  const selected = selectedId ? doc.tables.find((t) => t.id === selectedId) : undefined;
+  const selected = doc.tables.filter((t) => selectedIds.includes(t.id));
+  // Grips belong to a single selection — with several picked, arranging them is
+  // the inspector's align/distribute job, not a per-table drag.
+  const only = selected.length === 1 ? selected[0] : undefined;
   return (
     <g aria-hidden="true">
       {doc.tables
@@ -84,11 +91,18 @@ export default function EditorOverlay({
           />
         ),
       )}
-      {selected && (
-        <>
-          <Footprint table={selected} className={styles.selection} padCm={6} />
-          <EditorHandles table={selected} pxPerCm={pxPerCm} gesture={gesture} />
-        </>
+      {selected.map((t) => (
+        <Footprint key={`sel-${t.id}`} table={t} className={styles.selection} padCm={6} />
+      ))}
+      {only && <EditorHandles table={only} pxPerCm={pxPerCm} gesture={gesture} />}
+      {marquee && (
+        <rect
+          className={styles.marquee}
+          x={metresToCm(marquee.x)}
+          y={metresToCm(marquee.y)}
+          width={metresToCm(marquee.width)}
+          height={metresToCm(marquee.height)}
+        />
       )}
     </g>
   );

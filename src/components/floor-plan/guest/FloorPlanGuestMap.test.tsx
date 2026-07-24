@@ -43,7 +43,7 @@ describe('FloorPlanGuestMap', () => {
     const onSelectTable = jest.fn();
     render(<FloorPlanGuestMap {...baseProps} onSelectTable={onSelectTable} />);
     fireEvent.click(await screen.findByRole('button', { name: /Table 1/ }));
-    expect(onSelectTable).toHaveBeenCalledWith('t1');
+    expect(onSelectTable).toHaveBeenCalledWith('t1', { additive: false, synthetic: expect.any(Boolean) });
   });
 
   it('switches to the List view and books from a card', async () => {

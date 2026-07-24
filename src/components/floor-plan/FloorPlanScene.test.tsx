@@ -40,7 +40,7 @@ describe('FloorPlanScene', () => {
     render(<FloorPlanScene document={floorPlanFixture()} onSelectTable={onSelectTable} />);
     const button = screen.getByRole('button', { name: /Table 1/ });
     fireEvent.click(button);
-    expect(onSelectTable).toHaveBeenCalledWith('t1');
+    expect(onSelectTable).toHaveBeenCalledWith('t1', { additive: false, synthetic: expect.any(Boolean) });
   });
 
   it('selects a focused table with Enter or Space', () => {

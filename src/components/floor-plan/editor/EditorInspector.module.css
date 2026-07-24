@@ -103,6 +103,28 @@
   cursor: pointer;
 }
 
+.iconButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Align / distribute: one wrapping row of equal-weight icon buttons. A native
+   <fieldset> for the grouping semantics, so its chrome has to be reset. */
+.iconRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.iconRow .iconButton {
+  flex: 1 1 auto;
+  padding: 6px 8px;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

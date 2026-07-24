@@ -4,6 +4,7 @@ import { useEditorDrag } from './useEditorDrag';
 import { ROTATE_HANDLE } from '@/lib/floorPlan/handles';
 import { planDocument, tableGeometry } from '@/lib/floorPlan/__fixtures__/editorFixtures';
 import type { ViewBox } from '@/lib/floorPlan/geometry';
+import type { StagePointerPhase } from './editorStage';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -55,7 +56,7 @@ const event = (target: Element, clientX: number, clientY: number, pointerType = 
     shiftKey: false,
   }) as unknown as ReactPointerEvent<HTMLDivElement>;
 
-const setup = (selectedId: string | null = null, doc = DOC) => {
+const setup = (selected: string[] = [], doc = DOC) => {
   const onCommit = jest.fn();
   const onSelect = jest.fn();
   const fallback = {
@@ -71,19 +72,14 @@ const setup = (selectedId: string | null = null, doc = DOC) => {
       viewBox: VIEW_BOX,
       document: doc,
       snapEnabled: true,
-      selectedId,
+      selectedIds: selected,
       onSelect,
       onCommit,
       fallback,
     }),
   );
-  const fire = (
-    phase: 'onPointerDown' | 'onPointerMove' | 'onPointerUp' | 'onPointerCancel',
-    target: Element,
-    x: number,
-    y: number,
-    pointerType?: string,
-  ) => act(() => result.current.handlers[phase](event(target, x, y, pointerType)));
+  const fire = (phase: StagePointerPhase, target: Element, x: number, y: number, pointerType?: string) =>
+    act(() => result.current.handlers[phase](event(target, x, y, pointerType)));
   return { result, fire, onCommit, onSelect, fallback, ...targets() };
 };
 
@@ -105,14 +101,14 @@ describe('useEditorDrag — history accounting', () => {
     fire('onPointerDown', table, 200, 200);
     fire('onPointerUp', table, 200, 200);
 
-    expect(onSelect).toHaveBeenCalledWith('a');
+    expect(onSelect).toHaveBeenCalledWith('a', false);
     expect(onCommit).not.toHaveBeenCalled();
   });
 
   it('commits nothing for a press that wobbles below the drag threshold', () => {
     // Off-lattice, so only the threshold can save it — snapping back to the same
     // grid cell would rescue an on-lattice table whatever the threshold were.
-    const { fire, onCommit, table } = setup('a', OFF_LATTICE);
+    const { fire, onCommit, table } = setup(['a'], OFF_LATTICE);
     fire('onPointerDown', table, 200, 200);
     fire('onPointerMove', table, 201, 201);
     fire('onPointerUp', table, 201, 201);
@@ -145,7 +141,7 @@ describe('useEditorDrag — history accounting', () => {
 
 describe('useEditorDrag — grips', () => {
   it('resizes the selection from a grip, committing once', () => {
-    const { fire, onCommit, grip } = setup('a');
+    const { fire, onCommit, grip } = setup(['a']);
     fire('onPointerDown', grip, 250, 250);
     fire('onPointerMove', grip, 350, 250);
     fire('onPointerUp', grip, 350, 250);
@@ -155,7 +151,7 @@ describe('useEditorDrag — grips', () => {
   });
 
   it('does not resize an off-lattice table on a tap — the grip is not a button', () => {
-    const { fire, onCommit, grip } = setup('a', OFF_LATTICE);
+    const { fire, onCommit, grip } = setup(['a'], OFF_LATTICE);
     fire('onPointerDown', grip, 260, 240);
     fire('onPointerMove', grip, 261, 240);
     fire('onPointerUp', grip, 261, 240);
@@ -165,7 +161,7 @@ describe('useEditorDrag — grips', () => {
 
   it('does not resize on a finger tap that drifts, as every real tap does', () => {
     // 6px of drift clears the mouse slop but not a touch tap's, per the platforms.
-    const { fire, onCommit, grip } = setup('a', OFF_LATTICE);
+    const { fire, onCommit, grip } = setup(['a'], OFF_LATTICE);
     fire('onPointerDown', grip, 260, 240, 'touch');
     fire('onPointerMove', grip, 264, 244, 'touch');
     fire('onPointerUp', grip, 264, 244, 'touch');
@@ -174,7 +170,7 @@ describe('useEditorDrag — grips', () => {
   });
 
   it('still resizes once a finger genuinely drags', () => {
-    const { fire, onCommit, grip } = setup('a', OFF_LATTICE);
+    const { fire, onCommit, grip } = setup(['a'], OFF_LATTICE);
     fire('onPointerDown', grip, 260, 240, 'touch');
     fire('onPointerMove', grip, 360, 240, 'touch');
     fire('onPointerUp', grip, 360, 240, 'touch');
@@ -183,7 +179,7 @@ describe('useEditorDrag — grips', () => {
   });
 
   it('does not rotate an off-lattice table on a tap', () => {
-    const { fire, onCommit, rotate } = setup('a', OFF_LATTICE);
+    const { fire, onCommit, rotate } = setup(['a'], OFF_LATTICE);
     fire('onPointerDown', rotate, 200, 100);
     fire('onPointerMove', rotate, 201, 100);
     fire('onPointerUp', rotate, 201, 100);
@@ -192,7 +188,7 @@ describe('useEditorDrag — grips', () => {
   });
 
   it('reports the running gesture and its pre-gesture origin for the overlay ghost', () => {
-    const { fire, result, rotate } = setup('a');
+    const { fire, result, rotate } = setup(['a']);
     fire('onPointerDown', rotate, 200, 100);
 
     expect(result.current.gesture).toEqual({
@@ -202,7 +198,7 @@ describe('useEditorDrag — grips', () => {
   });
 
   it('rotates from the rotate grip without jumping when the ring is grabbed off-centre', () => {
-    const { fire, onCommit, rotate } = setup('a');
+    const { fire, onCommit, rotate } = setup(['a']);
     // Pressed a quarter turn round the ring, then moved 45° further.
     fire('onPointerDown', rotate, 300, 200);
     fire('onPointerMove', rotate, 300, 300);
@@ -210,6 +206,122 @@ describe('useEditorDrag — grips', () => {
 
     expect(onCommit).toHaveBeenCalledTimes(1);
     expect(onCommit.mock.calls[0][0].tables[0].rotation).toBe(45);
+  });
+});
+
+describe('useEditorDrag — multi-selection', () => {
+  it('carries every selected table by the same delta, in one history entry', () => {
+    const doc = planDocument([
+      tableGeometry({ id: 'a', positionX: 2, positionY: 2 }),
+      tableGeometry({ id: 'b', positionX: 4, positionY: 3 }),
+    ]);
+    const { fire, onCommit, table } = setup(['a', 'b'], doc);
+    fire('onPointerDown', table, 200, 200);
+    fire('onPointerMove', table, 300, 300);
+    fire('onPointerUp', table, 300, 300);
+
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCommit.mock.calls[0][0].tables).toMatchObject([
+      { id: 'a', positionX: 3, positionY: 3 },
+      { id: 'b', positionX: 5, positionY: 4 },
+    ]);
+  });
+
+  it('drags only the pressed table when a DIFFERENT one was selected', () => {
+    // The regression: `onSelect` is a setState, so the handler still sees the
+    // pre-press selection — using it as the follower list dragged the old one.
+    const doc = planDocument([
+      tableGeometry({ id: 'a', positionX: 2, positionY: 2 }),
+      tableGeometry({ id: 'b', positionX: 4, positionY: 3 }),
+    ]);
+    const { fire, onCommit, table } = setup(['b'], doc);
+    fire('onPointerDown', table, 200, 200);
+    fire('onPointerMove', table, 300, 300);
+    fire('onPointerUp', table, 300, 300);
+
+    expect(onCommit.mock.calls[0][0].tables).toMatchObject([
+      { id: 'a', positionX: 3, positionY: 3 },
+      { id: 'b', positionX: 4, positionY: 3 },
+    ]);
+  });
+
+  it('picks up a shift-added table straight away, without waiting for a re-render', () => {
+    const doc = planDocument([
+      tableGeometry({ id: 'a', positionX: 2, positionY: 2 }),
+      tableGeometry({ id: 'b', positionX: 4, positionY: 3 }),
+    ]);
+    const { result, onCommit, table } = setup(['b'], doc);
+    act(() =>
+      result.current.handlers.onPointerDown({
+        ...event(table, 200, 200),
+        shiftKey: true,
+      } as unknown as ReactPointerEvent<HTMLDivElement>),
+    );
+    act(() => result.current.handlers.onPointerMove(event(table, 300, 300)));
+    act(() => result.current.handlers.onPointerUp(event(table, 300, 300)));
+
+    expect(onCommit.mock.calls[0][0].tables).toMatchObject([
+      { id: 'a', positionX: 3, positionY: 3 },
+      { id: 'b', positionX: 5, positionY: 4 },
+    ]);
+  });
+
+  it('starts no drag when a shift-press DEselects the table under the cursor', () => {
+    const { result, onCommit, onSelect, table } = setup(['a', 'b']);
+    act(() =>
+      result.current.handlers.onPointerDown({
+        ...event(table, 200, 200),
+        shiftKey: true,
+      } as unknown as ReactPointerEvent<HTMLDivElement>),
+    );
+    act(() => result.current.handlers.onPointerMove(event(table, 300, 300)));
+    act(() => result.current.handlers.onPointerUp(event(table, 300, 300)));
+
+    expect(onSelect).toHaveBeenCalledWith('a', true);
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('does not collapse the group when a press lands on one of its tables', () => {
+    const { fire, onSelect, table } = setup(['a', 'b']);
+    fire('onPointerDown', table, 200, 200);
+
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('collapses to the one table when that press turns out to be a tap', () => {
+    const { fire, onSelect, table } = setup(['a', 'b']);
+    fire('onPointerDown', table, 200, 200);
+    fire('onPointerUp', table, 200, 200);
+
+    expect(onSelect).toHaveBeenCalledWith('a', false);
+  });
+
+  it('keeps the group after a real drag, so it can be dragged again', () => {
+    const { fire, onSelect, table } = setup(['a', 'b']);
+    fire('onPointerDown', table, 200, 200);
+    fire('onPointerMove', table, 300, 300);
+    fire('onPointerUp', table, 300, 300);
+
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('passes Shift through so a press can add to the selection', () => {
+    const { result, onSelect, table } = setup(['b']);
+    act(() =>
+      result.current.handlers.onPointerDown({
+        ...event(table, 200, 200),
+        shiftKey: true,
+      } as unknown as ReactPointerEvent<HTMLDivElement>),
+    );
+
+    expect(onSelect).toHaveBeenCalledWith('a', true);
+  });
+
+  it('draws no grips for a group, so a grip press cannot start a gesture', () => {
+    const { fire, fallback, grip } = setup(['a', 'b']);
+    fire('onPointerDown', grip, 250, 250);
+
+    expect(fallback.onPointerDown).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -234,7 +346,7 @@ describe('useEditorDrag — fall-through to pan', () => {
   });
 
   it('ignores a grip press when nothing is selected, so the canvas still pans', () => {
-    const { fire, fallback, onSelect, grip } = setup(null);
+    const { fire, fallback, onSelect, grip } = setup([]);
     fire('onPointerDown', grip, 250, 250);
 
     expect(fallback.onPointerDown).toHaveBeenCalledTimes(1);

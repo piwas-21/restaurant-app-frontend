@@ -1,4 +1,6 @@
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry, FloorPlanWall } from '@/types/floorPlan';
+import { clampCentreToPlan } from './editorGeometry';
+import type { Gesture, GestureResult } from './editorGestures';
 
 /**
  * Immutable editor operations on a floor-plan document (FLOOR-PLAN-REVAMP §4.3,
@@ -74,4 +76,35 @@ export function findMovable(
     return { kind: 'item', item };
   }
   return null;
+}
+
+/**
+ * Apply a resolved gesture to the document. The grabbed table takes the patch;
+ * for a **move**, every other selected table travels by the same delta so a
+ * multi-selection keeps its shape. Followers are clamped to the plan
+ * individually — the same thing the server does — so dragging a group into a
+ * corner squashes it against the wall rather than pushing tables off-plan.
+ * Rotate and resize stay single-table: a group rotation about a shared centre is
+ * a different operation, and is not part of this slice.
+ */
+export function applyGesture(
+  doc: FloorPlanDocument,
+  gesture: Gesture,
+  result: GestureResult,
+  selectedIds: readonly string[],
+): FloorPlanDocument {
+  const primary = doc.tables.find((t) => t.id === gesture.id);
+  const next = updateTable(doc, gesture.id, result.patch);
+  if (gesture.kind !== 'move' || !primary) {
+    return next;
+  }
+  const dx = (result.patch.positionX ?? primary.positionX) - primary.positionX;
+  const dy = (result.patch.positionY ?? primary.positionY) - primary.positionY;
+  return doc.tables.reduce((acc, t) => {
+    if (t.id === gesture.id || !selectedIds.includes(t.id)) {
+      return acc;
+    }
+    const centre = clampCentreToPlan(t.positionX + dx, t.positionY + dy, doc);
+    return updateTable(acc, t.id, { positionX: centre.x, positionY: centre.y });
+  }, next);
 }

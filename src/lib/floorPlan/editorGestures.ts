@@ -55,16 +55,18 @@ export interface GestureResult {
 
 /**
  * Which gesture a pointer press starts: a grip on the current selection, else a
- * move of whatever table was pressed, else nothing (the caller pans instead).
+ * move of whatever table was pressed, else nothing (the caller marquees or pans
+ * instead). Grips belong to a *single* selection — with several tables picked
+ * none are drawn, so none can be pressed.
  */
 export function gestureFromTarget(
   target: Element,
   doc: FloorPlanDocument,
-  selectedId: string | null,
+  selectedIds: readonly string[],
   point: FloorPlanPoint,
 ): Gesture | null {
   const handleId = target.closest<SVGElement>('[data-handle]')?.dataset.handle;
-  const selected = selectedId ? doc.tables.find((t) => t.id === selectedId) : undefined;
+  const selected = selectedIds.length === 1 ? doc.tables.find((t) => t.id === selectedIds[0]) : undefined;
   if (handleId && selected) {
     if (handleId === ROTATE_HANDLE) {
       // The grip's hit ring is far wider than the grip, so record where on it the

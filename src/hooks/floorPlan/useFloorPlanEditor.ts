@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { alignTables, distributeTables, type AlignEdge, type PlanAxis } from '@/lib/floorPlan/align';
 import { useEditorDocument } from './useEditorDocument';
 import { usePlanViewport } from './usePlanViewport';
 import { useEditorDrag } from './useEditorDrag';
+import { useEditorMarquee } from './useEditorMarquee';
 import { useEditorKeyboard } from './useEditorKeyboard';
 import { useStageScale } from './useStageScale';
 import { overlappingTableIds } from '@/lib/floorPlan/editorGeometry';
@@ -28,6 +30,8 @@ const EMPTY_DOC: FloorPlanDocument = {
 interface UseFloorPlanEditorArgs {
   /** Open the delete-table modal (a /api/tables lifecycle op the page owns). */
   onDeleteSelected: () => void;
+  /** A modal owns the screen — its Escape and arrows are not the canvas's. */
+  modalOpen?: boolean;
 }
 
 /**
@@ -39,23 +43,36 @@ interface UseFloorPlanEditorArgs {
  * logic/save use. Overlap warnings are derived here so the overlay and the
  * toolbar counter share one source.
  */
-export function useFloorPlanEditor({ onDeleteSelected }: UseFloorPlanEditorArgs) {
+export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseFloorPlanEditorArgs) {
   const store = useEditorDocument();
   const [gridVisible, setGridVisible] = useState(true);
   const [snapEnabled, setSnapEnabled] = useState(true);
 
   const committed = store.document ?? EMPTY_DOC;
+  const { apply, selectedIds } = store;
   const viewport = usePlanViewport(committed.widthMeters, committed.heightMeters, store.status === 'ready');
+
+  // The stage's pointer chain, most specific first: a press on a table or grip
+  // is a gesture; on bare plan it sweeps a marquee; anything else pans/pinches.
+  const marquee = useEditorMarquee({
+    stageRef: viewport.stageRef,
+    viewBox: viewport.viewBox,
+    document: committed,
+    enabled: store.status === 'ready',
+    selectedIds: store.selectedIds,
+    onSelectMany: store.selectMany,
+    fallback: viewport.stageHandlers,
+  });
 
   const drag = useEditorDrag({
     stageRef: viewport.stageRef,
     viewBox: viewport.viewBox,
     document: committed,
     snapEnabled,
-    selectedId: store.selectedId,
+    selectedIds: store.selectedIds,
     onSelect: store.select,
     onCommit: store.apply,
-    fallback: viewport.stageHandlers,
+    fallback: marquee.handlers,
   });
 
   const renderDoc = drag.previewDoc ?? committed;
@@ -64,12 +81,13 @@ export function useFloorPlanEditor({ onDeleteSelected }: UseFloorPlanEditorArgs)
   const pxPerCm = useStageScale(viewport.stageRef, viewport.viewBox, store.status === 'ready');
 
   useEditorKeyboard({
-    enabled: store.status === 'ready',
+    enabled: store.status === 'ready' && !modalOpen,
     document: committed,
-    selectedId: store.selectedId,
+    selectedIds: store.selectedIds,
     apply: store.apply,
     undo: store.undo,
     redo: store.redo,
+    clearSelection: store.clearSelection,
     onDeleteSelected,
   });
 
@@ -104,9 +122,19 @@ export function useFloorPlanEditor({ onDeleteSelected }: UseFloorPlanEditorArgs)
     dragHandlers: drag.handlers,
     guides: drag.guides,
     gesture: drag.gesture,
+    marquee: marquee.band,
     overlaps,
     overlapCount: overlaps.size,
     selectedTable,
+    /** Align/distribute act on the whole selection; both are pure document ops. */
+    alignSelection: useCallback(
+      (edge: AlignEdge) => apply(alignTables(committed, selectedIds, edge)),
+      [apply, committed, selectedIds],
+    ),
+    distributeSelection: useCallback(
+      (axis: PlanAxis) => apply(distributeTables(committed, selectedIds, axis)),
+      [apply, committed, selectedIds],
+    ),
   };
 }
 

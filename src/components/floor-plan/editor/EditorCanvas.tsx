@@ -23,10 +23,9 @@ interface EditorCanvasProps {
 }
 
 export default function EditorCanvas({ editor, ariaLabel, formatTableLabel }: Readonly<EditorCanvasProps>) {
-  const states: Record<string, TableRenderState> | undefined = editor.selectedId
-    ? { [editor.selectedId]: 'selected' }
-    : undefined;
-
+  const states: Record<string, TableRenderState> = Object.fromEntries(
+    editor.selectedIds.map((id) => [id, 'selected' as const]),
+  );
   return (
     <div
       ref={editor.viewport.stageRef}
@@ -43,12 +42,21 @@ export default function EditorCanvas({ editor, ariaLabel, formatTableLabel }: Re
         showGrid={editor.gridVisible}
         role="application"
         ariaLabel={ariaLabel}
-        onSelectTable={editor.select}
+        // A pointer press is already selected by the gesture layer on
+        // pointer-DOWN; honouring the trailing click too would collapse a
+        // multi-selection the moment a group drag ended. Keyboard activation and
+        // pointer-less clicks (assistive tech) have no such press, so they select.
+        onSelectTable={(id, source) => {
+          if (source?.viaKeyboard || source?.synthetic) {
+            editor.select(id, Boolean(source.additive));
+          }
+        }}
         formatTableLabel={formatTableLabel}
         overlay={
           <EditorOverlay
             document={editor.document}
-            selectedId={editor.selectedId}
+            selectedIds={editor.selectedIds}
+            marquee={editor.marquee}
             guides={editor.guides}
             overlaps={editor.overlaps}
             pxPerCm={editor.pxPerCm}

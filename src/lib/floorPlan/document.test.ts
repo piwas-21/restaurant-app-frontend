@@ -1,6 +1,8 @@
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanWall } from '@/types/floorPlan';
+import { anchorOf, planDocument, tableGeometry } from './__fixtures__/editorFixtures';
 import {
   addItem,
+  applyGesture,
   addWall,
   findMovable,
   removeItem,
@@ -98,5 +100,54 @@ describe('floorPlan/document', () => {
     expect(findMovable(doc(), 't1')).toEqual({ kind: 'table', table: doc().tables[0] });
     expect(findMovable(doc(), 'i1')).toEqual({ kind: 'item', item: doc().items[0] });
     expect(findMovable(doc(), 'zzz')).toBeNull();
+  });
+});
+
+describe('document — applyGesture', () => {
+  const plan = planDocument([
+    tableGeometry({ id: 'a', positionX: 2, positionY: 2 }),
+    tableGeometry({ id: 'b', positionX: 4, positionY: 3 }),
+    tableGeometry({ id: 'c', positionX: 8, positionY: 6 }),
+  ]);
+  const moveTo = (x: number, y: number) => ({ patch: { positionX: x, positionY: y }, guides: [] });
+  const move = { kind: 'move', id: 'a', grabX: 0, grabY: 0 } as const;
+
+  it('carries every other selected table by the same delta', () => {
+    const next = applyGesture(plan, move, moveTo(3, 4), ['a', 'b']);
+    expect(next.tables).toMatchObject([
+      { id: 'a', positionX: 3, positionY: 4 },
+      { id: 'b', positionX: 5, positionY: 5 },
+      { id: 'c', positionX: 8, positionY: 6 },
+    ]);
+  });
+
+  it('clamps each follower to the plan on its own, squashing a group against a wall', () => {
+    // 'c' is already near the corner of the 10 × 8 plan, so it stops before 'a' does.
+    const next = applyGesture(plan, move, moveTo(5, 5), ['a', 'c']);
+    expect(next.tables[2]).toMatchObject({ positionX: 10, positionY: 8 });
+  });
+
+  it('moves only the grabbed table when nothing else is selected', () => {
+    const next = applyGesture(plan, move, moveTo(3, 4), ['a']);
+    expect(next.tables[1]).toEqual(plan.tables[1]);
+  });
+
+  it.each(['rotate', 'resize'] as const)('leaves the rest of the selection alone on a %s', (kind) => {
+    const gesture =
+      kind === 'rotate'
+        ? ({ kind, id: 'a', grabAngle: 0 } as const)
+        : ({ kind, id: 'a', anchor: anchorOf('e') } as const);
+    const next = applyGesture(plan, gesture, { patch: { rotation: 45, width: 2 }, guides: [] }, ['a', 'b']);
+    expect(next.tables[1]).toEqual(plan.tables[1]);
+  });
+
+  it('moves nothing for a move patch that carries no position at all', () => {
+    // `patch` is a Partial, so the delta falls back to "no change" rather than NaN.
+    expect(applyGesture(plan, move, { patch: {}, guides: [] }, ['a', 'b']).tables).toEqual(plan.tables);
+  });
+
+  it('still applies the patch when the grabbed table has gone from the document', () => {
+    const gone = { kind: 'move', id: 'ghost', grabX: 0, grabY: 0 } as const;
+    expect(applyGesture(plan, gone, moveTo(3, 4), ['ghost', 'b']).tables).toEqual(plan.tables);
   });
 });

@@ -8,6 +8,7 @@ import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
 import { snapAngle } from '@/lib/floorPlan/snapping';
 import EditorNumberField from './EditorNumberField';
 import EditorRotationControls from './EditorRotationControls';
+import EditorAlignControls from './EditorAlignControls';
 import styles from './EditorInspector.module.css';
 
 const SHAPES: FloorPlanTableShape[] = ['round', 'square', 'rectangle', 'booth'];
@@ -37,6 +38,19 @@ export default function EditorInspector({
 }: Readonly<EditorInspectorProps>) {
   const { t } = useTranslation();
   const table = editor.selectedTable;
+  const count = editor.selectedIds.length;
+
+  if (count > 1) {
+    return (
+      <aside className={styles.panel} aria-label={t('editor_inspector', 'Table properties')}>
+        <h2 className={styles.heading}>{t('editor_selected_count', '{{count}} tables selected', { count })}</h2>
+        <EditorAlignControls count={count} onAlign={editor.alignSelection} onDistribute={editor.distributeSelection} />
+        <p className={styles.empty}>
+          {t('editor_multi_hint', 'Arrows nudge them together. Pick one table to edit its size or details.')}
+        </p>
+      </aside>
+    );
+  }
 
   if (!table) {
     return (

@@ -10,7 +10,7 @@ import {
   rotateHandlePoint,
   type ResizeHandleId,
 } from '@/lib/floorPlan/handles';
-import type { ActiveGesture } from '@/hooks/floorPlan/useEditorDrag';
+import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
 import type { FloorPlanPoint, FloorPlanTableGeometry } from '@/types/floorPlan';
 import styles from './EditorHandles.module.css';
 

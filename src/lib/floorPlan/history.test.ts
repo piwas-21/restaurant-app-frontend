@@ -58,7 +58,7 @@ describe('floorPlan/history', () => {
     for (let i = 1; i <= MAX_HISTORY + 10; i++) {
       h = commit(h, i);
     }
-    expect(h.past.length).toBe(MAX_HISTORY);
+    expect(h.past).toHaveLength(MAX_HISTORY);
     expect(h.present).toBe(MAX_HISTORY + 10);
   });
 });

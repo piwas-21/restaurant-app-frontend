@@ -8,18 +8,27 @@ import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry, FloorPla
  * mints a client id until Save persists the server id). Pure and unit-tested.
  */
 
+type Identified = { id?: string };
+
+/** Patch the entry with the given id in a list, sharing the rest by reference. */
+const patchById = <T extends Identified>(list: T[], id: string, patch: Partial<T>): T[] =>
+  list.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry));
+
+/** Drop the entry with the given id from a list. */
+const dropById = <T extends Identified>(list: T[], id: string): T[] => list.filter((entry) => entry.id !== id);
+
 /** Patch a table's geometry by id, leaving others untouched. */
 export function updateTable(
   doc: FloorPlanDocument,
   id: string,
   patch: Partial<FloorPlanTableGeometry>,
 ): FloorPlanDocument {
-  return { ...doc, tables: doc.tables.map((t) => (t.id === id ? { ...t, ...patch } : t)) };
+  return { ...doc, tables: patchById(doc.tables, id, patch) };
 }
 
 /** Patch an item by id. */
 export function updateItem(doc: FloorPlanDocument, id: string, patch: Partial<FloorPlanItem>): FloorPlanDocument {
-  return { ...doc, items: doc.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) };
+  return { ...doc, items: patchById(doc.items, id, patch) };
 }
 
 export function addItem(doc: FloorPlanDocument, item: FloorPlanItem): FloorPlanDocument {
@@ -27,12 +36,12 @@ export function addItem(doc: FloorPlanDocument, item: FloorPlanItem): FloorPlanD
 }
 
 export function removeItem(doc: FloorPlanDocument, id: string): FloorPlanDocument {
-  return { ...doc, items: doc.items.filter((i) => i.id !== id) };
+  return { ...doc, items: dropById(doc.items, id) };
 }
 
 /** Patch a wall by id. */
 export function updateWall(doc: FloorPlanDocument, id: string, patch: Partial<FloorPlanWall>): FloorPlanDocument {
-  return { ...doc, walls: doc.walls.map((w) => (w.id === id ? { ...w, ...patch } : w)) };
+  return { ...doc, walls: patchById(doc.walls, id, patch) };
 }
 
 export function addWall(doc: FloorPlanDocument, wall: FloorPlanWall): FloorPlanDocument {
@@ -40,7 +49,7 @@ export function addWall(doc: FloorPlanDocument, wall: FloorPlanWall): FloorPlanD
 }
 
 export function removeWall(doc: FloorPlanDocument, id: string): FloorPlanDocument {
-  return { ...doc, walls: doc.walls.filter((w) => w.id !== id) };
+  return { ...doc, walls: dropById(doc.walls, id) };
 }
 
 /** Set the room dimensions (space is added/removed at the right/bottom; §4.1). */

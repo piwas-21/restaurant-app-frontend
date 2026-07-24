@@ -42,7 +42,7 @@ export function undo<T>(history: History<T>): History<T> {
   if (history.past.length === 0) {
     return history;
   }
-  const previous = history.past[history.past.length - 1];
+  const previous = history.past.at(-1) as T;
   return {
     present: previous,
     past: history.past.slice(0, -1),

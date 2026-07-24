@@ -2221,6 +2221,8 @@
   "editor_save_first": "Enregistrez les modifications du plan avant de modifier les détails de la table.",
   "editor_rotate_ccw": "Pivoter de 45° dans le sens antihoraire",
   "editor_rotate_cw": "Pivoter de 45° dans le sens horaire",
+  "editor_angle_badge": "{{degrees}}°",
+  "editor_size_badge": "{{width}} × {{height}} m",
   "editor_toolbar": "Outils du plan",
   "editor_undo": "Annuler",
   "editor_redo": "Rétablir",

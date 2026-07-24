@@ -1,21 +1,26 @@
 import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
 import type { AlignmentGuide } from '@/lib/floorPlan/snapping';
+import type { ActiveGesture } from '@/hooks/floorPlan/useEditorDrag';
+import EditorHandles from './EditorHandles';
 import styles from './EditorOverlay.module.css';
 
 /**
  * The editor chrome drawn inside the scene `<svg>` but outside its rough filter
- * (FLOOR-PLAN-REVAMP §4.3) — crisp selection outline, live alignment guides, and
- * overlap warning outlines. Everything is derived from the rendered document, so
- * it tracks the live drag preview for free. Strokes are `non-scaling` (constant
- * screen width at any zoom); colours come from the inherited scene/feedback
- * tokens, never hex.
+ * (FLOOR-PLAN-REVAMP §4.3) — crisp selection outline, live alignment guides,
+ * overlap warning outlines and the selection's rotate/resize grips. Everything is
+ * derived from the rendered document, so it tracks the live gesture preview for
+ * free. Strokes are `non-scaling` (constant screen width at any zoom); colours
+ * come from the inherited scene/feedback tokens, never hex.
  */
 interface EditorOverlayProps {
   document: FloorPlanDocument;
   selectedId: string | null;
   guides: AlignmentGuide[];
   overlaps: ReadonlySet<string>;
+  /** Screen pixels per plan centimetre — sizes the constant-screen-size grips. */
+  pxPerCm: number;
+  gesture: ActiveGesture | null;
 }
 
 /** A rotated rectangle around a table footprint, padded outward by `padCm`. */
@@ -40,7 +45,14 @@ function Footprint({
   );
 }
 
-export default function EditorOverlay({ document: doc, selectedId, guides, overlaps }: Readonly<EditorOverlayProps>) {
+export default function EditorOverlay({
+  document: doc,
+  selectedId,
+  guides,
+  overlaps,
+  pxPerCm,
+  gesture,
+}: Readonly<EditorOverlayProps>) {
   const widthCm = metresToCm(doc.widthMeters);
   const heightCm = metresToCm(doc.heightMeters);
   const selected = selectedId ? doc.tables.find((t) => t.id === selectedId) : undefined;
@@ -72,7 +84,12 @@ export default function EditorOverlay({ document: doc, selectedId, guides, overl
           />
         ),
       )}
-      {selected && <Footprint table={selected} className={styles.selection} padCm={6} />}
+      {selected && (
+        <>
+          <Footprint table={selected} className={styles.selection} padCm={6} />
+          <EditorHandles table={selected} pxPerCm={pxPerCm} gesture={gesture} />
+        </>
+      )}
     </g>
   );
 }

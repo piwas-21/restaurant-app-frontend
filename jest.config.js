@@ -74,6 +74,11 @@ module.exports = {
     'src/lib/floorPlan/history.ts',
     'src/lib/floorPlan/document.ts',
     'src/lib/floorPlan/editorGeometry.ts',
+    'src/lib/floorPlan/handles.ts',
+    'src/lib/floorPlan/editorGestures.ts',
+    'src/hooks/floorPlan/useEditorDrag.ts',
+    'src/hooks/floorPlan/useStageScale.ts',
+    'src/components/floor-plan/editor/EditorHandles.tsx',
     'src/components/floor-plan/guest/guestMapState.ts',
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
@@ -372,6 +377,39 @@ module.exports = {
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    './src/lib/floorPlan/handles.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/editorGestures.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/floorPlan/useStageScale.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/editor/EditorHandles.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // The gesture dispatcher's uncovered lines are defensive guards for states
+    // jsdom can't produce (an unmeasurable stage rect) or that only a mid-drag
+    // reload reaches (the gesture's table vanishing from the document).
+    './src/hooks/floorPlan/useEditorDrag.ts': {
+      statements: 95,
+      branches: 85,
+      functions: 99,
+      lines: 95,
     },
     './src/components/floor-plan/guest/guestMapState.ts': {
       statements: 99,

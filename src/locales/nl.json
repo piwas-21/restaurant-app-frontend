@@ -2221,6 +2221,8 @@
   "editor_save_first": "Sla de indelingswijzigingen op voordat je tafeldetails bewerkt.",
   "editor_rotate_ccw": "45° linksom draaien",
   "editor_rotate_cw": "45° rechtsom draaien",
+  "editor_angle_badge": "{{degrees}}°",
+  "editor_size_badge": "{{width}} × {{height}} m",
   "editor_toolbar": "Plattegrondgereedschap",
   "editor_undo": "Ongedaan maken",
   "editor_redo": "Opnieuw",

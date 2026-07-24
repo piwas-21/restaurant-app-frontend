@@ -1,0 +1,68 @@
+/* On-canvas selection grips (FLOOR-PLAN-REVAMP §4.3/§4.4). Sizes come from the
+   component (screen pixels through the current zoom); this module only carries
+   paint, non-scaling strokes and cursors. Colours are the scene's inherited
+   `--fp-*` tokens plus the semantic feedback layer — no hex in a module. */
+
+.handles {
+  /* Only the invisible hit targets take the pointer, so the grips themselves
+     never swallow a press meant for the table under them. */
+  pointer-events: none;
+}
+
+.grip {
+  fill: var(--fp-panel);
+  stroke: var(--fp-accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.arm {
+  stroke: var(--fp-accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.rotateHit {
+  cursor: grab;
+}
+
+.nwse {
+  cursor: nwse-resize;
+}
+
+.nesw {
+  cursor: nesw-resize;
+}
+
+.ns {
+  cursor: ns-resize;
+}
+
+.ew {
+  cursor: ew-resize;
+}
+
+.ghost {
+  fill: none;
+  stroke: var(--feedback-info);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.75;
+}
+
+.badge {
+  fill: var(--fp-ink);
+  /* A paper-coloured halo keeps the readout legible over any floor or table. */
+  stroke: var(--fp-paper);
+  stroke-width: 4;
+  paint-order: stroke;
+  vector-effect: non-scaling-stroke;
+  text-anchor: middle;
+  font-weight: 600;
+}

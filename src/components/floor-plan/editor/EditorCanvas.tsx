@@ -11,9 +11,10 @@ import styles from './EditorCanvas.module.css';
  * The editor canvas (FLOOR-PLAN-REVAMP §4.3) — the same `FloorPlanScene` the
  * guest map uses, in edit mode: the grid shows, the selected table renders
  * `selected`, and the `EditorOverlay` (selection box, snap guides, overlap
- * outlines) is drawn through the scene's overlay slot so it shares one viewBox.
- * Pointer events go to the drag hook, which moves a grabbed table and defers to
- * pan/pinch on empty space. Rendered crisp (no skin) for editing precision.
+ * outlines, rotate/resize grips) is drawn through the scene's overlay slot so it
+ * shares one viewBox. Pointer events go to the drag hook, which moves, rotates or
+ * resizes through the grabbed target and defers to pan/pinch on empty space.
+ * Rendered crisp (no skin) for editing precision.
  */
 interface EditorCanvasProps {
   editor: FloorPlanEditorApi;
@@ -50,6 +51,8 @@ export default function EditorCanvas({ editor, ariaLabel, formatTableLabel }: Re
             selectedId={editor.selectedId}
             guides={editor.guides}
             overlaps={editor.overlaps}
+            pxPerCm={editor.pxPerCm}
+            gesture={editor.gesture}
           />
         }
       />

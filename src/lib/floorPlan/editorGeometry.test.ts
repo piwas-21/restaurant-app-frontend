@@ -1,26 +1,13 @@
-import type { FloorPlanTableGeometry } from '@/types/floorPlan';
 import {
   clampCentreToPlan,
+  geometrySnapshot,
   otherTableRects,
   overlappingTableIds,
+  sameGeometry,
   tableOrientedRect,
   tableSnapRect,
 } from './editorGeometry';
-
-const table = (over: Partial<FloorPlanTableGeometry>): FloorPlanTableGeometry => ({
-  id: over.id ?? 't',
-  tableNumber: over.tableNumber ?? '1',
-  maxGuests: over.maxGuests ?? 4,
-  isActive: over.isActive ?? true,
-  isOutdoor: over.isOutdoor ?? false,
-  notes: null,
-  positionX: over.positionX ?? 1,
-  positionY: over.positionY ?? 1,
-  width: over.width ?? 1,
-  height: over.height ?? 1,
-  shape: over.shape ?? 'square',
-  rotation: over.rotation ?? 0,
-});
+import { tableGeometry as table } from './__fixtures__/editorFixtures';
 
 describe('editorGeometry — rect derivations', () => {
   it('reads centre + size straight through for the snap rect', () => {
@@ -65,6 +52,30 @@ describe('editorGeometry — overlappingTableIds', () => {
 
   it('is empty for a single table', () => {
     expect(overlappingTableIds([table({ id: 'a' })]).size).toBe(0);
+  });
+});
+
+describe('editorGeometry — geometry snapshots', () => {
+  it('keeps only the geometry a canvas gesture can change', () => {
+    expect(geometrySnapshot(table({ id: 'a', tableNumber: '9', maxGuests: 8, rotation: 45 }))).toEqual({
+      positionX: 1,
+      positionY: 1,
+      width: 1,
+      height: 1,
+      rotation: 45,
+    });
+  });
+
+  it('treats a table whose metadata changed as geometrically unchanged', () => {
+    const before = geometrySnapshot(table({ id: 'a', tableNumber: '1' }));
+    const after = geometrySnapshot(table({ id: 'a', tableNumber: '2', maxGuests: 12 }));
+    expect(sameGeometry(before, after)).toBe(true);
+  });
+
+  it.each(['positionX', 'positionY', 'width', 'height', 'rotation'] as const)('notices a changed %s', (field) => {
+    const before = geometrySnapshot(table({}));
+    const after = geometrySnapshot(table({ [field]: 4 }));
+    expect(sameGeometry(before, after)).toBe(false);
   });
 });
 

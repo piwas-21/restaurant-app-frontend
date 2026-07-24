@@ -49,6 +49,24 @@ export function overlappingTableIds(tables: readonly FloorPlanTableGeometry[]): 
   return hits;
 }
 
+const GEOMETRY_KEYS = ['positionX', 'positionY', 'width', 'height', 'rotation'] as const;
+
+/** The geometry a canvas gesture can change — the unit of one history entry. */
+export type TableGeometrySnapshot = Pick<FloorPlanTableGeometry, (typeof GEOMETRY_KEYS)[number]>;
+
+/** Freeze a table's editable geometry, to compare a gesture's end against its start. */
+export const geometrySnapshot = (t: FloorPlanTableGeometry): TableGeometrySnapshot => ({
+  positionX: t.positionX,
+  positionY: t.positionY,
+  width: t.width,
+  height: t.height,
+  rotation: t.rotation,
+});
+
+/** Did a gesture actually change anything? Drives the "skip the no-op" history rule. */
+export const sameGeometry = (a: TableGeometrySnapshot, b: TableGeometrySnapshot): boolean =>
+  GEOMETRY_KEYS.every((key) => a[key] === b[key]);
+
 /**
  * Clamp a table centre so it stays inside the plan — mirrors the server clamp
  * (`PositionX ∈ [0, width]`), so a drag can never place a table where Save would

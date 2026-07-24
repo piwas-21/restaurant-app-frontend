@@ -5,6 +5,7 @@ import { useEditorDocument } from './useEditorDocument';
 import { usePlanViewport } from './usePlanViewport';
 import { useEditorDrag } from './useEditorDrag';
 import { useEditorKeyboard } from './useEditorKeyboard';
+import { useStageScale } from './useStageScale';
 import { overlappingTableIds } from '@/lib/floorPlan/editorGeometry';
 import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
 
@@ -31,11 +32,12 @@ interface UseFloorPlanEditorArgs {
 
 /**
  * The admin editor's composed state (FLOOR-PLAN-REVAMP §4.3). Glues the document
- * store (history + save), the shared zoom/pan viewport, pointer move-drag, and
- * keyboard control into one flat API for the editor components. `document` is
- * what the canvas renders — the live drag preview when dragging, else the
- * committed present — while `committed` is what logic/save use. Overlap warnings
- * are derived here so the overlay and the toolbar counter share one source.
+ * store (history + save), the shared zoom/pan viewport, pointer gestures (move /
+ * rotate / resize) and keyboard control into one flat API for the editor
+ * components. `document` is what the canvas renders — the live gesture preview
+ * while one is in flight, else the committed present — while `committed` is what
+ * logic/save use. Overlap warnings are derived here so the overlay and the
+ * toolbar counter share one source.
  */
 export function useFloorPlanEditor({ onDeleteSelected }: UseFloorPlanEditorArgs) {
   const store = useEditorDocument();
@@ -50,12 +52,16 @@ export function useFloorPlanEditor({ onDeleteSelected }: UseFloorPlanEditorArgs)
     viewBox: viewport.viewBox,
     document: committed,
     snapEnabled,
+    selectedId: store.selectedId,
     onSelect: store.select,
     onCommit: store.apply,
     fallback: viewport.stageHandlers,
   });
 
   const renderDoc = drag.previewDoc ?? committed;
+  // The on-canvas grips size themselves in screen pixels, so they need the live
+  // stage↔plan scale rather than the viewBox alone (§4.4).
+  const pxPerCm = useStageScale(viewport.stageRef, viewport.viewBox, store.status === 'ready');
 
   useEditorKeyboard({
     enabled: store.status === 'ready',
@@ -94,9 +100,10 @@ export function useFloorPlanEditor({ onDeleteSelected }: UseFloorPlanEditorArgs)
     snapEnabled,
     setSnapEnabled,
     viewport,
+    pxPerCm,
     dragHandlers: drag.handlers,
     guides: drag.guides,
-    dragging: drag.dragging,
+    gesture: drag.gesture,
     overlaps,
     overlapCount: overlaps.size,
     selectedTable,

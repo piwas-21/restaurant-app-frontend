@@ -63,7 +63,9 @@ export function computeViewBox(widthMeters: number, heightMeters: number, paddin
  */
 export function screenToPlanCm(clientX: number, clientY: number, viewBox: ViewBox, rect: ScreenRect): FloorPlanPoint {
   const scale = Math.min(rect.width / viewBox.w, rect.height / viewBox.h);
-  if (!(scale > 0)) {
+  // Guard non-positive AND non-finite (NaN/Infinity from a zero-size rect or
+  // viewBox) so a degenerate element yields the origin, never NaN coordinates.
+  if (!Number.isFinite(scale) || scale <= 0) {
     return { x: viewBox.x, y: viewBox.y };
   }
   const offsetX = rect.left + (rect.width - viewBox.w * scale) / 2;

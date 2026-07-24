@@ -60,6 +60,14 @@ describe('floorPlan/geometry — screenToPlan', () => {
       y: 0,
     });
   });
+
+  it('returns the viewBox origin when the scale is non-finite (0/0 → NaN)', () => {
+    const zero = { x: 5, y: 5, w: 0, h: 0 };
+    expect(screenToPlanCm(300, 200, zero, { left: 0, top: 0, width: 0, height: 0 })).toEqual({
+      x: 5,
+      y: 5,
+    });
+  });
 });
 
 describe('floorPlan/geometry — rectCorners', () => {

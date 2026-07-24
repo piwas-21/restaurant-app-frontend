@@ -21,7 +21,8 @@ describe('floorPlan/walls — wallSegments', () => {
       }),
     );
     expect(segments).toHaveLength(1);
-    expect(segments[0].length).toBe(5);
+    // .length here is the segment's geometric length (metres), not a collection.
+    expect(segments[0].length).toBeCloseTo(5, 10);
     expect(segments[0].angleRad).toBeCloseTo(Math.atan2(4, 3), 10);
   });
 

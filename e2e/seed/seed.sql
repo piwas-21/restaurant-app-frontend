@@ -98,6 +98,40 @@ INSERT INTO "Tables" (
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
+-- 5b) The full reference dining-room layout, in the LEGACY 600×500 pixel units
+-- the current /reservations renderer (VisualTableLayout) draws in. This seed
+-- must own the table set deterministically: the backend's startup TableSeeder
+-- was rewritten to seed real-world METRES (FLOOR-PLAN-REVAMP S3, backend #216)
+-- and only adds table numbers it finds MISSING. Without these rows it would add
+-- 1..14b at metre coordinates (1.5, 2.5, …) which the pixel renderer collapses
+-- into the top-left corner — drifting the reservations screenshot baseline.
+-- Pre-seeding every number it knows keeps the screenshot pinned to the pixel
+-- layout until S5 renders metres (which will regenerate the baseline). Values
+-- are the pre-S3 TableSeeder coordinates verbatim.
+INSERT INTO "Tables" (
+    table_number, max_guests, is_active, is_outdoor,
+    position_x, position_y, width, height, shape, created_by
+) VALUES
+    ('1', 4, TRUE, FALSE, 80, 40, 100, 100, 'circle', 'e2e-seed'),
+    ('2', 4, TRUE, FALSE, 160, 40, 100, 100, 'circle', 'e2e-seed'),
+    ('3', 4, TRUE, FALSE, 40, 120, 100, 100, 'circle', 'e2e-seed'),
+    ('4', 4, TRUE, FALSE, 40, 180, 100, 100, 'circle', 'e2e-seed'),
+    ('5', 4, TRUE, FALSE, 40, 240, 100, 100, 'circle', 'e2e-seed'),
+    ('6', 4, TRUE, FALSE, 40, 320, 100, 100, 'circle', 'e2e-seed'),
+    ('7', 4, TRUE, FALSE, 140, 160, 100, 100, 'circle', 'e2e-seed'),
+    ('8', 4, TRUE, FALSE, 140, 220, 100, 100, 'circle', 'e2e-seed'),
+    ('9', 4, TRUE, FALSE, 260, 120, 100, 100, 'circle', 'e2e-seed'),
+    ('10', 4, TRUE, FALSE, 260, 180, 100, 100, 'circle', 'e2e-seed'),
+    ('11a', 2, TRUE, TRUE, 100, 400, 60, 60, 'square', 'e2e-seed'),
+    ('11b', 2, TRUE, TRUE, 160, 400, 60, 60, 'square', 'e2e-seed'),
+    ('12a', 2, TRUE, TRUE, 220, 400, 60, 60, 'square', 'e2e-seed'),
+    ('12b', 2, TRUE, TRUE, 280, 400, 60, 60, 'square', 'e2e-seed'),
+    ('13a', 2, TRUE, TRUE, 340, 400, 60, 60, 'square', 'e2e-seed'),
+    ('13b', 2, TRUE, TRUE, 400, 400, 60, 60, 'square', 'e2e-seed'),
+    ('14a', 2, TRUE, TRUE, 460, 400, 60, 60, 'square', 'e2e-seed'),
+    ('14b', 2, TRUE, TRUE, 520, 400, 60, 60, 'square', 'e2e-seed')
+ON CONFLICT (table_number) DO NOTHING;
+
 -- 6) Working hours — override the migration's 10:00–23:00 default to
 -- 00:00–23:59 (effectively 24h) so the DineIn order type stays enabled
 -- regardless of the CI wall-clock time. The migration's window is

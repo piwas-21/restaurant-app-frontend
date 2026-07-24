@@ -1,5 +1,5 @@
 import type { FloorPlanWall } from '@/types/floorPlan';
-import { openingSpan, polygonAreaM2, roomLabelAnchor, roomPolygonPoints, wallSegments } from './walls';
+import { openingSpan, polygonAreaM2, roomLabelAnchor, roomPolygonPoints, segmentPieces, wallSegments } from './walls';
 
 const wall = (overrides: Partial<FloorPlanWall>): FloorPlanWall => ({
   points: [],
@@ -161,5 +161,58 @@ describe('floorPlan/walls — rooms', () => {
         }),
       ),
     ).toBeNull();
+  });
+});
+
+describe('floorPlan/walls — segmentPieces', () => {
+  it('returns one solid piece for a segment with no openings', () => {
+    expect(segmentPieces(5, [])).toEqual([{ kind: 'solid', from: 0, to: 5 }]);
+  });
+
+  it('splits a segment into solid runs around a mid-segment opening', () => {
+    expect(segmentPieces(5, [{ offsetMeters: 2, widthMeters: 1, kind: 'door' }])).toEqual([
+      { kind: 'solid', from: 0, to: 2 },
+      { kind: 'door', from: 2, to: 3 },
+      { kind: 'solid', from: 3, to: 5 },
+    ]);
+  });
+
+  it('orders multiple openings and the solids between them by offset', () => {
+    const pieces = segmentPieces(6, [
+      { offsetMeters: 4, widthMeters: 1, kind: 'window' },
+      { offsetMeters: 1, widthMeters: 1, kind: 'opening' },
+    ]);
+    expect(pieces.map((p) => p.kind)).toEqual(['solid', 'opening', 'solid', 'window', 'solid']);
+  });
+
+  it('emits no leading/trailing solid when an opening reaches the segment end', () => {
+    expect(segmentPieces(3, [{ offsetMeters: 0, widthMeters: 3, kind: 'opening' }])).toEqual([
+      { kind: 'opening', from: 0, to: 3 },
+    ]);
+  });
+
+  it('clamps an opening that runs past the segment end', () => {
+    expect(segmentPieces(4, [{ offsetMeters: 3, widthMeters: 5, kind: 'window' }])).toEqual([
+      { kind: 'solid', from: 0, to: 3 },
+      { kind: 'window', from: 3, to: 4 },
+    ]);
+  });
+
+  it('merges an opening fully contained in an earlier one', () => {
+    const pieces = segmentPieces(6, [
+      { offsetMeters: 1, widthMeters: 3, kind: 'window' },
+      { offsetMeters: 2, widthMeters: 1, kind: 'door' },
+    ]);
+    expect(pieces).toEqual([
+      { kind: 'solid', from: 0, to: 1 },
+      { kind: 'window', from: 1, to: 4 },
+      { kind: 'solid', from: 4, to: 6 },
+    ]);
+  });
+
+  it('drops a zero/negative-width opening', () => {
+    expect(segmentPieces(5, [{ offsetMeters: 2, widthMeters: 0, kind: 'door' }])).toEqual([
+      { kind: 'solid', from: 0, to: 5 },
+    ]);
   });
 });

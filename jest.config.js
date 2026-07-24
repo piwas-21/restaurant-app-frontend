@@ -64,6 +64,11 @@ module.exports = {
     'src/lib/tableCanvasGeometry.ts',
     'src/lib/floorPlan/geometry.ts',
     'src/lib/floorPlan/walls.ts',
+    'src/lib/floorPlan/tableGeometry.ts',
+    'src/lib/floorPlan/symbols.ts',
+    'src/lib/floorPlan/symbolPrims.ts',
+    'src/lib/floorPlan/symbolsStructure.ts',
+    'src/lib/floorPlan/symbolsDecor.ts',
     'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
@@ -240,6 +245,91 @@ module.exports = {
     './src/lib/floorPlan/walls.ts': {
       statements: 99,
       branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S4 render layer — the pure geometry (table body, symbol
+    // registry + generators) at 100% → 99; symbolPrims' branch floor is lower
+    // (a leaf-length ternary side the fixtures don't split).
+    './src/lib/floorPlan/tableGeometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbols.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbolPrims.ts': {
+      statements: 99,
+      branches: 55,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbolsStructure.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbolsDecor.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S4 render layer — the shared scene + its five layers.
+    // FloorPlanScene / SceneDefs are fully covered; the layers' uncovered
+    // remainder is defensive (an unresolved symbol, a missing entrance def) and
+    // the small-table label floor, pinned at actual − ~a hair.
+    './src/components/floor-plan/FloorPlanScene.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/SceneDefs.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/FloorPlanSymbol.tsx': {
+      statements: 88,
+      branches: 80,
+      functions: 99,
+      lines: 88,
+    },
+    './src/components/floor-plan/ItemsLayer.tsx': {
+      statements: 99,
+      branches: 78,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/LabelsLayer.tsx': {
+      statements: 92,
+      branches: 67,
+      functions: 99,
+      lines: 91,
+    },
+    './src/components/floor-plan/RoomsLayer.tsx': {
+      statements: 99,
+      branches: 74,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/TablesLayer.tsx': {
+      statements: 93,
+      branches: 98,
+      functions: 87,
+      lines: 92,
+    },
+    './src/components/floor-plan/WallsLayer.tsx': {
+      statements: 99,
+      branches: 87,
       functions: 99,
       lines: 99,
     },

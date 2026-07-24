@@ -1,4 +1,4 @@
-import type { FloorPlanOpening, FloorPlanPoint, FloorPlanWall } from '@/types/floorPlan';
+import type { FloorPlanOpening, FloorPlanOpeningKind, FloorPlanPoint, FloorPlanWall } from '@/types/floorPlan';
 
 /**
  * Wall / room geometry (FLOOR-PLAN-REVAMP §4.3, §5.3). A wall is an ordered
@@ -77,6 +77,52 @@ export function openingSpan(wall: FloorPlanWall, opening: FloorPlanOpening): Ope
     angleRad: segment.angleRad,
     segment,
   };
+}
+
+/** A stretch along a segment: solid wall, or an opening (in segment distance units, metres). */
+export interface SegmentPiece {
+  kind: 'solid' | FloorPlanOpeningKind;
+  from: number;
+  to: number;
+}
+
+/**
+ * Split a segment of the given length into solid stretches and openings, in the
+ * order they run along it (FLOOR-PLAN-REVAMP §4.3, ported from the prototype's
+ * wall renderer). Openings are clamped to the segment and sorted by offset;
+ * overlapping openings are merged into the running cursor so a solid piece is
+ * never negative. `from`/`to` are distances from the segment start in metres.
+ */
+export function segmentPieces(
+  length: number,
+  openings: ReadonlyArray<Pick<FloorPlanOpening, 'offsetMeters' | 'widthMeters' | 'kind'>>,
+): SegmentPiece[] {
+  const sorted = [...openings]
+    .map((o) => ({
+      kind: o.kind,
+      from: Math.min(Math.max(o.offsetMeters, 0), length),
+      to: Math.min(Math.max(o.offsetMeters + o.widthMeters, 0), length),
+    }))
+    .filter((o) => o.to > o.from)
+    .sort((a, b) => a.from - b.from);
+
+  const pieces: SegmentPiece[] = [];
+  let cursor = 0;
+  for (const o of sorted) {
+    const from = Math.max(o.from, cursor);
+    if (from <= cursor && o.to <= cursor) {
+      continue; // fully inside an earlier opening
+    }
+    if (from > cursor) {
+      pieces.push({ kind: 'solid', from: cursor, to: from });
+    }
+    pieces.push({ kind: o.kind, from, to: o.to });
+    cursor = Math.max(cursor, o.to);
+  }
+  if (cursor < length) {
+    pieces.push({ kind: 'solid', from: cursor, to: length });
+  }
+  return pieces;
 }
 
 /** The polygon of a closed wall (its floor outline); empty for an open run. */

@@ -15,6 +15,14 @@
 // against the same committed reference). Raising the baseline is a deliberate,
 // reviewable act — run with --update and commit the diff.
 //
+// When a re-baseline is warranted, regenerate the WHOLE file with --update;
+// never hand-edit individual route lines. Editing only the route you touched
+// leaves every other value frozen at a much older build, so real growth
+// elsewhere silently eats the tolerance band until an unrelated PR trips the
+// gate. That is exactly how /admin/orders-management came to sit ~20 kB above
+// its recorded value: written at #157, partially hand-edited at #215 and #275,
+// and only re-measured here.
+//
 // Usage:
 //   node scripts/check-bundle-size.mjs           # check current build vs baseline (exit 1 on regression)
 //   node scripts/check-bundle-size.mjs --update   # rewrite the baseline from the current build

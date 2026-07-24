@@ -1,0 +1,83 @@
+/* Editor toolbar (FLOOR-PLAN-REVAMP §4.3). Semantic tokens only — no hex. */
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.button,
+.save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.button[aria-pressed='true'] {
+  color: var(--text-on-primary);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.button:disabled,
+.save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.save {
+  position: relative;
+  color: var(--text-on-primary);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.dirtyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+}
+
+.warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 0.8rem;
+  color: var(--feedback-warning-dark);
+  background: var(--feedback-warning-xlight);
+  border-radius: 999px;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .label {
+    display: none;
+  }
+}

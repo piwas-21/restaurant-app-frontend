@@ -36,10 +36,10 @@ export interface RestaurantInfoDto {
   /** Runtime colour-palette key (ADR-007); null = the template's baked palette. */
   themePaletteKey: string | null;
   /**
-   * Floor-plan entrance marker (canvas percentages, 0–100). Optional AND
-   * nullable: absent until the backend entrance-position PR deploys, null
-   * until the admin places the marker. Consumers fall back to
-   * `DEFAULT_ENTRANCE_POSITION` (lib/tableCanvasGeometry).
+   * Legacy floor-plan entrance marker (canvas percentages, 0–100). Optional AND
+   * nullable. No longer edited in the admin editor as of the metre-scale rewrite
+   * (FLOOR-PLAN-REVAMP S6 retired the pixel canvas); the entrance returns as a
+   * plan item in S8 and these columns retire in S10. Kept on the DTO until then.
    */
   entrancePositionX?: number | null;
   entrancePositionY?: number | null;

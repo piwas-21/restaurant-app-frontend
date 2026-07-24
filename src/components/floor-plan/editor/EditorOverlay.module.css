@@ -1,0 +1,32 @@
+/* Editor overlay chrome (FLOOR-PLAN-REVAMP §4.3). Drawn in scene cm-space but
+   with non-scaling strokes so selection/guides/warnings stay a constant screen
+   width at any zoom. Colours are semantic tokens (accent inherited from the
+   scene, feedback tokens from :root) — no hex in a module. */
+
+.selection,
+.guide,
+.warn {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.selection {
+  stroke: var(--fp-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  rx: 2;
+}
+
+.guide {
+  stroke: var(--feedback-info);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  opacity: 0.9;
+}
+
+.warn {
+  stroke: var(--feedback-warning);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}

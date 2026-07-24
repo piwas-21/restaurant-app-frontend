@@ -1,0 +1,14 @@
+/* Editor canvas stage (FLOOR-PLAN-REVAMP §4.3). Owns the pointer surface for
+   drag + pan; `touch-action: none` so a finger drag edits the plan instead of
+   scrolling the page. The scene inside sizes to width and keeps its aspect. */
+
+.stage {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  touch-action: none;
+  overflow: hidden;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}

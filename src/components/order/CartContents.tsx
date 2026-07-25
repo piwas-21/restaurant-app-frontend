@@ -20,8 +20,18 @@ export type CartContentsProps = UseCartContentsArgs;
  */
 export default function CartContents(props: Readonly<CartContentsProps>) {
   const { t } = useTranslation();
-  const { items, subtotal, canCheckout, isSyncing, isResolving, handleQty, handleRemove, handleCheckout, handlePick } =
-    useCartContents(props);
+  const {
+    items,
+    itemCount,
+    subtotal,
+    blockerMessage,
+    isSyncing,
+    isResolving,
+    handleQty,
+    handleRemove,
+    handleCheckout,
+    handlePick,
+  } = useCartContents(props);
 
   return (
     <>
@@ -48,11 +58,18 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
         <span className={styles.totalValue}>{formatPlainCurrency(subtotal)}</span>
       </div>
 
+      {/* Only an empty cart truly disables the CTA. A missing order type leaves it
+          live so the click can explain itself (and the hint below says so up front)
+          — a dead disabled button with no reason was the original complaint. */}
       <CartCheckoutButton
-        disabled={!canCheckout || isResolving}
+        disabled={itemCount === 0 || isResolving}
         onClick={handleCheckout}
         className={styles.checkoutButton}
       />
+
+      {/* <output>, not role="status" — it carries the same implicit live-region
+          semantics as a real element rather than a bolted-on role (Sonar S6819). */}
+      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
     </>
   );
 }

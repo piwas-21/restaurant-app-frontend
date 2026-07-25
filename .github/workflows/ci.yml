@@ -13,6 +13,22 @@ name: CI
 # (PR title/body/branch/commit) in run: commands. All inputs are
 # either secrets.GITHUB_TOKEN or static literals. All third-party
 # actions are pinned to immutable SHAs.
+#
+# Supply chain (sonar githubactions:S6505 / S8543, hardened 2026-07-25):
+#   * every install passes --ignore-scripts, so a compromised (direct OR
+#     transitive) package cannot execute code on the runner at install time.
+#     Verified safe for THIS lockfile: only @sentry/cli, core-js, fsevents
+#     and unrs-resolver declare install scripts. core-js/fsevents are
+#     optional (fsevents is darwin-only), unrs-resolver's is a check, and
+#     @sentry/cli's binary is only needed by withSentryConfig source-map
+#     upload — which this repo does not use. next's SWC and sharp's libvips
+#     both arrive as prebuilt optionalDependencies, NOT via lifecycle
+#     scripts, so `next build` is unaffected. Re-verify with a full
+#     build + test run before adding a dependency that needs a postinstall.
+#   * no bare `npx <tool>`: npx silently falls back to fetching an
+#     unpinned release from the registry when the local binary is missing.
+#     Tools are invoked through package.json scripts instead, which resolve
+#     only against the lockfile-pinned node_modules and fail loudly.
 
 on:
   push:
@@ -40,7 +56,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
 
   prettier_check:
     name: prettier --check
@@ -53,7 +69,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
       - run: npm run format:check
 
   typecheck:
@@ -67,8 +83,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
-      - run: npx tsc --noEmit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
+      - run: npm run typecheck
 
   i18n_parity:
     # Locale-parity gate (ADR-003, DEV-PHASES-PLAN W1) - BLOCKING since the
@@ -95,7 +111,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
       - run: npm run lint
 
   npm_test:
@@ -109,7 +125,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
       # --coverage activates the `coverageThreshold` block in jest.config.js
       # which fails the run if global stmt/branch/func/line % drops below
       # the pinned floor. See jest.config.js for the rationale + ratchet
@@ -134,7 +150,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
@@ -151,7 +167,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
         # Not a bare `npm audit --audit-level=high`: npm has no ignore mechanism,
         # so an advisory with no reachable patched version leaves only "force an
         # incompatible major" or "delete the gate". The wrapper makes accepting one
@@ -288,9 +304,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --prefer-offline --no-audit
+      - run: npm ci --ignore-scripts --prefer-offline --no-audit
       - name: Install license-checker-rseidelsohn (pinned)
-        run: npm install --global --no-save license-checker-rseidelsohn@4.3.0
+        run: npm install --global --no-save --ignore-scripts license-checker-rseidelsohn@4.3.0
       - name: Build --onlyAllow + --excludePackages lists (strip comments + blank lines)
         # Both repo-tracked files are kept in the human-friendly
         # one-per-line + `#` comments format; the tool needs single
@@ -323,7 +339,7 @@ jobs:
   # containers, checks out the backend repo as a sibling (uses BACKEND_REPO_TOKEN
   # PAT — the default GITHUB_TOKEN can't read another repo), runs `dotnet ef
   # database update` + a tiny SQL seed, launches the .NET API natively via
-  # `dotnet run`, then runs `npx playwright test`. See docs/E2E-STRATEGY.md
+  # `dotnet run`, then runs `npm run test:e2e`. See docs/E2E-STRATEGY.md
   # §CI for the design rationale; tracked in frontend #37.
   playwright_e2e:
     name: playwright (e2e)
@@ -418,7 +434,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Install npm deps
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --ignore-scripts --prefer-offline --no-audit
 
       - name: Restore + build backend
         working-directory: backend
@@ -463,11 +479,14 @@ jobs:
           tail -200 /tmp/backend.log || true
           exit 1
 
+      # Both go through package.json scripts, not `npx`: the local binary is
+      # the lockfile-pinned @playwright/test, and a missing one must fail the
+      # job rather than have npx pull an unpinned release off the registry.
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npm run test:e2e:install
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npm run test:e2e
 
       - name: Stop backend
         if: always()

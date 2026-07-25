@@ -1,0 +1,78 @@
+/* Admin price quick-edit, shown inline beside a card's price. Tokens only —
+   no raw hex (CLAUDE.md §5). Deliberately a labelled pill, not a bare icon:
+   the previous tag glyph sat in the image corner with nothing to say what it
+   did or what it applied to. */
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px dashed var(--border-default);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.trigger:hover,
+.trigger:focus-visible {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  border-style: solid;
+  border-color: var(--brand-primary);
+}
+
+/* Inline editor (input + save/cancel), replacing the trigger in place. */
+.editing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.priceInput {
+  width: 4.5rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.priceInputError {
+  border-color: var(--feedback-error);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled),
+.iconButton:focus-visible:not(:disabled) {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  border-color: var(--brand-primary);
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

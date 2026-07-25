@@ -8,6 +8,7 @@ import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import { Plus } from 'lucide-react';
 import MenuCardImage from '@/components/menu/MenuCardImage';
 import AdminMenuCardControls from '@/components/menu/AdminMenuCardControls';
+import AdminPriceEditor from '@/components/menu/AdminPriceEditor';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import styles from './CraftMenuCard.module.css';
 
@@ -47,7 +48,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
         </span>
       )}
 
-      <AdminMenuCardControls item={item} onPriceChange={setPrice} />
+      <AdminMenuCardControls item={item} />
 
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
@@ -64,6 +65,12 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
           <span className={styles.name}>{itemName}</span>
           <span className={styles.price}>{formatPlainCurrency(price)}</span>
         </button>
+
+        {/* Right under the name…price leader, aligned to the price end. It can't
+            go INSIDE the leader — that's a button, and buttons don't nest. */}
+        <div className={styles.adminRow}>
+          <AdminPriceEditor item={item} onPriceChange={setPrice} />
+        </div>
 
         {description && <p className={styles.description}>{description}</p>}
         {bundleIncludes && <p className={styles.includes}>{bundleIncludes}</p>}

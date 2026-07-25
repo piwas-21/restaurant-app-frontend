@@ -15,6 +15,8 @@ interface CartSummaryProps {
   getTotal: () => number;
   getItemCount: () => number;
   isResolving: boolean;
+  /** Translated reason the CTA won't route yet ('' when nothing blocks it). */
+  blockerMessage: string;
   onApplyPromoCode: () => Promise<void>;
   onRemovePromoCode: () => void;
   onCheckout: () => void;
@@ -36,6 +38,7 @@ export default function CartSummary({
   getTotal,
   getItemCount,
   isResolving,
+  blockerMessage,
   onApplyPromoCode,
   onRemovePromoCode,
   onCheckout,
@@ -122,6 +125,10 @@ export default function CartSummary({
       <button onClick={onCheckout} className={styles.checkoutButton} disabled={isResolving}>
         {t('proceed_to_checkout', 'Proceed to Checkout')} ({getItemCount()} {t('items', 'items')})
       </button>
+
+      {/* Why it won't route yet — the click used to bounce to /menu unexplained.
+          <output> carries the live-region semantics implicitly (Sonar S6819). */}
+      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
     </div>
   );
 }

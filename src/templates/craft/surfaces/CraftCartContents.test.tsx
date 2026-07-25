@@ -11,6 +11,7 @@ const mockHookValue = {
   itemCount: 0,
   subtotal: 0,
   canCheckout: false,
+  blockerMessage: '',
   isSyncing: false,
   isResolving: false,
   handleQty: jest.fn(),
@@ -35,7 +36,7 @@ const item = (over: Record<string, unknown> = {}) => ({
 
 describe('CraftCartContents', () => {
   beforeEach(() => {
-    Object.assign(mockHookValue, { items: [], subtotal: 0, canCheckout: false });
+    Object.assign(mockHookValue, { items: [], itemCount: 0, subtotal: 0, canCheckout: false, blockerMessage: '' });
   });
 
   it('renders the craft empty note + order-type toggle', () => {
@@ -52,9 +53,15 @@ describe('CraftCartContents', () => {
     expect(screen.getByTestId('line-summary')).toBeInTheDocument();
   });
 
-  it('gates the checkout CTA on canCheckout', () => {
-    Object.assign(mockHookValue, { items: [item()], canCheckout: false });
+  it('disables the checkout CTA only for an empty cart', () => {
     render(<CraftCartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
+  });
+
+  it('keeps the CTA live without an order type, and prints the reason', () => {
+    Object.assign(mockHookValue, { items: [item()], itemCount: 2, blockerMessage: 'Pick an order type' });
+    render(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeEnabled();
+    expect(screen.getByRole('status')).toHaveTextContent('Pick an order type');
   });
 });

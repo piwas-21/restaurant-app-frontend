@@ -9,6 +9,7 @@ import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
 import { FORM_KEYS } from '@/types/formFieldConfig';
 import {
   validateGuestCustomerInfoField,
+  validateGuestCustomerInfoFields,
   type CustomerInfoField,
   type GuestCustomerInfoErrors,
   type GuestCustomerInfoValue,
@@ -33,6 +34,12 @@ export interface UseGuestCustomerInfoOptions {
   enabled: boolean;
   /** Analytics tag for `customer_info_submitted` — see analytics.ts. */
   source?: string;
+  /**
+   * Render every collected field (prefilled) rather than only what the profile
+   * can't supply — for the review page's "Edit your details", whose whole
+   * purpose is changing values we already hold (see `useGuestProfilePrefill`).
+   */
+  editAll?: boolean;
 }
 
 interface UseGuestCustomerInfoResult {
@@ -86,6 +93,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
   const { user, isLoggedIn, isLoadingUser, prefill, visibleFields } = useGuestProfilePrefill(
     opts.enabled,
     merged.fields,
+    opts.editAll,
   );
 
   const [value, setValue] = useState<GuestCustomerInfoValue>(() => ({
@@ -121,15 +129,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
   );
 
   const commit = useCallback(async (): Promise<GuestCustomerInfoValue | null> => {
-    const next: GuestCustomerInfoErrors = { name: '', email: '', phone: '' };
-    let ok = true;
-    // Validate every collected field: required-ness for the effective set,
-    // format-only for shown-but-optional fields (empty passes there).
-    for (const field of merged.fields) {
-      const err = validateGuestCustomerInfoField(field, value[field], t, { phoneRequired });
-      next[field] = err;
-      if (err) ok = false;
-    }
+    const { errors: next, ok } = validateGuestCustomerInfoFields(merged.fields, value, t, { phoneRequired });
     setErrors(next);
     if (!ok) return null;
 

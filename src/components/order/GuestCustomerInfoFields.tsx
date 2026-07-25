@@ -203,6 +203,27 @@ export function validateGuestCustomerInfoField(
 }
 
 /**
+ * Blur-validate a whole collected set at once — required-ness for the effective
+ * set, format-only for shown-but-optional fields (empty passes there). Lives
+ * beside the single-field validator it wraps so the two rule sets can't drift.
+ */
+export function validateGuestCustomerInfoFields(
+  fields: ReadonlyArray<CustomerInfoField>,
+  value: GuestCustomerInfoValue,
+  t: TFunction,
+  opts?: { phoneRequired?: boolean },
+): { errors: GuestCustomerInfoErrors; ok: boolean } {
+  const errors: GuestCustomerInfoErrors = { name: '', email: '', phone: '' };
+  let ok = true;
+  for (const field of fields) {
+    const err = validateGuestCustomerInfoField(field, value[field], t, opts);
+    errors[field] = err;
+    if (err) ok = false;
+  }
+  return { errors, ok };
+}
+
+/**
  * Validate one of the two register-only fields. Length / required
  * rules come from the shared `registerFieldsSchema` (Zod, mirrors the
  * customerInfoSchema pattern); the cross-field equality check stays

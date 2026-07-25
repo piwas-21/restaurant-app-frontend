@@ -152,7 +152,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --prefer-offline --no-audit
-      - run: npm audit --audit-level=high
+        # Not a bare `npm audit --audit-level=high`: npm has no ignore mechanism,
+        # so an advisory with no reachable patched version leaves only "force an
+        # incompatible major" or "delete the gate". The wrapper makes accepting one
+        # an explicit, dated entry in .npm-audit-allowlist.json instead, and fails
+        # when an acceptance expires. Same house pattern as .retireignore.json.
+      - run: node scripts/check-npm-audit.mjs
 
   file_length:
     name: file-length (CLAUDE.md §4)

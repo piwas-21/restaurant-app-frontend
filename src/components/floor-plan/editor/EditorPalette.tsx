@@ -32,9 +32,12 @@ interface EditorPaletteProps {
   onArm: (kind: string, viaPointer: boolean) => void;
   /** Grid placement from the editor layout (the rail spans on narrow screens). */
   className?: string;
+  /**
+   * Opens the create-table modal. Hits /api/tables and reloads the plan, so the
+   * caller flushes any pending geometry save first — the button itself stays live,
+   * because the version that went disabled-while-dirty said nothing about why.
+   */
   onAddTable: () => void;
-  /** Add-table hits /api/tables + reloads, so it is locked while geometry is unsaved. */
-  addTableDisabled: boolean;
   /** False at the server's per-plan item cap — every entry goes disabled. */
   canPlace: boolean;
 }
@@ -61,7 +64,6 @@ export default function EditorPalette({
   onArm,
   className,
   onAddTable,
-  addTableDisabled,
   canPlace,
 }: Readonly<EditorPaletteProps>) {
   const { t } = useTranslation();
@@ -71,7 +73,7 @@ export default function EditorPalette({
     <aside className={[styles.rail, className].filter(Boolean).join(' ')} aria-label={t('editor_palette', 'Objects')}>
       <section className={styles.group}>
         <h3 className={styles.groupHeading}>{t('editor_palette_tables', 'Tables')}</h3>
-        <button type="button" className={styles.addTable} onClick={onAddTable} disabled={addTableDisabled}>
+        <button type="button" className={styles.addTable} onClick={onAddTable}>
           <Plus size={15} aria-hidden="true" />
           {t('editor_add_table', 'Add table')}
         </button>

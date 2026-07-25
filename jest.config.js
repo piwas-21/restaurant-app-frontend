@@ -83,6 +83,8 @@ module.exports = {
     'src/lib/floorPlan/itemPlacement.ts',
     'src/lib/allergens.ts',
     'src/hooks/floorPlan/useEditorDrag.ts',
+    'src/hooks/floorPlan/useEditorSave.ts',
+    'src/hooks/floorPlan/useEditorAutoSave.ts',
     'src/hooks/floorPlan/useEditorItems.ts',
     'src/hooks/floorPlan/useEditorMarquee.ts',
     'src/hooks/floorPlan/useStageScale.ts',
@@ -438,6 +440,20 @@ module.exports = {
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    // The autosave path: its rules (idle debounce, max wait, conflict latch, the
+    // two-pass flush) are only enforced by these tests.
+    './src/hooks/floorPlan/useEditorSave.ts': {
+      statements: 100,
+      branches: 93,
+      functions: 100,
+      lines: 100,
+    },
+    './src/hooks/floorPlan/useEditorAutoSave.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
     './src/hooks/floorPlan/useEditorItems.ts': {
       statements: 99,

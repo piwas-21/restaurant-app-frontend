@@ -22,8 +22,10 @@ import styles from './FloorPlanEditor.module.css';
  * inspector over the one `FloorPlanScene`. Table geometry is edited locally and
  * saved with a single whole-document PUT; a table's identity, details and QR
  * stay on /api/tables (create / delete / details / QR modals), which reload the
- * plan afterwards. Those lifecycle ops are locked while geometry is unsaved so a
- * reload never discards edits.
+ * plan afterwards. Because that reload refetches the document, each of those ops
+ * first flushes any pending geometry save — the editor used to disable the buttons
+ * until the admin saved by hand instead, which in the palette's case was a dead
+ * "Add table" with nothing to explain it.
  */
 export default function FloorPlanEditor() {
   const { t } = useTranslation();
@@ -38,6 +40,7 @@ export default function FloorPlanEditor() {
   const [showDelete, setShowDelete] = useState(false);
   const [showProps, setShowProps] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Escape and the arrow keys belong to whichever modal is on top, not the canvas.
   const modalOpen = showCreate || showDelete || showProps || showPreview || Boolean(tables.qrTable);
@@ -51,14 +54,45 @@ export default function FloorPlanEditor() {
     editor.reload();
   }, [editor]);
 
-  const confirmDelete = async () => {
-    if (!selectedDto || editor.dirty) {
-      notify('error', t('editor_save_first', 'Save layout changes before editing table details.'));
-      setShowDelete(false);
-      return;
+  /**
+   * Get the plan onto the server before an op that ends in a reload. Autosave has
+   * nearly always done this already; the flush covers the click that beats its
+   * debounce, and a `false` means the geometry is still local — running the op
+   * anyway would reload the plan and throw those edits away.
+   */
+  const layoutSafeToReload = useCallback(async () => {
+    if (await editor.flush()) {
+      return true;
     }
-    await tables.deleteTable(selectedDto.id, selectedDto.tableNumber);
-    afterTableChange();
+    notify(
+      'error',
+      t('editor_layout_save_blocked', 'The layout could not be saved, so table changes are on hold. Try again.'),
+    );
+    return false;
+  }, [editor, notify, t]);
+
+  const openCreateTable = useCallback(async () => {
+    if (await layoutSafeToReload()) {
+      setShowCreate(true);
+    }
+  }, [layoutSafeToReload]);
+
+  const confirmDelete = async () => {
+    // No selection cannot be reached from this modal; closing it is the only sensible
+    // recovery, and a failed flush has already explained itself in the banner.
+    // `deleting` is what the modal disables on: the flush before the DELETE puts a
+    // round trip between the click and the close, which is long enough to click twice.
+    setDeleting(true);
+    try {
+      if (!selectedDto || !(await layoutSafeToReload())) {
+        setShowDelete(false);
+        return;
+      }
+      await tables.deleteTable(selectedDto.id, selectedDto.tableNumber);
+      afterTableChange();
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const banner = message ?? editor.message;
@@ -88,8 +122,7 @@ export default function FloorPlanEditor() {
           armedKind={editor.armedKind}
           onArm={editor.armPaletteKind}
           className={styles.palette}
-          onAddTable={() => setShowCreate(true)}
-          addTableDisabled={editor.dirty}
+          onAddTable={() => void openCreateTable()}
           canPlace={editor.canPlaceItem}
         />
         <EditorCanvas
@@ -105,7 +138,6 @@ export default function FloorPlanEditor() {
         />
         <EditorInspector
           editor={editor}
-          metadataLocked={editor.dirty}
           onEditDetails={() => setShowProps(true)}
           onShowQR={() => selectedDto && tables.setQrTable(selectedDto)}
           onDelete={() => setShowDelete(true)}
@@ -130,7 +162,7 @@ export default function FloorPlanEditor() {
         onClose={() => setShowDelete(false)}
         onConfirm={confirmDelete}
         tableNumber={selectedDto?.tableNumber}
-        isDeleting={false}
+        isDeleting={deleting}
       />
 
       {showProps && selectedDto && (
@@ -140,6 +172,9 @@ export default function FloorPlanEditor() {
           onClose={() => setShowProps(false)}
           onUpdateTable={(updates) => tables.patchLocal(selectedDto.id, updates)}
           onSave={async (id, updates) => {
+            if (!(await layoutSafeToReload())) {
+              return;
+            }
             // Position is owned by the plan document — pass its authoritative
             // geometry so a metadata save never reverts a saved drag.
             const geo = editor.committed.tables.find((tt) => tt.id === id);

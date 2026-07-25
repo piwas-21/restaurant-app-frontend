@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 import type { TableDto, TimeSlotDto } from '@/types/reservation';
 import {
   getCapacityWarningMessage,
+  partyExceedsEveryTable,
   computeTableAvailability,
   getTimeSlotOptions,
   validateReservation,
@@ -300,5 +301,28 @@ describe('extractReservationErrorMessage', () => {
 
   it('falls back to the default when nothing usable is present', () => {
     expect(extractReservationErrorMessage({}, t)).toBe('Failed to create reservation');
+  });
+});
+
+describe('partyExceedsEveryTable', () => {
+  const tbl = (id: string, maxGuests: number) => ({ id, maxGuests }) as never;
+
+  it('is true when no single table can seat the party', () => {
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 6)], 8)).toBe(true);
+  });
+
+  it('is false when one table is exactly big enough', () => {
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 8)], 8)).toBe(false);
+  });
+
+  it('is false before the table list has loaded, so no notice flashes on mount', () => {
+    expect(partyExceedsEveryTable([], 8)).toBe(false);
+  });
+
+  it('needs neither a date, a time, nor availability — that is the point', () => {
+    // The old path reached this check only via computeTableAvailability, which
+    // requires a chosen slot; the guest therefore learned nothing until two more
+    // fields were filled in.
+    expect(partyExceedsEveryTable.length).toBe(2);
   });
 });

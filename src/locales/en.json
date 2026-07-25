@@ -2210,6 +2210,7 @@
   "no_tables_here": "No tables in this area right now.",
   "too_small_for_party": "Too small for {{party}}",
   "table_too_small": "too small for your party",
+  "table_smaller_than_party": "smaller than your party — combine with another table",
   "zoom_out": "Zoom out",
   "zoom_in": "Zoom in",
   "fit_plan": "Fit the plan",

@@ -2210,6 +2210,7 @@
   "no_tables_here": "لا توجد طاولات في هذه المنطقة حاليًا.",
   "too_small_for_party": "صغيرة جدًا لـ {{party}}",
   "table_too_small": "صغيرة جدًا على مجموعتكم",
+  "table_smaller_than_party": "أصغر من مجموعتك — يمكن دمجه مع طاولة أخرى",
   "zoom_out": "تصغير",
   "zoom_in": "تكبير",
   "fit_plan": "ملاءمة المخطط",

@@ -90,16 +90,35 @@ describe('FloorPlanScene', () => {
     expect(container.querySelectorAll('[data-table-id]')).toHaveLength(2);
   });
 
-  it('does not make a booked or too-small table interactive', () => {
+  it('does not make a BOOKED table interactive', () => {
+    const onSelectTable = jest.fn();
+    const { container } = render(
+      <FloorPlanScene document={floorPlanFixture()} onSelectTable={onSelectTable} tableStates={{ t1: 'booked' }} />,
+    );
+    expect(container.querySelector('[data-table-id="t1"]')).not.toHaveAttribute('role', 'button');
+  });
+
+  it('KEEPS a smaller-than-the-party table selectable — it warns, it does not forbid', () => {
+    // Disabling `small` dead-ended every party larger than the biggest table: all
+    // tables greyed out, nothing selectable, no explanation. Combining tables is the
+    // documented answer to a large party, so the state must stay clickable.
     const onSelectTable = jest.fn();
     const { container } = render(
       <FloorPlanScene
         document={floorPlanFixture()}
         onSelectTable={onSelectTable}
-        tableStates={{ t1: 'booked', t2: 'small' }}
+        tableStates={{ t1: 'small', t2: 'small' }}
       />,
     );
-    expect(container.querySelectorAll('[role="button"]')).toHaveLength(0);
+    const small = container.querySelectorAll('[data-state="small"]');
+    expect(small).toHaveLength(2);
+    small.forEach((el) => {
+      expect(el).toHaveAttribute('role', 'button');
+      expect(el).toHaveAttribute('tabindex', '0');
+    });
+
+    fireEvent.click(small[0]);
+    expect(onSelectTable).toHaveBeenCalledWith('t1', { additive: false, synthetic: expect.any(Boolean) });
   });
 
   it('draws the grid only when asked', () => {

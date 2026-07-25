@@ -28,6 +28,8 @@
   "remove_item_from_cart": "从购物车中移除 {{itemName}}",
   "total_cart_items_price": "总计（{{count}} 件）：",
   "proceed_to_checkout": "前往结账",
+  "checkout_blocked_order_type": "请先选择取餐方式以继续",
+  "checkout_blocked_details": "结账前还需要一些信息",
   "cart_remove_item_button": "移除",
   "cart_total_price_label": "总价",
   "cart_proceed_to_checkout_button": "前往结账",

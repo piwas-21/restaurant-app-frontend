@@ -62,14 +62,18 @@ export default function OrderFlowModals({ followUp }: OrderFlowModalsProps) {
       />
 
       {/* Takeaway follow-up (picks Takeaway) and the review page's contact-only
-          "Edit" share this modal — same fields + commit, only the title and the
-          required set (order-type-aware) differ. */}
+          "Edit" share this modal — same fields + commit; the title, the required
+          set (order-type-aware) and the collect-vs-edit framing differ. In the
+          'contact' case the modal IS the editor, so it shows every field
+          prefilled; narrowing to only-what's-missing (right for the takeaway
+          pick) left a complete profile looking at an empty dialog. */}
       <TakeawayInfoModal
         isOpen={followUp.followUp === 'takeaway' || followUp.followUp === 'contact'}
         onClose={followUp.closeFollowUp}
         onConfirm={followUp.closeFollowUp}
         title={followUp.followUp === 'contact' ? t('edit_contact_title', 'Edit your details') : undefined}
         requiredFields={contactRequiredFields}
+        editAll={followUp.followUp === 'contact'}
       />
 
       {/* Review page "Edit Order Details" — pick a type, then its detail modal opens. */}

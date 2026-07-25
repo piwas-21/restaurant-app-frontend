@@ -28,6 +28,8 @@
   "remove_item_from_cart": "Удалить {{itemName}} из корзины",
   "total_cart_items_price": "Итого ({{count}} товаров):",
   "proceed_to_checkout": "Оформить заказ",
+  "checkout_blocked_order_type": "Выберите способ заказа, чтобы продолжить",
+  "checkout_blocked_details": "Нужно ещё несколько данных перед оформлением",
   "cart_remove_item_button": "Удалить",
   "cart_total_price_label": "Итоговая цена",
   "cart_proceed_to_checkout_button": "Оформить заказ",

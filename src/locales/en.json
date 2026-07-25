@@ -28,6 +28,8 @@
   "remove_item_from_cart": "Remove {{itemName}} from cart",
   "total_cart_items_price": "Total ({{count}} items):",
   "proceed_to_checkout": "Proceed to Checkout",
+  "checkout_blocked_order_type": "Choose how you want to order to continue",
+  "checkout_blocked_details": "We need a few more details before checkout",
   "cart_remove_item_button": "Remove",
   "cart_total_price_label": "Total Price",
   "cart_proceed_to_checkout_button": "Proceed to Checkout",

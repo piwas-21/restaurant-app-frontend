@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter';
+import { useCheckoutBlockerHint } from '@/hooks/checkout/useCheckoutBlockerHint';
+import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 
 /**
  * State + handlers for the cart page: item quantity/remove, special-instructions editing, promo
@@ -12,10 +13,14 @@ import { useSmartCheckoutRouter } from '@/hooks/checkout/useSmartCheckoutRouter'
  * Extracted from app/cart/page.tsx (Sprint 4/6 god-file decomposition); behaviour unchanged.
  */
 export function useCartPage() {
-  const router = useRouter();
   const { state, removeItem, updateItem, applyPromoCode, removePromoCode, getTotal, getItemCount } = useCart();
   const { state: orderTypeState, hasChosenOrderType } = useOrderType();
   const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
+  // Hosted here (and rendered by CartPageLayout) so a blocked checkout is fixed
+  // on this page. It used to push('/menu') with no explanation — the customer
+  // landed back on the menu having no idea what went wrong.
+  const orderTypeFollowUp = useOrderTypeFollowUp();
+  const hint = useCheckoutBlockerHint(hasChosenOrderType, state.items.length > 0);
 
   const [promoCode, setPromoCode] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
@@ -25,17 +30,28 @@ export function useCartPage() {
   // Check if customer has active discount (for display formatting only)
   const customerHasDiscount = (state.basket?.customerDiscount || 0) > 0 || (state.basket?.discount || 0) > 0;
 
-  const handleCheckout = () => {
-    if (hasChosenOrderType && orderTypeState.orderType) {
-      // proceedToCheckout has its own try/catch (toasts on failure); fire-and-forget.
-      // Analytics-source 'cart_page' marks the legacy /cart entry — the new
-      // C1.5 flow uses 'sidebar' / 'mobile_sheet'. Lets the funnel report on
-      // how many users still land here vs. the redesigned surfaces.
-      void proceedToCheckout(orderTypeState.orderType, 'cart_page');
+  const runCheckout = async () => {
+    const orderType = orderTypeState.orderType;
+    if (!orderType) {
+      // No type yet, and this page has no toggle — the order-type editor is the
+      // one thing that can unblock it, so open it right here.
+      hint.setBlocker('order-type');
+      orderTypeFollowUp.editOrderType();
       return;
     }
-    router.push('/menu');
+    // Analytics-source 'cart_page' marks the legacy /cart entry — the new
+    // C1.5 flow uses 'sidebar' / 'mobile_sheet'. Lets the funnel report on
+    // how many users still land here vs. the redesigned surfaces.
+    const blocker = await proceedToCheckout(orderType, 'cart_page');
+    hint.setBlocker(blocker);
+    if (blocker === 'details') {
+      orderTypeFollowUp.pickType(orderType, 'cart_page', true);
+    }
   };
+
+  // proceedToCheckout has its own try/catch; fire-and-forget so the DOM handler
+  // stays synchronous.
+  const handleCheckout = () => void runCheckout();
 
   const handleRemoveItem = async (basketItemId: string | undefined) => {
     if (!basketItemId) return;
@@ -91,6 +107,10 @@ export function useCartPage() {
     getItemCount,
     isResolving,
     customerHasDiscount,
+    /** Follow-up modal cluster — rendered by CartPageLayout. */
+    orderTypeFollowUp,
+    /** Translated reason the CTA won't route yet ('' when nothing blocks it). */
+    blockerMessage: hint.message,
     promoCode,
     setPromoCode,
     isApplyingPromo,

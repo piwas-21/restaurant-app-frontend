@@ -29,6 +29,8 @@
   "remove_item_from_cart": "{{itemName}} sepetten çıkar",
   "total_cart_items_price": "Toplam ({{count}} ürün):",
   "proceed_to_checkout": "Ödemeye Geç",
+  "checkout_blocked_order_type": "Devam etmek için nasıl sipariş vermek istediğinizi seçin",
+  "checkout_blocked_details": "Ödemeden önce birkaç bilgiye daha ihtiyacımız var",
   "cart_remove_item_button": "Kaldır",
   "cart_total_price_label": "Toplam Fiyat",
   "cart_proceed_to_checkout_button": "Ödemeye Devam Et",

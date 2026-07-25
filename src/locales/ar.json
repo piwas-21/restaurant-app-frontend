@@ -29,6 +29,8 @@
   "remove_item_from_cart": "إزالة {{itemName}} من السلة",
   "total_cart_items_price": "المجموع ({{count}} عنصر):",
   "proceed_to_checkout": "المتابعة إلى الدفع",
+  "checkout_blocked_order_type": "اختر طريقة الطلب للمتابعة",
+  "checkout_blocked_details": "نحتاج بعض التفاصيل قبل إتمام الطلب",
   "cart_remove_item_button": "إزالة",
   "cart_total_price_label": "السعر الإجمالي",
   "cart_proceed_to_checkout_button": "المتابعة إلى الدفع",

@@ -29,6 +29,8 @@
   "remove_item_from_cart": "Supprimer {{itemName}} du panier",
   "total_cart_items_price": "Total ({{count}} articles) :",
   "proceed_to_checkout": "Passer à la commande",
+  "checkout_blocked_order_type": "Choisissez votre mode de commande pour continuer",
+  "checkout_blocked_details": "Il nous manque quelques informations avant de continuer",
   "cart_remove_item_button": "Supprimer",
   "cart_total_price_label": "Prix total",
   "cart_proceed_to_checkout_button": "Passer à la commande",

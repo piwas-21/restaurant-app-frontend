@@ -29,6 +29,8 @@
   "remove_item_from_cart": "Eliminar {{itemName}} del carrito",
   "total_cart_items_price": "Total ({{count}} elementos):",
   "proceed_to_checkout": "Proceder al Pago",
+  "checkout_blocked_order_type": "Elige cómo quieres pedir para continuar",
+  "checkout_blocked_details": "Necesitamos algunos datos más antes de pagar",
   "cart_remove_item_button": "Eliminar",
   "cart_total_price_label": "Precio Total",
   "cart_proceed_to_checkout_button": "Proceder al Pago",

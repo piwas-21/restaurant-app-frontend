@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import { useCartPage } from '@/hooks/cart/useCartPage';
+import OrderFlowModals from '@/components/order/OrderFlowModals';
 import CartItemCard from './CartItemCard';
 import CartSummary from './CartSummary';
 
@@ -37,6 +38,8 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
     getItemCount,
     isResolving,
     customerHasDiscount,
+    orderTypeFollowUp,
+    blockerMessage,
     promoCode,
     setPromoCode,
     isApplyingPromo,
@@ -120,12 +123,17 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
           getTotal={getTotal}
           getItemCount={getItemCount}
           isResolving={isResolving}
+          blockerMessage={blockerMessage}
           onApplyPromoCode={handleApplyPromoCode}
           onRemovePromoCode={handleRemovePromoCode}
           onCheckout={handleCheckout}
           styles={styles.summary}
         />
       </div>
+
+      {/* Lets a blocked checkout collect the missing order type / details right
+          here, instead of the old unexplained bounce back to /menu. */}
+      <OrderFlowModals followUp={orderTypeFollowUp} />
     </main>
   );
 }

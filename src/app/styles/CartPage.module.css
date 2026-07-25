@@ -578,6 +578,15 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Why the CTA won't route yet (no order type / missing details). */
+.checkoutHint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
 /* Responsive Design */
 @media (max-width: 767px) {
   .cartContainer {

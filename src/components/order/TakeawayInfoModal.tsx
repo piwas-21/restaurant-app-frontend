@@ -38,6 +38,13 @@ interface TakeawayInfoModalProps {
    * Pass a stable reference — it feeds `useGuestCustomerInfo`'s memoised commit.
    */
   requiredFields?: ReadonlyArray<CustomerInfoField>;
+  /**
+   * Show every collected field, prefilled, rather than only the ones the
+   * profile can't supply. The review page's "Edit your details" sets this — it
+   * exists to change values we already hold, so the default narrowing rendered
+   * it with no fields at all.
+   */
+  editAll?: boolean;
 }
 
 /**
@@ -63,12 +70,14 @@ export default function TakeawayInfoModal({
   onConfirm,
   title,
   requiredFields,
+  editAll,
 }: Readonly<TakeawayInfoModalProps>) {
   const { t } = useTranslation();
   const guest = useGuestCustomerInfo({
     requiredFields: requiredFields ?? TAKEAWAY_REQUIRED_FIELDS,
     enabled: isOpen,
     source: 'takeaway_modal',
+    editAll,
   });
 
   const handleConfirm = async () => {

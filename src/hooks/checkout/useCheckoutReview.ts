@@ -3,8 +3,9 @@
 // Page logic for /checkout/review, extracted from the former 405-LOC inline page
 // (thin-orchestrator rule §5.1; also unit-testable + shareable by any template).
 // Verbatim lift: payment/points/tip state, display tax (useCheckoutTax), the
-// place-order submit (buildOrderCommand), the confirmation modal + auth-aware
-// close routing, and the prereq guard.
+// place-order submit (buildOrderCommand), and the confirmation modal +
+// auth-aware close routing. The prereq guard now lives in
+// useCheckoutPrereqGuard, which owns its store-hydration gate.
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { PaymentMethod, OrderType as OrderTypeEnum } from '@/types/order';
 import { buildOrderCommand } from '@/lib/checkout/buildOrderCommand';
 import { useCheckoutTax } from './useCheckoutTax';
+import { useCheckoutPrereqGuard } from './useCheckoutPrereqGuard';
 
 export function useCheckoutReview() {
   const { t } = useTranslation();
@@ -49,6 +51,9 @@ export function useCheckoutReview() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const { taxConfig, taxAmount } = useCheckoutTax(checkoutState.orderType, cartState.basket);
+  // Skipped while a just-confirmed order is showing — placing the order clears
+  // both stores, and the success modal must not be redirected out from under it.
+  const { isMissingPrereqs } = useCheckoutPrereqGuard(confirmedOrder !== null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -68,16 +73,6 @@ export function useCheckoutReview() {
   useEffect(() => {
     if (confirmedOrder) setShowConfirmationModal(true);
   }, [confirmedOrder]);
-
-  // Prereq guard — but never redirect while a just-confirmed order is showing.
-  useEffect(() => {
-    if (confirmedOrder) return;
-    if (cartState.items.length === 0) {
-      router.push('/cart');
-    } else if (!checkoutState.orderType || !checkoutState.customerInfo) {
-      router.push('/menu');
-    }
-  }, [cartState.items.length, checkoutState.orderType, checkoutState.customerInfo, router, confirmedOrder]);
 
   const handlePointsRedemption = (points: number, discountAmount: number) => {
     setRedeemedPoints(points);
@@ -165,8 +160,6 @@ export function useCheckoutReview() {
   const customerHasDiscount = (cartState.basket?.customerDiscount || 0) > 0 || (cartState.basket?.discount || 0) > 0;
   const formatPrice = (price: number) => formatCurrency(price);
   const formatTotal = (total: number) => formatPlainCurrency(total, customerHasDiscount ? 0 : 2);
-
-  const isMissingPrereqs = cartState.items.length === 0 || !checkoutState.orderType || !checkoutState.customerInfo;
 
   return {
     t,

@@ -164,6 +164,16 @@
   margin-top: 1rem;
 }
 
+/* Why the CTA won't route yet — a pencilled margin note under the button. */
+.checkoutHint {
+  margin: 0.5rem 0 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
 /* Empty order pad — a Caveat note. */
 .empty {
   padding: 1.75rem 0;

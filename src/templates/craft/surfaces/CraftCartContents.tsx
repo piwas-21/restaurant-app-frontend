@@ -19,8 +19,18 @@ import styles from './CraftCartContents.module.css';
  */
 export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) {
   const { t } = useTranslation();
-  const { items, subtotal, canCheckout, isSyncing, isResolving, handleQty, handleRemove, handleCheckout, handlePick } =
-    useCartContents(props);
+  const {
+    items,
+    itemCount,
+    subtotal,
+    blockerMessage,
+    isSyncing,
+    isResolving,
+    handleQty,
+    handleRemove,
+    handleCheckout,
+    handlePick,
+  } = useCartContents(props);
 
   return (
     <>
@@ -48,11 +58,19 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
         </div>
       </div>
 
+      {/* See CartContents: only an empty cart disables the CTA, so a click with no
+          order type can say why instead of silently doing nothing. */}
       <CartCheckoutButton
-        disabled={!canCheckout || isResolving}
+        disabled={itemCount === 0 || isResolving}
         onClick={handleCheckout}
         className={styles.checkoutButton}
       />
+
+      {blockerMessage && (
+        <p className={styles.checkoutHint} role="status">
+          {blockerMessage}
+        </p>
+      )}
     </>
   );
 }

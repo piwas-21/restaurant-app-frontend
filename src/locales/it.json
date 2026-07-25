@@ -2198,6 +2198,7 @@
   "customer_forms_save_failed": "Impossibile salvare le impostazioni dei moduli cliente",
   "customer_forms_load_failed": "Impossibile caricare le impostazioni dei moduli cliente",
   "admin_edit_menu_item": "Modifica questo articolo",
+  "admin_edit_item_short": "Modifica",
   "admin_edit_price": "Modifica prezzo",
   "map": "Mappa",
   "list": "Elenco",

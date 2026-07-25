@@ -2198,6 +2198,7 @@
   "customer_forms_save_failed": "Formulareinstellungen konnten nicht gespeichert werden",
   "customer_forms_load_failed": "Formulareinstellungen konnten nicht geladen werden",
   "admin_edit_menu_item": "Diesen Artikel bearbeiten",
+  "admin_edit_item_short": "Bearbeiten",
   "admin_edit_price": "Preis bearbeiten",
   "map": "Karte",
   "list": "Liste",

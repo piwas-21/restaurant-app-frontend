@@ -53,6 +53,18 @@
   white-space: nowrap;
 }
 
+/* Admin price quick-edit row — pushed to the price end of the leader above it.
+   Collapses to nothing for guests (AdminPriceEditor renders null), so the flex
+   `gap` is the only cost. */
+.adminRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.adminRow:empty {
+  display: none;
+}
+
 .description {
   font-size: 0.95rem;
   color: var(--text-secondary);

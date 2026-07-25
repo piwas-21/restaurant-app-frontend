@@ -4,7 +4,7 @@ import {
   duplicateItem,
   duplicateItems,
   freeCentre,
-  isLocalItemId,
+  isLocalId,
   newItem,
   nextLocalItemId,
   placeItem,
@@ -29,8 +29,8 @@ describe('itemPlacement — local ids', () => {
   });
 
   it('recognises its own ids and no others', () => {
-    expect(isLocalItemId('local-item-2')).toBe(true);
-    expect(isLocalItemId('e3f1c2d4-0000-4000-8000-000000000001')).toBe(false);
+    expect(isLocalId('local-item-2')).toBe(true);
+    expect(isLocalId('e3f1c2d4-0000-4000-8000-000000000001')).toBe(false);
   });
 });
 

@@ -37,9 +37,13 @@ export function nextLocalItemId(doc: FloorPlanDocument): string {
 
 /**
  * Is this id one the editor minted (i.e. not yet saved)? The save path strips
- * these: `FloorPlanItemDto.Id` is a `Guid?`, so sending one back is a 400.
+ * these: every `Id` on the document DTOs is a `Guid?`, so sending one back is a
+ * model-binding 400, not a new object. See `stripLocalIds` in the service.
+ *
+ * Deliberately named for *any* local id, not just an item's: the wall tool (S7)
+ * mints them for walls and openings and must route through the same check.
  */
-export const isLocalItemId = (id: string): boolean => id.startsWith(LOCAL_ID_PREFIX);
+export const isLocalId = (id: string): boolean => id.startsWith(LOCAL_ID_PREFIX);
 
 /** One above the highest z in the plan, so a new object lands on top of the pile. */
 const topZIndex = (doc: FloorPlanDocument): number =>

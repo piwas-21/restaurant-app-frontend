@@ -112,6 +112,13 @@ export function useEditorDocument() {
       }
     } catch (err) {
       const conflict = err instanceof ApiError && err.status === 409;
+      // A 400 carries the server's validation detail, and swallowing it is how a
+      // contract mismatch (a client-minted id in a `Guid?` field) presented as an
+      // unactionable "could not save". The banner stays localised — the detail
+      // goes to the console, where the next such bug is one glance away.
+      if (err instanceof ApiError && !conflict) {
+        console.error('Floor plan save rejected', { status: err.status, message: err.message, errors: err.errors });
+      }
       setMessage({
         type: 'error',
         text: conflict

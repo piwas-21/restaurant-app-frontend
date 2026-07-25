@@ -304,6 +304,13 @@ describe('extractReservationErrorMessage', () => {
   });
 });
 
+/**
+ * The party-size check that the Capacity Notice hangs off. Its whole point is that it
+ * takes nothing but the table list and the guest count — the old path reached the same
+ * conclusion only through `computeTableAvailability`, which needs a chosen slot, so a
+ * guest booking for 12 learned nothing until they had also picked a date and a time.
+ * `useReservationAvailability.test.ts` pins that end of it; these are the boundaries.
+ */
 describe('partyExceedsEveryTable', () => {
   const tbl = (id: string, maxGuests: number) => ({ id, maxGuests }) as never;
 
@@ -319,10 +326,10 @@ describe('partyExceedsEveryTable', () => {
     expect(partyExceedsEveryTable([], 8)).toBe(false);
   });
 
-  it('needs neither a date, a time, nor availability — that is the point', () => {
-    // The old path reached this check only via computeTableAvailability, which
-    // requires a chosen slot; the guest therefore learned nothing until two more
-    // fields were filled in.
-    expect(partyExceedsEveryTable.length).toBe(2);
+  it('reads the largest table, not the first or the last', () => {
+    // A `>` against the wrong element still passes the two cases above, where the
+    // biggest table happens to be last.
+    expect(partyExceedsEveryTable([tbl('a', 10), tbl('b', 4)], 8)).toBe(false);
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 10), tbl('c', 4)], 8)).toBe(false);
   });
 });

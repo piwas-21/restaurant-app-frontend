@@ -3,10 +3,15 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart, Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useCartPage } from '@/hooks/cart/useCartPage';
-import OrderFlowModals from '@/components/order/OrderFlowModals';
 import CartItemCard from './CartItemCard';
 import CartSummary from './CartSummary';
+
+// The modal cluster is only reachable from a blocked checkout, and statically
+// importing it put ~35 kB (+25%) of First Load JS on /cart for every visitor.
+// Same treatment CheckoutReviewLayout gives it.
+const OrderFlowModals = dynamic(() => import('@/components/order/OrderFlowModals'), { ssr: false });
 
 type CssModule = Readonly<Record<string, string>>;
 

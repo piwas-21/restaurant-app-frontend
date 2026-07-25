@@ -3,7 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import type { TFunction } from 'i18next';
 import GuestCustomerInfoFields, {
   validateGuestCustomerInfoField,
+  validateGuestCustomerInfoFields,
   type CustomerInfoField,
+  type GuestCustomerInfoValue,
 } from './GuestCustomerInfoFields';
 
 jest.mock('react-i18next', () => ({
@@ -92,5 +94,40 @@ describe('validateGuestCustomerInfoField — phoneRequired follows the merged ru
     expect(validateGuestCustomerInfoField('name', '', t)).not.toBe('');
     expect(validateGuestCustomerInfoField('email', 'not-an-email', t)).not.toBe('');
     expect(validateGuestCustomerInfoField('email', 'ada@example.com', t)).toBe('');
+  });
+});
+
+describe('validateGuestCustomerInfoFields — the whole collected set at once', () => {
+  const value = (over: Partial<GuestCustomerInfoValue> = {}): GuestCustomerInfoValue => ({
+    name: 'Ada Lovelace',
+    email: 'ada@example.com',
+    phone: '+41 22 123 45 67',
+    ...over,
+  });
+
+  it('passes a complete set and reports no errors', () => {
+    const result = validateGuestCustomerInfoFields(['name', 'email', 'phone'], value(), t, { phoneRequired: true });
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual({ name: '', email: '', phone: '' });
+  });
+
+  it('collects every field error in one pass, not just the first', () => {
+    const result = validateGuestCustomerInfoFields(['name', 'email'], value({ name: '', email: 'nope' }), t);
+    expect(result.ok).toBe(false);
+    expect(result.errors.name).not.toBe('');
+    expect(result.errors.email).not.toBe('');
+  });
+
+  it('only judges the fields it was given — an unlisted bad field is not an error', () => {
+    // Dine-In collects name+email; a blank phone must not block the commit there.
+    const result = validateGuestCustomerInfoFields(['name', 'email'], value({ phone: '' }), t);
+    expect(result.ok).toBe(true);
+    expect(result.errors.phone).toBe('');
+  });
+
+  it('forwards phoneRequired to the per-field rule', () => {
+    const fields: CustomerInfoField[] = ['name', 'email', 'phone'];
+    expect(validateGuestCustomerInfoFields(fields, value({ phone: '' }), t, { phoneRequired: true }).ok).toBe(false);
+    expect(validateGuestCustomerInfoFields(fields, value({ phone: '' }), t, { phoneRequired: false }).ok).toBe(true);
   });
 });

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { alignMovables, distributeMovables, type AlignEdge, type PlanAxis } from '@/lib/floorPlan/align';
 import { useEditorDocument } from './useEditorDocument';
+import { useEditorAutoSave } from './useEditorAutoSave';
 import { usePlanViewport } from './usePlanViewport';
 import { useEditorDrag } from './useEditorDrag';
 import { useEditorItems } from './useEditorItems';
@@ -122,7 +123,18 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
     onDuplicate: items.duplicateSelection,
   });
 
-  // Warn the browser before a reload / tab-close while geometry edits are unsaved.
+  // Geometry edits persist themselves shortly after the admin stops making them, so
+  // a crash or a closed laptop costs seconds of work rather than the whole session.
+  const autoSave = useEditorAutoSave({
+    document: committed,
+    dirty: store.dirty,
+    saving: store.saving,
+    conflicted: store.conflicted,
+    save: store.save,
+  });
+
+  // Autosave shrinks the unsaved window but never removes it, so the browser still
+  // warns if a reload / tab-close lands inside it.
   const { dirty } = store;
   useEffect(() => {
     if (!dirty) {
@@ -156,6 +168,8 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
     guides: drag.guides,
     gesture: drag.gesture,
     marquee: marquee.band,
+    /** Autosave has given up (conflict, or repeated failures) — Save is the way out. */
+    autoSaveStalled: autoSave.stalled,
     overlaps,
     overlapCount: overlaps.size,
     selectedTable,

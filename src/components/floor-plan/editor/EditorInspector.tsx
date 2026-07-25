@@ -15,20 +15,12 @@ import styles from './EditorInspector.module.css';
  */
 interface EditorInspectorProps {
   editor: FloorPlanEditorApi;
-  /** Table metadata / lifecycle ops (‑> /api/tables); locked while geometry is unsaved. */
-  metadataLocked: boolean;
   onEditDetails: () => void;
   onShowQR: () => void;
   onDelete: () => void;
 }
 
-export default function EditorInspector({
-  editor,
-  metadataLocked,
-  onEditDetails,
-  onShowQR,
-  onDelete,
-}: Readonly<EditorInspectorProps>) {
+export default function EditorInspector({ editor, onEditDetails, onShowQR, onDelete }: Readonly<EditorInspectorProps>) {
   const { t } = useTranslation();
   const count = editor.selectedIds.length;
   const table = editor.selectedTable;
@@ -56,7 +48,6 @@ export default function EditorInspector({
           table={table}
           plan={editor.document}
           onPatch={(patch) => editor.mutateTable(table.id, patch)}
-          metadataLocked={metadataLocked}
           onEditDetails={onEditDetails}
           onShowQR={onShowQR}
           onDelete={onDelete}

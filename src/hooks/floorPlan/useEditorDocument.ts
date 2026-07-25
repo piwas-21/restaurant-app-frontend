@@ -1,9 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { getFloorPlan, saveFloorPlan } from '@/services/floorPlanService';
-import { ApiError } from '@/utils/apiClient';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getFloorPlan } from '@/services/floorPlanService';
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
 import {
   canRedo as canRedoOf,
@@ -16,27 +14,35 @@ import {
 } from '@/lib/floorPlan/history';
 import { updateItem, updateTable } from '@/lib/floorPlan/document';
 import { pruneSelection, toggleSelection } from '@/lib/floorPlan/selection';
+import { useEditorSave } from './useEditorSave';
 
 export type EditorStatus = 'loading' | 'ready' | 'error';
-export type EditorMessage = { type: 'success' | 'error'; text: string } | null;
+export type { EditorMessage } from './useEditorSave';
 
 /**
  * The editor's document state machine (FLOOR-PLAN-REVAMP §4.3). Loads the plan
  * into an undo/redo History, tracks the selected table id, and owns the one
  * whole-document Save (PUT /api/floorplan; a 409 means someone else saved —
- * "reload"). Geometry edits are local until Save; `dirty` drives the unsaved-
- * changes guard. Table create/delete/QR stay on /api/tables (the caller's
- * modals) and come back through `reload`.
+ * "reload"). Geometry edits persist on their own shortly after they are made (see
+ * `useEditorAutoSave`); `dirty` is what drives that, plus the unsaved-changes guard
+ * for the window in between. Table create/delete/QR stay on /api/tables (the
+ * caller's modals) and come back through `reload`.
  */
 export function useEditorDocument() {
-  const { t } = useTranslation();
   const [history, setHistory] = useState<History<FloorPlanDocument> | null>(null);
   const [saved, setSaved] = useState<FloorPlanDocument | null>(null);
   const [status, setStatus] = useState<EditorStatus>('loading');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<EditorMessage>(null);
   const [reloadKey, setReloadKey] = useState(0);
+
+  const historyRef = useRef(history);
+  historyRef.current = history;
+
+  // The write path (token, conflict latch, silent autosave) lives in useEditorSave.
+  const { save, flush, saving, conflicted, message, setMessage, adoptToken } = useEditorSave({
+    getDocument: () => historyRef.current?.present ?? null,
+    onPersisted: setSaved,
+  });
 
   useEffect(() => {
     let active = true;
@@ -49,6 +55,7 @@ export function useEditorDocument() {
         if (res.success && res.data) {
           setHistory(initHistory(res.data));
           setSaved(res.data);
+          adoptToken(res.data);
           setStatus('ready');
         } else {
           setStatus('error');
@@ -62,6 +69,9 @@ export function useEditorDocument() {
     return () => {
       active = false;
     };
+    // `adoptToken` is stable (useCallback, no deps) and keying this effect on
+    // reloadKey alone is what keeps an unrelated re-render from re-fetching the plan.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reloadKey]);
 
   const present = history?.present ?? null;
@@ -95,46 +105,11 @@ export function useEditorDocument() {
     setReloadKey((k) => k + 1);
   }, []);
 
-  const save = useCallback(async () => {
-    if (!present) {
-      return;
-    }
-    setSaving(true);
-    setMessage(null);
-    try {
-      const res = await saveFloorPlan(present.id, present);
-      if (res.success && res.data) {
-        setHistory(initHistory(res.data));
-        setSaved(res.data);
-        setMessage({ type: 'success', text: t('floor_plan_saved', 'Floor plan saved.') });
-      } else {
-        setMessage({ type: 'error', text: t('floor_plan_save_failed', 'Could not save the floor plan.') });
-      }
-    } catch (err) {
-      const conflict = err instanceof ApiError && err.status === 409;
-      // A 400 carries the server's validation detail, and swallowing it is how a
-      // contract mismatch (a client-minted id in a `Guid?` field) presented as an
-      // unactionable "could not save". The banner stays localised — the detail
-      // goes to the console, where the next such bug is one glance away.
-      if (err instanceof ApiError && !conflict) {
-        console.error('Floor plan save rejected', { status: err.status, message: err.message, errors: err.errors });
-      }
-      setMessage({
-        type: 'error',
-        text: conflict
-          ? t('floor_plan_save_conflict', 'Someone else changed the plan. Reload and try again.')
-          : t('floor_plan_save_failed', 'Could not save the floor plan.'),
-      });
-    } finally {
-      setSaving(false);
-    }
-  }, [present, t]);
-
-  // Undo can bring an object back, a lifecycle op can take one away, and a Save
-  // re-mints every item id, so the selection is filtered against the live
-  // document rather than trusted. Memoised because it is a dependency of the
-  // keyboard listener and the align callbacks — a fresh array each render would
-  // re-subscribe them on every pointer move.
+  // Undo can bring an object back and a reload re-mints every item id (a lifecycle
+  // op, or recovering from a conflict), so the selection is filtered against the live
+  // document rather than trusted. Memoised because it is a dependency of the keyboard
+  // listener and the align callbacks — a fresh array each render would re-subscribe
+  // them on every pointer move.
   const liveIds = useMemo(() => (present ? pruneSelection(selectedIds, present) : []), [present, selectedIds]);
 
   return {
@@ -156,8 +131,12 @@ export function useEditorDocument() {
     dirty: Boolean(history && saved && history.present !== saved),
     saving,
     save,
+    /** Persist anything outstanding before a /api/tables op that ends in a reload. */
+    flush,
     reload,
+    /** True after a 409 — the plan moved under us and only a reload can resolve it. */
+    conflicted,
     message,
-    clearMessage: useCallback(() => setMessage(null), []),
+    clearMessage: useCallback(() => setMessage(null), [setMessage]),
   };
 }

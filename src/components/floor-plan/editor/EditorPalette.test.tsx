@@ -16,16 +16,7 @@ jest.mock('react-i18next', () => ({
 const draw = (over: Partial<Parameters<typeof EditorPalette>[0]> = {}) => {
   const onArm = jest.fn();
   const onAddTable = jest.fn();
-  const view = render(
-    <EditorPalette
-      armedKind={null}
-      onArm={onArm}
-      onAddTable={onAddTable}
-      addTableDisabled={false}
-      canPlace
-      {...over}
-    />,
-  );
+  const view = render(<EditorPalette armedKind={null} onArm={onArm} onAddTable={onAddTable} canPlace {...over} />);
   return { ...view, onArm, onAddTable };
 };
 
@@ -81,9 +72,10 @@ describe('EditorPalette', () => {
     expect(onArm).not.toHaveBeenCalled();
   });
 
-  it('locks Add table while geometry is unsaved, without locking the rest', () => {
-    draw({ addTableDisabled: true });
-    expect(screen.getByRole('button', { name: 'Add table' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Tree/ })).toBeEnabled();
+  // Add table used to go disabled while geometry was unsaved, with nothing to say
+  // why; the caller flushes the pending save instead, so it stays operable.
+  it('keeps Add table enabled — unsaved geometry no longer locks it', () => {
+    draw();
+    expect(screen.getByRole('button', { name: 'Add table' })).toBeEnabled();
   });
 });

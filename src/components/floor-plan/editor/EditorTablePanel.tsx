@@ -24,7 +24,6 @@ interface EditorTablePanelProps {
   table: FloorPlanTableGeometry;
   plan: FloorPlanDocument;
   onPatch: (patch: Partial<FloorPlanTableGeometry>) => void;
-  metadataLocked: boolean;
   onEditDetails: () => void;
   onShowQR: () => void;
   onDelete: () => void;
@@ -34,7 +33,6 @@ export default function EditorTablePanel({
   table,
   plan,
   onPatch,
-  metadataLocked,
   onEditDetails,
   onShowQR,
   onDelete,
@@ -64,19 +62,16 @@ export default function EditorTablePanel({
       </FormField>
 
       <div className={styles.actions}>
-        <button type="button" className={styles.action} disabled={metadataLocked} onClick={onEditDetails}>
+        <button type="button" className={styles.action} onClick={onEditDetails}>
           <Pencil size={15} aria-hidden="true" /> {t('editor_edit_details', 'Edit details')}
         </button>
-        <button type="button" className={styles.action} disabled={metadataLocked} onClick={onShowQR}>
+        <button type="button" className={styles.action} onClick={onShowQR}>
           <QrCode size={15} aria-hidden="true" /> {t('editor_qr_code', 'QR code')}
         </button>
-        <button type="button" className={styles.actionDanger} disabled={metadataLocked} onClick={onDelete}>
+        <button type="button" className={styles.actionDanger} onClick={onDelete}>
           <Trash2 size={15} aria-hidden="true" /> {t('editor_delete_table', 'Delete')}
         </button>
       </div>
-      {metadataLocked && (
-        <p className={styles.lockHint}>{t('editor_save_first', 'Save layout changes before editing table details.')}</p>
-      )}
     </>
   );
 }

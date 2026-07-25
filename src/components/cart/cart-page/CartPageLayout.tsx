@@ -3,9 +3,15 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCart, Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useCartPage } from '@/hooks/cart/useCartPage';
 import CartItemCard from './CartItemCard';
 import CartSummary from './CartSummary';
+
+// The modal cluster is only reachable from a blocked checkout, and statically
+// importing it put ~35 kB (+25%) of First Load JS on /cart for every visitor.
+// Same treatment CheckoutReviewLayout gives it.
+const OrderFlowModals = dynamic(() => import('@/components/order/OrderFlowModals'), { ssr: false });
 
 type CssModule = Readonly<Record<string, string>>;
 
@@ -37,6 +43,8 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
     getItemCount,
     isResolving,
     customerHasDiscount,
+    orderTypeFollowUp,
+    blockerMessage,
     promoCode,
     setPromoCode,
     isApplyingPromo,
@@ -120,12 +128,17 @@ export default function CartPageLayout({ styles }: Readonly<CartPageLayoutProps>
           getTotal={getTotal}
           getItemCount={getItemCount}
           isResolving={isResolving}
+          blockerMessage={blockerMessage}
           onApplyPromoCode={handleApplyPromoCode}
           onRemovePromoCode={handleRemovePromoCode}
           onCheckout={handleCheckout}
           styles={styles.summary}
         />
       </div>
+
+      {/* Lets a blocked checkout collect the missing order type / details right
+          here, instead of the old unexplained bounce back to /menu. */}
+      <OrderFlowModals followUp={orderTypeFollowUp} />
     </main>
   );
 }

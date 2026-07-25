@@ -10,6 +10,7 @@ import MenuCardImage from './MenuCardImage';
 import MenuItemDetails from './MenuItemDetails';
 import MenuItemActions from './MenuItemActions';
 import AdminMenuCardControls from './AdminMenuCardControls';
+import AdminPriceEditor from './AdminPriceEditor';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
 
@@ -63,7 +64,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
         </div>
       )}
 
-      <AdminMenuCardControls item={item} onPriceChange={setPrice} />
+      <AdminMenuCardControls item={item} />
 
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
@@ -97,8 +98,13 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
           </div>
         )}
 
+        {/* The price renders twice by viewport (`.itemPrice` in MenuItemDetails on
+            desktop, `.mobilePrice` here below 600px), so the editor rides in this
+            row — inline with the mobile price, and directly under the desktop one
+            — rather than being duplicated into both. */}
         <div className={styles.priceActionsRow}>
           <span className={styles.mobilePrice}>{formatPlainCurrency(price)}</span>
+          <AdminPriceEditor item={item} onPriceChange={setPrice} />
           <MenuItemActions
             onAdd={open}
             onFeedback={() => setShowFeedbackForm(true)}

@@ -4,7 +4,7 @@ import { useCartContents } from './useCartContents';
 
 const mockUpdateItem = jest.fn().mockResolvedValue(undefined);
 const mockRemoveItem = jest.fn().mockResolvedValue(undefined);
-const mockProceedToCheckout = jest.fn().mockResolvedValue(undefined);
+const mockProceedToCheckout = jest.fn().mockResolvedValue(null);
 
 let mockCartState: { items: Array<Record<string, unknown>>; isSyncing: boolean };
 let mockOrderTypeState: { orderType: OrderType | undefined };
@@ -19,6 +19,13 @@ jest.mock('@/contexts/OrderTypeContext', () => ({
 }));
 jest.mock('@/hooks/checkout/useSmartCheckoutRouter', () => ({
   useSmartCheckoutRouter: () => ({ proceedToCheckout: mockProceedToCheckout, isResolving: mockIsResolving }),
+}));
+// Pulled in by useCheckoutBlockerHint, which derives the "why can't I check out?" copy.
+jest.mock('@/contexts/CheckoutContext', () => ({
+  useCheckout: () => ({ state: { customerInfo: null, deliveryAddress: null } }),
+}));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
 
 const item = (over: Record<string, unknown> = {}) => ({
@@ -73,12 +80,12 @@ describe('useCartContents', () => {
     expect(mockRemoveItem).toHaveBeenCalledTimes(1);
   });
 
-  it('handleCheckout proceeds only when allowed, firing onProceed first with the analytics source', () => {
+  it('handleCheckout proceeds only when allowed, firing onProceed first with the analytics source', async () => {
     const onProceed = jest.fn();
     const args = { pickType: jest.fn(), onProceed, analyticsSource: 'mobile_sheet' };
     const { result, rerender } = renderHook((props) => useCartContents(props), { initialProps: args });
 
-    act(() => result.current.handleCheckout());
+    await act(async () => result.current.handleCheckout());
     expect(mockProceedToCheckout).not.toHaveBeenCalled();
     expect(onProceed).not.toHaveBeenCalled();
 
@@ -86,9 +93,47 @@ describe('useCartContents', () => {
     mockOrderTypeState = { orderType: OrderType.DineIn };
     mockHasChosenOrderType = true;
     rerender(args);
-    act(() => result.current.handleCheckout());
+    await act(async () => result.current.handleCheckout());
     expect(onProceed).toHaveBeenCalledTimes(1);
     expect(mockProceedToCheckout).toHaveBeenCalledWith(OrderType.DineIn, 'mobile_sheet');
+  });
+
+  it('explains a cart with no order type instead of silently doing nothing', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+
+    // Up front, before any click — the customer shouldn't have to click to find out.
+    expect(result.current.blockerMessage).toBe('Choose how you want to order to continue');
+
+    await act(async () => result.current.handleCheckout());
+    expect(mockProceedToCheckout).not.toHaveBeenCalled();
+    expect(result.current.blockerMessage).toBe('Choose how you want to order to continue');
+  });
+
+  it('reopens the type modal when the router reports missing details', async () => {
+    const pickType = jest.fn();
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.Takeaway };
+    mockHasChosenOrderType = true;
+    mockProceedToCheckout.mockResolvedValueOnce('details');
+
+    const { result } = renderHook(() => useCartContents({ pickType }));
+    await act(async () => result.current.handleCheckout());
+
+    // forceModal=true — Takeaway would otherwise decide it has nothing to ask.
+    expect(pickType).toHaveBeenCalledWith(OrderType.Takeaway, 'sidebar', true);
+    expect(result.current.blockerMessage).toBe('We need a few more details before checkout');
+  });
+
+  it('says nothing when the checkout routes successfully', async () => {
+    mockCartState = { items: [item()], isSyncing: false };
+    mockOrderTypeState = { orderType: OrderType.DineIn };
+    mockHasChosenOrderType = true;
+    mockProceedToCheckout.mockResolvedValueOnce(null);
+
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+    await act(async () => result.current.handleCheckout());
+    expect(result.current.blockerMessage).toBe('');
   });
 
   it('handlePick forwards the analytics source (defaults to sidebar)', () => {

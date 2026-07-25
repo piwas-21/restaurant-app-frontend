@@ -46,6 +46,14 @@ interface CheckoutState {
  */
 interface CheckoutContextType {
   state: CheckoutState;
+  /**
+   * False until the localStorage hydration effect has run. `state` is the empty
+   * `initialState` during that window, so anything that treats a missing
+   * orderType/customerInfo as "the user hasn't got that far" (e.g. the
+   * /checkout/review prereq guard) must wait for this — otherwise it acts on a
+   * blank slate and redirects a valid checkout away.
+   */
+  isHydrated: boolean;
   setOrderType: (type: OrderType) => void;
   setTableNumber: (tableNumber: string) => void;
   setDeliveryAddress: (address: DeliveryAddress) => void;
@@ -103,17 +111,21 @@ const saveCheckoutState = (state: CheckoutState) => {
  */
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CheckoutState>(initialState);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Load state from localStorage on mount
   useEffect(() => {
     const loaded = loadCheckoutState();
     setState(loaded);
+    setIsHydrated(true);
   }, []);
 
-  // Save state to localStorage whenever it changes
+  // Save state to localStorage whenever it changes — but not before hydration,
+  // or the first render's empty initialState would overwrite the stored one.
   useEffect(() => {
+    if (!isHydrated) return;
     saveCheckoutState(state);
-  }, [state]);
+  }, [state, isHydrated]);
 
   const setOrderType = (type: OrderType) => {
     setState((prev) => ({ ...prev, orderType: type }));
@@ -148,6 +160,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const value: CheckoutContextType = {
     state,
+    isHydrated,
     setOrderType,
     setTableNumber,
     setDeliveryAddress,

@@ -23,6 +23,11 @@ export interface UseGuestProfilePrefillResult {
    * Fields the form should still render — anything in the collected set
    * that isn't pre-filled from the user's server profile. Logged-in
    * users with a complete profile see no fields at all.
+   *
+   * That narrowing is right when the modal's job is to COLLECT what's missing
+   * (don't ask for what we already know), and wrong when its job is to EDIT
+   * (`alwaysShowAll`) — there, hiding the known values is the whole content of
+   * the dialog, which is why the review page's "Edit your details" opened empty.
    */
   visibleFields: ReadonlyArray<CustomerInfoField>;
 }
@@ -39,6 +44,7 @@ export interface UseGuestProfilePrefillResult {
 export function useGuestProfilePrefill(
   enabled: boolean,
   fields: ReadonlyArray<CustomerInfoField>,
+  alwaysShowAll = false,
 ): UseGuestProfilePrefillResult {
   const [user, setUser] = useState<UserDto | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -94,8 +100,9 @@ export function useGuestProfilePrefill(
   }, [enabled]);
 
   const visibleFields = useMemo<ReadonlyArray<CustomerInfoField>>(() => {
+    if (alwaysShowAll) return fields;
     return fields.filter((f) => !(user && hasProfileValue(user, f)));
-  }, [fields, user]);
+  }, [fields, user, alwaysShowAll]);
 
   return { user, isLoggedIn, isLoadingUser, prefill, visibleFields };
 }

@@ -11,6 +11,7 @@ const mockHookValue = {
   itemCount: 0,
   subtotal: 0,
   canCheckout: false,
+  blockerMessage: '',
   isSyncing: false,
   isResolving: false,
   handleQty: jest.fn(),
@@ -32,7 +33,14 @@ const item = (over: Record<string, unknown> = {}) => ({
 
 describe('CartContents (classic)', () => {
   beforeEach(() => {
-    Object.assign(mockHookValue, { items: [], subtotal: 0, canCheckout: false, isResolving: false });
+    Object.assign(mockHookValue, {
+      items: [],
+      itemCount: 0,
+      subtotal: 0,
+      canCheckout: false,
+      blockerMessage: '',
+      isResolving: false,
+    });
   });
 
   it('shows the empty state + order-type toggle when the cart is empty', () => {
@@ -49,12 +57,20 @@ describe('CartContents (classic)', () => {
     expect(screen.getByTestId('line-summary')).toBeInTheDocument();
   });
 
-  it('gates the checkout button on canCheckout', () => {
-    Object.assign(mockHookValue, { items: [item()], canCheckout: false });
+  it('disables the checkout button only for an empty cart', () => {
     const { rerender } = render(<CartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeDisabled();
-    Object.assign(mockHookValue, { canCheckout: true });
+
+    // Items but no order type: still clickable, so the click can say why. A dead
+    // disabled button with no explanation was the bug.
+    Object.assign(mockHookValue, { items: [item()], itemCount: 2, canCheckout: false });
     rerender(<CartContents pickType={jest.fn()} />);
     expect(screen.getByRole('button', { name: 'Proceed to Checkout' })).toBeEnabled();
+  });
+
+  it('renders the blocker hint when the flow cannot proceed', () => {
+    Object.assign(mockHookValue, { items: [item()], itemCount: 2, blockerMessage: 'Pick an order type' });
+    render(<CartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('status')).toHaveTextContent('Pick an order type');
   });
 });

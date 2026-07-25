@@ -9,6 +9,16 @@ import { getMyAddresses } from '@/services/addressService';
 import { getProfileCompleteness, pickPreferredAddress } from '@/lib/checkout/profileCompleteness';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
+/**
+ * Why a Proceed-to-Checkout click could not route, so the caller can say so and
+ * offer the fix in place. `null` means it routed.
+ *
+ *   'order-type' — nothing picked yet; the order-type toggle is the next step.
+ *   'details'    — a type is picked but its contact/address data is incomplete,
+ *                  so the type's follow-up modal has to collect the rest.
+ */
+export type CheckoutBlocker = 'order-type' | 'details';
+
 interface SmartCheckoutRouter {
   /**
    * Decide whether the chosen order type already has the data it needs
@@ -21,19 +31,22 @@ interface SmartCheckoutRouter {
    *      (e.g. filled inline by the type-modal in §C1.5.e) — skip the
    *      API calls entirely and go straight to /checkout/review.
    *   2. Logged-in + profile complete → populate context, push to review.
-   *   3. Otherwise → /menu (the type modal will collect what's missing
-   *      via §C1.5.e's inline contact-info fields).
+   *   3. Otherwise → return the blocker. This used to `router.push('/menu')`
+   *      instead, which was a silent dead end: on /menu that push is a no-op
+   *      (the button looked like it did nothing but reload) and from /cart it
+   *      bounced the customer back to the menu with no explanation. Routing is
+   *      now the caller's business — it owns the surface that can unblock.
    *
    * Errors fetching profile/addresses (network blip, 401 after token
-   * expiry, etc.) also fall through to /menu — the safe default — so
-   * a transient outage never blocks the customer from ordering.
+   * expiry, etc.) also report 'details' — the safe default — so a transient
+   * outage degrades to "we'll ask you for these" rather than blocking the order.
    *
    * `source` is forwarded to the `checkout_opened` analytics event so the
    * funnel can attribute the click to the surface that fired it (desktop
    * sidebar, mobile bottom-sheet, legacy /cart page). Defaults to
    * 'sidebar' for back-compat with callers that don't supply one.
    */
-  proceedToCheckout: (orderType: OrderType, source?: string) => Promise<void>;
+  proceedToCheckout: (orderType: OrderType | null, source?: string) => Promise<CheckoutBlocker | null>;
   isResolving: boolean;
 }
 
@@ -70,7 +83,9 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
   const [isResolving, setIsResolving] = useState(false);
 
   const proceedToCheckout = useCallback(
-    async (orderType: OrderType, source = 'sidebar') => {
+    async (orderType: OrderType | null, source = 'sidebar'): Promise<CheckoutBlocker | null> => {
+      if (!orderType) return 'order-type';
+
       // Fast path: the type modals (§C1.5.e) already wrote everything we
       // need into CheckoutContext. No API calls, no smart-skip logic — just
       // go to review.
@@ -85,13 +100,10 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
           loggedIn: isLoggedInForAnalytics(),
         });
         router.push('/checkout/review');
-        return;
+        return null;
       }
 
-      if (!isLoggedIn()) {
-        router.push('/menu');
-        return;
-      }
+      if (!isLoggedIn()) return 'details';
 
       setIsResolving(true);
       try {
@@ -99,10 +111,7 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
         const addresses = orderType === OrderType.Delivery ? await getMyAddresses() : undefined;
         const { complete } = getProfileCompleteness(user, orderType, addresses);
 
-        if (!complete) {
-          router.push('/menu');
-          return;
-        }
+        if (!complete) return 'details';
 
         // Only populate fields the user hasn't already set in this session —
         // a manually filled DeliveryAddressModal must not be clobbered by
@@ -137,9 +146,10 @@ export function useSmartCheckoutRouter(): SmartCheckoutRouter {
           loggedIn: true,
         });
         router.push('/checkout/review');
+        return null;
       } catch (error) {
         console.warn('Smart-skip checkout could not resolve profile, falling back:', error);
-        router.push('/menu');
+        return 'details';
       } finally {
         setIsResolving(false);
       }

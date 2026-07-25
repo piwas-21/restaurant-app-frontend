@@ -29,7 +29,7 @@ const LOCAL_ID_PREFIX = 'local-item-';
  */
 export function nextLocalItemId(doc: FloorPlanDocument): string {
   const used = doc.items.reduce((max, item) => {
-    const suffix = item.id?.startsWith(LOCAL_ID_PREFIX) ? Number(item.id.slice(LOCAL_ID_PREFIX.length)) : NaN;
+    const suffix = item.id?.startsWith(LOCAL_ID_PREFIX) ? Number(item.id.slice(LOCAL_ID_PREFIX.length)) : Number.NaN;
     return Number.isInteger(suffix) && suffix > max ? suffix : max;
   }, 0);
   return `${LOCAL_ID_PREFIX}${used + 1}`;

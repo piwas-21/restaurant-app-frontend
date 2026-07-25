@@ -34,7 +34,7 @@ describe('EditorPalette', () => {
     const { container } = draw();
     // One button per kind plus the Add-table entry.
     expect(container.querySelectorAll('button')).toHaveLength(PALETTE_KINDS.length + 1);
-    expect(container.querySelectorAll('[class*="preview"] svg').length).toBe(PALETTE_KINDS.length);
+    expect(container.querySelectorAll('[class*="preview"] svg')).toHaveLength(PALETTE_KINDS.length);
   });
 
   it('shows the footprint a kind will be placed at', () => {

@@ -56,6 +56,49 @@ function nudgeSelection(
   }, doc);
 }
 
+/**
+ * The ⌘/Ctrl shortcuts: undo/redo and duplicate. Returns whether one fired, so
+ * the dispatcher stays a flat list of "did this claim the key?" questions.
+ */
+function applyCommandKey(
+  e: globalThis.KeyboardEvent,
+  { undo, redo, onDuplicate }: Pick<EditorKeyboardArgs, 'undo' | 'redo' | 'onDuplicate'>,
+): boolean {
+  const key = e.key.toLowerCase();
+  if (key === 'z') {
+    e.preventDefault();
+    (e.shiftKey ? redo : undo)();
+    return true;
+  }
+  if (key === 'd') {
+    // Browsers bookmark on ⌘D, so this must be prevented whether or not the
+    // selection has anything duplicable in it.
+    e.preventDefault();
+    onDuplicate();
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Delete. Items are local edits, so any number of them goes at once; a table is a
+ * /api/tables lifecycle op and always has to be confirmed — so a mixed selection
+ * loses its items and keeps its table, rather than one Delete meaning two
+ * different things.
+ */
+function applyDeleteKey(
+  doc: FloorPlanDocument,
+  selectedIds: readonly string[],
+  { onDeleteSelected, onDeleteItems }: Pick<EditorKeyboardArgs, 'onDeleteSelected' | 'onDeleteItems'>,
+): void {
+  const picked = selectedMovables(doc, selectedIds);
+  if (picked.some((m) => m.target === 'item')) {
+    onDeleteItems();
+  } else if (picked.length === 1) {
+    onDeleteSelected();
+  }
+}
+
 /** Apply a rotation key to the one selected object: ∓15° / ∓90° / reset. */
 function applyRotationKey(
   e: globalThis.KeyboardEvent,
@@ -106,17 +149,7 @@ export function useEditorKeyboard({
       if (isFormField(e.target)) {
         return;
       }
-      const command = e.metaKey || e.ctrlKey;
-      if (command && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        (e.shiftKey ? redo : undo)();
-        return;
-      }
-      if (command && e.key.toLowerCase() === 'd') {
-        // Browsers bookmark on ⌘D, so this must be prevented whether or not the
-        // selection has anything duplicable in it.
-        e.preventDefault();
-        onDuplicate();
+      if ((e.metaKey || e.ctrlKey) && applyCommandKey(e, { undo, redo, onDuplicate })) {
         return;
       }
       if (e.key === 'Escape') {
@@ -131,16 +164,7 @@ export function useEditorKeyboard({
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        // Items are local edits, so any number of them goes at once. A table is a
-        // /api/tables lifecycle op and always has to be confirmed — so a mixed
-        // selection loses its items and keeps its table, rather than one Delete
-        // meaning two different things.
-        const picked = selectedMovables(doc, selectedIds);
-        if (picked.some((m) => m.target === 'item')) {
-          onDeleteItems();
-        } else if (picked.length === 1) {
-          onDeleteSelected();
-        }
+        applyDeleteKey(doc, selectedIds, { onDeleteSelected, onDeleteItems });
         return;
       }
       if (only) {

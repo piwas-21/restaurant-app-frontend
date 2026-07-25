@@ -53,9 +53,12 @@ jobs:
           command_timeout: 18m
           # Shares /tmp/rumi-deploy.lock with the RUMI staging roll so the two never
           # hit the Docker daemon at once (GitHub concurrency groups don't span
-          # workflows). Scoped to the tenant-demo project dir; auto-loads its .env
+          # workflows). `-w 300` WAITS for the lock rather than bailing: one push to
+          # develop starts both builds within a second of each other, so with `-n`
+          # whichever deploy lost the coin flip exited 1 and the box silently kept
+          # the old image (2026-07-25: RUMI staging missed the #299 roll that way). Scoped to the tenant-demo project dir; auto-loads its .env
           # (FRONTEND_TAG=tenant-demo, BACKEND_TAG=staging). Static service names +
           # paths only — no untrusted workflow input in the script.
           script: |
-            flock -n /tmp/rumi-deploy.lock -c "cd /opt/rumi/tenants/demo && docker compose pull frontend-demo backend-demo && docker compose up -d frontend-demo backend-demo && docker image prune -f" \
-              || { echo "::error::another RUMI deploy holds the lock; skipping this run"; exit 1; }
+            flock -w 300 /tmp/rumi-deploy.lock -c "cd /opt/rumi/tenants/demo && docker compose pull frontend-demo backend-demo && docker compose up -d frontend-demo backend-demo && docker image prune -f" \
+              || { echo "::error::timed out after 5m waiting for the RUMI deploy lock — this deploy did NOT run; re-run the job"; exit 1; }

@@ -2,7 +2,6 @@
 
 import { useTranslation } from 'react-i18next';
 import { CartItem } from '@/components/cart/cartTypes';
-import styles from '@/app/styles/CartPage.module.css';
 
 interface CartItemInstructionsEditorProps {
   item: CartItem;
@@ -13,6 +12,8 @@ interface CartItemInstructionsEditorProps {
   instructionsValue: string;
   setInstructionsValue: (value: string) => void;
   onSaveInstructions: (basketItemId: string | undefined, quantity: number, instructions: string) => void;
+  /** Host template's CSS module (the auth "cart pattern"). */
+  styles: Readonly<Record<string, string>>;
 }
 
 /**
@@ -32,7 +33,8 @@ export default function CartItemInstructionsEditor({
   instructionsValue,
   setInstructionsValue,
   onSaveInstructions,
-}: CartItemInstructionsEditorProps) {
+  styles,
+}: Readonly<CartItemInstructionsEditorProps>) {
   const { t } = useTranslation();
 
   return (

@@ -2,10 +2,11 @@ import type { TFunction } from 'i18next';
 import type { TableDto, TimeSlotDto } from '@/types/reservation';
 import {
   getCapacityWarningMessage,
+  partyExceedsEveryTable,
   computeTableAvailability,
-  getBookedTableToast,
-  getFilteredTimeSlots,
+  getTimeSlotOptions,
   validateReservation,
+  areRequiredReservationDetailsFilled,
   buildSpecialRequests,
   buildReservationPayload,
   extractReservationErrorMessage,
@@ -21,8 +22,6 @@ const makeTable = (partial: Partial<TableDto> & Pick<TableDto, 'id' | 'tableNumb
   isOutdoor: false,
   positionX: 0,
   positionY: 0,
-  width: 1,
-  height: 1,
   ...partial,
 });
 
@@ -81,39 +80,30 @@ describe('computeTableAvailability', () => {
   });
 });
 
-describe('getBookedTableToast', () => {
-  const slots = [slot('12:00:00', [t1]), slot('13:00:00', [t2])];
-
-  it('lists the HH:mm times a booked table is actually free (info)', () => {
-    const toast = getBookedTableToast(t1, '2026-08-15', slots, 2, t);
-    expect(toast.variant).toBe('info');
-    expect(toast.autoHideDuration).toBe(5000);
-    expect(toast.message).toContain('12:00');
-  });
-
-  it('says not-available-today (warning) when the table is free in no slot', () => {
-    const toast = getBookedTableToast(t3, '2026-08-15', slots, 2, t);
-    expect(toast.variant).toBe('warning');
-    expect(toast.message).toContain('not available today');
-  });
-
-  it('falls back to currently-booked (warning) with no date or slots', () => {
-    const toast = getBookedTableToast(t1, '', [], 2, t);
-    expect(toast.variant).toBe('warning');
-    expect(toast.message).toContain('currently booked');
-  });
-});
-
-describe('getFilteredTimeSlots', () => {
+describe('getTimeSlotOptions', () => {
   const slots = [slot('12:00:00', [t1, t2]), slot('13:00:00', [t2])];
 
-  it('returns every slot as HH:mm when no tables are selected', () => {
-    expect(getFilteredTimeSlots([], slots)).toEqual(['12:00', '13:00']);
+  it('returns every slot as available HH:mm when no tables are selected', () => {
+    expect(getTimeSlotOptions([], slots)).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: true },
+    ]);
   });
 
-  it('keeps only slots where ALL selected tables are free', () => {
-    expect(getFilteredTimeSlots(['a', 'b'], slots)).toEqual(['12:00']); // t1 only free at 12:00
-    expect(getFilteredTimeSlots(['b'], slots)).toEqual(['12:00', '13:00']);
+  it('keeps every slot but marks those where ANY selected table is busy as unavailable', () => {
+    // t1 is only free at 12:00 → 13:00 stays in the list, struck as unavailable.
+    expect(getTimeSlotOptions(['a', 'b'], slots)).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: false },
+    ]);
+    expect(getTimeSlotOptions(['b'], slots)).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: true },
+    ]);
+  });
+
+  it('returns an empty list when the day has no slots', () => {
+    expect(getTimeSlotOptions(['a'], [])).toEqual([]);
   });
 });
 
@@ -124,6 +114,8 @@ describe('validateReservation', () => {
     selectedTime: '12:00',
     customerName: 'Ada',
     customerEmail: 'ada@example.com',
+    customerPhone: '',
+    specialRequests: '',
     bookedTableIds: [] as string[],
     allTables: [t1, t2],
   };
@@ -147,6 +139,42 @@ describe('validateReservation', () => {
 
   it('returns null for a fully valid reservation', () => {
     expect(validateReservation(base, t)).toBeNull();
+  });
+
+  it('leaves phone/special requests optional under the default rules (empty is fine)', () => {
+    expect(validateReservation({ ...base, customerPhone: '', specialRequests: '' }, t)).toBeNull();
+  });
+
+  it('warns when a config-required phone is empty (mirrors the backend enforcement)', () => {
+    const rules = { customerPhone: { isVisible: true, isRequired: true } };
+    const toast = validateReservation(base, t, rules);
+    expect(toast?.variant).toBe('warning');
+    expect(toast?.message).toContain('fill in your details');
+    expect(validateReservation({ ...base, customerPhone: '+41 22 000 00 00' }, t, rules)).toBeNull();
+  });
+});
+
+describe('areRequiredReservationDetailsFilled', () => {
+  const values = { customerName: 'Ada', customerEmail: 'ada@example.com', customerPhone: '', specialRequests: '' };
+
+  it('passes under the default rules (locked name/email filled, the rest optional)', () => {
+    expect(areRequiredReservationDetailsFilled(values)).toBe(true);
+  });
+
+  it('always requires the locked name/email — whitespace does not count', () => {
+    expect(areRequiredReservationDetailsFilled({ ...values, customerName: '  ' })).toBe(false);
+    expect(areRequiredReservationDetailsFilled({ ...values, customerEmail: '' })).toBe(false);
+  });
+
+  it('enforces config-required fields, falling back to defaults for missing rules', () => {
+    const rules = { specialRequests: { isVisible: true, isRequired: true } };
+    expect(areRequiredReservationDetailsFilled(values, rules)).toBe(false);
+    expect(areRequiredReservationDetailsFilled({ ...values, specialRequests: 'window seat' }, rules)).toBe(true);
+  });
+
+  it('never enforces a hidden field, even if a corrupt config marks it required', () => {
+    const rules = { customerPhone: { isVisible: false, isRequired: true } };
+    expect(areRequiredReservationDetailsFilled(values, rules)).toBe(true);
   });
 });
 
@@ -273,5 +301,35 @@ describe('extractReservationErrorMessage', () => {
 
   it('falls back to the default when nothing usable is present', () => {
     expect(extractReservationErrorMessage({}, t)).toBe('Failed to create reservation');
+  });
+});
+
+/**
+ * The party-size check that the Capacity Notice hangs off. Its whole point is that it
+ * takes nothing but the table list and the guest count — the old path reached the same
+ * conclusion only through `computeTableAvailability`, which needs a chosen slot, so a
+ * guest booking for 12 learned nothing until they had also picked a date and a time.
+ * `useReservationAvailability.test.ts` pins that end of it; these are the boundaries.
+ */
+describe('partyExceedsEveryTable', () => {
+  const tbl = (id: string, maxGuests: number) => ({ id, maxGuests }) as never;
+
+  it('is true when no single table can seat the party', () => {
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 6)], 8)).toBe(true);
+  });
+
+  it('is false when one table is exactly big enough', () => {
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 8)], 8)).toBe(false);
+  });
+
+  it('is false before the table list has loaded, so no notice flashes on mount', () => {
+    expect(partyExceedsEveryTable([], 8)).toBe(false);
+  });
+
+  it('reads the largest table, not the first or the last', () => {
+    // A `>` against the wrong element still passes the two cases above, where the
+    // biggest table happens to be last.
+    expect(partyExceedsEveryTable([tbl('a', 10), tbl('b', 4)], 8)).toBe(false);
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 10), tbl('c', 4)], 8)).toBe(false);
   });
 });

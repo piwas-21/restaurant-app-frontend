@@ -1,11 +1,5 @@
 'use client';
 
-// TODO(C1.5.b): the legacy /checkout/order-type page that consumed this
-// component has been redirected to /menu. This file is currently unused
-// but BUGS-IMPROVEMENTS-PLAN §C1.5.b explicitly slates it for reuse:
-// `DeliveryAddressModal` "extracts existing address form from current
-// /checkout/order-type". Don't dead-code-prune until C1.5.b lands.
-
 import { useTranslation } from 'react-i18next';
 import { MapPin } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
@@ -14,23 +8,43 @@ import styles from '@/app/styles/OrderTypePage.module.css';
 
 const POSTAL_CODE_MAX_LENGTH = 4;
 
+/** The two admin-configurable fields; street/postalCode/city are locked-required. */
+type ConfigurableField = 'country' | 'additionalInfo';
+
 interface DeliveryAddressSectionProps {
   address: ReturnType<typeof useDeliveryAddress>;
 }
 
 /**
- * Saved-addresses list (logged-in only) + the new-address form. All
+ * Saved-addresses list (logged-in only) + the new-address form, rendered
+ * inside `DeliveryAddressModal` (BUGS-IMPROVEMENTS-PLAN §C1.5.b). All
  * state lives in `useDeliveryAddress`; this component is pure JSX +
  * onChange wiring. Inputs are wrapped in `FormField` (CLAUDE.md §5.3).
+ * `country`/`additionalInfo` visibility + required markers follow the
+ * admin `delivery_address` config (D3); a config-required field can
+ * never be hidden.
  */
 export default function DeliveryAddressSection({ address }: DeliveryAddressSectionProps) {
   const { t } = useTranslation();
   const a = address;
 
+  const isRequired = (field: ConfigurableField) => a.fieldRules[field]?.isRequired === true;
+  const isVisible = (field: ConfigurableField) => a.fieldRules[field]?.isVisible !== false || isRequired(field);
+
   // The form has a single shared error slot; surface it on whichever
   // required field is currently empty so the highlight aligns.
-  const errorOn = (field: 'street' | 'city' | 'postalCode'): string | undefined =>
+  const errorOn = (field: 'street' | 'city' | 'postalCode' | ConfigurableField): string | undefined =>
     a.addressError && !a[field].trim() ? a.addressError : undefined;
+
+  // Fields whose FormField renders the shared error inline (locked-required
+  // ones always; configurable ones only when config-required).
+  const inlineErrorFields: ReadonlyArray<'street' | 'city' | 'postalCode' | ConfigurableField> = [
+    'street',
+    'postalCode',
+    'city',
+    ...(['country', 'additionalInfo'] as const).filter(isRequired),
+  ];
+  const errorShownInline = inlineErrorFields.some((field) => !!errorOn(field));
 
   return (
     <div className={styles.detailsSection}>
@@ -118,34 +132,53 @@ export default function DeliveryAddressSection({ address }: DeliveryAddressSecti
             </FormField>
           </div>
 
-          <FormField label={t('country', 'Country')} htmlFor="country">
-            <input
-              type="text"
-              id="country"
-              value={a.country}
-              onChange={(e) => a.setCountry(e.target.value)}
-              placeholder={t('enter_country', 'Switzerland')}
-              className={styles.input}
-            />
-          </FormField>
-
-          <FormField
-            label={`${t('additional_info', 'Additional Information')} (${t('optional', 'optional')})`}
-            htmlFor="additionalInfo"
-          >
-            <textarea
-              id="additionalInfo"
-              value={a.additionalInfo}
-              onChange={(e) => a.setAdditionalInfo(e.target.value)}
-              placeholder={t('additional_info_placeholder', 'Floor, apartment number, building, etc.')}
-              className={styles.textarea}
-              rows={3}
-            />
-          </FormField>
-
-          {a.addressError && !errorOn('street') && !errorOn('city') && !errorOn('postalCode') && (
-            <p className={styles.error}>{a.addressError}</p>
+          {isVisible('country') && (
+            <FormField
+              label={`${t('country', 'Country')}${isRequired('country') ? ' *' : ''}`}
+              error={isRequired('country') ? errorOn('country') : undefined}
+              htmlFor="country"
+            >
+              <input
+                type="text"
+                id="country"
+                value={a.country}
+                onChange={(e) => {
+                  a.setCountry(e.target.value);
+                  a.setAddressError('');
+                }}
+                placeholder={t('enter_country', 'Switzerland')}
+                className={`${styles.input} ${isRequired('country') && errorOn('country') ? styles.inputError : ''}`}
+                required={isRequired('country')}
+              />
+            </FormField>
           )}
+
+          {isVisible('additionalInfo') && (
+            <FormField
+              label={
+                isRequired('additionalInfo')
+                  ? `${t('additional_info', 'Additional Information')} *`
+                  : `${t('additional_info', 'Additional Information')} (${t('optional', 'optional')})`
+              }
+              error={isRequired('additionalInfo') ? errorOn('additionalInfo') : undefined}
+              htmlFor="additionalInfo"
+            >
+              <textarea
+                id="additionalInfo"
+                value={a.additionalInfo}
+                onChange={(e) => {
+                  a.setAdditionalInfo(e.target.value);
+                  a.setAddressError('');
+                }}
+                placeholder={t('additional_info_placeholder', 'Floor, apartment number, building, etc.')}
+                className={styles.textarea}
+                rows={3}
+                required={isRequired('additionalInfo')}
+              />
+            </FormField>
+          )}
+
+          {a.addressError && !errorShownInline && <p className={styles.error}>{a.addressError}</p>}
 
           {a.isLoggedIn && (
             <div className={styles.checkboxGroup}>

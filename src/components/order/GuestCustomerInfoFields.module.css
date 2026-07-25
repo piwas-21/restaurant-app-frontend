@@ -1,15 +1,17 @@
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 1.25rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: var(--modal-body-rule, 1px solid var(--border-color));
 }
 
 .heading {
   margin: 0;
-  font-size: 1rem;
+  font-family: var(--modal-body-title-font, inherit);
+  font-size: var(--modal-body-title-size, 1rem);
   font-weight: 600;
   color: var(--text-color);
 }
@@ -20,8 +22,8 @@
   font-size: 0.95rem;
   background-color: var(--background-color);
   color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border: var(--modal-body-option-border, 1px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 8px);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -42,8 +44,8 @@
   margin-top: 0.5rem;
   padding: 1rem;
   background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: var(--modal-body-option-border, 1px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 12px);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;

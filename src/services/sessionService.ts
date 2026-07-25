@@ -10,15 +10,30 @@ const SESSION_EXPIRY_KEY = 'rumi_session_expiry';
 const SESSION_DURATION_DAYS = 7; // Session expires after 7 days
 
 /**
- * Generate a new UUID v4
- * Simple implementation without external dependencies
+ * Generate a new session id.
+ *
+ * **This has to be unguessable.** The id is the only thing identifying an anonymous
+ * guest's basket to the backend (`X-Session-Id`), so anyone who can predict one can
+ * read and modify that basket. The previous implementation built the UUID from
+ * `Math.random()`, which is a seeded PRNG (xorshift128+ in V8) whose internal state
+ * is recoverable from a handful of outputs — unguessable to a person, not to an
+ * attacker. `crypto.getRandomValues` is the CSPRNG, and `crypto.randomUUID` is a
+ * one-call v4 on top of it (Chrome 92+ / Firefox 95+ / Safari 15.4+, secure contexts).
+ *
+ * There is deliberately no `Math.random` fallback: silently degrading to a guessable
+ * id is the bug being fixed. Web Crypto is available in every browser this app
+ * supports, and `getSessionId`'s callers already handle a null session.
  */
 function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  if (typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Non-secure context (plain http): randomUUID is absent but getRandomValues is not.
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 /**

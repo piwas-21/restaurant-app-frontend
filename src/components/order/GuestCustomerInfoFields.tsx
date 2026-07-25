@@ -40,8 +40,14 @@ interface GuestCustomerInfoFieldsProps {
   onChange: (field: CustomerInfoField, next: string) => void;
   onBlur: (field: CustomerInfoField) => void;
   errors: GuestCustomerInfoErrors;
-  /** Visible contact fields — every one in this list is treated as required. */
+  /** Contact fields to render (merged shown set minus profile-prefilled). */
   visibleFields: ReadonlyArray<CustomerInfoField>;
+  /**
+   * Effective-required fields (config-required OR order-type floor —
+   * see `mergeContactFieldRules`). Drives the `*` marker + HTML
+   * `required`; a visible field absent here renders as optional.
+   */
+  requiredFields: ReadonlyArray<CustomerInfoField>;
   /**
    * If true, the benefits block + opt-in registration checkbox render
    * below the contact fields. Hidden for logged-in users (they already
@@ -66,9 +72,9 @@ interface GuestCustomerInfoFieldsProps {
  *
  * Validation is owned by the parent (`useGuestCustomerInfo`); this
  * component only emits change/blur events. Required indicators (*)
- * render after every visible label — every visible field is required
- * for the active flow by construction (the hook narrows
- * `requiredFields` to whatever isn't pre-filled from the user's profile).
+ * follow the effective-required set (admin config merged with the
+ * order-type floor) — a config-visible optional field (e.g. phone on
+ * Dine-In) renders without the marker and without HTML `required`.
  */
 export default function GuestCustomerInfoFields({
   value,
@@ -76,6 +82,7 @@ export default function GuestCustomerInfoFields({
   onBlur,
   errors,
   visibleFields,
+  requiredFields,
   showRegisterCta,
   disabled,
   wantsRegister,
@@ -90,7 +97,8 @@ export default function GuestCustomerInfoFields({
   const nameId = `${reactId}-name`;
   const emailId = `${reactId}-email`;
   const phoneId = `${reactId}-phone`;
-  const requiredMark = ' *';
+  const isRequired = (field: CustomerInfoField) => requiredFields.includes(field);
+  const mark = (field: CustomerInfoField) => (isRequired(field) ? ' *' : '');
 
   if (visibleFields.length === 0 && !showRegisterCta) return null;
 
@@ -103,7 +111,7 @@ export default function GuestCustomerInfoFields({
           </h3>
 
           {visibleFields.includes('name') && (
-            <FormField label={`${t('full_name', 'Full Name')}${requiredMark}`} error={errors.name} htmlFor={nameId}>
+            <FormField label={`${t('full_name', 'Full Name')}${mark('name')}`} error={errors.name} htmlFor={nameId}>
               <input
                 id={nameId}
                 type="text"
@@ -113,13 +121,13 @@ export default function GuestCustomerInfoFields({
                 disabled={disabled}
                 autoComplete="name"
                 className={styles.input}
-                required
+                required={isRequired('name')}
               />
             </FormField>
           )}
 
           {visibleFields.includes('email') && (
-            <FormField label={`${t('email', 'Email')}${requiredMark}`} error={errors.email} htmlFor={emailId}>
+            <FormField label={`${t('email', 'Email')}${mark('email')}`} error={errors.email} htmlFor={emailId}>
               <input
                 id={emailId}
                 type="email"
@@ -129,13 +137,13 @@ export default function GuestCustomerInfoFields({
                 disabled={disabled}
                 autoComplete="email"
                 className={styles.input}
-                required
+                required={isRequired('email')}
               />
             </FormField>
           )}
 
           {visibleFields.includes('phone') && (
-            <FormField label={`${t('phone', 'Phone')}${requiredMark}`} error={errors.phone} htmlFor={phoneId}>
+            <FormField label={`${t('phone', 'Phone')}${mark('phone')}`} error={errors.phone} htmlFor={phoneId}>
               <input
                 id={phoneId}
                 type="tel"
@@ -145,7 +153,7 @@ export default function GuestCustomerInfoFields({
                 disabled={disabled}
                 autoComplete="tel"
                 className={styles.input}
-                required
+                required={isRequired('phone')}
               />
             </FormField>
           )}
@@ -173,8 +181,9 @@ export default function GuestCustomerInfoFields({
  * and return a translated error string ('' == valid). Exported so the
  * shared hook can blur-validate without duplicating the resolver.
  *
- * `phoneRequired` rejects empty phone for Takeaway/Delivery callers
- * even though the underlying schema treats phone as optional (DineIn).
+ * `phoneRequired` rejects empty phone when phone is effectively
+ * required (order-type floor — Takeaway/Delivery — OR config-required)
+ * even though the underlying schema treats phone as optional.
  */
 export function validateGuestCustomerInfoField(
   field: CustomerInfoField,

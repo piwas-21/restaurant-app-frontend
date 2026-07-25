@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import { compressImageForUpload, compressImagesForUpload } from '@/utils/imageCompression';
 
 const PRODUCTS_API_URL = '/api/Products';
 
@@ -10,7 +11,7 @@ export const uploadProductImage = async (
   sortOrder: number,
 ) => {
   const formData = new FormData();
-  formData.append('Image', imageFile);
+  formData.append('Image', await compressImageForUpload(imageFile));
   formData.append('AltText', altText);
   formData.append('IsPrimary', String(isPrimary));
   formData.append('SortOrder', String(sortOrder));
@@ -22,9 +23,18 @@ export const getProductImages = async (productId: string) => {
   return await apiClient.get(`${PRODUCTS_API_URL}/${productId}/images`);
 };
 
+/** Admin quick-edit: update only a product's base price (PATCH /api/Products/{id}/price). */
+export const updateProductPrice = async (productId: string, price: number) => {
+  return await apiClient.patch<{ success: boolean; data: number; message?: string }>(
+    `${PRODUCTS_API_URL}/${productId}/price`,
+    { price },
+  );
+};
+
 export const uploadBulkProductImages = async (productId: string, imageFiles: File[]) => {
   const formData = new FormData();
-  imageFiles.forEach((file) => {
+  const compressed = await compressImagesForUpload(imageFiles);
+  compressed.forEach((file) => {
     formData.append('Images', file);
   });
 

@@ -8,10 +8,12 @@ import { useGuestCustomerInfo } from '@/hooks/order/useGuestCustomerInfo';
 import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import styles from './TableSelectionModal.module.css';
 
-// Module-level constant — frozen at load, so the reference is stable across
-// renders. Inlining `['name', 'email']` at the call site would allocate a
-// new array per render and defeat `useGuestCustomerInfo`'s
-// `useCallback(commit, [..., requiredFields])` memoisation.
+// Order-type floor for Dine-In: only name+email are operationally required
+// (the customer is at the restaurant). The admin `checkout_contact` config
+// merges on top (`mergeContactFieldRules`) — it can surface phone as optional
+// or required here, but never remove name/email. Module-level constant —
+// frozen at load, so the reference is stable across renders (inlining the
+// array would allocate per render and defeat the hook's memoised commit).
 const DINEIN_REQUIRED_FIELDS = ['name', 'email'] as const;
 
 interface TableSelectionModalProps {
@@ -93,6 +95,7 @@ export default function TableSelectionModal({
         value={guest.value}
         errors={guest.errors}
         visibleFields={guest.visibleFields}
+        requiredFields={guest.requiredFields}
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ProductDetailsProps, productTypes } from './types';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
-import { AVAILABLE_ALLERGENS } from '@/components/common/AllergenDisplay';
+import { AVAILABLE_ALLERGENS } from '@/lib/allergens';
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({
   register,

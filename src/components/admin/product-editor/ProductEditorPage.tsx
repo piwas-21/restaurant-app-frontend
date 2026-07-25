@@ -19,6 +19,10 @@ import styles from './ProductEditorPage.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
+// Shared by the sticky bottom Save bar and the header Save button so the latter,
+// which lives outside the <form>, still submits it (HTML form-attribute association).
+const FORM_ID = 'product-editor-form';
+
 interface ProductEditorPageProps {
   // readonly: S6759 — component props are never mutated.
   readonly product: ProductDetails;
@@ -87,10 +91,21 @@ export default function ProductEditorPage({
               {isBundle ? t('delete_menu_bundle') : t('delete_product')}
             </button>
           )}
+          {/* A second Save at the top so it is reachable without scrolling the long editor.
+              Submits the same form via the form attribute; gated identically to the bottom Save. */}
+          <button
+            type="submit"
+            form={FORM_ID}
+            data-testid="editor-save-top"
+            className={modalStyles.submitButton}
+            disabled={saveDisabled}
+          >
+            {editor.isSubmitting ? t('saving') : saveLabel}
+          </button>
         </div>
       </PageHeader>
 
-      <form onSubmit={editor.onSubmit} className={adminStyles.adminContent}>
+      <form id={FORM_ID} onSubmit={editor.onSubmit} className={adminStyles.adminContent}>
         {errors.root && <p className={modalStyles.errorMessage}>{errors.root.message}</p>}
 
         {isBundle ? (
@@ -158,9 +173,9 @@ export default function ProductEditorPage({
           />
         </section>
 
-        {/* The ONLY commit point for the product's own fields. */}
-        <div className={styles.saveBar}>
-          <span className={styles.saveHint} aria-live="polite">
+        {/* The primary commit point for the product's own fields. Accented when dirty. */}
+        <div className={`${styles.saveBar} ${editor.isDirty ? styles.saveBarDirty : ''}`}>
+          <span className={`${styles.saveHint} ${editor.isDirty ? styles.saveHintDirty : ''}`} aria-live="polite">
             {editor.isDirty ? t('unsaved_changes') : ''}
           </span>
           <button
@@ -171,7 +186,7 @@ export default function ProductEditorPage({
           >
             {t('back')}
           </button>
-          <button type="submit" className={modalStyles.submitButton} disabled={saveDisabled}>
+          <button type="submit" data-testid="editor-save" className={modalStyles.submitButton} disabled={saveDisabled}>
             {editor.isSubmitting ? t('saving') : saveLabel}
           </button>
         </div>

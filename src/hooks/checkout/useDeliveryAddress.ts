@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses, createAddress, AddressDto } from '@/services/addressService';
-import { deliveryAddressSchema } from '@/schemas/deliveryAddress.schema';
+import { buildDeliveryAddressSchema } from '@/schemas/deliveryAddress.schema';
+import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
+import { FORM_KEYS } from '@/types/formFieldConfig';
 
 const DEFAULT_COUNTRY = 'Switzerland';
 
@@ -20,10 +22,16 @@ export interface DeliveryAddressInitial {
  * Owns the delivery address form state, the saved-addresses list (only
  * fetched when the caller signals delivery is selected), and the
  * "save-this-address" persistence call. Returns a single object so the
- * page can spread props into the form component.
+ * page can spread props into the form component. The admin-configured
+ * `delivery_address` rules (D3) drive `country`/`additionalInfo`
+ * visibility (via `fieldRules`) and requiredness (via the Zod schema);
+ * a hidden country keeps its 'Switzerland' default so the payload
+ * stays valid. Safe fallback = today's rules.
  */
 export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySelected = false) {
   const { t } = useTranslation();
+  const { rules: fieldRules } = useCustomerFormFields(FORM_KEYS.deliveryAddress);
+  const schema = useMemo(() => buildDeliveryAddressSchema(fieldRules), [fieldRules]);
 
   const [street, setStreet] = useState(initial?.street || '');
   const [city, setCity] = useState(initial?.city || '');
@@ -95,7 +103,7 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
   };
 
   const validate = (): boolean => {
-    const result = deliveryAddressSchema.safeParse({ street, city, postalCode, country, additionalInfo });
+    const result = schema.safeParse({ street, city, postalCode, country, additionalInfo });
     if (!result.success) {
       // Surface the first issue's i18n key, matching pre-extraction UX
       // (the form shows one error at a time below the fields).
@@ -142,6 +150,8 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
     postalCode,
     country,
     additionalInfo,
+    /** Admin-configured `delivery_address` rules — the section derives field visibility/markers. */
+    fieldRules,
     addressError,
     isLoggedIn,
     savedAddresses,

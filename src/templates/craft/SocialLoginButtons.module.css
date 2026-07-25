@@ -1,0 +1,40 @@
+/* craft social-login chrome (ADR-006 — Prompt 8): a dotted "or" divider (the
+   menu-leader motif) + the Google button centred on the warm plate. Passed to
+   the shared SocialLoginButtons via its `styles` prop; classic is untouched. */
+
+.container {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 2px dotted var(--border-default);
+}
+
+.divider span {
+  padding: 0 0.75rem;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.googleWrapper {
+  display: flex;
+  justify-content: center;
+}

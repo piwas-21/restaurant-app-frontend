@@ -2,7 +2,6 @@
 
 import { useTranslation } from 'react-i18next';
 import type { TableDto } from '@/types/reservation';
-import { useTableHelpers } from '@/hooks/useTableHelpers';
 import type { TableReservationStats } from '@/hooks/admin/useTableStatistics';
 import styles from '@/app/admin/table-statistics/styles.module.css';
 
@@ -22,7 +21,6 @@ export default function TablesGridSection({
   mostPopularTables,
 }: TablesGridSectionProps) {
   const { t } = useTranslation();
-  const { getShapeLabel } = useTableHelpers();
 
   return (
     <>
@@ -72,7 +70,6 @@ export default function TablesGridSection({
                     label={t('capacity', 'Capacity')}
                     value={t('seats_count', '{{count}} seats', { count: table.maxGuests })}
                   />
-                  <Detail label={t('shape', 'Shape')} value={getShapeLabel(table.shape)} />
                   <Detail
                     label={t('location', 'Location')}
                     value={table.isOutdoor ? t('outdoor', 'Outdoor') : t('indoor', 'Indoor')}

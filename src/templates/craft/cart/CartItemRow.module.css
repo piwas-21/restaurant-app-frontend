@@ -1,0 +1,161 @@
+/* craft cart item row (Prompt 5 order-pad) — a hand-written pad entry: Amatic
+   dish name, organic-corner thumb, kraft tape stepper, Amatic terracotta
+   subtotal. CartItemCard's own keys live here; the customizations/instructions
+   keys live in CartItemNotes.module.css (200-LOC split — the craft CartPage
+   merges both into the one `item` module the shared bodies expect). Tokens
+   only. */
+
+.cartItem {
+  display: flex;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 2px dashed var(--border-default);
+}
+
+.cartItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemImageContainer {
+  flex-shrink: 0;
+}
+
+.itemImage {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 2px solid var(--border-default);
+  border-radius: var(--craft-radius);
+}
+
+.itemDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  margin: 0;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 1.9rem;
+  line-height: 1.05;
+  color: var(--text-primary);
+}
+
+.itemVariation {
+  margin: 0.15rem 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+}
+
+.priceBreakdownItem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+}
+
+.itemPrice,
+.customizationPrice {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Controls column — stepper, subtotal, remove. */
+.itemControls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* Kraft stepper pill (torn-strip clip, matching CraftCartContents). */
+.quantityControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--surface-secondary);
+  clip-path: polygon(3% 10%, 97% 0%, 100% 90%, 1% 100%);
+}
+
+.quantityButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--brand-primary);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background-color: var(--surface-card);
+}
+
+.quantityButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.itemQuantity {
+  min-width: 1.6rem;
+  text-align: center;
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.itemSubtotal {
+  margin: 0;
+  font-family: 'Amatic SC', cursive;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+  white-space: nowrap;
+}
+
+.removeItemButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.4rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.removeItemButton:hover:not(:disabled) {
+  color: var(--feedback-danger);
+}
+
+.removeItemButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .cartItem {
+    flex-wrap: wrap;
+  }
+
+  .itemControls {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+}

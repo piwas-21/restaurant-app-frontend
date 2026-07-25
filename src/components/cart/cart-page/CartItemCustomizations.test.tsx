@@ -10,7 +10,7 @@ jest.mock('react-i18next', () => ({
 describe('CartItemCustomizations', () => {
   it('renders nothing when the item has only special instructions (owned by the editor now)', () => {
     const { container } = render(
-      <CartItemCustomizations item={{ specialInstructions: 'No onions' } as unknown as CartItem} />,
+      <CartItemCustomizations item={{ specialInstructions: 'No onions' } as unknown as CartItem} styles={{}} />,
     );
     // No duplicate "special requests" line here — the instructions editor owns display + edit.
     expect(container).toBeEmptyDOMElement();
@@ -20,6 +20,7 @@ describe('CartItemCustomizations', () => {
     render(
       <CartItemCustomizations
         item={{ selectedIngredientNames: ['Cheese'], specialInstructions: 'No onions' } as unknown as CartItem}
+        styles={{}}
       />,
     );
     expect(screen.getByText('Cheese')).toBeInTheDocument();

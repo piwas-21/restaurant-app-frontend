@@ -57,7 +57,7 @@
 
 /* Organic hover/active pill on the shared nav links. */
 .nav :global(.nav-link) {
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border-radius: var(--craft-radius);
 }
 
 .switchers {

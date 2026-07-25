@@ -1,0 +1,83 @@
+/* craft checkout read-only sections (ADR-006 — Prompt 6). Shared by
+   OrderTypeSection + CustomerInfoSection; OrderItemsList + the page's
+   special-instructions card compose the section shell from here. Craft-paper
+   cards with masking-tape (Caveat) labels. Craft tokens only. */
+.section {
+  composes: cardLift from '../primitives.module.css';
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+/* Masking-tape label — the shared .tapeLabel strip in saffron, inline-flex so
+   the icon can sit in line (site overrides of a composed dependency are
+   deterministic — see primitives.module.css header). */
+.sectionTitle {
+  composes: tapeLabel from '../craft.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  background: var(--brand-accent);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.editButton {
+  composes: btnOutlineSm from '../primitives.module.css';
+}
+
+.infoCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.infoRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.infoLabel {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.infoValue {
+  font-family: 'Quicksand', var(--font-family-sans);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.deliveryAddress {
+  display: flex;
+  gap: 0.6rem;
+  color: var(--text-primary);
+}
+
+.deliveryAddress p {
+  margin: 0.1rem 0;
+  font-family: 'Quicksand', var(--font-family-sans);
+}
+
+.addressIcon {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  color: var(--brand-primary);
+}
+
+.additionalInfo {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}

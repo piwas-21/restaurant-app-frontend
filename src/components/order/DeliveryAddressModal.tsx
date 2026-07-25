@@ -10,10 +10,11 @@ import GuestCustomerInfoFields from './GuestCustomerInfoFields';
 import type { DeliveryAddress } from '@/contexts/CheckoutContext';
 import tableModalStyles from './TableSelectionModal.module.css';
 
-// Module-level constant — frozen at load, so the reference is stable across
-// renders. Inlining `['name', 'email', 'phone']` at the call site would
-// allocate a new array per render and defeat `useGuestCustomerInfo`'s
-// `useCallback(commit, [..., requiredFields])` memoisation.
+// Order-type floor for Delivery: phone is the driver contact, so the admin
+// `checkout_contact` config can add requiredness/visibility on top but never
+// remove these (merge in `mergeContactFieldRules`). Module-level constant —
+// frozen at load, so the reference is stable across renders (inlining the
+// array would allocate per render and defeat the hook's memoised commit).
 const DELIVERY_REQUIRED_FIELDS = ['name', 'email', 'phone'] as const;
 
 interface DeliveryAddressModalProps {
@@ -125,6 +126,7 @@ export default function DeliveryAddressModal({ isOpen, onClose, onConfirm, initi
         value={guest.value}
         errors={guest.errors}
         visibleFields={guest.visibleFields}
+        requiredFields={guest.requiredFields}
         showRegisterCta={guest.showRegisterCta}
         onChange={guest.setField}
         onBlur={guest.blurField}

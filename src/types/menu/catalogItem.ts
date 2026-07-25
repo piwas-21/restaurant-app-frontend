@@ -24,6 +24,8 @@ export interface CatalogItem {
   /** Starting price — a bundle displays this as a "from" price. */
   price: number;
   isBundle: boolean;
+  /** Products with no variations only: the base price is safe to quick-edit inline on the card. */
+  priceEditable?: boolean;
   allergens?: string[];
   isSpecial?: boolean;
   isAvailable?: boolean;

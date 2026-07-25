@@ -1,0 +1,11 @@
+/* Craft skin for the floor-plan scene (FLOOR-PLAN-REVAMP §5.3). The colours come
+   from the craft template's semantic tokens (tokens.css) via the shared scene
+   module; this file only sets the NON-colour skin scalars — heavier hand-drawn
+   ink, the Amatic number hand, and the "rough" ink-wobble filter. Passed to
+   FloorPlanScene as `skinClassName`. */
+.skin {
+  --fp-w: 2.4;
+  --fp-w-thin: 1.5;
+  --fp-num-font: 'Amatic SC', var(--font-family-sans), cursive;
+  --fp-rough: url(#fp-rough);
+}

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTableHelpers } from '@/hooks/useTableHelpers';
 import { CreateTableDto, TableDto } from '@/types/reservation';
 import styles from './CreateTableModal.module.css';
 
@@ -22,11 +21,9 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
   canvasHeight,
 }) => {
   const { t } = useTranslation();
-  const { allShapes, getShapeLabel } = useTableHelpers();
   const [formData, setFormData] = useState({
     tableNumber: '',
     maxGuests: 4,
-    shape: 'circle',
     isOutdoor: false,
     isActive: true,
     notes: '',
@@ -54,17 +51,14 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
     try {
       setCreating(true);
 
-      // Place new table in center of canvas
+      // Place new table in the centre of the canvas (markers centre-anchor).
       const newTableData: CreateTableDto = {
         tableNumber: formData.tableNumber,
         maxGuests: formData.maxGuests,
         isActive: formData.isActive,
         isOutdoor: formData.isOutdoor,
-        positionX: canvasWidth / 2 - 40, // Center horizontally
-        positionY: canvasHeight / 2 - 40, // Center vertically
-        width: formData.shape === 'rectangle' ? 100 : formData.shape === 'square' ? 60 : 80,
-        height: formData.shape === 'rectangle' ? 70 : formData.shape === 'square' ? 60 : 80,
-        shape: formData.shape,
+        positionX: canvasWidth / 2,
+        positionY: canvasHeight / 2,
         notes: formData.notes || undefined,
       };
 
@@ -74,7 +68,6 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
       setFormData({
         tableNumber: '',
         maxGuests: 4,
-        shape: 'circle',
         isOutdoor: false,
         isActive: true,
         notes: '',
@@ -126,22 +119,6 @@ export const CreateTableModal: React.FC<CreateTableModalProps> = ({
               onChange={(e) => setFormData((prev) => ({ ...prev, maxGuests: parseInt(e.target.value) || 1 }))}
               disabled={creating}
             />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="shape">{t('shape', 'Shape')}</label>
-            <select
-              id="shape"
-              value={formData.shape}
-              onChange={(e) => setFormData((prev) => ({ ...prev, shape: e.target.value }))}
-              disabled={creating}
-            >
-              {allShapes.map((shape) => (
-                <option key={shape} value={shape}>
-                  {getShapeLabel(shape)}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div className={styles.formGroup}>

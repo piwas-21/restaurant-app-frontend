@@ -5,10 +5,22 @@ import type { TemplateDefinition } from '../types';
 import { fonts } from './fonts';
 import Shell from './Shell';
 import HomePage from './HomePage';
+import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
+import CheckoutReviewPage from './CheckoutReviewPage';
+import CartPage from './CartPage';
+import ReservationsPage from './ReservationsPage';
+import MyReservationsPage from './MyReservationsPage';
 
 export const template: TemplateDefinition = {
   name: 'classic',
   fonts,
   Shell,
   HomePage,
+  LoginPage,
+  RegisterPage,
+  CheckoutReviewPage,
+  CartPage,
+  ReservationsPage,
+  MyReservationsPage,
 };

@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import styles from './CapacityWarning.module.css';
 
 interface CapacityWarningProps {
   numberOfGuests: number;
+  /** Per-template CSS module (ADR-006 reservations surface — the CartPage
+   *  pattern): classic passes ./CapacityWarning.module.css, craft its re-skin. */
+  styles: Readonly<Record<string, string>>;
 }
 
-export default function CapacityWarning({ numberOfGuests }: CapacityWarningProps) {
+export default function CapacityWarning({ numberOfGuests, styles }: Readonly<CapacityWarningProps>) {
   const { t } = useTranslation();
 
   return (

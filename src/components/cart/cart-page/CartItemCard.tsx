@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { CartItem } from '@/components/cart/cartTypes';
-import styles from '@/app/styles/CartPage.module.css';
 import CartItemCustomizations from './CartItemCustomizations';
 import CartItemInstructionsEditor from './CartItemInstructionsEditor';
 
@@ -19,6 +18,12 @@ interface CartItemCardProps {
   onUpdateQuantity: (basketItemId: string | undefined, newQuantity: number) => void;
   onRemoveItem: (basketItemId: string | undefined) => void;
   onSaveInstructions: (basketItemId: string | undefined, quantity: number, instructions: string) => void;
+  /**
+   * Host template's CSS module (the auth "cart pattern") — classic passes the
+   * original CartPage.module.css, craft its order-pad module. Also forwarded
+   * to the customizations + instructions bodies.
+   */
+  styles: Readonly<Record<string, string>>;
 }
 
 /**
@@ -36,7 +41,8 @@ export default function CartItemCard({
   onUpdateQuantity,
   onRemoveItem,
   onSaveInstructions,
-}: CartItemCardProps) {
+  styles,
+}: Readonly<CartItemCardProps>) {
   const { t, i18n } = useTranslation();
   const currentLanguage = (i18n.language?.split('-')[0] || 'en') as string;
   const itemId = item.basketItemId || item.id || item.productId;
@@ -80,9 +86,10 @@ export default function CartItemCard({
           )}
         </div>
 
-        <CartItemCustomizations item={item} />
+        <CartItemCustomizations item={item} styles={styles} />
 
         <CartItemInstructionsEditor
+          styles={styles}
           item={item}
           itemId={itemId}
           isSyncing={isSyncing}

@@ -50,10 +50,16 @@ jobs:
           key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
           fingerprint: ${{ secrets.STAGING_DEPLOY_SSH_FINGERPRINT }}
           command_timeout: 18m
-          # flock serialises against a concurrent backend staging deploy (GitHub concurrency
-          # groups don't span repos). Scoped `pull frontend` + `up -d frontend` recreates only
-          # the frontend (its :staging digest moved); every other service keeps running. The
-          # frontend never touches app-secrets.json, so no perms step is needed here.
+          # flock serialises against a concurrent staging deploy (GitHub concurrency
+          # groups don't span repos, and the demo-tenant roll shares this lock).
+          # `-w 300` WAITS for it: with `-n` the loser exited 1, and because a push
+          # to develop fires the frontend and demo builds within a second of each
+          # other, that race lost a deploy roughly every time — a red X reading
+          # "skipping this run" that actually meant the box stayed on the old image.
+          # 5m of waiting fits comfortably inside command_timeout: 18m.
+          # Scoped `pull frontend` + `up -d frontend` recreates only the frontend (its
+          # :staging digest moved); every other service keeps running. The frontend never
+          # touches app-secrets.json, so no perms step is needed here.
           script: |
-            flock -n /tmp/rumi-deploy.lock -c "cd /opt/rumi/deploy && docker compose -f docker-compose.prod.yml pull frontend && docker compose -f docker-compose.prod.yml up -d frontend && docker image prune -f" \
-              || { echo "::error::another RUMI deploy holds the lock; skipping this run"; exit 1; }
+            flock -w 300 /tmp/rumi-deploy.lock -c "cd /opt/rumi/deploy && docker compose -f docker-compose.prod.yml pull frontend && docker compose -f docker-compose.prod.yml up -d frontend && docker image prune -f" \
+              || { echo "::error::timed out after 5m waiting for the RUMI deploy lock — this deploy did NOT run; re-run the job"; exit 1; }

@@ -71,4 +71,35 @@ export interface TemplateDefinition {
   Shell: React.ComponentType<ShellProps>;
   /** The landing-page composition. */
   HomePage: React.ComponentType;
+  /** The login-page composition (consumed via the `@active-template/LoginPage`
+   *  re-export in src/app/auth/login/page.tsx). */
+  LoginPage: React.ComponentType;
+  /** The register-page composition (consumed via the
+   *  `@active-template/RegisterPage` re-export). */
+  RegisterPage: React.ComponentType;
+  /** The checkout review/confirm page (consumed via the
+   *  `@active-template/CheckoutReviewPage` re-export in
+   *  src/app/checkout/review/page.tsx). Craft ships a two-column
+   *  hand-written-bill re-skin around the shared `CheckoutReviewLayout`. */
+  CheckoutReviewPage: React.ComponentType;
+  /** The standalone /cart page (consumed via the `@active-template/CartPage`
+   *  re-export in src/app/cart/page.tsx). Both templates orchestrate the same
+   *  `useCartPage` hook + shared cart-page bodies (each taking a `styles`
+   *  module — the auth "cart pattern"); craft ships an order-pad re-skin. */
+  CartPage: React.ComponentType;
+  /** The /reservations floor-plan booking page (consumed via the
+   *  `@active-template/ReservationsPage` re-export in
+   *  src/app/reservations/page.tsx). Both templates render the shared
+   *  `ReservationsPageLayout` (one `useReservationsPage` wiring, one DOM) and
+   *  differ only in the per-area `styles` modules they pass (the CartPage
+   *  pattern); craft ships the hand-drawn seating-chart + booking-docket
+   *  re-skin (Prompt 7a/7b). */
+  ReservationsPage: React.ComponentType;
+  /** The /my-reservations list page (consumed via the
+   *  `@active-template/MyReservationsPage` re-export in
+   *  src/app/my-reservations/page.tsx). Both templates render the shared
+   *  `MyReservationsLayout` (one `useMyReservations` wiring, one DOM) and
+   *  differ only in the `styles` modules they pass; craft ships the
+   *  docket-card stack re-skin (Prompt 7c). */
+  MyReservationsPage: React.ComponentType;
 }

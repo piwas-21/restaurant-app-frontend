@@ -22,6 +22,36 @@ declare module '@active-template/HomePage' {
   export default HomePage;
 }
 
+declare module '@active-template/LoginPage' {
+  const LoginPage: import('react').ComponentType;
+  export default LoginPage;
+}
+
+declare module '@active-template/RegisterPage' {
+  const RegisterPage: import('react').ComponentType;
+  export default RegisterPage;
+}
+
+declare module '@active-template/CheckoutReviewPage' {
+  const CheckoutReviewPage: import('react').ComponentType;
+  export default CheckoutReviewPage;
+}
+
+declare module '@active-template/CartPage' {
+  const CartPage: import('react').ComponentType;
+  export default CartPage;
+}
+
+declare module '@active-template/ReservationsPage' {
+  const ReservationsPage: import('react').ComponentType;
+  export default ReservationsPage;
+}
+
+declare module '@active-template/MyReservationsPage' {
+  const MyReservationsPage: import('react').ComponentType;
+  export default MyReservationsPage;
+}
+
 // Per-surface overrides (T4), kept out of the eager `template` object so a slot
 // import doesn't pull Shell/HomePage into the surface's bundle.
 declare module '@active-template/surfaces' {

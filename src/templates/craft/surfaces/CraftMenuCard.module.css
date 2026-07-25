@@ -4,16 +4,16 @@
    bundle (surfaces/ under the template dir). */
 
 .card {
+  composes: cardLift from '../primitives.module.css';
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  background: var(--card-background);
-  border: 2px solid var(--border-default);
   padding: 0.9rem;
   position: relative;
 }
 
 .special {
+  composes: tapeLabel from '../craft.module.css';
   position: absolute;
   top: 0.6rem;
   left: 0.6rem;
@@ -30,6 +30,7 @@
 /* The hand-lettered `name ..... price` header (menuLeader supplies the dotted
    fill + baseline layout). A button so the whole line opens the sheet. */
 .leader {
+  composes: menuLeader from '../craft.module.css';
   width: 100%;
   background: none;
   border: none;
@@ -74,43 +75,10 @@
 }
 
 .addButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
+  composes: btnPrimarySm from '../primitives.module.css';
   flex: 1;
-  padding: 0.5rem 0.9rem;
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
-  border: 2px solid var(--border-default);
-  font-family: 'Caveat', cursive;
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
 }
 
 .detailsButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  background-color: var(--surface-secondary);
-  color: var(--text-primary);
-  border: 2px solid var(--border-default);
-  font-family: 'Caveat', cursive;
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  /* Cover the letterpressBtn motion (box-shadow/transform) plus our own bg swap,
-     so the cascade order between the composed class and this one is irrelevant. */
-  transition:
-    background-color 0.15s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.detailsButton:hover {
-  background-color: var(--surface-card);
+  composes: btnKraft from '../primitives.module.css';
 }

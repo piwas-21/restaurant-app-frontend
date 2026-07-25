@@ -12,8 +12,10 @@
   margin-bottom: 0.25rem;
 }
 
+/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .name {
-  font-size: 1.05rem;
+  font-family: var(--modal-body-title-font, inherit);
+  font-size: var(--modal-body-title-size, 1.05rem);
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -32,15 +34,19 @@
 
 .hint {
   margin: 0;
-  font-size: 0.85rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.85rem);
   color: var(--text-muted, var(--text-secondary));
 }
 
+/* Required-choice-missing note — craft renders it as a soft-brick Caveat line,
+   never a harsh red (Prompt 10). */
 .error {
   margin: 0;
-  font-size: 0.85rem;
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.85rem);
   font-weight: 600;
-  color: var(--feedback-error, var(--status-danger));
+  color: var(--modal-body-error-color, var(--feedback-error, var(--status-danger)));
 }
 
 .options {

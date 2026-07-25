@@ -1,0 +1,169 @@
+/* craft /my-reservations page chrome (Prompt 7c): transparent canvas over the
+   kitchen wallpaper, a masking-tape "Your reservations" label above a big
+   Amatic heading, Caveat loading/error/empty notes and the terracotta
+   "Book a table" pill. Primitives via composes; tokens only. */
+
+.container {
+  min-height: calc(100vh - var(--craft-header-h));
+  background-color: var(--page-canvas);
+  padding: 2.5rem 0 3rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Saffron masking-tape flavour label (the /reservations tape precedent). */
+.tapeLabel {
+  composes: tapeLabel from '../craft.module.css';
+  background: var(--brand-accent);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+/* Dark ink on the pale dark-mode saffron — the inherited cream text would
+   not clear AA there (tokens only, no new saffron values). */
+html[data-theme='dark'] .tapeLabel {
+  color: var(--text-on-primary);
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 2.25rem;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1.05;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.loadingText,
+.error {
+  margin: 1.5rem 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* Soft-brick handwritten note, never harsh red. */
+.error {
+  color: var(--feedback-danger);
+}
+
+.reservationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+/* Empty state: hand-drawn empty table + Caveat line + terracotta pill. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 2.5rem 0 1.5rem;
+  text-align: center;
+}
+
+.emptyIllustration {
+  width: 132px;
+  height: 99px;
+  color: var(--text-secondary);
+}
+
+.emptyText {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.7rem;
+  color: var(--text-secondary);
+}
+
+.emptyCta {
+  composes: btnPrimary from '../primitives.module.css';
+  margin-top: 0.5rem;
+  text-decoration: none;
+}
+
+/* Cancel-failure toast — kraft-paper note in the soft-brick ink. Both tokens
+   flip together in dark (light danger plate + dark ink), keeping contrast. */
+.errorAlert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--feedback-danger);
+  color: var(--text-on-primary);
+  padding: 1rem 1.5rem;
+  border-radius: var(--craft-radius);
+  box-shadow: 3px 3px 0 var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 400px;
+  z-index: 999;
+}
+
+.errorAlert p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.errorAlert button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.75rem 0 2.5rem;
+  }
+
+  .section {
+    padding: 0 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 2.6rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .reservationsList {
+    gap: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 0 0.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tapeLabel {
+    font-size: 1.2rem;
+  }
+}

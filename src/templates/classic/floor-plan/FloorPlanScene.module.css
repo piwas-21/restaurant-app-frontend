@@ -1,0 +1,8 @@
+/* Classic skin for the floor-plan scene (FLOOR-PLAN-REVAMP §5.3). Clean
+   architectural rendering: thin uniform strokes, Inter numbers, no ink filter.
+   Colours come from the classic template's semantic tokens via the shared scene
+   module; the shared defaults already carry the classic stroke weights, so this
+   only pins the number font to the sans stack. Passed as `skinClassName`. */
+.skin {
+  --fp-num-font: var(--font-family-sans, inherit);
+}

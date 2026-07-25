@@ -159,26 +159,9 @@
 
 /* Letterpress terracotta CTA pill (Caveat), organic corners. */
 .checkoutButton {
-  composes: letterpressBtn roundedCraft from '../craft.module.css';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  composes: btnPrimaryLg from '../primitives.module.css';
   width: 100%;
   margin-top: 1rem;
-  padding: 0.8rem 1.25rem;
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
-  border: none;
-  font-family: 'Caveat', cursive;
-  font-size: 1.6rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.checkoutButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Empty order pad — a Caveat note. */

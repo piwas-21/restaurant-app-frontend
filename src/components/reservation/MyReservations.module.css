@@ -28,12 +28,43 @@
   margin: 0;
 }
 
-.emptyMessage {
-  text-align: center;
-  color: var(--text-secondary);
+/* Designed empty state (B3): hand-drawn empty table + line + booking CTA. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   padding: 2rem 0;
+  text-align: center;
+}
+
+.emptyIllustration {
+  width: 96px;
+  height: 72px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.emptyText {
   margin: 0;
+  color: var(--text-secondary);
   font-size: 0.95rem;
+}
+
+.emptyCta {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.6rem 1.4rem;
+  background-color: var(--primary-color);
+  color: var(--button-text-color);
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.emptyCta:hover {
+  background-color: var(--link-hover-color);
 }
 
 .error {
@@ -129,6 +160,12 @@
   gap: 0.75rem;
 }
 
+/* Keep the StatusBadge pill compact — otherwise it stretches to the full
+   width of this flex column (default align-items: stretch). */
+.statusBadge {
+  align-self: flex-start;
+}
+
 .dateTimeInfo {
   display: flex;
   flex-wrap: wrap;
@@ -212,8 +249,7 @@
   border-top: 1px solid var(--border-color-light);
 }
 
-.cancelButton,
-.modifyButton {
+.cancelButton {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-size: 0.875rem;
@@ -221,9 +257,6 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid;
-}
-
-.cancelButton {
   background-color: transparent;
   color: var(--danger-color);
   border-color: var(--danger-color);
@@ -237,17 +270,6 @@
 .cancelButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.modifyButton {
-  background-color: var(--primary-color);
-  color: var(--button-text-color);
-  border-color: var(--primary-color);
-}
-
-.modifyButton:hover {
-  background-color: var(--link-hover-color);
-  border-color: var(--link-hover-color);
 }
 
 /* Responsive Design */
@@ -332,8 +354,7 @@
     font-size: 0.85rem;
   }
 
-  .cancelButton,
-  .modifyButton {
+  .cancelButton {
     padding: 0.5rem 0.875rem;
     font-size: 0.8rem;
   }
@@ -424,8 +445,7 @@
     gap: 0.5rem;
   }
 
-  .cancelButton,
-  .modifyButton {
+  .cancelButton {
     width: 100%;
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
@@ -433,7 +453,6 @@
   }
 
   .loadingText,
-  .emptyMessage,
   .error {
     padding: 1.5rem 0;
     font-size: 0.9rem;
@@ -530,8 +549,7 @@
     gap: 0.4rem;
   }
 
-  .cancelButton,
-  .modifyButton {
+  .cancelButton {
     width: 100%;
     padding: 0.5rem 0.875rem;
     font-size: 0.75rem;
@@ -540,7 +558,6 @@
   }
 
   .loadingText,
-  .emptyMessage,
   .error {
     padding: 1.25rem 0.5rem;
     font-size: 0.8rem;

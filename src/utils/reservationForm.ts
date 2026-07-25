@@ -1,6 +1,9 @@
 import type { TFunction } from 'i18next';
 import type { VariantType } from 'notistack';
 import type { TableDto, TimeSlotDto, CreateReservationDto } from '@/types/reservation';
+import { DEFAULT_FORM_FIELD_RULES, FORM_KEYS, type FormFieldRules } from '@/types/formFieldConfig';
+
+const DEFAULT_RESERVATION_RULES = DEFAULT_FORM_FIELD_RULES[FORM_KEYS.reservation];
 
 /** A snackbar to surface — returned by the pure helpers so the hook owns the side effect. */
 export interface ReservationToast {
@@ -16,6 +19,20 @@ export function getCapacityWarningMessage(t: TFunction, numberOfGuests: number):
     "We don't have a single table that can accommodate all {{guests}} guests. However, you can select multiple tables and request to combine them, or proceed with your selection and our staff will review your request to find the best arrangement.",
     { guests: numberOfGuests },
   );
+}
+
+/**
+ * Does the party exceed EVERY table in the restaurant? Depends only on the table
+ * list and the party size — no date, no time, no availability call — which is why
+ * it lives on its own: the notice it drives must appear the moment the guest count
+ * is raised, not once a slot has been picked (the warning used to be reachable
+ * only through `computeTableAvailability`, i.e. after date AND time).
+ */
+export function partyExceedsEveryTable(allTables: TableDto[], numberOfGuests: number): boolean {
+  if (allTables.length === 0) {
+    return false;
+  }
+  return numberOfGuests > Math.max(...allTables.map((tbl) => tbl.maxGuests));
 }
 
 /**
@@ -51,83 +68,62 @@ export function computeTableAvailability(
   }
 
   // Guest size exceeds EVERY table in the restaurant (not just the available ones).
-  if (allTables.length > 0) {
-    const maxRestaurantCapacity = Math.max(...allTables.map((tbl) => tbl.maxGuests));
-    if (numberOfGuests > maxRestaurantCapacity) {
-      capacityWarning = getCapacityWarningMessage(t, numberOfGuests);
-    }
+  // Also surfaced independently of date/time by the hook — kept here so a slot
+  // change cannot clear a warning that is still true.
+  if (partyExceedsEveryTable(allTables, numberOfGuests)) {
+    capacityWarning = getCapacityWarningMessage(t, numberOfGuests);
   }
 
   return { bookedTableIds, capacityWarning };
 }
 
-/**
- * Builds the snackbar shown when a user taps a booked table — listing the times it *is* free, or
- * explaining it's unavailable. Mirrors the former `handleTableSelect` booked-branch.
- */
-export function getBookedTableToast(
-  table: TableDto,
-  selectedDate: string,
-  availableTimeSlots: TimeSlotDto[],
-  numberOfGuests: number,
-  t: TFunction,
-): ReservationToast {
-  if (selectedDate && availableTimeSlots.length > 0) {
-    const availableTimes = availableTimeSlots
-      .filter((slot) => slot.availableTables.some((tbl) => tbl.id === table.id))
-      .map((slot) => slot.startTime.substring(0, 5)); // HH:mm
-
-    if (availableTimes.length > 0) {
-      return {
-        message: t(
-          'table_booked_available_at',
-          'Table {{tableNumber}} is booked at this time. Available at: {{times}}',
-          {
-            tableNumber: table.tableNumber,
-            times: availableTimes.join(', '),
-          },
-        ),
-        variant: 'info',
-        autoHideDuration: 5000,
-      };
-    }
-    return {
-      message: t('table_not_available_today', 'Table {{tableNumber}} is not available today for {{guests}} guests', {
-        tableNumber: table.tableNumber,
-        guests: numberOfGuests,
-      }),
-      variant: 'warning',
-    };
-  }
-  return {
-    message: t('table_booked', 'Table {{tableNumber}} is currently booked', { tableNumber: table.tableNumber }),
-    variant: 'warning',
-  };
+/** A time chip in the picker: HH:mm plus whether every selected table is free then. */
+export interface TimeSlotOption {
+  time: string;
+  available: boolean;
 }
 
 /**
- * The times to offer in the picker: when tables are selected, only slots where ALL of them are
- * free; otherwise every slot. Returns HH:mm strings.
+ * The times to offer in the picker. EVERY slot is returned; a slot where any selected table is
+ * busy is marked unavailable (rendered disabled + struck-through) instead of being filtered out.
+ * With no tables selected every slot is available.
  */
-export function getFilteredTimeSlots(selectedTableIds: string[], availableTimeSlots: TimeSlotDto[]): string[] {
-  if (selectedTableIds.length === 0) {
-    return availableTimeSlots.map((s) => s.startTime.substring(0, 5));
-  }
-  return availableTimeSlots
-    .filter((slot) => {
-      const slotTableIds = slot.availableTables.map((tbl) => tbl.id);
-      return selectedTableIds.every((selectedId) => slotTableIds.includes(selectedId));
-    })
-    .map((s) => s.startTime.substring(0, 5));
+export function getTimeSlotOptions(selectedTableIds: string[], availableTimeSlots: TimeSlotDto[]): TimeSlotOption[] {
+  return availableTimeSlots.map((slot) => ({
+    time: slot.startTime.substring(0, 5),
+    available: selectedTableIds.every((selectedId) => slot.availableTables.some((tbl) => tbl.id === selectedId)),
+  }));
+}
+
+/** The customer-detail values checked against the configured field rules. */
+export interface ReservationDetailValues {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  specialRequests: string;
+}
+
+/**
+ * True when every field the admin config marks visible + required is filled.
+ * Mirrors the backend's config-required enforcement on reservation create so
+ * users never hit the raw 400. Name/email are locked-required server-side, so
+ * they are always checked; phone/special requests only when configured so.
+ */
+export function areRequiredReservationDetailsFilled(
+  values: ReservationDetailValues,
+  rules: FormFieldRules = DEFAULT_RESERVATION_RULES,
+): boolean {
+  return (Object.keys(values) as (keyof ReservationDetailValues)[]).every((key) => {
+    const rule = rules[key] ?? DEFAULT_RESERVATION_RULES[key];
+    return !(rule.isVisible && rule.isRequired) || values[key].trim().length > 0;
+  });
 }
 
 /** Form inputs needed to validate a reservation before submit. */
-export interface ReservationValidationInput {
+export interface ReservationValidationInput extends ReservationDetailValues {
   selectedTableIds: string[];
   selectedDate: string;
   selectedTime: string;
-  customerName: string;
-  customerEmail: string;
   bookedTableIds: string[];
   allTables: TableDto[];
 }
@@ -135,15 +131,29 @@ export interface ReservationValidationInput {
 /**
  * Returns the first validation problem as a ready-to-show toast (preserving the original per-rule
  * variant — `warning` for missing fields, `error` for a now-unavailable table), or null when valid.
+ * `rules` carries the admin-configured field requirements (default: registry defaults).
  */
-export function validateReservation(input: ReservationValidationInput, t: TFunction): ReservationToast | null {
-  const { selectedTableIds, selectedDate, selectedTime, customerName, customerEmail, bookedTableIds, allTables } =
-    input;
+export function validateReservation(
+  input: ReservationValidationInput,
+  t: TFunction,
+  rules: FormFieldRules = DEFAULT_RESERVATION_RULES,
+): ReservationToast | null {
+  const {
+    selectedTableIds,
+    selectedDate,
+    selectedTime,
+    customerName,
+    customerEmail,
+    customerPhone,
+    specialRequests,
+    bookedTableIds,
+    allTables,
+  } = input;
 
   if (selectedTableIds.length === 0 || !selectedDate || !selectedTime) {
     return { message: t('please_complete_all_fields', 'Please complete all fields'), variant: 'warning' };
   }
-  if (!customerName || !customerEmail) {
+  if (!areRequiredReservationDetailsFilled({ customerName, customerEmail, customerPhone, specialRequests }, rules)) {
     return { message: t('please_fill_customer_details', 'Please fill in your details'), variant: 'warning' };
   }
 

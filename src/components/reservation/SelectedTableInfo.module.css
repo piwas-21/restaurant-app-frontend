@@ -1,14 +1,13 @@
 .selectedTableInfo {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   padding: 1rem;
   background: rgba(244, 196, 48, 0.1);
   border: 2px solid var(--color-gold-500);
   border-radius: 8px;
-  gap: 1rem;
+  gap: 0.75rem;
   box-sizing: border-box;
-  flex-wrap: wrap;
 }
 
 .tableLabel {
@@ -16,10 +15,46 @@
   color: var(--text-primary);
 }
 
-.tableValue {
-  font-size: 1.5rem;
+.tableList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tableLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tableLine:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.tableLineNumber {
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-gold-500);
+}
+
+.tableLineMeta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.tableLineNotes {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .combineChip {
@@ -96,56 +131,22 @@
 @media (max-width: 768px) {
   .selectedTableInfo {
     padding: 0.875rem;
-    gap: 0.875rem;
-    flex-direction: column;
-    align-items: stretch;
+    gap: 0.75rem;
   }
 
   .tableLabel {
     font-size: 0.95rem;
   }
 
-  .tableValue {
-    font-size: 1.35rem;
+  .tableLineNumber {
+    font-size: 1.15rem;
   }
 
   .combineChip {
-    width: 100%;
     padding: 0.7rem 1rem;
     font-size: 0.9rem;
     border-radius: 6px;
     min-height: 40px;
-  }
-}
-
-@media (max-width: 640px) {
-  .selectedTableInfo {
-    padding: 0.75rem;
-    gap: 0.75rem;
-    border-width: 1.5px;
-    border-radius: 6px;
-  }
-
-  .tableLabel {
-    font-size: 0.9rem;
-  }
-
-  .tableValue {
-    font-size: 1.2rem;
-  }
-
-  .combineChip {
-    padding: 0.65rem 0.9rem;
-    font-size: 0.85rem;
-    border-width: 1.5px;
-    border-radius: 6px;
-    min-height: 38px;
-  }
-
-  .combineChipIcon {
-    width: 18px;
-    height: 18px;
-    font-size: 0.9rem;
   }
 }
 
@@ -154,14 +155,15 @@
     padding: 0.65rem;
     gap: 0.65rem;
     border-width: 1.5px;
+    border-radius: 6px;
   }
 
   .tableLabel {
     font-size: 0.8rem;
   }
 
-  .tableValue {
-    font-size: 1.1rem;
+  .tableLineNumber {
+    font-size: 1rem;
   }
 
   .combineChip {
@@ -176,9 +178,5 @@
     width: 16px;
     height: 16px;
     font-size: 0.85rem;
-  }
-
-  .combineChip:active {
-    transform: scale(0.96);
   }
 }

@@ -14,6 +14,7 @@ import {
   TrendingUp,
   ClipboardList,
   CalendarCheck,
+  ListChecks,
   MapPin,
   BarChart3,
   Settings,
@@ -85,6 +86,12 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       key: 'restaurant_settings',
       fallback: 'Restaurant Settings',
       icon: Settings,
+    },
+    {
+      href: '/admin/customer-forms',
+      key: 'admin_customer_forms_title',
+      fallback: 'Customer Forms',
+      icon: ListChecks,
     },
     {
       href: '/admin/reservations-management',

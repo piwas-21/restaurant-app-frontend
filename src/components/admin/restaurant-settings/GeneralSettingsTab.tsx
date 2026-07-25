@@ -7,6 +7,7 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { updateRestaurantInfo } from '@/services/restaurantInfoService';
+import { toFullUpdateCommand } from '@/services/restaurantInfoCommand';
 import FormField from '@/components/design-system/FormField';
 import PhoneNumberManager from './PhoneNumberManager';
 import { restaurantInfoSchema, type RestaurantInfoFormInput, type RestaurantInfoFormOutput } from './schemas';
@@ -45,23 +46,28 @@ export default function GeneralSettingsTab() {
   }, [info, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
+    // Full-upsert PUT: without the current server state as a base, fields this
+    // tab doesn't edit (palette key, entrance position) would be wiped.
+    if (!info) {
+      enqueueSnackbar(t('general_settings_save_failed', 'Failed to save'), { variant: 'error' });
+      return;
+    }
     setIsSaving(true);
     try {
-      const response = await updateRestaurantInfo({
-        name: data.name,
-        addressLine1: data.addressLine1,
-        addressLine2: data.addressLine2 || null,
-        city: data.city,
-        postalCode: data.postalCode,
-        country: data.country,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        email: data.email,
-        website: data.website || null,
-        // Full-upsert PUT: preserve the palette key this tab doesn't edit, or
-        // saving general settings would wipe it (ADR-007; set on the Appearance tab).
-        themePaletteKey: info?.themePaletteKey ?? null,
-      });
+      const response = await updateRestaurantInfo(
+        toFullUpdateCommand(info, {
+          name: data.name,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2 || null,
+          city: data.city,
+          postalCode: data.postalCode,
+          country: data.country,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          email: data.email,
+          website: data.website || null,
+        }),
+      );
       if (response.success) {
         invalidateRestaurantInfoCache();
         await refetch();

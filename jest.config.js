@@ -32,6 +32,7 @@ module.exports = {
     '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
+    '^@/schemas/(.*)$': '<rootDir>/src/schemas/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
@@ -48,9 +49,51 @@ module.exports = {
   collectCoverageFrom: [
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
+    'src/services/formFieldConfigService.ts',
+    'src/hooks/reservations/useMyReservations.ts',
+    'src/hooks/useCustomerFormFields.ts',
+    'src/hooks/admin/useCustomerFormsAdmin.ts',
+    'src/hooks/order/registrationOutcome.ts',
+    'src/hooks/order/useGuestProfilePrefill.ts',
+    'src/hooks/checkout/useDeliveryAddress.ts',
+    'src/lib/checkout/contactFieldRules.ts',
+    'src/schemas/deliveryAddress.schema.ts',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
+    'src/lib/floorPlan/geometry.ts',
+    'src/lib/floorPlan/walls.ts',
+    'src/lib/floorPlan/tableGeometry.ts',
+    'src/lib/floorPlan/symbols.ts',
+    'src/lib/floorPlan/symbolPrims.ts',
+    'src/lib/floorPlan/symbolsStructure.ts',
+    'src/lib/floorPlan/symbolsDecor.ts',
+    'src/lib/floorPlan/zones.ts',
+    'src/lib/floorPlan/viewport.ts',
+    'src/lib/floorPlan/snapping.ts',
+    'src/lib/floorPlan/history.ts',
+    'src/lib/floorPlan/document.ts',
+    'src/lib/floorPlan/editorGeometry.ts',
+    'src/lib/floorPlan/handles.ts',
+    'src/lib/floorPlan/editorGestures.ts',
+    'src/lib/floorPlan/selection.ts',
+    'src/lib/floorPlan/align.ts',
+    'src/lib/floorPlan/movable.ts',
+    'src/lib/floorPlan/palette.ts',
+    'src/lib/floorPlan/itemPlacement.ts',
+    'src/lib/allergens.ts',
+    'src/hooks/floorPlan/useEditorDrag.ts',
+    'src/hooks/floorPlan/useEditorSave.ts',
+    'src/hooks/floorPlan/useEditorAutoSave.ts',
+    'src/hooks/floorPlan/useEditorItems.ts',
+    'src/hooks/floorPlan/useEditorMarquee.ts',
+    'src/hooks/floorPlan/useStageScale.ts',
+    'src/components/floor-plan/editor/EditorHandles.tsx',
+    'src/components/floor-plan/editor/EditorPalette.tsx',
+    'src/components/floor-plan/editor/itemKindLabel.ts',
+    'src/components/floor-plan/guest/guestMapState.ts',
+    'src/components/floor-plan/guest/hoverCardPosition.ts',
+    'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
@@ -202,6 +245,445 @@ module.exports = {
     './src/utils/reservationForm.ts': {
       statements: 99,
       branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // Reservations floor-plan core (B1) — the shared canvas-geometry contract
+    // (600x500, centre-anchored marker maths) at 100% → 99; the customer map's
+    // FLOOR-PLAN-REVAMP S4 foundation — geometry/walls/service all at 100% → 99.
+    './src/lib/floorPlan/geometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/walls.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S4 render layer — the pure geometry (table body, symbol
+    // registry + generators) at 100% → 99; symbolPrims' branch floor is lower
+    // (a leaf-length ternary side the fixtures don't split).
+    './src/lib/floorPlan/tableGeometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbols.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbolPrims.ts': {
+      statements: 99,
+      branches: 55,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbolsStructure.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/symbolsDecor.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S4 render layer — the shared scene + its five layers.
+    // FloorPlanScene / SceneDefs are fully covered; the layers' uncovered
+    // remainder is defensive (an unresolved symbol, a missing entrance def) and
+    // the small-table label floor, pinned at actual − ~a hair.
+    './src/components/floor-plan/FloorPlanScene.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/SceneDefs.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/FloorPlanSymbol.tsx': {
+      statements: 88,
+      branches: 80,
+      functions: 99,
+      lines: 88,
+    },
+    './src/components/floor-plan/ItemsLayer.tsx': {
+      statements: 99,
+      branches: 78,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/LabelsLayer.tsx': {
+      statements: 92,
+      branches: 67,
+      functions: 99,
+      lines: 91,
+    },
+    './src/components/floor-plan/RoomsLayer.tsx': {
+      statements: 99,
+      branches: 74,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/TablesLayer.tsx': {
+      statements: 93,
+      branches: 98,
+      functions: 87,
+      lines: 92,
+    },
+    './src/components/floor-plan/WallsLayer.tsx': {
+      statements: 99,
+      branches: 87,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S5 guest map — the pure zone/viewport/state/placement
+    // helpers at 100% → 99; the map components at actual − ~a hair. The
+    // pointer/wheel/pinch paths of the viewport + hover hooks are exercised in
+    // the browser (S9 e2e/axe), not jsdom, so those hooks are left ungated.
+    './src/lib/floorPlan/zones.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/viewport.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // FLOOR-PLAN-REVAMP S6 editor foundation — snapping maths, the undo/redo
+    // command stack, and immutable document ops, all fully covered.
+    './src/lib/floorPlan/snapping.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/history.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/document.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/editorGeometry.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/handles.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/editorGestures.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/selection.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/align.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // S6b-3: the movable vocabulary and the palette are pure, so they carry the
+    // same 99% bar as the rest of the floor-plan geometry layer.
+    './src/lib/floorPlan/movable.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/palette.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/itemPlacement.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // The allergen table decides what every menu card shows; a miss is silent.
+    './src/lib/allergens.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // The autosave path: its rules (idle debounce, max wait, conflict latch, the
+    // two-pass flush) are only enforced by these tests.
+    './src/hooks/floorPlan/useEditorSave.ts': {
+      statements: 100,
+      branches: 93,
+      functions: 100,
+      lines: 100,
+    },
+    './src/hooks/floorPlan/useEditorAutoSave.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/hooks/floorPlan/useEditorItems.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/floorPlan/useStageScale.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/editor/EditorHandles.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/editor/EditorPalette.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/editor/itemKindLabel.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // The two pointer layers' uncovered lines are defensive guards for states
+    // jsdom can't produce (an unmeasurable stage rect, a disabled listener) or
+    // that only a mid-drag reload reaches (the table vanishing from the document).
+    './src/hooks/floorPlan/useEditorDrag.ts': {
+      statements: 95,
+      branches: 88,
+      functions: 99,
+      lines: 95,
+    },
+    './src/hooks/floorPlan/useEditorMarquee.ts': {
+      statements: 93,
+      branches: 79,
+      functions: 99,
+      lines: 93,
+    },
+    './src/components/floor-plan/guest/guestMapState.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/hoverCardPosition.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/FloorPlanGuestMap.tsx': {
+      statements: 95,
+      branches: 88,
+      functions: 99,
+      lines: 94,
+    },
+    './src/components/floor-plan/guest/FloorPlanHoverCard.tsx': {
+      statements: 99,
+      branches: 82,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/FloorPlanMapControls.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/guest/FloorPlanTableList.tsx': {
+      statements: 90,
+      branches: 60,
+      functions: 84,
+      lines: 94,
+    },
+    './src/components/floor-plan/guest/FloorPlanZoneChips.tsx': {
+      statements: 84,
+      branches: 99,
+      functions: 82,
+      lines: 84,
+    },
+    './src/services/floorPlanService.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/SelectedTableInfo.tsx': {
+      statements: 99,
+      branches: 84,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/DateTimeSelector.tsx': {
+      statements: 78,
+      branches: 82,
+      functions: 53,
+      lines: 81,
+    },
+    // Reservations revamp D2 — configurable customer form fields. The service
+    // (fetch/update shapes), the admin page + tri-state hook (locked
+    // immutability, whole-form save), and the FormField-migrated reservation
+    // guest-details form are at 100% → 99. The two hooks' uncovered remainder
+    // is console.error noise + the fresh-cache fast path / unknown-form guard,
+    // pinned at actual − ~1pt.
+    './src/services/formFieldConfigService.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/useCustomerFormFields.ts': {
+      statements: 94,
+      branches: 84,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/admin/useCustomerFormsAdmin.ts': {
+      statements: 93,
+      branches: 79,
+      functions: 99,
+      lines: 99,
+    },
+    './src/app/admin/customer-forms/page.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/CustomerDetailsForm.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // Reservations revamp D3 — checkout contact + delivery address wired to
+    // the form-field config. The pure merge (`contactFieldRules`) and the
+    // extracted registration-outcome mapper are at 100% → 99; the
+    // schema-from-config builder's only uncovered branch is the defensive
+    // missing-rule `??` default. The contact fields component pins the
+    // per-field required rendering (register-CTA branches untested); the
+    // delivery hook/section pin the config paths (saved-addresses fetch and
+    // persistence flows are the untested remainder), pinned at actual − ~1pt.
+    './src/lib/checkout/contactFieldRules.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/order/registrationOutcome.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/order/useGuestProfilePrefill.ts': {
+      statements: 88,
+      branches: 69,
+      functions: 99,
+      lines: 93,
+    },
+    './src/hooks/checkout/useDeliveryAddress.ts': {
+      statements: 41,
+      branches: 41,
+      functions: 49,
+      lines: 41,
+    },
+    './src/schemas/deliveryAddress.schema.ts': {
+      statements: 99,
+      branches: 84,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/order/GuestCustomerInfoFields.tsx': {
+      statements: 66,
+      branches: 68,
+      functions: 53,
+      lines: 62,
+    },
+    './src/components/checkout/order-type/DeliveryAddressSection.tsx': {
+      statements: 64,
+      branches: 73,
+      functions: 52,
+      lines: 59,
+    },
+    // Reservations revamp B3 — my-reservations layout/card + the three
+    // BaseModal-migrated reservation dialogs. Card, both cancel dialogs and
+    // ReservationSuccessModal at 100% → 99; the layout's uncovered branch is
+    // the defensive cancelTargetId guard (91.66 → 90); the hook's is the
+    // toggle collapse arm (83.33 → 82).
+    './src/components/reservation/my-reservations/MyReservationsLayout.tsx': {
+      statements: 99,
+      branches: 90,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/my-reservations/MyReservationCard.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/CancelReservationModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/CancelSuccessModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/reservation/ReservationSuccessModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/reservations/useMyReservations.ts': {
+      statements: 99,
+      branches: 82,
       functions: 99,
       lines: 99,
     },

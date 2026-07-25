@@ -98,6 +98,17 @@ INSERT INTO "Tables" (
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
+-- 5b) The full reference dining-room layout is NOT seeded here any more.
+-- Since FLOOR-PLAN-REVAMP S5 the /reservations map renders from
+-- GET /api/floorplan in real-world METRES, so the backend's startup
+-- FloorPlanSeeder (the 14×9 reference plan) + TableSeeder (tables 1..14b in
+-- metres, linked to the default plan) own the reservations layout — and only
+-- tables linked to the plan appear on the map. Pre-seeding pixel rows here
+-- would just collapse into the corner again; the metre seeders now produce the
+-- coherent plan the regenerated screenshot baseline is pinned to. (T1 above
+-- stays for the DineIn order-type test; it is unlinked, so it never shows on
+-- the reservations map, which filters by FloorPlanId.)
+
 -- 6) Working hours — override the migration's 10:00–23:00 default to
 -- 00:00–23:59 (effectively 24h) so the DineIn order type stays enabled
 -- regardless of the CI wall-clock time. The migration's window is

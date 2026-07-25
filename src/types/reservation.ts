@@ -14,6 +14,9 @@ export const ReservationStatusLabel: Record<ReservationStatus, string> = {
   [ReservationStatus.NoShow]: 'NoShow',
 };
 
+// Shape/size/rotation removed 2026-07-23 (uniform table marker — see
+// docs/plans/RESERVATIONS-REVAMP-PLAN.md §3.2). The backend keeps returning
+// the legacy fields until its own cleanup PR; extra JSON props are harmless.
 export interface TableDto {
   id: string;
   tableNumber: string;
@@ -22,10 +25,6 @@ export interface TableDto {
   isOutdoor: boolean;
   positionX: number;
   positionY: number;
-  width: number;
-  height: number;
-  shape?: string; // circle, square, rectangle
-  rotation?: number; // 0, 90, 180, 270 degrees
   notes?: string;
   qrCodeData?: string;
   qrCodeGeneratedAt?: string;
@@ -90,9 +89,6 @@ export interface CreateTableDto {
   isOutdoor?: boolean;
   positionX?: number;
   positionY?: number;
-  width?: number;
-  height?: number;
-  shape?: string;
   notes?: string;
 }
 
@@ -103,10 +99,6 @@ export interface UpdateTableDto {
   isOutdoor: boolean;
   positionX: number;
   positionY: number;
-  width: number;
-  height: number;
-  shape: string;
-  rotation?: number;
   notes?: string;
 }
 

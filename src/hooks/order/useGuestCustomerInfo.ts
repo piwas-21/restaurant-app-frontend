@@ -1,9 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { persistPhoneToProfileIfChanged } from '@/lib/checkout/persistPhoneToProfile';
+import { mergeContactFieldRules } from '@/lib/checkout/contactFieldRules';
+import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
+import { FORM_KEYS } from '@/types/formFieldConfig';
 import {
   validateGuestCustomerInfoField,
   type CustomerInfoField,
@@ -16,11 +19,15 @@ import {
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { useInlineRegistration } from './useInlineRegistration';
 import { useGuestProfilePrefill } from './useGuestProfilePrefill';
+import { registrationOutcomeErrors } from './registrationOutcome';
 
 const SAVED_INFO_KEY = 'rumi_saved_customer_info';
 
 export interface UseGuestCustomerInfoOptions {
-  /** Required fields for the flow. DineIn: name+email; Takeaway/Delivery: +phone. */
+  /**
+   * Order-type floor (DineIn: name+email; Takeaway/Delivery: +phone). The
+   * admin `checkout_contact` config merges ON TOP — add-only, never removes.
+   */
   requiredFields: ReadonlyArray<CustomerInfoField>;
   /** Mount-gating: `true` only when modal is open — defers /api/User/profile fetch. */
   enabled: boolean;
@@ -31,8 +38,10 @@ export interface UseGuestCustomerInfoOptions {
 interface UseGuestCustomerInfoResult {
   value: GuestCustomerInfoValue;
   errors: GuestCustomerInfoErrors;
-  /** Visible fields — what isn't pre-filled by the user's profile. */
+  /** Fields to render — the merged shown set minus what the profile pre-fills. */
   visibleFields: ReadonlyArray<CustomerInfoField>;
+  /** Effective-required fields (config-required OR order-type floor). */
+  requiredFields: ReadonlyArray<CustomerInfoField>;
   /** Logged-in users have an account; suppress the register CTA for them. */
   showRegisterCta: boolean;
   /** True while we're still fetching the profile to decide what to render. */
@@ -65,14 +74,18 @@ const EMPTY_ERRORS: GuestCustomerInfoErrors = { name: '', email: '', phone: '' }
  * visible fields to what's missing, and `commit()`s trimmed values to
  * `CheckoutContext.customerInfo` only when valid. Inline registration
  * is composed from `useInlineRegistration` via `registerIfRequested()`.
+ * The admin `checkout_contact` config (D3) merges with the order-type
+ * floor via `mergeContactFieldRules` — safe fallback = today's rules.
  */
 export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGuestCustomerInfoResult {
   const { t } = useTranslation();
   const { state: checkoutState, setCustomerInfo } = useCheckout();
   const registration = useInlineRegistration();
+  const { rules } = useCustomerFormFields(FORM_KEYS.checkoutContact);
+  const merged = useMemo(() => mergeContactFieldRules(opts.requiredFields, rules), [opts.requiredFields, rules]);
   const { user, isLoggedIn, isLoadingUser, prefill, visibleFields } = useGuestProfilePrefill(
     opts.enabled,
-    opts.requiredFields,
+    merged.fields,
   );
 
   const [value, setValue] = useState<GuestCustomerInfoValue>(() => ({
@@ -92,7 +105,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     }));
   }, [isLoadingUser, prefill]);
 
-  const phoneRequired = opts.requiredFields.includes('phone');
+  const phoneRequired = merged.requiredFields.includes('phone');
 
   const setField = useCallback((field: CustomerInfoField, next: string) => {
     setValue((prev) => ({ ...prev, [field]: next }));
@@ -110,7 +123,9 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
   const commit = useCallback(async (): Promise<GuestCustomerInfoValue | null> => {
     const next: GuestCustomerInfoErrors = { name: '', email: '', phone: '' };
     let ok = true;
-    for (const field of opts.requiredFields) {
+    // Validate every collected field: required-ness for the effective set,
+    // format-only for shown-but-optional fields (empty passes there).
+    for (const field of merged.fields) {
       const err = validateGuestCustomerInfoField(field, value[field], t, { phoneRequired });
       next[field] = err;
       if (err) ok = false;
@@ -125,24 +140,8 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     };
 
     const outcome = await registration.registerIfRequested({ name: trimmed.name, email: trimmed.email });
-    if (outcome.status === 'invalid') {
-      // Sub-hook already populated registerErrors; ensure the name field
-      // shows guidance when split-name validation fails (single-token name).
-      setErrors((prev) => ({
-        ...prev,
-        name:
-          prev.name ||
-          (trimmed.name.split(' ').filter(Boolean).length < 2
-            ? t('register_full_name_help', 'Please enter your full name (first and last)')
-            : prev.name),
-      }));
-      return null;
-    }
-    if (outcome.status === 'duplicate') {
-      setErrors((prev) => ({
-        ...prev,
-        email: t('email_already_registered', 'An account with this email already exists. Please log in.'),
-      }));
+    if (outcome.status !== 'ok') {
+      setErrors((prev) => registrationOutcomeErrors(outcome, trimmed.name, prev, t) ?? prev);
       return null;
     }
 
@@ -151,7 +150,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     // it can't double-fire on re-render.
     trackEvent('customer_info_submitted', {
       source: opts.source,
-      fields: opts.requiredFields,
+      fields: merged.requiredFields,
       loggedIn: isLoggedInForAnalytics(),
     });
     if (!isLoggedIn && typeof window !== 'undefined') {
@@ -169,7 +168,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     // `registration` object (fresh literal per render → would defeat memo).
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [
-    opts.requiredFields,
+    merged,
     opts.source,
     value,
     t,
@@ -184,6 +183,7 @@ export function useGuestCustomerInfo(opts: UseGuestCustomerInfoOptions): UseGues
     value,
     errors,
     visibleFields,
+    requiredFields: merged.requiredFields,
     showRegisterCta: !isLoggedIn,
     isLoadingUser,
     setField,

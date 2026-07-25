@@ -28,16 +28,16 @@
   box-shadow: 1px 1px 0 var(--border-default);
 }
 
-/* Organic border-radius (sofra's `--radius-craft`). */
+/* Organic border-radius (sofra's `--radius-craft`; value in tokens.css). */
 .roundedCraft {
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border-radius: var(--craft-radius);
 }
 
 /* Masking-tape section label (sofra's `.masking-tape`, translated from a
    clip-path polygon onto a tokenized background). */
 .tapeLabel {
   display: inline-block;
-  clip-path: polygon(2% 8%, 98% 0%, 100% 88%, 1% 100%);
+  clip-path: var(--craft-tape-clip);
   background: var(--surface-secondary);
   color: var(--text-primary);
   padding: 0.3rem 1.1rem;

@@ -40,6 +40,7 @@ export default function FloorPlanEditor() {
   const [showDelete, setShowDelete] = useState(false);
   const [showProps, setShowProps] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Escape and the arrow keys belong to whichever modal is on top, not the canvas.
   const modalOpen = showCreate || showDelete || showProps || showPreview || Boolean(tables.qrTable);
@@ -77,14 +78,21 @@ export default function FloorPlanEditor() {
   }, [layoutSafeToReload]);
 
   const confirmDelete = async () => {
-    // No selection should not be reachable from the modal, but a Confirm that does
-    // nothing and says nothing is the failure mode this whole change is about.
-    if (!selectedDto || !(await layoutSafeToReload())) {
-      setShowDelete(false);
-      return;
+    // No selection cannot be reached from this modal; closing it is the only sensible
+    // recovery, and a failed flush has already explained itself in the banner.
+    // `deleting` is what the modal disables on: the flush before the DELETE puts a
+    // round trip between the click and the close, which is long enough to click twice.
+    setDeleting(true);
+    try {
+      if (!selectedDto || !(await layoutSafeToReload())) {
+        setShowDelete(false);
+        return;
+      }
+      await tables.deleteTable(selectedDto.id, selectedDto.tableNumber);
+      afterTableChange();
+    } finally {
+      setDeleting(false);
     }
-    await tables.deleteTable(selectedDto.id, selectedDto.tableNumber);
-    afterTableChange();
   };
 
   const banner = message ?? editor.message;
@@ -154,7 +162,7 @@ export default function FloorPlanEditor() {
         onClose={() => setShowDelete(false)}
         onConfirm={confirmDelete}
         tableNumber={selectedDto?.tableNumber}
-        isDeleting={false}
+        isDeleting={deleting}
       />
 
       {showProps && selectedDto && (

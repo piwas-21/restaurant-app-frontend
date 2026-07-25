@@ -9,7 +9,7 @@ This directory is the test code. The runner config is [../playwright.config.ts](
 **First-run bootstrap** (once per checkout):
 
 ```bash
-npx playwright install --with-deps chromium     # installs the browser binary
+npm run test:e2e:install                        # installs the browser binary
 export E2E_DATABASE_URL=postgres://postgres:postgres123@localhost:5432/restaurantdb  # pragma: allowlist secret
 ```
 

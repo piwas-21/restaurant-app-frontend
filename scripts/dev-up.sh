@@ -79,7 +79,12 @@ if [[ -f package-lock.json ]]; then
   CURRENT_HASH=$(shasum -a 256 package-lock.json 2>/dev/null | cut -d' ' -f1 || sha256sum package-lock.json | cut -d' ' -f1)
   if [[ ! -f "$LOCK_HASH_FILE" ]] || [[ "$CURRENT_HASH" != "$(cat "$LOCK_HASH_FILE" 2>/dev/null)" ]]; then
     info "package-lock.json changed since last install. Running npm install…"
-    npm install
+    # --ignore-scripts matches CI and the Docker build (shell:S6505) so a dev
+    # tree and a CI tree contain the same thing. Verified on macOS: fsevents
+    # still loads (fast `next dev` watching) and build/lint/test all pass.
+    # If a future dependency genuinely needs its postinstall, drop the flag
+    # here AND in ci.yml/Dockerfile together — never in just one.
+    npm install --ignore-scripts
     echo "$CURRENT_HASH" > "$LOCK_HASH_FILE"
     ok "Dependencies installed."
   else
@@ -87,7 +92,7 @@ if [[ -f package-lock.json ]]; then
   fi
 else
   warn "package-lock.json missing. Running npm install…"
-  npm install
+  npm install --ignore-scripts
 fi
 
 # ── 4. npm run dev ───────────────────────────────────────────────────

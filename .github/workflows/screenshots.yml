@@ -20,7 +20,10 @@ name: Screenshots
 #
 # Security: no untrusted-input expressions in run: commands (the
 # update_snapshots boolean input is passed via env). All third-party
-# actions SHA-pinned. Minimal permissions.
+# actions SHA-pinned. Minimal permissions, declared per job rather than
+# workflow-wide (sonar githubactions:S8264). The npm install passes
+# --ignore-scripts (githubactions:S6505) — see ci.yml's header for why
+# that is safe for this lockfile.
 
 on:
   pull_request:
@@ -36,14 +39,13 @@ concurrency:
   group: screenshots-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   screenshot_diff:
     name: playwright screenshots (visual baseline)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     # One leg per UI template (S15 T3 DoD): each builds with its own
     # NEXT_PUBLIC_TEMPLATE and compares against its own baseline segment.
     strategy:
@@ -128,7 +130,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Install npm deps
-        run: npm ci --prefer-offline --no-audit
+        run: npm ci --ignore-scripts --prefer-offline --no-audit
 
       - name: Restore + build backend
         working-directory: backend
@@ -236,6 +238,8 @@ jobs:
     if: always()
     needs: screenshot_diff
     runs-on: ubuntu-latest
+    # Reads only the matrix result from the `needs` context — no repo access.
+    permissions: {}
     steps:
       - name: Gate on matrix result
         env:

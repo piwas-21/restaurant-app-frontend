@@ -4,9 +4,15 @@ FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Install dependencies based on the preferred package manager.
+# --ignore-scripts (sonar docker:S6505): no dependency executes code while
+# building the production image. Safe for this lockfile — next's SWC and
+# sharp's libvips ship as prebuilt optionalDependencies, not lifecycle
+# scripts, and the only non-optional install script (@sentry/cli) just
+# fetches a binary used by withSentryConfig source-map upload, which this
+# repo does not use. See the supply-chain note in .github/workflows/ci.yml.
 COPY package.json package-lock.json* ./
-RUN npm ci && npm cache clean --force
+RUN npm ci --ignore-scripts && npm cache clean --force
 
 # Rebuild the source code only when needed
 FROM node:22-alpine AS builder

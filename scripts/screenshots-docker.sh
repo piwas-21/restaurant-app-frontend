@@ -69,7 +69,9 @@ net.createServer((c) => {
   u.on("error", () => c.destroy());
 }).listen(5221, "127.0.0.1");
 JS
-  IN_CONTAINER_SETUP="node -e '${PROXY_JS}' & { [ -x node_modules/.bin/playwright ] || npm ci --prefer-offline --no-audit; }"
+  # --ignore-scripts mirrors the install in .github/workflows/screenshots.yml —
+  # this container must match CI byte-for-byte or the baselines diverge.
+  IN_CONTAINER_SETUP="node -e '${PROXY_JS}' & { [ -x node_modules/.bin/playwright ] || npm ci --ignore-scripts --prefer-offline --no-audit; }"
 fi
 
 # Preflight: the backend must be reachable from where the browser will call it.

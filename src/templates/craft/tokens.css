@@ -89,7 +89,10 @@
   --modal-body-option-border: 2px solid var(--border-default);
   --modal-body-option-shadow: 3px 3px 0 var(--border-default);
   --modal-body-rule: 2px dashed var(--border-default);
-  --modal-body-btn-radius: 999px;
+  /* Was 999px: a perfect pill is the one shape a hand-cut theme never makes, and
+     it left every modal footer button, the item-sheet CTA and the stepper reading
+     as stock UI next to craft's whittled cards. */
+  --modal-body-btn-radius: var(--craft-radius);
   --modal-body-btn-shadow: 3px 3px 0 var(--border-default);
   --modal-body-confirm-bg: var(--brand-primary); /* terracotta Confirm (classic keeps green) */
   --modal-body-confirm-fg: var(--text-on-primary);
@@ -125,12 +128,18 @@
   --modal-body-toggle-size: 1.15rem;
   --modal-body-toggle-size-sm: 1.05rem; /* ≤540px — Caveat at 0.85rem is illegible */
 
+  /* Chips outside the modal/control families — the guest map's zone filters and
+     any future page-level chip. Same mechanism as --modal-body-*: the shared site
+     keeps its classic literal as the var fallback, so classic is byte-identical
+     and craft gets the whittled shape. */
+  --chip-radius: var(--craft-radius);
+
   /* Floating cart pill (menu page) — flat terracotta letterpress replacing
      classic's red gradient (zero gradients in craft). The dark values ride the
      semantic tokens' own dark flips. */
   --fab-bg: var(--brand-primary);
   --fab-fg: var(--text-on-primary);
-  --fab-radius: 999px;
+  --fab-radius: var(--craft-radius); /* the floating cart carries a label — a button, not a dot */
   --fab-shadow: 3px 3px 0 var(--border-default);
   --fab-shadow-hover: 5px 5px 0 var(--border-default);
   --fab-shadow-focus: 3px 3px 0 var(--border-default), 0 0 0 3px var(--brand-accent);
@@ -140,7 +149,7 @@
   --fab-badge-fg: var(--text-on-primary);
 
   /* Cookie-consent banner buttons (non-modal shared chrome). */
-  --ctl-btn-radius: 999px;
+  --ctl-btn-radius: var(--craft-radius);
   --ctl-btn-font: 'Caveat', cursive;
   --ctl-btn-weight: 700;
   --ctl-btn-size: 1.1rem;
@@ -259,19 +268,52 @@ html[data-theme='dark'] {
 body[class] {
   font-family: var(--font-family-sans);
 
-  /* Hand-drawn kitchen wallpaper behind every craft customer page. It tiles
-     over the warm-cream base (--surface-primary stays the fallback fill under
-     the image). Page-root containers set `background: var(--page-canvas)`
-     (transparent in craft) so this shows through, with cards floating on top.
-     Dark theme swaps to the aubergine/apricot version below. The <body> font
-     classes give this rule 0-1-1 specificity, beating globals.css's plain
-     `body` (0-0-1) without !important. */
-  background-image: url('/craft/kitchen-bg-light.jpg');
-  background-repeat: repeat;
-  background-size: 460px auto;
-  background-position: top center;
+  /* <body> must be TRANSPARENT for the wallpaper layer below to be visible, and
+     this is not a style choice — it is CSS painting order. The wallpaper rides a
+     negative-z-index pseudo-element, and within the root stacking context those
+     are painted at step 2, *before* the backgrounds of non-positioned descendants
+     at step 3 (CSS 2.1 §E.2). <body> is such a descendant, so its own background
+     paints straight over the artwork: globals.css's `html, body { background-color
+     }` is enough to bury it completely.
+     The cream base still comes from that same globals rule via <html>, whose
+     background is propagated to the canvas behind everything. Verified in
+     Chromium, not assumed — the first attempt at this rule kept an opaque body
+     and rendered no wallpaper at all. */
+  background-color: transparent;
 }
 
-html[data-theme='dark'] body[class] {
+/**
+ * Hand-drawn kitchen wallpaper behind every craft customer page — ONE image
+ * covering the viewport, not a tile.
+ *
+ * It used to `repeat` at a 460px width, which showed its seams: the artwork is a
+ * single 900×900 illustration, not a seamless pattern, so every edge landed as a
+ * visible grid line. `cover` crops instead of tiling, which is what the drawing
+ * wants.
+ *
+ * Why a fixed pseudo-element rather than `background-attachment: fixed` on
+ * <body>: with `cover`, a scroll-attached background is sized to the *document*,
+ * so a long menu page would stretch the image over several thousand pixels and
+ * turn it to mush. `fixed` sizes to the viewport instead — but iOS Safari has a
+ * long-standing bug where `background-attachment: fixed` is sized to the document
+ * anyway, giving exactly the blow-up we are avoiding. A `position: fixed` layer is
+ * sized by its own box on every engine, so both cases behave.
+ *
+ * `z-index: -1` puts it behind page content but above the body's own background;
+ * `pointer-events: none` keeps it inert.
+ */
+body[class]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url('/craft/kitchen-bg-light.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+html[data-theme='dark'] body[class]::before {
   background-image: url('/craft/kitchen-bg-dark.jpg');
 }

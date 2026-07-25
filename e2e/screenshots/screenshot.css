@@ -21,6 +21,28 @@ body {
   height: auto !important;
 }
 
+/*
+ * craft paints its kitchen wallpaper on a `position: fixed` layer (the only way
+ * `cover` can be sized to the viewport rather than to a several-thousand-pixel
+ * document — see templates/craft/tokens.css). A fullPage capture cannot represent
+ * a fixed layer: Chromium paints it once against the viewport, so the artwork
+ * would vanish from every craft baseline and they would stop guarding it — a
+ * missing or wrong wallpaper would then pass CI silently.
+ *
+ * Anchoring it to <body> for the capture keeps that coverage: body's height is
+ * already relaxed to the document above, so the layer spans the whole page. The
+ * captured art is therefore document-scaled rather than viewport-scaled — the
+ * baselines answer "is the wallpaper there, and is it the right artwork", not
+ * "what exact scale does a 1280px viewport show". Runtime is untouched.
+ */
+body {
+  position: relative !important;
+}
+
+body::before {
+  position: absolute !important;
+}
+
 * {
   caret-color: transparent !important;
 }

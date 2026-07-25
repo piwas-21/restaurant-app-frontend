@@ -81,6 +81,7 @@ module.exports = {
     'src/lib/floorPlan/movable.ts',
     'src/lib/floorPlan/palette.ts',
     'src/lib/floorPlan/itemPlacement.ts',
+    'src/lib/allergens.ts',
     'src/hooks/floorPlan/useEditorDrag.ts',
     'src/hooks/floorPlan/useEditorItems.ts',
     'src/hooks/floorPlan/useEditorMarquee.ts',
@@ -426,6 +427,13 @@ module.exports = {
       lines: 99,
     },
     './src/lib/floorPlan/itemPlacement.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // The allergen table decides what every menu card shows; a miss is silent.
+    './src/lib/allergens.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

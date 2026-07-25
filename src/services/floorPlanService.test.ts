@@ -1,6 +1,6 @@
 import { getFloorPlan, saveFloorPlan } from './floorPlanService';
 import { apiClient } from '@/utils/apiClient';
-import type { FloorPlanDocument } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanWall } from '@/types/floorPlan';
 
 jest.mock('@/utils/apiClient');
 
@@ -66,6 +66,47 @@ describe('floorPlanService', () => {
     // Everything else about the placed item survives the trip.
     expect(sent.items[0]).toMatchObject({ kind: 'column', x: 4, y: 3 });
     expect(JSON.stringify(sent)).not.toContain('local-item-');
+  });
+
+  it('strips a client-minted id from EVERY collection, so a new wall or opening cannot 400 either', async () => {
+    mockApiClient.put.mockResolvedValue({ success: true, data: doc });
+    // The shape the wall tool (S7) will produce: local ids on a wall AND its
+    // openings. Both DTO `Id` fields are `Guid?`, exactly like the item's.
+    const wall: FloorPlanWall = {
+      id: 'local-item-7',
+      points: [{ x: 0, y: 0 }],
+      thicknessMeters: 0.12,
+      isClosed: false,
+      zIndex: 0,
+      openings: [
+        {
+          id: 'local-item-8',
+          segmentIndex: 0,
+          offsetMeters: 1,
+          widthMeters: 0.9,
+          kind: 'door' as const,
+          swingDirection: 'in',
+        },
+        {
+          id: 'aa11bb22-0000-4000-8000-000000000009',
+          segmentIndex: 0,
+          offsetMeters: 2,
+          widthMeters: 0.9,
+          kind: 'window' as const,
+          swingDirection: 'none',
+        },
+      ],
+    };
+
+    await saveFloorPlan('plan-1', { ...doc, walls: [wall] });
+
+    const sent = mockApiClient.put.mock.calls[0][1] as FloorPlanDocument;
+    expect(sent.walls[0].id).toBeUndefined();
+    expect(sent.walls[0].openings[0].id).toBeUndefined();
+    // A stored id still round-trips — stripping must not orphan existing rows.
+    expect(sent.walls[0].openings[1].id).toBe('aa11bb22-0000-4000-8000-000000000009');
+    // The guard that fails the day a new collection is added without stripping.
+    expect(JSON.stringify(sent)).not.toContain('local-');
   });
 
   it('propagates a save conflict envelope to the caller', async () => {

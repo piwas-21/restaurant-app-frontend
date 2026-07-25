@@ -1,7 +1,7 @@
 import { apiClient } from '@/utils/apiClient';
 import type { ApiResponse } from '@/types/reservation';
 import type { FloorPlanDocument } from '@/types/floorPlan';
-import { isLocalItemId } from '@/lib/floorPlan/itemPlacement';
+import { isLocalId } from '@/lib/floorPlan/itemPlacement';
 
 /**
  * Floor-plan document API (FLOOR-PLAN-REVAMP §5.2). `GET` is the anonymous
@@ -16,17 +16,33 @@ export const getFloorPlan = async (): Promise<ApiResponse<FloorPlanDocument>> =>
   return apiClient.get<ApiResponse<FloorPlanDocument>>(BASE);
 };
 
+/** Drop a client-minted id, keep a server one. `JSON.stringify` omits undefined. */
+const withoutLocalId = <T extends { id?: string }>(entity: T): T =>
+  entity.id && isLocalId(entity.id) ? { ...entity, id: undefined } : entity;
+
 /**
- * The document as the API takes it. An item the editor placed carries a
- * **client-minted id** (`local-item-N`), and `FloorPlanItemDto.Id` is a `Guid?` —
- * so sending one back is a model-binding 400, not a new item. The server ignores
- * item ids regardless (a save replaces walls and items wholesale and re-mints
- * them), so a locally placed item goes up with no id at all. `JSON.stringify`
- * drops the undefined, which is exactly the "new item" shape the DTO documents.
+ * The document as the API takes it. Anything the editor created carries a
+ * **client-minted id** (`local-item-N`), and *every* `Id` on the document DTOs —
+ * `FloorPlanItemDto`, `FloorPlanWallDto`, `FloorPlanOpeningDto` — is a `Guid?`.
+ * Sending one back is therefore a **model-binding 400, not a new object**, which
+ * the UI can only report as "could not save".
+ *
+ * The server ignores these ids regardless (a save replaces walls, openings and
+ * items wholesale and re-mints them), so a locally created object goes up with no
+ * id at all — the "new object" shape the DTOs document.
+ *
+ * **Every id-bearing collection is stripped, not just the one that has bitten us.**
+ * Items are all the editor can create today; the wall tool (S7) will mint wall and
+ * opening ids into the same trap, and `floorPlanService.test.ts` fails if any
+ * `local-` id survives into a payload.
  */
 const toWirePayload = (document: FloorPlanDocument): FloorPlanDocument => ({
   ...document,
-  items: document.items.map((item) => (item.id && isLocalItemId(item.id) ? { ...item, id: undefined } : item)),
+  items: document.items.map(withoutLocalId),
+  walls: document.walls.map((wall) => ({
+    ...withoutLocalId(wall),
+    openings: wall.openings.map(withoutLocalId),
+  })),
 });
 
 /**

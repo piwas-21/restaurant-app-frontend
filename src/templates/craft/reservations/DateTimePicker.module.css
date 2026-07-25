@@ -92,7 +92,7 @@
   background-color: var(--surface-card);
   color: var(--text-primary);
   border: 2px solid var(--border-default);
-  border-radius: 999px;
+  border-radius: var(--craft-radius); /* a bordered text pill is a button, not a dot */
   box-shadow: 2px 2px 0 var(--border-default);
   font-family: 'Caveat', cursive;
   font-size: 1.15rem;

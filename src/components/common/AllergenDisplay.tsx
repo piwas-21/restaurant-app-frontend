@@ -2,65 +2,8 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { getAllergenInfo } from '@/lib/allergens';
 import styles from './AllergenDisplay.module.css';
-
-// Helper function to get allergen styling and icon
-export function getAllergenInfo(allergen: string) {
-  const allergenLower = allergen.toLowerCase().replace(/ /g, '_');
-
-  // Define allergen types with their styling and icons
-  const allergenMap: { [key: string]: { icon: string; className: string } } = {
-    vegan: { icon: '🌱', className: 'vegan' },
-    vegetarian: { icon: '🥬', className: 'vegetarian' },
-    gluten_free: { icon: '🚫🌾', className: 'glutenFree' },
-    dairy_free: { icon: '🚫🥛', className: 'dairyFree' },
-    nut_free: { icon: '🚫🥜', className: 'nutFree' },
-    halal: { icon: '☪️', className: 'halal' },
-    kosher: { icon: '✡️', className: 'kosher' },
-    contains_nuts: { icon: '🥜', className: 'warning' },
-    contains_dairy: { icon: '🧈', className: 'warning' },
-    contains_gluten: { icon: '🌾', className: 'warning' },
-    contains_soy: { icon: '🫘', className: 'warning' },
-    contains_eggs: { icon: '🥚', className: 'warning' },
-    spicy: { icon: '🌶️', className: 'spicy' },
-    sugar_free: { icon: '🚫🍬', className: 'sugarFree' },
-    organic: { icon: '🌿', className: 'organic' },
-    low_sodium: { icon: '🧂⬇️', className: 'lowSodium' },
-  };
-
-  // Check for exact matches first
-  if (allergenMap[allergenLower]) {
-    return allergenMap[allergenLower];
-  }
-
-  // Check for partial matches for "contains" warnings
-  if (allergenLower.includes('contain') || allergenLower.includes('may contain')) {
-    return { icon: '⚠️', className: 'warning' };
-  }
-
-  // Default styling for unknown allergens
-  return { icon: '🏷️', className: 'default' };
-}
-
-// Export the available allergens for form components
-export const AVAILABLE_ALLERGENS = [
-  'vegan',
-  'vegetarian',
-  'gluten_free',
-  'dairy_free',
-  'nut_free',
-  'halal',
-  'kosher',
-  'contains_nuts',
-  'contains_dairy',
-  'contains_gluten',
-  'contains_soy',
-  'contains_eggs',
-  'spicy',
-  'sugar_free',
-  'organic',
-  'low_sodium',
-];
 
 interface AllergenDisplayProps {
   allergens?: string[];

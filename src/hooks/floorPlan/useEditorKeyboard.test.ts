@@ -4,12 +4,15 @@ import { floorPlanFixture } from '@/components/floor-plan/__fixtures__/floorPlan
 import type { FloorPlanDocument } from '@/types/floorPlan';
 
 const table = (doc: FloorPlanDocument, id: string) => doc.tables.find((t) => t.id === id)!;
+const item = (doc: FloorPlanDocument, id: string) => doc.items.find((i) => i.id === id)!;
 
 function setup(overrides: Partial<Parameters<typeof useEditorKeyboard>[0]> = {}) {
   const apply = jest.fn();
   const undo = jest.fn();
   const redo = jest.fn();
   const onDeleteSelected = jest.fn();
+  const onDeleteItems = jest.fn();
+  const onDuplicate = jest.fn();
   const clearSelection = jest.fn();
   const props = {
     enabled: true,
@@ -20,10 +23,12 @@ function setup(overrides: Partial<Parameters<typeof useEditorKeyboard>[0]> = {})
     redo,
     clearSelection,
     onDeleteSelected,
+    onDeleteItems,
+    onDuplicate,
     ...overrides,
   };
   renderHook(() => useEditorKeyboard(props));
-  return { apply, undo, redo, clearSelection, onDeleteSelected, props };
+  return { apply, undo, redo, clearSelection, onDeleteSelected, onDeleteItems, onDuplicate, props };
 }
 
 const press = (key: string, init: KeyboardEventInit = {}) =>
@@ -138,5 +143,61 @@ describe('useEditorKeyboard', () => {
     const { apply } = setup({ document: doc, selectedIds: doc.tables.map((t) => t.id) });
     press(']');
     expect(apply).not.toHaveBeenCalled();
+  });
+});
+
+describe('useEditorKeyboard — placed items', () => {
+  it('nudges a selected item, writing its own field names', () => {
+    const { apply } = setup({ selectedIds: ['i2'] }); // plant at (5, 4)
+    press('ArrowRight');
+    expect(item(apply.mock.calls[0][0], 'i2').x).toBeCloseTo(5.25, 5);
+  });
+
+  it('nudges a table and an item together', () => {
+    const { apply } = setup({ selectedIds: ['t1', 'i2'] });
+    press('ArrowDown');
+    const next = apply.mock.calls[0][0];
+    expect(table(next, 't1').positionY).toBeCloseTo(2.75, 5);
+    expect(item(next, 'i2').y).toBeCloseTo(4.25, 5);
+  });
+
+  it('rotates an item with the bracket keys', () => {
+    const { apply } = setup({ selectedIds: ['i2'] });
+    press(']');
+    expect(item(apply.mock.calls[0][0], 'i2').rotationDegrees).toBe(15);
+  });
+
+  it('deletes items outright — no modal, because it is a local edit', () => {
+    const { onDeleteItems, onDeleteSelected } = setup({ selectedIds: ['i1', 'i2'] });
+    press('Delete');
+    expect(onDeleteItems).toHaveBeenCalledTimes(1);
+    expect(onDeleteSelected).not.toHaveBeenCalled();
+  });
+
+  it('deletes the items of a MIXED selection and leaves the table to its dialog', () => {
+    const { onDeleteItems, onDeleteSelected } = setup({ selectedIds: ['t1', 'i2'] });
+    press('Backspace');
+    expect(onDeleteItems).toHaveBeenCalledTimes(1);
+    expect(onDeleteSelected).not.toHaveBeenCalled();
+  });
+
+  it('asks nothing when several TABLES are selected — one dialog cannot cover both', () => {
+    const { onDeleteItems, onDeleteSelected } = setup({ selectedIds: ['t1', 't2'] });
+    press('Delete');
+    expect(onDeleteItems).not.toHaveBeenCalled();
+    expect(onDeleteSelected).not.toHaveBeenCalled();
+  });
+
+  it('duplicates on ⌘D, and swallows the browser bookmark shortcut regardless', () => {
+    const { onDuplicate } = setup({ selectedIds: ['i2'] });
+    press('d', { metaKey: true });
+    press('D', { ctrlKey: true, shiftKey: true });
+    expect(onDuplicate).toHaveBeenCalledTimes(2);
+  });
+
+  it('leaves a bare d alone, so it stays free for a future tool shortcut', () => {
+    const { onDuplicate } = setup({ selectedIds: ['i2'] });
+    press('d');
+    expect(onDuplicate).not.toHaveBeenCalled();
   });
 });

@@ -69,6 +69,22 @@ describe('FloorPlanScene — admin ↔ guest mirroring', () => {
     expect(geometrySignature(sceneSvg(guest.container))).toEqual(geometrySignature(sceneSvg(admin.container)));
   });
 
+  it('is invariant to item interactivity — the editor adds behaviour, never a shape', () => {
+    // The editor makes every placed item a focusable button; that must add only
+    // role/tabIndex/aria-*, or the guest map and the editor would draw different
+    // scenery from the same document.
+    const guest = render(<FloorPlanScene document={plan} />);
+    const admin = render(
+      <FloorPlanScene
+        document={plan}
+        onSelectItem={jest.fn()}
+        formatItemLabel={(item) => `Object ${item.kind}`}
+        selectedItemIds={plan.items.map((i) => i.id ?? '')}
+      />,
+    );
+    expect(geometrySignature(sceneSvg(guest.container))).toEqual(geometrySignature(sceneSvg(admin.container)));
+  });
+
   it('is invariant to render state — state changes fills, not geometry', () => {
     const a = render(<FloorPlanScene document={plan} tableStates={{ t1: 'selected', t2: 'small' }} />);
     const b = render(<FloorPlanScene document={plan} tableStates={{ t1: 'dim', t2: 'available' }} />);

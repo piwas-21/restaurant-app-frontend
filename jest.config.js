@@ -78,10 +78,15 @@ module.exports = {
     'src/lib/floorPlan/editorGestures.ts',
     'src/lib/floorPlan/selection.ts',
     'src/lib/floorPlan/align.ts',
+    'src/lib/floorPlan/movable.ts',
+    'src/lib/floorPlan/palette.ts',
     'src/hooks/floorPlan/useEditorDrag.ts',
+    'src/hooks/floorPlan/useEditorItems.ts',
     'src/hooks/floorPlan/useEditorMarquee.ts',
     'src/hooks/floorPlan/useStageScale.ts',
     'src/components/floor-plan/editor/EditorHandles.tsx',
+    'src/components/floor-plan/editor/EditorPalette.tsx',
+    'src/components/floor-plan/editor/itemKindLabel.ts',
     'src/components/floor-plan/guest/guestMapState.ts',
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
@@ -405,6 +410,26 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // S6b-3: the movable vocabulary and the palette are pure, so they carry the
+    // same 99% bar as the rest of the floor-plan geometry layer.
+    './src/lib/floorPlan/movable.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/lib/floorPlan/palette.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/floorPlan/useEditorItems.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     './src/hooks/floorPlan/useStageScale.ts': {
       statements: 99,
       branches: 99,
@@ -412,6 +437,18 @@ module.exports = {
       lines: 99,
     },
     './src/components/floor-plan/editor/EditorHandles.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/editor/EditorPalette.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/editor/itemKindLabel.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { ViewBox } from '@/lib/floorPlan/geometry';
 import { idsInMarquee, marqueeBetween, type MarqueeRect } from '@/lib/floorPlan/selection';
+import { documentMovables } from '@/lib/floorPlan/movable';
 import { useStageProjection, type StagePointerHandlers } from './editorStage';
 import type { FloorPlanDocument, FloorPlanPoint } from '@/types/floorPlan';
 
@@ -138,11 +139,11 @@ export function useEditorMarquee({
       }
       return;
     }
-    const hits = idsInMarquee(doc.tables, swept);
-    // A shift-sweep UNIONS rather than toggles: sweeping over a table you already
-    // picked should never quietly drop it back out of the selection.
+    const hits = idsInMarquee(documentMovables(doc), swept);
+    // A shift-sweep UNIONS rather than toggles: sweeping over something you
+    // already picked should never quietly drop it back out of the selection.
     onSelectMany(start.additive ? [...selectedIds, ...hits.filter((id) => !selectedIds.includes(id))] : hits);
-  }, [doc.tables, onSelectMany, selectedIds, showBand]);
+  }, [doc, onSelectMany, selectedIds, showBand]);
 
   const onPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {

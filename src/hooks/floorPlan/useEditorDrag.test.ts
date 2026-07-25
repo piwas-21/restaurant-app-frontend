@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useEditorDrag } from './useEditorDrag';
 import { ROTATE_HANDLE } from '@/lib/floorPlan/handles';
-import { planDocument, tableGeometry } from '@/lib/floorPlan/__fixtures__/editorFixtures';
+import { planDocument, planItem, tableGeometry } from '@/lib/floorPlan/__fixtures__/editorFixtures';
 import type { ViewBox } from '@/lib/floorPlan/geometry';
 import type { StagePointerPhase } from './editorStage';
 
@@ -193,7 +193,7 @@ describe('useEditorDrag — grips', () => {
 
     expect(result.current.gesture).toEqual({
       kind: 'rotate',
-      origin: { positionX: 2, positionY: 2, width: 1, height: 1, rotation: 0 },
+      origin: { x: 2, y: 2, widthMeters: 1, heightMeters: 1, rotationDegrees: 0 },
     });
   });
 
@@ -351,5 +351,48 @@ describe('useEditorDrag — fall-through to pan', () => {
 
     expect(fallback.onPointerDown).toHaveBeenCalledTimes(1);
     expect(onSelect).not.toHaveBeenCalled();
+  });
+});
+
+describe('useEditorDrag — placed items', () => {
+  /** A 1 m column at (6, 3), reached by pressing bare plan inside its footprint. */
+  const WITH_ITEM = planDocument([tableGeometry({ id: 'a', positionX: 2, positionY: 2 })], {
+    items: [planItem({ id: 'col', x: 6, y: 3 })],
+  });
+
+  it('grabs an item pressed on bare plan inside its footprint, and selects it', () => {
+    const { fire, onSelect, onCommit, floor } = setup([], WITH_ITEM);
+    fire('onPointerDown', floor, 600, 300);
+    fire('onPointerMove', floor, 650, 300);
+    fire('onPointerUp', floor, 650, 300);
+
+    expect(onSelect).toHaveBeenCalledWith('col', false);
+    expect(onCommit.mock.calls[0][0].items[0]).toMatchObject({ x: 6.5, y: 3 });
+  });
+
+  it('commits nothing for a tap on an item — a press is not an edit', () => {
+    const { fire, onCommit, floor } = setup([], WITH_ITEM);
+    fire('onPointerDown', floor, 600, 300);
+    fire('onPointerUp', floor, 600, 300);
+
+    expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('carries a table along when it is part of the selection', () => {
+    const { fire, onCommit, floor } = setup(['col', 'a'], WITH_ITEM);
+    fire('onPointerDown', floor, 600, 300);
+    fire('onPointerMove', floor, 700, 300);
+    fire('onPointerUp', floor, 700, 300);
+
+    const next = onCommit.mock.calls[0][0];
+    expect(next.items[0]).toMatchObject({ x: 7 });
+    expect(next.tables[0]).toMatchObject({ positionX: 3 });
+  });
+
+  it('still pans from bare plan that no item covers', () => {
+    const { fire, fallback, floor } = setup([], WITH_ITEM);
+    fire('onPointerDown', floor, 100, 700);
+
+    expect(fallback.onPointerDown).toHaveBeenCalledTimes(1);
   });
 });

@@ -12,6 +12,8 @@ import TableQRCodeModal from '@/components/admin/tables/TableQRCodeModal';
 import EditorToolbar from './EditorToolbar';
 import EditorCanvas from './EditorCanvas';
 import EditorInspector from './EditorInspector';
+import EditorPalette from './EditorPalette';
+import { itemKindLabel } from './itemKindLabel';
 import EditorPreviewModal from './EditorPreviewModal';
 import styles from './FloorPlanEditor.module.css';
 
@@ -79,14 +81,17 @@ export default function FloorPlanEditor() {
     <div className={styles.editor}>
       {banner && <div className={`${styles.message} ${styles[banner.type]}`}>{banner.text}</div>}
 
-      <EditorToolbar
-        editor={editor}
-        addDisabled={editor.dirty}
-        onAddTable={() => setShowCreate(true)}
-        onPreview={() => setShowPreview(true)}
-      />
+      <EditorToolbar editor={editor} onPreview={() => setShowPreview(true)} />
 
       <div className={styles.workspace}>
+        <EditorPalette
+          armedKind={editor.armedKind}
+          onArm={editor.armPaletteKind}
+          className={styles.palette}
+          onAddTable={() => setShowCreate(true)}
+          addTableDisabled={editor.dirty}
+          canPlace={editor.canPlaceItem}
+        />
         <EditorCanvas
           editor={editor}
           ariaLabel={t('editor_canvas_aria', 'Floor plan editor canvas')}
@@ -96,6 +101,7 @@ export default function FloorPlanEditor() {
               seats: table.maxGuests,
             })
           }
+          formatItemLabel={(item) => itemKindLabel(t, item.kind)}
         />
         <EditorInspector
           editor={editor}

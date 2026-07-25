@@ -2,7 +2,6 @@
 
 import { useTranslation } from 'react-i18next';
 import { metresToCm, rectCorners, type OrientedRect } from '@/lib/floorPlan/geometry';
-import { tableOrientedRect } from '@/lib/floorPlan/editorGeometry';
 import {
   RESIZE_HANDLES,
   ROTATE_HANDLE,
@@ -11,7 +10,8 @@ import {
   type ResizeHandleId,
 } from '@/lib/floorPlan/handles';
 import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
-import type { FloorPlanPoint, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { MovableGeometry } from '@/lib/floorPlan/movable';
+import type { FloorPlanPoint } from '@/types/floorPlan';
 import styles from './EditorHandles.module.css';
 
 /**
@@ -21,7 +21,8 @@ import styles from './EditorHandles.module.css';
  * size (and stay grabbable) whether the plan is fitted or zoomed right in. They
  * are pointer affordances only: rotation and size are equally reachable from the
  * inspector and the keyboard (SC 2.5.7), which is why this whole layer sits
- * inside the overlay's `aria-hidden` group.
+ * inside the overlay's `aria-hidden` group. It draws a plain rect, so a table and
+ * a placed item get the same grips from the same code.
  */
 
 const GRIP_PX = 10;
@@ -54,14 +55,15 @@ const cornerPoints = (rect: OrientedRect): string =>
     .join(' ');
 
 interface EditorHandlesProps {
-  table: FloorPlanTableGeometry;
+  /** The single selection's footprint — a table or an item, normalised. */
+  rect: MovableGeometry;
   /** Screen pixels per plan centimetre; 0 until the stage has been measured. */
   pxPerCm: number;
   /** The live gesture, for the pre-gesture ghost and the measurement badge. */
   gesture: ActiveGesture | null;
 }
 
-export default function EditorHandles({ table, pxPerCm, gesture }: Readonly<EditorHandlesProps>) {
+export default function EditorHandles({ rect, pxPerCm, gesture }: Readonly<EditorHandlesProps>) {
   const { t } = useTranslation();
   if (pxPerCm <= 0) {
     return null;
@@ -69,31 +71,21 @@ export default function EditorHandles({ table, pxPerCm, gesture }: Readonly<Edit
 
   /** Screen pixels as plan centimetres at the current zoom. */
   const cm = (px: number) => round(px / pxPerCm);
-  const rect = tableOrientedRect(table);
   const grip = cm(GRIP_PX);
   const hit = cm(GRIP_HIT_PX);
   const rotate = toCm(rotateHandlePoint(rect, cm(ROTATE_ARM_PX) / 100));
   /** A zero-length arm is the top edge's midpoint — where the arm is anchored. */
   const armFoot = toCm(rotateHandlePoint(rect, 0));
 
-  const ghost =
-    gesture && gesture.kind !== 'move'
-      ? cornerPoints({
-          x: gesture.origin.positionX,
-          y: gesture.origin.positionY,
-          widthMeters: gesture.origin.width,
-          heightMeters: gesture.origin.height,
-          rotationDegrees: gesture.origin.rotation,
-        })
-      : null;
+  const ghost = gesture && gesture.kind !== 'move' ? cornerPoints(gesture.origin) : null;
 
   let badge: string | null = null;
   if (gesture?.kind === 'rotate') {
-    badge = t('editor_angle_badge', '{{degrees}}°', { degrees: Math.round(table.rotation) });
+    badge = t('editor_angle_badge', '{{degrees}}°', { degrees: Math.round(rect.rotationDegrees) });
   } else if (gesture?.kind === 'resize') {
     badge = t('editor_size_badge', '{{width}} × {{height}} m', {
-      width: table.width.toFixed(2),
-      height: table.height.toFixed(2),
+      width: rect.widthMeters.toFixed(2),
+      height: rect.heightMeters.toFixed(2),
     });
   }
 
@@ -120,7 +112,7 @@ export default function EditorHandles({ table, pxPerCm, gesture }: Readonly<Edit
               width={grip}
               height={grip}
               rx={round(grip * 0.28)}
-              transform={`rotate(${table.rotation} ${p.x} ${p.y})`}
+              transform={`rotate(${rect.rotationDegrees} ${p.x} ${p.y})`}
             />
           </g>
         );

@@ -1,0 +1,128 @@
+/* Object palette rail (FLOOR-PLAN-REVAMP §4.3). A scrollable column of grouped
+   entries beside the canvas; on narrow screens the whole rail lies down and
+   scrolls sideways, so the plan keeps the full width. Colours are semantic
+   tokens only — the symbol previews inherit the scene's own `--fp-*` layer. */
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-card);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.groupHeading {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry,
+.addTable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.entry:hover:not(:disabled),
+.addTable:hover:not(:disabled) {
+  background: var(--surface-secondary);
+}
+
+.entry[aria-pressed='true'] {
+  border-color: var(--brand-primary);
+  background: var(--surface-secondary);
+}
+
+.entry:disabled,
+.addTable:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preview {
+  display: block;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  /* The scene class paints its own paper background; a rail chip wants none. */
+  background: none;
+}
+
+.preview svg {
+  max-height: 30px;
+  background: none;
+}
+
+.entryText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.entryName {
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.entrySize {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.hint {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+/* Matches the editor layout's own breakpoint: the moment the rail spans the full
+   width above the canvas it has to lie down, or it is a tall column with dead
+   space beside it. Keep the two in step. */
+@media (max-width: 1200px) {
+  .rail {
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .group {
+    flex: 0 0 auto;
+  }
+
+  .hint {
+    flex: 1 0 140px;
+  }
+}

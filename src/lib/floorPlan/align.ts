@@ -1,12 +1,15 @@
-import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
-import { updateTable } from './document';
+import type { FloorPlanDocument } from '@/types/floorPlan';
+import { patchMovable } from './document';
+import { selectedMovables, type Movable } from './movable';
 
 /**
- * Align and distribute for a multi-table selection (FLOOR-PLAN-REVAMP §4.3) —
+ * Align and distribute for a multi-object selection (FLOOR-PLAN-REVAMP §4.3) —
  * the fastest way to make a plan match a room that was itself laid out on a
- * grid, and the *no-drag* way to arrange tables (SC 2.5.7). Every operation
+ * grid, and the *no-drag* way to arrange things (SC 2.5.7). Tables and placed
+ * items line up together: a row of stools along a bar is the same operation as a
+ * row of tables, so both are one code path over {@link Movable}. Every operation
  * works on the selection's own bounding box, so nothing can travel outside the
- * space the tables already occupy and no plan clamp is needed.
+ * space the objects already occupy and no plan clamp is needed.
  */
 
 export type PlanAxis = 'x' | 'y';
@@ -24,66 +27,65 @@ const EDGES: Record<AlignEdge, { axis: PlanAxis; side: EdgeSide }> = {
   bottom: { axis: 'y', side: 1 },
 };
 
-const centreOn = (t: FloorPlanTableGeometry, axis: PlanAxis): number => (axis === 'x' ? t.positionX : t.positionY);
-const halfOn = (t: FloorPlanTableGeometry, axis: PlanAxis): number => (axis === 'x' ? t.width : t.height) / 2;
+const centreOn = (m: Movable, axis: PlanAxis): number => (axis === 'x' ? m.x : m.y);
+const halfOn = (m: Movable, axis: PlanAxis): number => (axis === 'x' ? m.widthMeters : m.heightMeters) / 2;
 
-const patchFor = (axis: PlanAxis, centre: number): Partial<FloorPlanTableGeometry> =>
-  axis === 'x' ? { positionX: centre } : { positionY: centre };
+const patchFor = (axis: PlanAxis, centre: number) => (axis === 'x' ? { x: centre } : { y: centre });
 
-/** The tables named by `ids`, in document order; ids that no longer exist are skipped. */
-const selected = (doc: FloorPlanDocument, ids: readonly string[]): FloorPlanTableGeometry[] =>
-  doc.tables.filter((t) => ids.includes(t.id));
+/** Where one object is going. Carrying the movable itself keeps the lookup honest. */
+interface Placement {
+  movable: Movable;
+  centre: number;
+}
 
 /**
- * Apply one centre-per-table onto the document, returning the SAME document when
+ * Apply one centre-per-object onto the document, returning the SAME document when
  * nothing actually moves — an already-aligned selection must not cost the user
  * an undo press.
  */
-const applyCentres = (doc: FloorPlanDocument, axis: PlanAxis, centres: Map<string, number>): FloorPlanDocument => {
-  const moved = [...centres].filter(([id, centre]) => {
-    const table = doc.tables.find((t) => t.id === id);
-    return table && centreOn(table, axis) !== centre;
-  });
-  return moved.reduce((next, [id, centre]) => updateTable(next, id, patchFor(axis, centre)), doc);
-};
+const applyCentres = (doc: FloorPlanDocument, axis: PlanAxis, targets: Placement[]): FloorPlanDocument =>
+  targets
+    .filter(({ movable, centre }) => centreOn(movable, axis) !== centre)
+    .reduce((next, { movable, centre }) => patchMovable(next, movable.id, patchFor(axis, centre)), doc);
 
 /**
- * Line the selection's chosen edges up. Needs two tables to mean anything;
+ * Line the selection's chosen edges up. Needs two objects to mean anything;
  * fewer is returned untouched so a caller never has to special-case it.
  */
-export function alignTables(doc: FloorPlanDocument, ids: readonly string[], edge: AlignEdge): FloorPlanDocument {
-  const tables = selected(doc, ids);
-  if (tables.length < 2) {
+export function alignMovables(doc: FloorPlanDocument, ids: readonly string[], edge: AlignEdge): FloorPlanDocument {
+  const picked = selectedMovables(doc, ids);
+  if (picked.length < 2) {
     return doc;
   }
   const { axis, side } = EDGES[edge];
-  const low = Math.min(...tables.map((t) => centreOn(t, axis) - halfOn(t, axis)));
-  const high = Math.max(...tables.map((t) => centreOn(t, axis) + halfOn(t, axis)));
-  const centres = new Map(
-    tables.map((t) => {
-      const half = halfOn(t, axis);
-      if (side === 0) {
-        return [t.id, (low + high) / 2] as const;
-      }
-      return [t.id, side < 0 ? low + half : high - half] as const;
-    }),
-  );
-  return applyCentres(doc, axis, centres);
+  const low = Math.min(...picked.map((m) => centreOn(m, axis) - halfOn(m, axis)));
+  const high = Math.max(...picked.map((m) => centreOn(m, axis) + halfOn(m, axis)));
+  const targets = picked.map((movable) => {
+    const half = halfOn(movable, axis);
+    if (side === 0) {
+      return { movable, centre: (low + high) / 2 };
+    }
+    return { movable, centre: side < 0 ? low + half : high - half };
+  });
+  return applyCentres(doc, axis, targets);
 }
 
 /**
  * Space the selection evenly *by centre* along one axis, holding the two
- * outermost tables where they are. Needs three tables — with two there is
- * nothing between them to space — so fewer is returned untouched.
+ * outermost objects where they are. Needs three — with two there is nothing
+ * between them to space — so fewer is returned untouched.
  */
-export function distributeTables(doc: FloorPlanDocument, ids: readonly string[], axis: PlanAxis): FloorPlanDocument {
-  const tables = selected(doc, ids).toSorted((a, b) => centreOn(a, axis) - centreOn(b, axis));
-  if (tables.length < 3) {
+export function distributeMovables(doc: FloorPlanDocument, ids: readonly string[], axis: PlanAxis): FloorPlanDocument {
+  const picked = selectedMovables(doc, ids).toSorted((a, b) => centreOn(a, axis) - centreOn(b, axis));
+  if (picked.length < 3) {
     return doc;
   }
-  const first = centreOn(tables[0], axis);
+  const first = centreOn(picked[0], axis);
   // Non-null: the length guard above already rules out an empty list.
-  const step = (centreOn(tables.at(-1)!, axis) - first) / (tables.length - 1);
-  const centres = new Map(tables.map((t, index) => [t.id, first + step * index] as const));
-  return applyCentres(doc, axis, centres);
+  const step = (centreOn(picked.at(-1)!, axis) - first) / (picked.length - 1);
+  return applyCentres(
+    doc,
+    axis,
+    picked.map((movable, index) => ({ movable, centre: first + step * index })),
+  );
 }

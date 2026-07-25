@@ -105,6 +105,23 @@ export function rectCorners(rect: OrientedRect): FloorPlanPoint[] {
   }));
 }
 
+/**
+ * Is a point inside an oriented rectangle? Solved in the rect's OWN frame — the
+ * point is rotated back by the rect's angle and compared against its half
+ * extents — so rotation costs nothing and there is no degenerate case (unlike
+ * {@link obbOverlap}, whose separating axes vanish for a zero-area probe).
+ * `padMeters` grows the rect outward, which is how a caller turns a screen-pixel
+ * grab tolerance into a hit test.
+ */
+export function pointInRect(rect: OrientedRect, point: FloorPlanPoint, padMeters = 0): boolean {
+  const a = (rect.rotationDegrees * Math.PI) / 180;
+  const dx = point.x - rect.x;
+  const dy = point.y - rect.y;
+  const localX = dx * Math.cos(a) + dy * Math.sin(a);
+  const localY = -dx * Math.sin(a) + dy * Math.cos(a);
+  return Math.abs(localX) <= rect.widthMeters / 2 + padMeters && Math.abs(localY) <= rect.heightMeters / 2 + padMeters;
+}
+
 interface Vec {
   x: number;
   y: number;

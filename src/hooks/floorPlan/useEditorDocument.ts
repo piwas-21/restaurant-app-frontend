@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getFloorPlan, saveFloorPlan } from '@/services/floorPlanService';
 import { ApiError } from '@/utils/apiClient';
-import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
 import {
   canRedo as canRedoOf,
   canUndo as canUndoOf,
@@ -14,7 +14,7 @@ import {
   undo as undoOf,
   type History,
 } from '@/lib/floorPlan/history';
-import { updateTable } from '@/lib/floorPlan/document';
+import { updateItem, updateTable } from '@/lib/floorPlan/document';
 import { pruneSelection, toggleSelection } from '@/lib/floorPlan/selection';
 
 export type EditorStatus = 'loading' | 'ready' | 'error';
@@ -75,7 +75,11 @@ export function useEditorDocument() {
     setHistory((h) => (h ? commit(h, updateTable(h.present, id, patch)) : h));
   }, []);
 
-  /** Click selects one table; shift-click adds to / removes from the selection. */
+  const mutateItem = useCallback((id: string, patch: Partial<FloorPlanItem>) => {
+    setHistory((h) => (h ? commit(h, updateItem(h.present, id, patch)) : h));
+  }, []);
+
+  /** Click selects one object; shift-click adds to / removes from the selection. */
   const select = useCallback(
     (id: string, additive = false) => setSelectedIds((ids) => toggleSelection(ids, id, additive)),
     [],
@@ -119,11 +123,12 @@ export function useEditorDocument() {
     }
   }, [present, t]);
 
-  // Undo can bring a table back and a lifecycle op can take one away, so the
-  // selection is filtered against the live document rather than trusted. Memoised
-  // because it is a dependency of the keyboard listener and the align callbacks —
-  // a fresh array each render would re-subscribe them on every pointer move.
-  const liveIds = useMemo(() => (present ? pruneSelection(selectedIds, present.tables) : []), [present, selectedIds]);
+  // Undo can bring an object back, a lifecycle op can take one away, and a Save
+  // re-mints every item id, so the selection is filtered against the live
+  // document rather than trusted. Memoised because it is a dependency of the
+  // keyboard listener and the align callbacks — a fresh array each render would
+  // re-subscribe them on every pointer move.
+  const liveIds = useMemo(() => (present ? pruneSelection(selectedIds, present) : []), [present, selectedIds]);
 
   return {
     status,
@@ -136,6 +141,7 @@ export function useEditorDocument() {
     clearSelection,
     apply,
     mutateTable,
+    mutateItem,
     undo,
     redo,
     canUndo: history ? canUndoOf(history) : false,

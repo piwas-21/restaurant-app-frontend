@@ -43,6 +43,31 @@ describe('floorPlanService', () => {
     });
   });
 
+  it('strips a client-minted item id, which the API would reject as a non-Guid', async () => {
+    mockApiClient.put.mockResolvedValue({ success: true, data: doc });
+    const placed = {
+      id: 'local-item-1',
+      kind: 'column',
+      x: 4,
+      y: 3,
+      widthMeters: 0.4,
+      heightMeters: 0.4,
+      rotationDegrees: 0,
+      zIndex: 1,
+    };
+    const stored = { ...placed, id: 'e3f1c2d4-0000-4000-8000-000000000001', kind: 'tree' };
+
+    await saveFloorPlan('plan-1', { ...doc, items: [placed, stored] });
+
+    const sent = mockApiClient.put.mock.calls[0][1] as FloorPlanDocument;
+    // The new item goes up as a new item; the stored one keeps its server id.
+    expect(sent.items[0].id).toBeUndefined();
+    expect(sent.items[1].id).toBe(stored.id);
+    // Everything else about the placed item survives the trip.
+    expect(sent.items[0]).toMatchObject({ kind: 'column', x: 4, y: 3 });
+    expect(JSON.stringify(sent)).not.toContain('local-item-');
+  });
+
   it('propagates a save conflict envelope to the caller', async () => {
     mockApiClient.put.mockResolvedValue({
       success: false,

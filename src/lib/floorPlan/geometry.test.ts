@@ -3,6 +3,7 @@ import {
   computeViewBox,
   metresToCm,
   obbOverlap,
+  pointInRect,
   rectCorners,
   screenToPlanCm,
   screenToPlanMetres,
@@ -124,5 +125,42 @@ describe('floorPlan/geometry — obbOverlap', () => {
     // the case that proves the SAT test includes the rotated rect's axes.
     const diamond: OrientedRect = { x: 2, y: 2, widthMeters: 2, heightMeters: 2, rotationDegrees: 45 };
     expect(obbOverlap(base, diamond)).toBe(false);
+  });
+});
+
+describe('floorPlan/geometry — pointInRect', () => {
+  const base: OrientedRect = { x: 5, y: 3, widthMeters: 2, heightMeters: 1, rotationDegrees: 0 };
+
+  it('accepts the centre and a point just inside a corner', () => {
+    expect(pointInRect(base, { x: 5, y: 3 })).toBe(true);
+    expect(pointInRect(base, { x: 5.99, y: 3.49 })).toBe(true);
+  });
+
+  it('rejects a point outside on either axis', () => {
+    expect(pointInRect(base, { x: 6.01, y: 3 })).toBe(false);
+    expect(pointInRect(base, { x: 5, y: 3.51 })).toBe(false);
+  });
+
+  it('includes the boundary, so a press on the edge still grabs', () => {
+    expect(pointInRect(base, { x: 6, y: 3.5 })).toBe(true);
+  });
+
+  it('follows rotation into the rect’s own frame', () => {
+    const turned: OrientedRect = { ...base, rotationDegrees: 90 };
+    // Turned 90°, the long axis is vertical: a point 0.9 m below is now inside…
+    expect(pointInRect(turned, { x: 5, y: 3.9 })).toBe(true);
+    // …and one 0.9 m to the right, which was inside unrotated, is not.
+    expect(pointInRect(turned, { x: 5.9, y: 3 })).toBe(false);
+  });
+
+  it('grows outward by the pad, which is how a screen tolerance is applied', () => {
+    expect(pointInRect(base, { x: 6.05, y: 3 })).toBe(false);
+    expect(pointInRect(base, { x: 6.05, y: 3 }, 0.1)).toBe(true);
+  });
+
+  it('still answers for a zero-area rect, where a separating-axis test cannot', () => {
+    const degenerate: OrientedRect = { x: 1, y: 1, widthMeters: 0, heightMeters: 0, rotationDegrees: 0 };
+    expect(pointInRect(degenerate, { x: 1, y: 1 })).toBe(true);
+    expect(pointInRect(degenerate, { x: 1.01, y: 1 })).toBe(false);
   });
 });

@@ -1,13 +1,13 @@
-import type { FloorPlanPoint, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanPoint } from '@/types/floorPlan';
 import { obbOverlap, type OrientedRect } from './geometry';
-import { tableOrientedRect } from './editorGeometry';
+import { documentMovables, type Movable } from './movable';
 
 /**
  * Multi-selection maths for the admin editor (FLOOR-PLAN-REVAMP §4.3). Selection
- * is an ordered id list — order matters because the first-picked table is the
- * one align/distribute treats as the anchor of the group's bounding box. Pure,
- * so "shift-click toggles" and "the band picks what it touches" are unit-tested
- * rather than inferred from pointer handlers.
+ * is an ordered id list over **everything movable** — tables and placed items
+ * alike — and order matters because align/distribute read the group's bounding
+ * box in it. Pure, so "shift-click toggles" and "the band picks what it touches"
+ * are unit-tested rather than inferred from pointer handlers.
  */
 
 /** A rubber band in plan metres, normalised so width/height are never negative. */
@@ -38,9 +38,15 @@ export function toggleSelection(ids: readonly string[], id: string, additive: bo
   return ids.includes(id) ? ids.filter((existing) => existing !== id) : [...ids, id];
 }
 
-/** Drop ids that are no longer in the document — e.g. after a delete or reload. */
-export const pruneSelection = (ids: readonly string[], tables: readonly FloorPlanTableGeometry[]): string[] =>
-  ids.filter((id) => tables.some((t) => t.id === id));
+/**
+ * Drop ids that are no longer in the document — after a delete, an undo, or a
+ * Save (which re-mints every item id server-side, so a placed item's local id
+ * legitimately stops existing the moment the plan comes back).
+ */
+export const pruneSelection = (ids: readonly string[], doc: FloorPlanDocument): string[] => {
+  const live = documentMovables(doc);
+  return ids.filter((id) => live.some((m) => m.id === id));
+};
 
 /** The band as an oriented rect, so one overlap test covers rotated tables too. */
 const bandRect = (band: MarqueeRect): OrientedRect => ({
@@ -52,10 +58,10 @@ const bandRect = (band: MarqueeRect): OrientedRect => ({
 });
 
 /**
- * Ids of every table the band *touches* — intersection, not containment, so a
+ * Ids of every movable the band *touches* — intersection, not containment, so a
  * quick sweep across a row picks the row up instead of demanding the band
  * swallow each table whole. A zero-area band (a click that never dragged)
  * touches nothing.
  */
-export const idsInMarquee = (tables: readonly FloorPlanTableGeometry[], band: MarqueeRect): string[] =>
-  tables.filter((t) => obbOverlap(tableOrientedRect(t), bandRect(band))).map((t) => t.id);
+export const idsInMarquee = (movables: readonly Movable[], band: MarqueeRect): string[] =>
+  movables.filter((m) => obbOverlap(m, bandRect(band))).map((m) => m.id);

@@ -1,7 +1,8 @@
-import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanDocument } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
 import type { AlignmentGuide } from '@/lib/floorPlan/snapping';
 import type { MarqueeRect } from '@/lib/floorPlan/selection';
+import { selectedMovables, tableMovable, type MovableGeometry } from '@/lib/floorPlan/movable';
 import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
 import EditorHandles from './EditorHandles';
 import styles from './EditorOverlay.module.css';
@@ -11,8 +12,9 @@ import styles from './EditorOverlay.module.css';
  * (FLOOR-PLAN-REVAMP §4.3) — crisp selection outline, live alignment guides,
  * overlap warning outlines and the selection's rotate/resize grips. Everything is
  * derived from the rendered document, so it tracks the live gesture preview for
- * free. Strokes are `non-scaling` (constant screen width at any zoom); colours
- * come from the inherited scene/feedback tokens, never hex.
+ * free, and everything selectable is outlined the same way whether it is a table
+ * or a placed item. Strokes are `non-scaling` (constant screen width at any zoom);
+ * colours come from the inherited scene/feedback tokens, never hex.
  */
 interface EditorOverlayProps {
   document: FloorPlanDocument;
@@ -26,16 +28,16 @@ interface EditorOverlayProps {
   gesture: ActiveGesture | null;
 }
 
-/** A rotated rectangle around a table footprint, padded outward by `padCm`. */
+/** A rotated rectangle around a footprint, padded outward by `padCm`. */
 function Footprint({
-  table,
+  rect,
   className,
   padCm = 0,
-}: Readonly<{ table: FloorPlanTableGeometry; className: string; padCm?: number }>) {
-  const cx = metresToCm(table.positionX);
-  const cy = metresToCm(table.positionY);
-  const hw = metresToCm(table.width) / 2 + padCm;
-  const hh = metresToCm(table.height) / 2 + padCm;
+}: Readonly<{ rect: MovableGeometry; className: string; padCm?: number }>) {
+  const cx = metresToCm(rect.x);
+  const cy = metresToCm(rect.y);
+  const hw = metresToCm(rect.widthMeters) / 2 + padCm;
+  const hh = metresToCm(rect.heightMeters) / 2 + padCm;
   return (
     <rect
       className={className}
@@ -43,7 +45,7 @@ function Footprint({
       y={-hh}
       width={hw * 2}
       height={hh * 2}
-      transform={`translate(${cx.toFixed(1)} ${cy.toFixed(1)}) rotate(${table.rotation})`}
+      transform={`translate(${cx.toFixed(1)} ${cy.toFixed(1)}) rotate(${rect.rotationDegrees})`}
     />
   );
 }
@@ -59,16 +61,16 @@ export default function EditorOverlay({
 }: Readonly<EditorOverlayProps>) {
   const widthCm = metresToCm(doc.widthMeters);
   const heightCm = metresToCm(doc.heightMeters);
-  const selected = doc.tables.filter((t) => selectedIds.includes(t.id));
+  const selected = selectedMovables(doc, selectedIds);
   // Grips belong to a single selection — with several picked, arranging them is
-  // the inspector's align/distribute job, not a per-table drag.
+  // the inspector's align/distribute job, not a per-object drag.
   const only = selected.length === 1 ? selected[0] : undefined;
   return (
     <g aria-hidden="true">
       {doc.tables
         .filter((t) => overlaps.has(t.id))
         .map((t) => (
-          <Footprint key={`warn-${t.id}`} table={t} className={styles.warn} padCm={2} />
+          <Footprint key={`warn-${t.id}`} rect={tableMovable(t)} className={styles.warn} padCm={2} />
         ))}
       {guides.map((g) =>
         g.axis === 'x' ? (
@@ -91,10 +93,10 @@ export default function EditorOverlay({
           />
         ),
       )}
-      {selected.map((t) => (
-        <Footprint key={`sel-${t.id}`} table={t} className={styles.selection} padCm={6} />
+      {selected.map((m) => (
+        <Footprint key={`sel-${m.id}`} rect={m} className={styles.selection} padCm={6} />
       ))}
-      {only && <EditorHandles table={only} pxPerCm={pxPerCm} gesture={gesture} />}
+      {only && <EditorHandles rect={only} pxPerCm={pxPerCm} gesture={gesture} />}
       {marquee && (
         <rect
           className={styles.marquee}

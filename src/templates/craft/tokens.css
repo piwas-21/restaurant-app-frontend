@@ -268,12 +268,18 @@ html[data-theme='dark'] {
 body[class] {
   font-family: var(--font-family-sans);
 
-  /* The warm-cream base under the wallpaper layer below. Page-root containers
-     set `background: var(--page-canvas)` (transparent in craft) so the artwork
-     shows through, with cards floating on top. The <body> font classes give this
-     rule 0-1-1 specificity, beating globals.css's plain `body` (0-0-1) without
-     !important. */
-  background-color: var(--surface-primary);
+  /* <body> must be TRANSPARENT for the wallpaper layer below to be visible, and
+     this is not a style choice — it is CSS painting order. The wallpaper rides a
+     negative-z-index pseudo-element, and within the root stacking context those
+     are painted at step 2, *before* the backgrounds of non-positioned descendants
+     at step 3 (CSS 2.1 §E.2). <body> is such a descendant, so its own background
+     paints straight over the artwork: globals.css's `html, body { background-color
+     }` is enough to bury it completely.
+     The cream base still comes from that same globals rule via <html>, whose
+     background is propagated to the canvas behind everything. Verified in
+     Chromium, not assumed — the first attempt at this rule kept an opaque body
+     and rendered no wallpaper at all. */
+  background-color: transparent;
 }
 
 /**

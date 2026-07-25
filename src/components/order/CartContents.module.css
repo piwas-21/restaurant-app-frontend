@@ -171,6 +171,7 @@
 
 /* Why the CTA won't route yet (no order type / missing details). */
 .checkoutHint {
+  display: block;
   margin: 0.5rem 0 0;
   font-size: 0.8125rem;
   line-height: 1.35;

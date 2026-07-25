@@ -126,12 +126,9 @@ export default function CartSummary({
         {t('proceed_to_checkout', 'Proceed to Checkout')} ({getItemCount()} {t('items', 'items')})
       </button>
 
-      {/* Why it won't route yet — the click used to bounce to /menu unexplained. */}
-      {blockerMessage && (
-        <p className={styles.checkoutHint} role="status">
-          {blockerMessage}
-        </p>
-      )}
+      {/* Why it won't route yet — the click used to bounce to /menu unexplained.
+          <output> carries the live-region semantics implicitly (Sonar S6819). */}
+      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
     </div>
   );
 }

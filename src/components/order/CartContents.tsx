@@ -67,11 +67,9 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
         className={styles.checkoutButton}
       />
 
-      {blockerMessage && (
-        <p className={styles.checkoutHint} role="status">
-          {blockerMessage}
-        </p>
-      )}
+      {/* <output>, not role="status" — it carries the same implicit live-region
+          semantics as a real element rather than a bolted-on role (Sonar S6819). */}
+      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
     </>
   );
 }

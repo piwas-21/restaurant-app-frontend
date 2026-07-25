@@ -66,11 +66,8 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
         className={styles.checkoutButton}
       />
 
-      {blockerMessage && (
-        <p className={styles.checkoutHint} role="status">
-          {blockerMessage}
-        </p>
-      )}
+      {/* <output> — see CartContents: implicit live region, no bolted-on role. */}
+      {blockerMessage && <output className={styles.checkoutHint}>{blockerMessage}</output>}
     </>
   );
 }

@@ -1,7 +1,10 @@
 import { idsInMarquee, marqueeBetween, pruneSelection, toggleSelection } from './selection';
-import { tableGeometry } from './__fixtures__/editorFixtures';
+import { documentMovables } from './movable';
+import { planDocument, planItem, tableGeometry } from './__fixtures__/editorFixtures';
 
 const at = (id: string, x: number, y: number, over = {}) => tableGeometry({ id, positionX: x, positionY: y, ...over });
+/** The movables of a plan holding just these tables. */
+const movablesOf = (tables: ReturnType<typeof at>[]) => documentMovables(planDocument(tables));
 
 describe('selection — toggleSelection', () => {
   it('replaces the selection on a plain click', () => {
@@ -27,11 +30,16 @@ describe('selection — toggleSelection', () => {
 
 describe('selection — pruneSelection', () => {
   it('drops ids the document no longer has', () => {
-    expect(pruneSelection(['a', 'gone', 'b'], [at('a', 1, 1), at('b', 2, 2)])).toEqual(['a', 'b']);
+    expect(pruneSelection(['a', 'gone', 'b'], planDocument([at('a', 1, 1), at('b', 2, 2)]))).toEqual(['a', 'b']);
   });
 
   it('leaves a fully-live selection alone', () => {
-    expect(pruneSelection(['a'], [at('a', 1, 1)])).toEqual(['a']);
+    expect(pruneSelection(['a'], planDocument([at('a', 1, 1)]))).toEqual(['a']);
+  });
+
+  it('keeps a selected ITEM alive — a save re-mints item ids, a stale one must go', () => {
+    const doc = planDocument([], { items: [planItem({ id: 'i1' })] });
+    expect(pruneSelection(['i1', 'local-item-9'], doc)).toEqual(['i1']);
   });
 });
 
@@ -46,7 +54,7 @@ describe('selection — marqueeBetween', () => {
 });
 
 describe('selection — idsInMarquee', () => {
-  const tables = [at('a', 1, 1), at('b', 3, 1), at('c', 1, 5)];
+  const tables = movablesOf([at('a', 1, 1), at('b', 3, 1), at('c', 1, 5)]);
 
   it('picks every table the band touches', () => {
     expect(idsInMarquee(tables, { x: 0, y: 0, width: 4, height: 2 })).toEqual(['a', 'b']);
@@ -62,10 +70,15 @@ describe('selection — idsInMarquee', () => {
   });
 
   it('accounts for rotation, so a turned table is caught by its real footprint', () => {
-    const turned = [at('r', 2, 2, { width: 2, height: 0.4, rotation: 90 })];
+    const turned = movablesOf([at('r', 2, 2, { width: 2, height: 0.4, rotation: 90 })]);
     // A band on the rotated table's long axis, which is vertical once turned.
     expect(idsInMarquee(turned, { x: 1.8, y: 2.6, width: 0.4, height: 0.5 })).toEqual(['r']);
     // The same band where its UNROTATED footprint would have been: a miss.
     expect(idsInMarquee(turned, { x: 2.6, y: 1.8, width: 0.4, height: 0.5 })).toEqual([]);
+  });
+
+  it('sweeps up placed items as well as tables', () => {
+    const mixed = documentMovables(planDocument([at('a', 1, 1)], { items: [planItem({ id: 'i1', x: 2, y: 1 })] }));
+    expect(idsInMarquee(mixed, { x: 0, y: 0, width: 4, height: 2 })).toEqual(['a', 'i1']);
   });
 });

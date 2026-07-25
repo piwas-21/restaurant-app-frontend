@@ -2,7 +2,7 @@
 
 import FloorPlanScene from '../FloorPlanScene';
 import type { TableRenderState } from '../sceneTypes';
-import type { FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
 import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
 import EditorOverlay from './EditorOverlay';
 import styles from './EditorCanvas.module.css';
@@ -20,16 +20,24 @@ interface EditorCanvasProps {
   editor: FloorPlanEditorApi;
   ariaLabel: string;
   formatTableLabel: (table: FloorPlanTableGeometry, state: TableRenderState) => string;
+  formatItemLabel: (item: FloorPlanItem) => string;
 }
 
-export default function EditorCanvas({ editor, ariaLabel, formatTableLabel }: Readonly<EditorCanvasProps>) {
+export default function EditorCanvas({
+  editor,
+  ariaLabel,
+  formatTableLabel,
+  formatItemLabel,
+}: Readonly<EditorCanvasProps>) {
   const states: Record<string, TableRenderState> = Object.fromEntries(
     editor.selectedIds.map((id) => [id, 'selected' as const]),
   );
   return (
     <div
       ref={editor.viewport.stageRef}
-      className={styles.stage}
+      // An armed palette entry turns the whole plan into a drop target, and the
+      // cursor is the only thing that says so before the first click.
+      className={[styles.stage, editor.armedKind ? styles.placing : undefined].filter(Boolean).join(' ')}
       onPointerDown={editor.dragHandlers.onPointerDown}
       onPointerMove={editor.dragHandlers.onPointerMove}
       onPointerUp={editor.dragHandlers.onPointerUp}
@@ -52,6 +60,15 @@ export default function EditorCanvas({ editor, ariaLabel, formatTableLabel }: Re
           }
         }}
         formatTableLabel={formatTableLabel}
+        // Items are hit-tested by footprint on pointer-down (a plant is too thin
+        // to click reliably), so only the pointer-less paths select here too.
+        onSelectItem={(id, source) => {
+          if (source?.viaKeyboard || source?.synthetic) {
+            editor.select(id, Boolean(source.additive));
+          }
+        }}
+        formatItemLabel={formatItemLabel}
+        selectedItemIds={editor.selectedIds}
         overlay={
           <EditorOverlay
             document={editor.document}

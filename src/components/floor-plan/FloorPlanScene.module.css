@@ -166,6 +166,16 @@
   stroke-width: calc(var(--fp-w) * 1.6);
 }
 
+/* Placed items are inert scenery on the guest map; the editor makes them
+   focusable objects, and only then do they take a cursor and a focus ring. */
+.itemHit {
+  cursor: pointer;
+}
+.itemHit:focus-visible {
+  outline: 2px solid var(--fp-accent);
+  outline-offset: 2px;
+}
+
 /* ── editor grid ──────────────────────────────────────────────────────────── */
 .gridLine,
 .gridMajor {

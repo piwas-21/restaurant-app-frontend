@@ -1,6 +1,7 @@
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry, FloorPlanWall } from '@/types/floorPlan';
 import { clampCentreToPlan } from './editorGeometry';
 import type { Gesture, GestureResult } from './editorGestures';
+import { findMovable, selectedMovables, tableGeometryPatch, type MovableGeometry } from './movable';
 
 /**
  * Immutable editor operations on a floor-plan document (FLOOR-PLAN-REVAMP §4.3,
@@ -41,6 +42,26 @@ export function removeItem(doc: FloorPlanDocument, id: string): FloorPlanDocumen
   return { ...doc, items: dropById(doc.items, id) };
 }
 
+/** Drop every item named by `ids` in one edit — one history entry per Delete. */
+export function removeItems(doc: FloorPlanDocument, ids: readonly string[]): FloorPlanDocument {
+  const kept = doc.items.filter((item) => !item.id || !ids.includes(item.id));
+  return kept.length === doc.items.length ? doc : { ...doc, items: kept };
+}
+
+/**
+ * Patch a movable's geometry by id, whichever collection holds it — the one write
+ * path a drag, a nudge, a grip and the inspector all share. A table's patch is
+ * translated into its own field names ({@link tableGeometryPatch}); an item's
+ * already uses them. An unknown id leaves the document untouched.
+ */
+export function patchMovable(doc: FloorPlanDocument, id: string, patch: Partial<MovableGeometry>): FloorPlanDocument {
+  const movable = findMovable(doc, id);
+  if (!movable) {
+    return doc;
+  }
+  return movable.target === 'table' ? updateTable(doc, id, tableGeometryPatch(patch)) : updateItem(doc, id, patch);
+}
+
 /** Patch a wall by id. */
 export function updateWall(doc: FloorPlanDocument, id: string, patch: Partial<FloorPlanWall>): FloorPlanDocument {
   return { ...doc, walls: patchById(doc.walls, id, patch) };
@@ -60,31 +81,12 @@ export function setPlanSize(doc: FloorPlanDocument, widthMeters: number, heightM
 }
 
 /**
- * Find any movable object by id (table or item) — the editor's selection is a
- * single id across both collections. Returns null when nothing matches.
- */
-export function findMovable(
-  doc: FloorPlanDocument,
-  id: string,
-): { kind: 'table'; table: FloorPlanTableGeometry } | { kind: 'item'; item: FloorPlanItem } | null {
-  const table = doc.tables.find((t) => t.id === id);
-  if (table) {
-    return { kind: 'table', table };
-  }
-  const item = doc.items.find((i) => i.id === id);
-  if (item) {
-    return { kind: 'item', item };
-  }
-  return null;
-}
-
-/**
- * Apply a resolved gesture to the document. The grabbed table takes the patch;
- * for a **move**, every other selected table travels by the same delta so a
+ * Apply a resolved gesture to the document. The grabbed object takes the patch;
+ * for a **move**, every other selected object travels by the same delta so a
  * multi-selection keeps its shape. Followers are clamped to the plan
  * individually — the same thing the server does — so dragging a group into a
- * corner squashes it against the wall rather than pushing tables off-plan.
- * Rotate and resize stay single-table: a group rotation about a shared centre is
+ * corner squashes it against the wall rather than pushing things off-plan.
+ * Rotate and resize stay single-object: a group rotation about a shared centre is
  * a different operation, and is not part of this slice.
  */
 export function applyGesture(
@@ -93,18 +95,18 @@ export function applyGesture(
   result: GestureResult,
   selectedIds: readonly string[],
 ): FloorPlanDocument {
-  const primary = doc.tables.find((t) => t.id === gesture.id);
-  const next = updateTable(doc, gesture.id, result.patch);
+  const primary = findMovable(doc, gesture.id);
+  const next = patchMovable(doc, gesture.id, result.patch);
   if (gesture.kind !== 'move' || !primary) {
     return next;
   }
-  const dx = (result.patch.positionX ?? primary.positionX) - primary.positionX;
-  const dy = (result.patch.positionY ?? primary.positionY) - primary.positionY;
-  return doc.tables.reduce((acc, t) => {
-    if (t.id === gesture.id || !selectedIds.includes(t.id)) {
+  const dx = (result.patch.x ?? primary.x) - primary.x;
+  const dy = (result.patch.y ?? primary.y) - primary.y;
+  return selectedMovables(doc, selectedIds).reduce((acc, follower) => {
+    if (follower.id === gesture.id) {
       return acc;
     }
-    const centre = clampCentreToPlan(t.positionX + dx, t.positionY + dy, doc);
-    return updateTable(acc, t.id, { positionX: centre.x, positionY: centre.y });
+    const centre = clampCentreToPlan(follower.x + dx, follower.y + dy, doc);
+    return patchMovable(acc, follower.id, { x: centre.x, y: centre.y });
   }, next);
 }

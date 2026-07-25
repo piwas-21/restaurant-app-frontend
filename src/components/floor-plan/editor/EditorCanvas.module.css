@@ -12,3 +12,10 @@
   border: 1px solid var(--border-default);
   border-radius: 8px;
 }
+
+/* Armed palette entry: the next click drops an object, so say so everywhere on
+   the plan — including over the tables and items a click would normally grab. */
+.placing,
+.placing * {
+  cursor: crosshair;
+}

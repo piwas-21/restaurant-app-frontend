@@ -122,3 +122,67 @@ describe('FloorPlanScene', () => {
     expect(screen.getByRole('button', { name: 'Tafel 1' })).toBeInTheDocument();
   });
 });
+
+describe('FloorPlanScene — placed items', () => {
+  it('leaves items inert scenery for the guest map', () => {
+    const { container } = render(<FloorPlanScene document={floorPlanFixture()} onSelectTable={jest.fn()} />);
+    const items = container.querySelectorAll('[data-item-id]');
+    expect(items.length).toBeGreaterThan(0);
+    items.forEach((item) => {
+      expect(item).not.toHaveAttribute('role');
+      expect(item).not.toHaveAttribute('tabindex');
+    });
+  });
+
+  it('makes items focusable, labelled buttons for the editor', () => {
+    const onSelectItem = jest.fn();
+    render(
+      <FloorPlanScene
+        document={floorPlanFixture()}
+        onSelectItem={onSelectItem}
+        formatItemLabel={(item) => `Object ${item.kind}`}
+      />,
+    );
+    const bar = screen.getByRole('button', { name: 'Object bar_counter' });
+    expect(bar).toHaveAttribute('tabindex', '0');
+    // A pointer-less click (assistive tech / voice control) reports itself, because
+    // the editor selects on pointer-DOWN and would otherwise ignore this entirely.
+    fireEvent.click(bar, { detail: 0 });
+    expect(onSelectItem).toHaveBeenLastCalledWith('i1', { additive: false, synthetic: true });
+    fireEvent.click(bar, { detail: 1 });
+    expect(onSelectItem).toHaveBeenLastCalledWith('i1', { additive: false, synthetic: false });
+  });
+
+  it('announces which items are selected', () => {
+    render(<FloorPlanScene document={floorPlanFixture()} onSelectItem={jest.fn()} selectedItemIds={['i1']} />);
+    expect(screen.getByRole('button', { name: 'bar_counter' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'plant_small' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('leaves zones, labels and the entrance to S8 — they are drawn, never grabbable', () => {
+    const doc = floorPlanFixture();
+    render(<FloorPlanScene document={doc} onSelectItem={jest.fn()} />);
+    const buttons = screen.getAllByRole('button').map((el) => el.getAttribute('data-item-id'));
+    const inert = doc.items.filter((i) => ['zone', 'label', 'text_label', 'entrance'].includes(i.kind));
+    expect(inert.length).toBeGreaterThan(0);
+    inert.forEach((item) => expect(buttons).not.toContain(item.id));
+  });
+
+  it('selects a focused item with Enter or Space, and ignores other keys', () => {
+    const onSelectItem = jest.fn();
+    render(<FloorPlanScene document={floorPlanFixture()} onSelectItem={onSelectItem} />);
+    const bar = screen.getByRole('button', { name: 'bar_counter' });
+    fireEvent.keyDown(bar, { key: 'Enter' });
+    fireEvent.keyDown(bar, { key: ' ', shiftKey: true });
+    fireEvent.keyDown(bar, { key: 'Escape' });
+    expect(onSelectItem).toHaveBeenCalledTimes(2);
+    expect(onSelectItem).toHaveBeenLastCalledWith('i1', { additive: true, viaKeyboard: true });
+  });
+
+  it('renders no focusable group for an item this renderer cannot draw', () => {
+    const doc = floorPlanFixture();
+    doc.items = [{ ...doc.items[0], id: 'i9', kind: 'not_a_real_symbol' }];
+    render(<FloorPlanScene document={doc} onSelectItem={jest.fn()} />);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+});

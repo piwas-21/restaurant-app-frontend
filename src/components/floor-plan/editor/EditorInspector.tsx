@@ -1,18 +1,18 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import { Pencil, QrCode, Trash2 } from 'lucide-react';
-import FormField from '@/components/design-system/FormField';
-import type { FloorPlanTableShape } from '@/types/floorPlan';
 import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
-import { snapAngle } from '@/lib/floorPlan/snapping';
-import EditorNumberField from './EditorNumberField';
-import EditorRotationControls from './EditorRotationControls';
 import EditorAlignControls from './EditorAlignControls';
+import EditorItemPanel from './EditorItemPanel';
+import EditorTablePanel from './EditorTablePanel';
 import styles from './EditorInspector.module.css';
 
-const SHAPES: FloorPlanTableShape[] = ['round', 'square', 'rectangle', 'booth'];
-
+/**
+ * The inspector (FLOOR-PLAN-REVAMP §4.3) — exact, no-drag control of the
+ * selection, and the router between the three things a selection can be: several
+ * objects (align + distribute), one table, or one placed item. Whatever is
+ * selected, every canvas gesture has an equivalent here (SC 2.5.7).
+ */
 interface EditorInspectorProps {
   editor: FloorPlanEditorApi;
   /** Table metadata / lifecycle ops (‑> /api/tables); locked while geometry is unsaved. */
@@ -22,13 +22,6 @@ interface EditorInspectorProps {
   onDelete: () => void;
 }
 
-/**
- * The inspector (FLOOR-PLAN-REVAMP §4.3) — exact, no-drag control of the
- * selected table: numeric X/Y/W/H and rotation (chips + steppers), footprint
- * shape, and the table's metadata/QR/delete actions. Geometry writes go to the
- * plan document (saved via one PUT); metadata + lifecycle go to /api/tables, so
- * they are disabled until the geometry is saved to avoid discarding edits.
- */
 export default function EditorInspector({
   editor,
   metadataLocked,
@@ -37,105 +30,53 @@ export default function EditorInspector({
   onDelete,
 }: Readonly<EditorInspectorProps>) {
   const { t } = useTranslation();
-  const table = editor.selectedTable;
   const count = editor.selectedIds.length;
-
-  if (count > 1) {
-    return (
-      <aside className={styles.panel} aria-label={t('editor_inspector', 'Table properties')}>
-        <h2 className={styles.heading}>{t('editor_selected_count', '{{count}} tables selected', { count })}</h2>
-        <EditorAlignControls count={count} onAlign={editor.alignSelection} onDistribute={editor.distributeSelection} />
-        <p className={styles.empty}>
-          {t('editor_multi_hint', 'Arrows nudge them together. Pick one table to edit its size or details.')}
-        </p>
-      </aside>
-    );
-  }
-
-  if (!table) {
-    return (
-      <aside className={styles.panel} aria-label={t('editor_inspector', 'Table properties')}>
-        <p className={styles.empty}>
-          {t('editor_select_hint', 'Select a table to edit its position, size and rotation.')}
-        </p>
-      </aside>
-    );
-  }
-
-  const set = (patch: Partial<typeof table>) => editor.mutateTable(table.id, patch);
-  const plan = editor.document;
+  const table = editor.selectedTable;
+  const item = editor.selectedItem;
+  const itemId = item?.id;
 
   return (
-    <aside className={styles.panel} aria-label={t('editor_inspector', 'Table properties')}>
-      <h2 className={styles.heading}>{t('editor_table_heading', 'Table {{number}}', { number: table.tableNumber })}</h2>
-      <p className={styles.meta}>{t('editor_seats', '{{count}} seats', { count: table.maxGuests })}</p>
+    <aside className={styles.panel} aria-label={t('editor_properties', 'Properties')}>
+      {count > 1 && (
+        <>
+          <h2 className={styles.heading}>{t('editor_selected_objects', '{{count}} objects selected', { count })}</h2>
+          <EditorAlignControls
+            count={count}
+            onAlign={editor.alignSelection}
+            onDistribute={editor.distributeSelection}
+          />
+          <p className={styles.empty}>
+            {t('editor_multi_object_hint', 'Arrows nudge them together. Pick one to edit its size or details.')}
+          </p>
+        </>
+      )}
 
-      <div className={styles.grid}>
-        <EditorNumberField
-          label={t('editor_x', 'X (m)')}
-          value={table.positionX}
-          min={0}
-          max={plan.widthMeters}
-          onCommit={(v) => set({ positionX: v })}
+      {count <= 1 && table && (
+        <EditorTablePanel
+          table={table}
+          plan={editor.document}
+          onPatch={(patch) => editor.mutateTable(table.id, patch)}
+          metadataLocked={metadataLocked}
+          onEditDetails={onEditDetails}
+          onShowQR={onShowQR}
+          onDelete={onDelete}
         />
-        <EditorNumberField
-          label={t('editor_y', 'Y (m)')}
-          value={table.positionY}
-          min={0}
-          max={plan.heightMeters}
-          onCommit={(v) => set({ positionY: v })}
-        />
-        <EditorNumberField
-          label={t('editor_width', 'Width (m)')}
-          value={table.width}
-          min={0.1}
-          max={plan.widthMeters}
-          onCommit={(v) => set({ width: v })}
-        />
-        <EditorNumberField
-          label={t('editor_height', 'Height (m)')}
-          value={table.height}
-          min={0.1}
-          max={plan.heightMeters}
-          onCommit={(v) => set({ height: v })}
-        />
-      </div>
+      )}
 
-      <FormField label={t('editor_shape', 'Shape')} className={styles.field}>
-        <select
-          className={styles.select}
-          value={table.shape}
-          onChange={(e) => set({ shape: e.target.value as FloorPlanTableShape })}
-        >
-          {SHAPES.map((shape) => (
-            <option key={shape} value={shape}>
-              {t(`editor_shape_${shape}`, shape)}
-            </option>
-          ))}
-        </select>
-      </FormField>
+      {count <= 1 && !table && item && itemId && (
+        <EditorItemPanel
+          item={item}
+          plan={editor.document}
+          onPatch={(patch) => editor.mutateItem(itemId, patch)}
+          onDuplicate={editor.duplicateSelection}
+          onDelete={editor.deleteSelectedItems}
+        />
+      )}
 
-      <EditorNumberField
-        label={t('editor_rotation', 'Rotation (°)')}
-        value={table.rotation}
-        step={1}
-        onCommit={(v) => set({ rotation: snapAngle(v, 1) })}
-      />
-      <EditorRotationControls rotation={table.rotation} onSet={(deg) => set({ rotation: deg })} />
-
-      <div className={styles.actions}>
-        <button type="button" className={styles.action} disabled={metadataLocked} onClick={onEditDetails}>
-          <Pencil size={15} aria-hidden="true" /> {t('editor_edit_details', 'Edit details')}
-        </button>
-        <button type="button" className={styles.action} disabled={metadataLocked} onClick={onShowQR}>
-          <QrCode size={15} aria-hidden="true" /> {t('editor_qr_code', 'QR code')}
-        </button>
-        <button type="button" className={styles.actionDanger} disabled={metadataLocked} onClick={onDelete}>
-          <Trash2 size={15} aria-hidden="true" /> {t('editor_delete_table', 'Delete')}
-        </button>
-      </div>
-      {metadataLocked && (
-        <p className={styles.lockHint}>{t('editor_save_first', 'Save layout changes before editing table details.')}</p>
+      {count === 0 && (
+        <p className={styles.empty}>
+          {t('editor_select_object_hint', 'Select a table or object to edit its position, size and rotation.')}
+        </p>
       )}
     </aside>
   );

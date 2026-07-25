@@ -3,7 +3,7 @@
 import { useCallback, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
 import { screenToPlanMetres, type ScreenRect, type ViewBox } from '@/lib/floorPlan/geometry';
 import type { Gesture, GestureKind } from '@/lib/floorPlan/editorGestures';
-import type { TableGeometrySnapshot } from '@/lib/floorPlan/editorGeometry';
+import type { MovableGeometry } from '@/lib/floorPlan/movable';
 import type { FloorPlanPoint } from '@/types/floorPlan';
 
 /**
@@ -17,13 +17,29 @@ import type { FloorPlanPoint } from '@/types/floorPlan';
 const ALIGN_THRESHOLD_PX = 6;
 
 /**
+ * How far outside its footprint a small item can still be grabbed. A 40 cm stool
+ * is a handful of pixels on a fitted plan; the grip-sized 26 px would swallow its
+ * neighbours, so this is a nudge rather than a target — the palette, inspector and
+ * keyboard remain the pointer-free paths (SC 2.5.7).
+ */
+const ITEM_GRAB_PAD_PX = 6;
+
+/** A screen-pixel distance as plan metres at the current zoom, or 0 before layout. */
+function pxToMeters(px: number, rect: ScreenRect, viewBox: ViewBox): number {
+  const pxPerCm = Math.min(rect.width / viewBox.w, rect.height / viewBox.h);
+  return pxPerCm > 0 ? px / pxPerCm / 100 : 0;
+}
+
+/**
  * The alignment-snap tolerance in plan metres — a screen-pixel threshold taken
  * through the current zoom, so snapping feels identical fitted or zoomed in.
  */
-export function alignToleranceMeters(rect: ScreenRect, viewBox: ViewBox): number {
-  const pxPerCm = Math.min(rect.width / viewBox.w, rect.height / viewBox.h);
-  return pxPerCm > 0 ? ALIGN_THRESHOLD_PX / pxPerCm / 100 : 0;
-}
+export const alignToleranceMeters = (rect: ScreenRect, viewBox: ViewBox): number =>
+  pxToMeters(ALIGN_THRESHOLD_PX, rect, viewBox);
+
+/** The item grab tolerance in plan metres, likewise constant on screen. */
+export const itemGrabPadMeters = (rect: ScreenRect, viewBox: ViewBox): number =>
+  pxToMeters(ITEM_GRAB_PAD_PX, rect, viewBox);
 
 /** One link in the stage's pointer chain; each layer defers to the next. */
 export interface StagePointerHandlers {
@@ -44,13 +60,13 @@ export interface StageProjection {
 /** The live gesture as the overlay needs it: what is happening, and from where. */
 export interface ActiveGesture {
   kind: GestureKind;
-  origin: TableGeometrySnapshot;
+  origin: MovableGeometry;
 }
 
 /** A gesture in flight — everything pointer-up needs that the document doesn't hold. */
 export interface GestureSession {
   gesture: Gesture;
-  origin: TableGeometrySnapshot;
+  origin: MovableGeometry;
   /** The selection captured at pointer-down; a move carries all of it. */
   ids: readonly string[];
   startX: number;

@@ -1,11 +1,12 @@
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanWall } from '@/types/floorPlan';
-import { anchorOf, planDocument, tableGeometry } from './__fixtures__/editorFixtures';
+import { anchorOf, planDocument, planItem, tableGeometry } from './__fixtures__/editorFixtures';
 import {
   addItem,
   applyGesture,
   addWall,
-  findMovable,
+  patchMovable,
   removeItem,
+  removeItems,
   removeWall,
   setPlanSize,
   updateItem,
@@ -96,20 +97,40 @@ describe('floorPlan/document', () => {
     expect(after.heightMeters).toBe(9);
   });
 
-  it('finds a movable table or item by id, or null', () => {
-    expect(findMovable(doc(), 't1')).toEqual({ kind: 'table', table: doc().tables[0] });
-    expect(findMovable(doc(), 'i1')).toEqual({ kind: 'item', item: doc().items[0] });
-    expect(findMovable(doc(), 'zzz')).toBeNull();
+  it('removes several items in one edit, and returns the same document for none', () => {
+    const before = addItem(doc(), { ...doc().items[0], id: 'i2' });
+    expect(removeItems(before, ['i1', 'i2']).items).toHaveLength(0);
+    expect(removeItems(before, ['ghost'])).toBe(before);
+  });
+});
+
+describe('document — patchMovable', () => {
+  it('writes a normalised patch onto a TABLE under its own column names', () => {
+    const after = patchMovable(doc(), 't1', { x: 5, rotationDegrees: 90 });
+    expect(after.tables[0]).toMatchObject({ positionX: 5, rotation: 90, positionY: 2 });
+  });
+
+  it('writes the same patch onto an ITEM untranslated', () => {
+    const after = patchMovable(doc(), 'i1', { x: 5, rotationDegrees: 90 });
+    expect(after.items[0]).toMatchObject({ x: 5, rotationDegrees: 90, y: 1 });
+  });
+
+  it('leaves the document untouched for an id in neither collection', () => {
+    const before = doc();
+    expect(patchMovable(before, 'zzz', { x: 9 })).toBe(before);
   });
 });
 
 describe('document — applyGesture', () => {
-  const plan = planDocument([
-    tableGeometry({ id: 'a', positionX: 2, positionY: 2 }),
-    tableGeometry({ id: 'b', positionX: 4, positionY: 3 }),
-    tableGeometry({ id: 'c', positionX: 8, positionY: 6 }),
-  ]);
-  const moveTo = (x: number, y: number) => ({ patch: { positionX: x, positionY: y }, guides: [] });
+  const plan = planDocument(
+    [
+      tableGeometry({ id: 'a', positionX: 2, positionY: 2 }),
+      tableGeometry({ id: 'b', positionX: 4, positionY: 3 }),
+      tableGeometry({ id: 'c', positionX: 8, positionY: 6 }),
+    ],
+    { items: [planItem({ id: 'i1', x: 6, y: 4 })] },
+  );
+  const moveTo = (x: number, y: number) => ({ patch: { x, y }, guides: [] });
   const move = { kind: 'move', id: 'a', grabX: 0, grabY: 0 } as const;
 
   it('carries every other selected table by the same delta', () => {
@@ -137,8 +158,21 @@ describe('document — applyGesture', () => {
       kind === 'rotate'
         ? ({ kind, id: 'a', grabAngle: 0 } as const)
         : ({ kind, id: 'a', anchor: anchorOf('e') } as const);
-    const next = applyGesture(plan, gesture, { patch: { rotation: 45, width: 2 }, guides: [] }, ['a', 'b']);
+    const next = applyGesture(plan, gesture, { patch: { rotationDegrees: 45, widthMeters: 2 }, guides: [] }, [
+      'a',
+      'b',
+    ]);
     expect(next.tables[1]).toEqual(plan.tables[1]);
+  });
+
+  it('carries a selected ITEM along with a table drag, and back the other way', () => {
+    const withItem = applyGesture(plan, move, moveTo(3, 4), ['a', 'i1']);
+    expect(withItem.items[0]).toMatchObject({ x: 7, y: 6 });
+
+    const grabItem = { kind: 'move', id: 'i1', grabX: 0, grabY: 0 } as const;
+    const fromItem = applyGesture(plan, grabItem, moveTo(7, 5), ['i1', 'a']);
+    expect(fromItem.items[0]).toMatchObject({ x: 7, y: 5 });
+    expect(fromItem.tables[0]).toMatchObject({ positionX: 3, positionY: 3 });
   });
 
   it('moves nothing for a move patch that carries no position at all', () => {

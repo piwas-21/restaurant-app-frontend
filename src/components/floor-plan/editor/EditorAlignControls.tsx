@@ -15,10 +15,12 @@ import type { AlignEdge, PlanAxis } from '@/lib/floorPlan/align';
 import styles from './EditorInspector.module.css';
 
 /**
- * Align and distribute for a multi-table selection (FLOOR-PLAN-REVAMP §4.3).
- * These are the **no-drag** way to arrange a group (SC 2.5.7) and, on any plan
- * bigger than a few tables, the fast way — dragging each table onto a shared
- * line by hand is exactly what made the old plan never match the room.
+ * Align and distribute for a multi-object selection (FLOOR-PLAN-REVAMP §4.3) —
+ * tables and placed items alike, so a row of stools lines up along a bar the same
+ * way a row of tables lines up. These are the **no-drag** way to arrange a group
+ * (SC 2.5.7) and, on any plan bigger than a few tables, the fast way — dragging
+ * each one onto a shared line by hand is exactly what made the old plan never
+ * match the room.
  */
 
 const EDGES: { key: AlignEdge; Icon: typeof AlignStartVertical; label: string; fallback: string }[] = [
@@ -79,7 +81,7 @@ interface EditorAlignControlsProps {
 
 export default function EditorAlignControls({ count, onAlign, onDistribute }: Readonly<EditorAlignControlsProps>) {
   const { t } = useTranslation();
-  // Two tables can line up but have nothing between them to space out.
+  // Two objects can line up but have nothing between them to space out.
   const canDistribute = count >= 3;
 
   return (
@@ -92,7 +94,9 @@ export default function EditorAlignControls({ count, onAlign, onDistribute }: Re
         onPick={onDistribute}
       />
       {!canDistribute && (
-        <p className={styles.lockHint}>{t('editor_distribute_hint', 'Select three or more tables to space them.')}</p>
+        <p className={styles.lockHint}>
+          {t('editor_distribute_objects_hint', 'Select three or more objects to space them.')}
+        </p>
       )}
     </>
   );

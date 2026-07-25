@@ -1,37 +1,24 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import {
-  AlertTriangle,
-  Eye,
-  Grid3x3,
-  Magnet,
-  Maximize2,
-  Plus,
-  Redo2,
-  Save,
-  Undo2,
-  ZoomIn,
-  ZoomOut,
-} from 'lucide-react';
+import { AlertTriangle, Eye, Grid3x3, Magnet, Maximize2, Redo2, Save, Undo2, ZoomIn, ZoomOut } from 'lucide-react';
 import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
 import styles from './EditorToolbar.module.css';
 
 /**
  * Editor toolbar (FLOOR-PLAN-REVAMP §4.3): undo/redo, grid + snap toggles, an
- * overlap counter (warned, never blocked), zoom controls, Preview-as-guest,
- * Add table, and the one Save (disabled until there are unsaved edits). Every
- * control is a labelled button so the whole tool is operable without a drag.
+ * overlap counter (warned, never blocked), zoom controls, Preview-as-guest and
+ * the one Save (disabled until there are unsaved edits). Every control is a
+ * labelled button so the whole tool is operable without a drag. **Adding objects
+ * — tables included — lives in the palette**, which is where §4.3 puts it and
+ * which keeps one control per action.
  */
 interface EditorToolbarProps {
   editor: FloorPlanEditorApi;
-  onAddTable: () => void;
   onPreview: () => void;
-  /** Add-table hits /api/tables + reloads, so it is locked while geometry is unsaved. */
-  addDisabled: boolean;
 }
 
-export default function EditorToolbar({ editor, onAddTable, onPreview, addDisabled }: Readonly<EditorToolbarProps>) {
+export default function EditorToolbar({ editor, onPreview }: Readonly<EditorToolbarProps>) {
   const { t } = useTranslation();
   const { viewport } = editor;
 
@@ -124,16 +111,6 @@ export default function EditorToolbar({ editor, onAddTable, onPreview, addDisabl
         >
           <Eye size={18} aria-hidden="true" />
           <span className={styles.label}>{t('editor_preview', 'Preview as guest')}</span>
-        </button>
-        <button
-          type="button"
-          className={styles.button}
-          onClick={onAddTable}
-          disabled={addDisabled}
-          aria-label={t('editor_add_table', 'Add table')}
-        >
-          <Plus size={18} aria-hidden="true" />
-          <span className={styles.label}>{t('editor_add_table', 'Add table')}</span>
         </button>
         <button
           type="button"

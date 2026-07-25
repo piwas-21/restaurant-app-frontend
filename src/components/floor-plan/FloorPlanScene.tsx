@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
 import { computeViewBox, metresToCm, type ViewBox } from '@/lib/floorPlan/geometry';
 import RoomsLayer from './RoomsLayer';
 import WallsLayer from './WallsLayer';
@@ -31,6 +31,11 @@ interface FloorPlanSceneProps {
   tableStates?: Readonly<Record<string, TableRenderState>>;
   onSelectTable?: SelectTable;
   formatTableLabel?: (table: FloorPlanTableGeometry, state: TableRenderState) => string;
+  /** Editor only: makes placed items focusable + selectable (guests get scenery). */
+  onSelectItem?: SelectTable;
+  formatItemLabel?: (item: FloorPlanItem) => string;
+  /** Which items are picked, so a selectable item can announce its state. */
+  selectedItemIds?: readonly string[];
   /** Draw the editor grid (admin only). */
   showGrid?: boolean;
   /** Override the fitted viewBox — the guest map drives zoom/pan through this. */
@@ -81,6 +86,9 @@ export default function FloorPlanScene({
   tableStates,
   onSelectTable,
   formatTableLabel,
+  onSelectItem,
+  formatItemLabel,
+  selectedItemIds,
   showGrid = false,
   viewBox,
   role = 'group',
@@ -108,7 +116,13 @@ export default function FloorPlanScene({
           />
         )}
         <WallsLayer walls={document.walls} styles={styles} />
-        <ItemsLayer items={document.items} styles={styles} />
+        <ItemsLayer
+          items={document.items}
+          styles={styles}
+          onSelectItem={onSelectItem}
+          formatItemLabel={formatItemLabel}
+          selectedItemIds={selectedItemIds}
+        />
         <TablesLayer
           tables={document.tables}
           states={tableStates}

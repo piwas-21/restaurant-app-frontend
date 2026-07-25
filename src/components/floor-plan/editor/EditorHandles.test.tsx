@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import EditorHandles from './EditorHandles';
 import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
-import type { FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { MovableGeometry } from '@/lib/floorPlan/movable';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -14,27 +14,22 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-const table = (over: Partial<FloorPlanTableGeometry> = {}): FloorPlanTableGeometry => ({
-  id: 'a',
-  tableNumber: '1',
-  maxGuests: 4,
-  isActive: true,
-  isOutdoor: false,
-  notes: null,
-  positionX: over.positionX ?? 2,
-  positionY: over.positionY ?? 2,
-  width: over.width ?? 1.2,
-  height: over.height ?? 0.8,
-  shape: 'rectangle',
-  rotation: over.rotation ?? 0,
+/** The selection's footprint — a table or an item; the grips cannot tell. */
+const rect = (over: Partial<MovableGeometry> = {}): MovableGeometry => ({
+  x: 2,
+  y: 2,
+  widthMeters: 1.2,
+  heightMeters: 0.8,
+  rotationDegrees: 0,
+  ...over,
 });
 
-const origin = { positionX: 2, positionY: 2, width: 1.2, height: 0.8, rotation: 0 };
+const origin = rect();
 
-const draw = (pxPerCm: number, gesture: ActiveGesture | null = null, over?: Partial<FloorPlanTableGeometry>) =>
+const draw = (pxPerCm: number, gesture: ActiveGesture | null = null, over?: Partial<MovableGeometry>) =>
   render(
     <svg>
-      <EditorHandles table={table(over)} pxPerCm={pxPerCm} gesture={gesture} />
+      <EditorHandles rect={rect(over)} pxPerCm={pxPerCm} gesture={gesture} />
     </svg>,
   ).container;
 
@@ -60,13 +55,13 @@ describe('EditorHandles', () => {
   });
 
   it('shows the pre-gesture ghost and the live angle while rotating', () => {
-    const svg = draw(2, { kind: 'rotate', origin }, { rotation: 45 });
+    const svg = draw(2, { kind: 'rotate', origin }, { rotationDegrees: 45 });
     expect(svg.querySelector('polygon')).not.toBeNull();
     expect(svg.querySelector('text')?.textContent).toBe('45°');
   });
 
   it('shows the live footprint while resizing', () => {
-    const svg = draw(2, { kind: 'resize', origin }, { width: 1.5, height: 0.9 });
+    const svg = draw(2, { kind: 'resize', origin }, { widthMeters: 1.5, heightMeters: 0.9 });
     expect(svg.querySelector('text')?.textContent).toBe('1.50 × 0.90 m');
   });
 
@@ -76,9 +71,9 @@ describe('EditorHandles', () => {
     expect(svg.querySelector('text')).toBeNull();
   });
 
-  it('carries the grips round with a rotated table', () => {
-    const northOf = (rotation: number) =>
-      draw(2, null, { rotation }).querySelector('[data-handle="n"]')?.getAttribute('x');
+  it('carries the grips round with a rotated object', () => {
+    const northOf = (rotationDegrees: number) =>
+      draw(2, null, { rotationDegrees }).querySelector('[data-handle="n"]')?.getAttribute('x');
     expect(northOf(90)).not.toBe(northOf(0));
   });
 });

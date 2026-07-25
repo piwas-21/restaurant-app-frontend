@@ -12,9 +12,21 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 210px minmax(0, 1fr) 280px;
   gap: 12px;
   align-items: start;
+}
+
+/* On a tablet the palette lies down above the plan and the inspector drops
+   below it, so the canvas keeps the full width at every breakpoint (§4.3). */
+@media (max-width: 1200px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .palette {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 900px) {

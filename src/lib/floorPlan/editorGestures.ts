@@ -1,4 +1,4 @@
-import type { FloorPlanDocument, FloorPlanPoint, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanPoint } from '@/types/floorPlan';
 import {
   ROTATION_STEP_FREE,
   alignmentSnap,
@@ -7,15 +7,19 @@ import {
   snapToGrid,
   type AlignmentGuide,
 } from './snapping';
-import { clampCentreToPlan, otherTableRects, tableOrientedRect, tableSnapRect } from './editorGeometry';
+import { clampCentreToPlan } from './editorGeometry';
+import { findMovable, itemMovable, otherMovableRects, type Movable, type MovableGeometry } from './movable';
 import { ROTATE_HANDLE, angleFromPointer, resizeHandle, resizeRect, type HandleAnchor } from './handles';
+import { pointInRect } from './geometry';
 
 /**
  * The editor's pointer gestures (FLOOR-PLAN-REVAMP §4.3). A gesture is captured
- * from whatever the pointer pressed and then resolved on every move into a table
- * patch plus the alignment guides to draw — so `useEditorDrag` stays a thin event
- * layer and "drag a rotated table by its corner" is unit-tested rather than
- * eyeballed. Both halves are pure functions of their arguments.
+ * from whatever the pointer pressed and then resolved on every move into a
+ * geometry patch plus the alignment guides to draw — so `useEditorDrag` stays a
+ * thin event layer and "drag a rotated table by its corner" is unit-tested rather
+ * than eyeballed. Both halves are pure functions of their arguments, and both
+ * work on any {@link Movable}: a placed plant moves, rotates and resizes through
+ * exactly the code a table does.
  *
  * Modifiers follow §4.4: **Alt** suspends grid/alignment snapping while moving
  * or resizing, and selects the coarse 90° step while rotating; **Shift** drops
@@ -28,7 +32,7 @@ import { ROTATE_HANDLE, angleFromPointer, resizeHandle, resizeRect, type HandleA
  */
 
 /** The smallest footprint a canvas resize may produce (metres). */
-export const MIN_TABLE_SIZE_M = 0.3;
+export const MIN_MOVABLE_SIZE_M = 0.3;
 
 export type Gesture =
   | { kind: 'move'; id: string; grabX: number; grabY: number }
@@ -49,40 +53,62 @@ export interface GestureInput {
 }
 
 export interface GestureResult {
-  patch: Partial<FloorPlanTableGeometry>;
+  patch: Partial<MovableGeometry>;
   guides: AlignmentGuide[];
 }
 
 /**
+ * The topmost item under the pointer, hit-tested against its real (rotated)
+ * **footprint** rather than its drawn ink. Items are scenery — a plant is a few
+ * thin strokes, a rug is an outline — so a DOM hit test would demand
+ * pixel-perfect aim at exactly the objects that are hardest to hit. `padMeters`
+ * is the caller's screen-pixel grab tolerance, which keeps a 40 cm stool
+ * grabbable on a fitted plan. Later items are drawn on top, so the search runs
+ * backwards.
+ */
+function itemAt(doc: FloorPlanDocument, point: FloorPlanPoint, padMeters: number): Movable | null {
+  // Ordered by the same zIndex the renderer stacks by, highest first, so "topmost"
+  // means the same thing to the pointer as it does on screen. (The API happens to
+  // return items in zIndex order today; a z-order control would end that.)
+  // `itemMovable` drops what the editor does not manage — zones, labels, the
+  // entrance marker — so none of them can be grabbed through this slice's panel.
+  const items = doc.items
+    .toSorted((a, b) => b.zIndex - a.zIndex)
+    .map((item) => itemMovable(item))
+    .filter((m): m is Movable => m !== null);
+  return items.find((m) => pointInRect(m, point, padMeters)) ?? null;
+}
+
+/**
  * Which gesture a pointer press starts: a grip on the current selection, else a
- * move of whatever table was pressed, else nothing (the caller marquees or pans
- * instead). Grips belong to a *single* selection — with several tables picked
- * none are drawn, so none can be pressed.
+ * move of whatever was pressed, else nothing (the caller marquees or pans
+ * instead). Grips belong to a *single* selection — with several objects picked
+ * none are drawn, so none can be pressed. **Tables win over items**, because a
+ * table is the interactive object and items are the scenery it stands on.
  */
 export function gestureFromTarget(
   target: Element,
   doc: FloorPlanDocument,
   selectedIds: readonly string[],
   point: FloorPlanPoint,
+  hitPadMeters = 0,
 ): Gesture | null {
   const handleId = target.closest<SVGElement>('[data-handle]')?.dataset.handle;
-  const selected = selectedIds.length === 1 ? doc.tables.find((t) => t.id === selectedIds[0]) : undefined;
+  const selected = selectedIds.length === 1 ? findMovable(doc, selectedIds[0]) : null;
   if (handleId && selected) {
     if (handleId === ROTATE_HANDLE) {
       // The grip's hit ring is far wider than the grip, so record where on it the
       // press landed and rotate by the change — otherwise grabbing the ring's
-      // edge snaps the table through the angle between the two.
-      const centre = { x: selected.positionX, y: selected.positionY };
-      return { kind: 'rotate', id: selected.id, grabAngle: angleFromPointer(centre, point) - selected.rotation };
+      // edge snaps the object through the angle between the two.
+      const grabAngle = angleFromPointer(selected, point) - selected.rotationDegrees;
+      return { kind: 'rotate', id: selected.id, grabAngle };
     }
     const anchor = resizeHandle(handleId);
     return anchor ? { kind: 'resize', id: selected.id, anchor } : null;
   }
-  const id = target.closest<SVGGElement>('[data-table-id]')?.dataset.tableId;
-  const table = id ? doc.tables.find((t) => t.id === id) : undefined;
-  return table
-    ? { kind: 'move', id: table.id, grabX: table.positionX - point.x, grabY: table.positionY - point.y }
-    : null;
+  const tableId = target.closest<SVGGElement>('[data-table-id]')?.dataset.tableId;
+  const grabbed = tableId ? findMovable(doc, tableId) : itemAt(doc, point, hitPadMeters);
+  return grabbed ? { kind: 'move', id: grabbed.id, grabX: grabbed.x - point.x, grabY: grabbed.y - point.y } : null;
 }
 
 /** Is positional snapping active? Alt suspends it for the length of the gesture. */
@@ -90,7 +116,7 @@ const snapping = (input: GestureInput): boolean => input.snapEnabled && !input.m
 
 function resolveMove(
   gesture: Extract<Gesture, { kind: 'move' }>,
-  table: FloorPlanTableGeometry,
+  movable: Movable,
   input: GestureInput,
 ): GestureResult {
   const doc = input.document;
@@ -101,8 +127,8 @@ function resolveMove(
     cx = snapToGrid(cx, doc.gridSizeCm);
     cy = snapToGrid(cy, doc.gridSizeCm);
     const aligned = alignmentSnap(
-      { ...tableSnapRect(table), x: cx, y: cy },
-      otherTableRects(doc.tables, table.id),
+      { ...movable, x: cx, y: cy },
+      otherMovableRects(doc, movable.id),
       input.toleranceMeters,
     );
     cx = aligned.x;
@@ -110,59 +136,59 @@ function resolveMove(
     guides = aligned.guides;
   }
   const centre = clampCentreToPlan(cx, cy, doc);
-  return { patch: { positionX: centre.x, positionY: centre.y }, guides };
+  return { patch: { x: centre.x, y: centre.y }, guides };
 }
 
 function resolveRotate(
   gesture: Extract<Gesture, { kind: 'rotate' }>,
-  table: FloorPlanTableGeometry,
+  movable: Movable,
   input: GestureInput,
 ): GestureResult {
-  const raw = angleFromPointer({ x: table.positionX, y: table.positionY }, input.point) - gesture.grabAngle;
+  const raw = angleFromPointer(movable, input.point) - gesture.grabAngle;
   const step = input.snapEnabled ? rotationStep(input.modifiers) : ROTATION_STEP_FREE;
-  return { patch: { rotation: snapAngle(raw, step) }, guides: [] };
+  return { patch: { rotationDegrees: snapAngle(raw, step) }, guides: [] };
 }
 
 function resolveResize(
   gesture: Extract<Gesture, { kind: 'resize' }>,
-  table: FloorPlanTableGeometry,
+  movable: Movable,
   input: GestureInput,
 ): GestureResult {
   const doc = input.document;
-  const next = resizeRect(tableOrientedRect(table), gesture.anchor, input.point, {
+  const next = resizeRect(movable, gesture.anchor, input.point, {
     // A canvas floor above the server's 0.1 m: anything smaller is unusable to
     // grab. Bigger than the room is what the server would silently clamp, so
     // bound it here to keep the canvas and the saved plan the same shape.
-    minSizeMeters: MIN_TABLE_SIZE_M,
+    minSizeMeters: MIN_MOVABLE_SIZE_M,
     maxWidthMeters: doc.widthMeters,
     maxHeightMeters: doc.heightMeters,
     snapStepMeters: snapping(input) ? doc.gridSizeCm / 100 : undefined,
   });
   // Clamp like a move: the server clamps the centre too, so a resize can never
-  // leave the table somewhere Save would silently pull it back from.
+  // leave the object somewhere Save would silently pull it back from.
   const centre = clampCentreToPlan(next.x, next.y, doc);
   return {
-    patch: { positionX: centre.x, positionY: centre.y, width: next.widthMeters, height: next.heightMeters },
+    patch: { x: centre.x, y: centre.y, widthMeters: next.widthMeters, heightMeters: next.heightMeters },
     guides: [],
   };
 }
 
 /**
  * Resolve a live gesture against the current document. Returns null when the
- * gesture's table has gone (e.g. a reload landed mid-drag), which the caller
+ * gesture's object has gone (e.g. a reload landed mid-drag), which the caller
  * treats as "nothing to preview".
  */
 export function resolveGesture(gesture: Gesture, input: GestureInput): GestureResult | null {
-  const table = input.document.tables.find((t) => t.id === gesture.id);
-  if (!table) {
+  const movable = findMovable(input.document, gesture.id);
+  if (!movable) {
     return null;
   }
   switch (gesture.kind) {
     case 'move':
-      return resolveMove(gesture, table, input);
+      return resolveMove(gesture, movable, input);
     case 'rotate':
-      return resolveRotate(gesture, table, input);
+      return resolveRotate(gesture, movable, input);
     default:
-      return resolveResize(gesture, table, input);
+      return resolveResize(gesture, movable, input);
   }
 }

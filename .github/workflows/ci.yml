@@ -157,7 +157,9 @@ jobs:
         # incompatible major" or "delete the gate". The wrapper makes accepting one
         # an explicit, dated entry in .npm-audit-allowlist.json instead, and fails
         # when an acceptance expires. Same house pattern as .retireignore.json.
-      - run: node scripts/check-npm-audit.mjs
+      # `npm audit` exits non-zero on any finding, so the pipeline's status is the
+      # parser's — it is the one that decides whether a finding is accepted.
+      - run: npm audit --json | node scripts/check-npm-audit.mjs
 
   file_length:
     name: file-length (CLAUDE.md §4)

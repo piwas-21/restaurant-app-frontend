@@ -11,6 +11,10 @@
  * an explicit, reviewed, *dated* entry instead — the same shape as
  * `.retireignore.json`, `.trivyignore` and `LICENSES.allowlist`.
  *
+ * Reads `npm audit --json` from stdin (or a file path argument) rather than spawning
+ * npm itself: resolving a binary through PATH is a hijack vector (Sonar S4036), and a
+ * pure parser is also trivially testable against fixture JSON.
+ *
  * It fails on:
  *   - any high/critical ROOT advisory that is not allowlisted;
  *   - any allowlist entry whose `expires` date has passed (forces a re-review
@@ -20,25 +24,26 @@
  * on a vulnerable leaf, so one unpatched leaf can look like 33 findings. Only the
  * `via` entries that are advisory objects are real; the rest are consequences.
  */
-import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const ALLOWLIST_PATH = new URL('../.npm-audit-allowlist.json', import.meta.url);
 const BLOCKING = new Set(['high', 'critical']);
 
-/** `npm audit` exits non-zero when it finds anything, so the throw carries the JSON. */
-function runAudit() {
-  try {
-    return execFileSync('npm', ['audit', '--json'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-  } catch (error) {
-    if (error.stdout) {
-      return error.stdout;
-    }
-    throw error;
-  }
+/**
+ * `npm audit` exits non-zero whenever it finds anything, so CI pipes it in — the
+ * pipeline's status is the parser's, which is the one that should decide the build.
+ */
+function readReport() {
+  const [fileArg] = process.argv.slice(2);
+  return readFileSync(fileArg ?? 0, 'utf8');
 }
 
-const audit = JSON.parse(runAudit());
+const raw = readReport().trim();
+if (!raw) {
+  console.error('✗ no npm-audit JSON on stdin. Run: npm audit --json | node scripts/check-npm-audit.mjs');
+  process.exit(1);
+}
+const audit = JSON.parse(raw);
 const allowlist = JSON.parse(readFileSync(ALLOWLIST_PATH, 'utf8'));
 
 /** Advisory id → the packages that cite it, for a readable failure message. */
@@ -74,7 +79,9 @@ for (const [id, entry] of advisories) {
   }
 }
 for (const entry of stale) {
-  console.log(`• allowlist entry no longer needed (advisory gone): ${entry.id} — remove it from .npm-audit-allowlist.json`);
+  console.log(
+    `• allowlist entry no longer needed (advisory gone): ${entry.id} — remove it from .npm-audit-allowlist.json`,
+  );
 }
 
 if (unlisted.length === 0 && expired.length === 0) {
@@ -87,7 +94,9 @@ for (const [id, entry] of unlisted) {
   console.error(`  reported via: ${[...entry.packages].slice(0, 6).join(', ')}`);
 }
 for (const entry of expired) {
-  console.error(`✗ ${entry.id}: acceptance expired ${entry.expires} — re-review and either fix or extend with a reason`);
+  console.error(
+    `✗ ${entry.id}: acceptance expired ${entry.expires} — re-review and either fix or extend with a reason`,
+  );
 }
 console.error(
   '\nFix the dependency if a compatible patched version exists. Only if none does,' +

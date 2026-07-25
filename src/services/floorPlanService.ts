@@ -1,7 +1,7 @@
 import { apiClient } from '@/utils/apiClient';
 import type { ApiResponse } from '@/types/reservation';
 import type { FloorPlanDocument } from '@/types/floorPlan';
-import { isLocalItemId } from '@/lib/floorPlan/palette';
+import { isLocalItemId } from '@/lib/floorPlan/itemPlacement';
 
 /**
  * Floor-plan document API (FLOOR-PLAN-REVAMP §5.2). `GET` is the anonymous

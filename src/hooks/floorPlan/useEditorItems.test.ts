@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useEditorItems } from './useEditorItems';
-import { MAX_PLAN_ITEMS } from '@/lib/floorPlan/palette';
+import { MAX_PLAN_ITEMS } from '@/lib/floorPlan/itemPlacement';
 import { planDocument, planItem, tableGeometry } from '@/lib/floorPlan/__fixtures__/editorFixtures';
 import type { ViewBox } from '@/lib/floorPlan/geometry';
 import type { StagePointerPhase } from './editorStage';
@@ -96,6 +96,23 @@ describe('useEditorItems — placing without a pointer (SC 2.1.1)', () => {
     const { arm, apply } = setup({ unmeasured: true });
     arm('column', false);
     expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels whatever was armed, so the next canvas press cannot drop the wrong thing', () => {
+    // Mouse-click one entry, then Tab to another and press Enter — the modality a
+    // switch or voice user actually works in.
+    const { result, arm } = setup();
+    arm('column', true);
+    arm('tree', false);
+    expect(result.current.armedKind).toBeNull();
+  });
+
+  it('offsets each placement so a keyboard user does not stack objects invisibly', () => {
+    const occupied = planDocument([], { items: [planItem({ id: 'i1', x: 5, y: 4 })] });
+    const { arm, apply } = setup({ document: occupied });
+    arm('column', false);
+    // The plan centre (5, 4) is taken, so the new object steps one grid unit on.
+    expect(apply.mock.calls[0][0].items[1]).toMatchObject({ x: 5.25, y: 4.25 });
   });
 });
 

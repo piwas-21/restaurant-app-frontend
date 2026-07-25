@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
 import type { ViewBox } from '@/lib/floorPlan/geometry';
 import { removeItems } from '@/lib/floorPlan/document';
-import { canPlaceItem, duplicateItems, placeItem } from '@/lib/floorPlan/palette';
+import { canPlaceItem, duplicateItems, freeCentre, placeItem } from '@/lib/floorPlan/itemPlacement';
 import { useStageProjection, type StagePointerHandlers } from './editorStage';
 import type { FloorPlanDocument, FloorPlanPoint } from '@/types/floorPlan';
 
@@ -80,12 +80,17 @@ export function useEditorItems({
     // activation, and a silent default would be the untested path.
     (kind: string, viaPointer: boolean) => {
       if (!viaPointer) {
-        placeAt(kind, { x: doc.widthMeters / 2, y: doc.heightMeters / 2 });
+        // Placing at once ends whatever was armed. Otherwise a mouse-click on one
+        // entry followed by a keyboard activation of another would leave the first
+        // still armed, and the next press on the plan would drop the wrong thing —
+        // and mixed mouse + keyboard is exactly how a switch or voice user works.
+        setArmedKind(null);
+        placeAt(kind, freeCentre(doc, { x: doc.widthMeters / 2, y: doc.heightMeters / 2 }));
         return;
       }
       setArmedKind((current) => (current === kind ? null : kind));
     },
-    [doc.heightMeters, doc.widthMeters, placeAt],
+    [doc, placeAt],
   );
 
   const onPointerDown = useCallback(

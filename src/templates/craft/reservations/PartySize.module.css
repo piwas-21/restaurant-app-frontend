@@ -34,7 +34,7 @@
   background-color: var(--surface-card);
   color: var(--text-primary);
   border: 2px solid var(--text-muted);
-  border-radius: 50%;
+  border-radius: var(--craft-radius); /* hand-cut, not a machined circle */
   font-family: 'Amatic SC', cursive;
   font-size: 1.4rem;
   font-weight: 700;

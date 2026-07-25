@@ -23,7 +23,8 @@
   font-size: 13px;
   padding: 5px 12px;
   min-height: 34px;
-  border-radius: 999px;
+  /* craft hook: the whittled chip shape; classic keeps its pill literal. */
+  border-radius: var(--chip-radius, 999px);
   border: 1.5px solid var(--border-default);
   background: transparent;
   color: var(--text-primary);

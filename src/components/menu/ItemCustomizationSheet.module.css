@@ -24,7 +24,7 @@
   gap: 0.5rem;
   /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
   border: var(--modal-body-option-border, 1px solid var(--border-default, var(--border-color)));
-  border-radius: 999px;
+  border-radius: var(--modal-body-option-radius, 999px);
   padding: 0.25rem 0.5rem;
 }
 
@@ -57,7 +57,7 @@
   flex: 1;
   padding: 0.85rem 1rem;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--modal-body-btn-radius, 999px);
   background: var(--brand-primary);
   /* --modal-body-confirm-fg (cream in craft); classic fallback keeps the
      surface-primary it always computed to (--brand-on-primary was never

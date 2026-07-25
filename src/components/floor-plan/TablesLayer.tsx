@@ -17,7 +17,7 @@ interface TablesLayerProps {
   tables: FloorPlanTableGeometry[];
   states?: Readonly<Record<string, TableRenderState>>;
   styles: SceneStyles;
-  /** When provided, non-booked / non-small tables become clickable buttons. */
+  /** When provided, every non-booked table becomes a clickable button. */
   onSelectTable?: SelectTable;
   /** Accessible label for a table in a given state (i18n from the consumer). */
   formatTableLabel?: (table: FloorPlanTableGeometry, state: TableRenderState) => string;
@@ -80,7 +80,11 @@ interface TableGraphicProps {
 
 function TableGraphic({ table, state, styles, label, onSelectTable }: Readonly<TableGraphicProps>) {
   const parts = tableParts(table.shape, table.maxGuests, table.width, table.height);
-  const clickable = Boolean(onSelectTable) && state !== 'booked' && state !== 'small';
+  // `small` (smaller than the party) stays SELECTABLE — it is styled to warn, not
+  // to forbid. Disabling it dead-ended any party bigger than the largest table:
+  // every table went grey and nothing could be picked, so combining two tables —
+  // the documented answer to a large party — was impossible.
+  const clickable = Boolean(onSelectTable) && state !== 'booked';
   const handleKeyDown = (e: KeyboardEvent<SVGGElement>) => {
     if (clickable && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();

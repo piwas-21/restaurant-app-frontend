@@ -22,6 +22,20 @@ export function getCapacityWarningMessage(t: TFunction, numberOfGuests: number):
 }
 
 /**
+ * Does the party exceed EVERY table in the restaurant? Depends only on the table
+ * list and the party size — no date, no time, no availability call — which is why
+ * it lives on its own: the notice it drives must appear the moment the guest count
+ * is raised, not once a slot has been picked (the warning used to be reachable
+ * only through `computeTableAvailability`, i.e. after date AND time).
+ */
+export function partyExceedsEveryTable(allTables: TableDto[], numberOfGuests: number): boolean {
+  if (allTables.length === 0) {
+    return false;
+  }
+  return numberOfGuests > Math.max(...allTables.map((tbl) => tbl.maxGuests));
+}
+
+/**
  * Computes the booked-table ids and any capacity warning for the selected time slot. Mirrors the
  * former `updateTableAvailability`: `capacityWarning` is `null` when nothing should change (the
  * original only ever *set* the warning here, never cleared it).
@@ -54,11 +68,10 @@ export function computeTableAvailability(
   }
 
   // Guest size exceeds EVERY table in the restaurant (not just the available ones).
-  if (allTables.length > 0) {
-    const maxRestaurantCapacity = Math.max(...allTables.map((tbl) => tbl.maxGuests));
-    if (numberOfGuests > maxRestaurantCapacity) {
-      capacityWarning = getCapacityWarningMessage(t, numberOfGuests);
-    }
+  // Also surfaced independently of date/time by the hook — kept here so a slot
+  // change cannot clear a warning that is still true.
+  if (partyExceedsEveryTable(allTables, numberOfGuests)) {
+    capacityWarning = getCapacityWarningMessage(t, numberOfGuests);
   }
 
   return { bookedTableIds, capacityWarning };

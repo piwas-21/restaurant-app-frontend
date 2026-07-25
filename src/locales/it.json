@@ -2210,6 +2210,7 @@
   "no_tables_here": "Nessun tavolo in quest'area al momento.",
   "too_small_for_party": "Troppo piccolo per {{party}}",
   "table_too_small": "troppo piccolo per il vostro gruppo",
+  "table_smaller_than_party": "più piccolo del tuo gruppo — combinalo con un altro tavolo",
   "zoom_out": "Riduci",
   "zoom_in": "Ingrandisci",
   "fit_plan": "Adatta la pianta",

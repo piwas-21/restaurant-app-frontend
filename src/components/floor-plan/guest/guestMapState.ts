@@ -60,7 +60,11 @@ export function tableInfos(tables: FloorPlanTableGeometry[], ctx: GuestMapContex
       table,
       zone,
       state: stateFor(table, zone, selected, booked, ctx),
-      bookable: !booked.has(table.id) && table.maxGuests >= ctx.party,
+      // Smaller-than-the-party is a HINT, not a veto: the reservation flow exists
+      // to combine tables (see CapacityWarning — "select multiple tables and
+      // request to combine them"), and a party of 10 in a room whose largest table
+      // seats 8 must still be able to pick two. Only a BOOKED table is unbookable.
+      bookable: !booked.has(table.id),
     };
   });
 }

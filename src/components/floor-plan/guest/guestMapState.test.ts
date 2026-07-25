@@ -47,9 +47,24 @@ describe('guestMapState — tableInfos', () => {
     expect(infos[1].bookable).toBe(false);
   });
 
-  it('marks a table too small for the party', () => {
+  it('flags a table smaller than the party but keeps it BOOKABLE', () => {
+    // The flow's answer to a large party is combining tables ("select multiple
+    // tables and request to combine them"), so `small` must warn, never forbid.
     const [info] = tableInfos([table('a', 2)], ctx({ party: 4 }));
     expect(info.state).toBe('small');
+    expect(info.bookable).toBe(true);
+  });
+
+  it('leaves EVERY table bookable when the party exceeds all of them', () => {
+    // The dead end this fixes: a party of 10 in a room whose largest table seats 6
+    // used to grey out every table with nothing selectable and no explanation.
+    const infos = tableInfos([table('a', 6), table('b', 4)], ctx({ party: 10 }));
+    expect(infos.map((i) => i.state)).toEqual(['small', 'small']);
+    expect(infos.every((i) => i.bookable)).toBe(true);
+  });
+
+  it('still refuses a booked table, whatever its size', () => {
+    const [info] = tableInfos([table('a', 8)], ctx({ party: 2, bookedIds: ['a'] }));
     expect(info.bookable).toBe(false);
   });
 

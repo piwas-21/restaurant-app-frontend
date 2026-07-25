@@ -2210,6 +2210,7 @@
   "no_tables_here": "该区域暂时没有餐桌。",
   "too_small_for_party": "对 {{party}} 位来说太小",
   "table_too_small": "对您的用餐人数来说太小",
+  "table_smaller_than_party": "小于您的人数 — 可与另一张桌子拼台",
   "zoom_out": "缩小",
   "zoom_in": "放大",
   "fit_plan": "适配平面图",

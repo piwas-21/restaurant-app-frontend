@@ -2210,6 +2210,7 @@
   "no_tables_here": "Momenteel geen tafels in dit gedeelte.",
   "too_small_for_party": "Te klein voor {{party}}",
   "table_too_small": "te klein voor uw gezelschap",
+  "table_smaller_than_party": "kleiner dan uw gezelschap — combineer met een andere tafel",
   "zoom_out": "Uitzoomen",
   "zoom_in": "Inzoomen",
   "fit_plan": "Plattegrond passend maken",

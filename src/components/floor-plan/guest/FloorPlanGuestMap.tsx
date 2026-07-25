@@ -22,7 +22,7 @@ const STATUS_LABEL: Record<TableRenderState, readonly [string, string]> = {
   dim: ['available', 'Available'],
   selected: ['selected', 'Selected'],
   booked: ['booked', 'Booked'],
-  small: ['table_too_small', 'too small for your party'],
+  small: ['table_smaller_than_party', 'smaller than your party — combine with another table'],
 };
 
 interface FloorPlanGuestMapProps {

@@ -5,7 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { enqueueSnackbar } from 'notistack';
 import { reservationService } from '@/services/reservationService';
 import { TableDto, TimeSlotDto } from '@/types/reservation';
-import { computeTableAvailability, getTimeSlotOptions } from '@/utils/reservationForm';
+import {
+  computeTableAvailability,
+  getCapacityWarningMessage,
+  getTimeSlotOptions,
+  partyExceedsEveryTable,
+} from '@/utils/reservationForm';
 
 /**
  * Table / date / time / slot selection + availability for the reservations page: loads tables,
@@ -25,7 +30,25 @@ export function useReservationAvailability() {
   const [bookedTableIds, setBookedTableIds] = useState<string[]>([]);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlotDto[]>([]);
   const [loading, setLoading] = useState(false);
-  const [capacityWarning, setCapacityWarning] = useState<string>('');
+  /** Slot-specific capacity note: tables are free at this time, but none fit the party. */
+  const [slotCapacityWarning, setSlotCapacityWarning] = useState<string>('');
+
+  /**
+   * The "no single table fits this party" notice is DERIVED from the guest count, not
+   * stored. It used to be reachable only through `computeTableAvailability` — i.e.
+   * after a date AND a time had been chosen — so a party of 12 learned nothing until
+   * two more fields were filled in, which is the wrong moment to find out. It depends
+   * on nothing but the table list and the party size, so it shows the instant the
+   * count is raised.
+   *
+   * Deriving it (rather than syncing state in an effect) is deliberate: the two
+   * notices would otherwise race, each clearing the other's message on unrelated
+   * date/time/guest changes. The party-wide case wins when both apply — it is the
+   * more fundamental fact, and its wording already covers the other.
+   */
+  const capacityWarning = partyExceedsEveryTable(allTables, numberOfGuests)
+    ? getCapacityWarningMessage(t, numberOfGuests)
+    : slotCapacityWarning;
 
   // Load all tables on mount (fire-and-forget; loadAllTables toasts on failure).
   useEffect(() => {
@@ -40,7 +63,6 @@ export function useReservationAvailability() {
     } else {
       setAvailableTimeSlots([]);
       setBookedTableIds([]);
-      setCapacityWarning('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, numberOfGuests]);
@@ -59,7 +81,7 @@ export function useReservationAvailability() {
       }
     } else {
       setBookedTableIds([]);
-      setCapacityWarning('');
+      setSlotCapacityWarning('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTime, availableTimeSlots]);
@@ -77,7 +99,6 @@ export function useReservationAvailability() {
     if (!selectedDate) return;
 
     setLoading(true);
-    setCapacityWarning('');
 
     try {
       const result = await reservationService.getAvailableTimeSlots(selectedDate, numberOfGuests);
@@ -119,7 +140,7 @@ export function useReservationAvailability() {
       t,
     );
     setBookedTableIds(booked);
-    if (warning !== null) setCapacityWarning(warning);
+    if (warning !== null) setSlotCapacityWarning(warning);
   };
 
   const handleTableSelect = (table: TableDto) => {

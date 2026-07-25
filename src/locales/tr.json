@@ -2210,6 +2210,7 @@
   "no_tables_here": "Şu anda bu alanda masa yok.",
   "too_small_for_party": "{{party}} kişi için çok küçük",
   "table_too_small": "grubunuz için çok küçük",
+  "table_smaller_than_party": "grubunuzdan küçük — başka bir masayla birleştirin",
   "zoom_out": "Uzaklaştır",
   "zoom_in": "Yakınlaştır",
   "fit_plan": "Planı sığdır",

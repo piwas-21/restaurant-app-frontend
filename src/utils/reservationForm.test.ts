@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 import type { TableDto, TimeSlotDto } from '@/types/reservation';
 import {
   getCapacityWarningMessage,
+  partyExceedsEveryTable,
   computeTableAvailability,
   getTimeSlotOptions,
   validateReservation,
@@ -300,5 +301,35 @@ describe('extractReservationErrorMessage', () => {
 
   it('falls back to the default when nothing usable is present', () => {
     expect(extractReservationErrorMessage({}, t)).toBe('Failed to create reservation');
+  });
+});
+
+/**
+ * The party-size check that the Capacity Notice hangs off. Its whole point is that it
+ * takes nothing but the table list and the guest count — the old path reached the same
+ * conclusion only through `computeTableAvailability`, which needs a chosen slot, so a
+ * guest booking for 12 learned nothing until they had also picked a date and a time.
+ * `useReservationAvailability.test.ts` pins that end of it; these are the boundaries.
+ */
+describe('partyExceedsEveryTable', () => {
+  const tbl = (id: string, maxGuests: number) => ({ id, maxGuests }) as never;
+
+  it('is true when no single table can seat the party', () => {
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 6)], 8)).toBe(true);
+  });
+
+  it('is false when one table is exactly big enough', () => {
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 8)], 8)).toBe(false);
+  });
+
+  it('is false before the table list has loaded, so no notice flashes on mount', () => {
+    expect(partyExceedsEveryTable([], 8)).toBe(false);
+  });
+
+  it('reads the largest table, not the first or the last', () => {
+    // A `>` against the wrong element still passes the two cases above, where the
+    // biggest table happens to be last.
+    expect(partyExceedsEveryTable([tbl('a', 10), tbl('b', 4)], 8)).toBe(false);
+    expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 10), tbl('c', 4)], 8)).toBe(false);
   });
 });

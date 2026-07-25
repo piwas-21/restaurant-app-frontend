@@ -54,11 +54,12 @@
   border-color: var(--brand-primary);
 }
 
-.dirtyDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand-accent);
+/* The autosave state, sat next to Save. Muted on purpose: it is a running
+   reassurance, not a call to act. */
+.status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .warn {

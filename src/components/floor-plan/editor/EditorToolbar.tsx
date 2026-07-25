@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { AlertTriangle, Eye, Grid3x3, Magnet, Maximize2, Redo2, Save, Undo2, ZoomIn, ZoomOut } from 'lucide-react';
 import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
 import styles from './EditorToolbar.module.css';
@@ -13,6 +14,31 @@ import styles from './EditorToolbar.module.css';
  * — tables included — lives in the palette**, which is where §4.3 puts it and
  * which keeps one control per action.
  */
+
+/**
+ * What the toolbar says about the save state. Edits autosave a moment after the
+ * admin stops, so this is mostly reassurance that the work is on the server — the
+ * unsaved dot it replaced said only *that* something was pending, never that it was
+ * about to be handled. A function, not nested ternaries in the JSX.
+ */
+function saveStatusText(t: TFunction, editor: FloorPlanEditorApi): string {
+  if (editor.conflicted) {
+    return t('editor_save_conflict_short', 'Reload needed');
+  }
+  if (editor.saving) {
+    return t('editor_saving', 'Saving…');
+  }
+  // Autosave stopped trying, so "saving shortly" would be a lie — and a lie here is
+  // the worst case of all, since the admin would keep working on unsaved edits.
+  if (editor.autoSaveStalled) {
+    return t('editor_autosave_stalled', 'Not saved — use Save');
+  }
+  if (editor.dirty) {
+    return t('editor_autosave_pending', 'Saving shortly…');
+  }
+  return t('editor_all_saved', 'All changes saved');
+}
+
 interface EditorToolbarProps {
   editor: FloorPlanEditorApi;
   onPreview: () => void;
@@ -103,6 +129,11 @@ export default function EditorToolbar({ editor, onPreview }: Readonly<EditorTool
       </div>
 
       <div className={styles.group}>
+        {/* Deliberately not a live region: this cycles saved -> shortly -> saving ->
+            saved on every edit, and `<output>`'s implicit role=status announced all
+            three each time. The Save button carries the accessible state — it is
+            disabled exactly when there is nothing outstanding. */}
+        <span className={styles.status}>{saveStatusText(t, editor)}</span>
         <button
           type="button"
           className={styles.button}
@@ -115,7 +146,7 @@ export default function EditorToolbar({ editor, onPreview }: Readonly<EditorTool
         <button
           type="button"
           className={styles.save}
-          onClick={editor.save}
+          onClick={() => void editor.save()}
           disabled={!editor.dirty || editor.saving}
           aria-label={t('editor_save', 'Save layout')}
         >
@@ -123,7 +154,6 @@ export default function EditorToolbar({ editor, onPreview }: Readonly<EditorTool
           <span className={styles.label}>
             {editor.saving ? t('editor_saving', 'Saving…') : t('editor_save', 'Save layout')}
           </span>
-          {editor.dirty && !editor.saving && <span className={styles.dirtyDot} aria-hidden="true" />}
         </button>
       </div>
     </div>

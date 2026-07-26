@@ -179,6 +179,57 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
 
+  // frontend #223: staged uploads live outside RHF, so picking an image and changing nothing
+  // else left Save disabled and the upload unreachable.
+  it('enables Save after an image-only change', async () => {
+    const { container } = await renderEditor(item, false);
+
+    expect(screen.getByTestId('editor-save')).toBeDisabled();
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, {
+      target: { files: [new File(['x'], 'pizza.png', { type: 'image/png' })] },
+    });
+
+    expect(screen.getByTestId('editor-save')).toBeEnabled();
+  });
+
+  // Items only: no bundle command accepts an order-type mask, so the control would offer a save
+  // that silently does nothing (plan §9.2).
+  it('offers the order-type control on an item and not on a bundle', async () => {
+    const { container } = await renderEditor(item, false);
+    expect(container.querySelector('#product-order-type-DineIn')).toBeInTheDocument();
+
+    const bundleRender = await renderEditor(bundle, true);
+    expect(bundleRender.container.querySelector('#product-order-type-DineIn')).not.toBeInTheDocument();
+  });
+
+  it('sends the per-item order-type override on save', async () => {
+    const { container, nameInput } = await renderEditor(item, false);
+
+    // Switch to Custom (seeded from the inherited set), then drop delivery.
+    fireEvent.click(container.querySelectorAll('input[name="product-order-types-mode"]')[1]);
+    fireEvent.click(container.querySelector('#product-order-type-Delivery') as HTMLInputElement);
+    fireEvent.change(nameInput, { target: { value: 'Margherita Rossa' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+    const [, payload] = (updateProduct as jest.Mock).mock.calls[0];
+    // 3 = dine-in|takeaway. NOT the OrderType enum's Delivery=3 — that collision is exactly why
+    // conversion only ever goes through the channel map.
+    expect(payload.availableOrderTypes).toBe(3);
+  });
+
+  it('sends null when the item inherits, so the category stays in charge', async () => {
+    const { nameInput } = await renderEditor(item, false);
+
+    fireEvent.change(nameInput, { target: { value: 'Margherita Gialla' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+    const [, payload] = (updateProduct as jest.Mock).mock.calls[0];
+    expect(payload.availableOrderTypes).toBeNull();
+  });
+
   // The owner asked for an unsaved-changes guard. Save is gated on isDirty, so Back is the
   // only silent-discard path — confirm before leaving with pending edits.
   it('leaves immediately when Back is clicked with no pending changes', async () => {

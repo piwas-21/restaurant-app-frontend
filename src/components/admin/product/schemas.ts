@@ -54,6 +54,10 @@ const baseProductSchema = z.object({
     ),
   preparationTimeMinutes: z.coerce.number().min(0).default(0),
   suggestedSideItemIds: z.array(z.string()).default([]),
+  // Raw OrderChannels mask. `null` = inherit from the primary category; 1..7 = an explicit
+  // per-item override. The bounds mirror the server's `ValidOrderChannelMask` — 0 is rejected
+  // there because "orderable on no channel" renders as a blocked item with no stateable reason.
+  availableOrderTypes: z.number().int().min(1, 'Choose at least one order type').max(7).nullable().default(null),
 });
 
 // Menu Definition Schemas

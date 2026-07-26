@@ -6,7 +6,7 @@ import { enqueueSnackbar } from 'notistack';
 import { getCategories, updateCategory } from '@/services/categoryService';
 import type { Category } from '@/app/admin/menu-management/interfaces';
 import { OrderType } from '@/types/order';
-import { maskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
+import { isStorableMask, maskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
 
 /**
  * State + actions for the admin "order type availability" matrix (rows = categories, columns =
@@ -57,9 +57,11 @@ export function useCategoryChannelsAdmin() {
   );
 
   /**
-   * Toggle one order type for one category. Deliberately allows clearing every box (mask 0 =
-   * available on no channel): it is a legitimate way to take a whole category off sale, and the
-   * matrix warns about it rather than silently refusing.
+   * Toggle one order type for one category. Clearing every box is allowed as an intermediate state
+   * — an admin swapping "dine-in only" for "delivery only" passes through it — but it is NOT
+   * savable: the API rejects mask 0, because an item allowed on no channel renders as
+   * "Available for: ." with no stateable reason. `canSave` gates the commit and the matrix says
+   * why; taking a category off sale entirely is what its Active toggle is for.
    */
   const toggle = useCallback((categoryId: string, orderType: OrderType) => {
     setCategories((prev) =>
@@ -86,6 +88,16 @@ export function useCategoryChannelsAdmin() {
       );
     },
     [categories, saved],
+  );
+
+  /** Dirty AND storable — an empty selection would be rejected by the API, so Save stays disabled. */
+  const canSave = useCallback(
+    (categoryId: string) => {
+      if (!isDirty(categoryId)) return false;
+      const edited = categories.find((c) => c.id === categoryId);
+      return !!edited && isStorableMask(edited.availableOrderTypes);
+    },
+    [categories, isDirty],
   );
 
   const reset = useCallback(
@@ -131,5 +143,5 @@ export function useCategoryChannelsAdmin() {
     [categories, t],
   );
 
-  return { categories, loading, savingId, selectedTypes, toggle, isDirty, reset, save };
+  return { categories, loading, savingId, selectedTypes, toggle, isDirty, canSave, reset, save };
 }

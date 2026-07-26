@@ -1,5 +1,13 @@
 import { OrderType } from '@/types/order';
-import { ALL_ORDER_TYPES, isUnrestricted, maskAllows, maskFromOrderTypes, orderTypesFromMask } from './orderChannels';
+import {
+  ALL_ORDER_TYPES,
+  exactMaskFromOrderTypes,
+  isStorableMask,
+  isUnrestricted,
+  maskAllows,
+  maskFromOrderTypes,
+  orderTypesFromMask,
+} from './orderChannels';
 
 // The bit values (1/2/4) deliberately differ from the backend OrderType enum's numeric values
 // (1/2/3). These tests pin the mapping and the permissive-null rule, mirroring the backend's
@@ -78,6 +86,41 @@ describe('orderChannels', () => {
       for (const type of ALL_ORDER_TYPES) {
         expect(maskAllows(0, type)).toBe(false);
       }
+    });
+  });
+
+  describe('exactMaskFromOrderTypes', () => {
+    // The distinction products depend on: on a product `null` means INHERIT, so an explicit
+    // all-three override must survive as 7. Collapsing it would hand a Dürüm item that an admin
+    // deliberately opened to dine-in straight back to its takeaway-only category.
+    it('keeps a full set as 7 instead of collapsing it to null', () => {
+      expect(exactMaskFromOrderTypes(ALL_ORDER_TYPES)).toBe(7);
+      expect(maskFromOrderTypes(ALL_ORDER_TYPES)).toBeNull();
+    });
+
+    it('agrees with maskFromOrderTypes on every partial set', () => {
+      expect(exactMaskFromOrderTypes([OrderType.Takeaway, OrderType.Delivery])).toBe(6);
+      expect(exactMaskFromOrderTypes([OrderType.DineIn])).toBe(1);
+      expect(exactMaskFromOrderTypes([])).toBe(0);
+    });
+  });
+
+  describe('isStorableMask', () => {
+    it('accepts null/undefined (unrestricted) and every real subset', () => {
+      expect(isStorableMask(null)).toBe(true);
+      expect(isStorableMask(undefined)).toBe(true);
+      for (let mask = 1; mask <= 7; mask += 1) {
+        expect(isStorableMask(mask)).toBe(true);
+      }
+    });
+
+    it('rejects 0 — the API refuses it, so admin surfaces must not offer to save it', () => {
+      expect(isStorableMask(0)).toBe(false);
+    });
+
+    it('rejects out-of-range values', () => {
+      expect(isStorableMask(8)).toBe(false);
+      expect(isStorableMask(-1)).toBe(false);
     });
   });
 

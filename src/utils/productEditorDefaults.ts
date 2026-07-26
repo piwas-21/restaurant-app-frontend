@@ -149,6 +149,10 @@ export function toItemDefaults(product: ProductDetails) {
     preparationTimeMinutes: product.preparationTimeMinutes || 0,
     displayOrder: product.displayOrder || 0,
     suggestedSideItemIds: resolveSideItemIds(product),
+    // `?? null` and not `|| null`: 0 is not a valid mask, but the distinction still matters —
+    // `undefined` on a fetched product must seed the same "inherit" state as an explicit null,
+    // and an uncontrolled→controlled flip in the editor would otherwise reset the radio.
+    availableOrderTypes: product.availableOrderTypes ?? null,
   };
 }
 

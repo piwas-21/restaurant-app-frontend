@@ -36,12 +36,34 @@ export function orderTypesFromMask(mask: number | null | undefined): OrderType[]
 }
 
 /**
- * Encode order types into a stored mask. A full set collapses to `null` ("every channel"), matching
+ * Encode order types into a mask, EXACTLY — a full set stays `7`, it does not become `null`.
+ *
+ * Use this wherever `null` carries its own meaning that is not "every channel". On a **product**
+ * `null` means *inherit from the primary category*, so collapsing an explicit all-three override to
+ * `null` would silently hand the item back to a takeaway-only category.
+ */
+export function exactMaskFromOrderTypes(types: readonly OrderType[]): number {
+  return types.reduce((acc, type) => acc | CHANNEL_BIT[type], 0);
+}
+
+/**
+ * Encode order types into a stored mask, collapsing a full set to `null` ("every channel") to match
  * the backend's storage convention so an unrestricted row never persists a redundant mask.
+ *
+ * For **categories** only. See `exactMaskFromOrderTypes` for why products must not use this.
  */
 export function maskFromOrderTypes(types: readonly OrderType[]): number | null {
-  const mask = types.reduce((acc, type) => acc | CHANNEL_BIT[type], 0);
+  const mask = exactMaskFromOrderTypes(types);
   return mask === ALL_MASK ? null : mask;
+}
+
+/**
+ * Whether a mask is one the API will accept. The backend requires `null` or a real subset (1..7):
+ * a stored `0` would render as "Available for: ." — blocked everywhere with no stateable reason —
+ * so both admin surfaces have to refuse an empty selection rather than post one and get a 400.
+ */
+export function isStorableMask(mask: number | null | undefined): boolean {
+  return mask === null || mask === undefined || (mask >= 1 && mask <= ALL_MASK);
 }
 
 /** Whether a stored mask permits an order type. A null mask is unrestricted. */

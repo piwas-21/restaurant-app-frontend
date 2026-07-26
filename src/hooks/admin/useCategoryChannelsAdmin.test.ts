@@ -131,6 +131,31 @@ describe('useCategoryChannelsAdmin', () => {
     expect(result.current.savingId).toBeNull();
   });
 
+  // The API rejects mask 0 (`ValidOrderChannelMask`: null or 1..7), so offering Save on an empty
+  // selection would just 400 with a generic toast and no way to tell why.
+  it('refuses to save an empty selection, while still allowing it as an intermediate state', async () => {
+    mockList([GRILLS]);
+    const { result } = await renderLoaded();
+
+    act(() => result.current.toggle('c2', OrderType.Takeaway));
+    act(() => result.current.toggle('c2', OrderType.Delivery));
+
+    expect(result.current.selectedTypes(result.current.categories[0])).toEqual([]);
+    expect(result.current.isDirty('c2')).toBe(true);
+    expect(result.current.canSave('c2')).toBe(false);
+
+    // Re-tick one channel and the commit is available again.
+    act(() => result.current.toggle('c2', OrderType.DineIn));
+    expect(result.current.canSave('c2')).toBe(true);
+  });
+
+  it('canSave is false for a clean row even when its mask is storable', async () => {
+    mockList([GRILLS]);
+    const { result } = await renderLoaded();
+
+    expect(result.current.canSave('c2')).toBe(false);
+  });
+
   it('a failed load leaves an empty list rather than throwing', async () => {
     mockGetCategories.mockRejectedValue(new Error('offline'));
     const { result } = await renderLoaded();

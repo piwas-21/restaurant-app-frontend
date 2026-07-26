@@ -84,6 +84,13 @@ export interface ProductDetails {
   images: ProductImage[];
   suggestedSideItems: SideItem[];
   menuDefinition?: MenuDefinition; // For menu bundle products
+  /**
+   * Mirrors backend `ProductDto.AvailableOrderTypes` — the RAW OrderChannels bitmask stored on the
+   * item. `null` means "inherit from the primary category", which is NOT the same as an explicit
+   * all-three override, so this must never be round-tripped through `maskFromOrderTypes` (see
+   * `exactMaskFromOrderTypes`). Customer surfaces read the decoded `availability` instead.
+   */
+  availableOrderTypes?: number | null;
   content?: any; // To match the full product object for the edit modal
 }
 

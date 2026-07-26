@@ -1,0 +1,60 @@
+/* Dark mode uses [data-theme='dark'] per CLAUDE.md §5.7 — never prefers-color-scheme. Every colour
+   here is either theme-AWARE (--border-default, --text-*) or theme-INVARIANT (--feedback-warning,
+   --feedback-error), so this module needs no dark-mode block of its own. */
+
+.fieldset {
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 1rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0 0.35rem;
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  /* Indented under the Custom radio so the boxes read as belonging to it. */
+  padding-inline-start: 1.5rem;
+}
+
+.channel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+/* A disabled checkbox still has to be legible — it is previewing the inherited set, not hidden. */
+.channel input:disabled + label {
+  color: var(--text-muted);
+}
+
+.warning {
+  color: var(--feedback-warning);
+  font-size: 0.8rem;
+  margin: 0;
+  padding-inline-start: 1.5rem;
+}
+
+.error {
+  color: var(--feedback-error);
+  font-size: 0.8rem;
+  margin: 0;
+}

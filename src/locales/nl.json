@@ -2355,9 +2355,15 @@
   "category": "Categorie",
   "items_count": "{{count}} items",
   "category_order_types_intro": "Kies via welke besteltypen elke categorie besteld kan worden. Items nemen hun categorie over, tenzij u ze afzonderlijk overschrijft.",
-  "category_off_sale_warning": "Niet te bestellen via enig besteltype",
   "category_order_type_toggle_aria": "{{category}} beschikbaar voor {{orderType}}",
   "order_types_saved": "Beschikbaarheid van besteltypen opgeslagen",
   "failed_to_save_order_types": "Opslaan van beschikbaarheid van besteltypen mislukt",
-  "failed_to_load_categories": "Categorieën laden mislukt"
+  "failed_to_load_categories": "Categorieën laden mislukt",
+  "category_no_order_type_warning": "Kies minstens één besteltype. Wilt u deze categorie helemaal niet meer verkopen, zet haar dan uit bij Categorieën.",
+  "category_order_types_manage": "Beheren",
+  "product_order_types": "Beschikbaarheid van besteltypen",
+  "product_order_types_inherit": "Overnemen van categorie",
+  "product_order_types_inherit_named": "Overnemen van categorie ({{category}}: {{orderTypes}})",
+  "product_order_types_custom": "Aangepast",
+  "product_order_types_no_primary_warning": "Geen hoofdcategorie geselecteerd, dus er valt niets over te nemen — dit item blijft beschikbaar via elk besteltype totdat u er een instelt of Aangepast kiest."
 }

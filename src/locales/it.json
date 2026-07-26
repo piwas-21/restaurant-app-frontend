@@ -2355,9 +2355,15 @@
   "category": "Categoria",
   "items_count": "{{count}} elementi",
   "category_order_types_intro": "Scegli con quali tipi di ordine è possibile ordinare ogni categoria. Gli articoli eredereditano la categoria, salvo override individuale.",
-  "category_off_sale_warning": "Non ordinabile con alcun tipo di ordine",
   "category_order_type_toggle_aria": "{{category}} disponibile per {{orderType}}",
   "order_types_saved": "Disponibilità dei tipi di ordine salvata",
   "failed_to_save_order_types": "Salvataggio della disponibilità dei tipi di ordine non riuscito",
-  "failed_to_load_categories": "Caricamento delle categorie non riuscito"
+  "failed_to_load_categories": "Caricamento delle categorie non riuscito",
+  "category_no_order_type_warning": "Scegli almeno un tipo di ordine. Per togliere del tutto dalla vendita questa categoria, disattivala in Categorie.",
+  "category_order_types_manage": "Gestisci",
+  "product_order_types": "Disponibilità dei tipi di ordine",
+  "product_order_types_inherit": "Eredita dalla categoria",
+  "product_order_types_inherit_named": "Eredita dalla categoria ({{category}}: {{orderTypes}})",
+  "product_order_types_custom": "Personalizzato",
+  "product_order_types_no_primary_warning": "Nessuna categoria principale selezionata, quindi non c’è nulla da ereditare: questo articolo resta disponibile per tutti i tipi di ordine finché non ne imposti una o scegli Personalizzato."
 }

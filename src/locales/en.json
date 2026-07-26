@@ -2355,9 +2355,15 @@
   "category": "Category",
   "items_count": "{{count}} items",
   "category_order_types_intro": "Choose which order types each category can be ordered through. Items inherit their category unless you override them individually.",
-  "category_off_sale_warning": "Not orderable on any order type",
   "category_order_type_toggle_aria": "{{category}} available for {{orderType}}",
   "order_types_saved": "Order type availability saved",
   "failed_to_save_order_types": "Failed to save order type availability",
-  "failed_to_load_categories": "Failed to load categories"
+  "failed_to_load_categories": "Failed to load categories",
+  "category_no_order_type_warning": "Pick at least one order type. To stop selling this category entirely, turn it off under Categories.",
+  "category_order_types_manage": "Manage",
+  "product_order_types": "Order type availability",
+  "product_order_types_inherit": "Inherit from category",
+  "product_order_types_inherit_named": "Inherit from category ({{category}}: {{orderTypes}})",
+  "product_order_types_custom": "Custom",
+  "product_order_types_no_primary_warning": "No primary category selected, so there is nothing to inherit — this item stays available on every order type until you set one or choose Custom."
 }

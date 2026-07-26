@@ -2355,9 +2355,15 @@
   "category": "Kategorie",
   "items_count": "{{count}} Artikel",
   "category_order_types_intro": "Wählen Sie, über welche Bestellarten jede Kategorie bestellt werden kann. Artikel übernehmen ihre Kategorie, sofern Sie sie nicht einzeln überschreiben.",
-  "category_off_sale_warning": "Über keine Bestellart bestellbar",
   "category_order_type_toggle_aria": "{{category}} verfügbar für {{orderType}}",
   "order_types_saved": "Verfügbarkeit der Bestellarten gespeichert",
   "failed_to_save_order_types": "Verfügbarkeit der Bestellarten konnte nicht gespeichert werden",
-  "failed_to_load_categories": "Kategorien konnten nicht geladen werden"
+  "failed_to_load_categories": "Kategorien konnten nicht geladen werden",
+  "category_no_order_type_warning": "Wählen Sie mindestens eine Bestellart. Um diese Kategorie ganz aus dem Verkauf zu nehmen, deaktivieren Sie sie unter Kategorien.",
+  "category_order_types_manage": "Verwalten",
+  "product_order_types": "Verfügbarkeit der Bestellarten",
+  "product_order_types_inherit": "Von Kategorie übernehmen",
+  "product_order_types_inherit_named": "Von Kategorie übernehmen ({{category}}: {{orderTypes}})",
+  "product_order_types_custom": "Benutzerdefiniert",
+  "product_order_types_no_primary_warning": "Keine Hauptkategorie ausgewählt, daher gibt es nichts zu übernehmen — dieser Artikel bleibt für jede Bestellart verfügbar, bis Sie eine festlegen oder „Benutzerdefiniert“ wählen."
 }

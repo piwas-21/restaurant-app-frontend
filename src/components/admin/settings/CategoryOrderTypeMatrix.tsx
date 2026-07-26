@@ -2,17 +2,11 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { OrderType } from '@/types/order';
 import { ALL_ORDER_TYPES } from '@/utils/orderChannels';
 import { useCategoryChannelsAdmin } from '@/hooks/admin/useCategoryChannelsAdmin';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { ORDER_TYPE_LABEL_KEY } from '@/utils/orderTypeLabels';
 import styles from './CategoryOrderTypeMatrix.module.css';
-
-const ORDER_TYPE_LABEL_KEY: Record<OrderType, { key: string; fallback: string }> = {
-  [OrderType.DineIn]: { key: 'order_type_dine_in', fallback: 'Dine In' },
-  [OrderType.Takeaway]: { key: 'order_type_takeaway', fallback: 'Takeaway' },
-  [OrderType.Delivery]: { key: 'order_type_delivery', fallback: 'Delivery' },
-};
 
 /**
  * The category × order-type availability matrix (rows = categories, columns = order types) — the
@@ -24,7 +18,8 @@ const ORDER_TYPE_LABEL_KEY: Record<OrderType, { key: string; fallback: string }>
  */
 export default function CategoryOrderTypeMatrix() {
   const { t } = useTranslation();
-  const { categories, loading, savingId, selectedTypes, toggle, isDirty, reset, save } = useCategoryChannelsAdmin();
+  const { categories, loading, savingId, selectedTypes, toggle, isDirty, canSave, reset, save } =
+    useCategoryChannelsAdmin();
 
   if (loading) {
     return <p className={styles.loading}>{t('common.loading', 'Loading...')}</p>;
@@ -61,6 +56,7 @@ export default function CategoryOrderTypeMatrix() {
               const selected = selectedTypes(category);
               const isOffSale = selected.length === 0;
               const dirty = isDirty(category.id);
+              const savable = canSave(category.id);
               const busy = savingId !== null;
               const displayName = getCategoryDisplayName(category.name, t);
 
@@ -75,7 +71,10 @@ export default function CategoryOrderTypeMatrix() {
                     )}
                     {isOffSale && (
                       <span className={styles.warning}>
-                        {t('category_off_sale_warning', 'Not orderable on any order type')}
+                        {t(
+                          'category_no_order_type_warning',
+                          'Pick at least one order type. To stop selling this category entirely, turn it off under Categories.',
+                        )}
                       </span>
                     )}
                   </td>
@@ -112,7 +111,7 @@ export default function CategoryOrderTypeMatrix() {
                         type="button"
                         className={styles.saveButton}
                         onClick={() => void save(category.id)}
-                        disabled={!dirty || busy}
+                        disabled={!savable || busy}
                       >
                         {savingId === category.id ? t('saving', 'Saving...') : t('save', 'Save')}
                       </button>

@@ -75,3 +75,79 @@
 .addButton:hover {
   filter: brightness(0.96);
 }
+
+/* ---------- blocked-on-this-order-type footer (§9.10) ---------- */
+
+/* Every class `MenuCardAvailability` reads — including BOTH tone classes, even though this footer
+   only ever renders the blocked one: the shell picks a tone class unconditionally, so an undefined
+   entry would render a literal "undefined" in the class attribute.
+   Its own copy rather than an import from the card's module because the shell takes whichever
+   module its HOST passes (the `OrderTypeToggleShell` recipe, ORDER-TYPE-AVAILABILITY-PLAN §4.5),
+   and this sits on the modal surface at footer scale, not on a card. */
+.availability {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Craft hooks like every other control in this file (`--modal-body-*`, var fallback = the exact
+   classic literal). Without them the blocked footer would be the ONE control here that ignores the
+   skin — a classic pill sitting in a torn-edge Caveat footer, replacing a CTA that WAS skinned. */
+.availabilityReason {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--modal-body-btn-radius, 20px);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.availabilityInfo .availabilityReason {
+  background-color: var(--surface-secondary);
+  color: var(--text-secondary);
+}
+
+/* `--feedback-warning` is a FILL colour; warning TEXT uses `-text`. The fill is themed too — the
+   light cream would carry dark mode's orange text at ~2:1. */
+.availabilityBlocked .availabilityReason {
+  border-color: var(--feedback-warning-text);
+  background-color: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+}
+
+[data-theme='dark'] .availabilityBlocked .availabilityReason {
+  background-color: var(--surface-card);
+}
+
+.availabilityHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Sits where "Add" sat, at the footer's trailing edge. Its own surface, not the modal's, so the
+   craft skin's darker body cannot drag brand-primary below AA. */
+.availabilitySwitch {
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--modal-body-btn-radius, 20px);
+  /* Its own surface, never the modal body's: craft's body is darker, and brand-primary on it would
+     drop below AA. `--surface-card` is themed and clears 4.6:1 in dark. */
+  background-color: var(--surface-card);
+  color: var(--brand-primary);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-cta-size, 0.9rem);
+  font-weight: 600;
+  box-shadow: var(--modal-body-btn-shadow, none);
+  cursor: pointer;
+}
+
+.availabilitySwitch:hover,
+.availabilitySwitch:focus-visible {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}

@@ -166,6 +166,15 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // §9.10 — the sheet's order-type guard. The blocked footer and the normal footer are both
+    // pinned; the uncovered lines are the quantity stepper's own handlers, which belong to the
+    // pre-existing footer and are not what this row is protecting.
+    './src/components/menu/ItemCustomizationSheet.tsx': {
+      statements: 84,
+      branches: 80,
+      functions: 49,
+      lines: 83,
+    },
     // B2 (cart instructions) — the /cart special-instructions editor is now the single owner of
     // item notes for EVERY item (the gate that hid it for customized items on prod is gone), and
     // the customizations summary no longer duplicates the notes line. The editor's display/edit/

@@ -35,7 +35,10 @@
   cursor: pointer;
 }
 
-.button[aria-pressed='true'] {
+/* Toggles report `aria-pressed`, the tool radio group `aria-checked` — both mean
+   "this is the one that is on", so both get the active treatment. */
+.button[aria-pressed='true'],
+.button[aria-checked='true'] {
   color: var(--text-on-primary);
   background: var(--brand-primary);
   border-color: var(--brand-primary);

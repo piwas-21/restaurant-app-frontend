@@ -11,6 +11,27 @@ import { findMovable, selectedMovables, tableGeometryPatch, type MovableGeometry
  * mints a client id until Save persists the server id). Pure and unit-tested.
  */
 
+/**
+ * A blank plan, so the editor's hooks can run unconditionally while the real one
+ * loads. Its dimensions are §4.1's default room, which is what a plan the server
+ * has never seen would be created as — a zero-sized placeholder would make the
+ * viewport divide by zero before the first fetch resolves.
+ */
+export const EMPTY_DOCUMENT: FloorPlanDocument = {
+  id: '',
+  name: '',
+  widthMeters: 12,
+  heightMeters: 8,
+  gridSizeCm: 25,
+  backgroundStyle: '',
+  isDefault: true,
+  displayOrder: 0,
+  updatedAt: null,
+  walls: [],
+  items: [],
+  tables: [],
+};
+
 type Identified = { id?: string };
 
 /** Patch the entry with the given id in a list, sharing the rest by reference. */

@@ -1,4 +1,4 @@
-import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry, FloorPlanWall } from '@/types/floorPlan';
 import { resizeHandle, type HandleAnchor } from '../handles';
 
 /**
@@ -37,6 +37,24 @@ export const planItem = (over: Partial<FloorPlanItem> = {}): FloorPlanItem => ({
   zIndex: 1,
   label: null,
   styleVariant: null,
+  ...over,
+});
+
+/** A closed 4 m × 3 m room from (1, 1), on the grid so snap tests read plainly. */
+export const planWall = (over: Partial<FloorPlanWall> = {}): FloorPlanWall => ({
+  id: 'w1',
+  points: [
+    { x: 1, y: 1 },
+    { x: 5, y: 1 },
+    { x: 5, y: 4 },
+    { x: 1, y: 4 },
+  ],
+  thicknessMeters: 0.12,
+  isClosed: true,
+  roomName: 'Dining',
+  floorStyle: 'wood',
+  zIndex: 0,
+  openings: [],
   ...over,
 });
 

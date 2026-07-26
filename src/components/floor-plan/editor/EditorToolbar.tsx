@@ -4,15 +4,16 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { AlertTriangle, Eye, Grid3x3, Magnet, Maximize2, Redo2, Save, Undo2, ZoomIn, ZoomOut } from 'lucide-react';
 import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
+import EditorToolControls from './EditorToolControls';
 import styles from './EditorToolbar.module.css';
 
 /**
- * Editor toolbar (FLOOR-PLAN-REVAMP §4.3): undo/redo, grid + snap toggles, an
- * overlap counter (warned, never blocked), zoom controls, Preview-as-guest and
- * the one Save (disabled until there are unsaved edits). Every control is a
- * labelled button so the whole tool is operable without a drag. **Adding objects
- * — tables included — lives in the palette**, which is where §4.3 puts it and
- * which keeps one control per action.
+ * Editor toolbar (FLOOR-PLAN-REVAMP §4.3): the tool switch, undo/redo, grid +
+ * snap toggles, an overlap counter (warned, never blocked), zoom controls,
+ * Preview-as-guest and the one Save (disabled until there are unsaved edits).
+ * Every control is a labelled button so the whole tool is operable without a
+ * drag. **Adding objects — tables included — lives in the palette**, which is
+ * where §4.3 puts it and which keeps one control per action.
  */
 
 /**
@@ -50,6 +51,8 @@ export default function EditorToolbar({ editor, onPreview }: Readonly<EditorTool
 
   return (
     <div className={styles.bar} role="toolbar" aria-label={t('editor_toolbar', 'Floor plan tools')}>
+      <EditorToolControls activeTool={editor.activeTool} onSelectTool={editor.setActiveTool} />
+
       <div className={styles.group}>
         <button
           type="button"

@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Open gap",
   "editor_swing_in": "Inwards",
   "editor_swing_out": "Outwards",
-  "editor_swing_none": "No swing"
+  "editor_swing_none": "No swing",
+  "editor_palette_labels": "Labels",
+  "editor_item_text_label": "Text label",
+  "editor_item_zone": "Zone",
+  "editor_item_entrance": "Entrance",
+  "editor_item_text": "Text",
+  "editor_zone_name": "Zone name"
 }

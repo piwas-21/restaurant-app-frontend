@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "通口",
   "editor_swing_in": "向内",
   "editor_swing_out": "向外",
-  "editor_swing_none": "无"
+  "editor_swing_none": "无",
+  "editor_palette_labels": "标注",
+  "editor_item_text_label": "文字标签",
+  "editor_item_zone": "区域",
+  "editor_item_entrance": "入口",
+  "editor_item_text": "文字",
+  "editor_zone_name": "区域名称"
 }

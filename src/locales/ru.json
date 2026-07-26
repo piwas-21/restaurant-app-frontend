@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Проём",
   "editor_swing_in": "Внутрь",
   "editor_swing_out": "Наружу",
-  "editor_swing_none": "Без створки"
+  "editor_swing_none": "Без створки",
+  "editor_palette_labels": "Обозначения",
+  "editor_item_text_label": "Текстовая метка",
+  "editor_item_zone": "Зона",
+  "editor_item_entrance": "Вход",
+  "editor_item_text": "Текст",
+  "editor_zone_name": "Название зоны"
 }

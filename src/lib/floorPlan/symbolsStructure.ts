@@ -16,6 +16,19 @@ const line = (x1: number, y1: number, x2: number, y2: number, variant: SymbolPri
   y2,
 });
 
+/**
+ * The entrance marker — **only an arrow**. The doorway itself is drawn by the
+ * wall opening it sits in (§4.4). Exported by name as well as through the
+ * registry because {@link ../../components/floor-plan/WayfindingShapes} draws it
+ * unconditionally and would otherwise carry a null branch that cannot happen.
+ */
+export const ENTRANCE_SYMBOL: SymbolDef = {
+  name: 'Entrance',
+  w: 90,
+  h: 60,
+  prims: [{ tag: 'path', variant: 'ln', d: 'M4 30 h74 m-26 -22 l26 22 l-26 22' }, line(0, 6, 0, 54, 'lnThin')],
+};
+
 export const STRUCTURE_SYMBOLS: Record<string, SymbolDef> = {
   bar_counter: {
     name: 'Bar counter',
@@ -130,12 +143,5 @@ export const STRUCTURE_SYMBOLS: Record<string, SymbolDef> = {
     h: 40,
     prims: [{ tag: 'circle', variant: 'sceneryFill', cx: 20, cy: 20, r: 14 }],
   },
-  // The entrance marker is only an arrow that says "come in here" — the door
-  // leaf and swing belong to the wall opening (§4.4).
-  entrance: {
-    name: 'Entrance',
-    w: 90,
-    h: 60,
-    prims: [{ tag: 'path', variant: 'ln', d: 'M4 30 h74 m-26 -22 l26 22 l-26 22' }, line(0, 6, 0, 54, 'lnThin')],
-  },
+  entrance: ENTRANCE_SYMBOL,
 };

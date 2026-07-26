@@ -1,18 +1,19 @@
-import type { FloorPlanTableGeometry, FloorPlanWall } from '@/types/floorPlan';
-import { tableRoom } from '@/lib/floorPlan/zones';
+import type { FloorPlanDocument, FloorPlanTableGeometry } from '@/types/floorPlan';
+import { tableZone } from '@/lib/floorPlan/zones';
 import type { TableRenderState } from '../sceneTypes';
 
 /**
  * Pure derivation of the guest map's per-table view state (FLOOR-PLAN-REVAMP
  * §4.2). A table's four+ states are computed from the live availability, the
  * chosen party size and the active zone filter — the zone itself resolved from
- * the room the table sits in (`tableRoom`). Kept pure so the map component and
- * the list share one truth and it is unit-tested.
+ * where the table stands (`tableZone`: a drawn zone region, else the named room
+ * around it). Kept pure so the map component and the list share one truth and it
+ * is unit-tested.
  */
 
 export interface GuestTableInfo {
   table: FloorPlanTableGeometry;
-  /** The room the table sits in, or null when it is in no named room. */
+  /** The zone the table stands in, or null when it is in no named one. */
   zone: string | null;
   state: TableRenderState;
   /** Free for the chosen party (drives the List's Select button + empty state). */
@@ -20,7 +21,8 @@ export interface GuestTableInfo {
 }
 
 export interface GuestMapContext {
-  walls: FloorPlanWall[];
+  /** The plan the zones are resolved against — its walls AND its zone regions. */
+  plan: Pick<FloorPlanDocument, 'walls' | 'items'>;
   selectedIds: readonly string[];
   bookedIds: readonly string[];
   party: number;
@@ -55,7 +57,7 @@ export function tableInfos(tables: FloorPlanTableGeometry[], ctx: GuestMapContex
   const selected = new Set(ctx.selectedIds);
   const booked = new Set(ctx.bookedIds);
   return tables.map((table) => {
-    const zone = tableRoom(table, ctx.walls);
+    const zone = tableZone(table, ctx.plan);
     return {
       table,
       zone,

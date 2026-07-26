@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Geçiş",
   "editor_swing_in": "İçeri",
   "editor_swing_out": "Dışarı",
-  "editor_swing_none": "Yönsüz"
+  "editor_swing_none": "Yönsüz",
+  "editor_palette_labels": "Etiketler",
+  "editor_item_text_label": "Metin etiketi",
+  "editor_item_zone": "Bölge",
+  "editor_item_entrance": "Giriş",
+  "editor_item_text": "Metin",
+  "editor_zone_name": "Bölge adı"
 }

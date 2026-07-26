@@ -1,16 +1,18 @@
 import type { KeyboardEvent } from 'react';
 import type { FloorPlanItem } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
-import { getSymbol, isSymbolItemKind, type SymbolDef } from '@/lib/floorPlan/symbols';
+import { getSymbol, isMovableItemKind, type SymbolDef } from '@/lib/floorPlan/symbols';
+import { isTextLabelKind } from '@/lib/floorPlan/wayfinding';
 import FloorPlanSymbol from './FloorPlanSymbol';
+import { ZoneRegion } from './WayfindingShapes';
 import type { SceneStyles, SelectTable } from './sceneTypes';
 
 /**
  * Structure and decor items (bar, fireplace, plants, …) plus zone regions.
  * Fixed furniture is drawn in the muted scenery ink so it recedes and reads as
  * non-interactive (§4.2). Text labels and the entrance marker are handled by
- * {@link LabelsLayer}. Each symbol is authored in its own box and scaled to the
- * item's metre footprint; rotation is about the item centre.
+ * {@link ./LabelsLayer}, above the tables. Each symbol is authored in its own box
+ * and scaled to the item's metre footprint; rotation is about the item centre.
  *
  * Items are **scenery for the guest and objects for the admin**. On the guest map
  * no handler is passed, so they stay inert; in the editor `onSelectItem` makes
@@ -20,38 +22,9 @@ import type { SceneStyles, SelectTable } from './sceneTypes';
  * `role`/`tabIndex`/`aria-*`, never a shape.
  */
 
-const HANDLED_ELSEWHERE = new Set(['label', 'text_label', 'entrance']);
-
 interface ItemPartProps {
   item: FloorPlanItem;
   styles: SceneStyles;
-}
-
-function ZoneRegion({ item, styles }: Readonly<ItemPartProps>) {
-  const x = metresToCm(item.x - item.widthMeters / 2);
-  const y = metresToCm(item.y - item.heightMeters / 2);
-  const name = item.label ?? '';
-  const tagWidth = Math.max(90, name.length * 17);
-  return (
-    <g>
-      <rect
-        className={styles.zoneRegion}
-        x={x}
-        y={y}
-        width={metresToCm(item.widthMeters)}
-        height={metresToCm(item.heightMeters)}
-        rx={14}
-      />
-      {name && (
-        <>
-          <rect className={styles.flag} x={x + 14} y={y - 16} width={tagWidth} height={32} rx={3} />
-          <text className={styles.tagText} x={x + 14 + tagWidth / 2} y={y} fontSize={21}>
-            {name}
-          </text>
-        </>
-      )}
-    </g>
-  );
 }
 
 /** The symbol is resolved by the caller, which already refuses to draw kinds without one. */
@@ -104,9 +77,7 @@ function PlacedItem({ item, styles, onSelectItem, label, selected }: Readonly<Pl
     // an empty focusable group behind for a screen reader to announce.
     return null;
   }
-  // Only the objects the editor can actually act on become buttons — a zone or a
-  // label is drawn here but edited in S8 (`isSymbolItemKind`).
-  const selectable = Boolean(onSelectItem) && Boolean(id) && isSymbolItemKind(item.kind);
+  const selectable = Boolean(onSelectItem) && Boolean(id) && isMovableItemKind(item.kind);
   const select = (source: Parameters<SelectTable>[1]) => id && onSelectItem?.(id, source);
   const handleKeyDown = (e: KeyboardEvent<SVGGElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -140,7 +111,7 @@ export default function ItemsLayer({
   selectedItemIds,
 }: Readonly<ItemsLayerProps>) {
   const drawn = items
-    .filter((it) => !HANDLED_ELSEWHERE.has(it.kind))
+    .filter((it) => !isTextLabelKind(it.kind) && it.kind !== 'entrance')
     .slice()
     .sort((a, b) => a.zIndex - b.zIndex);
   return (

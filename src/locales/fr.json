@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Passage",
   "editor_swing_in": "Vers l'intérieur",
   "editor_swing_out": "Vers l'extérieur",
-  "editor_swing_none": "Aucun"
+  "editor_swing_none": "Aucun",
+  "editor_palette_labels": "Repères",
+  "editor_item_text_label": "Étiquette texte",
+  "editor_item_zone": "Zone",
+  "editor_item_entrance": "Entrée",
+  "editor_item_text": "Texte",
+  "editor_zone_name": "Nom de la zone"
 }

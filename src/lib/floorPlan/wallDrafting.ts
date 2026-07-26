@@ -125,7 +125,7 @@ export function snapDraftPoint(raw: FloorPlanPoint, context: DraftSnapContext): 
     return { point: endpoint, kind: 'endpoint' };
   }
 
-  const previous = points[points.length - 1];
+  const previous = points.at(-1);
   if (previous && !freeAngle) {
     return { point: snapToAngleRay(previous, raw, gridSizeCm, true), kind: 'angle' };
   }
@@ -161,7 +161,7 @@ export function draftWall(
   points: readonly FloorPlanPoint[],
   isClosed: boolean,
 ): FloorPlanWall | null {
-  const last = points[points.length - 1];
+  const last = points.at(-1);
   const repeatsFirst = points.length > 1 && last && samePoint(points[0], last);
   const trimmed = isClosed && repeatsFirst ? points.slice(0, -1) : points;
   const required = isClosed ? MIN_ROOM_VERTICES : MIN_DRAFT_VERTICES;

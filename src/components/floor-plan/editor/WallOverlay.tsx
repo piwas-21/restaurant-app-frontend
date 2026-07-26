@@ -29,6 +29,18 @@ const cmPoint = (p: FloorPlanPoint) => ({ x: metresToCm(p.x), y: metresToCm(p.y)
 const polyline = (points: readonly FloorPlanPoint[]): string =>
   points.map((p) => `${metresToCm(p.x)},${metresToCm(p.y)}`).join(' ');
 
+/**
+ * The outline of a wall, or null when it has no run to draw. A **closed** wall's
+ * outline repeats its first vertex, because `wallSegments` treats the join back
+ * to the start as a real segment and so must this.
+ */
+function wallOutline(wall: FloorPlanWall | null): string | null {
+  if (!wall || wall.points.length < 2) {
+    return null;
+  }
+  return polyline(wall.isClosed ? [...wall.points, wall.points[0]] : wall.points);
+}
+
 interface WallOverlayProps {
   draft: WallDraftState | null;
   selectedWall: FloorPlanWall | null;
@@ -39,7 +51,7 @@ interface WallOverlayProps {
 function DraftChain({ draft, cm }: Readonly<{ draft: WallDraftState; cm: (px: number) => number }>) {
   const { t } = useTranslation();
   const { points, cursor } = draft;
-  const last = points[points.length - 1];
+  const last = points.at(-1);
   const rubber = last && cursor ? { from: cmPoint(last), to: cmPoint(cursor.point) } : null;
   const readout = last && cursor ? draftReadout(last, cursor.point) : null;
 
@@ -84,12 +96,7 @@ export default function WallOverlay({ draft, selectedWall, pxPerCm }: Readonly<W
   }
   /** Screen pixels as plan centimetres at the current zoom. */
   const cm = (px: number) => Number((px / pxPerCm).toFixed(2));
-  // A closed wall's outline repeats its first vertex, because `wallSegments`
-  // treats the join back to the start as a real segment and so must this.
-  const outline =
-    selectedWall && selectedWall.points.length > 1
-      ? polyline(selectedWall.isClosed ? [...selectedWall.points, selectedWall.points[0]] : selectedWall.points)
-      : null;
+  const outline = wallOutline(selectedWall);
 
   return (
     <g aria-hidden="true">

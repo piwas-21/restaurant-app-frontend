@@ -49,9 +49,8 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
   return (
     // Blocked cards stay listed with every control focusable, and the reason is folded into the
     // accessible name — parity with the shared card, including why `aria-disabled` is absent.
-    <article
+    <li
       className={isBlocked ? `${styles.card} ${styles.blocked}` : styles.card}
-      role="listitem"
       aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
     >
       {item.isSpecial && (
@@ -120,6 +119,6 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
           </button>
         </div>
       </div>
-    </article>
+    </li>
   );
 }

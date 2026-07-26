@@ -29,11 +29,12 @@ export interface UsePublicMenuDataReturn {
   totalPages: number;
   totalCount: number;
   pageSize: number;
-  fetchProducts: (
-    page: number,
-    categoryId: string | typeof ALL_ITEMS_KEY | null,
-    requestedOrderType?: OrderType | null,
-  ) => Promise<void>;
+  /**
+   * `categoryId` is a category id, `null`, or the `ALL_ITEMS_KEY` sentinel. Typed as plain `string`
+   * rather than `string | typeof ALL_ITEMS_KEY`: TypeScript widens the literal into `string` and the
+   * union collapses, so the narrower arm documents nothing and only trips Sonar S6571.
+   */
+  fetchProducts: (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => Promise<void>;
   fetchMenuBundles: (page: number) => Promise<void>;
 }
 
@@ -62,7 +63,7 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
   // callback's identity stable, so adding the channel to the fetch cannot turn the caller's load
   // effect into one that re-runs on an unrelated identity change.
   const fetchProducts = useCallback(
-    async (page: number, categoryId: string | typeof ALL_ITEMS_KEY | null, requestedOrderType?: OrderType | null) => {
+    async (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => {
       const localId = ++requestIdRef.current;
       setIsLoading(true);
       setError(null);

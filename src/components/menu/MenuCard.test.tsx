@@ -251,7 +251,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
 
     expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
     // No dimming, no CTA, and Add still works — a guest who has chosen nothing is not blocked.
-    expect(container.querySelector('[role="listitem"]')).not.toHaveClass('blocked');
+    expect(container.querySelector('li')).not.toHaveClass('blocked');
     expect(screen.queryByRole('button', { name: 'Switch to Takeaway' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'add_item_to_order(Margherita)' })).toBeInTheDocument();
   });
@@ -269,7 +269,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
       />,
     );
 
-    const card = container.querySelector('[role="listitem"]') as HTMLElement;
+    const card = container.querySelector('li') as HTMLElement;
     expect(card).toHaveClass('blocked');
     // Both ids — the name AND the reason — so the card announces WHY it is dimmed.
     expect(card).toHaveAttribute('aria-labelledby', 'item-name-p1 item-availability-p1');

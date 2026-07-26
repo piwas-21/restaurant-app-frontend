@@ -45,7 +45,11 @@ export default function MenuList({
   );
 
   return (
-    <div className={styles.itemsGrid} role="list">
+    // A real <ul>/<li>, not a div with `role="list"`/`role="listitem"`. Native semantics survive
+    // where the ARIA pair does not (VoiceOver drops the roles when the container is styled
+    // `display: grid`), and the roles were only ever standing in for the elements. `.itemsGrid`
+    // resets the list chrome so the render is unchanged.
+    <ul className={styles.itemsGrid}>
       {items.map((item) => (
         <MenuCard
           key={`${item.id}-${currentLanguage}`}
@@ -55,6 +59,6 @@ export default function MenuList({
           onSwitchOrderType={onSwitchOrderType}
         />
       ))}
-    </div>
+    </ul>
   );
 }

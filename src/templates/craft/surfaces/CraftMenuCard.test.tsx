@@ -110,7 +110,7 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
     const { container } = render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
-    expect(container.querySelector('[role="listitem"]')).not.toHaveClass('blocked');
+    expect(container.querySelector('li')).not.toHaveClass('blocked');
     expect(screen.getByRole('button', { name: 'add_item_to_order(Margherita)' })).toBeInTheDocument();
   });
 
@@ -127,7 +127,7 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
       />,
     );
 
-    const card = container.querySelector('[role="listitem"]') as HTMLElement;
+    const card = container.querySelector('li') as HTMLElement;
     expect(card).toHaveClass('blocked');
     expect(card).toHaveAttribute('aria-labelledby', 'item-name-p1 item-availability-p1');
     expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();

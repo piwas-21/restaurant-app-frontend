@@ -79,13 +79,12 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
     // appended to the accessible name, so a screen reader hears "Dürüm … Takeaway and Delivery only"
     // rather than an unexplained dim card, which is the sighted-user equivalent of the visual dim.
     //
-    // §4.4 also asked for `aria-disabled` here. It is deliberately NOT set: `listitem` is not an
-    // interactive role, and this card has no inert control for the state to describe — "Add to
+    // §4.4 also asked for `aria-disabled` here. It is deliberately NOT set: a list item is not an
+    // interactive element, and this card has no inert control for the state to describe — "Add to
     // order" is REMOVED while blocked rather than left disabled-and-unexplained, so there is nothing
     // an AT could act on. Setting it anyway is markup `jsx-a11y/role-supports-aria-props` rejects.
-    <div
+    <li
       className={isBlocked ? `${styles.menuItem} ${styles.blocked}` : styles.menuItem}
-      role="listitem"
       aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
     >
       {item.isSpecial && (
@@ -162,7 +161,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
       {showFeedbackForm && !item.isBundle && (
         <FeedbackForm dishId={item.id} onSubmitSuccess={() => onFeedbackSuccess(item.id)} />
       )}
-    </div>
+    </li>
   );
 }
 

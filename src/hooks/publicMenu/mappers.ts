@@ -40,17 +40,17 @@ function mapAvailability(dto: ItemAvailabilityDto | undefined): ItemAvailability
   );
   if (allowedOrderTypes.length === 0) return undefined;
 
-  // An unrecognised reason must not contradict `canOrder` — "blocked, reason: Available" would make
-  // the card dim with nothing to say. Fall back to the reason that matches the verdict instead.
   const canOrder = dto.canOrder !== false;
-  const reason: AvailabilityReason =
-    typeof dto.reason === 'string' && KNOWN_REASONS.has(dto.reason)
-      ? (dto.reason as AvailabilityReason)
-      : canOrder
-        ? 'Available'
-        : 'WrongOrderType';
+  return { canOrder, reason: mapReason(dto.reason, canOrder), allowedOrderTypes };
+}
 
-  return { canOrder, reason, allowedOrderTypes };
+/**
+ * An unrecognised reason must not contradict the verdict — "blocked, reason: Available" would dim a
+ * card with nothing to say — so an unknown value falls back to the reason that matches `canOrder`.
+ */
+function mapReason(reason: string | undefined, canOrder: boolean): AvailabilityReason {
+  if (typeof reason === 'string' && KNOWN_REASONS.has(reason)) return reason as AvailabilityReason;
+  return canOrder ? 'Available' : 'WrongOrderType';
 }
 
 /** Coerce wire `basePrice` (number | string | missing) into a number. */

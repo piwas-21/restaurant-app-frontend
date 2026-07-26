@@ -2351,5 +2351,13 @@
   "editor_item_zone": "منطقة",
   "editor_item_entrance": "المدخل",
   "editor_item_text": "النص",
-  "editor_zone_name": "اسم المنطقة"
+  "editor_zone_name": "اسم المنطقة",
+  "category": "الفئة",
+  "items_count": "{{count}} عنصر",
+  "category_order_types_intro": "اختر أنواع الطلبات المتاحة لكل فئة. تورث العناصر إعدادات فئتها إلا إذا تم تجاوزها بشكل فردي.",
+  "category_off_sale_warning": "غير قابل للطلب بأي نوع طلب",
+  "category_order_type_toggle_aria": "{{category}} متاح لـ {{orderType}}",
+  "order_types_saved": "تم حفظ توفر أنواع الطلبات",
+  "failed_to_save_order_types": "فشل حفظ توفر أنواع الطلبات",
+  "failed_to_load_categories": "فشل تحميل الفئات"
 }

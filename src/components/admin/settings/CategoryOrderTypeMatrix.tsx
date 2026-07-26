@@ -114,7 +114,7 @@ export default function CategoryOrderTypeMatrix() {
                         onClick={() => void save(category.id)}
                         disabled={!dirty || busy}
                       >
-                        {savingId === category.id ? t('saving', 'Saving...') : t('common.save', 'Save')}
+                        {savingId === category.id ? t('saving', 'Saving...') : t('save', 'Save')}
                       </button>
                     </div>
                   </td>

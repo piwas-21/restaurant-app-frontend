@@ -2351,5 +2351,13 @@
   "editor_item_zone": "区域",
   "editor_item_entrance": "入口",
   "editor_item_text": "文字",
-  "editor_zone_name": "区域名称"
+  "editor_zone_name": "区域名称",
+  "category": "分类",
+  "items_count": "{{count}} 项",
+  "category_order_types_intro": "选择每个分类可通过哪些订单类型订购。除单独覆盖外，菜品将继承其分类设置。",
+  "category_off_sale_warning": "任何订单类型均无法订购",
+  "category_order_type_toggle_aria": "{{category}} 可用于 {{orderType}}",
+  "order_types_saved": "订单类型可用性已保存",
+  "failed_to_save_order_types": "保存订单类型可用性失败",
+  "failed_to_load_categories": "加载分类失败"
 }

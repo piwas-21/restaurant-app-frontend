@@ -2351,5 +2351,13 @@
   "editor_item_zone": "Зона",
   "editor_item_entrance": "Вход",
   "editor_item_text": "Текст",
-  "editor_zone_name": "Название зоны"
+  "editor_zone_name": "Название зоны",
+  "category": "Категория",
+  "items_count": "{{count}} поз.",
+  "category_order_types_intro": "Выберите, какими типами заказа доступна каждая категория. Позиции наследуют настройку категории, если не переопределены отдельно.",
+  "category_off_sale_warning": "Недоступно ни для одного типа заказа",
+  "category_order_type_toggle_aria": "{{category}} доступно для {{orderType}}",
+  "order_types_saved": "Доступность типов заказа сохранена",
+  "failed_to_save_order_types": "Не удалось сохранить доступность типов заказа",
+  "failed_to_load_categories": "Не удалось загрузить категории"
 }

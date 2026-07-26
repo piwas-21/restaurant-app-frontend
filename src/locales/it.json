@@ -2351,5 +2351,13 @@
   "editor_item_zone": "Zona",
   "editor_item_entrance": "Ingresso",
   "editor_item_text": "Testo",
-  "editor_zone_name": "Nome zona"
+  "editor_zone_name": "Nome zona",
+  "category": "Categoria",
+  "items_count": "{{count}} elementi",
+  "category_order_types_intro": "Scegli con quali tipi di ordine è possibile ordinare ogni categoria. Gli articoli eredereditano la categoria, salvo override individuale.",
+  "category_off_sale_warning": "Non ordinabile con alcun tipo di ordine",
+  "category_order_type_toggle_aria": "{{category}} disponibile per {{orderType}}",
+  "order_types_saved": "Disponibilità dei tipi di ordine salvata",
+  "failed_to_save_order_types": "Salvataggio della disponibilità dei tipi di ordine non riuscito",
+  "failed_to_load_categories": "Caricamento delle categorie non riuscito"
 }

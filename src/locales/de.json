@@ -2351,5 +2351,13 @@
   "editor_item_zone": "Bereich",
   "editor_item_entrance": "Eingang",
   "editor_item_text": "Text",
-  "editor_zone_name": "Bereichsname"
+  "editor_zone_name": "Bereichsname",
+  "category": "Kategorie",
+  "items_count": "{{count}} Artikel",
+  "category_order_types_intro": "Wählen Sie, über welche Bestellarten jede Kategorie bestellt werden kann. Artikel übernehmen ihre Kategorie, sofern Sie sie nicht einzeln überschreiben.",
+  "category_off_sale_warning": "Über keine Bestellart bestellbar",
+  "category_order_type_toggle_aria": "{{category}} verfügbar für {{orderType}}",
+  "order_types_saved": "Verfügbarkeit der Bestellarten gespeichert",
+  "failed_to_save_order_types": "Verfügbarkeit der Bestellarten konnte nicht gespeichert werden",
+  "failed_to_load_categories": "Kategorien konnten nicht geladen werden"
 }

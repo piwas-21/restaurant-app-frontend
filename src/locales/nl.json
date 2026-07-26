@@ -2351,5 +2351,13 @@
   "editor_item_zone": "Zone",
   "editor_item_entrance": "Ingang",
   "editor_item_text": "Tekst",
-  "editor_zone_name": "Naam zone"
+  "editor_zone_name": "Naam zone",
+  "category": "Categorie",
+  "items_count": "{{count}} items",
+  "category_order_types_intro": "Kies via welke besteltypen elke categorie besteld kan worden. Items nemen hun categorie over, tenzij u ze afzonderlijk overschrijft.",
+  "category_off_sale_warning": "Niet te bestellen via enig besteltype",
+  "category_order_type_toggle_aria": "{{category}} beschikbaar voor {{orderType}}",
+  "order_types_saved": "Beschikbaarheid van besteltypen opgeslagen",
+  "failed_to_save_order_types": "Opslaan van beschikbaarheid van besteltypen mislukt",
+  "failed_to_load_categories": "Categorieën laden mislukt"
 }

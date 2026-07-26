@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useItemCustomizationSheet } from './useItemCustomizationSheet';
 import { getProductById } from '@/services/menuService';
 import { ApiError } from '@/utils/apiClient';
+import { OrderType } from '@/types/order';
 
 const mockAddItem = jest.fn().mockResolvedValue(undefined);
 const mockEnqueueSnackbar = jest.fn();
@@ -294,5 +295,40 @@ describe('useItemCustomizationSheet', () => {
     });
 
     expect(mockEnqueueSnackbar).toHaveBeenCalledWith('error_loading_product', { variant: 'error' });
+  });
+});
+
+describe('useItemCustomizationSheet — the card verdict rides along (§9.10)', () => {
+  it('stores the handed-over verdict on the product so the sheet can refuse the add', async () => {
+    mockGetProductById.mockResolvedValue({ data: productWithOptions });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1', {
+        forceSheet: true,
+        availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
+      });
+    });
+
+    await waitFor(() => expect(result.current.isOpen).toBe(true));
+    // The sheet reads it straight off `controller.product` — no second fetch, so the sheet and the
+    // card can never disagree about the same item.
+    expect(result.current.product?.availability).toEqual({
+      canOrder: false,
+      reason: 'WrongOrderType',
+      allowedOrderTypes: [OrderType.Takeaway],
+    });
+  });
+
+  it('leaves the product untouched when no verdict was handed over (the by-id entry points)', async () => {
+    mockGetProductById.mockResolvedValue({ data: productWithOptions });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1', { forceSheet: true });
+    });
+
+    await waitFor(() => expect(result.current.isOpen).toBe(true));
+    expect(result.current.product?.availability).toBeUndefined();
   });
 });

@@ -106,7 +106,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
         setSelectedVariationId(seed.selectedVariationId);
         setQuantity(1);
         setSpecialInstructions('');
-        setProduct(detail);
+        setProduct(opts?.availability ? { ...detail, availability: opts.availability } : detail);
         setIsOpen(true);
       } catch (error) {
         console.error('Error opening product for customization:', error);

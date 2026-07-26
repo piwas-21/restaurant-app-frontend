@@ -14,11 +14,26 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-const draw = (wall: FloorPlanWall = planWall()) => {
-  const onPatch = jest.fn();
-  const onDelete = jest.fn();
-  render(<EditorWallPanel wall={wall} onPatch={onPatch} onDelete={onDelete} />);
-  return { onPatch, onDelete };
+const draw = (wall: FloorPlanWall = planWall(), selectedVertex: number | null = null) => {
+  const handlers = {
+    onPatch: jest.fn(),
+    onDelete: jest.fn(),
+    onSelectVertex: jest.fn(),
+    onMoveVertex: jest.fn(),
+    onRemoveVertex: jest.fn(),
+    onAddOpening: jest.fn(),
+    onPatchOpening: jest.fn(),
+    onRemoveOpening: jest.fn(),
+  };
+  render(
+    <EditorWallPanel
+      wall={wall}
+      plan={{ widthMeters: 10, heightMeters: 8 }}
+      selectedVertex={selectedVertex}
+      {...handlers}
+    />,
+  );
+  return handlers;
 };
 
 describe('EditorWallPanel — a closed chain is a room', () => {

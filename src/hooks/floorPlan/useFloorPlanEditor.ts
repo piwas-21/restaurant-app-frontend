@@ -52,7 +52,7 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
 
   const clearMovables = useCallback(() => selectMany([]), [selectMany]);
   const walls = useWallSelection({ document: committed, apply, clearMovables });
-  const { selectWall, clearWall } = walls;
+  const { selectWall, clearWall, selectVertex } = walls;
 
   const chain = useEditorPointerChain({
     stageRef: viewport.stageRef,
@@ -78,14 +78,20 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
       },
       [clearWall, selectMany],
     ),
+    // The COMMITTED wall — a grab reads the geometry as saved and the hook's own
+    // preview takes over from the first move. Resolving it against the render
+    // document would make the chain depend on its own output.
+    selectedWall: findWall(committed.walls, walls.selectedWallId),
     onPickWall: selectWall,
+    onSelectVertex: selectVertex,
     onWallCreated: selectWall,
     onToolDone: useCallback(() => setActiveTool('select'), []),
     viewportHandlers: viewport.stageHandlers,
   });
 
-  const { drag, items } = chain;
-  const renderDoc = drag.previewDoc ?? committed;
+  const { drag, items, vertices } = chain;
+  // Whichever gesture is live owns what the canvas shows; only one can be.
+  const renderDoc = vertices.previewDoc ?? drag.previewDoc ?? committed;
   // The on-canvas grips size themselves in screen pixels, so they need the live
   // stage↔plan scale rather than the viewBox alone (§4.4).
   const pxPerCm = useStageScale(viewport.stageRef, viewport.viewBox, ready);
@@ -169,9 +175,8 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
     selectedTable,
     selectedItem,
     ...walls,
-    // The wall itself is resolved here, against what is actually on screen — the
-    // selection holds only an id, so a deleted or re-minted wall stops resolving
-    // instead of going stale.
+    // Resolved against what is on screen: the selection holds only an id, so a
+    // deleted or re-minted wall stops resolving instead of going stale.
     selectedWall: findWall(renderDoc.walls, walls.selectedWallId),
     /** The single selection as a normalised rect — a table or an item alike. */
     selectedMovable: store.selectedId ? findMovable(renderDoc, store.selectedId) : null,

@@ -8,8 +8,10 @@ import { useEditorDrag } from './useEditorDrag';
 import { useEditorItems } from './useEditorItems';
 import { useWallDraft } from './useWallDraft';
 import { useWallPick } from './useWallPick';
+import { useWallVertexDrag } from './useWallVertexDrag';
 import type { StagePointerHandlers } from './editorStage';
 import type { EditorTool } from '@/lib/floorPlan/editorTools';
+import type { FloorPlanWall } from '@/types/floorPlan';
 
 interface PointerChainArgs {
   stageRef: RefObject<HTMLDivElement | null>;
@@ -22,7 +24,10 @@ interface PointerChainArgs {
   apply: (doc: FloorPlanDocument) => void;
   select: (id: string, additive: boolean) => void;
   selectMany: (ids: string[]) => void;
+  /** The selected wall, whose corner grips are on screen and grabbable. */
+  selectedWall: FloorPlanWall | null;
   onPickWall: (wallId: string) => void;
+  onSelectVertex: (index: number | null) => void;
   onWallCreated: (wallId: string) => void;
   /** A finished or abandoned chain returns the toolbar to Select. */
   onToolDone: () => void;
@@ -38,12 +43,14 @@ interface PointerChainArgs {
  *
  * 1. **wall draft** — while the Wall tool is active, every press places a vertex.
  * 2. **palette placement** — while a palette entry is armed, a press places it.
- * 3. **object gestures** — a press on a table, an item or a grip moves / rotates
+ * 3. **wall vertices** — a press on the selected wall's corner or midpoint grip
+ *    reshapes it. Above the objects because the grips are drawn on top of them.
+ * 4. **object gestures** — a press on a table, an item or a grip moves / rotates
  *    / resizes it.
- * 4. **wall pick** — a press on bare wall selects that wall. Below the objects on
+ * 5. **wall pick** — a press on bare wall selects that wall. Below the objects on
  *    purpose: a table sitting against a wall must still win its own press.
- * 5. **marquee** — a sweep across bare plan rubber-bands a selection.
- * 6. **viewport** — anything left over pans, pinches or zooms.
+ * 6. **marquee** — a sweep across bare plan rubber-bands a selection.
+ * 7. **viewport** — anything left over pans, pinches or zooms.
  *
  * Extracted from `useFloorPlanEditor` so that ordering is legible as a list
  * rather than as five interleaved `fallback:` arguments among the rest of the
@@ -57,10 +64,12 @@ export function useEditorPointerChain({
   snapEnabled,
   activeTool,
   selectedIds,
+  selectedWall,
   apply,
   select,
   selectMany,
   onPickWall,
+  onSelectVertex,
   onWallCreated,
   onToolDone,
   viewportHandlers,
@@ -95,6 +104,17 @@ export function useEditorPointerChain({
     fallback: wallPick.handlers,
   });
 
+  const vertices = useWallVertexDrag({
+    stageRef,
+    viewBox,
+    document: doc,
+    wall: activeTool === 'select' ? selectedWall : null,
+    snapEnabled,
+    apply,
+    onSelectVertex,
+    fallback: drag.handlers,
+  });
+
   const items = useEditorItems({
     stageRef,
     viewBox,
@@ -103,7 +123,7 @@ export function useEditorPointerChain({
     selectedIds,
     apply,
     onSelectMany: selectMany,
-    fallback: drag.handlers,
+    fallback: vertices.handlers,
   });
 
   const wall = useWallDraft({
@@ -118,5 +138,5 @@ export function useEditorPointerChain({
     fallback: items.handlers,
   });
 
-  return { handlers: wall.handlers, draft: wall.draft, band: marquee.band, drag, items };
+  return { handlers: wall.handlers, draft: wall.draft, band: marquee.band, drag, items, vertices };
 }

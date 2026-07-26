@@ -31,6 +31,7 @@ interface EditorOverlayProps {
   /** The chain the Wall tool is drawing, or null when it is not active. */
   wallDraft: WallDraftState | null;
   selectedWall: FloorPlanWall | null;
+  selectedVertex: number | null;
 }
 
 /** A rotated rectangle around a footprint, padded outward by `padCm`. */
@@ -65,6 +66,7 @@ export default function EditorOverlay({
   gesture,
   wallDraft,
   selectedWall,
+  selectedVertex,
 }: Readonly<EditorOverlayProps>) {
   const widthCm = metresToCm(doc.widthMeters);
   const heightCm = metresToCm(doc.heightMeters);
@@ -104,7 +106,7 @@ export default function EditorOverlay({
         <Footprint key={`sel-${m.id}`} rect={m} className={styles.selection} padCm={6} />
       ))}
       {only && <EditorHandles rect={only} pxPerCm={pxPerCm} gesture={gesture} />}
-      <WallOverlay draft={wallDraft} selectedWall={selectedWall} pxPerCm={pxPerCm} />
+      <WallOverlay draft={wallDraft} selectedWall={selectedWall} selectedVertex={selectedVertex} pxPerCm={pxPerCm} />
       {marquee && (
         <rect
           className={styles.marquee}

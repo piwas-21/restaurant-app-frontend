@@ -14,11 +14,17 @@ jest.mock('react-i18next', () => ({
 const draw = (props: {
   draft?: WallDraftState | null;
   selectedWall?: ReturnType<typeof planWall> | null;
+  selectedVertex?: number | null;
   pxPerCm?: number;
 }) => {
   const { container } = render(
     <svg>
-      <WallOverlay draft={props.draft ?? null} selectedWall={props.selectedWall ?? null} pxPerCm={props.pxPerCm ?? 1} />
+      <WallOverlay
+        draft={props.draft ?? null}
+        selectedWall={props.selectedWall ?? null}
+        selectedVertex={props.selectedVertex ?? null}
+        pxPerCm={props.pxPerCm ?? 1}
+      />
     </svg>,
   );
   return container;

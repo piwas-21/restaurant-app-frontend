@@ -9,6 +9,27 @@ import { OrderType } from '@/types/order';
 import { isStorableMask, maskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
 
 /**
+ * Flip one order type on one category row. Pure and module-level: inlining it left four nested
+ * callbacks (useCallback → state updater → map → filter), which is both hard to read and a Sonar
+ * S2004. Same shape as `useCustomerFormsAdmin`'s pure state transforms.
+ */
+function toggleCategoryChannel(categories: Category[], categoryId: string, orderType: OrderType): Category[] {
+  return categories.map((category) => {
+    if (category.id !== categoryId) return category;
+    const current = orderTypesFromMask(category.availableOrderTypes);
+    const next = current.includes(orderType) ? current.filter((type) => type !== orderType) : [...current, orderType];
+    return { ...category, availableOrderTypes: maskFromOrderTypes(next) };
+  });
+}
+
+/** Put one row back to its last-saved state, leaving every other row's edits alone. */
+function restoreCategory(categories: Category[], saved: Category[], categoryId: string): Category[] {
+  const original = saved.find((c) => c.id === categoryId);
+  if (!original) return categories;
+  return categories.map((category) => (category.id === categoryId ? { ...original } : category));
+}
+
+/**
  * State + actions for the admin "order type availability" matrix (rows = categories, columns =
  * order types). Follows the `useCustomerFormsAdmin` shape: an editable copy alongside a saved
  * snapshot for per-row dirty tracking, and one row saved at a time so an in-progress edit on
@@ -64,16 +85,7 @@ export function useCategoryChannelsAdmin() {
    * why; taking a category off sale entirely is what its Active toggle is for.
    */
   const toggle = useCallback((categoryId: string, orderType: OrderType) => {
-    setCategories((prev) =>
-      prev.map((category) => {
-        if (category.id !== categoryId) return category;
-        const current = orderTypesFromMask(category.availableOrderTypes);
-        const next = current.includes(orderType)
-          ? current.filter((type) => type !== orderType)
-          : [...current, orderType];
-        return { ...category, availableOrderTypes: maskFromOrderTypes(next) };
-      }),
-    );
+    setCategories((prev) => toggleCategoryChannel(prev, categoryId, orderType));
   }, []);
 
   const isDirty = useCallback(
@@ -102,12 +114,7 @@ export function useCategoryChannelsAdmin() {
 
   const reset = useCallback(
     (categoryId: string) => {
-      setCategories((prev) =>
-        prev.map((category) => {
-          const original = saved.find((c) => c.id === categoryId);
-          return category.id === categoryId && original ? { ...original } : category;
-        }),
-      );
+      setCategories((prev) => restoreCategory(prev, saved, categoryId));
     },
     [saved],
   );

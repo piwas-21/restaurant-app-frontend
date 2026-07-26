@@ -1,66 +1,92 @@
+import type { KeyboardEvent } from 'react';
 import type { FloorPlanItem } from '@/types/floorPlan';
-import { metresToCm } from '@/lib/floorPlan/geometry';
-import { getSymbol } from '@/lib/floorPlan/symbols';
-import FloorPlanSymbol from './FloorPlanSymbol';
-import type { SceneStyles } from './sceneTypes';
+import { isTextLabelKind } from '@/lib/floorPlan/wayfinding';
+import { EntranceMarker, TapeLabel } from './WayfindingShapes';
+import type { SceneStyles, SelectTable } from './sceneTypes';
 
 /**
  * Wayfinding text on top of the plan (§4.4): masking-tape text tags and the
- * entrance marker (an arrow — the doorway itself is drawn by the wall opening).
- * These sit above the tables so they stay legible. Foreground z-order.
+ * entrance marker. These sit above the tables so they stay legible. Foreground
+ * z-order. The shapes themselves live in {@link ./WayfindingShapes}, shared with
+ * the editor's palette preview.
+ *
+ * Like {@link ./ItemsLayer}, these are **scenery for the guest and objects for
+ * the admin**: with no `onSelectItem` they are inert; in the editor each becomes
+ * a focusable button, which is the keyboard path onto a label the pointer picks
+ * by footprint. Geometry is identical either way — the mirroring test insists on
+ * it — so interactivity adds only `role`/`tabIndex`/`aria-*`, never a shape.
  */
 
-const LABEL_KINDS = new Set(['label', 'text_label']);
+interface LabelsLayerProps {
+  items: FloorPlanItem[];
+  styles: SceneStyles;
+  /** When provided (editor only), each label becomes focusable and selectable. */
+  onSelectItem?: SelectTable;
+  formatItemLabel?: (item: FloorPlanItem) => string;
+  selectedItemIds?: readonly string[];
+}
 
-function TapeLabel({ item, styles }: Readonly<{ item: FloorPlanItem; styles: SceneStyles }>) {
-  const halfW = metresToCm(item.widthMeters) / 2;
-  const halfH = metresToCm(item.heightMeters) / 2;
+interface PlacedLabelProps {
+  item: FloorPlanItem;
+  styles: SceneStyles;
+  onSelectItem?: SelectTable;
+  label: string;
+  selected: boolean;
+}
+
+function PlacedLabel({ item, styles, onSelectItem, label, selected }: Readonly<PlacedLabelProps>) {
+  const id = item.id;
+  const selectable = Boolean(onSelectItem) && Boolean(id);
+  const select = (source: Parameters<SelectTable>[1]) => id && onSelectItem?.(id, source);
+  const handleKeyDown = (e: KeyboardEvent<SVGGElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      select({ additive: e.shiftKey, viaKeyboard: true });
+    }
+  };
   return (
-    <g transform={`translate(${metresToCm(item.x)} ${metresToCm(item.y)}) rotate(${item.rotationDegrees})`}>
-      <rect
-        className={styles.flag}
-        x={-halfW}
-        y={-halfH}
-        width={metresToCm(item.widthMeters)}
-        height={metresToCm(item.heightMeters)}
-        rx={3}
-      />
-      <text className={styles.tagText} x={0} y={1} fontSize={item.heightMeters * 62}>
-        {item.label ?? ''}
-      </text>
+    <g
+      data-item-id={id}
+      className={selectable ? styles.itemHit : undefined}
+      role={selectable ? 'button' : undefined}
+      tabIndex={selectable ? 0 : undefined}
+      aria-pressed={selectable ? selected : undefined}
+      aria-label={selectable ? label : undefined}
+      // A guest gets scenery, so it is hidden from them rather than announced as
+      // an unlabelled group; the editor's copy is a real, named control.
+      aria-hidden={selectable ? undefined : true}
+      onClick={selectable ? (e) => select({ additive: e.shiftKey, synthetic: e.detail === 0 }) : undefined}
+      onKeyDown={selectable ? handleKeyDown : undefined}
+    >
+      {item.kind === 'entrance' ? (
+        <EntranceMarker item={item} styles={styles} />
+      ) : (
+        <TapeLabel item={item} styles={styles} />
+      )}
     </g>
   );
 }
 
-function EntranceMarker({ item, styles }: Readonly<{ item: FloorPlanItem; styles: SceneStyles }>) {
-  const symbol = getSymbol('entrance');
-  if (!symbol) {
-    return null;
-  }
-  const sx = metresToCm(item.widthMeters) / symbol.w;
-  const sy = metresToCm(item.heightMeters) / symbol.h;
-  const transform =
-    `translate(${metresToCm(item.x)} ${metresToCm(item.y)}) rotate(${item.rotationDegrees}) ` +
-    `scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-symbol.w / 2} ${-symbol.h / 2})`;
-  return (
-    <g transform={transform} aria-hidden="true">
-      <FloorPlanSymbol def={symbol} styles={styles} />
-    </g>
-  );
-}
-
-export default function LabelsLayer({ items, styles }: Readonly<{ items: FloorPlanItem[]; styles: SceneStyles }>) {
-  const labels = items.filter((it) => LABEL_KINDS.has(it.kind) || it.kind === 'entrance');
+export default function LabelsLayer({
+  items,
+  styles,
+  onSelectItem,
+  formatItemLabel,
+  selectedItemIds,
+}: Readonly<LabelsLayerProps>) {
+  const labels = items.filter((it) => isTextLabelKind(it.kind) || it.kind === 'entrance');
   return (
     <g>
-      {labels.map((item) => {
-        const key = item.id ?? `${item.kind}-${item.x}-${item.y}-${item.zIndex}`;
-        return item.kind === 'entrance' ? (
-          <EntranceMarker key={key} item={item} styles={styles} />
-        ) : (
-          <TapeLabel key={key} item={item} styles={styles} />
-        );
-      })}
+      {labels.map((item) => (
+        <PlacedLabel
+          key={item.id ?? `${item.kind}-${item.x}-${item.y}-${item.zIndex}`}
+          item={item}
+          styles={styles}
+          onSelectItem={onSelectItem}
+          label={formatItemLabel?.(item) ?? item.kind}
+          selected={Boolean(item.id && selectedItemIds?.includes(item.id))}
+        />
+      ))}
     </g>
   );
 }

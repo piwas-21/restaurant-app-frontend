@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Vano",
   "editor_swing_in": "Hacia dentro",
   "editor_swing_out": "Hacia fuera",
-  "editor_swing_none": "Ninguna"
+  "editor_swing_none": "Ninguna",
+  "editor_palette_labels": "Rótulos",
+  "editor_item_text_label": "Rótulo de texto",
+  "editor_item_zone": "Zona",
+  "editor_item_entrance": "Entrada",
+  "editor_item_text": "Texto",
+  "editor_zone_name": "Nombre de la zona"
 }

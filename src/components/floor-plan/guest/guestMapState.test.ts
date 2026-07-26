@@ -30,7 +30,7 @@ const table = (id: string, maxGuests: number, x = 5, y = 5): FloorPlanTableGeome
 });
 
 const ctx = (overrides: Partial<GuestMapContext> = {}): GuestMapContext => ({
-  walls: [room],
+  plan: { walls: [room], items: [] },
   selectedIds: [],
   bookedIds: [],
   party: 2,

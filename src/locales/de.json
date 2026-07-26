@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Durchgang",
   "editor_swing_in": "Nach innen",
   "editor_swing_out": "Nach außen",
-  "editor_swing_none": "Ohne Anschlag"
+  "editor_swing_none": "Ohne Anschlag",
+  "editor_palette_labels": "Beschriftungen",
+  "editor_item_text_label": "Textschild",
+  "editor_item_zone": "Bereich",
+  "editor_item_entrance": "Eingang",
+  "editor_item_text": "Text",
+  "editor_zone_name": "Bereichsname"
 }

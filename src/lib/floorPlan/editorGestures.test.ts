@@ -120,11 +120,24 @@ describe('editorGestures — gestureFromTarget over items', () => {
     expect(gestureFromTarget(floor(), stacked, [], { x: 6, y: 3 })).toMatchObject({ id: 'over' });
   });
 
-  it.each(['zone', 'label', 'text_label', 'entrance'])('never grabs a %s (S8 owns those)', (kind) => {
-    // A zone region can be metres across; grabbing it would swallow every press
-    // inside it, killing marquee and pan over that whole area.
+  // S8 made the wayfinding kinds first-class objects, so they ARE grabbable now
+  // — a zone region is dragged like anything else once the inspector can edit
+  // the name it carries.
+  it.each(['zone', 'label', 'text_label', 'entrance'])('grabs a %s by its footprint', (kind) => {
     const withZone = doc([], { items: [planItem({ id: 'z1', kind, x: 6, y: 3, widthMeters: 4, heightMeters: 3 })] });
-    expect(gestureFromTarget(floor(), withZone, [], { x: 6, y: 3 })).toBeNull();
+    expect(gestureFromTarget(floor(), withZone, [], { x: 6, y: 3 })).toMatchObject({ id: 'z1', kind: 'move' });
+  });
+
+  // A zone can be metres across, so an object standing inside one must still win
+  // the press — otherwise the region would swallow every table on top of it.
+  it('lets an object inside a zone win the press', () => {
+    const stacked = doc([], {
+      items: [
+        planItem({ id: 'z1', kind: 'zone', x: 6, y: 3, widthMeters: 4, heightMeters: 3, zIndex: 0 }),
+        planItem({ id: 'col', kind: 'column', x: 6, y: 3, zIndex: 5 }),
+      ],
+    });
+    expect(gestureFromTarget(floor(), stacked, [], { x: 6, y: 3 })).toMatchObject({ id: 'col' });
   });
 
   it('grows the hit area by the caller’s screen-pixel tolerance', () => {

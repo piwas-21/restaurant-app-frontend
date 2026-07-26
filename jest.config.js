@@ -89,6 +89,7 @@ module.exports = {
     'src/lib/floorPlan/wallHitTest.ts',
     'src/lib/floorPlan/wallEditing.ts',
     'src/lib/floorPlan/wallOpenings.ts',
+    'src/lib/floorPlan/wayfinding.ts',
     'src/lib/allergens.ts',
     'src/hooks/floorPlan/useEditorDrag.ts',
     'src/hooks/floorPlan/useEditorSave.ts',
@@ -554,6 +555,21 @@ module.exports = {
     // S7b — reshaping a wall. `wallEditing` is held highest of the three: it is
     // the module that renumbers segments under the openings pinned to them, and
     // getting that wrong slides a door onto a different wall without throwing.
+    // S8 — the wayfinding kinds became first-class objects. `wayfinding` is the
+    // vocabulary the renderer, the palette and the hit test all read, so a drift
+    // in it silently makes a zone undraggable again.
+    './src/lib/floorPlan/wayfinding.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/floor-plan/WayfindingShapes.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     './src/lib/floorPlan/wallEditing.ts': {
       statements: 99,
       branches: 92,

@@ -4,6 +4,7 @@ import { clampCentreToPlan } from './editorGeometry';
 import { nextLocalItemId } from './localIds';
 import { defaultItemSize } from './palette';
 import { snapToGrid } from './snapping';
+import { DEFAULT_ITEM_LABEL } from './wayfinding';
 
 /**
  * How a placed object is born (FLOOR-PLAN-REVAMP §4.3) — click-to-place, copy,
@@ -61,7 +62,10 @@ export function newItem(
     heightMeters: Math.min(size.heightMeters, doc.heightMeters),
     rotationDegrees: 0,
     zIndex: topZIndex(doc),
-    label: null,
+    // A zone or a text label with no text draws as an empty box, which reads as
+    // broken rather than as "type something here" — so it lands with a
+    // placeholder the inspector's text field is already pointing at.
+    label: DEFAULT_ITEM_LABEL[kind] ?? null,
     styleVariant: null,
   };
 }

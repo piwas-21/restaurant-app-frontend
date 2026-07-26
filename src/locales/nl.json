@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "Doorgang",
   "editor_swing_in": "Naar binnen",
   "editor_swing_out": "Naar buiten",
-  "editor_swing_none": "Geen"
+  "editor_swing_none": "Geen",
+  "editor_palette_labels": "Labels",
+  "editor_item_text_label": "Tekstlabel",
+  "editor_item_zone": "Zone",
+  "editor_item_entrance": "Ingang",
+  "editor_item_text": "Tekst",
+  "editor_zone_name": "Naam zone"
 }

@@ -2345,5 +2345,11 @@
   "editor_opening_opening": "فتحة",
   "editor_swing_in": "إلى الداخل",
   "editor_swing_out": "إلى الخارج",
-  "editor_swing_none": "بدون"
+  "editor_swing_none": "بدون",
+  "editor_palette_labels": "العلامات",
+  "editor_item_text_label": "بطاقة نصية",
+  "editor_item_zone": "منطقة",
+  "editor_item_entrance": "المدخل",
+  "editor_item_text": "النص",
+  "editor_zone_name": "اسم المنطقة"
 }

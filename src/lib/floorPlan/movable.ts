@@ -1,6 +1,6 @@
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
 import type { OrientedRect } from './geometry';
-import { isSymbolItemKind } from './symbols';
+import { isMovableItemKind } from './symbols';
 
 /**
  * One geometry vocabulary for everything the editor can move (FLOOR-PLAN-REVAMP
@@ -40,13 +40,12 @@ export const tableMovable = (t: FloorPlanTableGeometry): Movable => ({
  * optional in the DTO, so an item that has none (never true for a stored plan or
  * for one the editor placed) is not movable and is skipped rather than faked.
  *
- * A **zone region, text label or entrance marker is not movable either** — each
- * needs an affordance for the thing it actually carries, which lands with S8
- * ({@link isSymbolItemKind}). Returning null here is what keeps them out of the
- * hit test, the marquee, the keyboard and the inspector in one move.
+ * Since S8 that is the *only* reason an item is skipped: zone regions, text
+ * labels and the entrance marker are movable like everything else, now that the
+ * inspector has an affordance for what each of them carries.
  */
 export const itemMovable = (i: FloorPlanItem): Movable | null =>
-  i.id && isSymbolItemKind(i.kind)
+  i.id && isMovableItemKind(i.kind)
     ? {
         id: i.id,
         target: 'item',

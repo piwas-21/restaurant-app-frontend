@@ -68,7 +68,7 @@ export default function FloorPlanGuestMap({
     () =>
       plan
         ? tableInfos(activeTables, {
-            walls: plan.walls,
+            plan,
             selectedIds: selectedTableIds,
             bookedIds: bookedTableIds,
             party: numberOfGuests,
@@ -77,7 +77,7 @@ export default function FloorPlanGuestMap({
         : [],
     [plan, activeTables, selectedTableIds, bookedTableIds, numberOfGuests, zoneFilter],
   );
-  const zones = useMemo(() => (plan ? planZones(activeTables, plan.walls) : []), [plan, activeTables]);
+  const zones = useMemo(() => (plan ? planZones(activeTables, plan) : []), [plan, activeTables]);
   const states = useMemo<Record<string, TableRenderState>>(() => statesById(infos), [infos]);
   const hovered = infos.find((info) => info.table.id === hover.hoverId) ?? null;
 

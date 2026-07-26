@@ -178,13 +178,63 @@ describe('FloorPlanScene — placed items', () => {
     expect(screen.getByRole('button', { name: 'plant_small' })).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('leaves zones, labels and the entrance to S8 — they are drawn, never grabbable', () => {
+  // S8: zones, text labels and the entrance became grabbable — they were held
+  // back only until the inspector had an affordance for what each one carries.
+  it('makes the wayfinding items grabbable for the editor too', () => {
     const doc = floorPlanFixture();
     render(<FloorPlanScene document={doc} onSelectItem={jest.fn()} />);
     const buttons = screen.getAllByRole('button').map((el) => el.getAttribute('data-item-id'));
-    const inert = doc.items.filter((i) => ['zone', 'label', 'text_label', 'entrance'].includes(i.kind));
-    expect(inert.length).toBeGreaterThan(0);
-    inert.forEach((item) => expect(buttons).not.toContain(item.id));
+    const wayfinding = doc.items.filter((i) => ['zone', 'label', 'text_label', 'entrance'].includes(i.kind));
+    expect(wayfinding.length).toBeGreaterThan(0);
+    wayfinding.forEach((item) => expect(buttons).toContain(item.id));
+  });
+
+  it('still leaves them inert for a guest, who gets scenery', () => {
+    const doc = floorPlanFixture();
+    const { container } = render(<FloorPlanScene document={doc} />);
+    const wayfinding = doc.items.filter((i) => ['zone', 'label', 'text_label', 'entrance'].includes(i.kind));
+    wayfinding.forEach((item) => {
+      const el = container.querySelector(`[data-item-id="${item.id}"]`);
+      expect(el).not.toHaveAttribute('role');
+      expect(el).not.toHaveAttribute('tabindex');
+    });
+  });
+
+  // The labels layer carries its own copy of the interactive wrapper, because it
+  // draws ABOVE the tables while items draw below — so its paths need their own
+  // exercise, not the items layer's.
+  it('selects a text label by click and by keyboard, and announces its state', () => {
+    const onSelectItem = jest.fn();
+    render(
+      <FloorPlanScene
+        document={floorPlanFixture()}
+        onSelectItem={onSelectItem}
+        formatItemLabel={(item) => `Object ${item.kind}`}
+        selectedItemIds={['i3']}
+      />,
+    );
+    const tag = screen.getByRole('button', { name: 'Object label' });
+    expect(tag).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(tag, { detail: 0 });
+    expect(onSelectItem).toHaveBeenLastCalledWith('i3', { additive: false, synthetic: true });
+    fireEvent.keyDown(tag, { key: ' ', shiftKey: true });
+    expect(onSelectItem).toHaveBeenLastCalledWith('i3', { additive: true, viaKeyboard: true });
+    fireEvent.keyDown(tag, { key: 'Escape' });
+    expect(onSelectItem).toHaveBeenCalledTimes(2);
+  });
+
+  it('selects the entrance marker too — it is an object, not decoration', () => {
+    const onSelectItem = jest.fn();
+    render(
+      <FloorPlanScene
+        document={floorPlanFixture()}
+        onSelectItem={onSelectItem}
+        formatItemLabel={(item) => `Object ${item.kind}`}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Object entrance' }), { detail: 1 });
+    expect(onSelectItem).toHaveBeenLastCalledWith('i4', { additive: false, synthetic: false });
   });
 
   it('selects a focused item with Enter or Space, and ignores other keys', () => {

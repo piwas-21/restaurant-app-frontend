@@ -4,7 +4,7 @@ import type { RestaurantInfoDto, UpdateRestaurantInfoCommand } from '@/types/res
  * Single builder for the `PUT /api/restaurant-info` command. The endpoint is a
  * FULL upsert — the backend assigns every field unconditionally, so any field a
  * writer omits is wiped on the singleton. Every writer (general settings,
- * appearance/palette, table-layout entrance) MUST build its command here,
+ * appearance/palette) MUST build its command here,
  * passing only the field(s) it changes via `overrides`; base values come from
  * the current server state so unrelated fields always ride along.
  *
@@ -28,8 +28,6 @@ export function toFullUpdateCommand(
     email: info.email,
     website: info.website,
     themePaletteKey: info.themePaletteKey,
-    entrancePositionX: info.entrancePositionX ?? null,
-    entrancePositionY: info.entrancePositionY ?? null,
     ...overrides,
   };
 }

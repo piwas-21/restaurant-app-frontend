@@ -83,6 +83,7 @@ export default function EditorCanvas({
             gesture={editor.gesture}
             wallDraft={editor.wallDraft}
             selectedWall={editor.selectedWall}
+            selectedVertex={editor.selectedVertex}
           />
         }
       />

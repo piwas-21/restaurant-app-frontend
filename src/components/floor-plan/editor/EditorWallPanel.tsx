@@ -3,10 +3,12 @@
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
-import type { FloorPlanWall } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanOpening, FloorPlanOpeningKind, FloorPlanWall } from '@/types/floorPlan';
 import { FLOOR_STYLES, DEFAULT_FLOOR_STYLE, isFloorStyle } from '@/lib/floorPlan/floorStyles';
 import { polygonAreaM2, roomPolygonPoints, wallSegments } from '@/lib/floorPlan/walls';
 import EditorNumberField from './EditorNumberField';
+import EditorOpeningsPanel from './EditorOpeningsPanel';
+import EditorVertexFields from './EditorVertexFields';
 import styles from './EditorInspector.module.css';
 
 /**
@@ -18,6 +20,9 @@ import styles from './EditorInspector.module.css';
  * Closing a chain is what makes a room, so the room fields appear exactly when
  * `isClosed` is true rather than behind a separate "make this a room" control
  * that could disagree with the geometry.
+ *
+ * Its two sub-panels are the no-drag halves of the canvas grips: corners
+ * ({@link ./EditorVertexFields}) and openings ({@link ./EditorOpeningsPanel}).
  */
 
 /** The server's clamp on `ThicknessMeters` (`FloorPlanDocumentMapper.BuildWall`). */
@@ -29,11 +34,31 @@ const MAX_ROOM_NAME = 80;
 
 interface EditorWallPanelProps {
   wall: FloorPlanWall;
+  plan: Pick<FloorPlanDocument, 'widthMeters' | 'heightMeters'>;
+  selectedVertex: number | null;
   onPatch: (patch: Partial<FloorPlanWall>) => void;
   onDelete: () => void;
+  onSelectVertex: (index: number | null) => void;
+  onMoveVertex: (index: number, x: number, y: number) => void;
+  onRemoveVertex: (index: number) => void;
+  onAddOpening: (segmentIndex: number, kind: FloorPlanOpeningKind) => void;
+  onPatchOpening: (openingId: string, patch: Partial<FloorPlanOpening>) => void;
+  onRemoveOpening: (openingId: string) => void;
 }
 
-export default function EditorWallPanel({ wall, onPatch, onDelete }: Readonly<EditorWallPanelProps>) {
+export default function EditorWallPanel({
+  wall,
+  plan,
+  selectedVertex,
+  onPatch,
+  onDelete,
+  onSelectVertex,
+  onMoveVertex,
+  onRemoveVertex,
+  onAddOpening,
+  onPatchOpening,
+  onRemoveOpening,
+}: Readonly<EditorWallPanelProps>) {
   const { t } = useTranslation();
   const segments = wallSegments(wall);
   const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0);
@@ -89,6 +114,17 @@ export default function EditorWallPanel({ wall, onPatch, onDelete }: Readonly<Ed
         max={MAX_THICKNESS_M}
         onCommit={(value) => onPatch({ thicknessMeters: value })}
       />
+
+      <EditorVertexFields
+        wall={wall}
+        plan={plan}
+        selectedVertex={selectedVertex}
+        onSelectVertex={onSelectVertex}
+        onMove={onMoveVertex}
+        onRemove={onRemoveVertex}
+      />
+
+      <EditorOpeningsPanel wall={wall} onAdd={onAddOpening} onPatch={onPatchOpening} onRemove={onRemoveOpening} />
 
       <div className={styles.actions}>
         <button type="button" className={styles.actionDanger} onClick={onDelete}>

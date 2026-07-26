@@ -39,8 +39,16 @@ export default function EditorInspector({ editor, onEditDetails, onShowQR, onDel
       <aside className={styles.panel} aria-label={t('editor_properties', 'Properties')}>
         <EditorWallPanel
           wall={wall}
+          plan={editor.document}
+          selectedVertex={editor.selectedVertex}
           onPatch={(patch) => editor.patchWall(wallId, patch)}
           onDelete={() => editor.deleteWall(wallId)}
+          onSelectVertex={editor.selectVertex}
+          onMoveVertex={(index, x, y) => editor.moveVertex(wallId, index, x, y)}
+          onRemoveVertex={(index) => editor.deleteVertex(wallId, index)}
+          onAddOpening={(segmentIndex, kind) => editor.addOpening(wallId, segmentIndex, kind)}
+          onPatchOpening={(openingId, patch) => editor.patchOpening(wallId, openingId, patch)}
+          onRemoveOpening={(openingId) => editor.deleteOpening(wallId, openingId)}
         />
       </aside>
     );

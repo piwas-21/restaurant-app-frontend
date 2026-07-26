@@ -29,12 +29,39 @@
   opacity: 0.85;
 }
 
-.vertex {
-  fill: var(--fp-accent);
+.vertex,
+.vertexPicked,
+.midpoint {
   stroke: var(--fp-paper);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
+}
+
+.vertex {
+  fill: var(--fp-accent);
+}
+
+/* The corner the inspector's numeric fields are pointed at. */
+.vertexPicked {
+  fill: var(--feedback-info);
+  stroke-width: 2.5;
+}
+
+/* Insert-a-corner dots: hollow, because nothing is there yet. */
+.midpoint {
+  fill: var(--fp-paper);
+  stroke: var(--fp-accent);
+  stroke-width: 2;
+}
+
+/* The real target. Far bigger than the drawn dot — a dot sized to look right on
+   a fitted plan is a few pixels wide, which no finger can hit. Invisible rather
+   than absent so it still takes the press. */
+.grabHit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: grab;
 }
 
 /* A snap has locked the cursor onto the grid, an angle or another endpoint. */

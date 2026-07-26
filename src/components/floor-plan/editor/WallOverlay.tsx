@@ -5,12 +5,14 @@ import type { FloorPlanPoint, FloorPlanWall } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
 import { draftReadout } from '@/lib/floorPlan/wallDrafting';
 import type { WallDraftState } from '@/hooks/floorPlan/useWallDraft';
+import WallVertexHandles from './WallVertexHandles';
 import styles from './WallOverlay.module.css';
 
 /**
  * The wall tool's canvas chrome (FLOOR-PLAN-REVAMP §4.3) — the chain being drawn,
  * a rubber segment to the snapped cursor with its **live length and angle**, a
- * ring on the vertex a snap has locked onto, and the outline of a selected wall.
+ * ring on the vertex a snap has locked onto, and the outline of a selected wall
+ * with its corner and midpoint grips.
  *
  * The readout is the point of the whole overlay: without it the admin is guessing
  * at the metre length of the run they are drawing, which is the difference
@@ -44,6 +46,8 @@ function wallOutline(wall: FloorPlanWall | null): string | null {
 interface WallOverlayProps {
   draft: WallDraftState | null;
   selectedWall: FloorPlanWall | null;
+  /** The corner the inspector is pointed at, drawn as picked. */
+  selectedVertex: number | null;
   /** Screen pixels per plan centimetre; 0 until the stage has been measured. */
   pxPerCm: number;
 }
@@ -90,7 +94,7 @@ function DraftChain({ draft, cm }: Readonly<{ draft: WallDraftState; cm: (px: nu
   );
 }
 
-export default function WallOverlay({ draft, selectedWall, pxPerCm }: Readonly<WallOverlayProps>) {
+export default function WallOverlay({ draft, selectedWall, selectedVertex, pxPerCm }: Readonly<WallOverlayProps>) {
   if (pxPerCm <= 0) {
     return null;
   }
@@ -101,6 +105,11 @@ export default function WallOverlay({ draft, selectedWall, pxPerCm }: Readonly<W
   return (
     <g aria-hidden="true">
       {outline && <polyline className={styles.selectedWall} points={outline} />}
+      {/* Grips only while the Select tool owns the plan: mid-draft every press
+          belongs to the chain being drawn, and a stray grip would eat one. */}
+      {selectedWall && !draft && (
+        <WallVertexHandles wall={selectedWall} selectedVertex={selectedVertex} pxPerCm={pxPerCm} />
+      )}
       {draft && <DraftChain draft={draft} cm={cm} />}
     </g>
   );

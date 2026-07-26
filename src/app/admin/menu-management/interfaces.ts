@@ -1,3 +1,4 @@
+import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
 import { KitchenType, MenuDefinition } from '@/types/menu';
@@ -126,4 +127,11 @@ export interface Category {
   isActive: boolean;
   displayOrder: number;
   productCount?: number;
+  /**
+   * Raw OrderChannels bitmask; `null` = available on every order type. Admin editors round-trip
+   * this via `@/utils/orderChannels`. Customer surfaces should read `allowedOrderTypes` instead.
+   */
+  availableOrderTypes?: number | null;
+  /** Server-decoded order types this category permits — never decode the mask on a customer surface. */
+  allowedOrderTypes?: OrderType[];
 }

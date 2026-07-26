@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import styles from './RestaurantSettingsPage.module.css';
 import WorkingHoursManager from '@/components/admin/settings/WorkingHoursManager';
 import OrderTypeManager from '@/components/admin/settings/OrderTypeManager';
+import CategoryOrderTypeMatrix from '@/components/admin/settings/CategoryOrderTypeMatrix';
 import TaxConfigurationManager from '@/components/admin/settings/TaxConfigurationManager';
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
@@ -49,7 +50,12 @@ export default function RestaurantSettingsPage() {
       {/* Tab Content */}
       <div className={styles.tabContent}>
         {activeTab === 'hours' && <WorkingHoursManager />}
-        {activeTab === 'order-types' && <OrderTypeManager />}
+        {activeTab === 'order-types' && (
+          <>
+            <OrderTypeManager />
+            <CategoryOrderTypeMatrix />
+          </>
+        )}
         {activeTab === 'tax' && <TaxConfigurationManager />}
         {activeTab === 'general' && <GeneralSettingsTab />}
         {activeTab === 'appearance' && <AppearanceTab />}

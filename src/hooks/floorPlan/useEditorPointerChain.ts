@@ -2,7 +2,7 @@
 
 import type { RefObject } from 'react';
 import type { ViewBox } from '@/lib/floorPlan/geometry';
-import type { FloorPlanDocument } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanWall } from '@/types/floorPlan';
 import { useEditorMarquee } from './useEditorMarquee';
 import { useEditorDrag } from './useEditorDrag';
 import { useEditorItems } from './useEditorItems';
@@ -11,7 +11,6 @@ import { useWallPick } from './useWallPick';
 import { useWallVertexDrag } from './useWallVertexDrag';
 import type { StagePointerHandlers } from './editorStage';
 import type { EditorTool } from '@/lib/floorPlan/editorTools';
-import type { FloorPlanWall } from '@/types/floorPlan';
 
 interface PointerChainArgs {
   stageRef: RefObject<HTMLDivElement | null>;

@@ -78,8 +78,7 @@
 
 /* The applied code as a saffron masking-tape label. */
 .promoCodeText {
-  composes: tapeLabel from '../craft.module.css';
-  background: var(--brand-accent);
+  composes: tapeLabelAccent from '../craft.module.css';
   font-weight: 700;
   font-size: 1.1rem;
 }

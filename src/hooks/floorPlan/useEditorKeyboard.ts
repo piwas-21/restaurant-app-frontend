@@ -2,9 +2,15 @@
 
 import { useEffect } from 'react';
 import { patchMovable } from '@/lib/floorPlan/document';
-import { snapAngle } from '@/lib/floorPlan/snapping';
-import { clampCentreToPlan } from '@/lib/floorPlan/editorGeometry';
-import { documentMovables, findMovable, selectedMovables, type Movable } from '@/lib/floorPlan/movable';
+import { toolForKey, type EditorTool } from '@/lib/floorPlan/editorTools';
+import {
+  NUDGE_KEYS,
+  deleteIntent,
+  isFormField,
+  nudgeSelection,
+  rotationForKey,
+} from '@/lib/floorPlan/editorKeyActions';
+import { findMovable } from '@/lib/floorPlan/movable';
 import type { FloorPlanDocument } from '@/types/floorPlan';
 
 interface EditorKeyboardArgs {
@@ -22,38 +28,8 @@ interface EditorKeyboardArgs {
   onDeleteItems: () => void;
   /** ⌘D — duplicate the selected items (tables cannot be created locally). */
   onDuplicate: () => void;
-}
-
-const NUDGE_KEYS: Record<string, [number, number]> = {
-  ArrowLeft: [-1, 0],
-  ArrowRight: [1, 0],
-  ArrowUp: [0, -1],
-  ArrowDown: [0, 1],
-};
-
-const isFormField = (target: EventTarget | null): boolean => {
-  const tag = (target as HTMLElement | null)?.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-};
-
-/**
- * Nudge everything selected by one grid unit (ten with Shift). Each object is
- * clamped to the plan on its own, like the drag path, so a nudge can't push
- * something off-plan into a spot Save would silently move it back from.
- */
-function nudgeSelection(
-  doc: FloorPlanDocument,
-  ids: readonly string[],
-  direction: readonly [number, number],
-  step: number,
-): FloorPlanDocument {
-  return documentMovables(doc).reduce((next, movable) => {
-    if (!ids.includes(movable.id)) {
-      return next;
-    }
-    const centre = clampCentreToPlan(movable.x + direction[0] * step, movable.y + direction[1] * step, doc);
-    return patchMovable(next, movable.id, { x: centre.x, y: centre.y });
-  }, doc);
+  /** `V` / `W` — switch tool (§4.3's single-key shortcuts). */
+  onSelectTool: (tool: EditorTool) => void;
 }
 
 /**
@@ -81,51 +57,17 @@ function applyCommandKey(
 }
 
 /**
- * Delete. Items are local edits, so any number of them goes at once; a table is a
- * /api/tables lifecycle op and always has to be confirmed — so a mixed selection
- * loses its items and keeps its table, rather than one Delete meaning two
- * different things.
- */
-function applyDeleteKey(
-  doc: FloorPlanDocument,
-  selectedIds: readonly string[],
-  { onDeleteSelected, onDeleteItems }: Pick<EditorKeyboardArgs, 'onDeleteSelected' | 'onDeleteItems'>,
-): void {
-  const picked = selectedMovables(doc, selectedIds);
-  if (picked.some((m) => m.target === 'item')) {
-    onDeleteItems();
-  } else if (picked.length === 1) {
-    onDeleteSelected();
-  }
-}
-
-/** Apply a rotation key to the one selected object: ∓15° / ∓90° / reset. */
-function applyRotationKey(
-  e: globalThis.KeyboardEvent,
-  doc: FloorPlanDocument,
-  movable: Movable,
-  apply: (doc: FloorPlanDocument) => void,
-): void {
-  if (e.key === '[' || e.key === ']') {
-    e.preventDefault();
-    const delta = (e.key === '[' ? -1 : 1) * (e.shiftKey ? 90 : 15);
-    apply(patchMovable(doc, movable.id, { rotationDegrees: snapAngle(movable.rotationDegrees + delta, 1) }));
-  } else if (e.key === '0') {
-    e.preventDefault();
-    apply(patchMovable(doc, movable.id, { rotationDegrees: 0 }));
-  }
-}
-
-/**
  * Keyboard control for the editor (FLOOR-PLAN-REVAMP §4.3) — the no-drag path
- * that keeps the whole tool operable without a pointer. Arrows nudge **every**
- * selected object one grid unit (Shift = ten), so a group moves from the keyboard
- * exactly as it does from a drag; `[` / `]` rotate ∓15° (Shift = ∓90°) and `0`
- * resets, both single-selection only (a group rotation about a shared centre is
- * a different operation); `Esc` clears the selection (or disarms the palette);
- * `⌘D` duplicates selected items; Delete removes items outright and *asks* before
- * deleting a table; ⌘/Ctrl-Z / -Shift-Z undo/redo. Keys are ignored while a form
- * field is focused so the inspector's inputs keep their native editing.
+ * that keeps the whole tool operable without a pointer. `V` / `W` switch tool;
+ * arrows nudge **every** selected object one grid unit (Shift = ten), so a group
+ * moves from the keyboard exactly as it does from a drag; `[` / `]` rotate ∓15°
+ * (Shift = ∓90°) and `0` resets, both single-selection only (a group rotation
+ * about a shared centre is a different operation); `Esc` clears the selection (or
+ * disarms the palette); `⌘D` duplicates selected items; Delete removes items
+ * outright and *asks* before deleting a table; ⌘/Ctrl-Z / -Shift-Z undo/redo.
+ * Keys are ignored while a form field is focused so the inspector's inputs keep
+ * their native editing. What each key *does* lives in
+ * {@link ../../lib/floorPlan/editorKeyActions}; this hook only dispatches.
  */
 export function useEditorKeyboard({
   enabled,
@@ -138,12 +80,65 @@ export function useEditorKeyboard({
   onDeleteSelected,
   onDeleteItems,
   onDuplicate,
+  onSelectTool,
 }: EditorKeyboardArgs) {
   useEffect(() => {
     if (!enabled) {
       return;
     }
     const only = selectedIds.length === 1 ? findMovable(doc, selectedIds[0]) : null;
+
+    /** Each claim answers one question: "is this key mine?" — flat, not nested. */
+    const claimNudge = (e: globalThis.KeyboardEvent): boolean => {
+      const nudge = NUDGE_KEYS[e.key];
+      if (!nudge || selectedIds.length === 0) {
+        return false;
+      }
+      e.preventDefault();
+      apply(nudgeSelection(doc, selectedIds, nudge, (doc.gridSizeCm / 100) * (e.shiftKey ? 10 : 1)));
+      return true;
+    };
+
+    const claimDelete = (e: globalThis.KeyboardEvent): boolean => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') {
+        return false;
+      }
+      e.preventDefault();
+      const intent = deleteIntent(doc, selectedIds);
+      if (intent === 'items') {
+        onDeleteItems();
+      } else if (intent === 'table') {
+        onDeleteSelected();
+      }
+      return true;
+    };
+
+    const claimTool = (e: globalThis.KeyboardEvent): boolean => {
+      // Bare letter only: `⌘V` is paste and `Ctrl+W` closes the tab, so a tool
+      // must never answer a modified key.
+      const tool = e.metaKey || e.ctrlKey || e.altKey ? null : toolForKey(e.key);
+      if (!tool) {
+        return false;
+      }
+      e.preventDefault();
+      onSelectTool(tool);
+      return true;
+    };
+
+    const claimRotation = (e: globalThis.KeyboardEvent): boolean => {
+      if (!only) {
+        return false;
+      }
+      // `0` is a legitimate result (reset), so this compares against null rather
+      // than testing truthiness.
+      const rotation = rotationForKey(e.key, e.shiftKey, only);
+      if (rotation === null) {
+        return false;
+      }
+      e.preventDefault();
+      apply(patchMovable(doc, only.id, { rotationDegrees: rotation }));
+      return true;
+    };
 
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (isFormField(e.target)) {
@@ -156,23 +151,26 @@ export function useEditorKeyboard({
         clearSelection();
         return;
       }
-      const nudge = NUDGE_KEYS[e.key];
-      if (nudge && selectedIds.length > 0) {
-        e.preventDefault();
-        apply(nudgeSelection(doc, selectedIds, nudge, (doc.gridSizeCm / 100) * (e.shiftKey ? 10 : 1)));
-        return;
-      }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        applyDeleteKey(doc, selectedIds, { onDeleteSelected, onDeleteItems });
-        return;
-      }
-      if (only) {
-        applyRotationKey(e, doc, only, apply);
+      for (const claim of [claimNudge, claimDelete, claimTool, claimRotation]) {
+        if (claim(e)) {
+          return;
+        }
       }
     };
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [enabled, doc, selectedIds, apply, undo, redo, clearSelection, onDeleteSelected, onDeleteItems, onDuplicate]);
+  }, [
+    enabled,
+    doc,
+    selectedIds,
+    apply,
+    undo,
+    redo,
+    clearSelection,
+    onDeleteSelected,
+    onDeleteItems,
+    onDuplicate,
+    onSelectTool,
+  ]);
 }

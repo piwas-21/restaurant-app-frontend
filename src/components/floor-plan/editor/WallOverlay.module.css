@@ -1,0 +1,70 @@
+/* Wall-tool chrome (FLOOR-PLAN-REVAMP §4.3). Drawn in scene cm-space with
+   non-scaling strokes, so the draft reads at a constant screen weight at any
+   zoom. Colours are semantic tokens (the scene's accent, the shared feedback
+   scale) — no hex in a module. */
+
+.draftLine,
+.rubber,
+.selectedWall,
+.snapRing,
+.snapClose {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* The vertices already committed to the chain. */
+.draftLine {
+  stroke: var(--fp-accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* The segment following the cursor — dashed, because it is not placed yet. */
+.rubber {
+  stroke: var(--fp-accent);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  opacity: 0.85;
+}
+
+.vertex {
+  fill: var(--fp-accent);
+  stroke: var(--fp-paper);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* A snap has locked the cursor onto the grid, an angle or another endpoint. */
+.snapRing {
+  stroke: var(--feedback-info);
+  stroke-width: 2;
+}
+
+/* Closing the loop — the click that turns the chain into a room, so it gets the
+   success colour rather than the same ring as an ordinary snap. */
+.snapClose {
+  stroke: var(--feedback-success);
+  stroke-width: 2.5;
+}
+
+.selectedWall {
+  stroke: var(--fp-accent);
+  stroke-width: 3;
+  stroke-dasharray: 8 5;
+  stroke-linejoin: round;
+  opacity: 0.95;
+}
+
+.readout {
+  fill: var(--fp-ink);
+  paint-order: stroke;
+  stroke: var(--fp-paper);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  text-anchor: middle;
+  pointer-events: none;
+  font-weight: 600;
+}

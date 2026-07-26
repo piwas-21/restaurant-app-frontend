@@ -2351,5 +2351,19 @@
   "editor_item_zone": "Bölge",
   "editor_item_entrance": "Giriş",
   "editor_item_text": "Metin",
-  "editor_zone_name": "Bölge adı"
+  "editor_zone_name": "Bölge adı",
+  "category": "Kategori",
+  "items_count": "{{count}} ürün",
+  "category_order_types_intro": "Her kategorinin hangi sipariş türleriyle sipariş edilebileceğini seçin. Ürünler, tek tek değiştirmediğiniz sürece kategorisini devralır.",
+  "category_order_type_toggle_aria": "{{category}} için {{orderType}} mevcut",
+  "order_types_saved": "Sipariş türü uygunluğu kaydedildi",
+  "failed_to_save_order_types": "Sipariş türü uygunluğu kaydedilemedi",
+  "failed_to_load_categories": "Kategoriler yüklenemedi",
+  "category_no_order_type_warning": "En az bir sipariş türü seçin. Bu kategoriyi tamamen satıştan kaldırmak için Kategoriler altından kapatın.",
+  "category_order_types_manage": "Yönet",
+  "product_order_types": "Sipariş türü uygunluğu",
+  "product_order_types_inherit": "Kategoriden devral",
+  "product_order_types_inherit_named": "Kategoriden devral ({{category}}: {{orderTypes}})",
+  "product_order_types_custom": "Özel",
+  "product_order_types_no_primary_warning": "Birincil kategori seçilmedi, bu yüzden devralınacak bir şey yok — siz bir kategori belirleyene ya da Özel’i seçene kadar bu ürün her sipariş türünde satışta kalır."
 }

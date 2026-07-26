@@ -83,6 +83,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     setSelectedSideItemIds(isBundle ? [] : (product.suggestedSideItems ?? []).map((s) => s.id).filter(Boolean));
     setDetailedIngredients(isBundle ? [] : (product.detailedIngredients ?? []));
     setMenuDefinition(toMenuDefinitionState(product));
+    setImageFiles([]);
     setIsMenuDefinitionDirty(false);
     setIsIngredientsDirty(false);
   }, [product, isBundle, reset]);
@@ -176,6 +177,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     categories,
     currentLanguage: i18n.language || 'en',
     selectedCategoryIds: (watch('categoryIds') as string[] | undefined) ?? [],
+    primaryCategoryId: (watch('primaryCategoryId') as string | undefined) ?? '',
     basePrice: (watch('basePrice') as number | undefined) ?? 0,
     variations,
     content,
@@ -188,7 +190,9 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     menuDefinition,
     changeMenuDefinition,
     isSubmitting,
-    isDirty: form.formState.isDirty || isMenuDefinitionDirty || isIngredientsDirty,
+    // `imageFiles` counts too (frontend #223): staged uploads live outside RHF, so picking images
+    // and changing nothing else left Save disabled and the upload unreachable.
+    isDirty: form.formState.isDirty || isMenuDefinitionDirty || isIngredientsDirty || imageFiles.length > 0,
     onSubmit,
   };
 }

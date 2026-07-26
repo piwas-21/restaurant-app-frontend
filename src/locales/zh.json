@@ -2351,5 +2351,19 @@
   "editor_item_zone": "区域",
   "editor_item_entrance": "入口",
   "editor_item_text": "文字",
-  "editor_zone_name": "区域名称"
+  "editor_zone_name": "区域名称",
+  "category": "分类",
+  "items_count": "{{count}} 项",
+  "category_order_types_intro": "选择每个分类可通过哪些订单类型订购。除单独覆盖外，菜品将继承其分类设置。",
+  "category_order_type_toggle_aria": "{{category}} 可用于 {{orderType}}",
+  "order_types_saved": "订单类型可用性已保存",
+  "failed_to_save_order_types": "保存订单类型可用性失败",
+  "failed_to_load_categories": "加载分类失败",
+  "category_no_order_type_warning": "请至少选择一种订单类型。若要完全停售该分类，请在「分类」中将其停用。",
+  "category_order_types_manage": "管理",
+  "product_order_types": "订单类型可用性",
+  "product_order_types_inherit": "继承自分类",
+  "product_order_types_inherit_named": "继承自分类（{{category}}：{{orderTypes}}）",
+  "product_order_types_custom": "自定义",
+  "product_order_types_no_primary_warning": "未选择主分类，因此没有可继承的设置 — 在你设置主分类或选择「自定义」之前，该菜品在所有订单类型下都保持可订购。"
 }

@@ -1,19 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import styles from './RestaurantSettingsPage.module.css';
 import WorkingHoursManager from '@/components/admin/settings/WorkingHoursManager';
 import OrderTypeManager from '@/components/admin/settings/OrderTypeManager';
+import CategoryOrderTypeMatrix from '@/components/admin/settings/CategoryOrderTypeMatrix';
 import TaxConfigurationManager from '@/components/admin/settings/TaxConfigurationManager';
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
 
-type TabType = 'hours' | 'order-types' | 'tax' | 'general' | 'appearance';
+const TAB_IDS = ['hours', 'order-types', 'tax', 'general', 'appearance'] as const;
+type TabType = (typeof TAB_IDS)[number];
 
-export default function RestaurantSettingsPage() {
+const isTabId = (value: string | null): value is TabType => !!value && TAB_IDS.includes(value as TabType);
+
+function RestaurantSettingsContent() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabType>('hours');
+  // `?tab=order-types` so other surfaces can deep-link here — EditCategoryModal's "Manage" link
+  // points at the channel matrix, which lives on the Order Types tab. Read once as the initial
+  // value: the tab buttons own it from then on, and re-syncing would fight them.
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<TabType>(isTabId(requestedTab) ? requestedTab : 'hours');
 
   const tabs = [
     { id: 'hours' as TabType, label: t('working_hours', 'Working Hours'), icon: '🕐' },
@@ -49,11 +59,26 @@ export default function RestaurantSettingsPage() {
       {/* Tab Content */}
       <div className={styles.tabContent}>
         {activeTab === 'hours' && <WorkingHoursManager />}
-        {activeTab === 'order-types' && <OrderTypeManager />}
+        {activeTab === 'order-types' && (
+          <>
+            <OrderTypeManager />
+            <CategoryOrderTypeMatrix />
+          </>
+        )}
         {activeTab === 'tax' && <TaxConfigurationManager />}
         {activeTab === 'general' && <GeneralSettingsTab />}
         {activeTab === 'appearance' && <AppearanceTab />}
       </div>
     </div>
+  );
+}
+
+export default function RestaurantSettingsPage() {
+  // `useSearchParams` needs a Suspense boundary under the App Router, same as the menu-management
+  // pages.
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RestaurantSettingsContent />
+    </Suspense>
   );
 }

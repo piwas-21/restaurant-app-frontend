@@ -8,6 +8,12 @@ interface CategoryData {
   name: string;
   description?: string;
   isActive: boolean;
+  /**
+   * OrderChannels bitmask; `null`/omitted = every order type. Build it with
+   * `maskFromOrderTypes` from `@/utils/orderChannels` — the bit values are NOT the OrderType
+   * enum's numeric values.
+   */
+  availableOrderTypes?: number | null;
 }
 
 // This interface is for the main update, without displayOrder

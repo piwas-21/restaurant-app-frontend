@@ -1,0 +1,15 @@
+/* Dark mode uses [data-theme='dark'] per CLAUDE.md §5.7 — never prefers-color-scheme. No colour is
+   declared here, so the surrounding surface's tokens apply in both themes. */
+
+/* Matches the sibling field headings in RegisterStaffModal without borrowing that module's
+   `.formGroup label` rule — this is a caption for a read-only value, not a form label, so it must
+   not be a bare <label> with nothing to point at. */
+.caption {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.value {
+  margin: 0;
+}

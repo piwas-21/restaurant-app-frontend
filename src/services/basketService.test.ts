@@ -8,8 +8,19 @@ import * as basketServiceModule from './basketService';
 import { apiClient } from '@/utils/apiClient';
 import type { BasketDto, AddToBasketDto, UpdateBasketItemDto } from '@/types/basket';
 
-// Mock the apiClient
-jest.mock('@/utils/apiClient');
+// Mock the HTTP surface only. A bare `jest.mock('@/utils/apiClient')` AUTOMOCKS the module, which
+// replaces `ApiError`'s constructor with a no-op — the thrown instance then carries no message and
+// is not even an Error, so `rejects.toThrow` reports "did not throw".
+jest.mock('@/utils/apiClient', () => ({
+  ...jest.requireActual('@/utils/apiClient'),
+  apiClient: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    patch: jest.fn(),
+  },
+}));
 
 const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
@@ -105,6 +116,32 @@ describe('BasketService', () => {
       mockApiClient.post.mockRejectedValue(error);
 
       await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Product not found');
+    });
+
+    // `AddToBasketCommand` answers an InvalidOperationException with HTTP 200 + success:false.
+    // Every DELIBERATE rejection now throws a domain exception and arrives as a real 4xx, so what
+    // reaches this branch is incidental (an EF tracking conflict, "Sequence contains no elements")
+    // and its text must NOT become a guest's toast — hence a plain Error, not a coded ApiError.
+    it('rejects a success:false body with a plain Error, keeping the server text for the log only', async () => {
+      const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
+      mockApiClient.post.mockResolvedValue({
+        success: false,
+        message: 'Operation failed',
+        errors: ['The instance of entity type BasketItem cannot be tracked'],
+      });
+
+      const thrown = await basketServiceModule.addItemToBasket(request).catch((error: unknown) => error);
+
+      expect(thrown).toBeInstanceOf(Error);
+      expect((thrown as Error).name).not.toBe('ApiError');
+      expect((thrown as Error).message).toContain('The instance of entity type BasketItem cannot be tracked');
+    });
+
+    it('still throws when the body carries neither errors[] nor a message', async () => {
+      const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
+      mockApiClient.post.mockResolvedValue({ success: false });
+
+      await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Failed to add item to basket');
     });
   });
 

@@ -10,6 +10,12 @@ export type SupportedLanguage = (typeof supportedLanguages)[number];
 export interface Category {
   id: string;
   name: string;
+  /**
+   * Raw OrderChannels bitmask (`null` = every order type). The editor reads it to preview what a
+   * product would inherit from its primary category; the category matrix in restaurant settings is
+   * the only place it is written.
+   */
+  availableOrderTypes?: number | null;
 }
 
 export interface Variation {

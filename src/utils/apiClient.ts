@@ -18,6 +18,12 @@ export class ApiError extends Error {
     public status: number,
     public message: string,
     public errors?: string[],
+    /**
+     * Backend `ApiResponse.ErrorCode` — a stable PascalCase discriminator (`ErrorCodes.cs`) that
+     * only some failures carry. It is what lets a caller act on ONE failure mode without
+     * substring-matching an English message that would break the day the backend localises.
+     */
+    public errorCode?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -151,7 +157,12 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
           : Object.values(data.errors).flat()
         : undefined;
 
-      throw new ApiError(response.status, message, errors as string[] | undefined);
+      throw new ApiError(
+        response.status,
+        message,
+        errors as string[] | undefined,
+        typeof data.errorCode === 'string' ? data.errorCode : undefined,
+      );
     }
 
     // Return successful response

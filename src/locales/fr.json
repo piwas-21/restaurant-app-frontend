@@ -2351,5 +2351,19 @@
   "editor_item_zone": "Zone",
   "editor_item_entrance": "Entrée",
   "editor_item_text": "Texte",
-  "editor_zone_name": "Nom de la zone"
+  "editor_zone_name": "Nom de la zone",
+  "category": "Catégorie",
+  "items_count": "{{count}} articles",
+  "category_order_types_intro": "Choisissez les types de commande disponibles pour chaque catégorie. Les articles héritent de leur catégorie, sauf remplacement individuel.",
+  "category_order_type_toggle_aria": "{{category}} disponible pour {{orderType}}",
+  "order_types_saved": "Disponibilité des types de commande enregistrée",
+  "failed_to_save_order_types": "Échec de l'enregistrement de la disponibilité des types de commande",
+  "failed_to_load_categories": "Échec du chargement des catégories",
+  "category_no_order_type_warning": "Choisissez au moins un type de commande. Pour retirer complètement cette catégorie de la vente, désactivez-la dans Catégories.",
+  "category_order_types_manage": "Gérer",
+  "product_order_types": "Disponibilité des types de commande",
+  "product_order_types_inherit": "Hériter de la catégorie",
+  "product_order_types_inherit_named": "Hériter de la catégorie ({{category}} : {{orderTypes}})",
+  "product_order_types_custom": "Personnalisé",
+  "product_order_types_no_primary_warning": "Aucune catégorie principale sélectionnée, il n’y a donc rien à hériter — cet article reste disponible pour tous les types de commande tant que vous n’en définissez pas une ou ne choisissez pas Personnalisé."
 }

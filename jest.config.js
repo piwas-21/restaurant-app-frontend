@@ -4,6 +4,11 @@ module.exports = {
   // whole tree; their test copies resolve `@/` aliases against the MAIN tree
   // and go red on any API change. CI never has them — ignore them locally too.
   testPathIgnorePatterns: ['/node_modules/', String.raw`/\.claude/`],
+  // …and keep them out of the MODULE map too, not just the test list. Each worktree carries its
+  // own `__mocks__/@/utils/apiClient.ts`, so jest-haste-map sees several manual mocks registered
+  // under one module name and silently picks one — a stale copy then shadows the real module and
+  // its exports read as `undefined` (an `instanceof ApiError` throws instead of running).
+  modulePathIgnorePatterns: [String.raw`<rootDir>/\.claude/`],
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   transform: {
     '^.+\.(js|jsx|ts|tsx)$': [

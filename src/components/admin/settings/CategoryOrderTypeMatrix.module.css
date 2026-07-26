@@ -1,0 +1,115 @@
+/* Dark mode uses [data-theme='dark'] per CLAUDE.md §5.7 — never prefers-color-scheme. */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 1rem);
+}
+
+.intro {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Wide content scrolls inside its own container so the page never scrolls sideways. */
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 34rem;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  background-color: var(--surface-secondary-light);
+}
+
+.channelColumn {
+  text-align: center;
+  width: 7.5rem;
+}
+
+.checkboxCell {
+  text-align: center;
+}
+
+.categoryName {
+  font-weight: 500;
+}
+
+.productCount {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.rowActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.saveButton,
+.resetButton {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.saveButton {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.saveButton:disabled,
+.resetButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resetButton {
+  background-color: transparent;
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* A category with every box cleared cannot be saved — flagged, never silent.
+   Both --surface-secondary and --feedback-warning-text are theme-AWARE (each has a
+   [data-theme='dark'] override in colors.css), so this needs no dark-mode block of its own.
+   NOT --feedback-warning: that amber is a fill colour and only reaches 1.7:1 as text here. */
+.warningRow td {
+  background-color: var(--surface-secondary);
+}
+
+.warning {
+  display: block;
+  color: var(--feedback-warning-text);
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+.loading,
+.empty {
+  padding: 1.5rem;
+  color: var(--text-muted);
+  text-align: center;
+}

@@ -2,8 +2,8 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSnackbar } from 'notistack';
 import { useCart } from '@/components/cart/CartContext';
+import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { getProductById } from '@/services/menuService';
 import { buildInitialSheetState, hasCustomizationOptions } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
@@ -28,8 +28,8 @@ interface UseItemCustomizationSheetArgs {
  */
 export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItemCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
-  const { t, i18n } = useTranslation();
-  const { enqueueSnackbar } = useSnackbar();
+  const { i18n } = useTranslation();
+  const { notifyItemAdded, notifyAddFailed } = useCartFeedback();
   const currentLanguage = (i18n.language || 'en').split('-')[0];
 
   // Entry guard: the no-options branch adds directly, so a second tap mid-fetch can't double-add.
@@ -56,14 +56,10 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
   // into two copies of the same snackbar, and each would now need its own `onAdded` call.
   const notifyAdded = useCallback(
     (added: Pick<DetailedProduct, 'content' | 'name'>) => {
-      enqueueSnackbar(t('item_added_to_cart_toast', { itemName: resolveName(added) }), {
-        variant: 'success',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
+      notifyItemAdded(resolveName(added));
       onAdded?.();
     },
-    [enqueueSnackbar, onAdded, resolveName, t],
+    [notifyItemAdded, onAdded, resolveName],
   );
 
   const close = useCallback(() => {
@@ -108,14 +104,17 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
         setProduct(detail);
         setIsOpen(true);
       } catch (error) {
-        console.error('Error loading product for customization:', error);
-        enqueueSnackbar(t('error_loading_product', 'Failed to load product details'), { variant: 'error' });
+        console.error('Error opening product for customization:', error);
+        // The direct-add fast path above runs inside this try, so a server rejection ("… is not
+        // available for DineIn") has to survive here too — otherwise a blocked plain product reads
+        // as a load failure. A genuine load failure has no guest-facing reason and falls back.
+        notifyAddFailed(error, 'error_loading_product');
       } finally {
         setIsLoading(false);
         isOpeningRef.current = false;
       }
     },
-    [addItem, enqueueSnackbar, notifyAdded, onBundleDetected, t],
+    [addItem, notifyAdded, notifyAddFailed, onBundleDetected],
   );
 
   const title = product ? resolveName(product) : '';
@@ -150,25 +149,24 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
       });
       close();
       notifyAdded(product);
-    } catch {
-      enqueueSnackbar(t('error_adding_to_cart', 'Failed to add item to cart'), { variant: 'error' });
+    } catch (error) {
+      notifyAddFailed(error);
     } finally {
       setIsSubmitting(false);
     }
   }, [
     addItem,
     close,
-    enqueueSnackbar,
     ingredientQuantities,
     isSubmitting,
     notifyAdded,
+    notifyAddFailed,
     product,
     quantity,
     selectedIngredients,
     selectedSideItems,
     selectedVariationId,
     specialInstructions,
-    t,
   ]);
 
   return {

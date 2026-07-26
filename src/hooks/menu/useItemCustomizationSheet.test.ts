@@ -1,11 +1,13 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useItemCustomizationSheet } from './useItemCustomizationSheet';
 import { getProductById } from '@/services/menuService';
+import { ApiError } from '@/utils/apiClient';
 
 const mockAddItem = jest.fn().mockResolvedValue(undefined);
+const mockEnqueueSnackbar = jest.fn();
 
 jest.mock('@/components/cart/CartContext', () => ({ useCart: () => ({ addItem: mockAddItem }) }));
-jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: jest.fn() }) }));
+jest.mock('notistack', () => ({ useSnackbar: () => ({ enqueueSnackbar: mockEnqueueSnackbar }) }));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_k: string, f?: string) => f || _k, i18n: { language: 'en' } }),
 }));
@@ -46,8 +48,19 @@ const productWithOptions = {
 
 beforeEach(() => {
   mockAddItem.mockClear();
+  mockEnqueueSnackbar.mockClear();
   mockGetProductById.mockReset();
 });
+
+const noOptionsProduct = {
+  id: 'p2',
+  name: 'Water',
+  content: { en: { name: 'Water' } },
+  basePrice: 2,
+  variations: [],
+  suggestedSideItems: [],
+  detailedIngredients: [],
+};
 
 describe('useItemCustomizationSheet', () => {
   it('opens the sheet with the base-recipe default selection and adds the customized line', async () => {
@@ -207,17 +220,7 @@ describe('useItemCustomizationSheet', () => {
   });
 
   it('adds a no-options product straight to the cart without opening the sheet', async () => {
-    mockGetProductById.mockResolvedValue({
-      data: {
-        id: 'p2',
-        name: 'Water',
-        content: { en: { name: 'Water' } },
-        basePrice: 2,
-        variations: [],
-        suggestedSideItems: [],
-        detailedIngredients: [],
-      },
-    });
+    mockGetProductById.mockResolvedValue({ data: noOptionsProduct });
     const { result } = renderHook(() => useItemCustomizationSheet());
 
     await act(async () => {
@@ -230,17 +233,7 @@ describe('useItemCustomizationSheet', () => {
 
   it('with forceSheet, OPENS the sheet for a no-options product instead of quick-adding (Details never adds)', async () => {
     // The regression this whole change fixes: "Details" must view the item, never silently add it.
-    mockGetProductById.mockResolvedValue({
-      data: {
-        id: 'p2',
-        name: 'Water',
-        content: { en: { name: 'Water' } },
-        basePrice: 2,
-        variations: [],
-        suggestedSideItems: [],
-        detailedIngredients: [],
-      },
-    });
+    mockGetProductById.mockResolvedValue({ data: noOptionsProduct });
     const { result } = renderHook(() => useItemCustomizationSheet());
 
     await act(async () => {
@@ -249,5 +242,50 @@ describe('useItemCustomizationSheet', () => {
 
     expect(result.current.isOpen).toBe(true);
     expect(mockAddItem).not.toHaveBeenCalled();
+  });
+
+  it("shows the server's own reason when the sheet's add is rejected on the basket's order type", async () => {
+    mockGetProductById.mockResolvedValue({ data: productWithOptions });
+    mockAddItem.mockRejectedValueOnce(
+      new ApiError(400, 'Dürüm is not available for DineIn. Available for: Takeaway, Delivery.'),
+    );
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1');
+    });
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(mockEnqueueSnackbar).toHaveBeenCalledWith(
+      'Dürüm is not available for DineIn. Available for: Takeaway, Delivery.',
+      { variant: 'error' },
+    );
+  });
+
+  it("shows the server's reason for a QUICK add too — the fast path rejects inside the open handler", async () => {
+    // A no-options product never opens the sheet, so its rejection used to surface as the
+    // surrounding "Failed to load product details" and the reason was lost.
+    mockGetProductById.mockResolvedValue({ data: noOptionsProduct });
+    mockAddItem.mockRejectedValueOnce(new ApiError(400, 'Water is not available for Delivery.'));
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p2');
+    });
+
+    expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Water is not available for Delivery.', { variant: 'error' });
+  });
+
+  it('still reports a genuine load failure as one, not as an add failure', async () => {
+    mockGetProductById.mockRejectedValueOnce(new Error('offline'));
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1');
+    });
+
+    expect(mockEnqueueSnackbar).toHaveBeenCalledWith('error_loading_product', { variant: 'error' });
   });
 });

@@ -8,8 +8,19 @@ import * as basketServiceModule from './basketService';
 import { apiClient } from '@/utils/apiClient';
 import type { BasketDto, AddToBasketDto, UpdateBasketItemDto } from '@/types/basket';
 
-// Mock the apiClient
-jest.mock('@/utils/apiClient');
+// Mock the HTTP surface only. A bare `jest.mock('@/utils/apiClient')` AUTOMOCKS the module, which
+// replaces `ApiError`'s constructor with a no-op — the thrown instance then carries no message and
+// is not even an Error, so `rejects.toThrow` reports "did not throw".
+jest.mock('@/utils/apiClient', () => ({
+  ...jest.requireActual('@/utils/apiClient'),
+  apiClient: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    patch: jest.fn(),
+  },
+}));
 
 const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
@@ -105,6 +116,34 @@ describe('BasketService', () => {
       mockApiClient.post.mockRejectedValue(error);
 
       await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Product not found');
+    });
+
+    // `AddToBasketCommand` answers an InvalidOperationException with HTTP 200 + success:false, so
+    // the rejection reason arrives in the body. It has to be re-thrown as an ApiError or
+    // `getAddToCartErrorMessage` can never pass it to the guest.
+    it('re-throws a success:false body as a 400 ApiError carrying the reason from errors[0]', async () => {
+      const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
+      mockApiClient.post.mockResolvedValue({
+        success: false,
+        message: 'Operation failed',
+        errors: ['Dürüm is not available for DineIn. Available for: Takeaway, Delivery.'],
+      });
+
+      await expect(basketServiceModule.addItemToBasket(request)).rejects.toMatchObject({
+        name: 'ApiError',
+        status: 400,
+        message: 'Dürüm is not available for DineIn. Available for: Takeaway, Delivery.',
+      });
+    });
+
+    it('falls back to the body message, then to a generic string, when errors[] is absent', async () => {
+      const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
+
+      mockApiClient.post.mockResolvedValue({ success: false, message: 'Basket is locked' });
+      await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Basket is locked');
+
+      mockApiClient.post.mockResolvedValue({ success: false });
+      await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Failed to add item to basket');
     });
   });
 

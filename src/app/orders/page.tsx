@@ -8,6 +8,7 @@ import { useCart } from '@/components/cart/CartContext';
 import { useOrders } from '@/hooks/useOrders';
 import { useSnackbar } from 'notistack';
 import { OrderDto } from '@/types/order';
+import { getAddToCartErrorMessage } from '@/utils/addToCartError';
 import { Package, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
 import OrderCard from '@/components/orders/OrderCard';
 import styles from '../styles/OrdersPage.module.css';
@@ -67,8 +68,11 @@ export default function OrdersPage() {
         anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
       });
       router.push('/cart');
-    } catch {
-      enqueueSnackbar(t('failed_to_reorder', 'Failed to add items to cart'), {
+    } catch (error) {
+      // Surface the server's own reason — a past dine-in order reordered under Delivery is rejected
+      // with the item and the channels it IS available on (ORDER-TYPE-AVAILABILITY-PLAN §9.4).
+      // The loop aborts on the first rejection, so the lines added before it stay in the cart.
+      enqueueSnackbar(getAddToCartErrorMessage(error, t, 'failed_to_reorder'), {
         variant: 'error',
         anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
       });

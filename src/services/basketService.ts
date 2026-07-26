@@ -5,7 +5,7 @@
  * Handles all basket operations: add, update, remove items, promo codes, etc.
  */
 
-import { apiClient } from '@/utils/apiClient';
+import { ApiError, apiClient } from '@/utils/apiClient';
 import {
   BasketDto,
   BasketSummaryDto,
@@ -54,7 +54,13 @@ export async function addItemToBasket(item: AddToBasketDto): Promise<BasketDto> 
   try {
     const response = await apiClient.post<BasketDtoApiResponse>('/api/Basket/items', item);
     if (!response.data) {
-      throw new Error('Failed to add item to basket');
+      // `AddToBasketCommand` still answers an `InvalidOperationException` with HTTP 200 +
+      // `success:false`, so the rejection reason arrives in the BODY rather than as a thrown
+      // ApiError. Re-throw it as one so `getAddToCartErrorMessage` can pass it to the guest
+      // instead of a generic string (ORDER-TYPE-AVAILABILITY-PLAN §9.4).
+      // `ApiResponse.Failure(error)` puts the reason in `errors[0]` and leaves `message` as the
+      // literal "Operation failed" — the opposite of the thrown-error path, hence the order here.
+      throw new ApiError(400, response.errors?.[0] || response.message || 'Failed to add item to basket');
     }
     return response.data;
   } catch (error) {

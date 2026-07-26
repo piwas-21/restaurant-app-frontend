@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useBundleCustomizationSheet } from './useBundleCustomizationSheet';
 import type { MenuBundleItem } from '@/types/menu';
+import { ApiError } from '@/utils/apiClient';
 
 const mockAddItem = jest.fn().mockResolvedValue(undefined);
 const mockEnqueueSnackbar = jest.fn();
@@ -311,5 +312,23 @@ describe('useBundleCustomizationSheet', () => {
     expect(result.current.isOpen).toBe(true);
     expect(result.current.isSubmitting).toBe(false);
     expect(mockEnqueueSnackbar).toHaveBeenCalledWith(expect.any(String), { variant: 'error' });
+  });
+
+  it("shows the server's own reason when the bundle is blocked on the basket's order type", async () => {
+    mockAddItem.mockRejectedValueOnce(
+      new ApiError(400, 'Lunch Combo is not available for Delivery. Available for: DineIn, Takeaway.'),
+    );
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+    act(() => result.current.openForBundle(bundle));
+    act(() => result.current.toggleOption(bundle.menuDefinition.sections[1], 'coke'));
+
+    await act(async () => {
+      await result.current.addToCart();
+    });
+
+    expect(mockEnqueueSnackbar).toHaveBeenCalledWith(
+      'Lunch Combo is not available for Delivery. Available for: DineIn, Takeaway.',
+      { variant: 'error' },
+    );
   });
 });

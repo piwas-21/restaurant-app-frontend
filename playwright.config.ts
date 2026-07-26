@@ -39,20 +39,26 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    stdout: 'ignore',
-    stderr: 'pipe',
-    timeout: 120_000,
-    env: {
-      TZ: 'UTC',
-      LANG: 'en_US.UTF-8',
-      // Pin the dev server's backend URL to E2E_API_BASE_URL so browser-side
-      // fetches don't fall through to whatever .env.local has (e.g. a stale
-      // staging URL). Fixture-level request.* calls already use this value.
-      NEXT_PUBLIC_API_URL: process.env.E2E_API_BASE_URL ?? 'http://localhost:5221',
-    },
-  },
+  // Skip the local dev server when the run targets a DEPLOYED environment
+  // (E2E_REMOTE=1 with E2E_BASE_URL=https://staging.fooderist.com, say). Without
+  // this, pointing baseURL at staging still boots `npm run dev` and waits on
+  // localhost:3000 for two minutes before running a single test.
+  webServer: process.env.E2E_REMOTE
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: !process.env.CI,
+        stdout: 'ignore',
+        stderr: 'pipe',
+        timeout: 120_000,
+        env: {
+          TZ: 'UTC',
+          LANG: 'en_US.UTF-8',
+          // Pin the dev server's backend URL to E2E_API_BASE_URL so browser-side
+          // fetches don't fall through to whatever .env.local has (e.g. a stale
+          // staging URL). Fixture-level request.* calls already use this value.
+          NEXT_PUBLIC_API_URL: process.env.E2E_API_BASE_URL ?? 'http://localhost:5221',
+        },
+      },
 });

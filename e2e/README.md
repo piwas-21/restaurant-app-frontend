@@ -68,16 +68,16 @@ npx playwright test --repeat-each=10 --workers=4 \
 
 ## Layout
 
-| Path | Contains |
-|---|---|
-| `tests/<surface>/*.e2e.ts` | One file per **flow** (not per page). Surfaces map to RUMI roles (public, auth, customer, cashier, server, kitchen, admin). |
-| `screenshots/*.screen.ts` | **Screenshot-baseline suite** — separate config ([../playwright.screenshots.config.ts](../playwright.screenshots.config.ts)); see §Screenshot baseline below. |
-| `screenshots/__screenshots__/` | **Committed** golden baselines (linux-generated PNGs). Never hand-edit; regenerate only via `npm run test:screenshots:docker:update`. |
-| `pages/*.ts` | Page Objects — selectors + action methods. **No assertions.** |
-| `fixtures/*.ts` | Playwright fixtures. The per-role auth fixtures (`customerUser`, `cashierUser`, `serverUser`, `kitchenUser`, `adminUser`) own `storageState`. |
-| `helpers/*.ts` | Shared utilities — `expectNoA11yViolations`, network waiters, locale switchers. Pure-ish: take a `Page`, do a thing, return data. |
-| `seed/*.ts` | Test-data builders that hit the real backend API to create fresh users / products / reservations. Prefix every name with `e2e-` for prefix-based teardown. |
-| `.auth/` | **gitignored** — saved `storageState` JSON written by auth fixtures. |
+| Path                           | Contains                                                                                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/<surface>/*.e2e.ts`     | One file per **flow** (not per page). Surfaces map to RUMI roles (public, auth, customer, cashier, server, kitchen, admin).                                   |
+| `screenshots/*.screen.ts`      | **Screenshot-baseline suite** — separate config ([../playwright.screenshots.config.ts](../playwright.screenshots.config.ts)); see §Screenshot baseline below. |
+| `screenshots/__screenshots__/` | **Committed** golden baselines (linux-generated PNGs). Never hand-edit; regenerate only via `npm run test:screenshots:docker:update`.                         |
+| `pages/*.ts`                   | Page Objects — selectors + action methods. **No assertions.**                                                                                                 |
+| `fixtures/*.ts`                | Playwright fixtures. The per-role auth fixtures (`customerUser`, `cashierUser`, `serverUser`, `kitchenUser`, `adminUser`) own `storageState`.                 |
+| `helpers/*.ts`                 | Shared utilities — `expectNoA11yViolations`, network waiters, locale switchers. Pure-ish: take a `Page`, do a thing, return data.                             |
+| `seed/*.ts`                    | Test-data builders that hit the real backend API to create fresh users / products / reservations. Prefix every name with `e2e-` for prefix-based teardown.    |
+| `.auth/`                       | **gitignored** — saved `storageState` JSON written by auth fixtures.                                                                                          |
 
 ## Rules of thumb
 
@@ -89,6 +89,36 @@ npx playwright test --repeat-each=10 --workers=4 \
 6. Tests are committed — only outputs (`.auth/`, `playwright-report/`, `test-results/`) are gitignored.
 
 Full ruleset and the HIGH/MED/LOW scenario list: [../docs/E2E-STRATEGY.md](../docs/E2E-STRATEGY.md).
+
+## Running against a DEPLOYED environment
+
+Most suites assume the local dev server + a seeded local backend. Set `E2E_REMOTE=1` to skip booting
+`npm run dev` and point the run at a deployed host instead — without it, Playwright still starts a
+dev server and waits two minutes on `localhost:3000` before running anything.
+
+```bash
+E2E_REMOTE=1 \
+E2E_BASE_URL=https://staging.fooderist.com \
+E2E_API_BASE_URL=https://staging.fooderist.com \
+npx playwright test order-type-availability
+```
+
+Only suites that **discover their fixture from the API** can do this — `order-type-availability`
+is the reference: it asks which channels the restaurant has enabled and which rows are actually
+restricted, then `test.skip()`s, with a stated reason, whatever the environment cannot demonstrate.
+A suite that hardcodes product names is a single-environment script.
+
+Two constraints worth knowing before you reach for this:
+
+- **You cannot mix a local UI with a deployed API.** Running `npm run dev` against
+  `E2E_API_BASE_URL=https://staging.fooderist.com` fails every browser test: staging's backend sends
+  no `Access-Control-Allow-Origin` for `http://localhost:3000`, so the browser blocks the calls and
+  the grid never populates (the API-only tests still pass, which makes the failure look stranger
+  than it is). That CORS restriction is deliberate — don't widen it for a test run.
+- **The deployed environments differ, on purpose.** `staging.fooderist.com` serves **classic** with
+  all three channels enabled; `demo.sofrapiwas.com` serves **craft**. Whatever a host's
+  `OrderTypeConfiguration/enabled` list says is what its run can prove — if only one channel is
+  enabled there is never a "switch to X" target, and those scenarios skip rather than fail.
 
 ## Screenshot baseline (visual regression — S15 T1 close-out)
 
@@ -139,7 +169,7 @@ volumes). The backend must allow CORS origin `http://localhost:3100`
 (the CI workflow sets `CorsSettings__AllowedOrigins__0` accordingly).
 
 `npm run test:screenshots` (host-native, no docker) is for quick iteration on
-the *tests themselves* only — comparisons against committed baselines will
+the _tests themselves_ only — comparisons against committed baselines will
 fail on macOS; never `--update-snapshots` from a mac.
 
 **CI**: [.github/workflows/screenshots.yml](../.github/workflows/screenshots.yml)

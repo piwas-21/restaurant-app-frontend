@@ -28,6 +28,27 @@ describe('FloorPlanGuestMap', () => {
     mockGetFloorPlan.mockResolvedValue({ success: true, data: floorPlanFixture() });
   });
 
+  /**
+   * The names `e2e/tests/public/reservations-floor-plan.e2e.ts` queries by. That
+   * spec runs only in CI against a real stack, so pinning its selectors here is
+   * what turns a rename into a fast unit failure instead of a slow, confusing
+   * Playwright timeout twenty minutes later.
+   */
+  it('exposes the accessible names the booking-through-the-map e2e queries by', async () => {
+    render(<FloorPlanGuestMap {...baseProps} />);
+    await screen.findByRole('button', { name: /Table 1/ });
+
+    // The plan itself: role=group, named "Restaurant floor plan".
+    expect(screen.getByRole('group', { name: /floor plan/i })).toBeInTheDocument();
+    // Every table marker: "Table {n}, {seats} seats, {status}".
+    expect(screen.getAllByRole('button', { name: /^Table .+ seats/i }).length).toBeGreaterThan(0);
+    // The view toggle and the list's Select buttons.
+    expect(screen.getByRole('button', { name: /^map$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^list$/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^list$/i }));
+    expect(screen.getAllByRole('button', { name: /^select$/i }).length).toBeGreaterThan(0);
+  });
+
   it('shows a loading state, then renders the scene and zone chips', async () => {
     render(<FloorPlanGuestMap {...baseProps} />);
     expect(screen.getByText('Loading…')).toBeInTheDocument();

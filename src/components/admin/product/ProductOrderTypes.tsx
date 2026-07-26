@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderType } from '@/types/order';
 import { ALL_ORDER_TYPES, exactMaskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
@@ -35,11 +35,19 @@ export default function ProductOrderTypes({
   error,
 }: ProductOrderTypesProps) {
   const { t } = useTranslation();
+  // Scopes the radio group and the checkbox ids to this instance. Radio grouping is form-scoped, so
+  // a fixed `name` is fine in the app today (one editor per form) but silently couples two
+  // instances rendered into the same document — which is exactly what a component test does.
+  const uid = useId();
 
   const label = (orderType: OrderType) =>
     t(ORDER_TYPE_LABEL_KEY[orderType].key, ORDER_TYPE_LABEL_KEY[orderType].fallback);
 
   const primaryCategory = categories.find((category) => category.id === primaryCategoryId);
+  // The category list is fetched after mount, so it is empty on the first render of an existing
+  // product. Treat that as "not known yet" rather than "no primary category" — otherwise the
+  // editor greets every edit with a warning that the item has no category to inherit from.
+  const categoriesLoaded = categories.length > 0;
   const inheritedTypes = orderTypesFromMask(primaryCategory?.availableOrderTypes);
   const isInheriting = value === null;
   // While inheriting, the boxes preview what is inherited — so switching to Custom starts from the
@@ -60,7 +68,7 @@ export default function ProductOrderTypes({
       <legend className={styles.legend}>{t('product_order_types', 'Order type availability')}</legend>
 
       <label className={styles.choice}>
-        <input type="radio" name="product-order-types-mode" checked={isInheriting} onChange={() => onChange(null)} />
+        <input type="radio" name={`${uid}-mode`} checked={isInheriting} onChange={() => onChange(null)} />
         <span>
           {primaryCategory
             ? t('product_order_types_inherit_named', 'Inherit from category ({{category}}: {{orderTypes}})', {
@@ -71,7 +79,7 @@ export default function ProductOrderTypes({
         </span>
       </label>
 
-      {!primaryCategory && (
+      {categoriesLoaded && !primaryCategory && (
         <p className={styles.warning}>
           {t(
             'product_order_types_no_primary_warning',
@@ -83,29 +91,34 @@ export default function ProductOrderTypes({
       <label className={styles.choice}>
         <input
           type="radio"
-          name="product-order-types-mode"
+          name={`${uid}-mode`}
           checked={!isInheriting}
           onChange={() => onChange(exactMaskFromOrderTypes(selected))}
         />
         <span>{t('product_order_types_custom', 'Custom')}</span>
       </label>
 
-      <div className={styles.channels}>
+      <div className={styles.channels} aria-describedby={error ? `${uid}-error` : undefined}>
         {ALL_ORDER_TYPES.map((orderType) => (
           <div key={orderType} className={styles.channel}>
             <input
               type="checkbox"
-              id={`product-order-type-${orderType}`}
+              id={`${uid}-${orderType}`}
               checked={selected.includes(orderType)}
               disabled={isInheriting}
+              aria-invalid={error ? true : undefined}
               onChange={() => toggle(orderType)}
             />
-            <label htmlFor={`product-order-type-${orderType}`}>{label(orderType)}</label>
+            <label htmlFor={`${uid}-${orderType}`}>{label(orderType)}</label>
           </div>
         ))}
       </div>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && (
+        <p id={`${uid}-error`} className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }

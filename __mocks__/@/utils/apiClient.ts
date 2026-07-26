@@ -12,6 +12,7 @@ export class ApiError extends Error {
     public status: number,
     public message: string,
     public errors?: string[],
+    public errorCode?: string,
   ) {
     super(message);
     this.name = 'ApiError';

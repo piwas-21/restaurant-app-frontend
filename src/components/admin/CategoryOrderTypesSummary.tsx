@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { orderTypesFromMask } from '@/utils/orderChannels';
 import { ORDER_TYPE_LABEL_KEY } from '@/utils/orderTypeLabels';
+import styles from './CategoryOrderTypesSummary.module.css';
 
 interface CategoryOrderTypesSummaryProps {
   /** Raw OrderChannels mask; `null`/undefined = every order type. */
@@ -25,8 +26,8 @@ export default function CategoryOrderTypesSummary({ mask, className }: CategoryO
 
   return (
     <div className={className}>
-      <label>{t('product_order_types', 'Order type availability')}</label>
-      <p>
+      <span className={styles.caption}>{t('product_order_types', 'Order type availability')}</span>
+      <p className={styles.value}>
         {labels}{' '}
         <Link href="/admin/restaurant-settings?tab=order-types">{t('category_order_types_manage', 'Manage')}</Link>
       </p>

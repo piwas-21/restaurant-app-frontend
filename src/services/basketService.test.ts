@@ -118,31 +118,29 @@ describe('BasketService', () => {
       await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Product not found');
     });
 
-    // `AddToBasketCommand` answers an InvalidOperationException with HTTP 200 + success:false, so
-    // the rejection reason arrives in the body. It has to be re-thrown as an ApiError or
-    // `getAddToCartErrorMessage` can never pass it to the guest.
-    it('re-throws a success:false body as a 400 ApiError carrying the reason from errors[0]', async () => {
+    // `AddToBasketCommand` answers an InvalidOperationException with HTTP 200 + success:false.
+    // Every DELIBERATE rejection now throws a domain exception and arrives as a real 4xx, so what
+    // reaches this branch is incidental (an EF tracking conflict, "Sequence contains no elements")
+    // and its text must NOT become a guest's toast — hence a plain Error, not a coded ApiError.
+    it('rejects a success:false body with a plain Error, keeping the server text for the log only', async () => {
       const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
       mockApiClient.post.mockResolvedValue({
         success: false,
         message: 'Operation failed',
-        errors: ['Dürüm is not available for DineIn. Available for: Takeaway, Delivery.'],
+        errors: ['The instance of entity type BasketItem cannot be tracked'],
       });
 
-      await expect(basketServiceModule.addItemToBasket(request)).rejects.toMatchObject({
-        name: 'ApiError',
-        status: 400,
-        message: 'Dürüm is not available for DineIn. Available for: Takeaway, Delivery.',
-      });
+      const thrown = await basketServiceModule.addItemToBasket(request).catch((error: unknown) => error);
+
+      expect(thrown).toBeInstanceOf(Error);
+      expect((thrown as Error).name).not.toBe('ApiError');
+      expect((thrown as Error).message).toContain('The instance of entity type BasketItem cannot be tracked');
     });
 
-    it('falls back to the body message, then to a generic string, when errors[] is absent', async () => {
+    it('still throws when the body carries neither errors[] nor a message', async () => {
       const request: AddToBasketDto = { productId: 'prod-123', quantity: 1 };
-
-      mockApiClient.post.mockResolvedValue({ success: false, message: 'Basket is locked' });
-      await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Basket is locked');
-
       mockApiClient.post.mockResolvedValue({ success: false });
+
       await expect(basketServiceModule.addItemToBasket(request)).rejects.toThrow('Failed to add item to basket');
     });
   });

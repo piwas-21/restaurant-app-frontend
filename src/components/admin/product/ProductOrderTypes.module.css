@@ -1,6 +1,8 @@
 /* Dark mode uses [data-theme='dark'] per CLAUDE.md §5.7 — never prefers-color-scheme. Every colour
-   here is either theme-AWARE (--border-default, --text-*) or theme-INVARIANT (--feedback-warning,
-   --feedback-error), so this module needs no dark-mode block of its own. */
+   here is theme-AWARE (--border-default, --text-*, --feedback-error, --feedback-warning-text all
+   carry a [data-theme='dark'] override in colors.css), so this module needs no dark block of its
+   own. Note --feedback-warning is NOT one of them and fails contrast as body copy on a light
+   surface — warning TEXT uses --feedback-warning-text. */
 
 .fieldset {
   border: 1px solid var(--border-default);
@@ -47,7 +49,7 @@
 }
 
 .warning {
-  color: var(--feedback-warning);
+  color: var(--feedback-warning-text);
   font-size: 0.8rem;
   margin: 0;
   padding-inline-start: 1.5rem;

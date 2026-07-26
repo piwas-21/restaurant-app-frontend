@@ -72,6 +72,10 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
       if (isOpeningRef.current) return;
       isOpeningRef.current = true;
       setIsLoading(true);
+      // Which STEP failed, not which try caught it: the direct-add fast path runs inside the same
+      // try as the fetch, and `getProductById` swallows its own errors (falling back to the mock
+      // client), so classifying by the block would report a failed quick-add as a load failure.
+      let failedStep: 'load' | 'add' = 'load';
       try {
         const response = (await getProductById(productId)) as { data?: DetailedProduct };
         const detail = response?.data;
@@ -89,6 +93,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
 
         // Fast path: a plain product adds straight to the cart — unless the caller forced the sheet.
         if (!opts?.forceSheet && !hasCustomizationOptions(detail)) {
+          failedStep = 'add';
           await addItem({ productId: detail.id, quantity: 1 });
           notifyAdded(detail);
           return;
@@ -105,10 +110,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
         setIsOpen(true);
       } catch (error) {
         console.error('Error opening product for customization:', error);
-        // The direct-add fast path above runs inside this try, so a server rejection ("… is not
-        // available for DineIn") has to survive here too — otherwise a blocked plain product reads
-        // as a load failure. A genuine load failure has no guest-facing reason and falls back.
-        notifyAddFailed(error, 'error_loading_product');
+        notifyAddFailed(error, failedStep === 'add' ? undefined : 'error_loading_product');
       } finally {
         setIsLoading(false);
         isOpeningRef.current = false;

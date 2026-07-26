@@ -83,6 +83,10 @@
   --feedback-warning-light: #ffdab9;
   --feedback-warning-xlight: #fff5e1;
   --feedback-warning-dark: #a06000;
+  /* Warning TEXT. `--feedback-warning` is a fill/icon amber and reaches only 1.7–2.0:1 as body
+     copy on light surfaces (WCAG AA needs 4.5:1); this is the same hue darkened to 5.6:1 on
+     --surface-secondary. Overridden in the dark block, where the plain amber already passes. */
+  --feedback-warning-text: #8a5200;
 
   /* Feedback — info */
   --feedback-info: #28c2d9;
@@ -309,6 +313,9 @@ html[data-theme='dark'] {
   --feedback-error: #ff8a80;
   --feedback-error-bg: #3a1f1f;
   --feedback-error-border: #5a2a2a;
+
+  /* 7.1:1 on --surface-secondary — the undarkened amber is the readable one here. */
+  --feedback-warning-text: #ffa500;
 
   --feedback-danger-dark: #ff6b6b;
   --feedback-danger-light: #ee5a6f;

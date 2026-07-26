@@ -14,14 +14,20 @@ import { TFunction } from 'i18next';
 import { ApiError } from '@/utils/apiClient';
 
 /**
- * Statuses whose `message` is a domain rejection the backend wrote for the guest, not an internal
- * fault. 400 covers the channel guard and every command validator; 404 covers a product that went
- * away or was switched off between render and tap.
+ * The one failure whose message is written for a guest and may be shown verbatim.
  *
- * Deliberately NOT 5xx (internal detail), NOT 0 (our own synthesized network error) and NOT 401,
- * which `apiClient` handles by clearing the session and redirecting.
+ * Gating on the CODE rather than the status is the load-bearing decision here. `POST
+ * /api/Basket/items` answers 400/404 for plenty of things that are not fit to render — "Session ID
+ * is required", the generic "Validation failed"/"Operation failed" wrappers (the real text sits in
+ * `errors[]` on those branches), "Child product not found: {guid}", or an incidental EF message —
+ * so trusting the status would trade "the guest never sees the reason" for "the guest sometimes
+ * sees backend plumbing", and two of those strings are untranslated English that is strictly worse
+ * than the localized fallback.
+ *
+ * Mirrors `ErrorCodes.OrderTypeNotAvailable` (backend `Common/Models/ErrorCodes.cs`). Adding a code
+ * there is a contract change; adding one here means deciding its message is guest-safe.
  */
-const GUEST_FACING_STATUSES = new Set([400, 404]);
+const ORDER_TYPE_NOT_AVAILABLE = 'OrderTypeNotAvailable';
 
 /**
  * The message to show a guest when adding to the cart fails.
@@ -29,14 +35,13 @@ const GUEST_FACING_STATUSES = new Set([400, 404]);
  * @param error       whatever the add threw — `ApiError`, `Error`, or anything else.
  * @param t           translation function; the fallback is always localized.
  * @param fallbackKey i18n key used when the server gave no guest-facing reason. Callers whose
- *                    surrounding operation is broader than the add itself (e.g. opening the
- *                    customization sheet, which adds directly for a product with no options) pass
- *                    their own key so a genuine load failure still reads as one.
+ *                    surrounding operation is broader than the add itself pass their own key so a
+ *                    genuine load failure still reads as one.
  *
  * @remarks
- * Reads `ApiError.message`, never `ApiError.errors`: the exception middleware fills `errors` with
- * `exception.ToString()` when the backend runs in Development, and a stack trace must never be
- * rendered into a guest's toast.
+ * Reads `ApiError.message`, never `ApiError.errors`: on the thrown-exception branch the middleware
+ * fills `errors` with `exception.ToString()` when the backend runs in Development, and a stack
+ * trace must never be rendered into a guest's toast.
  *
  * The reason arrives in the backend's own language (English). That is acceptable for what is a
  * server-side safety net — the localized surface is the dimmed card + reason chip built from
@@ -44,7 +49,7 @@ const GUEST_FACING_STATUSES = new Set([400, 404]);
  * only by a stale tab, a tampered payload, or a channel change made in another tab.
  */
 export function getAddToCartErrorMessage(error: unknown, t: TFunction, fallbackKey = 'error_adding_to_cart'): string {
-  if (error instanceof ApiError && GUEST_FACING_STATUSES.has(error.status)) {
+  if (error instanceof ApiError && error.errorCode === ORDER_TYPE_NOT_AVAILABLE) {
     const reason = error.message?.trim();
     if (reason) return reason;
   }

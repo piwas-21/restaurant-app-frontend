@@ -316,7 +316,12 @@ describe('useBundleCustomizationSheet', () => {
 
   it("shows the server's own reason when the bundle is blocked on the basket's order type", async () => {
     mockAddItem.mockRejectedValueOnce(
-      new ApiError(400, 'Lunch Combo is not available for Delivery. Available for: DineIn, Takeaway.'),
+      new ApiError(
+        400,
+        'Lunch Combo is not available for Delivery. Available for: DineIn, Takeaway.',
+        undefined,
+        'OrderTypeNotAvailable',
+      ),
     );
     const { result } = renderHook(() => useBundleCustomizationSheet());
     act(() => result.current.openForBundle(bundle));

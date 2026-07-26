@@ -120,8 +120,9 @@ export function useCategoryChannelsAdmin() {
       setSavingId(categoryId);
       try {
         // The update command reassigns name/description/isActive unconditionally, so they must be
-        // echoed back or the save would blank them. displayOrder is accepted but ignored by the
-        // handler (ReorderCategoriesCommand owns ordering) — sent for schema completeness only.
+        // echoed back or the save would blank them. displayOrder is deliberately NOT sent: the
+        // handler never assigns it (ReorderCategoriesCommand owns ordering), so omitting it is
+        // safe here in a way that omitting the three above — or availableOrderTypes — is not.
         await updateCategory(categoryId, {
           id: categoryId,
           name: category.name,

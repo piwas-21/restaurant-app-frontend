@@ -92,16 +92,17 @@
   color: var(--text-primary);
 }
 
-/* A category with every box cleared is off sale entirely — legitimate, but never silent.
-   --surface-secondary is theme-AWARE (has a [data-theme='dark'] override) and --feedback-warning is
-   theme-INVARIANT orange that reads on both, so this needs no dark-mode block of its own. */
+/* A category with every box cleared cannot be saved — flagged, never silent.
+   Both --surface-secondary and --feedback-warning-text are theme-AWARE (each has a
+   [data-theme='dark'] override in colors.css), so this needs no dark-mode block of its own.
+   NOT --feedback-warning: that amber is a fill colour and only reaches 1.7:1 as text here. */
 .warningRow td {
   background-color: var(--surface-secondary);
 }
 
 .warning {
   display: block;
-  color: var(--feedback-warning);
+  color: var(--feedback-warning-text);
   font-size: 0.8rem;
   margin-top: 0.15rem;
 }

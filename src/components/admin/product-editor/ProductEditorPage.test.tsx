@@ -98,6 +98,12 @@ const renderEditor = async (product: ProductDetails, isBundle: boolean, mode: 'c
   return { onSaved, onBack, nameInput, container };
 };
 
+// The control scopes its ids with useId(), so reach the checkbox through its <label> instead.
+const orderTypeBox = (container: HTMLElement, labelKey: string): HTMLInputElement | null => {
+  const label = Array.from(container.querySelectorAll('label')).find((node) => node.textContent === labelKey);
+  return label ? (container.querySelector(`#${CSS.escape(label.htmlFor)}`) as HTMLInputElement) : null;
+};
+
 beforeEach(() => jest.clearAllMocks());
 
 describe('ProductEditorPage — type is a derived badge, not a chooser', () => {
@@ -197,18 +203,18 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   // that silently does nothing (plan §9.2).
   it('offers the order-type control on an item and not on a bundle', async () => {
     const { container } = await renderEditor(item, false);
-    expect(container.querySelector('#product-order-type-DineIn')).toBeInTheDocument();
+    expect(orderTypeBox(container, 'order_type_dine_in')).toBeInTheDocument();
 
     const bundleRender = await renderEditor(bundle, true);
-    expect(bundleRender.container.querySelector('#product-order-type-DineIn')).not.toBeInTheDocument();
+    expect(orderTypeBox(bundleRender.container, 'order_type_dine_in')).toBeNull();
   });
 
   it('sends the per-item order-type override on save', async () => {
     const { container, nameInput } = await renderEditor(item, false);
 
     // Switch to Custom (seeded from the inherited set), then drop delivery.
-    fireEvent.click(container.querySelectorAll('input[name="product-order-types-mode"]')[1]);
-    fireEvent.click(container.querySelector('#product-order-type-Delivery') as HTMLInputElement);
+    fireEvent.click(container.querySelectorAll('input[type="radio"]')[1]);
+    fireEvent.click(orderTypeBox(container, 'order_type_delivery') as HTMLInputElement);
     fireEvent.change(nameInput, { target: { value: 'Margherita Rossa' } });
     fireEvent.click(screen.getByTestId('editor-save'));
 

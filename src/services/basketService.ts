@@ -5,7 +5,7 @@
  * Handles all basket operations: add, update, remove items, promo codes, etc.
  */
 
-import { ApiError, apiClient } from '@/utils/apiClient';
+import { apiClient } from '@/utils/apiClient';
 import {
   BasketDto,
   BasketSummaryDto,
@@ -54,13 +54,13 @@ export async function addItemToBasket(item: AddToBasketDto): Promise<BasketDto> 
   try {
     const response = await apiClient.post<BasketDtoApiResponse>('/api/Basket/items', item);
     if (!response.data) {
-      // `AddToBasketCommand` still answers an `InvalidOperationException` with HTTP 200 +
-      // `success:false`, so the rejection reason arrives in the BODY rather than as a thrown
-      // ApiError. Re-throw it as one so `getAddToCartErrorMessage` can pass it to the guest
-      // instead of a generic string (ORDER-TYPE-AVAILABILITY-PLAN §9.4).
-      // `ApiResponse.Failure(error)` puts the reason in `errors[0]` and leaves `message` as the
-      // literal "Operation failed" — the opposite of the thrown-error path, hence the order here.
-      throw new ApiError(400, response.errors?.[0] || response.message || 'Failed to add item to basket');
+      // HTTP 200 + `success:false`, which on this endpoint means `AddToBasketCommand` caught an
+      // InvalidOperationException. Every DELIBERATE rejection now throws a domain exception and
+      // reaches the client as a real 4xx, so what is left here is INCIDENTAL — an EF tracking
+      // conflict, "Sequence contains no elements". Its message is not fit for a guest, so this
+      // stays a generic Error and `getAddToCartErrorMessage` falls back to a localized string.
+      // `console.error` below keeps the real text for debugging.
+      throw new Error(`Failed to add item to basket: ${response.errors?.[0] || response.message || 'unknown error'}`);
     }
     return response.data;
   } catch (error) {

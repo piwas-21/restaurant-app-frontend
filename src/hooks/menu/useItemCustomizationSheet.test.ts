@@ -247,7 +247,12 @@ describe('useItemCustomizationSheet', () => {
   it("shows the server's own reason when the sheet's add is rejected on the basket's order type", async () => {
     mockGetProductById.mockResolvedValue({ data: productWithOptions });
     mockAddItem.mockRejectedValueOnce(
-      new ApiError(400, 'Dürüm is not available for DineIn. Available for: Takeaway, Delivery.'),
+      new ApiError(
+        400,
+        'Dürüm is not available for DineIn. Available for: Takeaway, Delivery.',
+        undefined,
+        'OrderTypeNotAvailable',
+      ),
     );
     const { result } = renderHook(() => useItemCustomizationSheet());
 
@@ -268,7 +273,9 @@ describe('useItemCustomizationSheet', () => {
     // A no-options product never opens the sheet, so its rejection used to surface as the
     // surrounding "Failed to load product details" and the reason was lost.
     mockGetProductById.mockResolvedValue({ data: noOptionsProduct });
-    mockAddItem.mockRejectedValueOnce(new ApiError(400, 'Water is not available for Delivery.'));
+    mockAddItem.mockRejectedValueOnce(
+      new ApiError(400, 'Water is not available for Delivery.', undefined, 'OrderTypeNotAvailable'),
+    );
     const { result } = renderHook(() => useItemCustomizationSheet());
 
     await act(async () => {

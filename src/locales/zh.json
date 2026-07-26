@@ -2365,5 +2365,8 @@
   "product_order_types_inherit": "继承自分类",
   "product_order_types_inherit_named": "继承自分类（{{category}}：{{orderTypes}}）",
   "product_order_types_custom": "自定义",
-  "product_order_types_no_primary_warning": "未选择主分类，因此没有可继承的设置 — 在你设置主分类或选择「自定义」之前，该菜品在所有订单类型下都保持可订购。"
+  "product_order_types_no_primary_warning": "未选择主分类，因此没有可继承的设置 — 在你设置主分类或选择「自定义」之前，该菜品在所有订单类型下都保持可订购。",
+  "clear_table_selection_confirm": "要清除餐桌选择吗？你需要重新扫描二维码，堂食选择也会被重置。",
+  "table_required_hint": "请选择一张餐桌以继续。",
+  "reorder_partial": "已添加 {{total}} 项中的 {{added}} 项。"
 }

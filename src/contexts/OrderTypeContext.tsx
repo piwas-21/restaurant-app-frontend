@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { OrderType } from '@/types/order';
 import { type DeliveryAddress, useCheckout } from '@/contexts/CheckoutContext';
+import { useOrderTypeEnabledGuard } from '@/hooks/order/useOrderTypeEnabledGuard';
 
 /**
  * OrderTypeContext — single source of truth for the order-type decision
@@ -23,6 +24,12 @@ interface OrderTypeState {
   orderType: OrderType | null;
   table: string;
   deliveryAddress: DeliveryAddress | null;
+  /**
+   * When the order type was chosen, epoch ms. Drives the TTL below; `null` on a state with no
+   * choice, and on a payload written before this field existed (which then expires immediately —
+   * deliberate, since we cannot tell a five-minute-old choice from a month-old one).
+   */
+  chosenAt: number | null;
 }
 
 interface OrderTypeContextType {
@@ -37,10 +44,19 @@ interface OrderTypeContextType {
 
 const STORAGE_KEY = 'rumi_order_type_state';
 
+/**
+ * How long a persisted order type stays valid. It is in localStorage, so it survives the browser
+ * being closed: without this, a Delivery chosen last month silently filters the menu on the next
+ * visit and prefills a stale address. Past the window the choice is dropped and the guest is back
+ * in the no-type browse state, which is the app's normal starting point anyway.
+ */
+export const ORDER_TYPE_TTL_MS = 24 * 60 * 60 * 1000;
+
 const initialState: OrderTypeState = {
   orderType: null,
   table: '',
   deliveryAddress: null,
+  chosenAt: null,
 };
 
 const VALID_ORDER_TYPES: ReadonlySet<OrderType> = new Set([OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery]);
@@ -50,7 +66,7 @@ function loadState(): OrderTypeState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return initialState;
-    const parsed = JSON.parse(raw) as Partial<OrderTypeState> & { orderType?: unknown };
+    const parsed = JSON.parse(raw) as Partial<OrderTypeState> & { orderType?: unknown; chosenAt?: unknown };
     // Defend against stale/malformed payloads (older app versions, hand-
     // edited devtools, half-written writes from a crash). A `null`
     // orderType means "unset" — anything else must be a known enum value
@@ -62,10 +78,18 @@ function loadState(): OrderTypeState {
         : VALID_ORDER_TYPES.has(parsed.orderType as OrderType)
           ? (parsed.orderType as OrderType)
           : null;
+    const chosenAt = typeof parsed.chosenAt === 'number' ? parsed.chosenAt : null;
+    // Expire the whole choice, not just the type: the table number and delivery address are
+    // companions of it, and keeping either around would leave an orphan the UI would still read.
+    if (orderType !== null && (chosenAt === null || Date.now() - chosenAt > ORDER_TYPE_TTL_MS)) {
+      return initialState;
+    }
+
     return {
       orderType,
       table: typeof parsed.table === 'string' ? parsed.table : '',
       deliveryAddress: parsed.deliveryAddress ?? null,
+      chosenAt,
     };
   } catch (err) {
     console.error('Failed to load order-type state:', err);
@@ -88,15 +112,15 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OrderTypeState>(initialState);
   const checkout = useCheckout();
 
-  // One-time migration: if we have nothing in our own storage but the
-  // legacy CheckoutContext does (existing sessions from before this MR
-  // shipped), backfill from there. Prevents a divergence window where
-  // the welcome modal opens for someone who already chose. Reverse-mirror
-  // is intentionally NOT installed — CheckoutContext writes only flow
-  // here from the new (sticky-header / welcome-modal) surfaces; the old
-  // /checkout/order-type page still writes to CheckoutContext directly
-  // and the next save cycle here will pick that up via the effect below
-  // if and only if our own state is still empty.
+  // One-time migration: if we have nothing in our own storage but the legacy CheckoutContext
+  // does (sessions predating this context), backfill from there so the guest is not asked to
+  // choose again.
+  //
+  // NOTE: an earlier version of this comment said "the old /checkout/order-type page still
+  // writes to CheckoutContext directly". That was false and the claim leaked into a plan as a
+  // divergence bug (ORDER-TYPE-AVAILABILITY-PLAN §3.3 refutes it). That route has been deleted;
+  // the ONLY writers of CheckoutContext.orderType are the two `setOrderType` calls in
+  // useOrderTypeFollowUp, via the MIRROR below. No reverse mirror is installed, deliberately.
   useEffect(() => {
     const loaded = loadState();
     if (loaded.orderType === null && checkout.state.orderType !== null) {
@@ -104,6 +128,9 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
         orderType: checkout.state.orderType,
         table: checkout.state.tableNumber ?? '',
         deliveryAddress: checkout.state.deliveryAddress,
+        // Stamped now, not "unknown": a migrated choice is one the guest made in a session that
+        // is still open, and dating it null would expire it on the very next load.
+        chosenAt: Date.now(),
       });
     } else {
       setState(loaded);
@@ -118,7 +145,7 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
   }, [state]);
 
   const setOrderType = (type: OrderType) => {
-    setState((prev) => ({ ...prev, orderType: type }));
+    setState((prev) => ({ ...prev, orderType: type, chosenAt: Date.now() }));
     checkout.setOrderType(type); // MIRROR(CheckoutContext) — drop after C1.5.d
   };
 
@@ -151,7 +178,22 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
     clearOrderType,
   };
 
-  return <OrderTypeContext.Provider value={value}>{children}</OrderTypeContext.Provider>;
+  return (
+    <OrderTypeContext.Provider value={value}>
+      <OrderTypeEnabledGuard />
+      {children}
+    </OrderTypeContext.Provider>
+  );
+}
+
+/**
+ * Renders nothing; exists so the G4/G8 guard runs exactly once, app-wide, and INSIDE the provider
+ * whose state it reads. Keeping it out of `OrderTypeProvider` itself means the provider does not
+ * grow an API fetch, and the guard stays unit-testable on its own.
+ */
+function OrderTypeEnabledGuard() {
+  useOrderTypeEnabledGuard();
+  return null;
 }
 
 export const useOrderType = () => {

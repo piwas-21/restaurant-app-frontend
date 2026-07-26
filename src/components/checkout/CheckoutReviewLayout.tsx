@@ -113,8 +113,12 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
                   Customer Information" edits name/email/phone only — two distinct editors so the
                   Order Details edit no longer opens the contact modal. Both edit in place (the
                   follow-up modals mirror into CheckoutContext, so these sections update live). */}
+              {/* Non-null for the same reason as customerInfo below — and `!`, not a fallback:
+                  this used to read `|| 'Takeaway'`, which silently INVENTED a channel on the very
+                  page that computes tax from it (gap G10). If the guard ever regresses, a crash
+                  is the honest outcome; quietly billing someone as takeaway is not. */}
               <OrderTypeSection
-                orderType={checkoutState.orderType || 'Takeaway'}
+                orderType={checkoutState.orderType!}
                 tableNumber={checkoutState.tableNumber}
                 deliveryAddress={checkoutState.deliveryAddress || undefined}
                 onEdit={orderTypeFollowUp.editOrderType}

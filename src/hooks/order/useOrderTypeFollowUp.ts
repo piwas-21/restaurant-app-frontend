@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { useCheckout } from '@/contexts/CheckoutContext';
@@ -61,8 +61,9 @@ function isLoggedInClient(): boolean {
  * Owns the order-type picking flow exposed by the cart sidebar
  * (BUGS-IMPROVEMENTS-PLAN §C1.5.c + §C1.5.e).
  *
- *   1. QR-scan landings (table context present) → auto-pin DineIn + the
- *      scanned table number on first mount. No modal pops.
+ *   1. QR-scan landings (table context present) → pin DineIn + the scanned
+ *      table number, OVERRIDING any stored choice (plan §2 / gap G1). Once
+ *      per scanned table, so a later deliberate switch sticks. No modal pops.
  *   2. Sidebar order-type toggle → `pickType(type)` commits the type
  *      to OrderTypeContext and opens the relevant detail modal:
  *        - DineIn → 'table' modal (always; also captures guest info)
@@ -81,18 +82,32 @@ function isLoggedInClient(): boolean {
  * (safe default — the modal asks for everything anyway).
  */
 export function useOrderTypeFollowUp(): FollowUpState {
-  const { hasChosenOrderType, setOrderType, setTable } = useOrderType();
+  const { setOrderType, setTable } = useOrderType();
   const { hasTableContext, tableContext } = useTableContext();
   const { state: checkoutState } = useCheckout();
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
 
   // QR-scan landing → pin DineIn + the scanned table.
+  //
+  // G1: this used to be gated on `!hasChosenOrderType`, so a returning customer whose stored
+  // Takeaway was still in force scanned a table and kept Takeaway — the banner said "Ordering for
+  // Table 5" while the order type said otherwise. A physical scan is the strongest signal there
+  // is, so it now WINS (plan §2). Not a race: both stores hydrate in mount effects that batch
+  // into one render.
+  //
+  // Keyed on the table id rather than ungated, so the pin happens once per scan. Ungating it
+  // entirely would re-pin DineIn every time the guest deliberately switched away while sitting at
+  // the table — the effect would fight them on every render.
+  const pinnedTableIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (hasTableContext && tableContext.tableNumber && !hasChosenOrderType) {
-      setOrderType(OrderType.DineIn);
-      setTable(tableContext.tableNumber);
-    }
-  }, [hasTableContext, tableContext.tableNumber, hasChosenOrderType, setOrderType, setTable]);
+    const { tableId, tableNumber } = tableContext;
+    if (!hasTableContext || !tableId || !tableNumber) return;
+    if (pinnedTableIdRef.current === tableId) return;
+
+    pinnedTableIdRef.current = tableId;
+    setOrderType(OrderType.DineIn);
+    setTable(tableNumber);
+  }, [hasTableContext, tableContext, setOrderType, setTable]);
 
   const pickType = useCallback(
     async (type: OrderType, source = 'sidebar', forceModal = false) => {

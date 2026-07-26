@@ -60,6 +60,8 @@ interface CheckoutContextType {
   setCustomerInfo: (info: CustomerInfo) => void;
   setSpecialInstructions: (instructions: string) => void;
   setTipAmount: (tipAmount: number) => void;
+  /** Clear the order type + table + address, keeping contact info. See the implementation. */
+  clearOrderTypeSelection: () => void;
   clearCheckout: () => void;
 }
 
@@ -151,6 +153,20 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, tipAmount }));
   };
 
+  /**
+   * Drop the order-type decision and its companions, keeping customerInfo / tip / instructions.
+   *
+   * The mirror is one-directional (OrderTypeContext writes here), so without this every clear on
+   * that side was a HALF clear: the menu-side state went to "no type chosen" while this store —
+   * the one `useCheckoutPrereqGuard` and the tax calculation actually read — kept the abandoned
+   * channel. A guest whose stored Delivery expired, or whose channel the admin just disabled,
+   * could still place a Delivery order from /checkout/review. `clearCheckout` is too big a hammer
+   * for that: it would also wipe the contact details they just typed in.
+   */
+  const clearOrderTypeSelection = () => {
+    setState((prev) => ({ ...prev, orderType: null, tableNumber: '', deliveryAddress: null }));
+  };
+
   const clearCheckout = () => {
     setState(initialState);
     if (typeof window !== 'undefined') {
@@ -167,6 +183,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setCustomerInfo,
     setSpecialInstructions,
     setTipAmount,
+    clearOrderTypeSelection,
     clearCheckout,
   };
 

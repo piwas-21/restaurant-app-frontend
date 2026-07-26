@@ -61,8 +61,10 @@ function isLoggedInClient(): boolean {
  * Owns the order-type picking flow exposed by the cart sidebar
  * (BUGS-IMPROVEMENTS-PLAN §C1.5.c + §C1.5.e).
  *
- *   1. QR-scan landings (table context present) → auto-pin DineIn + the
- *      scanned table number on first mount. No modal pops.
+ *   1. QR-scan landings (table context present) → pin DineIn + the scanned
+ *      table number, OVERRIDING any stored choice (plan §2 / gap G1). Once per
+ *      SCAN — the marker lives on TableContext, so a later deliberate switch
+ *      survives navigating between /menu, /cart and /checkout. No modal pops.
  *   2. Sidebar order-type toggle → `pickType(type)` commits the type
  *      to OrderTypeContext and opens the relevant detail modal:
  *        - DineIn → 'table' modal (always; also captures guest info)
@@ -81,18 +83,31 @@ function isLoggedInClient(): boolean {
  * (safe default — the modal asks for everything anyway).
  */
 export function useOrderTypeFollowUp(): FollowUpState {
-  const { hasChosenOrderType, setOrderType, setTable } = useOrderType();
-  const { hasTableContext, tableContext } = useTableContext();
+  const { setOrderType, setTable } = useOrderType();
+  const { hasTableContext, tableContext, setTableContext } = useTableContext();
   const { state: checkoutState } = useCheckout();
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
 
   // QR-scan landing → pin DineIn + the scanned table.
+  //
+  // G1: this used to be gated on `!hasChosenOrderType`, so a returning customer whose stored
+  // Takeaway was still in force scanned a table and kept Takeaway — the banner said "Ordering for
+  // Table 5" while the order type said otherwise. A physical scan is the strongest signal there
+  // is, so it now WINS (plan §2). Not a race: both stores hydrate in mount effects that batch
+  // into one render.
+  //
+  // "Has this scan already pinned?" is tracked on the TABLE CONTEXT, not in a ref here. This hook
+  // is mounted per route (/menu, /cart, /checkout/review) while the scan lives in sessionStorage
+  // across all of them, so a ref would reset on every navigation and re-pin Dine-In — undoing a
+  // guest who deliberately switched to Takeaway, on the page that computes tax from the choice.
   useEffect(() => {
-    if (hasTableContext && tableContext.tableNumber && !hasChosenOrderType) {
-      setOrderType(OrderType.DineIn);
-      setTable(tableContext.tableNumber);
-    }
-  }, [hasTableContext, tableContext.tableNumber, hasChosenOrderType, setOrderType, setTable]);
+    const { tableId, tableNumber, dineInPinned } = tableContext;
+    if (!hasTableContext || !tableId || !tableNumber || dineInPinned) return;
+
+    setTableContext({ dineInPinned: true });
+    setOrderType(OrderType.DineIn);
+    setTable(tableNumber);
+  }, [hasTableContext, tableContext, setTableContext, setOrderType, setTable]);
 
   const pickType = useCallback(
     async (type: OrderType, source = 'sidebar', forceModal = false) => {

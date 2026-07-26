@@ -2365,5 +2365,8 @@
   "product_order_types_inherit": "Eredita dalla categoria",
   "product_order_types_inherit_named": "Eredita dalla categoria ({{category}}: {{orderTypes}})",
   "product_order_types_custom": "Personalizzato",
-  "product_order_types_no_primary_warning": "Nessuna categoria principale selezionata, quindi non c’è nulla da ereditare: questo articolo resta disponibile per tutti i tipi di ordine finché non ne imposti una o scegli Personalizzato."
+  "product_order_types_no_primary_warning": "Nessuna categoria principale selezionata, quindi non c’è nulla da ereditare: questo articolo resta disponibile per tutti i tipi di ordine finché non ne imposti una o scegli Personalizzato.",
+  "clear_table_selection_confirm": "Annullare la selezione del tavolo? Dovrai scansionare di nuovo il codice QR e la scelta “mangia al ristorante” verrà azzerata.",
+  "table_required_hint": "Scegli un tavolo per continuare.",
+  "reorder_partial": "Aggiunti {{added}} articoli su {{total}}."
 }

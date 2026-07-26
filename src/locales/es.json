@@ -2365,5 +2365,8 @@
   "product_order_types_inherit": "Heredar de la categoría",
   "product_order_types_inherit_named": "Heredar de la categoría ({{category}}: {{orderTypes}})",
   "product_order_types_custom": "Personalizado",
-  "product_order_types_no_primary_warning": "No hay categoría principal seleccionada, así que no hay nada que heredar: este artículo seguirá disponible para todos los tipos de pedido hasta que elijas una o marques Personalizado."
+  "product_order_types_no_primary_warning": "No hay categoría principal seleccionada, así que no hay nada que heredar: este artículo seguirá disponible para todos los tipos de pedido hasta que elijas una o marques Personalizado.",
+  "clear_table_selection_confirm": "¿Quitar la selección de mesa? Tendrás que volver a escanear el código QR y tu elección de comer en el restaurante se restablecerá.",
+  "table_required_hint": "Elige una mesa para continuar.",
+  "reorder_partial": "Se añadieron {{added}} de {{total}} artículos."
 }

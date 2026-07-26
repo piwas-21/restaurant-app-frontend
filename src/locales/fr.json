@@ -2365,5 +2365,8 @@
   "product_order_types_inherit": "Hériter de la catégorie",
   "product_order_types_inherit_named": "Hériter de la catégorie ({{category}} : {{orderTypes}})",
   "product_order_types_custom": "Personnalisé",
-  "product_order_types_no_primary_warning": "Aucune catégorie principale sélectionnée, il n’y a donc rien à hériter — cet article reste disponible pour tous les types de commande tant que vous n’en définissez pas une ou ne choisissez pas Personnalisé."
+  "product_order_types_no_primary_warning": "Aucune catégorie principale sélectionnée, il n’y a donc rien à hériter — cet article reste disponible pour tous les types de commande tant que vous n’en définissez pas une ou ne choisissez pas Personnalisé.",
+  "clear_table_selection_confirm": "Annuler la sélection de la table ? Vous devrez scanner à nouveau le code QR, et votre choix « sur place » sera réinitialisé.",
+  "table_required_hint": "Choisissez une table pour continuer.",
+  "reorder_partial": "{{added}} article(s) ajouté(s) sur {{total}}."
 }

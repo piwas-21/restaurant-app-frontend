@@ -2,6 +2,7 @@ import { apiClient } from '@/utils/apiClient';
 import { mockApiClient } from './mockApiClient';
 import { Product } from '@/app/admin/menu-management/interfaces';
 import type { ProductTypeQuery } from '@/utils/productTypeFilter';
+import type { OrderType } from '@/types/order';
 
 const API_BASE_URL = '/api';
 const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
@@ -85,11 +86,17 @@ export const getProducts = async (
   pageSize: number = 10,
   categoryId?: string | null,
   typeQuery?: ProductTypeQuery,
+  // The channel the guest is ordering through. Does NOT filter the list — the server keeps blocked
+  // items visible and only resolves each row's `availability`, so the guest reads a reason, not a hole.
+  requestedOrderType?: OrderType | null,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
   try {
     let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
     if (categoryId) {
       url += `&CategoryId=${categoryId}`;
+    }
+    if (requestedOrderType) {
+      url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
     }
     if (typeQuery?.type) {
       url += `&Type=${typeQuery.type}`;
@@ -125,9 +132,9 @@ export const updateMenuBundle = async (id: string, menuData: any) => {
 
 export const getMenuBundles = async (page: number = 1, pageSize: number = 10, includeUnavailable: boolean = true) => {
   try {
-    const url = `${MENUS_API_URL}?page=${page}&pageSize=${pageSize}&includeUnavailable=${includeUnavailable}`;
-    const result = await apiClient.get(url);
-    return result;
+    return await apiClient.get(
+      `${MENUS_API_URL}?page=${page}&pageSize=${pageSize}&includeUnavailable=${includeUnavailable}`,
+    );
   } catch (error) {
     console.error('Get Menu Bundles Failed:', error);
     throw error;
@@ -184,9 +191,7 @@ export const getFeaturedSpecial = async () => {
  */
 export const getPublicMenuBundles = async (page: number = 1, pageSize: number = 10) => {
   try {
-    const url = `${MENUS_API_URL}?page=${page}&pageSize=${pageSize}`;
-    const result = await apiClient.get(url);
-    return result;
+    return await apiClient.get(`${MENUS_API_URL}?page=${page}&pageSize=${pageSize}`);
   } catch (error) {
     console.error('Get Public Menu Bundles Failed:', error);
     throw error;

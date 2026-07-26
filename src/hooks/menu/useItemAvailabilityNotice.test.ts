@@ -1,0 +1,187 @@
+import { renderHook } from '@testing-library/react';
+import { OrderType } from '@/types/order';
+import type { ItemAvailability } from '@/types/menu';
+import { useItemAvailabilityNotice } from './useItemAvailabilityNotice';
+import { useOrderType } from '@/contexts/OrderTypeContext';
+import { useTableContext } from '@/contexts/TableContext';
+import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    i18n: { language: 'en' },
+    // Interpolate for real so an assertion on the rendered sentence proves the interpolation ran.
+    t: (key: string, fallback?: unknown, vars?: Record<string, string>) => {
+      const template = typeof fallback === 'string' ? fallback : key;
+      if (!vars) return template;
+      return Object.entries(vars).reduce((out, [name, value]) => out.replaceAll(`{{${name}}}`, value), template);
+    },
+  }),
+}));
+
+jest.mock('@/contexts/OrderTypeContext', () => ({ useOrderType: jest.fn() }));
+jest.mock('@/contexts/TableContext', () => ({ useTableContext: jest.fn() }));
+jest.mock('@/hooks/checkout/useEnabledOrderTypes', () => ({ useEnabledOrderTypes: jest.fn() }));
+
+const mockOrderType = useOrderType as jest.Mock;
+const mockTableContext = useTableContext as jest.Mock;
+const mockEnabled = useEnabledOrderTypes as jest.Mock;
+
+const ALL: OrderType[] = [OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery];
+
+/** Takeaway + Delivery, i.e. the client's "Dürüm cannot be dine-in" case. */
+const NOT_DINE_IN: ItemAvailability = {
+  canOrder: true,
+  reason: 'Available',
+  allowedOrderTypes: [OrderType.Takeaway, OrderType.Delivery],
+};
+
+function setup({
+  orderType = null,
+  hasTableContext = false,
+  enabled = ALL,
+  loading = false,
+}: {
+  orderType?: OrderType | null;
+  hasTableContext?: boolean;
+  enabled?: OrderType[];
+  loading?: boolean;
+} = {}) {
+  mockOrderType.mockReturnValue({ state: { orderType } });
+  mockTableContext.mockReturnValue({ hasTableContext });
+  mockEnabled.mockReturnValue({ enabled, loading });
+}
+
+function notice(availability: ItemAvailability | undefined) {
+  return renderHook(() => useItemAvailabilityNotice(availability)).result.current;
+}
+
+beforeEach(() => jest.clearAllMocks());
+
+describe('useItemAvailabilityNotice — nothing to say', () => {
+  it('says nothing without a server verdict (older backend, mock fallback, or a bundle)', () => {
+    setup();
+    expect(notice(undefined)).toBeNull();
+  });
+
+  it('says nothing for an unrestricted item', () => {
+    setup();
+    expect(notice({ canOrder: true, reason: 'Available', allowedOrderTypes: ALL })).toBeNull();
+  });
+
+  it('says nothing while the admin-enabled channel list is still in flight — no chip it must retract', () => {
+    setup({ loading: true });
+    expect(notice(NOT_DINE_IN)).toBeNull();
+  });
+
+  it('says nothing for an Unavailable item — that is a manual toggle, and copy must not imply stock', () => {
+    setup({ orderType: OrderType.DineIn });
+    expect(notice({ canOrder: false, reason: 'Unavailable', allowedOrderTypes: [OrderType.Takeaway] })).toBeNull();
+  });
+
+  it('says nothing once a channel is chosen that CAN order the item — a chip there is noise', () => {
+    setup({ orderType: OrderType.Takeaway });
+    expect(notice(NOT_DINE_IN)).toBeNull();
+  });
+});
+
+describe('useItemAvailabilityNotice — no channel chosen (the dominant browse state)', () => {
+  it('chips where the item CAN be ordered, with no dimming and no CTA', () => {
+    setup({ orderType: null });
+
+    expect(notice(NOT_DINE_IN)).toEqual({
+      tone: 'info',
+      message: 'Takeaway and Delivery only',
+      switchTo: null,
+      switchLabel: '',
+      hint: null,
+    });
+  });
+});
+
+describe('useItemAvailabilityNotice — a channel is chosen and cannot order the item', () => {
+  const blockedForDineIn: ItemAvailability = { ...NOT_DINE_IN, canOrder: false, reason: 'WrongOrderType' };
+
+  it('dims and offers the first allowed channel as a one-tap switch', () => {
+    setup({ orderType: OrderType.DineIn });
+
+    expect(notice(blockedForDineIn)).toEqual({
+      tone: 'blocked',
+      message: 'Takeaway and Delivery only',
+      switchTo: OrderType.Takeaway,
+      switchLabel: 'Switch to Takeaway',
+      hint: null,
+    });
+  });
+
+  it('suppresses the switch at a scanned table — the guest is sitting down, so point at a human', () => {
+    setup({ orderType: OrderType.DineIn, hasTableContext: true });
+
+    expect(notice(blockedForDineIn)).toEqual({
+      tone: 'blocked',
+      message: 'Takeaway and Delivery only',
+      switchTo: null,
+      switchLabel: '',
+      hint: 'Ask your server',
+    });
+  });
+
+  it('never offers a switch back to the channel already chosen', () => {
+    setup({ orderType: OrderType.Takeaway });
+
+    // Contrived but reachable: a stale card whose server verdict predates the switch.
+    const stale: ItemAvailability = {
+      canOrder: false,
+      reason: 'WrongOrderType',
+      allowedOrderTypes: [OrderType.Takeaway, OrderType.Delivery],
+    };
+    expect(notice(stale)?.switchTo).toBe(OrderType.Delivery);
+  });
+});
+
+describe('useItemAvailabilityNotice — admin-disabled channels do not exist', () => {
+  it('treats an item as unrestricted when the only channel it excludes is switched off anyway', () => {
+    // Delivery disabled restaurant-wide; a Takeaway+Delivery item is then simply "takeaway", and
+    // "Takeaway and Delivery only" would advertise a channel the guest cannot even pick.
+    setup({ orderType: null, enabled: [OrderType.Takeaway] });
+
+    expect(notice(NOT_DINE_IN)).toBeNull();
+  });
+
+  it('never offers a switch to a channel the admin disabled', () => {
+    setup({ orderType: OrderType.DineIn, enabled: [OrderType.DineIn, OrderType.Delivery] });
+
+    const blocked: ItemAvailability = { ...NOT_DINE_IN, canOrder: false, reason: 'WrongOrderType' };
+    // Takeaway is allowed by the ITEM but disabled by the restaurant, so Delivery is the only offer.
+    expect(notice(blocked)).toMatchObject({ switchTo: OrderType.Delivery, message: 'Delivery only' });
+  });
+
+  it('says NOTHING when every channel the item allows is disabled and no channel is chosen', () => {
+    // The server said `canOrder` and a null-channel basket accepts the add, so dimming here would
+    // be the client overruling the server — and §2 fixes that nothing dims before a channel is
+    // picked. There is also no honest chip to draw: "Takeaway and Delivery only" would advertise
+    // channels the guest cannot pick, and "Unavailable" would imply a sold-out item.
+    setup({ orderType: null, enabled: [OrderType.DineIn] });
+
+    expect(notice(NOT_DINE_IN)).toBeNull();
+  });
+
+  it('falls back to a plain unavailable line when the SERVER blocks and no channel can be offered', () => {
+    setup({ orderType: OrderType.DineIn, enabled: [OrderType.DineIn] });
+
+    expect(notice({ ...NOT_DINE_IN, canOrder: false, reason: 'WrongOrderType' })).toEqual({
+      tone: 'blocked',
+      message: 'Unavailable',
+      switchTo: null,
+      switchLabel: '',
+      hint: null,
+    });
+  });
+});
+
+describe('useItemAvailabilityNotice — channel list ordering', () => {
+  it('lists channels in declaration order regardless of the order the API returned them', () => {
+    setup({ orderType: null, enabled: [OrderType.Delivery, OrderType.Takeaway, OrderType.DineIn] });
+
+    expect(notice(NOT_DINE_IN)?.message).toBe('Takeaway and Delivery only');
+  });
+});

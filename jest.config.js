@@ -155,6 +155,17 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // S4 — the per-order-type availability notice on a catalog card. The shared presentational
+    // half, exercised from BOTH template card tests (classic MenuCard + craft CraftMenuCard), which
+    // is exactly the property worth pinning: every customer deliverable lands twice, so a regression
+    // in one template must not be masked by the other. The DECISION half lives in
+    // `useItemAvailabilityNotice` (its own test file; hooks are not in collectCoverageFrom).
+    './src/components/menu/MenuCardAvailability.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     // B2 (cart instructions) — the /cart special-instructions editor is now the single owner of
     // item notes for EVERY item (the gate that hid it for customized items on prod is gone), and
     // the customizations summary no longer duplicates the notes line. The editor's display/edit/

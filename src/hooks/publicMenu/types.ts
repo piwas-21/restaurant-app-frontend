@@ -24,6 +24,20 @@ export interface ProductContentEntryDto {
 
 export type ProductContentDto = Record<string, ProductContentEntryDto | undefined>;
 
+/**
+ * Wire shape of `Features/Catalog/Dtos/ItemAvailabilityDto.cs`.
+ *
+ * Every field is optional and loosely typed on purpose: this is the wire, and a backend that
+ * predates the per-order-type feature omits the whole object. `inheritsOrderTypes` is deliberately
+ * absent — it is admin-only, and the customer view-model has no use for it.
+ */
+export interface ItemAvailabilityDto {
+  canOrder?: boolean;
+  /** Serialized as a string (`Program.cs` registers `StringEnumConverterFactory`). */
+  reason?: string;
+  allowedOrderTypes?: string[];
+}
+
 export interface ProductDto {
   id: string;
   name?: string;
@@ -41,6 +55,7 @@ export interface ProductDto {
   isSpecial?: boolean;
   isActive?: boolean;
   isAvailable?: boolean;
+  availability?: ItemAvailabilityDto;
 }
 
 export interface MenuBundleDto {

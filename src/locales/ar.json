@@ -2368,5 +2368,8 @@
   "product_order_types_no_primary_warning": "لم يتم اختيار فئة رئيسية، لذا لا يوجد ما يُورَّث — يبقى هذا الصنف متاحًا لكل أنواع الطلبات حتى تختار فئة رئيسية أو تحدد «مخصص».",
   "clear_table_selection_confirm": "هل تريد إلغاء اختيار الطاولة؟ ستحتاج إلى مسح رمز QR مرة أخرى، وسيُعاد ضبط اختيار تناول الطعام هنا.",
   "table_required_hint": "اختر طاولة للمتابعة.",
-  "reorder_partial": "تمت إضافة {{added}} من أصل {{total}} عنصرًا."
+  "reorder_partial": "تمت إضافة {{added}} من أصل {{total}} عنصرًا.",
+  "availability_only_for": "{{orderTypes}} فقط",
+  "availability_switch_to": "التبديل إلى {{orderType}}",
+  "availability_ask_server": "اسأل النادل"
 }

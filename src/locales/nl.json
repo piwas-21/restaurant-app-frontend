@@ -2368,5 +2368,8 @@
   "product_order_types_no_primary_warning": "Geen hoofdcategorie geselecteerd, dus er valt niets over te nemen — dit item blijft beschikbaar via elk besteltype totdat u er een instelt of Aangepast kiest.",
   "clear_table_selection_confirm": "Tafelselectie wissen? U moet de QR-code opnieuw scannen en uw keuze “ter plaatse” wordt gereset.",
   "table_required_hint": "Kies een tafel om door te gaan.",
-  "reorder_partial": "{{added}} van {{total}} items toegevoegd."
+  "reorder_partial": "{{added}} van {{total}} items toegevoegd.",
+  "availability_only_for": "Alleen {{orderTypes}}",
+  "availability_switch_to": "Overschakelen naar {{orderType}}",
+  "availability_ask_server": "Vraag het de bediening"
 }

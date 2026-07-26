@@ -12,6 +12,13 @@ type Props = {
   feedbackAria: string;
   onDetails?: () => void;
   detailsLabel?: string;
+  /**
+   * Hide "Add to order" — set while the item is blocked on the guest's chosen order type, where the
+   * availability notice offers the switch instead. A hidden button rather than a `disabled` one on
+   * purpose: a disabled control fires no click and explains nothing (frontend #208), while Details
+   * stays live so the guest can still read the item.
+   */
+  showAdd?: boolean;
 };
 
 export default function MenuItemActions({
@@ -23,12 +30,15 @@ export default function MenuItemActions({
   feedbackAria: _feedbackAria,
   onDetails,
   detailsLabel,
+  showAdd = true,
 }: Props) {
   return (
     <div className={styles.itemActions}>
-      <button className={styles.addToOrderButton} onClick={onAdd} aria-label={addAria}>
-        {addLabel}
-      </button>
+      {showAdd && (
+        <button className={styles.addToOrderButton} onClick={onAdd} aria-label={addAria}>
+          {addLabel}
+        </button>
+      )}
       {onDetails && (
         <button className={styles.viewDetailsButton} onClick={onDetails} aria-label={detailsLabel || 'Details'}>
           {detailsLabel || 'Details'}

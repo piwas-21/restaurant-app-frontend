@@ -4,15 +4,22 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CatalogItem } from '@/types/menu';
+import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
+import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import MenuCardImage from './MenuCardImage';
+import MenuCardAvailability from './MenuCardAvailability';
 import MenuItemDetails from './MenuItemDetails';
 import MenuItemActions from './MenuItemActions';
 import AdminMenuCardControls from './AdminMenuCardControls';
 import AdminPriceEditor from './AdminPriceEditor';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
+// The classic card's own availability styling, split out of `MenuItem.module.css` (200-LOC limit).
+// Still the HOST's stylesheet — `MenuCardAvailability` is the shared shell and takes whichever
+// module its host hands it; craft passes its own. The shell reads only `availability*` classes.
+import availabilityStyles from './MenuItemAvailability.module.css';
 
 export interface MenuCardProps {
   item: CatalogItem;
@@ -22,6 +29,13 @@ export interface MenuCardProps {
    */
   onOpen: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   onFeedbackSuccess: (dishId: string) => void;
+  /**
+   * Commit a different order type from the card's "Switch to X" affordance. Drilled from the page
+   * because it must be the page's `useOrderTypeFollowUp` instance — that hook owns the follow-up
+   * modal STATE, and `OrderFlowModals` renders from the page's instance, so a card that called the
+   * hook itself would set the type and then silently swallow the table / address / contact step.
+   */
+  onSwitchOrderType?: (type: OrderType) => void;
 }
 
 /**
@@ -33,8 +47,12 @@ export interface MenuCardProps {
  * simple product with nothing to choose adds straight to the cart. Clicking the image opens the
  * enlarge-on-click gallery (`MenuCardImage`).
  */
-export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<MenuCardProps>) {
+export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrderType }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
+  const availabilityNotice = useItemAvailabilityNotice(item.availability);
+  const isBlocked = availabilityNotice?.tone === 'blocked';
+  const nameId = `item-name-${item.id}`;
+  const reasonId = `item-availability-${item.id}`;
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   // Locally reflect an admin inline price edit; resync if the item prop changes.
@@ -57,7 +75,19 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
   const openDetails = () => onOpen(item, { forceSheet: true });
 
   return (
-    <div className={styles.menuItem} role="listitem" aria-labelledby={`item-name-${item.id}`}>
+    // A blocked card stays in the list and every control inside it stays focusable; the reason id is
+    // appended to the accessible name, so a screen reader hears "Dürüm … Takeaway and Delivery only"
+    // rather than an unexplained dim card, which is the sighted-user equivalent of the visual dim.
+    //
+    // §4.4 also asked for `aria-disabled` here. It is deliberately NOT set: `listitem` is not an
+    // interactive role, and this card has no inert control for the state to describe — "Add to
+    // order" is REMOVED while blocked rather than left disabled-and-unexplained, so there is nothing
+    // an AT could act on. Setting it anyway is markup `jsx-a11y/role-supports-aria-props` rejects.
+    <div
+      className={isBlocked ? `${styles.menuItem} ${styles.blocked}` : styles.menuItem}
+      role="listitem"
+      aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
+    >
       {item.isSpecial && (
         <div className={styles.specialBadge} data-testid="special-badge">
           {t('special')}
@@ -98,6 +128,15 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
           </div>
         )}
 
+        {availabilityNotice && (
+          <MenuCardAvailability
+            notice={availabilityNotice}
+            reasonId={reasonId}
+            onSwitchOrderType={onSwitchOrderType}
+            styles={availabilityStyles}
+          />
+        )}
+
         {/* The price renders twice by viewport (`.itemPrice` in MenuItemDetails on
             desktop, `.mobilePrice` here below 600px), so the editor rides in this
             row — inline with the mobile price, and directly under the desktop one
@@ -112,6 +151,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess }: Readonly<M
             addLabel={t('add_to_order')}
             onDetails={openDetails}
             detailsLabel={t('details')}
+            showAdd={!isBlocked}
             feedbackAria={`${t('feedback_form_heading')} ${itemName}`}
             feedbackLabel={t('feedback_form_heading')}
           />

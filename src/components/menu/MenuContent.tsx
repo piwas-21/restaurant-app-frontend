@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MenuItem, MenuBundleItem, ApiCategory, CatalogItem } from '@/types/menu';
+import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import DefaultCategoryNav from '@/components/menu/CategoryNav';
@@ -31,6 +32,8 @@ interface MenuContentProps {
   onPageChange: (page: number) => void;
   /** Opens the shared customization sheet, which the page owns. `opts.forceSheet` = view-only. */
   onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
+  /** Card "Switch to X" — the page's `useOrderTypeFollowUp().pickType`, so the follow-up modal opens. */
+  onSwitchOrderType?: (type: OrderType) => void;
 }
 
 export default function MenuContent({
@@ -47,6 +50,7 @@ export default function MenuContent({
   totalCount,
   onPageChange,
   onOpenItem,
+  onSwitchOrderType,
 }: MenuContentProps) {
   const { t } = useTranslation();
 
@@ -103,6 +107,7 @@ export default function MenuContent({
               bundles={isMenuBundlesView ? menuBundles : []}
               onOpenItem={onOpenItem}
               onFeedbackSuccess={() => {}}
+              onSwitchOrderType={onSwitchOrderType}
             />
 
             {/* Pagination */}

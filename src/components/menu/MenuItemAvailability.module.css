@@ -1,0 +1,86 @@
+/* The CLASSIC card's per-order-type availability notice (S4).
+ *
+ * Its own file rather than more of `MenuItem.module.css` because that module reached its 200-LOC
+ * limit. This is still the HOST's stylesheet, not the shell's: `MenuCardAvailability` is the shared
+ * presentational half and takes whichever module its host passes (`OrderTypeToggleShell` recipe,
+ * ORDER-TYPE-AVAILABILITY-PLAN §4.5) — craft passes its own from `CraftMenuCard.module.css`. The
+ * shell reads only the `availability*` classes, so the split needs no merged style object; the
+ * card's own `.blocked` recede stays in `MenuItem.module.css` where the card is.
+ *
+ * Tokens only — no raw hex (CLAUDE.md §5). Dark mode via `[data-theme='dark']`, never
+ * `prefers-color-scheme` (§5 rule 7).
+ */
+
+.availability {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0;
+}
+
+/* The chip needs a BORDER, not just a fill: the blocked card recedes onto --surface-secondary and
+   the dark palette's surfaces sit within ~1.1:1 of each other, so a fill-only chip would vanish
+   into the one card state it exists to explain. */
+.availabilityReason {
+  margin: 0;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  background-color: var(--surface-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* `--text-secondary`, not `--text-muted`: muted is calibrated as "the lightest text still AA on
+   --surface-primary" (4.8:1 on white), and this chip's fill is the DARKER secondary surface, which
+   spends the whole margin — 4.24:1, an AA fail on the feature's most-rendered state. */
+.availabilityInfo .availabilityReason {
+  color: var(--text-secondary);
+}
+
+/* `--feedback-warning` is a FILL colour (1.7–2.0:1 as body copy); warning TEXT uses `-text`. The
+   fill is themed too — the light cream would carry dark mode's orange text at ~2:1. */
+.availabilityBlocked .availabilityReason {
+  border-color: var(--feedback-warning-text);
+  background-color: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+}
+
+[data-theme='dark'] .availabilityBlocked .availabilityReason {
+  background-color: var(--surface-card);
+}
+
+.availabilityHint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Its own surface rather than the receded card's: this button only ever renders inside a blocked
+   card, and brand-primary on that recede is 4.16:1 in dark — the recede would push the one control
+   the guest must click below AA. (Craft's `btnOutline` primitive does the same.) */
+.availabilitySwitch {
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--brand-primary);
+  border-radius: 20px;
+  background-color: var(--surface-card);
+  color: var(--brand-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.availabilitySwitch:hover,
+.availabilitySwitch:focus-visible {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+/* The mobile card is a left-aligned row, so the notice follows suit. */
+@media (max-width: 600px) {
+  .availability {
+    justify-content: flex-start;
+  }
+}

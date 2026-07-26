@@ -2368,5 +2368,8 @@
   "product_order_types_no_primary_warning": "未选择主分类，因此没有可继承的设置 — 在你设置主分类或选择「自定义」之前，该菜品在所有订单类型下都保持可订购。",
   "clear_table_selection_confirm": "要清除餐桌选择吗？你需要重新扫描二维码，堂食选择也会被重置。",
   "table_required_hint": "请选择一张餐桌以继续。",
-  "reorder_partial": "已添加 {{total}} 项中的 {{added}} 项。"
+  "reorder_partial": "已添加 {{total}} 项中的 {{added}} 项。",
+  "availability_only_for": "仅限{{orderTypes}}",
+  "availability_switch_to": "切换到{{orderType}}",
+  "availability_ask_server": "请询问服务员"
 }

@@ -5,6 +5,7 @@ import DefaultMenuCard from './MenuCard';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { toCatalogItemFromBundle, toCatalogItemFromProduct } from '@/utils/catalogItem';
 import type { CatalogItem, MenuItem, MenuBundleItem } from '@/types/menu';
+import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import styles from './MenuContent.module.css';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,8 @@ interface MenuListProps {
   /** Opens the shared customization sheet — the page owns it, so the featured banner shares it. */
   onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   onFeedbackSuccess: (dishId: string) => void;
+  /** Card "Switch to X" — the page's `useOrderTypeFollowUp().pickType`, so the follow-up modal opens. */
+  onSwitchOrderType?: (type: OrderType) => void;
 }
 
 /**
@@ -26,7 +29,13 @@ interface MenuListProps {
 // resolved at build time, so classic never bundles a craft card (T4).
 const MenuCard = surfaceOr('MenuCard', DefaultMenuCard);
 
-export default function MenuList({ products, bundles, onOpenItem, onFeedbackSuccess }: Readonly<MenuListProps>) {
+export default function MenuList({
+  products,
+  bundles,
+  onOpenItem,
+  onFeedbackSuccess,
+  onSwitchOrderType,
+}: Readonly<MenuListProps>) {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.language.split('-')[0] || 'en';
 
@@ -43,6 +52,7 @@ export default function MenuList({ products, bundles, onOpenItem, onFeedbackSucc
           item={item}
           onOpen={onOpenItem}
           onFeedbackSuccess={onFeedbackSuccess}
+          onSwitchOrderType={onSwitchOrderType}
         />
       ))}
     </div>

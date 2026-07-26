@@ -2,7 +2,9 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import CraftMenuCard from './CraftMenuCard';
 import type { CatalogItem } from '@/types/menu';
+import { OrderType } from '@/types/order';
 import { useOptionalAuth } from '@/components/AuthContext';
+import { useItemAvailabilityNotice, type AvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -18,6 +20,12 @@ jest.mock('react-i18next', () => ({
 // Default to a guest so the existing (provider-less) tests render no admin control.
 jest.mock('@/components/AuthContext', () => ({
   useOptionalAuth: jest.fn(() => null),
+}));
+
+// Same stub as the shared card's test: the notice DECISION is covered by
+// `useItemAvailabilityNotice.test.ts`; here we pin what craft renders from it.
+jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
+  useItemAvailabilityNotice: jest.fn(() => null),
 }));
 
 const product: CatalogItem = {
@@ -75,5 +83,58 @@ describe('CraftMenuCard — admin quick-edit', () => {
     render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.queryByTestId('admin-edit-item')).not.toBeInTheDocument();
+  });
+});
+
+describe('CraftMenuCard — per-order-type availability (S4)', () => {
+  const mockedNotice = useItemAvailabilityNotice as jest.Mock;
+  afterEach(() => mockedNotice.mockReturnValue(null));
+
+  const BLOCKED: AvailabilityNotice = {
+    tone: 'blocked',
+    message: 'Takeaway and Delivery only',
+    switchTo: OrderType.Takeaway,
+    switchLabel: 'Switch to Takeaway',
+    hint: null,
+  };
+
+  it('renders the info chip without dimming or a CTA — parity with the shared card', () => {
+    mockedNotice.mockReturnValue({
+      tone: 'info',
+      message: 'Takeaway and Delivery only',
+      switchTo: null,
+      switchLabel: '',
+      hint: null,
+    } satisfies AvailabilityNotice);
+
+    const { container } = render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
+    expect(container.querySelector('[role="listitem"]')).not.toHaveClass('blocked');
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Margherita)' })).toBeInTheDocument();
+  });
+
+  it('dims, names the reason and swaps Add for the switch — the craft half of §4.5', () => {
+    const onSwitchOrderType = jest.fn();
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    const { container } = render(
+      <CraftMenuCard
+        item={product}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+        onSwitchOrderType={onSwitchOrderType}
+      />,
+    );
+
+    const card = container.querySelector('[role="listitem"]') as HTMLElement;
+    expect(card).toHaveClass('blocked');
+    expect(card).toHaveAttribute('aria-labelledby', 'item-name-p1 item-availability-p1');
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();
+    // Details survives — craft must not become a dead end either.
+    expect(screen.getByRole('button', { name: 'Details' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
+    expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
   });
 });

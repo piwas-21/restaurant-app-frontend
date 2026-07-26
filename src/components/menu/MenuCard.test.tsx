@@ -2,8 +2,10 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import MenuCard from './MenuCard';
 import type { CatalogItem } from '@/types/menu';
+import { OrderType } from '@/types/order';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { updateProductPrice } from '@/services/productService';
+import { useItemAvailabilityNotice, type AvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -26,6 +28,14 @@ jest.mock('@/components/AuthContext', () => ({
 
 jest.mock('@/services/productService', () => ({
   updateProductPrice: jest.fn(),
+}));
+
+// The availability notice is decided by a hook that reads OrderTypeContext + TableContext + the
+// admin-enabled channel list. Those are the SUBJECT of `useItemAvailabilityNotice.test.ts`; here we
+// only care what the card does with the answer, so the hook is stubbed and defaults to "nothing to
+// say" — keeping these tests provider-less like the rest of the file.
+jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
+  useItemAvailabilityNotice: jest.fn(() => null),
 }));
 
 const product: CatalogItem = {
@@ -205,5 +215,90 @@ describe('MenuCard — admin quick-edit', () => {
 
     expect(updateProductPrice).not.toHaveBeenCalled();
     expect(screen.getByTestId('admin-price-input')).toHaveAttribute('aria-invalid', 'true');
+  });
+});
+
+describe('MenuCard — per-order-type availability (S4)', () => {
+  const mockedNotice = useItemAvailabilityNotice as jest.Mock;
+  afterEach(() => mockedNotice.mockReturnValue(null));
+
+  const INFO: AvailabilityNotice = {
+    tone: 'info',
+    message: 'Takeaway and Delivery only',
+    switchTo: null,
+    switchLabel: '',
+    hint: null,
+  };
+  const BLOCKED: AvailabilityNotice = {
+    tone: 'blocked',
+    message: 'Takeaway and Delivery only',
+    switchTo: OrderType.Takeaway,
+    switchLabel: 'Switch to Takeaway',
+    hint: null,
+  };
+
+  it('renders nothing extra when the server reports no restriction', () => {
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.queryByText('Takeaway and Delivery only')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Margherita)' })).toBeInTheDocument();
+  });
+
+  it('info tone: chips the reason but keeps the card fully orderable — the dominant browse state', () => {
+    mockedNotice.mockReturnValue(INFO);
+
+    const { container } = render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
+    // No dimming, no CTA, and Add still works — a guest who has chosen nothing is not blocked.
+    expect(container.querySelector('[role="listitem"]')).not.toHaveClass('blocked');
+    expect(screen.queryByRole('button', { name: 'Switch to Takeaway' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Margherita)' })).toBeInTheDocument();
+  });
+
+  it('blocked tone: dims, folds the reason into the accessible name, and REPLACES Add with the switch', () => {
+    const onSwitchOrderType = jest.fn();
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    const { container } = render(
+      <MenuCard
+        item={product}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+        onSwitchOrderType={onSwitchOrderType}
+      />,
+    );
+
+    const card = container.querySelector('[role="listitem"]') as HTMLElement;
+    expect(card).toHaveClass('blocked');
+    // Both ids — the name AND the reason — so the card announces WHY it is dimmed.
+    expect(card).toHaveAttribute('aria-labelledby', 'item-name-p1 item-availability-p1');
+    expect(container.querySelector('#item-availability-p1')).toHaveTextContent('Takeaway and Delivery only');
+
+    // Add is gone rather than disabled: a disabled control fires no click and explains nothing.
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();
+    // …but Details stays live, so the guest can still read the item.
+    expect(screen.getByRole('button', { name: 'details' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
+    expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  it('offers no switch when the host wired no handler — never a dead control', () => {
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.queryByRole('button', { name: 'Switch to Takeaway' })).not.toBeInTheDocument();
+    expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
+  });
+
+  it('QR-pinned dine-in: shows the ask-your-server hint instead of a nonsensical switch', () => {
+    mockedNotice.mockReturnValue({ ...BLOCKED, switchTo: null, switchLabel: '', hint: 'Ask your server' });
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} onSwitchOrderType={jest.fn()} />);
+
+    expect(screen.getByText('Ask your server')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Switch to/ })).not.toBeInTheDocument();
   });
 });

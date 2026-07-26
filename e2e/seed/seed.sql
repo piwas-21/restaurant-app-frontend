@@ -79,6 +79,83 @@ INSERT INTO product_descriptions (
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
+-- 4b) A SECOND category + product, restricted to Takeaway|Delivery — the fixture the
+-- per-order-type availability suite discovers (ORDER-TYPE-AVAILABILITY-PLAN §4.4).
+--
+-- Deliberately a NEW pair rather than a mask on the category above: that one's product is added to
+-- the cart by menu-and-cart and checkout-guest, and making it Dine-In-blocked would 400 their adds
+-- the moment either picks Dine-In. The suite finds this one on its own (it looks for any product
+-- the server refuses on an ENABLED channel), so nothing hardcodes these ids.
+--
+-- 6 = OrderChannels.Takeaway|Delivery ⇒ blocked for Dine-In. NOT a raw OrderType cast: the enum is
+-- 1/2/3 while the mask bits are 1/2/4, so `3` here would silently mean Dine-In|Takeaway.
+-- The product carries NO mask of its own — it INHERITS via its primary category, which is the
+-- client's actual scenario ("items in the Dürüm category can not be dine-in") and the path most
+-- worth guarding.
+INSERT INTO categories (
+    id, name, description, display_order, image_url,
+    is_active, is_deleted, created_by, available_order_types
+) VALUES (
+    '00000000-0000-0000-0000-0000000000cc',
+    'E2E Restricted Category',
+    'Takeaway + Delivery only — fixture for the order-type availability suite',
+    1,
+    NULL,
+    TRUE,
+    FALSE,
+    'e2e-seed',
+    6
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO "Products" (
+    id, name, description, base_price,
+    display_order, image_url,
+    allergens, ingredients,
+    is_active, is_available, is_deleted, is_featured_special, is_special,
+    kitchen_type, preparation_time_minutes, type,
+    created_by
+) VALUES (
+    '00000000-0000-0000-0000-0000000000bd',
+    'E2E Restricted Product',
+    'Inherits Takeaway + Delivery from its primary category',
+    12.00,
+    1,
+    NULL,
+    '[]'::jsonb,
+    '[]'::jsonb,
+    TRUE,
+    TRUE,
+    FALSE,
+    FALSE,
+    FALSE,
+    0,
+    5,
+    0,
+    'e2e-seed'
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO product_categories (
+    id, product_id, category_id, is_primary, display_order, created_by
+) VALUES (
+    '00000000-0000-0000-0000-0000000000ad',
+    '00000000-0000-0000-0000-0000000000bd',
+    '00000000-0000-0000-0000-0000000000cc',
+    TRUE,
+    0,
+    'e2e-seed'
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO product_descriptions (
+    id, product_id, lang, name, description, created_by
+) VALUES (
+    '00000000-0000-0000-0000-0000000000df',
+    '00000000-0000-0000-0000-0000000000bd',
+    'en',
+    'E2E Restricted Product',
+    'Inherits Takeaway + Delivery from its primary category',
+    'e2e-seed'
+) ON CONFLICT (id) DO NOTHING;
+
 -- 5) One dining-room Table — needed for the DineIn order-type followup
 -- test (table-selection modal needs at least one row to render).
 -- PascalCase quoted; columns snake_case.

@@ -43,7 +43,12 @@ export function useCategoryChannelsAdmin() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+    // MOUNT-ONLY, deliberately. `t` must NOT be a dependency: react-i18next hands back a new `t`
+    // identity on a language switch (and test doubles do so on every render), which would re-run
+    // this fetch and overwrite the admin's unsaved edits with server state — silently discarding
+    // their work. Pinned by the "failed save leaves the row dirty" test, which caught exactly that.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /** The order types a row currently permits (decoded from its mask; null = all). */
   const selectedTypes = useCallback(

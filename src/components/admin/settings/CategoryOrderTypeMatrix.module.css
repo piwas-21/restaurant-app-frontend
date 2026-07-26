@@ -7,7 +7,7 @@
 }
 
 .intro {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -15,7 +15,7 @@
 /* Wide content scrolls inside its own container so the page never scrolls sideways. */
 .tableWrapper {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
 }
 
@@ -29,7 +29,7 @@
 .table td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .table th {
@@ -37,8 +37,8 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: var(--color-text-muted);
-  background-color: var(--color-surface-alt, var(--color-surface));
+  color: var(--text-muted);
+  background-color: var(--surface-secondary-light);
 }
 
 .channelColumn {
@@ -56,7 +56,7 @@
 
 .productCount {
   display: block;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
@@ -76,8 +76,8 @@
 }
 
 .saveButton {
-  background-color: var(--color-primary);
-  color: var(--color-on-primary, #fff);
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
 }
 
 .saveButton:disabled,
@@ -88,18 +88,20 @@
 
 .resetButton {
   background-color: transparent;
-  border-color: var(--color-border);
-  color: var(--color-text);
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
-/* A category with every box cleared is off sale entirely — legitimate, but never silent. */
+/* A category with every box cleared is off sale entirely — legitimate, but never silent.
+   --surface-secondary is theme-AWARE (has a [data-theme='dark'] override) and --feedback-warning is
+   theme-INVARIANT orange that reads on both, so this needs no dark-mode block of its own. */
 .warningRow td {
-  background-color: var(--color-warning-surface, rgba(245, 158, 11, 0.08));
+  background-color: var(--surface-secondary);
 }
 
 .warning {
   display: block;
-  color: var(--color-warning-text, #92400e);
+  color: var(--feedback-warning);
   font-size: 0.8rem;
   margin-top: 0.15rem;
 }
@@ -107,14 +109,6 @@
 .loading,
 .empty {
   padding: 1.5rem;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   text-align: center;
-}
-
-[data-theme='dark'] .warningRow td {
-  background-color: rgba(245, 158, 11, 0.14);
-}
-
-[data-theme='dark'] .warning {
-  color: #fcd34d;
 }

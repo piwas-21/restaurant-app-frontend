@@ -47,7 +47,7 @@ export default function GeneralSettingsTab() {
 
   const onSubmit = handleSubmit(async (data) => {
     // Full-upsert PUT: without the current server state as a base, fields this
-    // tab doesn't edit (palette key, entrance position) would be wiped.
+    // tab doesn't edit (e.g. the palette key) would be wiped.
     if (!info) {
       enqueueSnackbar(t('general_settings_save_failed', 'Failed to save'), { variant: 'error' });
       return;

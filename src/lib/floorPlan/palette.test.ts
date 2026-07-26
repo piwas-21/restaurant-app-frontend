@@ -1,20 +1,27 @@
 import { PALETTE_GROUPS, PALETTE_KINDS, defaultItemSize, paletteEntries } from './palette';
 import { getSymbol } from './symbols';
+import { isWayfindingKind } from './wayfinding';
 
 describe('palette — the catalogue', () => {
   it('offers only kinds the renderer can actually draw', () => {
-    // A palette entry with no symbol would place an invisible object.
-    expect(PALETTE_KINDS.every((kind) => getSymbol(kind) !== null)).toBe(true);
+    // A palette entry the renderer cannot draw would place an invisible object.
+    // A wayfinding kind has no authored symbol box — its shape comes from its
+    // own footprint and text — so it satisfies this the other way.
+    expect(PALETTE_KINDS.every((kind) => getSymbol(kind) !== null || isWayfindingKind(kind))).toBe(true);
   });
 
   it('lists every kind exactly once across the groups', () => {
     expect(new Set(PALETTE_KINDS).size).toBe(PALETTE_KINDS.length);
   });
 
-  it('leaves the text-carrying kinds to S8', () => {
-    expect(PALETTE_KINDS).not.toContain('zone');
-    expect(PALETTE_KINDS).not.toContain('text_label');
-    expect(PALETTE_KINDS).not.toContain('entrance');
+  it('offers the wayfinding kinds in their own drawer (S8)', () => {
+    const labels = PALETTE_GROUPS.find((g) => g.id === 'labels');
+    expect(labels?.kinds).toEqual(['text_label', 'zone', 'entrance']);
+  });
+
+  it('offers only ONE spelling of the text label, though the backend takes two', () => {
+    expect(PALETTE_KINDS).toContain('text_label');
+    expect(PALETTE_KINDS).not.toContain('label');
   });
 
   it('keeps wall-bound openings out — a door on a wall belongs to the wall tool', () => {

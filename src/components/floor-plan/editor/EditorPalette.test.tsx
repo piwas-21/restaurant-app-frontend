@@ -28,6 +28,19 @@ describe('EditorPalette', () => {
     expect(container.querySelectorAll('[class*="preview"] svg')).toHaveLength(PALETTE_KINDS.length);
   });
 
+  // S8: a zone and a text label have no authored symbol box, so their thumbnails
+  // are the REAL shapes the layers draw — the rail can never illustrate one thing
+  // and place another.
+  it('previews the wayfinding kinds with the shapes their layers draw', () => {
+    const { container } = draw();
+    const zoneButton = screen.getByRole('button', { name: /Zone/ });
+    expect(zoneButton.querySelector('[class*="zoneRegion"]')).not.toBeNull();
+    const labelButton = screen.getByRole('button', { name: /Text label/ });
+    expect(labelButton.querySelector('[class*="flag"]')).not.toBeNull();
+    // Everything still gets exactly one preview svg.
+    expect(container.querySelectorAll('[class*="preview"] svg')).toHaveLength(PALETTE_KINDS.length);
+  });
+
   it('shows the footprint a kind will be placed at', () => {
     draw();
     // The bar counter's symbol is authored 360 × 70 cm.

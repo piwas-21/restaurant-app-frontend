@@ -14,8 +14,6 @@ const info: RestaurantInfoDto = {
   email: 'contact@rumirestaurant.ch',
   website: 'https://rumirestaurant.ch',
   themePaletteKey: 'olive-grove',
-  entrancePositionX: 25,
-  entrancePositionY: 75,
   phoneNumbers: [],
 };
 
@@ -33,12 +31,10 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
       email: 'contact@rumirestaurant.ch',
       website: 'https://rumirestaurant.ch',
       themePaletteKey: 'saffron',
-      entrancePositionX: 25,
-      entrancePositionY: 75,
     });
   });
 
-  it('sends all 13 command fields (the full upsert, no more no less)', () => {
+  it('sends all 11 command fields (the full upsert, no more no less)', () => {
     expect(Object.keys(toUpdateCommand(info, 'saffron')).sort()).toEqual(
       [
         'addressLine1',
@@ -46,8 +42,6 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
         'city',
         'country',
         'email',
-        'entrancePositionX',
-        'entrancePositionY',
         'latitude',
         'longitude',
         'name',
@@ -62,13 +56,6 @@ describe('toUpdateCommand (full-upsert guard, ADR-007)', () => {
     expect(toUpdateCommand(info, null).themePaletteKey).toBeNull();
     expect(toUpdateCommand(info, 'saffron').name).toBe(info.name);
     expect(toUpdateCommand(info, 'saffron').website).toBe(info.website);
-    expect(toUpdateCommand(info, 'saffron').entrancePositionX).toBe(25);
-  });
-
-  it('normalises an absent entrance position (pre-backend contract) to null, never undefined', () => {
-    const { entrancePositionX: _x, entrancePositionY: _y, ...rest } = info;
-    const command = toUpdateCommand(rest, 'saffron');
-    expect(command.entrancePositionX).toBeNull();
-    expect(command.entrancePositionY).toBeNull();
+    expect(toUpdateCommand(info, 'saffron').city).toBe(info.city);
   });
 });

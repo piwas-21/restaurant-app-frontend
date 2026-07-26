@@ -1,34 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { alignMovables, distributeMovables, type AlignEdge, type PlanAxis } from '@/lib/floorPlan/align';
+import { EMPTY_DOCUMENT } from '@/lib/floorPlan/document';
+import type { EditorTool } from '@/lib/floorPlan/editorTools';
+import { findWall } from '@/lib/floorPlan/wallHitTest';
 import { useEditorDocument } from './useEditorDocument';
 import { useEditorAutoSave } from './useEditorAutoSave';
 import { usePlanViewport } from './usePlanViewport';
-import { useEditorDrag } from './useEditorDrag';
-import { useEditorItems } from './useEditorItems';
-import { useEditorMarquee } from './useEditorMarquee';
+import { useEditorPointerChain } from './useEditorPointerChain';
 import { useEditorKeyboard } from './useEditorKeyboard';
+import { useUnsavedChangesGuard } from './useUnsavedChangesGuard';
+import { useWallSelection } from './useWallSelection';
 import { useStageScale } from './useStageScale';
 import { overlappingTableIds } from '@/lib/floorPlan/editorGeometry';
 import { findMovable } from '@/lib/floorPlan/movable';
-import type { FloorPlanDocument, FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
-
-/** A stable placeholder so the hooks below run unconditionally while loading. */
-const EMPTY_DOC: FloorPlanDocument = {
-  id: '',
-  name: '',
-  widthMeters: 12,
-  heightMeters: 8,
-  gridSizeCm: 25,
-  backgroundStyle: '',
-  isDefault: true,
-  displayOrder: 0,
-  updatedAt: null,
-  walls: [],
-  items: [],
-  tables: [],
-};
+import type { FloorPlanItem, FloorPlanTableGeometry } from '@/types/floorPlan';
 
 interface UseFloorPlanEditorArgs {
   /** Open the delete-table modal (a /api/tables lifecycle op the page owns). */
@@ -39,88 +26,111 @@ interface UseFloorPlanEditorArgs {
 
 /**
  * The admin editor's composed state (FLOOR-PLAN-REVAMP §4.3). Glues the document
- * store (history + save), the shared zoom/pan viewport, palette placement,
- * pointer gestures (move / rotate / resize) and keyboard control into one flat
- * API for the editor components. `document` is what the canvas renders — the live
- * gesture preview while one is in flight, else the committed present — while
- * `committed` is what logic/save use. Overlap warnings are derived here so the
- * overlay and the toolbar counter share one source.
+ * store (history + save), the shared zoom/pan viewport, the tool mode, the
+ * pointer chain and keyboard control into one flat API for the editor components.
+ * `document` is what the canvas renders — the live gesture preview while one is in
+ * flight, else the committed present — while `committed` is what logic/save use.
+ * Overlap warnings are derived here so the overlay and the toolbar counter share
+ * one source.
+ *
+ * **Two selections, deliberately kept apart.** `selectedIds` is the movable
+ * selection (tables + items, which share one geometry vocabulary); `selectedWallId`
+ * is a single wall, whose shape is a polyline and whose panel is a different
+ * panel. Picking either clears the other, so the inspector is never ambiguous
+ * about what an edit would act on.
  */
 export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseFloorPlanEditorArgs) {
   const store = useEditorDocument();
   const [gridVisible, setGridVisible] = useState(true);
   const [snapEnabled, setSnapEnabled] = useState(true);
+  const [activeTool, setActiveTool] = useState<EditorTool>('select');
 
-  const committed = store.document ?? EMPTY_DOC;
-  const { apply, selectedIds } = store;
-  const viewport = usePlanViewport(committed.widthMeters, committed.heightMeters, store.status === 'ready');
+  const committed = store.document ?? EMPTY_DOCUMENT;
+  const { apply, selectedIds, clearSelection, selectMany } = store;
+  const ready = store.status === 'ready';
+  const viewport = usePlanViewport(committed.widthMeters, committed.heightMeters, ready);
 
-  // The stage's pointer chain, built innermost-first and read most-specific-first:
-  // an armed palette entry places; else a press on an object or grip is a gesture;
-  // else bare plan sweeps a marquee; else it pans/pinches.
-  const marquee = useEditorMarquee({
+  const clearMovables = useCallback(() => selectMany([]), [selectMany]);
+  const walls = useWallSelection({ document: committed, apply, clearMovables });
+  const { selectWall, clearWall, selectVertex } = walls;
+
+  const chain = useEditorPointerChain({
     stageRef: viewport.stageRef,
     viewBox: viewport.viewBox,
     document: committed,
-    enabled: store.status === 'ready',
-    selectedIds: store.selectedIds,
-    onSelectMany: store.selectMany,
-    fallback: viewport.stageHandlers,
-  });
-
-  const drag = useEditorDrag({
-    stageRef: viewport.stageRef,
-    viewBox: viewport.viewBox,
-    document: committed,
+    ready,
     snapEnabled,
-    selectedIds: store.selectedIds,
-    onSelect: store.select,
-    onCommit: store.apply,
-    fallback: marquee.handlers,
+    activeTool,
+    selectedIds,
+    apply,
+    // Picking any movable drops the wall selection: one inspector, one subject.
+    select: useCallback(
+      (id: string, additive: boolean) => {
+        clearWall();
+        store.select(id, additive);
+      },
+      [clearWall, store],
+    ),
+    selectMany: useCallback(
+      (ids: string[]) => {
+        clearWall();
+        selectMany(ids);
+      },
+      [clearWall, selectMany],
+    ),
+    // The COMMITTED wall — a grab reads the geometry as saved and the hook's own
+    // preview takes over from the first move. Resolving it against the render
+    // document would make the chain depend on its own output.
+    selectedWall: findWall(committed.walls, walls.selectedWallId),
+    onPickWall: selectWall,
+    onSelectVertex: selectVertex,
+    onWallCreated: selectWall,
+    onToolDone: useCallback(() => setActiveTool('select'), []),
+    viewportHandlers: viewport.stageHandlers,
   });
 
-  // Placement is the FIRST link: while a palette entry is armed, a press places
-  // an object rather than grabbing, sweeping or panning.
-  const items = useEditorItems({
-    stageRef: viewport.stageRef,
-    viewBox: viewport.viewBox,
-    document: committed,
-    snapEnabled,
-    selectedIds: store.selectedIds,
-    apply: store.apply,
-    onSelectMany: store.selectMany,
-    fallback: drag.handlers,
-  });
-
-  const renderDoc = drag.previewDoc ?? committed;
+  const { drag, items, vertices } = chain;
+  // Whichever gesture is live owns what the canvas shows; only one can be.
+  const renderDoc = vertices.previewDoc ?? drag.previewDoc ?? committed;
   // The on-canvas grips size themselves in screen pixels, so they need the live
   // stage↔plan scale rather than the viewBox alone (§4.4).
-  const pxPerCm = useStageScale(viewport.stageRef, viewport.viewBox, store.status === 'ready');
+  const pxPerCm = useStageScale(viewport.stageRef, viewport.viewBox, ready);
 
-  // Escape cancels the most local thing first: an armed palette entry, then the
+  // Escape cancels the most local thing first: an armed palette entry, then any
   // selection. Otherwise arming a plant and thinking better of it would have no
-  // way out but placing it.
-  const { clearSelection } = store;
-  const { armedKind, disarm } = items;
+  // way out but placing it. (The Wall tool's own Escape is handled in its hook,
+  // on the capture phase, so an abandoned draft never falls through to here.)
+  const { armedKind, arm, disarm } = items;
   const escape = useCallback(() => {
     if (armedKind) {
       disarm();
     } else {
+      clearWall();
       clearSelection();
     }
-  }, [armedKind, clearSelection, disarm]);
+  }, [armedKind, clearSelection, clearWall, disarm]);
+
+  /** Arming a palette entry is a Select-tool action — it cannot mean "draw a wall". */
+  const armPaletteKind = useCallback(
+    (kind: string, viaPointer: boolean) => {
+      setActiveTool('select');
+      arm(kind, viaPointer);
+    },
+    [arm],
+  );
 
   useEditorKeyboard({
-    enabled: store.status === 'ready' && !modalOpen,
+    enabled: ready && !modalOpen,
     document: committed,
-    selectedIds: store.selectedIds,
-    apply: store.apply,
+    selectedIds,
+    apply,
     undo: store.undo,
     redo: store.redo,
     clearSelection: escape,
     onDeleteSelected,
     onDeleteItems: items.deleteSelectedItems,
     onDuplicate: items.duplicateSelection,
+    onSelectTool: setActiveTool,
   });
 
   // Geometry edits persist themselves shortly after the admin stops making them, so
@@ -133,21 +143,7 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
     save: store.save,
   });
 
-  // Autosave shrinks the unsaved window but never removes it, so the browser still
-  // warns if a reload / tab-close lands inside it.
-  const { dirty } = store;
-  useEffect(() => {
-    if (!dirty) {
-      return;
-    }
-    // Calling preventDefault triggers the browser's unsaved-changes prompt (the
-    // modern replacement for the deprecated `event.returnValue`).
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [dirty]);
+  useUnsavedChangesGuard(store.dirty);
 
   const overlaps = useMemo(() => overlappingTableIds(renderDoc.tables), [renderDoc.tables]);
   const selectedTable: FloorPlanTableGeometry | null = renderDoc.tables.find((t) => t.id === store.selectedId) ?? null;
@@ -161,23 +157,31 @@ export function useFloorPlanEditor({ onDeleteSelected, modalOpen = false }: UseF
     setGridVisible,
     snapEnabled,
     setSnapEnabled,
+    activeTool,
+    setActiveTool,
     viewport,
     pxPerCm,
-    /** The stage's whole pointer chain: place → gesture → marquee → pan. */
-    dragHandlers: items.handlers,
+    /** The stage's whole pointer chain: draft → place → gesture → wall → marquee → pan. */
+    dragHandlers: chain.handlers,
+    /** The wall chain being drawn, or null when the Wall tool is not active. */
+    wallDraft: chain.draft,
     guides: drag.guides,
     gesture: drag.gesture,
-    marquee: marquee.band,
+    marquee: chain.band,
     /** Autosave has given up (conflict, or repeated failures) — Save is the way out. */
     autoSaveStalled: autoSave.stalled,
     overlaps,
     overlapCount: overlaps.size,
     selectedTable,
     selectedItem,
+    ...walls,
+    // Resolved against what is on screen: the selection holds only an id, so a
+    // deleted or re-minted wall stops resolving instead of going stale.
+    selectedWall: findWall(renderDoc.walls, walls.selectedWallId),
     /** The single selection as a normalised rect — a table or an item alike. */
     selectedMovable: store.selectedId ? findMovable(renderDoc, store.selectedId) : null,
     armedKind,
-    armPaletteKind: items.arm,
+    armPaletteKind,
     canPlaceItem: items.canPlace,
     deleteSelectedItems: items.deleteSelectedItems,
     duplicateSelection: items.duplicateSelection,

@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import sceneStyles from '../FloorPlanScene.module.css';
 import FloorPlanSymbol from '../FloorPlanSymbol';
-import type { SymbolDef } from '@/lib/floorPlan/symbols';
-import { PALETTE_GROUPS, paletteEntries } from '@/lib/floorPlan/palette';
+import { TapeLabel, ZoneRegion } from '../WayfindingShapes';
+import { metresToCm } from '@/lib/floorPlan/geometry';
+import { PALETTE_GROUPS, paletteEntries, type PaletteEntry } from '@/lib/floorPlan/palette';
+import { DEFAULT_ITEM_LABEL, isTextLabelKind } from '@/lib/floorPlan/wayfinding';
 import { itemKindLabel } from './itemKindLabel';
 import styles from './EditorPalette.module.css';
 
@@ -42,18 +44,41 @@ interface EditorPaletteProps {
   canPlace: boolean;
 }
 
-/** A symbol drawn at its own aspect ratio, small enough to scan a rail of them. */
-function EntryPreview({ symbol }: Readonly<{ symbol: SymbolDef }>) {
+/**
+ * A rail thumbnail. A symbol draws at its own authored box; a wayfinding kind
+ * has no box, so it previews through **the very component the layer uses**,
+ * placed at the centre of a viewBox its own footprint wide. Illustrating them
+ * some other way would let the rail show one thing and place another.
+ */
+function EntryPreview({ entry }: Readonly<{ entry: PaletteEntry }>) {
+  const { symbol, kind, widthMeters, heightMeters } = entry;
+  const w = symbol ? symbol.w : metresToCm(widthMeters);
+  const h = symbol ? symbol.h : metresToCm(heightMeters);
+  // A zone's name tag is drawn ABOVE its region, so the box has to allow for it.
+  const padY = kind === 'zone' ? 20 : 0;
+  const item = {
+    kind,
+    x: widthMeters / 2,
+    y: heightMeters / 2,
+    widthMeters,
+    heightMeters,
+    rotationDegrees: 0,
+    zIndex: 0,
+    label: DEFAULT_ITEM_LABEL[kind] ?? null,
+  };
   return (
     <span className={styles.preview}>
       <svg
         className={sceneStyles.scene}
-        viewBox={`0 0 ${symbol.w} ${symbol.h}`}
+        viewBox={`0 ${-padY} ${w} ${h + padY}`}
         preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
         focusable="false"
       >
-        <FloorPlanSymbol def={symbol} styles={sceneStyles} />
+        {/* A wayfinding kind has no symbol, so these branches are exclusive. */}
+        {symbol && <FloorPlanSymbol def={symbol} styles={sceneStyles} />}
+        {kind === 'zone' && <ZoneRegion item={item} styles={sceneStyles} />}
+        {isTextLabelKind(kind) && <TapeLabel item={item} styles={sceneStyles} />}
       </svg>
     </span>
   );
@@ -92,7 +117,7 @@ export default function EditorPalette({
                   disabled={!canPlace}
                   onClick={(e) => onArm(entry.kind, e.detail !== 0)}
                 >
-                  <EntryPreview symbol={entry.symbol} />
+                  <EntryPreview entry={entry} />
                   <span className={styles.entryText}>
                     <span className={styles.entryName}>{kindLabel(entry.kind)}</span>
                     <span className={styles.entrySize}>

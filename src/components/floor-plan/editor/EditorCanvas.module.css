@@ -14,7 +14,9 @@
 }
 
 /* Armed palette entry: the next click drops an object, so say so everywhere on
-   the plan — including over the tables and items a click would normally grab. */
+   the plan — including over the tables and items a click would normally grab.
+   The Wall tool takes the same crosshair: while it is active every click places a
+   vertex, so no object may advertise itself as grabbable either. */
 .placing,
 .placing * {
   cursor: crosshair;

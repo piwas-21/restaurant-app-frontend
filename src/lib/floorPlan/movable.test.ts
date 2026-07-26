@@ -34,15 +34,11 @@ describe('movable — normalising tables and items', () => {
     expect(itemMovable(planItem({ id: undefined }))).toBeNull();
   });
 
-  it.each(['zone', 'label', 'text_label', 'entrance'])(
-    'refuses to move a %s — it carries text or a region, and lands with S8',
-    (kind) => {
-      // These are real, saveable kinds the renderer draws; the editor must not
-      // let them be dragged, marqueed or deleted through a panel that cannot
-      // edit what they actually hold.
-      expect(itemMovable(planItem({ kind }))).toBeNull();
-    },
-  );
+  // S8 gave the inspector a text field for what these carry, which is the whole
+  // reason they were held back from being movable until then.
+  it.each(['zone', 'label', 'text_label', 'entrance'])('moves a %s like any other object', (kind) => {
+    expect(itemMovable(planItem({ kind }))).toMatchObject({ id: 'i1', target: 'item' });
+  });
 
   it('refuses a kind the renderer has no geometry for', () => {
     expect(itemMovable(planItem({ kind: 'not_a_kind' }))).toBeNull();

@@ -29,6 +29,41 @@
   color: var(--text-secondary);
 }
 
+/* A group inside a panel (corners, openings). Ruled off rather than boxed —
+   the panel is already a card, and a card inside a card reads as a modal. */
+.subheading {
+  margin: 6px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-default);
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+/* Guidance under a control, distinct from `.empty`, which stands alone. */
+.hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.openings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.openingRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface-secondary);
+  border-radius: 6px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

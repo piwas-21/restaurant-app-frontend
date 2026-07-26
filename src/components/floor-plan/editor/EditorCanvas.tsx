@@ -35,9 +35,12 @@ export default function EditorCanvas({
   return (
     <div
       ref={editor.viewport.stageRef}
-      // An armed palette entry turns the whole plan into a drop target, and the
-      // cursor is the only thing that says so before the first click.
-      className={[styles.stage, editor.armedKind ? styles.placing : undefined].filter(Boolean).join(' ')}
+      // An armed palette entry — or the Wall tool — turns the whole plan into a
+      // placement surface, and the cursor is the only thing that says so before
+      // the first click.
+      className={[styles.stage, editor.armedKind || editor.wallDraft ? styles.placing : undefined]
+        .filter(Boolean)
+        .join(' ')}
       onPointerDown={editor.dragHandlers.onPointerDown}
       onPointerMove={editor.dragHandlers.onPointerMove}
       onPointerUp={editor.dragHandlers.onPointerUp}
@@ -78,6 +81,9 @@ export default function EditorCanvas({
             overlaps={editor.overlaps}
             pxPerCm={editor.pxPerCm}
             gesture={editor.gesture}
+            wallDraft={editor.wallDraft}
+            selectedWall={editor.selectedWall}
+            selectedVertex={editor.selectedVertex}
           />
         }
       />

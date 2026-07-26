@@ -35,14 +35,6 @@ export interface RestaurantInfoDto {
   website: string | null;
   /** Runtime colour-palette key (ADR-007); null = the template's baked palette. */
   themePaletteKey: string | null;
-  /**
-   * Legacy floor-plan entrance marker (canvas percentages, 0–100). Optional AND
-   * nullable. No longer edited in the admin editor as of the metre-scale rewrite
-   * (FLOOR-PLAN-REVAMP S6 retired the pixel canvas); the entrance returns as a
-   * plan item in S8 and these columns retire in S10. Kept on the DTO until then.
-   */
-  entrancePositionX?: number | null;
-  entrancePositionY?: number | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
 }
 
@@ -60,9 +52,6 @@ export interface UpdateRestaurantInfoCommand {
   email: string;
   website: string | null;
   themePaletteKey: string | null;
-  /** Optional until the backend entrance-position PR deploys (additive). */
-  entrancePositionX?: number | null;
-  entrancePositionY?: number | null;
 }
 
 export interface AddPhoneNumberCommand {

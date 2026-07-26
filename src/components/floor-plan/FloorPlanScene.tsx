@@ -130,7 +130,16 @@ export default function FloorPlanScene({
           onSelectTable={onSelectTable}
           formatTableLabel={formatTableLabel}
         />
-        <LabelsLayer items={document.items} styles={styles} />
+        {/* Same handlers as ItemsLayer: labels and the entrance are objects the
+            editor moves too (S8). Only the LAYER differs — they sit above the
+            tables so they stay legible (§4.4). */}
+        <LabelsLayer
+          items={document.items}
+          styles={styles}
+          onSelectItem={onSelectItem}
+          formatItemLabel={formatItemLabel}
+          selectedItemIds={selectedItemIds}
+        />
       </g>
       {overlay}
     </svg>

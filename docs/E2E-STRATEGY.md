@@ -71,6 +71,7 @@ Criteria: revenue-critical, security-critical, or a past production incident.
 - **Admin products**: create product → upload image → toggle availability → appears on public menu
 - **Admin orders**: filter by status → open details → cancel/refund (boundary-mocked)
 - **Reservations**: customer creates reservation → admin approves/rejects → status reflects on customer side
+- **Booking through the floor plan**: `/reservations` renders the plan → pick a table *from the map* → the booking docket agrees; the **List** view is a complete alternative sharing one selection; the map is operable from the keyboard alone (FLOOR-PLAN-REVAMP §4.2 — the revamp exists so a guest can choose by looking at the room, and the List is the mobile and screen-reader path)
 - **Locale + RTL**: switch to `ar` on a key page, confirm direction flips and primary CTA is reachable
 - **Auth-guard**: unauthenticated user hitting `/admin` is redirected to login
 

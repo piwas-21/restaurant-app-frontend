@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import EditorToolbar from './EditorToolbar';
 import type { FloorPlanEditorApi } from '@/hooks/floorPlan/useFloorPlanEditor';
 
@@ -10,7 +10,7 @@ jest.mock('react-i18next', () => ({
 type ToolbarState = Pick<
   FloorPlanEditorApi,
   'canUndo' | 'canRedo' | 'gridVisible' | 'snapEnabled' | 'overlapCount' | 'dirty' | 'saving' | 'conflicted'
-> & { autoSaveStalled: boolean };
+> & { autoSaveStalled: boolean; activeTool: FloorPlanEditorApi['activeTool'] };
 
 const BASE: ToolbarState = {
   canUndo: false,
@@ -22,6 +22,7 @@ const BASE: ToolbarState = {
   saving: false,
   conflicted: false,
   autoSaveStalled: false,
+  activeTool: 'select',
 };
 
 const draw = (over: Partial<ToolbarState> = {}) => {
@@ -32,6 +33,7 @@ const draw = (over: Partial<ToolbarState> = {}) => {
     redo: jest.fn(),
     setGridVisible: jest.fn(),
     setSnapEnabled: jest.fn(),
+    setActiveTool: jest.fn(),
     save: jest.fn().mockResolvedValue(true),
     viewport: { zoomIn: jest.fn(), zoomOut: jest.fn(), fit: jest.fn(), isZoomed: false },
   } as unknown as FloorPlanEditorApi;
@@ -83,5 +85,24 @@ describe('EditorToolbar save status', () => {
   it('disables Save when there is nothing to send', () => {
     draw();
     expect(screen.getByRole('button', { name: 'Save layout' })).toBeDisabled();
+  });
+});
+
+/**
+ * The tool switch decides what a press on the plan MEANS, so exactly one has to
+ * read as active — a user who thinks they are selecting while the Wall tool is
+ * armed will draw a corner with every click.
+ */
+describe('EditorToolbar tool switch', () => {
+  it('marks the active tool checked and the other not', () => {
+    draw({ activeTool: 'wall' });
+    expect(screen.getByRole('radio', { name: 'Draw wall (W)' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Select (V)' })).not.toBeChecked();
+  });
+
+  it('switches tool on click', () => {
+    const editor = draw();
+    fireEvent.click(screen.getByRole('radio', { name: 'Draw wall (W)' }));
+    expect(editor.setActiveTool).toHaveBeenCalledWith('wall');
   });
 });

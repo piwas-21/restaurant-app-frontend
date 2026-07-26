@@ -27,6 +27,7 @@
 | Refactoring sprint task | [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) — find the task ID, read its acceptance criteria |
 | Design / component patterns | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) |
 | Tenant UI template work (`src/templates/`, `@active-template`) | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md) |
+| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md) (the *why* lives in the workspace [FLOOR-PLAN-REVAMP-PLAN.md](../docs/plans/FLOOR-PLAN-REVAMP-PLAN.md)) |
 | Coding conventions | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) |
 | Test work | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) |
 | Adding/changing a Playwright E2E | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules |

@@ -1,10 +1,12 @@
-import type { FloorPlanDocument } from '@/types/floorPlan';
+import type { FloorPlanDocument, FloorPlanWall } from '@/types/floorPlan';
 import { metresToCm } from '@/lib/floorPlan/geometry';
 import type { AlignmentGuide } from '@/lib/floorPlan/snapping';
 import type { MarqueeRect } from '@/lib/floorPlan/selection';
 import { selectedMovables, tableMovable, type MovableGeometry } from '@/lib/floorPlan/movable';
 import type { ActiveGesture } from '@/hooks/floorPlan/editorStage';
+import type { WallDraftState } from '@/hooks/floorPlan/useWallDraft';
 import EditorHandles from './EditorHandles';
+import WallOverlay from './WallOverlay';
 import styles from './EditorOverlay.module.css';
 
 /**
@@ -26,6 +28,10 @@ interface EditorOverlayProps {
   /** Screen pixels per plan centimetre — sizes the constant-screen-size grips. */
   pxPerCm: number;
   gesture: ActiveGesture | null;
+  /** The chain the Wall tool is drawing, or null when it is not active. */
+  wallDraft: WallDraftState | null;
+  selectedWall: FloorPlanWall | null;
+  selectedVertex: number | null;
 }
 
 /** A rotated rectangle around a footprint, padded outward by `padCm`. */
@@ -58,6 +64,9 @@ export default function EditorOverlay({
   overlaps,
   pxPerCm,
   gesture,
+  wallDraft,
+  selectedWall,
+  selectedVertex,
 }: Readonly<EditorOverlayProps>) {
   const widthCm = metresToCm(doc.widthMeters);
   const heightCm = metresToCm(doc.heightMeters);
@@ -97,6 +106,7 @@ export default function EditorOverlay({
         <Footprint key={`sel-${m.id}`} rect={m} className={styles.selection} padCm={6} />
       ))}
       {only && <EditorHandles rect={only} pxPerCm={pxPerCm} gesture={gesture} />}
+      <WallOverlay draft={wallDraft} selectedWall={selectedWall} selectedVertex={selectedVertex} pxPerCm={pxPerCm} />
       {marquee && (
         <rect
           className={styles.marquee}

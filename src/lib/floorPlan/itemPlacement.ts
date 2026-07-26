@@ -1,8 +1,10 @@
 import type { FloorPlanDocument, FloorPlanItem, FloorPlanPoint } from '@/types/floorPlan';
 import { addItem } from './document';
 import { clampCentreToPlan } from './editorGeometry';
+import { nextLocalItemId } from './localIds';
 import { defaultItemSize } from './palette';
 import { snapToGrid } from './snapping';
+import { DEFAULT_ITEM_LABEL } from './wayfinding';
 
 /**
  * How a placed object is born (FLOOR-PLAN-REVAMP §4.3) — click-to-place, copy,
@@ -19,31 +21,12 @@ import { snapToGrid } from './snapping';
 /** The server's per-plan item cap (`SaveFloorPlanCommandValidator`) — a save past it is a 400. */
 export const MAX_PLAN_ITEMS = 500;
 
-/** The prefix of an id the editor minted; the server re-mints every item on save. */
-const LOCAL_ID_PREFIX = 'local-item-';
-
 /**
- * The next free local id. Derived from the ids already in the document rather
- * than a module counter, so it survives undo/redo and a reload without ever
- * colliding — and so placement stays a pure function.
+ * Client-minted ids live in {@link ./localIds} — walls and openings mint them
+ * too since S7, and the save path needs ONE predicate that covers every kind.
+ * Re-exported here because item placement is where callers already look for them.
  */
-export function nextLocalItemId(doc: FloorPlanDocument): string {
-  const used = doc.items.reduce((max, item) => {
-    const suffix = item.id?.startsWith(LOCAL_ID_PREFIX) ? Number(item.id.slice(LOCAL_ID_PREFIX.length)) : Number.NaN;
-    return Number.isInteger(suffix) && suffix > max ? suffix : max;
-  }, 0);
-  return `${LOCAL_ID_PREFIX}${used + 1}`;
-}
-
-/**
- * Is this id one the editor minted (i.e. not yet saved)? The save path strips
- * these: every `Id` on the document DTOs is a `Guid?`, so sending one back is a
- * model-binding 400, not a new object. See `stripLocalIds` in the service.
- *
- * Deliberately named for *any* local id, not just an item's: the wall tool (S7)
- * mints them for walls and openings and must route through the same check.
- */
-export const isLocalId = (id: string): boolean => id.startsWith(LOCAL_ID_PREFIX);
+export { isLocalId, nextLocalItemId } from './localIds';
 
 /** One above the highest z in the plan, so a new object lands on top of the pile. */
 const topZIndex = (doc: FloorPlanDocument): number =>
@@ -79,7 +62,10 @@ export function newItem(
     heightMeters: Math.min(size.heightMeters, doc.heightMeters),
     rotationDegrees: 0,
     zIndex: topZIndex(doc),
-    label: null,
+    // A zone or a text label with no text draws as an empty box, which reads as
+    // broken rather than as "type something here" — so it lands with a
+    // placeholder the inspector's text field is already pointing at.
+    label: DEFAULT_ITEM_LABEL[kind] ?? null,
     styleVariant: null,
   };
 }

@@ -14,6 +14,7 @@ function setup(overrides: Partial<Parameters<typeof useEditorKeyboard>[0]> = {})
   const onDeleteItems = jest.fn();
   const onDuplicate = jest.fn();
   const clearSelection = jest.fn();
+  const onSelectTool = jest.fn();
   const props = {
     enabled: true,
     document: floorPlanFixture(),
@@ -25,10 +26,11 @@ function setup(overrides: Partial<Parameters<typeof useEditorKeyboard>[0]> = {})
     onDeleteSelected,
     onDeleteItems,
     onDuplicate,
+    onSelectTool,
     ...overrides,
   };
   renderHook(() => useEditorKeyboard(props));
-  return { apply, undo, redo, clearSelection, onDeleteSelected, onDeleteItems, onDuplicate, props };
+  return { apply, undo, redo, clearSelection, onDeleteSelected, onDeleteItems, onDuplicate, onSelectTool, props };
 }
 
 const press = (key: string, init: KeyboardEventInit = {}) =>

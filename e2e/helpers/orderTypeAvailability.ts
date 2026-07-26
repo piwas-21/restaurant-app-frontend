@@ -58,8 +58,8 @@ export async function enabledChannels(request: APIRequestContext): Promise<Chann
 }
 
 async function allProducts(request: APIRequestContext, channel?: Channel): Promise<ProductRow[]> {
-  const q = `${apiBaseUrl()}/api/Products?Page=1&PageSize=100${channel ? `&RequestedOrderType=${channel}` : ''}`;
-  return items<ProductRow>(await json(request, q));
+  const channelParam = channel ? `&RequestedOrderType=${channel}` : '';
+  return items<ProductRow>(await json(request, `${apiBaseUrl()}/api/Products?Page=1&PageSize=100${channelParam}`));
 }
 
 /**

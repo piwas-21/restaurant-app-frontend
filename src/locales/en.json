@@ -2368,5 +2368,8 @@
   "product_order_types_no_primary_warning": "No primary category selected, so there is nothing to inherit — this item stays available on every order type until you set one or choose Custom.",
   "clear_table_selection_confirm": "Clear table selection? You will need to scan the QR code again, and your dine-in choice will be reset.",
   "table_required_hint": "Choose a table to continue.",
-  "reorder_partial": "Added {{added}} of {{total}} items."
+  "reorder_partial": "Added {{added}} of {{total}} items.",
+  "availability_only_for": "{{orderTypes}} only",
+  "availability_switch_to": "Switch to {{orderType}}",
+  "availability_ask_server": "Ask your server"
 }

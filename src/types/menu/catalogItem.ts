@@ -1,4 +1,5 @@
 import type { ProductIngredient, DietaryTag, MenuItemImage } from './shared';
+import type { ItemAvailability } from './availability';
 
 /**
  * CatalogItem — the unified card view-model for the merged `MenuCard` (menu-bundles redesign #175,
@@ -37,4 +38,12 @@ export interface CatalogItem {
   dietaryTags?: DietaryTag[];
   /** Bundles only: the default option names, for an "Includes: Pizza + Cola" card summary. */
   bundleItemNames?: string[];
+  /**
+   * Products only — server-resolved per-order-type availability, driving the card's chip / dimmed
+   * state. Bundles carry `undefined` **by contract, not by omission**: `GetMenuBundlesQuery` accepts
+   * no `RequestedOrderType` and no bundle command can even store a channel mask
+   * (ORDER-TYPE-AVAILABILITY-PLAN §9.2), so a bundle chip would be an assertion the server never
+   * made.
+   */
+  availability?: ItemAvailability;
 }

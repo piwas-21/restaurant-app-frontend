@@ -11,6 +11,7 @@ import {
   SuggestedSideItem,
   KitchenType,
 } from './shared';
+import type { ItemAvailability } from './availability';
 
 export interface MenuItem {
   id: string;
@@ -48,4 +49,10 @@ export interface MenuItem {
   images?: MenuItemImage[];
   longDescription?: string;
   kitchenType?: KitchenType;
+  /**
+   * Server-resolved per-order-type availability. Optional: a backend that predates the feature — or
+   * the mock fallback in `menuService` — simply omits it, and every customer surface treats a
+   * missing value as "no restriction to report" (the feature's permissive-on-missing-data invariant).
+   */
+  availability?: ItemAvailability;
 }

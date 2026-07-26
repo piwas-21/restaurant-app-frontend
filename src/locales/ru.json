@@ -2368,5 +2368,8 @@
   "product_order_types_no_primary_warning": "Основная категория не выбрана, наследовать нечего — позиция остаётся доступной для всех типов заказа, пока вы не выберете категорию или не отметите «Вручную».",
   "clear_table_selection_confirm": "Сбросить выбор стола? Потребуется снова отсканировать QR-код, а выбор «в ресторане» будет сброшен.",
   "table_required_hint": "Выберите стол, чтобы продолжить.",
-  "reorder_partial": "Добавлено {{added}} из {{total}} позиций."
+  "reorder_partial": "Добавлено {{added}} из {{total}} позиций.",
+  "availability_only_for": "Только {{orderTypes}}",
+  "availability_switch_to": "Переключиться на {{orderType}}",
+  "availability_ask_server": "Спросите официанта"
 }

@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { getProducts, getPublicMenuBundles } from '@/services/menuService';
 import type { MenuBundleItem, MenuItem } from '@/types/menu';
+import type { OrderType } from '@/types/order';
 import { ALL_ITEMS_KEY } from './constants';
 import { isVisible, mapBundleDtoToMenuBundleItem, mapProductDtoToMenuItem } from './mappers';
 import type { MenuBundleListResponse, ProductListResponse } from './types';
@@ -28,7 +29,12 @@ export interface UsePublicMenuDataReturn {
   totalPages: number;
   totalCount: number;
   pageSize: number;
-  fetchProducts: (page: number, categoryId: string | typeof ALL_ITEMS_KEY | null) => Promise<void>;
+  /**
+   * `categoryId` is a category id, `null`, or the `ALL_ITEMS_KEY` sentinel. Typed as plain `string`
+   * rather than `string | typeof ALL_ITEMS_KEY`: TypeScript widens the literal into `string` and the
+   * union collapses, so the narrower arm documents nothing and only trips Sonar S6571.
+   */
+  fetchProducts: (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => Promise<void>;
   fetchMenuBundles: (page: number) => Promise<void>;
 }
 
@@ -53,36 +59,48 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
   // true→false transition tracks the freshest fetch.
   const requestIdRef = useRef(0);
 
-  const fetchProducts = useCallback(async (page: number, categoryId: string | typeof ALL_ITEMS_KEY | null) => {
-    const localId = ++requestIdRef.current;
-    setIsLoading(true);
-    setError(null);
-    setItems([]);
-    const reportError = (msg: string) => {
-      setError(msg);
+  // `requestedOrderType` is an ARGUMENT rather than a closure dependency on purpose: it keeps this
+  // callback's identity stable, so adding the channel to the fetch cannot turn the caller's load
+  // effect into one that re-runs on an unrelated identity change.
+  const fetchProducts = useCallback(
+    async (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => {
+      const localId = ++requestIdRef.current;
+      setIsLoading(true);
+      setError(null);
       setItems([]);
-    };
-    try {
-      const catId = categoryId === ALL_ITEMS_KEY ? null : categoryId;
-      const response = (await getProducts(page, PAGE_SIZE, catId || undefined)) as ProductListResponse;
-      if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
-      if (!response.success) {
-        reportError(response.message || 'Failed to fetch products');
-        return;
+      const reportError = (msg: string) => {
+        setError(msg);
+        setItems([]);
+      };
+      try {
+        const catId = categoryId === ALL_ITEMS_KEY ? null : categoryId;
+        const response = (await getProducts(
+          page,
+          PAGE_SIZE,
+          catId || undefined,
+          undefined,
+          requestedOrderType,
+        )) as ProductListResponse;
+        if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
+        if (!response.success) {
+          reportError(response.message || 'Failed to fetch products');
+          return;
+        }
+        setTotalPages(response.data?.totalPages || 1);
+        setTotalCount(response.data?.totalCount || 0);
+        setCurrentPage(page);
+        const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, catId || undefined));
+        setItems(mapped.filter(isVisible));
+      } catch (e: unknown) {
+        if (localId !== requestIdRef.current) return;
+        console.error('Failed to fetch products', e);
+        reportError(errorMessage(e, 'Failed to fetch products'));
+      } finally {
+        if (localId === requestIdRef.current) setIsLoading(false);
       }
-      setTotalPages(response.data?.totalPages || 1);
-      setTotalCount(response.data?.totalCount || 0);
-      setCurrentPage(page);
-      const mapped = (response.data?.items || []).map((p) => mapProductDtoToMenuItem(p, catId || undefined));
-      setItems(mapped.filter(isVisible));
-    } catch (e: unknown) {
-      if (localId !== requestIdRef.current) return;
-      console.error('Failed to fetch products', e);
-      reportError(errorMessage(e, 'Failed to fetch products'));
-    } finally {
-      if (localId === requestIdRef.current) setIsLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   const fetchMenuBundles = useCallback(async (page: number) => {
     const localId = ++requestIdRef.current;

@@ -40,6 +40,16 @@ interface OrderTypeContextType {
   /** True when an order type has been chosen — drives the welcome modal's open state. */
   hasChosenOrderType: boolean;
   clearOrderType: () => void;
+  /**
+   * False until the persisted choice has been read back from localStorage.
+   *
+   * `state.orderType` is `null` both before hydration and when the guest genuinely has no choice,
+   * and the two are indistinguishable — so anything whose REQUEST depends on the channel (the menu
+   * fetch sends `RequestedOrderType`) must wait, or it fires once with `null` and again with the
+   * restored value, flashing every restricted card from undimmed to dimmed. Consumers that merely
+   * RENDER the state need not gate on this.
+   */
+  hydrated: boolean;
 }
 
 const STORAGE_KEY = 'rumi_order_type_state';
@@ -110,6 +120,7 @@ const OrderTypeContext = createContext<OrderTypeContextType | undefined>(undefin
 
 export function OrderTypeProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OrderTypeState>(initialState);
+  const [hydrated, setHydrated] = useState(false);
   const checkout = useCheckout();
 
   // Hydrate from our own storage. There used to be a one-time backfill here from CheckoutContext,
@@ -129,6 +140,7 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
   // CheckoutContext.orderType are the mirrored calls below.
   useEffect(() => {
     setState(loadState());
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -179,6 +191,7 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
     setAddress,
     hasChosenOrderType: state.orderType !== null,
     clearOrderType,
+    hydrated,
   };
 
   return (

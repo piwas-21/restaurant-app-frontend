@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { OrderType } from '@/types/order';
 import { type DeliveryAddress, useCheckout } from '@/contexts/CheckoutContext';
 import { useOrderTypeEnabledGuard } from '@/hooks/order/useOrderTypeEnabledGuard';
@@ -112,43 +112,42 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OrderTypeState>(initialState);
   const checkout = useCheckout();
 
-  // One-time migration: if we have nothing in our own storage but the legacy CheckoutContext
-  // does (sessions predating this context), backfill from there so the guest is not asked to
-  // choose again.
+  // Hydrate from our own storage. There used to be a one-time backfill here from CheckoutContext,
+  // for sessions predating this context — it was dead code and has been removed:
   //
-  // NOTE: an earlier version of this comment said "the old /checkout/order-type page still
-  // writes to CheckoutContext directly". That was false and the claim leaked into a plan as a
-  // divergence bug (ORDER-TYPE-AVAILABILITY-PLAN §3.3 refutes it). That route has been deleted;
-  // the ONLY writers of CheckoutContext.orderType are the two `setOrderType` calls in
-  // useOrderTypeFollowUp, via the MIRROR below. No reverse mirror is installed, deliberately.
+  //  * React runs CHILD effects before PARENT ones, and `CheckoutProvider` wraps this provider
+  //    (client-providers.tsx). Its own hydration effect had therefore not run yet, so
+  //    `checkout.state.orderType` was always null here and the branch never fired. The test that
+  //    "covered" it passed only because the mock supplied a pre-hydrated checkout state.
+  //  * Do not reinstate it by reordering the providers either: a backfill would resurrect an
+  //    expired choice from `rumi_checkout_state` (which has no TTL of its own) and re-stamp it,
+  //    renewing the 24h window forever. The mirror is one-directional on purpose.
+  //
+  // Also note: an older comment here claimed "/checkout/order-type still writes to
+  // CheckoutContext directly". That was false, and the claim leaked into a plan as a phantom
+  // divergence bug (ORDER-TYPE-AVAILABILITY-PLAN §3.3 refutes it). The only writers of
+  // CheckoutContext.orderType are the mirrored calls below.
   useEffect(() => {
-    const loaded = loadState();
-    if (loaded.orderType === null && checkout.state.orderType !== null) {
-      setState({
-        orderType: checkout.state.orderType,
-        table: checkout.state.tableNumber ?? '',
-        deliveryAddress: checkout.state.deliveryAddress,
-        // Stamped now, not "unknown": a migrated choice is one the guest made in a session that
-        // is still open, and dating it null would expire it on the very next load.
-        chosenAt: Date.now(),
-      });
-    } else {
-      setState(loaded);
-    }
-    // Run once on mount. checkout.state changes after this trigger normal
-    // re-renders but must not re-run the migration.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setState(loadState());
   }, []);
 
   useEffect(() => {
     saveState(state);
   }, [state]);
 
-  const setOrderType = (type: OrderType) => {
-    setState((prev) => ({ ...prev, orderType: type, chosenAt: Date.now() }));
-    checkout.setOrderType(type); // MIRROR(CheckoutContext) — drop after C1.5.d
-  };
+  // Memoised: `useOrderTypeEnabledGuard` has these in an effect dep array, and a fresh identity
+  // on every provider render re-ran the guard on every render.
+  const setOrderType = useCallback(
+    (type: OrderType) => {
+      setState((prev) => ({ ...prev, orderType: type, chosenAt: Date.now() }));
+      checkout.setOrderType(type); // MIRROR(CheckoutContext) — drop after C1.5.d
+    },
+    [checkout],
+  );
 
+  // Deliberately does NOT refresh `chosenAt`: picking a table is not a fresh decision about the
+  // CHANNEL, and renewing on every companion write would let an always-open tab stay valid
+  // indefinitely — the one thing the TTL exists to stop.
   const setTable = (table: string) => {
     setState((prev) => ({ ...prev, table }));
     checkout.setTableNumber(table); // MIRROR(CheckoutContext)
@@ -159,15 +158,19 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
     checkout.setDeliveryAddress(address); // MIRROR(CheckoutContext)
   };
 
-  const clearOrderType = () => {
+  const clearOrderType = useCallback(() => {
     setState(initialState);
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
     }
-    // Note: we deliberately do NOT clear CheckoutContext here — that would
-    // wipe customerInfo/tip/etc. Existing `clearCheckout()` is the right
-    // hammer for that.
-  };
+    // MIRROR(CheckoutContext). This used to clear only OUR half, on the reasoning that touching
+    // CheckoutContext would wipe customerInfo/tip. True of `clearCheckout()` — but leaving the
+    // mirror stale meant every clear path (the 24h TTL, the enabled-list guard, clearing the
+    // table) left the abandoned channel in the store that `useCheckoutPrereqGuard` and the tax
+    // calculation read, so the guest could still place an order on it. `clearOrderTypeSelection`
+    // drops exactly the mirrored fields and keeps the contact details.
+    checkout.clearOrderTypeSelection();
+  }, [checkout]);
 
   const value: OrderTypeContextType = {
     state,

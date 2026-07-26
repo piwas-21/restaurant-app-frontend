@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useTableContext } from '@/contexts/TableContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { OrderType } from '@/types/order';
-import ConfirmationModal from '@/components/common/ConfirmationModal';
+import BaseModal from '@/components/design-system/BaseModal';
 import styles from './TableBanner.module.css';
 
 interface TableBannerProps {
@@ -65,16 +65,32 @@ export default function TableBanner({ position = 'top' }: TableBannerProps) {
       </div>
 
       {/* Was a `window.confirm` with a hardcoded English string — untranslatable, and it blocks
-          the main thread. */}
-      <ConfirmationModal
+          the main thread. `BaseModal` rather than the existing `ConfirmationModal` because that
+          one is a raw overlay with no focus trap, no ESC and no dialog role, and every one of its
+          callsites today is behind /admin — this is a customer-facing surface (frontend rule 2). */}
+      <BaseModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleConfirmClear}
-        message={t(
-          'clear_table_selection_confirm',
-          'Clear table selection? You will need to scan the QR code again, and your dine-in choice will be reset.',
-        )}
-      />
+        title={t('clear_table_selection', 'Clear table selection')}
+        size="sm"
+        footer={
+          <>
+            <button type="button" className={styles.confirmCancel} onClick={() => setIsConfirmOpen(false)}>
+              {t('cancel', 'Cancel')}
+            </button>
+            <button type="button" className={styles.confirmAccept} onClick={handleConfirmClear}>
+              {t('confirm', 'Confirm')}
+            </button>
+          </>
+        }
+      >
+        <p>
+          {t(
+            'clear_table_selection_confirm',
+            'Clear table selection? You will need to scan the QR code again, and your dine-in choice will be reset.',
+          )}
+        </p>
+      </BaseModal>
     </>
   );
 }

@@ -225,3 +225,25 @@
     display: none;
   }
 }
+
+/* Confirm-dialog buttons. Deliberately plain — this is a destructive-ish confirm, so the accept
+   action is the accented one and Cancel stays quiet. */
+.confirmCancel,
+.confirmAccept {
+  padding: 0.5rem 1.1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.confirmCancel {
+  background-color: transparent;
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.confirmAccept {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}

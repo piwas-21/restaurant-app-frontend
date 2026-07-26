@@ -3,17 +3,20 @@ import { render, screen, act } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { OrderTypeProvider, useOrderType, ORDER_TYPE_TTL_MS } from './OrderTypeContext';
 
-const checkoutState = {
+const mockCheckoutState = {
   orderType: null as OrderType | null,
   tableNumber: null as string | null,
   deliveryAddress: null,
 };
+const mockClearOrderTypeSelection = jest.fn();
+const mockCheckoutSetOrderType = jest.fn();
 jest.mock('@/contexts/CheckoutContext', () => ({
   useCheckout: () => ({
-    state: checkoutState,
-    setOrderType: jest.fn(),
+    state: mockCheckoutState,
+    setOrderType: mockCheckoutSetOrderType,
     setTableNumber: jest.fn(),
     setDeliveryAddress: jest.fn(),
+    clearOrderTypeSelection: mockClearOrderTypeSelection,
   }),
 }));
 // The provider mounts the G4/G8 guard; it has its own suite and would otherwise pull in a fetch.
@@ -22,13 +25,14 @@ jest.mock('@/hooks/order/useOrderTypeEnabledGuard', () => ({ useOrderTypeEnabled
 const STORAGE_KEY = 'rumi_order_type_state';
 
 function Probe() {
-  const { state, hasChosenOrderType, setOrderType } = useOrderType();
+  const { state, hasChosenOrderType, setOrderType, clearOrderType } = useOrderType();
   return (
     <div>
       <span data-testid="type">{state.orderType ?? 'none'}</span>
       <span data-testid="table">{state.table || 'none'}</span>
       <span data-testid="chosen">{String(hasChosenOrderType)}</span>
       <button onClick={() => setOrderType(OrderType.Delivery)}>pick</button>
+      <button onClick={clearOrderType}>clear</button>
     </div>
   );
 }
@@ -41,9 +45,10 @@ const renderProvider = () =>
   );
 
 beforeEach(() => {
+  jest.clearAllMocks();
   localStorage.clear();
-  checkoutState.orderType = null;
-  checkoutState.tableNumber = null;
+  mockCheckoutState.orderType = null;
+  mockCheckoutState.tableNumber = null;
 });
 
 describe('OrderTypeContext — 24h TTL on the persisted choice (gap G3)', () => {
@@ -115,15 +120,28 @@ describe('OrderTypeContext — 24h TTL on the persisted choice (gap G3)', () => 
     expect(stored.chosenAt).toEqual(expect.any(Number));
     expect(Date.now() - stored.chosenAt).toBeLessThan(ORDER_TYPE_TTL_MS);
   });
+});
 
-  it('dates a choice migrated from CheckoutContext as current, not as unknown', () => {
-    // Otherwise the migration would hand back a choice that expires on the very next load.
-    checkoutState.orderType = OrderType.Takeaway;
-
+describe('OrderTypeContext — clearing mirrors into CheckoutContext', () => {
+  // The mirror is one-directional, so a clear that touched only this store was a HALF clear: the
+  // menu went back to "no type chosen" while `useCheckoutPrereqGuard` and the tax calculation
+  // kept reading the abandoned channel out of CheckoutContext, and the guest could still place an
+  // order on it. Every clear path (24h TTL, the enabled-list guard, clearing the table) goes
+  // through here.
+  it('clears the mirrored order type, not just its own copy', () => {
     renderProvider();
 
-    expect(screen.getByTestId('type')).toHaveTextContent(OrderType.Takeaway);
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) as string);
-    expect(stored.chosenAt).toEqual(expect.any(Number));
+    act(() => screen.getByRole('button', { name: 'clear' }).click());
+
+    expect(mockClearOrderTypeSelection).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('type')).toHaveTextContent('none');
+  });
+
+  it('picking a type still mirrors it across', () => {
+    renderProvider();
+
+    act(() => screen.getByRole('button', { name: 'pick' }).click());
+
+    expect(mockCheckoutSetOrderType).toHaveBeenCalledWith(OrderType.Delivery);
   });
 });

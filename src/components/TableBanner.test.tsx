@@ -21,9 +21,11 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
 }));
 
+const openConfirm = () => fireEvent.click(screen.getAllByRole('button', { name: 'Clear table selection' })[0]);
+
 const clearAndConfirm = () => {
-  fireEvent.click(screen.getByRole('button', { name: 'Clear table selection' }));
-  fireEvent.click(screen.getByRole('button', { name: 'yes' }));
+  openConfirm();
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
 };
 
 beforeEach(() => {
@@ -44,10 +46,12 @@ describe('TableBanner', () => {
   it('confirms before clearing rather than blocking on window.confirm', () => {
     render(<TableBanner />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Clear table selection' }));
+    openConfirm();
 
     expect(mockClearTableContext).not.toHaveBeenCalled();
     expect(screen.getByText(/Clear table selection\?/)).toBeInTheDocument();
+    // BaseModal, not a raw overlay — this is a customer-facing surface (frontend rule 2).
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   // G2: clearing the table used to leave the order type on Dine-In with an orphaned table number
@@ -74,8 +78,8 @@ describe('TableBanner', () => {
   it('cancelling the confirm changes nothing', () => {
     render(<TableBanner />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Clear table selection' }));
-    fireEvent.click(screen.getByRole('button', { name: 'cancel' }));
+    openConfirm();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(mockClearTableContext).not.toHaveBeenCalled();
     expect(mockClearOrderType).not.toHaveBeenCalled();

@@ -31,7 +31,8 @@ export function useReorder(setReorderingOrderId: (id: string | null) => void) {
   return useCallback(
     async (order: OrderDto) => {
       setReorderingOrderId(order.id);
-      const lines = order.items.filter((item) => item.productId);
+      // `?? []` so a malformed order cannot throw before the spinner is cleared below.
+      const lines = (order.items ?? []).filter((item) => item.productId);
       const failures: string[] = [];
       let added = 0;
 
@@ -47,8 +48,10 @@ export function useReorder(setReorderingOrderId: (id: string | null) => void) {
           added += 1;
         } catch (error) {
           // One reason per line. `getAddToCartErrorMessage` already names the item and the
-          // channels it IS available on when the server tagged the rejection.
-          failures.push(getAddToCartErrorMessage(error, t));
+          // channels it IS available on when the server tagged the rejection; anything else falls
+          // back to the REORDER wording, not the generic add-to-cart one — the guest is looking at
+          // an order list, not a product.
+          failures.push(getAddToCartErrorMessage(error, t, 'failed_to_reorder'));
         }
       }
 

@@ -115,6 +115,28 @@ describe('useReorder — add what fits, report the rest (gap G5)', () => {
     expect(setReorderingOrderId).toHaveBeenLastCalledWith(null);
   });
 
+  // A reorder-specific fallback, not the generic add-to-cart one: the guest is looking at an
+  // order list, not a product page.
+  it('falls back to the reorder wording when the failure carries no guest-facing reason', async () => {
+    mockAddItem.mockRejectedValue(new Error('offline'));
+    const result = renderReorder();
+
+    await act(async () => result.current(order));
+
+    expect(mockEnqueueSnackbar).toHaveBeenCalledWith(
+      'failed_to_reorder',
+      expect.objectContaining({ variant: 'error' }),
+    );
+  });
+
+  it('clears the spinner even for a malformed order with no items', async () => {
+    const result = renderReorder();
+
+    await act(async () => result.current({ id: 'o3' } as unknown as OrderDto));
+
+    expect(setReorderingOrderId).toHaveBeenLastCalledWith(null);
+  });
+
   it('skips lines with no productId rather than posting an empty add', async () => {
     const withGhost = { id: 'o2', items: [{ productId: 'p1', quantity: 1 }, { quantity: 1 }] } as unknown as OrderDto;
     const result = renderReorder();

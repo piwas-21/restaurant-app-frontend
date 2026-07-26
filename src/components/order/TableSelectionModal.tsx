@@ -105,16 +105,13 @@ export default function TableSelectionModal({
         </>
       }
     >
-      <div
-        ref={tablePickerRef}
-        tabIndex={-1}
-        aria-describedby={showTableRequired ? 'table-required-hint' : undefined}
-        className={styles.tablePicker}
-      >
+      {/* No aria-describedby: the hint below carries role="alert", so wiring both would announce
+          the same sentence twice. */}
+      <div ref={tablePickerRef} tabIndex={-1} className={styles.tablePicker}>
         <TableSelector selectedTable={selected} onTableSelect={selectTable} />
       </div>
       {showTableRequired && (
-        <p id="table-required-hint" className={styles.requiredHint} role="alert">
+        <p className={styles.requiredHint} role="alert">
           {t('table_required_hint', 'Choose a table to continue.')}
         </p>
       )}

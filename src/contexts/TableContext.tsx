@@ -7,6 +7,15 @@ interface TableContextData {
   tableNumber: string | null;
   qrScanned: boolean;
   isOutdoor: boolean;
+  /**
+   * True once this scan has pinned the order type to Dine-In (gap G1).
+   *
+   * Lives HERE, in sessionStorage alongside the scan, rather than in a `useRef` inside the hook
+   * that does the pinning: that hook is mounted per route (/menu, /cart, /checkout/review), so a
+   * ref resets on every navigation and would re-pin Dine-In — silently undoing a guest who had
+   * deliberately switched to Takeaway, on the very page that computes tax from the choice.
+   */
+  dineInPinned?: boolean;
 }
 
 interface TableContextType {
@@ -26,6 +35,7 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
     tableNumber: null,
     qrScanned: false,
     isOutdoor: false,
+    dineInPinned: false,
   });
 
   // Load from session storage on mount
@@ -63,6 +73,7 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
       tableNumber: null,
       qrScanned: false,
       isOutdoor: false,
+      dineInPinned: false,
     });
     sessionStorage.removeItem(STORAGE_KEY);
   };

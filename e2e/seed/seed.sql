@@ -202,6 +202,13 @@ SET open_time = INTERVAL '00:00:00',
     is_closed = FALSE,
     updated_by = 'e2e-seed';
 
+-- psql variables so the order's id and the bundle-parent line's id are written ONCE. They are
+-- foreign keys repeated across the child rows and the verification query, and a UUID typo there
+-- fails as a silently orphaned row, not an error. (`\set` is a client-side psql command; this file
+-- is only ever run as `psql -f`, which is how CI and e2e/README.md invoke it.)
+\set order_id '00000000-0000-0000-0000-0000000000f0'
+\set combo_item_id '00000000-0000-0000-0000-0000000000e1'
+
 -- 7) MIXED-KITCHEN BUNDLE ORDER — fixture for e2e/tests/cashier/kitchen-ticket-routing.e2e.ts.
 --
 -- The regression backend #237 (issue #234) introduced: `OrderDto.Items` is now ROOT-ONLY, so a
@@ -260,7 +267,7 @@ INSERT INTO orders (
     has_user_limit_discount, user_limit_amount,
     is_focus_order, is_deleted, created_by
 ) VALUES (
-    '00000000-0000-0000-0000-0000000000f0',
+    :'order_id',
     'E2E-KITCHEN-001',
     'Pending',
     'Pending',
@@ -281,14 +288,14 @@ INSERT INTO "OrderItems" (
     id, order_id, product_id, parent_order_item_id,
     product_name, quantity, unit_price, item_total, created_by
 ) VALUES
-    ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000f0',
+    (:'combo_item_id', :'order_id',
      '00000000-0000-0000-0000-0000000000f1', NULL,
      'E2E Kitchen Combo', 1, 20.00, 20.00, 'e2e-seed'),
-    ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-0000000000f0',
-     '00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-0000000000e1',
+    ('00000000-0000-0000-0000-0000000000e2', :'order_id',
+     '00000000-0000-0000-0000-0000000000f2', :'combo_item_id',
      'E2E Front Burger', 1, 12.00, 12.00, 'e2e-seed'),
-    ('00000000-0000-0000-0000-0000000000e3', '00000000-0000-0000-0000-0000000000f0',
-     '00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-0000000000e1',
+    ('00000000-0000-0000-0000-0000000000e3', :'order_id',
+     '00000000-0000-0000-0000-0000000000f3', :'combo_item_id',
      'E2E Back Fries', 1, 8.00, 8.00, 'e2e-seed')
 ON CONFLICT (id) DO NOTHING;
 
@@ -303,5 +310,5 @@ FROM working_hours ORDER BY day_of_week;
 SELECT oi.product_name, p.kitchen_type, oi.parent_order_item_id IS NULL AS is_root
 FROM "OrderItems" oi
 JOIN "Products" p ON p.id = oi.product_id
-WHERE oi.order_id = '00000000-0000-0000-0000-0000000000f0'
+WHERE oi.order_id = :'order_id'
 ORDER BY oi.product_name ASC;

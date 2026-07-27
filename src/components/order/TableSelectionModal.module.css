@@ -49,3 +49,15 @@
   background-color: var(--nav-link-hover-bg);
   outline: none;
 }
+
+/* Focus target for the #208 "you still need a table" jump. The outline is suppressed because the
+   hint below is the visible feedback — a focus ring on a whole section reads as a rendering bug. */
+.tablePicker:focus {
+  outline: none;
+}
+
+.requiredHint {
+  color: var(--feedback-error);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}

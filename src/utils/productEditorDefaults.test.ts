@@ -90,6 +90,17 @@ describe('toItemDefaults / toBundleDefaults', () => {
     expect(defaults.allergens).toEqual(['gluten']);
   });
 
+  it('seeds the order-type mask, treating an absent field as "inherit" rather than a bad value', () => {
+    // `undefined` on a fetched product must land on the same null the radio reads as "inherit";
+    // anything else flips the control from uncontrolled to controlled mid-edit.
+    expect(toItemDefaults(product()).availableOrderTypes).toBeNull();
+    expect(toItemDefaults(product({ availableOrderTypes: null })).availableOrderTypes).toBeNull();
+    // 6 = takeaway|delivery — an explicit per-item override survives the round trip.
+    expect(toItemDefaults(product({ availableOrderTypes: 6 })).availableOrderTypes).toBe(6);
+    // And 7 is NOT collapsed to null: on a product that would mean "inherit".
+    expect(toItemDefaults(product({ availableOrderTypes: 7 })).availableOrderTypes).toBe(7);
+  });
+
   it('seeds a bundle with no category fields at all', () => {
     const defaults = toBundleDefaults(product({ type: 'menu' })) as Record<string, unknown>;
 

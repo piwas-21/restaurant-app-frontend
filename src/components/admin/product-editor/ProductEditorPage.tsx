@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
@@ -11,6 +12,7 @@ import { MultilingualContent } from '@/components/admin/product/MultilingualCont
 import { ProductVariations } from '@/components/admin/product/ProductVariations';
 import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
 import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
+import ProductOrderTypes from '@/components/admin/product/ProductOrderTypes';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import BundlePanel from './BundlePanel';
@@ -135,6 +137,24 @@ export default function ProductEditorPage({
                 setImageFiles={editor.setImageFiles}
               />
             </div>
+
+            {/* Items only: no bundle command accepts an order-type mask, so offering the control
+                on a bundle would promise a save that silently does nothing (plan §9.2). */}
+            <section className={styles.panel}>
+              <Controller
+                name="availableOrderTypes"
+                control={form.control}
+                render={({ field }) => (
+                  <ProductOrderTypes
+                    value={(field.value as number | null | undefined) ?? null}
+                    onChange={field.onChange}
+                    categories={editor.categories}
+                    primaryCategoryId={editor.primaryCategoryId}
+                    error={errors.availableOrderTypes?.message as string | undefined}
+                  />
+                )}
+              />
+            </section>
 
             <ProductVariations
               register={form.register}

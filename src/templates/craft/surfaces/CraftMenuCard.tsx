@@ -7,9 +7,11 @@ import type { MenuCardProps } from '@/components/menu/MenuCard';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import { Plus } from 'lucide-react';
 import MenuCardImage from '@/components/menu/MenuCardImage';
+import MenuCardAvailability from '@/components/menu/MenuCardAvailability';
 import AdminMenuCardControls from '@/components/menu/AdminMenuCardControls';
 import AdminPriceEditor from '@/components/menu/AdminPriceEditor';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
+import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import styles from './CraftMenuCard.module.css';
 
 /**
@@ -24,8 +26,12 @@ import styles from './CraftMenuCard.module.css';
 // `onFeedbackSuccess` is intentionally not destructured — craft's card doesn't
 // surface feedback (parity with the shared card, whose feedback button is dormant),
 // so the prop stays in the contract but is unused here.
-export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>) {
+export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
+  const availabilityNotice = useItemAvailabilityNotice(item.availability);
+  const isBlocked = availabilityNotice?.tone === 'blocked';
+  const nameId = `item-name-${item.id}`;
+  const reasonId = `item-availability-${item.id}`;
   const [imageFailed, setImageFailed] = useState(false);
   // Locally reflect an admin inline price edit; resync if the item prop changes.
   const [price, setPrice] = useState(item.price);
@@ -41,7 +47,12 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
   const openDetails = () => onOpen(item, { forceSheet: true });
 
   return (
-    <article className={styles.card} role="listitem" aria-labelledby={`item-name-${item.id}`}>
+    // Blocked cards stay listed with every control focusable, and the reason is folded into the
+    // accessible name — parity with the shared card, including why `aria-disabled` is absent.
+    <li
+      className={isBlocked ? `${styles.card} ${styles.blocked}` : styles.card}
+      aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
+    >
       {item.isSpecial && (
         <span className={styles.special} data-testid="special-badge">
           {t('special')}
@@ -61,7 +72,7 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
       />
 
       <div className={styles.body}>
-        <button type="button" className={styles.leader} onClick={openDetails} id={`item-name-${item.id}`}>
+        <button type="button" className={styles.leader} onClick={openDetails} id={nameId}>
           <span className={styles.name}>{itemName}</span>
           <span className={styles.price}>{formatPlainCurrency(price)}</span>
         </button>
@@ -78,23 +89,36 @@ export default function CraftMenuCard({ item, onOpen }: Readonly<MenuCardProps>)
             previously printed raw, icon-less keys. `compact` renders null when empty. */}
         <AllergenDisplay allergens={item.allergens} id={`craft-allergen-${item.id}`} variant="compact" />
 
+        {availabilityNotice && (
+          <MenuCardAvailability
+            notice={availabilityNotice}
+            reasonId={reasonId}
+            onSwitchOrderType={onSwitchOrderType}
+            styles={styles}
+          />
+        )}
+
         {/* Craft action row: a terracotta letterpress "Add" (+ glyph) and a kraft
-            "Details" — both organic-cornered, instead of the shared classic pills. */}
+            "Details" — both organic-cornered, instead of the shared classic pills.
+            "Add" is dropped while blocked (the notice above offers the switch instead),
+            never rendered disabled — parity with the shared card. */}
         <div className={styles.actions}>
-          <button
-            type="button"
-            className={styles.addButton}
-            onClick={open}
-            aria-label={t('add_item_to_order', { itemName })}
-          >
-            <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
-            {t('add_to_order', 'Add to Order')}
-          </button>
+          {!isBlocked && (
+            <button
+              type="button"
+              className={styles.addButton}
+              onClick={open}
+              aria-label={t('add_item_to_order', { itemName })}
+            >
+              <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+              {t('add_to_order', 'Add to Order')}
+            </button>
+          )}
           <button type="button" className={styles.detailsButton} onClick={openDetails}>
             {t('details', 'Details')}
           </button>
         </div>
       </div>
-    </article>
+    </li>
   );
 }

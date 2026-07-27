@@ -5,6 +5,7 @@ import { z } from 'zod';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { updateCategory, uploadCategoryImage, reorderCategory } from '@/services/categoryService';
+import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -32,6 +33,8 @@ interface Category {
   description?: string | null;
   isActive: boolean;
   displayOrder: number;
+  /** Raw OrderChannels mask; `null` = every order type. Shown read-only, echoed back on save. */
+  availableOrderTypes?: number | null;
 }
 
 interface EditCategoryModalProps {
@@ -78,6 +81,11 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
         name: data.name,
         description: data.description,
         isActive: data.isActive,
+        // Echoed back unchanged, NOT edited here. `UpdateCategoryCommand` is a full-replace PUT
+        // that assigns AvailableOrderTypes unconditionally, so omitting it would clear the
+        // category's channel restriction on every unrelated rename (plan §9.1). The channel
+        // matrix in restaurant settings stays the only writer.
+        availableOrderTypes: category.availableOrderTypes ?? null,
       };
       const categoryResponse = (await updateCategory(category.id, updateData)) as {
         success: boolean;
@@ -168,6 +176,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
             <input id="displayOrder" type="number" {...register('displayOrder')} />
             {errors.displayOrder && <p className={styles.errorMessage}>{errors.displayOrder.message}</p>}
           </div>
+          <CategoryOrderTypesSummary mask={category?.availableOrderTypes} className={styles.formGroup} />
           <div className={styles.buttonGroup}>
             <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
               {isSubmitting ? t('saving...') : t('save_changes')}

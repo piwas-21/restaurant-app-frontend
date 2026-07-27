@@ -2,8 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSnackbar } from 'notistack';
 import { useCart } from '@/components/cart/CartContext';
+import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import {
   bundleOptionKey,
@@ -30,8 +30,8 @@ interface UseBundleCustomizationSheetArgs {
  */
 export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
-  const { t, i18n } = useTranslation();
-  const { enqueueSnackbar } = useSnackbar();
+  const { i18n } = useTranslation();
+  const { notifyItemAdded, notifyAddFailed } = useCartFeedback();
   const currentLanguage = (i18n.language || 'en').split('-')[0];
 
   const [bundle, setBundle] = useState<MenuBundleItem | null>(null);
@@ -56,7 +56,9 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
   const openForBundle = useCallback(
     (next: MenuBundleItem) => {
       if (!next.menuDefinition) {
-        enqueueSnackbar(t('error_adding_to_cart', 'Failed to add item to cart'), { variant: 'error' });
+        // A malformed payload, not a server rejection — there is no guest-facing reason to pass on,
+        // so this deliberately lands on the generic fallback.
+        notifyAddFailed(null);
         return;
       }
 
@@ -68,7 +70,7 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
       setBundle(next);
       setIsOpen(true);
     },
-    [enqueueSnackbar, t],
+    [notifyAddFailed],
   );
 
   const linePrice = useLinePrice({
@@ -124,14 +126,10 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
         selectedMenuOptions: selectedOptions,
       });
       close();
-      enqueueSnackbar(t('item_added_to_cart_toast', { itemName: title }), {
-        variant: 'success',
-        autoHideDuration: 2000,
-        anchorOrigin: { vertical: 'top', horizontal: 'center' },
-      });
+      notifyItemAdded(title);
       onAdded?.();
-    } catch {
-      enqueueSnackbar(t('error_adding_to_cart', 'Failed to add item to cart'), { variant: 'error' });
+    } catch (error) {
+      notifyAddFailed(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -139,14 +137,14 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
     addItem,
     bundle,
     close,
-    enqueueSnackbar,
     isSubmitting,
+    notifyAddFailed,
+    notifyItemAdded,
     onAdded,
     quantity,
     selectedOptions,
     selectionErrors,
     specialInstructions,
-    t,
     title,
   ]);
 

@@ -4,10 +4,8 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/components/AuthContext';
-import { useCart } from '@/components/cart/CartContext';
 import { useOrders } from '@/hooks/useOrders';
-import { useSnackbar } from 'notistack';
-import { OrderDto } from '@/types/order';
+import { useReorder } from '@/hooks/order/useReorder';
 import { Package, RefreshCw, Loader2, AlertCircle } from 'lucide-react';
 import OrderCard from '@/components/orders/OrderCard';
 import styles from '../styles/OrdersPage.module.css';
@@ -16,9 +14,6 @@ export default function OrdersPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const { enqueueSnackbar } = useSnackbar();
-  const { addItem } = useCart();
-
   const {
     activeOrders,
     pastOrders,
@@ -38,6 +33,8 @@ export default function OrdersPage() {
     fetchAll,
   } = useOrders();
 
+  const handleReorder = useReorder(setReorderingOrderId);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -47,35 +44,6 @@ export default function OrdersPage() {
     // fetchAll has its own try/catch (sets error state); fire-and-forget.
     void fetchAll();
   }, [authLoading, user, router, fetchAll]);
-
-  const handleReorder = async (order: OrderDto) => {
-    try {
-      setReorderingOrderId(order.id);
-      for (const item of order.items) {
-        if (item.productId) {
-          await addItem({
-            productId: item.productId,
-            productVariationId: item.productVariationId,
-            menuId: item.menuId,
-            quantity: item.quantity,
-            specialInstructions: item.specialInstructions,
-          });
-        }
-      }
-      enqueueSnackbar(t('items_added_to_cart', 'Items added to cart'), {
-        variant: 'success',
-        anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
-      });
-      router.push('/cart');
-    } catch {
-      enqueueSnackbar(t('failed_to_reorder', 'Failed to add items to cart'), {
-        variant: 'error',
-        anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
-      });
-    } finally {
-      setReorderingOrderId(null);
-    }
-  };
 
   const displayOrders = activeTab === 'active' ? activeOrders : pastOrders;
 

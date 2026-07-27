@@ -63,6 +63,18 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
 }
 
+/* Per-order-type availability (S4). The card RECEDES rather than fades — a blanket `opacity` would
+   drag the reason, the one thing the guest must read, down with it, and a child cannot undo a
+   parent's opacity. (`.contentWrapper` is `display: contents` on desktop and carries no box at all.) */
+.menuItem.blocked {
+  background-color: var(--surface-secondary);
+}
+
+.menuItem.blocked img {
+  filter: grayscale(0.85);
+  opacity: 0.7;
+}
+
 /* Content wrapper - no effect on desktop */
 .contentWrapper {
   display: contents;

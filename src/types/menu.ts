@@ -5,6 +5,7 @@
  * file-length §4). Re-exports everything so existing `@/types/menu` imports are unchanged.
  */
 
+export * from './menu/availability';
 export * from './menu/shared';
 export * from './menu/bundle';
 export * from './menu/menuItem';

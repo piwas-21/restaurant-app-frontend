@@ -13,6 +13,7 @@ import {
   KitchenType,
 } from './shared';
 import { MenuDefinition } from './bundle';
+import type { ItemAvailability } from './availability';
 
 export interface CreateProductData {
   name: string;
@@ -83,6 +84,12 @@ export interface DetailedProduct {
   suggestedSideItems: SuggestedSideItem[];
   kitchenType?: KitchenType;
   menuDefinition?: MenuDefinition; // For menu bundle products
+  /**
+   * Per-order-type verdict, carried in from the browse card via `OpenSheetOptions.availability`
+   * rather than fetched — see that field for why one verdict beats two. Absent on the by-id entry
+   * points (featured special), which stay unguarded (G7).
+   */
+  availability?: ItemAvailability;
 }
 
 export interface DetailedProductResponse {

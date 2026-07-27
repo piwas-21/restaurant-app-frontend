@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
 import TableBanner from '@/components/TableBanner';
@@ -14,6 +14,7 @@ import DefaultOrderFlowSidebar from '@/components/order/OrderFlowSidebar';
 import MobileCartSheet from '@/components/order/MobileCartSheet';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import type { OrderType } from '@/types/order';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuContent from '@/components/menu/MenuContent';
@@ -53,6 +54,11 @@ export default function MenuPage() {
 
   const { state: cartState } = useCart();
   const orderTypeFollowUp = useOrderTypeFollowUp();
+
+  // Tag the funnel event with the surface that triggered it, so a switch driven by a blocked menu
+  // card is distinguishable from the sidebar toggle.
+  const { pickType } = orderTypeFollowUp;
+  const switchOrderTypeFromCard = useCallback((type: OrderType) => pickType(type, 'menu_card'), [pickType]);
 
   // One customization sheet for the whole page (menu-bundles redesign #175, slice 6): the browse
   // grid and the featured banner both open it, and it owns the selection, live pricing and the add.
@@ -129,6 +135,10 @@ export default function MenuPage() {
             totalCount={totalCount}
             onPageChange={onPageChange}
             onOpenItem={sheet.openForCatalogItem}
+            // A card's "Switch to Takeaway" must go through the PAGE's follow-up instance: that
+            // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
+            // its own instance would set the type and swallow the table/address/contact step.
+            onSwitchOrderType={switchOrderTypeFromCard}
           />
         </div>
 
@@ -137,8 +147,10 @@ export default function MenuPage() {
         </div>
       </div>
 
-      <ItemCustomizationSheet controller={sheet.product} />
-      <ItemCustomizationSheet controller={sheet.bundle} />
+      {/* Same switch handler as the cards: the sheet refuses an add the card refused (§9.10), and
+          the way out has to reach the page's follow-up instance to open its modal. */}
+      <ItemCustomizationSheet controller={sheet.product} onSwitchOrderType={switchOrderTypeFromCard} />
+      <ItemCustomizationSheet controller={sheet.bundle} onSwitchOrderType={switchOrderTypeFromCard} />
 
       {/* Floating Cart Button */}
       <FloatingCartButton

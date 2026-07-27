@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import TableSelector from '@/components/checkout/TableSelector';
@@ -44,6 +44,11 @@ export default function TableSelectionModal({
 }: TableSelectionModalProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(initialTable);
+  // frontend #208: Confirm used to be `disabled` while no table was picked, so tapping it did
+  // nothing at all — a disabled button does not even fire a click, and the guest got no hint that
+  // a table was what was missing. It stays enabled and explains itself instead.
+  const [showTableRequired, setShowTableRequired] = useState(false);
+  const tablePickerRef = useRef<HTMLDivElement>(null);
   // Phone optional for DineIn — matches the pre-existing customer-info
   // schema (the customer is at the restaurant; phone is a nice-to-have,
   // not required to take the order).
@@ -56,11 +61,26 @@ export default function TableSelectionModal({
   // Re-sync local state when the modal re-opens with a different initial
   // (e.g. after the user changed via sticky header → welcome → reopen).
   useEffect(() => {
-    if (isOpen) setSelected(initialTable);
+    if (isOpen) {
+      setSelected(initialTable);
+      setShowTableRequired(false);
+    }
   }, [isOpen, initialTable]);
 
+  const selectTable = (table: string) => {
+    setSelected(table);
+    setShowTableRequired(false);
+  };
+
   const handleConfirm = async () => {
-    if (!selected) return;
+    if (!selected) {
+      setShowTableRequired(true);
+      // The picker can be scrolled out of view in a long modal — say what is wrong AND take the
+      // guest to it. `tabIndex={-1}` makes the wrapper focusable so screen readers land there too.
+      tablePickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      tablePickerRef.current?.focus({ preventScroll: true });
+      return;
+    }
     if (guest.visibleFields.length > 0 || guest.wantsRegister) {
       const committed = await guest.commit();
       if (committed === null) return;
@@ -79,18 +99,22 @@ export default function TableSelectionModal({
           <button type="button" className={styles.secondaryButton} onClick={onClose} disabled={guest.isRegistering}>
             {t('cancel', 'Cancel')}
           </button>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={handleConfirm}
-            disabled={!selected || guest.isRegistering}
-          >
+          <button type="button" className={styles.primaryButton} onClick={handleConfirm} disabled={guest.isRegistering}>
             {guest.isRegistering ? t('saving', 'Saving…') : t('confirm', 'Confirm')}
           </button>
         </>
       }
     >
-      <TableSelector selectedTable={selected} onTableSelect={setSelected} />
+      {/* No aria-describedby: the hint below carries role="alert", so wiring both would announce
+          the same sentence twice. */}
+      <div ref={tablePickerRef} tabIndex={-1} className={styles.tablePicker}>
+        <TableSelector selectedTable={selected} onTableSelect={selectTable} />
+      </div>
+      {showTableRequired && (
+        <p className={styles.requiredHint} role="alert">
+          {t('table_required_hint', 'Choose a table to continue.')}
+        </p>
+      )}
       <GuestCustomerInfoFields
         value={guest.value}
         errors={guest.errors}

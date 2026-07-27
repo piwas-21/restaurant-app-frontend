@@ -1,3 +1,4 @@
+import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
 import { KitchenType, MenuDefinition } from '@/types/menu';
@@ -83,6 +84,13 @@ export interface ProductDetails {
   images: ProductImage[];
   suggestedSideItems: SideItem[];
   menuDefinition?: MenuDefinition; // For menu bundle products
+  /**
+   * Mirrors backend `ProductDto.AvailableOrderTypes` — the RAW OrderChannels bitmask stored on the
+   * item. `null` means "inherit from the primary category", which is NOT the same as an explicit
+   * all-three override, so this must never be round-tripped through `maskFromOrderTypes` (see
+   * `exactMaskFromOrderTypes`). Customer surfaces read the decoded `availability` instead.
+   */
+  availableOrderTypes?: number | null;
   content?: any; // To match the full product object for the edit modal
 }
 
@@ -126,4 +134,11 @@ export interface Category {
   isActive: boolean;
   displayOrder: number;
   productCount?: number;
+  /**
+   * Raw OrderChannels bitmask; `null` = available on every order type. Admin editors round-trip
+   * this via `@/utils/orderChannels`. Customer surfaces should read `allowedOrderTypes` instead.
+   */
+  availableOrderTypes?: number | null;
+  /** Server-decoded order types this category permits — never decode the mask on a customer surface. */
+  allowedOrderTypes?: OrderType[];
 }

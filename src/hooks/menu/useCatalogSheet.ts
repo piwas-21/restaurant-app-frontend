@@ -45,7 +45,23 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
   const openForCatalogItem = useCallback(
     (item: CatalogItem, opts?: OpenSheetOptions) => {
       if (!item.isBundle) {
-        openForProductId(item.id, opts);
+        // Carry the card's own per-order-type verdict in, so the sheet cannot offer an add the card
+        // just refused (§9.10). Bundles have no verdict to carry (§9.2).
+        //
+        // A blocked item also FORCES the sheet: the no-options quick-add path never opens anything,
+        // so it would otherwise add straight to the cart, and the sheet is where the guard lives.
+        // Today's cards hide "Add to order" while blocked so that path is unreachable from them —
+        // but "unreachable from the current callers" is exactly how this gap appeared, so the guard
+        // lives on the entry point rather than on every caller's discipline.
+        // The SERVER's verdict, the same predicate the sheet gates on — deliberately not "does the
+        // notice render as blocked", which is also false while the enabled-channel list loads and
+        // would let the two disagree about the same item.
+        const blocked = item.availability?.canOrder === false;
+        openForProductId(item.id, {
+          ...opts,
+          availability: item.availability,
+          forceSheet: opts?.forceSheet || blocked,
+        });
         return;
       }
 

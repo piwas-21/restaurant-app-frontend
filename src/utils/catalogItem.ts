@@ -28,6 +28,7 @@ export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
     detailedIngredients: item.detailedIngredients,
     ingredients: item.ingredients,
     dietaryTags: item.dietaryTags,
+    availability: item.availability,
   };
 }
 

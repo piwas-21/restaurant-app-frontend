@@ -7,6 +7,9 @@ import { formatPlainCurrency } from '@/utils/currency';
 import BaseModal from '@/components/design-system/BaseModal';
 import ProductSheetBody, { type ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
 import BundleSheetBody, { type BundleSheetController } from '@/components/menu/customization/BundleSheetBody';
+import MenuCardAvailability from '@/components/menu/MenuCardAvailability';
+import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import type { OrderType } from '@/types/order';
 import styles from './ItemCustomizationSheet.module.css';
 
 export type SheetController = ProductSheetController | BundleSheetController;
@@ -18,13 +21,65 @@ export type SheetController = ProductSheetController | BundleSheetController;
  * that varies by `controller.kind`; both controllers price through the same backend-faithful
  * `useLinePrice`, so a product line and a bundle line can never drift apart again.
  */
-export default function ItemCustomizationSheet({ controller }: Readonly<{ controller: SheetController }>) {
+interface ItemCustomizationSheetProps {
+  controller: SheetController;
+  /**
+   * Commit a different order type from the blocked-state switch. Same instance the cards use — the
+   * page's `useOrderTypeFollowUp().pickType`, so the follow-up modal actually opens.
+   */
+  onSwitchOrderType?: (type: OrderType) => void;
+}
+
+export default function ItemCustomizationSheet({
+  controller,
+  onSwitchOrderType,
+}: Readonly<ItemCustomizationSheetProps>) {
   const { t } = useTranslation();
   const { isOpen, title, description, quantity, setQuantity, linePrice, isSubmitting, addToCart, close } = controller;
 
+  // The verdict the browse card resolved, handed over on open (§9.10). Bundles carry none by
+  // contract (§9.2), so a combo sheet is never blocked here.
+  const availability = controller.kind === 'product' ? controller.product?.availability : undefined;
+  const notice = useItemAvailabilityNotice(availability);
+
+  // The SERVER's verdict is the gate, not our ability to render a nice reason for it. The notice is
+  // null while the admin-enabled channel list is still in flight, and gating on it alone reopened
+  // the exact hole this closes: the card renders "Add", the entry guard forces the sheet, and the
+  // sheet would offer an Add the server then rejects in English. Refuse first, explain if we can.
+  const isBlocked = notice?.tone === 'blocked' || availability?.canOrder === false;
+
+  // Taking the way out must END this sheet's verdict, not just re-evaluate it. `pickType` commits
+  // the new channel and the GRID refetches — but the sheet holds a copy taken at open time, so
+  // leaving it mounted re-labels the footer to a THIRD channel and never restores Add: the guest
+  // did exactly what the UI asked and the UI asks again. Closing lands them on the surface that
+  // does refetch, where the card is already unblocked (and avoids stacking the follow-up modal's
+  // BaseModal on this one, where a single Escape would close both).
+  const switchOrderTypeAndClose = onSwitchOrderType
+    ? (type: OrderType) => {
+        close();
+        onSwitchOrderType(type);
+      }
+    : undefined;
+
   if (!isOpen) return null;
 
-  const footer = (
+  // Blocked ⇒ the quantity stepper and "Add" are replaced outright by the reason and the way out.
+  // Not disabled: a disabled Add is a control that explains nothing (#208), and a stepper for a
+  // quantity that cannot be ordered is noise.
+  const footer = isBlocked ? (
+    // `notice` can be absent here — blocked-with-nothing-to-say, the load window above. An empty
+    // footer for that instant beats an Add the server will refuse.
+    <div className={styles.footer}>
+      {notice && (
+        <MenuCardAvailability
+          notice={notice}
+          reasonId="sheet-availability-reason"
+          onSwitchOrderType={switchOrderTypeAndClose}
+          styles={styles}
+        />
+      )}
+    </div>
+  ) : (
     <div className={styles.footer}>
       <div className={styles.quantityStepper} aria-label={t('quantity')}>
         <button

@@ -1,4 +1,6 @@
 /* Menu Content Section */
+/* A real <ul> (its children are <li> cards) — hence the list reset, which keeps the rendered grid
+   byte-identical to the div it replaced. */
 .itemsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -7,6 +9,9 @@
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  list-style: none;
+  padding: 0;
+  margin-top: 0;
 }
 
 .bundlesGrid {

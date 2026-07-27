@@ -1,8 +1,57 @@
-import type { MenuBundleItem, MenuItem, MenuItemContent, MenuItemImage } from '@/types/menu';
-import type { MenuBundleDto, ProductContentDto, ProductContentEntryDto, ProductDto, ProductImageDto } from './types';
+import type {
+  AvailabilityReason,
+  ItemAvailability,
+  MenuBundleItem,
+  MenuItem,
+  MenuItemContent,
+  MenuItemImage,
+} from '@/types/menu';
+import { OrderType } from '@/types/order';
+import type {
+  ItemAvailabilityDto,
+  MenuBundleDto,
+  ProductContentDto,
+  ProductContentEntryDto,
+  ProductDto,
+  ProductImageDto,
+} from './types';
 import { BRANDING_PLACEHOLDER } from '@/lib/config';
 
 const PLACEHOLDER_IMAGE = BRANDING_PLACEHOLDER;
+
+const KNOWN_ORDER_TYPES = new Set<string>(Object.values(OrderType));
+const KNOWN_REASONS = new Set<string>(['Available', 'Unavailable', 'WrongOrderType']);
+
+/**
+ * Normalise the wire availability object, or return `undefined` when it carries nothing usable.
+ *
+ * Every failure mode resolves PERMISSIVELY (no restriction to report), matching the backend's own
+ * documented default on `ItemAvailabilityDto.CanOrder`: a projection that forgets the field, an
+ * older backend that has no such field, or a garbled payload must never dim a sellable item. In
+ * particular an empty `allowedOrderTypes` is treated as no-information rather than "blocked
+ * everywhere" — the backend cannot store an empty channel mask (`ValidOrderChannelMask` = null or
+ * 1..7), so an empty list means bad data, not a real restriction.
+ */
+function mapAvailability(dto: ItemAvailabilityDto | undefined): ItemAvailability | undefined {
+  if (!dto || typeof dto !== 'object') return undefined;
+
+  const allowedOrderTypes = (Array.isArray(dto.allowedOrderTypes) ? dto.allowedOrderTypes : []).filter(
+    (value): value is OrderType => typeof value === 'string' && KNOWN_ORDER_TYPES.has(value),
+  );
+  if (allowedOrderTypes.length === 0) return undefined;
+
+  const canOrder = dto.canOrder !== false;
+  return { canOrder, reason: mapReason(dto.reason, canOrder), allowedOrderTypes };
+}
+
+/**
+ * An unrecognised reason must not contradict the verdict — "blocked, reason: Available" would dim a
+ * card with nothing to say — so an unknown value falls back to the reason that matches `canOrder`.
+ */
+function mapReason(reason: string | undefined, canOrder: boolean): AvailabilityReason {
+  if (typeof reason === 'string' && KNOWN_REASONS.has(reason)) return reason as AvailabilityReason;
+  return canOrder ? 'Available' : 'WrongOrderType';
+}
 
 /** Coerce wire `basePrice` (number | string | missing) into a number. */
 function parseBasePrice(value: number | string | undefined): number {
@@ -74,6 +123,7 @@ export function mapProductDtoToMenuItem(p: ProductDto, categoryKey?: string): Me
     isAvailable: p.isAvailable,
     images: mapImages(p.images, fallbackName),
     longDescription: p.description || '',
+    availability: mapAvailability(p.availability),
   };
 }
 

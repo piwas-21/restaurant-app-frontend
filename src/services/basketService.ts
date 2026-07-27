@@ -54,7 +54,13 @@ export async function addItemToBasket(item: AddToBasketDto): Promise<BasketDto> 
   try {
     const response = await apiClient.post<BasketDtoApiResponse>('/api/Basket/items', item);
     if (!response.data) {
-      throw new Error('Failed to add item to basket');
+      // HTTP 200 + `success:false`, which on this endpoint means `AddToBasketCommand` caught an
+      // InvalidOperationException. Every DELIBERATE rejection now throws a domain exception and
+      // reaches the client as a real 4xx, so what is left here is INCIDENTAL — an EF tracking
+      // conflict, "Sequence contains no elements". Its message is not fit for a guest, so this
+      // stays a generic Error and `getAddToCartErrorMessage` falls back to a localized string.
+      // `console.error` below keeps the real text for debugging.
+      throw new Error(`Failed to add item to basket: ${response.errors?.[0] || response.message || 'unknown error'}`);
     }
     return response.data;
   } catch (error) {

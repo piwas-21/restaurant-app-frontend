@@ -1,7 +1,13 @@
 /**
- * Maps an order status to its CSS-variable colour token (defined in globals.css). Used by the
- * cashier OrderDetails header badge and status-dropdown indicator. Extracted verbatim from
- * OrderDetails.getStatusColor (Sprint 4/6 god-file decomposition).
+ * Maps an order status to its CSS-variable colour token (the `--status-*` set in
+ * design-system/tokens/colors.css). Extracted verbatim from OrderDetails.getStatusColor
+ * (Sprint 4/6 god-file decomposition).
+ *
+ * Sole consumer is the OrderDetailsActionBar status-dropdown indicator — an empty dot with no
+ * text on it, so the `--status-*` hues are safe there. Do NOT use this for anything that carries
+ * a label: these hues are tuned as indicators and five of the six fail WCAG AA as a text
+ * background. Badges use the `--badge-status-*-bg` set instead (see design-system/tokens/
+ * colors.css), applied via a modifier class — OrderDetails and OrderList both do this.
  */
 export function getOrderStatusColor(status: string): string {
   switch (status.toLowerCase()) {

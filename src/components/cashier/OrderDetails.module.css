@@ -411,7 +411,13 @@
   font-size: 1rem;
 }
 
-/* Status Badge */
+/* Status Badge. The fill comes from a per-status modifier below — never from an inline
+   style — so the label/fill pair stays a reviewable, tokenised decision (§5.5/§5.6).
+   Every --badge-status-*-bg clears 4.5:1 against --badge-status-fg; see the ratio table
+   in design-system/tokens/colors.css. 0.8125rem/600 is 13px semibold, which is NOT WCAG
+   "large text" (that needs >=18.66px at bold), so the full 4.5:1 applies — the shared
+   --status-* hues used by the dropdown dot would fail here. Changing the size or weight
+   below does not relax that; it is already the strict threshold. */
 .statusBadge {
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -419,7 +425,31 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  color: var(--text-on-accent);
+  color: var(--badge-status-fg);
+}
+
+.statusBadgePending {
+  background-color: var(--badge-status-pending-bg);
+}
+
+.statusBadgeConfirmed {
+  background-color: var(--badge-status-confirmed-bg);
+}
+
+.statusBadgePreparing {
+  background-color: var(--badge-status-preparing-bg);
+}
+
+.statusBadgeReady {
+  background-color: var(--badge-status-ready-bg);
+}
+
+.statusBadgeCompleted {
+  background-color: var(--badge-status-completed-bg);
+}
+
+.statusBadgeCancelled {
+  background-color: var(--badge-status-cancelled-bg);
 }
 
 /* Replaces former inline styles (CLAUDE.md §5.6) — values unchanged. */

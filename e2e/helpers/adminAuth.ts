@@ -59,8 +59,13 @@ export function readCreds(key: string): AdminCreds | null {
     .slice(line.indexOf('=') + 1)
     .trim()
     .replace(/^["']|["']$/g, '');
-  const match = /\{?\s*email\s*:\s*([^,]+?)\s*,\s*password\s*:\s*(.+?)\s*\}?$/.exec(raw);
-  return match ? { email: match[1], password: match[2] } : null;
+  // Two simple, linear-time patterns rather than one combined expression. The combined form paired
+  // `\s*` with lazy groups on both sides of a literal, which backtracks super-linearly on a
+  // non-matching input (Sonar S8786) — pointless risk for parsing a local config line.
+  const body = raw.replace(/^\{/, '').replace(/\}$/, '');
+  const email = /email\s*:\s*([^,]+)/.exec(body)?.[1]?.trim();
+  const password = /password\s*:\s*(.+)$/.exec(body)?.[1]?.trim();
+  return email && password ? { email, password } : null;
 }
 
 /** Seconds-since-epoch expiry from a JWT, or null when it cannot be read. */

@@ -44,23 +44,27 @@ const getOrderTypeDisplay = (type: string) => {
   }
 };
 
-// Helper to get status color
-const getStatusColor = (status: string) => {
+// Helper to get the status badge's fill modifier class. Returns a class rather than
+// a colour so the fill stays in the stylesheet, tokenised and contrast-checked
+// (see .orderStatusBadge in CashierPage.module.css) instead of inline on the span.
+const getStatusBadgeModifier = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
-      return '#fbbf24';
+      return styles.orderStatusBadgePending;
     case 'confirmed':
-      return '#10b981';
+      return styles.orderStatusBadgeConfirmed;
     case 'preparing':
-      return '#3b82f6';
+      return styles.orderStatusBadgePreparing;
     case 'ready':
-      return '#8b5cf6';
-    case 'completed':
-      return '#6b7280';
+      return styles.orderStatusBadgeReady;
     case 'cancelled':
-      return '#ef4444';
+      return styles.orderStatusBadgeCancelled;
+    // An unrecognised status falls back to the Completed fill — the same grey the
+    // old hex map used as its default. The class name overstates it: the order is
+    // not necessarily completed, the grey is just the neutral fill.
+    case 'completed':
     default:
-      return '#6b7280';
+      return styles.orderStatusBadgeCompleted;
   }
 };
 
@@ -92,7 +96,7 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
     <div className={styles.orderList}>
       {orders.map((order) => {
         const orderTypeDisplay = getOrderTypeDisplay(order.type);
-        const statusColor = getStatusColor(order.status);
+        const statusBadgeModifier = getStatusBadgeModifier(order.status);
         const isSelected = selectedOrderId === order.id;
 
         return (
@@ -109,7 +113,7 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
                 <span className={styles.orderTypeIcon}>{orderTypeDisplay.icon}</span>
                 <span className={styles.orderNumber}>{order.orderNumber}</span>
               </div>
-              <span className={styles.orderStatusBadge} style={{ backgroundColor: statusColor }}>
+              <span className={`${styles.orderStatusBadge} ${statusBadgeModifier}`}>
                 {t(getOrderStatusTranslationKey(order.status as OrderStatus), order.status)}
               </span>
             </div>

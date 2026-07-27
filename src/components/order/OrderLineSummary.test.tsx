@@ -20,7 +20,7 @@ describe('OrderLineSummary', () => {
       diff: { added: [{ name: 'Cheese', quantity: 2 }], removed: ['Onion'] },
       sideItems: [{ name: 'Fries', quantity: 1, price: 3 }],
       specialInstructions: 'Well done',
-      children: [{ name: 'Coke', quantity: 1, diff: { added: [], removed: ['Ice'] } }],
+      children: [{ name: 'Coke', quantity: 1, diff: { added: [], removed: ['Ice'] }, children: [] }],
     };
     render(<OrderLineSummary line={line} />);
 
@@ -37,11 +37,46 @@ describe('OrderLineSummary', () => {
       diff: { added: [], removed: [] },
       sideItems: [],
       specialInstructions: 'Line note',
-      children: [{ name: 'Coke', quantity: 1, diff: { added: [], removed: [] }, specialInstructions: 'Child note' }],
+      children: [
+        {
+          name: 'Coke',
+          quantity: 1,
+          diff: { added: [], removed: [] },
+          specialInstructions: 'Child note',
+          children: [],
+        },
+      ],
     };
     render(<OrderLineSummary line={line} hideInstructions />);
 
     expect(screen.queryByText('Line note')).not.toBeInTheDocument();
     expect(screen.getByText('Child note')).toBeInTheDocument();
+  });
+
+  it('renders a component of a component (the tree nests deeper than one level)', () => {
+    const line: LineSummary = {
+      diff: { added: [], removed: [] },
+      sideItems: [],
+      children: [
+        {
+          name: 'Burger Combo',
+          quantity: 1,
+          diff: { added: [], removed: [] },
+          children: [
+            {
+              name: 'Beef Burger',
+              quantity: 2,
+              diff: { added: [], removed: ['Pickles'] },
+              children: [{ name: 'Extra Patty', quantity: 1, diff: { added: [], removed: [] }, children: [] }],
+            },
+          ],
+        },
+      ],
+    };
+    render(<OrderLineSummary line={line} />);
+
+    expect(screen.getByText(/Beef Burger/)).toBeInTheDocument();
+    expect(screen.getByText(/Pickles/)).toBeInTheDocument();
+    expect(screen.getByText(/Extra Patty/)).toBeInTheDocument();
   });
 });

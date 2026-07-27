@@ -1012,6 +1012,7 @@
   "your_name": "Tu Nombre",
   "your_email": "Tu Email",
   "your_phone": "Tu Teléfono",
+  "side_items": "Acompañamientos",
   "special_requests": "Solicitudes Especiales",
   "review_reservation": "Revisar Reserva",
   "time": "Hora",
@@ -2371,5 +2372,11 @@
   "reorder_partial": "Se añadieron {{added}} de {{total}} artículos.",
   "availability_only_for": "Solo {{orderTypes}}",
   "availability_switch_to": "Cambiar a {{orderType}}",
-  "availability_ask_server": "Pregunta al camarero"
+  "availability_ask_server": "Pregunta al camarero",
+  "order_type_conflict_title": "Algunos artículos no están disponibles",
+  "order_type_conflict_intro": "Cambiar a {{orderType}} elimina estos artículos de tu pedido:",
+  "order_type_conflict_confirm": "Eliminar y continuar",
+  "order_type_conflict_removing": "Eliminando…",
+  "order_type_conflict_keep": "Cancela para dejar tu pedido como está.",
+  "order_type_conflict_error": "No se pudieron eliminar esos artículos. Tu pedido no ha cambiado — inténtalo de nuevo."
 }

@@ -171,8 +171,12 @@ export default function MenuPage() {
         }}
       />
 
+      {/* Closed while an order-type conflict is being confirmed. The sheet hosts the very toggle
+          that raises the confirm, so leaving it open stacks two BaseModals — and both register a
+          GLOBAL window keydown, so one Escape dismisses both. Same rule §9.10 landed for the
+          customization sheet: the surface that hands a verdict over closes behind it. */}
       <MobileCartSheet
-        isOpen={isMobileCartSheetOpen}
+        isOpen={isMobileCartSheetOpen && orderTypeFollowUp.switchFlow.pending === null}
         onClose={() => setIsMobileCartSheetOpen(false)}
         followUp={orderTypeFollowUp}
       />

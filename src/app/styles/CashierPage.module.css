@@ -57,15 +57,44 @@
   font-size: 1rem;
 }
 
+/* Solid status pill. The fill comes from a per-status modifier below — never from
+   an inline style — so the label/fill pair stays a reviewable, tokenised decision
+   (§5.5/§5.6). Every --badge-status-*-bg clears 4.5:1 against --badge-status-fg at
+   this 0.75rem/600 size; see the ratio table in design-system/tokens/colors.css.
+   Changing the size or weight here re-opens that check. */
 .orderStatusBadge {
   padding: 0.375rem 0.875rem;
-  color: white;
+  color: var(--badge-status-fg);
   border-radius: 16px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.orderStatusBadgePending {
+  background-color: var(--badge-status-pending-bg);
+}
+
+.orderStatusBadgeConfirmed {
+  background-color: var(--badge-status-confirmed-bg);
+}
+
+.orderStatusBadgePreparing {
+  background-color: var(--badge-status-preparing-bg);
+}
+
+.orderStatusBadgeReady {
+  background-color: var(--badge-status-ready-bg);
+}
+
+.orderStatusBadgeCompleted {
+  background-color: var(--badge-status-completed-bg);
+}
+
+.orderStatusBadgeCancelled {
+  background-color: var(--badge-status-cancelled-bg);
 }
 
 .orderCardBody {
@@ -110,8 +139,13 @@
   font-size: 1.0625rem;
 }
 
+/* --text-secondary, not --text-muted. Muted is the lightest text that still clears AA, and it does
+   so only against a plain surface: on `.orderCardSelected`'s red tint it drops to 4.36:1, under the
+   4.5:1 this 13px label needs. It reads as 4.56:1 on pure white, which is how it went unnoticed —
+   the margin is small enough to flip with the surface underneath. Secondary is 5.2:1 on the
+   selected card and 5.4:1 off it, so the state can no longer decide whether this passes. */
 .orderTime {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.8125rem;
   font-weight: 500;
 }

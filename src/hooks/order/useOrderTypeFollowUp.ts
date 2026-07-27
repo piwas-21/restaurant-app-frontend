@@ -5,8 +5,9 @@ import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { useCheckout } from '@/contexts/CheckoutContext';
 import { OrderType } from '@/types/order';
-import { getCurrentUser } from '@/services/userService';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
+import { needsTakeawayInfoModal } from '@/hooks/order/needsTakeawayInfoModal';
+import { useOrderTypeSwitch, type OrderTypeSwitchFlow } from '@/hooks/order/useOrderTypeSwitch';
 
 /**
  * Which follow-up modal to display. `table`/`address`/`takeaway` open after a
@@ -50,11 +51,14 @@ interface FollowUpState {
    * Customer Information". Does NOT change the order type.
    */
   editContact: () => void;
-}
-
-function isLoggedInClient(): boolean {
-  if (typeof window === 'undefined') return false;
-  return !!localStorage.getItem('auth_token');
+  /**
+   * The two-phase basket-channel switch. `OrderFlowModals` renders the itemized conflict confirm
+   * from THIS instance — the same page-owns-the-modal rule the rest of this hook follows, and the
+   * reason a card cannot own its own `useOrderTypeFollowUp`.
+   */
+  switchFlow: OrderTypeSwitchFlow;
+  /** Guest confirmed the removal: apply it, then run the follow-up the switch was interrupted for. */
+  confirmSwitch: () => void;
 }
 
 /**
@@ -87,6 +91,7 @@ export function useOrderTypeFollowUp(): FollowUpState {
   const { hasTableContext, tableContext, setTableContext } = useTableContext();
   const { state: checkoutState } = useCheckout();
   const [followUp, setFollowUp] = useState<OrderTypeFollowUp>(null);
+  const switchFlow = useOrderTypeSwitch();
 
   // QR-scan landing → pin DineIn + the scanned table.
   //
@@ -109,8 +114,10 @@ export function useOrderTypeFollowUp(): FollowUpState {
     setTable(tableNumber);
   }, [hasTableContext, tableContext, setTableContext, setOrderType, setTable]);
 
-  const pickType = useCallback(
-    async (type: OrderType, source = 'sidebar', forceModal = false) => {
+  // Everything after the switch is permitted: commit the type and open its detail modal. Split out
+  // of `pickType` because the conflict confirm has to run it LATER, once the guest says yes.
+  const commitType = useCallback(
+    async (type: OrderType, source: string, forceModal: boolean) => {
       setOrderType(type);
       // Funnel anchor — fires once per click, regardless of whether a
       // follow-up modal opens (the modal is a sub-step of the same intent).
@@ -138,31 +145,29 @@ export function useOrderTypeFollowUp(): FollowUpState {
     [setOrderType, checkoutState.customerInfo],
   );
 
+  const pickType = useCallback(
+    async (type: OrderType, source = 'sidebar', forceModal = false) => {
+      // Ask the server FIRST when the cart could conflict. Committing optimistically and rolling
+      // back on a refusal would flip the whole menu's dimming and the tax line for a moment, then
+      // undo it — §4.4's "never drop silently" cuts both ways. The intent rides along so a refused
+      // switch can replay THIS pick, not whichever one happened last.
+      if (!(await switchFlow.request(type, source, forceModal))) return;
+      await commitType(type, source, forceModal);
+    },
+    [switchFlow, commitType],
+  );
+
+  const confirmSwitch = useCallback(() => {
+    void (async () => {
+      const applied = await switchFlow.confirm();
+      if (!applied) return;
+      await commitType(applied.orderType, applied.source, applied.forceModal);
+    })();
+  }, [switchFlow, commitType]);
+
   const closeFollowUp = useCallback(() => setFollowUp(null), []);
   const editOrderType = useCallback(() => setFollowUp('ordertype'), []);
   const editContact = useCallback(() => setFollowUp('contact'), []);
 
-  return { followUp, pickType, closeFollowUp, editOrderType, editContact };
-}
-
-async function needsTakeawayInfoModal(
-  existingCustomerInfo: { name: string; email: string; phone: string } | null,
-): Promise<boolean> {
-  if (existingCustomerInfo?.name && existingCustomerInfo?.email && existingCustomerInfo?.phone) {
-    return false;
-  }
-  if (!isLoggedInClient()) return true;
-  try {
-    const user = await getCurrentUser();
-    const complete = !!(
-      user.firstName?.trim() &&
-      user.lastName?.trim() &&
-      user.email?.trim() &&
-      user.phoneNumber?.trim()
-    );
-    return !complete;
-  } catch (err) {
-    console.warn('Profile fetch failed deciding takeaway modal; opening modal:', err);
-    return true;
-  }
+  return { followUp, pickType, closeFollowUp, editOrderType, editContact, switchFlow, confirmSwitch };
 }

@@ -16,6 +16,8 @@ import {
   Truck,
 } from 'lucide-react';
 import { OrderDto } from '@/types/order';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import { formatOrderPrice, formatOrderDate } from '@/utils/orderDetailsFormatters';
 import styles from '../OrderDetailsModal.module.css';
 
@@ -183,6 +185,9 @@ export default function OrderDetailsInfo({ order }: OrderDetailsInfoProps) {
                 <div className={styles.itemQuantity}>
                   {t('qty', 'Qty')}: {item.quantity} × {formatOrderPrice(item.unitPrice)}
                 </div>
+                {/* `order.items` is root-only since backend #237 — without this the components of a
+                    combo are invisible here. Instructions are hidden: rendered above already. */}
+                <OrderLineSummary line={orderItemToLineSummary(item)} hideInstructions />
               </div>
               <div className={styles.itemTotal}>{formatOrderPrice(item.itemTotal)}</div>
             </div>

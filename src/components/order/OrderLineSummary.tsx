@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
-import { type LineSummary, type LineIngredientDiff } from './lineSummary';
+import { type LineSummary, type LineIngredientDiff, type LineChild } from './lineSummary';
 import styles from './OrderLineSummary.module.css';
 
 function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
@@ -31,6 +31,43 @@ function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * Bundle components, indented one level per depth. Recursive because the order/cart trees nest to
+ * arbitrary depth (a component of a component would otherwise never be drawn).
+ */
+function ChildList({ items }: Readonly<{ items: LineChild[] }>) {
+  const { t } = useTranslation();
+  if (items.length === 0) return null;
+
+  return (
+    <ul className={styles.children}>
+      {items.map((child) => {
+        const hasDetails = child.diff.added.length > 0 || child.diff.removed.length > 0 || !!child.specialInstructions;
+        return (
+          <li key={child.id ?? child.name} className={styles.child}>
+            <span className={styles.childName}>
+              {child.name}
+              {child.quantity > 1 && ` × ${child.quantity}`}
+            </span>
+            {hasDetails && (
+              <div className={styles.childDetails}>
+                <DiffRows diff={child.diff} />
+                {child.specialInstructions && (
+                  <div className={styles.row}>
+                    <span className={styles.label}>{t('special_requests', 'Special Requests')}:</span>
+                    <span className={styles.value}>{child.specialInstructions}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            <ChildList items={child.children} />
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -85,33 +122,7 @@ export default function OrderLineSummary({ line, hideInstructions = false }: Ord
         </div>
       )}
 
-      {line.children.length > 0 && (
-        <ul className={styles.children}>
-          {line.children.map((child) => {
-            const hasDetails =
-              child.diff.added.length > 0 || child.diff.removed.length > 0 || !!child.specialInstructions;
-            return (
-              <li key={child.id ?? child.name} className={styles.child}>
-                <span className={styles.childName}>
-                  {child.name}
-                  {child.quantity > 1 && ` × ${child.quantity}`}
-                </span>
-                {hasDetails && (
-                  <div className={styles.childDetails}>
-                    <DiffRows diff={child.diff} />
-                    {child.specialInstructions && (
-                      <div className={styles.row}>
-                        <span className={styles.label}>{t('special_requests', 'Special Requests')}:</span>
-                        <span className={styles.value}>{child.specialInstructions}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <ChildList items={line.children} />
     </div>
   );
 }

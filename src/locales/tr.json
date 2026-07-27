@@ -1023,6 +1023,7 @@
   "your_name": "Adınız",
   "your_email": "E-postanız",
   "your_phone": "Telefon Numaranız",
+  "side_items": "Yan Ürünler",
   "special_requests": "Özel İstekler",
   "review_reservation": "Rezervasyonu İncele",
   "time": "Saat",
@@ -2371,5 +2372,11 @@
   "reorder_partial": "{{total}} üründen {{added}} tanesi sepete eklendi.",
   "availability_only_for": "Sadece {{orderTypes}}",
   "availability_switch_to": "{{orderType}} seçeneğine geç",
-  "availability_ask_server": "Servis görevlisine sorun"
+  "availability_ask_server": "Servis görevlisine sorun",
+  "order_type_conflict_title": "Bazı ürünler mevcut değil",
+  "order_type_conflict_intro": "{{orderType}} seçeneğine geçmek bu ürünleri siparişinizden kaldırır:",
+  "order_type_conflict_confirm": "Kaldır ve devam et",
+  "order_type_conflict_removing": "Kaldırılıyor…",
+  "order_type_conflict_keep": "Siparişinizi olduğu gibi bırakmak için iptal edin.",
+  "order_type_conflict_error": "Bu ürünler kaldırılamadı. Siparişiniz değişmedi — lütfen tekrar deneyin."
 }

@@ -59,10 +59,18 @@ module.exports = {
     'src/hooks/useCustomerFormFields.ts',
     'src/hooks/admin/useCustomerFormsAdmin.ts',
     'src/hooks/order/registrationOutcome.ts',
+    'src/hooks/order/useOrderTypeSwitch.ts',
+    'src/hooks/order/useAssertBasketChannel.ts',
+    'src/hooks/order/needsTakeawayInfoModal.ts',
     'src/hooks/order/useGuestProfilePrefill.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
+    'src/utils/orderItemTree.ts',
+    'src/components/order/lineSummary.ts',
+    'src/utils/templates/receiptHtml.ts',
+    'src/utils/templates/simpleReceipt.ts',
+    'src/utils/templates/kitchenReceipt.ts',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
@@ -155,6 +163,80 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Kitchen routing over the ROOT-ONLY order tree (backend #237). Pinned at 100% because its
+    // failure mode is silence: miss a nested item and a kitchen simply never gets a ticket — no
+    // error, no empty print, just food that is never cooked. Every branch here is one `?? []` or one
+    // match/hoist decision, so there is nothing incidental to leave uncovered.
+    './src/utils/orderItemTree.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The other half of the root-only tree (#332): what a HUMAN sees. Same silent failure mode as
+    // the routing above — a component that stops being rendered produces no error, the bill just
+    // stops itemising the combo. These four carry every surface that shows what is inside a line.
+    './src/components/order/lineSummary.ts': {
+      statements: 100,
+      branches: 91,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/order/OrderLineSummary.tsx': {
+      statements: 100,
+      branches: 92,
+      functions: 100,
+      lines: 100,
+    },
+    './src/utils/templates/receiptHtml.ts': {
+      statements: 100,
+      branches: 83,
+      functions: 100,
+      lines: 100,
+    },
+    // The two thermal templates are pinned well below the shared builders they call: most of their
+    // remaining uncovered branches are the per-field totals/address/payment blocks, not the item tree.
+    './src/utils/templates/simpleReceipt.ts': {
+      statements: 77,
+      branches: 40,
+      functions: 70,
+      lines: 75,
+    },
+    './src/utils/templates/kitchenReceipt.ts': {
+      statements: 71,
+      branches: 61,
+      functions: 65,
+      lines: 71,
+    },
+    // §4.4 — the two-phase basket order-type switch. Worth pinning at this level because it is the
+    // ONLY thing that tells the server which channel a basket is on, and `Basket.OrderType` being
+    // null is silently permissive: a regression here does not throw, it just quietly disarms
+    // `BasketChannelGuard` again. The two uncovered branches are the `basket == null` optional
+    // chain and the re-entrancy guard on confirm.
+    './src/hooks/order/useOrderTypeSwitch.ts': {
+      statements: 98,
+      branches: 93,
+      functions: 100,
+      lines: 100,
+    },
+    // The server-sync half. 100% across the board and pinned there: its whole job is arming a guard
+    // whose failure mode is silence — nothing throws when the basket stays on a null channel.
+    './src/hooks/order/useAssertBasketChannel.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // §4.4 — the itemized confirm. The naming assertions are the point: a dialog asking consent to
+    // delete "× 2" is the failure mode. (It renders `conflicts`, which the server has always named
+    // correctly — the field plan §9.11 found empty was the echoed `basket`, which this never
+    // reads.) The one uncovered branch is the `i18n.language` fallback.
+    './src/components/order/OrderTypeConflictModal.tsx': {
+      statements: 100,
+      branches: 87,
+      functions: 100,
+      lines: 100,
+    },
     // S4 — the per-order-type availability notice on a catalog card. The shared presentational
     // half, exercised from BOTH template card tests (classic MenuCard + craft CraftMenuCard), which
     // is exactly the property worth pinning: every customer deliverable lands twice, so a regression

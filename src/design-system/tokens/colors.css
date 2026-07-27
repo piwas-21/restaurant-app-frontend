@@ -66,6 +66,12 @@
   --feedback-success-xlight: #e8f5e9;
   --feedback-success-dark: #388e3c; /* ~4.1:1 on white — text/bg where white-text contrast isn't required; below AA for normal text on white */
   --feedback-success-darker: #2e7d32; /* CTA button background in light mode (~5.7:1 on white, WCAG AA) */
+  /* Success TEXT, same idea as --feedback-warning-text below. `--feedback-success` is a fill/dot
+     green and reaches only 2.4:1 as a label on its own 10%-alpha tint (WCAG AA needs 4.5:1).
+     `--feedback-success-darker` is NOT a substitute here: on that tint it lands at 4.47:1 and
+     misses by 0.03. This is the same hue family taken to Material Green 900, 6.9:1 on the tint.
+     Overridden in the dark block, where the surface flips and a light green is what passes. */
+  --feedback-success-text: #1b5e20;
 
   /* Feedback — error (form/API errors) */
   --feedback-error: #f44336;
@@ -106,6 +112,32 @@
   --status-pending: #fbbf24;
   --status-preparing: #3b82f6;
   --status-ready: #8b5cf6;
+
+  /* Status badge FILLS — solid pill carrying white label text (cashier order list).
+     Deliberately NOT the --status-* hues above: those are tuned as chart fills and
+     dot/border indicators, where nothing is written on top, and five of the six
+     miss WCAG AA as a text background (Pending #fbbf24 is 1.66:1 against the 4.5:1
+     needed for this 12px/600 label; Confirmed 2.54, Cancelled 3.76, Preparing 3.68,
+     Ready 4.23). These are the same hue families darkened until white clears AA,
+     kept as a SEPARATE set so charts and the other order-status indicators keep
+     their current values. Ratios vs --badge-status-fg, in order below:
+     5.02 / 5.48 / 5.17 / 5.70 / 4.83 / 4.83 : 1.
+     Theme-INVARIANT (no dark override) — contrast here is text-vs-fill on an opaque
+     pill, which the page canvas cannot affect. The fills sit closer to a dark canvas
+     than the originals did; that is not a 1.4.11 concern, because the status is
+     carried by the label inside the pill, not by the fill. */
+  --badge-status-pending-bg: #b45309;
+  --badge-status-confirmed-bg: #047857;
+  --badge-status-preparing-bg: #2563eb;
+  --badge-status-ready-bg: #7c3aed;
+  --badge-status-completed-bg: #6b7280;
+  --badge-status-cancelled-bg: #dc2626;
+  --badge-status-fg: #ffffff;
+
+  /* Neutral (blue-grey) action surface for secondary staff buttons that carry a white label.
+     Theme-invariant: white on this is 5.4:1, clearing WCAG AA in both themes. Deliberately darker
+     than the #607d8b it replaces, which sat at 4.37:1 — just under the 4.5:1 minimum. */
+  --action-neutral: #546e7a;
 
   /* Primitives (S15 T1 slice 4) — raw palette values frozen verbatim from the
      customer-module hex burndown (var(--x, #hex) live fallbacks on undefined vars
@@ -309,6 +341,7 @@ html[data-theme='dark'] {
 
   --feedback-success: #81c784;
   --feedback-success-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a) */
+  --feedback-success-text: #81c784; /* 6.5:1 on the success tint over the dark card surface */
 
   --feedback-error: #ff8a80;
   --feedback-error-bg: #3a1f1f;

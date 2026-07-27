@@ -1021,6 +1021,7 @@
   "your_name": "Ihr Name",
   "your_email": "Ihre E-Mail",
   "your_phone": "Ihre Telefonnummer",
+  "side_items": "Beilagen",
   "special_requests": "Besondere Wünsche",
   "review_reservation": "Reservierung überprüfen",
   "time": "Zeit",
@@ -2371,5 +2372,11 @@
   "reorder_partial": "{{added}} von {{total}} Artikeln hinzugefügt.",
   "availability_only_for": "Nur {{orderTypes}}",
   "availability_switch_to": "Zu {{orderType}} wechseln",
-  "availability_ask_server": "Fragen Sie Ihre Bedienung"
+  "availability_ask_server": "Fragen Sie Ihre Bedienung",
+  "order_type_conflict_title": "Einige Artikel sind nicht verfügbar",
+  "order_type_conflict_intro": "Der Wechsel zu {{orderType}} entfernt diese Artikel aus Ihrer Bestellung:",
+  "order_type_conflict_confirm": "Entfernen und fortfahren",
+  "order_type_conflict_removing": "Wird entfernt…",
+  "order_type_conflict_keep": "Brechen Sie ab, um Ihre Bestellung unverändert zu lassen.",
+  "order_type_conflict_error": "Diese Artikel konnten nicht entfernt werden. Ihre Bestellung ist unverändert — bitte erneut versuchen."
 }

@@ -924,6 +924,7 @@
   "customizations": "Настройки",
   "added_ingredients": "Добавлено",
   "removed_ingredients": "Убрано",
+  "side_items": "Гарниры",
   "special_requests": "Особые пожелания",
   "product_ingredients": "Ингредиенты товара",
   "ingredients_manager_description": "Управление ингредиентами для этого товара. Отметьте ингредиенты как опциональные и установите дополнительные цены для клиентов.",
@@ -2371,5 +2372,11 @@
   "reorder_partial": "Добавлено {{added}} из {{total}} позиций.",
   "availability_only_for": "Только {{orderTypes}}",
   "availability_switch_to": "Переключиться на {{orderType}}",
-  "availability_ask_server": "Спросите официанта"
+  "availability_ask_server": "Спросите официанта",
+  "order_type_conflict_title": "Некоторые позиции недоступны",
+  "order_type_conflict_intro": "Переход на {{orderType}} удалит эти позиции из вашего заказа:",
+  "order_type_conflict_confirm": "Удалить и продолжить",
+  "order_type_conflict_removing": "Удаление…",
+  "order_type_conflict_keep": "Отмените, чтобы оставить заказ без изменений.",
+  "order_type_conflict_error": "Не удалось удалить эти позиции. Ваш заказ не изменился — попробуйте ещё раз."
 }

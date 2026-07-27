@@ -993,6 +993,7 @@
   "customizations": "自定义",
   "added_ingredients": "已添加",
   "removed_ingredients": "已移除",
+  "side_items": "配菜",
   "special_requests": "特殊要求",
   "product_ingredients": "产品配料",
   "ingredients_manager_description": "管理此产品的配料。可将配料设置为可选，并为客户添加时设置额外价格。",
@@ -2371,5 +2372,11 @@
   "reorder_partial": "已添加 {{total}} 项中的 {{added}} 项。",
   "availability_only_for": "仅限{{orderTypes}}",
   "availability_switch_to": "切换到{{orderType}}",
-  "availability_ask_server": "请询问服务员"
+  "availability_ask_server": "请询问服务员",
+  "order_type_conflict_title": "部分商品不可用",
+  "order_type_conflict_intro": "切换到{{orderType}}将从您的订单中移除以下商品：",
+  "order_type_conflict_confirm": "移除并继续",
+  "order_type_conflict_removing": "正在移除…",
+  "order_type_conflict_keep": "取消可保持订单不变。",
+  "order_type_conflict_error": "无法移除这些商品。您的订单未更改，请重试。"
 }

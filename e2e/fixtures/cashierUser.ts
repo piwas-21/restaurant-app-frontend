@@ -1,8 +1,8 @@
 import { test as base, request, type APIRequestContext } from '@playwright/test';
-import { mkdir, writeFile, rm } from 'node:fs/promises';
-import path from 'node:path';
+import { rm } from 'node:fs/promises';
 import { deleteUserByEmail, promoteE2EUser } from '../helpers/db';
 import { apiBaseUrl } from '../helpers/config';
+import { writeAuthStorageState } from '../helpers/storageState';
 
 /**
  * Per-role auth fixture: a cashier with saved storageState.
@@ -26,13 +26,11 @@ import { apiBaseUrl } from '../helpers/config';
  *   2. UPDATE Users.role = Cashier and email_confirmed = TRUE in the test DB
  *      (parallel-safe — single-row update by exact email).
  *   3. Log in via the API. The returned JWT carries the Cashier role claim.
- *   4. Persist auth_token + refresh_token via storageState.
+ *   4. Persist the signed-in browser state via the shared storageState writer.
  *   5. Tests read `cashierUser` and attach `storageStatePath` to a fresh
  *      browser context.
  *   6. Teardown deletes the user by exact email.
  */
-
-const E2E_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
 
 export interface CashierUser {
   firstName: string;
@@ -83,7 +81,7 @@ export const test = base.extend<{ cashierUser: CashierUser }>({
         throw new Error(`cashierUser: login returned role=${auth.role}, expected Cashier`);
       }
 
-      const storageStatePath = await writeStorageState({
+      const storageStatePath = await writeAuthStorageState({
         frontendOrigin,
         accessToken: auth.accessToken,
         refreshToken: auth.refreshToken,
@@ -94,6 +92,7 @@ export const test = base.extend<{ cashierUser: CashierUser }>({
           role: auth.role,
           accessToken: auth.accessToken,
         },
+        role: 'cashier',
         slug: testInfo.testId,
       });
 
@@ -162,51 +161,6 @@ async function loginUser(
     throw new Error(`cashierUser: login rejected: ${body.message ?? body.errors?.join(', ')}`);
   }
   return body.data;
-}
-
-/** Exactly the `User` shape `AuthContext.login` persists — see src/components/AuthContext.tsx. */
-interface StoredUser {
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  accessToken: string;
-}
-
-/**
- * Write the browser state a signed-in cashier would actually have.
- *
- * All THREE keys are required. `AuthContext.validateSession` bootstraps from
- * `user` + `auth_token` + `refresh_token` and does nothing at all when any one is missing — it does
- * not fall back to decoding the JWT. Writing only the two tokens leaves `user` null once loading
- * settles, and the cashier layout then pushes to `/login` (a route that does not exist, so the app
- * renders its 404). That redirect lands a few seconds after the dashboard first paints, which is
- * why a spec asserting immediately could pass while anything slower failed on a 404.
- */
-async function writeStorageState(opts: {
-  frontendOrigin: string;
-  accessToken: string;
-  refreshToken: string;
-  user: StoredUser;
-  slug: string;
-}): Promise<string> {
-  await mkdir(E2E_AUTH_DIR, { recursive: true });
-  const file = path.join(E2E_AUTH_DIR, `cashier-${opts.slug}.json`);
-  const state = {
-    cookies: [],
-    origins: [
-      {
-        origin: opts.frontendOrigin,
-        localStorage: [
-          { name: 'auth_token', value: opts.accessToken },
-          { name: 'refresh_token', value: opts.refreshToken },
-          { name: 'user', value: JSON.stringify(opts.user) },
-        ],
-      },
-    ],
-  };
-  await writeFile(file, JSON.stringify(state), 'utf8');
-  return file;
 }
 
 export { expect } from '@playwright/test';

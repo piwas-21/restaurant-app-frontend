@@ -2356,6 +2356,7 @@
   "category": "الفئة",
   "items_count": "{{count}} عنصر",
   "category_order_types_intro": "اختر أنواع الطلبات المتاحة لكل فئة. تورث العناصر إعدادات فئتها إلا إذا تم تجاوزها بشكل فردي.",
+  "category_order_types_truncated": "يتم عرض أول {{limit}} فئة فقط. لا يمكن تعديل الباقي حتى الآن.",
   "category_order_type_toggle_aria": "{{category}} متاح لـ {{orderType}}",
   "order_types_saved": "تم حفظ توفر أنواع الطلبات",
   "failed_to_save_order_types": "فشل حفظ توفر أنواع الطلبات",

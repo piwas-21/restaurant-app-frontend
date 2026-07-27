@@ -2356,6 +2356,7 @@
   "category": "Категория",
   "items_count": "{{count}} поз.",
   "category_order_types_intro": "Выберите, какими типами заказа доступна каждая категория. Позиции наследуют настройку категории, если не переопределены отдельно.",
+  "category_order_types_truncated": "Показаны только первые {{limit}} категорий. Остальные пока нельзя редактировать.",
   "category_order_type_toggle_aria": "{{category}} доступно для {{orderType}}",
   "order_types_saved": "Доступность типов заказа сохранена",
   "failed_to_save_order_types": "Не удалось сохранить доступность типов заказа",

@@ -2356,6 +2356,7 @@
   "category": "Catégorie",
   "items_count": "{{count}} articles",
   "category_order_types_intro": "Choisissez les types de commande disponibles pour chaque catégorie. Les articles héritent de leur catégorie, sauf remplacement individuel.",
+  "category_order_types_truncated": "Seules les {{limit}} premières catégories sont affichées. Les autres ne peuvent pas encore être modifiées.",
   "category_order_type_toggle_aria": "{{category}} disponible pour {{orderType}}",
   "order_types_saved": "Disponibilité des types de commande enregistrée",
   "failed_to_save_order_types": "Échec de l'enregistrement de la disponibilité des types de commande",

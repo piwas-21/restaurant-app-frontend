@@ -2356,6 +2356,7 @@
   "category": "Kategorie",
   "items_count": "{{count}} Artikel",
   "category_order_types_intro": "Wählen Sie, über welche Bestellarten jede Kategorie bestellt werden kann. Artikel übernehmen ihre Kategorie, sofern Sie sie nicht einzeln überschreiben.",
+  "category_order_types_truncated": "Es werden nur die ersten {{limit}} Kategorien angezeigt. Die übrigen können noch nicht bearbeitet werden.",
   "category_order_type_toggle_aria": "{{category}} verfügbar für {{orderType}}",
   "order_types_saved": "Verfügbarkeit der Bestellarten gespeichert",
   "failed_to_save_order_types": "Verfügbarkeit der Bestellarten konnte nicht gespeichert werden",

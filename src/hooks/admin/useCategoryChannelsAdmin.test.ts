@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
-import { useCategoryChannelsAdmin } from './useCategoryChannelsAdmin';
+import { useCategoryChannelsAdmin, CATEGORY_PAGE_SIZE } from './useCategoryChannelsAdmin';
 import { getCategories, updateCategory } from '@/services/categoryService';
 
 jest.mock('@/services/categoryService');
@@ -16,7 +16,7 @@ const DURUM = { id: 'c1', name: 'Dürüm Wraps', isActive: true, displayOrder: 0
 const GRILLS = { id: 'c2', name: 'Grills', isActive: true, displayOrder: 1, availableOrderTypes: 6 };
 
 function mockList(items: unknown[]) {
-  mockGetCategories.mockResolvedValue({ success: true, data: { items } } as never);
+  mockGetCategories.mockResolvedValue({ success: true, data: { items, totalCount: items.length } } as never);
 }
 
 async function renderLoaded() {
@@ -161,5 +161,60 @@ describe('useCategoryChannelsAdmin', () => {
     const { result } = await renderLoaded();
 
     expect(result.current.categories).toEqual([]);
+  });
+});
+
+describe('useCategoryChannelsAdmin — the page cap is visible (§9.8)', () => {
+  it('does not cry wolf when the server returned everything', async () => {
+    const hook = await renderLoaded();
+
+    expect(hook.result.current.truncated).toBe(false);
+  });
+
+  it('reports truncation when the server holds more than one page', async () => {
+    // Silent truncation means a restriction is simply UNSETTABLE for the categories that fell off,
+    // with nothing on screen to explain their absence.
+    mockGetCategories.mockResolvedValue({
+      success: true,
+      data: { items: [{ id: 'c1', name: 'Grills', availableOrderTypes: null }], totalCount: 250 },
+    } as never);
+
+    const hook = renderHook(() => useCategoryChannelsAdmin());
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+
+    expect(hook.result.current.truncated).toBe(true);
+  });
+
+  it('assumes completeness when the server omits a count, rather than warning on every load', async () => {
+    mockGetCategories.mockResolvedValue({
+      success: true,
+      data: { items: [{ id: 'c1', name: 'Grills', availableOrderTypes: null }] },
+    } as never);
+
+    const hook = renderHook(() => useCategoryChannelsAdmin());
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+
+    expect(hook.result.current.truncated).toBe(false);
+  });
+
+  it('does NOT warn on a catalogue of exactly one full page — the reason the predicate is not items.length === PAGE_SIZE', () => {
+    // Pins the design rationale itself. Without this, refactoring to the simpler-looking
+    // `items.length === CATEGORY_PAGE_SIZE` predicate passes every other test while crying wolf on
+    // a complete catalogue.
+    const items = Array.from({ length: CATEGORY_PAGE_SIZE }, (_, i) => ({
+      id: `c${i}`,
+      name: `Category ${i}`,
+      availableOrderTypes: null,
+    }));
+    mockGetCategories.mockResolvedValue({
+      success: true,
+      data: { items, totalCount: CATEGORY_PAGE_SIZE },
+    } as never);
+
+    const hook = renderHook(() => useCategoryChannelsAdmin());
+
+    return waitFor(() => expect(hook.result.current.loading).toBe(false)).then(() => {
+      expect(hook.result.current.truncated).toBe(false);
+    });
   });
 });

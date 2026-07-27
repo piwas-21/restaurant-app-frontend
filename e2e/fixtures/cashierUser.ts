@@ -87,6 +87,13 @@ export const test = base.extend<{ cashierUser: CashierUser }>({
         frontendOrigin,
         accessToken: auth.accessToken,
         refreshToken: auth.refreshToken,
+        user: {
+          firstName: auth.firstName,
+          lastName: auth.lastName,
+          email: auth.email,
+          role: auth.role,
+          accessToken: auth.accessToken,
+        },
         slug: testInfo.testId,
       });
 
@@ -157,10 +164,30 @@ async function loginUser(
   return body.data;
 }
 
+/** Exactly the `User` shape `AuthContext.login` persists — see src/components/AuthContext.tsx. */
+interface StoredUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  accessToken: string;
+}
+
+/**
+ * Write the browser state a signed-in cashier would actually have.
+ *
+ * All THREE keys are required. `AuthContext.validateSession` bootstraps from
+ * `user` + `auth_token` + `refresh_token` and does nothing at all when any one is missing — it does
+ * not fall back to decoding the JWT. Writing only the two tokens leaves `user` null once loading
+ * settles, and the cashier layout then pushes to `/login` (a route that does not exist, so the app
+ * renders its 404). That redirect lands a few seconds after the dashboard first paints, which is
+ * why a spec asserting immediately could pass while anything slower failed on a 404.
+ */
 async function writeStorageState(opts: {
   frontendOrigin: string;
   accessToken: string;
   refreshToken: string;
+  user: StoredUser;
   slug: string;
 }): Promise<string> {
   await mkdir(E2E_AUTH_DIR, { recursive: true });
@@ -173,6 +200,7 @@ async function writeStorageState(opts: {
         localStorage: [
           { name: 'auth_token', value: opts.accessToken },
           { name: 'refresh_token', value: opts.refreshToken },
+          { name: 'user', value: JSON.stringify(opts.user) },
         ],
       },
     ],

@@ -124,7 +124,10 @@ export default function CashierMainContent({
               <span>{t('cashier.no_orders') || 'No orders found'}</span>
             </div>
           ) : (
-            <div className={styles.orderList}>
+            /* tabIndex + label: this pane scrolls, so a keyboard-only user must be able to reach
+               and scroll it (axe `scrollable-region-focusable`). Only reachable once there ARE
+               orders, which is why the dashboard a11y scan never caught it. */
+            <div className={styles.orderList} tabIndex={0} role="region" aria-label={t('cashier.orders') || 'Orders'}>
               <OrderList
                 orders={filteredOrders}
                 selectedOrderId={selectedOrderId}

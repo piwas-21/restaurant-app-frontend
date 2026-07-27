@@ -109,7 +109,11 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
                 <span className={styles.orderTypeIcon}>{orderTypeDisplay.icon}</span>
                 <span className={styles.orderNumber}>{order.orderNumber}</span>
               </div>
-              <span className={styles.orderStatusBadge} style={{ backgroundColor: statusColor }}>
+              <span
+                className={styles.orderStatusBadge}
+                style={{ backgroundColor: statusColor }}
+                data-testid="order-status-badge"
+              >
                 {t(getOrderStatusTranslationKey(order.status as OrderStatus), order.status)}
               </span>
             </div>

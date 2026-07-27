@@ -87,10 +87,9 @@ export default function CashierHeader({
         {/* Diagnostics Button */}
         {onOpenDiagnostics && (
           <button
-            className={styles.button}
+            className={`${styles.button} ${styles.buttonNeutral}`}
             onClick={onOpenDiagnostics}
             title={t('diagnostics') || 'System Diagnostics'}
-            style={{ backgroundColor: '#607d8b' }}
           >
             🔍 {t('diagnostics') || 'Diagnostics'}
           </button>
@@ -98,16 +97,13 @@ export default function CashierHeader({
 
         {/* Sound Toggle Button */}
         <button
-          className={styles.button}
+          className={`${styles.button} ${audioEnabled ? styles.buttonOn : styles.buttonOff}`}
           onClick={onToggleAudio}
           title={
             audioEnabled
               ? t('cashier.disable_sound') || 'Disable notification sounds'
               : t('cashier.enable_sound') || 'Enable notification sounds'
           }
-          style={{
-            backgroundColor: audioEnabled ? '#4caf50' : '#ff9800',
-          }}
         >
           {audioEnabled ? '🔕' : '🔔'}{' '}
           {audioEnabled ? t('cashier.disable_sound') || 'Disable Sound' : t('cashier.enable_sound') || 'Enable Sound'}

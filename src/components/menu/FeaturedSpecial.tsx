@@ -6,24 +6,69 @@ import { useTranslation } from 'react-i18next';
 import { Star, Clock } from 'lucide-react';
 import Image from 'next/image';
 import styles from './FeaturedSpecial.module.css';
+// The notice's OWN styles come from the classic card's module, not this one: `MenuCardAvailability`
+// reads only `availability*` classes (its §4.5 contract), and re-declaring those ~60 lines here
+// would be a second source of truth for one look — and Sonar new-code duplication besides. The
+// banner has no craft surface override, so like the rest of it this renders classic in both
+// templates; skinning the hero for craft is its own piece of work.
+import availabilityStyles from './MenuItemAvailability.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
+import MenuCardAvailability from './MenuCardAvailability';
+import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
+import type { OrderType } from '@/types/order';
+import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { FeaturedSpecial as FeaturedSpecialType } from '@/types/menu';
 
 interface FeaturedSpecialProps {
   special: FeaturedSpecialType;
-  onAddToCart?: () => void;
-  onViewDetails?: () => void;
+  /**
+   * Both handlers receive the sheet options to open with, rather than the page building them.
+   *
+   * The banner is the component that HOLDS the verdict, so it is the one that hands it over
+   * (§9.10) — a page that forgot to pass `availability` would silently reopen the hole this closes,
+   * and nothing would fail. Same reasoning as the guard living on `openForProductId` rather than on
+   * each caller: put it where forgetting is impossible, not where discipline is required.
+   */
+  onAddToCart?: (opts: OpenSheetOptions) => void;
+  onViewDetails?: (opts: OpenSheetOptions) => void;
+  /** "Switch to X" — the page's `useOrderTypeFollowUp().pickType`, as the catalog cards get. */
+  onSwitchOrderType?: (type: OrderType) => void;
 }
 
-const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({ special, onAddToCart, onViewDetails }) => {
+const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
+  special,
+  onAddToCart,
+  onViewDetails,
+  onSwitchOrderType,
+}) => {
   const { t } = useTranslation();
+  // G7: the hero is an ENTRY POINT — a guest can order straight from it — so it carries the same
+  // verdict, the same notice component and the same rule as a catalog card.
+  const availabilityNotice = useItemAvailabilityNotice(special?.availability);
+  useTrackItemBlocked(special?.id, availabilityNotice, 'featured_special');
 
   if (!special) {
     return null;
   }
 
+  // The SERVER's verdict is the gate, not our ability to render a reason for it — the same
+  // predicate `ItemCustomizationSheet` uses. `useItemAvailabilityNotice` returns null while the
+  // enabled-channel list loads AND for `reason: 'Unavailable'`, and unlike a card this hero is NOT
+  // filtered by `isVisible` (the featured query filters on IsActive, never IsAvailable), so an
+  // unavailable special reaches here with `canOrder: false` and no notice to show for it.
+  const isBlocked = availabilityNotice?.tone === 'blocked' || special?.availability?.canOrder === false;
+  const reasonId = `featured-special-availability-${special.id}`;
+
   return (
-    <section className={styles.featuredSpecialSection} aria-labelledby="featured-special-heading">
+    <section
+      className={
+        isBlocked ? `${styles.featuredSpecialSection} ${styles.featuredSpecialBlocked}` : styles.featuredSpecialSection
+      }
+      // The reason joins the section's accessible name while blocked, so the recede is announced
+      // with its cause rather than as an unexplained style (same rule as the card).
+      aria-labelledby={isBlocked ? `featured-special-heading ${reasonId}` : 'featured-special-heading'}
+    >
       <div className={styles.featuredSpecialContainer}>
         <div className={styles.featuredSpecialBadge}>
           <Star size={20} fill="gold" color="gold" />
@@ -90,11 +135,23 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({ special, onAddToCart,
               </div>
             )}
 
+            {availabilityNotice && (
+              <MenuCardAvailability
+                notice={availabilityNotice}
+                reasonId={reasonId}
+                onSwitchOrderType={onSwitchOrderType}
+                styles={availabilityStyles}
+              />
+            )}
+
             <div className={styles.featuredSpecialActions}>
-              {onAddToCart && (
+              {/* REMOVED, not disabled, while blocked — the S4 rule: nothing focusable-but-dead, and
+                  the switch inside the notice above is the way out. Details stays: it only SHOWS the
+                  item, and the sheet is handed the same verdict so it refuses the add too. */}
+              {onAddToCart && !isBlocked && (
                 <button
                   className={styles.featuredSpecialAddButton}
-                  onClick={onAddToCart}
+                  onClick={() => onAddToCart({ availability: special.availability })}
                   aria-label={t('add_to_order', 'Add to Order')}
                 >
                   {t('add_to_order', 'Add to Order')}
@@ -103,7 +160,10 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({ special, onAddToCart,
               {onViewDetails && (
                 <button
                   className={styles.featuredSpecialDetailsButton}
-                  onClick={onViewDetails}
+                  // Details only SHOWS the item, so it stays reachable while blocked — which is
+                  // precisely why the verdict has to ride along: the sheet's footer Add is the
+                  // two-clicks-away path S4 closed on the cards.
+                  onClick={() => onViewDetails({ forceSheet: true, availability: special.availability })}
                   aria-label={t('view_details', 'View Details')}
                 >
                   {t('details', 'Details')}

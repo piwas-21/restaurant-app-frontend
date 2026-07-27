@@ -7,6 +7,8 @@ jest.mock('@/services/productService', () => ({
 
 jest.mock('@/services/menuService', () => ({
   createProduct: jest.fn(async () => ({ success: true, data: { id: 'new-product' } })),
+}));
+jest.mock('@/services/menuBundleService', () => ({
   createMenuBundle: jest.fn(async () => ({ success: true, data: { id: 'new-bundle' } })),
   updateMenuBundle: jest.fn(async () => ({ success: true })),
 }));
@@ -17,7 +19,8 @@ jest.mock('@/services/globalIngredientService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
-import { updateMenuBundle, createMenuBundle, createProduct } from '@/services/menuService';
+import { createProduct } from '@/services/menuService';
+import { updateMenuBundle, createMenuBundle } from '@/services/menuBundleService';
 
 /** The shape EditMenuBundleModal builds — editMenuBundleSchema has no category field at all. */
 const bundleFormData = (overrides: Record<string, unknown> = {}) => ({

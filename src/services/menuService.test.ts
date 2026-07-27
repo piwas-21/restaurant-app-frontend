@@ -1,6 +1,6 @@
 import { apiClient } from '@/utils/apiClient';
 import { OrderType } from '@/types/order';
-import { getProducts } from './menuService';
+import { getFeaturedSpecial, getProducts } from './menuService';
 
 /**
  * `getProducts` gained the customer's order type (S4). The server does NOT filter on it — it
@@ -42,5 +42,31 @@ describe('getProducts — RequestedOrderType', () => {
     await getProducts(1, 10, null, { type: 'Menu' }, OrderType.DineIn);
 
     expect(requestedUrl()).toBe('/api/Products?Page=1&PageSize=10&RequestedOrderType=DineIn&Type=Menu');
+  });
+});
+
+/**
+ * G7 — the banner is an entry point, so the same parameter has to reach the same binder here. Its
+ * failure mode is the quiet one: without the channel the server resolves against "no channel
+ * chosen", which is orderable BY DESIGN, so the hero would silently offer an item the catalog card
+ * two rows below it refuses. Nothing errors; the guard is simply absent.
+ */
+describe('getFeaturedSpecial — RequestedOrderType', () => {
+  it('sends the chosen channel', async () => {
+    await getFeaturedSpecial(OrderType.DineIn);
+
+    expect(requestedUrl()).toBe('/api/Products/featured-special?RequestedOrderType=DineIn');
+  });
+
+  it('sends nothing when no channel is chosen, leaving the request byte-identical to before G7', async () => {
+    await getFeaturedSpecial(null);
+
+    expect(requestedUrl()).toBe('/api/Products/featured-special');
+  });
+
+  it('leaves a caller that passes no argument untouched', async () => {
+    await getFeaturedSpecial();
+
+    expect(requestedUrl()).toBe('/api/Products/featured-special');
   });
 });

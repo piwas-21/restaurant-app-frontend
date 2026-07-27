@@ -31,13 +31,26 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
   const { openForProduct } = product;
   const { openForBundle } = bundle;
 
-  /** Open by id. Fetches the detail, and routes to the bundle body if the id is a combo. */
+  /**
+   * Open by id. Fetches the detail, and routes to the bundle body if the id is a combo.
+   *
+   * **The blocked ⇒ forceSheet rule lives HERE, not in a caller.** The no-options quick-add path
+   * never opens anything — it adds straight to the cart — so an entry point that hands over a
+   * blocked verdict without forcing the sheet has handed it somewhere nobody reads. It used to sit
+   * in `openForCatalogItem`, which made it true for cards and false for the featured-special banner
+   * (G7): the same "unreachable from the current callers" reasoning that produced §9.10 in the first
+   * place. Gating on the SERVER's `canOrder` deliberately, not on "does a notice render" — the
+   * notice is null while the enabled-channel list loads.
+   */
   const openForProductId = useCallback(
     (productId: string, opts?: OpenSheetOptions) => {
+      const blocked = opts?.availability?.canOrder === false;
       // `openForProduct` catches its own failures and surfaces a snackbar, so this should never
       // fire — but the promise still has to be consumed, and logging keeps a future throw loud
       // rather than swallowing it.
-      openForProduct(productId, opts).catch((error) => console.error('Failed to open the customization sheet:', error));
+      openForProduct(productId, { ...opts, forceSheet: opts?.forceSheet || blocked }).catch((error) =>
+        console.error('Failed to open the customization sheet:', error),
+      );
     },
     [openForProduct],
   );
@@ -48,20 +61,9 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
         // Carry the card's own per-order-type verdict in, so the sheet cannot offer an add the card
         // just refused (§9.10). Bundles have no verdict to carry (§9.2).
         //
-        // A blocked item also FORCES the sheet: the no-options quick-add path never opens anything,
-        // so it would otherwise add straight to the cart, and the sheet is where the guard lives.
-        // Today's cards hide "Add to order" while blocked so that path is unreachable from them —
-        // but "unreachable from the current callers" is exactly how this gap appeared, so the guard
-        // lives on the entry point rather than on every caller's discipline.
-        // The SERVER's verdict, the same predicate the sheet gates on — deliberately not "does the
-        // notice render as blocked", which is also false while the enabled-channel list loads and
-        // would let the two disagree about the same item.
-        const blocked = item.availability?.canOrder === false;
-        openForProductId(item.id, {
-          ...opts,
-          availability: item.availability,
-          forceSheet: opts?.forceSheet || blocked,
-        });
+        // The blocked ⇒ forceSheet rule is applied by `openForProductId` for every entry point, so
+        // all this has to do is carry the card's verdict in.
+        openForProductId(item.id, { ...opts, availability: item.availability });
         return;
       }
 

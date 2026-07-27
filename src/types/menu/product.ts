@@ -115,6 +115,12 @@ export interface FeaturedSpecial {
   detailedIngredients: ProductIngredient[];
   content?: ContentData;
   kitchenType?: KitchenType;
+  /**
+   * Server-resolved per-order-type verdict for the channel the banner asked about (G7 — backend
+   * #241 added the field; before it, the hero had nothing to guard on). Optional so a frontend
+   * running against an older backend simply shows no notice rather than blocking everything.
+   */
+  availability?: ItemAvailability;
 }
 
 export interface FeaturedSpecialResponse {

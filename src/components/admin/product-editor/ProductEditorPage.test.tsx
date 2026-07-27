@@ -16,6 +16,8 @@ jest.mock('@/services/productService', () => ({
 }));
 jest.mock('@/services/menuService', () => ({
   createProduct: jest.fn(async () => ({ success: true, data: { id: 'new-1' } })),
+}));
+jest.mock('@/services/menuBundleService', () => ({
   createMenuBundle: jest.fn(async () => ({ success: true, data: { id: 'new-1' } })),
   updateMenuBundle: jest.fn(async () => ({ success: true })),
 }));
@@ -28,7 +30,8 @@ jest.mock('@/services/categoryService', () => ({
 }));
 
 import { updateProduct } from '@/services/productService';
-import { createProduct, createMenuBundle, updateMenuBundle } from '@/services/menuService';
+import { createProduct } from '@/services/menuService';
+import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
 
 const item: ProductDetails = {

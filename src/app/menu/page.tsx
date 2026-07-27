@@ -116,8 +116,10 @@ export default function MenuPage() {
           {featuredSpecial && (
             <FeaturedSpecialComponent
               special={featuredSpecial}
-              onAddToCart={() => sheet.openForProductId(featuredSpecial.id)}
-              onViewDetails={() => sheet.openForProductId(featuredSpecial.id, { forceSheet: true })}
+              // The banner builds its own options (it holds the verdict); the page only routes.
+              onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+              onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+              onSwitchOrderType={switchOrderTypeFromCard}
             />
           )}
 

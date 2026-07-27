@@ -4,7 +4,7 @@ import React, { useState, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMenuManagement } from '@/hooks/useMenuManagement';
-import { deleteMenuBundle } from '@/services/menuService';
+import { deleteMenuBundle } from '@/services/menuBundleService';
 import { deleteProduct } from '@/services/productService';
 import {
   MENU_BUNDLE_TYPE,

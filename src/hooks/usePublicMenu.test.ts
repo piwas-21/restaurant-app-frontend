@@ -2,7 +2,8 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { usePublicMenu, MENU_BUNDLES_KEY } from './usePublicMenu';
 import { useOrderType } from '@/contexts/OrderTypeContext';
-import { getProducts, getPublicMenuBundles } from '@/services/menuService';
+import { getProducts } from '@/services/menuService';
+import { getPublicMenuBundles } from '@/services/menuBundleService';
 
 /**
  * The seam the whole S4 slice rests on: the guest's channel actually reaching `GET /api/Products`.
@@ -14,6 +15,8 @@ import { getProducts, getPublicMenuBundles } from '@/services/menuService';
 jest.mock('@/contexts/OrderTypeContext', () => ({ useOrderType: jest.fn() }));
 jest.mock('@/services/menuService', () => ({
   getProducts: jest.fn(),
+}));
+jest.mock('@/services/menuBundleService', () => ({
   getPublicMenuBundles: jest.fn(),
 }));
 jest.mock('./publicMenu/usePublicMenuCategories', () => ({

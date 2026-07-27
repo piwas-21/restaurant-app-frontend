@@ -397,3 +397,18 @@
     font-size: 0.9rem;
   }
 }
+
+/* Blocked for the guest's chosen channel (G7). The hero RECEDES rather than disappearing — the
+   special is still today's special, and hiding it would leave an unexplained hole where the guest
+   saw one a moment ago.
+ *
+ * Scoped to the IMAGE, exactly as the catalog card's `.blocked` is (MenuItem.module.css). A blanket
+ * `opacity` on the section would composite straight through the availability notice and its "Switch
+ * to X" button — and those two were given their own surfaces in S4 *specifically* so a recede could
+ * not push them below AA (the review that added them measured the info chip at 4.24:1 and the
+ * switch label at 4.16:1 in dark before the fix). Receding the one control the guest must click is
+ * the opposite of what the state needs. */
+.featuredSpecialBlocked .featuredSpecialImage {
+  opacity: 0.7;
+  filter: grayscale(0.7);
+}

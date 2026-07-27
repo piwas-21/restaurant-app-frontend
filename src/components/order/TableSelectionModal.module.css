@@ -44,8 +44,15 @@
   transition: background-color 0.15s ease;
 }
 
-.secondaryButton:hover,
-.secondaryButton:focus-visible {
+/* Mirrors .primaryButton:disabled above. Without it a disabled Cancel kept full contrast, kept
+   cursor: pointer and still lit up on hover — actively misleading on a destructive dialog. */
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton:hover:not(:disabled),
+.secondaryButton:focus-visible:not(:disabled) {
   background-color: var(--nav-link-hover-bg);
   outline: none;
 }

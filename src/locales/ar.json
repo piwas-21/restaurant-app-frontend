@@ -2371,5 +2371,11 @@
   "reorder_partial": "تمت إضافة {{added}} من أصل {{total}} عنصرًا.",
   "availability_only_for": "{{orderTypes}} فقط",
   "availability_switch_to": "التبديل إلى {{orderType}}",
-  "availability_ask_server": "اسأل النادل"
+  "availability_ask_server": "اسأل النادل",
+  "order_type_conflict_title": "بعض العناصر غير متوفرة",
+  "order_type_conflict_intro": "التبديل إلى {{orderType}} يزيل هذه العناصر من طلبك:",
+  "order_type_conflict_confirm": "إزالة والمتابعة",
+  "order_type_conflict_removing": "جارٍ الإزالة…",
+  "order_type_conflict_keep": "ألغِ للإبقاء على طلبك كما هو.",
+  "order_type_conflict_error": "تعذّرت إزالة هذه العناصر. لم يتغيّر طلبك — يرجى المحاولة مرة أخرى."
 }

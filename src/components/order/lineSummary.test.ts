@@ -69,6 +69,46 @@ describe('orderItemToLineSummary', () => {
     expect(summary.sideItems).toHaveLength(0);
   });
 
+  it('adapts a component of a component (the tree nests deeper than one level)', () => {
+    const summary = orderItemToLineSummary(
+      orderItem({
+        sideItems: [
+          {
+            id: 'c1',
+            productId: 'pc',
+            productName: 'Mezze Selection',
+            quantity: 1,
+            unitPrice: 0,
+            itemTotal: 0,
+            kind: 'BundleChild',
+            sideItems: [
+              {
+                id: 'g1',
+                productId: 'pg',
+                productName: 'Hummus',
+                quantity: 2,
+                unitPrice: 0,
+                itemTotal: 0,
+                kind: 'BundleChild',
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect(summary.children[0].children).toEqual([
+      {
+        id: 'g1',
+        name: 'Hummus',
+        quantity: 2,
+        diff: { added: [], removed: [] },
+        specialInstructions: undefined,
+        children: [],
+      },
+    ]);
+  });
+
   it('carries special instructions', () => {
     const summary = orderItemToLineSummary(orderItem({ specialInstructions: 'No salt' }));
     expect(summary.specialInstructions).toBe('No salt');
@@ -105,6 +145,27 @@ describe('basketItemToLineSummary', () => {
     expect(summary.children).toHaveLength(1);
     expect(summary.children[0]).toMatchObject({ id: 'c1', name: 'Coke', quantity: 1 });
     expect(summary.children[0].diff.removed).toEqual(['Ice']);
+  });
+
+  it('adapts a component of a component', () => {
+    const summary = basketItemToLineSummary({
+      quantity: 1,
+      unitPrice: 10,
+      itemTotal: 10,
+      productName: 'Family Platter',
+      childItems: [
+        {
+          id: 'c1',
+          quantity: 1,
+          unitPrice: 0,
+          itemTotal: 0,
+          productName: 'Mezze Selection',
+          childItems: [{ id: 'g1', quantity: 2, unitPrice: 0, itemTotal: 0, productName: 'Hummus' }],
+        },
+      ],
+    });
+
+    expect(summary.children[0].children).toMatchObject([{ id: 'g1', name: 'Hummus', quantity: 2, children: [] }]);
   });
 
   it('is empty for a plain basket item', () => {

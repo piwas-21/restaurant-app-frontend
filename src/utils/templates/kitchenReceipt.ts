@@ -8,20 +8,9 @@ import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
 import { selectItemsForKitchen } from '../orderItemTree';
+import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 
 type TranslationFunction = (key: string, fallback: string) => string;
-
-// Escape HTML
-const escapeHtml = (text: string): string => {
-  const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
-  };
-  return text.replace(/[&<>"']/g, (char) => map[char]);
-};
 
 // Get order type label
 const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): string => {
@@ -36,27 +25,6 @@ const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): s
     default:
       return type || 'Unknown';
   }
-};
-
-/**
- * Child items (bundle components + add-on sides) under a printed line, recursively. The order tree
- * can nest deeper than one level, and a kitchen ticket that rendered only the first level would
- * silently drop a grandchild it is responsible for.
- */
-const buildChildItemsHtml = (children: OrderItemDto[], showPrices: boolean, depth = 1): string => {
-  if (children.length === 0) return '';
-
-  const indent = 16 * depth;
-  let html = `<div style="margin-left: ${indent}px; font-size: 11pt; margin-top: 4px;"><strong>Additionals:</strong></div>`;
-
-  children.forEach((child) => {
-    const childPrice = showPrices ? ` (${formatCurrency(child.itemTotal)})` : '';
-    const childQuantity = child.quantity > 1 ? ` x${child.quantity}` : '';
-    html += `<div style="margin-left: ${indent + 8}px; font-size: 11pt;">+ ${escapeHtml(child.productName || 'Item')}${childQuantity}${childPrice}</div>`;
-    html += buildChildItemsHtml(child.sideItems ?? [], showPrices, depth + 1);
-  });
-
-  return html;
 };
 
 // Build kitchen item HTML - with optional pricing
@@ -99,7 +67,7 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
   }
 
   // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen
-  html += buildChildItemsHtml(item.sideItems ?? [], showPrices);
+  html += buildChildItemsHtml(item.sideItems ?? [], { showPrices, heading: 'Additionals:' });
 
   // Special instructions - prominent styling
   if (item.specialInstructions) {

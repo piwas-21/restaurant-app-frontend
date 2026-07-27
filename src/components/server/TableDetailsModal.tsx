@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ServerTableDto, closeTable, openTable, releaseTable, completeAllTableOrders } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './TableDetailsModal.module.css';
 
 interface TableDetailsModalProps {
@@ -258,12 +260,17 @@ export default function TableDetailsModal({
                       <span className={styles.orderStatus}>{order.status}</span>
                     </div>
                     <div className={styles.orderItems}>
+                      {/* `order.items` is root-only since backend #237: the components of a combo
+                          live in `sideItems` and are invisible without OrderLineSummary. */}
                       {order.items.map((item, idx) => (
-                        <div key={idx} className={styles.orderItemLine}>
-                          <span>
-                            {item.quantity}× {item.productName}
-                          </span>
-                        </div>
+                        <React.Fragment key={item.id || idx}>
+                          <div className={styles.orderItemLine}>
+                            <span>
+                              {item.quantity}× {item.productName}
+                            </span>
+                          </div>
+                          <OrderLineSummary line={orderItemToLineSummary(item)} />
+                        </React.Fragment>
                       ))}
                     </div>
                     <div className={styles.orderFooter}>

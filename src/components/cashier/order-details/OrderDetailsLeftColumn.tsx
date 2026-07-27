@@ -4,6 +4,8 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { User, ShoppingBag, MapPin } from 'lucide-react';
 import { OrderDto } from '@/types/order';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from '../OrderDetails.module.css';
 
 interface OrderDetailsLeftColumnProps {
@@ -88,6 +90,9 @@ export default function OrderDetailsLeftColumn({ order }: OrderDetailsLeftColumn
                 {item.specialInstructions && (
                   <div className={styles.itemInstructions}>💬 {item.specialInstructions}</div>
                 )}
+                {/* `order.items` is root-only since backend #237 — without this the components of a
+                    combo are invisible here. Instructions are hidden: the line above already has them. */}
+                <OrderLineSummary line={orderItemToLineSummary(item)} hideInstructions />
               </div>
               <div className={styles.itemPricing}>
                 <div className={styles.itemQuantity}>×{item.quantity}</div>

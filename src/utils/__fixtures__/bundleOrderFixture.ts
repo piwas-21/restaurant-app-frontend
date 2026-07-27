@@ -67,6 +67,34 @@ export const singleKitchenBundleOrder = (): OrderDto =>
   ]);
 
 /**
+ * A combo whose component has a component of its own. The backend builds the tree to arbitrary
+ * depth, so every surface that itemises an order has to recurse — one level deep silently drops
+ * the grandchild.
+ */
+export const nestedBundleOrder = (): OrderDto =>
+  makeOrder([
+    makeOrderItem({
+      id: 'combo',
+      productName: 'Family Platter',
+      menuName: 'Family Platter',
+      kitchenType: 'FrontKitchen',
+      itemTotal: 20,
+      unitPrice: 20,
+      sideItems: [
+        makeOrderItem({
+          id: 'mezze',
+          productName: 'Mezze Selection',
+          kitchenType: 'FrontKitchen',
+          kind: 'BundleChild',
+          sideItems: [
+            makeOrderItem({ id: 'hummus', productName: 'Hummus', kitchenType: 'FrontKitchen', kind: 'BundleChild' }),
+          ],
+        }),
+      ],
+    }),
+  ]);
+
+/**
  * The regression case from backend #237: a FrontKitchen combo containing BackKitchen fries. Both
  * kitchens must get a ticket, and the fries must land on the BACK one — not nested on the front.
  */

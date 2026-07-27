@@ -995,6 +995,7 @@
   "customizations": "Aanpassingen",
   "added_ingredients": "Toegevoegd",
   "removed_ingredients": "Verwijderd",
+  "side_items": "Bijgerechten",
   "special_requests": "Bijzondere wensen",
   "product_ingredients": "Productingrediënten",
   "ingredients_manager_description": "Beheer de ingrediënten van dit product. Markeer ingrediënten als optioneel en stel meerprijzen in zodat klanten ze kunnen toevoegen.",

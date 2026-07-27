@@ -2356,6 +2356,7 @@
   "category": "Category",
   "items_count": "{{count}} items",
   "category_order_types_intro": "Choose which order types each category can be ordered through. Items inherit their category unless you override them individually.",
+  "category_order_types_truncated": "Only the first {{limit}} categories are shown. The rest cannot be edited yet.",
   "category_order_type_toggle_aria": "{{category}} available for {{orderType}}",
   "order_types_saved": "Order type availability saved",
   "failed_to_save_order_types": "Failed to save order type availability",

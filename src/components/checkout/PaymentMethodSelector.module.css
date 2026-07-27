@@ -145,10 +145,12 @@
   color: var(--text-color);
 }
 
+/* Warning TEXT, not the fill — see globals.css `.text-warning` (§9.9). At 0.75rem this is small
+   text, so the 1.97:1 the fill gives on white was failing by a wide margin on the tightest case. */
 .comingSoon {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--warning-color);
+  color: var(--feedback-warning-text);
   font-style: italic;
 }
 

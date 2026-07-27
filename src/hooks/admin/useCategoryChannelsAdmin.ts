@@ -35,12 +35,24 @@ function restoreCategory(categories: Category[], saved: Category[], categoryId: 
  * snapshot for per-row dirty tracking, and one row saved at a time so an in-progress edit on
  * another row survives.
  */
+/**
+ * One page is fetched; see `truncated` for what happens when a catalogue outgrows it. Exported so
+ * the notice can state the real number instead of repeating a literal in ten locale strings.
+ */
+export const CATEGORY_PAGE_SIZE = 200;
+
 export function useCategoryChannelsAdmin() {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [saved, setSaved] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  /**
+   * True when the server holds more categories than this page fetched (§9.8). The cap is inert for
+   * RUMI (~13 categories) but it is SILENT: past it, a restriction would simply be unsettable for
+   * the categories that fell off, with nothing on screen to say so. Surfacing it costs one flag.
+   */
+  const [truncated, setTruncated] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,11 +60,17 @@ export function useCategoryChannelsAdmin() {
       try {
         // Cast at the call site, as every other getCategories caller does — the service is
         // deliberately untyped because it falls back to mockApiClient's different shape.
-        const response = (await getCategories(1, 200)) as { success: boolean; data?: { items?: Category[] } };
+        const response = (await getCategories(1, CATEGORY_PAGE_SIZE)) as {
+          success: boolean;
+          data?: { items?: Category[]; totalCount?: number };
+        };
         if (cancelled) return;
         const items: Category[] = response?.data?.items ?? [];
         setCategories(items);
         setSaved(items);
+        // Compare against the server's own count rather than `items.length === PAGE_SIZE`: a
+        // catalogue of exactly CATEGORY_PAGE_SIZE is complete, and warning there would cry wolf.
+        setTruncated((response?.data?.totalCount ?? items.length) > items.length);
       } catch {
         if (!cancelled) {
           enqueueSnackbar(t('failed_to_load_categories', 'Failed to load categories'), { variant: 'error' });
@@ -151,5 +169,5 @@ export function useCategoryChannelsAdmin() {
     [categories, t],
   );
 
-  return { categories, loading, savingId, selectedTypes, toggle, isDirty, canSave, reset, save };
+  return { categories, loading, savingId, truncated, selectedTypes, toggle, isDirty, canSave, reset, save };
 }

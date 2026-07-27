@@ -12,6 +12,23 @@
   margin: 0;
 }
 
+/* Warning TEXT, so the `-text` token — `--feedback-warning` is a fill and reads 1.97:1 on white
+   (§9.9, audited in the same change). */
+.truncated {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--feedback-warning-text);
+  border-radius: 6px;
+  background-color: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .truncated {
+  background-color: var(--surface-card);
+}
+
 /* Wide content scrolls inside its own container so the page never scrolls sideways. */
 .tableWrapper {
   overflow-x: auto;

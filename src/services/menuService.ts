@@ -3,6 +3,9 @@ import { mockApiClient } from './mockApiClient';
 import { Product } from '@/app/admin/menu-management/interfaces';
 import type { ProductTypeQuery } from '@/utils/productTypeFilter';
 import type { OrderType } from '@/types/order';
+// A product CAN carry a menu definition (that is what makes it a bundle), so the product-creation
+// payload still references the bundle shape even though the bundle CALLS moved out.
+import type { MenuDefinitionData } from './menuBundleService';
 
 const API_BASE_URL = '/api';
 const PRODUCTS_API_URL = `${API_BASE_URL}/Products`;
@@ -29,37 +32,6 @@ interface ContentData {
     name: string;
     description: string;
   };
-}
-
-export interface MenuSectionItemData {
-  productId: string;
-  additionalPrice: number;
-  displayOrder: number;
-  isDefault: boolean;
-}
-
-export interface MenuSectionData {
-  name: string;
-  description?: string;
-  displayOrder: number;
-  isRequired: boolean;
-  minSelection: number;
-  maxSelection: number;
-  items: MenuSectionItemData[];
-}
-
-export interface MenuDefinitionData {
-  isAlwaysAvailable: boolean;
-  startTime?: string | null;
-  endTime?: string | null;
-  availableMonday: boolean;
-  availableTuesday: boolean;
-  availableWednesday: boolean;
-  availableThursday: boolean;
-  availableFriday: boolean;
-  availableSaturday: boolean;
-  availableSunday: boolean;
-  sections: MenuSectionData[];
 }
 
 export interface CreateProductData {
@@ -110,55 +82,6 @@ export const getProducts = async (
   }
 };
 
-export const MENUS_API_URL = `${API_BASE_URL}/Menus`;
-
-export const createMenuBundle = async (menuData: any) => {
-  try {
-    return await apiClient.post(MENUS_API_URL, menuData);
-  } catch (error) {
-    console.error('Create Menu Bundle Failed:', error);
-    throw error;
-  }
-};
-
-export const updateMenuBundle = async (id: string, menuData: any) => {
-  try {
-    return await apiClient.put(`${MENUS_API_URL}/${id}`, menuData);
-  } catch (error) {
-    console.error('Update Menu Bundle Failed:', error);
-    throw error;
-  }
-};
-
-export const getMenuBundles = async (page: number = 1, pageSize: number = 10, includeUnavailable: boolean = true) => {
-  try {
-    return await apiClient.get(
-      `${MENUS_API_URL}?page=${page}&pageSize=${pageSize}&includeUnavailable=${includeUnavailable}`,
-    );
-  } catch (error) {
-    console.error('Get Menu Bundles Failed:', error);
-    throw error;
-  }
-};
-
-export const getMenuBundleById = async (id: string) => {
-  try {
-    return await apiClient.get(`${MENUS_API_URL}/${id}`);
-  } catch (error) {
-    console.error('Get Menu Bundle Failed:', error);
-    throw error;
-  }
-};
-
-export const deleteMenuBundle = async (id: string) => {
-  try {
-    return await apiClient.delete(`${MENUS_API_URL}/${id}`);
-  } catch (error) {
-    console.error('Delete Menu Bundle Failed:', error);
-    throw error;
-  }
-};
-
 export const createProduct = async (productData: CreateProductData) => {
   try {
     return await apiClient.post(PRODUCTS_API_URL, productData);
@@ -177,23 +100,20 @@ export const getProductById = async (productId: string) => {
   }
 };
 
-export const getFeaturedSpecial = async () => {
+/**
+ * Today's featured special for the menu banner.
+ *
+ * `requestedOrderType` drives the server's `availability` verdict (G7). Without it the banner is
+ * structurally permissive — the server resolves against "no channel chosen", which is orderable by
+ * design — so the guest could add a channel-blocked item straight from the hero, two clicks earlier
+ * than the catalog card that refuses it.
+ */
+export const getFeaturedSpecial = async (requestedOrderType?: OrderType | null) => {
   try {
-    return await apiClient.get(`${PRODUCTS_API_URL}/featured-special`);
+    const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
+    return await apiClient.get(`${PRODUCTS_API_URL}/featured-special${query}`);
   } catch {
     // Return null if no featured special or API fails
     return { success: true, data: null, message: 'No featured special available' };
-  }
-};
-
-/**
- * Get public menu bundles for customers (active and available only)
- */
-export const getPublicMenuBundles = async (page: number = 1, pageSize: number = 10) => {
-  try {
-    return await apiClient.get(`${MENUS_API_URL}?page=${page}&pageSize=${pageSize}`);
-  } catch (error) {
-    console.error('Get Public Menu Bundles Failed:', error);
-    throw error;
   }
 };

@@ -110,4 +110,24 @@ describe('useTrackItemBlocked', () => {
 
     expect(mockTrack).toHaveBeenCalledTimes(2);
   });
+
+  it('reports the SAME product blocked on two surfaces twice — the hero must not swallow the card', () => {
+    // The banner renders above the grid, so with a source-less key it claimed the entry first and
+    // the card's event was silently dropped for the rest of the visit: an undercount of the one
+    // number this feature exists to measure.
+    renderHook(() => useTrackItemBlocked('p1', notice('blocked'), 'featured_special'));
+    renderHook(() => useTrackItemBlocked('p1', notice('blocked'), 'menu_card'));
+
+    expect(mockTrack).toHaveBeenCalledTimes(2);
+    expect(mockTrack).toHaveBeenNthCalledWith(
+      1,
+      'item_blocked_by_order_type',
+      expect.objectContaining({ source: 'featured_special' }),
+    );
+    expect(mockTrack).toHaveBeenNthCalledWith(
+      2,
+      'item_blocked_by_order_type',
+      expect.objectContaining({ source: 'menu_card' }),
+    );
+  });
 });

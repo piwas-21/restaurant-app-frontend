@@ -71,6 +71,7 @@ module.exports = {
     'src/hooks/menu/useTrackItemBlocked.ts',
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
+    'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
     'src/utils/templates/receiptHtml.ts',
     'src/utils/templates/simpleReceipt.ts',
@@ -211,6 +212,21 @@ module.exports = {
       branches: 95,
       functions: 100,
       lines: 100,
+    },
+    // G7 — the featured banner is an ENTRY POINT: a guest can order straight from it, so a
+    // regression here is an unguarded add, not a missing chip. The uncovered branches are the
+    // `response.success && response.data` falsy arm and the render-time `!special` guard.
+    './src/hooks/useFeaturedSpecial.ts': {
+      statements: 94,
+      branches: 74,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/menu/FeaturedSpecial.tsx': {
+      statements: 88,
+      branches: 74,
+      functions: 100,
+      lines: 88,
     },
     // The other half of the root-only tree (#332): what a HUMAN sees. Same silent failure mode as
     // the routing above — a component that stops being rendered produces no error, the bill just

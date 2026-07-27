@@ -37,7 +37,11 @@
 
 .connected {
   background-color: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
+  /* #4caf50 on this tint is 2.42:1 — far below the 4.5:1 WCAG AA minimum for 14px text, and the
+     mirror image of the `.disconnected` fix below. It survived longer because this state only
+     renders once the SSE stream connects, so the a11y scan raced it. The token is Material Green
+     900 in light mode and a light green in dark, so both themes clear AA. */
+  color: var(--feedback-success-text);
 }
 
 .disconnected {

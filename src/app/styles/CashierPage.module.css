@@ -139,8 +139,13 @@
   font-size: 1.0625rem;
 }
 
+/* --text-secondary, not --text-muted. Muted is the lightest text that still clears AA, and it does
+   so only against a plain surface: on `.orderCardSelected`'s red tint it drops to 4.36:1, under the
+   4.5:1 this 13px label needs. It reads as 4.56:1 on pure white, which is how it went unnoticed —
+   the margin is small enough to flip with the surface underneath. Secondary is 5.2:1 on the
+   selected card and 5.4:1 off it, so the state can no longer decide whether this passes. */
 .orderTime {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.8125rem;
   font-weight: 500;
 }

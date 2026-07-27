@@ -107,6 +107,27 @@
   --status-preparing: #3b82f6;
   --status-ready: #8b5cf6;
 
+  /* Status badge FILLS — solid pill carrying white label text (cashier order list).
+     Deliberately NOT the --status-* hues above: those are tuned as chart fills and
+     dot/border indicators, where nothing is written on top, and five of the six
+     miss WCAG AA as a text background (Pending #fbbf24 is 1.66:1 against the 4.5:1
+     needed for this 12px/600 label; Confirmed 2.54, Cancelled 3.76, Preparing 3.68,
+     Ready 4.23). These are the same hue families darkened until white clears AA,
+     kept as a SEPARATE set so charts and the other order-status indicators keep
+     their current values. Ratios vs --badge-status-fg, in order below:
+     5.02 / 5.48 / 5.17 / 5.70 / 4.83 / 4.83 : 1.
+     Theme-INVARIANT (no dark override) — contrast here is text-vs-fill on an opaque
+     pill, which the page canvas cannot affect. The fills sit closer to a dark canvas
+     than the originals did; that is not a 1.4.11 concern, because the status is
+     carried by the label inside the pill, not by the fill. */
+  --badge-status-pending-bg: #b45309;
+  --badge-status-confirmed-bg: #047857;
+  --badge-status-preparing-bg: #2563eb;
+  --badge-status-ready-bg: #7c3aed;
+  --badge-status-completed-bg: #6b7280;
+  --badge-status-cancelled-bg: #dc2626;
+  --badge-status-fg: #ffffff;
+
   /* Neutral (blue-grey) action surface for secondary staff buttons that carry a white label.
      Theme-invariant: white on this is 5.4:1, clearing WCAG AA in both themes. Deliberately darker
      than the #607d8b it replaces, which sat at 4.37:1 — just under the 4.5:1 minimum. */

@@ -51,17 +51,12 @@ test('cashier logs in and reaches the cashier dashboard', async ({ cashierUser, 
     // breakpoint.
     await expect(page.getByRole('navigation').or(page.getByRole('tablist')).first()).toBeVisible({ timeout: 10_000 });
 
-    // a11y scan on the dashboard landing.
+    // a11y scan on the dashboard landing. Scans the WHOLE page — no exclusions.
     //
-    // The order-status badges are excluded, and the exclusion is NOT cosmetic bookkeeping: they are
-    // a real, unfixed WCAG AA failure. `getStatusColor` fills them with the `--status-*` hues and
-    // writes white on top, which for Pending (#fbbf24) is 1.66:1 against a 4.5:1 requirement —
-    // several other statuses fail too. It went unseen because this scan only ever ran against an
-    // EMPTY list; the kitchen-routing fixture put a permanent order on the dashboard and surfaced
-    // it. Fixing it means re-deciding the badge foreground for six statuses against tokens shared
-    // with the charts, which is a design change and does not belong in a print-routing PR — so it
-    // is scoped out here, loudly, rather than silently muting the whole scan.
-    await expectNoA11yViolations(page, { excludeSelectors: ['[data-testid="order-status-badge"]'] });
+    // This runs with the kitchen-routing fixture's permanent order on screen, so it covers the
+    // order-status badge, whose fill/label pair used to fail WCAG AA (Pending was 1.66:1) and was
+    // excluded here until the badge got its own AA-checked --badge-status-*-bg tokens.
+    await expectNoA11yViolations(page);
   } finally {
     await context.close();
   }

@@ -59,12 +59,14 @@ export function readCreds(key: string): AdminCreds | null {
     .slice(line.indexOf('=') + 1)
     .trim()
     .replace(/^["']|["']$/g, '');
-  // Two simple, linear-time patterns rather than one combined expression. The combined form paired
-  // `\s*` with lazy groups on both sides of a literal, which backtracks super-linearly on a
-  // non-matching input (Sonar S8786) — pointless risk for parsing a local config line.
+  // Two simple patterns rather than one combined expression, and neither puts `\s*` NEXT TO a
+  // greedy class that can also match whitespace — `\s*(.+)` is ambiguous (`.` matches spaces too),
+  // so the engine can split the boundary many ways and backtracks super-linearly when the match
+  // fails (Sonar S8786). Trimming afterwards costs nothing and keeps each pattern unambiguous:
+  // `\s*` is only ever followed by the literal `:`, and each capture starts right after it.
   const body = raw.replace(/^\{/, '').replace(/\}$/, '');
-  const email = /email\s*:\s*([^,]+)/.exec(body)?.[1]?.trim();
-  const password = /password\s*:\s*(.+)$/.exec(body)?.[1]?.trim();
+  const email = /email\s*:([^,]*)/.exec(body)?.[1]?.trim();
+  const password = /password\s*:(.*)$/.exec(body)?.[1]?.trim();
   return email && password ? { email, password } : null;
 }
 

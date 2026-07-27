@@ -32,14 +32,6 @@ import { expectNoA11yViolations } from '../../helpers/a11y';
 /** The seed.sql mixed-kitchen fixture order — same row kitchen-ticket-routing.e2e.ts drives. */
 const ORDER_NUMBER = 'E2E-KITCHEN-001';
 
-// axe exclusions for two pre-existing contrast failures documented at their call sites below.
-// Matched on the CSS-Module local name rather than the hashed class: the build prefixes the hash
-// but keeps the authored name as a suffix, so `[class*="..."]` survives a rebuild where the bare
-// hashed class would not. These are scan exclusions, not interaction selectors, so the
-// role/label/text rule in E2E-STRATEGY §Selector strategy does not apply.
-const CONNECTION_PILL = '[class*="connectionStatus"]';
-const SELECTED_CARD_TIME = '[class*="orderCardSelected"] [class*="orderTime"]';
-
 test('cashier logs in and reaches the cashier dashboard', async ({ cashierUser, browser }) => {
   const context = await browser.newContext({
     storageState: cashierUser.storageStatePath,
@@ -77,24 +69,17 @@ test('cashier logs in and reaches the cashier dashboard', async ({ cashierUser, 
     // silently cover an empty list, which is the failure mode this whole test is guarding against.
     await expect(page.getByText(ORDER_NUMBER, { exact: true })).toBeVisible({ timeout: 15_000 });
 
-    // a11y scan on the dashboard landing.
+    // a11y scan on the dashboard landing. Scans the WHOLE page — no exclusions.
     //
     // This runs with the kitchen-routing fixture's order on screen, so it covers the OrderList
     // order-status badge, whose fill/label pair used to fail WCAG AA (Pending was 1.66:1) and was
     // excluded here until the badge got its own AA-checked --badge-status-*-bg tokens.
     //
-    // The connection pill is excluded, and the exclusion is NOT bookkeeping: it is a real, unfixed
-    // WCAG AA failure. CashierHeader's `.connected` writes #4caf50 on its own 10%-alpha tint,
-    // which is 2.42:1 against the 4.5:1 needed at 14px/500. Its twin `.disconnected` was already
-    // fixed (it carries a comment saying exactly this) — `.connected` was left behind, and only
-    // shows once the SSE stream actually connects, which is why it survived: it is a RACE, not a
-    // constant, so this scan flakes on develop today depending on whether the socket came up
-    // before the scan ran. Fixing it is a token decision and not this PR's business:
-    // --feedback-success-darker, the obvious candidate, lands at 4.47:1 and misses by 0.03, so it
-    // needs either a new --feedback-success-text token (mirroring the --feedback-warning-text
-    // precedent) or a hue change to emerald-800 (6.69:1). Scoped out loudly rather than silently
-    // muting the scan — same call #333 made about the badge this PR is fixing.
-    await expectNoA11yViolations(page, { excludeSelectors: [CONNECTION_PILL] });
+    // It also covers the header's connection pill, whose "connected" state was 2.42:1 until it got
+    // --feedback-success-text. That one used to make THIS scan flaky rather than red: the state
+    // only renders once the SSE stream connects, so whether it was caught depended on whether the
+    // socket came up before the scan ran.
+    await expectNoA11yViolations(page);
 
     // Second scan, with an order SELECTED.
     //
@@ -116,15 +101,10 @@ test('cashier logs in and reaches the cashier dashboard', async ({ cashierUser, 
       timeout: 10_000,
     });
 
-    // Selecting a card also exposes a second pre-existing failure, for the same reason this test
-    // exists: nothing had ever scanned the SELECTED state. `.orderTime` is --text-muted (#6b7280),
-    // which clears AA on a plain card but drops to 4.36:1 on `.orderCardSelected`'s red-tinted
-    // background. --text-secondary would fix it at 5.18:1, but that is a visual change to a
-    // component this PR does not otherwise touch, so it is scoped out here and left visible.
-    //
-    // Neither exclusion covers the OrderDetails status badge — the thing this PR fixes is fully
-    // in scope of the scan below.
-    await expectNoA11yViolations(page, { excludeSelectors: [CONNECTION_PILL, SELECTED_CARD_TIME] });
+    // Also no exclusions. Selecting a card is its own surface: `.orderTime` used to be
+    // --text-muted, which clears AA on a plain card but not on `.orderCardSelected`'s red tint
+    // (4.36:1), and nothing had ever scanned the selected state to notice.
+    await expectNoA11yViolations(page);
   } finally {
     await context.close();
   }

@@ -66,6 +66,12 @@
   --feedback-success-xlight: #e8f5e9;
   --feedback-success-dark: #388e3c; /* ~4.1:1 on white — text/bg where white-text contrast isn't required; below AA for normal text on white */
   --feedback-success-darker: #2e7d32; /* CTA button background in light mode (~5.7:1 on white, WCAG AA) */
+  /* Success TEXT, same idea as --feedback-warning-text below. `--feedback-success` is a fill/dot
+     green and reaches only 2.4:1 as a label on its own 10%-alpha tint (WCAG AA needs 4.5:1).
+     `--feedback-success-darker` is NOT a substitute here: on that tint it lands at 4.47:1 and
+     misses by 0.03. This is the same hue family taken to Material Green 900, 6.9:1 on the tint.
+     Overridden in the dark block, where the surface flips and a light green is what passes. */
+  --feedback-success-text: #1b5e20;
 
   /* Feedback — error (form/API errors) */
   --feedback-error: #f44336;
@@ -335,6 +341,7 @@ html[data-theme='dark'] {
 
   --feedback-success: #81c784;
   --feedback-success-darker: #66bb6a; /* CTA button background in dark mode (~6.0:1 on #1a1a1a) */
+  --feedback-success-text: #81c784; /* 6.5:1 on the success tint over the dark card surface */
 
   --feedback-error: #ff8a80;
   --feedback-error-bg: #3a1f1f;

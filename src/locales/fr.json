@@ -2371,5 +2371,11 @@
   "reorder_partial": "{{added}} article(s) ajouté(s) sur {{total}}.",
   "availability_only_for": "{{orderTypes}} uniquement",
   "availability_switch_to": "Passer à {{orderType}}",
-  "availability_ask_server": "Demandez à votre serveur"
+  "availability_ask_server": "Demandez à votre serveur",
+  "order_type_conflict_title": "Certains articles ne sont pas disponibles",
+  "order_type_conflict_intro": "Passer à {{orderType}} retire ces articles de votre commande :",
+  "order_type_conflict_confirm": "Retirer et continuer",
+  "order_type_conflict_removing": "Suppression…",
+  "order_type_conflict_keep": "Annulez pour conserver votre commande telle quelle.",
+  "order_type_conflict_error": "Ces articles n'ont pas pu être retirés. Votre commande est inchangée — veuillez réessayer."
 }

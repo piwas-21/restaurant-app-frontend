@@ -2371,5 +2371,11 @@
   "reorder_partial": "{{added}} van {{total}} items toegevoegd.",
   "availability_only_for": "Alleen {{orderTypes}}",
   "availability_switch_to": "Overschakelen naar {{orderType}}",
-  "availability_ask_server": "Vraag het de bediening"
+  "availability_ask_server": "Vraag het de bediening",
+  "order_type_conflict_title": "Sommige items zijn niet beschikbaar",
+  "order_type_conflict_intro": "Overschakelen naar {{orderType}} verwijdert deze items uit je bestelling:",
+  "order_type_conflict_confirm": "Verwijderen en doorgaan",
+  "order_type_conflict_removing": "Verwijderen…",
+  "order_type_conflict_keep": "Annuleer om je bestelling ongewijzigd te laten.",
+  "order_type_conflict_error": "Deze items konden niet worden verwijderd. Je bestelling is ongewijzigd — probeer het opnieuw."
 }

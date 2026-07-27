@@ -2371,5 +2371,11 @@
   "reorder_partial": "Aggiunti {{added}} articoli su {{total}}.",
   "availability_only_for": "Solo {{orderTypes}}",
   "availability_switch_to": "Passa a {{orderType}}",
-  "availability_ask_server": "Chiedi al cameriere"
+  "availability_ask_server": "Chiedi al cameriere",
+  "order_type_conflict_title": "Alcuni articoli non sono disponibili",
+  "order_type_conflict_intro": "Passare a {{orderType}} rimuove questi articoli dal tuo ordine:",
+  "order_type_conflict_confirm": "Rimuovi e continua",
+  "order_type_conflict_removing": "Rimozione…",
+  "order_type_conflict_keep": "Annulla per lasciare il tuo ordine invariato.",
+  "order_type_conflict_error": "Non è stato possibile rimuovere questi articoli. Il tuo ordine è invariato — riprova."
 }

@@ -59,6 +59,9 @@ module.exports = {
     'src/hooks/useCustomerFormFields.ts',
     'src/hooks/admin/useCustomerFormsAdmin.ts',
     'src/hooks/order/registrationOutcome.ts',
+    'src/hooks/order/useOrderTypeSwitch.ts',
+    'src/hooks/order/useAssertBasketChannel.ts',
+    'src/hooks/order/needsTakeawayInfoModal.ts',
     'src/hooks/order/useGuestProfilePrefill.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/checkout/contactFieldRules.ts',
@@ -155,6 +158,35 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // §4.4 — the two-phase basket order-type switch. Worth pinning at this level because it is the
+    // ONLY thing that tells the server which channel a basket is on, and `Basket.OrderType` being
+    // null is silently permissive: a regression here does not throw, it just quietly disarms
+    // `BasketChannelGuard` again. The two uncovered branches are the `basket == null` optional
+    // chain and the re-entrancy guard on confirm.
+    './src/hooks/order/useOrderTypeSwitch.ts': {
+      statements: 98,
+      branches: 93,
+      functions: 100,
+      lines: 100,
+    },
+    // The server-sync half. 100% across the board and pinned there: its whole job is arming a guard
+    // whose failure mode is silence — nothing throws when the basket stays on a null channel.
+    './src/hooks/order/useAssertBasketChannel.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // §4.4 — the itemized confirm. The naming assertions are the point: a dialog asking consent to
+    // delete "× 2" is the failure mode. (It renders `conflicts`, which the server has always named
+    // correctly — the field plan §9.11 found empty was the echoed `basket`, which this never
+    // reads.) The one uncovered branch is the `i18n.language` fallback.
+    './src/components/order/OrderTypeConflictModal.tsx': {
+      statements: 100,
+      branches: 87,
+      functions: 100,
+      lines: 100,
+    },
     // S4 — the per-order-type availability notice on a catalog card. The shared presentational
     // half, exercised from BOTH template card tests (classic MenuCard + craft CraftMenuCard), which
     // is exactly the property worth pinning: every customer deliverable lands twice, so a regression

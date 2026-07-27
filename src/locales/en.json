@@ -2371,5 +2371,11 @@
   "reorder_partial": "Added {{added}} of {{total}} items.",
   "availability_only_for": "{{orderTypes}} only",
   "availability_switch_to": "Switch to {{orderType}}",
-  "availability_ask_server": "Ask your server"
+  "availability_ask_server": "Ask your server",
+  "order_type_conflict_title": "Some items are not available",
+  "order_type_conflict_intro": "Switching to {{orderType}} removes these items from your order:",
+  "order_type_conflict_confirm": "Remove and continue",
+  "order_type_conflict_removing": "Removing…",
+  "order_type_conflict_keep": "Cancel to keep your order as it is.",
+  "order_type_conflict_error": "Those items could not be removed. Your order is unchanged — please try again."
 }

@@ -10,6 +10,7 @@ import TableSelectionModal from './TableSelectionModal';
 import DeliveryAddressModal from './DeliveryAddressModal';
 import TakeawayInfoModal from './TakeawayInfoModal';
 import EditOrderTypeModal from './EditOrderTypeModal';
+import OrderTypeConflictModal from './OrderTypeConflictModal';
 
 // Stable references (feeding useGuestCustomerInfo's memoised commit). These
 // are the per-order-type FLOORS — Dine-In requires only name+email while
@@ -76,11 +77,25 @@ export default function OrderFlowModals({ followUp }: OrderFlowModalsProps) {
         editAll={followUp.followUp === 'contact'}
       />
 
-      {/* Review page "Edit Order Details" — pick a type, then its detail modal opens. */}
+      {/* Review page "Edit Order Details" — pick a type, then its detail modal opens. Suppressed
+          while a conflict confirm is up: picking a conflicting type here bails before `commitType`,
+          so `followUp` is never cleared and this editor would sit open BEHIND the confirm — two
+          BaseModals, one global Escape listener, one keypress closing both. */}
       <EditOrderTypeModal
-        isOpen={followUp.followUp === 'ordertype'}
+        isOpen={followUp.followUp === 'ordertype' && followUp.switchFlow.pending === null}
         onClose={followUp.closeFollowUp}
         onPick={pickTypeFromReview}
+      />
+
+      {/* Itemized conflict confirm (§4.4). Driven by its own `pending`, not by `followUp`: it runs
+          BEFORE the type is committed, so it is not one of the post-pick follow-ups — and a switch
+          can be refused from any surface that calls pickType, including a card's Switch-to-X. */}
+      <OrderTypeConflictModal
+        pending={followUp.switchFlow.pending}
+        isApplying={followUp.switchFlow.isApplying}
+        error={followUp.switchFlow.error}
+        onConfirm={followUp.confirmSwitch}
+        onCancel={followUp.switchFlow.cancel}
       />
     </>
   );

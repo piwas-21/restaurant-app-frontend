@@ -1,8 +1,7 @@
 import { test as base, request, type APIRequestContext } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { deleteUserByEmail } from '../helpers/db';
 import { apiBaseUrl } from '../helpers/config';
+import { writeAuthStorageState } from '../helpers/storageState';
 import { waitForVerificationLink } from '../helpers/mailpit';
 
 /**
@@ -22,14 +21,12 @@ import { waitForVerificationLink } from '../helpers/mailpit';
  *   2. Confirm email by hitting the verify-email link the backend sent to
  *      Mailpit — the same path a real user would walk.
  *   3. Log in via the API to get a real JWT exactly as the browser would.
- *   4. Persist auth_token + refresh_token into localStorage via storageState.
+ *   4. Persist the signed-in browser state via the shared storageState writer.
  *   5. Tests read `customerUser` to get the credentials and `storageStatePath`
  *      to attach to a `browser.newContext({ storageState })`.
  *   6. Teardown deletes this single user by exact email. Parallel-safe — does
  *      NOT use the prefix-based purge, which would nuke other workers' users.
  */
-
-const E2E_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
 
 export interface CustomerUser {
   firstName: string;
@@ -85,16 +82,22 @@ export const test = base.extend<{ customerUser: CustomerUser }>({
         data: { email, token: tokenParam },
       });
       if (!verifyResponse.ok()) {
-        throw new Error(
-          `customerUser: verify-email failed ${verifyResponse.status()} ${await verifyResponse.text()}`,
-        );
+        throw new Error(`customerUser: verify-email failed ${verifyResponse.status()} ${await verifyResponse.text()}`);
       }
       const auth = await loginCustomer(ctx, { email, password });
 
-      const storageStatePath = await writeStorageState({
+      const storageStatePath = await writeAuthStorageState({
         frontendOrigin,
         accessToken: auth.accessToken,
         refreshToken: auth.refreshToken,
+        user: {
+          firstName: auth.firstName,
+          lastName: auth.lastName,
+          email: auth.email,
+          role: auth.role,
+          accessToken: auth.accessToken,
+        },
+        role: 'customer',
         slug: testInfo.testId,
       });
 
@@ -130,9 +133,7 @@ async function registerCustomer(
     data: { ...payload, confirmPassword: payload.password },
   });
   if (!response.ok()) {
-    throw new Error(
-      `register customer failed: ${response.status()} ${await response.text()}`,
-    );
+    throw new Error(`register customer failed: ${response.status()} ${await response.text()}`);
   }
   const body = (await response.json()) as ApiResponse<AuthResponseData>;
   if (!body.success) {
@@ -153,30 +154,6 @@ async function loginCustomer(
     throw new Error(`login rejected: ${body.message ?? body.errors?.join(', ')}`);
   }
   return body.data;
-}
-
-async function writeStorageState(opts: {
-  frontendOrigin: string;
-  accessToken: string;
-  refreshToken: string;
-  slug: string;
-}): Promise<string> {
-  await mkdir(E2E_AUTH_DIR, { recursive: true });
-  const file = path.join(E2E_AUTH_DIR, `customer-${opts.slug}.json`);
-  const state = {
-    cookies: [],
-    origins: [
-      {
-        origin: opts.frontendOrigin,
-        localStorage: [
-          { name: 'auth_token', value: opts.accessToken },
-          { name: 'refresh_token', value: opts.refreshToken },
-        ],
-      },
-    ],
-  };
-  await writeFile(file, JSON.stringify(state), 'utf8');
-  return file;
 }
 
 export { expect } from '@playwright/test';

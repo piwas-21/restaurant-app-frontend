@@ -107,6 +107,11 @@
   --status-preparing: #3b82f6;
   --status-ready: #8b5cf6;
 
+  /* Neutral (blue-grey) action surface for secondary staff buttons that carry a white label.
+     Theme-invariant: white on this is 5.4:1, clearing WCAG AA in both themes. Deliberately darker
+     than the #607d8b it replaces, which sat at 4.37:1 — just under the 4.5:1 minimum. */
+  --action-neutral: #546e7a;
+
   /* Primitives (S15 T1 slice 4) — raw palette values frozen verbatim from the
      customer-module hex burndown (var(--x, #hex) live fallbacks on undefined vars
      + bare hex with no matching semantic token). Theme-INVARIANT: identical in

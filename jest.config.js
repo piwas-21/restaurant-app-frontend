@@ -66,6 +66,7 @@ module.exports = {
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
+    'src/utils/orderItemTree.ts',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
@@ -158,6 +159,16 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Kitchen routing over the ROOT-ONLY order tree (backend #237). Pinned at 100% because its
+    // failure mode is silence: miss a nested item and a kitchen simply never gets a ticket — no
+    // error, no empty print, just food that is never cooked. Every branch here is one `?? []` or one
+    // match/hoist decision, so there is nothing incidental to leave uncovered.
+    './src/utils/orderItemTree.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
     // §4.4 — the two-phase basket order-type switch. Worth pinning at this level because it is the
     // ONLY thing that tells the server which channel a basket is on, and `Basket.OrderType` being
     // null is silently permissive: a regression here does not throw, it just quietly disarms

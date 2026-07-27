@@ -42,7 +42,9 @@
 
 .disconnected {
   background-color: rgba(244, 67, 54, 0.1);
-  color: #f44336;
+  /* #f44336 on this tint is 3.08:1 — below the 4.5:1 WCAG AA minimum for 14px text. The token is
+     the darker danger red in light mode and a lighter one in dark, so both themes clear AA. */
+  color: var(--feedback-danger-dark);
 }
 
 .connectionDot {
@@ -83,6 +85,23 @@
   border-radius: 6px;
   cursor: pointer;
   transition: opacity 0.2s;
+}
+
+/* Neutral (blue-grey) variant. Replaces an inline `#607d8b`, whose white label was 4.37:1 — just
+   under the 4.5:1 WCAG AA minimum. The token is darker, clearing it at 5.4:1. */
+.buttonNeutral {
+  background-color: var(--action-neutral);
+}
+
+/* On/off states for a toggle button with a white label. Both replace inline fills that were far
+   below WCAG AA against white — #4caf50 at 2.78:1 and #ff9800 at 2.16:1. The "-dark(er)" tokens
+   exist for exactly this: a fill that has to carry white text (5.1:1 and 5.0:1). */
+.buttonOn {
+  background-color: var(--feedback-success-darker);
+}
+
+.buttonOff {
+  background-color: var(--feedback-warning-dark);
 }
 
 .button:hover:not(:disabled) {

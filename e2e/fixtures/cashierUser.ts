@@ -1,8 +1,8 @@
 import { test as base, request, type APIRequestContext } from '@playwright/test';
-import { mkdir, writeFile, rm } from 'node:fs/promises';
-import path from 'node:path';
+import { rm } from 'node:fs/promises';
 import { deleteUserByEmail, promoteE2EUser } from '../helpers/db';
 import { apiBaseUrl } from '../helpers/config';
+import { writeAuthStorageState } from '../helpers/storageState';
 
 /**
  * Per-role auth fixture: a cashier with saved storageState.
@@ -26,13 +26,11 @@ import { apiBaseUrl } from '../helpers/config';
  *   2. UPDATE Users.role = Cashier and email_confirmed = TRUE in the test DB
  *      (parallel-safe — single-row update by exact email).
  *   3. Log in via the API. The returned JWT carries the Cashier role claim.
- *   4. Persist auth_token + refresh_token via storageState.
+ *   4. Persist the signed-in browser state via the shared storageState writer.
  *   5. Tests read `cashierUser` and attach `storageStatePath` to a fresh
  *      browser context.
  *   6. Teardown deletes the user by exact email.
  */
-
-const E2E_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
 
 export interface CashierUser {
   firstName: string;
@@ -83,10 +81,18 @@ export const test = base.extend<{ cashierUser: CashierUser }>({
         throw new Error(`cashierUser: login returned role=${auth.role}, expected Cashier`);
       }
 
-      const storageStatePath = await writeStorageState({
+      const storageStatePath = await writeAuthStorageState({
         frontendOrigin,
         accessToken: auth.accessToken,
         refreshToken: auth.refreshToken,
+        user: {
+          firstName: auth.firstName,
+          lastName: auth.lastName,
+          email: auth.email,
+          role: auth.role,
+          accessToken: auth.accessToken,
+        },
+        role: 'cashier',
         slug: testInfo.testId,
       });
 
@@ -155,30 +161,6 @@ async function loginUser(
     throw new Error(`cashierUser: login rejected: ${body.message ?? body.errors?.join(', ')}`);
   }
   return body.data;
-}
-
-async function writeStorageState(opts: {
-  frontendOrigin: string;
-  accessToken: string;
-  refreshToken: string;
-  slug: string;
-}): Promise<string> {
-  await mkdir(E2E_AUTH_DIR, { recursive: true });
-  const file = path.join(E2E_AUTH_DIR, `cashier-${opts.slug}.json`);
-  const state = {
-    cookies: [],
-    origins: [
-      {
-        origin: opts.frontendOrigin,
-        localStorage: [
-          { name: 'auth_token', value: opts.accessToken },
-          { name: 'refresh_token', value: opts.refreshToken },
-        ],
-      },
-    ],
-  };
-  await writeFile(file, JSON.stringify(state), 'utf8');
-  return file;
 }
 
 export { expect } from '@playwright/test';

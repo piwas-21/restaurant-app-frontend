@@ -124,7 +124,12 @@ export default function CashierMainContent({
               <span>{t('cashier.no_orders') || 'No orders found'}</span>
             </div>
           ) : (
-            <div className={styles.orderList}>
+            /* A labelled <section> (not a div with role="region") that is focusable: this pane
+               scrolls, so a keyboard-only user must be able to reach and scroll it — axe
+               `scrollable-region-focusable`, which is satisfied by the tabIndex, not by the label.
+               Only reachable once there ARE orders, which is why the dashboard a11y scan, running
+               against an empty list, never caught it. */
+            <section className={styles.orderList} tabIndex={0} aria-label={t('cashier.orders') || 'Orders'}>
               <OrderList
                 orders={filteredOrders}
                 selectedOrderId={selectedOrderId}
@@ -132,7 +137,7 @@ export default function CashierMainContent({
                 isLoading={isLoading}
                 error={error}
               />
-            </div>
+            </section>
           )}
         </div>
 

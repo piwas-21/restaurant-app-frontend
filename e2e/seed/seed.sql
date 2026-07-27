@@ -202,6 +202,103 @@ SET open_time = INTERVAL '00:00:00',
     is_closed = FALSE,
     updated_by = 'e2e-seed';
 
+-- psql variables so the order's id and the bundle-parent line's id are written ONCE. They are
+-- foreign keys repeated across the child rows and the verification query, and a UUID typo there
+-- fails as a silently orphaned row, not an error. (`\set` is a client-side psql command; this file
+-- is only ever run as `psql -f`, which is how CI and e2e/README.md invoke it.)
+\set order_id '00000000-0000-0000-0000-0000000000f0'
+\set combo_item_id '00000000-0000-0000-0000-0000000000e1'
+
+-- 7) MIXED-KITCHEN BUNDLE ORDER — fixture for e2e/tests/cashier/kitchen-ticket-routing.e2e.ts.
+--
+-- The regression backend #237 (issue #234) introduced: `OrderDto.Items` is now ROOT-ONLY, so a
+-- BackKitchen component inside a FrontKitchen combo is no longer a top-level row. A frontend that
+-- filters only the top level finds nothing for BackKitchen — the back kitchen gets NO ticket and
+-- its item prints on the FRONT one instead. This seeds exactly that shape so the E2E can drive the
+-- real cashier UI over a real API response.
+--
+-- All three products are `type = 5` (ProductType.Menu) and carry no category link or description ON
+-- PURPOSE: they must never reach the public menu, where they would displace the item the menu/cart
+-- and checkout specs add and shift the pinned screenshot baselines.
+--
+-- `type = 5` is what actually hides them, NOT `is_active = FALSE`. GetProductsQuery applies IsActive
+-- only when the caller passes it, and the customer menu never does; the one unconditional exclusion
+-- on the default list is `p.Type != ProductType.Menu`. is_active is kept FALSE as belt-and-braces
+-- for any surface that does filter on it.
+--
+-- Nothing in the order path cares: the receipt prints the OrderItem's own `product_name` snapshot,
+-- and OrderMappingService reads KitchenType off the joined Product whatever its Type. `Kind` on a
+-- child comes from the PARENT's product type, so the parent being Menu is what makes these
+-- `BundleChild` — the children's own type is irrelevant to that.
+--
+-- kitchen_type: 0 = None, 1 = FrontKitchen, 2 = BackKitchen (Domain/Common/Enums/KitchenType.cs).
+
+INSERT INTO "Products" (
+    id, name, description, base_price,
+    display_order, image_url,
+    allergens, ingredients,
+    is_active, is_available, is_deleted, is_featured_special, is_special,
+    kitchen_type, preparation_time_minutes, type,
+    created_by
+) VALUES
+    ('00000000-0000-0000-0000-0000000000f1', 'E2E Kitchen Combo', 'Bundle parent — front kitchen',
+     20.00, 90, NULL, '[]'::jsonb, '[]'::jsonb, FALSE, TRUE, FALSE, FALSE, FALSE, 1, 5, 5, 'e2e-seed'),
+    ('00000000-0000-0000-0000-0000000000f2', 'E2E Front Burger', 'Bundle component — front kitchen',
+     12.00, 91, NULL, '[]'::jsonb, '[]'::jsonb, FALSE, TRUE, FALSE, FALSE, FALSE, 1, 5, 5, 'e2e-seed'),
+    ('00000000-0000-0000-0000-0000000000f3', 'E2E Back Fries', 'Bundle component — BACK kitchen',
+     8.00, 92, NULL, '[]'::jsonb, '[]'::jsonb, FALSE, TRUE, FALSE, FALSE, FALSE, 2, 5, 5, 'e2e-seed')
+ON CONFLICT (id) DO NOTHING;
+
+-- Takeaway so the order does not depend on working hours or a table.
+--
+-- Dated a day AHEAD deliberately. The cashier list is OrderDate-descending with a default page size
+-- of 10, and the rest of the suite creates orders while this one waits, so a "now"-dated fixture
+-- would drift off page 1 as the suite grows. Future-dating pins it to the top forever. The spec
+-- switches OFF the dashboard's "today only" window, which is what makes that safe — and also what
+-- keeps this out of the timezone business: that window is computed in the BROWSER's local zone
+-- while this timestamp is written in the DB session's, so any "today at 23:00" anchor here is only
+-- ever correct when both happen to be UTC.
+INSERT INTO orders (
+    id, order_number, status, payment_status, type,
+    customer_name, order_date,
+    sub_total, tax, delivery_fee, discount, discount_percentage, tip,
+    total, total_paid, remaining_amount,
+    customer_discount_amount, fidelity_points_discount, fidelity_points_earned, fidelity_points_redeemed,
+    has_user_limit_discount, user_limit_amount,
+    is_focus_order, is_deleted, created_by
+) VALUES (
+    :'order_id',
+    'E2E-KITCHEN-001',
+    'Pending',
+    'Pending',
+    'Takeaway',
+    'E2E Kitchen Routing',
+    NOW() + INTERVAL '1 day',
+    20.00, 0, 0, 0, 0, 0,
+    20.00, 0, 20.00,
+    0, 0, 0, 0,
+    FALSE, 0,
+    FALSE, FALSE, 'e2e-seed'
+) ON CONFLICT (id) DO NOTHING;
+
+-- The tree. Children are rows in the SAME order.Items collection pointing back via
+-- parent_order_item_id — that is how the backend rebuilds the tree, and why nothing broke loudly
+-- when the projection changed.
+INSERT INTO "OrderItems" (
+    id, order_id, product_id, parent_order_item_id,
+    product_name, quantity, unit_price, item_total, created_by
+) VALUES
+    (:'combo_item_id', :'order_id',
+     '00000000-0000-0000-0000-0000000000f1', NULL,
+     'E2E Kitchen Combo', 1, 20.00, 20.00, 'e2e-seed'),
+    ('00000000-0000-0000-0000-0000000000e2', :'order_id',
+     '00000000-0000-0000-0000-0000000000f2', :'combo_item_id',
+     'E2E Front Burger', 1, 12.00, 12.00, 'e2e-seed'),
+    ('00000000-0000-0000-0000-0000000000e3', :'order_id',
+     '00000000-0000-0000-0000-0000000000f3', :'combo_item_id',
+     'E2E Back Fries', 1, 8.00, 8.00, 'e2e-seed')
+ON CONFLICT (id) DO NOTHING;
+
 COMMIT;
 
 -- Verification lines (visible in CI logs)
@@ -209,3 +306,9 @@ SELECT count(*) AS products_total FROM "Products";
 SELECT count(*) AS tables_total FROM "Tables";
 SELECT day_of_week, open_time, close_time, is_closed
 FROM working_hours ORDER BY day_of_week;
+-- The mixed-kitchen bundle: 1 root + 2 children, one per kitchen.
+SELECT oi.product_name, p.kitchen_type, oi.parent_order_item_id IS NULL AS is_root
+FROM "OrderItems" oi
+JOIN "Products" p ON p.id = oi.product_id
+WHERE oi.order_id = :'order_id'
+ORDER BY oi.product_name ASC;

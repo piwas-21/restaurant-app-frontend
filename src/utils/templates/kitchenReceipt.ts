@@ -7,6 +7,7 @@
 import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
+import { selectItemsForKitchen } from '../orderItemTree';
 
 type TranslationFunction = (key: string, fallback: string) => string;
 
@@ -35,6 +36,27 @@ const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): s
     default:
       return type || 'Unknown';
   }
+};
+
+/**
+ * Child items (bundle components + add-on sides) under a printed line, recursively. The order tree
+ * can nest deeper than one level, and a kitchen ticket that rendered only the first level would
+ * silently drop a grandchild it is responsible for.
+ */
+const buildChildItemsHtml = (children: OrderItemDto[], showPrices: boolean, depth = 1): string => {
+  if (children.length === 0) return '';
+
+  const indent = 16 * depth;
+  let html = `<div style="margin-left: ${indent}px; font-size: 11pt; margin-top: 4px;"><strong>Additionals:</strong></div>`;
+
+  children.forEach((child) => {
+    const childPrice = showPrices ? ` (${formatCurrency(child.itemTotal)})` : '';
+    const childQuantity = child.quantity > 1 ? ` x${child.quantity}` : '';
+    html += `<div style="margin-left: ${indent + 8}px; font-size: 11pt;">+ ${escapeHtml(child.productName || 'Item')}${childQuantity}${childPrice}</div>`;
+    html += buildChildItemsHtml(child.sideItems ?? [], showPrices, depth + 1);
+  });
+
+  return html;
 };
 
 // Build kitchen item HTML - with optional pricing
@@ -76,14 +98,8 @@ const buildKitchenItemHtml = (item: OrderItemDto, translate: TranslationFunction
     });
   }
 
-  // Side items
-  if (item.sideItems && item.sideItems.length > 0) {
-    html += `<div style="margin-left: 16px; font-size: 11pt; margin-top: 4px;"><strong>Additionals:</strong></div>`;
-    item.sideItems.forEach((side) => {
-      const sidePrice = showPrices ? ` (${formatCurrency(side.itemTotal)})` : '';
-      html += `<div style="margin-left: 24px; font-size: 11pt;">+ ${escapeHtml(side.productName || 'Item')}${side.quantity > 1 ? ` x${side.quantity}` : ''}${sidePrice}</div>`;
-    });
-  }
+  // Child items (bundle components + add-on sides), already pruned to this ticket's kitchen
+  html += buildChildItemsHtml(item.sideItems ?? [], showPrices);
 
   // Special instructions - prominent styling
   if (item.specialInstructions) {
@@ -108,11 +124,10 @@ export const generateKitchenReceiptHtml = (
 ): string | null => {
   const translate = t || ((key: string, fallback: string) => fallback);
 
-  // Filter items by kitchen type
-  const filteredItems = order.items.filter((item) => {
-    if (kitchenType === 'All') return true;
-    return item.kitchenType === kitchenType;
-  });
+  // Filter items by kitchen type. `order.items` is root-only (backend #237), so a kitchen's items
+  // can sit anywhere in the tree — a BackKitchen side inside a FrontKitchen combo belongs on the
+  // BACK ticket, not nested on the front one. `selectItemsForKitchen` recurses and re-parents.
+  const filteredItems = kitchenType === 'All' ? order.items : selectItemsForKitchen(order.items, kitchenType);
 
   if (filteredItems.length === 0) {
     return null;

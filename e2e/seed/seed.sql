@@ -304,4 +304,4 @@ SELECT oi.product_name, p.kitchen_type, oi.parent_order_item_id IS NULL AS is_ro
 FROM "OrderItems" oi
 JOIN "Products" p ON p.id = oi.product_id
 WHERE oi.order_id = '00000000-0000-0000-0000-0000000000f0'
-ORDER BY oi.product_name;
+ORDER BY oi.product_name ASC;

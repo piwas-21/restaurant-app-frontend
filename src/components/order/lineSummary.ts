@@ -14,13 +14,19 @@ export interface LineIngredientDiff {
   removed: string[];
 }
 
-/** A bundle component (one level deep) with its own ingredient diff + instructions. */
+/**
+ * A bundle component with its own ingredient diff + instructions, and its own components beneath it.
+ * The tree nests to arbitrary depth on both wire shapes (`OrderItemDto.sideItems` and
+ * `BasketItemDto.childItems` are self-recursive), so this does too — a component of a component
+ * that stopped at one level would simply vanish from every surface.
+ */
 export interface LineChild {
   id?: string;
   name: string;
   quantity: number;
   diff: LineIngredientDiff;
   specialInstructions?: string;
+  children: LineChild[];
 }
 
 export interface LineSummary {
@@ -61,6 +67,22 @@ function orderDiff(customizations: OrderItemIngredientDto[] | undefined): LineIn
 }
 
 /**
+ * Adapt one child row and everything under it. The `kind` split into add-on sides vs components is
+ * applied at the ROOT only — that is where an add-on side attaches — so below the root every
+ * descendant renders uniformly as a nested component.
+ */
+function orderItemToChild(item: OrderItemDto): LineChild {
+  return {
+    id: item.id,
+    name: item.productName ?? '',
+    quantity: item.quantity,
+    diff: orderDiff(item.ingredientCustomizations),
+    specialInstructions: item.specialInstructions || undefined,
+    children: (item.sideItems ?? []).map(orderItemToChild),
+  };
+}
+
+/**
  * Adapt an `OrderItemDto` into a `LineSummary`. Children are split by the backend `kind`
  * discriminator (#158): `SideItem` → true add-on sides (name/qty/price), anything else
  * (`BundleChild` or, for pre-#158 historical orders, undefined) → bundle components with their
@@ -75,13 +97,7 @@ export function orderItemToLineSummary(item: OrderItemDto): LineSummary {
     diff: orderDiff(item.ingredientCustomizations),
     sideItems: sides.map((s) => ({ id: s.id, name: s.productName ?? '', quantity: s.quantity, price: s.itemTotal })),
     specialInstructions: item.specialInstructions || undefined,
-    children: components.map((c) => ({
-      id: c.id,
-      name: c.productName ?? '',
-      quantity: c.quantity,
-      diff: orderDiff(c.ingredientCustomizations),
-      specialInstructions: c.specialInstructions || undefined,
-    })),
+    children: components.map(orderItemToChild),
   };
 }
 
@@ -100,6 +116,17 @@ function basketDiff(item: BasketItemDto): LineIngredientDiff {
   return { added, removed: item.excludedIngredientNames ?? [] };
 }
 
+function basketItemToChild(item: BasketItemDto): LineChild {
+  return {
+    id: item.id,
+    name: item.productName ?? '',
+    quantity: item.quantity,
+    diff: basketDiff(item),
+    specialInstructions: item.specialInstructions || undefined,
+    children: (item.childItems ?? []).map(basketItemToChild),
+  };
+}
+
 /** Adapt a `BasketItemDto` (cart shape) into a `LineSummary`. Child items are bundle components. */
 export function basketItemToLineSummary(item: BasketItemDto): LineSummary {
   return {
@@ -111,12 +138,6 @@ export function basketItemToLineSummary(item: BasketItemDto): LineSummary {
       price: s.subTotal,
     })),
     specialInstructions: item.specialInstructions || undefined,
-    children: (item.childItems ?? []).map((c) => ({
-      id: c.id,
-      name: c.productName ?? '',
-      quantity: c.quantity,
-      diff: basketDiff(c),
-      specialInstructions: c.specialInstructions || undefined,
-    })),
+    children: (item.childItems ?? []).map(basketItemToChild),
   };
 }

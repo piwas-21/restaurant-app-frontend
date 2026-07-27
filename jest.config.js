@@ -67,6 +67,10 @@ module.exports = {
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
+    'src/components/order/lineSummary.ts',
+    'src/utils/templates/receiptHtml.ts',
+    'src/utils/templates/simpleReceipt.ts',
+    'src/utils/templates/kitchenReceipt.ts',
     'src/utils/reservationForm.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
@@ -168,6 +172,41 @@ module.exports = {
       branches: 100,
       functions: 100,
       lines: 100,
+    },
+    // The other half of the root-only tree (#332): what a HUMAN sees. Same silent failure mode as
+    // the routing above — a component that stops being rendered produces no error, the bill just
+    // stops itemising the combo. These four carry every surface that shows what is inside a line.
+    './src/components/order/lineSummary.ts': {
+      statements: 100,
+      branches: 91,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/order/OrderLineSummary.tsx': {
+      statements: 100,
+      branches: 92,
+      functions: 100,
+      lines: 100,
+    },
+    './src/utils/templates/receiptHtml.ts': {
+      statements: 100,
+      branches: 83,
+      functions: 100,
+      lines: 100,
+    },
+    // The two thermal templates are pinned well below the shared builders they call: most of their
+    // remaining uncovered branches are the per-field totals/address/payment blocks, not the item tree.
+    './src/utils/templates/simpleReceipt.ts': {
+      statements: 77,
+      branches: 40,
+      functions: 70,
+      lines: 75,
+    },
+    './src/utils/templates/kitchenReceipt.ts': {
+      statements: 71,
+      branches: 61,
+      functions: 65,
+      lines: 71,
     },
     // §4.4 — the two-phase basket order-type switch. Worth pinning at this level because it is the
     // ONLY thing that tells the server which channel a basket is on, and `Basket.OrderType` being

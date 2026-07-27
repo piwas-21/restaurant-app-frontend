@@ -995,6 +995,7 @@
   "customizations": "Customizations",
   "added_ingredients": "Added",
   "removed_ingredients": "Removed",
+  "side_items": "Side Items",
   "special_requests": "Special Requests",
   "product_ingredients": "Product Ingredients",
   "ingredients_manager_description": "Manage ingredients for this product. Mark ingredients as optional and set additional prices for customers to add them.",

@@ -6,20 +6,9 @@ import { OrderDto, OrderItemDto } from '@/types/order';
 import { THERMAL_BASE_STYLES } from './baseStyles';
 import { formatCurrency } from '../currency';
 import { RESTAURANT_NAME } from '@/lib/config';
+import { buildChildItemsHtml, escapeHtml } from './receiptHtml';
 
 type TranslationFunction = (key: string, fallback: string) => string;
-
-// Escape HTML
-const escapeHtml = (text: string): string => {
-  const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;',
-  };
-  return text.replace(/[&<>"']/g, (char) => map[char]);
-};
 
 // Get order type label
 const getOrderTypeLabel = (type: string | undefined, t?: TranslationFunction): string => {
@@ -51,6 +40,9 @@ const buildItemHtml = (item: OrderItemDto): string => {
   const itemName = item.productName || item.menuName || 'Item';
   const variation = item.variationName ? ` (${item.variationName})` : '';
   const totalPrice = formatCurrency(item.itemTotal);
+  // What is inside a combo, itemised under the line the guest is being charged for. Prices are off:
+  // the parent line carries the whole amount, so each component would otherwise print a bare 0.00.
+  const childItemsHtml = buildChildItemsHtml(item.sideItems ?? [], { showPrices: false });
 
   return `
     <div style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #aaa;">
@@ -58,6 +50,7 @@ const buildItemHtml = (item: OrderItemDto): string => {
         <span><strong>${item.quantity}x</strong> ${escapeHtml(itemName)}${escapeHtml(variation)}</span>
         <span><strong>${totalPrice}</strong></span>
       </div>
+      ${childItemsHtml}
     </div>`;
 };
 

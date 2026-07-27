@@ -118,3 +118,23 @@
     height: 44px;
   }
 }
+
+/* ── Channel restriction on a category tab (§4.4) ──
+   Same DOM and same copy as classic; craft writes it in the tape's own hand. No border treatment
+   for the blocked tone here: a clip-path tape strip cannot carry a border (see
+   CraftMenuCard.module.css), and the message is the signal in both templates. */
+.tabNotice {
+  display: block;
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-secondary);
+  white-space: normal;
+}
+
+/* Terracotta fill under an active tape strip — inherit the strip's own ink rather than the
+   secondary grey, which is not contrast-verified against it. */
+.tabActive .tabNotice {
+  color: inherit;
+}

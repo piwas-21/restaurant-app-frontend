@@ -33,6 +33,9 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
           aria-pressed={selectedView === tab.id}
         >
           {tab.label}
+          {/* Inside the button on purpose: the reason becomes part of the tab's accessible name, so
+              a restricted category announces WHY, the same way a dimmed card does. */}
+          {tab.notice && <span className={styles.navButtonNotice}>{tab.notice.message}</span>}
         </button>
       ))}
     </CategoryNavShell>

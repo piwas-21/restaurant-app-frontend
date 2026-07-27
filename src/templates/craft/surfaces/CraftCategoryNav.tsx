@@ -34,6 +34,8 @@ export default function CraftCategoryNav({ categories, selectedView, onSelect, a
           aria-pressed={selectedView === tab.id}
         >
           {tab.label}
+          {/* Inside the button on purpose — see CategoryNav: the reason joins the accessible name. */}
+          {tab.notice && <span className={styles.tabNotice}>{tab.notice.message}</span>}
         </button>
       ))}
     </CategoryNavShell>

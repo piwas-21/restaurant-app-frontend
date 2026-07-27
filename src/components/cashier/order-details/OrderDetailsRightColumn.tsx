@@ -6,6 +6,7 @@ import { CreditCard, Printer } from 'lucide-react';
 import { OrderDto } from '@/types/order';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { exportOrderToPDF, exportKitchenItemsToPDF } from '@/utils/pdfExportUtils';
+import { hasItemsForKitchen } from '@/utils/orderItemTree';
 import styles from '../OrderDetails.module.css';
 
 interface OrderDetailsRightColumnProps {
@@ -19,8 +20,11 @@ interface OrderDetailsRightColumnProps {
 export default function OrderDetailsRightColumn({ order }: OrderDetailsRightColumnProps) {
   const { t } = useTranslation();
 
-  const hasFrontKitchenItems = order?.items?.some((item) => item.kitchenType === 'FrontKitchen');
-  const hasBackKitchenItems = order?.items?.some((item) => item.kitchenType === 'BackKitchen');
+  // Recursive: `order.items` is root-only (backend #237), so a kitchen's only work in this order can
+  // be a bundle component nested under a line routed to the OTHER kitchen. A top-level-only check
+  // would hide that kitchen's print button entirely.
+  const hasFrontKitchenItems = hasItemsForKitchen(order?.items, 'FrontKitchen');
+  const hasBackKitchenItems = hasItemsForKitchen(order?.items, 'BackKitchen');
 
   return (
     <div className={styles.rightColumn}>

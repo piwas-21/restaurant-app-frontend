@@ -4,6 +4,8 @@
  * (Sprint 4/6 type-file split by domain). No dependencies on the other menu modules.
  */
 
+import type { OrderType } from '@/types/order';
+
 export interface MenuItemContent {
   name: string;
   description: string;
@@ -101,7 +103,17 @@ export interface MenuSectionSuggestedSideItem {
   displayOrder: number;
 }
 
-export type ApiCategory = { id: string; name: string };
+export type ApiCategory = {
+  id: string;
+  name: string;
+  /**
+   * The order types this category permits, **already decoded by the server** (`CategoryDto`
+   * computes it from the stored `OrderChannels` mask precisely so no client decodes one — the bits
+   * are 1/2/4 while `OrderType` is 1/2/3). Optional: a backend predating the feature omits it, and
+   * an absent list means unrestricted, never blocked.
+   */
+  allowedOrderTypes?: OrderType[];
+};
 
 export type ProductType = 'mainItem' | 'sideItem' | 'beverage' | 'dessert' | 'sauce' | 'addOn' | 'menu';
 

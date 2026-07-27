@@ -39,7 +39,12 @@ export type AnalyticsEventName =
   // Page-view-style events (issue #76 — fired ONCE on mount via a ref-guarded
   // useEffect so re-renders / locale changes do not re-fire.)
   | 'menu_viewed'
-  | 'checkout_review_viewed';
+  | 'checkout_review_viewed'
+  // Impression-style event (ORDER-TYPE-AVAILABILITY-PLAN §4.4): a catalog card the guest's chosen
+  // channel cannot order. There is no user ACTION to hang it on — a blocked card has no "Add to
+  // order" to click — so it is ref-guarded per item+channel in `useTrackItemBlocked`, which is the
+  // only sanctioned exception to the action-path rule below.
+  | 'item_blocked_by_order_type';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */

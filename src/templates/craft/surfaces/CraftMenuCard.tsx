@@ -12,6 +12,7 @@ import AdminMenuCardControls from '@/components/menu/AdminMenuCardControls';
 import AdminPriceEditor from '@/components/menu/AdminPriceEditor';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 import styles from './CraftMenuCard.module.css';
 
 /**
@@ -29,6 +30,7 @@ import styles from './CraftMenuCard.module.css';
 export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Readonly<MenuCardProps>) {
   const { t, i18n } = useTranslation();
   const availabilityNotice = useItemAvailabilityNotice(item.availability);
+  useTrackItemBlocked(item.id, availabilityNotice);
   const isBlocked = availabilityNotice?.tone === 'blocked';
   const nameId = `item-name-${item.id}`;
   const reasonId = `item-availability-${item.id}`;

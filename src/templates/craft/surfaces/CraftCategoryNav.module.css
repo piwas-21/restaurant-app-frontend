@@ -51,6 +51,7 @@
    roomier nav padding. */
 .tab {
   composes: tapeChip from '../primitives.module.css';
+  flex-wrap: wrap;
   flex-shrink: 0;
   white-space: nowrap;
   padding: 0.45rem 1.3rem;
@@ -117,4 +118,30 @@
     width: 44px;
     height: 44px;
   }
+}
+
+/* ── Channel restriction on a category tab (§4.4) ──
+   Same DOM and same copy as classic; craft writes it in the tape's own hand. No border treatment
+   for the blocked tone here: a clip-path tape strip cannot carry a border (see
+   CraftMenuCard.module.css), and the message is the signal in both templates. */
+.tabNotice {
+  /* `.tab` composes `tapeChip`, which is inline-FLEX — so a plain block would sit BESIDE the label
+     as a flex item, making the tape strip absurdly wide and pushing the other tabs out of the
+     horizontal scroller. `flex-basis: 100%` (with the wrap below) gives it its own line, matching
+     classic. Harmless if the container ever stops being flex. */
+  flex-basis: 100%;
+  text-align: center;
+  display: block;
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-secondary);
+  white-space: normal;
+}
+
+/* Terracotta fill under an active tape strip — inherit the strip's own ink rather than the
+   secondary grey, which is not contrast-verified against it. */
+.tabActive .tabNotice {
+  color: inherit;
 }

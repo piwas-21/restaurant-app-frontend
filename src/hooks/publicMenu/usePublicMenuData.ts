@@ -36,7 +36,7 @@ export interface UsePublicMenuDataReturn {
    * union collapses, so the narrower arm documents nothing and only trips Sonar S6571.
    */
   fetchProducts: (page: number, categoryId: string | null, requestedOrderType?: OrderType | null) => Promise<void>;
-  fetchMenuBundles: (page: number) => Promise<void>;
+  fetchMenuBundles: (page: number, requestedOrderType?: OrderType | null) => Promise<void>;
 }
 
 /**
@@ -103,7 +103,10 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
     [],
   );
 
-  const fetchMenuBundles = useCallback(async (page: number) => {
+  // Channel as an ARGUMENT, for the same reason `fetchProducts` takes one: it keeps this callback's
+  // identity stable, so resolving bundle availability cannot turn the caller's load effect into one
+  // that re-runs on an unrelated identity change.
+  const fetchMenuBundles = useCallback(async (page: number, requestedOrderType?: OrderType | null) => {
     const localId = ++requestIdRef.current;
     setIsLoading(true);
     setError(null);
@@ -113,7 +116,7 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
       setMenuBundles([]);
     };
     try {
-      const response = (await getPublicMenuBundles(page, PAGE_SIZE)) as MenuBundleListResponse;
+      const response = (await getPublicMenuBundles(page, PAGE_SIZE, requestedOrderType)) as MenuBundleListResponse;
       if (localId !== requestIdRef.current) return;
       if (!response.success) {
         reportError(response.message || 'Failed to fetch menu bundles');

@@ -127,6 +127,11 @@ const baseMenuBundleSchema = z.object({
       { message: 'Each language can only be used once' },
     ),
   menuDefinition: menuDefinitionSchema,
+  // Same field and same bounds as an item's. It has to be in the schema, not merely in the payload:
+  // zod strips unknown keys, so a bundle form that carries the mask outside the schema silently
+  // sends nothing — and because the bundle PUT assigns the column unconditionally, "sends nothing"
+  // CLEARS a stored restriction on every unrelated save (§9.2).
+  availableOrderTypes: z.number().int().min(1, 'Choose at least one order type').max(7).nullable().default(null),
 });
 
 export const createMenuBundleSchema = baseMenuBundleSchema;

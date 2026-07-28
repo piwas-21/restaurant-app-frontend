@@ -2368,6 +2368,7 @@
   "product_order_types_inherit_named": "الوراثة من الفئة ({{category}}: {{orderTypes}})",
   "product_order_types_custom": "مخصص",
   "product_order_types_no_primary_warning": "لم يتم اختيار فئة رئيسية، لذا لا يوجد ما يُورَّث — يبقى هذا الصنف متاحًا لكل أنواع الطلبات حتى تختار فئة رئيسية أو تحدد «مخصص».",
+  "product_order_types_no_primary_warning_bundle": "لا يمكن لهذا المحرّر إسناد فئة إلى الكومبو، لذا لا يوجد ما يُورَّث — يبقى متاحًا لكل أنواع الطلبات حتى تحدد «مخصص».",
   "clear_table_selection_confirm": "هل تريد إلغاء اختيار الطاولة؟ ستحتاج إلى مسح رمز QR مرة أخرى، وسيُعاد ضبط اختيار تناول الطعام هنا.",
   "table_required_hint": "اختر طاولة للمتابعة.",
   "reorder_partial": "تمت إضافة {{added}} من أصل {{total}} عنصرًا.",

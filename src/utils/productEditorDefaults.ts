@@ -125,6 +125,10 @@ export function toBundleDefaults(product: ProductDetails) {
     // registered field), which the hook mirrors back in with setValue — same arrangement the
     // modal used. The submitted definition is read from that state, not from here.
     menuDefinition: toMenuDefinitionState(product),
+    // Seeded for the same reason as an item's (see `toItemDefaults`), and load-bearing beyond the
+    // uncontrolled→controlled flip: the bundle PUT assigns this column unconditionally, so a default
+    // that failed to echo the stored mask would clear the restriction on the next save.
+    availableOrderTypes: product.availableOrderTypes ?? null,
   };
 }
 

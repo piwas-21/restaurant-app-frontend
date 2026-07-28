@@ -1,6 +1,6 @@
 import { OrderType } from '@/types/order';
-import { mapProductDtoToMenuItem } from './mappers';
-import type { ProductDto } from './types';
+import { mapBundleDtoToMenuBundleItem, mapProductDtoToMenuItem } from './mappers';
+import type { MenuBundleDto, ProductDto } from './types';
 
 /**
  * The `availability` half of the public-menu product mapper (S4).
@@ -69,5 +69,32 @@ describe('mapProductDtoToMenuItem — availability', () => {
     });
 
     expect(mapped.availability).toMatchObject({ canOrder: false, reason: 'WrongOrderType' });
+  });
+});
+
+/**
+ * §9.2 — bundles carry a verdict too, and it goes through the SAME normaliser as a product's, so a
+ * combo card cannot say something an item card would not. Only the wiring needs pinning here (the
+ * permissive-on-anything-odd cases above already cover the shared function).
+ */
+describe('mapBundleDtoToMenuBundleItem — availability', () => {
+  const bundle: MenuBundleDto = { id: 'b1', name: 'Lunch Combo', basePrice: 15 };
+
+  it('carries a real verdict through', () => {
+    const mapped = mapBundleDtoToMenuBundleItem({
+      ...bundle,
+      availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: ['Takeaway', 'Delivery'] },
+    });
+
+    expect(mapped.availability).toEqual({
+      canOrder: false,
+      reason: 'WrongOrderType',
+      allowedOrderTypes: [OrderType.Takeaway, OrderType.Delivery],
+    });
+  });
+
+  it('leaves it undefined on a backend that predates the field', () => {
+    // Undefined means unrestricted everywhere downstream — an older server must not dim every combo.
+    expect(mapBundleDtoToMenuBundleItem(bundle).availability).toBeUndefined();
   });
 });

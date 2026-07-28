@@ -5,8 +5,9 @@
 --
 -- Schema source of truth: backend EF model snapshot at
 -- backend/RestaurantSystem.Infrastructure/Persistence/Migrations/ApplicationDbContextModelSnapshot.cs
--- Tables: "Products" (quoted PascalCase), categories, product_categories,
--- product_descriptions. Run AFTER `dotnet ef database update`.
+-- Tables written: "Products", "Tables", "OrderItems" (quoted PascalCase), categories,
+-- product_categories, product_descriptions, orders; working_hours is UPDATEd, not inserted.
+-- Run AFTER `dotnet ef database update`.
 
 BEGIN;
 
@@ -258,6 +259,13 @@ ON CONFLICT (id) DO NOTHING;
 -- keeps this out of the timezone business: that window is computed in the BROWSER's local zone
 -- while this timestamp is written in the DB session's, so any "today at 23:00" anchor here is only
 -- ever correct when both happen to be UTC.
+--
+-- No focus column here, and do not re-add one: backend 20260728222102_ExtractOrderFocusOwnedType
+-- DROPPED is_focus_order. "Focused" is now "focused_at IS NOT NULL", so this fixture's unfocused
+-- state is simply the omitted column's NULL rather than an explicit FALSE. Naming the dropped
+-- column fails this statement as Postgres analyses it; under ON_ERROR_STOP the run stops there
+-- and the enclosing BEGIN rolls the earlier inserts back, so the e2e and screenshot jobs go down
+-- before a single test runs.
 INSERT INTO orders (
     id, order_number, status, payment_status, type,
     customer_name, order_date,
@@ -265,7 +273,7 @@ INSERT INTO orders (
     total, total_paid, remaining_amount,
     customer_discount_amount, fidelity_points_discount, fidelity_points_earned, fidelity_points_redeemed,
     has_user_limit_discount, user_limit_amount,
-    is_focus_order, is_deleted, created_by
+    is_deleted, created_by
 ) VALUES (
     :'order_id',
     'E2E-KITCHEN-001',
@@ -278,7 +286,7 @@ INSERT INTO orders (
     20.00, 0, 20.00,
     0, 0, 0, 0,
     FALSE, 0,
-    FALSE, FALSE, 'e2e-seed'
+    FALSE, 'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- The tree. Children are rows in the SAME order.Items collection pointing back via

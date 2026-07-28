@@ -83,6 +83,23 @@ describe('ProductOrderTypes', () => {
     expect(box('Dine In').checked).toBe(true);
   });
 
+  // §9.2. The bundle notice is NOT gated on the category list having loaded, and that is the whole
+  // point: `useProductEditorForm` never fetches categories for a bundle, so a `categoriesLoaded`
+  // guard would mean "never" rather than "wait and see" — the combo admin would face an Inherit
+  // option pointing at nothing, with no explanation.
+  it('always explains the empty Inherit option on a bundle, even with no categories loaded', () => {
+    renderControl({ isBundle: true, categories: [], primaryCategoryId: '' });
+
+    expect(screen.getByText(/This editor cannot give a combo a category/)).toBeInTheDocument();
+    expect(screen.queryByText(/No primary category selected/)).not.toBeInTheDocument();
+  });
+
+  it('keeps the item wording for an item', () => {
+    renderControl({ primaryCategoryId: '' });
+
+    expect(screen.queryByText(/This editor cannot give a combo a category/)).not.toBeInTheDocument();
+  });
+
   it('renders the validation error for an empty custom selection', () => {
     const { onChange } = renderControl({ value: 1, error: 'Choose at least one order type' });
 

@@ -4,6 +4,7 @@
  */
 
 import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
+import type { ItemAvailability } from './availability';
 
 /**
  * Menu bundle definition with sections and scheduling
@@ -83,4 +84,14 @@ export interface MenuBundleItem {
   isSpecial: boolean;
   preparationTimeMinutes?: number;
   displayOrder: number;
+  /**
+   * Server-resolved per-order-type verdict for the channel the guest is browsing on
+   * (ORDER-TYPE-AVAILABILITY-PLAN §9.2). Judges the BUNDLE's own channel set — its stored mask, else
+   * its primary category's — not its options': a combo whose optional side is takeaway-only is still
+   * orderable on dine-in, because the guest picks a different side.
+   *
+   * Optional because it is absent against a backend that predates §9.2, and absent means
+   * unrestricted, matching every other permissive-on-missing-data default in this feature.
+   */
+  availability?: ItemAvailability;
 }

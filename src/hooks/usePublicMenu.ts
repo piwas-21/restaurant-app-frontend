@@ -55,14 +55,16 @@ export function usePublicMenu() {
     orderTypeRef.current = orderType;
   }, [orderType]);
 
-  // Two effects, not one branching effect: `GetMenuBundlesQuery` takes no `RequestedOrderType` at
-  // all (ORDER-TYPE-AVAILABILITY-PLAN §9.2), so keeping the bundles load in an effect that depends
-  // on the channel would refetch them — and silently bounce the guest from page 3 back to page 1 —
-  // every time the sidebar toggle moved, for a query the channel cannot affect.
+  // Bundles depend on the channel too, since §9.2 wired `GetMenuBundlesQuery` to resolve each row's
+  // verdict. Kept as its own effect rather than folded into the products one: they are different
+  // fetchers with different pagination, and one branching effect would re-run on a view change that
+  // the other branch does not care about. Waits for `orderTypeHydrated` for the same reason products
+  // do — before that, "no channel chosen" and "not read back from localStorage yet" look identical,
+  // and fetching on the guess costs a second request plus an undimmed→dimmed flash.
   useEffect(() => {
-    if (selectedView !== MENU_BUNDLES_KEY) return;
-    void fetchMenuBundles(1);
-  }, [selectedView, fetchMenuBundles]);
+    if (selectedView !== MENU_BUNDLES_KEY || !orderTypeHydrated) return;
+    void fetchMenuBundles(1, orderType);
+  }, [selectedView, orderType, orderTypeHydrated, fetchMenuBundles]);
 
   // Products DO depend on the channel: it decides each row's `availability`, so a switch must
   // re-resolve the list (which resets to page 1 — the verdicts on other pages are stale too).
@@ -80,7 +82,7 @@ export function usePublicMenu() {
   const handlePageChange = useCallback(
     (page: number) => {
       if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-        void fetchMenuBundles(page);
+        void fetchMenuBundles(page, orderTypeRef.current);
       } else {
         void fetchProducts(page, selectedViewRef.current, orderTypeRef.current);
       }
@@ -106,7 +108,7 @@ export function usePublicMenu() {
       // Returns the promise so callers (e.g. admin save flows) can `await`
       // a fresh load instead of racing the next render.
       if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-        return fetchMenuBundles(currentPage);
+        return fetchMenuBundles(currentPage, orderTypeRef.current);
       }
       return fetchProducts(currentPage, selectedViewRef.current, orderTypeRef.current);
     },

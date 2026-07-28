@@ -59,7 +59,7 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
     (item: CatalogItem, opts?: OpenSheetOptions) => {
       if (!item.isBundle) {
         // Carry the card's own per-order-type verdict in, so the sheet cannot offer an add the card
-        // just refused (§9.10). Bundles have no verdict to carry (§9.2).
+        // just refused (§9.10).
         //
         // The blocked ⇒ forceSheet rule is applied by `openForProductId` for every entry point, so
         // all this has to do is carry the card's verdict in.
@@ -70,6 +70,10 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
       // The browse list already carries the full menuDefinition, so a combo opens without a fetch.
       // A miss falls back to the id path, which re-fetches and routes back here via onBundleDetected.
       // (Bundles always open their sheet, so `opts.forceSheet` is a product-only concern.)
+      //
+      // No verdict is threaded through here, unlike the product branch: the `MenuBundleItem` handed
+      // to `openForBundle` IS the browse row, availability included (§9.2), so the sheet reads the
+      // same object the card judged rather than a copy that could disagree.
       const found = findBundle?.(item.id);
       if (found) {
         openForBundle(found);

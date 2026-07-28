@@ -146,6 +146,9 @@ export function mapBundleDtoToMenuBundleItem(bundle: MenuBundleDto): MenuBundleI
     isSpecial: bundle.isSpecial || false,
     preparationTimeMinutes: bundle.preparationTimeMinutes,
     displayOrder: bundle.displayOrder || 0,
+    // Same normaliser as a product's, so a bundle's verdict cannot drift from an item's: every
+    // failure mode resolves permissively (§9.2).
+    availability: mapAvailability(bundle.availability),
   };
 }
 

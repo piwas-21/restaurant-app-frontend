@@ -320,6 +320,50 @@ describe('useItemCustomizationSheet — the card verdict rides along (§9.10)', 
     });
   });
 
+  // §9.2. The featured special is the live case: a combo CAN be the featured item, the banner
+  // resolves it with the channel and hides its own Add, and then "Details" opens this sheet by id.
+  // `getProductById` sends NO channel, so the detail's own verdict is permissive by construction —
+  // handing the combo over with it would re-offer the add the banner just refused.
+  it('overrides a combo detail with the caller verdict before routing it to the bundle sheet', async () => {
+    const onBundleDetected = jest.fn();
+    mockGetProductById.mockResolvedValue({
+      data: {
+        id: 'combo',
+        name: 'Lunch Combo',
+        type: 'menu',
+        basePrice: 20,
+        content: { en: { name: 'Lunch Combo' } },
+        variations: [],
+        suggestedSideItems: [],
+        detailedIngredients: [],
+        images: [],
+        categories: [],
+        allergens: [],
+        ingredients: [],
+        isActive: true,
+        isAvailable: true,
+        isSpecial: false,
+        displayOrder: 1,
+        menuDefinition: { id: 'md1', sections: [] },
+      },
+    });
+    const { result } = renderHook(() => useItemCustomizationSheet({ onBundleDetected }));
+
+    await act(async () => {
+      await result.current.openForProduct('combo', {
+        forceSheet: true,
+        availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
+      });
+    });
+
+    expect(onBundleDetected).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'combo',
+        availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
+      }),
+    );
+  });
+
   it('leaves the product untouched when no verdict was handed over (the by-id entry points)', async () => {
     mockGetProductById.mockResolvedValue({ data: productWithOptions });
     const { result } = renderHook(() => useItemCustomizationSheet());

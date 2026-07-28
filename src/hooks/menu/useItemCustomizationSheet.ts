@@ -84,8 +84,8 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
         }
 
         // The id turned out to be a combo — hand it to the bundle sheet rather than render a
-        // product body with none of its sections.
-        const bundle = toBundleItemFromDetail(detail);
+        // product body with none of its sections. The caller's verdict wins (§9.2, argued in the mapper).
+        const bundle = toBundleItemFromDetail(detail, opts?.availability);
         if (bundle && onBundleDetected) {
           onBundleDetected(bundle);
           return;

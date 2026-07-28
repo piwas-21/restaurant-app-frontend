@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import type { OrderType } from '@/types/order';
 
 /**
  * The `/api/Menus` half of what used to be one `menuService.ts`.
@@ -83,10 +84,24 @@ export const deleteMenuBundle = async (id: string) => {
   }
 };
 
-/** Public (customer) bundle list — active + available only. */
-export const getPublicMenuBundles = async (page: number = 1, pageSize: number = 10) => {
+/**
+ * Public (customer) bundle list — active + available only.
+ *
+ * @param requestedOrderType The channel the guest is ordering through, or null/undefined when they
+ *   have not chosen one. It does NOT filter the list — a blocked combo stays visible with a reason —
+ *   it only resolves each row's `availability` (§9.2). Omitted from the query string when absent, so
+ *   the URL is unchanged for the no-channel-chosen case.
+ */
+export const getPublicMenuBundles = async (
+  page: number = 1,
+  pageSize: number = 10,
+  requestedOrderType?: OrderType | null,
+) => {
   try {
-    return await apiClient.get(`${MENUS_API_URL}?page=${page}&pageSize=${pageSize}`);
+    // PascalCase, matching `getProducts`/`getFeaturedSpecial` in the sibling service. ASP.NET binds
+    // query keys case-insensitively, but one spelling across the app keeps it greppable.
+    const channel = requestedOrderType ? `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
+    return await apiClient.get(`${MENUS_API_URL}?page=${page}&pageSize=${pageSize}${channel}`);
   } catch (error) {
     console.error('Get Public Menu Bundles Failed:', error);
     throw error;

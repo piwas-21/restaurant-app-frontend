@@ -37,9 +37,12 @@ export default function ItemCustomizationSheet({
   const { t } = useTranslation();
   const { isOpen, title, description, quantity, setQuantity, linePrice, isSubmitting, addToCart, close } = controller;
 
-  // The verdict the browse card resolved, handed over on open (§9.10). Bundles carry none by
-  // contract (§9.2), so a combo sheet is never blocked here.
-  const availability = controller.kind === 'product' ? controller.product?.availability : undefined;
+  // The verdict the browse card resolved, handed over on open (§9.10). A product carries it in via
+  // `OpenSheetOptions`; a combo carries its own, because the bundle the sheet opens on IS the browse
+  // row (no re-fetch, so no second resolution that could disagree). Since §9.2 both are real
+  // verdicts — before it, a blocked combo reached this footer with nothing to say and offered Add.
+  const availability =
+    controller.kind === 'product' ? controller.product?.availability : controller.bundle?.availability;
   const notice = useItemAvailabilityNotice(availability);
 
   // The SERVER's verdict is the gate, not our ability to render a nice reason for it. The notice is

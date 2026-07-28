@@ -44,7 +44,12 @@ export type AnalyticsEventName =
   // channel cannot order. There is no user ACTION to hang it on — a blocked card has no "Add to
   // order" to click — so it is ref-guarded per item+channel in `useTrackItemBlocked`, which is the
   // only sanctioned exception to the action-path rule below.
-  | 'item_blocked_by_order_type';
+  | 'item_blocked_by_order_type'
+  // Consistency-style event (ORDER-TYPE-AVAILABILITY-PLAN §9.13): the server REFUSED to move the
+  // basket onto the guest's chosen channel because a line forbids it. No user action either — the
+  // guest did not ask for this switch — and it is deliberately not surfaced to them; it is fired so
+  // a client/server disagreement about a security-relevant field is observable by someone.
+  | 'basket_channel_assert_refused';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */

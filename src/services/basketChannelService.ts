@@ -28,8 +28,9 @@ interface BasketChannelSwitchApiResponse {
  *                        changed. Repeat with true once the guest has confirmed. The conservative
  *                        value is the default on both sides of the wire, so a caller that forgets
  *                        gets a dry run rather than a silent deletion.
- * @throws Whatever `apiClient` throws, including 404 when no basket exists yet — see
- *         `useOrderTypeSwitch`, which treats that as "nothing to reconcile".
+ * @throws Whatever `apiClient` throws. **No longer 404s on an empty cart** — since §9.13 the endpoint
+ *         upserts, creating the basket already carrying the channel, so a throw here is a real
+ *         failure rather than the expected shape it used to be.
  */
 export async function setBasketOrderType(orderType: OrderType, removeConflicts = false): Promise<BasketChannelSwitch> {
   const response = await apiClient.put<BasketChannelSwitchApiResponse>('/api/Basket/order-type', {

@@ -40,11 +40,15 @@ export interface BasketChannelSwitch {
   /**
    * The basket after the switch, or as-is when it was blocked.
    *
-   * **Deliberately not consumed.** The client re-reads through `syncBasket()` instead, so the cart
-   * badge, totals and tax move from one source. That choice is also why backend #236 — which fixed
-   * this very field coming back with empty product names on the blocked branch — was not a
-   * prerequisite for the conflict modal. Declared so the contract stays honest about what the
-   * endpoint returns.
+   * **Still deliberately not consumed** — the client re-reads through `syncBasket()` instead, so the
+   * cart badge, totals and tax move from one source. That choice is also why backend #236 — which
+   * fixed this very field coming back with empty product names on the blocked branch — was not a
+   * prerequisite for the conflict modal.
+   *
+   * §9.13 does NOT change that. What it changes is that the channel is now on `BasketDto` at all, so
+   * the re-read carries it: `useAssertBasketChannel` reconciles against the SYNCED basket's
+   * `orderType` rather than against a local ref. Reading it from here instead would reintroduce the
+   * two-sources problem for the sake of one field.
    */
   basket: BasketDto | null;
 }

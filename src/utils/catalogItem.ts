@@ -1,4 +1,4 @@
-import type { MenuItem, MenuBundleItem, CatalogItem, DetailedProduct } from '@/types/menu';
+import type { ItemAvailability, MenuItem, MenuBundleItem, CatalogItem, DetailedProduct } from '@/types/menu';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 
 /**
@@ -52,6 +52,7 @@ export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
     isSpecial: bundle.isSpecial,
     isAvailable: bundle.isAvailable,
     bundleItemNames: bundleItemNames && bundleItemNames.length > 0 ? bundleItemNames : undefined,
+    availability: bundle.availability,
   };
 }
 
@@ -65,7 +66,10 @@ export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
  * `addItemToBasket` directly, bypassing `CartContext` (the cart never learned about the line).
  * Returns null when the detail is a plain product.
  */
-export function toBundleItemFromDetail(detail: DetailedProduct): MenuBundleItem | null {
+export function toBundleItemFromDetail(
+  detail: DetailedProduct,
+  availability?: ItemAvailability,
+): MenuBundleItem | null {
   if (detail.type !== 'menu' || !detail.menuDefinition) return null;
 
   // `MenuBundleItem.content` requires a description per locale where the product detail leaves it
@@ -90,5 +94,14 @@ export function toBundleItemFromDetail(detail: DetailedProduct): MenuBundleItem 
     isSpecial: detail.isSpecial,
     preparationTimeMinutes: detail.preparationTimeMinutes,
     displayOrder: detail.displayOrder,
+    // A caller's verdict WINS over the detail's, and the fallback is not the safe one it looks:
+    // `getProductById` sends no channel, so `detail.availability` was resolved against "none
+    // chosen" — permissive by construction (§9.2).
+    //
+    // The featured special is the live case. A combo can be the featured item; the banner resolves
+    // it WITH the channel and hides its own Add, then "Details" opens the sheet by id. Taking the
+    // detail's verdict there would re-offer the add the banner just refused — §9.10 two clicks
+    // later.
+    availability: availability ?? detail.availability,
   };
 }

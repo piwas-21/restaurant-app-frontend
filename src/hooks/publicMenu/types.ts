@@ -71,6 +71,8 @@ export interface MenuBundleDto {
   isSpecial?: boolean;
   preparationTimeMinutes?: number;
   displayOrder?: number;
+  /** Since §9.2. Absent on a backend that predates it, which the mapper reads as unrestricted. */
+  availability?: ItemAvailabilityDto;
 }
 
 export interface PaginatedResponse<T> {

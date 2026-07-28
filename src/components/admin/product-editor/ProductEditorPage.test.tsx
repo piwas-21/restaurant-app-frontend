@@ -202,14 +202,48 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
 
-  // Items only: no bundle command accepts an order-type mask, so the control would offer a save
-  // that silently does nothing (plan §9.2).
-  it('offers the order-type control on an item and not on a bundle', async () => {
+  // Both kinds since §9.2: the bundle commands now accept and store a mask, so the control no
+  // longer promises a save that silently does nothing. For a combo it is the ONLY way to restrict —
+  // this editor has no category control, so a UI-created bundle has nothing to inherit from.
+  it('offers the order-type control on an item AND on a bundle', async () => {
     const { container } = await renderEditor(item, false);
     expect(orderTypeBox(container, 'order_type_dine_in')).toBeInTheDocument();
 
     const bundleRender = await renderEditor(bundle, true);
-    expect(orderTypeBox(bundleRender.container, 'order_type_dine_in')).toBeNull();
+    expect(orderTypeBox(bundleRender.container, 'order_type_dine_in')).toBeInTheDocument();
+  });
+
+  it('sends the order-type override on a BUNDLE save', async () => {
+    const bundleRender = await renderEditor(bundle, true);
+
+    // Custom, then drop delivery — the same two clicks as the item case below.
+    fireEvent.click(bundleRender.container.querySelectorAll('input[type="radio"]')[1]);
+    fireEvent.click(orderTypeBox(bundleRender.container, 'order_type_delivery') as HTMLInputElement);
+    fireEvent.change(bundleRender.nameInput, { target: { value: 'Combo Rosso' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+    const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
+    // The field has to reach the BUNDLE endpoint specifically: zod strips unknown keys, so a mask
+    // missing from `baseMenuBundleSchema` would vanish silently here — and the PUT assigns the
+    // column unconditionally, so "sends nothing" clears the restriction rather than keeping it.
+    expect(payload.availableOrderTypes).toBe(3);
+  });
+
+  // The DESTRUCTIVE half, and the one with no natural test: the bundle PUT assigns the column
+  // unconditionally, so a stored mask that fails to round-trip through the form is CLEARED by an
+  // edit that never touched it. Nothing else here would notice — the save test above sets the value
+  // through the UI, so it passes even if the loaded value is dropped.
+  it('echoes a bundle STORED mask back on a save that never touched it', async () => {
+    const restricted = { ...bundle, availableOrderTypes: 6 } as ProductDetails;
+    const { nameInput } = await renderEditor(restricted, true);
+
+    fireEvent.change(nameInput, { target: { value: 'Combo Verde' } });
+    fireEvent.click(screen.getByTestId('editor-save'));
+
+    await waitFor(() => expect(updateMenuBundle).toHaveBeenCalledTimes(1));
+    const [, payload] = (updateMenuBundle as jest.Mock).mock.calls[0];
+    expect(payload.availableOrderTypes).toBe(6);
   });
 
   it('sends the per-item order-type override on save', async () => {

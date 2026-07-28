@@ -99,8 +99,27 @@ describe('usePublicMenu — hydration gate', () => {
   });
 });
 
-describe('usePublicMenu — bundles are channel-independent', () => {
-  it('does not refetch bundles when the channel changes — that query takes no channel (§9.2)', async () => {
+/** The channel `getPublicMenuBundles` was called with — its 3rd positional argument. */
+function bundleChannelOfCall(index = 0): OrderType | null | undefined {
+  return mockGetBundles.mock.calls[index]?.[2];
+}
+
+describe('usePublicMenu — bundles follow the channel too (§9.2)', () => {
+  // This suite used to assert the OPPOSITE, because `GetMenuBundlesQuery` took no channel: bundles
+  // rendered as fully orderable however the guest was ordering. §9.2 wired the query, so the same
+  // rule as products applies — a switch has to re-resolve the list, and the cost the old test named
+  // (bouncing the guest back to page 1) is now the correct price for not showing stale verdicts.
+  it('forwards the chosen channel', async () => {
+    setOrderTypeContext(OrderType.Takeaway, true);
+    const { result } = renderHook(() => usePublicMenu());
+
+    await act(async () => result.current.setSelectedView(MENU_BUNDLES_KEY));
+
+    await waitFor(() => expect(mockGetBundles).toHaveBeenCalled());
+    expect(bundleChannelOfCall()).toBe(OrderType.Takeaway);
+  });
+
+  it('refetches with the new channel when the guest switches', async () => {
     setOrderTypeContext(null, true);
     const { result, rerender } = renderHook(() => usePublicMenu());
 
@@ -110,7 +129,16 @@ describe('usePublicMenu — bundles are channel-independent', () => {
     setOrderTypeContext(OrderType.Takeaway, true);
     await act(async () => rerender());
 
-    // A refetch here would also silently bounce the guest back to page 1 of the bundle list.
-    expect(mockGetBundles).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockGetBundles).toHaveBeenCalledTimes(2));
+    expect(bundleChannelOfCall(1)).toBe(OrderType.Takeaway);
+  });
+
+  it('waits for hydration, like products — a guess costs an undimmed→dimmed flash', async () => {
+    setOrderTypeContext(null, false);
+    const { result } = renderHook(() => usePublicMenu());
+
+    await act(async () => result.current.setSelectedView(MENU_BUNDLES_KEY));
+
+    expect(mockGetBundles).not.toHaveBeenCalled();
   });
 });

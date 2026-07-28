@@ -1,6 +1,7 @@
 import { toCatalogItemFromProduct, toCatalogItemFromBundle, toBundleItemFromDetail } from './catalogItem';
 import { FALLBACK_IMAGE } from './imageHelpers';
 import type { DetailedProduct, MenuItem, MenuBundleItem, MenuDefinition, MenuSection } from '@/types/menu';
+import { OrderType } from '@/types/order';
 
 const content = (name: string, description = '') => ({ en: { name, description, ingredient: '' } });
 
@@ -155,6 +156,22 @@ describe('toCatalogItemFromBundle', () => {
 
   it('falls back to the placeholder when the bundle has no images', () => {
     expect(toCatalogItemFromBundle({ ...bundle, images: [] }).imageUrl).toBe(FALLBACK_IMAGE);
+  });
+
+  // §9.2. This one line is what makes both card surfaces dim a blocked combo: MenuCard and
+  // CraftMenuCard read `CatalogItem.availability`, so dropping it here silently returns bundles to
+  // rendering as fully orderable — with every other assertion in this file still green.
+  it('carries the bundle verdict onto the card view-model', () => {
+    const blocked: MenuBundleItem = {
+      ...bundle,
+      availability: { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] },
+    };
+
+    expect(toCatalogItemFromBundle(blocked).availability).toEqual(blocked.availability);
+  });
+
+  it('leaves it undefined when the bundle carries none — unrestricted, not blocked', () => {
+    expect(toCatalogItemFromBundle(bundle).availability).toBeUndefined();
   });
 });
 

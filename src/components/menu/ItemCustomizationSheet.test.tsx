@@ -27,6 +27,11 @@ jest.mock('@/components/menu/customization/ProductSheetBody', () => ({
   default: () => <div data-testid="product-body" />,
 }));
 
+jest.mock('@/components/menu/customization/BundleSheetBody', () => ({
+  __esModule: true,
+  default: () => <div data-testid="bundle-body" />,
+}));
+
 const mockedNotice = useItemAvailabilityNotice as jest.Mock;
 
 const addToCart = jest.fn();
@@ -46,6 +51,16 @@ function controller(availability?: unknown): SheetController & { close: jest.Moc
     addToCart,
     close: jest.fn(),
   } as unknown as SheetController & { close: jest.Mock };
+}
+
+function bundleController(availability?: unknown): SheetController {
+  return {
+    ...controller(),
+    kind: 'bundle',
+    product: undefined,
+    bundle: { id: 'b1', name: 'Lunch Combo', availability },
+    sections: [],
+  } as unknown as SheetController;
 }
 
 const BLOCKED: AvailabilityNotice = {
@@ -119,6 +134,27 @@ describe('ItemCustomizationSheet — order-type guard', () => {
     // exactly what the UI asked and the UI asks again. Closing lands them on the grid, which
     // refetches and shows the card already unblocked.
     expect(ctrl.close).toHaveBeenCalled();
+  });
+
+  // §9.2. A combo used to reach this footer with no verdict at all — the sheet read availability
+  // only on the product branch — so a blocked bundle offered Add and the server refused it in
+  // English. The bundle carries its own: the object the sheet opens on IS the browse row, so there
+  // is no second resolution that could disagree with the card.
+  it('refuses the add on a blocked BUNDLE, reading the verdict off the bundle itself', () => {
+    const availability = { canOrder: false, reason: 'WrongOrderType', allowedOrderTypes: [OrderType.Takeaway] };
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    render(<ItemCustomizationSheet controller={bundleController(availability)} />);
+
+    expect(mockedNotice).toHaveBeenCalledWith(availability);
+    expect(screen.queryByRole('button', { name: /Add to Order|add_to_order/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
+  });
+
+  it('keeps the normal footer on an unrestricted bundle', () => {
+    render(<ItemCustomizationSheet controller={bundleController(undefined)} />);
+
+    expect(screen.getByRole('button', { name: /Add to Order|add_to_order/ })).toBeInTheDocument();
   });
 
   it('renders nothing at all while closed', () => {

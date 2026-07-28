@@ -138,24 +138,6 @@ export default function ProductEditorPage({
               />
             </div>
 
-            {/* Items only: no bundle command accepts an order-type mask, so offering the control
-                on a bundle would promise a save that silently does nothing (plan §9.2). */}
-            <section className={styles.panel}>
-              <Controller
-                name="availableOrderTypes"
-                control={form.control}
-                render={({ field }) => (
-                  <ProductOrderTypes
-                    value={(field.value as number | null | undefined) ?? null}
-                    onChange={field.onChange}
-                    categories={editor.categories}
-                    primaryCategoryId={editor.primaryCategoryId}
-                    error={errors.availableOrderTypes?.message as string | undefined}
-                  />
-                )}
-              />
-            </section>
-
             <ProductVariations
               register={form.register}
               errors={errors}
@@ -178,6 +160,28 @@ export default function ProductEditorPage({
             />
           </>
         )}
+
+        {/* Shared by both kinds since §9.2 — bundle commands now accept and store a mask, so the
+            control no longer promises a save that silently does nothing. A bundle inherits nothing
+            in practice (this editor has no category control, so a UI-created bundle has no primary
+            category), which is why the field is the ONLY way to restrict a combo — `ProductOrderTypes`
+            says so itself via its no-primary-category notice. */}
+        <section className={styles.panel}>
+          <Controller
+            name="availableOrderTypes"
+            control={form.control}
+            render={({ field }) => (
+              <ProductOrderTypes
+                value={(field.value as number | null | undefined) ?? null}
+                onChange={field.onChange}
+                categories={editor.categories}
+                primaryCategoryId={editor.primaryCategoryId}
+                isBundle={isBundle}
+                error={errors.availableOrderTypes?.message as string | undefined}
+              />
+            )}
+          />
+        </section>
 
         {/* Shared by both kinds — a bundle has translations too. */}
         <section className={styles.panel}>

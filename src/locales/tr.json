@@ -2368,6 +2368,7 @@
   "product_order_types_inherit_named": "Kategoriden devral ({{category}}: {{orderTypes}})",
   "product_order_types_custom": "Özel",
   "product_order_types_no_primary_warning": "Birincil kategori seçilmedi, bu yüzden devralınacak bir şey yok — siz bir kategori belirleyene ya da Özel’i seçene kadar bu ürün her sipariş türünde satışta kalır.",
+  "product_order_types_no_primary_warning_bundle": "Bu düzenleyicide bir kombine kategori atanamaz, dolayısıyla devralınacak bir şey yok — siz Özel’i seçene kadar her sipariş türünde satışta kalır.",
   "clear_table_selection_confirm": "Masa seçimi kaldırılsın mı? QR kodu tekrar okutmanız gerekecek ve restoranda yeme seçiminiz sıfırlanacak.",
   "table_required_hint": "Devam etmek için bir masa seçin.",
   "reorder_partial": "{{total}} üründen {{added}} tanesi sepete eklendi.",

@@ -39,11 +39,16 @@ export interface CatalogItem {
   /** Bundles only: the default option names, for an "Includes: Pizza + Cola" card summary. */
   bundleItemNames?: string[];
   /**
-   * Products only — server-resolved per-order-type availability, driving the card's chip / dimmed
-   * state. Bundles carry `undefined` **by contract, not by omission**: `GetMenuBundlesQuery` accepts
-   * no `RequestedOrderType` and no bundle command can even store a channel mask
-   * (ORDER-TYPE-AVAILABILITY-PLAN §9.2), so a bundle chip would be an assertion the server never
-   * made.
+   * Server-resolved per-order-type availability, driving the card's chip / dimmed state — for
+   * products AND, since ORDER-TYPE-AVAILABILITY-PLAN §9.2, for bundles: `GetMenuBundlesQuery` now
+   * binds `RequestedOrderType` and both bundle commands store a mask.
+   *
+   * Still optional, and `undefined` still means unrestricted: a backend that predates §9.2 omits it,
+   * and permissive-on-missing-data is this feature's invariant everywhere.
+   *
+   * A bundle's verdict judges the BUNDLE, not its options — a combo whose optional side is
+   * takeaway-only stays orderable on dine-in, because the guest picks another side. A blocked
+   * COMPONENT is refused at add time by the server (§9.3).
    */
   availability?: ItemAvailability;
 }

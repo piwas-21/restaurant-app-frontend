@@ -90,3 +90,31 @@ describe('useCatalogSheet — order-type verdict handover (§9.10)', () => {
     expect(openedWith()).toMatchObject({ forceSheet: true });
   });
 });
+
+describe('useCatalogSheet — openForProductId carries the guard for BY-ID entry points (G7)', () => {
+  it('forces the sheet for a blocked item opened by id, not just by catalog item', () => {
+    // The featured-special banner opens by ID, so while this rule lived in `openForCatalogItem` the
+    // hero could hand over a blocked verdict and still quick-add straight to the cart.
+    const { result } = renderHook(() => useCatalogSheet({}));
+
+    result.current.openForProductId('p1', { availability: BLOCKED });
+
+    expect(mockOpenForProduct).toHaveBeenCalledWith('p1', expect.objectContaining({ forceSheet: true }));
+  });
+
+  it('leaves an orderable item on the quick-add path', () => {
+    const { result } = renderHook(() => useCatalogSheet({}));
+
+    result.current.openForProductId('p1', { availability: ORDERABLE });
+
+    expect(mockOpenForProduct).toHaveBeenCalledWith('p1', expect.objectContaining({ forceSheet: false }));
+  });
+
+  it('never DOWNGRADES an explicit forceSheet', () => {
+    const { result } = renderHook(() => useCatalogSheet({}));
+
+    result.current.openForProductId('p1', { availability: ORDERABLE, forceSheet: true });
+
+    expect(mockOpenForProduct).toHaveBeenCalledWith('p1', expect.objectContaining({ forceSheet: true }));
+  });
+});

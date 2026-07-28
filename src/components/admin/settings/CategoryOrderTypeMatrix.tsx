@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ALL_ORDER_TYPES } from '@/utils/orderChannels';
-import { useCategoryChannelsAdmin } from '@/hooks/admin/useCategoryChannelsAdmin';
+import { useCategoryChannelsAdmin, CATEGORY_PAGE_SIZE } from '@/hooks/admin/useCategoryChannelsAdmin';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
 import { ORDER_TYPE_LABEL_KEY } from '@/utils/orderTypeLabels';
 import styles from './CategoryOrderTypeMatrix.module.css';
@@ -18,7 +18,7 @@ import styles from './CategoryOrderTypeMatrix.module.css';
  */
 export default function CategoryOrderTypeMatrix() {
   const { t } = useTranslation();
-  const { categories, loading, savingId, selectedTypes, toggle, isDirty, canSave, reset, save } =
+  const { categories, loading, savingId, truncated, selectedTypes, toggle, isDirty, canSave, reset, save } =
     useCategoryChannelsAdmin();
 
   if (loading) {
@@ -31,6 +31,25 @@ export default function CategoryOrderTypeMatrix() {
 
   return (
     <div className={styles.container}>
+      {/* §9.8 — the fetch takes one page. Saying so is the whole fix: a silently truncated matrix
+          means a restriction is simply unsettable for the categories that fell off, and nothing on
+          screen explains why they are missing. */}
+      {truncated && (
+        // A plain <p>, deliberately. This is inserted with the whole container after loading, so a
+        // live region would announce nothing reliable — and it sits ahead of the intro and the table
+        // in reading order anyway. (`role="status"` is also an S6819 target; the repo settled on
+        // <output> where a live region IS wanted.)
+        <p className={styles.truncated}>
+          {t('category_order_types_truncated', {
+            // Interpolated, not written into ten strings: the copy and PAGE_SIZE would drift, and a
+            // notice that lies about the cap is worse than the cap. `limit`, not `count` — `count`
+            // is i18next's plural trigger.
+            limit: CATEGORY_PAGE_SIZE,
+            defaultValue: 'Only the first {{limit}} categories are shown. The rest cannot be edited yet.',
+          })}
+        </p>
+      )}
+
       <p className={styles.intro}>
         {t(
           'category_order_types_intro',

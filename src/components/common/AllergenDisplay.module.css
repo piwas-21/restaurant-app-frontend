@@ -12,7 +12,10 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
-  color: var(--warning-color-dark);
+  /* `--warning-color-dark` (#a06000) has no dark-theme override and this label sets no background
+     of its own, so in dark it landed on the card at 3.04:1 — an AA fail on customer-facing allergen
+     text. The `-text` token is the sanctioned warning TEXT colour and flips with the theme (§9.9). */
+  color: var(--feedback-warning-text);
   font-weight: 600;
 }
 

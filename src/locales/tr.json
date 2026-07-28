@@ -2356,6 +2356,7 @@
   "category": "Kategori",
   "items_count": "{{count}} ürün",
   "category_order_types_intro": "Her kategorinin hangi sipariş türleriyle sipariş edilebileceğini seçin. Ürünler, tek tek değiştirmediğiniz sürece kategorisini devralır.",
+  "category_order_types_truncated": "Yalnızca ilk {{limit}} kategori gösteriliyor. Geri kalanlar henüz düzenlenemiyor.",
   "category_order_type_toggle_aria": "{{category}} için {{orderType}} mevcut",
   "order_types_saved": "Sipariş türü uygunluğu kaydedildi",
   "failed_to_save_order_types": "Sipariş türü uygunluğu kaydedilemedi",

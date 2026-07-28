@@ -6,6 +6,7 @@ import { OrderType } from '@/types/order';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { updateProductPrice } from '@/services/productService';
 import { useItemAvailabilityNotice, type AvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -34,6 +35,7 @@ jest.mock('@/services/productService', () => ({
 // admin-enabled channel list. Those are the SUBJECT of `useItemAvailabilityNotice.test.ts`; here we
 // only care what the card does with the answer, so the hook is stubbed and defaults to "nothing to
 // say" — keeping these tests provider-less like the rest of the file.
+jest.mock('@/hooks/menu/useTrackItemBlocked', () => ({ useTrackItemBlocked: jest.fn() }));
 jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
   useItemAvailabilityNotice: jest.fn(() => null),
 }));
@@ -300,5 +302,13 @@ describe('MenuCard — per-order-type availability (S4)', () => {
 
     expect(screen.getByText('Ask your server')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Switch to/ })).not.toBeInTheDocument();
+  });
+
+  it('hands the blocked verdict to analytics — the impression IS the only observable moment (§4.4)', () => {
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(useTrackItemBlocked).toHaveBeenCalledWith('p1', BLOCKED);
   });
 });

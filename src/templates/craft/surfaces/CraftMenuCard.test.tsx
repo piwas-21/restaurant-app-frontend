@@ -5,6 +5,7 @@ import type { CatalogItem } from '@/types/menu';
 import { OrderType } from '@/types/order';
 import { useOptionalAuth } from '@/components/AuthContext';
 import { useItemAvailabilityNotice, type AvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -24,6 +25,7 @@ jest.mock('@/components/AuthContext', () => ({
 
 // Same stub as the shared card's test: the notice DECISION is covered by
 // `useItemAvailabilityNotice.test.ts`; here we pin what craft renders from it.
+jest.mock('@/hooks/menu/useTrackItemBlocked', () => ({ useTrackItemBlocked: jest.fn() }));
 jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
   useItemAvailabilityNotice: jest.fn(() => null),
 }));
@@ -136,5 +138,13 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  it('hands the blocked verdict to analytics too — §4.5, every deliverable lands twice', () => {
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(useTrackItemBlocked).toHaveBeenCalledWith(product.id, BLOCKED);
   });
 });

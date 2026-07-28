@@ -6,7 +6,7 @@ import type { ItemAvailability } from '@/types/menu';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
-import { ALL_ORDER_TYPES } from '@/utils/orderChannels';
+import { resolveChannelNotice } from '@/utils/channelNotice';
 import { orderTypeLabel, orderTypeListLabel } from '@/utils/orderTypeLabels';
 
 /**
@@ -67,22 +67,18 @@ export function useItemAvailabilityNotice(availability: ItemAvailability | undef
   // stock concept — so there is nothing useful to say.
   if (availability.reason === 'Unavailable') return null;
 
-  const orderable = ALL_ORDER_TYPES.filter(
-    (type) => enabled.includes(type) && availability.allowedOrderTypes.includes(type),
-  );
+  // Whether to speak at all, and about which channels, is decided by the shared resolver — the same
+  // one the category nav uses, so a card and its category tab can never disagree.
+  const notice = resolveChannelNotice({
+    allowed: availability.allowedOrderTypes,
+    enabled,
+    orderType,
+    canOrder: availability.canOrder,
+  });
+  if (!notice) return null;
 
-  // ONLY the server's verdict blocks. In particular an item whose every channel the admin has
-  // switched off is NOT blocked on its own: the server said `canOrder` and the basket would accept
-  // the add (a null basket channel is permissive), so dimming it would be the client overruling the
-  // server — and §2 fixes the rule that nothing dims before a channel is picked.
-  const blocked = !availability.canOrder;
-  // `orderable` empty means the item's channels are all admin-disabled: a restriction we cannot
-  // state ("Delivery only" advertises a channel the guest cannot pick) and must not invent.
-  const restricted = orderable.length > 0 && orderable.length < enabled.length;
-
-  // Orderable right now and either unrestricted, unstateable, or restricted but with a channel
-  // already chosen that permits it — a chip would be noise or a lie.
-  if (!blocked && (orderType !== null || !restricted)) return null;
+  const { orderable } = notice;
+  const blocked = notice.tone === 'blocked';
 
   const message =
     orderable.length > 0

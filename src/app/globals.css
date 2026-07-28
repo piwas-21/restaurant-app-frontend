@@ -596,8 +596,11 @@ select:focus {
   color: var(--text-color);
 }
 
+/* `--warning-color` (→ --feedback-warning, #ffa500) is a FILL: 1.97:1 on white, a hard AA fail as
+   text. Warning TEXT uses the `-text` token, 6.39:1 in light and overridden to the amber itself in
+   dark, where it reads 7.76:1 on --surface-card (§9.9). */
 .summary-value.text-warning {
-  color: var(--warning-color);
+  color: var(--feedback-warning-text);
 }
 
 .summary-value.text-success {

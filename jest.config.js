@@ -67,6 +67,11 @@ module.exports = {
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
+    'src/utils/channelNotice.ts',
+    'src/hooks/menu/useTrackItemBlocked.ts',
+    'src/hooks/menu/useCategoryTabs.ts',
+    'src/hooks/menu/useItemAvailabilityNotice.ts',
+    'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
     'src/utils/templates/receiptHtml.ts',
     'src/utils/templates/simpleReceipt.ts',
@@ -172,6 +177,56 @@ module.exports = {
       branches: 100,
       functions: 100,
       lines: 100,
+    },
+    // §4.4 — the ONE place that decides whether a customer surface mentions a channel restriction,
+    // now shared by the catalog card, the customization sheet and the category nav. Pinned at 100%
+    // because each of its three rules was a bug first, and all three fail SILENTLY: a chip that
+    // advertises a channel the guest cannot pick, a dim the server never asked for, or a category
+    // tab and the items inside it disagreeing.
+    './src/utils/channelNotice.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The one uncovered branch is the `i18n.language || 'en'` fallback — the same one already
+    // accepted on `useItemAvailabilityNotice` and `OrderTypeConflictModal`.
+    './src/hooks/menu/useCategoryTabs.ts': {
+      statements: 100,
+      branches: 91,
+      functions: 100,
+      lines: 100,
+    },
+    // The only impression-style analytics event in the app — a blocked card has no control to click,
+    // so a regression here is not a wrong number, it is silence. The single uncovered branch is the
+    // `orderType ?? undefined` narrowing arm, unreachable because a non-null key implies a non-null
+    // channel; TypeScript cannot see that through the key.
+    './src/hooks/menu/useTrackItemBlocked.ts': {
+      statements: 100,
+      branches: 90,
+      functions: 100,
+      lines: 100,
+    },
+    './src/hooks/menu/useItemAvailabilityNotice.ts': {
+      statements: 100,
+      branches: 95,
+      functions: 100,
+      lines: 100,
+    },
+    // G7 — the featured banner is an ENTRY POINT: a guest can order straight from it, so a
+    // regression here is an unguarded add, not a missing chip. The uncovered branches are the
+    // `response.success && response.data` falsy arm and the render-time `!special` guard.
+    './src/hooks/useFeaturedSpecial.ts': {
+      statements: 94,
+      branches: 74,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/menu/FeaturedSpecial.tsx': {
+      statements: 88,
+      branches: 74,
+      functions: 100,
+      lines: 88,
     },
     // The other half of the root-only tree (#332): what a HUMAN sees. Same silent failure mode as
     // the routing above — a component that stops being rendered produces no error, the bill just

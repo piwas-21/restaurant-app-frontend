@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { getProducts, getPublicMenuBundles } from '@/services/menuService';
+import { getProducts } from '@/services/menuService';
+import { getPublicMenuBundles } from '@/services/menuBundleService';
 import type { MenuBundleItem, MenuItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import { ALL_ITEMS_KEY } from './constants';

@@ -23,8 +23,8 @@ export interface OpenSheetOptions {
    * disagree with the card the guest is looking at, and "the card said no, the sheet said yes" is
    * worse than either answer. One verdict, one moment, both surfaces.
    *
-   * Absent for the by-id entry points (the featured special), which therefore stay unguarded — that
-   * is gap G7 / §9.2, unchanged here.
+   * The featured-special banner hands it over too (G7, closed once backend #241 put `availability`
+   * on `FeaturedSpecialDto`). It was never a re-fetch problem: there was no field to guard on.
    */
   availability?: ItemAvailability;
 }

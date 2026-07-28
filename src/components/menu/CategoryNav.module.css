@@ -233,3 +233,24 @@
     margin-left: 8px;
   }
 }
+
+/* ── Per-order-type channel restriction on a category tab (ORDER-TYPE-AVAILABILITY-PLAN §4.4) ──
+   The tab keeps its label and stays selectable; the restriction is a second line INSIDE the button
+   so it joins the tab's accessible name. Tokens mirror the card chip's
+   (MenuItemAvailability.module.css) so a category and the items inside it speak in one voice. */
+.navButtonNotice {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: normal;
+}
+
+/* An ACTIVE tab paints `--primary-color` behind this text, where `--text-secondary` is not
+   contrast-verified; the button's own colour is, in both themes. (A hovered tab repaints the
+   background too — same reason, same fix.) */
+.navButtonActive .navButtonNotice,
+.navButton:hover .navButtonNotice {
+  color: inherit;
+}

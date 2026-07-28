@@ -4,6 +4,7 @@
  * These types match the backend API DTOs for the Basket endpoints.
  * Backend API: http://localhost:5221/api/Basket
  */
+import type { OrderType } from '@/types/order';
 
 /**
  * Menu item summary included in basket items for menu orders
@@ -91,6 +92,18 @@ export interface BasketDto {
   totalItems: number;
   expiresAt?: string;
   notes?: string;
+  /**
+   * The channel this basket is being ordered through, as the SERVER has it — `null`/absent means
+   * none set, which is permissive (ORDER-TYPE-AVAILABILITY-PLAN §9.13).
+   *
+   * The point of the field is that the client can now RECONCILE rather than assume. Before it, the
+   * only record of what the server had accepted was a local ref, so an assert that the server
+   * refused (conflicting lines) was remembered as done — and `BasketChannelGuard` stayed disarmed
+   * for the rest of the session with nothing able to notice.
+   *
+   * Optional: absent against a backend that predates §9.13, where it reads the same as "not set".
+   */
+  orderType?: OrderType | null;
   items: BasketItemDto[];
 }
 

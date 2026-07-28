@@ -79,7 +79,15 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
   const inFlightRef = useRef(false);
 
   // Keeps the server's copy of the channel in step, including the re-assert once a basket exists.
-  const { markSynced } = useAssertBasketChannel(lineCount, orderTypeState.orderType);
+  // Both arguments come off `state.basket` — the last SYNCED payload — because they must share a
+  // clock (§9.13; the hook's own note explains why a retry keyed on the optimistic count can reach
+  // the server before the change that would let it succeed). `lineCount` above stays optimistic
+  // because it answers a different question: does this switch need a conflict check.
+  const { markAttempted } = useAssertBasketChannel(
+    state.basket?.items.length ?? 0,
+    orderTypeState.orderType,
+    state.basket?.orderType ?? null,
+  );
 
   const request = useCallback(
     async (orderType: OrderType, source: string, forceModal: boolean): Promise<boolean> => {
@@ -92,21 +100,33 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
       // An empty cart has nothing to conflict, so the guest must not wait on a round-trip to see
       // their own tap register. The server is still told — fire-and-forget — because that call is
       // what arms the guard. `ensureSession` first: without a session header the request is refused
-      // before a basket could exist, and the FIRST pick a guest makes is usually on an empty cart.
+      // outright, and the FIRST pick a guest makes is usually on an empty cart.
+      //
+      // Since §9.13 that call STICKS when the cart really is empty: the endpoint upserts instead of
+      // 404ing, so the basket is created already carrying the channel rather than being armed later
+      // by the effect below. "Really is" matters — the client can believe the cart is empty when a
+      // mount sync failed — so the effect remains the backstop for a failed or refused call.
       if (!hasLines) {
         // Inside the try: `ensureSession` reads/writes storage and rethrows on failure, and an
         // exception escaping here would reject `pickType` from inside an onClick — the guest's tap
         // would do nothing at all, over a pre-flight nicety.
         try {
           ensureSession();
-          markSynced(orderType);
-          void setBasketOrderType(orderType).catch((err) => {
-            // Expected: no basket row exists until the first add. The effect above re-asserts.
-            markSynced(null);
-            console.warn('Could not pre-set the basket order type (no basket yet is expected):', err);
-          });
+          markAttempted(orderType);
+          // Both exits roll the recorded attempt back so the effect re-asserts once a basket exists.
+          // A refusal is a 200 and would otherwise stand as success — reachable even here, because
+          // after a failed mount sync the client sees an empty cart while the SERVER basket still
+          // holds lines. A throw is no longer the expected shape either (§9.13's upsert).
+          void setBasketOrderType(orderType)
+            .then((result) => {
+              if (!result.applied) markAttempted(null);
+            })
+            .catch((err) => {
+              markAttempted(null);
+              console.warn('Could not pre-set the basket order type:', err);
+            });
         } catch (err) {
-          markSynced(null);
+          markAttempted(null);
           console.warn('Could not pre-set the basket order type:', err);
         }
         return true;
@@ -116,7 +136,7 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
       try {
         const result = await setBasketOrderType(orderType);
         if (result.applied || result.conflicts.length === 0) {
-          markSynced(orderType);
+          markAttempted(orderType);
           return true;
         }
         setPending({ orderType, conflicts: result.conflicts, source, forceModal });
@@ -134,7 +154,7 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
         inFlightRef.current = false;
       }
     },
-    [hasLines, pending, orderTypeState.orderType, ensureSession, markSynced],
+    [hasLines, pending, orderTypeState.orderType, ensureSession, markAttempted],
   );
 
   const confirm = useCallback(async (): Promise<PendingOrderTypeSwitch | null> => {
@@ -143,7 +163,7 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
     setError(null);
     try {
       await setBasketOrderType(pending.orderType, true);
-      markSynced(pending.orderType);
+      markAttempted(pending.orderType);
       // The lines are gone server-side; re-read rather than reconcile locally, so the cart badge,
       // totals and tax all move together.
       await syncBasket();
@@ -160,7 +180,7 @@ export function useOrderTypeSwitch(): OrderTypeSwitchFlow {
     } finally {
       setIsApplying(false);
     }
-  }, [pending, isApplying, syncBasket, markSynced]);
+  }, [pending, isApplying, syncBasket, markAttempted]);
 
   const cancel = useCallback(() => {
     setPending(null);

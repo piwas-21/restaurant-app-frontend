@@ -2,16 +2,27 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { useOrderTypeSwitch } from './useOrderTypeSwitch';
 import { setBasketOrderType } from '@/services/basketChannelService';
 import { OrderType } from '@/types/order';
+import { trackEvent } from '@/lib/analytics';
 import type { BasketChannelSwitch } from '@/types/basketChannel';
 
 jest.mock('@/services/basketChannelService', () => ({
   setBasketOrderType: jest.fn(),
 }));
+jest.mock('@/lib/analytics', () => ({ trackEvent: jest.fn() }));
 
 const mockSyncBasket = jest.fn();
 const mockEnsureSession = jest.fn().mockReturnValue('session-1');
 let mockItemCount = 1;
 let mockCurrentOrderType: string | null = null;
+// What the SERVER says the basket is on — `BasketDto.orderType`, added in §9.13. Null is "not set",
+// which is what every pre-§9.13 caller effectively had.
+let mockServerOrderType: string | null = null;
+// The SYNCED line count, which the reconcile reads — deliberately separate from the optimistic
+// `mockItemCount` so a test can hold them apart, which is the whole reason the hook takes this one.
+let mockBasketItemCount = 1;
+// `state.basket` is null outright after a failed mount sync — a state both the count and the channel
+// have to survive.
+let mockBasketIsNull = false;
 
 jest.mock('@/components/cart/CartContext', () => ({
   useCart: () => ({
@@ -19,7 +30,12 @@ jest.mock('@/components/cart/CartContext', () => ({
     // real reducer, so a test that passes here would fail against the `basket.items` version.
     state: {
       items: Array.from({ length: mockItemCount }, (_, i) => ({ id: `i${i}` })),
-      basket: { items: [] },
+      basket: mockBasketIsNull
+        ? null
+        : {
+            items: Array.from({ length: mockBasketItemCount }, (_, i) => ({ id: `b${i}` })),
+            orderType: mockServerOrderType,
+          },
     },
     syncBasket: mockSyncBasket,
   }),
@@ -47,7 +63,10 @@ function reply(over: Partial<BasketChannelSwitch>): BasketChannelSwitch {
 beforeEach(() => {
   jest.clearAllMocks();
   mockItemCount = 1;
+  mockBasketItemCount = 1;
+  mockBasketIsNull = false;
   mockCurrentOrderType = null;
+  mockServerOrderType = null;
   jest.spyOn(console, 'warn').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -170,7 +189,10 @@ describe('useOrderTypeSwitch', () => {
     expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway);
   });
 
-  it('swallows the 404 an empty cart produces when no basket row exists yet', async () => {
+  // Was "the 404 an empty cart produces": §9.13's upsert means an empty cart now SUCCEEDS, so this
+  // covers a genuine failure (network, session) rather than the expected shape it used to describe.
+  // The guest's tap must still register either way — the pre-set is a nicety, not a precondition.
+  it("swallows a failed pre-set rather than dropping the guest's tap", async () => {
     mockItemCount = 0;
     mockedSet.mockRejectedValue(new Error('Basket not found'));
     const { result } = renderHook(() => useOrderTypeSwitch());
@@ -370,15 +392,20 @@ describe('useOrderTypeSwitch', () => {
   });
 
   it('re-asserts the channel once the basket actually exists', async () => {
-    // The empty-cart pre-set 404s BY CONSTRUCTION — only an add creates the basket row — so without
-    // this the guard is never armed on the "pick a channel, then browse" journey.
+    // The backstop for the "pick a channel, then browse" journey. §9.13 made the empty-cart pre-set
+    // stick (the endpoint upserts rather than 404s), so this now covers the case where that call
+    // failed or was refused rather than the case where it could never work.
     mockItemCount = 0;
+    mockBasketItemCount = 0;
     mockCurrentOrderType = OrderType.Takeaway;
     mockedSet.mockResolvedValue(reply({}));
     const { rerender } = renderHook(() => useOrderTypeSwitch());
     expect(mockedSet).not.toHaveBeenCalled();
 
+    // The SYNCED count is what moves the reconcile: the line has reached the server, so an assert
+    // now has something to succeed against.
     mockItemCount = 1;
+    mockBasketItemCount = 1;
     await act(async () => {
       rerender();
     });
@@ -410,11 +437,168 @@ describe('useOrderTypeSwitch', () => {
     // A failed assert must not be remembered as done, or the guard stays disarmed for the session.
     mockedSet.mockResolvedValue(reply({}));
     mockItemCount = 2;
+    mockBasketItemCount = 2;
     await act(async () => {
       rerender();
     });
 
     expect(mockedSet).toHaveBeenCalledTimes(2);
+  });
+
+  // §9.13's frontend half. Before it the client had only a local ref: it could not tell "the server
+  // took it" from "the server refused it", and a refusal was remembered as success — leaving the add
+  // guard disarmed for the rest of the session with nothing able to notice.
+  it('sends NOTHING when the server already agrees — the reconcile, not an assert', async () => {
+    mockItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = OrderType.Takeaway;
+    mockedSet.mockResolvedValue(reply({}));
+
+    renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+
+    expect(mockedSet).not.toHaveBeenCalled();
+  });
+
+  // NOTE: this one also passes against the pre-§9.13 code, which asserted here too. It earns its
+  // place as the negative half of the pair above — an inverted reconcile condition would send
+  // nothing here — not as a regression guard.
+  it('asserts when the server is on a DIFFERENT channel', async () => {
+    mockItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = OrderType.DineIn;
+    mockedSet.mockResolvedValue(reply({}));
+
+    renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+
+    expect(mockedSet).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  it('retries after a REFUSED assert once the cart changes — the case the old local ref could not see', async () => {
+    // The server answers 200 with `applied: false` when a line forbids the channel. That is not an
+    // error, so the old code recorded it as done; the basket stayed on its old channel forever.
+    // Removing the offending line is itself a cart change, which is what makes the retry land.
+    mockItemCount = 2;
+    mockBasketItemCount = 2;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = null;
+    mockedSet.mockResolvedValue(reply({ applied: false, conflicts: [CONFLICT] }));
+
+    const { rerender } = renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+
+    // The guest deletes the line the channel forbids. The OPTIMISTIC count drops first, while the
+    // DELETE is still in flight — and that must NOT trigger the retry, because the server would
+    // still see the offending line. Only the synced count moving does.
+    mockItemCount = 1;
+    await act(async () => {
+      rerender();
+    });
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+
+    mockedSet.mockResolvedValue(reply({}));
+    mockBasketItemCount = 1;
+    await act(async () => {
+      rerender();
+    });
+
+    expect(mockedSet).toHaveBeenCalledTimes(2);
+  });
+
+  // The genuinely new capability: a 200 carrying `applied: false` used to be indistinguishable from
+  // success. Deleting the whole `.then` branch left every other test green.
+  it('reports a REFUSED assert instead of recording it as done', async () => {
+    mockItemCount = 1;
+    mockBasketItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockedSet.mockResolvedValue(reply({ applied: false, conflicts: [CONFLICT] }));
+
+    renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+
+    expect(trackEvent).toHaveBeenCalledWith('basket_channel_assert_refused', {
+      orderType: OrderType.Takeaway,
+      itemCount: 1,
+    });
+    // And it must NOT escalate: no dialog for a switch the guest never asked for, and no silent
+    // deletion of their lines.
+    expect(mockSyncBasket).not.toHaveBeenCalled();
+  });
+
+  // Line 87's `?? 0` / `?? null`: `state.basket` is null outright after a failed mount sync, and the
+  // reconcile must treat that as "nothing synced yet" rather than throwing on the way to arming a
+  // security guard.
+  it('treats a null basket as nothing to reconcile', async () => {
+    mockBasketIsNull = true;
+    mockItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockedSet.mockResolvedValue(reply({}));
+
+    renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+
+    expect(mockedSet).not.toHaveBeenCalled();
+  });
+
+  // The empty-cart pre-set's own refusal branch. Reachable exactly when the client BELIEVES the cart
+  // is empty and the server disagrees — the failed-mount-sync state above — so the recorded attempt
+  // has to be rolled back or the effect will never try again.
+  it('does not record a refused empty-cart pre-set as done', async () => {
+    mockItemCount = 0;
+    mockBasketItemCount = 0;
+    mockedSet.mockResolvedValue(reply({ applied: false, conflicts: [CONFLICT] }));
+    const { result, rerender } = renderHook(() => useOrderTypeSwitch());
+
+    await act(async () => {
+      await result.current.request(OrderType.Takeaway, 'sidebar', false);
+    });
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+
+    // The guest's first add lands; the effect must re-assert rather than trust the refused pre-set.
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockItemCount = 1;
+    mockBasketItemCount = 1;
+    await act(async () => {
+      rerender();
+    });
+
+    expect(mockedSet).toHaveBeenCalledTimes(2);
+  });
+
+  // Covers the one-attempt-per-cart-state rule at its least obvious moment: another tab moves the
+  // basket to a THIRD channel, so `serverOrderType` changes and the effect re-runs — but this tab's
+  // cart has not moved, so there is nothing new to try and it stays quiet. Last-active-tab-wins is
+  // the accepted model here; the alternative is two tabs asserting at each other.
+  it('does not re-assert when only the server channel drifts under it', async () => {
+    mockItemCount = 1;
+    mockBasketItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockServerOrderType = null;
+    mockedSet.mockResolvedValue(reply({ applied: false, conflicts: [CONFLICT] }));
+    const { rerender } = renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+
+    mockServerOrderType = OrderType.DineIn;
+    await act(async () => {
+      rerender();
+    });
+
+    expect(mockedSet).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports nothing when the assert lands', async () => {
+    mockItemCount = 1;
+    mockBasketItemCount = 1;
+    mockCurrentOrderType = OrderType.Takeaway;
+    mockedSet.mockResolvedValue(reply({}));
+
+    renderHook(() => useOrderTypeSwitch());
+    await act(async () => {});
+
+    expect(trackEvent).not.toHaveBeenCalled();
   });
 
   it("a session failure does not swallow the guest's tap", async () => {

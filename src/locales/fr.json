@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Retirer et continuer",
   "order_type_conflict_removing": "Suppression…",
   "order_type_conflict_keep": "Annulez pour conserver votre commande telle quelle.",
-  "order_type_conflict_error": "Ces articles n'ont pas pu être retirés. Votre commande est inchangée — veuillez réessayer."
+  "order_type_conflict_error": "Ces articles n'ont pas pu être retirés. Votre commande est inchangée — veuillez réessayer.",
+  "module_unavailable_title": "Non disponible ici",
+  "module_unavailable_message": "Ce restaurant ne propose pas cette fonctionnalité.",
+  "module_unavailable_action": "Retour à l'accueil"
 }

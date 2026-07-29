@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Verwijderen en doorgaan",
   "order_type_conflict_removing": "Verwijderen…",
   "order_type_conflict_keep": "Annuleer om je bestelling ongewijzigd te laten.",
-  "order_type_conflict_error": "Deze items konden niet worden verwijderd. Je bestelling is ongewijzigd — probeer het opnieuw."
+  "order_type_conflict_error": "Deze items konden niet worden verwijderd. Je bestelling is ongewijzigd — probeer het opnieuw.",
+  "module_unavailable_title": "Hier niet beschikbaar",
+  "module_unavailable_message": "Dit restaurant biedt deze functie niet aan.",
+  "module_unavailable_action": "Terug naar home"
 }

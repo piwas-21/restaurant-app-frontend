@@ -12,6 +12,8 @@ import ClientProviders from './client-providers';
 import { Metadata, Viewport } from 'next';
 import { BRANDING_ICON, RESTAURANT_NAME } from '@/lib/config';
 import { getTenantPaletteCss } from '@/services/tenantThemeService';
+import { getTenantModules } from '@/services/tenantModulesService';
+import ModuleRouteGuard from '@/components/ModuleRouteGuard';
 
 // Tenant branding is baked at build time (issue #125): build-image.yml passes
 // RUMI's name, build-tenant-image.yml passes the registry `name` per tenant.
@@ -40,7 +42,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // hoisted <style> (React 19 lifts it into <head>). The doubled-specificity
   // selectors in paletteToCss win over the baked template tokens regardless of
   // order; an empty string (no/unknown key) renders nothing — the safe default.
-  const paletteCss = await getTenantPaletteCss();
+  // Product modules this tenant bought (sofra ADR-010 / S11). Read here, server-side,
+  // rather than in the browser: a client fetch would let a gated route paint before the
+  // answer arrived. Fails OPEN to the full set — see tenantModulesService.
+  const [paletteCss, modules] = await Promise.all([getTenantPaletteCss(), getTenantModules()]);
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className={bodyClassName}>
@@ -49,8 +54,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             {paletteCss}
           </style>
         ) : null}
-        <ClientProviders>
-          <Shell>{children}</Shell>
+        <ClientProviders modules={modules}>
+          <Shell>
+            <ModuleRouteGuard>{children}</ModuleRouteGuard>
+          </Shell>
         </ClientProviders>
       </body>
     </html>

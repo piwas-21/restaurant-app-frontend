@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { login as loginUser, sendEmailVerification } from '@/services/authService';
 import { useAuth } from '@/components/AuthContext';
 import { trackEvent } from '@/lib/analytics';
+import { moduleForPath } from '@/lib/modules';
+import { useModules } from '@/contexts/ModulesContext';
 
 const ROLE_ROUTES: Record<string, string> = {
   admin: '/admin/dashboard',
@@ -35,6 +37,7 @@ export function useLoginForm() {
   const resendTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
   const { login } = useAuth();
+  const modules = useModules();
 
   useEffect(() => {
     emailInputRef.current?.focus();
@@ -87,7 +90,13 @@ export function useLoginForm() {
         // Guard the role lookup: a malformed envelope (missing role) falls back
         // to the home route rather than crashing on `.toLowerCase()`.
         const userRole = response.data.role?.toLowerCase() ?? '';
-        router.push(ROLE_ROUTES[userRole] ?? '/');
+        // A staff role whose surface this tenant did not buy would otherwise land on the
+        // blocked page as its FIRST screen after login, with a nav that has nothing left in
+        // it (O5). Send them home instead — it is the one combination that produces a
+        // genuinely bare screen.
+        const target = ROLE_ROUTES[userRole] ?? '/';
+        const targetModule = moduleForPath(target);
+        router.push(targetModule === null || modules.has(targetModule) ? target : '/');
       } else {
         const msg = `${response.message ?? ''} ${response.errors?.[0] ?? ''}`.toLowerCase();
         const isVerify = msg.includes('verify') || msg.includes('verification');

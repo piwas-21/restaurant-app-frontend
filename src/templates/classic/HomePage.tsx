@@ -11,8 +11,11 @@ import { WorkingHoursDto } from '@/types/workingHours';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import ContactIcons from '@/components/home/ContactIcons';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
 
 export default function HomePage() {
+  // A CTA into a module this tenant did not buy leads only to the blocked page (O5).
+  const reservationsEnabled = useModuleEnabled('reservations');
   const { t, i18n } = useTranslation();
   const { info } = useRestaurantInfo();
   const [isClient, setIsClient] = useState(false);
@@ -176,10 +179,12 @@ export default function HomePage() {
               <UtensilsCrossed size={24} strokeWidth={2.5} />
               <span className={styles.ctaButtonText}>{isClient ? t('home_menu_cta') : 'View Menu'}</span>
             </Link>
-            <Link href="/reservations" className={styles.ctaButtonSecondary} role="button">
-              <CalendarCheck size={24} strokeWidth={2.5} />
-              <span className={styles.ctaButtonText}>{isClient ? t('home_reservations_cta') : 'Book a Table'}</span>
-            </Link>
+            {reservationsEnabled && (
+              <Link href="/reservations" className={styles.ctaButtonSecondary} role="button">
+                <CalendarCheck size={24} strokeWidth={2.5} />
+                <span className={styles.ctaButtonText}>{isClient ? t('home_reservations_cta') : 'Book a Table'}</span>
+              </Link>
+            )}
           </div>
         </div>
       </section>

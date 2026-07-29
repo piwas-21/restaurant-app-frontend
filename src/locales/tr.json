@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Kaldır ve devam et",
   "order_type_conflict_removing": "Kaldırılıyor…",
   "order_type_conflict_keep": "Siparişinizi olduğu gibi bırakmak için iptal edin.",
-  "order_type_conflict_error": "Bu ürünler kaldırılamadı. Siparişiniz değişmedi — lütfen tekrar deneyin."
+  "order_type_conflict_error": "Bu ürünler kaldırılamadı. Siparişiniz değişmedi — lütfen tekrar deneyin.",
+  "module_unavailable_title": "Burada mevcut değil",
+  "module_unavailable_message": "Bu restoran bu özelliği sunmuyor.",
+  "module_unavailable_action": "Ana sayfaya dön"
 }

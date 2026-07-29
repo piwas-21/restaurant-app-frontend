@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "移除并继续",
   "order_type_conflict_removing": "正在移除…",
   "order_type_conflict_keep": "取消可保持订单不变。",
-  "order_type_conflict_error": "无法移除这些商品。您的订单未更改，请重试。"
+  "order_type_conflict_error": "无法移除这些商品。您的订单未更改，请重试。",
+  "module_unavailable_title": "此处不可用",
+  "module_unavailable_message": "本餐厅不提供此功能。",
+  "module_unavailable_action": "返回首页"
 }

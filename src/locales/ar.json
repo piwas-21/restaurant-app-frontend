@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "إزالة والمتابعة",
   "order_type_conflict_removing": "جارٍ الإزالة…",
   "order_type_conflict_keep": "ألغِ للإبقاء على طلبك كما هو.",
-  "order_type_conflict_error": "تعذّرت إزالة هذه العناصر. لم يتغيّر طلبك — يرجى المحاولة مرة أخرى."
+  "order_type_conflict_error": "تعذّرت إزالة هذه العناصر. لم يتغيّر طلبك — يرجى المحاولة مرة أخرى.",
+  "module_unavailable_title": "غير متاح هنا",
+  "module_unavailable_message": "هذا المطعم لا يوفر هذه الميزة.",
+  "module_unavailable_action": "العودة إلى الصفحة الرئيسية"
 }

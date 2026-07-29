@@ -7,12 +7,15 @@ import { UserCircle } from 'lucide-react';
 import styles from '../app/styles/UserMenu.module.css';
 import { useAuth } from './AuthContext';
 import Link from 'next/link';
+import { useModuleEnabled } from '@/contexts/ModulesContext';
 
 interface UserMenuProps {
   onMobileMenuClose?: () => void;
 }
 
 export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
+  // Hide the entry when the tenant has no reservations module (O5).
+  const reservationsEnabled = useModuleEnabled('reservations');
   const { t } = useTranslation();
   const { getRoleLabel } = useRoleHelpers();
   const { user, logout } = useAuth();
@@ -86,16 +89,18 @@ export default function UserMenu({ onMobileMenuClose }: UserMenuProps) {
               >
                 {t('user_menu.my_orders', 'My Orders')}
               </Link>
-              <Link
-                href="/my-reservations"
-                className={styles.dropdownLink}
-                onClick={() => {
-                  setDropdownOpen(false);
-                  onMobileMenuClose?.();
-                }}
-              >
-                {t('nav_reservations', 'Reservations')}
-              </Link>
+              {reservationsEnabled && (
+                <Link
+                  href="/my-reservations"
+                  className={styles.dropdownLink}
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    onMobileMenuClose?.();
+                  }}
+                >
+                  {t('nav_reservations', 'Reservations')}
+                </Link>
+              )}
             </>
           )}
           <button

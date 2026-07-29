@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Удалить и продолжить",
   "order_type_conflict_removing": "Удаление…",
   "order_type_conflict_keep": "Отмените, чтобы оставить заказ без изменений.",
-  "order_type_conflict_error": "Не удалось удалить эти позиции. Ваш заказ не изменился — попробуйте ещё раз."
+  "order_type_conflict_error": "Не удалось удалить эти позиции. Ваш заказ не изменился — попробуйте ещё раз.",
+  "module_unavailable_title": "Здесь недоступно",
+  "module_unavailable_message": "Этот ресторан не предоставляет эту функцию.",
+  "module_unavailable_action": "На главную"
 }

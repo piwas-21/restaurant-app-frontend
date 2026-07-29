@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Eliminar y continuar",
   "order_type_conflict_removing": "Eliminando…",
   "order_type_conflict_keep": "Cancela para dejar tu pedido como está.",
-  "order_type_conflict_error": "No se pudieron eliminar esos artículos. Tu pedido no ha cambiado — inténtalo de nuevo."
+  "order_type_conflict_error": "No se pudieron eliminar esos artículos. Tu pedido no ha cambiado — inténtalo de nuevo.",
+  "module_unavailable_title": "No disponible aquí",
+  "module_unavailable_message": "Este restaurante no ofrece esta función.",
+  "module_unavailable_action": "Volver al inicio"
 }

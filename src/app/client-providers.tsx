@@ -14,58 +14,70 @@ import { OrderTypeProvider } from '@/contexts/OrderTypeContext';
 import { TableContextProvider } from '@/contexts/TableContext';
 import { X } from 'lucide-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ModulesProvider } from '@/contexts/ModulesContext';
+import type { ModuleId } from '@/lib/modules';
 
-export default function ClientProviders({ children }: { children: React.ReactNode }) {
+/**
+ * @param modules Product modules this tenant runs, read server-side in the root layout
+ *   (sofra ADR-010 / S11). Passed down rather than fetched here so a gated route never
+ *   paints before the answer arrives.
+ */
+export default function ClientProviders({
+  modules,
+  children,
+}: Readonly<{ modules: ModuleId[]; children: React.ReactNode }>) {
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
-      <AuthProvider>
-        <SessionProvider>
-          <ThemeProvider>
-            <I18nextProvider i18n={i18n}>
-              <CookieConsentProvider>
-                <TableContextProvider>
-                  <CartProvider>
-                    <CheckoutProvider>
-                      <OrderTypeProvider>
-                        <SnackbarProvider
-                          maxSnack={3}
-                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                          autoHideDuration={4000}
-                          action={(snackbarKey) => (
-                            <button
-                              onClick={() => closeSnackbar(snackbarKey)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'inherit',
-                                cursor: 'pointer',
-                                padding: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginLeft: '8px',
-                                opacity: 0.8,
-                                transition: 'opacity 0.2s',
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
-                              aria-label="Close notification"
-                            >
-                              <X size={18} strokeWidth={2} />
-                            </button>
-                          )}
-                        >
-                          {children}
-                        </SnackbarProvider>
-                      </OrderTypeProvider>
-                    </CheckoutProvider>
-                  </CartProvider>
-                </TableContextProvider>
-              </CookieConsentProvider>
-            </I18nextProvider>
-          </ThemeProvider>
-        </SessionProvider>
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    <ModulesProvider modules={modules}>
+      <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
+        <AuthProvider>
+          <SessionProvider>
+            <ThemeProvider>
+              <I18nextProvider i18n={i18n}>
+                <CookieConsentProvider>
+                  <TableContextProvider>
+                    <CartProvider>
+                      <CheckoutProvider>
+                        <OrderTypeProvider>
+                          <SnackbarProvider
+                            maxSnack={3}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                            autoHideDuration={4000}
+                            action={(snackbarKey) => (
+                              <button
+                                onClick={() => closeSnackbar(snackbarKey)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: 'inherit',
+                                  cursor: 'pointer',
+                                  padding: '4px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  marginLeft: '8px',
+                                  opacity: 0.8,
+                                  transition: 'opacity 0.2s',
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
+                                aria-label="Close notification"
+                              >
+                                <X size={18} strokeWidth={2} />
+                              </button>
+                            )}
+                          >
+                            {children}
+                          </SnackbarProvider>
+                        </OrderTypeProvider>
+                      </CheckoutProvider>
+                    </CartProvider>
+                  </TableContextProvider>
+                </CookieConsentProvider>
+              </I18nextProvider>
+            </ThemeProvider>
+          </SessionProvider>
+        </AuthProvider>
+      </GoogleOAuthProvider>
+    </ModulesProvider>
   );
 }

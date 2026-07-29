@@ -49,7 +49,13 @@ export type AnalyticsEventName =
   // basket onto the guest's chosen channel because a line forbids it. No user action either — the
   // guest did not ask for this switch — and it is deliberately not surfaced to them; it is fired so
   // a client/server disagreement about a security-relevant field is observable by someone.
-  | 'basket_channel_assert_refused';
+  | 'basket_channel_assert_refused'
+  // The mirror image (§9.17): the client dropped its channel — the 24h TTL expired, or the owner
+  // disabled the one the guest held — but the DELETE that disarms the SERVER basket failed. Same
+  // reasoning as above and the same non-escalation: the guest did not ask for this and must not be
+  // interrupted, but a basket still armed on a channel nobody holds refuses adds for a reason the
+  // guest cannot see, so it must be observable by someone.
+  | 'basket_channel_clear_failed';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */

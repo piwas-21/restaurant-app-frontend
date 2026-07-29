@@ -5,17 +5,10 @@ import { OrderType } from '@/types/order';
 import { type DeliveryAddress, useCheckout } from '@/contexts/CheckoutContext';
 import { useOrderTypeEnabledGuard } from '@/hooks/order/useOrderTypeEnabledGuard';
 import { useServerChannelDisarm } from '@/hooks/order/useServerChannelDisarm';
-import {
-  ORDER_TYPE_TTL_MS,
-  STORAGE_KEY,
-  type OrderTypeState,
-  initialState,
-  loadState,
-  saveState,
-} from '@/lib/orderTypeStorage';
+import { STORAGE_KEY, type OrderTypeState, initialState, loadState, saveState } from '@/lib/orderTypeStorage';
 
 // Re-exported: the TTL is part of this context's public surface and consumers/tests import it here.
-export { ORDER_TYPE_TTL_MS };
+export { ORDER_TYPE_TTL_MS } from '@/lib/orderTypeStorage';
 
 /**
  * OrderTypeContext — single source of truth for the order-type decision

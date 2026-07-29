@@ -53,6 +53,18 @@ export interface LoadedState {
   expired: boolean;
 }
 
+/**
+ * The persisted `orderType` field, or `null` when it is absent or not a known enum value.
+ *
+ * Defends against stale/malformed payloads (older app versions, hand-edited devtools, half-written
+ * writes from a crash). A `null` orderType means "unset"; anything unrecognised also resolves to
+ * null rather than gaslighting the welcome modal into thinking the guest has already chosen.
+ */
+function parseOrderType(value: unknown): OrderType | null {
+  if (value === null || value === undefined) return null;
+  return VALID_ORDER_TYPES.has(value as OrderType) ? (value as OrderType) : null;
+}
+
 export function loadState(): LoadedState {
   const fresh = (state: OrderTypeState): LoadedState => ({ state, expired: false });
   if (typeof window === 'undefined') return fresh(initialState);
@@ -60,17 +72,7 @@ export function loadState(): LoadedState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fresh(initialState);
     const parsed = JSON.parse(raw) as Partial<OrderTypeState> & { orderType?: unknown; chosenAt?: unknown };
-    // Defend against stale/malformed payloads (older app versions, hand-
-    // edited devtools, half-written writes from a crash). A `null`
-    // orderType means "unset" — anything else must be a known enum value
-    // or we fall back to initialState rather than gaslight the welcome
-    // modal into thinking the user has already chosen.
-    const orderType =
-      parsed.orderType === null || parsed.orderType === undefined
-        ? null
-        : VALID_ORDER_TYPES.has(parsed.orderType as OrderType)
-          ? (parsed.orderType as OrderType)
-          : null;
+    const orderType = parseOrderType(parsed.orderType);
     const chosenAt = typeof parsed.chosenAt === 'number' ? parsed.chosenAt : null;
     // Expire the whole choice, not just the type: the table number and delivery address are
     // companions of it, and keeping either around would leave an orphan the UI would still read.

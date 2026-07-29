@@ -10,9 +10,11 @@
 // Styling stays with the consumer: links use the global `nav-link` class
 // (globals.css) driven by the `--nav-link-*` variables, so a template
 // re-skins them via tokens/vars, never by forking this component.
-// NOTE: app-internal-layout.tsx (the shared staff/admin chrome) still
-// carries the original inline copy — it is deliberately untouched in this
-// slice (zero-delta beats DRY there; consolidation is T4 polish work).
+// app-internal-layout.tsx (the shared staff/admin chrome) carried a second
+// inline copy until module gating (O5) made the duplicate a correctness bug
+// rather than a style one: gating one copy left the staff chrome still
+// offering Cashier / Server / Reservations links into blocked pages. It now
+// renders this component, so there is exactly one source of truth again.
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';

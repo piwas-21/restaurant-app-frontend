@@ -1,5 +1,8 @@
+import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useLoginForm } from './useLoginForm';
+import { ModulesProvider } from '@/contexts/ModulesContext';
+import type { ModuleId } from '@/lib/modules';
 
 const mockPush = jest.fn();
 const mockLogin = jest.fn();
@@ -47,6 +50,40 @@ describe('useLoginForm', () => {
     await act(async () => result.current.handleSubmit(submit));
     expect(mockLogin).toHaveBeenCalledWith({ role });
     expect(mockPush).toHaveBeenCalledWith(route);
+  });
+
+  it.each([
+    ['Cashier', '/cashier'],
+    ['KitchenStaff', '/kitchen-staff'],
+    ['Server', '/server'],
+  ])('sends %s home instead of to a module this tenant did not buy', async (role) => {
+    // Otherwise the first screen after login is the blocked page, with a role-scoped nav
+    // that now has nothing left in it — the one combination that leaves a bare screen (O5).
+    const bought: ModuleId[] = ['core'];
+    mockLoginUser.mockResolvedValue({ success: true, data: { role } });
+    const { result } = renderHook(() => useLoginForm(), {
+      wrapper: ({ children }) => <ModulesProvider modules={bought}>{children}</ModulesProvider>,
+    });
+    act(() => {
+      result.current.setEmail('a@b.co');
+      result.current.setPassword('secret1');
+    });
+    await act(async () => result.current.handleSubmit(submit));
+    expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  it('still routes a staff role whose module the tenant DID buy', async () => {
+    const bought: ModuleId[] = ['core', 'cashier'];
+    mockLoginUser.mockResolvedValue({ success: true, data: { role: 'Cashier' } });
+    const { result } = renderHook(() => useLoginForm(), {
+      wrapper: ({ children }) => <ModulesProvider modules={bought}>{children}</ModulesProvider>,
+    });
+    act(() => {
+      result.current.setEmail('a@b.co');
+      result.current.setPassword('secret1');
+    });
+    await act(async () => result.current.handleSubmit(submit));
+    expect(mockPush).toHaveBeenCalledWith('/cashier');
   });
 
   it('falls back to home (no crash) when the success envelope has no role', async () => {

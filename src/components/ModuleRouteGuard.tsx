@@ -33,7 +33,10 @@ export default function ModuleRouteGuard({ children }: Readonly<{ children: Reac
   if (enabled) return <>{children}</>;
 
   return (
-    <main className={styles.container}>
+    // A <section>, not a <main>: this renders INSIDE the template Shell, whose chrome
+    // already supplies the page's <main> landmark, and two would leave a screen reader
+    // with an ambiguous document structure.
+    <section className={styles.container}>
       <PackageX className={styles.icon} size={48} aria-hidden="true" />
       <h1 className={styles.title}>{t('module_unavailable_title', 'Not available here')}</h1>
       <p className={styles.message}>
@@ -42,6 +45,6 @@ export default function ModuleRouteGuard({ children }: Readonly<{ children: Reac
       <Link href="/" className={styles.action}>
         {t('module_unavailable_action', 'Back to home')}
       </Link>
-    </main>
+    </section>
   );
 }

@@ -15,19 +15,8 @@ import FooterCookieLink from '@/components/FooterCookieLink';
 import UserMenu from '@/components/UserMenu';
 import { useAuth } from '@/components/AuthContext';
 import Sidebar from '@/components/admin/Sidebar';
-import {
-  Home,
-  UtensilsCrossed,
-  CalendarCheck,
-  ShoppingCart,
-  LayoutDashboard,
-  Menu,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Receipt,
-} from 'lucide-react';
-import { useCart } from '@/components/cart/CartContext';
+import RoleNavLinks from '@/components/RoleNavLinks';
+import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_LOGO, BRANDING_LOGO_DARK, RESTAURANT_NAME } from '@/lib/config';
 
@@ -51,7 +40,6 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const [isClient, setIsClient] = useState(false);
   const { theme } = useTheme();
   const { user, isLoading } = useAuth();
-  const { state: cartState } = useCart();
   const pathname = usePathname();
   const _router = useRouter();
   const isHomePage = pathname === '/';
@@ -64,7 +52,6 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const _sidebarWidth = '250px';
 
   // Calculate total cart items
-  const cartItemCount = cartState.items.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     setIsClient(true);
@@ -103,107 +90,6 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     color: 'var(--text-color)',
     textAlign: 'center',
     borderTop: '1px solid var(--border-color)',
-  };
-
-  const renderNavLinks = () => {
-    if (isLoading) return null;
-    const role = user?.role.toLowerCase();
-
-    // Cashier: Show only Cashier link
-    if (role === 'cashier') {
-      return (
-        <>
-          <Link
-            href="/cashier"
-            className={`nav-link ${pathname === '/cashier' ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <Receipt size={18} />
-            <span>{t('nav_cashier', 'Cashier')}</span>
-          </Link>
-        </>
-      );
-    }
-
-    // Server: Show only Server link
-    if (role === 'server') {
-      return (
-        <>
-          <Link
-            href="/server"
-            className={`nav-link ${pathname === '/server' ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <UtensilsCrossed size={18} />
-            <span>{t('nav_server', 'Server')}</span>
-          </Link>
-        </>
-      );
-    }
-
-    // Admin: Show all customer links + admin dashboard
-    if (role === 'admin') {
-      return (
-        <>
-          <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>
-            <Home size={18} />
-            <span>{t('nav_home', 'Home')}</span>
-          </Link>
-          <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={closeMobileMenu}>
-            <UtensilsCrossed size={18} />
-            <span>{t('nav_menu', 'Menu')}</span>
-          </Link>
-          <Link
-            href="/reservations"
-            className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <CalendarCheck size={18} />
-            <span>{t('nav_reservations', 'Reservations')}</span>
-          </Link>
-          <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={closeMobileMenu}>
-            <ShoppingCart size={18} />
-            <span>{t('nav_cart', 'Cart')}</span>
-            {cartItemCount > 0 && <span className={navStyles.cartBadge}>{cartItemCount}</span>}
-          </Link>
-          <Link
-            href="/admin/dashboard"
-            className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`}
-            onClick={closeMobileMenu}
-          >
-            <LayoutDashboard size={18} />
-            <span>{t('admin_dashboard_title')}</span>
-          </Link>
-        </>
-      );
-    }
-
-    // Regular users: Show customer navigation
-    return (
-      <>
-        <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`} onClick={closeMobileMenu}>
-          <Home size={18} />
-          <span>{t('nav_home', 'Home')}</span>
-        </Link>
-        <Link href="/menu" className={`nav-link ${pathname === '/menu' ? 'active' : ''}`} onClick={closeMobileMenu}>
-          <UtensilsCrossed size={18} />
-          <span>{t('nav_menu', 'Menu')}</span>
-        </Link>
-        <Link
-          href="/reservations"
-          className={`nav-link ${pathname === '/reservations' ? 'active' : ''}`}
-          onClick={closeMobileMenu}
-        >
-          <CalendarCheck size={18} />
-          <span>{t('nav_reservations', 'Reservations')}</span>
-        </Link>
-        <Link href="/cart" className={`nav-link ${pathname === '/cart' ? 'active' : ''}`} onClick={closeMobileMenu}>
-          <ShoppingCart size={18} />
-          <span>{t('nav_cart', 'Cart')}</span>
-          {cartItemCount > 0 && <span className={navStyles.cartBadge}>{cartItemCount}</span>}
-        </Link>
-      </>
-    );
   };
 
   return (
@@ -277,7 +163,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                 aria-hidden="true"
               />
               <nav className={`${navStyles.navLinksContainer} ${mobileMenuOpen ? navStyles.mobileMenuOpen : ''}`}>
-                {renderNavLinks()}
+                <RoleNavLinks onNavigate={closeMobileMenu} />
                 {isClient && !isLoading && (
                   <>
                     {user ? (

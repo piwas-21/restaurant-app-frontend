@@ -36,6 +36,10 @@ export function isModuleId(value: string): value is ModuleId {
  * exists. Deliberately absent, mirroring the backend: `/admin/table-layout-editor` and
  * `/admin/table-statistics`. The table map is shared — reservations needs it as much as
  * `server` does — so gating it on either module would break the other.
+ *
+ * `printing` has no entry because it has no page: the backend gates it on the device and
+ * printer-feed APIs the printer-app calls. Add `/admin/devices` here the day such a page
+ * ships, or it goes out ungated.
  */
 const ROUTE_MODULE_ENTRIES: ReadonlyArray<readonly [string, ModuleId]> = [
   ['/reservations', 'reservations'],

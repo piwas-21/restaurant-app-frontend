@@ -109,6 +109,8 @@ module.exports = {
     'src/lib/floorPlan/wallOpenings.ts',
     'src/lib/floorPlan/wayfinding.ts',
     'src/lib/allergens.ts',
+    'src/lib/modules.ts',
+    'src/services/tenantModulesService.ts',
     'src/hooks/floorPlan/useEditorDrag.ts',
     'src/hooks/floorPlan/useEditorSave.ts',
     'src/hooks/floorPlan/useEditorAutoSave.ts',
@@ -168,6 +170,22 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Module gating (SOFRA-ONBOARDING-PLAN O5). Pinned at 100% because both files decide
+    // whether a tenant SEES a feature they paid for, and every branch is a fail-open path:
+    // an uncovered one is a route that disappears for a paying customer, or a network blip
+    // that takes the app away. There is nothing incidental in either file to leave uncovered.
+    './src/lib/modules.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/services/tenantModulesService.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
     // Kitchen routing over the ROOT-ONLY order tree (backend #237). Pinned at 100% because its
     // failure mode is silence: miss a nested item and a kitchen simply never gets a ticket — no
     // error, no empty print, just food that is never cooked. Every branch here is one `?? []` or one

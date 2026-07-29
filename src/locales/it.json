@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Rimuovi e continua",
   "order_type_conflict_removing": "Rimozione…",
   "order_type_conflict_keep": "Annulla per lasciare il tuo ordine invariato.",
-  "order_type_conflict_error": "Non è stato possibile rimuovere questi articoli. Il tuo ordine è invariato — riprova."
+  "order_type_conflict_error": "Non è stato possibile rimuovere questi articoli. Il tuo ordine è invariato — riprova.",
+  "module_unavailable_title": "Non disponibile qui",
+  "module_unavailable_message": "Questo ristorante non offre questa funzione.",
+  "module_unavailable_action": "Torna alla home"
 }

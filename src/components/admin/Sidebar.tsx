@@ -22,6 +22,8 @@ import {
   LayoutDashboard,
 } from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
+import { moduleForPath } from '@/lib/modules';
+import { useModules } from '@/contexts/ModulesContext';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -31,6 +33,7 @@ interface SidebarProps {
 const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const modules = useModules();
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on client side and language is loaded
@@ -131,6 +134,14 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     },
   ];
 
+  // Drop the entries whose module this tenant did not buy (sofra ADR-010 / S11). Derived
+  // from the SAME route map ModuleRouteGuard uses, so the nav and the guard cannot disagree
+  // — an item that survives here always leads somewhere that renders.
+  const visibleItems = navItems.filter((item) => {
+    const moduleId = moduleForPath(item.href);
+    return moduleId === null || modules.has(moduleId);
+  });
+
   return (
     <aside
       className={`${styles.sidebar} ${isOpen ? 'open' : ''}`}
@@ -146,7 +157,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       <hr className={styles.sidebarDivider} />
       <nav>
         <ul>
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const label = isClient ? t(item.key, item.fallback || item.key) : item.fallback || item.key;
 

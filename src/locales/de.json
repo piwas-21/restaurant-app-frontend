@@ -2380,5 +2380,8 @@
   "order_type_conflict_confirm": "Entfernen und fortfahren",
   "order_type_conflict_removing": "Wird entfernt…",
   "order_type_conflict_keep": "Brechen Sie ab, um Ihre Bestellung unverändert zu lassen.",
-  "order_type_conflict_error": "Diese Artikel konnten nicht entfernt werden. Ihre Bestellung ist unverändert — bitte erneut versuchen."
+  "order_type_conflict_error": "Diese Artikel konnten nicht entfernt werden. Ihre Bestellung ist unverändert — bitte erneut versuchen.",
+  "module_unavailable_title": "Hier nicht verfügbar",
+  "module_unavailable_message": "Dieses Restaurant bietet diese Funktion nicht an.",
+  "module_unavailable_action": "Zurück zur Startseite"
 }

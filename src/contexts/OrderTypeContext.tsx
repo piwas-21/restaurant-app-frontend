@@ -4,6 +4,18 @@ import React, { createContext, useCallback, useContext, useEffect, useState, typ
 import { OrderType } from '@/types/order';
 import { type DeliveryAddress, useCheckout } from '@/contexts/CheckoutContext';
 import { useOrderTypeEnabledGuard } from '@/hooks/order/useOrderTypeEnabledGuard';
+import { useServerChannelDisarm } from '@/hooks/order/useServerChannelDisarm';
+import {
+  ORDER_TYPE_TTL_MS,
+  STORAGE_KEY,
+  type OrderTypeState,
+  initialState,
+  loadState,
+  saveState,
+} from '@/lib/orderTypeStorage';
+
+// Re-exported: the TTL is part of this context's public surface and consumers/tests import it here.
+export { ORDER_TYPE_TTL_MS };
 
 /**
  * OrderTypeContext — single source of truth for the order-type decision
@@ -19,18 +31,6 @@ import { useOrderTypeEnabledGuard } from '@/hooks/order/useOrderTypeEnabledGuard
  * State is persisted to localStorage under its own key so a refresh on
  * /menu re-shows the chosen type without re-prompting the welcome modal.
  */
-
-interface OrderTypeState {
-  orderType: OrderType | null;
-  table: string;
-  deliveryAddress: DeliveryAddress | null;
-  /**
-   * When the order type was chosen, epoch ms. Drives the TTL below; `null` on a state with no
-   * choice, and on a payload written before this field existed (which then expires immediately —
-   * deliberate, since we cannot tell a five-minute-old choice from a month-old one).
-   */
-  chosenAt: number | null;
-}
 
 interface OrderTypeContextType {
   state: OrderTypeState;
@@ -50,70 +50,6 @@ interface OrderTypeContextType {
    * RENDER the state need not gate on this.
    */
   hydrated: boolean;
-}
-
-const STORAGE_KEY = 'rumi_order_type_state';
-
-/**
- * How long a persisted order type stays valid. It is in localStorage, so it survives the browser
- * being closed: without this, a Delivery chosen last month silently filters the menu on the next
- * visit and prefills a stale address. Past the window the choice is dropped and the guest is back
- * in the no-type browse state, which is the app's normal starting point anyway.
- */
-export const ORDER_TYPE_TTL_MS = 24 * 60 * 60 * 1000;
-
-const initialState: OrderTypeState = {
-  orderType: null,
-  table: '',
-  deliveryAddress: null,
-  chosenAt: null,
-};
-
-const VALID_ORDER_TYPES: ReadonlySet<OrderType> = new Set([OrderType.DineIn, OrderType.Takeaway, OrderType.Delivery]);
-
-function loadState(): OrderTypeState {
-  if (typeof window === 'undefined') return initialState;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return initialState;
-    const parsed = JSON.parse(raw) as Partial<OrderTypeState> & { orderType?: unknown; chosenAt?: unknown };
-    // Defend against stale/malformed payloads (older app versions, hand-
-    // edited devtools, half-written writes from a crash). A `null`
-    // orderType means "unset" — anything else must be a known enum value
-    // or we fall back to initialState rather than gaslight the welcome
-    // modal into thinking the user has already chosen.
-    const orderType =
-      parsed.orderType === null || parsed.orderType === undefined
-        ? null
-        : VALID_ORDER_TYPES.has(parsed.orderType as OrderType)
-          ? (parsed.orderType as OrderType)
-          : null;
-    const chosenAt = typeof parsed.chosenAt === 'number' ? parsed.chosenAt : null;
-    // Expire the whole choice, not just the type: the table number and delivery address are
-    // companions of it, and keeping either around would leave an orphan the UI would still read.
-    if (orderType !== null && (chosenAt === null || Date.now() - chosenAt > ORDER_TYPE_TTL_MS)) {
-      return initialState;
-    }
-
-    return {
-      orderType,
-      table: typeof parsed.table === 'string' ? parsed.table : '',
-      deliveryAddress: parsed.deliveryAddress ?? null,
-      chosenAt,
-    };
-  } catch (err) {
-    console.error('Failed to load order-type state:', err);
-    return initialState;
-  }
-}
-
-function saveState(state: OrderTypeState): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (err) {
-    console.error('Failed to save order-type state:', err);
-  }
 }
 
 const OrderTypeContext = createContext<OrderTypeContextType | undefined>(undefined);
@@ -138,10 +74,20 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
   // CheckoutContext directly". That was false, and the claim leaked into a plan as a phantom
   // divergence bug (ORDER-TYPE-AVAILABILITY-PLAN §3.3 refutes it). The only writers of
   // CheckoutContext.orderType are the mirrored calls below.
+  const { requestServerDisarm, cancelPendingDisarm } = useServerChannelDisarm();
+
   useEffect(() => {
-    setState(loadState());
+    const { state: loaded, expired } = loadState();
+    setState(loaded);
     setHydrated(true);
-  }, []);
+
+    // The TTL does NOT run through `clearOrderType` — `loadState` returns the empty state directly —
+    // so without this the flagship §9.17 case stayed open: a month-old Delivery expires locally, the
+    // server basket stays armed on Delivery, and every add is refused for a channel the guest no
+    // longer holds. Sharpest for a payload written before `chosenAt` existed, which expires on the
+    // very next load, well inside any plausible basket lifetime.
+    if (expired) requestServerDisarm();
+  }, [requestServerDisarm]);
 
   useEffect(() => {
     saveState(state);
@@ -151,10 +97,13 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
   // on every provider render re-ran the guard on every render.
   const setOrderType = useCallback(
     (type: OrderType) => {
+      // Cancels any disarm still pending. The guest now HOLDS a channel, so a DELETE queued moments
+      // ago (G4 clearing before G8 assigned this one) must not land after the PUT that asserts it.
+      cancelPendingDisarm();
       setState((prev) => ({ ...prev, orderType: type, chosenAt: Date.now() }));
       checkout.setOrderType(type); // MIRROR(CheckoutContext) — drop after C1.5.d
     },
-    [checkout],
+    [checkout, cancelPendingDisarm],
   );
 
   // Deliberately does NOT refresh `chosenAt`: picking a table is not a fresh decision about the
@@ -182,7 +131,21 @@ export function OrderTypeProvider({ children }: { children: ReactNode }) {
     // calculation read, so the guest could still place an order on it. `clearOrderTypeSelection`
     // drops exactly the mirrored fields and keeps the contact details.
     checkout.clearOrderTypeSelection();
-  }, [checkout]);
+
+    // §9.17. Clearing locally is only half of it: the SERVER basket keeps whatever channel it was
+    // given, and `BasketChannelGuard` judges every later add against it — so a guest who now holds
+    // no channel could still be refused for one. Until the DELETE existed the client could not say
+    // this at all, because the PUT takes a non-nullable order type.
+    //
+    // Callers, all of which genuinely leave the guest holding nothing: `useOrderTypeEnabledGuard`
+    // (G4 — the held channel is no longer offered), `TableBanner` (only when the pin is the
+    // scan-derived DineIn) and `useCheckoutReview` (after the cart is emptied). The 24h TTL is NOT
+    // among them — it never reaches this function — and is handled at hydration instead.
+    //
+    // Safe unconditionally: the endpoint is idempotent, never removes lines, and answers success
+    // when there is no basket, so a guest with an empty cart costs one cheap no-op.
+    requestServerDisarm();
+  }, [checkout, requestServerDisarm]);
 
   const value: OrderTypeContextType = {
     state,

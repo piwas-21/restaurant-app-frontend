@@ -28,6 +28,40 @@ export interface TokenResult {
   reason?: string;
 }
 
+/**
+ * Everything `writeAuthStorageState` needs to hand the BROWSER a signed-in session.
+ *
+ * `adminToken` returns only the bearer, which is all an API-level suite needs. A UI-level suite
+ * needs all three localStorage keys — `AuthContext.validateSession` bootstraps from
+ * `user` + `auth_token` + `refresh_token` and does nothing at all if any one is missing, rendering
+ * the ANONYMOUS experience while looking signed in for a moment (see helpers/storageState.ts).
+ *
+ * ⚠️ A session is NEVER cached, and the reason is not caution — it is that a cached one is
+ * actively wrong. `AuthContext.validateSession` bootstraps by calling `refreshToken()`, and
+ * `RefreshTokenCommand` ROTATES: it replaces the stored hash on every use. So the browser
+ * consumes the refresh token on page load, and replaying it on the next run is a genuine
+ * "Invalid token" — at which point AuthContext clears all three keys and the app renders
+ * anonymous, role-guarded routes redirect, and the failure looks exactly like a stale
+ * credential rather than a spent one. That cost a real detour: the first run passed, every
+ * run after it failed with the tenant's PUBLIC home page in the screenshot.
+ *
+ * So a UI suite spends ONE login permit per run. That is the honest price; the bearer cache
+ * still covers every API-level suite, so a run costs one permit and not five.
+ */
+export interface AdminSession {
+  accessToken: string;
+  refreshToken: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
+export interface SessionResult {
+  session: AdminSession | null;
+  reason?: string;
+}
+
 const AUTH_DIR = path.resolve(process.cwd(), 'e2e/.auth');
 
 /** Which credential key belongs to which deployed host. */
@@ -131,11 +165,70 @@ export async function adminToken(request: APIRequestContext, apiBase: string, cr
   }
   if (!res.ok()) return { token: null, reason: `login rejected (HTTP ${res.status()}) for ${credKey}` };
 
-  const body = (await res.json()) as { data?: { accessToken?: string } };
+  const body = (await res.json()) as { data?: LoginPayload };
   const token = body?.data?.accessToken ?? null;
   if (!token) return { token: null, reason: 'login succeeded but returned no accessToken' };
 
   fs.mkdirSync(AUTH_DIR, { recursive: true });
+  // ONLY the bearer is cached. A bearer is replayable until `exp`; a refresh token is not
+  // (see AdminSession) — caching one hands the next run a token the last run already spent.
   fs.writeFileSync(file, JSON.stringify({ token }), 'utf8');
   return { token };
+}
+
+/** The `AuthResponse` shape (backend Features/Auth/Dtos/AuthResponse.cs). */
+interface LoginPayload {
+  accessToken?: string;
+  refreshToken?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  role?: string;
+}
+
+function sessionFrom(data: LoginPayload | undefined): AdminSession | null {
+  if (!data?.accessToken || !data?.refreshToken) return null;
+  return {
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+    firstName: data.firstName ?? 'Admin',
+    lastName: data.lastName ?? 'User',
+    email: data.email ?? '',
+    // The backend serialises UserRole as a string ("Admin"); the app stores whatever it was given.
+    role: data.role ?? 'Admin',
+  };
+}
+
+/**
+ * A full signed-in session for the browser. Always a FRESH login — never cached, because the
+ * refresh token rotates and the browser spends it on bootstrap (see {@link AdminSession}).
+ *
+ * Same reason-rather-than-throw contract as {@link adminToken}, so a suite skips with an
+ * explanation instead of failing opaquely.
+ */
+export async function adminSession(
+  request: APIRequestContext,
+  apiBase: string,
+  credKey: string,
+): Promise<SessionResult> {
+  const creds = readCreds(credKey);
+  if (!creds) return { session: null, reason: `no ${credKey} credential in .env.local for this environment` };
+
+  const res = await request.post(`${apiBase}/api/Auth/login`, { data: creds });
+  if (res.status() === 429) {
+    return {
+      session: null,
+      reason:
+        'auth rate limit hit (5 logins / 15 min per IP). A UI suite costs one permit per run ' +
+        'because the browser spends the refresh token on bootstrap. Wait out the window; do NOT ' +
+        'relax the limiter, staging mirrors prod here on purpose.',
+    };
+  }
+  if (!res.ok()) return { session: null, reason: `login rejected (HTTP ${res.status()}) for ${credKey}` };
+
+  const body = (await res.json()) as { data?: LoginPayload };
+  const session = sessionFrom(body?.data);
+  return session
+    ? { session }
+    : { session: null, reason: `login for ${credKey} returned no refreshToken — cannot build a browser session` };
 }

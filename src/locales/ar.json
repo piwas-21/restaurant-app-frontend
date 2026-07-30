@@ -2383,5 +2383,19 @@
   "order_type_conflict_error": "تعذّرت إزالة هذه العناصر. لم يتغيّر طلبك — يرجى المحاولة مرة أخرى.",
   "module_unavailable_title": "غير متاح هنا",
   "module_unavailable_message": "هذا المطعم لا يوفر هذه الميزة.",
-  "module_unavailable_action": "العودة إلى الصفحة الرئيسية"
+  "module_unavailable_action": "العودة إلى الصفحة الرئيسية",
+  "forgot_password_title": "إعادة تعيين كلمة المرور",
+  "forgot_password_subtitle": "أدخل بريدك الإلكتروني وسنرسل إليك رابطًا لتعيين كلمة مرور جديدة.",
+  "forgot_password_submit": "إرسال الرابط",
+  "forgot_password_sent_title": "تحقّق من بريدك الإلكتروني",
+  "forgot_password_sent_body": "إذا كان لهذا العنوان حساب، فالرابط في الطريق. صلاحيته محدودة، فاستخدمه قريبًا.",
+  "forgot_password_link": "هل نسيت كلمة المرور؟",
+  "reset_password_title": "تعيين كلمة مرور جديدة",
+  "reset_password_subtitle": "اختر كلمة مرور جديدة لحسابك.",
+  "reset_password_submit": "حفظ كلمة المرور",
+  "reset_password_success_title": "تم تحديث كلمة المرور",
+  "reset_password_success_body": "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+  "reset_link_invalid_title": "هذا الرابط غير صالح",
+  "reset_link_invalid_body": "الرابط غير مكتمل أو انتهت صلاحيته. اطلب رابطًا جديدًا.",
+  "reset_password_request_new": "طلب رابط جديد"
 }

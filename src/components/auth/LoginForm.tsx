@@ -66,6 +66,14 @@ export default function LoginForm({ styles, socialStyles, form }: Readonly<Login
           {t('login_button', 'Login')}
         </button>
       </form>
+      {/* Discoverability for /forgot-password (SOFRA-ONBOARDING-PLAN O3). Placed in the
+          SHARED form rather than in each template's LoginPage, so classic and craft cannot
+          end up with one offering a reset and the other not. Before this the reset flow was
+          reachable only by typing the URL — and the page it leads to did not exist at all,
+          which is why the backend's reset email had always landed on a 404. */}
+      <p className={styles.switchFormText}>
+        <Link href="/forgot-password">{t('forgot_password_link', 'Forgot your password?')}</Link>
+      </p>
       <p className={styles.switchFormText}>
         {t('dont_have_account_auth', "Don't have an account?")}{' '}
         <Link href="/auth/register">{t('register_here', 'Register here')}</Link>

@@ -2383,5 +2383,19 @@
   "order_type_conflict_error": "Diese Artikel konnten nicht entfernt werden. Ihre Bestellung ist unverändert — bitte erneut versuchen.",
   "module_unavailable_title": "Hier nicht verfügbar",
   "module_unavailable_message": "Dieses Restaurant bietet diese Funktion nicht an.",
-  "module_unavailable_action": "Zurück zur Startseite"
+  "module_unavailable_action": "Zurück zur Startseite",
+  "forgot_password_title": "Passwort zurücksetzen",
+  "forgot_password_subtitle": "Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link, um ein neues Passwort festzulegen.",
+  "forgot_password_submit": "Link senden",
+  "forgot_password_sent_title": "Prüfen Sie Ihre E-Mails",
+  "forgot_password_sent_body": "Falls zu dieser Adresse ein Konto besteht, ist ein Link unterwegs. Er läuft ab – nutzen Sie ihn bald.",
+  "forgot_password_link": "Passwort vergessen?",
+  "reset_password_title": "Neues Passwort festlegen",
+  "reset_password_subtitle": "Wählen Sie ein neues Passwort für Ihr Konto.",
+  "reset_password_submit": "Passwort speichern",
+  "reset_password_success_title": "Passwort aktualisiert",
+  "reset_password_success_body": "Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
+  "reset_link_invalid_title": "Dieser Link ist ungültig",
+  "reset_link_invalid_body": "Der Link ist unvollständig oder abgelaufen. Fordern Sie einen neuen an.",
+  "reset_password_request_new": "Neuen Link anfordern"
 }

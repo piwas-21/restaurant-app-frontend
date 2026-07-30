@@ -2383,5 +2383,19 @@
   "order_type_conflict_error": "Bu ürünler kaldırılamadı. Siparişiniz değişmedi — lütfen tekrar deneyin.",
   "module_unavailable_title": "Burada mevcut değil",
   "module_unavailable_message": "Bu restoran bu özelliği sunmuyor.",
-  "module_unavailable_action": "Ana sayfaya dön"
+  "module_unavailable_action": "Ana sayfaya dön",
+  "forgot_password_title": "Şifrenizi sıfırlayın",
+  "forgot_password_subtitle": "E-posta adresinizi girin, yeni bir şifre belirlemeniz için size bir bağlantı gönderelim.",
+  "forgot_password_submit": "Bağlantı gönder",
+  "forgot_password_sent_title": "E-postanızı kontrol edin",
+  "forgot_password_sent_body": "Bu adrese ait bir hesap varsa bağlantı yolda. Bağlantının süresi doluyor, kısa sürede kullanın.",
+  "forgot_password_link": "Şifrenizi mi unuttunuz?",
+  "reset_password_title": "Yeni şifre belirleyin",
+  "reset_password_subtitle": "Hesabınız için yeni bir şifre seçin.",
+  "reset_password_submit": "Şifreyi kaydet",
+  "reset_password_success_title": "Şifre güncellendi",
+  "reset_password_success_body": "Artık yeni şifrenizle giriş yapabilirsiniz.",
+  "reset_link_invalid_title": "Bu bağlantı geçerli değil",
+  "reset_link_invalid_body": "Bağlantı eksik veya süresi dolmuş. Yeni bir bağlantı isteyin.",
+  "reset_password_request_new": "Yeni bağlantı isteyin"
 }

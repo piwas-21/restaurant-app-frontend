@@ -170,6 +170,26 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Password reset (SOFRA-ONBOARDING-PLAN O3). Pinned because these two pages are the
+    // only way a tenant admin can regain access to their own account — and because the
+    // route they replace was MISSING for as long as the backend has been emailing links to
+    // it (verified: www.rumirestaurant.ch/reset-password -> 404). Every branch is a way to
+    // lock someone out or to leak whether an address has an account, so there is nothing
+    // incidental here to leave uncovered. Branches sit at 92% on reset-password: the
+    // remainder is the `res?.messages?.[0] || res?.message` fallback chain, where the
+    // meaningful arms are covered and the rest are defensive `??`s over an untyped body.
+    './src/app/(auth)/forgot-password/page.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/app/(auth)/reset-password/page.tsx': {
+      statements: 100,
+      branches: 90,
+      functions: 100,
+      lines: 100,
+    },
     // Module gating (SOFRA-ONBOARDING-PLAN O5). Pinned at 100% because both files decide
     // whether a tenant SEES a feature they paid for, and every branch is a fail-open path:
     // an uncovered one is a route that disappears for a paying customer, or a network blip

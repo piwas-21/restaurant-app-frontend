@@ -43,10 +43,17 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (values: Values) => {
     setFormError('');
     try {
-      await forgotPassword({ email: values.email });
-      // Deliberately unconditional. The endpoint is anti-enumeration by design — it
-      // answers "if the email exists…" whether or not it does — so branching on the
-      // response would leak exactly what the backend refuses to.
+      const res = await forgotPassword({ email: values.email });
+      // Branch on `success` ONLY, never on anything that could distinguish the two
+      // existence cases. The endpoint is anti-enumeration by design and returns 200 with a
+      // byte-identical body whether or not the address has an account — so `success:false`
+      // can only mean the SERVER broke (the mail send is awaited inline and unguarded, so
+      // a Resend outage surfaces as a 500). Reporting that is not a leak, and swallowing it
+      // told the user to wait for an email nobody sent.
+      if (res?.success === false) {
+        setFormError(t('unexpected_error'));
+        return;
+      }
       setSent(true);
     } catch {
       setFormError(t('unexpected_error'));
@@ -78,7 +85,13 @@ export default function ForgotPasswordPage() {
         <p className={styles.subtitle}>{t('forgot_password_subtitle')}</p>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          {formError && <p className={styles.formError}>{formError}</p>}
+          {/* role="alert": this appears asynchronously after submit. Field errors get
+              theirs from FormField. */}
+          {formError && (
+            <p className={styles.formError} role="alert">
+              {formError}
+            </p>
+          )}
 
           <FormField label={t('email')} error={errors.email?.message}>
             <input

@@ -2397,5 +2397,9 @@
   "reset_password_success_body": "Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
   "reset_link_invalid_title": "Dieser Link ist ungültig",
   "reset_link_invalid_body": "Der Link ist unvollständig oder abgelaufen. Fordern Sie einen neuen an.",
-  "reset_password_request_new": "Neuen Link anfordern"
+  "reset_password_request_new": "Neuen Link anfordern",
+  "password_rule_distinct_chars": "Das Passwort muss mindestens 4 verschiedene Zeichen enthalten.",
+  "password_rule_repeated_chars": "Das Passwort darf dasselbe Zeichen nicht dreimal hintereinander enthalten.",
+  "password_rule_too_common": "Dieses Passwort ist zu verbreitet. Bitte wählen Sie ein anderes.",
+  "reset_password_failed": "Das hat nicht funktioniert. Der Link ist möglicherweise abgelaufen oder wurde bereits verwendet – fordern Sie einen neuen an."
 }

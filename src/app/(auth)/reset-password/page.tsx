@@ -4,16 +4,13 @@
 // linked to (`{FrontendBaseUrl}/reset-password?token=…&email=…`, EmailService.cs) and which
 // did not exist — see the note in ../forgot-password/page.tsx.
 
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
-import { resetPassword } from '@/services/authService';
+import { useResetPasswordForm } from '@/hooks/auth/useResetPasswordForm';
 import styles from '../PasswordReset.module.css';
 
 export default function ResetPasswordPage() {
@@ -59,39 +56,11 @@ function Outcome({
 }
 
 function ResetPasswordForm() {
-  const { t } = useTranslation();
   const params = useSearchParams();
   const email = params.get('email') ?? '';
   const token = params.get('token') ?? '';
-  const [done, setDone] = useState(false);
-  const [formError, setFormError] = useState('');
-
-  // Mirrors the backend exactly — Identity's policy in Program.cs and
-  // ResetPasswordCommandValidator both require 8+ with upper, lower, digit and special.
-  // Reusing the existing `password_security_rules_error` string keeps one message in all
-  // ten locales instead of five new ones, and keeps it identical to what other surfaces say.
-  const schema = z
-    .object({
-      newPassword: z
-        .string()
-        .min(8, t('password_security_rules_error'))
-        .regex(/[A-Z]/, t('password_security_rules_error'))
-        .regex(/[a-z]/, t('password_security_rules_error'))
-        .regex(/[0-9]/, t('password_security_rules_error'))
-        .regex(/[^a-zA-Z0-9]/, t('password_security_rules_error')),
-      confirmPassword: z.string().min(1, t('passwords_do_not_match')),
-    })
-    .refine((v) => v.newPassword === v.confirmPassword, {
-      message: t('passwords_do_not_match'),
-      path: ['confirmPassword'],
-    });
-  type Values = z.infer<typeof schema>;
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<Values>({ resolver: zodResolver(schema) });
+  const { t, form, onSubmit, done, formError } = useResetPasswordForm(email, token);
+  const { errors, isSubmitting } = form.formState;
 
   // A link with no token cannot be repaired by trying — say so instead of showing a form
   // that is guaranteed to fail after the user has picked a password.
@@ -119,35 +88,21 @@ function ResetPasswordForm() {
     );
   }
 
-  const onSubmit = async (values: Values) => {
-    setFormError('');
-    try {
-      const res = await resetPassword({
-        email,
-        token,
-        newPassword: values.newPassword,
-        confirmPassword: values.confirmPassword,
-      });
-      if (res?.succeeded || res?.success) {
-        setDone(true);
-        return;
-      }
-      // Surface the server's own reason — an expired or already-used token is the common
-      // case and the user needs to know to request a new link, not retype a password.
-      setFormError(res?.messages?.[0] || res?.message || t('unexpected_error'));
-    } catch {
-      setFormError(t('unexpected_error'));
-    }
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.title}>{t('reset_password_title')}</h1>
         <p className={styles.subtitle}>{t('reset_password_subtitle')}</p>
 
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          {formError && <p className={styles.formError}>{formError}</p>}
+        <form className={styles.form} onSubmit={onSubmit} noValidate>
+          {/* role="alert" because this appears asynchronously after submit — without it a
+              screen-reader user only notices the button leaving its pending state.
+              Field errors get theirs from FormField. */}
+          {formError && (
+            <p className={styles.formError} role="alert">
+              {formError}
+            </p>
+          )}
 
           <FormField label={t('new_password_label')} error={errors.newPassword?.message}>
             <input
@@ -155,7 +110,7 @@ function ResetPasswordForm() {
               autoComplete="new-password"
               className={styles.input}
               placeholder={t('new_password_placeholder')}
-              {...register('newPassword')}
+              {...form.register('newPassword')}
             />
           </FormField>
 
@@ -165,7 +120,7 @@ function ResetPasswordForm() {
               autoComplete="new-password"
               className={styles.input}
               placeholder={t('confirm_password_placeholder')}
-              {...register('confirmPassword')}
+              {...form.register('confirmPassword')}
             />
           </FormField>
 

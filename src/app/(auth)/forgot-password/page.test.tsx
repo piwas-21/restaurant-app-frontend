@@ -31,7 +31,7 @@ describe('ForgotPasswordPage', () => {
   });
 
   it('sends the request and confirms it', async () => {
-    mockForgotPassword.mockResolvedValue({ succeeded: true });
+    mockForgotPassword.mockResolvedValue({ success: true, message: 'Password reset request processed' });
     render(<ForgotPasswordPage />);
     fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
     fireEvent.click(submit());
@@ -43,12 +43,27 @@ describe('ForgotPasswordPage', () => {
     // The endpoint answers "if the email exists…" either way, by design. Branching on the
     // response here would leak exactly what the backend refuses to — so this asserts the
     // UI says the SAME thing for a failure-shaped payload.
-    mockForgotPassword.mockResolvedValue({ succeeded: false, messages: ['No such user'] });
+    // The backend returns 200 with a byte-identical SUCCESS body whether or not the address
+    // has an account (ForgotPasswordCommand.cs), so this is what "no such user" looks like.
+    mockForgotPassword.mockResolvedValue({ success: true, message: 'Password reset request processed' });
     render(<ForgotPasswordPage />);
     fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'nobody@bistro.example' } });
     fireEvent.click(submit());
     expect(await screen.findByText('forgot_password_sent_title')).toBeInTheDocument();
-    expect(screen.queryByText('No such user')).not.toBeInTheDocument();
+  });
+
+  it('does NOT claim an email was sent when the server reports a failure', async () => {
+    // `success:false` cannot mean "no such account" — the backend is symmetric on that — so
+    // it means the server broke. The mail send is awaited inline and unguarded, so a Resend
+    // outage arrives here as a 500, and the old code showed "check your email" for it.
+    mockForgotPassword.mockResolvedValue({ success: false, message: 'An error occurred' });
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), {
+      target: { value: 'owner@bistro.example' },
+    });
+    fireEvent.click(submit());
+    expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
+    expect(screen.queryByText('forgot_password_sent_title')).not.toBeInTheDocument();
   });
 
   it('keeps the form and reports a transport failure', async () => {

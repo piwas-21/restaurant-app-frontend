@@ -47,25 +47,25 @@ describe('ResetPasswordPage', () => {
   });
 
   it.each([
-    ['too short', 'Aa1!aa'],
-    ['no uppercase', 'aaaaaaa1!'],
-    ['no lowercase', 'AAAAAAA1!'],
-    ['no digit', 'Aaaaaaaa!'],
-    ['no special character', 'Aaaaaaa11'],
-  ])('rejects a password with %s, matching the backend policy', async (_case, pw) => {
-    // Identity's policy (Program.cs) and ResetPasswordCommandValidator both require 8+
-    // with upper, lower, digit and special. If this drifts, the user is told their
-    // password is fine and then the server refuses it.
+    ['too short', 'Aa1!aa', 'password_security_rules_error'],
+    ['no uppercase', 'aaaaaaa1!', 'password_security_rules_error'],
+    ['no lowercase', 'AAAAAAA1!', 'password_security_rules_error'],
+    ['no digit', 'Aaaaaaaa!', 'password_security_rules_error'],
+    ['no special character', 'Aaaaaaa11', 'password_security_rules_error'],
+    // The rule the first version missed — and its own happy-path fixture broke it, so the
+    // client accepted a password the server refuses.
+    ['a character repeated 3x', 'Aa1!aaaa', 'password_rule_repeated_chars'],
+  ])('rejects %s before any request, per @/lib/passwordPolicy', async (_case, pw, key) => {
     render(<ResetPasswordPage />);
     await fill(pw);
     fireEvent.click(submit());
-    expect(await screen.findByText('password_security_rules_error')).toBeInTheDocument();
+    expect(await screen.findByText(key)).toBeInTheDocument();
     expect(mockResetPassword).not.toHaveBeenCalled();
   });
 
   it('rejects a mismatched confirmation without touching the network', async () => {
     render(<ResetPasswordPage />);
-    await fill('Aa1!aaaa', 'Aa1!aaab');
+    await fill('Str0ng!pass', 'Str0ng!passX');
     fireEvent.click(submit());
     expect(await screen.findByText('passwords_do_not_match')).toBeInTheDocument();
     expect(mockResetPassword).not.toHaveBeenCalled();
@@ -74,39 +74,46 @@ describe('ResetPasswordPage', () => {
   it('sends the token and email from the URL, decoded', async () => {
     // The token is URL-encoded in the emailed link and must reach the API decoded, or
     // Identity rejects a token that was actually correct.
-    mockResetPassword.mockResolvedValue({ succeeded: true });
+    mockResetPassword.mockResolvedValue({ success: true, message: 'Password has been reset successfully' });
     render(<ResetPasswordPage />);
-    await fill('Aa1!aaaa');
+    await fill('Str0ng!pass');
     fireEvent.click(submit());
     await waitFor(() =>
       expect(mockResetPassword).toHaveBeenCalledWith({
         email: 'owner@bistro.example',
         token: 'CfDJ8AbC/def==',
-        newPassword: 'Aa1!aaaa', // pragma: allowlist secret -- test fixture, never a real credential
-        confirmPassword: 'Aa1!aaaa', // pragma: allowlist secret -- test fixture
+        newPassword: 'Str0ng!pass', // pragma: allowlist secret -- test fixture, never a real credential
+        confirmPassword: 'Str0ng!pass', // pragma: allowlist secret -- test fixture
       }),
     );
     expect(await screen.findByText('reset_password_success_title')).toBeInTheDocument();
   });
 
-  it("surfaces the server's reason for a refused token", async () => {
-    // An expired or already-used link is the common failure, and the user needs to know to
-    // request a new one rather than retype a password that was never the problem.
+  it("shows a LOCAL failure message and never the server's reason", async () => {
+    // Surfacing `errors[0]` would leak account existence: the backend answers
+    // "Invalid reset request" for an unknown email and Identity's "Invalid token." for a
+    // real user, so /reset-password?email=<guess> would distinguish them. It would also put
+    // untranslated English in a 10-locale app.
+    // The REAL ApiResponse shape (Common/Models/ApiResponse.cs, camelCase): the specific
+    // reason lives in `errors`, and `message` is a fixed wrapper string.
     mockResetPassword.mockResolvedValue({
-      succeeded: false,
-      messages: ['Invalid token.'],
+      success: false,
+      message: 'Password reset failed',
+      errors: ['Invalid token.'],
     });
     render(<ResetPasswordPage />);
-    await fill('Aa1!aaaa');
+    await fill('Str0ng!pass');
     fireEvent.click(submit());
-    expect(await screen.findByText('Invalid token.')).toBeInTheDocument();
+    expect(await screen.findByText('reset_password_failed')).toBeInTheDocument();
+    expect(screen.queryByText('Invalid token.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Password reset failed')).not.toBeInTheDocument();
     expect(screen.queryByText('reset_password_success_title')).not.toBeInTheDocument();
   });
 
   it('falls back to a generic error when the request throws', async () => {
     mockResetPassword.mockRejectedValue(new Error('offline'));
     render(<ResetPasswordPage />);
-    await fill('Aa1!aaaa');
+    await fill('Str0ng!pass');
     fireEvent.click(submit());
     expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
   });

@@ -2397,5 +2397,9 @@
   "reset_password_success_body": "You can now sign in with your new password.",
   "reset_link_invalid_title": "This link isn't valid",
   "reset_link_invalid_body": "The link is incomplete or has expired. Request a new one and try again.",
-  "reset_password_request_new": "Request a new link"
+  "reset_password_request_new": "Request a new link",
+  "password_rule_distinct_chars": "Password must use at least 4 different characters.",
+  "password_rule_repeated_chars": "Password cannot repeat the same character three times in a row.",
+  "password_rule_too_common": "That password is too common. Please choose another.",
+  "reset_password_failed": "That did not work. The link may have expired or already been used — request a new one."
 }

@@ -2397,5 +2397,9 @@
   "reset_password_success_body": "Теперь вы можете войти с новым паролем.",
   "reset_link_invalid_title": "Эта ссылка недействительна",
   "reset_link_invalid_body": "Ссылка неполная или устарела. Запросите новую.",
-  "reset_password_request_new": "Запросить новую ссылку"
+  "reset_password_request_new": "Запросить новую ссылку",
+  "password_rule_distinct_chars": "Пароль должен содержать не менее 4 разных символов.",
+  "password_rule_repeated_chars": "В пароле нельзя повторять один и тот же символ три раза подряд.",
+  "password_rule_too_common": "Этот пароль слишком распространён. Выберите другой.",
+  "reset_password_failed": "Не получилось. Возможно, срок действия ссылки истёк или она уже использована — запросите новую."
 }

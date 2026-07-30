@@ -2397,5 +2397,9 @@
   "reset_password_success_body": "您现在可以使用新密码登录。",
   "reset_link_invalid_title": "此链接无效",
   "reset_link_invalid_body": "链接不完整或已过期。请重新申请一个。",
-  "reset_password_request_new": "申请新链接"
+  "reset_password_request_new": "申请新链接",
+  "password_rule_distinct_chars": "密码至少需包含 4 个不同的字符。",
+  "password_rule_repeated_chars": "密码不能连续三次重复同一个字符。",
+  "password_rule_too_common": "该密码过于常见，请另选一个。",
+  "reset_password_failed": "操作未成功。链接可能已过期或已被使用，请重新申请。"
 }

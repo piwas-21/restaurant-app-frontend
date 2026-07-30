@@ -1,5 +1,13 @@
 name: build-tenant-image
 
+# The image tag in the run's title. Two reasons, one human and one load-bearing:
+# N dispatched tenant builds otherwise render as N identical rows in the Actions list,
+# and the deploy repo's provision-on-registry-merge chain identifies the run it just
+# dispatched by matching this title (the runs API exposes no workflow inputs, and
+# "newest dispatch since I asked" is ambiguous once two tenant builds overlap).
+# Keep the tag in this string.
+run-name: build-tenant-image ${{ inputs.image_tag }}
+
 # Builds a PER-TENANT frontend image for Sofra instance-per-tenant provisioning
 # (sofra ADR-001/ADR-003; deploy repo provision-tenant.sh pulls the result).
 #

@@ -14,13 +14,13 @@
 // to leave the box.
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, MailCheck } from 'lucide-react';
+import { MailCheck } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
+import { AuthCard, AuthSubmit, BackToLoginFooter } from '@/components/auth/PasswordResetShell';
 import { forgotPassword } from '@/services/authService';
 import styles from '../PasswordReset.module.css';
 
@@ -62,59 +62,46 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <div className={styles.outcome}>
-            <MailCheck size={44} className={styles.outcomeIconOk} aria-hidden="true" />
-            <h1 className={styles.title}>{t('forgot_password_sent_title')}</h1>
-            <p className={styles.outcomeBody}>{t('forgot_password_sent_body')}</p>
-            <Link href="/auth/login" className={styles.link}>
-              <ArrowLeft size={16} aria-hidden="true" />
-              {t('back_to_login')}
-            </Link>
-          </div>
+      <AuthCard>
+        <div className={styles.outcome}>
+          <MailCheck size={44} className={styles.outcomeIconOk} aria-hidden="true" />
+          <h1 className={styles.title}>{t('forgot_password_sent_title')}</h1>
+          <p className={styles.outcomeBody}>{t('forgot_password_sent_body')}</p>
         </div>
-      </div>
+        <BackToLoginFooter />
+      </AuthCard>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>{t('forgot_password_title')}</h1>
-        <p className={styles.subtitle}>{t('forgot_password_subtitle')}</p>
+    <AuthCard>
+      <h1 className={styles.title}>{t('forgot_password_title')}</h1>
+      <p className={styles.subtitle}>{t('forgot_password_subtitle')}</p>
 
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          {/* role="alert": this appears asynchronously after submit. Field errors get
-              theirs from FormField. */}
-          {formError && (
-            <p className={styles.formError} role="alert">
-              {formError}
-            </p>
-          )}
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+        {/* role="alert": this appears asynchronously after submit, so without it a
+            screen-reader user only notices the button leaving its pending state. Field
+            errors get theirs from FormField. */}
+        {formError && (
+          <p className={styles.formError} role="alert">
+            {formError}
+          </p>
+        )}
 
-          <FormField label={t('email')} error={errors.email?.message}>
-            <input
-              type="email"
-              autoComplete="email"
-              className={styles.input}
-              placeholder={t('email')}
-              {...register('email')}
-            />
-          </FormField>
+        <FormField label={t('email')} error={errors.email?.message}>
+          <input
+            type="email"
+            autoComplete="email"
+            className={styles.input}
+            placeholder={t('email')}
+            {...register('email')}
+          />
+        </FormField>
 
-          <button type="submit" className={styles.submit} disabled={isSubmitting}>
-            {isSubmitting ? t('sending') : t('forgot_password_submit')}
-          </button>
-        </form>
+        <AuthSubmit pending={isSubmitting} label={t('forgot_password_submit')} />
+      </form>
 
-        <div className={styles.footer}>
-          <Link href="/auth/login" className={styles.link}>
-            <ArrowLeft size={16} aria-hidden="true" />
-            {t('back_to_login')}
-          </Link>
-        </div>
-      </div>
-    </div>
+      <BackToLoginFooter />
+    </AuthCard>
   );
 }

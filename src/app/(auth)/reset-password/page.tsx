@@ -8,8 +8,9 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
+import { AuthCard, AuthSubmit, BackToLoginFooter } from '@/components/auth/PasswordResetShell';
 import { useResetPasswordForm } from '@/hooks/auth/useResetPasswordForm';
 import styles from '../PasswordReset.module.css';
 
@@ -18,11 +19,9 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className={styles.container}>
-          <div className={styles.card}>
-            <p className={styles.outcomeBody}>{t('loading')}</p>
-          </div>
-        </div>
+        <AuthCard>
+          <p className={styles.outcomeBody}>{t('loading')}</p>
+        </AuthCard>
       }
     >
       <ResetPasswordForm />
@@ -40,18 +39,16 @@ function Outcome({
 }: Readonly<{ ok: boolean; title: string; body: string; href: string; cta: string }>) {
   const Icon = ok ? CheckCircle : XCircle;
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.outcome}>
-          <Icon size={44} className={ok ? styles.outcomeIconOk : styles.outcomeIconBad} aria-hidden="true" />
-          <h1 className={styles.title}>{title}</h1>
-          <p className={styles.outcomeBody}>{body}</p>
-          <Link href={href} className={styles.link}>
-            {cta}
-          </Link>
-        </div>
+    <AuthCard>
+      <div className={styles.outcome}>
+        <Icon size={44} className={ok ? styles.outcomeIconOk : styles.outcomeIconBad} aria-hidden="true" />
+        <h1 className={styles.title}>{title}</h1>
+        <p className={styles.outcomeBody}>{body}</p>
+        <Link href={href} className={styles.link}>
+          {cta}
+        </Link>
       </div>
-    </div>
+    </AuthCard>
   );
 }
 
@@ -89,53 +86,43 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>{t('reset_password_title')}</h1>
-        <p className={styles.subtitle}>{t('reset_password_subtitle')}</p>
+    <AuthCard>
+      <h1 className={styles.title}>{t('reset_password_title')}</h1>
+      <p className={styles.subtitle}>{t('reset_password_subtitle')}</p>
 
-        <form className={styles.form} onSubmit={onSubmit} noValidate>
-          {/* role="alert" because this appears asynchronously after submit — without it a
-              screen-reader user only notices the button leaving its pending state.
-              Field errors get theirs from FormField. */}
-          {formError && (
-            <p className={styles.formError} role="alert">
-              {formError}
-            </p>
-          )}
+      <form className={styles.form} onSubmit={onSubmit} noValidate>
+        {/* role="alert": appears asynchronously after submit. Field errors get theirs
+            from FormField. */}
+        {formError && (
+          <p className={styles.formError} role="alert">
+            {formError}
+          </p>
+        )}
 
-          <FormField label={t('new_password_label')} error={errors.newPassword?.message}>
-            <input
-              type="password"
-              autoComplete="new-password"
-              className={styles.input}
-              placeholder={t('new_password_placeholder')}
-              {...form.register('newPassword')}
-            />
-          </FormField>
+        <FormField label={t('new_password_label')} error={errors.newPassword?.message}>
+          <input
+            type="password"
+            autoComplete="new-password"
+            className={styles.input}
+            placeholder={t('new_password_placeholder')}
+            {...form.register('newPassword')}
+          />
+        </FormField>
 
-          <FormField label={t('confirm_new_password_label')} error={errors.confirmPassword?.message}>
-            <input
-              type="password"
-              autoComplete="new-password"
-              className={styles.input}
-              placeholder={t('confirm_password_placeholder')}
-              {...form.register('confirmPassword')}
-            />
-          </FormField>
+        <FormField label={t('confirm_new_password_label')} error={errors.confirmPassword?.message}>
+          <input
+            type="password"
+            autoComplete="new-password"
+            className={styles.input}
+            placeholder={t('confirm_password_placeholder')}
+            {...form.register('confirmPassword')}
+          />
+        </FormField>
 
-          <button type="submit" className={styles.submit} disabled={isSubmitting}>
-            {isSubmitting ? t('sending') : t('reset_password_submit')}
-          </button>
-        </form>
+        <AuthSubmit pending={isSubmitting} label={t('reset_password_submit')} />
+      </form>
 
-        <div className={styles.footer}>
-          <Link href="/auth/login" className={styles.link}>
-            <ArrowLeft size={16} aria-hidden="true" />
-            {t('back_to_login')}
-          </Link>
-        </div>
-      </div>
-    </div>
+      <BackToLoginFooter />
+    </AuthCard>
   );
 }

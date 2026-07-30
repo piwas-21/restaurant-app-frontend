@@ -64,6 +64,7 @@ module.exports = {
     'src/hooks/order/needsTakeawayInfoModal.ts',
     'src/hooks/order/useGuestProfilePrefill.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
+    'src/lib/passwordPolicy.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
@@ -170,6 +171,45 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // Password reset (SOFRA-ONBOARDING-PLAN O3). Pinned because these are the only way a
+    // tenant admin can regain access to their own account — and because the route they
+    // replace was MISSING for as long as the backend has been emailing links to it
+    // (verified: www.rumirestaurant.ch/reset-password -> 404). Every branch is a way to lock
+    // someone out or to leak whether an address has an account.
+    //
+    // passwordPolicy.ts is here for a sharper reason: it MIRRORS the backend, so it is the
+    // file that should go red when the server's rules change rather than a user on the
+    // recovery path.
+    //
+    // It sits BELOW 100 on purpose, and the reason is worth knowing: two of the four
+    // mirrored rules are unreachable, on the server exactly as much as here.
+    //   - minUniqueChars = 4 is subsumed — requiring one lowercase, one uppercase, one digit
+    //     and one non-alphanumeric already forces four distinct characters.
+    //   - the common-password check cannot fire either: every entry on the server's list
+    //     ('password', 'qwerty', 'admin123', …) is lowercase and/or digits only, so all of
+    //     them are rejected by the basics gate first.
+    // Both are kept because they are the SERVER's rules and go live the moment the list
+    // gains a compliant entry or a class requirement is dropped. The test asserts why they
+    // cannot fire rather than faking passwords that cannot exist, so these numbers are the
+    // honest ceiling — do not "fix" them by deleting the guards.
+    './src/app/(auth)/forgot-password/page.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/app/(auth)/reset-password/page.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/lib/passwordPolicy.ts': {
+      statements: 85,
+      branches: 84,
+      functions: 100,
+      lines: 100,
+    },
     // Module gating (SOFRA-ONBOARDING-PLAN O5). Pinned at 100% because both files decide
     // whether a tenant SEES a feature they paid for, and every branch is a fail-open path:
     // an uncovered one is a route that disappears for a paying customer, or a network blip

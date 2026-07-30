@@ -35,7 +35,7 @@
 // substring check — so `MyPassword123!` is fine and only `password123` itself is not.
 
 /** Verbatim from `StrongPasswordValidator.cs`; the server compares case-insensitively. */
-const COMMON_PASSWORDS = [
+const COMMON_PASSWORDS = new Set([
   // pragma: allowlist secret -- the server's public reject-list, not credentials
   'password',
   '123456',
@@ -47,7 +47,7 @@ const COMMON_PASSWORDS = [
   'trustno1',
   'password123',
   'admin123',
-];
+]);
 
 /** Which rule a password breaks. `null` = the server will accept it. */
 // The trailing pragma is required ON this line: detect-secrets' keyword heuristic reads
@@ -68,7 +68,7 @@ export function passwordViolation(password: string): PasswordViolation | null {
     password.length < MIN_LENGTH ||
     !/[a-z]/.test(password) ||
     !/[A-Z]/.test(password) ||
-    !/[0-9]/.test(password) ||
+    !/\d/.test(password) ||
     !/[^a-zA-Z0-9]/.test(password)
   ) {
     return 'basics';
@@ -76,7 +76,7 @@ export function passwordViolation(password: string): PasswordViolation | null {
   // Unreachable while all four classes are required — see the header.
   if (new Set(password).size < MIN_DISTINCT) return 'distinct';
   if (REPEATED.test(password)) return 'repeated';
-  if (COMMON_PASSWORDS.includes(password.toLowerCase())) return 'common';
+  if (COMMON_PASSWORDS.has(password.toLowerCase())) return 'common';
   return null;
 }
 

@@ -1,0 +1,171 @@
+/* First-run setup checklist (SOFRA-ONBOARDING-PLAN O4).
+   Design tokens only — no inline hex (frontend CLAUDE.md §5.5). Dark mode comes from
+   the tokens themselves, which are redefined under html[data-theme="dark"], so there
+   is no media query here (§5.7) — every token below was checked to HAVE a dark value,
+   which is why the done-icon uses --feedback-success and not --feedback-success-dark
+   (that one is defined in :root only, so it would not shift on a dark card). */
+
+.panel {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--link-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.linkButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.progressTrack {
+  margin: 1rem 0 0.5rem;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-default);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--feedback-success);
+  transition: width 200ms ease;
+}
+
+.list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.row:first-child {
+  border-top: none;
+}
+
+.rowDone .rowTitle {
+  color: var(--text-secondary);
+  text-decoration: line-through;
+}
+
+.checkbox {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.checkbox:disabled {
+  cursor: default;
+}
+
+/* Derived steps show state rather than offering a control — see SetupChecklistRow. */
+.stateIcon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.rowDone .stateIcon {
+  color: var(--feedback-success);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTitle {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.rowHint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.rowAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  color: var(--link-color);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rowAction:hover {
+  text-decoration: underline;
+}
+
+.error {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--feedback-error);
+}
+
+.dismissed {
+  margin-bottom: 1.5rem;
+}
+
+.dismissedText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-wrap: wrap;
+  }
+
+  .rowAction {
+    margin-left: auto;
+  }
+}

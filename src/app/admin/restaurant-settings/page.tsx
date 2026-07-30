@@ -10,11 +10,7 @@ import CategoryOrderTypeMatrix from '@/components/admin/settings/CategoryOrderTy
 import TaxConfigurationManager from '@/components/admin/settings/TaxConfigurationManager';
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
-
-const TAB_IDS = ['hours', 'order-types', 'tax', 'general', 'appearance'] as const;
-type TabType = (typeof TAB_IDS)[number];
-
-const isTabId = (value: string | null): value is TabType => !!value && TAB_IDS.includes(value as TabType);
+import { isTabId, type TabType } from './tabs';
 
 function RestaurantSettingsContent() {
   const { t } = useTranslation();

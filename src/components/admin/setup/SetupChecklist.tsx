@@ -38,7 +38,7 @@ export default function SetupChecklist() {
     // Show the in-flight value for the row being written. The server answer overwrites
     // it a moment later; without this the controlled checkbox re-renders back to the old
     // value on click and visibly un-ticks for the whole round-trip.
-    .map((s) => (pending && pending.key === s.key ? { ...s, isDone: pending.isDone } : s));
+    .map((s) => (pending?.key === s.key ? { ...s, isDone: pending.isDone } : s));
   if (steps.length === 0) return null;
 
   const doneCount = steps.filter((s) => s.isDone).length;
@@ -82,16 +82,11 @@ export default function SetupChecklist() {
         </button>
       </header>
 
-      <div
-        className={styles.progressTrack}
-        role="progressbar"
-        aria-valuenow={doneCount}
-        aria-valuemin={0}
-        aria-valuemax={steps.length}
-        aria-label={heading}
-      >
-        <div className={styles.progressFill} style={{ width: `${(doneCount / steps.length) * 100}%` }} />
-      </div>
+      {/* A real <progress>, not a div with role="progressbar" (Sonar S6819): the
+          native element carries its own semantics and is what assistive tech on every
+          device already knows how to announce. Styled via ::-webkit-progress-* and
+          ::-moz-progress-bar in the module CSS. */}
+      <progress className={styles.progress} value={doneCount} max={steps.length} aria-label={heading} />
 
       <ol className={styles.list}>
         {steps.map((step) => (

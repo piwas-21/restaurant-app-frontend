@@ -56,7 +56,7 @@ describe('SetupChecklist', () => {
     // route, and this is the same route map the guard and the sidebar use.
     renderWith(checklist(), ['core']);
 
-    await waitFor(() => expect(screen.getByText('setup_step_menu_title')).toBeInTheDocument());
+    expect(await screen.findByText('setup_step_menu_title')).toBeInTheDocument();
     expect(screen.queryByText('setup_step_reservations_title')).not.toBeInTheDocument();
   });
 

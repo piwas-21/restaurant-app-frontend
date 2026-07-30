@@ -9,7 +9,7 @@ import type { SetupStepDto } from '@/types/setupChecklist';
 import styles from './SetupChecklist.module.css';
 
 /** `tables-qr` → `tables_qr`, so a step key maps onto an i18n key. */
-const i18nStem = (key: string) => key.replace(/-/g, '_');
+const i18nStem = (key: string) => key.replaceAll('-', '_');
 
 /**
  * One row of the first-run checklist (SOFRA-ONBOARDING-PLAN O4).

@@ -43,14 +43,19 @@ export const deletePhoneNumber = async (id: string) => {
 /**
  * Admin only — replace one of the restaurant's logos (SOFRA-ONBOARDING-PLAN O6).
  *
- * The form part is named `logo` to match the backend's `UpdateRestaurantLogoRequest.Logo`;
- * a mismatch binds null and the API answers "No image file provided" inside a 200 envelope,
- * so it fails as a snackbar rather than as an HTTP error.
+ * The form part MUST be named `logo`, to match the backend's
+ * `UpdateRestaurantLogoRequest.Logo`. The two failure shapes are different and the caller
+ * has to handle both: a rejected FILE (wrong type, too large) comes back as
+ * `success: false` inside a **200**, with the reason in `message`; a missing part fails
+ * `UpdateRestaurantLogoCommandValidator`'s `NotNull` in the mediator pipeline and comes
+ * back as a **400**, which `apiClient` throws.
  */
 export const uploadRestaurantLogo = async (variant: LogoVariant, file: File) => {
   const formData = new FormData();
   formData.append('logo', file);
-  return apiClient.putFormData<ApiResponse<RestaurantInfoDto>>(`${BASE}/logo/${variant}`, formData);
+  return apiClient.putFormData<ApiResponse<RestaurantInfoDto>>(`${BASE}/logo/${variant}`, formData, {
+    requireAuth: true,
+  });
 };
 
 /** Admin only — clear one logo. Not an error state: the chrome falls back to the name. */

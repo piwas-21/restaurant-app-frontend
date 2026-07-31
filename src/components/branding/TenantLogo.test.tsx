@@ -36,8 +36,18 @@ describe('resolveLogoSrc', () => {
     expect(resolveLogoSrc(info({ logoUrl: LIGHT, logoDarkUrl: DARK }), true)).toBe(DARK);
   });
 
-  it('never uses the dark variant in light mode', () => {
+  it('never uses the dark variant in light mode when a light one exists', () => {
     expect(resolveLogoSrc(info({ logoUrl: LIGHT, logoDarkUrl: DARK }), false)).toBe(LIGHT);
+  });
+
+  it('uses the dark variant in light mode when it is the ONLY upload', () => {
+    // The asymmetric version of this chain showed the mark on `/` and the name as text on
+    // `/menu` for a dark-only tenant, at one theme setting in one browsing session:
+    // `isDark` is not only the theme, since both classic chromes ask for the dark mark on
+    // the home page (its hero is dark whatever the theme). Falling back in both
+    // directions is what makes the header stable.
+    expect(resolveLogoSrc(info({ logoDarkUrl: DARK }), false)).toBe(DARK);
+    expect(resolveLogoSrc(info({ logoDarkUrl: DARK }), true)).toBe(DARK);
   });
 
   it('has no source at all for a tenant that uploaded nothing', () => {

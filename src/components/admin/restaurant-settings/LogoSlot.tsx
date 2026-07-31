@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useId, useRef } from 'react';
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LogoVariant } from '@/types/restaurantInfo';
 import styles from './LogoTab.module.css';
@@ -39,7 +39,6 @@ export default function LogoSlot({
 }: LogoSlotProps) {
   const { t } = useTranslation();
   const inputId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const pick = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -58,9 +57,11 @@ export default function LogoSlot({
 
       <div className={`${styles.preview} ${variant === 'dark' ? styles.previewDark : ''}`}>
         {currentUrl ? (
+          // alt carries the slot title too: both previews are otherwise "current logo",
+          // which leaves a screen-reader user unable to tell light from dark.
           <Image
             src={currentUrl}
-            alt={t('logo_preview_alt', 'Current logo')}
+            alt={`${t('logo_preview_alt', 'Current logo')}: ${title}`}
             width={180}
             height={90}
             className={styles.previewImage}
@@ -72,7 +73,6 @@ export default function LogoSlot({
 
       <div className={styles.actions}>
         <input
-          ref={inputRef}
           id={inputId}
           type="file"
           accept="image/png,image/jpeg,image/webp"

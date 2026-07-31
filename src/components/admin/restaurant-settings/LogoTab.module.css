@@ -53,9 +53,14 @@
 }
 
 /* The dark slot previews against a dark surface — a dark-theme logo judged on a light
-   card is the one thing this preview exists to prevent. */
+   card is the one thing this preview exists to prevent.
+   Both values are theme-INVARIANT primitives on purpose. Any semantic token here
+   (--surface-card, --text-primary, --surface-secondary) flips under
+   html[data-theme='dark'], so an admin working in dark mode would preview their
+   light-coloured dark-theme logo on a near-white card — the exact failure this slot is
+   for, and invisible while the slot is empty because the empty state is text. */
 .previewDark {
-  background: var(--surface-inverse, var(--text-primary));
+  background: var(--color-gray-900);
 }
 
 .previewImage {
@@ -75,7 +80,7 @@
 }
 
 .previewDark .previewFallback {
-  color: var(--surface-card);
+  color: var(--color-gray-100);
 }
 
 .actions {

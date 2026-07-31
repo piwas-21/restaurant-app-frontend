@@ -54,17 +54,21 @@ export interface TenantLogoProps {
 /**
  * Resolves which stored logo to show, or null for the text fallback.
  *
- * Dark falls back to light rather than to text: one logo that reads on both themes is the
- * common case, and demanding a second upload before showing anything would leave a tenant
- * who uploaded one logo with a header that changes identity when the theme flips.
+ * The preferred variant wins, then EITHER other upload, then text. Falling back in both
+ * directions — not just dark→light — is what stops a header from changing identity on a
+ * tenant who uploaded only one logo. The dark→light direction is the obvious one; the
+ * light→dark direction matters because `isDark` is not only the theme: both classic
+ * chromes ask for the dark mark on the home page in light theme, because the hero behind
+ * it is dark. A tenant with only a dark logo would otherwise show their mark on `/` and
+ * their name as text on `/menu`, in one browsing session at one theme setting.
  */
 export function resolveLogoSrc(info: RestaurantInfoDto | null, isDark: boolean): string | null {
   if (!info) return null;
-  const preferred = isDark ? info.logoDarkUrl : info.logoUrl;
+  const [preferred, other] = isDark ? [info.logoDarkUrl, info.logoUrl] : [info.logoUrl, info.logoDarkUrl];
   // `||` rather than `??`: the backend normalises "no logo" to null, but a stored empty
   // string would sail through `??` and reach the <img> as an empty src — a broken-image
   // icon where the restaurant's name should be. Falling back on '' too costs nothing.
-  return preferred || info.logoUrl || null;
+  return preferred || other || null;
 }
 
 export default function TenantLogo({

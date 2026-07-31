@@ -21,7 +21,10 @@
     "test:screenshots": "playwright test --config playwright.screenshots.config.ts",
     "test:screenshots:update": "playwright test --config playwright.screenshots.config.ts --update-snapshots",
     "test:screenshots:docker": "bash scripts/screenshots-docker.sh",
-    "test:screenshots:docker:update": "bash scripts/screenshots-docker.sh --update"
+    "test:screenshots:docker:update": "bash scripts/screenshots-docker.sh --update",
+    "test:e2e:checklist:demo": "E2E_BASE_URL=https://demo.sofrapiwas.com E2E_API_BASE_URL=https://demo.sofrapiwas.com E2E_REMOTE=1 playwright test e2e/tests/admin/setup-checklist.e2e.ts",
+    "test:e2e:checklist:staging": "E2E_BASE_URL=https://staging.fooderist.com E2E_API_BASE_URL=https://staging.fooderist.com E2E_REMOTE=1 playwright test e2e/tests/admin/setup-checklist.e2e.ts",
+    "test:e2e:checklist": "r=0; npm run test:e2e:checklist:demo || r=1; npm run test:e2e:checklist:staging || r=1; exit $r"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

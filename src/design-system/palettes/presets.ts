@@ -50,11 +50,18 @@ interface BrandSet {
   onPrimary: string;
 }
 
-function vars(base: typeof WARM_LIGHT | typeof WARM_DARK, b: BrandSet): PaletteVars {
+function vars(base: typeof WARM_LIGHT | typeof WARM_DARK, b: BrandSet, mode: 'light' | 'dark'): PaletteVars {
   return {
     ...base,
     'brand-primary': b.primary,
     'brand-primary-dark': b.primaryDark,
+    // DERIVED, not a new hand-picked hue per palette — the nav pill is a 5% wash over
+    // the (shared) kraft/umber header surface, so the brand needs one step MORE
+    // separation from the paper than it does on the paper itself. In light that is the
+    // existing pressed shade; in dark the brand tint is already the light-on-dark one
+    // and darkening it would make things worse. Verified for every preset in both modes
+    // by presets.test.ts — a new palette cannot re-open this.
+    'brand-primary-elevated': mode === 'light' ? b.primaryDark : b.primary,
     'brand-accent': b.accent,
     'link-default': b.link,
     'link-hover': b.linkHover,
@@ -67,7 +74,7 @@ const CREAM = '#fff9f2';
 const INK = '#211a16';
 
 function warm(light: BrandSet, dark: BrandSet): Pick<Palette, 'light' | 'dark'> {
-  return { light: vars(WARM_LIGHT, light), dark: vars(WARM_DARK, dark) };
+  return { light: vars(WARM_LIGHT, light, 'light'), dark: vars(WARM_DARK, dark, 'dark') };
 }
 
 export const PALETTES: readonly Palette[] = [

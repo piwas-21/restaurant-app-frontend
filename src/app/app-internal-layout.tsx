@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useEffect, useState, CSSProperties } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTheme } from '@/components/ThemeContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePathname, useRouter } from 'next/navigation';
@@ -18,7 +17,8 @@ import Sidebar from '@/components/admin/Sidebar';
 import RoleNavLinks from '@/components/RoleNavLinks';
 import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
-import { BRANDING_LOGO, BRANDING_LOGO_DARK, RESTAURANT_NAME } from '@/lib/config';
+import TenantLogo, { WORDMARK_STYLE } from '@/components/branding/TenantLogo';
+import { RESTAURANT_NAME } from '@/lib/config';
 
 // Fonts moved behind the template definition (ADR-006): the root layout
 // applies the active template's next/font classNames to <body>. The unused
@@ -58,8 +58,9 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
     // Language and other effects...
   }, []);
 
+  // The home hero is dark whatever the theme, so its header wants the dark-theme mark.
   const useDarkLogoOnHome = isHomePage && theme !== 'dark';
-  const logoSrc = theme === 'dark' || useDarkLogoOnHome ? BRANDING_LOGO_DARK : BRANDING_LOGO;
+  const preferDarkLogo = theme === 'dark' || useDarkLogoOnHome;
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleAdminSidebar = () => setAdminSidebarOpen(!adminSidebarOpen);
@@ -137,12 +138,18 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                 style={{ textDecoration: 'none', color: 'var(--primary-color)', display: 'flex', alignItems: 'center' }}
                 onClick={closeMobileMenu}
               >
-                <Image
-                  src={logoSrc}
-                  alt={`${restaurantInfo?.name ?? RESTAURANT_NAME} Logo`}
+                <TenantLogo
+                  info={restaurantInfo}
+                  fallbackName={RESTAURANT_NAME}
+                  isDark={preferDarkLogo}
                   width={180}
                   height={90}
-                  style={{ marginRight: '10px', objectFit: 'contain', maxHeight: `calc(${headerHeight} - 10px)` }}
+                  imageStyle={{
+                    marginRight: '10px',
+                    objectFit: 'contain',
+                    maxHeight: `calc(${headerHeight} - 10px)`,
+                  }}
+                  textStyle={WORDMARK_STYLE}
                   priority
                 />
               </Link>

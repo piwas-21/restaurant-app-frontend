@@ -33,8 +33,19 @@
   gap: 1rem;
 }
 
-/* Hand-lettered wordmark — Amatic SC is loaded by ../fonts.ts. */
+/* The home link. Wraps either the tenant's uploaded logo or the wordmark below, so the
+   anchor owns the hit area and hover state while the child owns the type or the image. */
+.wordmarkLink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* Hand-lettered wordmark — Amatic SC is loaded by ../fonts.ts.
+   `inline-block` because the rotation below has no effect on an inline box: this used to
+   sit on the <a>, which is flex, and moving it to a <span> would silently drop the tilt. */
 .wordmark {
+  display: inline-block;
   font-family: 'Amatic SC', cursive;
   font-weight: 700;
   font-size: 2.3rem;
@@ -45,8 +56,18 @@
   transition: color 0.2s ease-in-out;
 }
 
-.wordmark:hover {
+/* Hover lives on the anchor, not the span: the anchor is what the pointer targets. */
+.wordmarkLink:hover .wordmark {
   color: var(--brand-primary);
+}
+
+/* An uploaded logo, bounded by the header rather than by its own pixel size. */
+.logo {
+  max-height: 3.25rem;
+  width: auto;
+  height: auto;
+  max-width: 11rem;
+  object-fit: contain;
 }
 
 .nav {

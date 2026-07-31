@@ -4,11 +4,12 @@
    comments that explain the 4px trap below would have been the worse trade. */
 /* Home link. Keep it a plain BLOCK: the wordmark used to live on this <a> (blockified as a
    flex item of .headerInner), and inline-flex dropped the real mobile wordmark 4px.
-   `min-width: 0` lets it shrink below min-content — the lockup added ~48px, and at 375px a
-   long name would otherwise wrap to two lines inside a fixed-height header. */
+   NO `min-width: 0` here: craft's nav is wider than classic's, and letting the link shrink
+   below min-content collapsed the wordmark to "RU…" on a 1280px desktop. `white-space:
+   nowrap` below is what prevents the two-line wrap; shrinking is handled by the media
+   query, which reduces the type rather than eating it. */
 .wordmarkLink {
   display: block;
-  min-width: 0;
   text-decoration: none;
 }
 
@@ -25,8 +26,6 @@
   transform: rotate(-2deg);
   transition: color 0.2s ease-in-out;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Hover on the anchor — that is what the pointer targets. */
@@ -56,4 +55,15 @@
   height: auto;
   max-width: 11rem;
   object-fit: contain;
+}
+
+/* Narrow screens shrink the lockup; the name never disappears. */
+@media (max-width: 480px) {
+  .craftMark {
+    height: 2rem;
+  }
+
+  .wordmark {
+    font-size: 1.75rem;
+  }
 }

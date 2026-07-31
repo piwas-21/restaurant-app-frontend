@@ -340,14 +340,21 @@
   text-overflow: ellipsis;
 }
 
-/* The mark alone below 420px — two lines of chrome in a 375px header is worse than a
-   mark that still says "this app has an identity". */
-@media (max-width: 420px) {
-  .tenantWordmark {
-    display: none;
+/* Narrow screens SHRINK the lockup; they never drop the name. Hiding the wordmark here
+   was my first cut and it was backwards: it left a restaurant's mobile header showing the
+   SofraPiwas onion and nothing else, which is the very failure this work exists to remove.
+   The tenant's name is the part that must survive; the mark is the part that can give way. */
+@media (max-width: 480px) {
+  .tenantLockup {
+    gap: 0.45rem;
+    margin-right: 6px;
   }
 
   .tenantMark {
-    height: 2.5rem;
+    height: 2.1rem;
+  }
+
+  .tenantWordmark {
+    font-size: 1.05rem;
   }
 }

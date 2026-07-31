@@ -36,7 +36,7 @@ export default function LogoSlot({
   isBusy,
   onUpload,
   onRemove,
-}: LogoSlotProps) {
+}: Readonly<LogoSlotProps>) {
   const { t } = useTranslation();
   const inputId = useId();
 

@@ -65,7 +65,7 @@ export default function TenantLogo({
   imageStyle,
   textClassName,
   priority = false,
-}: TenantLogoProps) {
+}: Readonly<TenantLogoProps>) {
   const src = resolveLogoSrc(info, isDark);
   const name = info?.name || fallbackName;
 

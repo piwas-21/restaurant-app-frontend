@@ -10,6 +10,17 @@
   --brand-primary: #c00000; /* RUMI Red */
   --brand-primary-dark: #890303;
   --brand-accent: #d9534f;
+  /* The brand as used on an ELEVATED surface — today only the top nav's current-page
+     pill, which washes 5% black (light) / white (dark) over --surface-secondary. That
+     wash is what breaks the pairing: the brand is chosen to clear AA on the PAPER, and
+     the pill is a step off the paper, so the same hue can be a whole point of contrast
+     short. Measured on the deployed tenants: craft's #a84b2f reads 3.89:1 on the pill it
+     renders, and three of the five ADR-007 presets were failing the same way.
+     In light the fix is the pressed shade, which already exists in every palette and
+     both templates and is on-brand by construction (5.3–7.9:1 across the matrix). Dark
+     is the other direction — the dark brand is already a light tint — so the dark block
+     below carries its own value and craft overrides it. */
+  --brand-primary-elevated: var(--brand-primary-dark);
 
   /* Surfaces */
   --surface-primary: #ffffff;
@@ -322,6 +333,14 @@
 html[data-theme='dark'] {
   --brand-primary: #e06666; /* lighter RUMI Red for dark mode */
   --brand-accent: #ec7063;
+  /* 5.53:1 on the nav pill's own background, MEASURED in a browser with axe — the pill
+     washes 5% white over --surface-secondary (#2c2c2c), which renders #373737, and
+     --brand-primary is only 3.55:1 there (axe: 3.54, `serious`). NOT var(--brand-primary-dark)
+     like the light block: in dark the brand is already a light tint on dark paper, so the
+     pressed shade moves the wrong way. A tenant on an ADR-007 palette never sees this value
+     — the palette emits its own brand-primary-elevated at higher specificity, which is
+     exactly why that token had to join the palette contract rather than live only here. */
+  --brand-primary-elevated: #ef9a9a;
 
   --surface-primary: #1a1a1a;
   --surface-secondary: #2c2c2c;

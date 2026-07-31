@@ -56,7 +56,11 @@
 
   --nav-link-color: var(--text-color);
   --nav-link-hover-bg: rgba(0, 0, 0, 0.1);
-  --nav-link-active-color: var(--primary-color);
+  /* --brand-primary-elevated, not --primary-color: the active pill (.nav-link.active
+     below) washes 5% over the header surface, so it is a different contrast pairing
+     than the brand on a page background — and the brand failed AA on it. See the
+     token's note in design-system/tokens/colors.css. */
+  --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(0, 0, 0, 0.05);
 }
 
@@ -64,7 +68,7 @@ html[data-theme='dark'] {
   /* Semantic dark values live in tokens/colors.css; only the nav vars are
      overridden here. */
   --nav-link-hover-bg: rgba(255, 255, 255, 0.1);
-  --nav-link-active-color: var(--primary-color);
+  --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(255, 255, 255, 0.05);
 }
 

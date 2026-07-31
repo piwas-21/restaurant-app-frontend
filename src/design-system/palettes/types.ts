@@ -8,6 +8,11 @@
 export type SemanticColorName =
   | 'brand-primary'
   | 'brand-primary-dark'
+  /** The brand as used on an ELEVATED surface (today: the top nav's current-page
+   *  pill, a 5% wash over --surface-secondary). It MUST be in this set: without it
+   *  a palette would repaint --brand-primary and leave the pill on the template's
+   *  baked colour, which is both off-palette and — as measured — an AA failure. */
+  | 'brand-primary-elevated'
   | 'brand-accent'
   | 'surface-primary'
   | 'surface-secondary'

@@ -100,6 +100,22 @@ jobs:
           node-version: 22
       - run: node scripts/check-locale-parity.mjs
 
+  baseline_dimensions:
+    # Screenshot baselines must be exactly their viewport's width. A full-page capture
+    # of a horizontally-overflowing page is WIDER than the viewport rather than clipped,
+    # and every downstream check compares the image to itself — so a 442px mobile page
+    # once shipped past three reviews. Plain file check: no browser, no server, so it
+    # runs on every PR rather than only when Screenshots is dispatched.
+    name: screenshot baseline dimensions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: node scripts/check-baseline-dimensions.mjs
+
   eslint:
     name: eslint (--max-warnings=0)
     needs: install_deps

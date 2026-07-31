@@ -112,6 +112,16 @@ What components actually reference:
 --brand-primary            /* #c00000 - RUMI Red */
 --brand-primary-hover      /* Hover state */
 --brand-primary-light      /* Subtle backgrounds */
+--brand-primary-elevated   /* Brand text on an ELEVATED surface — a translucent wash over
+                              --surface-secondary, not the paper. Reach for this whenever
+                              the brand is small text on a tinted overlay: the brand is
+                              tuned against the paper, and one step off it can cost a full
+                              point of contrast. Today's only consumer is the top nav's
+                              current-page pill, where --brand-primary measured 3.55:1
+                              (classic dark) and 3.89:1 (craft light). It is part of the
+                              ADR-007 palette contract, so presets repaint it, and
+                              palettes/presets.test.ts asserts it clears AA for every
+                              preset in both modes. */
 
 /* Feedback */
 --feedback-success / -light / -xlight / -dark

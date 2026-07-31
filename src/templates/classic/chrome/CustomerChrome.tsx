@@ -111,6 +111,8 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                     objectFit: 'contain',
                     maxHeight: `calc(${headerHeight} - 10px)`,
                   }}
+                  lockupClassName={navStyles.tenantLockup}
+                  markClassName={navStyles.tenantMark}
                   textClassName={navStyles.tenantWordmark}
                   priority
                 />

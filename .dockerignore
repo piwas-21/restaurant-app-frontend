@@ -4,7 +4,7 @@ Dockerfile
 .dockerignore
 .git
 
-# Sofra demo branding SOURCE set — the demo build copies it into public/branding/
-# (in the runner, pre-build) via build-demo-tenant.yml `branding_dir`; the source dir
-# itself must not ship in any tenant image (esp. the RUMI/prod one).
-public/branding-sofra
+# RUMI's own branding SOURCE set — build-image.yml's prod job copies it into
+# public/branding/ in the runner, BEFORE the docker build, so RUMI keeps its assets
+# while the repo default stays the SofraPiwas platform set. Excluded from the image
+# so no tenant image carries another tenant's art.

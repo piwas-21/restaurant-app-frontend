@@ -41,6 +41,7 @@ jobs:
       template: craft
       currency: EUR
       restaurant_name: SofraPiwas Demo
-      # SofraPiwas-branded favicon + menu-item placeholder for the demo (this is the
-      # SofraPiwas SaaS showcase, not the RUMI tenant). Committed set, no download.
-      branding_dir: public/branding-sofra
+      # No branding_dir: the repo default IS the SofraPiwas set now (it used to be
+      # tenant-1's, which is why the demo needed an override at all). The showcase
+      # inheriting the platform default is also the more honest demo — it is what a
+      # real self-serve tenant sees on day one.

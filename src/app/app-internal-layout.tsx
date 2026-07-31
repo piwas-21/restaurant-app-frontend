@@ -149,6 +149,8 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                     objectFit: 'contain',
                     maxHeight: `calc(${headerHeight} - 10px)`,
                   }}
+                  lockupClassName={navStyles.tenantLockup}
+                  markClassName={navStyles.tenantMark}
                   textClassName={navStyles.tenantWordmark}
                   priority
                 />

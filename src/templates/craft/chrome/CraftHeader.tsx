@@ -57,6 +57,8 @@ export default function CraftHeader() {
             width={180}
             height={64}
             imageClassName={styles.logo}
+            lockupClassName={styles.wordmarkLockup}
+            markClassName={styles.craftMark}
             textClassName={styles.wordmark}
             priority
           />

@@ -4,19 +4,28 @@ import Image from 'next/image';
 import type { CSSProperties } from 'react';
 import type { RestaurantInfoDto } from '@/types/restaurantInfo';
 
+/** The SofraPiwas onion mark. Platform-owned, so deliberately NOT under
+ * `public/branding/` — that directory is the tenant-overridable set, and this must not be
+ * something a tenant image replaces. */
+const BRAND_MARK = '/brand-mark.svg';
+
 /**
- * The restaurant's mark in a header — its uploaded logo, or its NAME as text
- * (SOFRA-ONBOARDING-PLAN O6).
+ * The restaurant's mark in a header — its uploaded logo, or a designed LOCKUP of the
+ * SofraPiwas mark next to the restaurant's own name (SOFRA-ONBOARDING-PLAN O6).
  *
  * One component for all three chromes (classic customer, craft customer, the shared staff
  * layout) because the fallback rule is the load-bearing part, not the markup. Before O6 the
  * chromes rendered a logo BAKED into the image — tenant-1's — which no tenant could change,
- * so every self-serve restaurant's header showed another restaurant's brand. A stand-in
- * image would recreate that; a name always belongs to the tenant reading it.
+ * so every self-serve restaurant's header showed another restaurant's brand.
  *
- * The three chromes differ only in sizing and class names, which arrive as props. Keeping
- * the resolution in one place is also what stops the three copies from drifting into three
- * different answers to "what happens when there is no dark logo?".
+ * The fallback is a lockup rather than bare text because a header is the one place a
+ * restaurant's identity is asserted: plain text reads as a missing asset, whereas mark +
+ * name reads as a logo the tenant simply has not personalised yet. Each template supplies
+ * its own typeface and sizing through the class props, so the lockup is *designed* per
+ * theme — Inter on classic, Amatic SC on craft — rather than one generic treatment.
+ *
+ * The mark is decorative: the name beside it carries the accessible name, exactly as in
+ * sofra's own `BrandMark`.
  */
 export interface TenantLogoProps {
   /** Restaurant info; null while loading, which renders the name fallback. */
@@ -32,6 +41,10 @@ export interface TenantLogoProps {
   imageStyle?: CSSProperties;
   /** Applied to the text wordmark, which is a different element with different needs. */
   textClassName?: string;
+  /** Applied to the lockup wrapper (mark + wordmark) in the no-logo case. */
+  lockupClassName?: string;
+  /** Applied to the brand mark inside the lockup. */
+  markClassName?: string;
   priority?: boolean;
 }
 
@@ -64,13 +77,22 @@ export default function TenantLogo({
   imageClassName,
   imageStyle,
   textClassName,
+  lockupClassName,
+  markClassName,
   priority = false,
 }: Readonly<TenantLogoProps>) {
   const src = resolveLogoSrc(info, isDark);
   const name = info?.name || fallbackName;
 
   if (!src) {
-    return <span className={textClassName}>{name}</span>;
+    return (
+      <span className={lockupClassName}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- static vector; next/image
+            adds no optimization for an inline SVG and would need a remotePatterns entry. */}
+        <img src={BRAND_MARK} alt="" aria-hidden="true" className={markClassName} />
+        <span className={textClassName}>{name}</span>
+      </span>
+    );
   }
 
   return (

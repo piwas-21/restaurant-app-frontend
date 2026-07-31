@@ -10,6 +10,7 @@ import CategoryOrderTypeMatrix from '@/components/admin/settings/CategoryOrderTy
 import TaxConfigurationManager from '@/components/admin/settings/TaxConfigurationManager';
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
+import LogoTab from '@/components/admin/restaurant-settings/LogoTab';
 import { isTabId, type TabType } from './tabs';
 
 function RestaurantSettingsContent() {
@@ -27,6 +28,7 @@ function RestaurantSettingsContent() {
     { id: 'tax' as TabType, label: t('tax_configuration', 'Tax Configuration'), icon: '💰' },
     { id: 'general' as TabType, label: t('general_settings', 'General Settings'), icon: '⚙️' },
     { id: 'appearance' as TabType, label: t('appearance_settings', 'Appearance'), icon: '🎨' },
+    { id: 'logo' as TabType, label: t('logo_settings', 'Logo'), icon: '🖼️' },
   ];
 
   return (
@@ -64,6 +66,7 @@ function RestaurantSettingsContent() {
         {activeTab === 'tax' && <TaxConfigurationManager />}
         {activeTab === 'general' && <GeneralSettingsTab />}
         {activeTab === 'appearance' && <AppearanceTab />}
+        {activeTab === 'logo' && <LogoTab />}
       </div>
     </div>
   );

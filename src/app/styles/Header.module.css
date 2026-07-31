@@ -297,3 +297,23 @@
     margin-left: 0 !important;
   }
 }
+
+/* Tenant wordmark — the header's fallback when a restaurant has uploaded no logo
+   (SOFRA-ONBOARDING-PLAN O6). Shared by the classic customer chrome and the shared staff
+   chrome, which render byte-identical headers by design.
+
+   `--text-primary` rather than the brand colour, and a CLASS rather than an inline style,
+   for one reason: on the home page classic overlays its header on a dark hero photo, and
+   `html:not([data-theme='dark']) .home-overlay-header` (globals.css) re-points
+   --text-primary at #f0f0f0 for exactly that case. An inline `color: var(--primary-color)`
+   won that cascade and printed the wordmark in brand red on a dark photograph — where the
+   logo it replaced was the WHITE dark-variant. Going through the token makes the light,
+   dark and home-overlay cases all correct without a single conditional. */
+.tenantWordmark {
+  margin-right: 10px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}

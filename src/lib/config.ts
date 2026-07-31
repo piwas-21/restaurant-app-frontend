@@ -30,8 +30,19 @@ export const TENANT_CURRENCY: string = /^[A-Z]{3}$/.test(rawTenantCurrency) ? ra
  * extracting a branding archive into `public/branding/` at build time (see
  * .github/workflows/build-tenant-image.yml `branding_url` input).
  */
-export const BRANDING_LOGO = '/branding/logo.png';
-export const BRANDING_LOGO_DARK = '/branding/logo-dark.png';
+/*
+ * There is deliberately no BRANDING_LOGO here any more (SOFRA-ONBOARDING-PLAN O6).
+ * The header now renders `RestaurantInfo.logoUrl`, uploaded by the tenant at runtime, and
+ * falls back to the restaurant's NAME as text. The baked `/branding/logo.png` this used to
+ * point at is tenant-1's, and because nothing in the onboarding funnel ever passed
+ * `branding_url`, every self-serve tenant's header showed another restaurant's brand.
+ * Re-adding a baked default would restore exactly that. The file itself is still shipped
+ * so tenant-1 can upload its own logo through the admin UI like anyone else.
+ *
+ * The remaining assets below are still tenant-1's defaults — a self-serve tenant gets
+ * RUMI's favicon, hero and placeholder. Same class of gap, out of O6's scope; tracked in
+ * the ROADMAP rather than silently fixed here.
+ */
 export const BRANDING_ICON = '/branding/icon.svg';
 export const BRANDING_HERO = '/branding/hero.png';
 /** Fallback image for menu items with no photo — per-tenant like the rest of /branding/. */

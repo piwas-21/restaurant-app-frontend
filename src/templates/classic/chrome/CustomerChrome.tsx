@@ -27,7 +27,7 @@ import RoleNavLinks from '@/components/RoleNavLinks';
 import { Menu, X } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { RESTAURANT_NAME } from '@/lib/config';
-import TenantLogo, { WORDMARK_STYLE } from '@/components/branding/TenantLogo';
+import TenantLogo from '@/components/branding/TenantLogo';
 
 export default function CustomerChrome({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isClient, setIsClient] = useState(false);
@@ -111,7 +111,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                     objectFit: 'contain',
                     maxHeight: `calc(${headerHeight} - 10px)`,
                   }}
-                  textStyle={WORDMARK_STYLE}
+                  textClassName={navStyles.tenantWordmark}
                   priority
                 />
               </Link>

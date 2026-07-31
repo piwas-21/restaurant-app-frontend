@@ -18,21 +18,6 @@ import type { RestaurantInfoDto } from '@/types/restaurantInfo';
  * the resolution in one place is also what stops the three copies from drifting into three
  * different answers to "what happens when there is no dark logo?".
  */
-/**
- * The wordmark style the two `classic`-family chromes share (the customer chrome and the
- * shared staff chrome render byte-identical headers by design — see the ROLE note at the
- * top of `app-internal-layout.tsx`). Exported rather than copied so the two cannot drift,
- * and so `craft`, which has its own Amatic SC wordmark, is free to ignore it.
- */
-export const WORDMARK_STYLE: CSSProperties = {
-  marginRight: '10px',
-  fontSize: '1.5rem',
-  fontWeight: 700,
-  letterSpacing: '0.02em',
-  color: 'var(--primary-color)',
-  whiteSpace: 'nowrap',
-};
-
 export interface TenantLogoProps {
   /** Restaurant info; null while loading, which renders the name fallback. */
   info: RestaurantInfoDto | null;
@@ -47,7 +32,6 @@ export interface TenantLogoProps {
   imageStyle?: CSSProperties;
   /** Applied to the text wordmark, which is a different element with different needs. */
   textClassName?: string;
-  textStyle?: CSSProperties;
   priority?: boolean;
 }
 
@@ -80,18 +64,13 @@ export default function TenantLogo({
   imageClassName,
   imageStyle,
   textClassName,
-  textStyle,
   priority = false,
 }: TenantLogoProps) {
   const src = resolveLogoSrc(info, isDark);
   const name = info?.name || fallbackName;
 
   if (!src) {
-    return (
-      <span className={textClassName} style={textStyle}>
-        {name}
-      </span>
-    );
+    return <span className={textClassName}>{name}</span>;
   }
 
   return (

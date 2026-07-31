@@ -17,7 +17,7 @@ import Sidebar from '@/components/admin/Sidebar';
 import RoleNavLinks from '@/components/RoleNavLinks';
 import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
-import TenantLogo, { WORDMARK_STYLE } from '@/components/branding/TenantLogo';
+import TenantLogo from '@/components/branding/TenantLogo';
 import { RESTAURANT_NAME } from '@/lib/config';
 
 // Fonts moved behind the template definition (ADR-006): the root layout
@@ -149,7 +149,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                     objectFit: 'contain',
                     maxHeight: `calc(${headerHeight} - 10px)`,
                   }}
-                  textStyle={WORDMARK_STYLE}
+                  textClassName={navStyles.tenantWordmark}
                   priority
                 />
               </Link>

@@ -298,11 +298,35 @@
   }
 }
 
-/* Tenant wordmark — the header's fallback when a restaurant has uploaded no logo
+/* Tenant brand lockup — the header's fallback when a restaurant has uploaded no logo
    (SOFRA-ONBOARDING-PLAN O6). Shared by the classic customer chrome and the shared staff
    chrome, which render byte-identical headers by design.
 
-   `--text-primary` rather than the brand colour, and a CLASS rather than an inline style,
+   A LOCKUP (SofraPiwas mark + the restaurant's name), not bare text: in a header, plain
+   text reads as a missing asset, while a mark beside a name reads as a logo the tenant
+   simply has not personalised yet. classic's half of the design is Inter — the template's
+   own face — set tight and heavy so it sits as a wordmark rather than as a sentence. */
+.tenantLockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-right: 10px;
+  min-width: 0;
+}
+
+/* Sized against the ONION, not the whole file: the sprig occupies the top third of the
+   artwork, so a mark set to the wordmark's height reads visually smaller than it is. */
+.tenantMark {
+  flex: 0 0 auto;
+  /* `width: auto` is load-bearing, not redundant: the <img> carries width/height ATTRIBUTES
+     so the browser reserves its box before the SVG loads, and without this the attribute
+     width (452px) becomes the used width. Removing it from craft's copy letterboxed the
+     artwork in a 452px box and pushed that template's mobile page 67px wide. */
+  width: auto;
+  height: 2.75rem;
+}
+
+/* `--text-primary` rather than the brand colour, and a CLASS rather than an inline style,
    for one reason: on the home page classic overlays its header on a dark hero photo, and
    `html:not([data-theme='dark']) .home-overlay-header` (globals.css) re-points
    --text-primary at #f0f0f0 for exactly that case. An inline `color: var(--primary-color)`
@@ -310,10 +334,31 @@
    logo it replaced was the WHITE dark-variant. Going through the token makes the light,
    dark and home-overlay cases all correct without a single conditional. */
 .tenantWordmark {
-  margin-right: 10px;
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
   color: var(--text-primary);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Narrow screens SHRINK the lockup; they never drop the name. Hiding the wordmark here
+   was my first cut and it was backwards: it left a restaurant's mobile header showing the
+   SofraPiwas onion and nothing else, which is the very failure this work exists to remove.
+   The tenant's name is the part that must survive; the mark is the part that can give way. */
+@media (max-width: 480px) {
+  .tenantLockup {
+    gap: 0.45rem;
+    margin-right: 6px;
+  }
+
+  .tenantMark {
+    height: 2.1rem;
+  }
+
+  .tenantWordmark {
+    font-size: 1.05rem;
+  }
 }

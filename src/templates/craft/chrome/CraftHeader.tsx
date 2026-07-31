@@ -26,6 +26,7 @@ import { useTheme } from '@/components/ThemeContext';
 import TenantLogo from '@/components/branding/TenantLogo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import styles from './CraftHeader.module.css';
+import brand from './CraftBrand.module.css';
 
 export default function CraftHeader() {
   const [isClient, setIsClient] = useState(false);
@@ -49,15 +50,17 @@ export default function CraftHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" className={styles.wordmarkLink} onClick={closeMobileMenu}>
+        <Link href="/" className={brand.wordmarkLink} onClick={closeMobileMenu}>
           <TenantLogo
             info={restaurantInfo}
             fallbackName={RESTAURANT_NAME}
             isDark={theme === 'dark'}
             width={180}
             height={64}
-            imageClassName={styles.logo}
-            textClassName={styles.wordmark}
+            imageClassName={brand.logo}
+            lockupClassName={brand.wordmarkLockup}
+            markClassName={brand.craftMark}
+            textClassName={brand.wordmark}
             priority
           />
         </Link>

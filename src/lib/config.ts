@@ -25,23 +25,21 @@ const rawTenantCurrency = (process.env.NEXT_PUBLIC_TENANT_CURRENCY ?? '').trim()
 export const TENANT_CURRENCY: string = /^[A-Z]{3}$/.test(rawTenantCurrency) ? rawTenantCurrency : 'CHF';
 
 /**
- * Brand-neutral tenant asset convention (issue #125 part 3). The repo ships
- * tenant-1 (RUMI) defaults at these paths; a tenant image overrides them by
- * extracting a branding archive into `public/branding/` at build time (see
- * .github/workflows/build-tenant-image.yml `branding_url` input).
- */
-/*
- * There is deliberately no BRANDING_LOGO here any more (SOFRA-ONBOARDING-PLAN O6).
- * The header now renders `RestaurantInfo.logoUrl`, uploaded by the tenant at runtime, and
- * falls back to the restaurant's NAME as text. The baked `/branding/logo.png` this used to
- * point at is tenant-1's, and because nothing in the onboarding funnel ever passed
- * `branding_url`, every self-serve tenant's header showed another restaurant's brand.
- * Re-adding a baked default would restore exactly that. The file itself is still shipped
- * so tenant-1 can upload its own logo through the admin UI like anyone else.
+ * Per-tenant build-time assets (issue #125 part 3, corrected in SOFRA-ONBOARDING-PLAN O6).
  *
- * The remaining assets below are still tenant-1's defaults — a self-serve tenant gets
- * RUMI's favicon, hero and placeholder. Same class of gap, out of O6's scope; tracked in
- * the ROADMAP rather than silently fixed here.
+ * `public/branding/` holds the **SofraPiwas platform default set**, because it is what a
+ * tenant image inherits when nothing overrides it. It used to hold tenant-1's assets, which
+ * meant a self-serve restaurant's home hero was a PHOTOGRAPH of RUMI's dining room with
+ * RUMI's logo on the wall, and its favicon was RUMI's. RUMI is a tenant like any other and
+ * now gets its own set from `public/branding-rumi/`, applied by build-image.yml's prod job.
+ *
+ * A tenant overrides any of these via `branding_url` / `branding_dir`
+ * (.github/workflows/build-tenant-image.yml). See public/branding/README.md.
+ *
+ * There is deliberately no BRANDING_LOGO. The logo is **runtime** data since O6 —
+ * `RestaurantInfo.logoUrl`, uploaded in tenant admin — and the header falls back to a
+ * designed lockup of the SofraPiwas mark plus the restaurant's own name. A baked default
+ * would be a second source of truth that silently wins over what the tenant uploaded.
  */
 export const BRANDING_ICON = '/branding/icon.svg';
 export const BRANDING_HERO = '/branding/hero.png';

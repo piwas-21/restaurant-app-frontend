@@ -33,50 +33,6 @@
   gap: 1rem;
 }
 
-/* The home link. Wraps either the tenant's uploaded logo or the wordmark below, so the
-   anchor owns the hit area and hover state while the child owns the type or the image.
-   A plain BLOCK, deliberately not `inline-flex` + `align-items: center`: the wordmark used
-   to live on this <a>, which — as a flex item of .headerInner — was blockified to a single
-   block box. Reproducing that box exactly is what keeps a no-logo tenant's header
-   pixel-identical. The flex version measured identical in a synthetic replica and still
-   dropped the mobile wordmark 4px in the real render, because the replica lacked Amatic
-   SC's own metrics; the screenshot baselines caught it. */
-.wordmarkLink {
-  display: block;
-  text-decoration: none;
-}
-
-/* Hand-lettered wordmark — Amatic SC is loaded by ../fonts.ts.
-   `block`, matching the box the <a> used to be, so the rotation and the line box behave
-   exactly as before (an inline box would drop the tilt entirely). */
-.wordmark {
-  display: block;
-  font-family: 'Amatic SC', cursive;
-  font-weight: 700;
-  font-size: 2.3rem;
-  line-height: 1;
-  color: var(--text-primary);
-  text-decoration: none;
-  transform: rotate(-2deg);
-  transition: color 0.2s ease-in-out;
-}
-
-/* Hover lives on the anchor, not the span: the anchor is what the pointer targets. */
-.wordmarkLink:hover .wordmark {
-  color: var(--brand-primary);
-}
-
-/* An uploaded logo, bounded by the header rather than by its own pixel size.
-   `block` so the anchor's line box carries no baseline descender gap under the image. */
-.logo {
-  display: block;
-  max-height: 3.25rem;
-  width: auto;
-  height: auto;
-  max-width: 11rem;
-  object-fit: contain;
-}
-
 .nav {
   display: flex;
   align-items: center;

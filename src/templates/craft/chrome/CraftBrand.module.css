@@ -1,0 +1,74 @@
+/* craft — the brand lockup in the header's home link (SOFRA-ONBOARDING-PLAN O6).
+   Split out of CraftHeader.module.css, which was at its 200-LOC limit: the lockup is its
+   own concern (what identifies the tenant) rather than header layout, and shaving the
+   comments that explain the 4px trap below would have been the worse trade. */
+/* Home link. Keep it a plain BLOCK: the wordmark used to live on this <a> (blockified as a
+   flex item of .headerInner), and inline-flex dropped the real mobile wordmark 4px.
+   NO `min-width: 0` here: craft's nav is wider than classic's, and letting the link shrink
+   below min-content collapsed the wordmark to "RU…" on a 1280px desktop. `white-space:
+   nowrap` below is what prevents the two-line wrap; shrinking is handled by the media
+   query, which reduces the type rather than eating it. */
+.wordmarkLink {
+  display: block;
+  text-decoration: none;
+}
+
+/* Hand-lettered wordmark — Amatic SC from ../fonts.ts. `block` matches the <a>'s old box
+   so the tilt survives; an inline box drops it entirely. */
+.wordmark {
+  display: block;
+  font-family: 'Amatic SC', cursive;
+  font-weight: 700;
+  font-size: 2.3rem;
+  line-height: 1;
+  color: var(--text-primary);
+  text-decoration: none;
+  transform: rotate(-2deg);
+  transition: color 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+/* Hover on the anchor — that is what the pointer targets. */
+.wordmarkLink:hover .wordmark {
+  color: var(--brand-primary);
+}
+
+/* Brand lockup — SofraPiwas mark beside the name, for a tenant with no logo. The mark
+   leans OPPOSITE the wordmark's -2deg: alike reads as one skewed image, apart as hand-placed. */
+.wordmarkLockup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.craftMark {
+  flex: 0 0 auto;
+  /* `width: auto` is NOT redundant: the <img> carries width/height ATTRIBUTES so the
+     browser can reserve the box before the SVG loads, and without this the attribute width
+     (452px) becomes the used width — the mark rendered as a 452px box with the artwork
+     letterboxed inside it, pushing craft's mobile page to 442px and overflowing. */
+  width: auto;
+  height: 2.5rem;
+  transform: rotate(4deg);
+}
+
+/* An uploaded logo, bounded by the header. `block` kills the anchor's descender gap. */
+.logo {
+  display: block;
+  max-height: 3.25rem;
+  width: auto;
+  height: auto;
+  max-width: 11rem;
+  object-fit: contain;
+}
+
+/* Narrow screens shrink the lockup; the name never disappears. */
+@media (max-width: 480px) {
+  .craftMark {
+    height: 2rem;
+  }
+
+  .wordmark {
+    font-size: 1.75rem;
+  }
+}

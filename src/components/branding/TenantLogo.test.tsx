@@ -87,6 +87,28 @@ describe('TenantLogo', () => {
     expect(img.getAttribute('src')).toContain('light.png');
   });
 
+  it('pairs the name with the brand mark, and keeps the mark out of the a11y tree', () => {
+    // The fallback is a LOCKUP, not bare text — in a header, plain text reads as a missing
+    // asset. The mark is decorative: the name beside it carries the accessible name, so the
+    // mark must not surface as a second image to a screen reader.
+    const { container } = renderLogo(info());
+
+    const mark = container.querySelector('img[src="/brand-mark.svg"]');
+    expect(mark).toBeInTheDocument();
+    expect(mark).toHaveAttribute('aria-hidden', 'true');
+    expect(mark).toHaveAttribute('alt', '');
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('drops the brand mark entirely once the tenant has their own logo', () => {
+    // Their logo replaces the whole lockup — showing both would put SofraPiwas's mark
+    // beside a restaurant's own brand in their own header.
+    const { container } = renderLogo(info({ logoUrl: LIGHT }));
+
+    expect(container.querySelector('img[src="/brand-mark.svg"]')).not.toBeInTheDocument();
+    expect(screen.getByRole('img')).toHaveAttribute('alt', 'Chez Amina');
+  });
+
   it('falls back to the build-time name only when the API gave us none', () => {
     // A tenant whose info has not loaded yet still shows something ownable rather than an
     // empty header — but the API name wins the moment it arrives.

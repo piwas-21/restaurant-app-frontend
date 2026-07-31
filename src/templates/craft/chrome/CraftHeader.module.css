@@ -33,22 +33,6 @@
   gap: 1rem;
 }
 
-/* Hand-lettered wordmark — Amatic SC is loaded by ../fonts.ts. */
-.wordmark {
-  font-family: 'Amatic SC', cursive;
-  font-weight: 700;
-  font-size: 2.3rem;
-  line-height: 1;
-  color: var(--text-primary);
-  text-decoration: none;
-  transform: rotate(-2deg);
-  transition: color 0.2s ease-in-out;
-}
-
-.wordmark:hover {
-  color: var(--brand-primary);
-}
-
 .nav {
   display: flex;
   align-items: center;

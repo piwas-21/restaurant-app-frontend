@@ -35,8 +35,22 @@ export interface RestaurantInfoDto {
   website: string | null;
   /** Runtime colour-palette key (ADR-007); null = the template's baked palette. */
   themePaletteKey: string | null;
+  /**
+   * The restaurant's own logo (SOFRA-ONBOARDING-PLAN O6), or null when it has none —
+   * in which case the chromes render the restaurant's NAME as text, never a stand-in
+   * image. The backend normalises an empty string to null precisely so `??` works here.
+   *
+   * Deliberately absent from `UpdateRestaurantInfoCommand` below: the logo has its own
+   * endpoints, so a General Settings save — which is a FULL upsert — cannot wipe it.
+   */
+  logoUrl: string | null;
+  /** Dark-theme variant; null falls back to {@link logoUrl}. */
+  logoDarkUrl: string | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
 }
+
+/** Which stored logo an upload or delete addresses. Mirrors the backend `LogoVariant`. */
+export type LogoVariant = 'light' | 'dark';
 
 // ── Commands ─────────────────────────────────────────────────────────
 

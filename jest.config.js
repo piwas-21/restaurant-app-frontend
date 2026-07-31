@@ -361,6 +361,17 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // O6 — the tenant's logo, or its name as text. Pinned because `resolveLogoSrc` is the ONLY
+    // place the fallback chain exists, for all three chromes, and the two ways it can go wrong
+    // are both silent: an empty string reaches <img src=""> as a broken-image icon where the
+    // restaurant's name belongs, and an asymmetric chain gives a tenant with one logo a header
+    // that shows their mark on some routes and text on others. Neither throws, neither logs.
+    './src/components/branding/TenantLogo.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     // §9.10 — the sheet's order-type guard. The blocked footer and the normal footer are both
     // pinned; the uncovered lines are the quantity stepper's own handlers, which belong to the
     // pre-existing footer and are not what this row is protecting.

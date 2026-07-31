@@ -67,6 +67,24 @@ jobs:
             type=sha,format=long
             type=ref,event=tag
 
+      - name: Apply RUMI's own branding
+        # public/branding/ is the PLATFORM default set (SofraPiwas), because it is what
+        # every tenant image inherits when nothing overrides it — and shipping tenant-1's
+        # assets as that default is exactly the bug O6 closed: a self-serve restaurant's
+        # home hero was a PHOTOGRAPH of RUMI's dining room, RUMI's logo on the wall.
+        #
+        # RUMI is a tenant like any other, so it gets its own set here rather than by being
+        # the default. This job is already RUMI-specific (it bakes rumirestaurant.ch into
+        # NEXT_PUBLIC_*), so this is the right seam. Deliberately NOT added to the staging
+        # job below: that image is a Sofra-owned test tenant and should carry the platform
+        # default, which is also a fix — it inherited RUMI's assets until now.
+        run: |
+          set -euo pipefail
+          for f in hero.png icon.svg placeholder.png; do
+            cp "public/branding-rumi/$f" "public/branding/$f"
+            echo "RUMI branding applied: $f"
+          done
+
       - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .

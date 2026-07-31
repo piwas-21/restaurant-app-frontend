@@ -26,6 +26,12 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: ["--maxkb=1000"]
+        # RUMI's hero photo is a pre-existing tracked blob that MOVED out of the shared
+        # default set (public/branding/) into its own tenant set, so the hook sees an add.
+        # Already re-encoded RGB-lossless (1762 -> 1297 KB, pixel-identical); the remainder
+        # is a 2001x798 photograph, and degrading a tenant's own artwork to satisfy a
+        # rename false-positive is the wrong trade. Scoped to this one path on purpose.
+        exclude: ^public/branding-rumi/hero\.png$
       - id: no-commit-to-branch
         # `master` included defensively in case of accidental rename / fork.
         args: ["--branch", "main", "--branch", "develop", "--branch", "master"]

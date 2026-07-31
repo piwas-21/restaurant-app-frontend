@@ -1,8 +1,10 @@
 'use client';
 
-// craft sticky header (ADR-006, S15 T3 slice 2): hand-lettered wordmark
-// (Amatic SC, from the RestaurantInfo API with the baked build-time name
-// as fallback — same identity sources as the classic chrome), the SHARED
+// craft sticky header (ADR-006, S15 T3 slice 2): the tenant's uploaded logo
+// when it has one, else a hand-lettered wordmark (Amatic SC, from the
+// RestaurantInfo API with the baked build-time name as fallback — same
+// identity sources as the classic chrome). Logo OR wordmark, never both:
+// a mark and its name stacked is two claims to the same identity. The SHARED
 // role-based <RoleNavLinks/> re-skinned via tokens, and a mobile slide-in
 // menu with the same keyboard/aria mechanics as the classic one
 // (aria-expanded + translated open/close labels + aria-hidden backdrop).
@@ -20,8 +22,11 @@ import UserMenu from '@/components/UserMenu';
 import RoleNavLinks from '@/components/RoleNavLinks';
 import { useAuth } from '@/components/AuthContext';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
+import { useTheme } from '@/components/ThemeContext';
+import TenantLogo from '@/components/branding/TenantLogo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import styles from './CraftHeader.module.css';
+import brand from './CraftBrand.module.css';
 
 export default function CraftHeader() {
   const [isClient, setIsClient] = useState(false);
@@ -30,6 +35,7 @@ export default function CraftHeader() {
   const pathname = usePathname();
   const { t } = useTranslation();
   const { info: restaurantInfo } = useRestaurantInfo();
+  const { theme } = useTheme();
 
   useEffect(() => {
     setIsClient(true);
@@ -37,7 +43,6 @@ export default function CraftHeader() {
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
-  const restaurantName = restaurantInfo?.name ?? RESTAURANT_NAME;
   // Pre-hydration fallback mirrors classic: a static label until t() is safe.
   const menuToggleTranslated = mobileMenuOpen ? t('close_menu') : t('open_menu');
   const menuToggleLabel = isClient ? menuToggleTranslated : 'Open menu';
@@ -45,8 +50,19 @@ export default function CraftHeader() {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <Link href="/" className={styles.wordmark} onClick={closeMobileMenu}>
-          {restaurantName}
+        <Link href="/" className={brand.wordmarkLink} onClick={closeMobileMenu}>
+          <TenantLogo
+            info={restaurantInfo}
+            fallbackName={RESTAURANT_NAME}
+            isDark={theme === 'dark'}
+            width={180}
+            height={64}
+            imageClassName={brand.logo}
+            lockupClassName={brand.wordmarkLockup}
+            markClassName={brand.craftMark}
+            textClassName={brand.wordmark}
+            priority
+          />
         </Link>
         <button
           className={styles.hamburger}

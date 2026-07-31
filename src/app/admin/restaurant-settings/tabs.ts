@@ -6,7 +6,7 @@
  * read the ids without importing the page and, with it, every tab component and the
  * Next server runtime behind them.
  */
-export const TAB_IDS = ['hours', 'order-types', 'tax', 'general', 'appearance'] as const;
+export const TAB_IDS = ['hours', 'order-types', 'tax', 'general', 'appearance', 'logo'] as const;
 
 export type TabType = (typeof TAB_IDS)[number];
 

@@ -87,9 +87,13 @@ export default function TenantLogo({
   if (!src) {
     return (
       <span className={lockupClassName}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- static vector; next/image
-            adds no optimization for an inline SVG and would need a remotePatterns entry. */}
-        <img src={BRAND_MARK} alt="" aria-hidden="true" className={markClassName} />
+        {/* A plain <img>: next/image adds no optimization for a static inline SVG.
+            width/height are the SVG's own viewBox and exist ONLY to give the browser an
+            intrinsic ratio — without them the mark is 0px wide until a 66KB trace loads
+            and the name beside it jumps ~44px, above the fold, on every route. CSS sets
+            the rendered height. */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- see above */}
+        <img src={BRAND_MARK} alt="" aria-hidden="true" width={452} height={501} className={markClassName} />
         <span className={textClassName}>{name}</span>
       </span>
     );

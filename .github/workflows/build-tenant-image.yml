@@ -50,11 +50,11 @@ on:
         required: false
         default: ""
       branding_url:
-        description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: logo.png, logo-dark.png, icon.svg, hero.png, placeholder.png). Empty = repo default assets"
+        description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: icon.svg, hero.png, placeholder.png). NO logo — since O6 the logo is runtime data uploaded in tenant admin. Empty = SofraPiwas default assets"
         required: false
         default: ""
       branding_dir:
-        description: "Repo-relative dir of committed branding assets (same filenames as branding_url) copied into public/branding/ before the build. Alternative to branding_url (no download); empty = none"
+        description: "Repo-relative dir of committed branding assets (icon.svg, hero.png, placeholder.png) copied into public/branding/ before the build. Alternative to branding_url (no download); empty = none"
         required: false
         default: ""
       template:
@@ -96,7 +96,7 @@ on:
         default: ""
         type: string
       branding_dir:
-        description: "Repo-relative dir of committed branding assets copied into public/branding/ (alternative to branding_url; empty = none)"
+        description: "Repo-relative dir of committed branding assets — icon.svg, hero.png, placeholder.png (alternative to branding_url; empty = none)"
         required: false
         default: ""
         type: string
@@ -196,6 +196,17 @@ jobs:
               applied=1
             fi
           done
+          # Say so rather than dropping it silently: archives built to the pre-O6 spec
+          # still carry a logo, and it is now runtime data (RestaurantInfo.logoUrl).
+          # `if`, not `[ ... ] && echo`: set -e exempts AND-OR lists, so the && form is
+          # safe *here* only because a statement follows it. Move this loop to the end of
+          # the script and the step exits 1 whenever the archive has no logo — the normal
+          # case — with nothing in the log to explain it.
+          for f in logo.png logo-dark.png; do
+            if [ -f "$tmp/$f" ]; then
+              echo "IGNORING $f — the logo is uploaded in tenant admin since O6, not baked"
+            fi
+          done
           if [ "$applied" -eq 0 ]; then
             echo "branding archive contained none of icon.svg/hero.png/placeholder.png" >&2
             exit 1
@@ -222,6 +233,11 @@ jobs:
               cp "$BRANDING_DIR/$f" "public/branding/$f"
               echo "branding override applied: $f"
               applied=1
+            fi
+          done
+          for f in logo.png logo-dark.png; do
+            if [ -f "$BRANDING_DIR/$f" ]; then
+              echo "IGNORING $f — the logo is uploaded in tenant admin since O6, not baked"
             fi
           done
           if [ "$applied" -eq 0 ]; then

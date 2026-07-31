@@ -8,3 +8,4 @@ Dockerfile
 # public/branding/ in the runner, BEFORE the docker build, so RUMI keeps its assets
 # while the repo default stays the SofraPiwas platform set. Excluded from the image
 # so no tenant image carries another tenant's art.
+public/branding-rumi

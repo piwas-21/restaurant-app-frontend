@@ -3,8 +3,10 @@ import type { LanguageCode } from '@/components/LanguageSwitcher';
 
 /**
  * Fallback image for menu items with no photo — the per-tenant branding asset
- * (`/branding/placeholder.png`) so a tenant can override it like its logo / icon.
- * The demo (craft) ships a SofraPiwas placeholder; prod keeps the RUMI default.
+ * (`/branding/placeholder.png`) so a tenant can override it like its favicon / hero.
+ * The repo default is the SofraPiwas placeholder, which every tenant inherits; RUMI's
+ * own is applied to RUMI's image alone by build-image.yml's prod job. (It was the other
+ * way round until O6: RUMI's was the default and the demo had to override it.)
  * Re-exported from config so it stays a single source of truth.
  */
 export { BRANDING_PLACEHOLDER as FALLBACK_IMAGE } from '@/lib/config';

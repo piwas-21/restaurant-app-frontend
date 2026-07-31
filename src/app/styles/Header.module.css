@@ -318,6 +318,10 @@
    artwork, so a mark set to the wordmark's height reads visually smaller than it is. */
 .tenantMark {
   flex: 0 0 auto;
+  /* `width: auto` is load-bearing, not redundant: the <img> carries width/height ATTRIBUTES
+     so the browser reserves its box before the SVG loads, and without this the attribute
+     width (452px) becomes the used width. Removing it from craft's copy letterboxed the
+     artwork in a 452px box and pushed that template's mobile page 67px wide. */
   width: auto;
   height: 2.75rem;
 }

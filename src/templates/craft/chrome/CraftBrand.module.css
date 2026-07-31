@@ -43,6 +43,11 @@
 
 .craftMark {
   flex: 0 0 auto;
+  /* `width: auto` is NOT redundant: the <img> carries width/height ATTRIBUTES so the
+     browser can reserve the box before the SVG loads, and without this the attribute width
+     (452px) becomes the used width — the mark rendered as a 452px box with the artwork
+     letterboxed inside it, pushing craft's mobile page to 442px and overflowing. */
+  width: auto;
   height: 2.5rem;
   transform: rotate(4deg);
 }

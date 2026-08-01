@@ -760,14 +760,12 @@
   "order_status_preparing": "قيد التحضير",
   "order_status_ready": "جاهز",
   "order_status_in_transit": "في الطريق",
-  "order_status_intransit": "في الطريق",
   "order_status_delivered": "تم التوصيل",
   "order_status_cancelled": "ملغى",
   "order_status_completed": "مكتمل",
   "payment_status_pending": "قيد الانتظار",
   "payment_status_paid": "مدفوع",
   "payment_status_partially_paid": "مدفوع جزئياً",
-  "payment_status_partiallypaid": "مدفوع جزئياً",
   "payment_status_refunded": "مسترد",
   "payment_status_failed": "فشل",
   "payment_status_overpaid": "مدفوع فوق المبلغ",
@@ -2497,5 +2495,6 @@
   "not_found_title": "الصفحة غير موجودة",
   "not_found_message": "هذه الصفحة غير موجودة أو تم نقلها.",
   "not_found_home": "العودة إلى الصفحة الرئيسية",
-  "not_found_menu": "عرض القائمة"
+  "not_found_menu": "عرض القائمة",
+  "order_status_refunded": "مسترد"
 }

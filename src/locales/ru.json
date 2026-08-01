@@ -688,14 +688,12 @@
   "order_status_preparing": "Готовится",
   "order_status_ready": "Готов",
   "order_status_in_transit": "В пути",
-  "order_status_intransit": "В пути",
   "order_status_delivered": "Доставлен",
   "order_status_cancelled": "Отменен",
   "order_status_completed": "Завершен",
   "payment_status_pending": "Ожидает",
   "payment_status_paid": "Оплачен",
   "payment_status_partially_paid": "Частично оплачен",
-  "payment_status_partiallypaid": "Частично оплачен",
   "payment_status_refunded": "Возвращен",
   "payment_status_failed": "Ошибка",
   "payment_status_overpaid": "Переплачен",
@@ -2497,5 +2495,6 @@
   "not_found_title": "Страница не найдена",
   "not_found_message": "Такой страницы нет или она была перемещена.",
   "not_found_home": "На главную",
-  "not_found_menu": "Посмотреть меню"
+  "not_found_menu": "Посмотреть меню",
+  "order_status_refunded": "Возвращён"
 }

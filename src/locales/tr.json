@@ -763,14 +763,12 @@
   "order_status_preparing": "Hazırlanıyor",
   "order_status_ready": "Hazır",
   "order_status_in_transit": "Yolda",
-  "order_status_intransit": "Yolda",
   "order_status_delivered": "Teslim Edildi",
   "order_status_cancelled": "İptal Edildi",
   "order_status_completed": "Tamamlandı",
   "payment_status_pending": "Beklemede",
   "payment_status_paid": "Ödendi",
   "payment_status_partially_paid": "Kısmi Ödendi",
-  "payment_status_partiallypaid": "Kısmi Ödendi",
   "payment_status_refunded": "İade Edildi",
   "payment_status_failed": "Başarısız",
   "payment_status_overpaid": "Fazla Ödendi",
@@ -2497,5 +2495,6 @@
   "not_found_title": "Sayfa bulunamadı",
   "not_found_message": "Bu sayfa mevcut değil veya taşınmış.",
   "not_found_home": "Ana sayfaya dön",
-  "not_found_menu": "Menüyü görüntüle"
+  "not_found_menu": "Menüyü görüntüle",
+  "order_status_refunded": "İade Edildi"
 }

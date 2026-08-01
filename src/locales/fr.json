@@ -766,14 +766,12 @@
   "order_status_preparing": "En Préparation",
   "order_status_ready": "Prête",
   "order_status_in_transit": "En Transit",
-  "order_status_intransit": "En transit",
   "order_status_delivered": "Livré",
   "order_status_cancelled": "Annulé",
   "order_status_completed": "Terminée",
   "payment_status_pending": "En Attente",
   "payment_status_paid": "Payée",
   "payment_status_partially_paid": "Partiellement Payée",
-  "payment_status_partiallypaid": "Partiellement payé",
   "payment_status_refunded": "Remboursée",
   "payment_status_failed": "Échouée",
   "payment_status_overpaid": "Surpayée",
@@ -2497,5 +2495,6 @@
   "not_found_title": "Page introuvable",
   "not_found_message": "Cette page n'existe pas ou a été déplacée.",
   "not_found_home": "Retour à l'accueil",
-  "not_found_menu": "Voir le menu"
+  "not_found_menu": "Voir le menu",
+  "order_status_refunded": "Remboursé"
 }

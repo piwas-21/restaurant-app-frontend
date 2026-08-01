@@ -759,14 +759,12 @@
   "order_status_preparing": "Preparing",
   "order_status_ready": "Ready",
   "order_status_in_transit": "In Transit",
-  "order_status_intransit": "In Transit",
   "order_status_delivered": "Delivered",
   "order_status_cancelled": "Cancelled",
   "order_status_completed": "Completed",
   "payment_status_pending": "Pending",
   "payment_status_paid": "Paid",
   "payment_status_partially_paid": "Partially Paid",
-  "payment_status_partiallypaid": "Partially Paid",
   "payment_status_refunded": "Refunded",
   "payment_status_failed": "Failed",
   "payment_status_overpaid": "Overpaid",
@@ -2497,5 +2495,6 @@
   "not_found_title": "Page not found",
   "not_found_message": "This page does not exist, or it has moved.",
   "not_found_home": "Back to home",
-  "not_found_menu": "View the menu"
+  "not_found_menu": "View the menu",
+  "order_status_refunded": "Refunded"
 }

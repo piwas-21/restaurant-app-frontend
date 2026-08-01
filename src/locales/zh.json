@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "失败",
   "image_backfill_stored": "已存储",
   "image_backfill_applied_single": "已应用 — 这是重写后的文件。",
-  "image_backfill_needs_review_badge": "部分文件需人工检查后再应用"
+  "image_backfill_needs_review_badge": "部分文件需人工检查后再应用",
+  "error_boundary_title": "出了点问题",
+  "error_boundary_message": "无法显示此页面。重试通常可以解决问题。",
+  "error_boundary_reference": "参考编号",
+  "error_boundary_retry": "重试",
+  "error_boundary_home": "返回首页",
+  "not_found_title": "页面未找到",
+  "not_found_message": "此页面不存在，或已被移动。",
+  "not_found_home": "返回首页",
+  "not_found_menu": "查看菜单"
 }

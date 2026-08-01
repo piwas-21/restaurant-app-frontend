@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "Mislukt",
   "image_backfill_stored": "Opgeslagen",
   "image_backfill_applied_single": "Toegepast — dit is het overschreven bestand.",
-  "image_backfill_needs_review_badge": "Sommige bestanden moeten eerst worden bekeken"
+  "image_backfill_needs_review_badge": "Sommige bestanden moeten eerst worden bekeken",
+  "error_boundary_title": "Er is iets misgegaan",
+  "error_boundary_message": "Deze pagina kon niet worden weergegeven. Opnieuw proberen helpt meestal.",
+  "error_boundary_reference": "Referentie",
+  "error_boundary_retry": "Opnieuw proberen",
+  "error_boundary_home": "Terug naar home",
+  "not_found_title": "Pagina niet gevonden",
+  "not_found_message": "Deze pagina bestaat niet of is verplaatst.",
+  "not_found_home": "Terug naar home",
+  "not_found_menu": "Bekijk het menu"
 }

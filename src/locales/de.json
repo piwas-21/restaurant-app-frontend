@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "Fehlgeschlagen",
   "image_backfill_stored": "Gespeichert",
   "image_backfill_applied_single": "Angewendet — dies ist die überschriebene Datei.",
-  "image_backfill_needs_review_badge": "Einige Dateien müssen vor dem Anwenden geprüft werden"
+  "image_backfill_needs_review_badge": "Einige Dateien müssen vor dem Anwenden geprüft werden",
+  "error_boundary_title": "Etwas ist schiefgelaufen",
+  "error_boundary_message": "Diese Seite konnte nicht angezeigt werden. Ein erneuter Versuch hilft meistens.",
+  "error_boundary_reference": "Referenz",
+  "error_boundary_retry": "Erneut versuchen",
+  "error_boundary_home": "Zurück zur Startseite",
+  "not_found_title": "Seite nicht gefunden",
+  "not_found_message": "Diese Seite existiert nicht oder wurde verschoben.",
+  "not_found_home": "Zurück zur Startseite",
+  "not_found_menu": "Menü ansehen"
 }

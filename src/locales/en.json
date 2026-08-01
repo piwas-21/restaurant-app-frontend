@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "Failed",
   "image_backfill_stored": "Stored",
   "image_backfill_applied_single": "Applied — this is the rewritten file.",
-  "image_backfill_needs_review_badge": "Some files need a human eye before you apply"
+  "image_backfill_needs_review_badge": "Some files need a human eye before you apply",
+  "error_boundary_title": "Something went wrong",
+  "error_boundary_message": "This page could not be displayed. Trying again often fixes it.",
+  "error_boundary_reference": "Reference",
+  "error_boundary_retry": "Try again",
+  "error_boundary_home": "Back to home",
+  "not_found_title": "Page not found",
+  "not_found_message": "This page does not exist, or it has moved.",
+  "not_found_home": "Back to home",
+  "not_found_menu": "View the menu"
 }

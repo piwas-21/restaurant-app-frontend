@@ -286,13 +286,13 @@ test('the admin dashboard renders exactly the steps the API offers', async ({ br
     // E2E-STRATEGY §a11y: every browser-driving spec scans. This one renders a brand-new CSS
     // module across two template skins, which is the case that rationale was written for.
     //
-    // ONE narrow exclusion, per the strategy's "scope to selectors, never the page, and say why":
-    // `.nav-link.active` is the shared top-nav's current-page pill
-    // (src/app/app-internal-layout.tsx:174). It fails AA contrast on BOTH templates, it is global
-    // chrome rather than anything this feature renders, and it predates the checklist entirely —
-    // a real bug, tracked separately, but not one this spec should be the gate for. Delete this
-    // line the day it is fixed; if the checklist itself ever regresses, nothing here hides it.
-    await expectNoA11yViolations(page, { excludeSelectors: ['.nav-link.active'] });
+    // NO exclusions. This scan used to exclude `.nav-link.active` — the shared top-nav's
+    // current-page pill — because it failed AA contrast. Fixed 2026-08-01: the pill now reads
+    // --brand-primary-elevated, a token tuned against the pill's own washed background
+    // (classic dark was 3.55:1 and is now 5.5:1, measured on a deployed tenant). The exclusion
+    // is deleted rather than kept "just in case": it was scoped to one selector precisely so
+    // that removing the bug removes the exclusion with it.
+    await expectNoA11yViolations(page);
   } finally {
     await context.close();
   }

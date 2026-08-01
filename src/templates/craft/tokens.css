@@ -244,6 +244,14 @@ html[data-theme='dark'] {
 
   --brand-primary: #f2b48c; /* luminous apricot, 9.5:1 on the aubergine bg */
   --brand-accent: #e8c87c; /* pale saffron */
+  /* The apricot already clears AA on the nav pill (5.64:1 over the 5%-washed umber
+     header), so craft needs no separate dark value. This line is NOT redundant: the
+     shared dark block sets --brand-primary-elevated to a red tuned for classic's grey
+     header, and craft's block is later at equal specificity — delete this and craft's
+     nav pill turns RUMI pink on the aubergine palette. Craft's LIGHT side needs no
+     override: it inherits var(--brand-primary-dark) from the shared :root, which
+     resolves to craft's own #7a3a24 (5.88:1, up from the brand's failing 3.89:1). */
+  --brand-primary-elevated: var(--brand-primary);
 
   --surface-primary: #211a16; /* deep warm aubergine */
   --surface-secondary: #3e3630; /* dark umber */

@@ -36,12 +36,12 @@ interface FeaturedSpecialProps {
   onSwitchOrderType?: (type: OrderType) => void;
 }
 
-const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
+export default function FeaturedSpecial({
   special,
   onAddToCart,
   onViewDetails,
   onSwitchOrderType,
-}) => {
+}: Readonly<FeaturedSpecialProps>) {
   const { t } = useTranslation();
   // G7: the hero is an ENTRY POINT — a guest can order straight from it — so it carries the same
   // verdict, the same notice component and the same rule as a catalog card.
@@ -94,6 +94,11 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
               {special.name}
             </h2>
 
+            {/* Restored. It had been commented out rather than deleted, which left the hero as an
+                image, a name and a price — tall because of the photo and empty because its copy was
+                switched off. */}
+            {special.description && <p className={styles.featuredSpecialDescription}>{special.description}</p>}
+
             {special.preparationTimeMinutes > 0 && (
               <div className={styles.featuredSpecialTime}>
                 <Clock size={16} />
@@ -103,23 +108,11 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
               </div>
             )}
 
-            {/* {special.description && (
-              <p className={styles.featuredSpecialDescription}>{special.description}</p>
-            )} */}
-
             <div className={styles.featuredSpecialMeta}>
               <div className={styles.featuredSpecialPrice}>
-                {/* <span className={styles.priceLabel}>{t('price', 'Price')}:</span> */}
                 <span className={styles.priceValue}>{formatPlainCurrency(special.basePrice)}</span>
               </div>
             </div>
-
-            {/* {ingredientsList && ingredientsList.length > 0 && (
-              <div className={styles.featuredSpecialIngredients}>
-                <strong>{t('ingredients', 'Ingredients')}:</strong>{' '}
-                <span>{ingredientsList.join(', ')}</span>
-              </div>
-            )} */}
 
             {special.allergens && special.allergens.length > 0 && (
               <div className={styles.featuredSpecialAllergens}>
@@ -175,6 +168,4 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
       </div>
     </section>
   );
-};
-
-export default FeaturedSpecial;
+}

@@ -1,0 +1,59 @@
+name: token-probe
+
+run-name: token-probe (dispatched by ${{ github.actor }})
+
+# A workflow that deliberately does nothing.
+#
+# WHY IT EXISTS. The deploy repo holds `FRONTEND_DISPATCH_TOKEN`, a fine-grained PAT
+# whose entire job is to dispatch `build-tenant-image.yml` here when a tenant registry PR
+# is merged (runbook §0b). If that token expires or loses its grant, tenant provisioning
+# stops. `token-check.yml` on the deploy repo watches it — and to prove the token can
+# still WRITE, it has to perform a write, because a read proves nothing here:
+#
+#   - This repo is PUBLIC, so `GET /repos/...` returns 200 for ANY valid token,
+#     regardless of which repositories that token actually selected.
+#   - The `permissions` block the API returns describes the CALLER's role on the repo,
+#     not the token's grant.
+#
+# So the only honest proof of `Actions: read and write` is a real dispatch. Eight
+# workflows here are already dispatchable, but every one is the wrong thing to fire at a
+# token weekly: `deploy.yml` rolls PRODUCTION, `deploy-staging`/`deploy-demo-staging` roll
+# boxes, `build-image`/`build-tenant-image`/`build-demo-tenant`/`retag-mutable-tags` push
+# or move GHCR tags, and `security-audit`/`screenshots`, while side-effect-free, burn a
+# scan matrix and a Playwright run. This is the no-op stand-in: one echo, no checkout, no
+# secrets, no permissions.
+#
+# NOTE WHILE REASONING ABOUT THAT TOKEN'S BLAST RADIUS: `Actions: write` cannot be
+# narrowed to one workflow. `FRONTEND_DISPATCH_TOKEN` can dispatch every workflow in the
+# list above, `deploy.yml` included. Adding this file widens nothing — dispatch requires
+# that grant, which public visibility never confers — but the grant itself is broader
+# than "it can build a tenant image" suggests.
+#
+# WHAT PROVES THE TOKEN is the API answering **204** to
+# `POST /repos/piwas-21/restaurant-app-frontend/actions/workflows/token-probe.yml/dispatches`
+# — that endpoint requires `Actions: write` and answers 403 without it. This job then
+# running is a bonus, not the assertion; the checker does not wait for it.
+#
+# IT MUST STAY ON THE DEFAULT BRANCH (`develop`). The file has to be on the default branch
+# for the trigger to register at all; the definition that then executes comes from the
+# dispatched ref. Both are `develop` today, so a probe that only ever reached `main` would
+# be undispatchable — the same seam that bit the O3 chain's `run-name` matching.
+#
+# Do not give this job permissions, inputs, or a schedule. Its value is that there is
+# nothing here to abuse: anyone who can dispatch it gains an echo.
+
+on:
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  probe:
+    name: no-op
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Say so and stop
+        run: |
+          echo "token-probe: dispatched successfully."
+          echo "The dispatch itself is the assertion — see token-check.yml on the deploy repo."

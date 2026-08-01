@@ -19,11 +19,7 @@ interface CartItemCustomizationsProps {
 export default function CartItemCustomizations({ item, styles }: Readonly<CartItemCustomizationsProps>) {
   const { t } = useTranslation();
 
-  if (!(
-    item.selectedIngredientNames?.length ||
-    item.excludedIngredientNames?.length ||
-    item.selectedSideItems?.length
-  )) {
+  if (!(item.selectedIngredientNames?.length || item.selectedSideItems?.length)) {
     return null;
   }
 
@@ -48,13 +44,6 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
               );
             })}
           </span>
-        </div>
-      )}
-
-      {item.excludedIngredientNames && item.excludedIngredientNames.length > 0 && (
-        <div className={styles.customizationDetail}>
-          <span className={styles.customizationLabel}>{t('removed_ingredients', 'Removed')}:</span>
-          <span className={styles.customizationValue}>{item.excludedIngredientNames.join(', ')}</span>
         </div>
       )}
 

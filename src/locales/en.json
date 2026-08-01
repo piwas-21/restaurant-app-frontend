@@ -2497,5 +2497,9 @@
   "not_found_title": "Page not found",
   "not_found_message": "This page does not exist, or it has moved.",
   "not_found_home": "Back to home",
-  "not_found_menu": "View the menu"
+  "not_found_menu": "View the menu",
+  "admin_edit_price_locked_bundle": "A combo's price comes from the items in it",
+  "admin_edit_price_locked_variations": "Price is set per variation",
+  "admin_edit_price_invalid": "Enter a price of 0 or more",
+  "admin_edit_price_failed": "Could not save the price"
 }

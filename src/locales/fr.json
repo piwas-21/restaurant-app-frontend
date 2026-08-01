@@ -2497,5 +2497,9 @@
   "not_found_title": "Page introuvable",
   "not_found_message": "Cette page n'existe pas ou a été déplacée.",
   "not_found_home": "Retour à l'accueil",
-  "not_found_menu": "Voir le menu"
+  "not_found_menu": "Voir le menu",
+  "admin_edit_price_locked_bundle": "Le prix d'un menu provient des articles qu'il contient",
+  "admin_edit_price_locked_variations": "Le prix est défini par variante",
+  "admin_edit_price_invalid": "Saisissez un prix supérieur ou égal à 0",
+  "admin_edit_price_failed": "Impossible d'enregistrer le prix"
 }

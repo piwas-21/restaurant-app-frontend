@@ -2497,5 +2497,9 @@
   "not_found_title": "الصفحة غير موجودة",
   "not_found_message": "هذه الصفحة غير موجودة أو تم نقلها.",
   "not_found_home": "العودة إلى الصفحة الرئيسية",
-  "not_found_menu": "عرض القائمة"
+  "not_found_menu": "عرض القائمة",
+  "admin_edit_price_locked_bundle": "سعر الوجبة يأتي من الأصناف التي تتضمنها",
+  "admin_edit_price_locked_variations": "يُحدَّد السعر لكل خيار على حدة",
+  "admin_edit_price_invalid": "أدخل سعراً يساوي 0 أو أكثر",
+  "admin_edit_price_failed": "تعذّر حفظ السعر"
 }

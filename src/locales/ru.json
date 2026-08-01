@@ -2497,5 +2497,9 @@
   "not_found_title": "Страница не найдена",
   "not_found_message": "Такой страницы нет или она была перемещена.",
   "not_found_home": "На главную",
-  "not_found_menu": "Посмотреть меню"
+  "not_found_menu": "Посмотреть меню",
+  "admin_edit_price_locked_bundle": "Цена комбо складывается из входящих в него позиций",
+  "admin_edit_price_locked_variations": "Цена задаётся для каждого варианта",
+  "admin_edit_price_invalid": "Введите цену 0 или больше",
+  "admin_edit_price_failed": "Не удалось сохранить цену"
 }

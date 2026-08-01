@@ -38,7 +38,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     // fetchAll has its own try/catch (sets error state); fire-and-forget.

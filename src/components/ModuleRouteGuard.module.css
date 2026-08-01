@@ -39,6 +39,18 @@
   text-decoration: none;
 }
 
+/* `color` is restated because this is an <a> and globals.css:109's `a:hover` is (0,1,1),
+   which out-specifies the `.action` class above and repaints the label on hover. See the
+   longer note in app/styles/ErrorSurface.module.css. */
 .action:hover {
   background-color: var(--brand-primary-dark);
+  color: var(--text-on-primary);
+}
+
+/* Same dark-mode hover inversion this file shares with app/styles/ErrorSurface.module.css —
+   `--brand-primary-dark` is not overridden in either template's dark block while
+   `--text-on-primary` flips to near-black, so the hover lands at ~1.7:1. Fixed here in the
+   same change rather than left as the one surface that still has it. */
+html[data-theme='dark'] .action:hover {
+  background-color: var(--brand-primary-elevated);
 }

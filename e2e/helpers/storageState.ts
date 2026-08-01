@@ -8,9 +8,13 @@ import path from 'node:path';
  * (src/components/AuthContext.tsx) bootstraps from `user` + `auth_token` + `refresh_token` and does
  * nothing at all when any one of them is missing — it does not fall back to decoding the JWT. A
  * context carrying only the two tokens is therefore ANONYMOUS: the app renders the guest experience,
- * and role-guarded layouts redirect (the cashier layout pushes to `/login`, a route that does not
- * exist, so the app renders its 404). That redirect lands a few seconds after first paint, which is
- * why a spec asserting immediately could stay green while anything slower failed on a 404.
+ * and role-guarded layouts redirect (the cashier layout pushes to `/auth/login`). That redirect
+ * lands a few seconds after first paint, which is why a spec asserting immediately could stay green
+ * while anything slower failed on the sign-in page.
+ *
+ * Until BUGS-IMPROVEMENTS-PLAN D1 that push went to `/login`, which has never been a route, so the
+ * symptom was Next's bare 404 rather than a login form. If you are reading an old failure, that is
+ * what it was.
  *
  * One writer for every role fixture so the three-key contract is stated once.
  */

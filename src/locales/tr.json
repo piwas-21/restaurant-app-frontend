@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "Başarısız",
   "image_backfill_stored": "Kayıtlı",
   "image_backfill_applied_single": "Uygulandı — bu, yeniden yazılan dosyadır.",
-  "image_backfill_needs_review_badge": "Bazı dosyalar uygulamadan önce gözden geçirilmeli"
+  "image_backfill_needs_review_badge": "Bazı dosyalar uygulamadan önce gözden geçirilmeli",
+  "error_boundary_title": "Bir şeyler ters gitti",
+  "error_boundary_message": "Bu sayfa görüntülenemedi. Tekrar denemek genellikle sorunu çözer.",
+  "error_boundary_reference": "Referans",
+  "error_boundary_retry": "Tekrar dene",
+  "error_boundary_home": "Ana sayfaya dön",
+  "not_found_title": "Sayfa bulunamadı",
+  "not_found_message": "Bu sayfa mevcut değil veya taşınmış.",
+  "not_found_home": "Ana sayfaya dön",
+  "not_found_menu": "Menüyü görüntüle"
 }

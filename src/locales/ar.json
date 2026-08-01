@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "فشلت",
   "image_backfill_stored": "المخزَّنة",
   "image_backfill_applied_single": "تم التطبيق — هذا هو الملف بعد إعادة كتابته.",
-  "image_backfill_needs_review_badge": "بعض الملفات تحتاج مراجعة بشرية قبل التطبيق"
+  "image_backfill_needs_review_badge": "بعض الملفات تحتاج مراجعة بشرية قبل التطبيق",
+  "error_boundary_title": "حدث خطأ ما",
+  "error_boundary_message": "تعذّر عرض هذه الصفحة. غالبًا ما تُحل المشكلة بإعادة المحاولة.",
+  "error_boundary_reference": "المرجع",
+  "error_boundary_retry": "إعادة المحاولة",
+  "error_boundary_home": "العودة إلى الصفحة الرئيسية",
+  "not_found_title": "الصفحة غير موجودة",
+  "not_found_message": "هذه الصفحة غير موجودة أو تم نقلها.",
+  "not_found_home": "العودة إلى الصفحة الرئيسية",
+  "not_found_menu": "عرض القائمة"
 }

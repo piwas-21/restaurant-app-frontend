@@ -1,0 +1,113 @@
+/* The app's two "something is wrong" surfaces — the error boundary (error.tsx) and the
+   404 (not-found.tsx). Shared because they must not drift into two different-looking
+   answers to "this page is not the page you wanted".
+
+   Deliberately close to ModuleRouteGuard.module.css: all three render INSIDE the template
+   Shell, so the tenant's chrome is still around them and they should read as a page of
+   this app rather than as a browser error screen. The only visual difference is the icon
+   colour — a blocked module is normal, an error is not. Every value is an existing design
+   token from each template's tokens.css, so both templates skin this without a second copy. */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 60vh;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.icon {
+  color: var(--text-muted);
+}
+
+.iconError {
+  color: var(--error-color);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.message {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.primaryAction {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Both actions are <a> elements, and globals.css:109 carries `a:hover { color:
+   var(--link-hover-color) }`. That selector's specificity is (0,1,1) — the pseudo-class
+   counts — so it BEATS the plain `.primaryAction` class above and repaints the label on
+   hover: MEASURED in a browser, the light-theme button went from white-on-red to
+   #a00000-on-#890303, i.e. 6.48:1 at rest and 1.2:1 under the pointer. Restating `color`
+   at `.class:hover` (0,2,0) is what takes it back. Do not drop these lines as redundant
+   with the rules above — they are not, and the failure only appears on hover. */
+.primaryAction:hover {
+  background-color: var(--brand-primary-dark);
+  color: var(--text-on-primary);
+}
+
+/* Dark mode also needs its own BACKGROUND, and the token layer already explains why (see
+   the dark block of design-system/tokens/colors.css): in dark the brand is a LIGHT tint on
+   dark paper, so "pressed = darker" moves the wrong way. `--brand-primary-dark` is not
+   overridden in either template's dark block, while `--text-on-primary` flips to near-black
+   — leaving this hover at 1.72:1 on classic and 1.70:1 on craft even once the colour above
+   is pinned. Lightening instead gives 8.09:1 and 9.54:1. */
+html[data-theme='dark'] .primaryAction:hover {
+  background-color: var(--brand-primary-elevated);
+}
+
+.secondaryAction {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Same `a:hover` override as above — restate the colour, or the label turns into a link. */
+.secondaryAction:hover {
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+/* The digest is the ONLY thing tying what the user saw to the server-side Sentry event, so
+   it is shown rather than hidden — a support conversation that opens with a reference beats
+   one that opens with "it said error". Monospace because it gets read aloud and typed back;
+   `user-select: all` so one click copies the whole thing. */
+.digest {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  user-select: all;
+}

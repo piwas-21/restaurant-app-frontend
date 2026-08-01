@@ -2488,5 +2488,14 @@
   "image_backfill_outcome_failed": "Fallida",
   "image_backfill_stored": "Almacenada",
   "image_backfill_applied_single": "Aplicado: este es el archivo reescrito.",
-  "image_backfill_needs_review_badge": "Algunos archivos requieren revisión antes de aplicar"
+  "image_backfill_needs_review_badge": "Algunos archivos requieren revisión antes de aplicar",
+  "error_boundary_title": "Algo ha salido mal",
+  "error_boundary_message": "No se ha podido mostrar esta página. Volver a intentarlo suele funcionar.",
+  "error_boundary_reference": "Referencia",
+  "error_boundary_retry": "Reintentar",
+  "error_boundary_home": "Volver al inicio",
+  "not_found_title": "Página no encontrada",
+  "not_found_message": "Esta página no existe o se ha movido.",
+  "not_found_home": "Volver al inicio",
+  "not_found_menu": "Ver el menú"
 }

@@ -120,16 +120,4 @@ describe('useImageBackfill', () => {
     expect(result.current.report).toBeNull();
     expect(result.current.notice).toBe('7 preview file(s) removed.');
   });
-
-  it('passes the chosen file cap through to the service', async () => {
-    mockPreview.mockResolvedValue(report());
-    const { result } = renderHook(() => useImageBackfill());
-
-    act(() => result.current.setMaxFiles(25));
-    await act(async () => {
-      await result.current.preview();
-    });
-
-    expect(mockPreview).toHaveBeenCalledWith(25);
-  });
 });

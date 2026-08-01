@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Будет сэкономлено",
   "image_backfill_state_applied": "Применено",
   "image_backfill_state_dry_run": "Пробный запуск — ничего не перезаписано",
-  "image_backfill_truncated": "Остановлено на лимите — запустите снова, чтобы продолжить",
+  "image_backfill_truncated": "Остановлено на лимите одного запуска — файлы за ним отсюда недоступны",
   "image_backfill_has_failures": "Некоторые файлы не удалось обработать",
   "image_backfill_settings": "Длинная сторона {{edge}} px, качество {{quality}} — те же настройки, что и для новых загрузок.",
   "image_backfill_before": "До",
   "image_backfill_after": "После",
-  "image_backfill_no_candidate": "Кандидат не создан — обе панели показывают сохранённый файл.",
+  "image_backfill_no_candidate": "Кандидат не создан — это сохранённый файл без изменений.",
   "image_backfill_outcome_resized": "Уменьшено",
   "image_backfill_outcome_recompressed": "Пересжато",
   "image_backfill_outcome_skipped_no_gain": "Без выигрыша",
   "image_backfill_outcome_skipped_unprocessable": "Не обрабатывается",
   "image_backfill_outcome_needs_review": "Нужна проверка",
-  "image_backfill_outcome_failed": "Ошибка"
+  "image_backfill_outcome_failed": "Ошибка",
+  "image_backfill_stored": "Сохранённое",
+  "image_backfill_applied_single": "Применено — это перезаписанный файл.",
+  "image_backfill_needs_review_badge": "Некоторые файлы нужно просмотреть до применения"
 }

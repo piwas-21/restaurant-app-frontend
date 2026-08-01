@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "سيتم توفيره",
   "image_backfill_state_applied": "تم التطبيق",
   "image_backfill_state_dry_run": "تشغيل تجريبي — لم يتم استبدال أي شيء",
-  "image_backfill_truncated": "توقف عند الحد — شغّله مرة أخرى للمتابعة",
+  "image_backfill_truncated": "توقف عند الحد الأقصى لكل تشغيل — الملفات بعده غير قابلة للوصول من هنا",
   "image_backfill_has_failures": "تعذّرت معالجة بعض الملفات",
   "image_backfill_settings": "أطول ضلع {{edge}} بكسل، الجودة {{quality}} — نفس الإعدادات المستخدمة للرفع الجديد.",
   "image_backfill_before": "قبل",
   "image_backfill_after": "بعد",
-  "image_backfill_no_candidate": "لم يتم إنشاء نسخة مرشّحة — يعرض الجانبان الملف المخزَّن نفسه.",
+  "image_backfill_no_candidate": "لم يتم إنشاء نسخة مرشّحة — هذا هو الملف المخزَّن دون تغيير.",
   "image_backfill_outcome_resized": "تم تغيير الحجم",
   "image_backfill_outcome_recompressed": "أُعيد ضغطها",
   "image_backfill_outcome_skipped_no_gain": "لا فائدة",
   "image_backfill_outcome_skipped_unprocessable": "غير قابلة للمعالجة",
   "image_backfill_outcome_needs_review": "تحتاج مراجعة",
-  "image_backfill_outcome_failed": "فشلت"
+  "image_backfill_outcome_failed": "فشلت",
+  "image_backfill_stored": "المخزَّنة",
+  "image_backfill_applied_single": "تم التطبيق — هذا هو الملف بعد إعادة كتابته.",
+  "image_backfill_needs_review_badge": "بعض الملفات تحتاج مراجعة بشرية قبل التطبيق"
 }

@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Économiserait",
   "image_backfill_state_applied": "Appliqué",
   "image_backfill_state_dry_run": "Simulation — rien n'a été écrasé",
-  "image_backfill_truncated": "Arrêté à la limite — relancez pour continuer",
+  "image_backfill_truncated": "Arrêté à la limite par exécution — les fichiers au-delà ne sont pas accessibles d'ici",
   "image_backfill_has_failures": "Certains fichiers n'ont pas pu être traités",
   "image_backfill_settings": "Bord le plus long {{edge}} px, qualité {{quality}} — les mêmes réglages que pour les nouveaux imports.",
   "image_backfill_before": "Avant",
   "image_backfill_after": "Après",
-  "image_backfill_no_candidate": "Aucun candidat n'a été généré — les deux volets montrent le fichier stocké.",
+  "image_backfill_no_candidate": "Aucun candidat n'a été généré — voici le fichier stocké, inchangé.",
   "image_backfill_outcome_resized": "Redimensionnée",
   "image_backfill_outcome_recompressed": "Recompressée",
   "image_backfill_outcome_skipped_no_gain": "Aucun gain",
   "image_backfill_outcome_skipped_unprocessable": "Non traitable",
   "image_backfill_outcome_needs_review": "À vérifier",
-  "image_backfill_outcome_failed": "Échec"
+  "image_backfill_outcome_failed": "Échec",
+  "image_backfill_stored": "Enregistrée",
+  "image_backfill_applied_single": "Appliqué — voici le fichier réécrit.",
+  "image_backfill_needs_review_badge": "Certains fichiers doivent être vérifiés avant d'appliquer"
 }

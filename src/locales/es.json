@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Se ahorrarían",
   "image_backfill_state_applied": "Aplicado",
   "image_backfill_state_dry_run": "Simulación: no se ha sobrescrito nada",
-  "image_backfill_truncated": "Detenido en el límite: vuelve a ejecutarlo para continuar",
+  "image_backfill_truncated": "Detenido en el límite por ejecución: los archivos posteriores no son accesibles desde aquí",
   "image_backfill_has_failures": "Algunos archivos no se pudieron procesar",
   "image_backfill_settings": "Lado más largo {{edge}} px, calidad {{quality}}: los mismos ajustes que usan las subidas nuevas.",
   "image_backfill_before": "Antes",
   "image_backfill_after": "Después",
-  "image_backfill_no_candidate": "No se ha generado ningún candidato: ambos paneles muestran el archivo almacenado.",
+  "image_backfill_no_candidate": "No se ha generado ningún candidato: este es el archivo almacenado, sin cambios.",
   "image_backfill_outcome_resized": "Redimensionada",
   "image_backfill_outcome_recompressed": "Recomprimida",
   "image_backfill_outcome_skipped_no_gain": "Sin ganancia",
   "image_backfill_outcome_skipped_unprocessable": "No procesable",
   "image_backfill_outcome_needs_review": "Requiere revisión",
-  "image_backfill_outcome_failed": "Fallida"
+  "image_backfill_outcome_failed": "Fallida",
+  "image_backfill_stored": "Almacenada",
+  "image_backfill_applied_single": "Aplicado: este es el archivo reescrito.",
+  "image_backfill_needs_review_badge": "Algunos archivos requieren revisión antes de aplicar"
 }

@@ -62,3 +62,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* One pane, not a pair: shown when there is no second image to compare against (an applied
+   run, or a dry run that produced no candidate). Capped so a lone image does not stretch to
+   the full card width and read as a different, larger rendering than its paired sibling. */
+.single {
+  display: grid;
+  grid-template-columns: minmax(0, calc(50% - 0.5rem));
+}

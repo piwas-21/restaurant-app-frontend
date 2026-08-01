@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "将节省",
   "image_backfill_state_applied": "已应用",
   "image_backfill_state_dry_run": "试运行 — 未覆盖任何文件",
-  "image_backfill_truncated": "已达上限而停止 — 再次运行以继续",
+  "image_backfill_truncated": "已达单次运行上限 — 超出的文件无法从此页面处理",
   "image_backfill_has_failures": "部分文件无法处理",
   "image_backfill_settings": "最长边 {{edge}} 像素，质量 {{quality}} — 与新上传使用相同的设置。",
   "image_backfill_before": "处理前",
   "image_backfill_after": "处理后",
-  "image_backfill_no_candidate": "未生成候选文件 — 两侧显示的都是已存储的文件。",
+  "image_backfill_no_candidate": "未生成候选文件 — 这是未更改的已存储文件。",
   "image_backfill_outcome_resized": "已调整尺寸",
   "image_backfill_outcome_recompressed": "已重新压缩",
   "image_backfill_outcome_skipped_no_gain": "无收益",
   "image_backfill_outcome_skipped_unprocessable": "无法处理",
   "image_backfill_outcome_needs_review": "需人工检查",
-  "image_backfill_outcome_failed": "失败"
+  "image_backfill_outcome_failed": "失败",
+  "image_backfill_stored": "已存储",
+  "image_backfill_applied_single": "已应用 — 这是重写后的文件。",
+  "image_backfill_needs_review_badge": "部分文件需人工检查后再应用"
 }

@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Kazanılacak",
   "image_backfill_state_applied": "Uygulandı",
   "image_backfill_state_dry_run": "Deneme çalışması — hiçbir şey değiştirilmedi",
-  "image_backfill_truncated": "Sınırda durdu — devam etmek için tekrar çalıştırın",
+  "image_backfill_truncated": "Çalıştırma başına sınırda durdu — bunun ötesindeki dosyalara buradan erişilemez",
   "image_backfill_has_failures": "Bazı dosyalar işlenemedi",
   "image_backfill_settings": "En uzun kenar {{edge}} px, kalite {{quality}} — yeni yüklemelerle aynı ayarlar.",
   "image_backfill_before": "Önce",
   "image_backfill_after": "Sonra",
-  "image_backfill_no_candidate": "Aday dosya oluşturulmadı — her iki bölmede de kayıtlı dosya görünüyor.",
+  "image_backfill_no_candidate": "Aday dosya oluşturulmadı — bu, kayıtlı dosyanın değişmemiş hâli.",
   "image_backfill_outcome_resized": "Yeniden boyutlandırıldı",
   "image_backfill_outcome_recompressed": "Yeniden sıkıştırıldı",
   "image_backfill_outcome_skipped_no_gain": "Kazanç yok",
   "image_backfill_outcome_skipped_unprocessable": "İşlenemez",
   "image_backfill_outcome_needs_review": "İnceleme gerekli",
-  "image_backfill_outcome_failed": "Başarısız"
+  "image_backfill_outcome_failed": "Başarısız",
+  "image_backfill_stored": "Kayıtlı",
+  "image_backfill_applied_single": "Uygulandı — bu, yeniden yazılan dosyadır.",
+  "image_backfill_needs_review_badge": "Bazı dosyalar uygulamadan önce gözden geçirilmeli"
 }

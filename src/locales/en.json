@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Would save",
   "image_backfill_state_applied": "Applied",
   "image_backfill_state_dry_run": "Dry run — nothing overwritten",
-  "image_backfill_truncated": "Stopped at the limit — run again to continue",
+  "image_backfill_truncated": "Stopped at the per-run limit — files past it are not reachable from here",
   "image_backfill_has_failures": "Some files could not be processed",
   "image_backfill_settings": "Longest edge {{edge}} px, quality {{quality}} — the same settings new uploads use.",
   "image_backfill_before": "Before",
   "image_backfill_after": "After",
-  "image_backfill_no_candidate": "No candidate was written — both panes show the stored file.",
+  "image_backfill_no_candidate": "No candidate was written — this is the stored file, unchanged.",
   "image_backfill_outcome_resized": "Resized",
   "image_backfill_outcome_recompressed": "Recompressed",
   "image_backfill_outcome_skipped_no_gain": "No gain",
   "image_backfill_outcome_skipped_unprocessable": "Unprocessable",
   "image_backfill_outcome_needs_review": "Needs review",
-  "image_backfill_outcome_failed": "Failed"
+  "image_backfill_outcome_failed": "Failed",
+  "image_backfill_stored": "Stored",
+  "image_backfill_applied_single": "Applied — this is the rewritten file.",
+  "image_backfill_needs_review_badge": "Some files need a human eye before you apply"
 }

@@ -2,11 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  imageMaintenanceService,
-  MAX_FILES_PER_RUN,
-  type ImageBackfillReport,
-} from '@/services/imageMaintenanceService';
+import { imageMaintenanceService, type ImageBackfillReport } from '@/services/imageMaintenanceService';
 import { getErrorMessage } from '@/utils/apiClient';
 
 /**
@@ -22,7 +18,6 @@ export function useImageBackfill() {
   const [busy, setBusy] = useState<'preview' | 'apply' | 'clear' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [maxFiles, setMaxFiles] = useState(MAX_FILES_PER_RUN);
 
   const run = useCallback(async (kind: 'preview' | 'apply' | 'clear', action: () => Promise<void>) => {
     setBusy(kind);
@@ -40,15 +35,15 @@ export function useImageBackfill() {
   const preview = useCallback(
     () =>
       run('preview', async () => {
-        setReport(await imageMaintenanceService.previewBackfill(maxFiles));
+        setReport(await imageMaintenanceService.previewBackfill());
       }),
-    [run, maxFiles],
+    [run],
   );
 
   const apply = useCallback(
     () =>
       run('apply', async () => {
-        const applied = await imageMaintenanceService.applyBackfill(maxFiles);
+        const applied = await imageMaintenanceService.applyBackfill();
         setReport(applied);
         setNotice(
           t('image_backfill_applied_notice', {
@@ -57,7 +52,7 @@ export function useImageBackfill() {
           }),
         );
       }),
-    [run, maxFiles, t],
+    [run, t],
   );
 
   const clearPreviews = useCallback(
@@ -83,8 +78,6 @@ export function useImageBackfill() {
     busy,
     error,
     notice,
-    maxFiles,
-    setMaxFiles,
     preview,
     apply,
     clearPreviews,

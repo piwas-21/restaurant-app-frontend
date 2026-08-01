@@ -70,13 +70,21 @@
   margin-bottom: 1rem;
 }
 
+/* Both banners sit on the CARD surface with a coloured rule, rather than on a *-xlight tint.
+   The tints do not flip for dark mode while the text tokens do, so tint pairings collapse
+   exactly where these two lines matter most — measured: success-text on success-xlight is
+   1.79:1 in dark, and danger-dark on danger-xlight is 2.25:1. The pairings below are what the
+   -text tokens are documented for and they clear AA in BOTH themes:
+     notice  7.87 light / 8.65 dark      error  5.61 light / 6.27 dark */
 .error {
-  background: var(--feedback-danger-xlight);
+  background: var(--surface-primary);
+  border-left: 3px solid var(--feedback-danger);
   color: var(--feedback-danger-dark);
 }
 
 .notice {
-  background: var(--feedback-success-xlight);
+  background: var(--surface-primary);
+  border-left: 3px solid var(--feedback-success);
   color: var(--feedback-success-text);
 }
 

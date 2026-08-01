@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Zou besparen",
   "image_backfill_state_applied": "Toegepast",
   "image_backfill_state_dry_run": "Testrun — niets overschreven",
-  "image_backfill_truncated": "Gestopt bij de limiet — voer opnieuw uit om door te gaan",
+  "image_backfill_truncated": "Gestopt bij de limiet per run — bestanden daarna zijn hier niet bereikbaar",
   "image_backfill_has_failures": "Sommige bestanden konden niet worden verwerkt",
   "image_backfill_settings": "Langste zijde {{edge}} px, kwaliteit {{quality}} — dezelfde instellingen als bij nieuwe uploads.",
   "image_backfill_before": "Voor",
   "image_backfill_after": "Na",
-  "image_backfill_no_candidate": "Er is geen kandidaat weggeschreven — beide panelen tonen het opgeslagen bestand.",
+  "image_backfill_no_candidate": "Er is geen kandidaat weggeschreven — dit is het opgeslagen bestand, ongewijzigd.",
   "image_backfill_outcome_resized": "Verkleind",
   "image_backfill_outcome_recompressed": "Opnieuw gecomprimeerd",
   "image_backfill_outcome_skipped_no_gain": "Geen winst",
   "image_backfill_outcome_skipped_unprocessable": "Niet verwerkbaar",
   "image_backfill_outcome_needs_review": "Controle nodig",
-  "image_backfill_outcome_failed": "Mislukt"
+  "image_backfill_outcome_failed": "Mislukt",
+  "image_backfill_stored": "Opgeslagen",
+  "image_backfill_applied_single": "Toegepast — dit is het overschreven bestand.",
+  "image_backfill_needs_review_badge": "Sommige bestanden moeten eerst worden bekeken"
 }

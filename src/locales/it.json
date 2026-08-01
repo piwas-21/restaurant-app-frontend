@@ -2474,16 +2474,19 @@
   "image_backfill_would_save": "Risparmierebbe",
   "image_backfill_state_applied": "Applicato",
   "image_backfill_state_dry_run": "Prova — nulla è stato sovrascritto",
-  "image_backfill_truncated": "Interrotto al limite: esegui di nuovo per continuare",
+  "image_backfill_truncated": "Interrotto al limite per esecuzione: i file successivi non sono raggiungibili da qui",
   "image_backfill_has_failures": "Alcuni file non sono stati elaborati",
   "image_backfill_settings": "Lato più lungo {{edge}} px, qualità {{quality}}: le stesse impostazioni dei nuovi caricamenti.",
   "image_backfill_before": "Prima",
   "image_backfill_after": "Dopo",
-  "image_backfill_no_candidate": "Nessun candidato è stato scritto: entrambi i riquadri mostrano il file archiviato.",
+  "image_backfill_no_candidate": "Nessun candidato è stato scritto: questo è il file archiviato, invariato.",
   "image_backfill_outcome_resized": "Ridimensionata",
   "image_backfill_outcome_recompressed": "Ricompressa",
   "image_backfill_outcome_skipped_no_gain": "Nessun guadagno",
   "image_backfill_outcome_skipped_unprocessable": "Non elaborabile",
   "image_backfill_outcome_needs_review": "Da verificare",
-  "image_backfill_outcome_failed": "Non riuscita"
+  "image_backfill_outcome_failed": "Non riuscita",
+  "image_backfill_stored": "Archiviata",
+  "image_backfill_applied_single": "Applicato: questo è il file riscritto.",
+  "image_backfill_needs_review_badge": "Alcuni file vanno controllati prima di applicare"
 }

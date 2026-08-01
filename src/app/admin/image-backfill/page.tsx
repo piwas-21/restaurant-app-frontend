@@ -22,7 +22,7 @@ function ImageBackfillPage() {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <AdminAuthGuard>
+    <AdminAuthGuard requiredRoles={['Admin']}>
       <div className={styles.container}>
         <header className={styles.header}>
           <h1 className={styles.title}>{t('admin_image_backfill_title', 'Image Backfill')}</h1>
@@ -63,7 +63,7 @@ function ImageBackfillPage() {
             ) : (
               <div className={styles.entries}>
                 {report.entries.map((entry) => (
-                  <BackfillEntryCard key={entry.relativePath} entry={entry} />
+                  <BackfillEntryCard key={entry.relativePath} entry={entry} applied={report.applied} />
                 ))}
               </div>
             )}

@@ -35,7 +35,7 @@ interface BackfillEntryCardProps {
  * bytes actually in storage — a before/after that can only ever look acceptable. Judging the
  * real output is the entire point of this screen, so the lint rule loses here.
  */
-export default function BackfillEntryCard({ entry, applied }: BackfillEntryCardProps) {
+export default function BackfillEntryCard({ entry, applied }: Readonly<BackfillEntryCardProps>) {
   const { t } = useTranslation();
   const changed = entry.outcome === 'resized' || entry.outcome === 'recompressed';
   // A pair needs two DIFFERENT images. There is a second image only on a dry run that actually
@@ -54,7 +54,7 @@ export default function BackfillEntryCard({ entry, applied }: BackfillEntryCardP
             here as undefined -> no tone at all. A new outcome is far likelier to be a problem
             state than a benign one, so the unknown case must not render as the calm one. */}
         <StatusBadge tone={OUTCOME_TONE[entry.outcome] ?? 'warning'}>
-          {t(`image_backfill_outcome_${entry.outcome.replace(/-/g, '_')}`, entry.outcome)}
+          {t(`image_backfill_outcome_${entry.outcome.replaceAll('-', '_')}`, entry.outcome)}
         </StatusBadge>
       </header>
 

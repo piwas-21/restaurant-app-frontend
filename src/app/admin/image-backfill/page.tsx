@@ -35,17 +35,18 @@ function ImageBackfillPage() {
         </header>
 
         <div className={styles.actions}>
-          <button className={styles.primary} onClick={preview} disabled={busy !== null}>
+          <button type="button" className={styles.primary} onClick={preview} disabled={busy !== null}>
             {busy === 'preview' ? t('image_backfill_scanning', 'Scanning…') : t('image_backfill_preview', 'Preview')}
           </button>
           <button
+            type="button"
             className={styles.danger}
             onClick={() => setConfirming(true)}
             disabled={busy !== null || !applyEnabled}
           >
             {busy === 'apply' ? t('image_backfill_applying', 'Applying…') : t('image_backfill_apply', 'Apply')}
           </button>
-          <button className={styles.secondary} onClick={clearPreviews} disabled={busy !== null}>
+          <button type="button" className={styles.secondary} onClick={clearPreviews} disabled={busy !== null}>
             {t('image_backfill_clear_previews', 'Clear previews')}
           </button>
         </div>

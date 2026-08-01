@@ -11,7 +11,7 @@ interface BackfillSummaryProps {
 }
 
 /** Headline numbers for a run, plus the two states that change what the admin should do next. */
-export default function BackfillSummary({ report }: BackfillSummaryProps) {
+export default function BackfillSummary({ report }: Readonly<BackfillSummaryProps>) {
   const { t } = useTranslation();
   // Derived here because the backend has nowhere to put it: Tally's `default:` arm counts
   // needs-review into FilesSkipped, so the report's own numbers describe the one outcome that

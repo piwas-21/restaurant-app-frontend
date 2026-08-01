@@ -145,7 +145,7 @@ export function useTakeOrder({ tableNumber, onClose, onOrderCreated }: UseTakeOr
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         specialInstructions: item.notes,
-        // Note: excludedIngredients, addedIngredients, sideItems would need backend support
+        // Note: addedIngredients and sideItems would need backend support
       }));
 
       await createServerOrder(

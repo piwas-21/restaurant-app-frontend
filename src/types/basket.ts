@@ -60,13 +60,11 @@ export interface BasketItemDto {
   specialInstructions?: string;
   // Customization fields for optional ingredients
   selectedIngredients?: string[]; // IDs of selected optional ingredients
-  excludedIngredients?: string[]; // IDs of ingredients to exclude
   addedIngredients?: string[]; // IDs of optional ingredients added
   ingredientQuantities?: Record<string, number>; // Quantity for each optional ingredient
   customizationPrice?: number; // Additional price from customizations
   // Ingredient names for display purposes
   selectedIngredientNames?: string[];
-  excludedIngredientNames?: string[];
   addedIngredientNames?: string[];
   // Selected side items with quantities
   selectedSideItems?: BasketSideItemDto[];
@@ -126,7 +124,6 @@ export interface AddToBasketDto {
   quantity: number;
   specialInstructions?: string;
   selectedIngredients?: string[];
-  excludedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
   selectedSideItems?: Array<{ id: string; quantity: number }>;
   selectedMenuOptions?: Array<{
@@ -135,7 +132,6 @@ export interface AddToBasketDto {
     quantity: number;
     specialInstructions?: string;
     selectedIngredients?: string[];
-    excludedIngredients?: string[];
     ingredientQuantities?: Record<string, number>;
   }>;
 }

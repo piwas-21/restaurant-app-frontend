@@ -23,7 +23,6 @@ function makeResult(overrides: Partial<CustomizationResult> = {}): Customization
     productId: 'p1',
     variationId: undefined,
     variationName: undefined,
-    excludedIngredients: [],
     addedIngredients: [],
     sideItems: [],
     specialInstructions: undefined,
@@ -74,7 +73,6 @@ describe('addCustomizedItem', () => {
     const result = makeResult({
       variationId: 'v1',
       variationName: 'Large',
-      excludedIngredients: ['Onion'],
       addedIngredients: [{ id: 'a1', name: 'Cheese', price: 1 }],
       sideItems: [{ id: 's1', name: 'Fries', quantity: 1, price: 2 }],
       specialInstructions: 'Extra hot',
@@ -87,8 +85,8 @@ describe('addCustomizedItem', () => {
     expect(next[0].quantity).toBe(1);
     expect(next[0].unitPrice).toBe(18);
     expect(next[0].variationId).toBe('v1');
-    // Note format: variationName | No: … | Add: … | Sides: … | specialInstructions
-    expect(next[0].notes).toBe('Large | No: Onion | Add: Cheese | Sides: Fries | Extra hot');
+    // Note format: variationName | Add: … | Sides: … | specialInstructions
+    expect(next[0].notes).toBe('Large | Add: Cheese | Sides: Fries | Extra hot');
   });
 
   it('leaves notes undefined when there are no customization parts', () => {

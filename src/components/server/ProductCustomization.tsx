@@ -47,7 +47,6 @@ export interface CustomizationResult {
   productId: string;
   variationId?: string;
   variationName?: string;
-  excludedIngredients: string[];
   addedIngredients: Array<{ id: string; name: string; price: number }>;
   sideItems: Array<{ id: string; name: string; quantity: number; price: number }>;
   specialInstructions?: string;
@@ -68,7 +67,6 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
   const [isLoading, setIsLoading] = useState(true);
   const [detailedProduct, setDetailedProduct] = useState<any>(null);
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
-  const [excludedIngredients, setExcludedIngredients] = useState<Set<string>>(new Set());
   const [addedOptionalIngredients, setAddedOptionalIngredients] = useState<Set<string>>(new Set());
   const [selectedSideItems, setSelectedSideItems] = useState<Map<string, number>>(new Map());
   const [specialInstructions, setSpecialInstructions] = useState('');
@@ -86,7 +84,6 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
           setDetailedProduct(response.data);
 
           // Reset selections
-          setExcludedIngredients(new Set());
           setAddedOptionalIngredients(new Set());
           setSelectedSideItems(new Map());
           setSelectedVariation(null);
@@ -200,7 +197,6 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
       productId: product.id,
       variationId: selectedVariation?.id,
       variationName: selectedVariation ? getLocalizedName(selectedVariation) : undefined,
-      excludedIngredients: Array.from(excludedIngredients),
       addedIngredients: Array.from(addedOptionalIngredients).map((id) => {
         const ing = optionalIngredients.find((i: DetailedIngredient) => i.id === id);
         return { id, name: getLocalizedName(ing), price: ing?.price || 0 };

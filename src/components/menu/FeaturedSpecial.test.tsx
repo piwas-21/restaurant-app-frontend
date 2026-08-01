@@ -13,6 +13,10 @@ jest.mock('react-i18next', () => ({
 jest.mock('@/hooks/menu/useTrackItemBlocked', () => ({ useTrackItemBlocked: jest.fn() }));
 jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
   useItemAvailabilityNotice: jest.fn(() => null),
+  // The predicate is deliberately NOT stubbed. It is the thing under test here — the three item
+  // surfaces diverged precisely because each derived "blocked" for itself, and a mock would let
+  // that happen again invisibly.
+  isItemBlocked: jest.requireActual('@/hooks/menu/useItemAvailabilityNotice').isItemBlocked,
 }));
 
 const mockedNotice = useItemAvailabilityNotice as jest.Mock;

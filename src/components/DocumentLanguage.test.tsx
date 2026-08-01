@@ -26,32 +26,19 @@ describe('DocumentLanguage', () => {
     document.documentElement.setAttribute('dir', 'ltr');
   });
 
-  it('leaves an English document alone', () => {
+  // `zh` earns its row: it is the half with no downside — correct speech synthesis and font
+  // selection with zero layout movement. `ar-EG` earns its row because a browser sends the regioned
+  // tag, and matching only the exact string `ar` would leave a real visitor left-to-right.
+  it.each([
+    ['en', 'en', 'ltr'],
+    ['ar', 'ar', 'rtl'],
+    ['zh', 'zh', 'ltr'],
+    ['ar-EG', 'ar', 'rtl'],
+  ])('i18n language %s -> lang=%s dir=%s', (language, expectedLang, expectedDir) => {
+    mockLanguage = language;
     render(<DocumentLanguage />);
-    expect(document.documentElement.lang).toBe('en');
-    expect(document.documentElement.dir).toBe('ltr');
-  });
-
-  it('sets lang and dir for Arabic', () => {
-    mockLanguage = 'ar';
-    render(<DocumentLanguage />);
-    expect(document.documentElement.lang).toBe('ar');
-    expect(document.documentElement.dir).toBe('rtl');
-  });
-
-  it('sets lang without flipping direction for a non-RTL locale', () => {
-    // The half with no downside: correct speech synthesis and font selection, zero layout movement.
-    mockLanguage = 'zh';
-    render(<DocumentLanguage />);
-    expect(document.documentElement.lang).toBe('zh');
-    expect(document.documentElement.dir).toBe('ltr');
-  });
-
-  it('normalises a regioned tag', () => {
-    mockLanguage = 'ar-EG';
-    render(<DocumentLanguage />);
-    expect(document.documentElement.lang).toBe('ar');
-    expect(document.documentElement.dir).toBe('rtl');
+    expect(document.documentElement.lang).toBe(expectedLang);
+    expect(document.documentElement.dir).toBe(expectedDir);
   });
 
   it('switches BACK to ltr when the language changes away from Arabic', () => {

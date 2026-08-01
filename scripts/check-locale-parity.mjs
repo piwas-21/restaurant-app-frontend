@@ -81,12 +81,18 @@ const englishValues = JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf
 /** Keys whose value is byte-identical to en.json. Blank values are absence, not a match. */
 function untranslatedKeys(file) {
   const parsed = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
-  return Object.entries(parsed)
-    .filter(
-      ([k, v]) => typeof v === 'string' && typeof englishValues[k] === 'string' && v === englishValues[k] && v.trim(),
-    )
-    .map(([k]) => k)
-    .sort();
+  return (
+    Object.entries(parsed)
+      .filter(
+        ([k, v]) => typeof v === 'string' && typeof englishValues[k] === 'string' && v === englishValues[k] && v.trim(),
+      )
+      .map(([k]) => k)
+      // Explicit comparator, and pinned to 'en': the result is written to a baseline file that gets
+      // diffed and reviewed, so the order has to be identical on every machine and in CI. A bare
+      // `.sort()` sorts by UTF-16 code unit and `localeCompare` without a locale follows the host's,
+      // either of which can reorder the file for no reason.
+      .sort((a, b) => a.localeCompare(b, 'en'))
+  );
 }
 
 const current = {};

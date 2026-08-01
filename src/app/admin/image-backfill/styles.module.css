@@ -1,0 +1,106 @@
+.container {
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.35rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 65ch;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.primary,
+.secondary,
+.danger {
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.secondary {
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.danger {
+  background: var(--feedback-danger-xlight);
+  color: var(--feedback-danger-dark);
+  border-color: var(--feedback-danger-light);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.error,
+.notice {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Both banners sit on the CARD surface with a coloured rule, rather than on a *-xlight tint.
+   The tints do not flip for dark mode while the text tokens do, so tint pairings collapse
+   exactly where these two lines matter most — measured: success-text on success-xlight is
+   1.79:1 in dark, and danger-dark on danger-xlight is 2.25:1. The pairings below are what the
+   -text tokens are documented for and they clear AA in BOTH themes:
+     notice  7.87 light / 8.65 dark      error  5.61 light / 6.27 dark */
+.error {
+  background: var(--surface-primary);
+  border-left: 3px solid var(--feedback-danger);
+  color: var(--feedback-danger-dark);
+}
+
+.notice {
+  background: var(--surface-primary);
+  border-left: 3px solid var(--feedback-success);
+  color: var(--feedback-success-text);
+}
+
+.empty {
+  color: var(--text-secondary);
+  padding: 1.5rem 0;
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (max-width: 700px) {
+  .container {
+    padding: 1rem;
+  }
+}

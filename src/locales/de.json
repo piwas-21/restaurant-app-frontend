@@ -1251,7 +1251,7 @@
   "login_to_track_reservation": "Anmelden, um Ihre Reservierung zu verfolgen",
   "create_account_to_track": "💡 Erstellen Sie ein Konto, um alle Ihre Reservierungen einfach zu verfolgen und online zu verwalten.",
   "select_your_table": "Wählen Sie Ihren Tisch",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Wählen Sie Ihre(n) Tisch(e)",
   "tables_count_selected": "{{count}} ausgewählt",
   "enter_guests": "Nummer eingeben",
   "book_your_table": "Buchen Sie Ihren Tisch",
@@ -2497,5 +2497,8 @@
   "not_found_title": "Seite nicht gefunden",
   "not_found_message": "Diese Seite existiert nicht oder wurde verschoben.",
   "not_found_home": "Zurück zur Startseite",
-  "not_found_menu": "Menü ansehen"
+  "not_found_menu": "Menü ansehen",
+  "scroll_categories_back": "Kategorien zurückblättern",
+  "scroll_categories_forward": "Kategorien weiterblättern",
+  "category_navigation_aria": "Kategorienavigation"
 }

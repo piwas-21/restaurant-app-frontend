@@ -2497,5 +2497,8 @@
   "not_found_title": "页面未找到",
   "not_found_message": "此页面不存在，或已被移动。",
   "not_found_home": "返回首页",
-  "not_found_menu": "查看菜单"
+  "not_found_menu": "查看菜单",
+  "scroll_categories_back": "向前滚动分类",
+  "scroll_categories_forward": "向后滚动分类",
+  "category_navigation_aria": "分类导航"
 }

@@ -1253,7 +1253,7 @@
   "login_to_track_reservation": "Rezervasyonunuzu Takip Etmek İçin Giriş Yapın",
   "create_account_to_track": "💡 Tüm rezervasyonlarınızı kolayca takip etmek ve çevrimiçi yönetmek için bir hesap oluşturun.",
   "select_your_table": "Masanızı Seçin",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Masanızı/Masalarınızı seçin",
   "tables_count_selected": "{{count}} seçildi",
   "enter_guests": "Sayı girin",
   "book_your_table": "Masanızı ayırtın",
@@ -2497,5 +2497,8 @@
   "not_found_title": "Sayfa bulunamadı",
   "not_found_message": "Bu sayfa mevcut değil veya taşınmış.",
   "not_found_home": "Ana sayfaya dön",
-  "not_found_menu": "Menüyü görüntüle"
+  "not_found_menu": "Menüyü görüntüle",
+  "scroll_categories_back": "Kategorileri geri kaydır",
+  "scroll_categories_forward": "Kategorileri ileri kaydır",
+  "category_navigation_aria": "Kategori gezinmesi"
 }

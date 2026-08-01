@@ -5,7 +5,7 @@
 //
 // Usage: node scripts/check-locale-parity.mjs
 // Exit 0 = parity holds; exit 1 = report printed, parity broken.
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const LOCALES_DIR = new URL('../src/locales', import.meta.url).pathname;
@@ -59,3 +59,74 @@ if (broken) {
   process.exit(1);
 }
 console.log(`✓ locale parity holds across ${files.length} locales (${reference.size} keys each)`);
+
+// ── Untranslated-value gate ───────────────────────────────────────────────────────────
+// Key parity counts KEYS, not values, so a locale can hold every key and still show English.
+// That is not hypothetical: `select_your_tables` shipped as the literal "Select your Table(s)"
+// in six locales and passed this script every time, which is how it reached the owner as
+// "no language support" (BUGS-IMPROVEMENTS-PLAN E7).
+//
+// Not every match is a bug — brand names, "OK", "Menu" and "Email" are legitimately identical in
+// several languages — so this is a BASELINE gate, like scripts/check-file-length.sh: the ~500
+// pre-existing matches are recorded and ignored, and only NEW ones fail. It stops the next
+// untranslated string without demanding a translation sweep today.
+//
+// Regenerate after deliberately adding one (or after translating some away):
+//   node scripts/check-locale-parity.mjs --regen-baseline
+const BASELINE_PATH = new URL('./locale-untranslated-baseline.json', import.meta.url).pathname;
+const REGEN = process.argv.includes('--regen-baseline');
+
+const englishValues = JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8'));
+
+/** Keys whose value is byte-identical to en.json. Blank values are absence, not a match. */
+function untranslatedKeys(file) {
+  const parsed = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
+  return Object.entries(parsed)
+    .filter(
+      ([k, v]) => typeof v === 'string' && typeof englishValues[k] === 'string' && v === englishValues[k] && v.trim(),
+    )
+    .map(([k]) => k)
+    .sort();
+}
+
+const current = {};
+for (const file of files) {
+  if (file === REFERENCE) continue;
+  current[file] = untranslatedKeys(file);
+}
+
+if (REGEN) {
+  writeFileSync(BASELINE_PATH, `${JSON.stringify(current, null, 2)}\n`);
+  const total = Object.values(current).reduce((n, keys) => n + keys.length, 0);
+  console.log(`✓ untranslated baseline regenerated (${total} entries)`);
+  process.exit(0);
+}
+
+const baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
+let newUntranslated = false;
+
+for (const [file, keys] of Object.entries(current)) {
+  const known = new Set(baseline[file] ?? []);
+  const added = keys.filter((k) => !known.has(k));
+  if (added.length) {
+    newUntranslated = true;
+    console.error(`✗ ${file}: ${added.length} key(s) carry the English value verbatim`);
+    for (const k of added) console.error(`    untranslated: ${k} = ${JSON.stringify(englishValues[k])}`);
+  }
+}
+
+if (newUntranslated) {
+  console.error(
+    '\nA locale value identical to en.json is usually an untranslated placeholder. Translate it, or —' +
+      '\nif the word really is the same in that language — run:' +
+      '\n  node scripts/check-locale-parity.mjs --regen-baseline',
+  );
+  process.exit(1);
+}
+
+const baselineTotal = Object.values(baseline).reduce((n, keys) => n + keys.length, 0);
+const currentTotal = Object.values(current).reduce((n, keys) => n + keys.length, 0);
+console.log(
+  `✓ no new untranslated values (${currentTotal} known, baseline ${baselineTotal})` +
+    (currentTotal < baselineTotal ? ' — some were translated; regen the baseline to bank it' : ''),
+);

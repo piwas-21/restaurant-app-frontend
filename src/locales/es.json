@@ -1242,7 +1242,7 @@
   "login_to_track_reservation": "Iniciar sesión para rastrear su reserva",
   "create_account_to_track": "💡 Cree una cuenta para rastrear fácilmente todas sus reservas y gestionarlas en línea.",
   "select_your_table": "Seleccione su mesa",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Seleccione su mesa o mesas",
   "tables_count_selected": "{{count}} seleccionado(s)",
   "enter_guests": "Ingresar número",
   "book_your_table": "Reserve su mesa",
@@ -2497,5 +2497,8 @@
   "not_found_title": "Página no encontrada",
   "not_found_message": "Esta página no existe o se ha movido.",
   "not_found_home": "Volver al inicio",
-  "not_found_menu": "Ver el menú"
+  "not_found_menu": "Ver el menú",
+  "scroll_categories_back": "Desplazar categorías hacia atrás",
+  "scroll_categories_forward": "Desplazar categorías hacia adelante",
+  "category_navigation_aria": "Navegación por categorías"
 }

@@ -2497,5 +2497,8 @@
   "not_found_title": "Page not found",
   "not_found_message": "This page does not exist, or it has moved.",
   "not_found_home": "Back to home",
-  "not_found_menu": "View the menu"
+  "not_found_menu": "View the menu",
+  "scroll_categories_back": "Scroll categories back",
+  "scroll_categories_forward": "Scroll categories forward",
+  "category_navigation_aria": "Category navigation"
 }

@@ -2497,5 +2497,8 @@
   "not_found_title": "Страница не найдена",
   "not_found_message": "Такой страницы нет или она была перемещена.",
   "not_found_home": "На главную",
-  "not_found_menu": "Посмотреть меню"
+  "not_found_menu": "Посмотреть меню",
+  "scroll_categories_back": "Прокрутить категории назад",
+  "scroll_categories_forward": "Прокрутить категории вперёд",
+  "category_navigation_aria": "Навигация по категориям"
 }

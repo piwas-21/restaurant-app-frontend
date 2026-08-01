@@ -1253,7 +1253,7 @@
   "login_to_track_reservation": "Connexion pour suivre votre réservation",
   "create_account_to_track": "💡 Créez un compte pour suivre facilement toutes vos réservations et les gérer en ligne.",
   "select_your_table": "Sélectionnez votre table",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Sélectionnez votre ou vos tables",
   "tables_count_selected": "{{count}} sélectionné(s)",
   "enter_guests": "Entrer le nombre",
   "book_your_table": "Réservez votre table",
@@ -2497,5 +2497,8 @@
   "not_found_title": "Page introuvable",
   "not_found_message": "Cette page n'existe pas ou a été déplacée.",
   "not_found_home": "Retour à l'accueil",
-  "not_found_menu": "Voir le menu"
+  "not_found_menu": "Voir le menu",
+  "scroll_categories_back": "Faire défiler les catégories en arrière",
+  "scroll_categories_forward": "Faire défiler les catégories en avant",
+  "category_navigation_aria": "Navigation par catégories"
 }

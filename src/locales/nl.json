@@ -2497,5 +2497,8 @@
   "not_found_title": "Pagina niet gevonden",
   "not_found_message": "Deze pagina bestaat niet of is verplaatst.",
   "not_found_home": "Terug naar home",
-  "not_found_menu": "Bekijk het menu"
+  "not_found_menu": "Bekijk het menu",
+  "scroll_categories_back": "Categorieën terugscrollen",
+  "scroll_categories_forward": "Categorieën vooruitscrollen",
+  "category_navigation_aria": "Categorienavigatie"
 }

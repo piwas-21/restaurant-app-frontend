@@ -1248,7 +1248,7 @@
   "login_to_track_reservation": "Accedi per tracciare la tua prenotazione",
   "create_account_to_track": "💡 Crea un account per tracciare facilmente tutte le tue prenotazioni e gestirle online.",
   "select_your_table": "Seleziona il tuo tavolo",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Seleziona il tuo tavolo o i tuoi tavoli",
   "tables_count_selected": "{{count}} selezionato/i",
   "enter_guests": "Inserisci numero",
   "book_your_table": "Prenota il tuo tavolo",
@@ -2497,5 +2497,8 @@
   "not_found_title": "Pagina non trovata",
   "not_found_message": "Questa pagina non esiste oppure è stata spostata.",
   "not_found_home": "Torna alla home",
-  "not_found_menu": "Vedi il menu"
+  "not_found_menu": "Vedi il menu",
+  "scroll_categories_back": "Scorri le categorie indietro",
+  "scroll_categories_forward": "Scorri le categorie avanti",
+  "category_navigation_aria": "Navigazione categorie"
 }

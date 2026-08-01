@@ -1247,7 +1247,7 @@
   "login_to_track_reservation": "تسجيل الدخول لتتبع حجزك",
   "create_account_to_track": "💡 أنشئ حسابًا لتتبع جميع حجوزاتك بسهولة وإدارتها عبر الإنترنت.",
   "select_your_table": "اختر طاولتك",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "اختر طاولتك أو طاولاتك",
   "tables_count_selected": "تم تحديد {{count}}",
   "or_custom": "أو مخصص",
   "enter_guests": "أدخل الرقم",
@@ -2497,5 +2497,8 @@
   "not_found_title": "الصفحة غير موجودة",
   "not_found_message": "هذه الصفحة غير موجودة أو تم نقلها.",
   "not_found_home": "العودة إلى الصفحة الرئيسية",
-  "not_found_menu": "عرض القائمة"
+  "not_found_menu": "عرض القائمة",
+  "scroll_categories_back": "تمرير الفئات للخلف",
+  "scroll_categories_forward": "تمرير الفئات للأمام",
+  "category_navigation_aria": "التنقل بين الفئات"
 }

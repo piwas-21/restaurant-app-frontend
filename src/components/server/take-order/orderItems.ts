@@ -16,7 +16,6 @@ export interface OrderItem {
   variationId?: string;
   variationName?: string;
   notes?: string;
-  excludedIngredients?: string[];
   addedIngredients?: Array<{ id: string; name: string; price: number }>;
   sideItems?: Array<{ id: string; name: string; quantity: number; price: number }>;
   unitPrice: number;
@@ -71,7 +70,6 @@ export function addCustomizedItem(prev: OrderItem[], product: Product, result: C
     (item) =>
       item.product.id === product.id &&
       item.variationId === result.variationId &&
-      JSON.stringify(item.excludedIngredients) === JSON.stringify(result.excludedIngredients) &&
       JSON.stringify(item.addedIngredients?.map((i) => i.id)) ===
         JSON.stringify(result.addedIngredients.map((i) => i.id)) &&
       JSON.stringify(item.sideItems?.map((s) => s.id)) === JSON.stringify(result.sideItems.map((s) => s.id)),
@@ -88,9 +86,6 @@ export function addCustomizedItem(prev: OrderItem[], product: Product, result: C
   const noteParts: string[] = [];
   if (result.variationName) {
     noteParts.push(result.variationName);
-  }
-  if (result.excludedIngredients.length > 0) {
-    noteParts.push(`No: ${result.excludedIngredients.join(', ')}`);
   }
   if (result.addedIngredients.length > 0) {
     noteParts.push(`Add: ${result.addedIngredients.map((i) => i.name).join(', ')}`);
@@ -110,7 +105,6 @@ export function addCustomizedItem(prev: OrderItem[], product: Product, result: C
       variationId: result.variationId,
       variationName: result.variationName,
       notes: noteParts.join(' | ') || undefined,
-      excludedIngredients: result.excludedIngredients,
       addedIngredients: result.addedIngredients,
       sideItems: result.sideItems,
       unitPrice: result.finalPrice,

@@ -113,7 +113,10 @@ function basketDiff(item: BasketItemDto): LineIngredientDiff {
     const quantity = id && item.ingredientQuantities?.[id] ? item.ingredientQuantities[id] : 1;
     return { name, quantity };
   });
-  return { added, removed: item.excludedIngredientNames ?? [] };
+  // The basket shape has no removal channel: it never had one that worked. `excludedIngredientNames`
+  // was derived from a column that was never written (backend #283 / frontend #170), and the ORDER
+  // shape gets its removals from `isRemoved` (quantity 0) instead. See the follow-up issue.
+  return { added, removed: [] };
 }
 
 function basketItemToChild(item: BasketItemDto): LineChild {

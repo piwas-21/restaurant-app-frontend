@@ -57,7 +57,6 @@ jest.mock('./ProductCustomization', () => ({
               productId: product.id,
               variationId: undefined,
               variationName: undefined,
-              excludedIngredients: [],
               addedIngredients: [],
               sideItems: [],
               specialInstructions: undefined,

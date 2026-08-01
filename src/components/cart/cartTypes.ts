@@ -34,7 +34,6 @@ export interface AddItemPayload {
   quantity: number;
   specialInstructions?: string;
   selectedIngredients?: string[];
-  excludedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
   selectedSideItems?: Array<{ id: string; quantity: number }>;
   // Full per-option customization (ingredientQuantities, specialInstructions, …) — the

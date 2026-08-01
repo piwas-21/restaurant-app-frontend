@@ -64,7 +64,6 @@ export interface SelectedMenuOption {
   // Nested customization for this item
   specialInstructions?: string;
   selectedIngredients?: string[];
-  excludedIngredients?: string[];
   ingredientQuantities?: Record<string, number>;
 }
 

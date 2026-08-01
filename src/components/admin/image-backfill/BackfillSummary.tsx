@@ -1,0 +1,87 @@
+'use client';
+
+import { useTranslation } from 'react-i18next';
+import StatusBadge from '@/components/design-system/StatusBadge';
+import type { ImageBackfillReport } from '@/services/imageMaintenanceService';
+import { formatBytes } from '@/utils/formatBytes';
+import styles from './BackfillSummary.module.css';
+
+interface BackfillSummaryProps {
+  report: ImageBackfillReport;
+}
+
+/** Headline numbers for a run, plus the two states that change what the admin should do next. */
+export default function BackfillSummary({ report }: BackfillSummaryProps) {
+  const { t } = useTranslation();
+
+  const stats: Array<{ key: string; label: string; value: string }> = [
+    {
+      key: 'scanned',
+      label: t('image_backfill_scanned', 'Scanned'),
+      value: String(report.filesScanned),
+    },
+    {
+      key: 'changed',
+      label: report.applied
+        ? t('image_backfill_rewritten', 'Rewritten')
+        : t('image_backfill_would_change', 'Would change'),
+      value: String(report.filesChanged),
+    },
+    {
+      key: 'skipped',
+      label: t('image_backfill_skipped', 'Skipped'),
+      value: String(report.filesSkipped),
+    },
+    {
+      key: 'failed',
+      label: t('image_backfill_failed', 'Failed'),
+      value: String(report.filesFailed),
+    },
+    {
+      key: 'saved',
+      label: report.applied ? t('image_backfill_saved', 'Saved') : t('image_backfill_would_save', 'Would save'),
+      value: formatBytes(report.totalBytesSaved),
+    },
+  ];
+
+  return (
+    <section className={styles.summary}>
+      <div className={styles.badges}>
+        <StatusBadge tone={report.applied ? 'success' : 'info'}>
+          {report.applied
+            ? t('image_backfill_state_applied', 'Applied')
+            : t('image_backfill_state_dry_run', 'Dry run — nothing overwritten')}
+        </StatusBadge>
+        {/* A truncated run looks identical to a complete one in the numbers above, and the
+            difference is "you are done" vs "half your library is untouched". */}
+        {report.truncated && (
+          <StatusBadge tone="warning">
+            {t('image_backfill_truncated', 'Stopped at the limit — run again to continue')}
+          </StatusBadge>
+        )}
+        {report.filesFailed > 0 && (
+          <StatusBadge tone="danger">
+            {t('image_backfill_has_failures', 'Some files could not be processed')}
+          </StatusBadge>
+        )}
+      </div>
+
+      <dl className={styles.stats}>
+        {stats.map((stat) => (
+          <div key={stat.key} className={styles.stat}>
+            <dt className={styles.statLabel}>{stat.label}</dt>
+            <dd className={styles.statValue}>{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <p className={styles.settings}>
+        {t('image_backfill_settings', {
+          edge: report.maxImageEdgePixels,
+          quality: report.imageQuality,
+          defaultValue: 'Longest edge {{edge}} px, quality {{quality}} — the same settings new uploads use.',
+        })}
+      </p>
+    </section>
+  );
+}

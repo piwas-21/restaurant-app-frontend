@@ -43,6 +43,7 @@
     "/scan": 119.2,
     "/server": 141,
     "/terms-of-usage": 121.3,
-    "/verify-email": 124.6
+    "/verify-email": 124.6,
+    "/admin/image-backfill": 125.2
   }
 }

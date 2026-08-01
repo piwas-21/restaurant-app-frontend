@@ -1,0 +1,44 @@
+.summary {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.stat {
+  margin: 0;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.2rem;
+}
+
+.statValue {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.settings {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}

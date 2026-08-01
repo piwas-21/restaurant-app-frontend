@@ -20,6 +20,7 @@ import {
   Settings,
   UserCog,
   LayoutDashboard,
+  ImageDown,
 } from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
 import { moduleForPath } from '@/lib/modules';
@@ -131,6 +132,15 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       key: 'fidelity_analytics',
       fallback: 'Fidelity Analytics',
       icon: TrendingUp,
+    },
+    {
+      // Not module-gated: the backend guards it on the Admin role alone, so `moduleForPath`
+      // returns null and it stays visible for every tenant. Adding a module entry would hide
+      // a maintenance surface from tenants who simply bought a different bundle.
+      href: '/admin/image-backfill',
+      key: 'admin_image_backfill_title',
+      fallback: 'Image Backfill',
+      icon: ImageDown,
     },
   ];
 

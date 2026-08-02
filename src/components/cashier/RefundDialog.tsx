@@ -29,6 +29,11 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
   // `'Completed'`, not `'Paid'` — a payment record is created Completed and only ever moves to
   // Refunded, so the old comparison matched nothing and this list was ALWAYS empty: a cashier could
   // never select a payment to refund. `PaymentRecordStatus` now makes that comparison uncompilable.
+  //
+  // `Completed` alone mirrors the server's own guard (`RefundPaymentCommand:52` refuses anything
+  // that is not Completed), so an already partially-refunded payment is correctly absent: the
+  // backend cannot take a second refund against it. Widening this list would only move the refusal
+  // to a place the cashier finds out about later.
   const refundablePayments = order?.payments?.filter((p) => p.status === 'Completed') || [];
 
   const selectedPayment = refundablePayments.find((p) => p.id === selectedPaymentId);

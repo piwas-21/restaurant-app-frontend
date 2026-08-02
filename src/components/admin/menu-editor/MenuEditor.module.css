@@ -245,7 +245,7 @@
 }
 
 .itemsTable th {
-  text-align: left;
+  text-align: start;
   padding: 0.75rem;
   background: var(--table-header-background);
   font-weight: 600;
@@ -269,7 +269,7 @@
 .searchInput {
   width: 100%;
   padding: 0.75rem;
-  padding-right: 2.5rem;
+  padding-inline-end: 2.5rem;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 1rem;
@@ -280,8 +280,8 @@
 .searchResults {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   max-height: 300px;
   overflow-y: auto;
   background: var(--card-background);

@@ -2,8 +2,8 @@
 .modal {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
@@ -105,7 +105,7 @@
   margin: 0 0 1.5rem 0;
   padding: 1rem;
   background: var(--secondary-color, #f8fafc);
-  border-left: 4px solid var(--primary-color, #c00000);
+  border-inline-start: 4px solid var(--primary-color, #c00000);
   border-radius: 8px;
   font-weight: 600;
   color: var(--text-color);
@@ -115,7 +115,7 @@
   .orderInfo {
     background: var(--secondary-color, #2c2c2c);
     color: var(--text-color);
-    border-left-color: var(--primary-color, #e06666);
+    border-inline-start-color: var(--primary-color, #e06666);
   }
 }
 
@@ -197,7 +197,7 @@
 .confirmMessage {
   padding: 1rem;
   background: #fef3c7;
-  border-left: 4px solid #f59e0b;
+  border-inline-start: 4px solid #f59e0b;
   border-radius: 8px;
   color: #78350f;
   font-weight: 500;

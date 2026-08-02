@@ -462,7 +462,8 @@ A logical property is byte-identical to its physical twin under `dir="ltr"`, so 
 Two more the codemod cannot see, so check them by hand:
 
 - **Asymmetric 4-value shorthands** (`padding: a b c d` where `b ≠ d`) are directional in slots 2 and 4. Split to `padding-block` + `padding-inline: <start> <end>`.
-- **A reset must use the same name as what it resets.** Mixing `left:` in a base rule with `inset-inline-start:` in an override makes the winner depend on source order rather than on specificity.
+- **A reset must use the same name as what it resets.** Mixing `left:` in a base rule with `inset-inline-start:` in an override makes the winner depend on source order rather than on specificity. **This includes rules that ship in `node_modules`**, which nothing in `src/` greps for — a `:global()` override of a vendor stylesheet has to stay physical until the vendor's own RTL mode is switched on too. `ReservationCalendar.module.css` is the live example: react-big-calendar's `border-left` would survive a logical override and paint a second border in `ar`.
+- **`!important` hides a declaration from a naive codemod.** `text-align: right !important` does not match a pattern anchored on a trailing `;` right after the value. The ratchet does count these, so a half-converted rule shows up as a count that will not fall — but check by hand.
 
 Anything deliberately physical carries a comment saying so and stays in the ratchet's count — the ratchet measures syntax, not defects.
 

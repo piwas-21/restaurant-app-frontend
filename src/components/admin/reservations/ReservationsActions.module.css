@@ -47,8 +47,8 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--primary);
-  padding-right: 0.5rem;
-  border-right: 1px solid var(--border-color);
+  padding-inline-end: 0.5rem;
+  border-inline-end: 1px solid var(--border-color);
 }
 
 .bulkConfirmButton,

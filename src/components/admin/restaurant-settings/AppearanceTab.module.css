@@ -25,7 +25,7 @@
   border: 2px solid var(--border-default);
   border-radius: 8px;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;

@@ -2494,6 +2494,7 @@
   "not_found_home": "На главную",
   "not_found_menu": "Посмотреть меню",
   "admin_edit_price_locked_bundle": "Цена комбо складывается из входящих в него позиций",
+  "admin_edit_price_locked_unknown_kind": "Open the item to edit its price",
   "admin_edit_price_locked_variations": "Цена задаётся для каждого варианта",
   "admin_edit_price_invalid": "Введите цену 0 или больше",
   "admin_edit_price_failed": "Не удалось сохранить цену",

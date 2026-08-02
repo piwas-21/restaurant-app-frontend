@@ -74,6 +74,8 @@ module.exports = {
     'src/hooks/menu/useTrackItemBlocked.ts',
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
+    'src/hooks/menu/useFeaturedSpecialHero.ts',
+    'src/utils/catalogItem.ts',
     'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
     'src/utils/templates/receiptHtml.ts',
@@ -302,10 +304,31 @@ module.exports = {
       lines: 100,
     },
     './src/components/menu/FeaturedSpecial.tsx': {
-      statements: 88,
-      branches: 74,
+      statements: 100,
+      branches: 100,
       functions: 100,
-      lines: 88,
+      lines: 100,
+    },
+    // E4 part 2 — the DECISION half of the hero, shared by both templates. Pinned because the whole
+    // reason it exists is that a second copy of this reasoning is what let `CraftMenuCard` and the
+    // hero disagree about "blocked" (E6): one checked the notice, the other also checked the
+    // server's `canOrder`. A branch that goes uncovered here is a branch one template can regress
+    // alone, which is exactly the failure this file was extracted to make impossible.
+    './src/hooks/menu/useFeaturedSpecialHero.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The banner's `priceEditability` derivation. It decides whether an admin is offered a WRITE,
+    // from a payload that does not carry enough to derive it the way a card does — and the wrong
+    // guess routes a combo to the product price endpoint, whose validator accepts >= 0 where the
+    // combo's own editor requires > 0. Every arm is covered on purpose.
+    './src/utils/catalogItem.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
     // The other half of the root-only tree (#332): what a HUMAN sees. Same silent failure mode as
     // the routing above — a component that stops being rendered produces no error, the bill just

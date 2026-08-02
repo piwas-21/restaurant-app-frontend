@@ -2494,6 +2494,7 @@
   "not_found_home": "Ana sayfaya dön",
   "not_found_menu": "Menüyü görüntüle",
   "admin_edit_price_locked_bundle": "Menü fiyatı içindeki ürünlerden oluşur",
+  "admin_edit_price_locked_unknown_kind": "Fiyatı düzenlemek için ürünü açın",
   "admin_edit_price_locked_variations": "Fiyat her varyasyon için ayrı belirlenir",
   "admin_edit_price_invalid": "0 veya daha büyük bir fiyat girin",
   "admin_edit_price_failed": "Fiyat kaydedilemedi",

@@ -9,6 +9,7 @@
 // slot renders the shared default, so classic is untouched by construction.
 
 import type { MenuCardProps } from '@/components/menu/MenuCard';
+import type { FeaturedSpecialProps } from '@/components/menu/FeaturedSpecial';
 import type { CategoryNavProps } from '@/components/menu/CategoryNav';
 import type { MenuSectionStatusProps } from '@/components/menu/MenuSectionStatus';
 import type { OrderFlowSidebarProps } from '@/components/order/OrderFlowSidebar';
@@ -43,6 +44,9 @@ export interface ShellProps {
 export interface TemplateSurfaces {
   /** The customer browse-grid card (menu page). */
   MenuCard?: React.ComponentType<MenuCardProps>;
+  /** The Chef's Special hero above the menu grid. Craft ships a taped-up daily-special
+   *  notice — kraft plate, masking-tape header, Amatic dotted leader. */
+  FeaturedSpecial?: React.ComponentType<FeaturedSpecialProps>;
   /** The menu category navigation (tabs). Craft ships masking-tape tabs. */
   CategoryNav?: React.ComponentType<CategoryNavProps>;
   /** The menu section heading + loading/error/empty states. Craft ships an

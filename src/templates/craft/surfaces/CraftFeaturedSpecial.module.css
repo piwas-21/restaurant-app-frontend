@@ -1,0 +1,199 @@
+/* Craft's Chef's Special hero (S15 T4). Motifs (letterpress shadow, organic corners, masking tape,
+   dotted leader) come from craft.module.css; this file is the hero's own composition. Tokens only —
+   no raw hex (CLAUDE.md §5). Craft-only bundle (surfaces/ under the template dir). */
+
+.hero {
+  composes: cardStatic from '../primitives.module.css';
+  /* Matches the classic hero's page gutter and cap so the two templates put the banner in the same
+     box — only its contents differ. It sits ABOVE `.menuLayout`, full width (E4 part 1). */
+  max-width: 1400px;
+  margin: 1rem auto 1.5rem;
+  padding: 1.5rem 1.75rem 1.75rem;
+  position: relative;
+}
+
+/* The tape marker and the admin edit link share the top row. */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+/* NEUTRAL tape, not the saffron `tapeLabelAccent` — saffron is what a blocked item's tape wears,
+   and spending it here would make "featured" and "unavailable" read as the same object. Larger and
+   straighter than a card's `.special`: this is the page's masthead, not a corner sticker. */
+.tape {
+  composes: tapeLabel from '../craft.module.css';
+  font-size: 1.5rem;
+  padding: 0.35rem 1.4rem;
+  transform: rotate(-1deg);
+}
+
+.content {
+  display: grid;
+  /* ONE column by default; two is opt-in (`.withPhoto`). A grid that always declares the photo
+     column puts the DETAILS in it when the photo is absent, capping the copy at 320px with the rest
+     of the hero empty — which is what the live tenant shows, its special having no image. */
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.withPhoto {
+  /* Capped rather than fixed: the hero spans the full page width, so a fixed photo column would
+     just grow the text column beside it. `minmax(0, …)` lets the column shrink instead of overflow. */
+  grid-template-columns: minmax(0, 320px) 1fr;
+}
+
+/* Pinned on at an angle, the way a photo is taped to a board, with craft's letterpress lift on
+   hover. */
+.photo {
+  composes: letterpress from '../craft.module.css';
+  composes: roundedCraft from '../craft.module.css';
+  overflow: hidden;
+  transform: rotate(-1.25deg);
+  background: var(--surface-secondary);
+}
+
+/* The tilt is RESTATED, not inherited: `transform` is one property, not additive, and
+   `.letterpress:hover` (0,2,0) beats this rule's (0,1,0) — so the composed hover would REPLACE the
+   rotation and the photo would snap upright under the pointer. */
+.photo:hover {
+  transform: rotate(-1.25deg) translate(-2px, -2px);
+}
+
+.photoImage {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* The hand-lettered `dish ..... price` header — the craft menu-board signature, at hero scale. */
+.leader {
+  composes: menuLeader from '../craft.module.css';
+}
+
+.name {
+  font-family: 'Amatic SC', cursive;
+  font-size: 2.9rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.price {
+  font-family: 'Amatic SC', cursive;
+  font-size: 2.4rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Collapses to nothing for guests (AdminPriceEditor renders null). */
+.adminRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.adminRow:empty {
+  display: none;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.time {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.addButton {
+  composes: btnPrimary from '../primitives.module.css';
+}
+
+.detailsButton {
+  composes: btnKraft from '../primitives.module.css';
+}
+
+/* Blocked for the guest's chosen channel (G7). The hero RECEDES rather than disappearing — it is
+   still today's special, and hiding it would leave an unexplained hole where the guest saw one a
+   moment ago.
+ *
+ * Scoped to the PHOTO, exactly as the craft card's `.blocked` is. A blanket `opacity` on the
+ * section would composite straight through the availability notice and its "Switch to X" button —
+ * and opacity on a parent cannot be undone by a child. Receding the one control the guest must
+ * click is the opposite of what the state needs. */
+.hero.blocked {
+  background-color: var(--surface-secondary);
+}
+
+.hero.blocked .photoImage {
+  filter: grayscale(0.85);
+  opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+  .withPhoto {
+    grid-template-columns: 1fr;
+  }
+
+  .content {
+    gap: 1.25rem;
+  }
+
+  .name {
+    font-size: 2.3rem;
+  }
+
+  .price {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding: 1.1rem 1.15rem 1.35rem;
+    margin: 0.75rem auto;
+  }
+
+  .tape {
+    font-size: 1.25rem;
+    padding: 0.3rem 1.1rem;
+  }
+
+  .name {
+    font-size: 1.9rem;
+  }
+
+  .price {
+    font-size: 1.7rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

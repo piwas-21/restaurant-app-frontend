@@ -1,7 +1,12 @@
+/* Pulled forward from the `components/order` area of the E8 sweep because this ladder renders
+   INSIDE two containers that mirrored in the same change — `server/OrderCard`'s status stripe and
+   `server/TableDetailsModal`'s `.orderItem` accent. Leave it physical and `ar` paints the card's
+   accent down one edge and every nested customization line down the other, with the indent on the
+   trailing side: the depth ladder that `ChildList` recurses to build then reads as no depth at all. */
 .summary {
   margin-top: 0.5rem;
-  padding-left: 0.75rem;
-  border-left: 2px solid var(--border-color);
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -35,8 +40,8 @@
 }
 
 .child {
-  padding-left: 0.75rem;
-  border-left: 2px dashed var(--border-color);
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px dashed var(--border-color);
 }
 
 .childName {

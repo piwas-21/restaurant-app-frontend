@@ -139,7 +139,7 @@
 .capacity {
   position: absolute;
   bottom: 0.5rem;
-  right: 0.5rem;
+  inset-inline-end: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.25rem;

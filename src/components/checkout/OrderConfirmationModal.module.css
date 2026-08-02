@@ -170,7 +170,7 @@
   line-height: 1.5;
   padding: 0.75rem;
   background: var(--background-light);
-  border-left: 3px solid var(--primary-color);
+  border-inline-start: 3px solid var(--primary-color);
   border-radius: var(--modal-body-option-radius, 6px);
 }
 

@@ -193,10 +193,7 @@
 /* Modal Styles */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -265,7 +262,12 @@
 }
 
 .modalBody ul {
-  margin: 0.5rem 0 1.5rem 1.5rem;
+  /* Was the 4-value shorthand `0.5rem 0 1.5rem 1.5rem` — DIRECTIONAL in slots 2 and 4, so the
+     ratchet's property-anchored regex cannot see it (DESIGN-SYSTEM.md §8.1). Slot 4 is the list
+     indent standing in for the zeroed `padding`; left physical it strands the list against the
+     reading edge in `ar` with its gutter on the far side. */
+  margin-block: 0.5rem 1.5rem;
+  margin-inline: 1.5rem 0;
   padding: 0;
 }
 

@@ -128,7 +128,7 @@
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-color);
-  text-align: right;
+  text-align: end;
 }
 
 @media (max-width: 768px) {
@@ -155,7 +155,7 @@
 
   .itemPrice {
     grid-column: 2;
-    text-align: left;
+    text-align: start;
     margin-top: 0.5rem;
   }
 }

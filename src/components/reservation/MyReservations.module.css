@@ -78,6 +78,12 @@
 .errorAlert {
   position: fixed;
   top: 20px;
+  /* PHYSICAL on purpose: this inset is one thing with the `slideInRight` keyframes below, whose
+     `translateX(100%)` parks the toast off-screen at frame 0. `transform` is never logical, so
+     mirroring the inset alone pins the toast to the leading edge in `ar` while the transform
+     still displaces it the other way — a 400px toast then STARTS mid-page, fully visible, and
+     slides sideways across the content instead of entering from off-screen. The inset and the
+     keyframe move together in slice 3 (a `[dir='rtl']` animation-name swap). */
   right: 20px;
   background-color: var(--danger-color);
   color: white;

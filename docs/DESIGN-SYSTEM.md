@@ -24,6 +24,8 @@ design-system/
     AlertDialog/        # Confirm/cancel dialog (extends BaseModal)
     FormField/          # Label + input + error wrapper
     StatusBadge/        # Order/payment/reservation status display
+    CheckboxField/      # Labelled checkbox (label BESIDE the box, unlike FormField)
+    ChannelPicker/      # Order-type channel group, composed from CheckboxField
     Button/             # Primary/secondary/danger/ghost/link variants
     DataTable/          # Sortable table with loading/empty states
     EmptyState/         # Icon + title + description + action
@@ -347,6 +349,50 @@ interface StatusBadgeProps {
   type: 'order' | 'payment' | 'reservation';
   size?: 'sm' | 'md';
   className?: string;
+}
+```
+
+### CheckboxField
+Shipped 2026-08-02 (BUGS-IMPROVEMENTS-PLAN E2). `FormField` renders the label ABOVE the input, which
+is wrong for a checkbox — so before this, every checkbox in the app was a raw `<input>`.
+```tsx
+interface CheckboxFieldProps {
+  label: string;                 // always required; hide it with srOnlyLabel, never omit it
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  srOnlyLabel?: boolean;         // table cells: the column header labels it on screen
+  error?: string;                // message + aria-invalid + aria-describedby
+  invalid?: boolean;             // aria-invalid with NO message — for a group-level failure
+  description?: string;
+  describedBy?: string;          // ids of text OUTSIDE the component (e.g. a group error)
+  styles?: Readonly<Record<string, string>>;  // host skin; keys: field control input label srOnly disabled description error
+}
+```
+The input is a direct child of the `<label>`, so the association needs no id — and the click target
+is the label rather than the 13px box. The `<label>` wraps the box and the visible text and
+**nothing else**: HTML-AAM's label-content rule folds every text node inside it into the accessible
+NAME, so a description or error rendered in there is announced as part of the name *and* again as
+the description. `describedBy` exists for the same reason — a wrapper `<div>` is `role="generic"`
+and is not exposed, so `aria-describedby` has to reach the input.
+
+### ChannelPicker
+The order-type channel group, composed from `CheckboxField`. Order comes from `ALL_ORDER_TYPES` and
+labels from `orderTypeLabel`, so a new channel reaches every surface that lists channels. **One
+consumer today** — the product editor's channel row; the category matrix keeps its `<table>` (three
+`<td>`s are what make a column scannable) and consumes `CheckboxField` + `orderTypeLabel` directly.
+See ADR-005's 2026-08-02 amendment for why it is admitted with one consumer. It deliberately
+does NOT own the selection — a product round-trips a nullable mask with an inherit mode, a category
+row round-trips a dirty-tracked list, and folding either in would make the other a special case.
+```tsx
+interface ChannelPickerProps {
+  selected: readonly OrderType[];
+  onToggle: (orderType: OrderType) => void;
+  disabled?: boolean;
+  error?: string;                // rendered once; every box gets aria-invalid
+  errorId?: string;
+  styles?: Readonly<Record<string, string>>;
+  checkboxStyles?: Readonly<Record<string, string>>;
 }
 ```
 

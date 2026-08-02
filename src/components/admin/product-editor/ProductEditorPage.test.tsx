@@ -101,10 +101,15 @@ const renderEditor = async (product: ProductDetails, isBundle: boolean, mode: 'c
   return { onSaved, onBack, nameInput, container };
 };
 
-// The control scopes its ids with useId(), so reach the checkbox through its <label> instead.
+// Reach the checkbox through its <label>. Since the control moved onto the design system's
+// `CheckboxField` the input is a direct CHILD of the label — no `htmlFor`, no id to resolve, which
+// is the point of that shape. The `htmlFor` fallback stays for any label still written the old way.
 const orderTypeBox = (container: HTMLElement, labelKey: string): HTMLInputElement | null => {
   const label = Array.from(container.querySelectorAll('label')).find((node) => node.textContent === labelKey);
-  return label ? (container.querySelector(`#${CSS.escape(label.htmlFor)}`) as HTMLInputElement) : null;
+  if (!label) return null;
+  const nested = label.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+  if (nested) return nested;
+  return label.htmlFor ? (container.querySelector(`#${CSS.escape(label.htmlFor)}`) as HTMLInputElement) : null;
 };
 
 beforeEach(() => jest.clearAllMocks());

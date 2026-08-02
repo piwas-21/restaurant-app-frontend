@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { orderTypesFromMask } from '@/utils/orderChannels';
-import { ORDER_TYPE_LABEL_KEY } from '@/utils/orderTypeLabels';
+import { orderTypeLabel } from '@/utils/orderTypeLabels';
 import styles from './CategoryOrderTypesSummary.module.css';
 
 interface CategoryOrderTypesSummaryProps {
@@ -21,7 +21,7 @@ export default function CategoryOrderTypesSummary({ mask, className }: CategoryO
   const { t } = useTranslation();
 
   const labels = orderTypesFromMask(mask)
-    .map((orderType) => t(ORDER_TYPE_LABEL_KEY[orderType].key, ORDER_TYPE_LABEL_KEY[orderType].fallback))
+    .map((orderType) => orderTypeLabel(orderType, t))
     .join(', ');
 
   return (

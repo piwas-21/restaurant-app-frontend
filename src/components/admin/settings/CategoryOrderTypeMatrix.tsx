@@ -5,8 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { ALL_ORDER_TYPES } from '@/utils/orderChannels';
 import { useCategoryChannelsAdmin, CATEGORY_PAGE_SIZE } from '@/hooks/admin/useCategoryChannelsAdmin';
 import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
-import { ORDER_TYPE_LABEL_KEY } from '@/utils/orderTypeLabels';
+import CheckboxField from '@/components/design-system/CheckboxField';
+import { orderTypeLabel } from '@/utils/orderTypeLabels';
 import styles from './CategoryOrderTypeMatrix.module.css';
+// The cell skin for the shared checkbox — centred in its cell, no label column (the header is the
+// label). The `MenuCardAvailability` recipe: one control, the host supplies the CSS module.
+import checkboxStyles from './CategoryOrderTypeCheckbox.module.css';
 
 /**
  * The category × order-type availability matrix (rows = categories, columns = order types) — the
@@ -64,7 +68,7 @@ export default function CategoryOrderTypeMatrix() {
               <th scope="col">{t('category', 'Category')}</th>
               {ALL_ORDER_TYPES.map((orderType) => (
                 <th scope="col" key={orderType} className={styles.channelColumn}>
-                  {t(ORDER_TYPE_LABEL_KEY[orderType].key, ORDER_TYPE_LABEL_KEY[orderType].fallback)}
+                  {orderTypeLabel(orderType, t)}
                 </th>
               ))}
               <th scope="col" aria-label={t('actions', 'Actions')} />
@@ -99,18 +103,26 @@ export default function CategoryOrderTypeMatrix() {
                   </td>
 
                   {ALL_ORDER_TYPES.map((orderType) => {
-                    const label = t(ORDER_TYPE_LABEL_KEY[orderType].key, ORDER_TYPE_LABEL_KEY[orderType].fallback);
+                    const label = orderTypeLabel(orderType, t);
                     return (
                       <td key={orderType} className={styles.checkboxCell}>
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(orderType)}
-                          disabled={busy}
-                          onChange={() => toggle(category.id, orderType)}
-                          aria-label={t('category_order_type_toggle_aria', '{{category}} available for {{orderType}}', {
+                        {/* The design system's checkbox, with the label VISUALLY hidden: the column
+                            header carries the meaning on screen, so showing it in every cell would
+                            print the channel name once per category. It is still a real <label>
+                            wrapping the input rather than the bare `aria-label` this used to be —
+                            which makes the whole cell clickable instead of just the 13px box, and
+                            gives a screen reader the row's category as well as the column's
+                            channel (a header alone gives it neither). */}
+                        <CheckboxField
+                          srOnlyLabel
+                          label={t('category_order_type_toggle_aria', '{{category}} available for {{orderType}}', {
                             category: displayName,
                             orderType: label,
                           })}
+                          checked={selected.includes(orderType)}
+                          disabled={busy}
+                          onChange={() => toggle(category.id, orderType)}
+                          styles={checkboxStyles}
                         />
                       </td>
                     );

@@ -2494,6 +2494,7 @@
   "not_found_home": "Volver al inicio",
   "not_found_menu": "Ver el menú",
   "admin_edit_price_locked_bundle": "El precio de un combo proviene de sus artículos",
+  "admin_edit_price_locked_unknown_kind": "Abre el artículo para editar su precio",
   "admin_edit_price_locked_variations": "El precio se define por variante",
   "admin_edit_price_invalid": "Introduce un precio de 0 o más",
   "admin_edit_price_failed": "No se pudo guardar el precio",

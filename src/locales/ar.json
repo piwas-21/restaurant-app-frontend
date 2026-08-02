@@ -2494,6 +2494,7 @@
   "not_found_home": "العودة إلى الصفحة الرئيسية",
   "not_found_menu": "عرض القائمة",
   "admin_edit_price_locked_bundle": "سعر الوجبة يأتي من الأصناف التي تتضمنها",
+  "admin_edit_price_locked_unknown_kind": "Open the item to edit its price",
   "admin_edit_price_locked_variations": "يُحدَّد السعر لكل خيار على حدة",
   "admin_edit_price_invalid": "أدخل سعراً يساوي 0 أو أكثر",
   "admin_edit_price_failed": "تعذّر حفظ السعر",

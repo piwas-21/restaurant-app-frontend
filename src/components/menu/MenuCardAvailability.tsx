@@ -21,9 +21,9 @@ interface MenuCardAvailabilityProps {
   /**
    * Host template's CSS module — must define `availability`, `availabilityInfo`,
    * `availabilityBlocked`, `availabilityReason`, `availabilityHint` and `availabilitySwitch`.
-   * Classic's `MenuItem.module.css` and craft's `CraftMenuCard.module.css` each pass their own, so
-   * the two templates share this markup and behaviour (and stay out of Sonar's new-code duplication)
-   * while looking nothing alike.
+   * Classic's `MenuItemAvailability.module.css` and craft's `CraftItemAvailability.module.css` each
+   * pass their own, so the two templates share this markup and behaviour (and stay out of Sonar's
+   * new-code duplication) while looking nothing alike.
    */
   styles: Readonly<Record<string, string>>;
 }

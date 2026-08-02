@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
- * Contrast gate for `AdminPriceEditor`'s two new text surfaces.
+ * Contrast gate for `AdminPriceEditor`'s two new text surfaces, and for the featured hero's CTA.
  *
  * It exists because both of them shipped failing when measured. The locked-reason pill used
  * `--text-muted` on `--surface-secondary` (**4.24:1** in light) and the save-error line used
@@ -69,6 +69,24 @@ describe('AdminPriceEditor colour pairs', () => {
     it('the invalid-input border clears the non-text threshold', () => {
       expect(contrast(v['--feedback-error'], v['--surface-card'])).toBeGreaterThanOrEqual(AA_NON_TEXT);
     });
+
+    /**
+     * The Chef's Special hero's "Add to Order" — the menu page's primary call to action, and the
+     * same class of defect as the two above: it shipped at 2.78:1 in light and 2.01:1 in dark,
+     * measured from the rendered pixels. The card's Add button had been moved to the darker tier
+     * for AA long before; the hero was simply never brought along.
+     *
+     * BOTH halves of the pair are gated on purpose. Fixing only the background left it at 2.36:1
+     * in dark, because `--feedback-success-darker` flips to a light green there while the hero's
+     * hardcoded `white` did not flip with it — a half-flipped pair, which is invisible to any check
+     * that looks at one token.
+     *
+     * Aliases: globals.css maps `--success-color-darker` → `--feedback-success-darker` and
+     * `--button-text-color` → `--text-on-primary`.
+     */
+    it('the featured hero CTA clears AA in this theme', () => {
+      expect(contrast(v['--text-on-primary'], v['--feedback-success-darker'])).toBeGreaterThanOrEqual(AA_TEXT);
+    });
   });
 
   // The regression this file was written for: assert the OLD pairings really do fail, so the gate
@@ -77,5 +95,24 @@ describe('AdminPriceEditor colour pairs', () => {
     const v = tokens(':root {');
     expect(contrast(v['--text-muted'], v['--surface-secondary'])).toBeLessThan(AA_TEXT);
     expect(contrast(v['--feedback-error'], v['--surface-card'])).toBeLessThan(AA_TEXT);
+  });
+
+  // Same idea for the hero CTA: pin that BOTH of the pairings it used to have really do fail, so a
+  // future retune cannot quietly restore one of them and leave the gate above passing by luck.
+  it('records that the hero CTA failed on its old background, in BOTH themes', () => {
+    // Literal `#ffffff`, not `--text-on-primary`, because a hardcoded `white` is exactly what the
+    // hero had — the token would have flipped to dark ink in the dark theme and PASSED there (8.65),
+    // which is the whole reason the bug survived: it is only visible if you keep the ink fixed while
+    // the surface flips.
+    for (const [, selector] of THEMES) {
+      const v = tokens(selector);
+      expect(contrast('#ffffff', v['--feedback-success'])).toBeLessThan(AA_TEXT);
+    }
+  });
+
+  it('records that fixing only the background left the DARK theme still failing', () => {
+    const v = tokens("html[data-theme='dark'] {");
+    // #ffffff on #66bb6a — the half-flipped pair, 2.36:1.
+    expect(contrast('#ffffff', v['--feedback-success-darker'])).toBeLessThan(AA_TEXT);
   });
 });

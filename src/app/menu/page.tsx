@@ -18,7 +18,7 @@ import type { OrderType } from '@/types/order';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuContent from '@/components/menu/MenuContent';
-import FeaturedSpecialComponent from '@/components/menu/FeaturedSpecial';
+import DefaultFeaturedSpecial from '@/components/menu/FeaturedSpecial';
 import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
@@ -28,6 +28,7 @@ import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 // shared default (classic) — resolved at build time, so classic never bundles
 // craft (T4).
 const OrderFlowSidebar = surfaceOr('OrderFlowSidebar', DefaultOrderFlowSidebar);
+const FeaturedSpecialComponent = surfaceOr('FeaturedSpecial', DefaultFeaturedSpecial);
 
 export default function MenuPage() {
   const { t } = useTranslation();

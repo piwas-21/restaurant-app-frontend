@@ -13,8 +13,14 @@ export type CatalogItemKind = 'product' | 'bundle';
 /**
  * `'editable'`, or the reason it is not. A union rather than a boolean-plus-reason pair so the two
  * halves cannot disagree — there is no way to express "not editable, no reason" or the reverse.
+ *
+ * `'unknownKind'` is the featured banner's case, and it is a statement about OUR data, not the
+ * item's: `FeaturedSpecialDto` only started carrying `type` in backend #285, so against an older
+ * backend the hero cannot prove the special is a plain product. It must not guess — a combo routed
+ * to the product price endpoint is written by a validator that accepts `>= 0` where the combo's own
+ * editor requires `> 0`, so the guess lets an admin set a price that editor would refuse.
  */
-export type PriceEditability = 'editable' | 'variations' | 'bundle';
+export type PriceEditability = 'editable' | 'variations' | 'bundle' | 'unknownKind';
 
 export interface CatalogItem {
   kind: CatalogItemKind;

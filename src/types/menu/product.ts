@@ -105,6 +105,17 @@ export interface FeaturedSpecial {
   description?: string;
   basePrice: number;
   imageUrl?: string;
+  /**
+   * The product's kind (backend #285). Optional because it is additive: a frontend running against
+   * an older backend gets `undefined`, and the hero must then treat the kind as UNKNOWN rather than
+   * assuming a plain product.
+   *
+   * A combo is not its own type — it is a `type: 'menu'` product owning a `menuDefinition` — and
+   * nothing in `SetFeaturedSpecialCommand` stops one being featured, so this is the only thing that
+   * distinguishes the two on this payload. It matters for the admin price control: the two write
+   * paths reach the same `BasePrice` column under different validators.
+   */
+  type?: ProductType;
   featuredDate: string;
   preparationTimeMinutes: number;
   ingredients?: string[];

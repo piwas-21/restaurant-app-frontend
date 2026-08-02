@@ -2494,5 +2494,9 @@
   "not_found_title": "Seite nicht gefunden",
   "not_found_message": "Diese Seite existiert nicht oder wurde verschoben.",
   "not_found_home": "Zurück zur Startseite",
-  "not_found_menu": "Menü ansehen"
+  "not_found_menu": "Menü ansehen",
+  "admin_edit_price_locked_bundle": "Der Preis eines Menüs ergibt sich aus seinen Artikeln",
+  "admin_edit_price_locked_variations": "Preis wird pro Variante festgelegt",
+  "admin_edit_price_invalid": "Bitte einen Preis von 0 oder mehr eingeben",
+  "admin_edit_price_failed": "Preis konnte nicht gespeichert werden"
 }

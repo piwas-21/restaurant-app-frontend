@@ -2494,5 +2494,9 @@
   "not_found_title": "页面未找到",
   "not_found_message": "此页面不存在，或已被移动。",
   "not_found_home": "返回首页",
-  "not_found_menu": "查看菜单"
+  "not_found_menu": "查看菜单",
+  "admin_edit_price_locked_bundle": "套餐价格由其包含的商品决定",
+  "admin_edit_price_locked_variations": "价格按规格分别设置",
+  "admin_edit_price_invalid": "请输入 0 或更大的价格",
+  "admin_edit_price_failed": "无法保存价格"
 }

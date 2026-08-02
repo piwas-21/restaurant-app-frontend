@@ -2494,5 +2494,9 @@
   "not_found_title": "Sayfa bulunamadı",
   "not_found_message": "Bu sayfa mevcut değil veya taşınmış.",
   "not_found_home": "Ana sayfaya dön",
-  "not_found_menu": "Menüyü görüntüle"
+  "not_found_menu": "Menüyü görüntüle",
+  "admin_edit_price_locked_bundle": "Menü fiyatı içindeki ürünlerden oluşur",
+  "admin_edit_price_locked_variations": "Fiyat her varyasyon için ayrı belirlenir",
+  "admin_edit_price_invalid": "0 veya daha büyük bir fiyat girin",
+  "admin_edit_price_failed": "Fiyat kaydedilemedi"
 }

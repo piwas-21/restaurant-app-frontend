@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
+import { nextOrderStatuses, orderStatusLabel } from '@/lib/orderStatus';
 import { X } from 'lucide-react';
 
 interface StatusUpdateDialogProps {
@@ -28,33 +29,11 @@ export default function StatusUpdateDialog({
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  // Get available next statuses based on current status
-  const getAvailableStatuses = (): string[] => {
-    if (!order) return [];
-
-    switch (order.status) {
-      case 'Pending':
-        return ['Confirmed', 'Cancelled'];
-      case 'Confirmed':
-        return ['Preparing', 'Cancelled'];
-      case 'Preparing':
-        return ['Ready', 'Cancelled'];
-      case 'Ready':
-        return ['Completed', 'Cancelled'];
-      case 'Completed':
-        return [];
-      case 'Cancelled':
-        return [];
-      case 'InTransit':
-        return ['Delivered', 'Cancelled'];
-      case 'Delivered':
-        return ['Completed', 'Cancelled'];
-      default:
-        return [];
-    }
-  };
-
-  const availableStatuses = getAvailableStatuses();
+  // The server's table, not this dialog's guess. Its own `switch` disagreed with
+  // `IsValidStatusTransition` in SIX of the union's twelve states — offering transitions the server
+  // rejects,
+  // and stranding a PendingApproval or OutForDelivery order with nothing to pick at all.
+  const availableStatuses = nextOrderStatuses(order?.status);
 
   const handleStatusSelect = useCallback((status: string) => {
     setSelectedStatus(status);
@@ -93,7 +72,7 @@ export default function StatusUpdateDialog({
             <label className="form-label">{t('cashier.current_status') || 'Current Status'}</label>
             <div className="status-display">
               <span className={`status-badge status-${order.status?.toLowerCase()}`}>
-                {t(`order.status.${order.status}`) || order.status}
+                {orderStatusLabel(order.status, t)}
               </span>
             </div>
           </div>
@@ -110,7 +89,7 @@ export default function StatusUpdateDialog({
                     disabled={isLoading}
                   >
                     <span className={`status-badge status-${status?.toLowerCase()}`}>
-                      {t(`order.status.${status}`) || status}
+                      {orderStatusLabel(status, t)}
                     </span>
                   </button>
                 ))}

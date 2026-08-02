@@ -75,6 +75,7 @@ module.exports = {
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
     'src/hooks/menu/useFeaturedSpecialHero.ts',
+    'src/lib/orderStatus.ts',
     'src/utils/catalogItem.ts',
     'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
@@ -399,6 +400,17 @@ module.exports = {
     // is exactly the property worth pinning: every customer deliverable lands twice, so a regression
     // in one template must not be masked by the other. The DECISION half lives in
     // `useItemAvailabilityNotice` (its own test file; hooks are not in collectCoverageFrom).
+    // E1 — the one place a status becomes something a user sees, and the one place a staff surface
+    // learns what it may become NEXT. Pinned at 100 because every way this file can be wrong is
+    // silent: the ladders it replaced ended in a `default`, which is how two statuses came to render
+    // as raw English in every locale, and how the cashier's transition list stranded an order by
+    // returning an empty array that reads exactly like "this one is finished".
+    './src/lib/orderStatus.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
     './src/components/menu/MenuCardAvailability.tsx': {
       statements: 99,
       branches: 99,

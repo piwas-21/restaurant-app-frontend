@@ -4,6 +4,9 @@ import { formatCurrency } from '@/utils/currency';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+// The page's own ladder handled SEVEN of the ten statuses; the other three fell to a `default`
+// that printed the raw enum name at the customer, in every locale.
+import { orderStatusLabel } from '@/lib/orderStatus';
 import { getOrderById } from '@/services/orderService';
 import { OrderDto } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
@@ -116,27 +119,6 @@ function ConfirmationContent() {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return t('order_status_pending', 'Pending');
-      case 'Confirmed':
-        return t('order_status_confirmed', 'Confirmed');
-      case 'Preparing':
-        return t('order_status_preparing', 'Preparing');
-      case 'Ready':
-        return t('order_status_ready', 'Ready');
-      case 'InTransit':
-        return t('order_status_in_transit', 'In Transit');
-      case 'Delivered':
-        return t('order_status_delivered', 'Delivered');
-      case 'Completed':
-        return t('order_status_completed', 'Completed');
-      default:
-        return status;
-    }
-  };
-
   if (isLoading) {
     return (
       <main className={styles.container}>
@@ -212,7 +194,9 @@ function ConfirmationContent() {
                 </div>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('status', 'Status')}:</span>
-                  <span className={`${styles.infoValue} ${styles.statusBadge}`}>{getStatusLabel(order.status)}</span>
+                  <span className={`${styles.infoValue} ${styles.statusBadge}`}>
+                    {orderStatusLabel(order.status, t)}
+                  </span>
                 </div>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('order_date', 'Order Date')}:</span>

@@ -1,6 +1,10 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+// One source for the status modifier class. The ladder this replaces handled six of the ten
+// statuses and returned '' for the rest — an unstyled badge, which reads as "no status" rather
+// than as an unhandled one.
+import { orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
 import { OrderDto } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
@@ -14,25 +18,6 @@ interface OrderCardProps {
 
 export default function OrderCard({ order, onStatusChange, isLoading }: OrderCardProps) {
   const { t } = useTranslation();
-
-  const getStatusClass = () => {
-    switch (order.status) {
-      case 'Pending':
-        return styles.statusPending;
-      case 'Confirmed':
-        return styles.statusConfirmed;
-      case 'Preparing':
-        return styles.statusPreparing;
-      case 'Ready':
-        return styles.statusReady;
-      case 'Completed':
-        return styles.statusCompleted;
-      case 'Cancelled':
-        return styles.statusCancelled;
-      default:
-        return '';
-    }
-  };
 
   const getNextStatus = () => {
     switch (order.status) {
@@ -74,7 +59,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
   const nextStatusLabel = getNextStatusLabel();
 
   return (
-    <div className={`${styles.card} ${getStatusClass()}`}>
+    <div className={`${styles.card} ${styles[orderStatusMeta(order.status)?.className ?? ''] ?? ''}`}>
       <div className={styles.header}>
         <div className={styles.orderInfo}>
           <span className={styles.orderNumber}>#{order.orderNumber}</span>
@@ -82,7 +67,7 @@ export default function OrderCard({ order, onStatusChange, isLoading }: OrderCar
             {t('server.table', 'Table')} {order.tableNumber}
           </span>
         </div>
-        <div className={styles.statusBadge}>{t(`order.status_${order.status.toLowerCase()}`, order.status)}</div>
+        <div className={styles.statusBadge}>{orderStatusLabel(order.status, t)}</div>
       </div>
 
       <div className={styles.meta}>

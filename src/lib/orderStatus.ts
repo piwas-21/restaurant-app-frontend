@@ -78,6 +78,65 @@ export const PAYMENT_STATUS_META: Readonly<Record<PaymentStatus, { i18nKey: stri
 };
 
 /**
+ * Which statuses a staff surface may offer NEXT, mirroring the backend's `IsValidStatusTransition`
+ * (`UpdateOrderStatusCommand.cs`) — the only authority on what the server will accept.
+ *
+ * The cashier dialog carried its own `switch` over this, and it disagreed with the server in SIX of
+ * its twelve states. Two of them stranded an order outright, because the ladder's `default` returned an
+ * empty list and an empty list is indistinguishable from "this order is finished":
+ *
+ * | status            | the cashier offered      | the server accepts               |
+ * |-------------------|--------------------------|----------------------------------|
+ * | `Pending`         | Confirmed, Cancelled     | + `PendingApproval`              |
+ * | `PendingApproval` | **nothing**              | Confirmed, Cancelled             |
+ * | `Ready`           | Completed, Cancelled     | + `OutForDelivery`               |
+ * | `OutForDelivery`  | **nothing**              | Completed, Cancelled             |
+ * | `InTransit`       | Delivered, Cancelled     | **nothing** — not a server status |
+ * | `Delivered`       | Completed, Cancelled     | **nothing**                      |
+ *
+ * The two that mattered most: a DELIVERY could never be dispatched, because `Ready` did not offer
+ * `OutForDelivery`; and once the server put an order into `OutForDelivery` — which is the name it
+ * actually emits — the cashier had no way to move it again.
+ *
+ * `InTransit` is this app's own historical spelling and is not a server status at all, so it leads
+ * nowhere: anything offered there was rejected on submit. It stays in the union because the server
+ * has emitted it (see `ORDER_STATUS_META`), but it is a dead end by definition, not by omission.
+ *
+ * ⚠️ `Delivered` is empty because the SERVER has no rule for it — it falls to `_ => false`, so every
+ * transition out of a delivered order is refused. That looks like a backend gap rather than a
+ * deliberate terminal state, but inventing a rule here would only move the rejection from the
+ * server to a place nobody is looking. Flagged for a backend pass, not guessed at.
+ */
+export const ORDER_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
+  Pending: ['Confirmed', 'PendingApproval', 'Cancelled'],
+  PendingApproval: ['Confirmed', 'Cancelled'],
+  Confirmed: ['Preparing', 'Cancelled'],
+  Preparing: ['Ready', 'Cancelled'],
+  Ready: ['OutForDelivery', 'Completed', 'Cancelled'],
+  OutForDelivery: ['Completed', 'Cancelled'],
+  InTransit: [],
+  // Same as `InTransit`: this app's own historical spelling, never a server status, so it leads
+  // nowhere. TypeScript required this entry, which is the point of the Record.
+  'In Progress': [],
+  Delivered: [],
+  Completed: [],
+  Cancelled: [],
+  Refunded: [],
+};
+
+/**
+ * The next statuses a staff surface should offer for `status`, or `[]` when there are none.
+ *
+ * An unknown status also yields `[]` — the same answer as a terminal one, and deliberately so: a
+ * value this build does not recognise is not one it can reason about, and offering a guess would
+ * put the rejection at the server after the user has committed to it.
+ */
+export function nextOrderStatuses(status: string | null | undefined): readonly OrderStatus[] {
+  const resolved = resolveOrderStatus(status);
+  return resolved ? ORDER_STATUS_TRANSITIONS[resolved] : [];
+}
+
+/**
  * Look a status up from a plain `string`.
  *
  * The callers hold `string`, not `OrderStatus` — the value arrives over HTTP, so the type is a

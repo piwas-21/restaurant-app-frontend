@@ -4,6 +4,8 @@ import type { OrderStatus } from '@/types/order';
 import { ACTIVE_STATUSES, PAST_STATUSES } from '../constants/orderStatus';
 import {
   ORDER_STATUS_META,
+  ORDER_STATUS_TRANSITIONS,
+  nextOrderStatuses,
   orderStatusLabel,
   orderStatusMeta,
   paymentStatusLabel,
@@ -115,5 +117,71 @@ describe('paymentStatusLabel', () => {
   // until the contract is reconciled.
   it('falls through for Overpaid, which the union does not yet carry', () => {
     expect(paymentStatusLabel('Overpaid', echo)).toBe('Overpaid');
+  });
+
+  it('returns an empty string for a missing payment status', () => {
+    expect(paymentStatusLabel(null, echo)).toBe('');
+    expect(paymentStatusLabel(undefined, echo)).toBe('');
+  });
+});
+
+/**
+ * The transition table. It mirrors the backend's `IsValidStatusTransition` — the only authority on
+ * what the server will accept — and the cashier dialog's own `switch`, which this replaces,
+ * disagreed with it in six of eleven states.
+ */
+describe('nextOrderStatuses', () => {
+  it.each([
+    ['Pending', ['Confirmed', 'PendingApproval', 'Cancelled']],
+    ['PendingApproval', ['Confirmed', 'Cancelled']],
+    ['Confirmed', ['Preparing', 'Cancelled']],
+    ['Preparing', ['Ready', 'Cancelled']],
+    ['Ready', ['OutForDelivery', 'Completed', 'Cancelled']],
+    ['OutForDelivery', ['Completed', 'Cancelled']],
+  ])('%s -> %s', (status, expected) => {
+    expect(nextOrderStatuses(status)).toEqual(expected);
+  });
+
+  it.each(['Completed', 'Cancelled', 'Refunded', 'Delivered', 'InTransit', 'In Progress'])(
+    '%s is terminal — nothing is offered',
+    (status) => {
+      expect(nextOrderStatuses(status)).toEqual([]);
+    },
+  );
+
+  /**
+   * The two the cashier stranded. Its ladder's `default` returned `[]`, which is indistinguishable
+   * from "this order is finished" — so an order the SERVER had moved into one of these states could
+   * not be moved again from the till.
+   */
+  it('offers a way out of the two states the old ladder stranded', () => {
+    expect(nextOrderStatuses('PendingApproval')).not.toHaveLength(0);
+    expect(nextOrderStatuses('OutForDelivery')).not.toHaveLength(0);
+  });
+
+  /**
+   * The one that mattered most on the floor: a delivery could never be DISPATCHED, because `Ready`
+   * did not offer `OutForDelivery`.
+   */
+  it('lets a ready order be sent out for delivery', () => {
+    expect(nextOrderStatuses('Ready')).toContain('OutForDelivery');
+  });
+
+  it('offers nothing the server would reject — every target is itself a known status', () => {
+    // The old ladder offered `InTransit -> Delivered` and `Delivered -> Completed`, both of which
+    // the server refuses. Asserting every target round-trips through `resolveOrderStatus` is what
+    // stops a future edit reintroducing a target that only exists in this file.
+    for (const targets of Object.values(ORDER_STATUS_TRANSITIONS)) {
+      for (const target of targets) expect(resolveOrderStatus(target)).toBe(target);
+    }
+  });
+
+  it('normalises the incoming status the same way labels and badges do', () => {
+    expect(nextOrderStatuses('outfordelivery')).toEqual(['Completed', 'Cancelled']);
+  });
+
+  it('returns nothing for an unknown status rather than guessing a path', () => {
+    expect(nextOrderStatuses('SomeFutureStatus')).toEqual([]);
+    expect(nextOrderStatuses(null)).toEqual([]);
   });
 });

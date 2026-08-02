@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import type { ItemAvailability } from '@/types/menu';
-import { useItemAvailabilityNotice } from './useItemAvailabilityNotice';
+import { isItemBlocked, useItemAvailabilityNotice } from './useItemAvailabilityNotice';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { useTableContext } from '@/contexts/TableContext';
 import { useEnabledOrderTypes } from '@/hooks/checkout/useEnabledOrderTypes';
@@ -183,5 +183,50 @@ describe('useItemAvailabilityNotice — channel list ordering', () => {
     setup({ orderType: null, enabled: [OrderType.Delivery, OrderType.Takeaway, OrderType.DineIn] });
 
     expect(notice(NOT_DINE_IN)?.message).toBe('Takeaway and Delivery only');
+  });
+});
+
+/**
+ * The predicate the three item surfaces share. It exists because they had diverged: `FeaturedSpecial`
+ * carried the `canOrder` clause and the two cards did not, so the same item dimmed in the hero and
+ * stayed live in the grid directly below it.
+ *
+ * The clause matters because this hook returns `null` on purpose in two cases — `reason:
+ * 'Unavailable'` and while the enabled-channel list loads — and a surface reading the notice ALONE
+ * treats that null as "fine".
+ */
+describe('isItemBlocked', () => {
+  const blockedNotice = {
+    tone: 'blocked',
+    message: 'Takeaway only',
+    switchTo: null,
+    switchLabel: '',
+    hint: null,
+  } as const;
+  const infoNotice = { tone: 'info', message: 'Takeaway only', switchTo: null, switchLabel: '', hint: null } as const;
+
+  it('blocks on the notice tone', () => {
+    expect(isItemBlocked(undefined, blockedNotice)).toBe(true);
+  });
+
+  // THE regression. A server verdict of `canOrder: false` with no notice to show for it — the
+  // `reason: 'Unavailable'` path — used to leave the card undimmed with a live "Add to order".
+  it('blocks on the server verdict even when there is no notice to show', () => {
+    expect(isItemBlocked({ canOrder: false } as ItemAvailability, null)).toBe(true);
+  });
+
+  it('does not block on an info notice', () => {
+    expect(isItemBlocked({ canOrder: true } as ItemAvailability, infoNotice)).toBe(false);
+  });
+
+  it('does not block when there is no verdict and no notice', () => {
+    // The dominant browse state: no channel chosen, nothing known, nothing dimmed.
+    expect(isItemBlocked(undefined, null)).toBe(false);
+  });
+
+  it('does not block on a missing canOrder field', () => {
+    // `undefined` is "the server did not say", which is not the same as "no". An older backend
+    // must not dim the whole menu.
+    expect(isItemBlocked({} as ItemAvailability, null)).toBe(false);
   });
 });

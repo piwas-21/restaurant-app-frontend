@@ -35,6 +35,23 @@ export interface AvailabilityNotice {
 }
 
 /**
+ * Should this item's surface recede and drop its "Add to order"?
+ *
+ * The second clause is the one that was missing. `useItemAvailabilityNotice` returns `null` for
+ * `reason: 'Unavailable'` and while the enabled-channel list is still loading — deliberately, since
+ * there is nothing useful to SAY in either case. But a surface that derives "blocked" from the
+ * notice alone then reads a null notice as "fine", dims nothing and offers a live Add for an item
+ * the server has already refused.
+ *
+ * `FeaturedSpecial` guarded this; `MenuCard` and `CraftMenuCard` did not, so the same item behaved
+ * differently in the hero and in the grid below it. The predicate lives here, next to the hook whose
+ * nulls make it necessary, so a fourth surface cannot get it wrong by omission.
+ */
+export function isItemBlocked(availability: ItemAvailability | undefined, notice: AvailabilityNotice | null): boolean {
+  return notice?.tone === 'blocked' || availability?.canOrder === false;
+}
+
+/**
  * Resolve the notice for one item, or `null` when there is nothing to say.
  *
  * Three rules are load-bearing:

@@ -47,7 +47,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // answer arrived. Fails OPEN to the full set — see tenantModulesService.
   const [paletteCss, modules] = await Promise.all([getTenantPaletteCss(), getTenantModules()]);
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    // `lang`/`dir` are the SSR DEFAULT, not the answer. The locale is chosen in the browser
+    // (`i18n.ts` detects it from localStorage → navigator), so the server cannot know it here;
+    // `DocumentLanguage` corrects both attributes on mount and on every switch. Stating `dir`
+    // explicitly rather than omitting it means the document always declares a direction, and the
+    // client only ever changes a value instead of adding an attribute.
+    <html lang="en" dir="ltr" suppressHydrationWarning={true}>
       <body className={bodyClassName}>
         {paletteCss ? (
           <style href="tenant-palette" precedence="high">

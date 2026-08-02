@@ -145,3 +145,10 @@
 .tabActive .tabNotice {
   color: inherit;
 }
+
+/* RTL: the chevrons point at a SIDE, so they are the one thing `dir="rtl"` cannot mirror for
+   itself — the box flips, the glyph inside does not. Flipping the icon rather than swapping the
+   two components keeps the buttons' scroll handlers, positions and labels untouched. */
+[dir='rtl'] .navArrow svg {
+  transform: scaleX(-1);
+}

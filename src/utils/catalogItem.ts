@@ -20,8 +20,9 @@ export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
     price: item.price,
     isBundle: false,
     // Inline price-edit is safe only when the card price IS the editable base price — i.e. no
-    // variations (a variation product's displayed price is a derived "from" value).
-    priceEditable: (item.variations?.length ?? 0) === 0,
+    // variations (a variation product's displayed price is a derived "from" value). The reason
+    // travels with the verdict so the card can SAY why rather than rendering nothing.
+    priceEditability: (item.variations?.length ?? 0) === 0 ? 'editable' : 'variations',
     allergens: item.allergens,
     isSpecial: item.isSpecial,
     isAvailable: item.isAvailable,
@@ -49,6 +50,10 @@ export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
     images: bundle.images,
     price: bundle.basePrice,
     isBundle: true,
+    // Was simply absent, which read as `undefined` and made the editor render nothing at all for
+    // every combo — indistinguishable from a bug, and the half of the report that said "SOME menu
+    // items don't have the button". Stated explicitly now, with the reason.
+    priceEditability: 'bundle',
     isSpecial: bundle.isSpecial,
     isAvailable: bundle.isAvailable,
     bundleItemNames: bundleItemNames && bundleItemNames.length > 0 ? bundleItemNames : undefined,

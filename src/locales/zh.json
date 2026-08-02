@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "向前滚动分类",
   "scroll_categories_forward": "向后滚动分类",
   "category_navigation_aria": "分类导航",
-  "order_status_refunded": "已退款"
+  "order_status_refunded": "已退款",
+  "bulk_status_update_success": "已更新订单：{{count}}",
+  "bulk_status_update_partial": "已更新订单：{{success}}，失败：{{failed}}",
+  "bulk_export_csv_success": "已导出为 CSV 的订单：{{count}}",
+  "bulk_export_pdf_success": "已导出为 PDF 的订单：{{count}}"
 }

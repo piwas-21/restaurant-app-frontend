@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Categorieën terugscrollen",
   "scroll_categories_forward": "Categorieën vooruitscrollen",
   "category_navigation_aria": "Categorienavigatie",
-  "order_status_refunded": "Terugbetaald"
+  "order_status_refunded": "Terugbetaald",
+  "bulk_status_update_success": "Bijgewerkte bestellingen: {{count}}",
+  "bulk_status_update_partial": "Bijgewerkte bestellingen: {{success}} — mislukt: {{failed}}",
+  "bulk_export_csv_success": "Bestellingen geëxporteerd naar CSV: {{count}}",
+  "bulk_export_pdf_success": "Bestellingen geëxporteerd naar PDF: {{count}}"
 }

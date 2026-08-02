@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Kategorileri geri kaydır",
   "scroll_categories_forward": "Kategorileri ileri kaydır",
   "category_navigation_aria": "Kategori gezinmesi",
-  "order_status_refunded": "İade Edildi"
+  "order_status_refunded": "İade Edildi",
+  "bulk_status_update_success": "Güncellenen sipariş: {{count}}",
+  "bulk_status_update_partial": "Güncellenen sipariş: {{success}} — başarısız: {{failed}}",
+  "bulk_export_csv_success": "CSV olarak dışa aktarılan sipariş: {{count}}",
+  "bulk_export_pdf_success": "PDF olarak dışa aktarılan sipariş: {{count}}"
 }

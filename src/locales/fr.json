@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Faire défiler les catégories en arrière",
   "scroll_categories_forward": "Faire défiler les catégories en avant",
   "category_navigation_aria": "Navigation par catégories",
-  "order_status_refunded": "Remboursé"
+  "order_status_refunded": "Remboursé",
+  "bulk_status_update_success": "Commandes mises à jour : {{count}}",
+  "bulk_status_update_partial": "Commandes mises à jour : {{success}} — échecs : {{failed}}",
+  "bulk_export_csv_success": "Commandes exportées en CSV : {{count}}",
+  "bulk_export_pdf_success": "Commandes exportées en PDF : {{count}}"
 }

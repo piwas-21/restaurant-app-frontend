@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "تمرير الفئات للخلف",
   "scroll_categories_forward": "تمرير الفئات للأمام",
   "category_navigation_aria": "التنقل بين الفئات",
-  "order_status_refunded": "مسترد"
+  "order_status_refunded": "مسترد",
+  "bulk_status_update_success": "الطلبات المحدَّثة: {{count}}",
+  "bulk_status_update_partial": "الطلبات المحدَّثة: {{success}}، الفاشلة: {{failed}}",
+  "bulk_export_csv_success": "الطلبات المصدَّرة إلى CSV: {{count}}",
+  "bulk_export_pdf_success": "الطلبات المصدَّرة إلى PDF: {{count}}"
 }

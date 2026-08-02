@@ -8,10 +8,19 @@ jest.mock('@/services/userService');
 // `t` is hoisted OUT of the factory on purpose — see `useCategoryManagement.test.ts`. react-i18next
 // memoises `t` and only changes its identity on a language change; a mock that mints a fresh
 // function per render does not, and `getUsers` lists `t` in its dependency array.
-const stableT = (key: string, fallback?: string) => fallback ?? key;
+//
+// It is a `jest.fn` rather than a plain function because it returns its own fallback: every
+// client-authored sentence below is byte-identical whether the hook translated it or hardcoded the
+// English, so asserting the TEXT cannot tell the two apart. Mutation-checked — replacing a
+// `t(key, 'English')` with the bare `'English'` leaves every text assertion green. Asserting the
+// CALL is what fails it.
+const mockT = jest.fn((key: string, fallback?: string) => fallback ?? key);
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: stableT }),
+  useTranslation: () => ({ t: mockT }),
 }));
+
+/** Pins that a sentence came out of i18n rather than out of the source, per the note above. */
+const expectTranslated = (key: string, sentence: string) => expect(mockT).toHaveBeenCalledWith(key, sentence);
 
 const mockFetchUsers = fetchUsers as jest.MockedFunction<typeof fetchUsers>;
 const mockDeleteStaff = deleteStaff as jest.MockedFunction<typeof deleteStaff>;
@@ -66,6 +75,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
       // The point of E9: "Failed to load users" says where the admin is.
       expect(result.current.error).toBe('Failed to load users');
       expect(result.current.error).not.toBe('An error occurred while fetching users');
+      expectTranslated('failed_to_load_users', 'Failed to load users');
     });
 
     /**
@@ -133,6 +143,8 @@ describe('useMemberManagement — what the admin actually reads', () => {
       expect(soft).toEqual({ success: true, message: 'User deleted successfully' });
       expect(permanent).toEqual({ success: true, message: 'User permanently deleted' });
       expect(soft.message).not.toMatch(/^[a-z0-9_]+$/);
+      expectTranslated('user_deleted_successfully', 'User deleted successfully');
+      expectTranslated('user_permanently_deleted', 'User permanently deleted');
     });
 
     /**
@@ -161,6 +173,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
 
       expect(outcome).toEqual({ success: false, message: 'An error occurred while deleting user' });
       expect(outcome.message).not.toBe('An unexpected error occurred.');
+      expectTranslated('delete_user_error', 'An error occurred while deleting user');
     });
   });
 
@@ -172,6 +185,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleReactivateUser('u1');
 
       expect(outcome).toEqual({ success: true, message: 'User reactivated successfully' });
+      expectTranslated('user_reactivated_successfully', 'User reactivated successfully');
     });
 
     it('never returns the success sentence for a refused reactivation', async () => {
@@ -191,6 +205,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleReactivateUser('u1');
 
       expect(outcome.message).toBe('An error occurred while reactivating user');
+      expectTranslated('reactivate_user_error', 'An error occurred while reactivating user');
     });
   });
 
@@ -203,6 +218,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
 
       expect(outcome).toEqual({ success: true, message: 'User updated successfully' });
       expect(outcome.message).not.toMatch(/^[a-z0-9_]+$/);
+      expectTranslated('user_updated_successfully', 'User updated successfully');
     });
 
     /** Was a hardcoded English literal in the hook — CLAUDE.md §5 rule 11. */
@@ -213,6 +229,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
 
       expect(outcome).toEqual({ success: false, message: 'Customers can only update their own profile' });
       expect(mockUpdateStaff).not.toHaveBeenCalled();
+      expectTranslated('customers_update_own_profile_only', 'Customers can only update their own profile');
     });
 
     it("keeps the server's per-rule errors[] on a refused update", async () => {
@@ -245,6 +262,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleUpdateUser(staffUser, { firstName: 'Grace' });
 
       expect(outcome.message).toBe('An error occurred while updating user');
+      expectTranslated('update_user_error', 'An error occurred while updating user');
     });
   });
 });

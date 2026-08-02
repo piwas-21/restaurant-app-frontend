@@ -7,6 +7,7 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import { OrderDto } from '@/types/order';
 import { RESTAURANT_NAME } from '@/lib/config';
+import { orderStatusLabel } from '@/lib/orderStatus';
 
 // Import templates
 import { generateSimpleReceiptHtml, generateKitchenReceiptHtml } from './templates';
@@ -137,25 +138,17 @@ const escapeHtml = (text: string): string => {
   return text.replace(/[&<>"']/g, (char) => map[char]);
 };
 
-const getOrderStatusLabel = (status: string, t?: TranslationFunction): string => {
-  const translate = t || ((key: string, fallback: string) => fallback);
-  switch (status) {
-    case 'Pending':
-      return translate('order_status_pending', 'Pending');
-    case 'Confirmed':
-      return translate('order_status_confirmed', 'Confirmed');
-    case 'Preparing':
-      return translate('order_status_preparing', 'Preparing');
-    case 'Ready':
-      return translate('order_status_ready', 'Ready');
-    case 'Completed':
-      return translate('order_status_completed', 'Completed');
-    case 'Cancelled':
-      return translate('order_status_cancelled', 'Cancelled');
-    default:
-      return status;
-  }
-};
+/**
+ * One source for status copy — this ladder handled SIX of the ten statuses and printed the raw enum
+ * name for the rest, on a document a customer or an accountant keeps.
+ *
+ * The `t || (…) => fallback` default that used to live here is gone with it: every caller
+ * (`useCashierOrderAlerts`, `useAdminOrdersBulkSelection`, `useOrderDetailsActions`,
+ * `OrderDetailsRightColumn`) passes a real `t`, so the English-only path was dead code that only
+ * made the signature look safer than it was.
+ */
+const getOrderStatusLabel = (status: string, t?: TranslationFunction): string =>
+  orderStatusLabel(status, (key) => (t ? t(key, status) : status));
 
 /**
  * Export multiple orders to PDF using browser's print functionality

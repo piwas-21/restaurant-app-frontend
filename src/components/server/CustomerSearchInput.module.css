@@ -12,7 +12,9 @@
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  padding-right: 2.5rem;
+  /* Reserves the gutter for the spinner / clear button below, which are absolutely
+     positioned at the same inline end — the three move as one set. */
+  padding-inline-end: 2.5rem;
   background-color: var(--background-color);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -36,7 +38,7 @@
 
 .spinner {
   position: absolute;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   animation: spin 1s linear infinite;
 }
 
@@ -51,7 +53,7 @@
 
 .clearButton {
   position: absolute;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -94,8 +96,7 @@
 .dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   margin-top: 0.25rem;
   background-color: var(--surface-primary);
   border: 1px solid var(--border-color);
@@ -115,7 +116,7 @@
   border: none;
   background: none;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: background-color 0.15s;
 }
 

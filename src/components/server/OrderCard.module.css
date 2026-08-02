@@ -5,7 +5,10 @@
   padding: 1rem;
   margin-bottom: 1rem;
   transition: all 0.2s ease;
-  border-left: 4px solid var(--border-color);
+  /* Status accent rule. The six `.status*` rules below repaint ONLY its colour, so the width
+     here and all six colours are one set and convert together — a half-converted pair splits
+     the stripe across two edges in `ar` (the defect review caught in #390). */
+  border-inline-start: 4px solid var(--border-color);
 }
 
 .card:hover {
@@ -14,29 +17,29 @@
 
 /* Status border colors */
 .statusPending {
-  border-left-color: #f59e0b;
+  border-inline-start-color: #f59e0b;
 }
 
 .statusConfirmed {
-  border-left-color: #3b82f6;
+  border-inline-start-color: #3b82f6;
 }
 
 .statusPreparing {
-  border-left-color: #8b5cf6;
+  border-inline-start-color: #8b5cf6;
 }
 
 .statusReady {
-  border-left-color: #10b981;
+  border-inline-start-color: #10b981;
   animation: pulseGreen 2s ease-in-out infinite;
 }
 
 .statusCompleted {
-  border-left-color: #6b7280;
+  border-inline-start-color: #6b7280;
   opacity: 0.7;
 }
 
 .statusCancelled {
-  border-left-color: #ef4444;
+  border-inline-start-color: #ef4444;
   opacity: 0.6;
 }
 

@@ -62,8 +62,8 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     const fetchCategories = async () => {
       try {
         // Fetch all categories for dropdown
-        const response = (await getCategories(1, 100)) as { success: boolean; data?: { items: any[] } };
-        if (response.success && response.data?.items && Array.isArray(response.data.items)) {
+        const response = await getCategories(1, 100);
+        if (response.success && Array.isArray(response.data?.items)) {
           setCategories(response.data.items);
         }
       } catch {

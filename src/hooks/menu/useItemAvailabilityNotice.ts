@@ -74,8 +74,8 @@ export function useItemAvailabilityNotice(availability: ItemAvailability | undef
 
   const orderType = state.orderType;
 
-  // Nothing to report: no server verdict (older backend, mock fallback, or a bundle — bundles carry
-  // no availability by contract, §9.2), or the enabled list is still in flight and any chip drawn
+  // Nothing to report: no server verdict (older backend, or a bundle — bundles carry no
+  // availability by contract, §9.2), or the enabled list is still in flight and any chip drawn
   // now might have to be retracted.
   if (!availability || loading || enabled.length === 0) return null;
 

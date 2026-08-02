@@ -58,7 +58,7 @@ function notice(availability: ItemAvailability | undefined) {
 beforeEach(() => jest.clearAllMocks());
 
 describe('useItemAvailabilityNotice — nothing to say', () => {
-  it('says nothing without a server verdict (older backend, mock fallback, or a bundle)', () => {
+  it('says nothing without a server verdict (older backend, or a bundle)', () => {
     setup();
     expect(notice(undefined)).toBeNull();
   });

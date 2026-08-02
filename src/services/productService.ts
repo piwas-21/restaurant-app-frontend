@@ -42,9 +42,8 @@ export const uploadBulkProductImages = async (productId: string, imageFiles: Fil
 };
 
 export const updateProduct = async (productId: string, productData: any) => {
-  // No mock fallback: a failed update must surface to the caller instead of
-  // silently writing to localStorage and reporting a fake success (which made
-  // price edits appear saved while the backend rejected them).
+  // A failed update must surface to the caller. It once resolved successfully from a localStorage
+  // fixture instead, which made price edits appear saved while the backend rejected them.
   return await apiClient.put(`${PRODUCTS_API_URL}/${productId}`, productData);
 };
 

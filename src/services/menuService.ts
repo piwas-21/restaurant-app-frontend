@@ -60,7 +60,7 @@ export const getProducts = async (
   // The channel the guest is ordering through. Does NOT filter the list — the server keeps blocked
   // items visible and only resolves each row's `availability`, so the guest reads a reason, not a hole.
   requestedOrderType?: OrderType | null,
-): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
+): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: unknown }> => {
   let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
   if (categoryId) {
     url += `&CategoryId=${categoryId}`;
@@ -73,7 +73,7 @@ export const getProducts = async (
   } else if (typeQuery?.includeMenus) {
     url += `&IncludeMenus=true`;
   }
-  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
+  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
 };
 
 export const createProduct = async (productData: CreateProductData) => {

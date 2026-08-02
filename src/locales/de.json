@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Kategorien zurückblättern",
   "scroll_categories_forward": "Kategorien weiterblättern",
   "category_navigation_aria": "Kategorienavigation",
-  "order_status_refunded": "Erstattet"
+  "order_status_refunded": "Erstattet",
+  "bulk_status_update_success": "Bestellungen aktualisiert: {{count}}",
+  "bulk_status_update_partial": "Bestellungen aktualisiert: {{success}} — fehlgeschlagen: {{failed}}",
+  "bulk_export_csv_success": "Bestellungen als CSV exportiert: {{count}}",
+  "bulk_export_pdf_success": "Bestellungen als PDF exportiert: {{count}}"
 }

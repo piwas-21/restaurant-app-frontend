@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Scroll categories back",
   "scroll_categories_forward": "Scroll categories forward",
   "category_navigation_aria": "Category navigation",
-  "order_status_refunded": "Refunded"
+  "order_status_refunded": "Refunded",
+  "bulk_status_update_success": "Orders updated: {{count}}",
+  "bulk_status_update_partial": "Orders updated: {{success}} — failed: {{failed}}",
+  "bulk_export_csv_success": "Orders exported to CSV: {{count}}",
+  "bulk_export_pdf_success": "Orders exported to PDF: {{count}}"
 }

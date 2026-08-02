@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Desplazar categorías hacia atrás",
   "scroll_categories_forward": "Desplazar categorías hacia adelante",
   "category_navigation_aria": "Navegación por categorías",
-  "order_status_refunded": "Reembolsado"
+  "order_status_refunded": "Reembolsado",
+  "bulk_status_update_success": "Pedidos actualizados: {{count}}",
+  "bulk_status_update_partial": "Pedidos actualizados: {{success}} — fallidos: {{failed}}",
+  "bulk_export_csv_success": "Pedidos exportados a CSV: {{count}}",
+  "bulk_export_pdf_success": "Pedidos exportados a PDF: {{count}}"
 }

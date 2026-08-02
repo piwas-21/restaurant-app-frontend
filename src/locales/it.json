@@ -2501,5 +2501,9 @@
   "scroll_categories_back": "Scorri le categorie indietro",
   "scroll_categories_forward": "Scorri le categorie avanti",
   "category_navigation_aria": "Navigazione categorie",
-  "order_status_refunded": "Rimborsato"
+  "order_status_refunded": "Rimborsato",
+  "bulk_status_update_success": "Ordini aggiornati: {{count}}",
+  "bulk_status_update_partial": "Ordini aggiornati: {{success}} — non riusciti: {{failed}}",
+  "bulk_export_csv_success": "Ordini esportati in CSV: {{count}}",
+  "bulk_export_pdf_success": "Ordini esportati in PDF: {{count}}"
 }

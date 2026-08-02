@@ -99,12 +99,12 @@ export function useAdminOrderMutations({ refetch, selectedOrders, clearSelection
     clearSelection();
 
     if (failCount === 0) {
-      enqueueSnackbar(`Successfully updated ${successCount} order${successCount > 1 ? 's' : ''}`, {
+      enqueueSnackbar(t('bulk_status_update_success', { count: successCount }), {
         variant: 'success',
         anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
       });
     } else {
-      enqueueSnackbar(`Updated ${successCount} orders, ${failCount} failed`, {
+      enqueueSnackbar(t('bulk_status_update_partial', { success: successCount, failed: failCount }), {
         variant: 'warning',
         anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
       });

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { serverPasswordSchema } from '@/schemas/password.schema';
 
 const NAME_MIN = 2;
 const NAME_MAX = 100;
@@ -8,12 +9,16 @@ const NAME_MAX = 100;
 const PHONE_PATTERN = /^[+\s\-()0-9]{5,}$/;
 
 /**
- * Minimum password length for inline-registration in the order-type
- * modals (BUGS-IMPROVEMENTS-PLAN §C1.5.g). Mirrors the backend
- * `customerRegistrationSchema` rule (`password: z.string().min(6)`)
- * — keep these aligned if either side moves.
+ * Minimum password length for inline-registration in the order-type modals
+ * (BUGS-IMPROVEMENTS-PLAN §C1.5.g), re-exported from the one mirror of the server's policy so the
+ * `minLength` attribute on the input and the schema that validates it cannot drift apart.
+ *
+ * It was `6`, and the comment here claimed that mirrored the backend. It did not: the server has
+ * required 8-plus-four-character-classes since `Program.cs:161-165`, so this form accepted
+ * passwords `RegisterCustomerCommandValidator` then refused with a 400 (BUGS-IMPROVEMENTS-PLAN E9).
+ * Length alone is still not the whole policy — `serverPasswordSchema` is what actually validates.
  */
-export const MIN_PASSWORD_LENGTH = 6;
+export { PASSWORD_MIN_LENGTH as MIN_PASSWORD_LENGTH } from '@/lib/passwordPolicy';
 
 /**
  * Schema for the checkout customer-info form. Error keys are i18n keys
@@ -40,8 +45,11 @@ export const customerInfoSchema = z.object({
  * an `.refine` on every keystroke for the dependent confirmPassword.
  */
 export const registerFieldsSchema = {
-  password: z.string().min(1, 'field_required').min(MIN_PASSWORD_LENGTH, 'password_too_short'),
-  confirmPassword: z.string().min(1, 'field_required').min(MIN_PASSWORD_LENGTH, 'password_too_short'),
+  // The full server policy, not a length floor — see `password.schema.ts`. Empty input still reports
+  // `field_required` rather than the policy sentence, because "required" is the useful thing to say
+  // about a field nobody has typed in yet.
+  password: z.string().min(1, 'field_required').pipe(serverPasswordSchema),
+  confirmPassword: z.string().min(1, 'field_required'),
 } as const;
 
 export type CustomerInfoInput = z.infer<typeof customerInfoSchema>;

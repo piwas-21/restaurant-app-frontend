@@ -10,6 +10,12 @@ import type { ItemAvailability } from './availability';
  */
 export type CatalogItemKind = 'product' | 'bundle';
 
+/**
+ * `'editable'`, or the reason it is not. A union rather than a boolean-plus-reason pair so the two
+ * halves cannot disagree — there is no way to express "not editable, no reason" or the reverse.
+ */
+export type PriceEditability = 'editable' | 'variations' | 'bundle';
+
 export interface CatalogItem {
   kind: CatalogItemKind;
   id: string;
@@ -25,8 +31,22 @@ export interface CatalogItem {
   /** Starting price — a bundle displays this as a "from" price. */
   price: number;
   isBundle: boolean;
-  /** Products with no variations only: the base price is safe to quick-edit inline on the card. */
-  priceEditable?: boolean;
+  /**
+   * Whether the card's inline price quick-edit applies, and when it does NOT, why.
+   *
+   * A plain boolean used to live here, and the absence it produced was silent: `AdminPriceEditor`
+   * rendered `null`, so an admin saw the control on some items and nothing at all on others, with
+   * no way to tell a deliberate refusal from a bug. That is how it was reported.
+   *
+   * `'variations'` — the card price is a derived "from" value; the real prices live per variation.
+   * `'bundle'`     — a combo's price is composed from its items, and this editor writes a product's
+   *                  base price, which a combo does not have.
+   *
+   * NOT the backend's verdict, despite what this component's doc comment claimed until 2026-08-02:
+   * `PriceEditable` does not exist anywhere in the backend. It is derived in `utils/catalogItem.ts`
+   * from data the card already has.
+   */
+  priceEditability?: PriceEditability;
   allergens?: string[];
   isSpecial?: boolean;
   isAvailable?: boolean;

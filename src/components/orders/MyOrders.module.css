@@ -117,7 +117,7 @@
 .orderItemsTable td {
   border: 1px solid var(--border-color-light);
   padding: 0.5rem 0.75rem;
-  text-align: left;
+  text-align: start;
   color: var(--text-color);
 }
 

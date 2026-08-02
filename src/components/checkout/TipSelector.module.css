@@ -168,7 +168,7 @@
 
 .currencySymbol {
   position: absolute;
-  left: 1rem;
+  inset-inline-start: 1rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -177,7 +177,12 @@
 
 .customTipInput {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3.5rem;
+  /* Was the 4-value shorthand `0.75rem 1rem 0.75rem 3.5rem` — DIRECTIONAL in slots 2 and 4,
+     and therefore invisible to the ratchet's property-anchored regex (DESIGN-SYSTEM.md §8.1).
+     Slot 4 is the gutter reserving room for `.currencySymbol`, which just moved to
+     `inset-inline-start`; split so the two stay on the same edge in `ar`. */
+  padding-block: 0.75rem;
+  padding-inline: 3.5rem 1rem;
   border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;

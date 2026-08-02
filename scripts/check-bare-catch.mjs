@@ -25,22 +25,23 @@
  *   that. Read the remediation text below as "bind it AND surface it".
  * - **Not aiming at zero.** Roughly a dozen of the current sites ignore a failure on purpose —
  *   `TableContext` discarding malformed `localStorage`, `analytics` feature-detecting
- *   `CustomEvent`, `qrCode` parsing an untrusted payload. Those should stay, and converting them to
- *   bound catches would buy nothing.
+ *   `CustomEvent`, `orderTypeLabels` feature-detecting `Intl.ListFormat`, `imageCompression`
+ *   falling back to the original file, `qrCode` parsing an untrusted payload. Those should stay,
+ *   and converting them to bound catches would buy nothing.
  *
- *   An earlier version of this list also named "the mock-API fallbacks in
- *   `menuService`/`categoryService`" as deliberate. They were not: `mockApiClient` had no
- *   environment gate, so on a live tenant a backend outage rendered invented dishes at invented
- *   prices instead of the error the customer menu already had copy for. They have since been
- *   deleted. Worth remembering that this header vouched for them for as long as it did — "ignored
- *   on purpose" is a claim about intent, and intent is not evidence that the ignore is correct.
+ *   This list also used to name "the mock-API fallbacks in `menuService`/`categoryService`" as
+ *   deliberate. They were not: `mockApiClient` had no environment gate, so on a live tenant a
+ *   backend outage rendered invented dishes at invented prices instead of the error the customer
+ *   menu already had copy for. They are now DELETED (issue #398), not merely off the list. Worth
+ *   remembering that this header vouched for them for as long as it did — "ignored on purpose" is
+ *   a claim about intent, and intent is not evidence that the ignore is correct.
  *
  * **Where this ends: a count of roughly 12.** An earlier version of this header said "the honest
  * target is ~90, not 0", which read as a target *count* and contradicted the line above it — if
- * ~12 sites should stay, ~12 is where the count lands, and at 91 today the sweep would already be
- * over. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~88 sites that do need
- * fixing, out of the 100 counted at triage. That reading is also the only one the "1-2 week"
- * estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
+ * ~12 sites should stay, ~12 is where the count lands, and the sweep would already have been over
+ * before it started. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~90 sites
+ * that do need fixing, out of the ~100 counted at triage. That reading is also the only one the
+ * "1-2 week" estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
  *
  * So: keep going until only the deliberate ignores remain. Each one should carry a comment saying
  * why it ignores the failure — that comment, not this number, is what tells the next reader the
@@ -55,7 +56,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runRatchet, walkFiles } from './lib/ratchet.mjs';
+import { runRatchet, stripComments, walkFiles } from './lib/ratchet.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = join(root, 'scripts', 'bare-catch-baseline.json');
@@ -66,26 +67,21 @@ const isSource = (f) => /\.(ts|tsx)$/.test(f) && !/\.test\.(ts|tsx)$/.test(f);
 const files = walkFiles(root, join(root, 'src'), isSource);
 
 /**
- * Strip the places where `} catch {` is being TALKED ABOUT rather than written: a line comment, a
- * block-comment continuation, or a backtick span. Without this the tool counted its own
- * documentation — two of the sites in the first baseline were prose in `apiFormErrors.ts` and
- * `RegisterStaffModal.tsx` explaining the very defect. That is not a cosmetic miscount: a prettier
- * reflow of either comment would change the number and red an unrelated PR with "count FELL — bank
- * it", pointing the author at a figure that has nothing to do with catches.
+ * `} catch {` is often TALKED ABOUT rather than written — the two sites in this ratchet's FIRST
+ * baseline were prose in `apiFormErrors.ts` and `RegisterStaffModal.tsx` explaining the very
+ * defect it counts, and the sweep now leaves an "IGNORED ON PURPOSE" comment beside every
+ * deliberate survivor. `stripComments` (scripts/lib/ratchet.mjs) handles comments; its header
+ * records why matching a comment marker per line was not enough — and why it also has to know
+ * about STRINGS, since a `} catch {` written below an `accept="image/*"` would otherwise sit in a
+ * phantom comment that runs to the end of the file. Template literals are consumed there too, so
+ * this file no longer strips backticks of its own.
  */
-function isProse(line) {
-  return /^\s*(\/\/|\*|\/\*)/.test(line);
-}
-const stripCode = (line) => line.replace(/`[^`]*`/g, '');
-
 const found = [];
 for (const file of files) {
-  const lines = readFileSync(join(root, file), 'utf8').split('\n');
-  lines.forEach((line, i) => {
-    if (isProse(line)) return;
+  stripComments(readFileSync(join(root, file), 'utf8'), { lineComments: true }).forEach((line, i) => {
     // `} catch {` only. A bound `} catch (e) {` is the shape we are migrating TO, so it must not
     // be counted — the point is the discarded error object, not the catch.
-    if (/}\s*catch\s*{/.test(stripCode(line))) found.push(`${file}:${i + 1}`);
+    if (/}\s*catch\s*{/.test(line)) found.push(`${file}:${i + 1}`);
   });
 }
 

@@ -455,7 +455,7 @@ A logical property is byte-identical to its physical twin under `dir="ltr"`, so 
 
 | Coupling | Why it breaks | Do instead |
 | --- | --- | --- |
-| `transform: translateX(…)` | `transform` is never logical. Mirror the inset alone and a drawer parked off-screen with `translateX(100%)` lands **on** screen in `ar`. | Move inset + transform together, or leave both physical with a comment. |
+| `transform: translateX(…)` | `transform` is never logical. Mirror the inset alone and a drawer parked off-screen with `translateX(100%)` lands **on** screen in `ar`. **Grep `animation:` as well as `transform:`** — the translate is often in an `@keyframes` block further down the file, so the coupled rule contains no `transform` of its own. That indirection is what hid `MyReservations`'s `.errorAlert` from a rule-local read: `animation: slideInRight` alone, with the `translateX(100%)` 15 lines away. | Move inset + transform together, or leave both physical with a comment. |
 | `background-position: right …` | Also has no logical form. A gutter that clears a chevron must mirror **with** the chevron, or text runs under it. | Leave the padding physical until the background moves too. |
 | Centring (`left: 50%` + `translateX(-50%)`, or a negative half-width margin) | Centring has no handedness — it is already correct in both directions. | Leave physical; it is not debt. |
 

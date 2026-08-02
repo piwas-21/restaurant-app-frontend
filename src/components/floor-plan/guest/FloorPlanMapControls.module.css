@@ -41,7 +41,8 @@
 .zoomer {
   display: flex;
   gap: 6px;
-  margin-left: auto;
+  /* Toolbar chrome above the map, not the map itself — pushes to the trailing edge. */
+  margin-inline-start: auto;
 }
 .zoomer button {
   width: 38px;

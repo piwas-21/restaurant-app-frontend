@@ -102,7 +102,10 @@ export const getFeaturedSpecial = async (requestedOrderType?: OrderType | null) 
     const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
     return await apiClient.get(`${PRODUCTS_API_URL}/featured-special${query}`);
   } catch {
-    // Return null if no featured special or API fails
+    // IGNORED ON PURPOSE, with one thing worth naming: this reports `success: true` on a FAILED
+    // call, so "no special is configured" and "the call failed" are indistinguishable to the
+    // caller. That is the intended trade — the hero is decorative, and a missing hero must never
+    // fail the home page — but it means this endpoint can never be monitored from the client.
     return { success: true, data: null, message: 'No featured special available' };
   }
 };

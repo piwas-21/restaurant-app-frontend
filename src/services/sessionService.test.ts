@@ -63,4 +63,37 @@ describe('sessionService', () => {
   it('has no session before one is created', () => {
     expect(getSessionId()).toBeNull();
   });
+
+  /**
+   * The expiry window is the other half of unguessability: an id that never expires is an id an
+   * attacker has unlimited time to find. These pin the boundary, and the third one pins a bug the
+   * E9 sweep surfaced — `isSessionExpired` guarded `new Date(str)` with a `try/catch`, but that
+   * constructor does NOT throw on garbage, it returns `Invalid Date`. The catch was unreachable
+   * and the live path compared against `NaN`, which is `false`, so a corrupted or tampered
+   * `rumi_session_expiry` read as NOT EXPIRED and the 7-day window became unbounded.
+   */
+  describe('expiry', () => {
+    const withStoredSession = (expiry: string) => {
+      localStorage.setItem('rumi_session_id', getOrCreateSessionId());
+      localStorage.setItem('rumi_session_expiry', expiry);
+    };
+
+    it('keeps a session whose expiry is in the future', () => {
+      withStoredSession(new Date(Date.now() + 60_000).toISOString());
+      expect(getSessionId()).not.toBeNull();
+    });
+
+    it('drops a session whose expiry has passed', () => {
+      withStoredSession(new Date(Date.now() - 60_000).toISOString());
+      expect(getSessionId()).toBeNull();
+    });
+
+    it.each(['not-a-date', '', 'NaN', '2026-13-45T99:99:99Z'])(
+      'treats an unreadable expiry (%p) as EXPIRED rather than as never-expiring',
+      (garbage) => {
+        withStoredSession(garbage);
+        expect(getSessionId()).toBeNull();
+      },
+    );
+  });
 });

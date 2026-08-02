@@ -70,9 +70,10 @@ export const useMemberManagement = () => {
         setIsLoading(false);
       }
     },
-    // `t` changes identity only on a language switch. The refetch that costs `useCategoryManagement`
-    // an admin's place in the list cannot happen here: the page passes `page` as an ARGUMENT rather
-    // than this callback capturing it, so the re-fired effect reloads the page they are already on.
+    // `t` changes identity only on a language switch. `useCategoryManagement` (#403) reads it
+    // through a ref so that switch cannot re-fire its mount effect and refetch AT PAGE 1, losing an
+    // admin's place. This hook does not need the indirection: the page passes `page` as an ARGUMENT
+    // rather than this callback capturing it, so a re-fire reloads the page they are already on.
     [t],
   );
 

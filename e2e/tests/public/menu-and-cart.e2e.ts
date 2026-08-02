@@ -1,5 +1,23 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { expectNoA11yViolations } from '../../helpers/a11y';
+
+/**
+ * The menu GRID, excluding the featured-special hero.
+ *
+ * `/menu` renders the hero as a sibling ABOVE the grid, and its "Add to Order" button has the
+ * accessible name `Add to Order` — which the card regex `/^Add( .+)? to order$/i` matches. So an
+ * unscoped `.first()` reaches the BANNER, not a card, and every assertion below would still pass
+ * while testing the wrong element. The e2e seed carries a featured special as of #380, so this is
+ * live, not hypothetical.
+ *
+ * Two of the four lookups in this file are safe today by accident and are scoped anyway:
+ *   - `/^details$/i` — the hero's button is `aria-label="View Details"`, so the anchored regex
+ *     misses it. Aligning that label with its visible text is a plausible tidy-up that would
+ *     silently redirect the test.
+ *   - `menu-item-image` — the hero renders `next/image` directly with no testid. Nothing stops it
+ *     adopting the shared component later.
+ */
+const grid = (page: Page) => page.getByTestId('menu-grid');
 
 /**
  * HIGH-tier — public ordering: browse the menu, add an item to cart,
@@ -26,7 +44,7 @@ test('customer can browse the menu, add an item, and update its quantity in the 
 
   // a11y baseline: scan after the menu has rendered (helper waits for it).
   // The first add-to-order button being visible is the load-completed signal.
-  const firstAddButton = page.getByRole('button', { name: /^Add( .+)? to order$/i }).first();
+  const firstAddButton = grid(page).getByRole('button', { name: /^Add( .+)? to order$/i }).first();
   await expect(firstAddButton).toBeVisible({ timeout: 15_000 });
   await expectNoA11yViolations(page);
 
@@ -114,7 +132,7 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
     (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
     { timeout: 10_000 },
   );
-  await page.getByRole('button', { name: /^Add( .+)? to order$/i }).first().click();
+  await grid(page).getByRole('button', { name: /^Add( .+)? to order$/i }).first().click();
   // If a customization dialog appears, confirm through it; otherwise the
   // card click already triggered the basket write.
   try {
@@ -152,7 +170,7 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
 test('clicking Details opens the item modal and does NOT add it to the cart', async ({ page }) => {
   await page.goto('/menu');
 
-  const detailsButton = page.getByRole('button', { name: /^details$/i }).first();
+  const detailsButton = grid(page).getByRole('button', { name: /^details$/i }).first();
   await expect(detailsButton).toBeVisible({ timeout: 15_000 });
 
   // Capture any basket write the moment it's INITIATED (request event, not response), so a
@@ -185,7 +203,7 @@ test('clicking Details opens the item modal and does NOT add it to the cart', as
 test('clicking a menu item image opens the enlarged-image lightbox', async ({ page }) => {
   await page.goto('/menu');
 
-  const thumbnail = page.getByTestId('menu-item-image').first();
+  const thumbnail = grid(page).getByTestId('menu-item-image').first();
   await expect(thumbnail).toBeVisible({ timeout: 15_000 });
 
   await thumbnail.click();

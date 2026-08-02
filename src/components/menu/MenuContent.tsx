@@ -86,8 +86,18 @@ export default function MenuContent({
         />
       )}
 
-      {/* Menu Items Section */}
-      <section className={styles.categorySection} aria-labelledby={`category-heading-${selectedView}`}>
+      {/* Menu Items Section.
+          `data-testid` because E2E-STRATEGY's preferred role+name lookup cannot address this
+          section: its accessible name is the translated category label, which is "All" by default
+          (too generic to match exactly) and changes with the selected view. `role="list"` is no
+          better — the basket rail renders one too once the cart has items. Tests need to reach the
+          GRID specifically because the featured-special hero sits ABOVE it and offers a button with
+          the same accessible name, so an unscoped `.first()` silently exercises the banner. */}
+      <section
+        className={styles.categorySection}
+        data-testid="menu-grid"
+        aria-labelledby={`category-heading-${selectedView}`}
+      >
         {/* Heading + loading/error/empty states (craft re-skins this via the slot). */}
         <MenuSectionStatus
           headingId={`category-heading-${selectedView}`}

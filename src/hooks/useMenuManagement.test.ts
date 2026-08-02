@@ -80,6 +80,15 @@ describe('useMenuManagement — what the admin actually reads', () => {
     });
   });
 
+  it('does not leak a raw non-ApiError throw to the screen', async () => {
+    mockGetProducts.mockRejectedValue(new TypeError('Failed to fetch'));
+    const { result } = renderHook(() => useMenuManagement('all'));
+
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.error).toBe('Failed to load menu items');
+    expect(result.current.error).not.toContain('Failed to fetch');
+  });
+
   it('does not retry in a loop when the product load fails', async () => {
     mockGetProducts.mockRejectedValue(new ApiError(500, 'down'));
     const { result } = renderHook(() => useMenuManagement('all'));

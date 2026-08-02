@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   getSpecialProducts,
@@ -23,6 +23,16 @@ export interface SpecialProduct {
   displayOrder: number;
 }
 
+/**
+ * The server's own sentence off a `{success:false}` body, or `null` when it authored none.
+ * `errors[]` first — it carries the per-rule detail that `message` flattens away — and blanks are
+ * dropped, matching `getErrorMessage`'s handling of the thrown shape.
+ */
+function serverMessage(response: { message?: string; errors?: string[] }): string | null {
+  const detail = response.errors?.filter((m) => m?.trim()).join(', ');
+  return detail || response.message?.trim() || null;
+}
+
 export interface FeaturedSpecial {
   id: string;
   name: string;
@@ -32,8 +42,16 @@ export interface FeaturedSpecial {
   featuredDate: string;
 }
 
+/**
+ * `error` is a plain string and `t` is read through a ref — see `useCategoryManagement`'s header
+ * for both, including why listing `t` would refetch page 1 on a language switch.
+ */
 export const useSpecialsManagement = () => {
   const { t } = useTranslation();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
   const [specialProducts, setSpecialProducts] = useState<SpecialProduct[]>([]);
   const [featuredSpecial, setFeaturedSpecial] = useState<SpecialProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,9 +64,7 @@ export const useSpecialsManagement = () => {
     async (page: number = 1) => {
       setIsLoading(true);
       setError(null);
-      // Same reasoning as `useCategoryManagement`: `useApiError` would change identity on capture
-      // and re-fire the mount effect that depends on this callback.
-      const fallback = t('failed_to_load_specials', 'Failed to load special items');
+      const fallback = () => tRef.current('failed_to_load_specials', 'Failed to load special items');
       try {
         const response = (await getSpecialProducts(page, pageSize)) as {
           success: boolean;
@@ -64,15 +80,15 @@ export const useSpecialsManagement = () => {
           const featured = response.data.items?.find((p: SpecialProduct) => p.isFeaturedSpecial);
           setFeaturedSpecial(featured || null);
         } else {
-          setError(response.message || fallback);
+          setError(response.message || fallback());
         }
       } catch (e) {
-        setError(getErrorMessage(e) ?? fallback);
+        setError(getErrorMessage(e) ?? fallback());
       } finally {
         setIsLoading(false);
       }
     },
-    [pageSize, t],
+    [pageSize],
   );
 
   useEffect(() => {
@@ -82,17 +98,23 @@ export const useSpecialsManagement = () => {
 
   const handleSetFeaturedSpecial = async (productId: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = (await setFeaturedSpecialAPI(productId)) as { success: boolean; message?: string };
+      const response = (await setFeaturedSpecialAPI(productId)) as {
+        success: boolean;
+        message?: string;
+        errors?: string[];
+      };
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);
-        // The page replaces this on success so it can interpolate the product name; the same key is
-        // used here so the hook is not a source of untranslated English if it ever stops doing that.
-        return { success: true, message: response.message || t('featured_special_set_success', { name: '' }) };
+        // The page overrides this on success so it can interpolate the product name
+        // (`featured_special_set_success` takes a `{{name}}`). This one deliberately does NOT
+        // interpolate: the hook has no name to pass, and a key with an unfilled placeholder is
+        // worse than a plainer sentence.
+        return { success: true, message: response.message || t('featured_special_updated') };
       } else {
         return {
           success: false,
-          message: response.message || t('failed_to_set_featured_special', 'Failed to set the featured special'),
+          message: serverMessage(response) ?? t('failed_to_set_featured_special', 'Failed to set the featured special'),
         };
       }
     } catch (e) {
@@ -105,7 +127,7 @@ export const useSpecialsManagement = () => {
 
   const handleUnsetFeaturedSpecial = async (): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = (await unsetFeaturedSpecialAPI()) as { success: boolean; message?: string };
+      const response = (await unsetFeaturedSpecialAPI()) as { success: boolean; message?: string; errors?: string[] };
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);
@@ -116,7 +138,8 @@ export const useSpecialsManagement = () => {
       } else {
         return {
           success: false,
-          message: response.message || t('failed_to_remove_featured_special', 'Failed to remove the featured special'),
+          message:
+            serverMessage(response) ?? t('failed_to_remove_featured_special', 'Failed to remove the featured special'),
         };
       }
     } catch (e) {

@@ -86,6 +86,15 @@ describe('useSpecialsManagement — what the admin actually reads', () => {
     expect(outcome).toEqual({ success: false, message: 'Failed to remove the featured special' });
   });
 
+  it('does not leak a raw non-ApiError throw to the screen', async () => {
+    mockGetSpecials.mockRejectedValue(new TypeError('Failed to fetch'));
+    const { result } = renderHook(() => useSpecialsManagement());
+
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.error).toBe('Failed to load special items');
+    expect(result.current.error).not.toContain('Failed to fetch');
+  });
+
   it('does not retry in a loop when the first load fails', async () => {
     mockGetSpecials.mockRejectedValue(new ApiError(500, 'down'));
     const { result } = renderHook(() => useSpecialsManagement());

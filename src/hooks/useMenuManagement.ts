@@ -11,13 +11,16 @@ import { MenuTypeFilter, toProductTypeQuery } from '@/utils/productTypeFilter';
 import { getErrorMessage } from '@/utils/apiClient';
 
 /**
- * `error` is a plain string, not `useApiError` — see the note in `useCategoryManagement` for why:
- * the hook's object changes identity with its message, and `fetchProducts` is depended on by an
- * effect, so capturing would loop. `getErrorMessage(e) ?? t(contextual)` is the same E9 fix
- * without the identity hazard.
+ * `error` is a plain string, not `useApiError`, and `t` is read through a ref rather than listed as
+ * a dependency — see the header of `useCategoryManagement` for both, including why a listed `t`
+ * would send an admin on page 4 back to page 1 on a language switch.
  */
 export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
   const { t } = useTranslation();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
   const { enqueueSnackbar } = useSnackbar();
   const _router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +42,7 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
       const requestFilter = typeFilter; // Capture which filter this request is for
       setIsLoading(true);
       setError(null);
-      const fallback = t('failed_to_load_menu_items', 'Failed to load menu items');
+      const fallback = () => tRef.current('failed_to_load_menu_items', 'Failed to load menu items');
       try {
         // One endpoint for all three chips, so paging + the category filter behave
         // identically across them (the old tabs hit two endpoints with independent
@@ -54,12 +57,12 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
             setTotalCount(response.data.totalCount || 0);
             setCurrentPage(page);
           } else {
-            setError(response.message || fallback);
+            setError(response.message || fallback());
           }
         }
       } catch (e) {
         if (requestFilter === typeFilterRef.current) {
-          setError(getErrorMessage(e) ?? fallback);
+          setError(getErrorMessage(e) ?? fallback());
         }
       } finally {
         if (requestFilter === typeFilterRef.current) {
@@ -67,7 +70,7 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         }
       }
     },
-    [typeFilter, selectedCategoryId, pageSize, t],
+    [typeFilter, selectedCategoryId, pageSize],
   );
 
   useEffect(() => {
@@ -84,7 +87,7 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         // control the admin may not even be using. Same shape as `useCategoryChannelsAdmin`.
         // Until #400 this branch was unreachable — `getCategories` answered a dead backend with
         // invented categories — so an empty dropdown had no failure to report in the first place.
-        enqueueSnackbar(getErrorMessage(e) ?? t('failed_to_load_categories', 'Failed to load categories'), {
+        enqueueSnackbar(getErrorMessage(e) ?? tRef.current('failed_to_load_categories', 'Failed to load categories'), {
           variant: 'error',
         });
       }
@@ -92,9 +95,9 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     // Internal try/catch absorbs errors — `void` for fire-and-forget.
     // Same below for `fetchProducts` calls.
     void fetchCategories();
-    // Mount-only ON PURPOSE. `t` and `enqueueSnackbar` are read inside the catch, and both are only
-    // reachable at the moment the fetch fails; listing them would make a language switch refetch the
-    // dropdown, which is a network round-trip for a list that does not vary by locale.
+    // Mount-only ON PURPOSE. `enqueueSnackbar` is read only inside the catch, at the moment the
+    // fetch fails; listing it would tie this fetch to notistack's identity for no gain. (`t` is not
+    // listed either, but that is not what the disable is for — it is read through `tRef`.)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

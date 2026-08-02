@@ -5,6 +5,7 @@
 
 import { TENANT_CURRENCY } from '@/utils/currency';
 import { OrderDto } from '@/types/order';
+import { paymentStatusLabel } from '@/lib/paymentStatus';
 
 // Translation function type
 type TranslationFunction = (key: string, fallback: string) => string;
@@ -36,7 +37,9 @@ export function orderToCSVRow(order: OrderDto, t?: TranslationFunction): string[
     getOrderTypeLabel(order.type),
     order.status ? translate(`order_status_${order.status.toLowerCase()}`, order.status) : translate('n_a', 'N/A'),
     order.paymentStatus
-      ? translate(`payment_status_${order.paymentStatus.toLowerCase()}`, order.paymentStatus)
+      ? // Through the shared map, not a key built from the value: `payment_status_completed` exists
+        // in NO locale, so the backend's own word ('Completed') printed raw on an exported CSV.
+        paymentStatusLabel(order.paymentStatus, (key) => translate(key, order.paymentStatus))
       : translate('n_a', 'N/A'),
     order.subTotal.toFixed(2),
     order.tax.toFixed(2),

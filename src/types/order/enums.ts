@@ -57,18 +57,52 @@ export type OrderStatus =
   | 'PendingApproval';
 
 /**
- * Payment status values
- */
-/**
- * ⚠️ KNOWN to diverge from the backend, deliberately NOT changed here — see
- * BUGS-IMPROVEMENTS-PLAN E1. `PaymentStatus.cs` is
- * `Pending | Processing | Completed | Failed | Refunded | PartiallyRefunded | Overpaid | PartiallyPaid`,
- * i.e. it has no `Paid` and this union has no `Processing`/`PartiallyRefunded`/`Overpaid`.
- * `Overpaid` is already handled in `useOrderHelpers` and offered by the admin filter, so at least
- * one value outside this union reaches the UI today.
+ * Payment status — TWO types, because the backend has two things wearing one enum.
  *
- * Left alone because two different things are called a payment status — `order.paymentStatus` and
- * `payment.status` on a payment record (`RefundDialog` reads the latter) — and reconciling them
- * wrongly would misreport money. Needs a backend contract pass, not a guess.
+ * `PaymentStatus.cs` has eight members, but `Order.PaymentStatus` and `OrderPayment.Status` write
+ * DISJOINT subsets of them, and three members are never written by anything. Verified by reading
+ * every write site in the API:
+ *
+ * | written by                       | values |
+ * |----------------------------------|--------|
+ * | `Order.PaymentStatus`            | `Pending` `PartiallyPaid` `Completed` `Overpaid` `Refunded` |
+ * | `OrderPayment.Status`            | `Pending` `Completed` `PartiallyPaid` `Refunded` |
+ * | *nothing*                        | `Processing` `Failed` `PartiallyRefunded` |
+ *
+ * One shared union is what let three bugs ship, all of them from a value the backend never emits:
+ *
+ * 1. **`'Paid'` does not exist in the backend.** The fully-paid value is `Completed`. The admin
+ *    orders filter sent `paymentStatus: 'Paid'` to the server, where `Enum.TryParse` FAILED and the
+ *    whole `Where` clause was skipped — so "Paid" returned **every order**, unfiltered. An empty
+ *    list would have been noticed; a full one looks plausible.
+ * 2. The cashier's filter compares client-side, so the same value returned **zero** orders there.
+ * 3. `RefundDialog` filtered payments on `status === 'Paid'`, which a payment record can never be —
+ *    the refundable list was **always empty**.
+ *
+ * Keeping them separate is the point: a filter over ORDERS must not accept a value only a payment
+ * RECORD can hold, and vice versa.
  */
-export type PaymentStatus = 'Pending' | 'Paid' | 'PartiallyPaid' | 'Refunded' | 'Failed';
+
+/** What `Order.PaymentStatus` can be — the order's overall payment state. */
+export type OrderPaymentStatus = 'Pending' | 'PartiallyPaid' | 'Completed' | 'Overpaid' | 'Refunded';
+
+/**
+ * What `OrderPayment.Status` can be — ONE payment record. Narrower than the order's, but not by as
+ * much as it first looks; enumerate the writers rather than assuming:
+ *
+ * - `Pending` — every record is CREATED pending (`OrderPaymentBuilder:35`,
+ *   `AddPaymentToOrderCommand:91`), and **a cash payment stays that way** until it is explicitly
+ *   completed. Cash is the common case in a restaurant, so this is not an edge state.
+ * - `Completed` — non-cash auto-completes on create (`OrderPaymentBuilder:53`); cash on
+ *   `AddPaymentToOrderCommand:110`.
+ * - `PartiallyPaid` — a PARTIAL refund
+ *   (`RefundPaymentCommand:72`: `RefundAmount == Amount ? Refunded : PartiallyPaid`).
+ * - `Refunded` — a full refund, and `CancelOrderCommand:92`.
+ *
+ * ⚠️ Two backend facts worth carrying, neither fixable from here:
+ * `PartiallyPaid` is a strange name for *partially refunded*, and `GetZReportQuery:79-81` filters
+ * its payment-method breakdown on `Completed | Refunded | PartiallyRefunded` — a member **nothing
+ * ever writes**. So a partially-refunded payment is stored `PartiallyPaid` and falls OUT of the
+ * Z-report breakdown. That is a money-report bug in the backend, flagged rather than guessed at.
+ */
+export type PaymentRecordStatus = 'Pending' | 'Completed' | 'PartiallyPaid' | 'Refunded';

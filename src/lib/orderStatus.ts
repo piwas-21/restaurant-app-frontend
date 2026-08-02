@@ -1,4 +1,4 @@
-import type { OrderStatus, PaymentStatus } from '@/types/order';
+import type { OrderStatus } from '@/types/order';
 import type { StatusBadgeTone } from '@/components/design-system/StatusBadge';
 
 /**
@@ -67,14 +67,6 @@ export const ORDER_STATUS_META: Readonly<Record<OrderStatus, OrderStatusMeta>> =
   // PaymentStatus, not an OrderStatus" — it is BOTH (`OrderStatus.cs:13`), which is how a refunded
   // order came to belong to neither the Active nor the Past tab.
   Refunded: { i18nKey: 'order_status_refunded', className: 'statusCancelled', tone: 'danger' },
-};
-
-export const PAYMENT_STATUS_META: Readonly<Record<PaymentStatus, { i18nKey: string; className: string }>> = {
-  Pending: { i18nKey: 'payment_status_pending', className: 'paymentPending' },
-  Paid: { i18nKey: 'payment_status_paid', className: 'paymentPaid' },
-  PartiallyPaid: { i18nKey: 'payment_status_partially_paid', className: 'paymentPartiallyPaid' },
-  Refunded: { i18nKey: 'payment_status_refunded', className: 'paymentRefunded' },
-  Failed: { i18nKey: 'payment_status_failed', className: 'paymentFailed' },
 };
 
 /**
@@ -168,14 +160,4 @@ export function orderStatusMeta(status: string | null | undefined): OrderStatusM
 export function orderStatusLabel(status: string | null | undefined, t: (key: string) => string): string {
   const meta = orderStatusMeta(status);
   return meta ? t(meta.i18nKey) : (status ?? '');
-}
-
-const PAYMENT_BY_NORMALISED: ReadonlyMap<string, PaymentStatus> = new Map(
-  (Object.keys(PAYMENT_STATUS_META) as PaymentStatus[]).map((s) => [s.toLowerCase().replace(/\s+/g, ''), s]),
-);
-
-export function paymentStatusLabel(status: string | null | undefined, t: (key: string) => string): string {
-  if (!status) return '';
-  const resolved = PAYMENT_BY_NORMALISED.get(status.toLowerCase().replace(/\s+/g, ''));
-  return resolved ? t(PAYMENT_STATUS_META[resolved].i18nKey) : status;
 }

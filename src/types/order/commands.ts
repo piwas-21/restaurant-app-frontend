@@ -3,7 +3,7 @@
  * Extracted from types/order.ts (Sprint 4/6 type-file split by domain).
  */
 
-import { OrderStatus, PaymentStatus, OrderType, PaymentMethod } from './enums';
+import { OrderStatus, OrderPaymentStatus, OrderType, PaymentMethod } from './enums';
 
 /**
  * Update order status command
@@ -58,7 +58,10 @@ export interface RefundPaymentCommand {
  */
 export interface OrderQueryFilters {
   status?: OrderStatus;
-  paymentStatus?: PaymentStatus;
+  // The ORDER's status, not a payment record's — this filters orders. Typed rather than
+  // `string` because sending a value the enum has no member for makes the server's `Enum.TryParse`
+  // fail and the WHOLE clause get skipped, returning everything.
+  paymentStatus?: OrderPaymentStatus;
   orderType?: OrderType;
   startDate?: string;
   endDate?: string;

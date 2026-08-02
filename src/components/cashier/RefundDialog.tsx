@@ -26,8 +26,10 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
   const [reason, setReason] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
-  // Get refundable payments
-  const refundablePayments = order?.payments?.filter((p) => p.status === 'Paid') || [];
+  // `'Completed'`, not `'Paid'` — a payment record is created Completed and only ever moves to
+  // Refunded, so the old comparison matched nothing and this list was ALWAYS empty: a cashier could
+  // never select a payment to refund. `PaymentRecordStatus` now makes that comparison uncompilable.
+  const refundablePayments = order?.payments?.filter((p) => p.status === 'Completed') || [];
 
   const selectedPayment = refundablePayments.find((p) => p.id === selectedPaymentId);
   const maxRefundAmount = selectedPayment?.amount || 0;

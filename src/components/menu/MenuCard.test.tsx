@@ -52,7 +52,7 @@ const product: CatalogItem = {
   imageUrl: 'pizza.jpg',
   price: 12.5,
   isBundle: false,
-  priceEditable: true,
+  priceEditability: 'editable',
   allergens: ['gluten'],
   dietaryTags: [],
   detailedIngredients: [
@@ -173,12 +173,19 @@ describe('MenuCard — admin quick-edit', () => {
     expect(screen.getByTestId('admin-edit-price')).toBeInTheDocument();
   });
 
-  it('hides the price editor when the product is not priceEditable (e.g. has variations)', () => {
+  it('swaps the price editor for a reason when the price is derived (e.g. has variations)', () => {
     (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
 
-    render(<MenuCard item={{ ...product, priceEditable: false }} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+    render(
+      <MenuCard
+        item={{ ...product, priceEditability: 'variations' }}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+      />,
+    );
 
     expect(screen.queryByTestId('admin-edit-price')).not.toBeInTheDocument();
+    expect(screen.getByTestId('admin-edit-price-locked')).toBeInTheDocument();
   });
 
   it('persists an inline price edit and reflects the new price on the card', async () => {

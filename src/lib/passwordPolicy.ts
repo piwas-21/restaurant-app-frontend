@@ -54,7 +54,13 @@ const COMMON_PASSWORDS = new Set([
 // `Password… = '…'` as an assignment, and the pragma only applies to the flagged line.
 export type PasswordViolation = 'basics' | 'distinct' | 'repeated' | 'common'; // pragma: allowlist secret
 
-const MIN_LENGTH = 8;
+/**
+ * Exported so a form's `minLength` attribute and this module cannot drift. It is only the LENGTH
+ * rule — never treat satisfying it as satisfying the policy; call `passwordViolation`.
+ */
+export const PASSWORD_MIN_LENGTH = 8;
+
+const MIN_LENGTH = PASSWORD_MIN_LENGTH;
 const MIN_DISTINCT = 4;
 const REPEATED = /(.)\1{2,}/;
 

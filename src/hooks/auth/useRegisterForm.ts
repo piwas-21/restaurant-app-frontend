@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { customerRegistrationSchema } from '@/schemas/auth.schema';
-import { CUSTOMER_REGISTRATION_MATCHERS, routeApiError } from '@/utils/apiFormErrors';
+import { CUSTOMER_REGISTRATION_MATCHERS, formLevelMessage, routeApiError } from '@/utils/apiFormErrors';
 import { registerCustomer, sendEmailVerification } from '@/services/authService';
 import { trackEvent } from '@/lib/analytics';
 
@@ -110,17 +110,18 @@ export function useRegisterForm() {
   };
 
   /**
-   * Put a failure where the user can act on it. `||`, never `??`: a blank message is absence, and
-   * `'' ?? fallback` is `''` — an empty error line that reports nothing.
+   * Put a failure where the user can act on it. The form-level decision comes from
+   * `formLevelMessage`, shared with `useApiError` and `RegisterStaffModal` — the three screens hold
+   * their errors in three different places (local state, a hook, react-hook-form's `setError`), and
+   * the rule for whether there IS a form-level message must not follow the state around.
    */
   const report = (failure: unknown, fallback: string) => {
-    const { fieldErrors, rootMessage } = routeApiError(failure, CUSTOMER_REGISTRATION_MATCHERS);
-    if (fieldErrors.length > 0) {
-      setErrors(Object.fromEntries(fieldErrors.map(({ field, message }) => [field, message])));
+    const routed = routeApiError(failure, CUSTOMER_REGISTRATION_MATCHERS);
+    if (routed.fieldErrors.length > 0) {
+      setErrors(Object.fromEntries(routed.fieldErrors.map(({ field, message }) => [field, message])));
     }
-    if (rootMessage || fieldErrors.length === 0) {
-      setGeneralError(rootMessage || fallback);
-    }
+    const rootMessage = formLevelMessage(routed, fallback);
+    if (rootMessage) setGeneralError(rootMessage);
   };
 
   const handleResendEmail = async () => {

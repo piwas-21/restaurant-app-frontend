@@ -7,7 +7,8 @@ import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
 import { registerStaff } from '@/services/userService';
 import { useRoleHelpers } from '@/hooks/useRoleHelpers';
-import { STAFF_REGISTRATION_MATCHERS, routeApiError, type RoutedApiError } from '@/utils/apiFormErrors';
+import { STAFF_REGISTRATION_MATCHERS, formLevelMessage, routeApiError } from '@/utils/apiFormErrors';
+import type { RoutedApiError } from '@/utils/apiFormErrors';
 
 type RegisterStaffFormValues = z.infer<typeof staffRegistrationSchema>;
 type RegistrationField = (typeof STAFF_REGISTRATION_MATCHERS)[number][0];
@@ -39,11 +40,11 @@ const RegisterStaffModal: React.FC<RegisterStaffModalProps> = ({ isOpen, onClose
    * `'' ?? fallback` is `''` — which renders an empty `role="alert"` paragraph, i.e. a live region
    * that announces nothing. That is the same class of bug as the one this file was opened to fix.
    */
-  const applyErrors = ({ fieldErrors, rootMessage }: RoutedApiError<RegistrationField>) => {
-    fieldErrors.forEach(({ field, message }) => setError(field, { message }));
-    if (rootMessage || fieldErrors.length === 0) {
-      setError('root', { message: rootMessage || t('unexpected_error', 'An unexpected error occurred.') });
-    }
+  const applyErrors = (routed: RoutedApiError<RegistrationField>) => {
+    routed.fieldErrors.forEach(({ field, message }) => setError(field, { message }));
+    // The "is there anything to say at form level?" rule, shared with `useApiError`.
+    const rootMessage = formLevelMessage(routed, t('unexpected_error', 'An unexpected error occurred.'));
+    if (rootMessage) setError('root', { message: rootMessage });
   };
 
   /**

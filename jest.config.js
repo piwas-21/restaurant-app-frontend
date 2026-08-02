@@ -75,6 +75,7 @@ module.exports = {
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
     'src/hooks/menu/useFeaturedSpecialHero.ts',
+    'src/hooks/useApiError.ts',
     'src/lib/orderStatus.ts',
     'src/utils/catalogItem.ts',
     'src/hooks/useFeaturedSpecial.ts',
@@ -405,6 +406,16 @@ module.exports = {
     // silent: the ladders it replaced ended in a `default`, which is how two statuses came to render
     // as raw English in every locale, and how the cashier's transition list stranded an order by
     // returning an empty array that reads exactly like "this one is finished".
+    // E9 step 2 — the one error surface. Pinned at 100 because the failure it prevents is a
+    // FORGETTING, not a bug: the fallback is not a parameter, so no caller can print an
+    // untranslated generic by omission. A branch left uncovered here is a way that guarantee can
+    // quietly stop holding.
+    './src/hooks/useApiError.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
     './src/lib/orderStatus.ts': {
       statements: 100,
       branches: 100,

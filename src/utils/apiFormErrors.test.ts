@@ -2,7 +2,12 @@
 // `routeApiError` imports `ApiError` through the same alias, so constructing one here from anywhere
 // else would make its `instanceof` false and every assertion below vacuous.
 import { ApiError } from '@/utils/apiClient';
-import { CUSTOMER_REGISTRATION_MATCHERS, STAFF_REGISTRATION_MATCHERS, routeApiError } from './apiFormErrors';
+import {
+  CUSTOMER_REGISTRATION_MATCHERS,
+  STAFF_REGISTRATION_MATCHERS,
+  formLevelMessage,
+  routeApiError,
+} from './apiFormErrors';
 
 describe('routeApiError', () => {
   describe('the shape apiClient THROWS (any non-2xx)', () => {
@@ -194,5 +199,37 @@ describe('routeApiError', () => {
         { field: 'role', message: 'Invalid role specified' },
       ]);
     });
+  });
+});
+
+/**
+ * `formLevelMessage` is exercised from three consumers' suites, but a pin on THIS file's coverage
+ * should not depend on another file's tests staying where they are — a deleted suite can orphan the
+ * only coverage of a rule that is still live elsewhere.
+ */
+describe('formLevelMessage', () => {
+  const routed = <T extends string>(rootMessage: string | null, fields: Array<{ field: T; message: string }> = []) => ({
+    rootMessage,
+    fieldErrors: fields,
+  });
+
+  it("prefers the server's own sentence", () => {
+    expect(formLevelMessage(routed('That slug is taken'), 'fallback')).toBe('That slug is taken');
+  });
+
+  it('falls back when the server said nothing AND nothing reached a field', () => {
+    expect(formLevelMessage(routed(null), 'fallback')).toBe('fallback');
+  });
+
+  it('says NOTHING at form level when every message reached a field', () => {
+    // The distinction the function exists for: a generic line under "Password must contain at least
+    // one uppercase letter" is noise, not information.
+    expect(formLevelMessage(routed(null, [{ field: 'password', message: 'too short' }]), 'fallback')).toBeNull();
+  });
+
+  it('still shows the root message when SOME messages reached fields and some did not', () => {
+    expect(formLevelMessage(routed('Also, the email is taken', [{ field: 'password', message: 'x' }]), 'f')).toBe(
+      'Also, the email is taken',
+    );
   });
 });

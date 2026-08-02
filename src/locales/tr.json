@@ -1405,7 +1405,7 @@
   "invalid_credentials": "Invalid email or password.",
   "failed_to_connect_server": "Sunucuya bağlanılamadı.",
   "unknown_error": "Bilinmeyen bir hata oluştu.",
-  "unexpected_error": "An unexpected error occurred.",
+  "unexpected_error": "Beklenmeyen bir hata oluştu.",
   "failed_to_register": "Failed to register.",
   "validation_min_2_chars": "En az 2 karakter olmalıdır",
   "validation_field_required": "Bu alan gereklidir",

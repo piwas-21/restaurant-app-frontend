@@ -1405,7 +1405,7 @@
   "invalid_credentials": "Invalid email or password.",
   "failed_to_connect_server": "Impossible de se connecter au serveur.",
   "unknown_error": "Une erreur inconnue s'est produite.",
-  "unexpected_error": "An unexpected error occurred.",
+  "unexpected_error": "Une erreur inattendue est survenue.",
   "failed_to_register": "Failed to register.",
   "validation_min_2_chars": "Doit contenir au moins 2 caractères",
   "validation_field_required": "Ce champ est obligatoire",

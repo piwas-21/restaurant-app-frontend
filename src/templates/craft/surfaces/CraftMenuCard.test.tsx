@@ -28,6 +28,10 @@ jest.mock('@/components/AuthContext', () => ({
 jest.mock('@/hooks/menu/useTrackItemBlocked', () => ({ useTrackItemBlocked: jest.fn() }));
 jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
   useItemAvailabilityNotice: jest.fn(() => null),
+  // The predicate is deliberately NOT stubbed. It is the thing under test here — the three item
+  // surfaces diverged precisely because each derived "blocked" for itself, and a mock would let
+  // that happen again invisibly.
+  isItemBlocked: jest.requireActual('@/hooks/menu/useItemAvailabilityNotice').isItemBlocked,
 }));
 
 const product: CatalogItem = {
@@ -138,6 +142,25 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  // Craft is where the owner noticed items failing to grey out. The greying itself was always
+  // implemented here (`.card.blocked`); what was missing is the case below — a server refusal that
+  // produces NO notice, because `useItemAvailabilityNotice` returns null for `reason: 'Unavailable'`.
+  it('dims and drops Add on a server refusal even when there is no notice to show', () => {
+    mockedNotice.mockReturnValue(null);
+
+    const { container } = render(
+      <CraftMenuCard
+        item={{ ...product, availability: { canOrder: false } as never }}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+      />,
+    );
+
+    expect(container.querySelector('li')).toHaveClass('blocked');
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Details' })).toBeInTheDocument();
   });
 
   it('hands the blocked verdict to analytics too — §4.5, every deliverable lands twice', () => {

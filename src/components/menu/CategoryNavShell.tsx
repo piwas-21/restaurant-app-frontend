@@ -8,6 +8,7 @@
 // (both modules deliberately use the same shell class names).
 import type { ReactNode, RefObject } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // The shell reads these class names off the passed CSS module (each template
 // supplies its own): stickyNav, navWrapper, navScrollContainer,
@@ -35,14 +36,16 @@ export default function CategoryNavShell({
   scroll,
   children,
 }: Readonly<CategoryNavShellProps>) {
+  const { t } = useTranslation();
+
   return (
-    <nav className={styles.stickyNav} aria-label="Category Navigation">
+    <nav className={styles.stickyNav} aria-label={t('category_navigation_aria', 'Category navigation')}>
       <div className={styles.navWrapper}>
         {showNavArrows && canScrollLeft && (
           <button
             className={`${styles.navArrow} ${styles.navArrowLeft}`}
             onClick={() => scroll('left')}
-            aria-label="Scroll left"
+            aria-label={t('scroll_categories_back', 'Scroll categories back')}
             type="button"
           >
             <ChevronLeft size={24} />
@@ -57,7 +60,7 @@ export default function CategoryNavShell({
           <button
             className={`${styles.navArrow} ${styles.navArrowRight}`}
             onClick={() => scroll('right')}
-            aria-label="Scroll right"
+            aria-label={t('scroll_categories_forward', 'Scroll categories forward')}
             type="button"
           >
             <ChevronRight size={24} />

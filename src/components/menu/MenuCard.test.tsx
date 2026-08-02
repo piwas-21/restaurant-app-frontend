@@ -38,6 +38,10 @@ jest.mock('@/services/productService', () => ({
 jest.mock('@/hooks/menu/useTrackItemBlocked', () => ({ useTrackItemBlocked: jest.fn() }));
 jest.mock('@/hooks/menu/useItemAvailabilityNotice', () => ({
   useItemAvailabilityNotice: jest.fn(() => null),
+  // The predicate is deliberately NOT stubbed. It is the thing under test here — the three item
+  // surfaces diverged precisely because each derived "blocked" for itself, and a mock would let
+  // that happen again invisibly.
+  isItemBlocked: jest.requireActual('@/hooks/menu/useItemAvailabilityNotice').isItemBlocked,
 }));
 
 const product: CatalogItem = {
@@ -48,7 +52,7 @@ const product: CatalogItem = {
   imageUrl: 'pizza.jpg',
   price: 12.5,
   isBundle: false,
-  priceEditable: true,
+  priceEditability: 'editable',
   allergens: ['gluten'],
   dietaryTags: [],
   detailedIngredients: [
@@ -169,12 +173,19 @@ describe('MenuCard — admin quick-edit', () => {
     expect(screen.getByTestId('admin-edit-price')).toBeInTheDocument();
   });
 
-  it('hides the price editor when the product is not priceEditable (e.g. has variations)', () => {
+  it('swaps the price editor for a reason when the price is derived (e.g. has variations)', () => {
     (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
 
-    render(<MenuCard item={{ ...product, priceEditable: false }} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+    render(
+      <MenuCard
+        item={{ ...product, priceEditability: 'variations' }}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+      />,
+    );
 
     expect(screen.queryByTestId('admin-edit-price')).not.toBeInTheDocument();
+    expect(screen.getByTestId('admin-edit-price-locked')).toBeInTheDocument();
   });
 
   it('persists an inline price edit and reflects the new price on the card', async () => {
@@ -238,6 +249,28 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     switchLabel: 'Switch to Takeaway',
     hint: null,
   };
+
+  /**
+   * The reported half of E6. `useItemAvailabilityNotice` returns null on purpose for
+   * `reason: 'Unavailable'` (there is nothing useful to say — there is no stock concept), and the
+   * card used to derive "blocked" from the notice alone. So a server verdict of `canOrder: false`
+   * left the card undimmed with a live "Add to order" — while the featured-special hero, which
+   * carried the extra clause, dimmed the very same item.
+   */
+  it('dims and drops Add on a server refusal even when there is no notice to show', () => {
+    mockedNotice.mockReturnValue(null);
+
+    const { container } = render(
+      <MenuCard
+        item={{ ...product, availability: { canOrder: false } as never }}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+      />,
+    );
+
+    expect(container.querySelector('li')).toHaveClass('blocked');
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();
+  });
 
   it('renders nothing extra when the server reports no restriction', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);

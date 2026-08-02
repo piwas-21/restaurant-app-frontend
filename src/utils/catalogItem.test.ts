@@ -43,7 +43,7 @@ describe('toCatalogItemFromProduct', () => {
       imageCount: undefined,
       price: 12.5,
       isBundle: false,
-      priceEditable: true,
+      priceEditability: 'editable',
       allergens: ['gluten'],
       isSpecial: true,
       isAvailable: true,
@@ -59,7 +59,21 @@ describe('toCatalogItemFromProduct', () => {
       variations: [{ name: 'Large', isActive: true, priceModifier: 3, displayOrder: 1 }],
     };
 
-    expect(toCatalogItemFromProduct(withVariations).priceEditable).toBe(false);
+    expect(toCatalogItemFromProduct(withVariations).priceEditability).toBe('variations');
+  });
+
+  // A combo used to leave the field UNSET, which reads as `undefined` — also `!== 'editable'`, but
+  // with no reason attached, so the card rendered nothing at all. That was half of the reported
+  // "some menu items have no edit-price button".
+  it('marks a combo as locked-because-bundle rather than leaving it unset', () => {
+    const bundle = toCatalogItemFromBundle({
+      id: 'b1',
+      name: 'Lunch deal',
+      basePrice: 19,
+      images: [],
+    } as never);
+
+    expect(bundle.priceEditability).toBe('bundle');
   });
 
   it('carries the card summary fields a product renders', () => {

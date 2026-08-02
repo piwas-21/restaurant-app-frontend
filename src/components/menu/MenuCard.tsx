@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { CatalogItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
-import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { isItemBlocked, useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import MenuCardImage from './MenuCardImage';
@@ -52,7 +52,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
   const { t, i18n } = useTranslation();
   const availabilityNotice = useItemAvailabilityNotice(item.availability);
   useTrackItemBlocked(item.id, availabilityNotice);
-  const isBlocked = availabilityNotice?.tone === 'blocked';
+  const isBlocked = isItemBlocked(item.availability, availabilityNotice);
   const nameId = `item-name-${item.id}`;
   const reasonId = `item-availability-${item.id}`;
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);

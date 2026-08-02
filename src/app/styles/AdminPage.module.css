@@ -7,6 +7,18 @@
 
 .sidebar {
   width: 250px;
+  /*
+    Load-bearing at >=769px, where the block at the end of this file makes the sidebar
+    `position: relative` — i.e. an in-flow child of the `display: flex` wrapper in
+    `app-internal-layout.tsx`. A flex item's default is `flex-shrink: 1` with `min-width: auto`, so
+    a sibling whose content is wider than the viewport (the product editor's panels and gallery)
+    cannot shrink, and the 250px nav absorbs the whole overflow instead — the reported "the details
+    section closes half of the left nav". Pinning shrink to 0 makes the nav a fixed rail and pushes
+    the overflow back onto the column that owns it (which scrolls: `.adminContainer` is
+    `overflow-x: hidden`, and the live content column carries `min-width: 0` — see
+    `Header.module.css .adminMainContent`).
+  */
+  flex-shrink: 0;
   background-color: var(--primary-color-dark, #343a40);
   color: var(--button-text-color, white);
   position: fixed;
@@ -132,14 +144,20 @@
   }
 }
 
-.adminMainContent {
-  margin-left: 250px; /* Same as sidebar width */
-  flex-grow: 1;
-  background-color: var(--secondary-color-light, #f4f6f9);
-  display: flex;
-  flex-direction: column;
-  width: calc(100% - 250px);
-}
+/*
+  NOTE: this file used to declare `.adminMainContent` too — all FIVE rule blocks, including a
+  `margin-left: 250px` offset for the fixed sidebar, are removed here. Every one was DEAD. CSS
+  Modules hash class names per file, and the only element that ever carries the admin content class
+  is `app-internal-layout.tsx:112`, which applies `navStyles.adminMainContent` from
+  `Header.module.css`. Two files declaring the same class name for the same layout — one of them
+  unreachable — is why the sidebar bug below was so hard to see: the offset that looked responsible
+  was never applied to anything. The `margin-left: 250px` one was the dangerous one to leave: point
+  the layout at this module and it would double-offset the content beside the now-in-flow rail.
+
+  `.sidebar.sidebarOpen` went with them, for the same reason in reverse — `Sidebar.tsx` composes a
+  plain `'open'` string, not `styles.sidebarOpen`, so the module class could never match. The open
+  state is driven by the inline `transform` and the `:global(.open)` selector below.
+*/
 
 .adminContainer {
   padding: 2rem;
@@ -148,25 +166,30 @@
   overflow-x: hidden;
 }
 
-/* Mobile responsive styles */
-@media (max-width: 1024px) {
+/*
+  Off-canvas drawer band. This used to be `max-width: 1024px` and therefore OVERLAPPED the
+  `min-width: 769px` block near the end of this file, which is later in source order and so won the
+  tie on every property it declares — including `transform: none`. Net effect: between 769px and
+  1024px the sidebar was never actually off-canvas, while the floating toggle that only makes sense
+  for a drawer was still shown. Narrowed to 768px so the two bands are disjoint and the file says
+  what it does. Behaviour in 769-1024px is unchanged, because the later block already won there.
+*/
+@media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
     box-shadow: none;
   }
 
+  /* Opening is driven by the INLINE `transform: translateX(0)` the component sets; these selectors
+     only add the shadow. `:global(.open)` is matched because `Sidebar.tsx` composes a plain string
+     class, not `styles.open` — a module class would never match it. */
   .sidebar[data-open='true'],
   .sidebar:global(.open) {
-    /* Inline style will set transform: translateX(0) */
-    /* Just add shadow here */
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
   }
+}
 
-  .adminMainContent {
-    margin-left: 0;
-    width: 100%;
-  }
-
+@media (max-width: 1024px) {
   .adminContainer {
     padding: 1rem;
   }
@@ -189,10 +212,6 @@
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   border-left-color: #ffc107;
-}
-
-[data-theme='dark'] .adminMainContent {
-  background-color: #121212;
 }
 
 .adminHeader {
@@ -979,14 +998,6 @@
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
   }
-
-  .sidebar.sidebarOpen {
-    transform: translateX(0);
-  }
-
-  .adminMainContent {
-    margin-left: 0;
-  }
 }
 
 /* Backdrop for admin sidebar on mobile */
@@ -1112,10 +1123,6 @@
     height: auto;
     top: auto;
     left: auto;
-  }
-
-  .adminMainContent {
-    margin-left: 250px;
   }
 }
 

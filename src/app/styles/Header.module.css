@@ -182,11 +182,17 @@
   }
 }
 
-/* Admin main content wrapper */
+/* Admin main content wrapper. THIS is the class the admin layout actually applies — the
+   identically-named one in `AdminPage.module.css` was dead and has been removed. */
 .adminMainContent {
   margin-left: 0;
   transition: margin-left 0.3s ease-in-out;
   position: relative;
+  /* A flex item defaults to `min-width: auto`, i.e. "never narrower than my content". Without this
+     the column refuses to shrink and the fixed-width sidebar beside it gets squeezed instead. Pairs
+     with `flex-shrink: 0` on `.sidebar`; both are needed — either alone still lets one of the two
+     collapse. */
+  min-width: 0;
 }
 
 /* Floating admin sidebar toggle button */
@@ -287,12 +293,12 @@
   }
 }
 
-/* Ensure button shows on mobile and tablet */
-@media (max-width: 1024px) {
-  .adminSidebarToggleFloating {
-    display: flex !important;
-  }
-
+/* The drawer toggle belongs to the drawer, so its band must match the one that actually makes the
+   sidebar off-canvas (`AdminPage.module.css`, max-width 768px). It was 1024px, which put a
+   floating "open the nav" button on top of a sidebar that was already open and in flow.
+   `.adminSidebarToggleFloating` is NOT restated here — the `max-width: 768px` block near the top of
+   this file already declares it, and a second identical copy is one more thing to keep in step. */
+@media (max-width: 768px) {
   .adminMainContent {
     margin-left: 0 !important;
   }

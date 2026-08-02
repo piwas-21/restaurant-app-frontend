@@ -8,6 +8,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { customerRegistrationSchema } from '@/schemas/auth.schema';
+import { CUSTOMER_REGISTRATION_MATCHERS, routeApiError } from '@/utils/apiFormErrors';
 import { registerCustomer, sendEmailVerification } from '@/services/authService';
 import { trackEvent } from '@/lib/analytics';
 
@@ -45,18 +46,25 @@ export function useRegisterForm() {
     }
   };
 
+  // An i18n key as zod emits one: lower snake_case, no spaces. The password fields now carry keys
+  // (`password.schema.ts`) rather than English sentences, so they are translated directly instead of
+  // being substring-matched. The ladder below stays for zod's own built-in messages, which are still
+  // English prose — but a key must never fall into it: `field_required` contains neither "Invalid"
+  // nor "email", yet `password_security_rules_error` does contain neither and would sail past to be
+  // returned raw.
+  const isI18nKey = (message: string): boolean => /^[a-z][a-z0-9_]*$/.test(message);
+
   const getTranslatedError = (message: string): string => {
+    if (isI18nKey(message)) {
+      // `defaultValue` because i18next returns the KEY on a miss — without it, a key that reaches
+      // `en.json` but not the other nine prints a raw snake_case token at the user.
+      return t(message, { defaultValue: message });
+    }
     if (message.includes('Invalid') || message.includes('email')) {
       return t('validation_invalid_email', 'Invalid email address');
     }
-    if (message.includes('at least 6')) {
-      return t('validation_min_6_chars', 'Must be at least 6 characters');
-    }
     if (message.includes('at least 2')) {
       return t('validation_min_2_chars', 'Must be at least 2 characters');
-    }
-    if (message.includes('do not match') || message.includes('Passwords')) {
-      return t('validation_passwords_match', 'Passwords do not match');
     }
     return message;
   };
@@ -85,11 +93,33 @@ export function useRegisterForm() {
         trackEvent('register_completed', { source: 'register_page', loggedIn: false });
         setRegistrationSuccess(true);
       } else {
-        const apiErrors = Array.isArray(response?.errors) ? response.errors.join(', ') : '';
-        setGeneralError(apiErrors || response?.message || t('failed_to_register', 'Failed to register.'));
+        // THE failure branch on this path, not an edge case. `registerCustomer` does NOT go through
+        // `apiClient` — `authService.ts` is a raw `fetch` that parses the body and returns it for
+        // every status — so a FluentValidation 400 RESOLVES here rather than throwing. Routing it is
+        // what actually puts "Password must contain at least one uppercase letter" under the
+        // password field instead of joining every message into one blob above the form.
+        report(response, t('failed_to_register', 'Failed to register.'));
       }
-    } catch {
-      setGeneralError(t('unexpected_error', 'An unexpected error occurred.'));
+    } catch (error) {
+      // Only two things can reach this catch, precisely because of the above: `TypeError` from a
+      // dead network and `SyntaxError` from `response.json()` when the box serves an HTML 502
+      // mid-deploy. Neither is the server's prose, so `routeApiError` returns a null root and the
+      // translated fallback wins — otherwise a customer reads `Failed to fetch`.
+      report(error, t('unexpected_error', 'An unexpected error occurred.'));
+    }
+  };
+
+  /**
+   * Put a failure where the user can act on it. `||`, never `??`: a blank message is absence, and
+   * `'' ?? fallback` is `''` — an empty error line that reports nothing.
+   */
+  const report = (failure: unknown, fallback: string) => {
+    const { fieldErrors, rootMessage } = routeApiError(failure, CUSTOMER_REGISTRATION_MATCHERS);
+    if (fieldErrors.length > 0) {
+      setErrors(Object.fromEntries(fieldErrors.map(({ field, message }) => [field, message])));
+    }
+    if (rootMessage || fieldErrors.length === 0) {
+      setGeneralError(rootMessage || fallback);
     }
   };
 

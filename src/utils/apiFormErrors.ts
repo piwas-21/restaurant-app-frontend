@@ -4,15 +4,28 @@ import { ApiError } from '@/utils/apiClient';
  * Route one failed API call onto a form's fields.
  *
  * The problem this solves is structural, not cosmetic. `apiClient` **throws** `ApiError` for every
- * non-2xx — including the 400 that `ValidationExceptionHandlingMiddleware` returns with the exact
- * per-rule messages in `errors[]`. A caller that writes `} catch {` (no binding) therefore discards
- * the entire diagnosis and prints something like "An unexpected error occurred", which is what the
- * owner saw when a staff password was refused. The information was always on the wire; nothing read
- * it.
+ * non-2xx, and a caller that writes `} catch {` (no binding) discards the entire diagnosis and
+ * prints something like "An unexpected error occurred", which is what the owner saw when a staff
+ * password was refused. The information was always on the wire; nothing read it.
  *
- * There were 103 such bare catches when this was written. This helper is the shape the rest of them
+ * There were 100 such bare catches when this was written. This helper is the shape the rest of them
  * migrate to (BUGS-IMPROVEMENTS-PLAN E9) — so its edge cases matter more than one screen's worth:
  * a hole here is a hole in every migration that copies it.
+ *
+ * **Where a multi-entry `errors[]` actually comes from — corrected 2026-08-03.** This header used to
+ * say the per-rule messages arrive in `errors[]` from `ValidationExceptionHandlingMiddleware`.
+ * Neither half is true, and the field-routing below was designed around the belief that it was.
+ * Nothing in the backend throws FluentValidation's `ValidationException`, so that middleware never
+ * runs (backend #291): a FluentValidation failure is joined with `"; "` into one
+ * `BadRequestException` and arrives as a **single-element** `errors[]`. With one blob, the first
+ * matching pattern claims the whole string — so a registration failing on password AND email files
+ * the entire text under `password` and leaves the email field silent.
+ *
+ * The routing is not useless, because a multi-entry `errors[]` IS real — it comes from **Identity**,
+ * not FluentValidation: duplicate email, a password refused by `StrongPasswordValidator`, an invalid
+ * reset token. Those are exactly the registration and reset paths this helper serves, and there each
+ * reason is its own entry. So: per-field routing works for Identity failures and degrades to
+ * form-level for validator failures. Fixing the latter is backend #291's call, not this file's.
  */
 
 /**
@@ -137,8 +150,11 @@ export function routeApiError<TField extends string>(
   // `', '` and not `' '` — the same separator `getErrorMessage` uses, so the two helpers cannot
   // render one server's `errors[]` two different ways. It went unnoticed while every caller was a
   // FORM, where the leftovers are usually a single message and the separator never shows.
-  // `useMemberManagement` passes no matchers at all, so EVERY message lands here: a staff edit that
-  // trips six password rules was one run-on paragraph.
+  // `useMemberManagement` passes no matchers at all, so EVERY message lands here. (An earlier
+  // version of this note justified the change with "a staff edit that trips six password rules was
+  // one run-on paragraph" — measured, that request produced ONE message, and a validator failure
+  // cannot produce a multi-entry array at all. The real multi-entry case is an Identity failure:
+  // several reasons for one refused registration or password reset.)
   return { fieldErrors, rootMessage: presentable(unmatched.join(', ')) };
 }
 

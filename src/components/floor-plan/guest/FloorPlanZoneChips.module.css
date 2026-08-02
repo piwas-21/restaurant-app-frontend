@@ -14,7 +14,7 @@
   flex-wrap: wrap;
 }
 .zoneChips {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 .chip {
   appearance: none;

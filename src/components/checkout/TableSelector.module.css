@@ -219,7 +219,7 @@
 .selectedBadge {
   position: absolute;
   top: 0.5rem;
-  right: 0.5rem;
+  inset-inline-end: 0.5rem;
   width: 28px;
   height: 28px;
   display: flex;
@@ -321,10 +321,7 @@
 /* Share Table Modal */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -359,7 +356,7 @@
 .modalClose {
   position: absolute;
   top: 1rem;
-  right: 1rem;
+  inset-inline-end: 1rem;
   background: none;
   border: none;
   color: var(--text-color);

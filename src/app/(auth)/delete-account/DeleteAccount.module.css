@@ -50,8 +50,7 @@
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   height: 4px;
   background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
 }
@@ -137,7 +136,7 @@
   list-style: none;
   padding: 0;
   margin: 1rem 0 0;
-  text-align: left;
+  text-align: start;
 }
 
 .consequencesList li {

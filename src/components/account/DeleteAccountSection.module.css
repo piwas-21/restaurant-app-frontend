@@ -14,7 +14,9 @@
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
+  /* A 4px accent bar down the leading edge of the danger zone — it belongs beside the text
+     it warns about, so it mirrors with it. */
+  inset-inline-start: 0;
   width: 4px;
   height: 100%;
   background: linear-gradient(180deg, var(--color-red-600) 0%, var(--color-red-800) 100%);
@@ -88,7 +90,7 @@
   color: var(--color-red-800);
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
-  padding-left: 0.25rem;
+  padding-inline-start: 0.25rem;
 }
 
 [data-theme='dark'] .infoList li {

@@ -68,3 +68,20 @@ describe('passwordViolation', () => {
     expect(Object.keys(PASSWORD_VIOLATION_KEYS).sort()).toEqual(['basics', 'common', 'distinct', 'repeated']);
   });
 });
+
+/**
+ * The header of `passwordPolicy.ts` claims the violation keys are "kept beside the rules so a new
+ * rule cannot ship mute". Nothing enforced that: `PASSWORD_VIOLATION_KEYS` is rendered with `t()`,
+ * and i18next returns the KEY on a lookup miss — so a rule added with an `en.json` entry only would
+ * print `password_rule_whatever` to the other nine locales. This is the enforcement.
+ */
+describe('PASSWORD_VIOLATION_KEYS locale parity', () => {
+  const LOCALES = ['en', 'de', 'tr', 'it', 'ar', 'fr', 'nl', 'es', 'ru', 'zh'] as const;
+
+  it.each(LOCALES)('%s translates every violation key', (locale) => {
+    const messages = jest.requireActual(`../locales/${locale}.json`) as Record<string, string>;
+    for (const key of Object.values(PASSWORD_VIOLATION_KEYS)) {
+      expect(messages[key]?.trim()).toBeTruthy();
+    }
+  });
+});

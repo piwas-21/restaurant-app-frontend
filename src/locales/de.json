@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Bestellungen aktualisiert: {{count}}",
   "bulk_status_update_partial": "Bestellungen aktualisiert: {{success}} — fehlgeschlagen: {{failed}}",
   "bulk_export_csv_success": "Bestellungen als CSV exportiert: {{count}}",
-  "bulk_export_pdf_success": "Bestellungen als PDF exportiert: {{count}}"
+  "bulk_export_pdf_success": "Bestellungen als PDF exportiert: {{count}}",
+  "failed_to_load_menu_items": "Menüartikel konnten nicht geladen werden",
+  "failed_to_load_specials": "Spezialitäten konnten nicht geladen werden",
+  "failed_to_set_featured_special": "Tagesempfehlung konnte nicht festgelegt werden",
+  "failed_to_remove_featured_special": "Tagesempfehlung konnte nicht entfernt werden"
 }

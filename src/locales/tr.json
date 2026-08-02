@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Güncellenen sipariş: {{count}}",
   "bulk_status_update_partial": "Güncellenen sipariş: {{success}} — başarısız: {{failed}}",
   "bulk_export_csv_success": "CSV olarak dışa aktarılan sipariş: {{count}}",
-  "bulk_export_pdf_success": "PDF olarak dışa aktarılan sipariş: {{count}}"
+  "bulk_export_pdf_success": "PDF olarak dışa aktarılan sipariş: {{count}}",
+  "failed_to_load_menu_items": "Menü öğeleri yüklenemedi",
+  "failed_to_load_specials": "Özel ürünler yüklenemedi",
+  "failed_to_set_featured_special": "Günün önerisi ayarlanamadı",
+  "failed_to_remove_featured_special": "Günün önerisi kaldırılamadı"
 }

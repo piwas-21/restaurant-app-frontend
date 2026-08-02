@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Ordini aggiornati: {{count}}",
   "bulk_status_update_partial": "Ordini aggiornati: {{success}} — non riusciti: {{failed}}",
   "bulk_export_csv_success": "Ordini esportati in CSV: {{count}}",
-  "bulk_export_pdf_success": "Ordini esportati in PDF: {{count}}"
+  "bulk_export_pdf_success": "Ordini esportati in PDF: {{count}}",
+  "failed_to_load_menu_items": "Impossibile caricare gli elementi del menu",
+  "failed_to_load_specials": "Impossibile caricare gli articoli speciali",
+  "failed_to_set_featured_special": "Impossibile impostare lo speciale in evidenza",
+  "failed_to_remove_featured_special": "Impossibile rimuovere lo speciale in evidenza"
 }

@@ -2,12 +2,23 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import { getProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
 import { Product, Category } from '@/app/admin/menu-management/interfaces';
 import { MenuTypeFilter, toProductTypeQuery } from '@/utils/productTypeFilter';
+import { getErrorMessage } from '@/utils/apiClient';
 
+/**
+ * `error` is a plain string, not `useApiError` — see the note in `useCategoryManagement` for why:
+ * the hook's object changes identity with its message, and `fetchProducts` is depended on by an
+ * effect, so capturing would loop. `getErrorMessage(e) ?? t(contextual)` is the same E9 fix
+ * without the identity hazard.
+ */
 export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
+  const { t } = useTranslation();
+  const { enqueueSnackbar } = useSnackbar();
   const _router = useRouter();
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
@@ -28,6 +39,7 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
       const requestFilter = typeFilter; // Capture which filter this request is for
       setIsLoading(true);
       setError(null);
+      const fallback = t('failed_to_load_menu_items', 'Failed to load menu items');
       try {
         // One endpoint for all three chips, so paging + the category filter behave
         // identically across them (the old tabs hit two endpoints with independent
@@ -42,12 +54,12 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
             setTotalCount(response.data.totalCount || 0);
             setCurrentPage(page);
           } else {
-            setError(response.message || 'Failed to fetch items');
+            setError(response.message || fallback);
           }
         }
-      } catch {
+      } catch (e) {
         if (requestFilter === typeFilterRef.current) {
-          setError('An unexpected error occurred.');
+          setError(getErrorMessage(e) ?? fallback);
         }
       } finally {
         if (requestFilter === typeFilterRef.current) {
@@ -55,7 +67,7 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         }
       }
     },
-    [typeFilter, selectedCategoryId, pageSize],
+    [typeFilter, selectedCategoryId, pageSize, t],
   );
 
   useEffect(() => {
@@ -66,13 +78,24 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         if (response.success && Array.isArray(response.data?.items)) {
           setCategories(response.data.items);
         }
-      } catch {
-        // Silently fail - categories will remain empty
+      } catch (e) {
+        // A TOAST, not `err`: the category dropdown is a filter beside the list, and taking over
+        // the page's error surface would replace "here are your items" with a failure about a
+        // control the admin may not even be using. Same shape as `useCategoryChannelsAdmin`.
+        // Until #400 this branch was unreachable — `getCategories` answered a dead backend with
+        // invented categories — so an empty dropdown had no failure to report in the first place.
+        enqueueSnackbar(getErrorMessage(e) ?? t('failed_to_load_categories', 'Failed to load categories'), {
+          variant: 'error',
+        });
       }
     };
     // Internal try/catch absorbs errors — `void` for fire-and-forget.
     // Same below for `fetchProducts` calls.
     void fetchCategories();
+    // Mount-only ON PURPOSE. `t` and `enqueueSnackbar` are read inside the catch, and both are only
+    // reachable at the moment the fetch fails; listing them would make a language switch refetch the
+    // dropdown, which is a network round-trip for a list that does not vary by locale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch when the type filter or category changes

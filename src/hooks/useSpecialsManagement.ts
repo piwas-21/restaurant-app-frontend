@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getSpecialProducts,
   setFeaturedSpecial as setFeaturedSpecialAPI,
   unsetFeaturedSpecial as unsetFeaturedSpecialAPI,
 } from '@/services/productService';
+import { getErrorMessage } from '@/utils/apiClient';
 
 export interface SpecialProduct {
   id: string;
@@ -31,6 +33,7 @@ export interface FeaturedSpecial {
 }
 
 export const useSpecialsManagement = () => {
+  const { t } = useTranslation();
   const [specialProducts, setSpecialProducts] = useState<SpecialProduct[]>([]);
   const [featuredSpecial, setFeaturedSpecial] = useState<SpecialProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,10 +46,13 @@ export const useSpecialsManagement = () => {
     async (page: number = 1) => {
       setIsLoading(true);
       setError(null);
+      // Same reasoning as `useCategoryManagement`: `useApiError` would change identity on capture
+      // and re-fire the mount effect that depends on this callback.
+      const fallback = t('failed_to_load_specials', 'Failed to load special items');
       try {
         const response = (await getSpecialProducts(page, pageSize)) as {
           success: boolean;
-          data?: { items: any[]; totalCount: number };
+          data?: { items: SpecialProduct[]; totalCount: number };
           message?: string;
         };
         if (response.success && response.data) {
@@ -58,15 +64,15 @@ export const useSpecialsManagement = () => {
           const featured = response.data.items?.find((p: SpecialProduct) => p.isFeaturedSpecial);
           setFeaturedSpecial(featured || null);
         } else {
-          setError(response.message || 'Failed to fetch special products');
+          setError(response.message || fallback);
         }
-      } catch {
-        setError('An unexpected error occurred while fetching special products');
+      } catch (e) {
+        setError(getErrorMessage(e) ?? fallback);
       } finally {
         setIsLoading(false);
       }
     },
-    [pageSize],
+    [pageSize, t],
   );
 
   useEffect(() => {
@@ -80,12 +86,20 @@ export const useSpecialsManagement = () => {
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);
-        return { success: true, message: response.message || 'Featured special set successfully' };
+        // The page replaces this on success so it can interpolate the product name; the same key is
+        // used here so the hook is not a source of untranslated English if it ever stops doing that.
+        return { success: true, message: response.message || t('featured_special_set_success', { name: '' }) };
       } else {
-        return { success: false, message: response.message || 'Failed to set featured special' };
+        return {
+          success: false,
+          message: response.message || t('failed_to_set_featured_special', 'Failed to set the featured special'),
+        };
       }
-    } catch {
-      return { success: false, message: 'An unexpected error occurred' };
+    } catch (e) {
+      return {
+        success: false,
+        message: getErrorMessage(e) ?? t('failed_to_set_featured_special', 'Failed to set the featured special'),
+      };
     }
   };
 
@@ -95,12 +109,21 @@ export const useSpecialsManagement = () => {
       if (response.success) {
         // Refresh the list to update the featured status
         await fetchSpecialProducts(currentPage);
-        return { success: true, message: response.message || 'Featured special removed successfully' };
+        return {
+          success: true,
+          message: response.message || t('featured_special_removed_success', 'Featured special removed successfully'),
+        };
       } else {
-        return { success: false, message: response.message || 'Failed to remove featured special' };
+        return {
+          success: false,
+          message: response.message || t('failed_to_remove_featured_special', 'Failed to remove the featured special'),
+        };
       }
-    } catch {
-      return { success: false, message: 'An unexpected error occurred' };
+    } catch (e) {
+      return {
+        success: false,
+        message: getErrorMessage(e) ?? t('failed_to_remove_featured_special', 'Failed to remove the featured special'),
+      };
     }
   };
 

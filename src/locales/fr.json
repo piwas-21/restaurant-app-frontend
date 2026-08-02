@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Commandes mises à jour : {{count}}",
   "bulk_status_update_partial": "Commandes mises à jour : {{success}} — échecs : {{failed}}",
   "bulk_export_csv_success": "Commandes exportées en CSV : {{count}}",
-  "bulk_export_pdf_success": "Commandes exportées en PDF : {{count}}"
+  "bulk_export_pdf_success": "Commandes exportées en PDF : {{count}}",
+  "failed_to_load_menu_items": "Échec du chargement des articles du menu",
+  "failed_to_load_specials": "Échec du chargement des articles spéciaux",
+  "failed_to_set_featured_special": "Échec de la définition du plat vedette",
+  "failed_to_remove_featured_special": "Échec de la suppression du plat vedette"
 }

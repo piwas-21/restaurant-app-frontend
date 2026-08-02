@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Bijgewerkte bestellingen: {{count}}",
   "bulk_status_update_partial": "Bijgewerkte bestellingen: {{success}} — mislukt: {{failed}}",
   "bulk_export_csv_success": "Bestellingen geëxporteerd naar CSV: {{count}}",
-  "bulk_export_pdf_success": "Bestellingen geëxporteerd naar PDF: {{count}}"
+  "bulk_export_pdf_success": "Bestellingen geëxporteerd naar PDF: {{count}}",
+  "failed_to_load_menu_items": "Menu-items konden niet worden geladen",
+  "failed_to_load_specials": "Specials konden niet worden geladen",
+  "failed_to_set_featured_special": "Uitgelichte special kon niet worden ingesteld",
+  "failed_to_remove_featured_special": "Uitgelichte special kon niet worden verwijderd"
 }

@@ -1,10 +1,26 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCategories, deleteCategory } from '@/services/categoryService';
 import { Category } from '@/app/admin/menu-management/interfaces';
+import { getErrorMessage } from '@/utils/apiClient';
 
+/**
+ * Why this holds a plain `error` string rather than `useApiError` (E9 step 3, #383).
+ *
+ * `useApiError` is the right shape for a surface that holds its own error — but its returned object
+ * changes identity when its message changes, and `fetchCategories` is depended on by a mount
+ * effect. Capturing an error would rebuild the callback, re-fire the effect, refetch, fail, and
+ * capture again: an infinite retry loop against a backend that is already down. `useSetupChecklist`
+ * keeps its read out of `saveError` for the same reason.
+ *
+ * So the read uses the other half of the E9 fix — `getErrorMessage(e) ?? t(contextual)` — which
+ * surfaces the server's own sentence when it authored one and a TRANSLATED fallback when it did
+ * not. That is what E9 is actually about; the hook is one delivery mechanism for it, not the goal.
+ */
 export const useCategoryManagement = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +33,7 @@ export const useCategoryManagement = () => {
     async (page: number = 1) => {
       setIsLoading(true);
       setError(null);
+      const fallback = t('failed_to_load_categories', 'Failed to load categories');
       try {
         const response = await getCategories(page, pageSize);
         if (response.success && response.data?.items) {
@@ -25,15 +42,15 @@ export const useCategoryManagement = () => {
           setTotalPages(response.data.totalPages || 1);
           setCurrentPage(page);
         } else {
-          setError(response.message || 'Failed to fetch categories');
+          setError(response.message || fallback);
         }
-      } catch {
-        setError('An unexpected error occurred.');
+      } catch (e) {
+        setError(getErrorMessage(e) ?? fallback);
       } finally {
         setIsLoading(false);
       }
     },
-    [pageSize],
+    [pageSize, t],
   );
 
   useEffect(() => {
@@ -53,13 +70,21 @@ export const useCategoryManagement = () => {
         } else {
           void fetchCategories(currentPage); // Refresh the current page
         }
-        return { success: true, message: 'category_deleted_successfully' };
+        return { success: true, message: t('category_deleted_successfully', 'Category deleted successfully') };
       } else {
-        const errorMessage = response.errors ? response.errors.join(', ') : response.message;
-        return { success: false, message: errorMessage || 'failed_to_delete_category' };
+        // The server's own sentence when it authored one — `errors[]` first, since it carries the
+        // per-rule detail ("category has products") that `message` flattens away.
+        const serverMessage = response.errors?.length ? response.errors.join(', ') : response.message;
+        return {
+          success: false,
+          message: serverMessage || t('failed_to_delete_category', 'Failed to delete category'),
+        };
       }
-    } catch {
-      return { success: false, message: 'delete_category_error' };
+    } catch (e) {
+      return {
+        success: false,
+        message: getErrorMessage(e) ?? t('delete_category_error', 'An error occurred while deleting the category'),
+      };
     }
   };
 

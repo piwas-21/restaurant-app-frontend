@@ -65,11 +65,11 @@ export default function PasswordManagementSection({
           />
           {newPassword && (
             <div className={styles.passwordStrengthContainer}>
-              <span style={{ marginRight: '0.5rem' }}>{t('password_strength_label', 'Password Strength:')}</span>
+              <span style={{ marginInlineEnd: '0.5rem' }}>{t('password_strength_label', 'Password Strength:')}</span>
               {[1, 2, 3, 4, 5].map((level) => (
                 <div key={level} className={`${styles.strengthBar} ${getStrengthBarStyle(level)}`} />
               ))}
-              <span style={{ marginLeft: '0.5rem' }}>{passwordStrengthText}</span>
+              <span style={{ marginInlineStart: '0.5rem' }}>{passwordStrengthText}</span>
             </div>
           )}
           {passwordErrors.newPassword && <p className={styles.errorMessage}>{passwordErrors.newPassword}</p>}

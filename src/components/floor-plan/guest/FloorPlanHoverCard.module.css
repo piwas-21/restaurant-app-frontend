@@ -17,7 +17,10 @@
 .hoverClose {
   position: absolute;
   top: 4px;
-  right: 6px;
+  /* Chrome INSIDE the hover card, not map geometry: the card's own placement is computed in
+     JS from DOMRect and stays screen-space (a physical room keeps its handedness), but the
+     close button sits in the corner of the card's own RTL text box. */
+  inset-inline-end: 6px;
   border: 0;
   background: transparent;
   cursor: pointer;

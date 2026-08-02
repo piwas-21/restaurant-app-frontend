@@ -26,6 +26,9 @@
 .banner.floating {
   position: fixed;
   top: 1rem;
+  /* PHYSICAL on purpose: `50%` + `translateX(-50%)` is centring, which has no handedness and
+     is already correct in both directions. `transform` is never logical, so mirroring the
+     inset alone would drag the banner a full half-width off centre in `ar`. */
   left: 50%;
   transform: translateX(-50%);
   max-width: 600px;
@@ -201,6 +204,9 @@
 
   .banner.floating {
     top: 0.5rem;
+    /* PHYSICAL on purpose: this pair RESETS the centring idiom above, and a reset must name
+       what it resets (DESIGN-SYSTEM.md §8.1). It is symmetric, so it is direction-neutral
+       anyway — it converts when the base does, in slice 3. */
     left: 0.5rem;
     right: 0.5rem;
     transform: none;

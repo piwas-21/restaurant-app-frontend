@@ -33,7 +33,13 @@ jest.mock('@/components/admin/AdminAuthGuard', () => ({
 }));
 jest.mock('@/components/admin/member-management/UserStatistics', () => ({ __esModule: true, default: () => null }));
 jest.mock('@/components/admin/RegisterStaffModal', () => ({ __esModule: true, default: () => null }));
-jest.mock('@/components/admin/member-management/FilterControls', () => ({ __esModule: true, default: () => null }));
+interface FilterStub {
+  setActiveTab: (tab: string) => void;
+}
+jest.mock('@/components/admin/member-management/FilterControls', () => ({
+  __esModule: true,
+  default: ({ setActiveTab }: FilterStub) => <button onClick={() => setActiveTab('staff')}>staff tab</button>,
+}));
 
 interface TableStub {
   users: UserDto[];
@@ -146,6 +152,25 @@ describe('member management — the sentence that reaches the modal', () => {
 
     expect(await screen.findByText('Account is not soft-deleted')).toBeInTheDocument();
     expect(screen.queryByText('User reactivated successfully')).not.toBeInTheDocument();
+  });
+
+  /**
+   * `DeleteUserCommand` forces `shouldHardDelete` for every staff role whatever flag we send, and
+   * the confirmation on this tab already warns "cannot be undone" — but the result was derived from
+   * `isDeleted`, which is always false for staff. So the screen confirmed an irreversible delete
+   * and then reported the restorable wording for it.
+   */
+  it('reports a staff delete as permanent, matching the warning the admin just confirmed', async () => {
+    mockHandleDeleteUser.mockResolvedValue({ success: true, message: 'User permanently deleted' });
+    render(<MemberManagementPage />);
+
+    clickButton('staff tab');
+    clickButton('delete');
+    expect(screen.getByText(/permanently delete/i)).toBeInTheDocument();
+    clickButton('Yes');
+
+    expect(mockHandleDeleteUser).toHaveBeenCalledWith('u1', true);
+    expect(await screen.findByText('User permanently deleted')).toBeInTheDocument();
   });
 
   it('still reports a successful delete, in the wording the hook chose', async () => {

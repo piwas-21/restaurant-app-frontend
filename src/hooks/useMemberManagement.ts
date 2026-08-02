@@ -13,6 +13,14 @@ export interface MemberActionResult {
 }
 
 /**
+ * The server's own sentence for one failed call, or a translated fallback when it authored none.
+ *
+ * No field matchers: this screen has no form to route per-field messages onto, so everything the
+ * server said lands in `rootMessage` — and `null` there means it said nothing worth showing.
+ */
+const failureMessage = (failure: unknown, fallback: string): string => routeApiError(failure).rootMessage || fallback;
+
+/**
  * Every message this hook returns is a translated SENTENCE — never an i18n key, never a hardcoded
  * English literal (E9, #383; same defect class as `useCategoryManagement`).
  *
@@ -26,21 +34,13 @@ export interface MemberActionResult {
  *
  * **Why `routeApiError` and not `getErrorMessage`.** All four calls below can fail in two shapes:
  * `apiClient` THROWS `ApiError` on a non-2xx, and a handler failure wrapped in
- * `Ok(ApiResponse.Failure(...))` RESOLVES with `{success:false}` inside a 200. `routeApiError`
- * reads the server's `errors[]` out of either one and drops blank entries; `getErrorMessage` sees
- * only the thrown shape, which is why the sibling menu hooks pair it with a hand-rolled
- * `errors[].join(', ')` for the resolved one. One helper, both shapes, already tested
- * (`apiFormErrors.test.ts`).
+ * `Ok(ApiResponse.Failure(...))` RESOLVES with `{success:false}` inside a 200 — and
+ * `UserController` returns `Ok(result)` for update/delete/reactivate, so the resolved shape is the
+ * NORMAL failure here, not an edge case. `routeApiError` reads the server's `errors[]` out of
+ * either one and drops blank entries; `getErrorMessage` sees only the thrown shape, which is why
+ * the sibling menu hooks pair it with a hand-rolled `errors[].join(', ')` for the resolved one.
+ * One helper, both shapes, already tested (`apiFormErrors.test.ts`).
  */
-
-/**
- * The server's own sentence for one failed call, or a translated fallback when it authored none.
- *
- * No field matchers: this screen has no form to route per-field messages onto, so everything the
- * server said lands in `rootMessage` — and `null` there means it said nothing worth showing.
- */
-const failureMessage = (failure: unknown, fallback: string): string => routeApiError(failure).rootMessage || fallback;
-
 export const useMemberManagement = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState<UserDto[]>([]);

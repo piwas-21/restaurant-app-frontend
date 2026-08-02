@@ -134,7 +134,12 @@ export function routeApiError<TField extends string>(
     }
   }
 
-  return { fieldErrors, rootMessage: presentable(unmatched.join(' ')) };
+  // `', '` and not `' '` — the same separator `getErrorMessage` uses, so the two helpers cannot
+  // render one server's `errors[]` two different ways. It went unnoticed while every caller was a
+  // FORM, where the leftovers are usually a single message and the separator never shows.
+  // `useMemberManagement` passes no matchers at all, so EVERY message lands here: a staff edit that
+  // trips six password rules was one run-on paragraph.
+  return { fieldErrors, rootMessage: presentable(unmatched.join(', ')) };
 }
 
 /**

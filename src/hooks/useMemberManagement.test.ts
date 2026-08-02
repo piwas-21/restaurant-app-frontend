@@ -102,7 +102,7 @@ describe('useMemberManagement — what the admin actually reads', () => {
 
       await load(result);
 
-      expect(result.current.error).toBe('Search term is too short Page size may not exceed 100');
+      expect(result.current.error).toBe('Search term is too short, Page size may not exceed 100');
     });
 
     it('treats a blank server message as no message at all', async () => {
@@ -123,6 +123,8 @@ describe('useMemberManagement — what the admin actually reads', () => {
 
       await load(result);
       expect(result.current.users).toEqual([staffUser]);
+      // Pre-existing: the count is the server's, so it still counts the customer that was filtered
+      // out client-side, and `Pagination` over-counts on the staff tab. Recorded, not fixed here.
       expect(result.current.totalCount).toBe(2);
 
       await act(async () => {
@@ -162,7 +164,16 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleDeleteUser('u1', false);
 
       expect(outcome).toEqual({ success: false, message: 'User still owns 3 open orders' });
-      expect(outcome.message).not.toBe('User deleted successfully');
+    });
+
+    it('falls back to a contextual sentence when a refused delete says nothing', async () => {
+      mockDeleteStaff.mockResolvedValue({ success: false } as never);
+      const { result } = renderHook(() => useMemberManagement());
+
+      const outcome = await result.current.handleDeleteUser('u1', false);
+
+      expect(outcome).toEqual({ success: false, message: 'Failed to delete user' });
+      expectTranslated('failed_to_delete_user', 'Failed to delete user');
     });
 
     it('surfaces a thrown delete failure as a translated sentence, not a key', async () => {
@@ -172,7 +183,6 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleDeleteUser('u1', false);
 
       expect(outcome).toEqual({ success: false, message: 'An error occurred while deleting user' });
-      expect(outcome.message).not.toBe('An unexpected error occurred.');
       expectTranslated('delete_user_error', 'An error occurred while deleting user');
     });
   });
@@ -195,7 +205,16 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleReactivateUser('u1');
 
       expect(outcome).toEqual({ success: false, message: 'Account is not soft-deleted' });
-      expect(outcome.message).not.toBe('User reactivated successfully');
+    });
+
+    it('falls back to a contextual sentence when a refused reactivation says nothing', async () => {
+      mockReactivateUser.mockResolvedValue({ success: false } as never);
+      const { result } = renderHook(() => useMemberManagement());
+
+      const outcome = await result.current.handleReactivateUser('u1');
+
+      expect(outcome).toEqual({ success: false, message: 'Failed to reactivate user' });
+      expectTranslated('failed_to_reactivate_user', 'Failed to reactivate user');
     });
 
     it('surfaces a thrown reactivation failure as a translated sentence', async () => {
@@ -219,6 +238,16 @@ describe('useMemberManagement — what the admin actually reads', () => {
       expect(outcome).toEqual({ success: true, message: 'User updated successfully' });
       expect(outcome.message).not.toMatch(/^[a-z0-9_]+$/);
       expectTranslated('user_updated_successfully', 'User updated successfully');
+      // The command build moved out of the `try` in this change; nothing else pins its shape.
+      expect(mockUpdateStaff).toHaveBeenCalledWith({
+        userId: 'u1',
+        firstName: 'Grace',
+        lastName: 'L',
+        email: undefined,
+        phoneNumber: undefined,
+        role: 'Server',
+        password: undefined,
+      });
     });
 
     /** Was a hardcoded English literal in the hook — CLAUDE.md §5 rule 11. */
@@ -245,6 +274,16 @@ describe('useMemberManagement — what the admin actually reads', () => {
       expect(outcome).toEqual({ success: false, message: 'Email already in use' });
     });
 
+    it('falls back to a contextual sentence when a refused update says nothing', async () => {
+      mockUpdateStaff.mockResolvedValue({ success: false } as never);
+      const { result } = renderHook(() => useMemberManagement());
+
+      const outcome = await result.current.handleUpdateUser(staffUser, { firstName: 'Grace' });
+
+      expect(outcome).toEqual({ success: false, message: 'Failed to update user' });
+      expectTranslated('failed_to_update_user', 'Failed to update user');
+    });
+
     it("surfaces the server's sentence when the update throws", async () => {
       mockUpdateStaff.mockRejectedValue(new ApiError(400, 'Role change requires an owner account'));
       const { result } = renderHook(() => useMemberManagement());
@@ -252,7 +291,6 @@ describe('useMemberManagement — what the admin actually reads', () => {
       const outcome = await result.current.handleUpdateUser(staffUser, { role: 'Admin' as UserDto['role'] });
 
       expect(outcome).toEqual({ success: false, message: 'Role change requires an owner account' });
-      expect(outcome.message).not.toBe('An unexpected error occurred.');
     });
 
     it('falls back to a contextual sentence when a thrown update says nothing', async () => {

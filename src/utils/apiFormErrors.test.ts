@@ -155,7 +155,9 @@ describe('routeApiError', () => {
     const error = new ApiError(400, 'Validation failed', ['Password is required', 'Email is required']);
     expect(routeApiError(error)).toEqual({
       fieldErrors: [],
-      rootMessage: 'Password is required Email is required',
+      // Comma-joined, matching `getErrorMessage`. A no-matcher caller puts EVERY message through
+      // here, so the separator is the whole message rather than a joint between leftovers.
+      rootMessage: 'Password is required, Email is required',
     });
   });
 

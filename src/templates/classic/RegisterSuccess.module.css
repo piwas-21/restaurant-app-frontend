@@ -111,7 +111,7 @@
 .checkmark {
   position: absolute;
   bottom: -5px;
-  right: -5px;
+  inset-inline-end: -5px;
   width: 45px;
   height: 45px;
   background: white;
@@ -209,7 +209,7 @@
   list-style: none;
   padding: 0;
   margin: 1.5rem 0 0;
-  text-align: left;
+  text-align: start;
 }
 
 .stepsList li {

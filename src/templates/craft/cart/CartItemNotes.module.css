@@ -23,7 +23,7 @@
 }
 
 .customizationLabel {
-  margin-right: 0.3rem;
+  margin-inline-end: 0.3rem;
   font-family: 'Caveat', cursive;
   font-size: 1.05rem;
   color: var(--text-secondary);

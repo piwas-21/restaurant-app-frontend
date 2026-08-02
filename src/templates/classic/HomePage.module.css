@@ -21,10 +21,7 @@
 
 .glassOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
@@ -90,10 +87,17 @@
   opacity: 0;
   overflow: hidden;
   white-space: nowrap;
+  /* The transition below names `margin-inline-start` because that is what the three hover /
+     mobile rules now set (DESIGN-SYSTEM.md §8.1). Leave it as `margin-left` and the reveal still
+     slides under `dir="ltr"` — logical margins resolve to physical at computed-value time — but
+     in `ar` the authored margin maps to `margin-right`, `margin-left` never changes, and the
+     label snaps open instead. The comment sits ABOVE the rule, not inside the value list: a
+     property name in a continuation line is exactly what the ratchet's prose filter is there to
+     avoid having to guess about. */
   transition:
     max-width 0.3s ease-in-out,
     opacity 0.3s ease-in-out,
-    margin-left 0.3s ease-in-out;
+    margin-inline-start 0.3s ease-in-out;
 }
 
 .ctaButtonPrimary:hover {
@@ -101,7 +105,7 @@
   color: var(--text-on-accent);
   border-color: var(--text-on-accent);
   text-shadow: none;
-  padding-right: 1.5rem;
+  padding-inline-end: 1.5rem;
 }
 
 .ctaButtonPrimary:hover svg {
@@ -111,7 +115,7 @@
 .ctaButtonPrimary:hover .ctaButtonText {
   max-width: 200px;
   opacity: 1;
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 .ctaButtonSecondary {
@@ -143,7 +147,7 @@
   color: var(--primary-color);
   border-color: rgba(255, 255, 255, 0.9);
   text-shadow: none;
-  padding-right: 1.5rem;
+  padding-inline-end: 1.5rem;
 }
 
 .ctaButtonSecondary:hover svg {
@@ -153,7 +157,7 @@
 .ctaButtonSecondary:hover .ctaButtonText {
   max-width: 200px;
   opacity: 1;
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 .pageContentWrapper {
@@ -231,7 +235,7 @@
   .ctaButtonSecondary .ctaButtonText {
     max-width: 200px;
     opacity: 1;
-    margin-left: 0.5rem;
+    margin-inline-start: 0.5rem;
   }
 
   .pageContentWrapper {

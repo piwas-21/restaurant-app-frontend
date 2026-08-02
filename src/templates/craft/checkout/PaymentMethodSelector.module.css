@@ -114,7 +114,7 @@
 }
 
 .checkmark {
-  margin-left: auto;
+  margin-inline-start: auto;
   flex-shrink: 0;
   color: var(--brand-primary);
 }

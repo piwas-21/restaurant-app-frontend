@@ -35,7 +35,7 @@
 
 .checkmark {
   position: absolute;
-  right: -6px;
+  inset-inline-end: -6px;
   bottom: -2px;
   display: inline-flex;
   color: var(--brand-accent);
@@ -53,7 +53,7 @@
 .instructionsBox {
   padding: 1.25rem;
   margin-bottom: 1.5rem;
-  text-align: left;
+  text-align: start;
   background-color: var(--surface-secondary-light);
   border: 2px solid var(--border-default);
 }

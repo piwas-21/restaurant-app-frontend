@@ -67,8 +67,7 @@
   display: none;
   position: fixed;
   top: var(--craft-header-h);
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1099;
@@ -91,6 +90,13 @@
     flex-direction: column;
     position: fixed;
     top: var(--craft-header-h);
+    /* physical on purpose, and physical is CORRECT here rather than merely deferred. The inset is
+       one thing with the `transform: translateX(100%)` below that parks the drawer off-screen, and
+       `transform` is never logical — mirror the inset alone and a CLOSED drawer sits ON screen in
+       `ar`. So the drawer stays pinned to the physical right in both directions, which makes its
+       page-facing edge the physical LEFT in both directions: `border-left` is the only name that
+       describes it today. All three move together when slice 3 mirrors the drawer for real.
+       The classic drawer (app/styles/Header.module.css) already ships this exact shape. */
     right: 0;
     width: 280px;
     max-width: 80vw;
@@ -115,7 +121,9 @@
   .navOpen :global(.nav-link) {
     padding: 0.75rem 1.5rem;
     width: 100%;
-    text-align: left;
+    /* Not coupled to the drawer above: the drawer's SIDE is pinned, but the text inside it is
+       read in the locale's own direction. */
+    text-align: start;
     border-bottom: 1px dotted var(--text-muted);
     box-sizing: border-box;
     border-radius: 0;

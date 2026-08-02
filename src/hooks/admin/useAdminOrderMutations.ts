@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { updateOrderStatus, toggleFocusOrder, deleteOrder } from '@/services/orderService';
 import { OrderDto, OrderStatus, UpdateOrderStatusCommand, ToggleFocusOrderCommand } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 
 const SNACKBAR_BOTTOM_RIGHT = { vertical: 'bottom', horizontal: 'right' } as const;
 
@@ -57,8 +58,11 @@ export function useAdminOrderMutations({ refetch, selectedOrders, clearSelection
         anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
       });
       await refetch();
-    } catch {
-      enqueueSnackbar(t('order_delete_failed', 'Failed to delete order'), {
+    } catch (err) {
+      // Snackbar, not a panel — so `getErrorMessage` rather than `useApiError`, which holds state
+      // a fire-and-forget toast has nowhere to put. The server's sentence when it authored one
+      // ("Order has already been dispatched"), the contextual fallback when it did not.
+      enqueueSnackbar(getErrorMessage(err) ?? t('order_delete_failed', 'Failed to delete order'), {
         variant: 'error',
         anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
       });
@@ -78,6 +82,12 @@ export function useAdminOrderMutations({ refetch, selectedOrders, clearSelection
       try {
         await updateOrderStatus(targets[i].id, { newStatus: status, notes });
         successCount++;
+        // DELIBERATE bare catch — one of the ~12 the ratchet's target of ~90 accounts for.
+        // This is a per-item tally inside a bulk loop: the failure is already surfaced, as the
+        // `failCount` in the summary below, and the loop must continue to the next order. Binding
+        // the error here would lower the ratchet without changing anything a user sees, which is
+        // the exact failure mode its header warns about. Surfacing the individual reasons needs
+        // new copy for a per-order failure list — see the note on the summary below.
       } catch {
         failCount++;
       }

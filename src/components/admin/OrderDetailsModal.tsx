@@ -108,7 +108,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
           isConfirming={actions.isConfirming}
           onConfirmOrder={actions.handleConfirmOrder}
           error={actions.error}
-          setError={actions.setError}
+          clearError={actions.clearError}
         />
 
         <OrderRefundResultDialogs
@@ -128,7 +128,7 @@ export default function OrderDetailsModal({ order, onClose, onOrderUpdated }: Or
           showCancelSuccessModal={actions.showCancelSuccessModal}
           onCancelSuccessClose={actions.handleCancelSuccessClose}
           error={actions.error}
-          setError={actions.setError}
+          clearError={actions.clearError}
         />
       </div>
     </div>

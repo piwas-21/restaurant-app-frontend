@@ -4,13 +4,17 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
 import { cancelOrder, refundPayment, updateOrderStatus } from '@/services/orderService';
-import { exportOrderToCSV } from '@/utils/exportUtils';
-import { exportOrderToPDF } from '@/utils/pdfExportUtils';
+import { useApiError } from '@/hooks/useApiError';
+import { useOrderDocumentActions } from '@/hooks/admin/useOrderDocumentActions';
 
 /**
  * State + action handlers for the OrderDetailsModal (confirm / cancel / refund / print /
  * export, plus the success-modal flow). Extracted from OrderDetailsModal (Sprint 6 god-file
  * decomposition); behaviour is unchanged — the modal renders from what this hook returns.
+ *
+ * Errors follow shape 1 of the E9 recipe in `useApiError` (#383). Locally: client-side refusals
+ * use `show()`, not `capture()` — nothing was thrown; and the exposed setter narrows to
+ * `clearError()`, since all three consumers only ever passed `''`.
  */
 export function useOrderDetailsActions(
   order: OrderDto,
@@ -26,8 +30,8 @@ export function useOrderDetailsActions(
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
   const [isRefunding, setIsRefunding] = useState(false);
-  const [error, setError] = useState('');
-  const [showExportMenu, setShowExportMenu] = useState(false);
+  const apiError = useApiError();
+  const documents = useOrderDocumentActions(order);
   const [showConfirmDelayModal, setShowConfirmDelayModal] = useState(false);
   const [delayMinutes, setDelayMinutes] = useState<number>(15);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -45,7 +49,7 @@ export function useOrderDetailsActions(
   const handleConfirmOrder = async (withDelay: boolean = false) => {
     try {
       setIsConfirming(true);
-      setError('');
+      apiError.clear();
 
       const prepMinutes = withDelay ? delayMinutes : 15; // Default 15 mins if no delay specified
 
@@ -61,8 +65,8 @@ export function useOrderDetailsActions(
 
       setShowConfirmDelayModal(false);
       setShowSuccessModal(true);
-    } catch {
-      setError(t('failed_to_confirm_order', 'Failed to confirm order. Please try again.'));
+    } catch (err) {
+      apiError.capture(err, { fallback: t('failed_to_confirm_order', 'Failed to confirm order. Please try again.') });
     } finally {
       setIsConfirming(false);
     }
@@ -80,21 +84,21 @@ export function useOrderDetailsActions(
 
   const handleCancelOrder = async () => {
     if (!cancelReason.trim()) {
-      setError(t('provide_cancellation_reason', 'Please provide a cancellation reason'));
+      apiError.show(t('provide_cancellation_reason', 'Please provide a cancellation reason'));
       return;
     }
 
     try {
       setIsCancelling(true);
-      setError('');
+      apiError.clear();
       const updatedOrder = await cancelOrder(order.id, { reason: cancelReason });
       if (onOrderUpdated) {
         onOrderUpdated(updatedOrder);
       }
       setShowCancelModal(false);
       setShowCancelSuccessModal(true);
-    } catch {
-      setError(t('failed_to_cancel_order', 'Failed to cancel order. Please try again.'));
+    } catch (err) {
+      apiError.capture(err, { fallback: t('failed_to_cancel_order', 'Failed to cancel order. Please try again.') });
     } finally {
       setIsCancelling(false);
     }
@@ -102,19 +106,19 @@ export function useOrderDetailsActions(
 
   const handleRefundPayment = async () => {
     if (!selectedPayment || !refundAmount || !refundReason.trim()) {
-      setError(t('fill_refund_details', 'Please fill in all refund details'));
+      apiError.show(t('fill_refund_details', 'Please fill in all refund details'));
       return;
     }
 
     const amount = parseFloat(refundAmount);
     if (isNaN(amount) || amount <= 0) {
-      setError(t('enter_valid_refund_amount', 'Please enter a valid refund amount'));
+      apiError.show(t('enter_valid_refund_amount', 'Please enter a valid refund amount'));
       return;
     }
 
     try {
       setIsRefunding(true);
-      setError('');
+      apiError.clear();
       await refundPayment(order.id, selectedPayment, {
         amount,
         reason: refundReason,
@@ -122,36 +126,11 @@ export function useOrderDetailsActions(
       setShowRefundModal(false);
       alert(t('payment_refunded_successfully', 'Payment refunded successfully'));
       onClose();
-    } catch {
-      setError(t('failed_to_process_refund', 'Failed to process refund. Please try again.'));
+    } catch (err) {
+      apiError.capture(err, { fallback: t('failed_to_process_refund', 'Failed to process refund. Please try again.') });
     } finally {
       setIsRefunding(false);
     }
-  };
-
-  const handlePrint = () => {
-    // Add print-specific class to body
-    document.body.classList.add('printing');
-
-    // Small delay to ensure styles are applied before print dialog opens
-    setTimeout(() => {
-      window.print();
-
-      // Remove class after print dialog closes
-      setTimeout(() => {
-        document.body.classList.remove('printing');
-      }, 100);
-    }, 10);
-  };
-
-  const handleExport = () => {
-    exportOrderToCSV(order, t);
-    setShowExportMenu(false);
-  };
-
-  const handleExportPDF = () => {
-    exportOrderToPDF(order, t);
-    setShowExportMenu(false);
   };
 
   return {
@@ -187,14 +166,10 @@ export function useOrderDetailsActions(
     handleSuccessClose,
     showCancelSuccessModal,
     handleCancelSuccessClose,
-    // export / print
-    showExportMenu,
-    setShowExportMenu,
-    handlePrint,
-    handleExport,
-    handleExportPDF,
-    // shared
-    error,
-    setError,
+    // export / print — see useOrderDocumentActions
+    ...documents,
+    // `error` stays a plain string so the dialogs keep rendering `{error && …}`.
+    error: apiError.message ?? '',
+    clearError: apiError.clear,
   };
 }

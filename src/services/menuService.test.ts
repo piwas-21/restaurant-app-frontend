@@ -1,6 +1,6 @@
-import { apiClient } from '@/utils/apiClient';
+import { ApiError, apiClient } from '@/utils/apiClient';
 import { OrderType } from '@/types/order';
-import { getFeaturedSpecial, getProducts } from './menuService';
+import { getFeaturedSpecial, getProductById, getProducts } from './menuService';
 
 /**
  * `getProducts` gained the customer's order type (S4). The server does NOT filter on it — it
@@ -68,5 +68,49 @@ describe('getFeaturedSpecial — RequestedOrderType', () => {
     await getFeaturedSpecial();
 
     expect(requestedUrl()).toBe('/api/Products/featured-special');
+  });
+});
+
+/**
+ * Both of these used to swallow the failure and return `mockApiClient`'s localStorage fixture —
+ * ungated, so a live tenant's backend outage rendered invented dishes at invented prices under a
+ * `success: true` envelope. The customer menu already had translated error copy it could never
+ * reach. What is pinned here is the PROPAGATION: the caller must receive the server's own
+ * `ApiError`, not a resolved value, because every consumer's error branch keys off the throw.
+ */
+describe('a failed fetch reaches the caller', () => {
+  it('getProducts rejects with the ApiError rather than resolving to substitute data', async () => {
+    mockedGet.mockRejectedValue(new ApiError(503, 'Service Unavailable'));
+
+    await expect(getProducts(1, 10)).rejects.toThrow(ApiError);
+  });
+
+  it('getProducts preserves the server diagnosis, not a flattened message', async () => {
+    mockedGet.mockRejectedValue(new ApiError(400, 'Bad Request', ['PageSize must be <= 100']));
+
+    await expect(getProducts(1, 10_000)).rejects.toMatchObject({
+      status: 400,
+      errors: ['PageSize must be <= 100'],
+    });
+  });
+
+  it('getProductById rejects rather than inventing a product', async () => {
+    mockedGet.mockRejectedValue(new ApiError(404, 'Not Found'));
+
+    await expect(getProductById('missing-id')).rejects.toMatchObject({ status: 404 });
+  });
+});
+
+/**
+ * `getFeaturedSpecial` keeps its swallow, and that is deliberate — the hero is decorative and a
+ * missing one must never fail the home page. Pinned so the sweep above cannot be over-applied to
+ * it by a later reader who sees three catches removed from this file and assumes the fourth was
+ * an oversight.
+ */
+describe('getFeaturedSpecial — still absorbs its failure on purpose', () => {
+  it('resolves to an empty special instead of throwing', async () => {
+    mockedGet.mockRejectedValue(new ApiError(500, 'boom'));
+
+    await expect(getFeaturedSpecial()).resolves.toMatchObject({ success: true, data: null });
   });
 });

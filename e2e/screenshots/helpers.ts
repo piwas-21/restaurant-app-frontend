@@ -119,9 +119,9 @@ export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
   await expect(sidebar).toBeVisible({ timeout: 15_000 });
 
-  // Target the SEEDED product explicitly (not `.first()`): if the backend
-  // were unreachable the app silently renders mockApiClient data — this
-  // assertion turns that into a loud failure instead of a wrong baseline.
+  // Target the SEEDED product explicitly (not `.first()`): `.first()` would
+  // accept whatever card happens to render, so this assertion pins the
+  // baseline to the seeded fixture rather than to an incidental page state.
   const seededAddButton = page.getByRole('button', { name: /^Add E2E Test Product to order$/i });
   await expect(seededAddButton).toBeVisible({ timeout: 15_000 });
 

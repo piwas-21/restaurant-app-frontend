@@ -59,12 +59,7 @@ export function useCategoryChannelsAdmin() {
     let cancelled = false;
     (async () => {
       try {
-        // Cast at the call site, as every other getCategories caller does — the service is
-        // deliberately untyped because it falls back to mockApiClient's different shape.
-        const response = (await getCategories(1, CATEGORY_PAGE_SIZE)) as {
-          success: boolean;
-          data?: { items?: Category[]; totalCount?: number };
-        };
+        const response = await getCategories(1, CATEGORY_PAGE_SIZE);
         if (cancelled) return;
         const items: Category[] = response?.data?.items ?? [];
         setCategories(items);

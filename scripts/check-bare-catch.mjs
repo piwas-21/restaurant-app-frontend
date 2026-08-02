@@ -25,8 +25,15 @@
  *   that. Read the remediation text below as "bind it AND surface it".
  * - **Not aiming at zero.** Roughly a dozen of the current sites ignore a failure on purpose —
  *   `TableContext` discarding malformed `localStorage`, `analytics` feature-detecting
- *   `CustomEvent`, the mock-API fallbacks in `menuService`/`categoryService`, `qrCode`. Those
- *   should stay, and converting them to bound catches would buy nothing.
+ *   `CustomEvent`, `qrCode` parsing an untrusted payload. Those should stay, and converting them to
+ *   bound catches would buy nothing.
+ *
+ *   An earlier version of this list also named "the mock-API fallbacks in
+ *   `menuService`/`categoryService`" as deliberate. They were not: `mockApiClient` had no
+ *   environment gate, so on a live tenant a backend outage rendered invented dishes at invented
+ *   prices instead of the error the customer menu already had copy for. They have since been
+ *   deleted. Worth remembering that this header vouched for them for as long as it did — "ignored
+ *   on purpose" is a claim about intent, and intent is not evidence that the ignore is correct.
  *
  * **Where this ends: a count of roughly 12.** An earlier version of this header said "the honest
  * target is ~90, not 0", which read as a target *count* and contradicted the line above it — if

@@ -1,5 +1,4 @@
 import { apiClient } from '@/utils/apiClient';
-import { mockApiClient } from './mockApiClient';
 import { Product } from '@/app/admin/menu-management/interfaces';
 import type { ProductTypeQuery } from '@/utils/productTypeFilter';
 import type { OrderType } from '@/types/order';
@@ -62,24 +61,19 @@ export const getProducts = async (
   // items visible and only resolves each row's `availability`, so the guest reads a reason, not a hole.
   requestedOrderType?: OrderType | null,
 ): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
-  try {
-    let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
-    if (categoryId) {
-      url += `&CategoryId=${categoryId}`;
-    }
-    if (requestedOrderType) {
-      url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
-    }
-    if (typeQuery?.type) {
-      url += `&Type=${typeQuery.type}`;
-    } else if (typeQuery?.includeMenus) {
-      url += `&IncludeMenus=true`;
-    }
-    return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
-  } catch {
-    // Fallback to mock API if real API fails
-    return mockApiClient.getProducts(pageNumber, pageSize, categoryId);
+  let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
+  if (categoryId) {
+    url += `&CategoryId=${categoryId}`;
   }
+  if (requestedOrderType) {
+    url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
+  }
+  if (typeQuery?.type) {
+    url += `&Type=${typeQuery.type}`;
+  } else if (typeQuery?.includeMenus) {
+    url += `&IncludeMenus=true`;
+  }
+  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
 };
 
 export const createProduct = async (productData: CreateProductData) => {
@@ -92,12 +86,7 @@ export const createProduct = async (productData: CreateProductData) => {
 };
 
 export const getProductById = async (productId: string) => {
-  try {
-    return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
-  } catch {
-    // Fallback to mock API if real API fails
-    return mockApiClient.getProductById(productId);
-  }
+  return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
 };
 
 /**

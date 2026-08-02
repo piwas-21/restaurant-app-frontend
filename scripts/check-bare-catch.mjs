@@ -35,8 +35,8 @@
  *
  * **Where this ends: a count of roughly 12.** An earlier version of this header said "the honest
  * target is ~90, not 0", which read as a target *count* and contradicted the line above it — if
- * ~12 sites should stay, ~12 is where the count lands, and at 91 today the sweep would already be
- * over. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~88 sites that do need
+ * ~12 sites should stay, ~12 is where the count lands, and the sweep would already have been over
+ * before it started. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~88 sites that do need
  * fixing, out of the 100 counted at triage. That reading is also the only one the "1-2 week"
  * estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
  *

@@ -23,9 +23,12 @@
  *   `DOMRect.left`, which is not CSS at all and is out of this tool's reach anyway).
  *   Decorative asymmetry — the craft `--craft-tape-clip` polygon — is the same story.
  *   Anything deliberately physical should carry a comment saying so and stay in the count.
- * - **Not aiming at zero.** See above. There is no measured floor yet; the first areas swept
- *   were entirely mirror-safe, so the floor is discovered as the sweep proceeds rather than
- *   asserted up front.
+ * - **Not aiming at zero.** See above. Slice 2 finished at **28**, discovered rather than asserted:
+ *   the first areas swept were entirely mirror-safe, and the floor only appeared as the sweep
+ *   reached drawers, toggle knobs and toast stacks. Of those 28, roughly SEVEN are permanent —
+ *   the centring idioms, which have no handedness — and the other ~21 are couplings deferred to
+ *   slice 3, each already saying in its own comment what it is coupled to. So a count of 28 means
+ *   "slice 2 is done", not "this is as low as it goes".
  *
  * Values are not properties. `background-position: right 12px center` is a physical *value*
  * on a non-directional property and is deliberately not matched — only declarations whose

@@ -14,6 +14,8 @@ import AllergenDisplay from '@/components/common/AllergenDisplay';
 import { isItemBlocked, useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 import styles from './CraftMenuCard.module.css';
+// The notice's own look, shared with `CraftFeaturedSpecial` — see that module's header.
+import availabilityStyles from './CraftItemAvailability.module.css';
 
 /**
  * Craft's browse-grid card (S15 T4 surface slot). A hand-lettered menu-board
@@ -96,7 +98,7 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
             notice={availabilityNotice}
             reasonId={reasonId}
             onSwitchOrderType={onSwitchOrderType}
-            styles={styles}
+            styles={availabilityStyles}
           />
         )}
 

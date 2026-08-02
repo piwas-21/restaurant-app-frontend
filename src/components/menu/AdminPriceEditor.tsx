@@ -7,7 +7,7 @@ import { useIsAdmin } from '@/hooks/menu/useIsAdmin';
 import { updateProductPrice } from '@/services/productService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { TENANT_CURRENCY } from '@/utils/currency';
-import type { CatalogItem } from '@/types/menu';
+import type { CatalogItem, PriceEditability } from '@/types/menu';
 import styles from './AdminPriceEditor.module.css';
 
 interface AdminPriceEditorProps {
@@ -15,6 +15,19 @@ interface AdminPriceEditorProps {
   /** Called with the new base price after a successful edit, so the card can reflect it. */
   onPriceChange?: (price: number) => void;
 }
+
+/**
+ * Why the inline edit does not apply, keyed by every non-editable member of `PriceEditability`.
+ * Exhaustive by construction: a new member added to the union without a reason here is a COMPILE
+ * error, not a control that silently falls back to the wrong sentence — the same rule
+ * `src/lib/orderStatus.ts` applies to `OrderStatus` after two members turned out to have no
+ * handling at all.
+ */
+const LOCKED_REASON_KEYS: Record<Exclude<PriceEditability, 'editable'>, { key: string; fallback: string }> = {
+  bundle: { key: 'admin_edit_price_locked_bundle', fallback: "A combo's price comes from the items in it" },
+  variations: { key: 'admin_edit_price_locked_variations', fallback: 'Price is set per variation' },
+  unknownKind: { key: 'admin_edit_price_locked_unknown_kind', fallback: 'Open the item to edit its price' },
+};
 
 /**
  * Admin-only inline base-price edit, rendered NEXT TO the card's price rather
@@ -58,10 +71,11 @@ export default function AdminPriceEditor({ item, onPriceChange }: Readonly<Admin
 
   // Editable is the common case; anything else is a refusal an admin is entitled to understand.
   if (item.priceEditability !== 'editable') {
-    const reason =
-      item.priceEditability === 'bundle'
-        ? t('admin_edit_price_locked_bundle', "A combo's price comes from the items in it")
-        : t('admin_edit_price_locked_variations', 'Price is set per variation');
+    // An absent verdict is `'unknownKind'` by another name: some mapper did not state one, so we
+    // cannot prove the edit applies. It used to fall through to "Price is set per variation", which
+    // named a reason that had not been established.
+    const { key, fallback } = LOCKED_REASON_KEYS[item.priceEditability ?? 'unknownKind'];
+    const reason = t(key, fallback);
     return (
       <span className={styles.locked} data-testid="admin-edit-price-locked">
         <Lock size={13} aria-hidden="true" />

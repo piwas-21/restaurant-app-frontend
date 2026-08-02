@@ -2494,6 +2494,7 @@
   "not_found_home": "返回首页",
   "not_found_menu": "查看菜单",
   "admin_edit_price_locked_bundle": "套餐价格由其包含的商品决定",
+  "admin_edit_price_locked_unknown_kind": "Open the item to edit its price",
   "admin_edit_price_locked_variations": "价格按规格分别设置",
   "admin_edit_price_invalid": "请输入 0 或更大的价格",
   "admin_edit_price_failed": "无法保存价格",

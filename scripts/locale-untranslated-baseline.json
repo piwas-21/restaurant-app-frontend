@@ -158,6 +158,7 @@
     "validating_qr_code"
   ],
   "ar.json": [
+    "admin_edit_price_locked_unknown_kind",
     "editor_angle_badge",
     "editor_size_badge",
     "editor_x",
@@ -430,6 +431,7 @@
     "address_street_label",
     "address_street_placeholder",
     "address_zip_label",
+    "admin_edit_price_locked_unknown_kind",
     "admin_manage_members",
     "all_dish_types_filter",
     "cashier_interface_title",
@@ -497,6 +499,7 @@
     "view_details_button"
   ],
   "zh.json": [
+    "admin_edit_price_locked_unknown_kind",
     "alt_text",
     "durum",
     "editor_angle_badge",

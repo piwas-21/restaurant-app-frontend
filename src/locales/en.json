@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Orders updated: {{count}}",
   "bulk_status_update_partial": "Orders updated: {{success}} — failed: {{failed}}",
   "bulk_export_csv_success": "Orders exported to CSV: {{count}}",
-  "bulk_export_pdf_success": "Orders exported to PDF: {{count}}"
+  "bulk_export_pdf_success": "Orders exported to PDF: {{count}}",
+  "failed_to_load_menu_items": "Failed to load menu items",
+  "failed_to_load_specials": "Failed to load special items",
+  "failed_to_set_featured_special": "Failed to set the featured special",
+  "failed_to_remove_featured_special": "Failed to remove the featured special"
 }

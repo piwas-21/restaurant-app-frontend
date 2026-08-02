@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Pedidos actualizados: {{count}}",
   "bulk_status_update_partial": "Pedidos actualizados: {{success}} — fallidos: {{failed}}",
   "bulk_export_csv_success": "Pedidos exportados a CSV: {{count}}",
-  "bulk_export_pdf_success": "Pedidos exportados a PDF: {{count}}"
+  "bulk_export_pdf_success": "Pedidos exportados a PDF: {{count}}",
+  "failed_to_load_menu_items": "No se pudieron cargar los elementos del menú",
+  "failed_to_load_specials": "No se pudieron cargar los artículos especiales",
+  "failed_to_set_featured_special": "No se pudo establecer el especial destacado",
+  "failed_to_remove_featured_special": "No se pudo quitar el especial destacado"
 }

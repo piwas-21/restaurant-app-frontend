@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "الطلبات المحدَّثة: {{count}}",
   "bulk_status_update_partial": "الطلبات المحدَّثة: {{success}}، الفاشلة: {{failed}}",
   "bulk_export_csv_success": "الطلبات المصدَّرة إلى CSV: {{count}}",
-  "bulk_export_pdf_success": "الطلبات المصدَّرة إلى PDF: {{count}}"
+  "bulk_export_pdf_success": "الطلبات المصدَّرة إلى PDF: {{count}}",
+  "failed_to_load_menu_items": "تعذر تحميل عناصر القائمة",
+  "failed_to_load_specials": "تعذر تحميل الأصناف الخاصة",
+  "failed_to_set_featured_special": "تعذر تعيين الطبق المميز",
+  "failed_to_remove_featured_special": "تعذر إزالة الطبق المميز"
 }

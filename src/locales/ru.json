@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "Заказов обновлено: {{count}}",
   "bulk_status_update_partial": "Заказов обновлено: {{success}} — не удалось: {{failed}}",
   "bulk_export_csv_success": "Заказов экспортировано в CSV: {{count}}",
-  "bulk_export_pdf_success": "Заказов экспортировано в PDF: {{count}}"
+  "bulk_export_pdf_success": "Заказов экспортировано в PDF: {{count}}",
+  "failed_to_load_menu_items": "Не удалось загрузить позиции меню",
+  "failed_to_load_specials": "Не удалось загрузить специальные позиции",
+  "failed_to_set_featured_special": "Не удалось назначить рекомендуемое блюдо",
+  "failed_to_remove_featured_special": "Не удалось удалить рекомендуемое блюдо"
 }

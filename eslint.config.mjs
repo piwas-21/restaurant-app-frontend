@@ -42,7 +42,6 @@ const eslintConfig = [
       'src/templates/classic/HomePage.tsx', // 32
       'src/templates/craft/HomePage.tsx', // 30
       'src/components/admin/product/productFormUtils.ts', // 28
-      'src/hooks/useProductDetails.ts', // 28
       'src/utils/apiClient.ts', // 28
       'src/app/app-internal-layout.tsx', // 25
       'src/components/RoleNavLinks.tsx', // 22

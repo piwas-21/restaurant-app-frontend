@@ -2505,5 +2505,9 @@
   "bulk_status_update_success": "已更新订单：{{count}}",
   "bulk_status_update_partial": "已更新订单：{{success}}，失败：{{failed}}",
   "bulk_export_csv_success": "已导出为 CSV 的订单：{{count}}",
-  "bulk_export_pdf_success": "已导出为 PDF 的订单：{{count}}"
+  "bulk_export_pdf_success": "已导出为 PDF 的订单：{{count}}",
+  "failed_to_load_menu_items": "无法加载菜单项",
+  "failed_to_load_specials": "无法加载特色菜品",
+  "failed_to_set_featured_special": "无法设置精选特色菜",
+  "failed_to_remove_featured_special": "无法移除精选特色菜"
 }

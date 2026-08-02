@@ -14,7 +14,7 @@ import styles from './FeaturedSpecial.module.css';
 import availabilityStyles from './MenuItemAvailability.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import MenuCardAvailability from './MenuCardAvailability';
-import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { isItemBlocked, useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
 import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
@@ -57,7 +57,7 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
   // enabled-channel list loads AND for `reason: 'Unavailable'`, and unlike a card this hero is NOT
   // filtered by `isVisible` (the featured query filters on IsActive, never IsAvailable), so an
   // unavailable special reaches here with `canOrder: false` and no notice to show for it.
-  const isBlocked = availabilityNotice?.tone === 'blocked' || special?.availability?.canOrder === false;
+  const isBlocked = isItemBlocked(special?.availability, availabilityNotice);
   const reasonId = `featured-special-availability-${special.id}`;
 
   return (

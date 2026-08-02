@@ -35,18 +35,33 @@
  *   node scripts/check-bare-catch.mjs             # verify
  *   node scripts/check-bare-catch.mjs --regen     # re-baseline after removing some
  */
-import { readFileSync, writeFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { dirname, join } from 'node:path';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = join(root, 'scripts', 'bare-catch-baseline.json');
 
 /** Tests may swallow deliberately — they are asserting the failure, not reporting it. */
-const isSource = (f) => /^src\/.*\.(ts|tsx)$/.test(f) && !/\.test\.(ts|tsx)$/.test(f);
+const isSource = (f) => /\.(ts|tsx)$/.test(f) && !/\.test\.(ts|tsx)$/.test(f);
 
-const files = execFileSync('git', ['ls-files', 'src'], { cwd: root, encoding: 'utf8' }).split('\n').filter(isSource);
+/**
+ * Walk `src/` directly rather than shelling out to `git ls-files`. Two reasons, one of them
+ * Sonar's (S4036: resolving `git` through `PATH` executes whatever a writable PATH entry supplies)
+ * and one of them behavioural — `git ls-files` omits UNTRACKED files, so a brand-new file carrying
+ * a bare catch would not be counted until it was staged. The whole point is to catch it before then.
+ */
+function walk(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walk(full));
+    else if (isSource(entry.name)) out.push(relative(root, full).split(sep).join('/'));
+  }
+  return out;
+}
+
+const files = walk(join(root, 'src'));
 
 /**
  * Strip the places where `} catch {` is being TALKED ABOUT rather than written: a line comment, a

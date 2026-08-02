@@ -100,7 +100,7 @@ html[data-theme='dark'] .tapeLabel {
 .errorAlert {
   position: fixed;
   top: 20px;
-  right: 20px;
+  inset-inline-end: 20px;
   background-color: var(--feedback-danger);
   color: var(--text-on-primary);
   padding: 1rem 1.5rem;

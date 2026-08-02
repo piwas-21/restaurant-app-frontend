@@ -1324,7 +1324,7 @@
   /* Move title and meta to the right */
   .title,
   .orderMeta {
-    text-align: right !important;
+    text-align: end !important;
     margin-inline-start: auto !important;
   }
 

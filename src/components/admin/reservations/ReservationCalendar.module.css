@@ -195,7 +195,13 @@
 }
 
 .calendarContainer :global(.rbc-time-header-content) {
-  border-inline-start: 1px solid var(--border-color) !important;
+  /* PHYSICAL because what it overrides is physical, and lives in `node_modules` where nothing
+     in `src/` greps for it: react-big-calendar ships `.rbc-time-header-content { border-left:
+     1px solid #ddd }`. Converting this to `border-inline-start` would map to `border-right` in
+     `ar` and leave rbc's hardcoded `#ddd` left border standing — two borders, one of them a
+     colour that ignores dark mode. rbc's own `.rbc-rtl` escape hatch does not help: nothing in
+     this repo passes `rtl` to `<Calendar>`. Mirror this only in the slice that also does. */
+  border-left: 1px solid var(--border-color) !important;
 }
 
 .calendarContainer :global(.rbc-time-content) {

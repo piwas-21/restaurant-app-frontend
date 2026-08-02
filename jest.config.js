@@ -65,6 +65,8 @@ module.exports = {
     'src/hooks/order/useGuestProfilePrefill.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/passwordPolicy.ts',
+    'src/schemas/password.schema.ts',
+    'src/utils/apiFormErrors.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
@@ -199,6 +201,25 @@ module.exports = {
       lines: 100,
     },
     './src/app/(auth)/reset-password/page.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // E9 — the two halves of "show the user what the server actually said".
+    //
+    // `apiFormErrors` is pinned at 100% because every uncovered branch is a message that reaches
+    // nobody: the whole defect it fixes was a failure path that ran, produced nothing a user could
+    // act on, and looked fine. Its fallbacks are the file — there is no incidental code to leave
+    // uncovered. `password.schema` is thin zod glue over `passwordPolicy` (pinned separately above),
+    // but it is the only thing standing between a form and a guaranteed 400.
+    './src/utils/apiFormErrors.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/schemas/password.schema.ts': {
       statements: 100,
       branches: 100,
       functions: 100,

@@ -47,10 +47,10 @@ export interface ApiErrorSurface<TField extends string> {
  * string the owner reported. The generic message was never the bug on its own; the bug is that it
  * is unavoidable, untranslated, and reached by forgetting rather than by deciding.
  *
- * That literal is still there, and this hook does not remove it: `getErrorMessage` has ten live
- * callers, all of them BOUND catches, so neither this hook nor the bare-catch ratchet touches them.
- * Making it return `null` for the unknown case and fixing those ten is a bounded change and the
- * direct way to kill the string — a follow-up, named here so it is not mistaken for done.
+ * That literal is now gone: `getErrorMessage` returns `null` when the server authored nothing, and
+ * its callers each supply their own translated sentence. This hook and that helper close the same
+ * hole from two ends — the hook for surfaces that hold their own error state, the null contract for
+ * the bound catches the bare-catch ratchet cannot see.
  *
  * **What this guarantees, and what it does not.** The fallback cannot be untranslated: `message` is
  * computed from `t(...)` inside the hook, and the only way to influence it is a `fallback` that a

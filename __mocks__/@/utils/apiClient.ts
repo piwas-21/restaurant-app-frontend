@@ -19,19 +19,17 @@ export class ApiError extends Error {
   }
 }
 
-export function getErrorMessage(error: unknown): string {
+// Mirrors the real helper exactly, INCLUDING its null contract: it returns the server's own message
+// or nothing at all. A double that still handed back 'An unexpected error occurred' would let every
+// suite pass while the real thing had stopped producing it — which is what the agreement test below
+// exists to catch, and did.
+export function getErrorMessage(error: unknown): string | null {
   if (error instanceof ApiError) {
-    if (error.errors && error.errors.length > 0) {
-      return error.errors.join(', ');
-    }
-    return error.message;
+    const detail = error.errors?.filter((m) => m?.trim()).join(', ');
+    return detail || error.message?.trim() || null;
   }
 
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return 'An unexpected error occurred';
+  return null;
 }
 
 export function isErrorStatus(error: unknown, status: number): boolean {

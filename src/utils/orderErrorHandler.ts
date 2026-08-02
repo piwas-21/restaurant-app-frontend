@@ -15,7 +15,8 @@ import { ApiError, getErrorMessage } from '@/utils/apiClient';
  * @returns Translated error message
  */
 export function getTranslatedOrderError(error: unknown, t: TFunction): string {
-  // Get the raw error message
+  // The SERVER's message, or null when it authored none. This function already ends in its own
+  // translated generic, so the null case needs no new fallback — it just skips the pattern match.
   const rawMessage = getErrorMessage(error);
 
   // Map common backend error messages to translation keys
@@ -37,16 +38,18 @@ export function getTranslatedOrderError(error: unknown, t: TFunction): string {
   };
 
   // Check if error message contains any of the known patterns
-  const lowerMessage = rawMessage.toLowerCase();
+  const lowerMessage = rawMessage?.toLowerCase() ?? '';
   for (const [pattern, key] of Object.entries(errorMappings)) {
     if (lowerMessage.includes(pattern.toLowerCase())) {
-      return t(key, rawMessage);
+      return t(key, rawMessage ?? '');
     }
   }
 
   // If no specific mapping found, return generic error or original message
-  if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
-    // Client error - show the actual message (might be validation error)
+  if (rawMessage && error instanceof ApiError && error.status >= 400 && error.status < 500) {
+    // Client error — show the actual message (might be a validation error). Guarded on rawMessage
+    // now: a 4xx with a blank body used to return the empty string here, which renders as an error
+    // box with nothing in it.
     return rawMessage;
   }
 

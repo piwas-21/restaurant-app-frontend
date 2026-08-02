@@ -19,18 +19,21 @@ export function useImageBackfill() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const run = useCallback(async (kind: 'preview' | 'apply' | 'clear', action: () => Promise<void>) => {
-    setBusy(kind);
-    setError(null);
-    setNotice(null);
-    try {
-      await action();
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setBusy(null);
-    }
-  }, []);
+  const run = useCallback(
+    async (kind: 'preview' | 'apply' | 'clear', action: () => Promise<void>) => {
+      setBusy(kind);
+      setError(null);
+      setNotice(null);
+      try {
+        await action();
+      } catch (err) {
+        setError(getErrorMessage(err) ?? t('unexpected_error', 'An unexpected error occurred.'));
+      } finally {
+        setBusy(null);
+      }
+    },
+    [t],
+  );
 
   const preview = useCallback(
     () =>

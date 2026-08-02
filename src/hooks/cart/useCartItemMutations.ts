@@ -23,6 +23,12 @@ export function useCartItemMutations(
   dispatch: React.Dispatch<CartAction>,
   ensureSession: () => void,
   syncBasket: () => Promise<void>,
+  /**
+   * Already-translated sentence for a failure the server did not describe. Passed in rather than
+   * resolved here: `getErrorMessage` returns `null` for those now, and this hook has no `t` — the
+   * provider does. Threading it is what stops the English literal reappearing inside the cart.
+   */
+  unexpectedError: string,
 ): CartItemMutations {
   /**
    * Add item to basket
@@ -62,7 +68,7 @@ export function useCartItemMutations(
         loggedIn: isLoggedInForAnalytics(),
       });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error) ?? unexpectedError;
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
       dispatch({ type: 'ROLLBACK', payload: { previousState } });
       console.error('Error adding item to basket:', error);
@@ -94,13 +100,15 @@ export function useCartItemMutations(
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const serverMessage = getErrorMessage(error);
+      const errorMessage = serverMessage ?? unexpectedError;
 
-      // If item was already removed (not found), refresh the cart
-      // This handles the case where the item was removed in another tab
+      // If item was already removed (not found), refresh the cart. Matched against the SERVER's
+      // message only — matching the translated fallback would make the branch fire on whatever
+      // words a locale happens to use.
       if (
-        errorMessage.toLowerCase().includes('not found') ||
-        errorMessage.toLowerCase().includes('basket item not found')
+        serverMessage?.toLowerCase().includes('not found') ||
+        serverMessage?.toLowerCase().includes('basket item not found')
       ) {
         await syncBasket();
         return; // Don't throw error or rollback
@@ -135,13 +143,14 @@ export function useCartItemMutations(
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const serverMessage = getErrorMessage(error);
+      const errorMessage = serverMessage ?? unexpectedError;
 
-      // If item was already removed (not found), keep the optimistic update
-      // This handles the case where the item was removed in another tab
+      // If item was already removed (not found), keep the optimistic update. Matched against the
+      // SERVER's message only — see the note on the same branch above.
       if (
-        errorMessage.toLowerCase().includes('not found') ||
-        errorMessage.toLowerCase().includes('basket item not found')
+        serverMessage?.toLowerCase().includes('not found') ||
+        serverMessage?.toLowerCase().includes('basket item not found')
       ) {
         // Refresh the cart to get the latest state from the server
         await syncBasket();

@@ -22,7 +22,11 @@ import { useRouter } from 'next/navigation';
 import { formatPrice, formatDate } from './orderFormatters';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
-import StatusBadge, { StatusBadgeTone } from '@/components/design-system/StatusBadge';
+import StatusBadge from '@/components/design-system/StatusBadge';
+// One source for status copy AND tone. This file used to carry both as its own ladders, and the
+// tone one had already drifted: it painted `Confirmed` 'warning' where every other surface reads
+// 'info' from the module.
+import { orderStatusLabel, orderStatusMeta } from '@/lib/orderStatus';
 import styles from '@/app/styles/OrdersPage.module.css';
 
 interface OrderCardProps {
@@ -63,55 +67,6 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return t('order_status_pending', 'Pending');
-      case 'PendingApproval':
-        return t('order_status_pending_approval', 'Pending Approval');
-      case 'Confirmed':
-        return t('order_status_confirmed', 'Confirmed');
-      case 'Preparing':
-        return t('order_status_preparing', 'Preparing');
-      case 'In Progress':
-        return t('order_status_in_progress', 'In Progress');
-      case 'Ready':
-        return t('order_status_ready', 'Ready');
-      case 'InTransit':
-        return t('order_status_in_transit', 'In Transit');
-      case 'Delivered':
-        return t('order_status_delivered', 'Delivered');
-      case 'Completed':
-        return t('order_status_completed', 'Completed');
-      case 'Cancelled':
-        return t('order_status_cancelled', 'Cancelled');
-      default:
-        return status;
-    }
-  };
-
-  const getStatusTone = (status: string): StatusBadgeTone => {
-    switch (status) {
-      case 'Pending':
-      case 'Confirmed':
-      case 'PendingApproval':
-        return 'warning';
-      case 'Preparing':
-      case 'In Progress':
-        return 'info';
-      case 'Ready':
-      case 'InTransit':
-        return 'success';
-      case 'Delivered':
-      case 'Completed':
-        return 'neutral';
-      case 'Cancelled':
-        return 'danger';
-      default:
-        return 'neutral';
-    }
-  };
-
   return (
     <div className={styles.orderCard}>
       <div className={styles.orderHeader}>
@@ -133,7 +88,9 @@ export default function OrderCard({ order, isExpanded, onToggleExpand, isReorder
           </div>
         </div>
         <div className={styles.orderActions}>
-          <StatusBadge tone={getStatusTone(order.status)}>{getStatusLabel(order.status)}</StatusBadge>
+          <StatusBadge tone={orderStatusMeta(order.status)?.tone ?? 'neutral'}>
+            {orderStatusLabel(order.status, t)}
+          </StatusBadge>
           <button
             onClick={() => onToggleExpand(order.id)}
             className={styles.expandButton}

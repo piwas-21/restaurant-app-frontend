@@ -207,3 +207,19 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* NO `.statusInTransit` / `.statusDelivered` here, deliberately — `orderStatusMeta` names eight
+   modifier classes and this module defines six, so those two statuses keep the card's neutral
+   default border. That is not an oversight, and adding them was tried and reverted:
+ *
+ * this file's six hard-coded hexes ARE the six `--status-*` token values, assigned to DIFFERENT
+ * statuses. `.statusReady` is #10b981, which is `--status-confirmed`; `.statusConfirmed` is
+ * #3b82f6, which is `--status-preparing`. So there is no token that does not collide: giving
+ * in-transit `--status-confirmed` paints it the same green as ready-for-pickup, and on a waiter's
+ * screen "collect it" and "already gone" are the one distinction that border exists to carry.
+ *
+ * The real fix is to repaint all six onto tokens so one system governs the file — which also ends
+ * the contradiction with `getOrderStatusColor`, where the same statuses have different hues. That
+ * changes colours on a live staff screen, so it is a follow-up, not a migration. Until then the
+ * STATUS BADGE carries these two, and it now reads a real translation instead of the raw enum.
+ */

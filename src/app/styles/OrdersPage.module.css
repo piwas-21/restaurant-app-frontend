@@ -135,7 +135,7 @@
 }
 
 .lastUpdated {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: 0.8rem;
   color: var(--text-color);
   opacity: 0.6;
@@ -501,7 +501,7 @@
   padding: 1rem;
   background-color: var(--background-color);
   border-radius: 8px;
-  border-left: 3px solid var(--primary-color);
+  border-inline-start: 3px solid var(--primary-color);
 }
 
 .addressBox p {
@@ -597,7 +597,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: var(--primary-color);
-  text-align: right;
+  text-align: end;
 }
 
 /* Price Breakdown */
@@ -645,7 +645,7 @@
   line-height: 1.6;
   margin: 0;
   font-style: italic;
-  border-left: 3px solid var(--primary-color);
+  border-inline-start: 3px solid var(--primary-color);
 }
 
 /* Detail Actions */

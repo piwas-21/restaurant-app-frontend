@@ -123,3 +123,17 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # ── E8: physical-CSS ratchet ─────────────────────────────────────────
+  # `margin-left` and friends do not follow `dir`, so they land on the wrong
+  # side of their own text once `ar` mirrors the layout. Same shape as the
+  # bare-catch ratchet above and for the same reason: the sweep runs feature
+  # area by feature area, so the count may only go down. Whole-tree.
+  - repo: local
+    hooks:
+      - id: physical-css
+        name: physical-CSS ratchet (E8)
+        entry: node scripts/check-physical-css.mjs
+        language: system
+        pass_filenames: false
+        always_run: true

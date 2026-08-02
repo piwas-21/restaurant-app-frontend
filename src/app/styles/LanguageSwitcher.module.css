@@ -61,8 +61,8 @@
 .dropdownContainer {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   background-color: var(--background-color);
   border: 1px solid var(--border-color);
   border-top: none;
@@ -97,7 +97,7 @@ html[data-theme='dark'] .dropdownContainer {
   gap: 0.75rem;
   padding: 0.6rem 1rem;
   width: 100%;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.2s ease;
@@ -136,8 +136,8 @@ html[data-theme='dark'] .dropdownContainer {
 .scrollIndicator {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   height: 30px; /* Slightly taller for better hit area */
   background: linear-gradient(to top, var(--background-color) 40%, rgba(var(--background-rgb), 0));
   display: flex;

@@ -13,7 +13,7 @@
   margin-bottom: 1rem;
   background: var(--background-light);
   border: 1px solid var(--border-color);
-  border-left-width: 4px;
+  border-inline-start-width: 4px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -349,7 +349,7 @@
 .diagnosticsOverlay {
   position: fixed;
   top: 20px;
-  right: 20px;
+  inset-inline-end: 20px;
   z-index: 9999;
   max-width: 400px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);

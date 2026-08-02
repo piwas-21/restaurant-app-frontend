@@ -38,7 +38,7 @@
 .dropdownMenu {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  inset-inline-end: 0;
   background-color: var(--background-color);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -53,6 +53,10 @@
 /* On mobile, ensure dropdown doesn't overflow screen */
 @media (max-width: 768px) {
   .dropdownMenu {
+    /* PHYSICAL on purpose: `50%` + `translateX(-50%)` is centring, and centring has no
+       handedness. `transform` is not a logical property — `translateX(-50%)` always moves
+       physically left — so mirroring the inset alone would drag the menu a full width off
+       centre in `ar`. Both stay physical and the dropdown centres in either direction. */
     right: auto;
     left: 50%;
     transform: translateX(-50%);
@@ -85,7 +89,7 @@
   border: none;
   padding: 0.75rem 1.25rem;
   width: 100%;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   color: var(--color-red-500);
   font-size: 0.9rem;

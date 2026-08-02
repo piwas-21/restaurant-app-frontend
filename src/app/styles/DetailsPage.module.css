@@ -98,7 +98,7 @@
 
 .infoSection ul {
   list-style-position: inside;
-  padding-left: 0;
+  padding-inline-start: 0;
 }
 
 .imageGalleryContainer {
@@ -224,7 +224,7 @@
 .variationsTable th,
 .variationsTable td {
   padding: 0.8rem 1rem;
-  text-align: left;
+  text-align: start;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -307,18 +307,21 @@
   .variationsTable td {
     border: none;
     position: relative;
-    padding: 0.5rem 0.5rem 0.5rem 40%;
-    text-align: right;
+    /* The 40% gutter is the column the `td:before` label occupies; that label now sits at
+       `inset-inline-start`, so the gutter must mirror with it. */
+    padding-block: 0.5rem;
+    padding-inline: 40% 0.5rem;
+    text-align: end;
   }
 
   .variationsTable td:before {
     content: attr(data-label);
     position: absolute;
-    left: 0.75rem;
+    inset-inline-start: 0.75rem;
     width: 35%;
-    padding-right: 0.5rem;
+    padding-inline-end: 0.5rem;
     white-space: nowrap;
-    text-align: left;
+    text-align: start;
     font-weight: 600;
     color: var(--text-secondary);
   }

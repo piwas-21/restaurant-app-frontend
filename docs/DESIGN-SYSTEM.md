@@ -443,10 +443,28 @@ interface LoadingSpinnerProps {
 
 ## 8. RTL Support (Arabic)
 
-- `document.documentElement.dir = 'rtl'` set via language detection
-- CSS uses logical properties: `margin-inline-start` (not `margin-left`)
-- Directional icons flip via `[dir="rtl"] svg { transform: scaleX(-1) }`
-- RTL languages: `['ar', 'he', 'fa']`
+**Status: partial.** `dir` is wired; the sweep to logical properties is in progress (BUGS-IMPROVEMENTS-PLAN E8). What is true today:
+
+- `<html lang>` and `dir` are synced from `i18n.language` by `DocumentLanguage`; the locale set lives in `RTL_LANGUAGES` (`src/lib/textDirection.ts`) — `ar` is the only one of the ten shipped locales that is RTL. **That set is also the revert lever**: drop `ar` from it and the whole app returns to LTR without a rollback.
+- New CSS **must** use logical properties — `margin-inline-start`, `padding-inline-end`, `border-inline-start`, `inset-inline-start`/`-end`, `text-align: start | end`. The `physical-CSS ratchet (E8)` check (`scripts/check-physical-css.mjs`) holds the count of remaining physical declarations and only ever lets it fall.
+- Directional **icons** mostly do not flip yet. The only `[dir='rtl']` rules in the tree are the category-nav chevrons (`CategoryNav.module.css` and `CraftCategoryNav.module.css`, both `[dir='rtl'] .navArrow svg { transform: scaleX(-1) }`) — copy that pattern. The remaining directional icons and the craft `--craft-tape-clip` polygon are E8 slice 3.
+
+### 8.1 What must stay physical
+
+A logical property is byte-identical to its physical twin under `dir="ltr"`, so converting is safe **unless the declaration is coupled to something that has no logical form**. Three cases, all found in the first sweep slice:
+
+| Coupling | Why it breaks | Do instead |
+| --- | --- | --- |
+| `transform: translateX(…)` | `transform` is never logical. Mirror the inset alone and a drawer parked off-screen with `translateX(100%)` lands **on** screen in `ar`. | Move inset + transform together, or leave both physical with a comment. |
+| `background-position: right …` | Also has no logical form. A gutter that clears a chevron must mirror **with** the chevron, or text runs under it. | Leave the padding physical until the background moves too. |
+| Centring (`left: 50%` + `translateX(-50%)`, or a negative half-width margin) | Centring has no handedness — it is already correct in both directions. | Leave physical; it is not debt. |
+
+Two more the codemod cannot see, so check them by hand:
+
+- **Asymmetric 4-value shorthands** (`padding: a b c d` where `b ≠ d`) are directional in slots 2 and 4. Split to `padding-block` + `padding-inline: <start> <end>`.
+- **A reset must use the same name as what it resets.** Mixing `left:` in a base rule with `inset-inline-start:` in an override makes the winner depend on source order rather than on specificity.
+
+Anything deliberately physical carries a comment saying so and stays in the ratchet's count — the ratchet measures syntax, not defects.
 
 ---
 

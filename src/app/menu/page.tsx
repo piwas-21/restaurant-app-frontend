@@ -111,18 +111,24 @@ export default function MenuPage() {
 
       <TableBanner position="top" />
 
+      {/* ABOVE the two-column layout, not inside its left column.
+          `.menuLayout` is a grid with `align-items: start`, so the basket rail's top edge aligns
+          with whatever starts the left column. With the banner in there, the rail lined up with the
+          BANNER and the menu grid — the thing a guest reads alongside their basket — began one
+          banner-height lower. Nothing was misaligned by accident; the hero was simply inside the
+          column it should sit above. Moving it also gives it the full width a hero wants. */}
+      {featuredSpecial && (
+        <FeaturedSpecialComponent
+          special={featuredSpecial}
+          // The banner builds its own options (it holds the verdict); the page only routes.
+          onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+          onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+          onSwitchOrderType={switchOrderTypeFromCard}
+        />
+      )}
+
       <div className={styles.menuLayout}>
         <div className={styles.menuMain}>
-          {featuredSpecial && (
-            <FeaturedSpecialComponent
-              special={featuredSpecial}
-              // The banner builds its own options (it holds the verdict); the page only routes.
-              onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
-              onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
-              onSwitchOrderType={switchOrderTypeFromCard}
-            />
-          )}
-
           <MenuContent
             categoriesForNav={categoriesForNav}
             selectedView={selectedView}

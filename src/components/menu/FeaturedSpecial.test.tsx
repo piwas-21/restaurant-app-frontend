@@ -39,6 +39,33 @@ const special = {
   detailedIngredients: [],
 } as unknown as FeaturedSpecialType;
 
+/**
+ * The description branch. It was COMMENTED OUT rather than deleted until 2026-08-02, which is why
+ * the hero read as a photo, a name and a price — tall because of the image and empty because its
+ * copy was switched off. Both sides are covered because restoring it introduced a branch, and the
+ * per-file coverage pin caught that before CI would have let it through.
+ */
+describe('the restored description', () => {
+  it('renders it when the special has one', () => {
+    render(
+      <FeaturedSpecial
+        special={{ ...special, description: 'Slow-braised lamb with pomegranate' } as FeaturedSpecialType}
+        onAddToCart={jest.fn()}
+        onViewDetails={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('Slow-braised lamb with pomegranate')).toBeInTheDocument();
+  });
+
+  it('renders nothing in its place when the special has none', () => {
+    const { container } = render(
+      <FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />,
+    );
+    // Not an empty <p>: an element with no text is still a gap in the layout.
+    expect(container.querySelector('[class*="featuredSpecialDescription"]')).toBeNull();
+  });
+});
+
 const BLOCKED: AvailabilityNotice = {
   tone: 'blocked',
   message: 'Takeaway and Delivery only',

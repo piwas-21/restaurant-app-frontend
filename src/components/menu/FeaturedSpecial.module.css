@@ -2,7 +2,8 @@
 .featuredSpecialSection {
   padding: 0 1rem;
   max-width: 1400px;
-  margin: 2rem auto;
+  /* Tighter above, since the page header now sits directly on top of it. */
+  margin: 1rem auto 1.5rem;
 }
 
 .featuredSpecialContainer {
@@ -10,7 +11,7 @@
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 2px solid gold;
+  border: 2px solid var(--color-gold-300);
   position: relative;
   overflow: hidden;
 }
@@ -24,7 +25,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: gold;
+  background: var(--color-gold-300);
   color: var(--color-gray-900-f);
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
@@ -36,7 +37,11 @@
 
 .featuredSpecialContent {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  /* Was a fixed `400px`. The banner now spans the full page width instead of sitting inside the
+     left column, so a fixed image column that used to dominate would simply have grown a wider text
+     column beside it; capping it keeps the photo from being the whole hero, which is the "takes too
+     much space" half of the report. `minmax(0, …)` so the column can shrink rather than overflow. */
+  grid-template-columns: minmax(0, 340px) 1fr;
   gap: 2rem;
   align-items: start;
 }
@@ -67,7 +72,7 @@
 }
 
 [data-theme='dark'] .featuredSpecialTitle {
-  color: gold;
+  color: var(--color-gold-300);
 }
 
 .featuredSpecialDescription {
@@ -107,7 +112,7 @@
 }
 
 [data-theme='dark'] .priceValue {
-  color: gold;
+  color: var(--color-gold-300);
 }
 
 .featuredSpecialTime {

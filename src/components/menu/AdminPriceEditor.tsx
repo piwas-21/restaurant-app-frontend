@@ -113,7 +113,9 @@ export default function AdminPriceEditor({ item, onPriceChange }: Readonly<Admin
     } catch (err) {
       // `updateProductPrice` goes through `apiClient`, which THROWS on any non-2xx — so this is
       // where the server's reason lives. It used to be discarded (E9).
-      setError(getErrorMessage(err));
+      // `?? t(…)`: `getErrorMessage` returns null when the server authored nothing, so the
+      // translated generic is chosen here rather than handed out for free in English.
+      setError(getErrorMessage(err) ?? t('admin_edit_price_failed', 'Could not save the price'));
     } finally {
       setSaving(false);
     }

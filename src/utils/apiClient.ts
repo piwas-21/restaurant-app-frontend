@@ -262,21 +262,31 @@ export const apiClient = {
 };
 
 /**
- * Helper to handle API errors in components
+ * The SERVER's own account of a failure, or `null` when it did not author one.
+ *
+ * It used to end `return 'An unexpected error occurred';` — a hardcoded English literal, and
+ * verbatim the string BUGS-IMPROVEMENTS-PLAN E9 was reported for. Every caller therefore had a
+ * translated generic available for free, in English, without deciding to use one. Returning `null`
+ * removes the option: a caller must now supply its own translated sentence, and the ones that
+ * already had a better sentence than "an unexpected error occurred" now get to use it.
+ *
+ * A non-`ApiError` throw returns `null` too, deliberately. On these paths the things that reach a
+ * catch are `TypeError` from a dead network and `SyntaxError` from `response.json()` when Caddy
+ * serves an HTML 502 mid-deploy; passing those through put `Failed to fetch` and
+ * `Unexpected token '<', "<!DOCTYPE "...` in front of users. Server prose is worth showing
+ * untranslated because it is specific; a client-side throw is neither.
+ *
+ * Same distinction `apiFormErrors.serverAuthoredMessage` draws — this is the non-form half of it.
  */
-export function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown): string | null {
   if (error instanceof ApiError) {
-    if (error.errors && error.errors.length > 0) {
-      return error.errors.join(', ');
-    }
-    return error.message;
+    const detail = error.errors?.filter((m) => m?.trim()).join(', ');
+    // `presentable`, inlined: `''` and `'   '` are absence wearing a costume, and an error line
+    // with nothing in it says the operation failed for no reason.
+    return detail || error.message?.trim() || null;
   }
 
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return 'An unexpected error occurred';
+  return null;
 }
 
 /**

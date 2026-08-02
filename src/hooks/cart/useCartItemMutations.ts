@@ -18,12 +18,45 @@ interface CartItemMutations {
  * Extracted verbatim from CartContext (Sprint 6 god-file decomposition); behaviour unchanged.
  * `syncBasket` is passed in because update/remove re-sync on a not-found (item removed in another tab).
  */
+/**
+ * Did the server say the item is already gone?
+ *
+ * Matched on the SERVER's message ONLY. `getErrorMessage` returns null when the server authored
+ * nothing, and the caller substitutes a translated fallback — matching that would make this branch
+ * fire on whatever words a locale happens to use, silently turning a real failure into a
+ * "someone else already removed it" resync.
+ */
+function isAlreadyGone(serverMessage: string | null): boolean {
+  const message = serverMessage?.toLowerCase();
+  return !!message && (message.includes('not found') || message.includes('basket item not found'));
+}
+
 export function useCartItemMutations(
   state: CartState,
   dispatch: React.Dispatch<CartAction>,
   ensureSession: () => void,
   syncBasket: () => Promise<void>,
+  /**
+   * Already-translated sentence for a failure the server did not describe. Passed in rather than
+   * resolved here: `getErrorMessage` returns `null` for those now, and this hook has no `t` — the
+   * provider does. Threading it is what stops the English literal reappearing inside the cart.
+   */
+  unexpectedError: string,
 ): CartItemMutations {
+  /**
+   * Show the failure and roll back — the tail all three mutations share.
+   *
+   * Deliberately does NOT include the already-gone recovery. Folding that in here would have given
+   * `addItem` a branch it never had, and "not found" is a perfectly ordinary answer to an ADD
+   * ("Product not found") — it would have resynced the basket and swallowed the message instead of
+   * showing it. Update and remove opt in explicitly; add does not.
+   */
+  const reportFailure = (serverMessage: string | null, previousState: CartState, logLabel: string, error: unknown) => {
+    dispatch({ type: 'SET_ERROR', payload: { error: serverMessage ?? unexpectedError } });
+    dispatch({ type: 'ROLLBACK', payload: { previousState } });
+    console.error(logLabel, error);
+  };
+
   /**
    * Add item to basket
    */
@@ -62,10 +95,7 @@ export function useCartItemMutations(
         loggedIn: isLoggedInForAnalytics(),
       });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
-      dispatch({ type: 'ROLLBACK', payload: { previousState } });
-      console.error('Error adding item to basket:', error);
+      reportFailure(getErrorMessage(error), previousState, 'Error adding item to basket:', error);
       throw error; // Re-throw for component-level error handling
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: { isSyncing: false } });
@@ -94,22 +124,13 @@ export function useCartItemMutations(
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-
-      // If item was already removed (not found), refresh the cart
-      // This handles the case where the item was removed in another tab
-      if (
-        errorMessage.toLowerCase().includes('not found') ||
-        errorMessage.toLowerCase().includes('basket item not found')
-      ) {
+      const serverMessage = getErrorMessage(error);
+      // The item is already gone — someone removed it in another tab. Resync rather than report.
+      if (isAlreadyGone(serverMessage)) {
         await syncBasket();
-        return; // Don't throw error or rollback
+        return;
       }
-
-      // For other errors, rollback and show error
-      dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
-      dispatch({ type: 'ROLLBACK', payload: { previousState } });
-      console.error('Error updating basket item:', error);
+      reportFailure(serverMessage, previousState, 'Error updating basket item:', error);
       throw error;
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: { isSyncing: false } });
@@ -135,23 +156,13 @@ export function useCartItemMutations(
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-
-      // If item was already removed (not found), keep the optimistic update
-      // This handles the case where the item was removed in another tab
-      if (
-        errorMessage.toLowerCase().includes('not found') ||
-        errorMessage.toLowerCase().includes('basket item not found')
-      ) {
-        // Refresh the cart to get the latest state from the server
+      const serverMessage = getErrorMessage(error);
+      // The item is already gone — someone removed it in another tab. Resync rather than report.
+      if (isAlreadyGone(serverMessage)) {
         await syncBasket();
-        return; // Don't throw error or rollback
+        return;
       }
-
-      // For other errors, rollback and show error
-      dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
-      dispatch({ type: 'ROLLBACK', payload: { previousState } });
-      console.error('Error removing basket item:', error);
+      reportFailure(serverMessage, previousState, 'Error removing basket item:', error);
       throw error;
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: { isSyncing: false } });

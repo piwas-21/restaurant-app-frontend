@@ -2,7 +2,8 @@ import { formatCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderStatus } from '@/types/order';
-import { orderStatusLabel, paymentStatusLabel } from '@/lib/orderStatus';
+import { orderStatusLabel } from '@/lib/orderStatus';
+import { paymentStatusLabel } from '@/lib/paymentStatus';
 import { UtensilsCrossed, Store, Truck, Package } from 'lucide-react';
 
 /**
@@ -54,13 +55,10 @@ export const useOrderHelpers = () => {
   // its `default` and rendered as raw untranslated English in every locale.
   const getStatusLabel = (status: string) => orderStatusLabel(status, t);
 
-  // `Overpaid` is handled OUTSIDE the map on purpose: it is a real backend PaymentStatus that the
-  // frontend union still omits (see the note on `PaymentStatus` in types/order/enums.ts), so it
-  // cannot be an entry in a `Record<PaymentStatus, …>` until that contract is reconciled. Keeping
-  // the case here preserves today's behaviour rather than silently dropping a status that reaches
-  // the UI through the admin filter.
-  const getPaymentStatusLabel = (paymentStatus: string) =>
-    paymentStatus === 'Overpaid' ? t('payment_status_overpaid', 'Overpaid') : paymentStatusLabel(paymentStatus, t);
+  // The hand-written `Overpaid` case that used to live here is gone: it existed only because the
+  // frontend union omitted a real backend status, so it could not be an entry in the map. It is one
+  // now, along with `Completed` — which was falling through to the raw enum name in all ten locales.
+  const getPaymentStatusLabel = (paymentStatus: string) => paymentStatusLabel(paymentStatus, t);
 
   // The statuses a human may pick in the status dropdowns. Deliberately NOT every union member:
   // `PendingApproval` and `Refunded` are reached by their own flows, and `In Progress` is legacy.

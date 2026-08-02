@@ -7,6 +7,7 @@ import { getPaymentBadgeClasses } from '@/utils/orderStatusStyles';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { formatOrderPrice, formatOrderDate } from '@/utils/orderDetailsFormatters';
 import styles from '../OrderDetailsModal.module.css';
+import { paymentStatusLabel } from '@/lib/paymentStatus';
 
 interface OrderDetailsSummaryProps {
   order: OrderDto;
@@ -113,7 +114,10 @@ export default function OrderDetailsSummary({ order }: OrderDetailsSummaryProps)
                 <div className={styles.paymentAmount}>{formatOrderPrice(payment.amount)}</div>
                 <div className={styles.paymentStatus}>
                   <span className={getPaymentBadgeClasses(payment.status)}>
-                    {payment.status ? t(`payment_status_${payment.status.toLowerCase()}`, payment.status) : 'N/A'}
+                    {/* A payment RECORD's status. `payment_status_completed` exists in no locale, so a
+                        key built from the value printed the raw backend word next to a badge that
+                        said "Paid". */}
+                    {payment.status ? paymentStatusLabel(payment.status, (key) => t(key, payment.status)) : 'N/A'}
                   </span>
                 </div>
               </div>

@@ -4,14 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { Filter, Search, Star } from 'lucide-react';
 import { useOrderHelpers } from '@/hooks/useOrderHelpers';
 import styles from './OrdersFilters.module.css';
+import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
+import type { OrderPaymentStatusFilter } from '@/hooks/useOrderFilterPreferences';
 
 interface OrdersFiltersProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   selectedStatus: OrderStatus | 'All';
   onStatusChange: (value: OrderStatus | 'All') => void;
-  selectedPaymentStatus: string;
-  onPaymentStatusChange: (value: string) => void;
+  selectedPaymentStatus: OrderPaymentStatusFilter;
+  onPaymentStatusChange: (value: OrderPaymentStatusFilter) => void;
   selectedOrderType: string;
   onOrderTypeChange: (value: string) => void;
   showFocusOnly: boolean;
@@ -75,16 +77,21 @@ export const OrdersFilters: React.FC<OrdersFiltersProps> = ({
         <div className={styles.filterGroup}>
           <select
             value={selectedPaymentStatus}
-            onChange={(e) => onPaymentStatusChange(e.target.value)}
+            // The cast is safe BECAUSE the options below are generated from ORDER_PAYMENT_STATUSES —
+            // there is no longer a hand-written `<option>` that could carry a value off the union.
+            onChange={(e) => onPaymentStatusChange(e.target.value as OrderPaymentStatusFilter)}
             className={styles.filterSelect}
           >
+            {/* From ORDER_PAYMENT_STATUSES, not a hand-written list. This one offered `Paid` — which
+                the backend never emits, so the server's `Enum.TryParse` failed, the WHOLE filter
+                clause was skipped, and it returned EVERY order under a label saying otherwise — and
+                `Failed`, which nothing ever writes. */}
             <option value="All">{t('all_payment_statuses', 'All Payment Statuses')}</option>
-            <option value="Pending">{t('payment_status_pending', 'Pending')}</option>
-            <option value="Paid">{t('payment_status_paid', 'Paid')}</option>
-            <option value="PartiallyPaid">{t('payment_status_partially_paid', 'Partially Paid')}</option>
-            <option value="Refunded">{t('payment_status_refunded', 'Refunded')}</option>
-            <option value="Failed">{t('payment_status_failed', 'Failed')}</option>
-            <option value="Overpaid">{t('payment_status_overpaid', 'Overpaid')}</option>
+            {ORDER_PAYMENT_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {paymentStatusLabel(status, t)}
+              </option>
+            ))}
           </select>
         </div>
 

@@ -157,10 +157,17 @@
   border-color: var(--color-indigo-400);
 }
 
-.paymentFailed {
-  background-color: var(--color-red-100);
-  color: var(--color-red-800);
-  border-color: var(--color-red-400);
+/* Overpaid is the OPPOSITE money condition to PartiallyPaid — the restaurant owes money back, not
+   the guest — and the two shared the orange badge, so they were indistinguishable at a glance on a
+   till. Blue because it is neither a warning nor a success: it needs attention, not alarm.
+   Measured: 7.15:1 light (vs PartiallyPaid's 5.4:1), 5.65:1 dark.
+
+   `.paymentFailed` used to sit here. `PaymentStatus.Failed` is in the backend enum but NOTHING ever
+   writes it, so the class was unreachable — deleted rather than left for the next person to style. */
+.paymentOverpaid {
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-800);
+  border-color: var(--color-blue-400);
 }
 
 :global(html[data-theme='dark']) .paymentPending {
@@ -187,10 +194,10 @@
   border-color: var(--color-indigo-400);
 }
 
-:global(html[data-theme='dark']) .paymentFailed {
-  background-color: rgba(248, 113, 113, 0.2);
-  color: var(--color-red-400);
-  border-color: var(--color-red-400);
+:global(html[data-theme='dark']) .paymentOverpaid {
+  background-color: rgba(96, 165, 250, 0.2);
+  color: var(--color-blue-400);
+  border-color: var(--color-blue-400);
 }
 
 /* Focus Badge */

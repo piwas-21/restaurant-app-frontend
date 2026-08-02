@@ -1,6 +1,7 @@
 import styles from '@/styles/orderStatus.module.css';
 import { OrderStatus } from '@/types/order';
-import { ORDER_STATUS_META, orderStatusMeta, PAYMENT_STATUS_META } from '@/lib/orderStatus';
+import { ORDER_STATUS_META, orderStatusMeta } from '@/lib/orderStatus';
+import { PAYMENT_STATUS_META } from '@/lib/paymentStatus';
 
 /**
  * Thin adapters over `@/lib/orderStatus`, kept so the existing callsites keep working while they

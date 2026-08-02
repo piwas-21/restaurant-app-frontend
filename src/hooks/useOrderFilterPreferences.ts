@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { OrderStatus } from '@/types/order';
+import { ORDER_PAYMENT_STATUSES } from '@/lib/paymentStatus';
+
+/** The order payment statuses a filter may hold — the real ones, plus the "no filter" sentinel. */
+export type OrderPaymentStatusFilter = (typeof ORDER_PAYMENT_STATUSES)[number] | 'All';
 
 interface OrderFilterPreferences {
   selectedStatus: OrderStatus | 'All';
-  selectedPaymentStatus: string;
+  selectedPaymentStatus: OrderPaymentStatusFilter;
   selectedOrderType: string;
   showFocusOnly: boolean;
   sortBy: 'date' | 'amount';
@@ -22,6 +26,22 @@ const DEFAULT_PREFERENCES: OrderFilterPreferences = {
 };
 
 /**
+ * Drop a persisted payment-status filter the app can no longer honour.
+ *
+ * localStorage outlives a deploy, and this value goes STRAIGHT TO THE SERVER as a query filter. An
+ * admin who left the filter on `'Paid'` — a value the backend has no enum member for — would keep
+ * sending it after this release: the server's `Enum.TryParse` fails, the whole `Where` clause is
+ * skipped, and they get EVERY order while the dropdown shows blank, because `Paid` is no longer one
+ * of its options. Restoring state from storage without re-validating it is how a fixed contract
+ * un-fixes itself for exactly the users who had the broken one.
+ */
+function clampPaymentStatus(parsed: Partial<OrderFilterPreferences>): Partial<OrderFilterPreferences> {
+  const value = parsed.selectedPaymentStatus;
+  if (value === 'All' || (value && (ORDER_PAYMENT_STATUSES as readonly string[]).includes(value))) return {};
+  return { selectedPaymentStatus: 'All' };
+}
+
+/**
  * Custom hook to manage order filter preferences with localStorage persistence
  */
 export function useOrderFilterPreferences() {
@@ -34,7 +54,7 @@ export function useOrderFilterPreferences() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as OrderFilterPreferences;
-        setPreferences({ ...DEFAULT_PREFERENCES, ...parsed });
+        setPreferences({ ...DEFAULT_PREFERENCES, ...parsed, ...clampPaymentStatus(parsed) });
       }
     } catch {
       // Failed to load preferences, use defaults

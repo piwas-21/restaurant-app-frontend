@@ -77,6 +77,7 @@ module.exports = {
     'src/hooks/menu/useFeaturedSpecialHero.ts',
     'src/hooks/useApiError.ts',
     'src/lib/orderStatus.ts',
+    'src/lib/paymentStatus.ts',
     'src/utils/catalogItem.ts',
     'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
@@ -442,6 +443,16 @@ module.exports = {
     // untranslated generic by omission. A branch left uncovered here is a way that guarantee can
     // quietly stop holding.
     './src/hooks/useApiError.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The money vocabulary. Pinned at 100 because the bug it fixes was invisible from the UI: the
+    // admin "Paid" filter returned EVERY order, because the value it sent is not a backend enum
+    // member and the server's TryParse failure skipped the whole clause. A full list looks
+    // plausible; only a test that asserts `'Paid'` does NOT resolve keeps it from coming back.
+    './src/lib/paymentStatus.ts': {
       statements: 100,
       branches: 100,
       functions: 100,

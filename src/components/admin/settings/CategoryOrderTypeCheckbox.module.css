@@ -1,0 +1,49 @@
+/* The matrix cell's skin for the design system's `CheckboxField` (its `styles` contract: `field`,
+   `control`, `input`, `label`, `srOnly`, `disabled`, `description`, `error`).
+ *
+ * Different from the design-system default in one way that matters: the label is visually hidden
+ * here, so there is no second column to lay out and the box centres in its cell. Making the whole
+ * <label> fill the cell is the accessibility win — the click target becomes the cell rather than
+ * the 13px box. Tokens only — no raw hex (CLAUDE.md §5). */
+
+.field {
+  display: flex;
+}
+
+/* The label FILLS the cell, which is the accessibility win here: the click target becomes the whole
+   cell rather than the 13px box. */
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.25rem;
+  cursor: pointer;
+}
+
+.disabled .control {
+  cursor: not-allowed;
+}
+
+.input {
+  margin: 0;
+  cursor: inherit;
+}
+
+/* The label is always screen-reader-only in this skin (the column header labels it on screen), so
+   `.label` is never applied — but the contract requires the key, and a host module missing one
+   renders `class="... undefined"`. Same for `.description` / `.error`, which this surface has no
+   way to set. */
+.label,
+.description,
+.error {
+  font-size: 0.8rem;
+}
+
+.error {
+  color: var(--feedback-error);
+}
+
+.srOnly {
+  composes: sr-only from global;
+}

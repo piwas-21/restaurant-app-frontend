@@ -8,7 +8,6 @@ import {
   nextOrderStatuses,
   orderStatusLabel,
   orderStatusMeta,
-  paymentStatusLabel,
   resolveOrderStatus,
 } from './orderStatus';
 
@@ -103,32 +102,10 @@ describe('orderStatusLabel', () => {
   });
 });
 
-describe('paymentStatusLabel', () => {
-  it.each([
-    ['Paid', 'payment_status_paid'],
-    ['PartiallyPaid', 'payment_status_partially_paid'],
-    ['partiallypaid', 'payment_status_partially_paid'],
-  ])('%s -> %s', (input, expected) => {
-    expect(paymentStatusLabel(input, echo)).toBe(expected);
-  });
-
-  // `Overpaid` is a real backend PaymentStatus the frontend union still omits — it falls through to
-  // the raw value here and is special-cased by `useOrderHelpers`. Pinned so the gap stays visible
-  // until the contract is reconciled.
-  it('falls through for Overpaid, which the union does not yet carry', () => {
-    expect(paymentStatusLabel('Overpaid', echo)).toBe('Overpaid');
-  });
-
-  it('returns an empty string for a missing payment status', () => {
-    expect(paymentStatusLabel(null, echo)).toBe('');
-    expect(paymentStatusLabel(undefined, echo)).toBe('');
-  });
-});
-
 /**
  * The transition table. It mirrors the backend's `IsValidStatusTransition` — the only authority on
  * what the server will accept — and the cashier dialog's own `switch`, which this replaces,
- * disagreed with it in six of eleven states.
+ * disagreed with it in six of the union's twelve states.
  */
 describe('nextOrderStatuses', () => {
   it.each([
@@ -159,18 +136,15 @@ describe('nextOrderStatuses', () => {
     expect(nextOrderStatuses('OutForDelivery')).not.toHaveLength(0);
   });
 
-  /**
-   * The one that mattered most on the floor: a delivery could never be DISPATCHED, because `Ready`
-   * did not offer `OutForDelivery`.
-   */
+  /** The one that mattered on the floor: a delivery could never be DISPATCHED. */
   it('lets a ready order be sent out for delivery', () => {
     expect(nextOrderStatuses('Ready')).toContain('OutForDelivery');
   });
 
   it('offers nothing the server would reject — every target is itself a known status', () => {
-    // The old ladder offered `InTransit -> Delivered` and `Delivered -> Completed`, both of which
-    // the server refuses. Asserting every target round-trips through `resolveOrderStatus` is what
-    // stops a future edit reintroducing a target that only exists in this file.
+    // The old ladder offered `InTransit -> Delivered` and `Delivered -> Completed`, both refused by
+    // the server. Asserting every target round-trips through `resolveOrderStatus` stops a future
+    // edit reintroducing a target that exists only in this file.
     for (const targets of Object.values(ORDER_STATUS_TRANSITIONS)) {
       for (const target of targets) expect(resolveOrderStatus(target)).toBe(target);
     }

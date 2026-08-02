@@ -7,6 +7,7 @@ import { getOrders } from '@/services/orderService';
 import { OrderDto, OrderStatus } from '@/types/order';
 import { useOrderFilterPreferences } from '@/hooks/useOrderFilterPreferences';
 import { buildServerFilters, applyClientFilterAndSort } from './adminOrdersFilters';
+import type { OrderPaymentStatusFilter } from '@/hooks/useOrderFilterPreferences';
 
 const SNACKBAR_BOTTOM_RIGHT = { vertical: 'bottom', horizontal: 'right' } as const;
 const DEFAULT_PAGE_SIZE = 20;
@@ -14,7 +15,10 @@ const DEFAULT_PAGE_SIZE = 20;
 export interface AdminOrdersFilters {
   searchQuery: string;
   selectedStatus: OrderStatus | 'All';
-  selectedPaymentStatus: string;
+  /** Typed, not `string`: this value goes STRAIGHT to the server as a query filter, and one the
+   *  enum has no member for makes `Enum.TryParse` fail — which skips the clause and returns every
+   *  order. `string` is what let `'Paid'` through. */
+  selectedPaymentStatus: OrderPaymentStatusFilter;
   selectedOrderType: string;
   showFocusOnly: boolean;
   dateRangeStart: string | null;
@@ -45,7 +49,9 @@ export function useAdminOrdersData({ isReady }: UseAdminOrdersDataOptions) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All'>(preferences.selectedStatus);
-  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>(preferences.selectedPaymentStatus);
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<OrderPaymentStatusFilter>(
+    preferences.selectedPaymentStatus,
+  );
   const [selectedOrderType, setSelectedOrderType] = useState<string>(preferences.selectedOrderType);
   const [showFocusOnly, setShowFocusOnly] = useState(preferences.showFocusOnly);
   const [dateRangeStart, setDateRangeStart] = useState<string | null>(null);

@@ -3,7 +3,7 @@
  * Extracted from types/order.ts (Sprint 4/6 type-file split by domain).
  */
 
-import { PaymentMethod, OrderStatus } from './enums';
+import { PaymentMethod, OrderStatus, PaymentRecordStatus } from './enums';
 
 /**
  * Delivery address for orders
@@ -97,7 +97,13 @@ export interface CreateOrderPaymentDto {
 export interface OrderPaymentDto extends CreateOrderPaymentDto {
   id: string;
   orderId: string;
-  status: string; // PaymentStatus as string from backend
+  /**
+   * Typed rather than `string` so a comparison against a state a payment record cannot hold is a
+   * COMPILE error — `RefundDialog` compared it to `'Paid'`, and its refundable list was always
+   * empty. See `PaymentRecordStatus` for the four values and who writes each; `Pending` in
+   * particular is the resting state of every CASH payment, not an edge case.
+   */
+  status: PaymentRecordStatus;
   paymentDate?: string;
   isRefunded?: boolean;
   refundedAmount?: number;

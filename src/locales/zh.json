@@ -757,14 +757,12 @@
   "order_status_preparing": "准备中",
   "order_status_ready": "已准备",
   "order_status_in_transit": "运输中",
-  "order_status_intransit": "运输中",
   "order_status_delivered": "已送达",
   "order_status_cancelled": "已取消",
   "order_status_completed": "已完成",
   "payment_status_pending": "待处理",
   "payment_status_paid": "已支付",
   "payment_status_partially_paid": "部分支付",
-  "payment_status_partiallypaid": "部分支付",
   "payment_status_refunded": "已退款",
   "payment_status_failed": "失败",
   "payment_status_overpaid": "过付",
@@ -2501,5 +2499,6 @@
   "admin_edit_price_failed": "无法保存价格",
   "scroll_categories_back": "向前滚动分类",
   "scroll_categories_forward": "向后滚动分类",
-  "category_navigation_aria": "分类导航"
+  "category_navigation_aria": "分类导航",
+  "order_status_refunded": "已退款"
 }

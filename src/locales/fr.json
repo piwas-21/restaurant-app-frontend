@@ -766,14 +766,12 @@
   "order_status_preparing": "En Préparation",
   "order_status_ready": "Prête",
   "order_status_in_transit": "En Transit",
-  "order_status_intransit": "En transit",
   "order_status_delivered": "Livré",
   "order_status_cancelled": "Annulé",
   "order_status_completed": "Terminée",
   "payment_status_pending": "En Attente",
   "payment_status_paid": "Payée",
   "payment_status_partially_paid": "Partiellement Payée",
-  "payment_status_partiallypaid": "Partiellement payé",
   "payment_status_refunded": "Remboursée",
   "payment_status_failed": "Échouée",
   "payment_status_overpaid": "Surpayée",
@@ -2501,5 +2499,6 @@
   "admin_edit_price_failed": "Impossible d'enregistrer le prix",
   "scroll_categories_back": "Faire défiler les catégories en arrière",
   "scroll_categories_forward": "Faire défiler les catégories en avant",
-  "category_navigation_aria": "Navigation par catégories"
+  "category_navigation_aria": "Navigation par catégories",
+  "order_status_refunded": "Remboursé"
 }

@@ -688,14 +688,12 @@
   "order_status_preparing": "Готовится",
   "order_status_ready": "Готов",
   "order_status_in_transit": "В пути",
-  "order_status_intransit": "В пути",
   "order_status_delivered": "Доставлен",
   "order_status_cancelled": "Отменен",
   "order_status_completed": "Завершен",
   "payment_status_pending": "Ожидает",
   "payment_status_paid": "Оплачен",
   "payment_status_partially_paid": "Частично оплачен",
-  "payment_status_partiallypaid": "Частично оплачен",
   "payment_status_refunded": "Возвращен",
   "payment_status_failed": "Ошибка",
   "payment_status_overpaid": "Переплачен",
@@ -2501,5 +2499,6 @@
   "admin_edit_price_failed": "Не удалось сохранить цену",
   "scroll_categories_back": "Прокрутить категории назад",
   "scroll_categories_forward": "Прокрутить категории вперёд",
-  "category_navigation_aria": "Навигация по категориям"
+  "category_navigation_aria": "Навигация по категориям",
+  "order_status_refunded": "Возвращён"
 }

@@ -763,14 +763,12 @@
   "order_status_preparing": "Hazırlanıyor",
   "order_status_ready": "Hazır",
   "order_status_in_transit": "Yolda",
-  "order_status_intransit": "Yolda",
   "order_status_delivered": "Teslim Edildi",
   "order_status_cancelled": "İptal Edildi",
   "order_status_completed": "Tamamlandı",
   "payment_status_pending": "Beklemede",
   "payment_status_paid": "Ödendi",
   "payment_status_partially_paid": "Kısmi Ödendi",
-  "payment_status_partiallypaid": "Kısmi Ödendi",
   "payment_status_refunded": "İade Edildi",
   "payment_status_failed": "Başarısız",
   "payment_status_overpaid": "Fazla Ödendi",
@@ -2501,5 +2499,6 @@
   "admin_edit_price_failed": "Fiyat kaydedilemedi",
   "scroll_categories_back": "Kategorileri geri kaydır",
   "scroll_categories_forward": "Kategorileri ileri kaydır",
-  "category_navigation_aria": "Kategori gezinmesi"
+  "category_navigation_aria": "Kategori gezinmesi",
+  "order_status_refunded": "İade Edildi"
 }

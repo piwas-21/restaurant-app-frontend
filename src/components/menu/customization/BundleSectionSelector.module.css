@@ -21,7 +21,7 @@
 }
 
 .required {
-  margin-left: 0.15rem;
+  margin-inline-start: 0.15rem;
   color: var(--feedback-error, var(--status-danger));
 }
 

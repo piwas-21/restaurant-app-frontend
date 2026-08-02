@@ -139,7 +139,7 @@
   background-color: var(--secondary-color-light);
   border: var(--modal-body-option-border, 1px solid var(--border-color));
   border-radius: var(--modal-body-option-radius, 8px);
-  padding-right: 0.75rem;
+  padding-inline-end: 0.75rem;
 }
 
 .ingredientItemWrapper .ingredientItem {

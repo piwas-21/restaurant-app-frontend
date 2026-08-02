@@ -131,7 +131,7 @@
 /* Sits where "Add" sat, at the footer's trailing edge. Its own surface, not the modal's, so the
    craft skin's darker body cannot drag brand-primary below AA. */
 .availabilitySwitch {
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 0.5rem 1rem;
   border: 1px solid var(--brand-primary);
   border-radius: var(--modal-body-btn-radius, 20px);

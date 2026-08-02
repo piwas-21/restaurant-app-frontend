@@ -57,6 +57,12 @@
   outline: none;
 }
 
+/* physical on purpose (E8 slice 3): these two insets are one thing with the ChevronLeft /
+   ChevronRight glyphs inside them AND with the ArrowLeft/ArrowRight key handlers in
+   ImageGalleryModal.tsx. Mirror the inset alone and `ar` gets a "previous" button on the
+   trailing edge still pointing at the leading one, driven by the opposite arrow key.
+   `CategoryNav.module.css` shows the shape of the fix — a `[dir='rtl'] … svg { scaleX(-1) }`
+   beside the conversion — but the key mapping is JS and belongs with the rest of slice 3. */
 .prev {
   left: 0.5rem;
 }

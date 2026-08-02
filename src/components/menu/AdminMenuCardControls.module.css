@@ -5,9 +5,13 @@
 .editButton {
   position: absolute;
   top: 0.5rem;
-  /* Top-LEFT: the classic special badge and the shared image-count badge both sit top-right,
-     so anchoring here keeps it clear of them. */
-  left: 0.5rem;
+  /* Top INLINE-START: on the CLASSIC card the special badge (MenuItem.module.css) and the shared
+     image-count badge (MenuItemImage.module.css) both sit at the inline END, so anchoring here
+     keeps it clear of them — and all three are logical, so they stay apart in `ar` too.
+     On the CRAFT card this pill already overlaps the tape special (CraftMenuCard.module.css
+     `.special`, same corner, but this one's z-index 11 wins). That predates the RTL sweep, is
+     admin-only, and both are inline-start, so `ar` inherits exactly the LTR relationship. */
+  inset-inline-start: 0.5rem;
   /* Above the classic special badge (z-index 10) so it is never covered / unclickable. */
   z-index: 11;
 

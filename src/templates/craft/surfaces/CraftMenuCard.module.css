@@ -12,11 +12,16 @@
   position: relative;
 }
 
+/* Pulled forward from the templates area of the E8 sweep because it is the COUPLED PARTNER of
+   `MenuItemImage.module.css`'s `.imageCount`, which this card renders (via `MenuCardImage`) and
+   which moved to `inset-inline-end` in the same change. Leave this one physical and in `ar` the
+   count chip mirrors onto the tape label and disappears under its `z-index: 1`. The rest of this
+   file's physical properties stay for that area. */
 .special {
   composes: tapeLabel from '../craft.module.css';
   position: absolute;
   top: 0.6rem;
-  left: 0.6rem;
+  inset-inline-start: 0.6rem;
   z-index: 1;
 }
 

@@ -1,10 +1,7 @@
 /* Auto Print Settings Modal */
 .settingsModal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -167,7 +164,8 @@
 
 .optionLabel input[type='checkbox'],
 .optionLabel input[type='radio'] {
-  margin-right: 0.75rem;
+  /* Gap between the box and the label text beside it. */
+  margin-inline-end: 0.75rem;
   cursor: pointer;
   width: 18px;
   height: 18px;

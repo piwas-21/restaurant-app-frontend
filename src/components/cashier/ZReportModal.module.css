@@ -89,7 +89,7 @@
 }
 
 .table th {
-  text-align: left;
+  text-align: start;
   padding: 0.5rem 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -100,7 +100,9 @@
 
 .table th:last-child,
 .table td:last-child {
-  text-align: right;
+  /* The money column. `:last-child` is the trailing column in both directions, so `end`
+     keeps the figures against the same edge they are read from. */
+  text-align: end;
 }
 
 .table td {

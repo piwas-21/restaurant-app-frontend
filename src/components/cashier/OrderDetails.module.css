@@ -114,17 +114,14 @@
 
 .dropdownOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 998;
 }
 
 .statusDropdownMenu {
   position: absolute;
   top: calc(100% + 8px);
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   background: var(--card-background);
   border: 1px solid var(--border-color);
@@ -157,14 +154,16 @@
   color: var(--text-color);
   font-weight: 600;
   font-size: 0.9375rem;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .statusDropdownItem:hover:not(:disabled) {
   background: var(--background-light);
-  padding-left: 1.5rem;
+  /* Nudges the row in from its leading edge on hover; the base `padding` shorthand above is
+     symmetric, so this longhand only has to win on source order. */
+  padding-inline-start: 1.5rem;
 }
 
 .statusDropdownItem:active {
@@ -186,7 +185,9 @@
 
 .chevron {
   transition: transform 0.3s ease;
-  margin-left: auto;
+  /* Pushes to the trailing edge of the row. The sibling `.chevronRotate` is a rotate, not a
+     translate, so there is no inset<->transform couple here. */
+  margin-inline-start: auto;
 }
 
 .chevronRotate {
@@ -326,8 +327,8 @@
 }
 
 .itemPricing {
-  text-align: right;
-  margin-left: 1rem;
+  text-align: end;
+  margin-inline-start: 1rem;
   min-width: 100px;
 }
 
@@ -461,7 +462,7 @@
 
 .inlineLabelIcon {
   display: inline;
-  margin-right: 0.25rem;
+  margin-inline-end: 0.25rem;
 }
 
 .discountText {
@@ -525,7 +526,10 @@
 
 .existingNote {
   background: var(--background-light);
-  border-left: 3px solid var(--primary-color);
+  /* Accent rule down the leading edge. Nothing repaints it per-state, so the whole
+     declaration moves as one (contrast the cashier order-type stripe in #391, where a
+     `borderLeftColor` inline style had to move with it). */
+  border-inline-start: 3px solid var(--primary-color);
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -648,8 +652,8 @@
   }
 
   .itemPricing {
-    margin-left: 0;
-    text-align: left;
+    margin-inline-start: 0;
+    text-align: start;
   }
 
   .stickyActionBar {

@@ -1,0 +1,58 @@
+/* Design-system checkbox. Tokens only — no raw hex (CLAUDE.md §5). Every colour here is
+   theme-AWARE (--text-secondary, --feedback-error carry a [data-theme='dark'] override in
+   colors.css), so this module needs no dark block of its own. */
+
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.9rem;
+}
+
+/* The <label> holds the box and the visible text and NOTHING else — anything else in here joins the
+   accessible name (see the component's doc comment). */
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.input {
+  margin: 0;
+  cursor: inherit;
+}
+
+.description,
+.error {
+  font-size: 0.8rem;
+  margin: 0;
+  /* Line up under the label text rather than under the box. */
+  padding-inline-start: 1.35rem;
+}
+
+.description {
+  color: var(--text-secondary);
+}
+
+.error {
+  color: var(--feedback-error);
+}
+
+/* Disabled still has to be LEGIBLE: these boxes preview an inherited set rather than hiding it, so
+   the reason for reading them has not gone away. --text-secondary is the lightest tier that still
+   clears AA on --surface-primary (4.83:1) and --surface-card (4.59:1); --text-muted is lighter
+   still and is not documented as clearing either. */
+.disabled .control {
+  cursor: not-allowed;
+}
+
+.disabled .label {
+  color: var(--text-secondary);
+}
+
+/* The app's own screen-reader-only class (globals.css), not a fourth copy of the clip-rect idiom.
+   `from global` is how a CSS Module composes a non-module class. */
+.srOnly {
+  composes: sr-only from global;
+}

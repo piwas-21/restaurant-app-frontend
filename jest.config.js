@@ -400,6 +400,37 @@ module.exports = {
     // is exactly the property worth pinning: every customer deliverable lands twice, so a regression
     // in one template must not be masked by the other. The DECISION half lives in
     // `useItemAvailabilityNotice` (its own test file; hooks are not in collectCoverageFrom).
+    // E2 — the design system's checkbox, and the channel picker composed from it. Pinned because
+    // "which channels is this available on?" was written TWICE with nothing shared, so the two
+    // surfaces could drift on channel order, on where labels come from, and on what a disabled box
+    // means. A branch that goes uncovered here is a branch one surface can regress alone.
+    './src/components/design-system/CheckboxField.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/design-system/ChannelPicker.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // Both order-type write surfaces. The matrix had NO test at all before E2; it writes real
+    // availability rules, and every way it can be wrong is silent — a mis-wired row id saves the
+    // wrong category, and an unchecked row takes a category off sale without saying so.
+    './src/components/admin/settings/CategoryOrderTypeMatrix.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/admin/product/ProductOrderTypes.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
     // E1 — the one place a status becomes something a user sees, and the one place a staff surface
     // learns what it may become NEXT. Pinned at 100 because every way this file can be wrong is
     // silent: the ladders it replaced ended in a `default`, which is how two statuses came to render

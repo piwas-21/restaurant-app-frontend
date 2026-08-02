@@ -1,8 +1,9 @@
 import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderType } from '@/types/order';
-import { ALL_ORDER_TYPES, exactMaskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
-import { ORDER_TYPE_LABEL_KEY } from '@/utils/orderTypeLabels';
+import { exactMaskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
+import { orderTypeLabel } from '@/utils/orderTypeLabels';
+import ChannelPicker from '@/components/design-system/ChannelPicker';
 import type { Category } from './types';
 import styles from './ProductOrderTypes.module.css';
 
@@ -48,8 +49,7 @@ export default function ProductOrderTypes({
   // instances rendered into the same document — which is exactly what a component test does.
   const uid = useId();
 
-  const label = (orderType: OrderType) =>
-    t(ORDER_TYPE_LABEL_KEY[orderType].key, ORDER_TYPE_LABEL_KEY[orderType].fallback);
+  const label = (orderType: OrderType) => orderTypeLabel(orderType, t);
 
   const primaryCategory = categories.find((category) => category.id === primaryCategoryId);
   // The category list is fetched after mount, so it is empty on the first render of an existing
@@ -119,27 +119,17 @@ export default function ProductOrderTypes({
         <span>{t('product_order_types_custom', 'Custom')}</span>
       </label>
 
-      <div className={styles.channels} aria-describedby={error ? `${uid}-error` : undefined}>
-        {ALL_ORDER_TYPES.map((orderType) => (
-          <div key={orderType} className={styles.channel}>
-            <input
-              type="checkbox"
-              id={`${uid}-${orderType}`}
-              checked={selected.includes(orderType)}
-              disabled={isInheriting}
-              aria-invalid={error ? true : undefined}
-              onChange={() => toggle(orderType)}
-            />
-            <label htmlFor={`${uid}-${orderType}`}>{label(orderType)}</label>
-          </div>
-        ))}
-      </div>
-
-      {error && (
-        <p id={`${uid}-error`} className={styles.error} role="alert">
-          {error}
-        </p>
-      )}
+      {/* The shared picker. This screen hands it its OWN group/error classes rather than wrapping
+          it in a div: the wrapper would have made the error a flex ITEM beside the checkbox row —
+          it belongs below, unindented, as a direct child of the fieldset's column. */}
+      <ChannelPicker
+        selected={selected}
+        onToggle={toggle}
+        disabled={isInheriting}
+        error={error}
+        errorId={`${uid}-error`}
+        styles={{ group: styles.channels, error: styles.error }}
+      />
     </fieldset>
   );
 }

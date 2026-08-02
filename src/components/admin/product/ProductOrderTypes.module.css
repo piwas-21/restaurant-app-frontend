@@ -28,24 +28,14 @@
   font-size: 0.9rem;
 }
 
+/* Handed to `ChannelPicker` as its `group` class — the shared component owns the boxes, this screen
+   owns the indent that makes them read as belonging to the Custom radio above. The per-box
+   "disabled but still legible" rule lives in the design system now, where every surface gets it. */
 .channels {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
-  /* Indented under the Custom radio so the boxes read as belonging to it. */
   padding-inline-start: 1.5rem;
-}
-
-.channel {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.9rem;
-}
-
-/* A disabled checkbox still has to be legible — it is previewing the inherited set, not hidden. */
-.channel input:disabled + label {
-  color: var(--text-muted);
 }
 
 .warning {

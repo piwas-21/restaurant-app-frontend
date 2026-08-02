@@ -1,0 +1,14 @@
+/* Design-system channel picker. Tokens only — no raw hex (CLAUDE.md §5). --feedback-error carries a
+   [data-theme='dark'] override in colors.css, so no dark block is needed here. */
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.error {
+  color: var(--feedback-error);
+  font-size: 0.8rem;
+  margin: 0;
+}

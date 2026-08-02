@@ -1242,7 +1242,7 @@
   "login_to_track_reservation": "Iniciar sesión para rastrear su reserva",
   "create_account_to_track": "💡 Cree una cuenta para rastrear fácilmente todas sus reservas y gestionarlas en línea.",
   "select_your_table": "Seleccione su mesa",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Seleccione su mesa o mesas",
   "tables_count_selected": "{{count}} seleccionado(s)",
   "enter_guests": "Ingresar número",
   "book_your_table": "Reserve su mesa",
@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "El precio de un combo proviene de sus artículos",
   "admin_edit_price_locked_variations": "El precio se define por variante",
   "admin_edit_price_invalid": "Introduce un precio de 0 o más",
-  "admin_edit_price_failed": "No se pudo guardar el precio"
+  "admin_edit_price_failed": "No se pudo guardar el precio",
+  "scroll_categories_back": "Desplazar categorías hacia atrás",
+  "scroll_categories_forward": "Desplazar categorías hacia adelante",
+  "category_navigation_aria": "Navegación por categorías"
 }

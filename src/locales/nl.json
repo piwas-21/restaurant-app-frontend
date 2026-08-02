@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "De prijs van een combo komt uit de artikelen erin",
   "admin_edit_price_locked_variations": "Prijs wordt per variant ingesteld",
   "admin_edit_price_invalid": "Voer een prijs van 0 of hoger in",
-  "admin_edit_price_failed": "Kon de prijs niet opslaan"
+  "admin_edit_price_failed": "Kon de prijs niet opslaan",
+  "scroll_categories_back": "Categorieën terugscrollen",
+  "scroll_categories_forward": "Categorieën vooruitscrollen",
+  "category_navigation_aria": "Categorienavigatie"
 }

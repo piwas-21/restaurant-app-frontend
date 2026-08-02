@@ -1251,7 +1251,7 @@
   "login_to_track_reservation": "Anmelden, um Ihre Reservierung zu verfolgen",
   "create_account_to_track": "💡 Erstellen Sie ein Konto, um alle Ihre Reservierungen einfach zu verfolgen und online zu verwalten.",
   "select_your_table": "Wählen Sie Ihren Tisch",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Wählen Sie Ihre(n) Tisch(e)",
   "tables_count_selected": "{{count}} ausgewählt",
   "enter_guests": "Nummer eingeben",
   "book_your_table": "Buchen Sie Ihren Tisch",
@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "Der Preis eines Menüs ergibt sich aus seinen Artikeln",
   "admin_edit_price_locked_variations": "Preis wird pro Variante festgelegt",
   "admin_edit_price_invalid": "Bitte einen Preis von 0 oder mehr eingeben",
-  "admin_edit_price_failed": "Preis konnte nicht gespeichert werden"
+  "admin_edit_price_failed": "Preis konnte nicht gespeichert werden",
+  "scroll_categories_back": "Kategorien zurückblättern",
+  "scroll_categories_forward": "Kategorien weiterblättern",
+  "category_navigation_aria": "Kategorienavigation"
 }

@@ -1253,7 +1253,7 @@
   "login_to_track_reservation": "Rezervasyonunuzu Takip Etmek İçin Giriş Yapın",
   "create_account_to_track": "💡 Tüm rezervasyonlarınızı kolayca takip etmek ve çevrimiçi yönetmek için bir hesap oluşturun.",
   "select_your_table": "Masanızı Seçin",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "Masanızı/Masalarınızı seçin",
   "tables_count_selected": "{{count}} seçildi",
   "enter_guests": "Sayı girin",
   "book_your_table": "Masanızı ayırtın",
@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "Menü fiyatı içindeki ürünlerden oluşur",
   "admin_edit_price_locked_variations": "Fiyat her varyasyon için ayrı belirlenir",
   "admin_edit_price_invalid": "0 veya daha büyük bir fiyat girin",
-  "admin_edit_price_failed": "Fiyat kaydedilemedi"
+  "admin_edit_price_failed": "Fiyat kaydedilemedi",
+  "scroll_categories_back": "Kategorileri geri kaydır",
+  "scroll_categories_forward": "Kategorileri ileri kaydır",
+  "category_navigation_aria": "Kategori gezinmesi"
 }

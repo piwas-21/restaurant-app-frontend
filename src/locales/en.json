@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "A combo's price comes from the items in it",
   "admin_edit_price_locked_variations": "Price is set per variation",
   "admin_edit_price_invalid": "Enter a price of 0 or more",
-  "admin_edit_price_failed": "Could not save the price"
+  "admin_edit_price_failed": "Could not save the price",
+  "scroll_categories_back": "Scroll categories back",
+  "scroll_categories_forward": "Scroll categories forward",
+  "category_navigation_aria": "Category navigation"
 }

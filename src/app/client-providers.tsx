@@ -16,6 +16,7 @@ import { X } from 'lucide-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ModulesProvider } from '@/contexts/ModulesContext';
 import type { ModuleId } from '@/lib/modules';
+import DocumentLanguage from '@/components/DocumentLanguage';
 
 /**
  * @param modules Product modules this tenant runs, read server-side in the root layout
@@ -33,6 +34,9 @@ export default function ClientProviders({
           <SessionProvider>
             <ThemeProvider>
               <I18nextProvider i18n={i18n}>
+                {/* Inside the i18n provider (it reads the active language) and outside everything
+                    else (it renders nothing and must run whatever the rest of the tree does). */}
+                <DocumentLanguage />
                 <CookieConsentProvider>
                   <TableContextProvider>
                     <CartProvider>

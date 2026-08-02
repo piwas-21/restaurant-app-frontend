@@ -1247,7 +1247,7 @@
   "login_to_track_reservation": "تسجيل الدخول لتتبع حجزك",
   "create_account_to_track": "💡 أنشئ حسابًا لتتبع جميع حجوزاتك بسهولة وإدارتها عبر الإنترنت.",
   "select_your_table": "اختر طاولتك",
-  "select_your_tables": "Select your Table(s)",
+  "select_your_tables": "اختر طاولتك أو طاولاتك",
   "tables_count_selected": "تم تحديد {{count}}",
   "or_custom": "أو مخصص",
   "enter_guests": "أدخل الرقم",
@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "سعر الوجبة يأتي من الأصناف التي تتضمنها",
   "admin_edit_price_locked_variations": "يُحدَّد السعر لكل خيار على حدة",
   "admin_edit_price_invalid": "أدخل سعراً يساوي 0 أو أكثر",
-  "admin_edit_price_failed": "تعذّر حفظ السعر"
+  "admin_edit_price_failed": "تعذّر حفظ السعر",
+  "scroll_categories_back": "تمرير الفئات للخلف",
+  "scroll_categories_forward": "تمرير الفئات للأمام",
+  "category_navigation_aria": "التنقل بين الفئات"
 }

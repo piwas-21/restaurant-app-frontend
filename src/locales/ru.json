@@ -2498,5 +2498,8 @@
   "admin_edit_price_locked_bundle": "Цена комбо складывается из входящих в него позиций",
   "admin_edit_price_locked_variations": "Цена задаётся для каждого варианта",
   "admin_edit_price_invalid": "Введите цену 0 или больше",
-  "admin_edit_price_failed": "Не удалось сохранить цену"
+  "admin_edit_price_failed": "Не удалось сохранить цену",
+  "scroll_categories_back": "Прокрутить категории назад",
+  "scroll_categories_forward": "Прокрутить категории вперёд",
+  "category_navigation_aria": "Навигация по категориям"
 }

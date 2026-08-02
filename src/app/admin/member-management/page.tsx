@@ -66,10 +66,11 @@ const MemberManagementPage = () => {
       // Call the update API
       const result = await handleUpdateUser(userToEdit, updates, password);
 
-      // Show result
+      // The hook returns a finished sentence. Do NOT wrap it in `t()` — that is a LOOKUP, and
+      // i18next both splits on `nsSeparator` and resolves key collisions. `page.test.tsx` pins it.
       setIsEditModalOpen(false);
       setUserToEdit(null);
-      setResultModalMessage(t(result.message || 'User updated successfully'));
+      setResultModalMessage(result.message);
       setIsResultModalSuccess(result.success);
       setIsResultModalOpen(true);
 
@@ -81,17 +82,29 @@ const MemberManagementPage = () => {
       // Refresh statistics
       setStatsKey((prev) => prev + 1);
     } catch (error) {
+      // Last-resort guard: both awaited calls own their failures, so reaching here is a defect on
+      // this page. Was `error_updating_user`, a key present in NO locale — every language read its
+      // English default.
       console.error('Error updating user:', error);
-      setResultModalMessage(t('error_updating_user', 'Error updating user'));
+      setResultModalMessage(t('update_user_error', 'An error occurred while updating user'));
       setIsResultModalSuccess(false);
       setIsResultModalOpen(true);
     }
   };
 
-  const handleDeleteClick = (user: any) => {
+  const handleDeleteClick = (user: UserDto) => {
     setUserToDelete(user);
     setIsConfirmationModalOpen(true);
   };
+
+  /**
+   * Derived ONCE so the confirmation the admin reads and the result they are shown cannot disagree.
+   * They did: the confirmation warns "permanently delete … cannot be undone" for the staff tab,
+   * while the result was built from `isDeleted` alone — always false for staff, because
+   * `DeleteUserCommand` forces `shouldHardDelete` for Server/Cashier/KitchenStaff/Admin regardless
+   * of the flag we send. So an irreversible delete reported back the restorable wording.
+   */
+  const isPermanentDelete = activeTab === 'staff' || Boolean(userToDelete?.isDeleted);
 
   const getDeleteConfirmationMessage = () => {
     if (!userToDelete) return '';
@@ -123,14 +136,11 @@ const MemberManagementPage = () => {
 
   const handleConfirmDelete = async () => {
     if (userToDelete) {
-      // If user is already deleted, this is a permanent delete
-      const isPermanent = userToDelete.isDeleted;
-      const result = await handleDeleteUser(userToDelete.id, isPermanent);
+      const result = await handleDeleteUser(userToDelete.id, isPermanentDelete);
       setIsConfirmationModalOpen(false);
-      const messageKey = isPermanent ? 'user_permanently_deleted' : 'user_deleted_successfully';
-      const defaultMessage = isPermanent ? 'User permanently deleted' : 'User deleted successfully';
-
-      setResultModalMessage(t(messageKey, defaultMessage));
+      // The success sentence used to be built here and printed whichever way the call went, so a
+      // refused delete told the admin "User deleted successfully" under a red "Error" heading.
+      setResultModalMessage(result.message);
       setIsResultModalSuccess(result.success);
       setIsResultModalOpen(true);
       setUserToDelete(null);
@@ -151,7 +161,8 @@ const MemberManagementPage = () => {
 
   const handleReactivate = async (user: UserDto) => {
     const result = await handleReactivateUser(user.id);
-    setResultModalMessage(t('user_reactivated_successfully', 'User reactivated successfully'));
+    // Same as the delete path: a failed reactivation used to read as a successful one.
+    setResultModalMessage(result.message);
     setIsResultModalSuccess(result.success);
     setIsResultModalOpen(true);
 

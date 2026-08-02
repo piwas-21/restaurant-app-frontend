@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "Impossibile caricare gli elementi del menu",
   "failed_to_load_specials": "Impossibile caricare gli articoli speciali",
   "failed_to_set_featured_special": "Impossibile impostare lo speciale in evidenza",
-  "failed_to_remove_featured_special": "Impossibile rimuovere lo speciale in evidenza"
+  "failed_to_remove_featured_special": "Impossibile rimuovere lo speciale in evidenza",
+  "failed_to_load_users": "Impossibile caricare gli utenti",
+  "failed_to_update_user": "Impossibile aggiornare l'utente",
+  "update_user_error": "Si è verificato un errore durante l'aggiornamento dell'utente",
+  "user_updated_successfully": "Utente aggiornato con successo",
+  "failed_to_reactivate_user": "Impossibile riattivare l'utente",
+  "reactivate_user_error": "Si è verificato un errore durante la riattivazione dell'utente",
+  "customers_update_own_profile_only": "I clienti possono aggiornare solo il proprio profilo"
 }

@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "Не удалось загрузить позиции меню",
   "failed_to_load_specials": "Не удалось загрузить специальные позиции",
   "failed_to_set_featured_special": "Не удалось назначить рекомендуемое блюдо",
-  "failed_to_remove_featured_special": "Не удалось удалить рекомендуемое блюдо"
+  "failed_to_remove_featured_special": "Не удалось удалить рекомендуемое блюдо",
+  "failed_to_load_users": "Не удалось загрузить пользователей",
+  "failed_to_update_user": "Не удалось обновить пользователя",
+  "update_user_error": "Произошла ошибка при обновлении пользователя",
+  "user_updated_successfully": "Пользователь успешно обновлен",
+  "failed_to_reactivate_user": "Не удалось восстановить пользователя",
+  "reactivate_user_error": "Произошла ошибка при восстановлении пользователя",
+  "customers_update_own_profile_only": "Клиенты могут обновлять только свой профиль"
 }

@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "Failed to load menu items",
   "failed_to_load_specials": "Failed to load special items",
   "failed_to_set_featured_special": "Failed to set the featured special",
-  "failed_to_remove_featured_special": "Failed to remove the featured special"
+  "failed_to_remove_featured_special": "Failed to remove the featured special",
+  "failed_to_load_users": "Failed to load users",
+  "failed_to_update_user": "Failed to update user",
+  "update_user_error": "An error occurred while updating user",
+  "user_updated_successfully": "User updated successfully",
+  "failed_to_reactivate_user": "Failed to reactivate user",
+  "reactivate_user_error": "An error occurred while reactivating user",
+  "customers_update_own_profile_only": "Customers can only update their own profile"
 }

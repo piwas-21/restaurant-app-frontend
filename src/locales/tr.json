@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "Menü öğeleri yüklenemedi",
   "failed_to_load_specials": "Özel ürünler yüklenemedi",
   "failed_to_set_featured_special": "Günün önerisi ayarlanamadı",
-  "failed_to_remove_featured_special": "Günün önerisi kaldırılamadı"
+  "failed_to_remove_featured_special": "Günün önerisi kaldırılamadı",
+  "failed_to_load_users": "Kullanıcılar yüklenemedi",
+  "failed_to_update_user": "Kullanıcı güncellenemedi",
+  "update_user_error": "Kullanıcı güncellenirken bir hata oluştu",
+  "user_updated_successfully": "Kullanıcı başarıyla güncellendi",
+  "failed_to_reactivate_user": "Kullanıcı yeniden etkinleştirilemedi",
+  "reactivate_user_error": "Kullanıcı yeniden etkinleştirilirken bir hata oluştu",
+  "customers_update_own_profile_only": "Müşteriler yalnızca kendi profillerini güncelleyebilir"
 }

@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "Échec du chargement des articles du menu",
   "failed_to_load_specials": "Échec du chargement des articles spéciaux",
   "failed_to_set_featured_special": "Échec de la définition du plat vedette",
-  "failed_to_remove_featured_special": "Échec de la suppression du plat vedette"
+  "failed_to_remove_featured_special": "Échec de la suppression du plat vedette",
+  "failed_to_load_users": "Échec du chargement des utilisateurs",
+  "failed_to_update_user": "Échec de la mise à jour de l'utilisateur",
+  "update_user_error": "Une erreur s'est produite lors de la mise à jour de l'utilisateur",
+  "user_updated_successfully": "Utilisateur mis à jour avec succès",
+  "failed_to_reactivate_user": "Échec de la réactivation de l'utilisateur",
+  "reactivate_user_error": "Une erreur s'est produite lors de la réactivation de l'utilisateur",
+  "customers_update_own_profile_only": "Les clients ne peuvent modifier que leur propre profil"
 }

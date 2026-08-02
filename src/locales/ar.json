@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "تعذر تحميل عناصر القائمة",
   "failed_to_load_specials": "تعذر تحميل الأصناف الخاصة",
   "failed_to_set_featured_special": "تعذر تعيين الطبق المميز",
-  "failed_to_remove_featured_special": "تعذر إزالة الطبق المميز"
+  "failed_to_remove_featured_special": "تعذر إزالة الطبق المميز",
+  "failed_to_load_users": "فشل تحميل المستخدمين",
+  "failed_to_update_user": "فشل في تحديث المستخدم",
+  "update_user_error": "حدث خطأ أثناء تحديث المستخدم",
+  "user_updated_successfully": "تم تحديث المستخدم بنجاح",
+  "failed_to_reactivate_user": "فشل في إعادة تنشيط المستخدم",
+  "reactivate_user_error": "حدث خطأ أثناء إعادة تنشيط المستخدم",
+  "customers_update_own_profile_only": "يمكن للعملاء تحديث ملفهم الشخصي فقط"
 }

@@ -41,6 +41,10 @@ export async function getTenantModules(): Promise<ModuleId[]> {
     // too — never read it as "this tenant has nothing".
     return known.length > 0 ? known : [...MODULE_IDS];
   } catch {
+    // IGNORED ON PURPOSE: an unreadable module list is the UNRESTRICTED signal, same as an absent
+    // one (see the note above and RUMI's own case). Surfacing this failure would mean gating a
+    // paying tenant's features on a network blip — the enforcement fails OPEN by design here, and
+    // the authoritative check is server-side.
     return [...MODULE_IDS];
   }
 }

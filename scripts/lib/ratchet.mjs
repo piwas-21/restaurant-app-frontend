@@ -15,6 +15,67 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 /**
+ * Blank out every commented span, line by line, so a ratchet counts CODE and not its own prose.
+ *
+ * Both ratchets have made the mistake this exists to stop. The E9 one's first baseline counted two
+ * comments *explaining* the defect it measures; the E8 one leaves a "physical on purpose: …" note
+ * beside every declaration it deliberately skips, which is the same hazard generated on purpose.
+ * The failure is nasty out of proportion to its cause: a prettier reflow of unrelated prose moves
+ * the number, and the gate reds an innocent PR with "count FELL — bank it", pointing the author at
+ * a figure that has nothing to do with their change.
+ *
+ * Matching a comment MARKER per line is not enough, and that was the bug in both: a line that
+ * merely CONTINUES a block comment starts with neither slash-star nor an asterisk. Verified by
+ * mutation — reflowing a property name to column 0 inside prose made the E8 count rise by one.
+ *
+ * So this is a small tokenizer rather than a regex, and it tracks STRINGS as well as comments —
+ * which is not incidental. Scanning for a comment opener without knowing about strings blinds the
+ * tool from the first `accept="image/*"` in a file to its end, and a bare catch written below that
+ * line is never counted. A ratchet whose whole selling point is that it cannot quietly stop
+ * working must not fail open, so quoted spans are consumed here too. Template literals and block
+ * comments carry their state across lines; a plain quoted string cannot, so it resets at newline
+ * rather than swallowing the rest of the file on an unbalanced apostrophe.
+ *
+ * @param source whole file contents
+ * @param lineComments whether `//` starts a comment (true for JS/TS, false for CSS)
+ * @returns one entry per input line, with commented and quoted spans removed
+ */
+export function stripComments(source, { lineComments = false } = {}) {
+  let state = 'code'; // 'code' | 'block' | 'template'
+  return source.split('\n').map((line) => {
+    let out = '';
+    let quote = ''; // "'" or '"' — single-line only, reset below
+    for (let i = 0; i < line.length; i++) {
+      const rest2 = line.slice(i, i + 2);
+      if (state === 'block') {
+        if (rest2 === '*/') {
+          state = 'code';
+          i++;
+        }
+      } else if (state === 'template') {
+        if (line[i] === '\\') i++;
+        else if (line[i] === '`') state = 'code';
+      } else if (quote) {
+        if (line[i] === '\\') i++;
+        else if (line[i] === quote) quote = '';
+      } else if (rest2 === '/*') {
+        state = 'block';
+        i++;
+      } else if (lineComments && rest2 === '//') {
+        break;
+      } else if (line[i] === '`') {
+        state = 'template';
+      } else if (line[i] === "'" || line[i] === '"') {
+        quote = line[i];
+      } else {
+        out += line[i];
+      }
+    }
+    return out;
+  });
+}
+
+/**
  * Every file under `dir` that `isSource` accepts, as repo-relative POSIX paths.
  *
  * Walks the tree directly rather than shelling out to `git ls-files`. Two reasons, one of them

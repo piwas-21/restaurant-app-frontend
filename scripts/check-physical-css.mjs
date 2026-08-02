@@ -37,7 +37,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runRatchet, walkFiles } from './lib/ratchet.mjs';
+import { runRatchet, stripComments, walkFiles } from './lib/ratchet.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = join(root, 'scripts', 'physical-css-baseline.json');
@@ -57,39 +57,11 @@ const PHYSICAL = /^\s*(?:(?:margin|padding)-(?:left|right)|border-(?:left|right)
 const PHYSICAL_TEXT_ALIGN = /^\s*text-align\s*:\s*(?:left|right)\s*(?:!important\s*)?;/;
 
 /**
- * Blank out the places where a physical property is being TALKED ABOUT rather than declared.
- * `check-bare-catch.mjs` learned this the hard way — its first baseline counted two comments
- * *explaining* the defect it measured, so a prettier reflow of the prose would have red-lit an
- * unrelated PR. This sweep leaves a "physical on purpose: …" comment beside every declaration it
- * deliberately does not convert, so it generates that hazard by design.
- *
- * Matching a comment MARKER per line is not enough, and that was the original bug here: a line
- * that merely CONTINUES a block comment starts with neither of those markers, so a reflow that
- * moved `right:` to column 0 inside prose was counted as a declaration (verified — the count
- * rose by one). So track the block state across lines and erase commented spans outright, which
- * also covers a comment opened and closed on the same line as real code.
+ * A physical property is often TALKED ABOUT in a comment rather than declared — this sweep leaves
+ * a "physical on purpose: …" note beside every declaration it deliberately skips. `stripComments`
+ * (scripts/lib/ratchet.mjs) is the shared answer; its header records why matching a comment marker
+ * per line was not enough, and the mutation that proved it.
  */
-const stripComments = (source) => {
-  let inBlock = false;
-  return source.split('\n').map((line) => {
-    let out = '';
-    for (let i = 0; i < line.length; i++) {
-      if (inBlock) {
-        if (line.startsWith('*/', i)) {
-          inBlock = false;
-          i++;
-        }
-      } else if (line.startsWith('/*', i)) {
-        inBlock = true;
-        i++;
-      } else {
-        out += line[i];
-      }
-    }
-    return out;
-  });
-};
-
 const found = [];
 for (const file of walkFiles(root, join(root, 'src'), isSource)) {
   stripComments(readFileSync(join(root, file), 'utf8')).forEach((line, i) => {

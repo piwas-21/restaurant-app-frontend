@@ -36,6 +36,9 @@ export async function compressImageForUpload(file: File): Promise<File> {
     // Keep the result only if it actually helped and isn't empty/truncated.
     return compressed.size > 0 && compressed.size < file.size ? compressed : file;
   } catch {
+    // IGNORED ON PURPOSE: compression is an optimisation, not a requirement. A failed dynamic
+    // import or an unsupported codec must not block the admin's upload — the original file is
+    // still valid, and the server accepts it.
     return file;
   }
 }

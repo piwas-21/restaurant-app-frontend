@@ -58,7 +58,8 @@ export const getCategories = async (pageNumber: number = 1, pageSize: number = 1
     const url = `${CATEGORIES_API_URL}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
     return await apiClient.get(url);
   } catch {
-    // Fallback to mock API if real API fails
+    // NOT a deliberate ignore — same ungated mock fallback as `menuService.getProducts`.
+    // Open work, issue #398.
     return mockApiClient.getCategories();
   }
 };

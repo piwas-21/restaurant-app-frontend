@@ -27,6 +27,9 @@ export function extractTableFromQR(qrData: string): { tableId: string; tableNumb
     }
     return null;
   } catch {
+    // IGNORED ON PURPOSE: pure string parsing of untrusted QR payload. There is no failure here
+    // worth reporting — "not a table QR" and "malformed QR" are the same answer to the caller,
+    // and `null` is that answer.
     return null;
   }
 }
@@ -56,8 +59,14 @@ export function downloadQRCode(canvas: HTMLCanvasElement, fileName: string): voi
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }, 'image/png');
-  } catch {
-    throw new Error('Failed to download QR code');
+  } catch (error) {
+    // Not a deliberate ignore: the canvas/Blob failure IS the diagnosis, and replacing it with a
+    // flat sentence is what E9 exists to stop. Chained through `cause` so the console keeps it.
+    // Scoped honestly: BOTH call sites invoke this from inside an `img.onload` callback
+    // (TableQRCodeModal), so this throw does not propagate to their handlers — it surfaces as an
+    // uncaught window error and the admin sees nothing either way. `cause` improves the report,
+    // not the UX. Giving that modal a real failure state is separate work.
+    throw new Error('Failed to download QR code', { cause: error });
   }
 }
 
@@ -195,8 +204,10 @@ export function printQRCode(
     `);
 
     printWindow.document.close();
-  } catch {
-    throw new Error('Failed to print QR code');
+  } catch (error) {
+    // As above — a blocked popup and a serialisation failure are different problems, and the
+    // caller cannot tell them apart from the message alone.
+    throw new Error('Failed to print QR code', { cause: error });
   }
 }
 
@@ -239,6 +250,10 @@ export function formatQRGeneratedDate(date: string | Date | null | undefined): s
       minute: '2-digit',
     });
   } catch {
+    // IGNORED ON PURPOSE: `Intl.DateTimeFormat` throwing means the stamp is unparseable, which is
+    // exactly what the return value says. The error object adds nothing a user could act on.
+    // (The literal itself is untranslated — this helper takes no `t`. Tracked separately as an
+    // E7-family gap, not something binding the error would fix.)
     return 'Invalid date';
   }
 }

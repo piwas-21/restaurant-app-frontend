@@ -77,7 +77,12 @@ export const getProducts = async (
     }
     return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
   } catch {
-    // Fallback to mock API if real API fails
+    // NOT a deliberate ignore — open work, tracked as issue #398 and deliberately left for its
+    // own change.
+    // `mockApiClient` has no environment gate, so a backend outage does not surface: the customer
+    // menu renders invented dishes at invented prices. Removing the swallow is a behaviour change
+    // on the customer path and needs every consumer's error state verified first, which is more
+    // than an error-surfacing sweep should carry.
     return mockApiClient.getProducts(pageNumber, pageSize, categoryId);
   }
 };
@@ -95,7 +100,7 @@ export const getProductById = async (productId: string) => {
   try {
     return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
   } catch {
-    // Fallback to mock API if real API fails
+    // NOT a deliberate ignore — see `getProducts` above. Open work, issue #398.
     return mockApiClient.getProductById(productId);
   }
 };
@@ -113,7 +118,10 @@ export const getFeaturedSpecial = async (requestedOrderType?: OrderType | null) 
     const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
     return await apiClient.get(`${PRODUCTS_API_URL}/featured-special${query}`);
   } catch {
-    // Return null if no featured special or API fails
+    // IGNORED ON PURPOSE, with one thing worth naming: this reports `success: true` on a FAILED
+    // call, so "no special is configured" and "the call failed" are indistinguishable to the
+    // caller. That is the intended trade — the hero is decorative, and a missing hero must never
+    // fail the home page — but it means this endpoint can never be monitored from the client.
     return { success: true, data: null, message: 'No featured special available' };
   }
 };

@@ -14,6 +14,90 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
+/** What ends each multi-line span. A quote state (`'` or `"`) is its own closer. */
+const CLOSERS = { block: '*/', template: '`' };
+
+/**
+ * Advance past a span we are already inside. Returns where to resume and the state after it —
+ * still open if the span does not end on this line.
+ *
+ * A backslash escapes the next character in a template literal or a quoted string, but NOT in a
+ * block comment, where the closer still closes.
+ */
+function skipSpan(line, from, state) {
+  const closer = CLOSERS[state] ?? state;
+  let i = from;
+  while (i < line.length) {
+    if (state !== 'block' && line[i] === '\\') i += 2;
+    else if (line.startsWith(closer, i)) return { next: i + closer.length, state: 'code' };
+    else i += 1;
+  }
+  return { next: line.length, state };
+}
+
+/** Which span, if any, OPENS at `i`. `'line'` means "the rest of the line is a comment". */
+function spanAt(line, i, lineComments) {
+  const two = line.slice(i, i + 2);
+  if (two === '/*') return 'block';
+  if (lineComments && two === '//') return 'line';
+  if (line[i] === '`') return 'template';
+  if (line[i] === "'" || line[i] === '"') return line[i];
+  return null;
+}
+
+/**
+ * Blank out every commented span, line by line, so a ratchet counts CODE and not its own prose.
+ *
+ * Both ratchets have made the mistake this exists to stop. The E9 one's first baseline counted two
+ * comments *explaining* the defect it measures; the E8 one leaves a "physical on purpose: …" note
+ * beside every declaration it deliberately skips, which is the same hazard generated on purpose.
+ * The failure is nasty out of proportion to its cause: a prettier reflow of unrelated prose moves
+ * the number, and the gate reds an innocent PR with "count FELL — bank it", pointing the author at
+ * a figure that has nothing to do with their change.
+ *
+ * Matching a comment MARKER per line is not enough, and that was the bug in both: a line that
+ * merely CONTINUES a block comment starts with neither slash-star nor an asterisk. Verified by
+ * mutation — reflowing a property name to column 0 inside prose made the E8 count rise by one.
+ *
+ * So this is a small tokenizer rather than a regex, and it tracks STRINGS as well as comments —
+ * which is not incidental. Scanning for a comment opener without knowing about strings blinds the
+ * tool from the first `accept="image/*"` in a file to its end, and a bare catch written below that
+ * line is never counted. A ratchet whose whole selling point is that it cannot quietly stop
+ * working must not fail open, so quoted spans are consumed here too. Template literals and block
+ * comments carry their state across lines; a plain quoted string cannot, so it resets at newline
+ * rather than swallowing the rest of the file on an unbalanced apostrophe.
+ *
+ * @param source whole file contents
+ * @param lineComments whether `//` starts a comment (true for JS/TS, false for CSS)
+ * @returns one entry per input line, with commented and quoted spans removed
+ */
+export function stripComments(source, { lineComments = false } = {}) {
+  // Only these two survive a newline. A quoted string does not: resetting at the line break is
+  // what stops one unbalanced apostrophe from swallowing the rest of the file.
+  let carried = 'code';
+
+  return source.split('\n').map((line) => {
+    let state = carried;
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+      if (state !== 'code') {
+        const span = skipSpan(line, i, state);
+        state = span.state;
+        i = span.next;
+      } else {
+        const opening = spanAt(line, i, lineComments);
+        if (opening === 'line') break;
+        if (opening === null) out += line[i];
+        else state = opening;
+        i += opening === 'block' ? 2 : 1;
+      }
+    }
+    carried = state in CLOSERS ? state : 'code';
+    return out;
+  });
+}
+
 /**
  * Every file under `dir` that `isSource` accepts, as repo-relative POSIX paths.
  *

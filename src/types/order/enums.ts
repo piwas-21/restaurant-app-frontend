@@ -66,8 +66,8 @@ export type OrderStatus =
  * | written by                       | values |
  * |----------------------------------|--------|
  * | `Order.PaymentStatus`            | `Pending` `PartiallyPaid` `Completed` `Overpaid` `Refunded` |
- * | `OrderPayment.Status`            | `Pending` `Completed` `PartiallyPaid` `Refunded` |
- * | *nothing*                        | `Processing` `Failed` `PartiallyRefunded` |
+ * | `OrderPayment.Status`            | `Pending` `Completed` `PartiallyRefunded` `Refunded` |
+ * | *nothing*                        | `Processing` `Failed` |
  *
  * One shared union is what let three bugs ship, all of them from a value the backend never emits:
  *
@@ -95,14 +95,15 @@ export type OrderPaymentStatus = 'Pending' | 'PartiallyPaid' | 'Completed' | 'Ov
  *   completed. Cash is the common case in a restaurant, so this is not an edge state.
  * - `Completed` — non-cash auto-completes on create (`OrderPaymentBuilder:53`); cash on
  *   `AddPaymentToOrderCommand:110`.
- * - `PartiallyPaid` — a PARTIAL refund
- *   (`RefundPaymentCommand:72`: `RefundAmount == Amount ? Refunded : PartiallyPaid`).
+ * - `PartiallyRefunded` — a PARTIAL refund
+ *   (`RefundPaymentCommand:72`: `RefundAmount == Amount ? Refunded : PartiallyRefunded`).
  * - `Refunded` — a full refund, and `CancelOrderCommand:92`.
  *
- * ⚠️ Two backend facts worth carrying, neither fixable from here:
- * `PartiallyPaid` is a strange name for *partially refunded*, and `GetZReportQuery:79-81` filters
- * its payment-method breakdown on `Completed | Refunded | PartiallyRefunded` — a member **nothing
- * ever writes**. So a partially-refunded payment is stored `PartiallyPaid` and falls OUT of the
- * Z-report breakdown. That is a money-report bug in the backend, flagged rather than guessed at.
+ * ⚠️ `PartiallyPaid` is deliberately NOT here, and that is the whole distinction this file exists
+ * for. It is an ORDER-level word — "some tenders in, balance outstanding" — and a single tender is
+ * either taken or not. The backend used to store it on a partial refund while the Z-report looked
+ * for `PartiallyRefunded`, which nothing wrote, so partially-refunded payments fell out of the
+ * end-of-day money report entirely. Fixed backend-side in #286; this union moved with it, and a
+ * comparison against `'PartiallyPaid'` on a payment record is now a compile error again.
  */
-export type PaymentRecordStatus = 'Pending' | 'Completed' | 'PartiallyPaid' | 'Refunded';
+export type PaymentRecordStatus = 'Pending' | 'Completed' | 'PartiallyRefunded' | 'Refunded';

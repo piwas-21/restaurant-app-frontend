@@ -85,12 +85,16 @@
   z-index: 1;
 }
 
+/* The gap between an arrow and the scroller beside it. `navArrowLeft` is the FIRST flex child
+   and `navArrowRight` the last (CategoryNavShell), so in `ar` they swap sides and each gap swaps
+   with them. Safe because the glyphs are already mirrored below. Mirrors the shared nav's
+   CategoryNav.module.css, which this file skins. */
 .navArrowLeft {
-  margin-right: 0.75rem;
+  margin-inline-end: 0.75rem;
 }
 
 .navArrowRight {
-  margin-left: 0.75rem;
+  margin-inline-start: 0.75rem;
 }
 
 /* Tablet + mobile: the sticky nav clears the header + the TableBanner, and the

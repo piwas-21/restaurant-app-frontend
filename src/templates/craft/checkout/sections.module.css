@@ -55,7 +55,7 @@
   font-family: 'Quicksand', var(--font-family-sans);
   font-weight: 600;
   color: var(--text-primary);
-  text-align: right;
+  text-align: end;
 }
 
 .deliveryAddress {

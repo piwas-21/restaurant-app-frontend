@@ -66,7 +66,8 @@
 .combineChip {
   composes: tapeChip from '../primitives.module.css';
   align-self: flex-start;
-  text-align: left;
+  /* `align-self: flex-start` beside it IS direction-aware, so `start` keeps the two agreeing. */
+  text-align: start;
   font-size: 1.15rem;
   transform: rotate(-1deg);
 }

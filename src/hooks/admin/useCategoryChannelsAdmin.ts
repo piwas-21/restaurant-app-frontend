@@ -7,6 +7,7 @@ import { getCategories, updateCategory } from '@/services/categoryService';
 import type { Category } from '@/app/admin/menu-management/interfaces';
 import { OrderType } from '@/types/order';
 import { isStorableMask, maskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
+import { getErrorMessage } from '@/utils/apiClient';
 
 /**
  * Flip one order type on one category row. Pure and module-level: inlining it left four nested
@@ -71,9 +72,11 @@ export function useCategoryChannelsAdmin() {
         // Compare against the server's own count rather than `items.length === PAGE_SIZE`: a
         // catalogue of exactly CATEGORY_PAGE_SIZE is complete, and warning there would cry wolf.
         setTruncated((response?.data?.totalCount ?? items.length) > items.length);
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          enqueueSnackbar(t('failed_to_load_categories', 'Failed to load categories'), { variant: 'error' });
+          enqueueSnackbar(getErrorMessage(err) ?? t('failed_to_load_categories', 'Failed to load categories'), {
+            variant: 'error',
+          });
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -158,10 +161,13 @@ export function useCategoryChannelsAdmin() {
 
         setSaved((prev) => prev.map((c) => (c.id === categoryId ? { ...category } : c)));
         enqueueSnackbar(t('order_types_saved', 'Order type availability saved'), { variant: 'success' });
-      } catch {
-        enqueueSnackbar(t('failed_to_save_order_types', 'Failed to save order type availability'), {
-          variant: 'error',
-        });
+      } catch (err) {
+        enqueueSnackbar(
+          getErrorMessage(err) ?? t('failed_to_save_order_types', 'Failed to save order type availability'),
+          {
+            variant: 'error',
+          },
+        );
       } finally {
         setSavingId(null);
       }

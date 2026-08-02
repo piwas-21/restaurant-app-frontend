@@ -27,7 +27,7 @@ import styles from './SetupChecklist.module.css';
 export default function SetupChecklist() {
   const { t } = useTranslation();
   const modules = useModules();
-  const { checklist, isLoading, isSaving, saveFailed, pending, setStepDone, setDismissed } = useSetupChecklist();
+  const { checklist, isLoading, isSaving, saveError, pending, setStepDone, setDismissed } = useSetupChecklist();
 
   // A checklist that could not be read renders as NOTHING, never as an empty list —
   // an empty list reads as "you are all done", the one wrong answer on this surface.
@@ -99,9 +99,11 @@ export default function SetupChecklist() {
         ))}
       </ol>
 
-      {saveFailed && (
+      {/* The hook already resolved this: the server's own sentence when the 400 carried one
+          (a derived step says so), the translated generic when it did not. */}
+      {saveError && (
         <p className={styles.error} role="alert">
-          {t('setup_checklist_save_failed')}
+          {saveError}
         </p>
       )}
     </section>

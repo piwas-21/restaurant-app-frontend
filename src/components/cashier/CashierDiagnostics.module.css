@@ -235,7 +235,8 @@
 
 .tipsList {
   margin: 0;
-  padding-left: 16px;
+  /* List marker indent on a <ul> — mirrors with the text. */
+  padding-inline-start: 16px;
   font-size: 0.75rem;
   color: #1976d2;
   line-height: 1.4;

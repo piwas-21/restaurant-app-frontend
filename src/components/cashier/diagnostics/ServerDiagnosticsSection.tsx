@@ -96,7 +96,7 @@ export default function ServerDiagnosticsSection() {
           <div className={styles.infoCard}>
             <div className={styles.row}>
               <span className={styles.label}>
-                <Users size={14} style={{ marginRight: '6px' }} />
+                <Users size={14} style={{ marginInlineEnd: '6px' }} />
                 Total Clients
               </span>
               <span className={`${styles.badge} ${styles.badgeConnected}`}>{serverDiagnostics.totalClients}</span>
@@ -109,14 +109,14 @@ export default function ServerDiagnosticsSection() {
             </div>
             <div className={styles.row}>
               <span className={styles.label}>
-                <CheckCircle size={14} style={{ marginRight: '6px', color: 'var(--color-material-green-500)' }} />
+                <CheckCircle size={14} style={{ marginInlineEnd: '6px', color: 'var(--color-material-green-500)' }} />
                 Successful Sends
               </span>
               <span className={styles.value}>{serverDiagnostics.totalSuccessfulSends}</span>
             </div>
             <div className={styles.row}>
               <span className={styles.label}>
-                <XCircle size={14} style={{ marginRight: '6px', color: 'var(--color-material-red-500)' }} />
+                <XCircle size={14} style={{ marginInlineEnd: '6px', color: 'var(--color-material-red-500)' }} />
                 Failed Sends
               </span>
               <span
@@ -129,7 +129,7 @@ export default function ServerDiagnosticsSection() {
             {serverDiagnostics.clientsWithErrors > 0 && (
               <div className={styles.row}>
                 <span className={styles.label}>
-                  <AlertCircle size={14} style={{ marginRight: '6px', color: 'var(--status-warning)' }} />
+                  <AlertCircle size={14} style={{ marginInlineEnd: '6px', color: 'var(--status-warning)' }} />
                   Clients with Errors
                 </span>
                 <span className={styles.value} style={{ color: 'var(--status-warning)' }}>

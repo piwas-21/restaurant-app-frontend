@@ -66,10 +66,12 @@ const MemberManagementPage = () => {
       // Call the update API
       const result = await handleUpdateUser(userToEdit, updates, password);
 
-      // Show result
+      // Show result. The hook returns a finished, translated sentence — do NOT wrap it in `t()`,
+      // which is a LOOKUP: i18next splits `"User.NotFound: no such user"` on its default
+      // `nsSeparator` and resolves anything colliding with a real key. `page.test.tsx` pins both.
       setIsEditModalOpen(false);
       setUserToEdit(null);
-      setResultModalMessage(t(result.message || 'User updated successfully'));
+      setResultModalMessage(result.message);
       setIsResultModalSuccess(result.success);
       setIsResultModalOpen(true);
 
@@ -81,14 +83,18 @@ const MemberManagementPage = () => {
       // Refresh statistics
       setStatsKey((prev) => prev + 1);
     } catch (error) {
+      // A last-resort guard only: `handleUpdateUser` and `getUsers` both own their failures and
+      // resolve rather than throw, so reaching here means a defect on this page, not a failed call.
+      // `error_updating_user` used to be the key here — it existed in NO locale, so every language
+      // read the English default.
       console.error('Error updating user:', error);
-      setResultModalMessage(t('error_updating_user', 'Error updating user'));
+      setResultModalMessage(t('update_user_error', 'An error occurred while updating user'));
       setIsResultModalSuccess(false);
       setIsResultModalOpen(true);
     }
   };
 
-  const handleDeleteClick = (user: any) => {
+  const handleDeleteClick = (user: UserDto) => {
     setUserToDelete(user);
     setIsConfirmationModalOpen(true);
   };
@@ -127,10 +133,10 @@ const MemberManagementPage = () => {
       const isPermanent = userToDelete.isDeleted;
       const result = await handleDeleteUser(userToDelete.id, isPermanent);
       setIsConfirmationModalOpen(false);
-      const messageKey = isPermanent ? 'user_permanently_deleted' : 'user_deleted_successfully';
-      const defaultMessage = isPermanent ? 'User permanently deleted' : 'User deleted successfully';
-
-      setResultModalMessage(t(messageKey, defaultMessage));
+      // The success sentence used to be built here and printed whichever way the call went, so a
+      // refused delete told the admin "User deleted successfully" under a red "Error" heading. The
+      // hook picks the permanent/soft wording now, and says what actually failed when it failed.
+      setResultModalMessage(result.message);
       setIsResultModalSuccess(result.success);
       setIsResultModalOpen(true);
       setUserToDelete(null);
@@ -151,7 +157,8 @@ const MemberManagementPage = () => {
 
   const handleReactivate = async (user: UserDto) => {
     const result = await handleReactivateUser(user.id);
-    setResultModalMessage(t('user_reactivated_successfully', 'User reactivated successfully'));
+    // Same as the delete path: a failed reactivation used to read as a successful one.
+    setResultModalMessage(result.message);
     setIsResultModalSuccess(result.success);
     setIsResultModalOpen(true);
 

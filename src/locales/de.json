@@ -2509,5 +2509,12 @@
   "failed_to_load_menu_items": "Menüartikel konnten nicht geladen werden",
   "failed_to_load_specials": "Spezialitäten konnten nicht geladen werden",
   "failed_to_set_featured_special": "Tagesempfehlung konnte nicht festgelegt werden",
-  "failed_to_remove_featured_special": "Tagesempfehlung konnte nicht entfernt werden"
+  "failed_to_remove_featured_special": "Tagesempfehlung konnte nicht entfernt werden",
+  "failed_to_load_users": "Benutzer konnten nicht geladen werden",
+  "failed_to_update_user": "Benutzer konnte nicht aktualisiert werden",
+  "update_user_error": "Beim Aktualisieren des Benutzers ist ein Fehler aufgetreten",
+  "user_updated_successfully": "Benutzer erfolgreich aktualisiert",
+  "failed_to_reactivate_user": "Benutzer konnte nicht reaktiviert werden",
+  "reactivate_user_error": "Beim Reaktivieren des Benutzers ist ein Fehler aufgetreten",
+  "customers_update_own_profile_only": "Kunden können nur ihr eigenes Profil aktualisieren"
 }

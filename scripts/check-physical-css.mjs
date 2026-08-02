@@ -57,22 +57,44 @@ const PHYSICAL = /^\s*(?:(?:margin|padding)-(?:left|right)|border-(?:left|right)
 const PHYSICAL_TEXT_ALIGN = /^\s*text-align\s*:\s*(?:left|right)\s*(?:!important\s*)?;/;
 
 /**
- * Strip the places where a physical property is being TALKED ABOUT rather than declared: a
- * line comment or a block-comment continuation. `check-bare-catch.mjs` learned this the hard
- * way — its first baseline counted two comments *explaining* the defect it measured, so a
- * prettier reflow of the prose would have red-lit an unrelated PR. The comments below this
- * sweep leaves behind ("physical on purpose: …") are exactly that hazard.
+ * Blank out the places where a physical property is being TALKED ABOUT rather than declared.
+ * `check-bare-catch.mjs` learned this the hard way — its first baseline counted two comments
+ * *explaining* the defect it measured, so a prettier reflow of the prose would have red-lit an
+ * unrelated PR. This sweep leaves a "physical on purpose: …" comment beside every declaration it
+ * deliberately does not convert, so it generates that hazard by design.
+ *
+ * Matching a comment MARKER per line is not enough, and that was the original bug here: a line
+ * that merely CONTINUES a block comment starts with neither of those markers, so a reflow that
+ * moved `right:` to column 0 inside prose was counted as a declaration (verified — the count
+ * rose by one). So track the block state across lines and erase commented spans outright, which
+ * also covers a comment opened and closed on the same line as real code.
  */
-const isProse = (line) => /^\s*(\/\*|\*)/.test(line);
+const stripComments = (source) => {
+  let inBlock = false;
+  return source.split('\n').map((line) => {
+    let out = '';
+    for (let i = 0; i < line.length; i++) {
+      if (inBlock) {
+        if (line.startsWith('*/', i)) {
+          inBlock = false;
+          i++;
+        }
+      } else if (line.startsWith('/*', i)) {
+        inBlock = true;
+        i++;
+      } else {
+        out += line[i];
+      }
+    }
+    return out;
+  });
+};
 
 const found = [];
 for (const file of walkFiles(root, join(root, 'src'), isSource)) {
-  readFileSync(join(root, file), 'utf8')
-    .split('\n')
-    .forEach((line, i) => {
-      if (isProse(line)) return;
-      if (PHYSICAL.test(line) || PHYSICAL_TEXT_ALIGN.test(line)) found.push(`${file}:${i + 1}`);
-    });
+  stripComments(readFileSync(join(root, file), 'utf8')).forEach((line, i) => {
+    if (PHYSICAL.test(line) || PHYSICAL_TEXT_ALIGN.test(line)) found.push(`${file}:${i + 1}`);
+  });
 }
 
 process.exit(

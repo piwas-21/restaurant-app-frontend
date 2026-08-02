@@ -58,7 +58,7 @@ export default function ClientProviders({
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  marginLeft: '8px',
+                                  marginInlineStart: '8px',
                                   opacity: 0.8,
                                   transition: 'opacity 0.2s',
                                 }}

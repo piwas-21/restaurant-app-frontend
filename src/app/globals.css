@@ -217,7 +217,23 @@ select:focus {
   border-color: var(--primary-color);
 }
 
-/* Notistack notification styles */
+/* Notistack notification styles.
+ * physical on purpose (DESIGN-SYSTEM.md §8.1 — "a reset must name what it resets, INCLUDING
+ * rules that ship in node_modules"). These override notistack's OWN injected positioning, which
+ * is physical: for `anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}` it emits
+ * `.right { right: 20px }` plus a `downXs` `right: 16px` (notistack.esm.js, the `styles$1`
+ * makeStyles block). Ours wins today on `!important` alone — notistack injects its <style> at
+ * runtime, so source order is not guaranteed. Rename ours to `inset-inline-end` and in `ar` it
+ * lands in the `left` slot while notistack's `right` SURVIVES unopposed: the container is then
+ * pinned on both edges at once and stretches across. notistack has no RTL handling of its own
+ * to switch on (its only direction map is the Slide transition's travel direction), and its
+ * `.root` even carries `transition: top, right, bottom, left, max-width`. Nothing in `src/`
+ * greps for any of this, which is exactly why it is written down here. E8 slice 3, with the
+ * `rtl` prop for react-big-calendar's <Calendar>.
+ *
+ * Every line of this comment is `*`-prefixed on purpose: the ratchet's prose filter strips
+ * `/*` and `*` lines only, so a continuation line that reflows a property name to column 0
+ * would be counted as a declaration. */
 .notistack-SnackbarContainer {
   bottom: 24px !important;
   right: 24px !important;
@@ -261,6 +277,9 @@ select:focus {
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
+  /* physical on purpose — same vendor reset as the desktop rule above. notistack's own
+   * `downXs` breakpoint emits a 16px inset, so this pair has to keep the physical names.
+   * (This rule sets both edges, so it is direction-agnostic already.) */
   .notistack-SnackbarContainer {
     bottom: 16px !important;
     right: 16px !important;
@@ -277,10 +296,7 @@ select:focus {
 /* Modal and Dialog Styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -497,7 +513,7 @@ select:focus {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
-  text-align: left;
+  text-align: start;
 }
 
 .status-option:hover:not(:disabled) {
@@ -665,31 +681,33 @@ select:focus {
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
-  border-left: 4px solid transparent;
+  /* Accent rule down the leading edge. The four `.alert-*` rules below repaint ONLY its colour,
+     so the width here and all four colours are one set and move together. */
+  border-inline-start: 4px solid transparent;
   font-size: 0.95rem;
 }
 
 .alert-success {
   background-color: var(--success-color-xlight);
-  border-left-color: var(--success-color);
+  border-inline-start-color: var(--success-color);
   color: var(--success-color-dark);
 }
 
 .alert-error {
   background-color: var(--danger-color-xlight);
-  border-left-color: var(--danger-color);
+  border-inline-start-color: var(--danger-color);
   color: var(--danger-color-dark);
 }
 
 .alert-warning {
   background-color: var(--warning-color-xlight);
-  border-left-color: var(--warning-color);
+  border-inline-start-color: var(--warning-color);
   color: var(--warning-color-dark);
 }
 
 .alert-info {
   background-color: var(--info-color-xlight);
-  border-left-color: var(--info-color);
+  border-inline-start-color: var(--info-color);
   color: var(--info-color-dark);
 }
 
@@ -777,7 +795,7 @@ select:focus {
   /* Position the modal for printing - take full width */
   #order-details-print {
     position: absolute !important;
-    left: 0 !important;
+    inset-inline-start: 0 !important;
     top: 0 !important;
     width: 100% !important;
     margin: 0 !important;

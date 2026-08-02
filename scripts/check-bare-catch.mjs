@@ -28,17 +28,20 @@
  *   `CustomEvent`, `orderTypeLabels` feature-detecting `Intl.ListFormat`, `imageCompression`
  *   falling back to the original file, `qrCode` parsing an untrusted payload. Those should stay,
  *   and converting them to bound catches would buy nothing.
- *   The mock-API fallbacks in `menuService`/`categoryService` used to be on that list and have
- *   been REMOVED from it: `mockApiClient` has no environment gate, so those catches do not ignore
- *   a failure, they replace it with invented menu items on a live tenant. They are open work, not
- *   survivors, and they are flagged as such in the files (issue #398).
+ *
+ *   This list also used to name "the mock-API fallbacks in `menuService`/`categoryService`" as
+ *   deliberate. They were not: `mockApiClient` had no environment gate, so on a live tenant a
+ *   backend outage rendered invented dishes at invented prices instead of the error the customer
+ *   menu already had copy for. They are now DELETED (issue #398), not merely off the list. Worth
+ *   remembering that this header vouched for them for as long as it did — "ignored on purpose" is
+ *   a claim about intent, and intent is not evidence that the ignore is correct.
  *
  * **Where this ends: a count of roughly 12.** An earlier version of this header said "the honest
  * target is ~90, not 0", which read as a target *count* and contradicted the line above it — if
  * ~12 sites should stay, ~12 is where the count lands, and the sweep would already have been over
- * before it started. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~88 sites that do need
- * fixing, out of the 100 counted at triage. That reading is also the only one the "1-2 week"
- * estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
+ * before it started. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~90 sites
+ * that do need fixing, out of the ~100 counted at triage. That reading is also the only one the
+ * "1-2 week" estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
  *
  * So: keep going until only the deliberate ignores remain. Each one should carry a comment saying
  * why it ignores the failure — that comment, not this number, is what tells the next reader the

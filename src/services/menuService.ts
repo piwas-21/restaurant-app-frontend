@@ -1,5 +1,4 @@
 import { apiClient } from '@/utils/apiClient';
-import { mockApiClient } from './mockApiClient';
 import { Product } from '@/app/admin/menu-management/interfaces';
 import type { ProductTypeQuery } from '@/utils/productTypeFilter';
 import type { OrderType } from '@/types/order';
@@ -61,30 +60,20 @@ export const getProducts = async (
   // The channel the guest is ordering through. Does NOT filter the list — the server keeps blocked
   // items visible and only resolves each row's `availability`, so the guest reads a reason, not a hole.
   requestedOrderType?: OrderType | null,
-): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
-  try {
-    let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
-    if (categoryId) {
-      url += `&CategoryId=${categoryId}`;
-    }
-    if (requestedOrderType) {
-      url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
-    }
-    if (typeQuery?.type) {
-      url += `&Type=${typeQuery.type}`;
-    } else if (typeQuery?.includeMenus) {
-      url += `&IncludeMenus=true`;
-    }
-    return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
-  } catch {
-    // NOT a deliberate ignore — open work, tracked as issue #398 and deliberately left for its
-    // own change.
-    // `mockApiClient` has no environment gate, so a backend outage does not surface: the customer
-    // menu renders invented dishes at invented prices. Removing the swallow is a behaviour change
-    // on the customer path and needs every consumer's error state verified first, which is more
-    // than an error-surfacing sweep should carry.
-    return mockApiClient.getProducts(pageNumber, pageSize, categoryId);
+): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: unknown }> => {
+  let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
+  if (categoryId) {
+    url += `&CategoryId=${categoryId}`;
   }
+  if (requestedOrderType) {
+    url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
+  }
+  if (typeQuery?.type) {
+    url += `&Type=${typeQuery.type}`;
+  } else if (typeQuery?.includeMenus) {
+    url += `&IncludeMenus=true`;
+  }
+  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
 };
 
 export const createProduct = async (productData: CreateProductData) => {
@@ -97,12 +86,7 @@ export const createProduct = async (productData: CreateProductData) => {
 };
 
 export const getProductById = async (productId: string) => {
-  try {
-    return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
-  } catch {
-    // NOT a deliberate ignore — see `getProducts` above. Open work, issue #398.
-    return mockApiClient.getProductById(productId);
-  }
+  return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
 };
 
 /**

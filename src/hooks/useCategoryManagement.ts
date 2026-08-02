@@ -18,16 +18,7 @@ export const useCategoryManagement = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = (await getCategories(page, pageSize)) as {
-          success: boolean;
-          data?: {
-            items: any[];
-            totalCount: number;
-            totalPages: number;
-            page: number;
-          };
-          message?: string;
-        };
+        const response = await getCategories(page, pageSize);
         if (response.success && response.data?.items) {
           setCategories(response.data.items);
           setTotalCount(response.data.totalCount || 0);

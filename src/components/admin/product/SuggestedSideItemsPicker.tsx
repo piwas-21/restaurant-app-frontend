@@ -25,9 +25,8 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
   // Fetch details for selected side items on mount or when selectedSideItemIds change
   React.useEffect(() => {
     // Race guard: rapid changes to `selectedSideItemIds` can land an older
-    // fetch after a newer one. The service layer swallows fetch errors, so we
-    // use the cancellation-flag pattern (same idiom as
-    // `useGuestProfilePrefill`) to suppress stale state writes.
+    // fetch after a newer one, so we use the cancellation-flag pattern (same
+    // idiom as `useGuestProfilePrefill`) to suppress stale state writes.
     let cancelled = false;
 
     const fetchSelectedItemsDetails = async () => {

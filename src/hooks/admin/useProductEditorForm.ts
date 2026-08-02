@@ -70,7 +70,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
 
   useEffect(() => {
     const load = async () => {
-      const response = (await getCategories()) as { success: boolean; data?: { items?: Category[] } };
+      const response = await getCategories();
       if (response.success) setCategories(response.data?.items ?? []);
     };
     // Bundles have no category control (MenuBundleDto carries none), so don't fetch for them.

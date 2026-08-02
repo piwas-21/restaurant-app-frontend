@@ -46,8 +46,8 @@ IMAGE="mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble"
 # The API origin must stay `localhost` — the app's CSP carries
 # `upgrade-insecure-requests`, and browsers upgrade http:// requests to any
 # non-localhost host (e.g. host.docker.internal) to https://, which the CSP
-# connect-src then blocks and the app silently falls back to mockApiClient
-# data. Keeping localhost also makes the baked bundle identical to CI's.
+# connect-src then blocks, leaving every menu route on its error state.
+# Keeping localhost also makes the baked bundle identical to CI's.
 API_URL="http://localhost:5221"
 
 DOCKER_ARGS=(--rm --init --ipc=host -w /work -v "$PWD":/work)

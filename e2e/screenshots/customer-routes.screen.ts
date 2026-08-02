@@ -19,16 +19,16 @@ import { THEMES, prepareForScreenshots, gotoStable, waitForStablePage, driveGues
 const STATIC_ROUTES: ReadonlyArray<{
   name: string;
   path: string;
-  /** Route-specific readiness proof that seeded (not mock-fallback) data rendered. */
+  /** Route-specific readiness proof that the seeded backend data actually rendered. */
   assertReady?: (page: import('@playwright/test').Page) => Promise<void>;
 }> = [
   { name: 'home', path: '/' },
   {
     name: 'menu',
     path: '/menu',
-    // The app silently falls back to mockApiClient data when the backend is
-    // unreachable (e.g. a CSP/CORS misconfig) — assert the SEEDED product is
-    // on screen so that failure mode can never become a committed baseline.
+    // An unreachable backend (e.g. a CSP/CORS misconfig) now renders the
+    // menu's error state rather than data — assert the SEEDED product is on
+    // screen so that page can never become a committed baseline.
     assertReady: async (page) => {
       await expect(page.getByRole('button', { name: /^Add E2E Test Product to order$/i })).toBeVisible({
         timeout: 15_000,

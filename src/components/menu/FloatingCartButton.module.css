@@ -1,7 +1,7 @@
 .floatingButton {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  inset-inline-end: 24px;
   z-index: 100;
 
   display: flex;
@@ -91,7 +91,7 @@
 .badge {
   position: absolute;
   top: -8px;
-  right: -8px;
+  inset-inline-end: -8px;
 
   display: flex;
   align-items: center;
@@ -152,8 +152,7 @@
 @media (max-width: 768px) {
   .floatingButton {
     bottom: 16px;
-    left: 16px;
-    right: 16px;
+    inset-inline: 16px;
 
     justify-content: space-between;
 

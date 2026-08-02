@@ -258,6 +258,6 @@
 /* Marks a side the restaurant requires. Carried over when the sheet absorbed the details modal's
    read-only view (menu-bundles redesign #175, slice 6). */
 .requiredMarker {
-  margin-left: 0.15rem;
+  margin-inline-start: 0.15rem;
   color: var(--feedback-error, var(--status-danger));
 }

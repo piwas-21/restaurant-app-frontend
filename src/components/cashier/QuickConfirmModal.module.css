@@ -1,10 +1,7 @@
 /* Backdrop */
 .backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   z-index: 9998;
@@ -15,6 +12,8 @@
 .modal {
   position: fixed;
   top: 50%;
+  /* physical on purpose: centring has no handedness — the inset and the -50% translate are
+     one idiom and are already correct in both directions (DESIGN-SYSTEM.md §8.1). */
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--card-background);
@@ -200,8 +199,7 @@
   content: '';
   position: absolute;
   top: 50%;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   height: 1px;
   background: var(--border-color);
 }

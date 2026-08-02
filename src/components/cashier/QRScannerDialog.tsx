@@ -128,7 +128,7 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({ isOpen, onClose, onAp
               <div>
                 <h3 style={{ margin: '0 0 10px 0' }}>{t('available_discounts')}</h3>
                 {result.applicableDiscounts && result.applicableDiscounts.length > 0 ? (
-                  <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                  <ul style={{ paddingInlineStart: '20px', margin: 0 }}>
                     {result.applicableDiscounts.map((discount) => (
                       <li key={discount.id} style={{ marginBottom: '5px' }}>
                         <strong>{discount.name}</strong>:

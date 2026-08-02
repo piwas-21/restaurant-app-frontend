@@ -22,6 +22,10 @@
   background-color: var(--primary-color-dark, #343a40);
   color: var(--button-text-color, white);
   position: fixed;
+  /* PHYSICAL, pending the dir-aware transform pass (E8 slice 3). The drawer is parked with
+     `translateX(-100%)` and `transform` is not a logical property, so mirroring this inset on
+     its own would leave the closed sidebar sitting ON screen in `ar`. Inset and transform
+     move together or not at all. */
   left: 0;
   top: 0;
   height: 100vh;
@@ -54,7 +58,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-left: 3px solid transparent;
+  border-inline-start: 3px solid transparent;
   font-size: 1.1rem; /* Larger font size */
 }
 
@@ -76,7 +80,7 @@
 .sidebar nav ul li a.activeLink {
   background-color: rgba(255, 255, 255, 0.1);
   color: white;
-  border-left-color: var(--accent-color, #ffc107);
+  border-inline-start-color: var(--accent-color, #ffc107);
 }
 
 .sidebar nav ul li a.activeLink svg {
@@ -211,7 +215,7 @@
 [data-theme='dark'] .sidebar nav ul li a.activeLink {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
-  border-left-color: #ffc107;
+  border-inline-start-color: #ffc107;
 }
 
 .adminHeader {
@@ -328,7 +332,7 @@
 .adminTable td {
   border: 1px solid var(--border-color, #dee2e6);
   padding: 0.75rem;
-  text-align: left;
+  text-align: start;
   white-space: nowrap;
   color: var(--text-color);
   vertical-align: middle; /* Align content vertically in cells */
@@ -353,7 +357,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  margin-right: 0.5rem;
+  margin-inline-end: 0.5rem;
   transition: opacity 0.2s ease;
   display: inline-block;
   text-align: center; /* Center text in button */
@@ -427,7 +431,7 @@
 
 /* Remove margin from last button in a sequence if they are inline */
 .adminButton:last-of-type {
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 .tooltipContainer {
@@ -446,6 +450,9 @@
   position: absolute;
   z-index: 1001; /* Higher z-index */
   bottom: 125%;
+  /* PHYSICAL on purpose: `50%` + a negative half-width margin is centring, and centring has
+     no handedness — it is already correct in both directions. Converting the pair also works,
+     but leaving it physical keeps one rule for the whole idiom (see DESIGN-SYSTEM.md §8.1). */
   left: 50%;
   margin-left: -80px;
   opacity: 0;
@@ -664,7 +671,7 @@
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: all 0.3s ease;
   color: var(--button-text-color, white);
 }
@@ -736,7 +743,7 @@
 
 .filtersContainer .formGroup input[type='checkbox'] {
   width: auto;
-  margin-right: 0.5rem;
+  margin-inline-end: 0.5rem;
 }
 
 @media (max-width: 640px) {
@@ -990,6 +997,7 @@
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
+    /* PHYSICAL — same inset/transform coupling as the base `.sidebar` rule above. */
     left: 0;
     top: 0;
     height: 100vh;
@@ -1019,7 +1027,7 @@
   color: var(--text-color);
   cursor: pointer;
   padding: 0.5rem;
-  margin-right: 1rem;
+  margin-inline-end: 1rem;
   transition: opacity 0.2s ease;
 }
 
@@ -1101,7 +1109,7 @@
   .adminButton {
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
-    margin-right: 0.25rem;
+    margin-inline-end: 0.25rem;
   }
 
   .adminContainer {
@@ -1122,6 +1130,9 @@
     transform: none;
     height: auto;
     top: auto;
+    /* PHYSICAL to match what it resets — the base `.sidebar` inset stays physical while the
+       transform coupling is unresolved. Mixing the two names for one box side across rules
+       makes the winner depend on source order rather than on specificity. */
     left: auto;
   }
 }
@@ -1129,7 +1140,7 @@
 .tabs {
   display: flex;
   gap: 1rem;
-  margin-right: auto;
+  margin-inline-end: auto;
 }
 
 /* Strips the fieldset chrome so a semantic <fieldset> lays out exactly like the

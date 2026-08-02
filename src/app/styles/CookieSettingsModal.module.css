@@ -2,8 +2,8 @@
 .modalOverlay {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
@@ -132,8 +132,8 @@
   position: absolute;
   cursor: pointer;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: var(--border-color);
   transition: 0.4s;
@@ -145,6 +145,9 @@
   content: '';
   height: 20px;
   width: 20px;
+  /* PHYSICAL, pending the dir-aware transform pass (E8 slice 3). The knob travels via
+     `transform: translateX(22px)` on `input:checked`, which is not a logical property —
+     mirror the resting inset alone and the knob would slide OUT of its own track in `ar`. */
   left: 4px;
   bottom: 4px;
   background-color: white;

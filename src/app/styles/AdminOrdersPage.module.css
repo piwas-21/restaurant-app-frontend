@@ -138,7 +138,7 @@
 
 .searchBox svg {
   position: absolute;
-  left: 1rem;
+  inset-inline-start: 1rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-color);
@@ -147,7 +147,11 @@
 
 .searchInput {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
+  /* The 3rem gutter exists to clear `.searchBox svg`, which now sits at `inset-inline-start`.
+     A 4-value shorthand is physical in its 2nd and 4th slots, so it has to mirror with the
+     icon or the query text runs underneath it in `ar`. */
+  padding-block: 0.875rem;
+  padding-inline: 3rem 1rem;
   border: 2px solid var(--border-color, #e2e8f0);
   border-radius: 8px;
   font-size: 1rem;
@@ -298,7 +302,7 @@
 
 .ordersTable th {
   padding: 1rem;
-  text-align: left;
+  text-align: start;
   font-weight: 600;
   color: var(--text-color);
   text-transform: uppercase;
@@ -641,8 +645,8 @@
 .modal {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
@@ -744,7 +748,7 @@
   margin: 0 0 1.5rem 0;
   padding: 1rem;
   background: var(--secondary-color, #f8fafc);
-  border-left: 4px solid var(--primary-color, #c00000);
+  border-inline-start: 4px solid var(--primary-color, #c00000);
   border-radius: 8px;
   font-weight: 600;
   color: var(--text-color);
@@ -754,7 +758,7 @@
   .orderInfo {
     background: var(--secondary-color, #2c2c2c);
     color: var(--text-color);
-    border-left-color: var(--primary-color, #e06666);
+    border-inline-start-color: var(--primary-color, #e06666);
   }
 }
 
@@ -836,7 +840,7 @@
 .confirmMessage {
   padding: 1rem;
   background: #fef3c7;
-  border-left: 4px solid #f59e0b;
+  border-inline-start: 4px solid #f59e0b;
   border-radius: 8px;
   color: #78350f;
   font-weight: 500;
@@ -1043,7 +1047,7 @@
   padding: 1rem 1.5rem;
   background: #fee2e2;
   color: #991b1b;
-  border-left: 4px solid #ef4444;
+  border-inline-start: 4px solid #ef4444;
   border-radius: 8px;
   margin-bottom: 1.5rem;
 }
@@ -1164,6 +1168,9 @@
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
+  /* PHYSICAL, pending the dir-aware pass (E8 slice 3). The gutter exists to clear the chevron
+     drawn by `background-position: right …`, and `background-position` has no logical form.
+     Mirror the padding alone and the option text would run under the chevron in `ar`. */
   background-position: right 12px center;
   padding-right: 40px;
 }

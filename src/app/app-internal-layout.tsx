@@ -145,7 +145,7 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
                   width={180}
                   height={90}
                   imageStyle={{
-                    marginRight: '10px',
+                    marginInlineEnd: '10px',
                     objectFit: 'contain',
                     maxHeight: `calc(${headerHeight} - 10px)`,
                   }}

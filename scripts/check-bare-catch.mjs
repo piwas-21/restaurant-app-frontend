@@ -26,8 +26,18 @@
  * - **Not aiming at zero.** Roughly a dozen of the current sites ignore a failure on purpose —
  *   `TableContext` discarding malformed `localStorage`, `analytics` feature-detecting
  *   `CustomEvent`, the mock-API fallbacks in `menuService`/`categoryService`, `qrCode`. Those
- *   should stay, and converting them to bound catches would buy nothing. The honest target is
- *   ~90, not 0.
+ *   should stay, and converting them to bound catches would buy nothing.
+ *
+ * **Where this ends: a count of roughly 12.** An earlier version of this header said "the honest
+ * target is ~90, not 0", which read as a target *count* and contradicted the line above it — if
+ * ~12 sites should stay, ~12 is where the count lands, and at 91 today the sweep would already be
+ * over. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~88 sites that do need
+ * fixing, out of the 100 counted at triage. That reading is also the only one the "1-2 week"
+ * estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
+ *
+ * So: keep going until only the deliberate ignores remain. Each one should carry a comment saying
+ * why it ignores the failure — that comment, not this number, is what tells the next reader the
+ * sweep is finished rather than abandoned.
  *
  * Depends on prettier normalising `catch` onto the closing brace: a `catch {` alone on its own line
  * would not match. That holds because `prettier --check` gates all of `src/`.
@@ -35,9 +45,10 @@
  *   node scripts/check-bare-catch.mjs             # verify
  *   node scripts/check-bare-catch.mjs --regen     # re-baseline after removing some
  */
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, sep } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runRatchet, walkFiles } from './lib/ratchet.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const baselinePath = join(root, 'scripts', 'bare-catch-baseline.json');
@@ -45,23 +56,7 @@ const baselinePath = join(root, 'scripts', 'bare-catch-baseline.json');
 /** Tests may swallow deliberately — they are asserting the failure, not reporting it. */
 const isSource = (f) => /\.(ts|tsx)$/.test(f) && !/\.test\.(ts|tsx)$/.test(f);
 
-/**
- * Walk `src/` directly rather than shelling out to `git ls-files`. Two reasons, one of them
- * Sonar's (S4036: resolving `git` through `PATH` executes whatever a writable PATH entry supplies)
- * and one of them behavioural — `git ls-files` omits UNTRACKED files, so a brand-new file carrying
- * a bare catch would not be counted until it was staged. The whole point is to catch it before then.
- */
-function walk(dir) {
-  const out = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walk(full));
-    else if (isSource(entry.name)) out.push(relative(root, full).split(sep).join('/'));
-  }
-  return out;
-}
-
-const files = walk(join(root, 'src'));
+const files = walkFiles(root, join(root, 'src'), isSource);
 
 /**
  * Strip the places where `} catch {` is being TALKED ABOUT rather than written: a line comment, a
@@ -87,28 +82,19 @@ for (const file of files) {
   });
 }
 
-if (process.argv.includes('--regen')) {
-  writeFileSync(baselinePath, `${JSON.stringify({ count: found.length }, null, 2)}\n`);
-  console.log(`✓ bare-catch baseline regenerated (${found.length})`);
-  process.exit(0);
-}
-
-const { count: baseline } = JSON.parse(readFileSync(baselinePath, 'utf8'));
-
-if (found.length > baseline) {
-  console.error(`✗ bare \`} catch {\` count rose: ${baseline} → ${found.length}`);
-  console.error("  A catch with no binding throws away the server's own message (E9).");
-  console.error('  Bind it AND SURFACE it — `useApiError().capture(error)`, or `routeApiError`.');
-  console.error('  Binding alone satisfies this gate and fixes nothing; the message has to reach a user.');
-  console.error('  If the failure is ignored on purpose, say so in a comment and leave the count alone.');
-  console.error(`\n  ${found.slice(-10).join('\n  ')}`);
-  process.exit(1);
-}
-
-if (found.length < baseline) {
-  console.error(`✗ bare \`} catch {\` count FELL: ${baseline} → ${found.length} — bank it:`);
-  console.error('    node scripts/check-bare-catch.mjs --regen');
-  process.exit(1);
-}
-
-console.log(`✓ bare \`} catch {\` holding at ${found.length} (E9 sweep in progress)`);
+process.exit(
+  runRatchet({
+    found,
+    baselinePath,
+    label: 'bare `} catch {` count',
+    script: 'scripts/check-bare-catch.mjs',
+    guidance: [
+      "A catch with no binding throws away the server's own message (E9).",
+      'Bind it AND SURFACE it — `useApiError().capture(error)`, or `routeApiError`.',
+      'Binding alone satisfies this gate and fixes nothing; the message has to reach a user.',
+      'If the failure is ignored on purpose, say so in a comment and leave the count alone.',
+    ],
+    holdingNote: 'E9 sweep in progress',
+    argv: process.argv,
+  }),
+);

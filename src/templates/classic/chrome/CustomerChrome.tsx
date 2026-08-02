@@ -107,7 +107,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
                   width={180}
                   height={90}
                   imageStyle={{
-                    marginRight: '10px',
+                    marginInlineEnd: '10px',
                     objectFit: 'contain',
                     maxHeight: `calc(${headerHeight} - 10px)`,
                   }}

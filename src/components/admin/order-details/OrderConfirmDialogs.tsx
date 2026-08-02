@@ -21,7 +21,7 @@ interface OrderConfirmDialogsProps {
   onConfirmOrder: (withDelay: boolean) => void;
   // Shared
   error: string;
-  setError: (error: string) => void;
+  clearError: () => void;
 }
 
 const DELAY_PRESETS = [5, 10, 15, 20, 30];
@@ -46,7 +46,7 @@ export default function OrderConfirmDialogs({
   isConfirming,
   onConfirmOrder,
   error,
-  setError,
+  clearError,
 }: OrderConfirmDialogsProps) {
   const { t } = useTranslation();
 
@@ -57,7 +57,7 @@ export default function OrderConfirmDialogs({
         onClose={() => {
           setShowCancelModal(false);
           setCancelReason('');
-          setError('');
+          clearError();
         }}
         onConfirm={onCancelOrder}
         title={t('cancel_order', 'Cancel Order')}
@@ -87,7 +87,7 @@ export default function OrderConfirmDialogs({
         onClose={() => {
           setShowConfirmDelayModal(false);
           setDelayMinutes(15);
-          setError('');
+          clearError();
         }}
         onConfirm={() => onConfirmOrder(true)}
         title={t('confirm_with_delay', 'Confirm with Delay')}

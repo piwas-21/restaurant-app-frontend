@@ -6,6 +6,7 @@ import { enqueueSnackbar } from 'notistack';
 import { formFieldConfigService } from '@/services/formFieldConfigService';
 import { invalidateFormFieldConfigCache } from '@/hooks/useCustomerFormFields';
 import type { FormFieldConfigurationDto, FormFieldsDto } from '@/types/formFieldConfig';
+import { getErrorMessage } from '@/utils/apiClient';
 
 /**
  * The admin-facing 3-state of one configurable field. `required` implies
@@ -70,11 +71,14 @@ export function useCustomerFormsAdmin() {
         if (cancelled) return;
         setForms(data);
         setSavedForms(data);
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          enqueueSnackbar(t('customer_forms_load_failed', 'Failed to load the customer form settings'), {
-            variant: 'error',
-          });
+          enqueueSnackbar(
+            getErrorMessage(err) ?? t('customer_forms_load_failed', 'Failed to load the customer form settings'),
+            {
+              variant: 'error',
+            },
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -126,10 +130,13 @@ export function useCustomerFormsAdmin() {
       setSavedForms(updated);
       invalidateFormFieldConfigCache();
       enqueueSnackbar(t('customer_forms_saved', 'Customer form settings saved'), { variant: 'success' });
-    } catch {
-      enqueueSnackbar(t('customer_forms_save_failed', 'Failed to save the customer form settings'), {
-        variant: 'error',
-      });
+    } catch (err) {
+      enqueueSnackbar(
+        getErrorMessage(err) ?? t('customer_forms_save_failed', 'Failed to save the customer form settings'),
+        {
+          variant: 'error',
+        },
+      );
     } finally {
       setSavingFormKey(null);
     }

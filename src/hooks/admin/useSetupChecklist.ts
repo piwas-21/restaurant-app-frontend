@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSetupChecklist, setSetupChecklistDismissed, setSetupStepDone } from '@/services/setupChecklistService';
 import type { SetupChecklistDto } from '@/types/setupChecklist';
+import { useTranslation } from 'react-i18next';
+import { useApiError } from '@/hooks/useApiError';
 
 /**
  * The tenant's first-run setup checklist (SOFRA-ONBOARDING-PLAN O4).
@@ -17,7 +19,7 @@ import type { SetupChecklistDto } from '@/types/setupChecklist';
  * the whole round-trip before re-ticking. Watching a box you just ticked jump back is
  * indistinguishable from the save failing. This is safe to hold optimistically because
  * it only ever covers ACKNOWLEDGED steps — derived steps have no control to click — and
- * the re-read overrules it either way, now with `saveFailed` to explain a refusal.
+ * the re-read overrules it either way, now with `saveError` to explain a refusal.
  *
  * There is no module-scope cache like `useRestaurantInfo`'s: this renders on exactly
  * one page, for one admin, and the answer changes as they work through it.
@@ -27,8 +29,12 @@ export interface UseSetupChecklistResult {
   isLoading: boolean;
   /** True while a mutation is in flight — the UI disables its controls. */
   isSaving: boolean;
-  /** The last write failed. Survives the re-read that follows it. */
-  saveFailed: boolean;
+  /**
+   * Why the last write failed, ready to render — the server's own sentence when the 400 carried
+   * one, the translated generic otherwise. `null` when nothing is wrong. Survives the re-read
+   * that follows it.
+   */
+  saveError: string | null;
   /** The step being written right now and the value being written, or null. */
   pending: { key: string; isDone: boolean } | null;
   setStepDone: (key: string, isDone: boolean) => Promise<void>;
@@ -40,7 +46,8 @@ export function useSetupChecklist(): UseSetupChecklistResult {
   const [checklist, setChecklist] = useState<SetupChecklistDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const { t } = useTranslation();
+  const saveError = useApiError();
   const [pending, setPending] = useState<{ key: string; isDone: boolean } | null>(null);
   // Read inside `load` without making it depend on `checklist`, which would rebuild
   // the callback on every fetch and re-fire the mount effect.
@@ -74,20 +81,26 @@ export function useSetupChecklist(): UseSetupChecklistResult {
   /**
    * Run a mutation, then re-read — the server owns every step's real state.
    *
-   * `saveFailed` is separate from the read on purpose. Folding both into one flag meant
+   * `saveError` is separate from the read on purpose. Folding both into one flag meant
    * the follow-up GET succeeding immediately cleared the message, so a rejected write
    * (the API answers 400 for a derived step) flashed for one round-trip and then said
    * nothing at all: the owner saw a checkbox snap back with no explanation.
+   *
+   * It was a BOOLEAN until E9 step 3 (#383), which is the other half of the same story. The
+   * 400 for a derived step carries a sentence saying it is derived — the one thing that
+   * explains the snap-back — and a boolean threw it away, leaving the same generic line for
+   * every cause. `load`'s own catch stays bare and unbound on purpose (see there); it must
+   * not touch this state, which is what keeps the write's message up across the re-read.
    */
   const mutate = useCallback(
     async (action: () => Promise<unknown>, optimistic: { key: string; isDone: boolean } | null) => {
       setIsSaving(true);
-      setSaveFailed(false);
+      saveError.clear();
       setPending(optimistic);
       try {
         await action();
-      } catch {
-        setSaveFailed(true);
+      } catch (err) {
+        saveError.capture(err, { fallback: t('setup_checklist_save_failed', 'Could not save that change') });
       } finally {
         // Re-read either way: a rejected write leaves the server state unchanged, and
         // the local copy may already be stale from another tab or another admin. Clear
@@ -98,7 +111,7 @@ export function useSetupChecklist(): UseSetupChecklistResult {
         setIsSaving(false);
       }
     },
-    [load],
+    [load, saveError, t],
   );
 
   const setStepDone = useCallback(
@@ -115,7 +128,7 @@ export function useSetupChecklist(): UseSetupChecklistResult {
     checklist,
     isLoading,
     isSaving,
-    saveFailed,
+    saveError: saveError.message,
     pending,
     setStepDone,
     setDismissed,

@@ -63,6 +63,25 @@ export interface ApiErrorSurface<TField extends string> {
  *   The forgetting moves from "supply a fallback" to "render the message" — smaller, but not gone.
  *   Worth a line on the step-3 checklist rather than a claim that it cannot happen.
  *
+ * ## Picking the right shape (E9 step 3, issue #383)
+ *
+ * This hook is one of three answers, and a sweep that reaches for it everywhere is a sweep that
+ * makes things worse. The ratchet counts SYNTAX, so binding an error without surfacing it lowers
+ * the number and fixes nothing.
+ *
+ * 1. **A surface that HOLDS its error** — a panel, a form, a dialog with somewhere to render a
+ *    sentence: this hook. Pass a `fallback` whenever the screen can say something better than the
+ *    generic, which is most of them; ~36 of the ~100 sites already had a contextual sentence, and
+ *    dropping it for "an unexpected error occurred" is a downgrade, not a fix.
+ * 2. **A fire-and-forget TOAST** — `getErrorMessage(err) ?? t('contextual')`. Not this hook: it
+ *    holds state a snackbar has nowhere to put.
+ * 3. **A DELIBERATE ignore** — leave the catch bare and say why in the file. Roughly a dozen sites
+ *    ignore a failure on purpose (a per-item tally in a bulk loop, a last-good-copy fallback,
+ *    feature detection). Converting those buys nothing, which is why the target is ~90, not 0.
+ *
+ * And whichever you pick: a `capture()` whose `message` is never rendered swallows the failure
+ * silently and type-checks. Check the render, not just the catch.
+ *
  * ```tsx
  * const err = useApiError<'email' | 'password'>();
  * try { await save(); } catch (e) { err.capture(e, MATCHERS); }

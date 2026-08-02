@@ -4,6 +4,7 @@ import SetupChecklist from './SetupChecklist';
 import { ModulesProvider } from '@/contexts/ModulesContext';
 import type { SetupChecklistDto } from '@/types/setupChecklist';
 import * as service from '@/services/setupChecklistService';
+import { ApiError } from '@/utils/apiClient';
 
 jest.mock('@/services/setupChecklistService');
 jest.mock('react-i18next', () => ({
@@ -95,6 +96,24 @@ describe('SetupChecklist', () => {
     fireEvent.click(box);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('setup_checklist_save_failed');
+  });
+
+  it("shows the server's reason for the refusal, not the generic line (E9 #383)", async () => {
+    // The point of the sweep. `saveFailed` was a BOOLEAN, so every cause rendered the same
+    // sentence — and the cause that matters here is specific: the API answers 400 for a
+    // derived step, saying it is derived. That is the only thing that explains why the
+    // checkbox snapped back, and it was thrown away one line after arriving.
+    mocked.setSetupStepDone.mockRejectedValue(
+      new ApiError(400, 'Validation failed', ['This step is derived from your data and cannot be set manually']),
+    );
+    renderWith(checklist(), ['core']);
+
+    const box = await screen.findByRole('checkbox', { name: 'setup_step_restaurant_info_title' });
+    fireEvent.click(box);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('This step is derived from your data and cannot be set manually');
+    expect(alert).not.toHaveTextContent('setup_checklist_save_failed');
   });
 
   it('keeps the panel up when a refresh fails after it has rendered once', async () => {

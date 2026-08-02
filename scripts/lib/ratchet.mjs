@@ -14,6 +14,35 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
+/** The text that ends a span, given the state we are in. Quote states are their own closer. */
+const closerFor = (state) => (state === 'block' ? '*/' : state === 'template' ? '`' : state);
+
+/**
+ * Advance past a span we are already inside. Returns the index of its LAST consumed character and
+ * the state after it — still open if the span does not end on this line.
+ *
+ * A backslash escapes the next character in a template literal or a quoted string, but NOT in a
+ * block comment, where `*\/` still closes.
+ */
+function skipSpan(line, from, state) {
+  const closer = closerFor(state);
+  for (let i = from; i < line.length; i++) {
+    if (state !== 'block' && line[i] === '\\') i++;
+    else if (line.startsWith(closer, i)) return { i: i + closer.length - 1, state: 'code' };
+  }
+  return { i: line.length, state };
+}
+
+/** Which span, if any, OPENS at `i`. `'line'` means "the rest of the line is a comment". */
+function spanAt(line, i, lineComments) {
+  const two = line.slice(i, i + 2);
+  if (two === '/*') return 'block';
+  if (lineComments && two === '//') return 'line';
+  if (line[i] === '`') return 'template';
+  if (line[i] === "'" || line[i] === '"') return line[i];
+  return null;
+}
+
 /**
  * Blank out every commented span, line by line, so a ratchet counts CODE and not its own prose.
  *
@@ -41,36 +70,29 @@ import { join, relative, sep } from 'node:path';
  * @returns one entry per input line, with commented and quoted spans removed
  */
 export function stripComments(source, { lineComments = false } = {}) {
-  let state = 'code'; // 'code' | 'block' | 'template'
+  // Only these two survive a newline. A quoted string does not: resetting at the line break is
+  // what stops one unbalanced apostrophe from swallowing the rest of the file.
+  const MULTILINE = new Set(['block', 'template']);
+  let carried = 'code';
+
   return source.split('\n').map((line) => {
+    let state = carried;
     let out = '';
-    let quote = ''; // "'" or '"' — single-line only, reset below
     for (let i = 0; i < line.length; i++) {
-      const rest2 = line.slice(i, i + 2);
-      if (state === 'block') {
-        if (rest2 === '*/') {
-          state = 'code';
-          i++;
-        }
-      } else if (state === 'template') {
-        if (line[i] === '\\') i++;
-        else if (line[i] === '`') state = 'code';
-      } else if (quote) {
-        if (line[i] === '\\') i++;
-        else if (line[i] === quote) quote = '';
-      } else if (rest2 === '/*') {
-        state = 'block';
-        i++;
-      } else if (lineComments && rest2 === '//') {
-        break;
-      } else if (line[i] === '`') {
-        state = 'template';
-      } else if (line[i] === "'" || line[i] === '"') {
-        quote = line[i];
-      } else {
-        out += line[i];
+      if (state !== 'code') {
+        ({ i, state } = skipSpan(line, i, state));
+        continue;
       }
+      const opening = spanAt(line, i, lineComments);
+      if (opening === 'line') break;
+      if (opening === null) {
+        out += line[i];
+        continue;
+      }
+      state = opening;
+      if (opening === 'block') i++;
     }
+    carried = MULTILINE.has(state) ? state : 'code';
     return out;
   });
 }

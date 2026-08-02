@@ -163,3 +163,24 @@ export const STAFF_REGISTRATION_MATCHERS = [
   ...SHARED_REGISTRATION_MATCHERS,
   ['role', /role/i],
 ] as const satisfies FieldMatchers<'confirmPassword' | 'password' | 'email' | 'firstName' | 'lastName' | 'role'>;
+
+/**
+ * The form-level message for a routed failure, or `null` when there should not be one.
+ *
+ * `rootMessage: null` means two different things and the difference decides whether a second error
+ * line appears. Every message having been routed to a FIELD is not an absence of information — it
+ * is the best case, and printing "An unexpected error occurred" underneath "Password must contain
+ * at least one uppercase letter" is exactly the noise E9 is about. The generic belongs to the case
+ * where nothing at all could be said.
+ *
+ * Extracted because three screens need this decision and no two of them can share state:
+ * `RegisterStaffModal` holds its errors in react-hook-form's `setError`, `useRegisterForm` in its
+ * own `useState`, and `useApiError` in the hook's. The state differs; the rule must not.
+ */
+export function formLevelMessage<TField extends string>(
+  routed: RoutedApiError<TField>,
+  translatedFallback: string,
+): string | null {
+  if (routed.rootMessage) return routed.rootMessage;
+  return routed.fieldErrors.length > 0 ? null : translatedFallback;
+}

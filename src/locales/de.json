@@ -1403,7 +1403,7 @@
   "invalid_credentials": "Invalid email or password.",
   "failed_to_connect_server": "Verbindung zum Server fehlgeschlagen.",
   "unknown_error": "Ein unbekannter Fehler ist aufgetreten.",
-  "unexpected_error": "An unexpected error occurred.",
+  "unexpected_error": "Ein unerwarteter Fehler ist aufgetreten.",
   "failed_to_register": "Failed to register.",
   "validation_min_2_chars": "Muss mindestens 2 Zeichen lang sein",
   "validation_field_required": "Dieses Feld ist erforderlich",

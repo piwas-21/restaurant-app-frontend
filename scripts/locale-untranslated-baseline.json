@@ -69,7 +69,6 @@
     "status",
     "system",
     "turkish",
-    "unexpected_error",
     "validating_qr_code",
     "vegan"
   ],
@@ -103,7 +102,6 @@
     "payment_method_stripe",
     "pizza",
     "turkish",
-    "unexpected_error",
     "vegan"
   ],
   "it.json": [
@@ -154,7 +152,6 @@
     "qr_code_valid",
     "qr_code_validation_error",
     "standard",
-    "unexpected_error",
     "validating_qr_code"
   ],
   "ar.json": [
@@ -287,7 +284,6 @@
     "total_price",
     "total_price_header",
     "type",
-    "unexpected_error",
     "valid_from",
     "valid_until",
     "validating_qr_code",
@@ -419,7 +415,6 @@
     "total",
     "total_price",
     "total_price_header",
-    "unexpected_error",
     "validating_qr_code"
   ],
   "ru.json": [

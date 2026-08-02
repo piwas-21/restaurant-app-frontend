@@ -182,7 +182,7 @@
 
 .table th {
   padding: 1rem;
-  text-align: left;
+  text-align: start;
   font-weight: 600;
   color: var(--text-secondary);
   border-bottom: 2px solid var(--border-color, #dee2e6);
@@ -287,7 +287,7 @@
 
 .dateCell svg {
   display: inline;
-  margin-right: 0.25rem;
+  margin-inline-end: 0.25rem;
   vertical-align: middle;
 }
 

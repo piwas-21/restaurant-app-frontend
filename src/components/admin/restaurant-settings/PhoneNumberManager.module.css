@@ -60,7 +60,7 @@
 }
 
 .rowActions {
-  margin-left: auto;
+  margin-inline-start: auto;
   display: flex;
   gap: 0.5rem;
 }

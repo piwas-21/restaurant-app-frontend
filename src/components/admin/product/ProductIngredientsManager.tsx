@@ -205,7 +205,14 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
                     className={styles.ingredientNameInput}
                   />
                   {loadingSuggestions[index] && (
-                    <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        insetInlineEnd: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                      }}
+                    >
                       <span style={{ color: '#666', fontSize: '12px' }}>...</span>
                     </div>
                   )}

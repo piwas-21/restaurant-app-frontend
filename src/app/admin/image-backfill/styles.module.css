@@ -78,13 +78,13 @@
      notice  7.87 light / 8.65 dark      error  5.61 light / 6.27 dark */
 .error {
   background: var(--surface-primary);
-  border-left: 3px solid var(--feedback-danger);
+  border-inline-start: 3px solid var(--feedback-danger);
   color: var(--feedback-danger-dark);
 }
 
 .notice {
   background: var(--surface-primary);
-  border-left: 3px solid var(--feedback-success);
+  border-inline-start: 3px solid var(--feedback-success);
   color: var(--feedback-success-text);
 }
 

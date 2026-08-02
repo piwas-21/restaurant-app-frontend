@@ -238,7 +238,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, user, onClose, on
                   fontSize: '0.875rem',
                   color: 'var(--text-secondary)',
                   marginTop: '0.5rem',
-                  marginLeft: '0.25rem',
+                  marginInlineStart: '0.25rem',
                 }}
               >
                 {t('leave_password_unchanged', 'Current password will remain unchanged')}

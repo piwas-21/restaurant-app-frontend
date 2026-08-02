@@ -161,8 +161,8 @@
   position: absolute;
   cursor: pointer;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: #cbd5e1;
   transition: 0.3s;
@@ -178,6 +178,9 @@
   content: '';
   height: 20px;
   width: 20px;
+  /* PHYSICAL, pending the dir-aware transform pass (E8 slice 3, see DESIGN-SYSTEM.md §8.1).
+     The knob travels on `transform: translateX(24px)` when checked, and `transform` is never
+     logical — mirror the resting inset alone and the knob slides out of its own track in `ar`. */
   left: 4px;
   bottom: 4px;
   background-color: white;

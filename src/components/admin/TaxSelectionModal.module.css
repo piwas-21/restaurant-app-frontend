@@ -1,8 +1,8 @@
 .overlay {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
@@ -236,7 +236,7 @@
 .checkmark {
   position: absolute;
   top: 1rem;
-  right: 1rem;
+  inset-inline-end: 1rem;
   width: 32px;
   height: 32px;
   background: var(--primary-color, #667eea);
@@ -347,7 +347,7 @@
 
   .checkmark {
     top: 0.75rem;
-    right: 0.75rem;
+    inset-inline-end: 0.75rem;
     width: 28px;
     height: 28px;
   }

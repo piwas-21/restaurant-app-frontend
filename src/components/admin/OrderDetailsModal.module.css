@@ -1,8 +1,8 @@
 .overlay {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
@@ -163,7 +163,7 @@
 .exportMenu {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
+  inset-inline-end: 0;
   background-color: var(--card-background, #ffffff);
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 8px;
@@ -183,7 +183,7 @@
   padding: 10px 16px;
   border: none;
   background: none;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   font-size: 14px;
   color: var(--text-color);
@@ -684,7 +684,7 @@
 .timelineItem:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: 7px;
+  inset-inline-start: 7px;
   top: 40px;
   bottom: -16px;
   width: 2px;
@@ -1026,8 +1026,8 @@
 .confirmModal {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
@@ -1308,7 +1308,7 @@
   .header::before {
     content: attr(data-restaurant);
     position: absolute;
-    left: 16px;
+    inset-inline-start: 16px;
     top: 16px;
     font-size: 24px;
     font-weight: bold;
@@ -1325,7 +1325,7 @@
   .title,
   .orderMeta {
     text-align: right !important;
-    margin-left: auto !important;
+    margin-inline-start: auto !important;
   }
 
   .title {

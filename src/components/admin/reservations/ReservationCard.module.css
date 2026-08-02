@@ -6,27 +6,27 @@
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
-  border-left-width: 4px;
+  border-inline-start-width: 4px;
 }
 
 .reservationCard[data-status='pending'] {
-  border-left-color: #f59e0b;
+  border-inline-start-color: #f59e0b;
 }
 
 .reservationCard[data-status='confirmed'] {
-  border-left-color: #10b981;
+  border-inline-start-color: #10b981;
 }
 
 .reservationCard[data-status='cancelled'] {
-  border-left-color: #ef4444;
+  border-inline-start-color: #ef4444;
 }
 
 .reservationCard[data-status='completed'] {
-  border-left-color: #6b7280;
+  border-inline-start-color: #6b7280;
 }
 
 .reservationCard[data-status='noshow'] {
-  border-left-color: #dc2626;
+  border-inline-start-color: #dc2626;
 }
 
 .reservationCard:hover {
@@ -147,7 +147,7 @@
 .specialRequests {
   padding: 0.75rem;
   background: var(--background);
-  border-left: 3px solid var(--primary);
+  border-inline-start: 3px solid var(--primary);
   border-radius: 4px;
   font-size: 0.8125rem;
   margin-top: 0.5rem;

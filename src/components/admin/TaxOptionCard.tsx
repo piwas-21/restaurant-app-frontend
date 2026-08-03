@@ -5,14 +5,14 @@ import { Check } from 'lucide-react';
 import styles from './TaxSelectionModal.module.css';
 
 interface TaxOptionCardProps {
-  isSelected: boolean;
-  onSelect: () => void;
-  name: string;
-  description?: string;
+  readonly isSelected: boolean;
+  readonly onSelect: () => void;
+  readonly name: string;
+  readonly description?: string;
   /** Already formatted, e.g. "7.70%". */
-  rate: string;
+  readonly rate: string;
   /** The order-type badges, when the option has any. */
-  children?: React.ReactNode;
+  readonly children?: React.ReactNode;
 }
 
 /**

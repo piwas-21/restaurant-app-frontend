@@ -1120,6 +1120,7 @@
   "save_this_address": "保存该地址以便下次使用",
   "save_address_button": "保存地址",
   "failed_to_save_address": "保存地址失败，请重试。",
+  "failed_to_load_saved_addresses": "无法加载您保存的地址。",
   "table_not_selected": "请选择桌位",
   "error_loading_tables": "加载桌位失败，请重试。",
   "retry": "重试",

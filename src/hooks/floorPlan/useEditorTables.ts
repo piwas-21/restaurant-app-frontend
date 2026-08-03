@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { tableLayoutService } from '@/services/tableLayoutService';
 import { generateTableQRCode } from '@/services/tableQRService';
+import { getErrorMessage } from '@/utils/apiClient';
 import type { CreateTableDto, TableDto } from '@/types/reservation';
 
 type Notify = (type: 'success' | 'error', text: string) => void;
@@ -23,8 +24,15 @@ export function useEditorTables(notify: Notify) {
   const load = useCallback(async () => {
     try {
       setTables(await tableLayoutService.getAllTables());
-    } catch {
-      notify('error', t('failed_to_load_tables', 'Failed to load tables'));
+    } catch (error) {
+      // `getErrorMessage(…) ?? t(…)` and NOT `useApiError`: this is a fire-and-forget notice, and
+      // more to the point `load` is a `useCallback` an effect depends on. `useApiError` returns a
+      // memoised OBJECT whose identity changes with its message, so putting it in these deps would
+      // give capture → rebuild → refetch → fail → capture, an unbounded retry against a backend
+      // that is already down. (`t` is in these deps too and its identity changes on
+      // `languageChanged`, so a language switch already re-runs this — harmless for an unpaginated
+      // list, but the reason nothing else may be added here.)
+      notify('error', getErrorMessage(error) ?? t('failed_to_load_tables', 'Failed to load tables'));
     }
   }, [notify, t]);
 

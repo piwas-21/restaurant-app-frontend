@@ -1114,6 +1114,7 @@
   "save_this_address": "Bu adresi gelecekteki siparişler için kaydet",
   "save_address_button": "Adresi Kaydet",
   "failed_to_save_address": "Adres kaydedilemedi. Lütfen tekrar deneyin.",
+  "failed_to_load_saved_addresses": "Kayıtlı adresleriniz yüklenemedi.",
   "table_not_selected": "Lütfen bir masa seçin",
   "error_loading_tables": "Masalar yüklenirken hata oluştu. Lütfen tekrar deneyin.",
   "retry": "Tekrar dene",

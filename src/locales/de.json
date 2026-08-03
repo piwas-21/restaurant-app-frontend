@@ -1112,6 +1112,7 @@
   "save_this_address": "Diese Adresse für zukünftige Bestellungen speichern",
   "save_address_button": "Adresse speichern",
   "failed_to_save_address": "Fehler beim Speichern der Adresse. Bitte versuchen Sie es erneut.",
+  "failed_to_load_saved_addresses": "Ihre gespeicherten Adressen konnten nicht geladen werden.",
   "table_not_selected": "Bitte wählen Sie einen Tisch",
   "error_loading_tables": "Fehler beim Laden der Tische. Bitte versuchen Sie es erneut.",
   "retry": "Erneut versuchen",

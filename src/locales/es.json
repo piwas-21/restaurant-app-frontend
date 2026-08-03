@@ -1103,6 +1103,7 @@
   "save_this_address": "Guardar esta dirección para futuras órdenes",
   "save_address_button": "Guardar dirección",
   "failed_to_save_address": "Error al guardar la dirección. Por favor, inténtelo de nuevo.",
+  "failed_to_load_saved_addresses": "No se pudieron cargar tus direcciones guardadas.",
   "table_not_selected": "Por favor seleccione una mesa",
   "error_loading_tables": "Error al cargar las mesas. Por favor, inténtelo de nuevo.",
   "retry": "Reintentar",

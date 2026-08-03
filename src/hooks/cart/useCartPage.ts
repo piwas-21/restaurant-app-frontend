@@ -53,12 +53,26 @@ export function useCartPage() {
   // stays synchronous.
   const handleCheckout = () => void runCheckout();
 
+  /**
+   * IGNORED ON PURPOSE — and verified end to end rather than asserted, because "handled
+   * elsewhere" is the claim a swallowed failure always makes.
+   *
+   * `useCartItemMutations` catches, resolves the sentence with `getErrorMessage(error) ??
+   * unexpectedError`, dispatches `SET_ERROR`, rolls the optimistic update back, logs, and then
+   * RETHROWS for the caller. `CartPageLayout` renders `state.error`, and both templates supply the
+   * `.errorContainer`/`.errorMessage` classes it needs (`app/styles/CartPage.module.css` for
+   * classic, `templates/craft/cart/CartPage.module.css` for craft) — so the message is on screen
+   * in both skins, not just the one the developer happened to run.
+   *
+   * These catches exist only to stop that deliberate rethrow becoming an unhandled rejection.
+   * Binding the error here would lower the ratchet and show the user nothing new.
+   */
   const handleRemoveItem = async (basketItemId: string | undefined) => {
     if (!basketItemId) return;
     try {
       await removeItem(basketItemId);
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note above.
     }
   };
 
@@ -67,7 +81,7 @@ export function useCartPage() {
     try {
       await updateItem(basketItemId, newQuantity);
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note on `handleRemoveItem`.
     }
   };
 
@@ -77,6 +91,12 @@ export function useCartPage() {
     try {
       await applyPromoCode(promoCode.trim());
       setPromoCode('');
+    } catch {
+      // Surfaced by CartContext — see the note on `handleRemoveItem`. Caught rather than left to
+      // `finally` alone: `applyPromoCode` rethrows, and this is called straight from an onClick, so
+      // without a catch the rejection went nowhere a handler could see it. The user still saw the
+      // message (it is in `state.error` by then), but the console carried an unhandled rejection on
+      // every refused promo code.
     } finally {
       setIsApplyingPromo(false);
     }
@@ -86,7 +106,7 @@ export function useCartPage() {
     try {
       await removePromoCode();
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note on `handleRemoveItem`.
     }
   };
 
@@ -97,7 +117,7 @@ export function useCartPage() {
       setEditingInstructions(null);
       setInstructionsValue('');
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note on `handleRemoveItem`.
     }
   };
 

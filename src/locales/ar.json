@@ -1108,6 +1108,7 @@
   "save_this_address": "احفظ هذا العنوان للطلبات المستقبلية",
   "save_address_button": "حفظ العنوان",
   "failed_to_save_address": "فشل حفظ العنوان. يرجى المحاولة مرة أخرى.",
+  "failed_to_load_saved_addresses": "تعذر تحميل عناوينك المحفوظة.",
   "table_not_selected": "الرجاء اختيار طاولة",
   "error_loading_tables": "خطأ في تحميل الطاولات. يرجى المحاولة مرة أخرى.",
   "retry": "إعادة المحاولة",

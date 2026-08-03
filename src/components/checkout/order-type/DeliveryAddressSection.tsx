@@ -53,6 +53,18 @@ export default function DeliveryAddressSection({ address }: DeliveryAddressSecti
         {t('delivery_address', 'Delivery Address')}
       </h3>
 
+      {/*
+        A PAGE-level notice, not a field error. `addressError` is routed by `errorOn` to whichever
+        of street/postcode/city is empty, so putting this there rendered one outage sentence three
+        times over untouched inputs — and each of those inputs clears `addressError` on change, so
+        the first keystroke erased it while the list was still missing.
+      */}
+      {a.listError && (
+        <p className={styles.error} role="status">
+          {a.listError}
+        </p>
+      )}
+
       {a.isLoggedIn && !a.loadingAddresses && a.savedAddresses.length > 0 && (
         <div className={styles.savedAddressesSection}>
           <h4 className={styles.savedAddressesTitle}>{t('saved_addresses', 'Your Saved Addresses')}</h4>

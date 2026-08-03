@@ -57,15 +57,24 @@ export function useCartPage() {
    * IGNORED ON PURPOSE — and verified end to end rather than asserted, because "handled
    * elsewhere" is the claim a swallowed failure always makes.
    *
-   * `useCartItemMutations` catches, resolves the sentence with `getErrorMessage(error) ??
-   * unexpectedError`, dispatches `SET_ERROR`, rolls the optimistic update back, logs, and then
-   * RETHROWS for the caller. `CartPageLayout` renders `state.error`, and both templates supply the
+   * Two producers, same five steps: `useCartItemMutations` (for `removeItem`/`updateItem`) and
+   * `CartContext` itself, where `applyPromoCode`/`removePromoCode` are defined inline. Each
+   * resolves the sentence with `getErrorMessage(error) ?? unexpectedError`, dispatches `SET_ERROR`,
+   * rolls the optimistic update back, logs, and then RETHROWS for the caller.
+   *
+   * `CartPageLayout` renders `state.error`, and both templates supply the
    * `.errorContainer`/`.errorMessage` classes it needs (`app/styles/CartPage.module.css` for
-   * classic, `templates/craft/cart/CartPage.module.css` for craft) — so the message is on screen
-   * in both skins, not just the one the developer happened to run.
+   * classic, `templates/craft/cart/CartPage.module.css` for craft) — so the message is on screen in
+   * both skins, not just the one the developer happened to run. The load-bearing link is
+   * `cartReducer`'s ROLLBACK arm, which explicitly carries `error: state.error` forward; a plain
+   * `...previousState` there would make every one of these comments false.
    *
    * These catches exist only to stop that deliberate rethrow becoming an unhandled rejection.
    * Binding the error here would lower the ratchet and show the user nothing new.
+   *
+   * One exit is NOT covered by "always surfaced", and it is deliberate: `updateItem`/`removeItem`
+   * detect an item already gone (removed in another tab), resync and return WITHOUT `SET_ERROR`
+   * and without rethrowing. Nothing to report there — the basket is now correct.
    */
   const handleRemoveItem = async (basketItemId: string | undefined) => {
     if (!basketItemId) return;
@@ -93,10 +102,11 @@ export function useCartPage() {
       setPromoCode('');
     } catch {
       // Surfaced by CartContext — see the note on `handleRemoveItem`. Caught rather than left to
-      // `finally` alone: `applyPromoCode` rethrows, and this is called straight from an onClick, so
-      // without a catch the rejection went nowhere a handler could see it. The user still saw the
-      // message (it is in `state.error` by then), but the console carried an unhandled rejection on
-      // every refused promo code.
+      // `finally` alone: `applyPromoCode` rethrows, and the Apply BUTTON calls this straight from
+      // an onClick, so the rejection went nowhere a handler could see. (The Enter-key path in
+      // `CartSummary` had its own `.catch` for exactly this, now redundant and removed.) The user
+      // always saw the message — it is in `state.error` by then — but the click path left an
+      // unhandled rejection on every refused promo code.
     } finally {
       setIsApplyingPromo(false);
     }

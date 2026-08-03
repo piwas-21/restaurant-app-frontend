@@ -21,6 +21,7 @@ function makeAddress(overrides: Partial<Address> = {}): Address {
     additionalInfo: '',
     fieldRules: DEFAULTS,
     addressError: '',
+    listError: null,
     isLoggedIn: false,
     savedAddresses: [],
     selectedAddressId: null,
@@ -116,5 +117,40 @@ describe('DeliveryAddressSection — config-driven country/additionalInfo (D3)',
     expect(address.setAddressError).toHaveBeenCalledWith('');
     fireEvent.change(screen.getByLabelText('Additional Information (optional)'), { target: { value: 'Floor 2' } });
     expect(address.setAdditionalInfo).toHaveBeenCalledWith('Floor 2');
+  });
+});
+
+/**
+ * `addressError` is a VALIDATION slot: `errorOn` hands it to whichever of street/postcode/city is
+ * empty. An address-book outage routed through it therefore appeared as three simultaneous field
+ * errors on inputs the customer had not touched, and any keystroke cleared it. `listError` is the
+ * page-level slot for that fact.
+ */
+describe('DeliveryAddressSection — a failed address list is not a field error', () => {
+  it('renders listError once, not once per empty required field', () => {
+    render(
+      <DeliveryAddressSection
+        address={makeAddress({ listError: 'Could not load your saved addresses.', isLoggedIn: true })}
+      />,
+    );
+
+    expect(screen.getAllByText('Could not load your saved addresses.')).toHaveLength(1);
+  });
+
+  it('does not paint the untouched inputs as invalid', () => {
+    render(
+      <DeliveryAddressSection
+        address={makeAddress({ listError: 'Could not load your saved addresses.', isLoggedIn: true })}
+      />,
+    );
+
+    // `errorOn` marks a field by giving `FormField` an error; none should have one here.
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
+  });
+
+  it('still routes a genuine validation error to its field', () => {
+    render(<DeliveryAddressSection address={makeAddress({ addressError: 'This field is required' })} />);
+
+    expect(screen.getAllByText('This field is required').length).toBeGreaterThan(0);
   });
 });

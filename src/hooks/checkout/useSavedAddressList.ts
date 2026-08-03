@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
-import type { TFunction } from 'i18next';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses, type AddressDto } from '@/services/addressService';
 import { getErrorMessage } from '@/utils/apiClient';
+import { useStableT } from '@/hooks/useStableT';
 
 export interface SavedAddressList {
   readonly isLoggedIn: boolean;
@@ -12,6 +12,17 @@ export interface SavedAddressList {
   readonly loadingAddresses: boolean;
   readonly showNewAddressForm: boolean;
   readonly setShowNewAddressForm: Dispatch<SetStateAction<boolean>>;
+  /**
+   * Why the saved list is missing, or `null`.
+   *
+   * Its OWN state, deliberately not `useDeliveryAddress`'s `addressError`. That field is a
+   * validation slot: `DeliveryAddressSection.errorOn` hands it to whichever of street/postcode/city
+   * is currently empty, so an outage sentence rendered as three simultaneous field errors with red
+   * borders on inputs the customer had not touched — and every one of those inputs calls
+   * `setAddressError('')` on change, so the first keystroke erased it permanently while the list
+   * was still missing. A page-level fact needs a page-level slot.
+   */
+  readonly listError: string | null;
 }
 
 /**
@@ -28,19 +39,16 @@ export interface SavedAddressList {
  * rest of checkout. A deliberate ignore is justified per PATH, not per callsite — #406's finding
  * about `checkIsOpen`, one feature area over.
  *
- * Both extra parameters are deliberately things whose identity never changes, so the effect below
- * can list them without re-running: `useState` setters are guaranteed stable by React, and `tRef`
- * is a ref (see `useStableT` for why `t` itself must not appear here).
+ * `t` is read through `useStableT` rather than listed in the effect's deps — see that hook. Listing
+ * it would refetch the address list on a language switch, mid-checkout.
  */
-export function useSavedAddressList(
-  enabled: boolean,
-  reportError: (message: string) => void,
-  tRef: MutableRefObject<TFunction>,
-): SavedAddressList {
+export function useSavedAddressList(enabled: boolean): SavedAddressList {
+  const tRef = useStableT();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<AddressDto[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [showNewAddressForm, setShowNewAddressForm] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
@@ -51,6 +59,7 @@ export function useSavedAddressList(
       setIsLoggedIn(false);
       setSavedAddresses([]);
       setShowNewAddressForm(true);
+      setListError(null);
     };
 
     (async () => {
@@ -76,6 +85,7 @@ export function useSavedAddressList(
         if (cancelled) return;
         setSavedAddresses(addresses);
         setShowNewAddressForm(addresses.length === 0);
+        setListError(null);
       } catch (error) {
         if (cancelled) return;
         // Stay logged IN — the profile call just succeeded, so this is the list failing, not the
@@ -83,7 +93,7 @@ export function useSavedAddressList(
         // sentences, and the customer can act on only one of them.
         setSavedAddresses([]);
         setShowNewAddressForm(true);
-        reportError(
+        setListError(
           getErrorMessage(error) ??
             tRef.current('failed_to_load_saved_addresses', 'Could not load your saved addresses.'),
         );
@@ -95,7 +105,7 @@ export function useSavedAddressList(
     return () => {
       cancelled = true;
     };
-  }, [enabled, reportError, tRef]);
+  }, [enabled, tRef]);
 
-  return { isLoggedIn, savedAddresses, loadingAddresses, showNewAddressForm, setShowNewAddressForm };
+  return { isLoggedIn, savedAddresses, loadingAddresses, showNewAddressForm, setShowNewAddressForm, listError };
 }

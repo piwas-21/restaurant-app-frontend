@@ -7,7 +7,6 @@ import { getErrorMessage } from '@/utils/apiClient';
 import { buildDeliveryAddressSchema } from '@/schemas/deliveryAddress.schema';
 import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
 import { FORM_KEYS } from '@/types/formFieldConfig';
-import { useStableT } from '@/hooks/useStableT';
 import { useSavedAddressList } from './useSavedAddressList';
 
 const DEFAULT_COUNTRY = 'Switzerland';
@@ -46,13 +45,9 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
   const [saveThisAddress, setSaveThisAddress] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
 
-  // Not in the child's deps as `t` — see `useStableT`. Listing `t` would refetch the address list
-  // on a language switch, mid-checkout, resetting the form and the customer's typing.
-  const tRef = useStableT();
-
-  // `setAddressError` is a `useState` setter, so its identity is stable and the child can list it.
-  const { isLoggedIn, savedAddresses, loadingAddresses, showNewAddressForm, setShowNewAddressForm } =
-    useSavedAddressList(deliverySelected, setAddressError, tRef);
+  // `listError` is kept SEPARATE from `addressError` on purpose — see `SavedAddressList.listError`.
+  const { isLoggedIn, savedAddresses, loadingAddresses, showNewAddressForm, setShowNewAddressForm, listError } =
+    useSavedAddressList(deliverySelected);
 
   const selectSavedAddress = (address: AddressDto) => {
     setSelectedAddressId(address.id);
@@ -129,6 +124,8 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
     /** Admin-configured `delivery_address` rules — the section derives field visibility/markers. */
     fieldRules,
     addressError,
+    /** Why the saved-address list is missing — a page-level notice, NOT a per-field error. */
+    listError,
     isLoggedIn,
     savedAddresses,
     selectedAddressId,

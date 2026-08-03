@@ -119,6 +119,7 @@ describe('useDeliveryAddress — a failed address list is not a logged-out sessi
 
     await waitFor(() => expect(result.current.showNewAddressForm).toBe(true));
     expect(result.current.isLoggedIn).toBe(false);
+    expect(result.current.listError).toBeNull();
     expect(result.current.addressError).toBe('');
   });
 
@@ -128,7 +129,10 @@ describe('useDeliveryAddress — a failed address list is not a logged-out sessi
 
     const { result } = renderHook(() => useDeliveryAddress(undefined, true));
 
-    await waitFor(() => expect(result.current.addressError).toBe('Address book is unavailable'));
+    // `listError`, NOT `addressError`: the latter is a validation slot that
+    // `DeliveryAddressSection.errorOn` routes to whichever field is empty.
+    await waitFor(() => expect(result.current.listError).toBe('Address book is unavailable'));
+    expect(result.current.addressError).toBe('');
     // The half that silently disabled "save this address" for the rest of checkout.
     expect(result.current.isLoggedIn).toBe(true);
     expect(result.current.showNewAddressForm).toBe(true);
@@ -141,7 +145,7 @@ describe('useDeliveryAddress — a failed address list is not a logged-out sessi
 
     const { result } = renderHook(() => useDeliveryAddress(undefined, true));
 
-    await waitFor(() => expect(result.current.addressError).toBe('Could not load your saved addresses.'));
+    await waitFor(() => expect(result.current.listError).toBe('Could not load your saved addresses.'));
     expect(result.current.isLoggedIn).toBe(true);
   });
 
@@ -154,7 +158,7 @@ describe('useDeliveryAddress — a failed address list is not a logged-out sessi
     const { result } = renderHook(() => useDeliveryAddress(undefined, true));
 
     await waitFor(() => expect(result.current.savedAddresses).toHaveLength(1));
-    expect(result.current.addressError).toBe('');
+    expect(result.current.listError).toBeNull();
     expect(result.current.showNewAddressForm).toBe(false);
   });
 });

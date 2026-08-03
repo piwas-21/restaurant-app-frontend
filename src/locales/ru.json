@@ -2516,5 +2516,6 @@
   "user_updated_successfully": "Пользователь успешно обновлен",
   "failed_to_reactivate_user": "Не удалось восстановить пользователя",
   "reactivate_user_error": "Произошла ошибка при восстановлении пользователя",
-  "customers_update_own_profile_only": "Клиенты могут обновлять только свой профиль"
+  "customers_update_own_profile_only": "Клиенты могут обновлять только свой профиль",
+  "unknown_day": "Неизвестный день"
 }

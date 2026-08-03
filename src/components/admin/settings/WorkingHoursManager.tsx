@@ -61,10 +61,15 @@ export default function WorkingHoursManager() {
       const open = await workingHoursService.isOpenNow();
       setIsOpen(open);
     } catch {
-      // Deliberately ignored, and it must stay that way: this only decides whether an
-      // "Open now" badge renders. The page's real content is the hours themselves, and
-      // `loadWorkingHours` already reports its own failure — a second toast for the badge would
-      // report the same outage twice and bury the one that matters.
+      // No toast, on purpose: this only decides whether the "Open now" banner renders, and on
+      // mount `loadWorkingHours` fails alongside it and reports the same outage — a second toast
+      // would bury the one that matters.
+      //
+      // But silence is not the same as doing nothing. After a SAVE this runs again, on its own,
+      // with `loadWorkingHours` having just succeeded; leaving `isOpen` alone there would keep the
+      // banner asserting the PRE-save answer over a table showing the hours the admin just changed,
+      // with nothing reported anywhere. `null` hides the banner instead: no answer beats a stale one.
+      setIsOpen(null);
     }
   };
 

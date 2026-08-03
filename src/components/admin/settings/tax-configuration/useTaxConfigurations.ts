@@ -9,22 +9,10 @@ import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import { OrderType } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import { validateRateInput } from './taxRate';
+import { INITIAL_TAX_FORM, type TaxFormData } from './taxForm';
 
-export interface TaxFormData {
-  name: string;
-  rate: number;
-  isEnabled: boolean;
-  description: string;
-  applicableOrderTypes: OrderType[];
-}
-
-const INITIAL_TAX_FORM: TaxFormData = {
-  name: '',
-  rate: 0,
-  isEnabled: false,
-  description: '',
-  applicableOrderTypes: [],
-};
+// Re-exported so existing importers keep working; `taxForm.ts` is the definition.
+export type { TaxFormData };
 
 // Owns all state + data-access logic for the tax-configuration admin panel;
 // the list, form modal and thin orchestrator consume the returned object.
@@ -48,15 +36,19 @@ export function useTaxConfigurations() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // The E9 shape, in one place: the server's own sentence when it authored one, the contextual
+  // fallback when it did not. Four callsites had it copied out.
+  const reportFailure = (e: unknown, fallback: string) =>
+    enqueueSnackbar(getErrorMessage(e) ?? fallback, { variant: 'error' });
+  const reportSuccess = (message: string) => enqueueSnackbar(message, { variant: 'success' });
+
   const fetchTaxConfigs = async () => {
     try {
       setLoading(true);
       const data = await adminTaxConfigurationService.getAllTaxConfigurations();
       setTaxConfigs(data);
     } catch (e) {
-      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_load', 'Failed to load tax configurations'), {
-        variant: 'error',
-      });
+      reportFailure(e, t('tax_failed_to_load', 'Failed to load tax configurations'));
     } finally {
       setLoading(false);
     }
@@ -92,14 +84,12 @@ export function useTaxConfigurations() {
     if (!deletingTaxId) return;
     try {
       await adminTaxConfigurationService.deleteTaxConfiguration(deletingTaxId);
-      enqueueSnackbar(t('tax_deleted_successfully', 'Tax configuration deleted successfully'), { variant: 'success' });
+      reportSuccess(t('tax_deleted_successfully', 'Tax configuration deleted successfully'));
       fetchTaxConfigs();
     } catch (e) {
       // The server's reason matters most here — a refused delete usually names what still
       // references the tax, which "Failed to delete tax configuration" cannot.
-      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_delete', 'Failed to delete tax configuration'), {
-        variant: 'error',
-      });
+      reportFailure(e, t('tax_failed_to_delete', 'Failed to delete tax configuration'));
     } finally {
       setIsDeleteModalOpen(false);
       setDeletingTaxId(null);
@@ -117,19 +107,16 @@ export function useTaxConfigurations() {
       } else {
         await adminTaxConfigurationService.createTaxConfiguration(formData);
       }
-      enqueueSnackbar(
+      reportSuccess(
         t(
           editingConfig ? 'tax_updated_successfully' : 'tax_created_successfully',
           `Tax configuration ${editingConfig ? 'updated' : 'created'} successfully`,
         ),
-        { variant: 'success' },
       );
       setIsFormOpen(false);
       fetchTaxConfigs();
     } catch (e) {
-      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_save', 'Failed to save tax configuration'), {
-        variant: 'error',
-      });
+      reportFailure(e, t('tax_failed_to_save', 'Failed to save tax configuration'));
     }
   };
 
@@ -143,18 +130,15 @@ export function useTaxConfigurations() {
         description: config.description,
         applicableOrderTypes: config.applicableOrderTypes || [],
       });
-      enqueueSnackbar(
+      reportSuccess(
         t(
           config.isEnabled ? 'tax_disabled_successfully' : 'tax_enabled_successfully',
           `Tax ${!config.isEnabled ? 'enabled' : 'disabled'} successfully`,
         ),
-        { variant: 'success' },
       );
       fetchTaxConfigs();
     } catch (e) {
-      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_toggle', 'Failed to toggle tax configuration'), {
-        variant: 'error',
-      });
+      reportFailure(e, t('tax_failed_to_toggle', 'Failed to toggle tax configuration'));
     }
   };
 

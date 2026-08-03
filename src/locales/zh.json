@@ -2516,5 +2516,6 @@
   "user_updated_successfully": "用户更新成功",
   "failed_to_reactivate_user": "恢复用户失败",
   "reactivate_user_error": "恢复用户时出错",
-  "customers_update_own_profile_only": "客户只能更新自己的个人资料"
+  "customers_update_own_profile_only": "客户只能更新自己的个人资料",
+  "unknown_day": "未知日期"
 }

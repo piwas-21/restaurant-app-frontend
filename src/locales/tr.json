@@ -2516,5 +2516,6 @@
   "user_updated_successfully": "Kullanıcı başarıyla güncellendi",
   "failed_to_reactivate_user": "Kullanıcı yeniden etkinleştirilemedi",
   "reactivate_user_error": "Kullanıcı yeniden etkinleştirilirken bir hata oluştu",
-  "customers_update_own_profile_only": "Müşteriler yalnızca kendi profillerini güncelleyebilir"
+  "customers_update_own_profile_only": "Müşteriler yalnızca kendi profillerini güncelleyebilir",
+  "unknown_day": "Bilinmeyen gün"
 }

@@ -145,6 +145,45 @@ describe('TaxConfigurationManager', () => {
       );
     });
 
+    /**
+     * The case this describe block's own header cites as the reason the slice exists — and which
+     * the first version of it did not actually cover. A review mutation proved it: reverting
+     * `confirmDelete` to discard the server's sentence left every test green.
+     */
+    it("prefers the server's per-rule errors[] on a refused delete", async () => {
+      mockDelete.mockRejectedValue(
+        new ApiError(409, 'Delete failed', ['Rate is used by 4 active menu items', 'Reassign them first']),
+      );
+      render(<TaxConfigurationManager />);
+      await screen.findByText('VAT');
+      fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[0]);
+      fireEvent.click(await screen.findByRole('button', { name: 'yes' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Rate is used by 4 active menu items, Reassign them first', {
+          variant: 'error',
+        }),
+      );
+      expect(mockEnqueueSnackbar).not.toHaveBeenCalledWith('Failed to delete tax configuration', {
+        variant: 'error',
+      });
+    });
+
+    it("surfaces the server's sentence when a save is refused", async () => {
+      mockGetAll.mockReset();
+      mockGetAll.mockResolvedValue([]);
+      mockCreate.mockRejectedValue(new ApiError(422, 'A tax named GST already exists'));
+      render(<TaxConfigurationManager />);
+      const rateInput = await openCreateForm();
+      fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'GST' } });
+      fireEvent.change(rateInput, { target: { value: '8' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('A tax named GST already exists', { variant: 'error' }),
+      );
+    });
+
     it('still falls back to the CONTEXTUAL sentence when the server authored nothing', async () => {
       mockUpdate.mockRejectedValue(new ApiError(500, ''));
       render(<TaxConfigurationManager />);

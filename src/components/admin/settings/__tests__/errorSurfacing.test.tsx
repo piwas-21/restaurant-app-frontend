@@ -4,6 +4,7 @@ import OrderTypeManager from '../OrderTypeManager';
 import WorkingHoursManager from '../WorkingHoursManager';
 import { orderTypeConfigurationService } from '@/services/orderTypeConfigurationService';
 import { workingHoursService } from '@/services/workingHoursService';
+import type { WorkingHoursDto } from '@/types/workingHours';
 import { ApiError } from '@/utils/apiClient';
 import { OrderType } from '@/types/order';
 
@@ -48,9 +49,14 @@ beforeEach(() => {
   mockOrderTypeGetAll.mockResolvedValue([
     { orderType: OrderType.DineIn, isEnabled: true, displayName: 'Dine In' },
   ] as never);
+  // `as unknown as`, not `as never`: `as never` switches off type checking on the fixture entirely,
+  // and the first version of it omitted `id` — which the component uses as the React key AND as the
+  // row selector in every edit handler. With one row that is invisible; with two, `wh.id === wh.id`
+  // matches every row and an edit to one cell would rewrite them all with the test none the wiser.
   mockHoursGetAll.mockResolvedValue([
-    { dayOfWeek: 1, openTime: '09:00', closeTime: '17:00', isActive: true, isClosed: false, notes: null },
-  ] as never);
+    { id: 'wh-mon', dayOfWeek: 1, openTime: '09:00', closeTime: '17:00', isActive: true, isClosed: false, notes: null },
+    { id: 'wh-tue', dayOfWeek: 2, openTime: '09:00', closeTime: '17:00', isActive: true, isClosed: false, notes: null },
+  ] as unknown as WorkingHoursDto[]);
   mockIsOpenNow.mockResolvedValue(true);
 });
 
@@ -143,6 +149,27 @@ describe('admin settings — what the admin reads when the server refuses', () =
 
       expect(errorToastMessages()).toHaveLength(0);
       expect(lastToastMessage()).toBeUndefined();
+    });
+
+    /**
+     * Silence is not the same as doing nothing, and the first version of this slice got that wrong.
+     * On the POST-SAVE re-check `loadWorkingHours` has just succeeded, so nothing else reports the
+     * failure — and leaving `isOpen` untouched kept the banner asserting the PRE-save answer above
+     * a table showing the hours the admin had just changed. Hiding it is the honest outcome.
+     */
+    it('hides the open-now banner rather than freezing it when the post-save re-check fails', async () => {
+      mockIsOpenNow.mockResolvedValueOnce(true).mockRejectedValueOnce(new ApiError(500, 'probe failed'));
+      mockHoursUpdate.mockResolvedValue(undefined as never);
+
+      render(<WorkingHoursManager />);
+      expect(await screen.findByText('Restaurant is currently OPEN')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+
+      await waitFor(() => expect(mockIsOpenNow).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(screen.queryByText('Restaurant is currently OPEN')).not.toBeInTheDocument());
+      // …and still no toast: the badge is not worth one, it just must not lie.
+      expect(errorToastMessages()).toHaveLength(0);
     });
   });
 });

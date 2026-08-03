@@ -2516,5 +2516,6 @@
   "user_updated_successfully": "تم تحديث المستخدم بنجاح",
   "failed_to_reactivate_user": "فشل في إعادة تنشيط المستخدم",
   "reactivate_user_error": "حدث خطأ أثناء إعادة تنشيط المستخدم",
-  "customers_update_own_profile_only": "يمكن للعملاء تحديث ملفهم الشخصي فقط"
+  "customers_update_own_profile_only": "يمكن للعملاء تحديث ملفهم الشخصي فقط",
+  "unknown_day": "يوم غير معروف"
 }

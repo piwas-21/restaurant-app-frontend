@@ -20,7 +20,9 @@ const DAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'frida
  */
 export const getDayName = (dayOfWeek: number, t: TFunction): string => {
   const englishName = ENGLISH_DAY_NAMES[dayOfWeek];
-  if (englishName === undefined) return 'Unknown';
+  // Translated, unlike the `'Unknown'` literal this was extracted from — new code does not get to
+  // inherit a §5 exemption just because the line it replaced had one.
+  if (englishName === undefined) return t('unknown_day', 'Unknown day');
   // `|| englishName` preserves the original's `translated || english || 'Unknown'` chain: a locale
   // carrying an EMPTY string for a day key would otherwise render a blank where a day name belongs.
   return t(DAY_KEYS[dayOfWeek], englishName) || englishName;

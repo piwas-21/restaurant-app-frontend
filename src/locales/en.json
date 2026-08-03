@@ -2516,5 +2516,6 @@
   "user_updated_successfully": "User updated successfully",
   "failed_to_reactivate_user": "Failed to reactivate user",
   "reactivate_user_error": "An error occurred while reactivating user",
-  "customers_update_own_profile_only": "Customers can only update their own profile"
+  "customers_update_own_profile_only": "Customers can only update their own profile",
+  "unknown_day": "Unknown day"
 }

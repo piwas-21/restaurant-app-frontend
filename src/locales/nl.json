@@ -2516,5 +2516,6 @@
   "user_updated_successfully": "Gebruiker bijgewerkt",
   "failed_to_reactivate_user": "Kon gebruiker niet herstellen",
   "reactivate_user_error": "Er is een fout opgetreden bij het herstellen van de gebruiker",
-  "customers_update_own_profile_only": "Klanten kunnen alleen hun eigen profiel bijwerken"
+  "customers_update_own_profile_only": "Klanten kunnen alleen hun eigen profiel bijwerken",
+  "unknown_day": "Onbekende dag"
 }

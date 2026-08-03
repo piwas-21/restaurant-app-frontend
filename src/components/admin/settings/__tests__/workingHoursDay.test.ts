@@ -28,8 +28,9 @@ describe('getDayName', () => {
 
   it('says "Unknown" rather than rendering undefined for an out-of-range day', () => {
     // `dayOfWeek` comes from the API, so this is a real input, not a hypothetical.
-    expect(getDayName(7, english)).toBe('Unknown');
-    expect(getDayName(-1, english)).toBe('Unknown');
+    expect(getDayName(7, english)).toBe('Unknown day');
+    expect(getDayName(-1, english)).toBe('Unknown day');
+    expect(getDayName(7, translatorFor({ unknown_day: 'Jour inconnu' }))).toBe('Jour inconnu');
   });
 });
 

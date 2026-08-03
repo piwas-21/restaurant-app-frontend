@@ -50,8 +50,15 @@ limit_for_path() {
     *Modal.tsx)                                                       echo 200 ;;
     # Types
     src/types/*.ts|src/types/**/*.ts)                                 echo 150 ;;
-    # Custom hooks
+    # Custom hooks — anywhere, not just src/hooks. CLAUDE.md §4 states the 200-LOC limit for
+    # "Custom hook" without qualifying it by directory, but this rule used to glob src/hooks only,
+    # so a hook colocated with its feature (src/components/.../useTaxConfigurations.ts) fell through
+    # to the `*) echo 0` catch-all and was skipped entirely. Found when one drifted to 208 LOC
+    # inside a PR that was refusing to baseline a component for the same overrun.
     src/hooks/use*.ts|src/hooks/**/use*.ts)                           echo 200 ;;
+    # `use[A-Z]*` and not `use*`: the latter also matches `user.ts` / `userService.ts`, which are
+    # not hooks. They land on the right limit today only because their own cases appear earlier.
+    src/**/use[A-Z]*.ts)                                              echo 200 ;;
     # Services + lib
     src/services/*.ts|src/services/**/*.ts)                           echo 200 ;;
     src/lib/*.ts|src/lib/**/*.ts)                                     echo 200 ;;

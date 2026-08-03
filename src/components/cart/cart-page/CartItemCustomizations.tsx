@@ -36,8 +36,11 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
               const ingredientId = item.selectedIngredients?.[idx];
               const qty =
                 ingredientId && item.ingredientQuantities?.[ingredientId] ? item.ingredientQuantities[ingredientId] : 1;
+              // Keyed on the ingredient id, not the index: it is already resolved above, and an
+              // index key re-associates state across a reorder (Sonar S6479). Falls back to the
+              // name, which is what the list renders anyway.
               return (
-                <React.Fragment key={idx}>
+                <React.Fragment key={ingredientId ?? name}>
                   {idx > 0 && ', '}
                   {/* Separator OUTSIDE the isolate — `dir="auto"` implies `unicode-bidi: isolate`,
                       so a leading `, ` inside it collapses the gap between items to 0px. */}

@@ -292,8 +292,16 @@ function ConfirmationContent() {
                       </div>
                     )}
                     <div className={styles.itemDetails}>
-                      <h3 className={styles.itemName}>{item.productName}</h3>
-                      {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
+                      {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2). Same markup as
+                          checkout/OrderItemsList — the guest sees these lines on both screens. */}
+                      <h3 dir="auto" className={styles.itemName}>
+                        {item.productName}
+                      </h3>
+                      {item.variationName && (
+                        <p dir="auto" className={styles.itemVariation}>
+                          {item.variationName}
+                        </p>
+                      )}
                       <p className={styles.itemQuantity}>
                         {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                       </p>

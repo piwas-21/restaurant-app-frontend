@@ -47,7 +47,10 @@ export default function CartLineList({
           // stays byte-identical.
           <li key={itemId ?? index} className={styles.item}>
             <div className={headerClassName}>
-              <span className={styles.itemName}>{item.productName}</span>
+              {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
+              <span dir="auto" className={styles.itemName}>
+                {item.productName}
+              </span>
               <span className={styles.itemPrice}>{formatPlainCurrency(item.itemTotal)}</span>
             </div>
             <OrderLineSummary line={basketItemToLineSummary(item)} />

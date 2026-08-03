@@ -482,6 +482,36 @@ Three more the codemod cannot see, so check them by hand:
 
 Anything deliberately physical carries a comment saying so and stays in the ratchet's count — the ratchet measures syntax, not defects.
 
+### 8.2 Product-authored text needs `dir="auto"`
+
+CSS mirrors the *layout*. It cannot fix **bidi inside a string**: an English product name or description sitting in an Arabic page is an LTR run inside an RTL paragraph, and its trailing punctuation — `.` `,` `:` — is *neutral*, so it takes the paragraph's direction and jumps to the far end.
+
+Measured on the **classic** menu card in `ar`, on the product name `Lamb shank, slow-braised.`:
+
+| | computed `direction` | final letter | `.` |
+| --- | --- | --- | --- |
+| plain | `rtl` | x=1179 | **x=1032** — 147px to the *left* of the letter it follows, same line |
+| `dir="auto"` | `ltr` | x=1173 | x=1188 ✓ |
+| the same, in `en` | `ltr` | x=226 | x=241 — **identical with and without**, i.e. inert for the nine LTR locales |
+
+`dir="auto"` picks the direction from the first strong character, so an Arabic product name still renders RTL — it is not "force LTR". Apply it to any field whose text comes from the **tenant**, not from `src/locales/`: item name, description, variation name, ingredient and side-item names, special instructions, category name.
+
+**Sweep the template that SHIPS.** `next.config.ts` defaults to `classic` and neither the prod nor the staging build passes `NEXT_PUBLIC_TEMPLATE`, so **RUMI ships `classic`** — `src/templates/craft/**` is not in that bundle. A fix verified only on the craft demo reaches nobody. The first pass of this sweep did exactly that and had to be redone.
+
+**38 elements across 19 components** are covered: both menu cards, both Chef's Special heroes, both category navs, the customization sheet and its base/variation/optional-ingredient/side-item rows, `BaseModal`'s title, cart lines, cart-page cards and their customization lines, checkout order lines on **both** `/checkout/review` and `/checkout/confirmation`, and `OrderLineSummary`. **Not swept, and still live:** all staff/admin surfaces (~64 tenant-name renders), plus a handful of customer ones — the bundle path (`BundleSectionSelector`, `BundleOptionRow`), `orders/OrderCard`, `OrderTypeConflictModal`, `MyReservationCard`, the home-page address/hours blocks and `TenantLogo`.
+
+**Put it on LEAF text elements only** (`<h2>`/`<h3>`/`<p>`/`<span>` with no element children); where the natural host has an element child — a `<strong>` label, a required-marker `<span>`, a category notice — wrap the tenant-authored half in its own span instead. `dir="auto"` *does* set the attribute; what fails is that `[dir='ltr']` / `[dir='rtl']` do not match the literal value `auto`, so `--dir` keeps whatever it inherited while logical properties follow the *resolved* direction. A `--dir`-dependent transform inside a `dir="auto"` **container** would therefore mirror its insets and not its transforms. Keeping it on leaves makes that unreachable rather than merely unlikely (§8.1, and the note in `globals.css`). Nothing enforces this — there is no gate for it.
+
+**Keep separators and numeric suffixes OUTSIDE the isolate.** `dir="auto"` implies `unicode-bidi: isolate`, so a `", "` rendered *inside* the span belongs to that item's own run and paints at its leading edge — measured, the gap between two list items collapses from 9.1px to **0px** and the names run together. Isolate the name, nothing else.
+
+**A neutral character next to an untranslated string has the same symptom and the same fix.** `:Or select time` on `/reservations` in `ar` renders its colon 86px to the *left* of the label, measured — because the `:` is a JSX literal outside `t()`, so it is neutral and takes the paragraph direction. `dir="auto"` fixes that half exactly as it does product text. The English string is a **separate** bug and `dir="auto"` does not address it: that one is a missing translation, and `or_select_time` is not in `scripts/locale-untranslated-baseline.json` because it is not in any locale file at all — it exists only as a `t()` inline default. Per `CLAUDE.md` §9 an agent may add or remove keys in `ar`/`ru`/`zh` but must not **rephrase existing** translations there, so adding this key with a real Arabic value needs a human.
+
+**What must NOT mirror:** the craft `--craft-tape-clip` polygon. It is decorative asymmetry — a torn masking-tape edge, which has no reading direction, like the floor plan. Verified it costs nothing in `ar`: all five clipped elements on `/menu` have **symmetric** inline padding and zero horizontal overflow in both directions, so the torn corners never reach the text — `CraftFeaturedSpecial .tape` 22.4px, `CraftCategoryNav .tab` 20.8px, `CraftMenuCard .special` 17.6px, `CraftItemAvailability .availabilityReason` 14.4px, `CraftOrderTypeToggle .button` 12px.
+
+Those five are the ones on `/menu`, **not** the whole set: `tapeLabel`/`tapeLabelAccent`/`tapeChip` are `composes`-d at eight further sites (craft's reservations, auth, checkout sections, cart summary, tip selector at 11.2px, my-reservations, tables docket), and `order/OrderTypeToggle.module.css` takes the polygon via `--modal-body-toggle-clip` at **6.4px**. None of those were measured.
+
+The polygon's insets are **percentages of the element's own width**, so the clipped pixels scale *with* it — 2% of 100px is 2px, of 900px is 18px. Against a fixed padding the risk is **widening**, not narrowing: the 6.4px case breaks even around a 320px-wide button and the live one is 96px, where the clip eats 1.9px. Re-measure when one of these gets wider.
+
 ---
 
 ## 9. Migration Strategy

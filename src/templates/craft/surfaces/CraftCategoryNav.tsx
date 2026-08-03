@@ -33,7 +33,8 @@ export default function CraftCategoryNav({ categories, selectedView, onSelect, a
           onClick={() => onSelect(tab.id)}
           aria-pressed={selectedView === tab.id}
         >
-          {tab.label}
+          {/* Wrapped, not on the button — see CategoryNav: with a notice the button is not a leaf. */}
+          <span dir="auto">{tab.label}</span>
           {/* Inside the button on purpose — see CategoryNav: the reason joins the accessible name. */}
           {tab.notice && <span className={styles.tabNotice}>{tab.notice.message}</span>}
         </button>

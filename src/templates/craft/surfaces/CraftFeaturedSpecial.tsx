@@ -75,7 +75,8 @@ export default function CraftFeaturedSpecial({
           {/* The craft signature: the dish and its price on one dotted leader, hand-lettered. A
               heading rather than a button — unlike a card, the hero has its own Details control. */}
           <div className={styles.leader}>
-            <h2 id="featured-special-heading" className={styles.name}>
+            {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
+            <h2 id="featured-special-heading" dir="auto" className={styles.name}>
               {itemName}
             </h2>
             <span className={styles.price}>{formatPlainCurrency(price)}</span>
@@ -87,7 +88,11 @@ export default function CraftFeaturedSpecial({
             <AdminPriceEditor item={adminItem} onPriceChange={onPriceChange} />
           </div>
 
-          {description && <p className={styles.description}>{description}</p>}
+          {description && (
+            <p dir="auto" className={styles.description}>
+              {description}
+            </p>
+          )}
 
           {special.preparationTimeMinutes > 0 && (
             <p className={styles.time}>

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { CartItem } from '@/components/cart/cartTypes';
@@ -36,11 +37,13 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
               const qty =
                 ingredientId && item.ingredientQuantities?.[ingredientId] ? item.ingredientQuantities[ingredientId] : 1;
               return (
-                <span key={idx}>
+                <React.Fragment key={idx}>
                   {idx > 0 && ', '}
-                  {name}
+                  {/* Separator OUTSIDE the isolate — `dir="auto"` implies `unicode-bidi: isolate`,
+                      so a leading `, ` inside it collapses the gap between items to 0px. */}
+                  <span dir="auto">{name}</span>
                   {qty > 1 && ` × ${qty}`}
-                </span>
+                </React.Fragment>
               );
             })}
           </span>
@@ -52,10 +55,10 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
           <span className={styles.customizationLabel}>{t('side_items', 'Side Items')}:</span>
           <span className={styles.customizationValue}>
             {item.selectedSideItems.map((sideItem, idx) => (
-              <span key={sideItem.id}>
-                {sideItem.name} x{sideItem.quantity} ({formatPlainCurrency(sideItem.subTotal)})
+              <React.Fragment key={sideItem.id}>
+                <span dir="auto">{sideItem.name}</span> x{sideItem.quantity} ({formatPlainCurrency(sideItem.subTotal)})
                 {idx < item.selectedSideItems!.length - 1 ? ', ' : ''}
-              </span>
+              </React.Fragment>
             ))}
           </span>
         </div>

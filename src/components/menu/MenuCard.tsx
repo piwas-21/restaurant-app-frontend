@@ -124,8 +124,17 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
 
         {item.isBundle && (description || bundleIncludes) && (
           <div className={styles.bundleSummary}>
-            {description && <p className={styles.bundleDescription}>{description}</p>}
-            {bundleIncludes && <p className={styles.bundleIncludes}>{bundleIncludes}</p>}
+            {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+            {description && (
+              <p dir="auto" className={styles.bundleDescription}>
+                {description}
+              </p>
+            )}
+            {bundleIncludes && (
+              <p dir="auto" className={styles.bundleIncludes}>
+                {bundleIncludes}
+              </p>
+            )}
           </div>
         )}
 

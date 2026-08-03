@@ -23,7 +23,11 @@ describe('getAddToCartErrorMessage', () => {
     ['a session-plumbing message', new ApiError(400, 'Session ID is required')],
     ['a raw id in a not-found', new ApiError(404, 'Child product not found: 3f2a1b4c-0000-0000-0000-000000000000')],
     ['an internal 500', new ApiError(500, 'Object reference not set to an instance')],
-    ['our own synthesized network error', new ApiError(0, 'Network error. Please check your internet connection.')],
+    // `apiClient` no longer synthesizes this sentence (#401) — a dead network now arrives as a
+    // status-0 error with NOTHING to say. Both shapes are kept: the empty one is what production
+    // emits, the English one is what a stale caller could still hand in, and neither is renderable.
+    ['a dead network, as `request()` now reports it', new ApiError(0, '')],
+    ['a client-authored network sentence from anywhere else', new ApiError(0, 'Network error. Please check…')],
   ])('falls back for %s', (_label, error) => {
     expect(getAddToCartErrorMessage(error, t)).toBe('translated:error_adding_to_cart');
   });

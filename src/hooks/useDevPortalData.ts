@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, getErrorMessage } from '@/utils/apiClient';
 
 interface ServiceVersion {
   service: string;
@@ -59,7 +59,21 @@ function useFetchState<T>(fetcher: () => Promise<T>): FetchState<T> {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const error = err instanceof Error ? err.message : 'Unknown error';
+          // The one surface where the RAW client-side text is wanted: this panel exists to
+          // diagnose, and it is not shown to a customer in any language. Both legs land here and
+          // they fail in different shapes — `fetchDiagnostics` goes through `apiClient`, so
+          // `getErrorMessage` reads the server's reason; `fetchVersion` uses raw `fetch` and
+          // throws a plain `Error` whose message ("version endpoint returned 502") IS the finding,
+          // and `getErrorMessage` returns null for that by design.
+          //
+          // The SECOND operator is the one that has to be `||`: the ternary yields `''` for an
+          // `ApiError`, and `'' ?? 'Unknown error'` keeps the empty string. `getErrorMessage`
+          // itself returns `null`, never `''`, so the first could be either.
+          //
+          // When neither leg has words — a dead backend gives `ApiError(0, '')` — `status` and
+          // `cause` are still on the error and are what this panel would most like to show.
+          // Surfacing them is a follow-up, not something to fake with a sentence.
+          const error = getErrorMessage(err) || (err instanceof Error ? err.message : '') || 'Unknown error';
           setState({ data: null, loading: false, error });
         }
       });

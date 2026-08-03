@@ -16,10 +16,19 @@ jest.mock('@/services/floorPlanService', () => ({
   saveFloorPlan: jest.fn(),
 }));
 
-// The default manual apiClient mock omits ApiError; provide a real constructor so
-// the hook's `err instanceof ApiError` 409 branch is exercised against the same
-// one. A plain function (not a class) avoids babel class-helper hoisting inside
-// the jest.mock factory.
+// A local factory rather than the root manual mock, so the hook's `err instanceof ApiError` 409
+// branch is exercised against a constructor this file controls. A plain function (not a class)
+// avoids babel class-helper hoisting inside the jest.mock factory.
+//
+// (The previous note here said the manual mock "omits ApiError". It does not — it has exported
+// `ApiError` and the four status predicates since E9 step 2. What this factory omits is
+// `getErrorMessage` and those predicates; harmless today because neither this hook nor
+// `floorPlanService` calls them, but a landmine the moment one does: the export reads as
+// `undefined` and the call throws from inside a catch block. `fidelityPointsService.test.ts` had
+// the identical factory shape and was green for as long as its service touched none of the omitted
+// exports — the moment #401 made it call `isAuthError`, the catch threw "(0,
+// _apiClient.isAuthError) is not a function" and a bare `rejects.toThrow()` accepted it. That
+// suite and two others now spread `requireActual`; this one keeps a local `ApiError` on purpose.)
 jest.mock('@/utils/apiClient', () => {
   function ApiError(this: { status: number; message: string; name: string }, status: number, message: string) {
     this.status = status;

@@ -1,8 +1,14 @@
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, ApiError } from '@/utils/apiClient';
 import { fidelityPointsService } from '@/services/fidelityPointsService';
 
-// Mock the apiClient
+// Stub the HTTP surface, keep everything else REAL. A factory that stubs `apiClient` alone left
+// `isAuthError` UNDEFINED, so the service's catch threw "(0, _apiClient.isAuthError) is not a
+// function" instead of the API error — and the `rejects.toThrow()` below passed on that, because a
+// bare `toThrow()` accepts any throw. Spreading `requireActual` rather than hand-picking the two
+// exports needed today is the point: hand-picking is what created that hole, and it re-creates it
+// the day the service reaches for `getErrorMessage`.
 jest.mock('@/utils/apiClient', () => ({
+  ...jest.requireActual('@/utils/apiClient'),
   apiClient: {
     get: jest.fn(),
     post: jest.fn(),
@@ -32,10 +38,30 @@ describe('fidelityPointsService', () => {
       expect(result).toEqual(mockBalance);
     });
 
-    it('should handle errors gracefully', async () => {
+    // Named, not a bare `toThrow()`: the assertion has to fail when the catch throws something of
+    // its OWN, which is how a missing mock export hid here for as long as it did.
+    it('rethrows the failure it was given', async () => {
       (apiClient.get as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
 
-      await expect(fidelityPointsService.getBalance()).rejects.toThrow();
+      await expect(fidelityPointsService.getBalance()).rejects.toThrow('API Error');
+    });
+
+    // A guest reaching checkout has no token, so `apiClient` refuses before it asks the server.
+    // That is expected, not an incident, and it must not fill the console — the guard is on the
+    // 401 STATUS, because since #401 there is no 'Authentication required' message to match on.
+    it('stays quiet for the unauthenticated guest, and logs anything else', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        (apiClient.get as jest.Mock).mockRejectedValueOnce(new ApiError(401, ''));
+        await expect(fidelityPointsService.getBalance()).rejects.toBeInstanceOf(ApiError);
+        expect(consoleError).not.toHaveBeenCalled();
+
+        (apiClient.get as jest.Mock).mockRejectedValueOnce(new ApiError(500, ''));
+        await expect(fidelityPointsService.getBalance()).rejects.toBeInstanceOf(ApiError);
+        expect(consoleError).toHaveBeenCalledTimes(1);
+      } finally {
+        consoleError.mockRestore();
+      }
     });
   });
 
@@ -68,6 +94,22 @@ describe('fidelityPointsService', () => {
   });
 
   describe('calculateDiscount', () => {
+    // Same guard as `getBalance`, same reason, and the second of the four sites #401 changed.
+    it('stays quiet for the unauthenticated guest, and logs anything else', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        (apiClient.get as jest.Mock).mockRejectedValueOnce(new ApiError(401, ''));
+        await expect(fidelityPointsService.calculateDiscount(100)).rejects.toBeInstanceOf(ApiError);
+        expect(consoleError).not.toHaveBeenCalled();
+
+        (apiClient.get as jest.Mock).mockRejectedValueOnce(new ApiError(500, ''));
+        await expect(fidelityPointsService.calculateDiscount(100)).rejects.toBeInstanceOf(ApiError);
+        expect(consoleError).toHaveBeenCalledTimes(1);
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+
     it('should calculate discount from points', async () => {
       (apiClient.get as jest.Mock).mockResolvedValueOnce({ data: 5.0 });
 

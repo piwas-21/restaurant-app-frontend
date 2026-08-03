@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, AlertCircle, Server, Users, Clock, CheckCircle, XCircle, Loader } from 'lucide-react';
 import { getEventsDiagnostics } from '@/services/cashierService';
+import { getErrorMessage } from '@/utils/apiClient';
 import { SseDiagnostics, LogEntry, RecentError } from '@/types/diagnostics';
 import styles from '../CashierDiagnostics.module.css';
 
@@ -28,7 +29,7 @@ export default function ServerDiagnosticsSection() {
       const data = await getEventsDiagnostics();
       setServerDiagnostics(data);
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Failed to fetch diagnostics');
+      setServerError(getErrorMessage(err) ?? 'Failed to fetch diagnostics');
     } finally {
       setServerLoading(false);
     }

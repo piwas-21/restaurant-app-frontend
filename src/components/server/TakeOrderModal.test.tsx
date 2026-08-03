@@ -4,6 +4,7 @@ import TakeOrderModal from './TakeOrderModal';
 import { getCategories, createServerOrder } from '@/services/serverService';
 import { getProducts } from '@/services/menuService';
 import type { CustomizationResult } from './ProductCustomization';
+import { ApiError } from '@/utils/apiClient';
 
 // Stub react-i18next so t() returns the inline fallback (fallback ?? key),
 // matching how the component renders without an i18next provider.
@@ -204,14 +205,29 @@ describe('TakeOrderModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the error string when order creation fails', async () => {
-    mockCreateServerOrder.mockRejectedValueOnce(new Error('Kitchen offline'));
+  it("shows the SERVER's reason when order creation fails", async () => {
+    mockCreateServerOrder.mockRejectedValueOnce(new ApiError(400, 'Table 5 already has an open order'));
     const { onOrderCreated } = setup();
     await addFirstProduct();
 
     fireEvent.click(screen.getByRole('button', { name: 'Place Order' }));
 
-    expect(await screen.findByText('Kitchen offline')).toBeInTheDocument();
+    expect(await screen.findByText('Table 5 already has an open order')).toBeInTheDocument();
+    expect(onOrderCreated).not.toHaveBeenCalled();
+  });
+
+  // A plain `Error` here is a CLIENT-side bug, and its text ("Cannot read properties of undefined")
+  // is not something to put in front of a server taking an order. `getErrorMessage` returns null
+  // for it on purpose (#401), so the contextual fallback is what shows.
+  it('falls back to its own sentence for a client-side throw', async () => {
+    mockCreateServerOrder.mockRejectedValueOnce(new TypeError('x.map is not a function'));
+    const { onOrderCreated } = setup();
+    await addFirstProduct();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Place Order' }));
+
+    expect(await screen.findByText('Failed to create order')).toBeInTheDocument();
+    expect(screen.queryByText('x.map is not a function')).not.toBeInTheDocument();
     expect(onOrderCreated).not.toHaveBeenCalled();
   });
 });

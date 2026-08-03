@@ -35,6 +35,16 @@ describe('apiClient test double', () => {
     expect(fromMock).toBeInstanceOf(Error);
   });
 
+  it('threads `cause` the same way', () => {
+    // Not covered by the spread above: `cause` set through `super(message, options)` is a
+    // NON-enumerable own property, so `{ ...err }` cannot see it in either object. The mock could
+    // drop the 5th parameter entirely and every other assertion here would still pass.
+    const original = new TypeError('Failed to fetch');
+
+    expect(new mock.ApiError(0, '', undefined, undefined, { cause: original }).cause).toBe(original);
+    expect(new real.ApiError(0, '', undefined, undefined, { cause: original }).cause).toBe(original);
+  });
+
   it('agrees with the real getErrorMessage, including its errors-before-message precedence', () => {
     const cases: unknown[][] = [
       [new mock.ApiError(400, 'Message', ['First', 'Second']), new real.ApiError(400, 'Message', ['First', 'Second'])],

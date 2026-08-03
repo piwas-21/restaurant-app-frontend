@@ -1,9 +1,15 @@
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, ApiError } from '@/utils/apiClient';
 import * as userService from './userService';
 import { UserRole } from '@/types/user';
 
-// Mock the apiClient
-jest.mock('@/utils/apiClient');
+// Stub the HTTP surface, keep the error type and the predicate REAL. A bare
+// `jest.mock('@/utils/apiClient')` automocks, which turns `isAuthError` into a `jest.fn()`
+// returning `undefined` — `getCurrentUser`'s `if (!isAuthError(error))` guard is then always true
+// inside this suite, so it would test the opposite of production and stay green.
+jest.mock('@/utils/apiClient', () => ({
+  ...jest.requireActual('@/utils/apiClient'),
+  apiClient: { get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn(), delete: jest.fn() },
+}));
 
 const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
@@ -75,6 +81,34 @@ describe('userService', () => {
       const result = await userService.registerStaff(staffData);
 
       expect(result).toEqual(mockErrorResponse);
+    });
+  });
+
+  // `getCurrentUser` had no test at all, and it is one of the four sites whose log-suppression
+  // guard changed with #401 — it used to ask whether the error MESSAGE contained 'auth', which
+  // `apiClient` no longer writes. Note this call does NOT pass `requireAuth`, so its 401 comes
+  // from the server rather than from a pre-flight refusal; the status is the same either way,
+  // which is the point of gating on it.
+  describe('getCurrentUser', () => {
+    it('returns the profile', async () => {
+      (apiClient.get as jest.Mock).mockResolvedValue({ success: true, data: { id: '1', firstName: 'Ada' } });
+
+      await expect(userService.getCurrentUser()).resolves.toEqual({ id: '1', firstName: 'Ada' });
+    });
+
+    it('stays quiet for a 401, and logs anything else', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        (apiClient.get as jest.Mock).mockRejectedValueOnce(new ApiError(401, ''));
+        await expect(userService.getCurrentUser()).rejects.toBeInstanceOf(ApiError);
+        expect(consoleError).not.toHaveBeenCalled();
+
+        (apiClient.get as jest.Mock).mockRejectedValueOnce(new ApiError(500, ''));
+        await expect(userService.getCurrentUser()).rejects.toBeInstanceOf(ApiError);
+        expect(consoleError).toHaveBeenCalledTimes(1);
+      } finally {
+        consoleError.mockRestore();
+      }
     });
   });
 

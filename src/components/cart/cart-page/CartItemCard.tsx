@@ -66,10 +66,13 @@ export default function CartItemCard({
 
       {/* Item Details */}
       <div className={styles.itemDetails}>
-        <h2 className={styles.itemName}>{item.productName || 'Unknown Item'}</h2>
+        {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+        <h2 dir="auto" className={styles.itemName}>
+          {item.productName || 'Unknown Item'}
+        </h2>
         {variationName && (
           <p className={styles.itemVariation}>
-            <strong>{t('variation', 'Size/Variation')}:</strong> {variationName}
+            <strong>{t('variation', 'Size/Variation')}:</strong> <span dir="auto">{variationName}</span>
           </p>
         )}
 
@@ -107,7 +110,9 @@ export default function CartItemCard({
             <ul className={styles.childItemsList}>
               {item.childItems.map((childItem, idx) => (
                 <li key={idx} className={styles.childItem}>
-                  <span className={styles.childItemName}>{childItem.productName}</span>
+                  <span dir="auto" className={styles.childItemName}>
+                    {childItem.productName}
+                  </span>
                   {childItem.unitPrice > 0 && (
                     <span className={styles.childItemPrice}>+{formatPlainCurrency(childItem.unitPrice)}</span>
                   )}

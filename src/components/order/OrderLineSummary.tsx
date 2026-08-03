@@ -6,6 +6,14 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { type LineSummary, type LineIngredientDiff, type LineChild } from './lineSummary';
 import styles from './OrderLineSummary.module.css';
 
+/**
+ * Every value rendered here is TENANT-authored — ingredient, component and side-item names, and
+ * free-text special instructions — so each carries `dir="auto"`: an English name inside an Arabic
+ * page is an LTR run whose trailing neutral punctuation would otherwise take the paragraph's
+ * direction and jump to the far end (DESIGN-SYSTEM.md §8.2). The `.label` spans beside them are
+ * locale strings and correctly inherit.
+ */
+
 function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
   const { t } = useTranslation();
   return (
@@ -15,11 +23,15 @@ function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
           <span className={styles.label}>{t('added_ingredients', 'Added')}:</span>
           <span className={styles.value}>
             {diff.added.map((ing, i) => (
-              <span key={ing.name}>
+              <React.Fragment key={ing.name}>
                 {i > 0 && ', '}
-                {ing.name}
+                {/* Only the NAME is isolated. `dir="auto"` implies `unicode-bidi: isolate`, so a
+                    separator inside the span paints at that box's own leading edge and the gap
+                    between two items collapses to 0px — measured, `ColeslawFries`. The numeric
+                    suffix is direction-neutral and stays outside too. */}
+                <span dir="auto">{ing.name}</span>
                 {ing.quantity > 1 && ` × ${ing.quantity}`}
-              </span>
+              </React.Fragment>
             ))}
           </span>
         </div>
@@ -27,7 +39,9 @@ function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
       {diff.removed.length > 0 && (
         <div className={styles.row}>
           <span className={styles.label}>{t('removed_ingredients', 'Removed')}:</span>
-          <span className={styles.value}>{diff.removed.join(', ')}</span>
+          <span dir="auto" className={styles.value}>
+            {diff.removed.join(', ')}
+          </span>
         </div>
       )}
     </>
@@ -48,7 +62,7 @@ function ChildList({ items }: Readonly<{ items: LineChild[] }>) {
         const hasDetails = child.diff.added.length > 0 || child.diff.removed.length > 0 || !!child.specialInstructions;
         return (
           <li key={child.id ?? child.name} className={styles.child}>
-            <span className={styles.childName}>
+            <span dir="auto" className={styles.childName}>
               {child.name}
               {child.quantity > 1 && ` × ${child.quantity}`}
             </span>
@@ -58,7 +72,9 @@ function ChildList({ items }: Readonly<{ items: LineChild[] }>) {
                 {child.specialInstructions && (
                   <div className={styles.row}>
                     <span className={styles.label}>{t('special_requests', 'Special Requests')}:</span>
-                    <span className={styles.value}>{child.specialInstructions}</span>
+                    <span dir="auto" className={styles.value}>
+                      {child.specialInstructions}
+                    </span>
                   </div>
                 )}
               </div>
@@ -104,12 +120,13 @@ export default function OrderLineSummary({ line, hideInstructions = false }: Ord
           <span className={styles.label}>{t('side_items', 'Side Items')}:</span>
           <span className={styles.value}>
             {line.sideItems.map((side, i) => (
-              <span key={side.id ?? side.name}>
+              <React.Fragment key={side.id ?? side.name}>
                 {i > 0 && ', '}
-                {side.name}
+                {/* Separator and numeric suffixes outside the isolate — see the added row above. */}
+                <span dir="auto">{side.name}</span>
                 {side.quantity > 1 && ` × ${side.quantity}`}
                 {typeof side.price === 'number' && side.price > 0 && ` (${formatPlainCurrency(side.price)})`}
-              </span>
+              </React.Fragment>
             ))}
           </span>
         </div>
@@ -118,7 +135,9 @@ export default function OrderLineSummary({ line, hideInstructions = false }: Ord
       {showInstructions && (
         <div className={styles.row}>
           <span className={styles.label}>{t('special_requests', 'Special Requests')}:</span>
-          <span className={styles.value}>{line.specialInstructions}</span>
+          <span dir="auto" className={styles.value}>
+            {line.specialInstructions}
+          </span>
         </div>
       )}
 

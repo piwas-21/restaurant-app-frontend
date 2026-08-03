@@ -70,7 +70,9 @@ export default function VariationsSection({
           />
           <div className={styles.variationContent}>
             <div className={styles.variationInfo}>
-              <span className={styles.variationName}>{productName}</span>
+              <span dir="auto" className={styles.variationName}>
+                {productName}
+              </span>
               {basePrice > 0 && <span className={styles.variationPrice}>{formatPlainCurrency(basePrice)}</span>}
             </div>
           </div>
@@ -100,8 +102,15 @@ export default function VariationsSection({
               />
               <div className={styles.variationContent}>
                 <div className={styles.variationInfo}>
-                  <span className={styles.variationName}>{name}</span>
-                  {description && <span className={styles.variationDescription}>{description}</span>}
+                  {/* tenant-authored: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+                  <span dir="auto" className={styles.variationName}>
+                    {name}
+                  </span>
+                  {description && (
+                    <span dir="auto" className={styles.variationDescription}>
+                      {description}
+                    </span>
+                  )}
                 </div>
                 {varPrice > 0 && (
                   <span className={styles.variationPrice}>

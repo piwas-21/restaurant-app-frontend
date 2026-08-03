@@ -92,11 +92,16 @@ export default function FeaturedSpecial({
           )}
 
           <div className={styles.featuredSpecialDetails}>
-            <h2 id="featured-special-heading" className={styles.featuredSpecialTitle}>
+            {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+            <h2 id="featured-special-heading" dir="auto" className={styles.featuredSpecialTitle}>
               {itemName}
             </h2>
 
-            {description && <p className={styles.featuredSpecialDescription}>{description}</p>}
+            {description && (
+              <p dir="auto" className={styles.featuredSpecialDescription}>
+                {description}
+              </p>
+            )}
 
             {special.preparationTimeMinutes > 0 && (
               <div className={styles.featuredSpecialTime}>

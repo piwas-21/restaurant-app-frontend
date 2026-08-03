@@ -72,7 +72,7 @@ export default function SuggestedSideItemsSection({
             <div key={sideItem.id} className={styles.sideItem}>
               <div className={styles.sideItemInfo}>
                 <h4 className={styles.sideItemName}>
-                  {sideItem.name}
+                  <span dir="auto">{sideItem.name}</span>
                   {/* The retired ProductDetailsModal marked required sides and the sheet did not,
                       so absorbing its details view would otherwise have lost the marker. The side
                       is preselected but still removable — gating it is a product decision. */}
@@ -82,7 +82,14 @@ export default function SuggestedSideItemsSection({
                     </span>
                   )}
                 </h4>
-                {sideItem.description && <p className={styles.sideItemDescription}>{sideItem.description}</p>}
+                {/* tenant-authored: dir="auto" (DESIGN-SYSTEM.md §8.2). The name above is NOT a
+                    leaf — it wraps the required-marker span — so the attribute goes on an inner
+                    span there rather than the <h4>. */}
+                {sideItem.description && (
+                  <p dir="auto" className={styles.sideItemDescription}>
+                    {sideItem.description}
+                  </p>
+                )}
                 <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
               </div>
 

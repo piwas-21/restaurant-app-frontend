@@ -77,7 +77,10 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
 
       <div className={styles.body}>
         <button type="button" className={styles.leader} onClick={openDetails} id={nameId}>
-          <span className={styles.name}>{itemName}</span>
+          {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
+          <span dir="auto" className={styles.name}>
+            {itemName}
+          </span>
           <span className={styles.price}>{formatPlainCurrency(price)}</span>
         </button>
 
@@ -87,8 +90,16 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
           <AdminPriceEditor item={item} onPriceChange={setPrice} />
         </div>
 
-        {description && <p className={styles.description}>{description}</p>}
-        {bundleIncludes && <p className={styles.includes}>{bundleIncludes}</p>}
+        {description && (
+          <p dir="auto" className={styles.description}>
+            {description}
+          </p>
+        )}
+        {bundleIncludes && (
+          <p dir="auto" className={styles.includes}>
+            {bundleIncludes}
+          </p>
+        )}
         {/* Shared allergen tags (emoji icon + translated label) — the craft card
             previously printed raw, icon-less keys. `compact` renders null when empty. */}
         <AllergenDisplay allergens={item.allergens} id={`craft-allergen-${item.id}`} variant="compact" />

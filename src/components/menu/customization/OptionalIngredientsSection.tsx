@@ -95,7 +95,10 @@ export default function OptionalIngredientsSection({
                   disabled={!ingredient.isOptional}
                   className={styles.checkbox}
                 />
-                <span className={styles.ingredientName}>{getIngredientName(ingredient)}</span>
+                {/* tenant-authored: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+                <span dir="auto" className={styles.ingredientName}>
+                  {getIngredientName(ingredient)}
+                </span>
                 {ingredient.price > 0 && (
                   <span className={styles.ingredientPrice}>+{formatPlainCurrency(ingredient.price)}</span>
                 )}
@@ -126,7 +129,9 @@ export default function OptionalIngredientsSection({
                       className={styles.checkbox}
                     />
                     <div className={styles.ingredientInfo}>
-                      <span className={styles.ingredientName}>{getIngredientName(ingredient)}</span>
+                      <span dir="auto" className={styles.ingredientName}>
+                        {getIngredientName(ingredient)}
+                      </span>
                       {ingredient.price > 0 && (
                         <span className={styles.ingredientPrice}>
                           {ingredient.isIncludedInBasePrice

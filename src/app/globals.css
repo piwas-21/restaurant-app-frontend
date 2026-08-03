@@ -101,19 +101,24 @@ html[data-theme='dark'] {
   each direction, not 400px. Safe in both because they are run-once `animation`s with no fill
   mode. It is NOT safe in a `transition` on a resting position — see AdminPage.module.css.
 
-  KNOWN GAP, deliberately not closed here: this keys off the `dir` ATTRIBUTE, and an attribute
-  selector matches a literal value. An element inside `dir="auto"` that resolves to Arabic
+  CONSTRAINT that comes with this, because it keys off the `dir` ATTRIBUTE and an attribute
+  selector matches a literal value: an element inside `dir="auto"` that resolves to Arabic
   computes `direction: rtl` — so its logical properties mirror — while `[dir='rtl']` does not
-  match it and `--dir` stays `+1`, leaving the transforms unmirrored. That is a half-conversion,
-  the exact failure this token exists to prevent. `:dir()` matches the RESOLVED direction and is
-  the correct definition, but it was tried and REVERTED: `next dev --turbopack` runs Lightning
-  CSS, which downlevels `:dir()` into a `:lang()` list that sorts last and beats the attribute
-  rules, so in dev `--dir` would follow `lang` while `next build` keeps `:dir()` verbatim. Two
-  different behaviours, and the wrong one in the only environment anyone can measure in — it
-  silently made an explicit `<div dir="rtl">` subtree WORSE than the attribute rules alone.
-  Nothing in `src/` uses `dir="auto"` today, so the gap is not reachable. Close it in the slice
-  that introduces `dir="auto"` on product-authored text (E8 slice 3b-4), and verify that one
-  against `next build`, not `next dev`.
+  match it and `--dir` stays `+1`, leaving transforms unmirrored. That is a half-conversion, the
+  exact failure this token exists to prevent.
+
+  `:dir()` matches the RESOLVED direction and would close it, but it was tried and REVERTED:
+  `next dev --turbopack` runs Lightning CSS, which downlevels `:dir()` into a `:lang()` list that
+  sorts last and beats the attribute rules, so `--dir` would follow `lang` in dev while
+  `next build` keeps `:dir()` verbatim. Two behaviours, and the wrong one in the only environment
+  anyone can measure in — it silently made an explicit `<div dir="rtl">` subtree WORSE than the
+  attribute rules alone.
+
+  So the gap is closed BY CONSTRUCTION instead: **`dir="auto"` goes on LEAF text elements only** —
+  the product-authored strings in E8 slice 3b-4 (`<h2>`/`<h3>`/`<p>`/`<span>` with no element
+  children). Nothing that reads `--dir` — the drawers, the toast keyframes, the admin toggle
+  glyph — is or can be a descendant of one. Put `dir="auto"` on a CONTAINER and that stops being
+  true; if you need to, bring `:dir()` back and verify it against `next build`.
 */
 [dir='ltr'] {
   --dir: 1;

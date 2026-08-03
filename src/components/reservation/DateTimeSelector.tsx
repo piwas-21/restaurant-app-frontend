@@ -102,7 +102,12 @@ export default function DateTimeSelector({
           ))}
         </div>
         <div className={styles.customInputWrapper}>
-          <label htmlFor={timeId} className={styles.customLabel}>
+          {/* The `:` is a JSX literal OUTSIDE t(), so it is a neutral character taking the
+              paragraph direction — in `ar` it rendered 86px to the LEFT of the label text. That is
+              the same bidi defect as product text, and `dir="auto"` fixes it identically; it is
+              live here because the string itself is also untranslated (#385), but the two are
+              separate bugs. DESIGN-SYSTEM.md §8.2. */}
+          <label htmlFor={timeId} dir="auto" className={styles.customLabel}>
             {t('or_select_time', 'Or select time')}:
           </label>
           <select

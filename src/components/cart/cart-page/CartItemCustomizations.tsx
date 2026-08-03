@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { CartItem } from '@/components/cart/cartTypes';
@@ -35,12 +36,21 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
               const ingredientId = item.selectedIngredients?.[idx];
               const qty =
                 ingredientId && item.ingredientQuantities?.[ingredientId] ? item.ingredientQuantities[ingredientId] : 1;
+              // Keyed on the ingredient id, not the index: it is already resolved above, and an
+              // index key re-associates state across a reorder (Sonar S6479). The fallback is
+              // load-bearing — `selectedIngredients` is optional and can be absent while
+              // `selectedIngredientNames` is present — and it is safe because a line's added
+              // ingredients are a SET: repeating one raises its quantity (`ingredientQuantities`,
+              // keyed by id) rather than appending a second entry. See `order/lineSummary.ts`,
+              // which walks the same two index-aligned arrays.
               return (
-                <span key={idx}>
+                <React.Fragment key={ingredientId ?? name}>
                   {idx > 0 && ', '}
-                  {name}
+                  {/* Separator OUTSIDE the isolate — `dir="auto"` implies `unicode-bidi: isolate`,
+                      so a leading `, ` inside it collapses the gap between items to 0px. */}
+                  <span dir="auto">{name}</span>
                   {qty > 1 && ` × ${qty}`}
-                </span>
+                </React.Fragment>
               );
             })}
           </span>
@@ -52,10 +62,10 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
           <span className={styles.customizationLabel}>{t('side_items', 'Side Items')}:</span>
           <span className={styles.customizationValue}>
             {item.selectedSideItems.map((sideItem, idx) => (
-              <span key={sideItem.id}>
-                {sideItem.name} x{sideItem.quantity} ({formatPlainCurrency(sideItem.subTotal)})
+              <React.Fragment key={sideItem.id}>
+                <span dir="auto">{sideItem.name}</span> x{sideItem.quantity} ({formatPlainCurrency(sideItem.subTotal)})
                 {idx < item.selectedSideItems!.length - 1 ? ', ' : ''}
-              </span>
+              </React.Fragment>
             ))}
           </span>
         </div>

@@ -1,5 +1,6 @@
 // Reservation Service - API client for reservation operations
 import { apiClient } from '@/utils/apiClient';
+import { serverMessages, throwServerRefusal } from '@/utils/apiFormErrors';
 import {
   TableDto,
   ReservationDto,
@@ -52,7 +53,7 @@ export const reservationService = {
   async createTable(data: CreateTableDto): Promise<TableDto> {
     const response = await apiClient.post<ApiResponse<TableDto>>('/api/tables', data);
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create table');
+      throwServerRefusal(response);
     }
     return response.data;
   },
@@ -60,7 +61,7 @@ export const reservationService = {
   async updateTable(id: string, data: UpdateTableDto): Promise<TableDto> {
     const response = await apiClient.put<ApiResponse<TableDto>>(`/api/tables/${id}`, data);
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to update table');
+      throwServerRefusal(response);
     }
     return response.data;
   },
@@ -68,7 +69,7 @@ export const reservationService = {
   async deleteTable(id: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<boolean>>(`/api/tables/${id}`);
     if (!response.success) {
-      throw new Error(response.message || 'Failed to delete table');
+      throwServerRefusal(response);
     }
   },
 
@@ -123,40 +124,42 @@ export const reservationService = {
       numberOfGuests: String(numberOfGuests),
     });
 
-    try {
-      const response = await apiClient.get<ApiResponse<AvailableTimeSlotsDto>>(
-        `/api/reservations/available-slots?${params}`,
-      );
+    // No try/catch: a non-2xx is already an `ApiError` carrying the server's own account, and the
+    // catch that used to be here rethrew it as `new Error(error.message || '<English>')` — losing
+    // `status`, `errorCode`, `errors[]` and (since #401) `cause`, to say nothing more than the
+    // ApiError already said. `useReservationAvailability.fetchTimeSlots` catches it.
+    const response = await apiClient.get<ApiResponse<AvailableTimeSlotsDto>>(
+      `/api/reservations/available-slots?${params}`,
+    );
 
-      if (!response.success || !response.data) {
-        // Check errors array first, then message, then fallback
-        const errorMessage =
-          response.errors && response.errors.length > 0
-            ? response.errors[0]
-            : response.message || 'Failed to fetch available time slots';
+    if (!response.success || !response.data) {
+      // `serverMessages` is the same errors-then-message precedence this hand-rolled chain had,
+      // minus the bug: it drops BLANK entries, where `errors.length > 0` happily returned `''`
+      // and the `isCapacityIssue` test below then ran on an empty string.
+      //
+      // Unlike the throw paths this one keeps a client-authored fallback, because `error` is read
+      // as a FLAG as much as a message — `useReservationAvailability` tests it and clears the
+      // slot list without ever rendering it.
+      const errorMessage = serverMessages(response)[0] ?? 'Failed to fetch available time slots';
 
-        // Check if it's a capacity issue (expected scenario)
-        const isCapacityIssue = errorMessage.toLowerCase().includes('no tables available for');
+      // Check if it's a capacity issue (expected scenario)
+      const isCapacityIssue = errorMessage.toLowerCase().includes('no tables available for');
 
-        return {
-          data: null,
-          error: errorMessage,
-          isCapacityIssue,
-        };
-      }
-
-      return { data: response.data };
-    } catch (error: any) {
-      // Network or unexpected errors
-      throw new Error(error.message || 'Failed to fetch available time slots');
+      return {
+        data: null,
+        error: errorMessage,
+        isCapacityIssue,
+      };
     }
+
+    return { data: response.data };
   },
 
   async createReservation(data: CreateReservationDto): Promise<ReservationDto> {
     const response = await apiClient.post<ApiResponse<any>>('/api/reservations', data);
 
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create reservation');
+      throwServerRefusal(response);
     }
 
     // Map string status to enum
@@ -183,7 +186,7 @@ export const reservationService = {
     const response = await apiClient.post<ApiResponse<boolean>>(`/api/reservations/${id}/cancel`);
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to cancel reservation');
+      throwServerRefusal(response);
     }
   },
 
@@ -191,7 +194,7 @@ export const reservationService = {
     const response = await apiClient.post<ApiResponse<boolean>>(`/api/reservations/${id}/confirm`);
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to confirm reservation');
+      throwServerRefusal(response);
     }
   },
 
@@ -199,7 +202,7 @@ export const reservationService = {
     const response = await apiClient.put<ApiResponse<boolean>>(`/api/reservations/${id}/status`, { status });
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to update reservation status');
+      throwServerRefusal(response);
     }
   },
 
@@ -207,7 +210,7 @@ export const reservationService = {
     const response = await apiClient.delete<ApiResponse<boolean>>(`/api/reservations/${id}`);
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to delete reservation');
+      throwServerRefusal(response);
     }
   },
 

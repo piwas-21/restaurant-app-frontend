@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiClient, getErrorMessage } from '@/utils/apiClient';
+import { ApiError, apiClient, getErrorMessage } from '@/utils/apiClient';
 
 interface ServiceVersion {
   service: string;
@@ -45,6 +45,28 @@ interface FetchState<T> {
   error: string | null;
 }
 
+/**
+ * What this panel should print for a failure.
+ *
+ * Words first, then the machine-readable parts — because since #401 the most important failure
+ * here has NO words: a dead backend is `ApiError(0, '')`, and "Unknown error" on the panel whose
+ * job is answering "is the backend up?" is the least useful thing it could say. `status` and
+ * `cause` are both on the error and cost nothing to show.
+ */
+function describeFailure(err: unknown): string {
+  // `||` on the second operator, not `??`: the ternary yields `''` for an `ApiError`, and
+  // `'' ?? …` keeps the empty string. `getErrorMessage` itself returns `null`, never `''`.
+  const words = getErrorMessage(err) || (err instanceof Error ? err.message : '');
+  const parts: string[] = [];
+  if (err instanceof ApiError) parts.push(err.status === 0 ? 'network unreachable' : `HTTP ${err.status}`);
+  const cause = err instanceof Error ? err.cause : undefined;
+  if (cause instanceof Error) parts.push(`${cause.name}: ${cause.message}`);
+
+  const detail = parts.join(' — ');
+  if (words && detail) return `${words} (${detail})`;
+  return words || detail || 'Unknown error';
+}
+
 function useFetchState<T>(fetcher: () => Promise<T>): FetchState<T> {
   const [state, setState] = useState<FetchState<T>>({ data: null, loading: true, error: null });
 
@@ -65,15 +87,7 @@ function useFetchState<T>(fetcher: () => Promise<T>): FetchState<T> {
           // `getErrorMessage` reads the server's reason; `fetchVersion` uses raw `fetch` and
           // throws a plain `Error` whose message ("version endpoint returned 502") IS the finding,
           // and `getErrorMessage` returns null for that by design.
-          //
-          // The SECOND operator is the one that has to be `||`: the ternary yields `''` for an
-          // `ApiError`, and `'' ?? 'Unknown error'` keeps the empty string. `getErrorMessage`
-          // itself returns `null`, never `''`, so the first could be either.
-          //
-          // When neither leg has words — a dead backend gives `ApiError(0, '')` — `status` and
-          // `cause` are still on the error and are what this panel would most like to show.
-          // Surfacing them is a follow-up, not something to fake with a sentence.
-          const error = getErrorMessage(err) || (err instanceof Error ? err.message : '') || 'Unknown error';
+          const error = describeFailure(err);
           setState({ data: null, loading: false, error });
         }
       });

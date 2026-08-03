@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type { TableDto, UpdateTableDto, CreateTableDto, ApiResponse } from '@/types/reservation';
 
 class TableLayoutService {
@@ -16,7 +17,7 @@ class TableLayoutService {
   async updateTable(id: string, data: UpdateTableDto): Promise<TableDto> {
     const response = await apiClient.put<ApiResponse<TableDto>>(`/api/tables/${id}`, data);
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to update table');
+      throwServerRefusal(response);
     }
     return response.data;
   }
@@ -35,7 +36,7 @@ class TableLayoutService {
   async createTable(data: CreateTableDto): Promise<TableDto> {
     const response = await apiClient.post<ApiResponse<TableDto>>('/api/tables', data);
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create table');
+      throwServerRefusal(response);
     }
     return response.data;
   }
@@ -46,7 +47,7 @@ class TableLayoutService {
   async deleteTable(id: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<void>>(`/api/tables/${id}`);
     if (!response.success) {
-      throw new Error(response.message || 'Failed to delete table');
+      throwServerRefusal(response);
     }
   }
 }

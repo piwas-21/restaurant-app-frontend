@@ -1,5 +1,8 @@
 import type { TFunction } from 'i18next';
 import type { TableDto, TimeSlotDto } from '@/types/reservation';
+// Through the ALIAS: `serverMessages` resolves `ApiError` the same way, and an instance built
+// from anywhere else would make its `instanceof` false and every assertion below vacuous.
+import { ApiError } from '@/utils/apiClient';
 import {
   getCapacityWarningMessage,
   partyExceedsEveryTable,
@@ -272,35 +275,64 @@ describe('buildReservationPayload', () => {
   });
 });
 
+/**
+ * Every case here was rewritten. The old ones hand-built an **axios** error envelope
+ * (`err.response.data.errors`) — a shape this app has never produced, because axios is not a
+ * dependency — so the function was 100%-covered while its first two branches had never run once.
+ * The third branch did run, which is why this was a quiet gap rather than a visible outage: what
+ * it could not reach was `errors[]`. These use what `createReservation` actually throws.
+ */
 describe('extractReservationErrorMessage', () => {
   it('prefers the first entry of the API errors array', () => {
-    const err = { response: { data: { errors: ['Table gone', 'other'] } } };
-    expect(extractReservationErrorMessage(err, t)).toBe('Table gone');
+    expect(extractReservationErrorMessage(new ApiError(400, 'Validation failed', ['Table gone', 'other']), t)).toBe(
+      'Table gone',
+    );
   });
 
-  it('uses the API message when there is no errors array', () => {
-    const err = { response: { data: { message: 'Slot already taken' } } };
-    expect(extractReservationErrorMessage(err, t)).toBe('Slot already taken');
+  it("shows the server's summary when there is no errors array", () => {
+    expect(extractReservationErrorMessage(new ApiError(409, 'Slot already taken'), t)).toBe('Slot already taken');
   });
 
-  it('falls through an empty errors array to the API message', () => {
-    // Exercises the `errors.length > 0` false path (the reason for the length guard).
-    const err = { response: { data: { errors: [], message: 'Slot already taken' } } };
-    expect(extractReservationErrorMessage(err, t)).toBe('Slot already taken');
+  it('reads the RESOLVED shape too, not only the thrown one', () => {
+    // A genuine `{ success: false }` object, not an `ApiError` — `serverMessages` reads both, and
+    // this reaches the function unwrapped on any path that does not go through a service.
+    expect(extractReservationErrorMessage({ success: false, errors: ['Slot already taken'] }, t)).toBe(
+      'Slot already taken',
+    );
   });
 
-  it('ignores the generic "Operation failed" API message and falls through', () => {
-    const err = { response: { data: { message: 'Operation failed' } }, message: 'Network down' };
-    expect(extractReservationErrorMessage(err, t)).toBe('Network down');
+  it('prefers the per-rule reason over the summary — the exact shape the backend sends', () => {
+    // Not a hypothetical shape. `CreateReservationCommand` answers with the ONE-argument
+    // `ApiResponse.Failure("<reason>")`, which puts the reason in `Errors[0]` and leaves `Message`
+    // at its default literal `"Operation failed"`; `ReservationsController` returns
+    // `BadRequest(result)`. So this is verbatim what a guest booking a taken table produces — and
+    // what the old implementation printed for it was **"Operation failed"**.
+    const asSent = new ApiError(400, 'Operation failed', ['Table 5 is not available for the selected time slot']);
+
+    expect(extractReservationErrorMessage(asSent, t)).toBe('Table 5 is not available for the selected time slot');
   });
 
-  it('ignores the generic axios 400 message', () => {
-    const err = { message: 'Request failed with status code 400' };
-    expect(extractReservationErrorMessage(err, t)).toBe('Failed to create reservation');
+  it("skips the backend's generic wrapper in favour of the translated sentence", () => {
+    // 'Operation failed' says less than the localised string it would replace.
+    expect(extractReservationErrorMessage(new ApiError(400, 'Operation failed'), t)).toBe(
+      'Failed to create reservation',
+    );
+  });
+
+  it('falls back for a message-less ApiError — the backend-down case', () => {
+    // The one #401 is about: `apiClient` no longer writes a sentence, so this genuinely has
+    // nothing to say and the translated fallback is what shows.
+    expect(extractReservationErrorMessage(new ApiError(0, ''), t)).toBe('Failed to create reservation');
+    expect(extractReservationErrorMessage(new ApiError(500, '   '), t)).toBe('Failed to create reservation');
+  });
+
+  it('falls back for a client-side throw rather than rendering it', () => {
+    expect(extractReservationErrorMessage(new TypeError('Failed to fetch'), t)).toBe('Failed to create reservation');
   });
 
   it('falls back to the default when nothing usable is present', () => {
     expect(extractReservationErrorMessage({}, t)).toBe('Failed to create reservation');
+    expect(extractReservationErrorMessage(null, t)).toBe('Failed to create reservation');
   });
 });
 

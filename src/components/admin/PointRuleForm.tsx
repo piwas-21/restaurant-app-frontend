@@ -1,6 +1,5 @@
 'use client';
 
-import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminFidelityService, CreatePointRuleDto } from '@/services/adminFidelityService';
@@ -8,6 +7,8 @@ import type { PointEarningRule } from '@/types/fidelity';
 import { X, Loader2 } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import styles from './PointRuleForm.module.css';
+import { serverMessages } from '@/utils/apiFormErrors';
+import { TENANT_CURRENCY } from '@/utils/currency';
 
 interface PointRuleFormProps {
   rule: PointEarningRule | null;
@@ -159,54 +160,26 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
       }
 
       onSuccess();
-    } catch (error: any) {
-      // Parse error message for better user feedback
-      let errorMessage = t('error_saving_rule', 'Failed to save point rule');
+    } catch (error: unknown) {
+      // Was ~35 lines unwrapping `error.response.data` — the AXIOS error envelope, and axios is
+      // not a dependency here, so the overlap-range regex, the string body and the per-field object
+      // were all dead. The live tail was `else if (error?.message)`.
+      //
+      // **This hunk is production-EQUIVALENT, and that is worth stating rather than dressing up.**
+      // Traced to the backend: an overlap throws `BadRequestException`
+      // (`PointEarningRuleService.cs:70`), the controller catches only `InvalidOperationException`
+      // (which nothing in `Features/FidelityPoints/` throws), so it reaches
+      // `ExceptionHandlingMiddleware`, which builds `Failure(detail, message)` with
+      // `detail = IsDevelopment() ? exception.ToString() : message`. In Production
+      // `errors[0] === message`, so the old read and the new one return the same string. The value
+      // here is removing 35 lines that could never run, not a message the admin now sees.
+      //
+      // The regex is deleted rather than revived: it reformatted a sentence the server already
+      // sends, and it built a raw English literal where the generic it replaced is translated, so
+      // reviving it would have REGRESSED a non-English admin.
+      const [serverReason] = serverMessages(error);
 
-      if (error?.response?.data) {
-        const errorData = error.response.data;
-
-        // Check if errors array exists (our API format)
-        if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-          const firstError = errorData.errors[0];
-
-          // Check for overlap error
-          if (firstError.toLowerCase().includes('overlap')) {
-            // Extract range information, e.g. "Rule overlaps with existing rule. Range: <code> 0 - <code> 11"
-            const rangeMatch = firstError.match(/Range:\s*\$?([\d.]+)\s*-\s*\$?([\d.]+|unlimited)/i);
-
-            if (rangeMatch) {
-              const minAmount = rangeMatch[1];
-              const maxAmount = rangeMatch[2];
-              errorMessage = `This rule overlaps with an existing rule covering ${TENANT_CURRENCY} ${minAmount} - ${maxAmount === 'unlimited' ? 'unlimited' : `${TENANT_CURRENCY} ${maxAmount}`}. Please adjust your order amount range to avoid conflicts with existing rules.`;
-            } else {
-              errorMessage = `This rule overlaps with an existing rule. Please adjust the order amount range to avoid conflicts.`;
-            }
-          } else {
-            // Use the first error message directly
-            errorMessage = firstError;
-          }
-        }
-        // Check if errorData is a string
-        else if (typeof errorData === 'string') {
-          errorMessage = errorData;
-        }
-        // Check for message property
-        else if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-        // Check if errors is an object (validation errors)
-        else if (errorData.errors && typeof errorData.errors === 'object') {
-          const errorMessages = Object.values(errorData.errors).flat();
-          errorMessage = errorMessages.join(', ');
-        }
-      }
-      // Check if error has a message property directly
-      else if (error?.message) {
-        errorMessage = error.message;
-      }
-
-      enqueueSnackbar(errorMessage, {
+      enqueueSnackbar(serverReason ?? t('error_saving_rule', 'Failed to save point rule'), {
         variant: 'error',
         autoHideDuration: 8000, // Show longer for complex messages
       });

@@ -1,4 +1,6 @@
 import { submitEditProductForm, submitProductForm } from './productFormUtils';
+// Through the ALIAS, so `instanceof ApiError` inside `serverMessages` resolves to the same class.
+import { ApiError } from '@/utils/apiClient';
 
 jest.mock('@/services/productService', () => ({
   updateProduct: jest.fn(async () => ({ success: true })),
@@ -75,6 +77,7 @@ const submit = async (data: Record<string, unknown>) => {
     setError,
     onProductUpdated,
     onClose: () => {},
+    fallbackMessage: 'translated fallback',
   });
 
   expect(setError).not.toHaveBeenCalled();
@@ -155,6 +158,7 @@ describe('submitProductForm — create endpoint dispatch', () => {
       setError,
       onProductCreated: () => {},
       onClose: () => {},
+      fallbackMessage: 'translated fallback',
       reset: () => {},
       setImageFiles: () => {},
     });
@@ -191,5 +195,124 @@ describe('submitProductForm — create endpoint dispatch', () => {
     const [payload] = (createMenuBundle as jest.Mock).mock.calls[0];
     expect(payload.menuDefinition.startTime).toBe('09:15:00');
     expect(payload.menuDefinition.endTime).toBe('11:00:00');
+  });
+});
+
+/**
+ * The failure paths. Both functions used to unwrap `error.response.data` — the AXIOS error
+ * envelope, and axios is not a dependency here — so their per-field / `title` / `message` branches
+ * were all dead. The two paths then differed: CREATE had a live `else if (error?.message)` tail
+ * and did show a server message, while EDIT's `} catch {` discarded the error object outright and
+ * always printed a hardcoded English literal. Neither ever read `errors[]` — and the backend's
+ * one-argument `ApiResponse.Failure("<reason>")` puts the reason THERE, leaving `message` at its
+ * default literal `"Operation failed"` (`ApiResponse.cs:55-63`).
+ *
+ * Untested before this: the suite only ever drove the success path, so the rewrite would have been
+ * an unguarded refactor of the half that only runs when something has gone wrong.
+ */
+describe('the failure paths surface the server’s reason, or the caller’s translated sentence', () => {
+  const rootMessage = () => setError.mock.calls[0][1].message;
+
+  const editFailingWith = async (failure: unknown, thrown = true) => {
+    (updateMenuBundle as jest.Mock).mockImplementationOnce(
+      thrown
+        ? async () => {
+            throw failure;
+          }
+        : async () => failure,
+    );
+    await submitEditProductForm({
+      data: bundleFormData() as never,
+      product: { id: 'bundle-1' },
+      imageFiles: [],
+      detailedIngredients: [],
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+    });
+  };
+
+  const createFailingWith = async (failure: unknown, thrown = true) => {
+    (createMenuBundle as jest.Mock).mockImplementationOnce(
+      thrown
+        ? async () => {
+            throw failure;
+          }
+        : async () => failure,
+    );
+    await submitProductForm({
+      data: bundleFormData() as never,
+      imageFiles: [],
+      currentLanguage: 'en',
+      detailedIngredients: [],
+      setSubmissionStatus: () => {},
+      setError,
+      onProductCreated: () => {},
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      reset: () => {},
+      setImageFiles: () => {},
+    });
+  };
+
+  it.each([
+    ['edit', editFailingWith],
+    ['create', createFailingWith],
+  ])('%s: shows the per-rule reason a THROWN ApiError carries', async (_label, run) => {
+    await run(new ApiError(400, 'Validation failed', ['At least one category is required']));
+
+    expect(rootMessage()).toBe('At least one category is required');
+    expect(onProductUpdated).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['edit', editFailingWith],
+    ['create', createFailingWith],
+  ])("%s: shows the server's summary when there is no per-rule list", async (_label, run) => {
+    await run(new ApiError(409, 'That name is taken'));
+
+    expect(rootMessage()).toBe('That name is taken');
+  });
+
+  it.each([
+    ['edit', editFailingWith],
+    ['create', createFailingWith],
+  ])('%s: falls back to the translated sentence when the server said nothing', async (_label, run) => {
+    // The #401 case: a dead backend now throws `ApiError(0, '')`, and this is the literal that
+    // used to be hardcoded English no matter the admin's language.
+    await run(new ApiError(0, ''));
+
+    expect(rootMessage()).toBe('translated fallback');
+  });
+
+  it.each([
+    ['edit', editFailingWith],
+    ['create', createFailingWith],
+  ])('%s: does not render a client-side throw', async (_label, run) => {
+    await run(new TypeError('x.map is not a function'));
+
+    expect(rootMessage()).toBe('translated fallback');
+  });
+
+  it.each([
+    ['edit', editFailingWith],
+    ['create', createFailingWith],
+  ])('%s: reads a RESOLVED failure — the shape a handler error arrives in', async (_label, run) => {
+    // `Ok(ApiResponse.Failure(...))` resolves rather than throwing, so this never becomes an
+    // `ApiError`. It used to be read as `response.message || '<English>'`, which dropped `errors`.
+    await run({ success: false, errors: ['Menu definition is required'] }, false);
+
+    expect(rootMessage()).toBe('Menu definition is required');
+  });
+
+  it.each([
+    ['edit', editFailingWith],
+    ['create', createFailingWith],
+  ])('%s: falls back for a RESOLVED failure with a blank message', async (_label, run) => {
+    await run({ success: false, message: '   ' }, false);
+
+    expect(rootMessage()).toBe('translated fallback');
   });
 });

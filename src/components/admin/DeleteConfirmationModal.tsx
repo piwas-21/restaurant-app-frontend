@@ -32,6 +32,25 @@ export default function DeleteConfirmationModal({ order, onClose, onConfirm }: D
       await onConfirm();
       onClose();
     } catch {
+      // IGNORED ON PURPOSE — and specifically NOT a place to add a second message.
+      //
+      // Traced end to end rather than assumed, because "reported elsewhere" is the claim every
+      // swallowed failure makes. The only consumer is `AdminOrdersModals`, whose `onConfirm` is
+      // the orders page's `onConfirmDelete` → `useAdminOrderMutations.handleDeleteOrder`, and that
+      // function has its own bound catch which enqueues
+      // `getErrorMessage(err) ?? t('order_delete_failed')`. It does not rethrow — so this arm is
+      // currently UNREACHABLE, and surfacing here would double-report a failure the user has
+      // already been shown.
+      //
+      // It is kept rather than deleted because the prop's type is `() => Promise<void>`: a future
+      // consumer that rejects would otherwise leave an unhandled rejection on the click path, and
+      // resetting `isDeleting` is the correct response to a rejection (the button un-sticks and
+      // the dialog stays open). Retained as a contract guard, not as a live path.
+      //
+      // Known, deliberately not changed here: because the producer resolves on failure, `onClose()`
+      // above runs and the dialog closes even when the delete was refused. The red toast still
+      // reports it. Making the dialog stay open means changing the producer to rethrow, which is a
+      // behaviour change across the orders page rather than an error-surfacing fix.
       setIsDeleting(false);
     }
   };

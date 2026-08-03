@@ -47,6 +47,18 @@ const CategoryManagementPage = () => {
     setIsConfirmationModalOpen(true);
   };
 
+  /**
+   * A save that half-succeeded: the category was written, a following step (image upload, reorder)
+   * was not. It lands here rather than inside the modal because the modal closes on this path —
+   * `ResultModal` is the only surface on this screen that outlives it. `isSuccess: false` because
+   * the admin has something left to do, even though the category itself exists.
+   */
+  const handlePartialSuccess = (message: string) => {
+    setResultModalMessage(message);
+    setIsResultModalSuccess(false);
+    setIsResultModalOpen(true);
+  };
+
   const handleConfirmDelete = async () => {
     if (categoryToDelete) {
       const result = await handleDeleteCategory(categoryToDelete.id);
@@ -90,12 +102,14 @@ const CategoryManagementPage = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCategoryCreated={() => fetchCategories(currentPage)}
+        onPartialSuccess={handlePartialSuccess}
       />
       <EditCategoryModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onCategoryUpdated={() => fetchCategories(currentPage)}
         category={selectedCategory}
+        onPartialSuccess={handlePartialSuccess}
       />
       <ConfirmationModal
         isOpen={isConfirmationModalOpen}

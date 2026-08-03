@@ -11,6 +11,7 @@ import {
   AddPaymentRequest,
 } from '@/services/cashierService';
 import { OrderDto } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
 
 const POLLING_INTERVAL_MS = 5000;
@@ -78,7 +79,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
       setIsLoading(false);
     } catch (err) {
       if (!isMountedRef.current) return;
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load orders';
+      const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
       setError(errorMessage);
       setIsLoading(false);
       console.error('Error fetching orders:', err);
@@ -149,7 +150,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         );
         return mergedOrder || updatedOrder;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : errorFallback;
+        const errorMessage = getErrorMessage(err) ?? errorFallback;
         setError(errorMessage);
         throw err;
       }

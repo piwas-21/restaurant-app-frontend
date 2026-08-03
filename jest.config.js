@@ -67,6 +67,7 @@ module.exports = {
     'src/lib/passwordPolicy.ts',
     'src/schemas/password.schema.ts',
     'src/utils/apiFormErrors.ts',
+    'src/utils/apiClient.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
@@ -221,6 +222,28 @@ module.exports = {
     './src/utils/apiFormErrors.ts': {
       statements: 100,
       branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // `apiClient` joined them in #401. It is where the sweep's premise actually lives: every
+    // `getErrorMessage(e) ?? t('…')` in the tree is only as true as this file's promise to leave
+    // `message` empty when the server authored nothing, and for five slices it silently was not —
+    // because the tests hand-built `new ApiError(500, '')`, a shape `request()` could not emit, and
+    // the file itself had NO test at all. Lines and functions are pinned at 100 so no failure path
+    // can be added without one — though note it is the STATEMENTS and BRANCHES floors that do that
+    // work, not lines: a one-line `if (x) throw new ApiError(418, '')` leaves lines at 100 while its
+    // statement goes uncovered, which is exactly the shape of the four gaps below. Those two floors
+    // drop to 94.94 / 92.96 on such an addition and fail. The gap is exactly four, counted out
+    // of `coverage-final.json` rather than guessed: the three `typeof window === 'undefined'`
+    // storage guards, reachable only from the server runtime this suite does not run in, plus
+    // `request`'s own `config: RequestConfig = {}` default, which is permanently uncoverable —
+    // `request` is module-private and every wrapper passes an object. (Two earlier drafts of this
+    // note were wrong in opposite directions: one blamed the `body instanceof FormData` ternaries,
+    // which were merely untested and now are; the correction then dropped the default-arg, which
+    // was true. Count the branch map, don't reason about it.)
+    './src/utils/apiClient.ts': {
+      statements: 96,
+      branches: 94,
       functions: 100,
       lines: 100,
     },

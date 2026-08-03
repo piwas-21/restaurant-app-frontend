@@ -11,12 +11,22 @@ import type { MenuBundleListResponse, ProductListResponse } from './types';
 
 const PAGE_SIZE = 10;
 
-/** Extract a human error message from an unknown thrown value. */
+/**
+ * Extract a human error message from an unknown thrown value.
+ *
+ * **Blank is absence, never a message.** The second branch used to catch the empty string the
+ * first one had just rejected and return it, and this value is consumed as a FLAG —
+ * `MenuContent` renders its own translated sentence off `errorLoadingItems ? … : null`. So an
+ * empty string disabled the error banner entirely, and `reportError` also clears the list: a dead
+ * backend read as "No items in category" on the most-visited page in the app. Latent until #401
+ * stopped `apiClient` manufacturing an English sentence for every failure, which is what had been
+ * keeping this branch non-empty.
+ */
 function errorMessage(e: unknown, fallback: string): string {
-  if (e instanceof Error && e.message) return e.message;
+  if (e instanceof Error) return e.message.trim() || fallback;
   if (typeof e === 'object' && e !== null && 'message' in e) {
     const m = (e as { message?: unknown }).message;
-    if (typeof m === 'string') return m;
+    if (typeof m === 'string' && m.trim()) return m.trim();
   }
   return fallback;
 }
@@ -84,7 +94,10 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
         )) as ProductListResponse;
         if (localId !== requestIdRef.current) return; // stale — newer fetch in flight
         if (!response.success) {
-          reportError(response.message || 'Failed to fetch products');
+          // Through the same helper as the thrown path: both feed one `setError`, so "blank is
+          // absence" has to hold on both or the invariant is only half true. `||` alone let a
+          // whitespace-only `message` through.
+          reportError(errorMessage(response, 'Failed to fetch products'));
           return;
         }
         setTotalPages(response.data?.totalPages || 1);
@@ -119,7 +132,7 @@ export function usePublicMenuData(): UsePublicMenuDataReturn {
       const response = (await getPublicMenuBundles(page, PAGE_SIZE, requestedOrderType)) as MenuBundleListResponse;
       if (localId !== requestIdRef.current) return;
       if (!response.success) {
-        reportError(response.message || 'Failed to fetch menu bundles');
+        reportError(errorMessage(response, 'Failed to fetch menu bundles'));
         return;
       }
       setTotalPages(response.data?.totalPages || 1);

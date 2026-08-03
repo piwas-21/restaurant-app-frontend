@@ -6,6 +6,7 @@ import { orderTypeConfigurationService, OrderTypeConfigurationDto } from '@/serv
 import { OrderType } from '@/types/order';
 import { Utensils, Store, Truck } from 'lucide-react';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import { getErrorMessage } from '@/utils/apiClient';
 import { enqueueSnackbar } from 'notistack';
 import styles from './OrderTypeManager.module.css';
 
@@ -33,10 +34,13 @@ export default function OrderTypeManager() {
       setLoading(true);
       const data = await orderTypeConfigurationService.getAll();
       setConfigurations(data);
-    } catch {
-      enqueueSnackbar(t('failed_to_load_configurations', 'Failed to load order type configurations'), {
-        variant: 'error',
-      });
+    } catch (e) {
+      enqueueSnackbar(
+        getErrorMessage(e) ?? t('failed_to_load_configurations', 'Failed to load order type configurations'),
+        {
+          variant: 'error',
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -86,8 +90,10 @@ export default function OrderTypeManager() {
       enqueueSnackbar(t('order_type_updated_successfully', 'Order type updated successfully'), {
         variant: 'success',
       });
-    } catch {
-      enqueueSnackbar(t('failed_to_update_order_type', 'Failed to update order type'), {
+    } catch (e) {
+      // A refused toggle is usually a rule, not an outage — "this order type has open orders",
+      // "delivery is not configured". Replacing that with the generic loses the only actionable part.
+      enqueueSnackbar(getErrorMessage(e) ?? t('failed_to_update_order_type', 'Failed to update order type'), {
         variant: 'error',
       });
     } finally {

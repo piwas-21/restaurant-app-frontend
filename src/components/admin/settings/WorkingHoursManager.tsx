@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto, UpdateWorkingHoursDto, dayNameToNumber } from '@/types/workingHours';
+import { getErrorMessage } from '@/utils/apiClient';
 import { enqueueSnackbar } from 'notistack';
+import { getDayName, parseTime } from './workingHoursDay';
 import styles from './WorkingHoursManager.module.css';
 
 const DAYS_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday to Sunday
@@ -45,8 +47,8 @@ export default function WorkingHoursManager() {
       });
 
       setWorkingHours(sorted);
-    } catch {
-      enqueueSnackbar(t('failed_to_load_working_hours', 'Failed to load working hours'), {
+    } catch (e) {
+      enqueueSnackbar(getErrorMessage(e) ?? t('failed_to_load_working_hours', 'Failed to load working hours'), {
         variant: 'error',
       });
     } finally {
@@ -59,22 +61,16 @@ export default function WorkingHoursManager() {
       const open = await workingHoursService.isOpenNow();
       setIsOpen(open);
     } catch {
-      // Silently fail
+      // No toast, on purpose: this only decides whether the "Open now" banner renders, and on
+      // mount `loadWorkingHours` fails alongside it and reports the same outage — a second toast
+      // would bury the one that matters.
+      //
+      // But silence is not the same as doing nothing. After a SAVE this runs again, on its own,
+      // with `loadWorkingHours` having just succeeded; leaving `isOpen` alone there would keep the
+      // banner asserting the PRE-save answer over a table showing the hours the admin just changed,
+      // with nothing reported anywhere. `null` hides the banner instead: no answer beats a stale one.
+      setIsOpen(null);
     }
-  };
-
-  const getDayName = (dayOfWeek: number): string => {
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const translatedDays = [
-      t('sunday', dayNames[0]),
-      t('monday', dayNames[1]),
-      t('tuesday', dayNames[2]),
-      t('wednesday', dayNames[3]),
-      t('thursday', dayNames[4]),
-      t('friday', dayNames[5]),
-      t('saturday', dayNames[6]),
-    ];
-    return translatedDays[dayOfWeek] || dayNames[dayOfWeek] || 'Unknown';
   };
 
   const handleTimeChange = (id: string, field: 'openTime' | 'closeTime', value: string) => {
@@ -97,7 +93,7 @@ export default function WorkingHoursManager() {
         if (close <= open) {
           enqueueSnackbar(
             t('close_time_must_be_after_open', 'Close time must be after open time for {{day}}', {
-              day: getDayName(wh.dayOfWeek),
+              day: getDayName(wh.dayOfWeek, t),
             }),
             { variant: 'error' },
           );
@@ -106,11 +102,6 @@ export default function WorkingHoursManager() {
       }
     }
     return true;
-  };
-
-  const parseTime = (timeStr: string): number => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
   };
 
   const handleSave = async () => {
@@ -141,8 +132,10 @@ export default function WorkingHoursManager() {
       // Reload to get fresh data and check if open status changed
       await loadWorkingHours();
       await checkIsOpen();
-    } catch {
-      enqueueSnackbar(t('failed_to_update_working_hours', 'Failed to update working hours'), {
+    } catch (e) {
+      // Per-day validation ("closing time must be after opening time") comes back from the server
+      // and is the whole diagnosis — the generic says only that something went wrong.
+      enqueueSnackbar(getErrorMessage(e) ?? t('failed_to_update_working_hours', 'Failed to update working hours'), {
         variant: 'error',
       });
     } finally {
@@ -193,7 +186,7 @@ export default function WorkingHoursManager() {
             {workingHours.map((wh) => (
               <tr key={wh.id} className={wh.isClosed ? styles.closedRow : ''}>
                 <td className={styles.dayCell}>
-                  <strong suppressHydrationWarning>{getDayName(wh.dayOfWeek)}</strong>
+                  <strong suppressHydrationWarning>{getDayName(wh.dayOfWeek, t)}</strong>
                 </td>
                 <td>
                   <button

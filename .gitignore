@@ -63,3 +63,6 @@ playwright-report/
 
 # Claude Code per-repo settings (machine-local).
 .claude/
+
+# Local throwaway browser probes (never committed; may contain dev credentials)
+*.local.mjs

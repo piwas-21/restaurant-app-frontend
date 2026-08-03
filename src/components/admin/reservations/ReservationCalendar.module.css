@@ -195,13 +195,19 @@
 }
 
 .calendarContainer :global(.rbc-time-header-content) {
-  /* PHYSICAL because what it overrides is physical, and lives in `node_modules` where nothing
-     in `src/` greps for it: react-big-calendar ships `.rbc-time-header-content { border-left:
-     1px solid #ddd }`. Converting this to `border-inline-start` would map to `border-right` in
-     `ar` and leave rbc's hardcoded `#ddd` left border standing — two borders, one of them a
-     colour that ignores dark mode. rbc's own `.rbc-rtl` escape hatch does not help: nothing in
-     this repo passes `rtl` to `<Calendar>`. Mirror this only in the slice that also does. */
-  border-left: 1px solid var(--border-color) !important;
+  /* Paired with `rtl={…}` on `<Calendar>` in the component beside this file — the two are ONE
+     change (E8 slice 3b-3) and neither works alone. rbc ships
+     `.rbc-time-header-content { border-left: 1px solid #ddd }` and, under its own `.rbc-rtl`
+     class, `{ border-left-width: 0; border-right: 1px solid #ddd }`. So:
+       - convert this alone (no `rtl` prop) → in `ar` we paint the right edge while rbc's
+         hardcoded `#ddd` left border still stands: two borders, one ignoring dark mode;
+       - pass `rtl` alone (leave this physical) → our `!important` left border beats rbc's
+         `border-left-width: 0` and rbc's `#ddd` right border stands unopposed: same two borders.
+     Together, `border-inline-start` lands on whichever edge rbc has just moved its own border to,
+     and overrides it with the themed token. Verified in both directions and both themes.
+     Note the light-theme value of `--border-color` IS `#ddd`, so a colour check in light mode
+     cannot tell this override from rbc's own rule — check dark, where they differ. */
+  border-inline-start: 1px solid var(--border-color) !important;
 }
 
 .calendarContainer :global(.rbc-time-content) {

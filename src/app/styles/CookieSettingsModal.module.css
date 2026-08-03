@@ -145,13 +145,13 @@
   content: '';
   height: 20px;
   width: 20px;
-  /* PHYSICAL, pending the dir-aware transform pass (E8 slice 3). The knob travels via
-     `transform: translateX(22px)` on `input:checked`, which is not a logical property —
-     mirror the resting inset alone and the knob would slide OUT of its own track in `ar`. */
-  left: 4px;
+  /* Travels on this inset (4px -> 26px when checked) rather than the `translateX(22px)` that
+     forced it physical; identical in `ltr`. The transition NAMES the inset — see
+     SoundSelector.module.css and DESIGN-SYSTEM.md §8.1. E8 slice 3b. */
+  inset-inline-start: 4px;
   bottom: 4px;
   background-color: white;
-  transition: 0.4s;
+  transition: inset-inline-start 0.4s;
   border-radius: 50%;
 }
 
@@ -164,7 +164,8 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(22px);
+  /* Track 50, knob 20 — 4px gap at both ends, so the travel is symmetric and mirrors. */
+  inset-inline-start: 26px;
 }
 
 /* Dark Mode Adjustments */

@@ -93,11 +93,13 @@ html[data-theme='dark'] {
   needs a `[dir='rtl']` rule. See DESIGN-SYSTEM.md §8.1.)
 
   `var()` also resolves inside `@keyframes` — substitution happens on the animating element — so
-  an entry animation can be direction-aware from one declaration instead of a `[dir='rtl']`
-  animation-name swap. Verified in Chromium on a probe of the `NotificationCenter` keyframe
-  shape (frame 0 computed `matrix(1,0,0,1,400,0)` under `ltr`, `matrix(1,0,0,1,-400,0)` under
-  `rtl`, one animation in both). No shipped `@keyframes` uses `--dir` yet; the toast stacks are
-  E8 slice 3b-2.
+  an entry animation is direction-aware from one declaration instead of a `[dir='rtl']`
+  animation-name swap. Both toast stacks ship this way, as `@keyframes slideInFromTrailingEdge`.
+  Measured on `NotificationCenter`'s, whose translate is the literal `400px`: frame 0 computes
+  `matrix(1,0,0,1,400,0)` under `ltr` and `matrix(1,0,0,1,-400,0)` under `rtl`, one animation in
+  both. `MyReservations`'s translates `100%`, so its frame 0 is one rendered element width in
+  each direction, not 400px. Safe in both because they are run-once `animation`s with no fill
+  mode. It is NOT safe in a `transition` on a resting position — see AdminPage.module.css.
 
   KNOWN GAP, deliberately not closed here: this keys off the `dir` ATTRIBUTE, and an attribute
   selector matches a literal value. An element inside `dir="auto"` that resolves to Arabic

@@ -156,6 +156,8 @@ module.exports = {
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
+    'src/utils/basketMutationError.ts',
+    'src/hooks/cart/useCartItemMutations.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -190,6 +192,12 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // ── #415 — the two basket 404s. ─────────────────────────────────────────────────────────────
+    // These pin the discrimination between "the item is gone" (resync) and "the basket is gone"
+    // (report), which nothing else can see: both are a 404, and the bug they replace was invisible
+    // to every other gate because the old substring test type-checked and lint-passed.
+    './src/utils/basketMutationError.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/hooks/cart/useCartItemMutations.ts': { statements: 89, branches: 99, functions: 99, lines: 89 },
     // ── E9 slice 8 — the closing slice of the bare-catch sweep (#383). ──────────────────────────
     // Pinned at actual − 1pt per the recipe above, so the coverage that pins each fix cannot be
     // deleted silently. These are FLOORS, not targets: several are low because the file is large

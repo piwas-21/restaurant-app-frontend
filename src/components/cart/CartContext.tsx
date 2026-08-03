@@ -23,6 +23,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // returns null when the server authored nothing, and the cart's error state is a plain string
   // its renderer shows verbatim — so the translated sentence has to be chosen at this level.
   const unexpectedError = t('unexpected_error', 'An unexpected error occurred.');
+  // Same reason, for the one cart failure whose server sentence is unfit to show: the backend says
+  // "Basket not found", which describes a row, not the guest's situation.
+  const basketGoneError = t('error_basket_not_found', 'Your shopping cart is empty or expired');
   const { sessionId, ensureSession } = useSessionContext();
 
   /**
@@ -56,6 +59,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     ensureSession,
     syncBasket,
     unexpectedError,
+    basketGoneError,
   );
 
   /**

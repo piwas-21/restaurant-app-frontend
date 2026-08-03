@@ -74,17 +74,14 @@ export function useCartPage() {
    *
    * One exit is NOT covered by "always surfaced": `updateItem`/`removeItem` detect an item already
    * gone (removed in another tab), resync and return WITHOUT `SET_ERROR` and without rethrowing.
+   * Nothing to report there — the basket the server returns is the truth.
    *
-   * **This comment used to end "Nothing to report there — the basket is now correct." That is
-   * false, and the fix is issue #415, not this file.** `isAlreadyGone`
-   * (`useCartItemMutations.ts:31`) substring-matches `'not found'`, and the backend also throws
-   * `NotFoundException("Basket not found")` when the whole BASKET row is gone — after
-   * `BasketCleanupService` runs, or on an expired session id. That string contains `'not found'`,
-   * so it takes this exit; `GetBasketQuery` then answers the missing basket with an empty
-   * `BasketDto` and `SuccessWithData`. The guest taps "−" on one item and the entire cart is
-   * replaced by "Your cart is empty", silently. It is left as-is here only because the correct fix
-   * is to discriminate on the backend's `errorCode` in the producer, which is a change to the
-   * mutation hook and its tests rather than to these catches.
+   * That exit is now scoped to the backend's `ErrorCodes.BasketItemNotFound` (#415). It used to
+   * substring-match `'not found'`, which also matched `NotFoundException("Basket not found")` — the
+   * whole BASKET row being gone, after `BasketCleanupService` runs or on an expired session id.
+   * `GetBasketQuery` answers a missing basket with an empty `BasketDto` and `SuccessWithData`, so
+   * that took the silent-resync exit and replaced the guest's entire cart with "Your cart is empty".
+   * A basket-level failure now reports like any other, with a localized sentence.
    */
   const handleRemoveItem = async (basketItemId: string | undefined) => {
     if (!basketItemId) return;

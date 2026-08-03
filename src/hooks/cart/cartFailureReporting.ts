@@ -22,11 +22,11 @@ export function createCartFailureReporters(
 ) {
   /**
    * A 5xx is answered with OUR words, checked before `getErrorMessage` because it would otherwise
-   * win: that message describes an internal fault, and on a Development or staging build the
-   * middleware puts a full stack trace in `errors[0]`, which `getErrorMessage` PREFERS over
-   * `message`. Neither belongs in a cart. This only became renderable when the backend stopped
-   * answering failures with HTTP 200, so keeping the localized fallback is what makes that change a
-   * fix rather than a swap of one bad sentence for another.
+   * win: that message describes an internal fault, and on a DEVELOPMENT build the middleware puts a
+   * full stack trace in `errors[0]`, which `getErrorMessage` PREFERS over `message` (local-only —
+   * both deployed boxes run Production). Neither belongs in a cart. This only became renderable
+   * when the backend stopped answering failures with HTTP 200, so keeping the localized fallback is
+   * what makes that change a fix rather than a swap of one bad sentence for another.
    *
    * Everything else shows what the server said — 4xx prose is often written FOR the guest, like the
    * channel guard's reason — or the translated fallback when it said nothing.

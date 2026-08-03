@@ -54,6 +54,11 @@ describe('CraftCartContents', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Your shopping cart is empty or expired');
   });
 
+  it('renders no alert when there is no error', () => {
+    render(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('renders the craft empty note + order-type toggle', () => {
     render(<CraftCartContents pickType={jest.fn()} />);
     expect(screen.getByText('Your cart is empty')).toBeInTheDocument();

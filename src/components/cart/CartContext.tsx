@@ -163,8 +163,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
+  // Stable identity is the contract, not an optimisation — see `CartContextType.clearError`.
+  // `dispatch` from useReducer is itself stable, so an empty dep list is correct here.
+  const clearError = useCallback(() => {
+    dispatch({ type: 'SET_ERROR', payload: { error: null } });
+  }, []);
+
   const value: CartContextType = {
     state,
+    clearError,
     syncBasket,
     addItem,
     updateItem,

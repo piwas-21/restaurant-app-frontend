@@ -55,8 +55,12 @@ export function isBasketGone(error: unknown): boolean {
  * every failure in an HTTP 200 (see `UpdateBasketItemCommandHandler`). Before that, `basketService`
  * threw a plain `Error`, `getErrorMessage` returned null, and the guest got the localized fallback.
  * Without this predicate that same failure would newly render "An error occurred while processing
- * your request" — untranslated, in all ten locales — and, on a Development or staging build where
- * the middleware puts `exception.ToString()` into `errors[0]`, a full stack trace inside the cart.
+ * your request" — untranslated, in all ten locales.
+ *
+ * On a DEVELOPMENT build it is worse: the middleware puts `exception.ToString()` into `errors[0]`,
+ * which `getErrorMessage` prefers over `message`, so a full stack trace would render in the cart.
+ * That is a local-only exposure — both deployed boxes run `ASPNETCORE_ENVIRONMENT=Production`
+ * (`deploy/docker-compose.prod.yml`), so staging does NOT emit traces.
  */
 export function isServerFault(error: unknown): boolean {
   return error instanceof ApiError && error.status >= 500;

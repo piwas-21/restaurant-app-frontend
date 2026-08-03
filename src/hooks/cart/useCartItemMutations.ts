@@ -15,9 +15,13 @@ interface CartItemMutations {
 
 /**
  * The optimistic basket-item mutations (add / update / remove) for CartProvider. Each applies an
- * optimistic dispatch, calls the backend, syncs from the server response, and rolls back on error.
- * Extracted verbatim from CartContext (Sprint 6 god-file decomposition); behaviour unchanged.
- * `syncBasket` is passed in because update/remove re-sync on a not-found (item removed in another tab).
+ * optimistic dispatch, calls the backend, syncs from the server response, and reports on error.
+ * Originally extracted from CartContext (Sprint 6 god-file decomposition).
+ *
+ * `syncBasket` has TWO opposite consumers here, which is the whole of #415: update/remove re-sync
+ * SILENTLY when the addressed item is already gone (removed in another tab — nothing to report),
+ * and re-sync AND report when the whole basket row is gone. Both are a 404; only the backend's
+ * `errorCode` separates them.
  */
 export function useCartItemMutations(
   state: CartState,

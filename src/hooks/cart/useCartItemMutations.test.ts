@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { useCartItemMutations } from './useCartItemMutations';
 import { basketService } from '@/services/basketService';
 import { ApiError } from '@/utils/apiClient';
-import { initialState } from '@/components/cart/cartReducer';
+import { cartReducer, initialState } from '@/components/cart/cartReducer';
 import type { CartAction } from '@/components/cart/cartTypes';
 
 jest.mock('@/services/basketService', () => ({
@@ -48,6 +48,17 @@ describe('useCartItemMutations — the two basket 404s', () => {
   const errorActions = () =>
     dispatch.mock.calls.map(([a]) => a).filter((a) => a.type === 'SET_ERROR' || a.type === 'ROLLBACK');
 
+  /**
+   * The REAL reducer folded over the actions the hook actually dispatched, in order.
+   *
+   * Asserting the action list alone cannot see whether a message survives — SYNC_BASKET nulls
+   * `error` and ROLLBACK carries it forward, and only the reducer knows that. This is what turns
+   * "the right actions were dispatched" into "the guest can read it".
+   */
+  const finalState = () => dispatch.mock.calls.reduce((s, [a]) => cartReducer(s, a), initialState);
+
+  const emptyBasket = { ...(initialState.basket ?? {}), items: [] } as never;
+
   const notFound = (message: string, errorCode?: string) => new ApiError(404, message, [message], errorCode);
 
   beforeEach(() => {
@@ -86,9 +97,28 @@ describe('useCartItemMutations — the two basket 404s', () => {
         // Localized, NOT the server's "Basket not found" — that describes a row, not the guest.
         { type: 'SET_ERROR', payload: { error: BASKET_GONE } },
       ]);
-      const syncCall = dispatch.mock.calls.findIndex(([a]) => a.type === 'SET_ERROR');
-      expect(syncCall).toBeGreaterThan(-1);
-      expect(syncBasket.mock.invocationCallOrder[0]).toBeLessThan(dispatch.mock.invocationCallOrder[syncCall]);
+      expect(finalState().error).toBe(BASKET_GONE);
+    });
+
+    it('survives the resync that the real reducer performs (ordering)', async () => {
+      // The ordering claim is that SET_ERROR must be dispatched AFTER the resync, because
+      // SYNC_BASKET sets `error: null`. Asserting call ORDER alone cannot see that: a bare
+      // `jest.fn()` never emits SYNC_BASKET, so dropping the `await` still "calls syncBasket
+      // first" and passes. This drives the real `cartReducer` over the real actions instead, with
+      // a syncBasket that dispatches on a later tick exactly as the real one does after its HTTP
+      // round-trip — so `void syncBasket()` lands SYNC_BASKET last and nulls the message.
+      syncBasket.mockImplementation(async () => {
+        await Promise.resolve();
+        dispatch({ type: 'SYNC_BASKET', payload: { basket: emptyBasket } });
+      });
+      service().mockRejectedValue(notFound('Basket not found', 'BasketNotFound'));
+
+      await expect(invoke(setup())).rejects.toThrow();
+
+      const state = finalState();
+      expect(state.error).toBe(BASKET_GONE);
+      // …and the cart really is empty, so the screen agrees with the server.
+      expect(state.items).toHaveLength(0);
     });
 
     it('reports an UNCODED 404 rather than resyncing', async () => {

@@ -1123,6 +1123,7 @@
   "save_this_address": "Dit adres opslaan voor toekomstige bestellingen",
   "save_address_button": "Adres opslaan",
   "failed_to_save_address": "Kon adres niet opslaan. Probeer het opnieuw.",
+  "failed_to_load_saved_addresses": "Kon je opgeslagen adressen niet laden.",
   "table_not_selected": "Selecteer een tafel",
   "error_loading_tables": "Fout bij het laden van tafels. Probeer het opnieuw.",
   "retry": "Opnieuw proberen",

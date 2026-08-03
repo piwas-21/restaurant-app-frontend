@@ -1115,6 +1115,7 @@
   "save_this_address": "Enregistrer cette adresse pour les futures commandes",
   "save_address_button": "Enregistrer l'adresse",
   "failed_to_save_address": "Échec de l'enregistrement de l'adresse. Veuillez réessayer.",
+  "failed_to_load_saved_addresses": "Impossible de charger vos adresses enregistrées.",
   "table_not_selected": "Veuillez sélectionner une table",
   "error_loading_tables": "Erreur lors du chargement des tables. Veuillez réessayer.",
   "retry": "Réessayer",

@@ -1,6 +1,9 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { useDeliveryAddress } from './useDeliveryAddress';
 import { DEFAULT_FORM_FIELD_RULES, FORM_KEYS, type FormFieldRules } from '@/types/formFieldConfig';
+import { getCurrentUser } from '@/services/userService';
+import { getMyAddresses, createAddress } from '@/services/addressService';
+import { ApiError } from '@/utils/apiClient';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string, f?: string) => f ?? k }),
@@ -12,6 +15,10 @@ jest.mock('@/services/addressService', () => ({
   getMyAddresses: jest.fn().mockResolvedValue([]),
   createAddress: jest.fn(),
 }));
+
+const mockedUser = getCurrentUser as jest.Mock;
+const mockedAddresses = getMyAddresses as jest.Mock;
+const mockedCreate = createAddress as jest.Mock;
 
 const DEFAULTS = DEFAULT_FORM_FIELD_RULES[FORM_KEYS.deliveryAddress];
 let mockRules: FormFieldRules = DEFAULTS;
@@ -32,6 +39,8 @@ const fillLockedFields = (result: { current: ReturnType<typeof useDeliveryAddres
 beforeEach(() => {
   jest.clearAllMocks();
   mockRules = DEFAULTS;
+  mockedUser.mockRejectedValue(new Error('guest'));
+  mockedAddresses.mockResolvedValue([]);
 });
 
 describe('useDeliveryAddress — schema built from the admin config (D3)', () => {
@@ -94,5 +103,92 @@ describe('useDeliveryAddress — schema built from the admin config (D3)', () =>
     mockRules = { ...DEFAULTS, additionalInfo: { isVisible: false, isRequired: false } };
     const { result } = renderHook(() => useDeliveryAddress());
     expect(result.current.fieldRules.additionalInfo).toEqual({ isVisible: false, isRequired: false });
+  });
+});
+
+/**
+ * The saved-addresses effect used to wrap BOTH calls in one catch, justified by "logged-out users
+ * still proceed via the manual form" — true of `getCurrentUser`, which 401s for every guest, and
+ * false of `getMyAddresses`, which only runs once that has succeeded. A logged-in customer whose
+ * address list failed was therefore marked logged OUT: the list vanished silently and, because
+ * `persistIfRequested` is gated on `isLoggedIn`, so did the save-this-address behaviour.
+ */
+describe('useDeliveryAddress — a failed address list is not a logged-out session', () => {
+  it('stays silent for a guest, whose profile call is expected to fail', async () => {
+    const { result } = renderHook(() => useDeliveryAddress(undefined, true));
+
+    await waitFor(() => expect(result.current.showNewAddressForm).toBe(true));
+    expect(result.current.isLoggedIn).toBe(false);
+    expect(result.current.listError).toBeNull();
+    expect(result.current.addressError).toBe('');
+  });
+
+  it('keeps the session AND says why when only the address list fails', async () => {
+    mockedUser.mockResolvedValue({ id: 'u1' });
+    mockedAddresses.mockRejectedValue(new ApiError(500, '', ['Address book is unavailable']));
+
+    const { result } = renderHook(() => useDeliveryAddress(undefined, true));
+
+    // `listError`, NOT `addressError`: the latter is a validation slot that
+    // `DeliveryAddressSection.errorOn` routes to whichever field is empty.
+    await waitFor(() => expect(result.current.listError).toBe('Address book is unavailable'));
+    expect(result.current.addressError).toBe('');
+    // The half that silently disabled "save this address" for the rest of checkout.
+    expect(result.current.isLoggedIn).toBe(true);
+    expect(result.current.showNewAddressForm).toBe(true);
+    expect(result.current.loadingAddresses).toBe(false);
+  });
+
+  it('falls back to the translated sentence when the server authored none', async () => {
+    mockedUser.mockResolvedValue({ id: 'u1' });
+    mockedAddresses.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const { result } = renderHook(() => useDeliveryAddress(undefined, true));
+
+    await waitFor(() => expect(result.current.listError).toBe('Could not load your saved addresses.'));
+    expect(result.current.isLoggedIn).toBe(true);
+  });
+
+  it('loads the list normally when nothing fails', async () => {
+    mockedUser.mockResolvedValue({ id: 'u1' });
+    mockedAddresses.mockResolvedValue([
+      { id: 'a1', addressLine1: 'Rue du Rhône 1', city: 'Genève', postalCode: '1204', country: 'Switzerland' },
+    ]);
+
+    const { result } = renderHook(() => useDeliveryAddress(undefined, true));
+
+    await waitFor(() => expect(result.current.savedAddresses).toHaveLength(1));
+    expect(result.current.listError).toBeNull();
+    expect(result.current.showNewAddressForm).toBe(false);
+  });
+});
+
+describe('useDeliveryAddress — saving an address surfaces the refusal', () => {
+  const saveWith = async (rejection: unknown) => {
+    mockedUser.mockResolvedValue({ id: 'u1' });
+    mockedCreate.mockRejectedValue(rejection);
+    const { result } = renderHook(() => useDeliveryAddress(undefined, true));
+    await waitFor(() => expect(result.current.isLoggedIn).toBe(true));
+    fillLockedFields(result);
+    act(() => result.current.setSaveThisAddress(true));
+    let ok = true;
+    await act(async () => {
+      ok = await result.current.persistIfRequested();
+    });
+    return { result, ok };
+  };
+
+  it("shows the server's reason rather than the generic", async () => {
+    const { result, ok } = await saveWith(new ApiError(400, '', ['That label is already in use']));
+
+    expect(ok).toBe(false);
+    expect(result.current.addressError).toBe('That label is already in use');
+  });
+
+  it('shows the translated generic for a client-side throw', async () => {
+    const { result, ok } = await saveWith(new TypeError('Failed to fetch'));
+
+    expect(ok).toBe(false);
+    expect(result.current.addressError).toBe('Failed to save address. Please try again.');
   });
 });

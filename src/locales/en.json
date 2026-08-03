@@ -1123,6 +1123,7 @@
   "save_this_address": "Save this address for future orders",
   "save_address_button": "Save Address",
   "failed_to_save_address": "Failed to save address. Please try again.",
+  "failed_to_load_saved_addresses": "Could not load your saved addresses.",
   "table_not_selected": "Please select a table",
   "error_loading_tables": "Error loading tables. Please try again.",
   "retry": "Retry",

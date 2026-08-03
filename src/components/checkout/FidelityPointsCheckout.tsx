@@ -115,9 +115,12 @@ export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedempti
   if (!balance) {
     return loadError ? (
       <div className={styles.container}>
-        <p className={styles.loadError} role="status">
-          {loadError}
-        </p>
+        {/* `<output>`, not `<p role="status">` — it carries the status role implicitly and is
+            announced more reliably across assistive tech (Sonar S6819). This appears
+            asynchronously, after the balance request settles, so without a live region a
+            screen-reader user gets no signal that the redemption panel is gone rather than
+            still loading. `.loadError` sets `display: block` because `<output>` is inline. */}
+        <output className={styles.loadError}>{loadError}</output>
       </div>
     ) : null;
   }

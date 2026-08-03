@@ -329,6 +329,8 @@
    leaves this unrendered — the whole section disappears for them, as it always has. Deliberately
    quiet: the order can still go ahead, so this is a notice, not an alert. */
 .loadError {
+  /* `<output>` is inline by default; the notice needs to fill the card like the <p> it replaced. */
+  display: block;
   margin: 0;
   font-size: 0.9rem;
   color: var(--text-secondary);

@@ -47,6 +47,10 @@ describe('FidelityPointsCheckout — a guest 401 is not an outage', () => {
     render(<FidelityPointsCheckout orderSubtotal={40} />);
 
     expect(await screen.findByText('Loyalty service is being upgraded')).toBeInTheDocument();
+    // A live region, not just visible text: this appears asynchronously once the balance request
+    // settles, so without it a screen-reader user gets no signal that the redemption panel is gone
+    // rather than still loading. `<output>` carries role="status" implicitly.
+    expect(screen.getByRole('status')).toHaveTextContent('Loyalty service is being upgraded');
   });
 
   it('falls back to the translated notice when the server authored no sentence', async () => {

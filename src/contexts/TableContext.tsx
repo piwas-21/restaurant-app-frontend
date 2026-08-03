@@ -38,7 +38,11 @@ const EMPTY_TABLE_CONTEXT: TableContextData = {
 };
 
 export function TableContextProvider({ children }: { children: ReactNode }) {
-  const [tableContext, setTableContextState] = useState<TableContextData>(EMPTY_TABLE_CONTEXT);
+  // Named `tableState`/`setTableState` so the pair matches (Sonar S6754). It cannot be
+  // `tableContext`/`setTableContext`: `setTableContext` is this provider's PUBLIC partial-update
+  // helper, used by /scan and `useOrderTypeFollowUp`, and renaming that would be a change to the
+  // context's API for a lint rule. The value is still exposed as `tableContext` below.
+  const [tableState, setTableState] = useState<TableContextData>(EMPTY_TABLE_CONTEXT);
 
   // Load from session storage on mount.
   useEffect(() => {
@@ -47,17 +51,17 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
       if (stored) {
         const parsed: unknown = JSON.parse(stored);
         // Merged over the defaults, and only when it is an object. It used to be
-        // `setTableContextState(parsed)` — which trusts whatever `JSON.parse` returns. Two ways
+        // `setTableState(parsed)` — which trusts whatever `JSON.parse` returns. Two ways
         // that bites, and the catch above sees neither, because neither one throws:
         //   - `JSON.parse('null')` is `null`, and the state then IS null, so
-        //     `Boolean(tableContext.tableId)` below throws during render and takes the tree out.
+        //     `Boolean(tableState.tableId)` below throws during render and takes the tree out.
         //   - a value written by an older shape replaces the state wholesale instead of filling
         //     the gaps, so a field this version added arrives `undefined` where a boolean is typed.
         // Neither is reachable from our own writer today (it only stores a full object, and only
         // when `tableId` is set) — but sessionStorage is not ours alone, and a guard that costs one
         // spread should not depend on that staying true.
         if (typeof parsed === 'object' && parsed !== null) {
-          setTableContextState({ ...EMPTY_TABLE_CONTEXT, ...(parsed as Partial<TableContextData>) });
+          setTableState({ ...EMPTY_TABLE_CONTEXT, ...(parsed as Partial<TableContextData>) });
         }
       }
     } catch {
@@ -73,22 +77,22 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
 
   // Save to session storage whenever context changes
   useEffect(() => {
-    if (tableContext.tableId) {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(tableContext));
+    if (tableState.tableId) {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(tableState));
     } else {
       sessionStorage.removeItem(STORAGE_KEY);
     }
-  }, [tableContext]);
+  }, [tableState]);
 
   const setTableContext = (data: Partial<TableContextData>) => {
-    setTableContextState((prev) => ({
+    setTableState((prev) => ({
       ...prev,
       ...data,
     }));
   };
 
   const clearTableContext = () => {
-    setTableContextState({
+    setTableState({
       tableId: null,
       tableNumber: null,
       qrScanned: false,
@@ -98,12 +102,12 @@ export function TableContextProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem(STORAGE_KEY);
   };
 
-  const hasTableContext = Boolean(tableContext.tableId);
+  const hasTableContext = Boolean(tableState.tableId);
 
   return (
     <TableContext.Provider
       value={{
-        tableContext,
+        tableContext: tableState,
         setTableContext,
         clearTableContext,
         hasTableContext,

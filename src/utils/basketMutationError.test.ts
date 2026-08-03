@@ -1,5 +1,5 @@
 import { ApiError } from '@/utils/apiClient';
-import { isBasketGone, isBasketItemAlreadyGone } from './basketMutationError';
+import { isBasketGone, isBasketItemAlreadyGone, isServerFault } from './basketMutationError';
 
 /**
  * The predicates exist to separate two failures that are otherwise identical on the wire, so the
@@ -52,5 +52,26 @@ describe('basketMutationError', () => {
   it('does not match a DIFFERENT error code', () => {
     expect(isBasketItemAlreadyGone(notFound('Nope', 'ModuleNotEnabled'))).toBe(false);
     expect(isBasketGone(notFound('Nope', 'ModuleNotEnabled'))).toBe(false);
+  });
+
+  describe('isServerFault', () => {
+    it('is true for 5xx, which must never render the server’s words', () => {
+      expect(isServerFault(new ApiError(500, 'An error occurred while processing your request'))).toBe(true);
+      expect(isServerFault(new ApiError(502, ''))).toBe(true);
+    });
+
+    it('is false for 4xx and for a non-ApiError', () => {
+      // 4xx prose is often written FOR the guest (the channel guard's reason), so it still shows.
+      expect(isServerFault(notFound('Basket not found', 'BasketNotFound'))).toBe(false);
+      expect(isServerFault(new ApiError(400, 'Dürüm is not available for DineIn.'))).toBe(false);
+      expect(isServerFault(new Error('boom'))).toBe(false);
+    });
+
+    it('is true for the Development stack-trace shape', () => {
+      // The middleware puts `exception.ToString()` into errors[0] on a Development build, and
+      // `getErrorMessage` PREFERS errors[0] over message — so without this the cart renders it.
+      const trace = 'System.NullReferenceException: Object reference not set...\n   at Basket...';
+      expect(isServerFault(new ApiError(500, 'An error occurred', [trace]))).toBe(true);
+    });
   });
 });

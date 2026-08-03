@@ -47,3 +47,17 @@ export function isBasketItemAlreadyGone(error: unknown): boolean {
 export function isBasketGone(error: unknown): boolean {
   return error instanceof ApiError && error.errorCode === BASKET_NOT_FOUND;
 }
+
+/**
+ * The server broke. Its words describe an internal fault, so a caller must show its OWN sentence.
+ *
+ * These endpoints only started producing renderable 5xx text when the backend stopped wrapping
+ * every failure in an HTTP 200 (see `UpdateBasketItemCommandHandler`). Before that, `basketService`
+ * threw a plain `Error`, `getErrorMessage` returned null, and the guest got the localized fallback.
+ * Without this predicate that same failure would newly render "An error occurred while processing
+ * your request" — untranslated, in all ten locales — and, on a Development or staging build where
+ * the middleware puts `exception.ToString()` into `errors[0]`, a full stack trace inside the cart.
+ */
+export function isServerFault(error: unknown): boolean {
+  return error instanceof ApiError && error.status >= 500;
+}

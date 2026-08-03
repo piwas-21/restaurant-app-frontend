@@ -101,6 +101,29 @@ describe('useCartItemMutations — the two basket 404s', () => {
       expect(syncBasket).not.toHaveBeenCalled();
       expect(errorActions()[0]).toEqual({ type: 'SET_ERROR', payload: { error: UNEXPECTED } });
     });
+
+    it('shows the translated fallback for a 5xx, not the server’s internal prose', async () => {
+      // Newly reachable: these endpoints used to wrap every failure in an HTTP 200, so a fault
+      // arrived as a plain Error. Now it is a real 500, and its message is not for a guest.
+      service().mockRejectedValue(new ApiError(500, 'An error occurred while processing your request'));
+
+      await expect(invoke(setup())).rejects.toThrow();
+
+      expect(errorActions()[0]).toEqual({ type: 'SET_ERROR', payload: { error: UNEXPECTED } });
+    });
+
+    it('never renders a Development stack trace into the cart', async () => {
+      // `ExceptionHandlingMiddleware` puts `exception.ToString()` in errors[0] on a Development
+      // build, and `getErrorMessage` prefers errors[0] over message.
+      const trace = 'System.InvalidOperationException: Sequence contains no elements\n   at Basket...';
+      service().mockRejectedValue(new ApiError(500, 'An error occurred', [trace]));
+
+      await expect(invoke(setup())).rejects.toThrow();
+
+      const shown = (errorActions()[0] as { payload: { error: string } }).payload.error;
+      expect(shown).toBe(UNEXPECTED);
+      expect(shown).not.toContain('InvalidOperationException');
+    });
   });
 
   it('addItem never resyncs, even on the item-gone code', async () => {

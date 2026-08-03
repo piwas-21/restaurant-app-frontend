@@ -3,7 +3,7 @@
 import React from 'react';
 import { basketService } from '@/services/basketService';
 import { getErrorMessage } from '@/utils/apiClient';
-import { isBasketGone, isBasketItemAlreadyGone } from '@/utils/basketMutationError';
+import { isBasketGone, isBasketItemAlreadyGone, isServerFault } from '@/utils/basketMutationError';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { AddItemPayload, CartAction, CartState } from '@/components/cart/cartTypes';
 
@@ -41,12 +41,24 @@ export function useCartItemMutations(
   /**
    * The sentence to show for a failed mutation.
    *
-   * `isBasketGone` is checked BEFORE `getErrorMessage` so the localized sentence wins over the
-   * server's English one; every other failure keeps the existing behaviour of showing what the
-   * server said, or the translated fallback when it said nothing.
+   * Two failures are answered with OUR words rather than the server's, and both are checked before
+   * `getErrorMessage` because it would otherwise win:
+   *
+   * - the basket is gone — "Basket not found" describes a row, not the guest's situation;
+   * - the server faulted — a 5xx message describes an internal fault, and on a Development or
+   *   staging build the middleware puts a full stack trace in `errors[0]`, which `getErrorMessage`
+   *   prefers over `message`. Neither belongs in a cart. This case only became renderable when the
+   *   backend stopped answering failures with HTTP 200; keeping the localized fallback here is what
+   *   makes that a fix rather than a swap of one bad sentence for another.
+   *
+   * Everything else keeps the existing behaviour: show what the server said, or the translated
+   * fallback when it said nothing.
    */
-  const displayMessage = (error: unknown): string =>
-    (isBasketGone(error) ? basketGoneError : getErrorMessage(error)) ?? unexpectedError;
+  const displayMessage = (error: unknown): string => {
+    if (isBasketGone(error)) return basketGoneError;
+    if (isServerFault(error)) return unexpectedError;
+    return getErrorMessage(error) ?? unexpectedError;
+  };
 
   /**
    * Show the failure and roll back — the tail all three mutations share.

@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Check, DollarSign } from 'lucide-react';
+import { X, DollarSign } from 'lucide-react';
 import { OrderType } from '@/types/order';
 import { useApplicableTaxes } from '@/hooks/admin/useApplicableTaxes';
+import TaxOptionCard from './TaxOptionCard';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import styles from './TaxSelectionModal.module.css';
 
@@ -102,45 +103,29 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
       );
     }
     return (
-      <div className={styles.taxList}>
-        {/* Option for no tax */}
-        <div className={`${styles.taxCard} ${selectedTaxId === null ? styles.selected : ''}`} onClick={handleNoTax}>
-          <div className={styles.taxInfo}>
-            <h3 className={styles.taxName}>{t('no_tax', 'No Tax')}</h3>
-            <p className={styles.taxDescription}>{t('no_tax_description', 'Do not apply any tax to this order')}</p>
-          </div>
-          <div className={styles.taxRate}>0.00%</div>
-          {selectedTaxId === null && (
-            <div className={styles.checkmark}>
-              <Check size={20} />
-            </div>
-          )}
-        </div>
-
+      <div className={styles.taxList} role="radiogroup" aria-label={t('select_tax_rate', 'Select Tax Rate')}>
+        <TaxOptionCard
+          isSelected={selectedTaxId === null}
+          onSelect={handleNoTax}
+          name={t('no_tax', 'No Tax')}
+          description={t('no_tax_description', 'Do not apply any tax to this order')}
+          rate="0.00%"
+        />
         {taxConfigurations.map((tax) => (
-          <div
+          <TaxOptionCard
             key={tax.id}
-            className={`${styles.taxCard} ${selectedTaxId === tax.id ? styles.selected : ''}`}
-            onClick={() => handleSelectTax(tax.id)}
+            isSelected={selectedTaxId === tax.id}
+            onSelect={() => handleSelectTax(tax.id)}
+            name={tax.name}
+            description={tax.description}
+            rate={`${(tax.rate * 100).toFixed(2)}%`}
           >
-            <div className={styles.taxInfo}>
-              <h3 className={styles.taxName}>{tax.name}</h3>
-              <p className={styles.taxDescription}>{tax.description}</p>
-              <div className={styles.applicableTypes}>
-                {tax.applicableOrderTypes.map((type) => (
-                  <span key={type} className={styles.typeBadge}>
-                    {getOrderTypeLabel(type)}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className={styles.taxRate}>{(tax.rate * 100).toFixed(2)}%</div>
-            {selectedTaxId === tax.id && (
-              <div className={styles.checkmark}>
-                <Check size={20} />
-              </div>
-            )}
-          </div>
+            {tax.applicableOrderTypes.map((type) => (
+              <span key={type} className={styles.typeBadge}>
+                {getOrderTypeLabel(type)}
+              </span>
+            ))}
+          </TaxOptionCard>
         ))}
       </div>
     );

@@ -94,6 +94,15 @@ describe('MembersTable — the date catch that could never fire', () => {
   });
 });
 
+const takeawayTax = {
+  id: 't1',
+  name: 'Takeaway VAT',
+  description: '',
+  rate: 0.025,
+  isEnabled: true,
+  applicableOrderTypes: [OrderType.Takeaway],
+} as unknown as Awaited<ReturnType<typeof adminTaxConfigurationService.getAllTaxConfigurations>>[number];
+
 describe('TaxSelectionModal — an outage must not read as "none configured"', () => {
   const props = {
     isOpen: true,
@@ -160,19 +169,29 @@ describe('TaxSelectionModal — an outage must not read as "none configured"', (
     expect(mockGetAllTaxes).toHaveBeenCalledTimes(1);
   });
 
+  it('exposes the options as a keyboard-reachable radio group', async () => {
+    // The cards were plain `<div onClick>` — no role, no tab stop, no key handler. Sonar typed
+    // that a BUG (S1082), and it is one: a keyboard-only admin could select nothing here.
+    mockGetAllTaxes.mockResolvedValue([takeawayTax]);
+
+    render(<TaxSelectionModal {...props} />);
+    const options = await screen.findAllByRole('radio');
+
+    expect(options).toHaveLength(2); // "No Tax" plus the one configuration
+    expect(options[0]).toHaveAttribute('aria-checked', 'true'); // no currentTaxId → "No Tax"
+    expect(options[1]).toHaveAttribute('aria-checked', 'false');
+
+    options[1].focus();
+    fireEvent.keyDown(options[1], { key: 'Enter' });
+
+    expect(screen.getAllByRole('radio')[1]).toHaveAttribute('aria-checked', 'true');
+  });
+
   it('re-filters on an order-type change WITHOUT refetching', async () => {
     // The request takes no order type — only the filter does. Refetching here would be work the
     // original `[isOpen]` effect never did, and with two loads in flight the slower first one
     // could overwrite the second, leaving a tax on screen that does not apply.
-    const takeawayOnly = {
-      id: 't1',
-      name: 'Takeaway VAT',
-      description: '',
-      rate: 0.025,
-      isEnabled: true,
-      applicableOrderTypes: [OrderType.Takeaway],
-    } as unknown as Awaited<ReturnType<typeof adminTaxConfigurationService.getAllTaxConfigurations>>[number];
-    mockGetAllTaxes.mockResolvedValue([takeawayOnly]);
+    mockGetAllTaxes.mockResolvedValue([takeawayTax]);
 
     const { rerender } = render(<TaxSelectionModal {...props} />);
     expect(await screen.findByText('Takeaway VAT')).toBeInTheDocument();

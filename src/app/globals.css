@@ -62,6 +62,14 @@
      token's note in design-system/tokens/colors.css. */
   --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(0, 0, 0, 0.05);
+
+  /* Sign of the inline axis; the `[dir]` rules further down flip it and explain why. This
+     default lives here rather than in its own `:root` block so there is exactly one — a second
+     one is a duplicate selector, and it also loses to the `[dir]` rules on source order alone,
+     which is a fragile way to express a fallback. It matters: with `--dir` undefined,
+     `calc(var(--dir) * -100%)` is invalid at computed-value time, `transform` falls back to
+     `none`, and a parked drawer renders ON screen. */
+  --dir: 1;
 }
 
 html[data-theme='dark'] {
@@ -70,6 +78,46 @@ html[data-theme='dark'] {
   --nav-link-hover-bg: rgba(255, 255, 255, 0.1);
   --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(255, 255, 255, 0.05);
+}
+
+/*
+  --dir: +1 reading left-to-right, -1 right-to-left. The sign of the inline axis.
+
+  It exists because two properties this app positions with have no logical form and never will:
+  `transform: translateX()` and `box-shadow`'s x-offset. A drawer is `inset-inline-end: 0` plus
+  `translateX(100%)`; mirror the inset alone and the transform still pushes the same physical
+  way. Multiplying the distance by `--dir` lets the pair move together —
+  `translateX(calc(var(--dir) * 100%))` is byte-identical to `translateX(100%)` under `ltr` and
+  flips under `rtl`. (`background-position: right 12px center` is a third property with no
+  logical form, but its value is a KEYWORD, so a sign multiplier cannot express it — that one
+  needs a `[dir='rtl']` rule. See DESIGN-SYSTEM.md §8.1.)
+
+  `var()` also resolves inside `@keyframes` — substitution happens on the animating element — so
+  an entry animation can be direction-aware from one declaration instead of a `[dir='rtl']`
+  animation-name swap. Verified in Chromium on a probe of the `NotificationCenter` keyframe
+  shape (frame 0 computed `matrix(1,0,0,1,400,0)` under `ltr`, `matrix(1,0,0,1,-400,0)` under
+  `rtl`, one animation in both). No shipped `@keyframes` uses `--dir` yet; the toast stacks are
+  E8 slice 3b-2.
+
+  KNOWN GAP, deliberately not closed here: this keys off the `dir` ATTRIBUTE, and an attribute
+  selector matches a literal value. An element inside `dir="auto"` that resolves to Arabic
+  computes `direction: rtl` — so its logical properties mirror — while `[dir='rtl']` does not
+  match it and `--dir` stays `+1`, leaving the transforms unmirrored. That is a half-conversion,
+  the exact failure this token exists to prevent. `:dir()` matches the RESOLVED direction and is
+  the correct definition, but it was tried and REVERTED: `next dev --turbopack` runs Lightning
+  CSS, which downlevels `:dir()` into a `:lang()` list that sorts last and beats the attribute
+  rules, so in dev `--dir` would follow `lang` while `next build` keeps `:dir()` verbatim. Two
+  different behaviours, and the wrong one in the only environment anyone can measure in — it
+  silently made an explicit `<div dir="rtl">` subtree WORSE than the attribute rules alone.
+  Nothing in `src/` uses `dir="auto"` today, so the gap is not reachable. Close it in the slice
+  that introduces `dir="auto"` on product-authored text (E8 slice 3b-4), and verify that one
+  against `next build`, not `next dev`.
+*/
+[dir='ltr'] {
+  --dir: 1;
+}
+[dir='rtl'] {
+  --dir: -1;
 }
 
 html,

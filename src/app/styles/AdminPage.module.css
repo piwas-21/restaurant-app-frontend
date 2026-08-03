@@ -22,11 +22,15 @@
   background-color: var(--primary-color-dark, #343a40);
   color: var(--button-text-color, white);
   position: fixed;
-  /* PHYSICAL, pending the dir-aware transform pass (E8 slice 3). The drawer is parked with
-     `translateX(-100%)` and `transform` is not a logical property, so mirroring this inset on
-     its own would leave the closed sidebar sitting ON screen in `ar`. Inset and transform
-     move together or not at all. */
-  left: 0;
+  /* Inset and transform move together (E8 slice 3b): the drawer is parked with
+     `translateX(calc(var(--dir) * -100%))` in BOTH `max-width: 768px` bands below (one sets the
+     geometry, one the drawer state — they are separate blocks in this file), and `transform` has
+     no logical form, so it takes its sign from `--dir` (globals.css) instead.
+
+     Unlike the two header drawers this one is NEVER `display: none` — it is parked by transform
+     alone — so mirroring this inset on its own really would leave the closed sidebar on screen
+     in `ar`. That is also why it needs the `visibility` handling in the drawer band. */
+  inset-inline-start: 0;
   top: 0;
   height: 100vh;
   overflow-y: auto;
@@ -179,17 +183,59 @@
   what it does. Behaviour in 769-1024px is unchanged, because the later block already won there.
 */
 @media (max-width: 768px) {
+  /*
+    `visibility` is what keeps the DIRECTION FLIP off screen, and it is required by `--dir`
+    rather than by the drawer.
+
+    `transform` is transitioned, and it now reads `--dir` — so a change to `--dir` is itself a
+    transitionable change. `layout.tsx` server-renders `dir="ltr"` and `DocumentLanguage`
+    corrects it in a mount effect, i.e. AFTER first paint, so for an Arabic admin the attribute
+    flips on a live element: the inset jumps to the other edge instantly (insets are not
+    transitioned) while the transform ANIMATES the whole way across.
+
+    Measured at 390px with `visibility` forced back on, switching the LANGUAGE rather than
+    hand-editing `dir` (see DESIGN-SYSTEM.md §8 — the two are not equivalent under `next dev`,
+    and an earlier version of this comment quoted numbers from the wrong method):
+    first paint x=-250..0 → x=-110..140 the instant `dir` flips → 71..321 → 256..506 →
+    settles at 390..640, ~330ms. 37 of 74 frames had part of the closed drawer inside the
+    viewport and 6 had all of it — a nav drawer nobody opened, crossing the page on every
+    admin load in `ar` at this width. The two header drawers escape it only because they are
+    `display: none` when closed; this one is always displayed.
+
+    The focus consequence cuts BOTH ways, so it is written down rather than sold as a win. Good:
+    the closed drawer's 16 links leave the tab order, which `translateX` alone never did — they
+    were reachable, and invisible, on every admin page. Bad: `Sidebar.tsx` puts `onClose` on
+    every link, so activating one hides the element that currently HAS focus and Chromium drops
+    focus to `<body>` when the delay expires (measured: still on the link at +120ms, on `<body>`
+    at +520ms). That path also navigates, which resets focus anyway; returning focus to the
+    toggle on close is the real fix and is a separate a11y item, not this slice.
+  */
   .sidebar {
-    transform: translateX(-100%);
+    transform: translateX(calc(var(--dir) * -100%));
     box-shadow: none;
+    visibility: hidden;
+    transition:
+      transform 0.3s ease-in-out,
+      visibility 0s linear 0.3s;
   }
 
   /* Opening is driven by the INLINE `transform: translateX(0)` the component sets; these selectors
      only add the shadow. `:global(.open)` is matched because `Sidebar.tsx` composes a plain string
-     class, not `styles.open` — a module class would never match it. */
+     class, not `styles.open` — a module class would never match it. The inline `translateX(0)` is
+     direction-neutral, which is why only the parked state needs `--dir`.
+     The shadow is cast INTO the page, away from the drawer's own edge — `box-shadow` has no
+     logical form either, so its x-offset flips with `--dir` or it would fall under the drawer
+     in `ar`. It is invisible to the physical-CSS ratchet, which counts properties, not offsets. */
   .sidebar[data-open='true'],
   .sidebar:global(.open) {
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+    box-shadow: calc(var(--dir) * 4px) 0 15px rgba(0, 0, 0, 0.3);
+    visibility: visible;
+    /* Wins on specificity, not source order. The delay is dropped on the way IN (show first,
+       then slide) but kept on the way OUT by the closed rule, so the drawer stays visible for
+       the whole slide-out. */
+    transition:
+      transform 0.3s ease-in-out,
+      visibility 0s;
   }
 }
 
@@ -997,14 +1043,16 @@
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
-    /* PHYSICAL — same inset/transform coupling as the base `.sidebar` rule above. */
-    left: 0;
+    /* Same inset/transform coupling as the base `.sidebar` rule above. */
+    inset-inline-start: 0;
     top: 0;
     height: 100vh;
     width: 250px;
     z-index: 1000;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
+    transform: translateX(calc(var(--dir) * -100%));
+    /* No `transition` here: the base `.sidebar` rule already declares one, and the drawer band
+       above refines it. Re-declaring it here would win on source order and silently drop the
+       `visibility` half that keeps the direction flip off screen. */
   }
 }
 
@@ -1130,10 +1178,10 @@
     transform: none;
     height: auto;
     top: auto;
-    /* PHYSICAL to match what it resets — the base `.sidebar` inset stays physical while the
-       transform coupling is unresolved. Mixing the two names for one box side across rules
-       makes the winner depend on source order rather than on specificity. */
-    left: auto;
+    /* Logical to match what it resets: a reset must name the same property as the base
+       `.sidebar` rule, or the winner depends on source order rather than on specificity
+       (DESIGN-SYSTEM.md §8.1). */
+    inset-inline-start: auto;
   }
 }
 

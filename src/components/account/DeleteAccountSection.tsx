@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { requestAccountDeletion } from '@/services/authService';
+import { serverMessages } from '@/utils/apiFormErrors';
 import styles from './DeleteAccountSection.module.css';
 
 export default function DeleteAccountSection() {
@@ -25,9 +26,29 @@ export default function DeleteAccountSection() {
           ),
         );
       } else {
-        setErrorMessage(response.message || t('delete_account_request_failed', 'Failed to request account deletion.'));
+        // `serverMessages`, not `response.message`: `RequestAccountDeletionCommandHandler` returns
+        // `ApiResponse.Failure("User not found")`, and that overload puts the reason in `errors[0]`
+        // while `Message` is filled from the factory's own default parameter, the literal
+        // "Operation failed" (ApiResponse.cs). So the `||` here
+        // never reached the translated fallback — it printed the server's placeholder summary.
+        setErrorMessage(
+          serverMessages(response)[0] ?? t('delete_account_request_failed', 'Failed to request account deletion.'),
+        );
       }
     } catch {
+      // IGNORED ON PURPOSE — `requestAccountDeletion` is a raw `fetch` returning `response.json()`
+      // for EVERY status, so a refusal resolves into the branch above rather than throwing. What
+      // reaches here is a dead network (`TypeError`) or a non-JSON body (`SyntaxError`); both
+      // texts are client-authored and must not be rendered, so the generic sentence is all there
+      // honestly is to say AT THIS CATCH.
+      //
+      // The limit of that, stated rather than hidden: an EXPIRED TOKEN lands here too. The
+      // endpoint is `[Authorize]`, its 401 has an empty body, and `.json()` rejects on it — so a
+      // customer whose session lapsed while this page was open reads "an unexpected error" and
+      // will retry forever, when the answer is "sign in again". The status that says so is in
+      // hand in `authService.requestAccountDeletion` and discarded there, before `.json()` is
+      // called. Fixing it means changing that producer to report the status, which is a wider
+      // change than this slice: tracked as frontend #414.
       setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
     } finally {
       setIsDeleting(false);

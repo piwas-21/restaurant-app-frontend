@@ -51,13 +51,15 @@ export default function ServerDiagnosticsSection() {
     return () => clearInterval(interval);
   }, [autoRefresh, fetchServerDiagnostics]);
 
+  // The raw string is the fallback for a timestamp we cannot parse — but it was unreachable. The
+  // try/catch this replaced assumed `toLocaleTimeString()` throws on an unparseable date; it does
+  // not. `new Date('nonsense')` is an Invalid Date, and Invalid Date's `toLocaleTimeString()`
+  // RETURNS the literal string "Invalid Date" (only `toISOString()` throws RangeError). So the
+  // catch never fired and a malformed timestamp from the diagnostics endpoint rendered as
+  // "Invalid Date" — the guard has to be an explicit NaN test, not a catch.
   const formatTimestamp = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString();
-    } catch {
-      return timestamp;
-    }
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? timestamp : date.toLocaleTimeString();
   };
 
   return (

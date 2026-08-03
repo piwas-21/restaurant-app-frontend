@@ -22,6 +22,7 @@ import { MailCheck } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
 import { AuthCard, AuthSubmit, BackToLoginFooter } from '@/components/auth/PasswordResetShell';
 import { forgotPassword } from '@/services/authService';
+import { serverMessages } from '@/utils/apiFormErrors';
 import styles from '../PasswordReset.module.css';
 
 export default function ForgotPasswordPage() {
@@ -47,15 +48,33 @@ export default function ForgotPasswordPage() {
       // Branch on `success` ONLY, never on anything that could distinguish the two
       // existence cases. The endpoint is anti-enumeration by design and returns 200 with a
       // byte-identical body whether or not the address has an account — so `success:false`
-      // can only mean the SERVER broke (the mail send is awaited inline and unguarded, so
-      // a Resend outage surfaces as a 500). Reporting that is not a leak, and swallowing it
-      // told the user to wait for an email nobody sent.
+      // can only mean the SERVER broke (the mail send is awaited inline and unguarded, so a
+      // Resend outage surfaces as a **502**: `EmailDeliveryException` is mapped to BadGateway
+      // by `ExceptionHandlingMiddleware`, not to a 500). Reporting that is not a leak, and
+      // swallowing it told the user to wait for an email nobody sent.
+      //
+      // And the server's sentence on that path is worth printing rather than replacing. Verified
+      // against the backend: `ForgotPasswordCommandHandler` returns the SAME success body for a
+      // known and an unknown address, so nothing that reaches here is existence-dependent. What
+      // does reach here is authored for the user to read:
+      //   - the rate limiter — `[EnableRateLimiting("forgot-password")]`, whose rejection body is
+      //     `{"success":false,"message":"Too many requests. Please slow down and try again
+      //     shortly."}` (Program.cs `OnRejected`). Someone who pressed the button twice was told
+      //     "An unexpected error occurred" and had no way to know that waiting was the fix;
+      //   - the 502 above, whose body says "The email could not be delivered. Please try again
+      //     later." — which is the difference between retrying and giving up.
       if (res?.success === false) {
-        setFormError(t('unexpected_error'));
+        setFormError(serverMessages(res)[0] ?? t('unexpected_error'));
         return;
       }
       setSent(true);
     } catch {
+      // IGNORED ON PURPOSE — nothing here carries a message worth showing. `forgotPassword` is a
+      // raw `fetch` that returns `response.json()` for EVERY status, so a refusal never throws:
+      // it arrives on the resolved path above. The only two ways to land here are a dead network
+      // (`TypeError`) and a body that is not JSON (`SyntaxError`, which is how an empty 502 from
+      // Caddy shows up), and both texts are client-authored — exactly the strings #401 removed
+      // from users' screens. So the generic sentence IS the whole of what we can honestly say.
       setFormError(t('unexpected_error'));
     }
   };

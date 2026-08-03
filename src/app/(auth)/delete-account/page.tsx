@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
 import { confirmAccountDeletion } from '@/services/authService';
+import { serverMessages } from '@/utils/apiFormErrors';
 import styles from './DeleteAccount.module.css';
 
 function DeleteAccountContent() {
@@ -43,9 +44,22 @@ function DeleteAccountContent() {
         }, 3000);
       } else {
         setStatus('error');
-        setErrorMessage(response.message || t('deletion_failed', 'Failed to delete account.'));
+        // `serverMessages`, not `response.message`, and the backend is why: every arm of
+        // `ConfirmAccountDeletionCommandHandler` returns `ApiResponse.Failure("<the reason>")`,
+        // whose one-argument overload puts that reason in `errors[0]` and fills `Message` from the
+        // factory's own default PARAMETER — the literal "Operation failed" (ApiResponse.cs). So
+        // `response.message`
+        // was never empty and the `||` fallback never fired: a customer following an expired
+        // deletion link was shown "Operation failed" instead of "Invalid or expired deletion
+        // token", on a one-shot emailed link where knowing to request a new one is the whole fix.
+        // `serverMessages` reads `errors[]` first, which is where the sentence actually is.
+        setErrorMessage(serverMessages(response)[0] ?? t('deletion_failed', 'Failed to delete account.'));
       }
     } catch {
+      // IGNORED ON PURPOSE — `confirmAccountDeletion` is a raw `fetch` returning `response.json()`
+      // for EVERY status, so a refusal resolves into the branch above and never throws. What is
+      // left is a dead network (`TypeError`) or a non-JSON body (`SyntaxError`); both texts are
+      // client-authored and must not be rendered, so the generic sentence is all we can say.
       setStatus('error');
       setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
     }

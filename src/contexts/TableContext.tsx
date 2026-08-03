@@ -29,25 +29,45 @@ const TableContext = createContext<TableContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'rumi_table_context';
 
-export function TableContextProvider({ children }: { children: ReactNode }) {
-  const [tableContext, setTableContextState] = useState<TableContextData>({
-    tableId: null,
-    tableNumber: null,
-    qrScanned: false,
-    isOutdoor: false,
-    dineInPinned: false,
-  });
+const EMPTY_TABLE_CONTEXT: TableContextData = {
+  tableId: null,
+  tableNumber: null,
+  qrScanned: false,
+  isOutdoor: false,
+  dineInPinned: false,
+};
 
-  // Load from session storage on mount
+export function TableContextProvider({ children }: { children: ReactNode }) {
+  const [tableContext, setTableContextState] = useState<TableContextData>(EMPTY_TABLE_CONTEXT);
+
+  // Load from session storage on mount.
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        setTableContextState(parsed);
+        const parsed: unknown = JSON.parse(stored);
+        // Merged over the defaults, and only when it is an object. It used to be
+        // `setTableContextState(parsed)` — which trusts whatever `JSON.parse` returns. Two ways
+        // that bites, and the catch above sees neither, because neither one throws:
+        //   - `JSON.parse('null')` is `null`, and the state then IS null, so
+        //     `Boolean(tableContext.tableId)` below throws during render and takes the tree out.
+        //   - a value written by an older shape replaces the state wholesale instead of filling
+        //     the gaps, so a field this version added arrives `undefined` where a boolean is typed.
+        // Neither is reachable from our own writer today (it only stores a full object, and only
+        // when `tableId` is set) — but sessionStorage is not ours alone, and a guard that costs one
+        // spread should not depend on that staying true.
+        if (typeof parsed === 'object' && parsed !== null) {
+          setTableContextState({ ...EMPTY_TABLE_CONTEXT, ...(parsed as Partial<TableContextData>) });
+        }
       }
     } catch {
-      // Invalid storage data, ignore
+      // IGNORED ON PURPOSE — and the reason is that there is nothing to report and nothing lost.
+      // This reads a QR scan back after a reload; the throws are `sessionStorage` being unavailable
+      // (Safari private browsing, storage disabled) and `JSON.parse` on a corrupt value. In both
+      // cases the correct state is the default above — "no table scanned" — which is exactly what
+      // a guest who arrived without scanning gets, and the flow to recover is the one they would
+      // take anyway: scan the code again. A toast here would report a failure the guest did not
+      // cause, cannot fix, and does not need to know about.
     }
   }, []);
 

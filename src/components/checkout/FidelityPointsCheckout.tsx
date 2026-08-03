@@ -4,6 +4,7 @@ import { TENANT_CURRENCY } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fidelityPointsService } from '@/services/fidelityPointsService';
+import { getErrorMessage, isAuthError } from '@/utils/apiClient';
 import type { FidelityPointBalance } from '@/types/fidelity';
 import { Gift, Coins, Percent } from 'lucide-react';
 import styles from './FidelityPointsCheckout.module.css';
@@ -21,10 +22,12 @@ export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedempti
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [maxRedeemablePoints, setMaxRedeemablePoints] = useState(0);
   const [showRedemption, setShowRedemption] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadBalanceAndCalculate = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
 
       // Load user's current balance
       const balanceData = await fidelityPointsService.getBalance();
@@ -40,9 +43,36 @@ export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedempti
       const maxPointsBasedOnOrder = orderSubtotal * 100; // 100 points = $1
       const maxPoints = Math.min(balanceData.currentPoints, maxPointsBasedOnOrder);
       setMaxRedeemablePoints(maxPoints);
-    } catch {
-      // Silently handle errors (e.g., non-authenticated users)
-      // Don't log auth errors to avoid console noise during checkout for non-logged-in users
+    } catch (err) {
+      // Bound and BRANCHED, because the two failures here are not the same failure.
+      //
+      // A 401 is the expected outcome for a GUEST — `/fidelity/balance` needs a bearer token and
+      // this component renders on every checkout, including the ones with no account behind them.
+      // `balance` staying null makes the whole section return null (below), which is the correct
+      // screen for someone with no points programme: nothing to report, nothing to offer. Saying
+      // "Failed to load your points" there would invent a feature the guest does not have.
+      //
+      // Anything else is a signed-in customer's problem. Swallowing it made the redemption panel
+      // vanish mid-checkout with no explanation, so someone with a balance they can see in their
+      // account simply could not spend it and had no idea why. `fidelityPointsService` does
+      // `console.error` those (gated on the STATUS, not on the message) — but there is no browser
+      // error reporting wired up, so that record reaches nobody, and it was never the user's
+      // answer anyway. A single line above the total is enough: it says the points are still
+      // theirs and the order can go ahead without them.
+      //
+      // `setBalance(null)` alongside it, and that is not belt-and-braces. The effect runs TWICE on
+      // a normal checkout — `orderSubtotal` arrives as 0 while the basket is still null, then as
+      // the real figure — so "first load succeeded, second failed" is the ordinary sequence, not
+      // an exotic one. Leaving the stale balance up rendered the full redemption panel with
+      // `maxRedeemablePoints` computed from the OLD subtotal, and wrote the notice into state that
+      // only renders when there is no balance: a dead slider, a "Use Max" that does nothing, and
+      // no explanation anywhere.
+      if (isAuthError(err)) {
+        setLoadError(null);
+      } else {
+        setLoadError(getErrorMessage(err) ?? t('fidelity_balance_unavailable'));
+      }
+      setBalance(null);
     } finally {
       setLoading(false);
     }
@@ -78,8 +108,18 @@ export default function FidelityPointsCheckout({ orderSubtotal, onPointsRedempti
 
   const discountAmount = pointsToRedeem / 100; // 100 points = $1
 
-  if (loading || !balance) {
-    return null; // Don't show anything while loading
+  if (loading) return null;
+
+  // Only reached when the customer IS signed in — a guest's 401 leaves `loadError` null, so the
+  // section still disappears for them exactly as before.
+  if (!balance) {
+    return loadError ? (
+      <div className={styles.container}>
+        <p className={styles.loadError} role="status">
+          {loadError}
+        </p>
+      </div>
+    ) : null;
   }
 
   return (

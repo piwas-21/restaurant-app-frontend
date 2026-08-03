@@ -34,6 +34,9 @@ module.exports = {
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
     '^@/config/(.*)$': '<rootDir>/src/config/$1',
+    // Added E9 slice 8: `src/constants/` had no mapping, so the FIRST test to reach a module
+    // importing it (useOrders) failed to resolve rather than failing an assertion.
+    '^@/constants/(.*)$': '<rootDir>/src/constants/$1',
     '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
@@ -54,6 +57,14 @@ module.exports = {
   collectCoverageFrom: [
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
+    // E9 slice 8 — hooks and contexts are not collected wholesale (see the note at the end of this
+    // list), so the three the slice pinned have to be named. A `coverageThreshold` row for a file
+    // outside this list does not fail: jest reports "coverage data not found" and moves on.
+    'src/hooks/useOrders.ts',
+    'src/hooks/useCashierOrders.ts',
+    'src/hooks/cashier/useCashierManualRefresh.ts',
+    'src/contexts/TableContext.tsx',
+    'src/hooks/admin/useProductEditorFetch.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/useCustomerFormFields.ts',
@@ -179,6 +190,43 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // ── E9 slice 8 — the closing slice of the bare-catch sweep (#383). ──────────────────────────
+    // Pinned at actual − 1pt per the recipe above, so the coverage that pins each fix cannot be
+    // deleted silently. These are FLOORS, not targets: several are low because the file is large
+    // and only its error paths are tested, which is exactly what the slice was about. Raise them
+    // in a chore: MR, do not lower them.
+    './src/hooks/useOrders.ts': { statements: 94, branches: 82, functions: 75, lines: 94 },
+    './src/hooks/useCashierOrders.ts': { statements: 56, branches: 38, functions: 26, lines: 65 },
+    './src/hooks/cashier/useCashierManualRefresh.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/contexts/TableContext.tsx': { statements: 80, branches: 79, functions: 56, lines: 83 },
+    './src/components/account/DeleteAccountSection.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/cashier/ZReportModal.tsx': { statements: 64, branches: 13, functions: 29, lines: 66 },
+    './src/components/cashier/diagnostics/ServerDiagnosticsSection.tsx': {
+      statements: 71,
+      branches: 65,
+      functions: 49,
+      lines: 73,
+    },
+    './src/components/checkout/FidelityPointsCheckout.tsx': {
+      statements: 76,
+      branches: 62,
+      functions: 41,
+      lines: 76,
+    },
+    './src/app/(auth)/delete-account/page.tsx': { statements: 81, branches: 85, functions: 56, lines: 83 },
+    './src/app/admin/point-rules/page.tsx': { statements: 67, branches: 67, functions: 49, lines: 69 },
+    './src/hooks/admin/useProductEditorFetch.ts': { statements: 91, branches: 71, functions: 99, lines: 95 },
+    // ───────────────────────────────────────────────────────────────────────────────────────────
     // Password reset (SOFRA-ONBOARDING-PLAN O3). Pinned because these are the only way a
     // tenant admin can regain access to their own account — and because the route they
     // replace was MISSING for as long as the backend has been emailing links to it
@@ -321,11 +369,14 @@ module.exports = {
       lines: 100,
     },
     // G7 — the featured banner is an ENTRY POINT: a guest can order straight from it, so a
-    // regression here is an unguarded add, not a missing chip. The uncovered branches are the
-    // `response.success && response.data` falsy arm and the render-time `!special` guard.
+    // regression here is an unguarded add, not a missing chip. Raised to 100 across the board by
+    // E9 slice 8: the two previously-uncovered arms are now pinned — the `data:null` miss (which
+    // IS the failure path, since `getFeaturedSpecial` swallows into `{success:true,data:null}`)
+    // and the `active` guard that stops a slow answer for the PREVIOUS channel overwriting the
+    // current one.
     './src/hooks/useFeaturedSpecial.ts': {
-      statements: 94,
-      branches: 74,
+      statements: 100,
+      branches: 100,
       functions: 100,
       lines: 100,
     },

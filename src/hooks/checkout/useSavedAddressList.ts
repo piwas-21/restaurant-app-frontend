@@ -67,9 +67,19 @@ export function useSavedAddressList(enabled: boolean): SavedAddressList {
       try {
         user = await getCurrentUser();
       } catch {
-        // IGNORED ON PURPOSE, and only on THIS call: a guest at checkout is the normal case and
-        // `getCurrentUser` 401s for one — `userService` suppresses its own log for the same
-        // reason. The manual form is the intended experience, so there is nothing to report.
+        // IGNORED ON PURPOSE for the case it was written for — a guest at checkout is the normal
+        // case and `getCurrentUser` 401s for one; `userService` suppresses its own log for the
+        // same reason, and the manual form is the intended experience.
+        //
+        // **It is NOT justified for the other throws, and this file's own header says why: an
+        // ignore is justified per PATH, not per callsite.** `getCurrentUser` rethrows every
+        // `ApiError`, so a 500, a network blip, or a 429 from the per-IP `auth-refresh` limiter
+        // (one NAT = a whole venue's wifi) also land here and also run `asGuest()` — which blanks
+        // `savedAddresses`, sets `isLoggedIn: false` and deliberately clears `listError`. A
+        // signed-in customer's saved addresses vanish with no message, and `useDeliveryAddress`
+        // gates the "save this address" checkbox on `isLoggedIn`, so it then does nothing for the
+        // rest of checkout. The one-line fix is `isAuthError(err)`; tracked as issue #416, kept out
+        // of the E9 slice that found it because it changes checkout behaviour.
         asGuest();
         return;
       }

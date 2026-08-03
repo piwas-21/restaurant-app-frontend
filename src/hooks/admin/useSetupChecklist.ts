@@ -68,6 +68,13 @@ export function useSetupChecklist(): UseSetupChecklistResult {
       // Only the FIRST read failing leaves null, which renders nothing at all. That is
       // deliberate: an empty list reads as "you are all done", the one wrong answer on
       // a surface whose job is saying what is left.
+      //
+      // **A third path is NOT covered and is not deliberate — issue #416.** When the WRITE
+      // succeeds and this re-read then fails: `saveError` was cleared on entry, nothing here
+      // captures the read failure, and `setPending(null)` runs in the caller's `finally`. The
+      // owner ticks a step, the server records it, and the checkbox snaps back unchecked with no
+      // error at all — the same shape as the `saveFailed` boolean #388 fixed in this very file,
+      // which is what put it in the sweep to begin with.
       setChecklist(lastGood.current);
     } finally {
       setIsLoading(false);

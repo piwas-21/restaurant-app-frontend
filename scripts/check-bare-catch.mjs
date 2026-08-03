@@ -39,23 +39,36 @@
  *   remembering that this header vouched for them for as long as it did — "ignored on purpose" is
  *   a claim about intent, and intent is not evidence that the ignore is correct.
  *
- * **Where this ends: 29. Counted, not estimated — 2026-08-03, after slice 7.**
+ * **THE SWEEP IS DONE. 34, and every one of them is a documented deliberate ignore — 2026-08-03,
+ * after slice 8 (the last).** There is no remaining work item behind this number. What would
+ * change it now is new code, which is what the ratchet is for from here on.
  *
- * This figure has been wrong twice, in both directions, and the corrections are the useful part:
+ * The end point has been wrong four times, and the corrections are the useful part — especially
+ * the last one, which moved it UP:
  *
  * - It first read "the honest target is ~90, not 0". That was the SIZE OF THE WORK (the ~88 of the
  *   100 counted at triage that needed fixing), never a destination; read as a target count it
  *   contradicted the line above it and meant the sweep was over before it started.
  * - It then read "roughly 12", which was the count of the ORIGINAL deliberate list — the five
  *   feature-detects and `TableContext` — plus a guess. Slice 6 disproved it by finding 12
- *   documented survivors in `src/hooks` subfolders ALONE. The estimate that replaced it, ~22, was
- *   still low: it was assembled from THIS header's own list, which slice 2 had already outgrown,
- *   and so omitted the five documented ignores in `src/services` entirely.
+ *   documented survivors in `src/hooks` subfolders ALONE.
+ * - The estimate that replaced it, ~22, was assembled from THIS header's own list, which slice 2
+ *   had already outgrown, and so omitted the five documented ignores in `src/services` entirely.
+ * - Slice 7 then ENUMERATED the survivors against the tree and got 29 — that count was right. What
+ *   was still an estimate was the OTHER half of the sum: it assumed all 19 un-triaged sites were
+ *   work. FIVE of them turned out to be correct ignores that only needed saying so, so the sweep
+ *   ended at 34, not 29. **Enumerating the known half of a total does not make the total a
+ *   measurement.** A number is a measurement when every term in it has been looked at.
+ * - And the first draft of THIS paragraph said "six … so the sweep ended at 35", three lines under
+ *   a heading that correctly said 34. The sixth was `FidelityPointsCheckout`, which review turned
+ *   from a survivor into a fix (see below) — the prose was written before the last change and not
+ *   re-counted. Four revisions, four wrong numbers, every one of them a figure carried across an
+ *   edit instead of re-derived. **Re-run the gate and re-add the table before touching this line.**
  *
- * The lesson is the same one the ratchet keeps teaching: a number carried forward from a previous
- * revision of the same file is not a measurement. So this one was enumerated against the tree.
- *
- * The 29, by area — every one carries a comment saying why the failure is ignored:
+ * The 34, by area — every one carries a comment saying why the failure is ignored. One further
+ * site left the count without being converted: `MyOrders.tsx`'s catch went with the file, which
+ * was dead code (no importer; `/my-orders` is a bare `redirect('/orders')`). So 48 → 34 is 13
+ * conversions plus 1 deletion, not 14 conversions.
  *
  *   src/hooks/<subfolders>   12   slice 6; `useCartPage` x5, the two raw-`fetch` auth forms,
  *                                 `useSavedAddressList`, `useGuestCustomerInfo`,
@@ -64,7 +77,9 @@
  *   src/services              5   `authService`, `menuService`, `sessionService`,
  *                                 `tenantModulesService`, `tenantThemeService` (slice 2)
  *   src/utils                 4   `imageCompression`, `orderTypeLabels`, `qrCode` x2
- *   src/hooks (top level)     3   `useOrderFilterPreferences`' storage guards
+ *   src/hooks (top level)     4   `useOrderFilterPreferences`' three storage guards, and
+ *                                 `useOrders`' 30s poll — added by slice 8, which took the OTHER
+ *                                 two swallows out of that file (see below)
  *   src/components/admin      3   `WorkingHoursManager` (#406, a per-PATH ignore);
  *                                 `DeleteConfirmationModal` (slice 7 — its producer reports and
  *                                 does not rethrow, so surfacing here would double-report); and
@@ -73,23 +88,39 @@
  *                                 saved, so letting it reach the outer catch toasted "Failed to
  *                                 save" for a save that succeeded. It is downgraded to a warning,
  *                                 not swallowed. A sweep can legitimately ADD a survivor.
+ *   src/app                   3   slice 8: `delete-account` and `forgot-password` — both call
+ *                                 raw-`fetch` `authService` helpers that return `response.json()`
+ *                                 for EVERY status, so a refusal RESOLVES and the only throws are
+ *                                 a dead network and a non-JSON body, whose texts are
+ *                                 client-authored; and `checkout/confirmation`'s tax-label lookup,
+ *                                 which has a correct visible fallback
+ *   src/components            1   slice 8: `DeleteAccountSection`, same raw-`fetch` reason
  *   src/contexts              1   `TableContext`
  *   src/lib                   1   `analytics`
  *
- * **29 is a floor, not a prediction.** Four of those comments say WHAT happened rather than why
- * ignoring it is safe (`TableContext`'s "Invalid storage data, ignore", and the three in
- * `useOrderFilterPreferences`); whichever slice owns those areas should either strengthen them or
- * find that they are not deliberate after all — which is exactly what happened to the
- * `mockApiClient` pair this header used to vouch for. The number can therefore still move DOWN.
+ * `FidelityPointsCheckout` was in that list on the first draft of this paragraph and is not any
+ * more, which is the point of writing the reason down rather than the verdict. Its ignore was
+ * genuinely right for the case it named — a GUEST's 401, where the section correctly renders
+ * nothing — and wrong for the case it did not: a signed-in customer's 500 took their redemption
+ * panel away mid-checkout with no explanation, so they could not spend a balance their account
+ * page shows them. Bound and branched. **Ask what an ignore does on the input it does NOT name.**
  *
- * Remaining work at that date: 19 sites (29 + 19 = the 48 baseline) — `src/app/**` 10,
- * `src/components` (non-admin) 5,
- * `src/hooks` top level 4 (`useOrders` x3, `useFeaturedSpecial`, the last of which may be dead
- * code: `getFeaturedSpecial` resolves `{success:true, data:null}` on failure by contract).
+ * **The four weak comments this header used to flag are closed.** They said WHAT happened rather
+ * than why ignoring it was safe; slice 8 answered them in place. Three (`useOrderFilterPreferences`)
+ * were safe as written. The fourth was NOT: `TableContext` caught `JSON.parse` and then fed the
+ * result straight into state, so `JSON.parse('null')` set the context to null and the provider's
+ * own `Boolean(tableContext.tableId)` threw during render — a case the catch never saw, because
+ * nothing about it throws. The ignore was right; what it guarded was wrong. That is the general
+ * shape worth carrying: **a catch is a claim about the line above it, and "deliberate" is a claim
+ * about intent, not evidence that the ignore is correct.**
  *
- * So: keep going until only the deliberate ignores remain. Each one must carry a comment saying
- * why it ignores the failure — that comment, not this number, is what tells the next reader the
- * sweep is finished rather than abandoned.
+ * Slice 8 also removed three catches that could not fire at all — `useFeaturedSpecial` (its
+ * producer resolves `{success:true, data:null}` by contract), `ServerDiagnosticsSection`'s
+ * timestamp guard (`toLocaleTimeString()` returns "Invalid Date"; it does not throw, so the raw
+ * -string fallback was unreachable and the words "Invalid Date" reached a cashier's screen), and
+ * `useOrders.fetchAll` (both its callees swallowed, so a failed FIRST load showed an empty order
+ * list with no message at all). A dead catch is worse than none: it tells the next reader the
+ * failure is handled below when it is handled above, or not at all.
  *
  * Depends on prettier normalising `catch` onto the closing brace: a `catch {` alone on its own line
  * would not match. That holds because `prettier --check` gates all of `src/`.

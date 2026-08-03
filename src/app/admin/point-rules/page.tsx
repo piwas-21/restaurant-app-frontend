@@ -4,6 +4,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { adminFidelityService } from '@/services/adminFidelityService';
+import { getErrorMessage } from '@/utils/apiClient';
 import type { PointEarningRule } from '@/types/fidelity';
 import { Plus, Edit, Trash2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useSnackbar } from 'notistack';
@@ -30,8 +31,11 @@ export default function PointRulesPage() {
       setLoading(true);
       const data = await adminFidelityService.getPointRules(activeOnly);
       setRules(data);
-    } catch {
-      enqueueSnackbar(t('error_loading_rules', 'Failed to load point rules'), {
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage` rather than `useApiError`, which holds state a
+      // fire-and-forget toast has nowhere to put. `adminFidelityService` goes through `apiClient`,
+      // so a refusal arrives as an `ApiError` carrying the server's own sentence.
+      enqueueSnackbar(getErrorMessage(err) ?? t('error_loading_rules', 'Failed to load point rules'), {
         variant: 'error',
       });
     } finally {
@@ -67,8 +71,10 @@ export default function PointRulesPage() {
         variant: 'success',
       });
       void loadRules();
-    } catch {
-      enqueueSnackbar(t('error_deleting_rule', 'Failed to delete rule'), {
+    } catch (err) {
+      // A delete is refused for a REASON the admin can act on — a rule still referenced by an
+      // order, say. That sentence is on the wire; printing "Failed to delete rule" discarded it.
+      enqueueSnackbar(getErrorMessage(err) ?? t('error_deleting_rule', 'Failed to delete rule'), {
         variant: 'error',
       });
     } finally {

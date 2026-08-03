@@ -25,6 +25,7 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
     itemCount,
     subtotal,
     blockerMessage,
+    error,
     isSyncing,
     isResolving,
     handleQty,
@@ -36,6 +37,15 @@ export default function CartContents(props: Readonly<CartContentsProps>) {
   return (
     <>
       <OrderTypeToggle onPick={handlePick} />
+
+      {/* Above the list, because it usually explains why the list just changed — a reaped basket
+          resyncs to empty, and without this the cart emptied with no word of why (#415).
+          role="alert", not <output>: this is a failure, not a running commentary. */}
+      {error && (
+        <div className={styles.cartError} role="alert">
+          {error}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className={styles.empty}>

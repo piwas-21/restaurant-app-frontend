@@ -5,14 +5,20 @@ import { useCartContents } from './useCartContents';
 const mockUpdateItem = jest.fn().mockResolvedValue(undefined);
 const mockRemoveItem = jest.fn().mockResolvedValue(undefined);
 const mockProceedToCheckout = jest.fn().mockResolvedValue(null);
+const mockClearError = jest.fn();
 
-let mockCartState: { items: Array<Record<string, unknown>>; isSyncing: boolean };
+let mockCartState: { items: Array<Record<string, unknown>>; isSyncing: boolean; error?: string | null };
 let mockOrderTypeState: { orderType: OrderType | undefined };
 let mockHasChosenOrderType: boolean;
 let mockIsResolving: boolean;
 
 jest.mock('@/components/cart/CartContext', () => ({
-  useCart: () => ({ state: mockCartState, updateItem: mockUpdateItem, removeItem: mockRemoveItem }),
+  useCart: () => ({
+    state: mockCartState,
+    updateItem: mockUpdateItem,
+    removeItem: mockRemoveItem,
+    clearError: mockClearError,
+  }),
 }));
 jest.mock('@/contexts/OrderTypeContext', () => ({
   useOrderType: () => ({ state: mockOrderTypeState, hasChosenOrderType: mockHasChosenOrderType }),
@@ -39,10 +45,28 @@ const item = (over: Record<string, unknown> = {}) => ({
 describe('useCartContents', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCartState = { items: [], isSyncing: false };
+    mockCartState = { items: [], isSyncing: false, error: null };
     mockOrderTypeState = { orderType: undefined };
     mockHasChosenOrderType = false;
     mockIsResolving = false;
+  });
+
+  // #415. `state.error` is one global slot written by six places and cleared by one reducer arm,
+  // and `CartProvider` sits in the root layout so it never remounts on navigation. Once these cart
+  // surfaces started rendering it, a failure from a different operation on a different route — a
+  // refused promo code, say — would sit in the `/menu` sidebar until the next successful cart write.
+  it('clears a stale error when the surface mounts, exactly once', () => {
+    renderHook(() => useCartContents({ pickType: jest.fn() }));
+
+    expect(mockClearError).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the cart error for the surface to render', () => {
+    mockCartState = { items: [], isSyncing: false, error: 'Your shopping cart is empty or expired' };
+
+    const { result } = renderHook(() => useCartContents({ pickType: jest.fn() }));
+
+    expect(result.current.error).toBe('Your shopping cart is empty or expired');
   });
 
   it('derives itemCount, subtotal and canCheckout from the cart', () => {

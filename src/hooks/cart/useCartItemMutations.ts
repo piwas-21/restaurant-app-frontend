@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { basketService } from '@/services/basketService';
-import { getErrorMessage } from '@/utils/apiClient';
+import { isBasketGone, isBasketItemAlreadyGone } from '@/utils/basketMutationError';
+import { createCartFailureReporters } from '@/hooks/cart/cartFailureReporting';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { AddItemPayload, CartAction, CartState } from '@/components/cart/cartTypes';
 
@@ -14,23 +15,14 @@ interface CartItemMutations {
 
 /**
  * The optimistic basket-item mutations (add / update / remove) for CartProvider. Each applies an
- * optimistic dispatch, calls the backend, syncs from the server response, and rolls back on error.
- * Extracted verbatim from CartContext (Sprint 6 god-file decomposition); behaviour unchanged.
- * `syncBasket` is passed in because update/remove re-sync on a not-found (item removed in another tab).
- */
-/**
- * Did the server say the item is already gone?
+ * optimistic dispatch, calls the backend, syncs from the server response, and reports on error.
+ * Originally extracted from CartContext (Sprint 6 god-file decomposition).
  *
- * Matched on the SERVER's message ONLY. `getErrorMessage` returns null when the server authored
- * nothing, and the caller substitutes a translated fallback — matching that would make this branch
- * fire on whatever words a locale happens to use, silently turning a real failure into a
- * "someone else already removed it" resync.
+ * `syncBasket` has TWO opposite consumers here, which is the whole of #415: update/remove re-sync
+ * SILENTLY when the addressed item is already gone (removed in another tab — nothing to report),
+ * and re-sync AND report when the whole basket row is gone. Both are a 404; only the backend's
+ * `errorCode` separates them.
  */
-function isAlreadyGone(serverMessage: string | null): boolean {
-  const message = serverMessage?.toLowerCase();
-  return !!message && (message.includes('not found') || message.includes('basket item not found'));
-}
-
 export function useCartItemMutations(
   state: CartState,
   dispatch: React.Dispatch<CartAction>,
@@ -42,20 +34,22 @@ export function useCartItemMutations(
    * provider does. Threading it is what stops the English literal reappearing inside the cart.
    */
   unexpectedError: string,
-): CartItemMutations {
   /**
-   * Show the failure and roll back — the tail all three mutations share.
-   *
-   * Deliberately does NOT include the already-gone recovery. Folding that in here would have given
-   * `addItem` a branch it never had, and "not found" is a perfectly ordinary answer to an ADD
-   * ("Product not found") — it would have resynced the basket and swallowed the message instead of
-   * showing it. Update and remove opt in explicitly; add does not.
+   * Already-translated sentence for a basket that no longer exists, threaded for the same reason.
+   * Replaces the server's own words here rather than falling back to them: "Basket not found" is an
+   * internal description, and this is the one cart failure with a guest-facing sentence already
+   * written for it in all ten locales.
    */
-  const reportFailure = (serverMessage: string | null, previousState: CartState, logLabel: string, error: unknown) => {
-    dispatch({ type: 'SET_ERROR', payload: { error: serverMessage ?? unexpectedError } });
-    dispatch({ type: 'ROLLBACK', payload: { previousState } });
-    console.error(logLabel, error);
-  };
+  basketGoneError: string,
+): CartItemMutations {
+  // Which sentence each failure shows, and the dispatch order that makes it survive, live in
+  // `cartFailureReporting` — see there before changing any error path here.
+  const { reportFailure, reportBasketGone } = createCartFailureReporters(
+    dispatch,
+    syncBasket,
+    unexpectedError,
+    basketGoneError,
+  );
 
   /**
    * Add item to basket
@@ -95,7 +89,7 @@ export function useCartItemMutations(
         loggedIn: isLoggedInForAnalytics(),
       });
     } catch (error) {
-      reportFailure(getErrorMessage(error), previousState, 'Error adding item to basket:', error);
+      reportFailure(previousState, 'Error adding item to basket:', error);
       throw error; // Re-throw for component-level error handling
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: { isSyncing: false } });
@@ -124,13 +118,18 @@ export function useCartItemMutations(
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const serverMessage = getErrorMessage(error);
-      // The item is already gone — someone removed it in another tab. Resync rather than report.
-      if (isAlreadyGone(serverMessage)) {
+      // The ITEM is already gone — someone removed it in another tab. Resync rather than report.
+      // Scoped to that one error code on purpose: a BASKET-level not-found is the same 404 and must
+      // NOT come down here, or the resync silently empties the whole cart (#415).
+      if (isBasketItemAlreadyGone(error)) {
         await syncBasket();
         return;
       }
-      reportFailure(serverMessage, previousState, 'Error updating basket item:', error);
+      if (isBasketGone(error)) {
+        await reportBasketGone('Error updating basket item:', error);
+        throw error;
+      }
+      reportFailure(previousState, 'Error updating basket item:', error);
       throw error;
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: { isSyncing: false } });
@@ -156,13 +155,16 @@ export function useCartItemMutations(
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const serverMessage = getErrorMessage(error);
-      // The item is already gone — someone removed it in another tab. Resync rather than report.
-      if (isAlreadyGone(serverMessage)) {
+      // See the note on `updateItem` — same 404 pair, same reason this is code-scoped.
+      if (isBasketItemAlreadyGone(error)) {
         await syncBasket();
         return;
       }
-      reportFailure(serverMessage, previousState, 'Error removing basket item:', error);
+      if (isBasketGone(error)) {
+        await reportBasketGone('Error removing basket item:', error);
+        throw error;
+      }
+      reportFailure(previousState, 'Error removing basket item:', error);
       throw error;
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: { isSyncing: false } });

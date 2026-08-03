@@ -26,7 +26,16 @@ export interface UseCartContentsArgs {
 }
 
 export function useCartContents({ pickType, onProceed, analyticsSource = 'sidebar' }: UseCartContentsArgs) {
-  const { state: cartState, updateItem, removeItem } = useCart();
+  const { state: cartState, updateItem, removeItem, clearError } = useCart();
+
+  // Drop anything left over from before this surface existed. `state.error` is a single global slot
+  // and the provider never remounts, so without this the sidebar on `/menu` would open showing a
+  // failure from a different operation on a different route (a refused promo code, say). Runs once:
+  // `clearError` is memoized with a stable identity, and an unmemoized one here would clear the
+  // error on every render and nothing would ever be readable.
+  React.useEffect(() => {
+    clearError();
+  }, [clearError]);
   const { state: orderTypeState, hasChosenOrderType } = useOrderType();
   const { proceedToCheckout, isResolving } = useSmartCheckoutRouter();
 
@@ -39,14 +48,14 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   const handleQty = (basketItemId: string | undefined, next: number) => {
     if (!basketItemId || next < 1) return;
     updateItem(basketItemId, next).catch(() => {
-      /* CartContext surfaces the error */
+      /* Reported via `error` below, which both surfaces render — see the note on the return. */
     });
   };
 
   const handleRemove = (basketItemId: string | undefined) => {
     if (!basketItemId) return;
     removeItem(basketItemId).catch(() => {
-      /* CartContext surfaces the error */
+      /* Reported via `error` below, which both surfaces render — see the note on the return. */
     });
   };
 
@@ -88,6 +97,19 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     canCheckout,
     /** Translated reason the CTA won't route yet ('' when nothing blocks it). */
     blockerMessage: hint.message,
+    /**
+     * The cart's failure sentence, resolved for display, or null. Render it verbatim — do NOT pass
+     * it through `t()`. "Resolved" is not the same as "translated": a 5xx or a message-less failure
+     * yields a localized string, but a 4xx deliberately carries the SERVER's own sentence, which is
+     * English. That is the existing contract (the channel guard's reason is written for the guest
+     * and is the actionable half of that feature), not an oversight.
+     *
+     * These surfaces swallow the rethrow from `handleQty`/`handleRemove`, and until #415 nothing
+     * here read this — so on `/menu`, the page guests actually order from, a failed line edit
+     * showed NOTHING: the cart just snapped back. Only the legacy `/cart` route had an error slot.
+     * Both consumers render it now; deleting either render brings the silence back.
+     */
+    error: cartState.error,
     isSyncing: cartState.isSyncing,
     isResolving,
     handleQty,

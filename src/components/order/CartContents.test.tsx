@@ -39,8 +39,24 @@ describe('CartContents (classic)', () => {
       subtotal: 0,
       canCheckout: false,
       blockerMessage: '',
+      error: null,
       isResolving: false,
     });
+  });
+
+  // #415. This surface swallows the rethrow from handleQty/handleRemove, and until the fix it read
+  // nothing from `error` — so on /menu, the page guests order from, a failed line edit showed
+  // NOTHING and the cart just snapped back. Deleting this render brings that silence back, and only
+  // the legacy /cart route would still say anything.
+  it('renders the cart error, so a failed line edit is not silent', () => {
+    Object.assign(mockHookValue, { error: 'Your shopping cart is empty or expired' });
+    render(<CartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Your shopping cart is empty or expired');
+  });
+
+  it('renders no alert when there is no error', () => {
+    render(<CartContents pickType={jest.fn()} />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('shows the empty state + order-type toggle when the cart is empty', () => {

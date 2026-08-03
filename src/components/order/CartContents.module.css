@@ -178,3 +178,17 @@
   text-align: center;
   color: var(--text-secondary);
 }
+
+/* Cart failure sentence (#415). Sits above the line list, since it usually explains why the list
+   just changed. Colour comes from --feedback-error-text, not --feedback-error: the latter is a
+   fill red and reaches only 3.2:1 on this tint. */
+.cartError {
+  margin: 0 0 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--feedback-error-border);
+  border-radius: 6px;
+  background-color: var(--feedback-error-bg);
+  color: var(--feedback-error-text);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}

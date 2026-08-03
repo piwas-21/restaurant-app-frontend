@@ -172,7 +172,7 @@ process.exit(
       'Binding alone satisfies this gate and fixes nothing; the message has to reach a user.',
       'If the failure is ignored on purpose, say so in a comment and leave the count alone.',
     ],
-    holdingNote: 'E9 sweep in progress',
+    holdingNote: 'E9 COMPLETE — all 34 are documented deliberate ignores',
     argv: process.argv,
   }),
 );

@@ -23,12 +23,24 @@
  *   `DOMRect.left`, which is not CSS at all and is out of this tool's reach anyway).
  *   Decorative asymmetry — the craft `--craft-tape-clip` polygon — is the same story.
  *   Anything deliberately physical should carry a comment saying so and stay in the count.
- * - **Not aiming at zero.** See above. Slice 2 finished at **28**, discovered rather than asserted:
- *   the first areas swept were entirely mirror-safe, and the floor only appeared as the sweep
- *   reached drawers, toggle knobs and toast stacks. Of those 28, roughly SEVEN are permanent —
- *   the centring idioms, which have no handedness — and the other ~21 are couplings deferred to
- *   slice 3, each already saying in its own comment what it is coupled to. So a count of 28 means
- *   "slice 2 is done", not "this is as low as it goes".
+ * - **Not aiming at zero. The end point is 8, and it is now ENUMERATED, not estimated.**
+ *   The sweep ran 365 → 28 (slice 2) → 26 (3a) → 19 → 13 → 11 (3b). Every one of the 11 that
+ *   remain has been read, and they are exactly two groups:
+ *
+ *     EIGHT PERMANENT — centring, which has no handedness and is already correct both ways.
+ *       app/styles/AdminPage.module.css:502-503     tooltip: left:50% + margin-left:-80px
+ *       app/styles/UserMenu.module.css:60-61        dropdown: right:auto + left:50%
+ *       components/TableBanner.module.css:32        banner: left:50%
+ *       components/TableBanner.module.css:210-211   the mobile RESET of that pair (symmetric)
+ *       components/cashier/QuickConfirmModal.module.css:17   modal: left:50%
+ *
+ *     THREE BLOCKED — the notistack overrides in app/globals.css. Not permanent, but not a CSS
+ *       change either: one unqualified selector serves two anchors, and converting it clipped
+ *       the top-center cart toast 151px off screen in `ar`. Filed as #424 with the measurement.
+ *
+ *   So **11 means "E8 is done"**, and **8 is the floor** — reachable only when #424 lands.
+ *   If this number falls below 8, something that must not mirror has been converted; read the
+ *   comment beside it before banking the drop.
  *
  * Values are not properties. `background-position: right 12px center` is a physical *value*
  * on a non-directional property and is deliberately not matched — only declarations whose
@@ -85,7 +97,7 @@ process.exit(
       'If it is physical ON PURPOSE (it must not mirror), say so in a comment and',
       'leave the count alone — the comment is not counted.',
     ],
-    holdingNote: 'E8 sweep in progress',
+    holdingNote: 'E8 COMPLETE — 8 permanent centring idioms + 3 notistack, blocked on #424',
     argv: process.argv,
   }),
 );

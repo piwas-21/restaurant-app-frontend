@@ -12,7 +12,10 @@ const mockTrackEvent = jest.fn();
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_key: string, def?: string) => def ?? _key }),
 }));
+// Spread rather than hand-pick: an omitted export fails from inside a catch, where a bare
+// `rejects.toThrow()` accepts the resulting TypeError as the expected failure (#408).
 jest.mock('@/services/authService', () => ({
+  ...jest.requireActual('@/services/authService'),
   registerCustomer: (...args: unknown[]) => mockRegisterCustomer(...args),
   sendEmailVerification: (...args: unknown[]) => mockSendEmailVerification(...args),
 }));
@@ -151,5 +154,43 @@ describe('useRegisterForm', () => {
     expect(result.current.errors.firstName).toBeTruthy();
     act(() => result.current.handleChange(change('firstName', 'A')));
     expect(result.current.errors.firstName).toBe('');
+  });
+});
+
+/**
+ * The resend path, which used to answer a refusal with its own English sentence and read a
+ * `succeeded` field no endpoint has ever sent — every action on `AuthController`/`UserController`
+ * returns `ApiResponse`, whose field is `Success`.
+ */
+describe('useRegisterForm — resending the verification email', () => {
+  it("surfaces the server's reason rather than a generic", async () => {
+    mockSendEmailVerification.mockResolvedValue({
+      success: false,
+      message: 'Operation failed',
+      errors: ['Too many verification requests. Try again in an hour.'],
+    });
+    const { result } = renderHook(() => useRegisterForm());
+
+    await act(async () => result.current.handleResendEmail());
+
+    expect(result.current.resendMessage).toBe('Too many verification requests. Try again in an hour.');
+  });
+
+  it('shows the translated sentence when nothing server-authored is available', async () => {
+    mockSendEmailVerification.mockRejectedValue(new TypeError('Failed to fetch'));
+    const { result } = renderHook(() => useRegisterForm());
+
+    await act(async () => result.current.handleResendEmail());
+
+    expect(result.current.resendMessage).toBe('Failed to resend email. Please try again later.');
+  });
+
+  it('confirms on success', async () => {
+    mockSendEmailVerification.mockResolvedValue({ success: true });
+    const { result } = renderHook(() => useRegisterForm());
+
+    await act(async () => result.current.handleResendEmail());
+
+    expect(result.current.resendMessage).toContain('resent');
   });
 });

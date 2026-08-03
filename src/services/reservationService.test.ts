@@ -38,12 +38,20 @@ async function captureFailure(call: () => Promise<unknown>): Promise<ApiError> {
 /**
  * The `!response.success` guards, driven directly.
  *
- * **They are defensive, not a path production takes** — `ReservationsController` answers
- * `result.Success ? Ok(result) : BadRequest(result)`, so a refusal is a 400 and `apiClient` has
- * already thrown by the time the service looks at `success`. `grep -c "Ok(ApiResponse.*Failure"`
- * over the backend returns 0. What these pin is the SHAPE the guard produces if that ever changes,
- * and that it no longer invents English — which is why the mocks resolve a body the controller
- * would not currently send.
+ * **For create/cancel/confirm/delete they are defensive, not a path production takes** —
+ * `ReservationsController` answers `result.Success ? Ok(result) : BadRequest(result)` on all four,
+ * so a refusal is a 400 and `apiClient` has already thrown by the time the service looks at
+ * `success`. What these pin is the SHAPE the guard produces if that ever changes, and that it no
+ * longer invents English — which is why the mocks resolve a body those actions would not send.
+ *
+ * **`available-slots` is the opposite and the distinction is per-ACTION, not per-controller**: it
+ * ends `return Ok(await _mediator.SendQuery(…))` with no `Success` test, so all three of the
+ * handler's `Failure` answers arrive as a 200 carrying `{success:false}` and the guard below is
+ * the live path. An earlier version of this note offered `grep -c "Ok(ApiResponse.*Failure"`
+ * returning 0 as evidence that 200-wrapped failures do not exist. That grep tests an INLINE shape
+ * no controller in this codebase writes; the real shape is a handler returning `Failure` through a
+ * controller's `return Ok(result)`, and there are 76 `return Ok(result)` sites against 99 files
+ * that build one.
  */
 describe('a failure the guard catches keeps its shape', () => {
   it('carries the per-rule list, which the old re-wrap dropped entirely', async () => {
@@ -110,33 +118,44 @@ describe('a non-2xx propagates unchanged', () => {
 });
 
 describe('getAvailableTimeSlots reports a refusal without throwing', () => {
-  it("prefers the server's per-rule reason and flags a capacity issue", async () => {
-    mockGet.mockResolvedValue({ success: false, errors: ['No tables available for 8 guests'] });
+  it("prefers the server's per-rule reason over the summary wrapper", async () => {
+    // A REAL refusal string this time. The fixture used to be 'No tables available for 8 guests',
+    // which the backend has never sent — `GetAvailableTimeSlotsQueryHandler` has three `Failure`
+    // strings and none mentions capacity. It existed to prove an `isCapacityIssue` flag that was
+    // therefore always false; the flag is gone and this keeps the half that was real.
+    mockGet.mockResolvedValue({
+      success: false,
+      message: 'Operation failed',
+      errors: ['No active tables found'],
+    });
 
     const result = await reservationService.getAvailableTimeSlots('2026-08-10', 8);
 
     expect(result.data).toBeNull();
-    expect(result.error).toBe('No tables available for 8 guests');
-    expect(result.isCapacityIssue).toBe(true);
+    expect(result.error).toBe('No active tables found');
   });
 
   it('drops a BLANK entry instead of returning it as the reason', async () => {
-    // The old chain gated on `errors.length > 0`, so `['']` was returned verbatim and the
-    // `isCapacityIssue` test below it then ran `''.toLowerCase().includes(…)`.
+    // The old chain gated on `errors.length > 0`, so `['']` was returned verbatim — and the
+    // (now deleted) `isCapacityIssue` derivation below it then ran `''.toLowerCase().includes(…)`.
     mockGet.mockResolvedValue({ success: false, errors: [''], message: 'Slots unavailable' });
 
     const result = await reservationService.getAvailableTimeSlots('2026-08-10', 2);
 
     expect(result.error).toBe('Slots unavailable');
-    expect(result.isCapacityIssue).toBe(false);
   });
 
-  it('keeps a non-empty fallback, because the caller reads `error` as a flag', async () => {
+  it('leaves `error` undefined when the server authored nothing — `data: null` is the flag', async () => {
+    // This used to return a client-authored English literal so that `error` could double as the
+    // failure flag. It made the two cases indistinguishable to the caller, which is why
+    // `useReservationAvailability` rendered neither and emptied the dropdown in silence. The flag
+    // is `data === null`; `error` now carries only what is fit to show a user.
     mockGet.mockResolvedValue({ success: false });
 
     const result = await reservationService.getAvailableTimeSlots('2026-08-10', 2);
 
-    expect(result.error).toBeTruthy();
+    expect(result.data).toBeNull();
+    expect(result.error).toBeUndefined();
   });
 
   it('returns the slots on success', async () => {

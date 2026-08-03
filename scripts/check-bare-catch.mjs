@@ -25,11 +25,12 @@
  *   discards the server's `errors[]` just as completely and would *lower* this number. Binding the
  *   error is the first half of the fix; surfacing it is the half that matters, and no regex can see
  *   that. Read the remediation text below as "bind it AND surface it".
- * - **Not aiming at zero.** Roughly a dozen of the current sites ignore a failure on purpose —
+ * - **Not aiming at zero.** A documented set of sites ignore a failure on purpose —
  *   `TableContext` discarding malformed `localStorage`, `analytics` feature-detecting
  *   `CustomEvent`, `orderTypeLabels` feature-detecting `Intl.ListFormat`, `imageCompression`
  *   falling back to the original file, `qrCode` parsing an untrusted payload. Those should stay,
- *   and converting them to bound catches would buy nothing.
+ *   and converting them to bound catches would buy nothing. The exact figure is below; that list
+ *   is the ORIGINAL one and has not been the whole of it since slice 2.
  *
  *   This list also used to name "the mock-API fallbacks in `menuService`/`categoryService`" as
  *   deliberate. They were not: `mockApiClient` had no environment gate, so on a live tenant a
@@ -38,14 +39,55 @@
  *   remembering that this header vouched for them for as long as it did — "ignored on purpose" is
  *   a claim about intent, and intent is not evidence that the ignore is correct.
  *
- * **Where this ends: a count of roughly 12.** An earlier version of this header said "the honest
- * target is ~90, not 0", which read as a target *count* and contradicted the line above it — if
- * ~12 sites should stay, ~12 is where the count lands, and the sweep would already have been over
- * before it started. The ~90 was never a destination; it was the SIZE OF THE WORK — the ~88 sites
- * that do need fixing, out of the 100 counted at triage. That reading is also the only one the
- * "1-2 week" estimate in BUGS-IMPROVEMENTS-PLAN E9 makes sense under.
+ * **Where this ends: 29. Counted, not estimated — 2026-08-03, after slice 7.**
  *
- * So: keep going until only the deliberate ignores remain. Each one should carry a comment saying
+ * This figure has been wrong twice, in both directions, and the corrections are the useful part:
+ *
+ * - It first read "the honest target is ~90, not 0". That was the SIZE OF THE WORK (the ~88 of the
+ *   100 counted at triage that needed fixing), never a destination; read as a target count it
+ *   contradicted the line above it and meant the sweep was over before it started.
+ * - It then read "roughly 12", which was the count of the ORIGINAL deliberate list — the five
+ *   feature-detects and `TableContext` — plus a guess. Slice 6 disproved it by finding 12
+ *   documented survivors in `src/hooks` subfolders ALONE. The estimate that replaced it, ~22, was
+ *   still low: it was assembled from THIS header's own list, which slice 2 had already outgrown,
+ *   and so omitted the five documented ignores in `src/services` entirely.
+ *
+ * The lesson is the same one the ratchet keeps teaching: a number carried forward from a previous
+ * revision of the same file is not a measurement. So this one was enumerated against the tree.
+ *
+ * The 29, by area — every one carries a comment saying why the failure is ignored:
+ *
+ *   src/hooks/<subfolders>   12   slice 6; `useCartPage` x5, the two raw-`fetch` auth forms,
+ *                                 `useSavedAddressList`, `useGuestCustomerInfo`,
+ *                                 `useGuestProfilePrefill`, `useAdminOrderMutations`,
+ *                                 `useSetupChecklist`
+ *   src/services              5   `authService`, `menuService`, `sessionService`,
+ *                                 `tenantModulesService`, `tenantThemeService` (slice 2)
+ *   src/utils                 4   `imageCompression`, `orderTypeLabels`, `qrCode` x2
+ *   src/hooks (top level)     3   `useOrderFilterPreferences`' storage guards
+ *   src/components/admin      3   `WorkingHoursManager` (#406, a per-PATH ignore);
+ *                                 `DeleteConfirmationModal` (slice 7 — its producer reports and
+ *                                 does not rethrow, so surfacing here would double-report); and
+ *                                 `AppearanceTab`'s post-save `revalidateTenantTheme`, ADDED by
+ *                                 slice 7 — a second round trip that runs AFTER the palette is
+ *                                 saved, so letting it reach the outer catch toasted "Failed to
+ *                                 save" for a save that succeeded. It is downgraded to a warning,
+ *                                 not swallowed. A sweep can legitimately ADD a survivor.
+ *   src/contexts              1   `TableContext`
+ *   src/lib                   1   `analytics`
+ *
+ * **29 is a floor, not a prediction.** Four of those comments say WHAT happened rather than why
+ * ignoring it is safe (`TableContext`'s "Invalid storage data, ignore", and the three in
+ * `useOrderFilterPreferences`); whichever slice owns those areas should either strengthen them or
+ * find that they are not deliberate after all — which is exactly what happened to the
+ * `mockApiClient` pair this header used to vouch for. The number can therefore still move DOWN.
+ *
+ * Remaining work at that date: 19 sites (29 + 19 = the 48 baseline) — `src/app/**` 10,
+ * `src/components` (non-admin) 5,
+ * `src/hooks` top level 4 (`useOrders` x3, `useFeaturedSpecial`, the last of which may be dead
+ * code: `getFeaturedSpecial` resolves `{success:true, data:null}` on failure by contract).
+ *
+ * So: keep going until only the deliberate ignores remain. Each one must carry a comment saying
  * why it ignores the failure — that comment, not this number, is what tells the next reader the
  * sweep is finished rather than abandoned.
  *

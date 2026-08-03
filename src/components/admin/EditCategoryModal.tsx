@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import styles from '@/app/styles/RegisterStaffModal.module.css';
 import { useTranslation } from 'react-i18next';
-import { updateCategory, uploadCategoryImage, reorderCategory } from '@/services/categoryService';
 import CategoryOrderTypesSummary from '@/components/admin/CategoryOrderTypesSummary';
+import { type SetCategoryError } from '@/lib/categoryFormErrors';
+import { useEditCategorySave } from '@/hooks/admin/useEditCategorySave';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -42,11 +43,18 @@ interface EditCategoryModalProps {
   onClose: () => void;
   onCategoryUpdated: () => void;
   category: Category | null;
+  /** See `CreateCategoryModal` — required for the same reason: this modal closes on a partial save. */
+  onPartialSuccess: (message: string) => void;
 }
 
-const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, onCategoryUpdated, category }) => {
+const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
+  isOpen,
+  onClose,
+  onCategoryUpdated,
+  category,
+  onPartialSuccess,
+}) => {
   const { t } = useTranslation();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
@@ -56,6 +64,11 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
   } = useForm<EditCategoryFormValues>({
     resolver: zodResolver(editCategorySchema),
   });
+
+  // See `CreateCategoryModal` — react-hook-form's `setError` shape, adapted to the shared router.
+  const setFormError: SetCategoryError = (field, message) => setError(field, { type: 'manual', message });
+  // The three-request save (update -> reorder -> image) and its partial-success accounting.
+  const { save, isSubmitting } = useEditCategorySave(category, setFormError, onPartialSuccess);
 
   useEffect(() => {
     if (category) {
@@ -69,79 +82,11 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, onClose, 
   }, [category, reset]);
 
   const onSubmit = async (data: EditCategoryFormValues) => {
-    if (!category) return;
-
-    setIsSubmitting(true);
     setError('root', { message: '' });
-
-    try {
-      // Step 1: Update main category details
-      const updateData = {
-        id: category.id,
-        name: data.name,
-        description: data.description,
-        isActive: data.isActive,
-        // Echoed back unchanged, NOT edited here. `UpdateCategoryCommand` is a full-replace PUT
-        // that assigns AvailableOrderTypes unconditionally, so omitting it would clear the
-        // category's channel restriction on every unrelated rename (plan §9.1). The channel
-        // matrix in restaurant settings stays the only writer.
-        availableOrderTypes: category.availableOrderTypes ?? null,
-      };
-      const categoryResponse = (await updateCategory(category.id, updateData)) as {
-        success: boolean;
-        data?: any;
-        message?: string;
-        errors?: string[];
-      };
-
-      if (!categoryResponse.success) {
-        // Handle main update failure
-        if (categoryResponse.errors && Array.isArray(categoryResponse.errors) && categoryResponse.errors.length > 0) {
-          const errorMessage = categoryResponse.errors[0];
-          setError(errorMessage.toLowerCase().includes('name') ? 'name' : 'root', {
-            type: 'manual',
-            message: errorMessage,
-          });
-        } else {
-          setError('root', { message: categoryResponse.message || 'Failed to update category' });
-        }
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Step 2: Update display order if it has changed
-      if (data.displayOrder !== category.displayOrder) {
-        const reorderResponse = (await reorderCategory(category.id, data.displayOrder)) as {
-          success: boolean;
-          message?: string;
-        };
-        if (!reorderResponse.success) {
-          // Handle reorder failure, but show partial success
-          setError('root', { message: `Category details updated, but reorder failed: ${reorderResponse.message}` });
-          // Continue to image upload if needed
-        }
-      }
-
-      // Step 3: Upload image if a new one is provided
-      const imageFile = data.imageFile?.[0];
-      if (imageFile) {
-        const imageUploadResponse = (await uploadCategoryImage(category.id, imageFile)) as {
-          success: boolean;
-          message?: string;
-        };
-        if (!imageUploadResponse.success) {
-          // Handle image upload failure, but show partial success
-          setError('root', { message: `Category updated, but image upload failed: ${imageUploadResponse.message}` });
-        }
-      }
-
-      onCategoryUpdated();
-      onClose();
-    } catch {
-      setError('root', { message: 'An unexpected error occurred.' });
-    } finally {
-      setIsSubmitting(false);
-    }
+    const saved = await save(data, data.imageFile?.[0]);
+    if (!saved) return;
+    onCategoryUpdated();
+    onClose();
   };
 
   if (!isOpen) return null;

@@ -7,6 +7,8 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { invalidateRestaurantInfoCache, useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { addPhoneNumber, deletePhoneNumber, updatePhoneNumber } from '@/services/restaurantInfoService';
+import { getErrorMessage } from '@/utils/apiClient';
+import { serverMessages } from '@/utils/apiFormErrors';
 import type { RestaurantPhoneNumberDto } from '@/types/restaurantInfo';
 import {
   phoneNumberSchema,
@@ -91,12 +93,29 @@ export default function PhoneNumberManager({ phones }: Props) {
         enqueueSnackbar(t('phone_save_success', 'Phone saved'), { variant: 'success' });
         cancel();
       } else {
-        enqueueSnackbar(response.message ?? t('phone_save_failed', 'Failed to save phone'), {
+        // Defensive, not the live path: `AddPhoneNumberCommand` / `UpdatePhoneNumberCommand` build
+        // no `Failure` — they throw. `errors[]` first regardless, per the note in `AppearanceTab`.
+        enqueueSnackbar(serverMessages(response)[0] ?? t('phone_save_failed', 'Failed to save phone'), {
           variant: 'error',
         });
       }
-    } catch {
-      enqueueSnackbar(t('phone_save_failed', 'Failed to save phone'), { variant: 'error' });
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage`, not `useApiError`, which holds state a
+      // fire-and-forget toast has nowhere to put.
+      //
+      // What actually reaches here is narrower than it first looks, and worth stating rather than
+      // gesturing at "the server's reason". The zod schema in `./schemas` mirrors the backend
+      // rules with no slack — `e164` is byte-identical to `AddPhoneNumberCommandValidator`'s
+      // `.Matches(...)`, and every other field is no looser — so `handleSubmit` will not dispatch
+      // a request that trips a validator. (The handlers re-check E.164 and throw too, but
+      // `ValidationBehavior` runs first, so that copy is unreachable over HTTP.) That leaves
+      // transport failures, 401/403 from `[RequireAdmin]`, and the `NotFoundException` for
+      // restaurant info that was never initialised — each of which carries a sentence worth more
+      // than "Failed to save phone", and each of which was being replaced by it.
+      //
+      // The value of reading `getErrorMessage` here is therefore mostly that it survives the two
+      // schemas DRIFTING apart, which nothing enforces.
+      enqueueSnackbar(getErrorMessage(err) ?? t('phone_save_failed', 'Failed to save phone'), { variant: 'error' });
     }
   });
 
@@ -111,12 +130,13 @@ export default function PhoneNumberManager({ phones }: Props) {
         await refetch();
         enqueueSnackbar(t('phone_delete_success', 'Phone deleted'), { variant: 'success' });
       } else {
-        enqueueSnackbar(response.message ?? t('phone_delete_failed', 'Failed to delete'), {
+        // Defensive, not the live path — `DeletePhoneNumberCommand` throws `NotFoundException`.
+        enqueueSnackbar(serverMessages(response)[0] ?? t('phone_delete_failed', 'Failed to delete'), {
           variant: 'error',
         });
       }
-    } catch {
-      enqueueSnackbar(t('phone_delete_failed', 'Failed to delete'), { variant: 'error' });
+    } catch (err) {
+      enqueueSnackbar(getErrorMessage(err) ?? t('phone_delete_failed', 'Failed to delete'), { variant: 'error' });
     }
   };
 

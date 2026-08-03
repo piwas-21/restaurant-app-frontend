@@ -75,13 +75,14 @@ export interface ApiErrorSurface<TField extends string> {
  *    dropping it for "an unexpected error occurred" is a downgrade, not a fix.
  * 2. **A fire-and-forget TOAST** — `getErrorMessage(err) ?? t('contextual')`. Not this hook: it
  *    holds state a snackbar has nowhere to put.
- * 3. **A DELIBERATE ignore** — leave the catch bare and say why in the file. Roughly a dozen sites
- *    ignore a failure on purpose (a per-item tally in a bulk loop, a last-good-copy fallback,
- *    feature detection). Converting those buys nothing — but note the sweep ENDS at roughly that
- *    dozen, not at ~90. The ~90 was the SIZE of the work (~88 of the ~100 counted at triage needed
- *    fixing), never a destination; read as a target it would mean the sweep was already over the
- *    moment it started. What marks it finished rather than abandoned is a comment on each survivor
- *    saying why the failure is ignored — that comment, not the number.
+ * 3. **A DELIBERATE ignore** — leave the catch bare and say why in the file. A documented set of
+ *    sites ignore a failure on purpose (a per-item tally in a bulk loop, a last-good-copy fallback,
+ *    feature detection). Converting those buys nothing, so the sweep ends ABOVE zero — but do not
+ *    take a count from here. `scripts/check-bare-catch.mjs` is the one place that number is
+ *    maintained, and it has been wrong twice: "roughly 12" (this file's old figure) and "~90",
+ *    which was the SIZE of the work rather than a destination. What marks the sweep finished rather
+ *    than abandoned is a comment on each survivor saying why the failure is ignored — that comment,
+ *    not the number.
  *
  * And whichever you pick: a `capture()` whose `message` is never rendered swallows the failure
  * silently and type-checks. Check the render, not just the catch.

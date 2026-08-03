@@ -22,11 +22,13 @@ const MembersTable: React.FC<MembersTableProps> = ({ users, onEdit, onDelete, on
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '-';
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return '-';
-    }
+    // `toLocaleDateString()` with no arguments does not throw on an unparseable date — it returns
+    // the literal STRING "Invalid Date". So the `try/catch` this replaces was dead code, and the
+    // `-` it meant to render was unreachable: a malformed `createdAt` put "Invalid Date" in the
+    // Created column instead. Same shape as `sessionService.isSessionExpired` (slice 2) — a catch
+    // around something that cannot throw is a claim about the code, not a guard.
+    const parsed = new Date(dateString);
+    return Number.isNaN(parsed.getTime()) ? '-' : parsed.toLocaleDateString();
   };
 
   if (isLoading) {

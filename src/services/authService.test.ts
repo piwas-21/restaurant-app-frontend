@@ -1,4 +1,4 @@
-import { refreshToken } from './authService';
+import { login, refreshToken } from './authService';
 
 /**
  * fix/auth-refresh-single-flight: the token refresh must (a) collapse concurrent
@@ -121,5 +121,87 @@ describe('authService.refreshToken', () => {
     expect(result.success).toBe(false);
     expect(result.transient).toBeFalsy();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * `login` was the one sign-in path that wrote the tokens to `localStorage` unguarded, while
+ * `registerCustomer`, `googleLogin` and `appleLogin` all caught the write. That mattered because
+ * the write happens AFTER a 200: a browser with site data blocked (Safari private browsing, a full
+ * origin quota) threw out of a sign-in the server had already granted, and `useLoginForm`'s catch
+ * reported "Failed to connect to the server" — a network diagnosis for a storage refusal.
+ */
+describe('authService.login and a browser that refuses storage', () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    localStorage.clear();
+    fetchMock.mockReset();
+    global.fetch = fetchMock as unknown as typeof fetch;
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  const grantedResponse = {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      success: true,
+      data: { accessToken: 'access-1', refreshToken: 'refresh-1', role: 'Customer' },
+    }),
+  };
+
+  it('persists both tokens on a granted sign-in', async () => {
+    fetchMock.mockResolvedValue(grantedResponse);
+
+    const data = await login({ email: 'a@b.co', password: 'secret1' }); // pragma: allowlist secret -- fixture
+
+    expect(data.success).toBe(true);
+    expect(localStorage.getItem('auth_token')).toBe('access-1');
+    expect(localStorage.getItem('refresh_token')).toBe('refresh-1');
+  });
+
+  it('RESOLVES with the granted envelope when localStorage throws', async () => {
+    fetchMock.mockResolvedValue(grantedResponse);
+    jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+    });
+
+    // The assertion that matters: it does not reject. Rejecting is what put a network sentence on
+    // a screen whose request had succeeded.
+    const data = await login({ email: 'a@b.co', password: 'secret1' }); // pragma: allowlist secret -- fixture
+
+    expect(data.success).toBe(true);
+    expect(console.warn).toHaveBeenCalled();
+  });
+
+  it('RESOLVES when reading localStorage throws before the request is even made', async () => {
+    // The other half, and the one guarding the WRITES left live. With site data blocked outright
+    // (Chrome "block all cookies", a sandboxed iframe) the `localStorage` PROPERTY throws on
+    // access — and `getSessionId()` is the first line of `login()`, so the throw beat `fetch`
+    // entirely and `useLoginForm` reported a network failure for a request that never happened.
+    fetchMock.mockResolvedValue(grantedResponse);
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Access is denied for this document.', 'SecurityError');
+    });
+
+    const data = await login({ email: 'a@b.co', password: 'secret1' }); // pragma: allowlist secret -- fixture
+
+    expect(data.success).toBe(true);
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
+  it('returns the refusal body for a non-2xx without touching storage', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ success: false, message: 'Account locked', errors: ['Too many failed attempts.'] }),
+    });
+
+    const data = await login({ email: 'a@b.co', password: 'nope' }); // pragma: allowlist secret -- fixture
+
+    expect(data.errors).toEqual(['Too many failed attempts.']);
+    expect(localStorage.getItem('auth_token')).toBeNull();
   });
 });

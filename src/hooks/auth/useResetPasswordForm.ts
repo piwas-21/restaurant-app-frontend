@@ -71,6 +71,13 @@ export function useResetPasswordForm(email: string, token: string) {
       // password is one the server accepts, so a failure here really is the link.
       setFormError(t('reset_password_failed'));
     } catch {
+      // IGNORED ON PURPOSE, and for a second reason on top of the enumeration one above.
+      // `authService.resetPassword` is a raw `fetch` returning the parsed body for every status,
+      // so it never throws an `ApiError`: the only things that reach here are `TypeError` from a
+      // dead network and `SyntaxError` from `response.json()` on an HTML 502. `getErrorMessage`
+      // returns `null` for both by design, so binding the error would add the E9 recipe's shape
+      // over a branch that could only ever take its fallback arm — a claim that something is
+      // surfaced when nothing is. The paths were checked, not assumed.
       setFormError(t('unexpected_error'));
     }
   });

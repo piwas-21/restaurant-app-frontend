@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { enqueueSnackbar } from 'notistack';
 import { useReservationAvailability } from './useReservationAvailability';
 import { reservationService } from '@/services/reservationService';
+import { ApiError } from '@/utils/apiClient';
 
 jest.mock('@/services/reservationService', () => ({
   reservationService: { getTables: jest.fn(), getAvailableTimeSlots: jest.fn() },
@@ -15,7 +17,17 @@ jest.mock('react-i18next', () => ({
 }));
 
 const mocked = reservationService as jest.Mocked<typeof reservationService>;
+const toast = enqueueSnackbar as jest.Mock;
 const table = (id: string, maxGuests: number) => ({ id, maxGuests, tableNumber: id, isActive: true }) as never;
+
+/** Drive the availability effect: tables loaded, then a date chosen. */
+async function pickADate(result: { current: { setSelectedDate: (d: string) => void } }) {
+  await waitFor(() => expect(mocked.getTables).toHaveBeenCalled());
+  await act(async () => {
+    result.current.setSelectedDate('2026-08-10');
+  });
+  await waitFor(() => expect(mocked.getAvailableTimeSlots).toHaveBeenCalled());
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -78,5 +90,98 @@ describe('useReservationAvailability — capacity notice timing', () => {
     await waitFor(() => expect(mocked.getAvailableTimeSlots).toHaveBeenCalled());
     // The old code blanked the warning at the top of every slot fetch.
     expect(result.current.capacityWarning).toContain('10 guests');
+  });
+});
+
+/**
+ * The failure paths, which used to empty the time dropdown and say nothing.
+ *
+ * An empty list is the app's way of saying "the restaurant is closed that day" — it already
+ * toasts exactly that when the server returns zero slots. So a *failed* fetch that also emptied
+ * the list did not read as a failure at all; it read as a closed Tuesday. Both shapes reach it:
+ * the resolved `{ data: null }` refusal and a thrown `ApiError` from a non-2xx.
+ */
+describe('useReservationAvailability — a failed slot fetch is not a closed day', () => {
+  it("shows the server's own reason when it refuses inside a 200", async () => {
+    // `available-slots` ends `return Ok(await _mediator.SendQuery(…))` with no `Success` test, so
+    // every one of the handler's three `Failure` answers is a 200 carrying `{success:false}` —
+    // this branch is the live path, not a defensive one.
+    mocked.getAvailableTimeSlots.mockResolvedValue({ data: null, error: 'No active tables found' } as never);
+
+    const { result } = renderHook(() => useReservationAvailability());
+    await pickADate(result);
+
+    expect(toast).toHaveBeenCalledWith('No active tables found', { variant: 'error', preventDuplicate: true });
+  });
+
+  it('passes preventDuplicate on EVERY slot-failure toast, however many the keystrokes fire', async () => {
+    // What this can and cannot prove: notistack is mocked here, so the de-duplication itself is
+    // NOT exercised — that behaviour belongs to the library (v3 compares `item.message` when no
+    // `key` is given). What it pins is that we ask for it on every one of these calls, which is
+    // the part we own. The custom guest field is an `<input type="number">` whose onChange runs
+    // per keystroke and the fetch effect depends on `numberOfGuests`, so typing "12" is two
+    // fetches; without the option a backend outage stacks one snackbar per digit.
+    //
+    // The count assertion is load-bearing: `[].every(…)` is `true`, so shape-only would pass
+    // against a version that enqueued nothing at all.
+    mocked.getAvailableTimeSlots.mockResolvedValue({ data: null } as never);
+
+    const { result } = renderHook(() => useReservationAvailability());
+    await pickADate(result);
+    await act(async () => {
+      result.current.setNumberOfGuests(1);
+    });
+    await act(async () => {
+      result.current.setNumberOfGuests(12);
+    });
+
+    expect(toast.mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(toast.mock.calls.every(([, options]) => options.preventDuplicate === true)).toBe(true);
+  });
+
+  it('falls back to a TRANSLATED sentence when the server authored none', async () => {
+    // `error: undefined` is the shape `reservationService` now returns for a refusal it could not
+    // quote — the client-authored English literal that used to fill this slot is gone.
+    mocked.getAvailableTimeSlots.mockResolvedValue({ data: null } as never);
+
+    const { result } = renderHook(() => useReservationAvailability());
+    await pickADate(result);
+
+    expect(toast).toHaveBeenCalledWith('Failed to load available times', {
+      variant: 'error',
+      preventDuplicate: true,
+    });
+  });
+
+  it("surfaces a thrown ApiError's errors[] rather than discarding it", async () => {
+    mocked.getAvailableTimeSlots.mockRejectedValue(new ApiError(503, 'Service Unavailable', ['Reservations are down']));
+
+    const { result } = renderHook(() => useReservationAvailability());
+    await pickADate(result);
+
+    expect(toast).toHaveBeenCalledWith('Reservations are down', { variant: 'error', preventDuplicate: true });
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('does NOT show the raw throw when the network is dead', async () => {
+    // A `TypeError` is client-authored; putting `Failed to fetch` in a snackbar is worse than the
+    // generic this whole sweep set out to replace. `getErrorMessage` returns null for it.
+    mocked.getAvailableTimeSlots.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const { result } = renderHook(() => useReservationAvailability());
+    await pickADate(result);
+
+    expect(toast).toHaveBeenCalledWith('Failed to load available times', {
+      variant: 'error',
+      preventDuplicate: true,
+    });
+  });
+
+  it("surfaces the server's reason when the table list cannot load", async () => {
+    mocked.getTables.mockRejectedValue(new ApiError(500, '', ['Tables are unavailable']));
+
+    renderHook(() => useReservationAvailability());
+
+    await waitFor(() => expect(toast).toHaveBeenCalledWith('Tables are unavailable', { variant: 'error' }));
   });
 });

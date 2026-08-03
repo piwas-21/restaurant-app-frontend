@@ -115,9 +115,17 @@ export const reservationService = {
     date: string,
     numberOfGuests: number,
   ): Promise<{
+    /** `null` IS the failure flag — the success branch below cannot return it. */
     data: AvailableTimeSlotsDto | null;
+    /**
+     * The SERVER's sentence, or `undefined` when it authored none.
+     *
+     * It used to fall back to a client-authored English literal, which made it impossible for the
+     * caller to tell the server's own account from one we invented — so
+     * `useReservationAvailability` showed neither and the user got an empty time dropdown with no
+     * explanation. `data === null` carries the flag; this carries only what is fit to show.
+     */
     error?: string;
-    isCapacityIssue?: boolean;
   }> {
     const params = new URLSearchParams({
       date: date,
@@ -133,23 +141,21 @@ export const reservationService = {
     );
 
     if (!response.success || !response.data) {
-      // `serverMessages` is the same errors-then-message precedence this hand-rolled chain had,
-      // minus the bug: it drops BLANK entries, where `errors.length > 0` happily returned `''`
-      // and the `isCapacityIssue` test below then ran on an empty string.
+      // `serverMessages` keeps the errors-then-message precedence the hand-rolled chain here had,
+      // minus the bug: it drops BLANK entries, where `errors.length > 0` happily returned `''`.
       //
-      // Unlike the throw paths this one keeps a client-authored fallback, because `error` is read
-      // as a FLAG as much as a message — `useReservationAvailability` tests it and clears the
-      // slot list without ever rendering it.
-      const errorMessage = serverMessages(response)[0] ?? 'Failed to fetch available time slots';
-
-      // Check if it's a capacity issue (expected scenario)
-      const isCapacityIssue = errorMessage.toLowerCase().includes('no tables available for');
-
-      return {
-        data: null,
-        error: errorMessage,
-        isCapacityIssue,
-      };
+      // Two things are gone. The client-authored English fallback, which was justified by `error`
+      // being read as a FLAG rather than rendered — true, and the defect itself: the caller cleared
+      // the slot list and said nothing. `data === null` is the flag now.
+      //
+      // And `isCapacityIssue`, which was derived by substring-matching the server's message against
+      // `'no tables available for'`. **The backend has never sent that sentence.**
+      // `GetAvailableTimeSlotsQueryHandler` has exactly three `Failure` strings — "Cannot make
+      // reservations for past dates", "No active tables found", "Failed to retrieve available time
+      // slots" — and reads `NumberOfGuests` nowhere but a log line; the party-too-large case is
+      // answered entirely client-side by `partyExceedsEveryTable`. The flag was structurally always
+      // `false`, so its consumer branched on something that could not happen.
+      return { data: null, error: serverMessages(response)[0] };
     }
 
     return { data: response.data };

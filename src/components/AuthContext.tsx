@@ -63,7 +63,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (userData: User) => {
-    localStorage.setItem('user', JSON.stringify(userData));
+    // Same trade as `authService.persistSession`, and for the same reason: a browser with site
+    // data blocked (Safari private mode, a full quota) throws here on a sign-in the server has
+    // already granted. Throwing propagated into `useLoginForm`'s catch, which reported "Failed to
+    // connect to the server" — a network diagnosis for a storage refusal. The session still lives
+    // in memory for this tab; only surviving a reload is lost.
+    try {
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (e) {
+      console.warn('Could not persist the session to localStorage', e);
+    }
     setUser(userData);
   };
 

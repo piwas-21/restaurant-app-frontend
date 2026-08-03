@@ -59,11 +59,13 @@ export default function DeliveryAddressSection({ address }: DeliveryAddressSecti
         times over untouched inputs — and each of those inputs clears `addressError` on change, so
         the first keystroke erased it while the list was still missing.
       */}
-      {a.listError && (
-        <p className={styles.error} role="status">
-          {a.listError}
-        </p>
-      )}
+      {/*
+        `<output>` rather than `<p role="status">`: it carries the same implicit `status` role but
+        is announced reliably by assistive tech that does not implement the ARIA role on a `<p>`
+        (Sonar S6819). `.error` carries `display: block` for it — `<output>` is inline by default,
+        and the rule's block margins would otherwise not apply.
+      */}
+      {a.listError && <output className={styles.error}>{a.listError}</output>}
 
       {a.isLoggedIn && !a.loadingAddresses && a.savedAddresses.length > 0 && (
         <div className={styles.savedAddressesSection}>

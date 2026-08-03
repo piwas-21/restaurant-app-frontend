@@ -135,6 +135,9 @@ describe('DeliveryAddressSection — a failed address list is not a field error'
     );
 
     expect(screen.getAllByText('Could not load your saved addresses.')).toHaveLength(1);
+    // `<output>`'s implicit role — the announcement a screen reader gets (Sonar S6819 asked for
+    // the element rather than `role="status"` on a `<p>`, which not every AT implements).
+    expect(screen.getByRole('status')).toHaveTextContent('Could not load your saved addresses.');
   });
 
   it('does not paint the untouched inputs as invalid', () => {

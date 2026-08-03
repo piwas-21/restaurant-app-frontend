@@ -108,6 +108,56 @@ function serverAuthoredMessage(error: unknown): string | null {
 }
 
 /**
+ * The server refused INSIDE a 200 — rethrow it as the shape everything else here reads.
+ *
+ * Handler failures come back wrapped in `Ok(ApiResponse.Failure(...))`, so they RESOLVE and never
+ * become an `ApiError` on their own. Services used to turn that into
+ * `throw new Error(response.message || '<English sentence>')`, which dropped `errors[]` — where
+ * the backend actually puts the per-rule reason — and laundered a blank server message into a
+ * client-authored one, the exact defect #401 removed from `apiClient` one layer down.
+ *
+ * **The status is 200, not 400**, and that is deliberate rather than lazy: 200 is what the
+ * transport genuinely returned, and the refusal's own status is not recoverable at this point. An
+ * invented 400 would read as an HTTP validation failure to `isValidationError` with no way to tell
+ * the two apart; 200 cannot be mistaken for a transport failure by anything. Nothing branches on
+ * it today — every caller reads the message.
+ */
+export function throwServerRefusal(response: { message?: string; errors?: unknown }): never {
+  throw new ApiError(200, response.message ?? '', Array.isArray(response.errors) ? response.errors : undefined);
+}
+
+/**
+ * The SERVER's messages, most specific first, from whichever shape carries them — newest to
+ * oldest: `errors[]` if present, else the summary `message`, else nothing.
+ *
+ * Exported because four screens need the messages as a LIST rather than as one routed sentence:
+ * they branch on the first one (an overlap range to interpolate, a user-not-found to reword) and
+ * `routeApiError` has already joined it with `', '` by the time they see it. They each used to
+ * read `error.response.data.errors` — **an axios envelope this app has never produced, because
+ * axios is not a dependency** — so every one of those branches was dead and the screens fell
+ * through to their generic. `getErrorMessage` is the right call when a single string is wanted;
+ * this is for when the parts matter.
+ *
+ * **Why `errors[]` first.** On a controller's own `ApiResponse.Failure("<reason>")` — the common
+ * refusal — the ONE-argument overload puts the reason in `Errors[0]` and leaves `Message` at its
+ * default, the literal `"Operation failed"` (`ApiResponse.cs:55-63`). Reading `message` there
+ * shows the guest a wrapper.
+ *
+ * **The Development-only cost, inherited not invented.** `ExceptionHandlingMiddleware` builds
+ * `Failure(detail, message)` with `detail = IsDevelopment() ? exception.ToString() : message`, so
+ * against a Development backend `errors[0]` is a stack trace. `getErrorMessage` has had exactly
+ * this precedence tree-wide since E9 step 1, and `addToCartError` documents avoiding `errors` for
+ * the same reason. Both deployed environments pin `Production` (`docker-compose.prod.yml`, the
+ * tenant template), where `detail === message`.
+ */
+export function serverMessages(error: unknown): string[] {
+  const detail = detailMessages(error);
+  if (detail) return detail;
+  const summary = serverAuthoredMessage(error);
+  return summary ? [summary] : [];
+}
+
+/**
  * Split an unknown thrown (or resolved) failure into per-field and form-level messages.
  *
  * Messages are the SERVER's, verbatim and therefore in English. That is a deliberate trade against

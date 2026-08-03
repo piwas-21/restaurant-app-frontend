@@ -116,7 +116,10 @@ export function useReservationsPage() {
       setSpecialRequests('');
     } catch (err) {
       const errorMessage = extractReservationErrorMessage(err, t);
-      console.error('Reservation error:', (err as { response?: { data?: unknown } })?.response?.data || err);
+      // Was `(err as { response?: { data?: unknown } })?.response?.data || err` — the axios
+      // envelope again, always undefined here, so it always logged `err` anyway. Logging the error
+      // itself is what that fell back to and all it ever did.
+      console.error('Reservation error:', err);
       enqueueSnackbar(errorMessage, { variant: 'error', autoHideDuration: 6000 });
     } finally {
       setSubmitting(false);

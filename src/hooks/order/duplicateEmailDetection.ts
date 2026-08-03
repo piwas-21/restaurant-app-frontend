@@ -50,6 +50,8 @@ interface ThrownLikeError {
   data?: unknown;
   body?: unknown;
   message?: unknown;
+  /** `ApiError.errors` — the only place a thrown `apiClient` failure carries the per-rule list. */
+  errors?: unknown;
 }
 
 /**
@@ -103,6 +105,20 @@ export function isDuplicateEmailResponse(result: RegisterCustomerFailure | null 
 }
 
 /**
+ * The evidence a thrown `ApiError` carries. It has no `body`/`data`/`response`, so the envelope
+ * checks below cannot see it — but the backend's reason is right there in `errors[]`.
+ *
+ * `errors[]` ONLY, deliberately. Promoting `message` here as well would also promote it above the
+ * status gate, and that gate exists to refuse exactly this: a 400 covers every validation failure,
+ * so a summary that happens to read "duplicate" for an unrelated reason would start matching. The
+ * per-rule list carries one reason per entry and does not have that problem. `message` keeps its
+ * old position at the tail.
+ */
+function thrownApiErrorSaysDuplicate(e: ThrownLikeError): boolean {
+  return Array.isArray(e.errors) && matchesDuplicatePattern(e.errors);
+}
+
+/**
  * Returns true when a thrown error from `registerCustomer` indicates a
  * duplicate email. Robust to several common shapes: `{status, body}`,
  * `{statusCode, data}`, `{response: {status, data}}` (axios-like).
@@ -115,6 +131,28 @@ export function isDuplicateEmailError(err: unknown): boolean {
   const e = err as ThrownLikeError;
   const status = e.status ?? e.statusCode ?? e.response?.status;
   const body = e.body ?? e.data ?? e.response?.data;
+
+  // `ApiError` — what `apiClient` throws — carries neither `body` nor `data` nor `response`, but
+  // it DOES carry `errors`, and that is exactly where the backend puts this reason ("User with
+  // this email already exists"; see `isDuplicateEmailResponse` above).
+  //
+  // Ahead of the status gate, not after it, and that ordering is the whole fix: an `ApiError` has
+  // a status, so the gate below matches, finds no `body`, and RETURNS FALSE — correctly, since a
+  // 400 alone proves nothing, but it would never have reached a check placed at the tail. Also
+  // ahead of `message`, which on a validator failure is the summary ("Validation failed").
+  //
+  // Dormant today: `registerCustomer` is a raw `fetch` (`authService.ts`) that returns the parsed
+  // body for every status, so this function sees the RESOLVED shape. The note that used to sit at
+  // the tail called this "a future apiClient that doesn't attach a structured body" — that future
+  // arrived with a KNOWN one, and matching on `message` alone would have missed it, because since
+  // #401 a message-less `ApiError` gives `.test('')` → false.
+  // Scoped to `!body` so every shape that HAS an envelope keeps its existing behaviour: the body
+  // is authoritative, and a thrown error's own fields must not override it. Together with the
+  // `errors`-only rule in the helper, this makes the change a STRICT ADDITION — measured against
+  // the previous implementation, no input that returned `true` or `false` before changes answer;
+  // only `{errors:[…duplicate…]}` with no body, which returned `false`, now returns `true`.
+  if (!body && thrownApiErrorSaysDuplicate(e)) return true;
+
   if (typeof status === 'number' && DUPLICATE_HTTP_STATUSES.has(status)) {
     if (body && typeof body === 'object') {
       return isDuplicateEmailResponse(body as RegisterCustomerFailure);
@@ -125,10 +163,6 @@ export function isDuplicateEmailError(err: unknown): boolean {
   if (body && typeof body === 'object') {
     return isDuplicateEmailResponse(body as RegisterCustomerFailure);
   }
-  // Last-ditch fallback: a thrown `Error("Email already registered")` from a
-  // future apiClient that doesn't attach a structured body. We only reach
-  // here when neither status+body nor body alone confirmed the duplicate,
-  // so this is strictly additive.
   if (typeof e.message === 'string') {
     return DUPLICATE_EMAIL_PATTERN.test(e.message);
   }

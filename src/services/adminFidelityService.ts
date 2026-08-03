@@ -1,5 +1,6 @@
 import { formatCurrency as formatCurrencyUtil } from '@/utils/currency';
 import { apiClient } from '@/utils/apiClient';
+import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type { PointEarningRule, CustomerDiscountRule } from '@/types/fidelity';
 
 /**
@@ -103,6 +104,13 @@ export const adminFidelityService = {
     const response = await apiClient.post<ApiResponse<PointEarningRule>>(ADMIN_ENDPOINTS.POINT_RULES, rule, {
       requireAuth: true,
     });
+    // Defensive, and UNREACHABLE today — said plainly because an earlier draft of this comment
+    // claimed it fixed an observed false-success toast, and that was invented. `grep -c
+    // "Ok(ApiResponse.*Failure"` over the whole backend returns 0: every refusal is a 4xx, which
+    // `apiClient` already throws on. The guard costs a line and matches what the other services
+    // here do; it is not a bug fix and the `Promise<PointEarningRule>` return type is what makes
+    // it worth having — without it a 200 carrying `success: false` would resolve as `undefined`.
+    if (!response.success) throwServerRefusal(response);
     return response.data;
   },
 
@@ -113,6 +121,7 @@ export const adminFidelityService = {
     const response = await apiClient.put<ApiResponse<PointEarningRule>>(`${ADMIN_ENDPOINTS.POINT_RULES}/${id}`, rule, {
       requireAuth: true,
     });
+    if (!response.success) throwServerRefusal(response);
     return response.data;
   },
 

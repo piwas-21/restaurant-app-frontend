@@ -7,7 +7,94 @@ import {
   STAFF_REGISTRATION_MATCHERS,
   formLevelMessage,
   routeApiError,
+  serverMessages,
+  throwServerRefusal,
 } from './apiFormErrors';
+
+/**
+ * The reverse direction: turning a resolved `{ success: false }` back INTO the thrown shape, so a
+ * service stops having to invent `new Error(response.message || '<English>')` at that boundary.
+ */
+describe('throwServerRefusal', () => {
+  const captured = (response: { message?: string; errors?: unknown }): ApiError => {
+    try {
+      throwServerRefusal(response);
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiError);
+      return error as ApiError;
+    }
+    throw new Error('expected it to throw, and it returned');
+  };
+
+  it('carries the per-rule list, which the re-wraps it replaces dropped entirely', () => {
+    const error = captured({ message: 'Operation failed', errors: ['Table is already booked'] });
+
+    expect(error.message).toBe('Operation failed');
+    expect(error.errors).toEqual(['Table is already booked']);
+  });
+
+  it('leaves the message EMPTY rather than inventing English', () => {
+    expect(captured({}).message).toBe('');
+  });
+
+  it('uses status 200, because 200 is what the transport actually returned', () => {
+    // Not 400: an invented 400 reads as an HTTP validation failure to `isValidationError`, with
+    // nothing to tell a refusal-inside-a-200 apart from a real one. 200 cannot be mistaken for a
+    // transport failure by anything.
+    expect(captured({ message: 'Nope' }).status).toBe(200);
+  });
+
+  it('ignores a non-array `errors` instead of passing it through', () => {
+    expect(captured({ message: 'Nope', errors: 'not an array' }).errors).toBeUndefined();
+  });
+
+  it('round-trips through `serverMessages`, which is the point of the shape', () => {
+    expect(serverMessages(captured({ message: 'Summary', errors: ['The real reason'] }))).toEqual(['The real reason']);
+  });
+});
+
+/**
+ * The list form, for the screens that branch on the FIRST message rather than rendering one
+ * sentence. Every one of them used to read `error.response.data.errors` — an axios envelope this
+ * app has never produced — so these are the first assertions that describe what they actually get.
+ */
+describe('serverMessages', () => {
+  it('returns the per-rule messages from the THROWN shape, most specific first', () => {
+    const error = new ApiError(400, 'Validation failed', ['Rule overlaps. Range: 0 - 11', 'Second reason']);
+
+    expect(serverMessages(error)).toEqual(['Rule overlaps. Range: 0 - 11', 'Second reason']);
+  });
+
+  it('returns the per-rule messages from the RESOLVED shape', () => {
+    expect(serverMessages({ success: false, errors: ['User with ID "x" was not found'] })).toEqual([
+      'User with ID "x" was not found',
+    ]);
+  });
+
+  it('falls back to the summary when there are no per-rule messages', () => {
+    expect(serverMessages(new ApiError(409, 'That slug is taken'))).toEqual(['That slug is taken']);
+    expect(serverMessages({ success: false, message: 'Operation failed' })).toEqual(['Operation failed']);
+  });
+
+  it('drops blanks rather than returning them as messages', () => {
+    // Same rule as everywhere else in this file: `''` and `'   '` are absence. A caller that
+    // branched on `list[0]` would otherwise match nothing and render an empty string.
+    expect(serverMessages(new ApiError(400, 'Summary', ['', '   ']))).toEqual(['Summary']);
+    expect(serverMessages(new ApiError(400, '   '))).toEqual([]);
+    expect(serverMessages(new ApiError(0, ''))).toEqual([]);
+  });
+
+  it('returns nothing for a client-side throw or a non-failure', () => {
+    expect(serverMessages(new TypeError('Failed to fetch'))).toEqual([]);
+    expect(serverMessages('a string')).toEqual([]);
+    expect(serverMessages(null)).toEqual([]);
+    expect(serverMessages({ success: true, message: 'fine' })).toEqual([]);
+  });
+
+  it('ignores a non-array `errors`, rather than iterating a string one char at a time', () => {
+    expect(serverMessages(new ApiError(400, 'Summary', 'oops' as unknown as string[]))).toEqual(['Summary']);
+  });
+});
 
 describe('routeApiError', () => {
   describe('the shape apiClient THROWS (any non-2xx)', () => {

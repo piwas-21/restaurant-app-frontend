@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { X, FileBarChart, Printer, Loader2 } from 'lucide-react';
 import { ZReportDto } from '@/types/order';
 import { getZReport } from '@/services/orderService';
+import { getErrorMessage } from '@/utils/apiClient';
 import { exportZReportToPDF } from '@/utils/zReportExportUtils';
 import { formatCurrency } from '@/utils/currency';
 import styles from './ZReportModal.module.css';
@@ -33,8 +34,16 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
       try {
         const data = await getZReport(date);
         setReportData(data);
-      } catch {
-        setError(t('cashier.zreport.error') || 'Failed to load Z-Report');
+      } catch (err) {
+        // This modal HOLDS its error (rendered below), but it is a single sentence with no fields
+        // to route onto, so `getErrorMessage` rather than `useApiError`. The reason matters here:
+        // a Z-report is refused for reasons a cashier can act on — a date outside the till's
+        // range, a report already closed — and "Failed to load Z-Report" told them none of them.
+        // (A 401 is NOT one of the cases this improves: `apiClient` throws `ApiError(401, '')`
+        // with an empty message on purpose, so the fallback below still renders.)
+        // `getZReport` also throws a plain `Error('Failed to fetch Z-Report')` for a 200 with no
+        // body; `getErrorMessage` returns null for that, so the English literal never renders.
+        setError(getErrorMessage(err) ?? (t('cashier.zreport.error') || 'Failed to load Z-Report'));
         setReportData(null);
       } finally {
         setIsLoading(false);

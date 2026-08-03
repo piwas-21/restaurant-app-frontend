@@ -57,7 +57,14 @@ export function useOrderFilterPreferences() {
         setPreferences({ ...DEFAULT_PREFERENCES, ...parsed, ...clampPaymentStatus(parsed) });
       }
     } catch {
-      // Failed to load preferences, use defaults
+      // IGNORED ON PURPOSE. What throws here is `localStorage` being unavailable (Safari private
+      // browsing, storage disabled by policy) or `JSON.parse` on a corrupt value — and in both
+      // cases `DEFAULT_PREFERENCES` is already in state, so the admin gets the unfiltered order
+      // list, which is the right screen and the one they see on a first visit anyway. Nothing is
+      // lost but a convenience; there is no server call behind this and no data at risk. Note the
+      // spread above is deliberately defensive for the same reason: a stored value that parses is
+      // still merged over the defaults and its payment status clamped, because a value that parses
+      // is not thereby a value we wrote.
     } finally {
       setIsLoaded(true);
     }
@@ -71,7 +78,10 @@ export function useOrderFilterPreferences() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     } catch {
-      // Failed to save, continue without persistence
+      // IGNORED ON PURPOSE. `setPreferences(updated)` has already run, so the filter just chosen IS
+      // applied — only its persistence across a reload failed (quota exceeded, or storage
+      // unavailable). Reporting that would interrupt a working action to announce that a
+      // convenience did not stick, and there is no retry to offer.
     }
   };
 
@@ -81,7 +91,10 @@ export function useOrderFilterPreferences() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
-      // Failed to clear, continue
+      // IGNORED ON PURPOSE, and this one is the most clearly safe of the three: the in-memory reset
+      // above has already happened, so the admin sees the cleared filters. A `removeItem` that
+      // throws did so because storage is unavailable — which means there is nothing stored to
+      // leak back on the next load either.
     }
   };
 

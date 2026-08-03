@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit, Plus, User, Calendar, TrendingUp, Filter } from 'lucide-react';
 import { adminFidelityService } from '@/services/adminFidelityService';
+import { getErrorMessage } from '@/utils/apiClient';
 import type { CustomerDiscountRule } from '@/types/fidelity';
 import CustomerDiscountForm from '@/components/admin/CustomerDiscountForm';
 import DeleteDiscountModal from '@/components/admin/DeleteDiscountModal';
@@ -44,8 +45,16 @@ export default function CustomerDiscountsPage() {
       const data = await adminFidelityService.getCustomerDiscounts(undefined, showActiveOnly);
       setAllDiscounts(data);
       applyFilters(data, filterUserId, showActiveOnly);
-    } catch {
-      enqueueSnackbar(t('failed_load_customer_discounts', 'Failed to load customer discounts'), { variant: 'error' });
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage` rather than `useApiError`, which holds state a
+      // fire-and-forget toast has nowhere to put. `adminFidelityService` goes through `apiClient`,
+      // so a refusal arrives as an `ApiError` carrying the server's own sentence.
+      enqueueSnackbar(
+        getErrorMessage(err) ?? t('failed_load_customer_discounts', 'Failed to load customer discounts'),
+        {
+          variant: 'error',
+        },
+      );
     } finally {
       setLoading(false);
     }
@@ -104,8 +113,12 @@ export default function CustomerDiscountsPage() {
       setIsDeleteModalOpen(false);
       setDiscountToDelete(null);
       void fetchDiscounts();
-    } catch {
-      enqueueSnackbar(t('failed_delete_discount', 'Failed to delete discount'), { variant: 'error' });
+    } catch (err) {
+      // A delete is refused for a REASON the admin can act on — a discount already applied to a
+      // live order, say. That sentence is on the wire; the generic discarded it.
+      enqueueSnackbar(getErrorMessage(err) ?? t('failed_delete_discount', 'Failed to delete discount'), {
+        variant: 'error',
+      });
     } finally {
       setIsDeleting(false);
     }

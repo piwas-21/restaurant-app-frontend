@@ -9,6 +9,7 @@ import styles from '@/app/styles/AdminPage.module.css';
 import PageHeader from '@/components/admin/PageHeader';
 import FidelityAnalyticsCards from '@/components/admin/FidelityAnalyticsCards';
 import { adminFidelityAnalyticsService } from '@/services/adminFidelityAnalyticsService';
+import { getErrorMessage } from '@/utils/apiClient';
 import type { FidelityAnalytics } from '@/services/adminFidelityAnalyticsService';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 
@@ -30,8 +31,18 @@ export default function FidelityAnalyticsPage() {
       setLoading(true);
       const data = await adminFidelityAnalyticsService.getAnalytics();
       setAnalytics(data);
-    } catch {
-      enqueueSnackbar(t('failed_load_fidelity_analytics', 'Failed to load fidelity analytics'), { variant: 'error' });
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage` rather than `useApiError`, which holds state a
+      // fire-and-forget toast has nowhere to put. The endpoint is admin-gated, so the refusal
+      // worth reading is a 403 ("fidelity module is not enabled for this tenant"), which the
+      // generic sentence hid behind a page of zeroes. Not a 401: `apiClient` throws that with an
+      // empty message on purpose, so the fallback still renders.
+      enqueueSnackbar(
+        getErrorMessage(err) ?? t('failed_load_fidelity_analytics', 'Failed to load fidelity analytics'),
+        {
+          variant: 'error',
+        },
+      );
     } finally {
       setLoading(false);
     }

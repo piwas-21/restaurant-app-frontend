@@ -62,8 +62,38 @@ describe('ForgotPasswordPage', () => {
       target: { value: 'owner@bistro.example' },
     });
     fireEvent.click(submit());
-    expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
+    expect(await screen.findByText('An error occurred')).toBeInTheDocument();
     expect(screen.queryByText('forgot_password_sent_title')).not.toBeInTheDocument();
+  });
+
+  it('prints the rate limiter’s own sentence instead of the generic (E9)', async () => {
+    // The reachable case this fixes. `[EnableRateLimiting("forgot-password")]` guards the
+    // endpoint and the rejection body is written by hand in Program.cs `OnRejected` — this is
+    // that body, verbatim. `forgotPassword` is a raw `fetch` returning `response.json()` for
+    // every status, so a 429 RESOLVES here rather than throwing, and printing
+    // "unexpected_error" over it left a user who pressed the button twice with no way to know
+    // that waiting was the fix.
+    mockForgotPassword.mockResolvedValue({
+      success: false,
+      message: 'Too many requests. Please slow down and try again shortly.',
+    });
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
+    fireEvent.click(submit());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Too many requests. Please slow down and try again');
+    expect(screen.queryByText('unexpected_error')).not.toBeInTheDocument();
+    expect(screen.queryByText('forgot_password_sent_title')).not.toBeInTheDocument();
+  });
+
+  it('falls back to the translated generic when the failure body carries no sentence', async () => {
+    // `serverMessages` returns [] for a blank message, and `?? t('unexpected_error')` is what
+    // stops an empty error line — "the operation failed for no reason" — reaching the screen.
+    mockForgotPassword.mockResolvedValue({ success: false, message: '   ' });
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
+    fireEvent.click(submit());
+    expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
   });
 
   it('keeps the form and reports a transport failure', async () => {

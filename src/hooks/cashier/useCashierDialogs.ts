@@ -14,7 +14,9 @@ export interface CashierMutations {
   refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
   cancelOrder: (orderId: string, reason?: string) => Promise<OrderDto>;
   toggleFocusOrder: (orderId: string, isFocus: boolean, priority?: number, reason?: string) => Promise<OrderDto>;
-  refreshOrders: () => Promise<void>;
+  /** Resolves `false` when the refresh failed; see `useCashierOrders`. Unused here — the dialogs
+   *  report their own outcome from the mutation they just awaited, not from the re-fetch. */
+  refreshOrders: () => Promise<boolean>;
 }
 
 /**

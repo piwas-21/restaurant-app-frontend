@@ -32,21 +32,21 @@ export function useFeaturedSpecial() {
 
     let active = true;
     const loadFeaturedSpecial = async () => {
-      try {
-        const response = (await getFeaturedSpecial(orderType)) as FeaturedSpecialResponse;
-        if (!active) return;
-        // Clear on a miss rather than keeping what is on screen. Keeping it would leave the PREVIOUS
-        // channel's verdict — usually the permissive one — driving the banner after a switch whose
-        // refetch failed, which is exactly the "two resolutions, two moments, one of them stale"
-        // state §9.10 exists to prevent. `getFeaturedSpecial` swallows network errors into
-        // `{ success: true, data: null }`, so this branch IS the failure path, not just "no special".
-        setFeaturedSpecial(response.success && response.data ? response.data : null);
-      } catch {
-        // Silently fail if featured special cannot be loaded — the banner just doesn't render.
-      }
+      const response = (await getFeaturedSpecial(orderType)) as FeaturedSpecialResponse;
+      if (!active) return;
+      // Clear on a miss rather than keeping what is on screen. Keeping it would leave the PREVIOUS
+      // channel's verdict — usually the permissive one — driving the banner after a switch whose
+      // refetch failed, which is exactly the "two resolutions, two moments, one of them stale"
+      // state §9.10 exists to prevent. `getFeaturedSpecial` swallows network errors into
+      // `{ success: true, data: null }`, so this branch IS the failure path, not just "no special".
+      setFeaturedSpecial(response.success && response.data ? response.data : null);
     };
 
-    // Internal try/catch absorbs errors — `void` for fire-and-forget.
+    // No try/catch, deliberately. `getFeaturedSpecial` catches its own failure and RESOLVES
+    // `{ success: true, data: null }` — pinned in `menuService.test.ts` — so nothing in this
+    // function can reject, and the catch that used to sit here was unreachable. Leaving it would
+    // have told the next reader the failure path is handled below, when it is handled on the line
+    // above: the `response.data` miss IS the failure. `void` because the effect cannot await.
     void loadFeaturedSpecial();
     // A switch must RE-RESOLVE the verdict: the item did not change, but whether this guest can
     // order it did. `orderType` is a plain string|null, so this is a value dependency.

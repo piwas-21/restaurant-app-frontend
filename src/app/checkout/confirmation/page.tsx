@@ -50,7 +50,12 @@ function ConfirmationContent() {
         const config = await adminTaxConfigurationService.getActiveTaxConfiguration();
         setTaxConfig(config);
       } catch {
-        // Silently fail - fallback to default tax label
+        // IGNORED ON PURPOSE. This call supplies ONE thing — the word beside the tax line — and
+        // `taxConfig` staying null already renders the translated "Tax" (see the total block
+        // below, `taxConfig?.name || t('tax', 'Tax')`). So the failure has a correct, visible
+        // fallback that needs no explaining, and the amount itself comes from the order, not from
+        // here. Surfacing it would put an error on a screen whose entire job is to tell a customer
+        // their order went through, over a label they cannot act on and probably would not notice.
       }
     };
     // fetchTaxConfig has its own try/catch (silently falls back); fire-and-forget.

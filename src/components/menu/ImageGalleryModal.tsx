@@ -41,12 +41,19 @@ export default function ImageGalleryModal({
   const { t } = useTranslation();
   const hasMultiple = images.length > 1;
 
-  // BaseModal handles ESC; this adds left/right navigation for multi-image items.
+  // BaseModal handles ESC; this adds arrow-key navigation for multi-image items.
+  //
+  // The mapping is by READING ORDER, not by physical key (E8 slice 3). A gallery advances the way
+  // its language reads, so in `ar` the next image is to the LEFT — pressing ArrowRight there used
+  // to advance while the chevron beside it pointed back, and the two buttons had swapped sides
+  // under `inset-inline-*` without the keys following. Direction comes from the document rather
+  // than from `i18n.language` so any future RTL locale is covered without touching this file.
   useEffect(() => {
     if (!isOpen || !hasMultiple) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') onNext();
-      if (e.key === 'ArrowLeft') onPrev();
+      const rtl = document.documentElement.dir === 'rtl';
+      if (e.key === 'ArrowRight') (rtl ? onPrev : onNext)();
+      if (e.key === 'ArrowLeft') (rtl ? onNext : onPrev)();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);

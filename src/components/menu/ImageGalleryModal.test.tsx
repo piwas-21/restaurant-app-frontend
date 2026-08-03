@@ -66,4 +66,36 @@ describe('ImageGalleryModal', () => {
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(p.onPrev).toHaveBeenCalledTimes(2);
   });
+
+  /**
+   * E8 slice 3. The two chevrons swap sides under `inset-inline-*`, so the keys have to swap with
+   * them or `ar` gets an ArrowRight that advances while the button beside it points back. Nothing
+   * about this is visible under `dir="ltr"` — not to jest, tsc, eslint, either ratchet, or the
+   * screenshot legs — so this test is the only thing holding it.
+   */
+  describe('arrow keys follow reading order, not the physical key', () => {
+    afterEach(() => {
+      document.documentElement.dir = '';
+    });
+
+    it('advances on ArrowLEFT in an RTL document', () => {
+      document.documentElement.dir = 'rtl';
+      const p = setup();
+
+      fireEvent.keyDown(window, { key: 'ArrowLeft' });
+
+      expect(p.onNext).toHaveBeenCalledTimes(1);
+      expect(p.onPrev).not.toHaveBeenCalled();
+    });
+
+    it('goes back on ArrowRIGHT in an RTL document', () => {
+      document.documentElement.dir = 'rtl';
+      const p = setup();
+
+      fireEvent.keyDown(window, { key: 'ArrowRight' });
+
+      expect(p.onPrev).toHaveBeenCalledTimes(1);
+      expect(p.onNext).not.toHaveBeenCalled();
+    });
+  });
 });

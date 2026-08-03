@@ -22,13 +22,19 @@ const mocked = basketService as jest.Mocked<typeof basketService>;
 /**
  * Issue #415. `PUT|DELETE /api/Basket/items/{id}` answers a missing ITEM and a missing BASKET with
  * the same 404, and the hook must do opposite things with them. The old substring test for
- * `'not found'` matched both, so a basket-level failure took the silent-resync branch — and because
- * `GetBasketQuery` answers a missing basket with an empty basket and a SUCCESS, one tap on "−"
- * replaced the guest's whole cart with "Your cart is empty" and reported nothing.
+ * `'not found'` matched both, so a basket-level failure would have taken the silent-resync branch —
+ * and because `GetBasketQuery` answers a missing basket with an empty basket and a SUCCESS, one tap
+ * on "−" would have replaced the guest's whole cart with "Your cart is empty", saying nothing.
  *
- * These tests drive the hook directly with a mocked `dispatch`, so what they assert is the ACTIONS
- * the hook emits. Whether a dispatched error then survives to the screen is `cartReducer`'s job
- * (its ROLLBACK arm carries `error` forward while SYNC_BASKET nulls it) and is covered there.
+ * Conditional on purpose: it never fired in production, because the deployed backend wrapped both
+ * 404s in an HTTP 200 + `success:false`, which made `getErrorMessage` return null and the branch
+ * unreachable. Removing that wrapper is what arms the substring match — so these tests guard an
+ * ordering hazard, not a live symptom, and they must land before that backend change ships.
+ *
+ * They drive the hook directly with a mocked `dispatch`, so what they assert is the ACTIONS emitted
+ * and their ORDER. Whether an error then survives to the screen is `cartReducer`'s job — its
+ * ROLLBACK arm carries `error` forward while SYNC_BASKET nulls it, which is why the basket-gone
+ * path dispatches its message after the resync rather than before.
  */
 describe('useCartItemMutations — the two basket 404s', () => {
   const syncBasket = jest.fn<Promise<void>, []>();
@@ -66,18 +72,23 @@ describe('useCartItemMutations — the two basket 404s', () => {
       expect(errorActions()).toHaveLength(0);
     });
 
-    it('reports — and does NOT resync — when the whole BASKET is gone (#415)', async () => {
+    it('never resyncs SILENTLY when the whole BASKET is gone (#415)', async () => {
       service().mockRejectedValue(notFound('Basket not found', 'BasketNotFound'));
 
       await expect(invoke(setup())).rejects.toThrow();
 
-      // The regression this file exists for. A resync here is what silently emptied the cart.
-      expect(syncBasket).not.toHaveBeenCalled();
+      // The regression this file exists for. The old substring match took the benign exit, which
+      // resyncs and returns with NO error action at all — the cart emptied and said nothing.
+      // Resyncing is fine; resyncing without a word is the bug. Order matters: SYNC_BASKET nulls
+      // `error`, so a SET_ERROR dispatched before the resync would be wiped by it.
+      expect(syncBasket).toHaveBeenCalledTimes(1);
       expect(errorActions()).toEqual([
         // Localized, NOT the server's "Basket not found" — that describes a row, not the guest.
         { type: 'SET_ERROR', payload: { error: BASKET_GONE } },
-        { type: 'ROLLBACK', payload: { previousState: initialState } },
       ]);
+      const syncCall = dispatch.mock.calls.findIndex(([a]) => a.type === 'SET_ERROR');
+      expect(syncCall).toBeGreaterThan(-1);
+      expect(syncBasket.mock.invocationCallOrder[0]).toBeLessThan(dispatch.mock.invocationCallOrder[syncCall]);
     });
 
     it('reports an UNCODED 404 rather than resyncing', async () => {
@@ -140,11 +151,16 @@ describe('useCartItemMutations — the two basket 404s', () => {
     });
   });
 
-  it('addItem shows the localized sentence when the basket is gone', async () => {
+  it('addItem rolls back rather than resyncing when the basket is gone', async () => {
+    // Not a contract about the ADD endpoint — it uses GetOrCreateBasketAsync and the only other
+    // basket-absent throw on that path is deliberately uncoded, so it cannot answer BasketNotFound.
+    // What this pins is that the code-scoped recovery did not leak into `addItem`: it must report
+    // and roll back like any other failure, never resync.
     mocked.addItemToBasket.mockRejectedValue(notFound('Basket not found', 'BasketNotFound'));
 
     await expect(setup().addItem({ productId: 'p1', quantity: 1 })).rejects.toThrow();
 
-    expect(errorActions()[0]).toEqual({ type: 'SET_ERROR', payload: { error: BASKET_GONE } });
+    expect(syncBasket).not.toHaveBeenCalled();
+    expect(errorActions().map((a) => a.type)).toEqual(['SET_ERROR', 'ROLLBACK']);
   });
 });

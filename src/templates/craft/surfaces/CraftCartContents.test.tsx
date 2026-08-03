@@ -36,7 +36,22 @@ const item = (over: Record<string, unknown> = {}) => ({
 
 describe('CraftCartContents', () => {
   beforeEach(() => {
-    Object.assign(mockHookValue, { items: [], itemCount: 0, subtotal: 0, canCheckout: false, blockerMessage: '' });
+    Object.assign(mockHookValue, {
+      items: [],
+      itemCount: 0,
+      subtotal: 0,
+      canCheckout: false,
+      blockerMessage: '',
+      error: null,
+    });
+  });
+
+  // #415 — see the classic surface's copy of this. Both templates need the slot; a fix proven on
+  // only one of them reaches whichever build the tenant does not ship.
+  it('renders the cart error, so a failed line edit is not silent', () => {
+    Object.assign(mockHookValue, { error: 'Your shopping cart is empty or expired' });
+    render(<CraftCartContents pickType={jest.fn()} />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Your shopping cart is empty or expired');
   });
 
   it('renders the craft empty note + order-type toggle', () => {

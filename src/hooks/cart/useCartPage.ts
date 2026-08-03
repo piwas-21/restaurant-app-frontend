@@ -77,11 +77,16 @@ export function useCartPage() {
    * Nothing to report there — the basket the server returns is the truth.
    *
    * That exit is now scoped to the backend's `ErrorCodes.BasketItemNotFound` (#415). It used to
-   * substring-match `'not found'`, which also matched `NotFoundException("Basket not found")` — the
+   * substring-match `'not found'`, which also matches `NotFoundException("Basket not found")` — the
    * whole BASKET row being gone, after `BasketCleanupService` runs or on an expired session id.
    * `GetBasketQuery` answers a missing basket with an empty `BasketDto` and `SuccessWithData`, so
-   * that took the silent-resync exit and replaced the guest's entire cart with "Your cart is empty".
-   * A basket-level failure now reports like any other, with a localized sentence.
+   * that would have replaced the guest's entire cart with "Your cart is empty", silently.
+   *
+   * **It never actually fired.** The deployed backend wrapped both 404s in an HTTP 200 +
+   * `success:false`, so `basketService` threw a plain `Error`, `getErrorMessage` returned null, and
+   * the branch was unreachable — dead in the destructive direction AND in the benign one. The fix
+   * that matters is therefore ORDERING: the backend change that removes that wrapper is what would
+   * have armed the substring match, so it must not reach production ahead of this.
    */
   const handleRemoveItem = async (basketItemId: string | undefined) => {
     if (!basketItemId) return;

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { basketService } from '@/services/basketService';
-import { getErrorMessage } from '@/utils/apiClient';
-import { isBasketGone, isBasketItemAlreadyGone, isServerFault } from '@/utils/basketMutationError';
+import { isBasketGone, isBasketItemAlreadyGone } from '@/utils/basketMutationError';
+import { createCartFailureReporters } from '@/hooks/cart/cartFailureReporting';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 import { AddItemPayload, CartAction, CartState } from '@/components/cart/cartTypes';
 
@@ -38,47 +38,14 @@ export function useCartItemMutations(
    */
   basketGoneError: string,
 ): CartItemMutations {
-  /**
-   * The sentence to show for a failed mutation.
-   *
-   * Two failures are answered with OUR words rather than the server's, and both are checked before
-   * `getErrorMessage` because it would otherwise win:
-   *
-   * - the basket is gone — "Basket not found" describes a row, not the guest's situation;
-   * - the server faulted — a 5xx message describes an internal fault, and on a Development or
-   *   staging build the middleware puts a full stack trace in `errors[0]`, which `getErrorMessage`
-   *   prefers over `message`. Neither belongs in a cart. This case only became renderable when the
-   *   backend stopped answering failures with HTTP 200; keeping the localized fallback here is what
-   *   makes that a fix rather than a swap of one bad sentence for another.
-   *
-   * Everything else keeps the existing behaviour: show what the server said, or the translated
-   * fallback when it said nothing.
-   */
-  const displayMessage = (error: unknown): string => {
-    if (isBasketGone(error)) return basketGoneError;
-    if (isServerFault(error)) return unexpectedError;
-    return getErrorMessage(error) ?? unexpectedError;
-  };
-
-  /**
-   * Show the failure and roll back — the tail all three mutations share.
-   *
-   * Deliberately does NOT include the already-gone recovery. Folding that in here would have given
-   * `addItem` a branch it never had, and a missing PRODUCT is a perfectly ordinary answer to an ADD
-   * — it would have resynced the basket and swallowed the message instead of showing it. Update and
-   * remove opt in explicitly; add does not.
-   *
-   * ROLLBACK is what makes the message survive: `cartReducer`'s ROLLBACK arm carries `error:
-   * state.error` forward, while its SYNC_BASKET arm sets `error: null`. That is why the basket-gone
-   * case reports and rolls back rather than reporting and resyncing — the resync would wipe the
-   * sentence it had just set and leave the guest with a silently empty cart, which is the #415
-   * failure in a different disguise.
-   */
-  const reportFailure = (previousState: CartState, logLabel: string, error: unknown) => {
-    dispatch({ type: 'SET_ERROR', payload: { error: displayMessage(error) } });
-    dispatch({ type: 'ROLLBACK', payload: { previousState } });
-    console.error(logLabel, error);
-  };
+  // Which sentence each failure shows, and the dispatch order that makes it survive, live in
+  // `cartFailureReporting` — see there before changing any error path here.
+  const { reportFailure, reportBasketGone } = createCartFailureReporters(
+    dispatch,
+    syncBasket,
+    unexpectedError,
+    basketGoneError,
+  );
 
   /**
    * Add item to basket
@@ -154,6 +121,10 @@ export function useCartItemMutations(
         await syncBasket();
         return;
       }
+      if (isBasketGone(error)) {
+        await reportBasketGone('Error updating basket item:', error);
+        throw error;
+      }
       reportFailure(previousState, 'Error updating basket item:', error);
       throw error;
     } finally {
@@ -184,6 +155,10 @@ export function useCartItemMutations(
       if (isBasketItemAlreadyGone(error)) {
         await syncBasket();
         return;
+      }
+      if (isBasketGone(error)) {
+        await reportBasketGone('Error removing basket item:', error);
+        throw error;
       }
       reportFailure(previousState, 'Error removing basket item:', error);
       throw error;

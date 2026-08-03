@@ -158,6 +158,7 @@ module.exports = {
     'src/components/admin/product/productFormUtils.ts',
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
+    'src/hooks/cart/cartFailureReporting.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -197,6 +198,7 @@ module.exports = {
     // (report), which nothing else can see: both are a 404, and the bug they replace was invisible
     // to every other gate because the old substring test type-checked and lint-passed.
     './src/utils/basketMutationError.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/hooks/cart/cartFailureReporting.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/hooks/cart/useCartItemMutations.ts': { statements: 89, branches: 99, functions: 99, lines: 89 },
     // ── E9 slice 8 — the closing slice of the bare-catch sweep (#383). ──────────────────────────
     // Pinned at actual − 1pt per the recipe above, so the coverage that pins each fix cannot be

@@ -39,14 +39,14 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
   const handleQty = (basketItemId: string | undefined, next: number) => {
     if (!basketItemId || next < 1) return;
     updateItem(basketItemId, next).catch(() => {
-      /* CartContext surfaces the error */
+      /* Reported via `error` below, which both surfaces render — see the note on the return. */
     });
   };
 
   const handleRemove = (basketItemId: string | undefined) => {
     if (!basketItemId) return;
     removeItem(basketItemId).catch(() => {
-      /* CartContext surfaces the error */
+      /* Reported via `error` below, which both surfaces render — see the note on the return. */
     });
   };
 
@@ -88,6 +88,15 @@ export function useCartContents({ pickType, onProceed, analyticsSource = 'sideba
     canCheckout,
     /** Translated reason the CTA won't route yet ('' when nothing blocks it). */
     blockerMessage: hint.message,
+    /**
+     * The cart's failure sentence, already translated, or null.
+     *
+     * These surfaces swallow the rethrow from `handleQty`/`handleRemove`, and until #415 nothing
+     * here read this — so on `/menu`, the page guests actually order from, a failed line edit
+     * showed NOTHING: the cart just snapped back. Only the legacy `/cart` route had an error slot.
+     * Both consumers render it now; deleting either render brings the silence back.
+     */
+    error: cartState.error,
     isSyncing: cartState.isSyncing,
     isResolving,
     handleQty,

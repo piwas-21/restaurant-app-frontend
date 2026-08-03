@@ -8,7 +8,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { customerRegistrationSchema } from '@/schemas/auth.schema';
-import { CUSTOMER_REGISTRATION_MATCHERS, formLevelMessage, routeApiError } from '@/utils/apiFormErrors';
+import {
+  CUSTOMER_REGISTRATION_MATCHERS,
+  formLevelMessage,
+  routeApiError,
+  throwServerRefusal,
+} from '@/utils/apiFormErrors';
+import { getErrorMessage } from '@/utils/apiClient';
 import { registerCustomer, sendEmailVerification } from '@/services/authService';
 import { trackEvent } from '@/lib/analytics';
 
@@ -130,15 +136,18 @@ export function useRegisterForm() {
 
     try {
       const response = await sendEmailVerification({ email: formData.email });
-      if (response?.success || response?.succeeded) {
-        setResendMessage(
-          t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'),
-        );
-      } else {
-        setResendMessage(t('resend_failed', 'Failed to resend email. Please try again later.'));
-      }
-    } catch {
-      setResendMessage(t('resend_error', 'An error occurred. Please try again.'));
+      // See `useLoginForm.handleResendVerification`: the handler answers success on every branch
+      // it reaches (deliberately, so the endpoint cannot be used to probe which addresses exist),
+      // so `success: false` is the middleware's failure envelope and belongs in the same catch as
+      // a thrown one. `response?.succeeded` used to be read alongside `success` — no endpoint has
+      // ever sent it; every action on `AuthController` and `UserController` returns `ApiResponse`,
+      // whose field is `Success`.
+      if (!response?.success) throwServerRefusal(response ?? {});
+      setResendMessage(t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'));
+    } catch (error) {
+      // `getErrorMessage` is `null` for anything the server did not author, so a dead network
+      // reaches the translated sentence instead of showing the user `Failed to fetch`.
+      setResendMessage(getErrorMessage(error) ?? t('resend_failed', 'Failed to resend email. Please try again later.'));
     } finally {
       setResendLoading(false);
       // Clear message after 5 seconds

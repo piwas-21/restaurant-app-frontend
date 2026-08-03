@@ -37,8 +37,12 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
               const qty =
                 ingredientId && item.ingredientQuantities?.[ingredientId] ? item.ingredientQuantities[ingredientId] : 1;
               // Keyed on the ingredient id, not the index: it is already resolved above, and an
-              // index key re-associates state across a reorder (Sonar S6479). Falls back to the
-              // name, which is what the list renders anyway.
+              // index key re-associates state across a reorder (Sonar S6479). The fallback is
+              // load-bearing — `selectedIngredients` is optional and can be absent while
+              // `selectedIngredientNames` is present — and it is safe because a line's added
+              // ingredients are a SET: repeating one raises its quantity (`ingredientQuantities`,
+              // keyed by id) rather than appending a second entry. See `order/lineSummary.ts`,
+              // which walks the same two index-aligned arrays.
               return (
                 <React.Fragment key={ingredientId ?? name}>
                   {idx > 0 && ', '}

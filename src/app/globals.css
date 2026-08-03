@@ -62,6 +62,14 @@
      token's note in design-system/tokens/colors.css. */
   --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(0, 0, 0, 0.05);
+
+  /* Sign of the inline axis; the `[dir]` rules further down flip it and explain why. This
+     default lives here rather than in its own `:root` block so there is exactly one — a second
+     one is a duplicate selector, and it also loses to the `[dir]` rules on source order alone,
+     which is a fragile way to express a fallback. It matters: with `--dir` undefined,
+     `calc(var(--dir) * -100%)` is invalid at computed-value time, `transform` falls back to
+     `none`, and a parked drawer renders ON screen. */
+  --dir: 1;
 }
 
 html[data-theme='dark'] {
@@ -105,9 +113,6 @@ html[data-theme='dark'] {
   that introduces `dir="auto"` on product-authored text (E8 slice 3b-4), and verify that one
   against `next build`, not `next dev`.
 */
-:root {
-  --dir: 1;
-}
 [dir='ltr'] {
   --dir: 1;
 }

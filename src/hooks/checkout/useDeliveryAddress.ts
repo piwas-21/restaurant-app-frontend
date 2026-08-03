@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCurrentUser } from '@/services/userService';
-import { getMyAddresses, createAddress, AddressDto } from '@/services/addressService';
+import { createAddress, type AddressDto } from '@/services/addressService';
+import { getErrorMessage } from '@/utils/apiClient';
 import { buildDeliveryAddressSchema } from '@/schemas/deliveryAddress.schema';
 import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
 import { FORM_KEYS } from '@/types/formFieldConfig';
+import { useSavedAddressList } from './useSavedAddressList';
 
 const DEFAULT_COUNTRY = 'Switzerland';
 
@@ -40,47 +41,13 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
   const [additionalInfo, setAdditionalInfo] = useState(initial?.additionalInfo || '');
   const [addressError, setAddressError] = useState('');
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [savedAddresses, setSavedAddresses] = useState<AddressDto[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [showNewAddressForm, setShowNewAddressForm] = useState(true);
   const [saveThisAddress, setSaveThisAddress] = useState(false);
-  const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
 
-  // Fetch saved addresses on transition to delivery; logged-out users still
-  // proceed via the manual form so we silently fall through on auth failure.
-  useEffect(() => {
-    if (!deliverySelected) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const user = await getCurrentUser();
-        if (!user || cancelled) {
-          setIsLoggedIn(false);
-          setSavedAddresses([]);
-          setShowNewAddressForm(true);
-          return;
-        }
-        setIsLoggedIn(true);
-        setLoadingAddresses(true);
-        const addresses = await getMyAddresses();
-        if (cancelled) return;
-        setSavedAddresses(addresses);
-        setShowNewAddressForm(addresses.length === 0);
-      } catch {
-        if (cancelled) return;
-        setIsLoggedIn(false);
-        setSavedAddresses([]);
-        setShowNewAddressForm(true);
-      } finally {
-        if (!cancelled) setLoadingAddresses(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [deliverySelected]);
+  // `listError` is kept SEPARATE from `addressError` on purpose — see `SavedAddressList.listError`.
+  const { isLoggedIn, savedAddresses, loadingAddresses, showNewAddressForm, setShowNewAddressForm, listError } =
+    useSavedAddressList(deliverySelected);
 
   const selectSavedAddress = (address: AddressDto) => {
     setSelectedAddressId(address.id);
@@ -128,8 +95,12 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
         deliveryInstructions: additionalInfo.trim(),
       });
       return true;
-    } catch {
-      setAddressError(t('failed_to_save_address', 'Failed to save address. Please try again.'));
+    } catch (error) {
+      // The server's refusal is the useful sentence: a rejected postcode tells the customer what to
+      // change, the generic tells them to retry the same thing. Null for a client-side throw.
+      setAddressError(
+        getErrorMessage(error) ?? t('failed_to_save_address', 'Failed to save address. Please try again.'),
+      );
       return false;
     } finally {
       setSavingAddress(false);
@@ -153,6 +124,8 @@ export function useDeliveryAddress(initial?: DeliveryAddressInitial, deliverySel
     /** Admin-configured `delivery_address` rules — the section derives field visibility/markers. */
     fieldRules,
     addressError,
+    /** Why the saved-address list is missing — a page-level notice, NOT a per-field error. */
+    listError,
     isLoggedIn,
     savedAddresses,
     selectedAddressId,

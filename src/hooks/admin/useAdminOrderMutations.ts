@@ -82,7 +82,10 @@ export function useAdminOrderMutations({ refetch, selectedOrders, clearSelection
       try {
         await updateOrderStatus(targets[i].id, { newStatus: status, notes });
         successCount++;
-        // DELIBERATE bare catch — one of the ~12 the ratchet's target of ~90 accounts for.
+        // DELIBERATE bare catch — one of the roughly a dozen the sweep ENDS at. (This used to read
+        // "one of the ~12 the ratchet's target of ~90 accounts for", which mixed the two numbers
+        // the ratchet header has since separated: ~90 was the SIZE OF THE WORK, never a target,
+        // and ~12 is where the count lands.)
         // This is a per-item tally inside a bulk loop: the failure is already surfaced, as the
         // `failCount` in the summary below, and the loop must continue to the next order. Binding
         // the error here would lower the ratchet without changing anything a user sees, which is

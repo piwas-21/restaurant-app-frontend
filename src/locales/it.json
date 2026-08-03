@@ -1110,6 +1110,7 @@
   "save_this_address": "Salva questo indirizzo per i futuri ordini",
   "save_address_button": "Salva indirizzo",
   "failed_to_save_address": "Impossibile salvare l'indirizzo. Si prega di riprovare.",
+  "failed_to_load_saved_addresses": "Impossibile caricare i tuoi indirizzi salvati.",
   "table_not_selected": "Seleziona un tavolo",
   "error_loading_tables": "Errore nel caricamento dei tavoli. Riprova.",
   "retry": "Riprova",

@@ -1168,11 +1168,17 @@
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  /* PHYSICAL, pending the dir-aware pass (E8 slice 3). The gutter exists to clear the chevron
-     drawn by `background-position: right …`, and `background-position` has no logical form.
-     Mirror the padding alone and the option text would run under the chevron in `ar`. */
+  /* The gutter exists to clear the chevron drawn by `background-position`, so the two move
+     together (E8 slice 3b-3). `background-position` has no logical form AND its value is a
+     KEYWORD, so unlike a transform it cannot take its sign from `--dir` — it needs the
+     `[dir='rtl']` rule below. Convert the padding alone and the option text runs under the
+     chevron in `ar`. */
   background-position: right 12px center;
-  padding-right: 40px;
+  padding-inline-end: 40px;
+}
+
+[dir='rtl'] .sortDropdown {
+  background-position: left 12px center;
 }
 
 .sortDropdown:hover {

@@ -5,6 +5,7 @@ import { Calendar, dateFnsLocalizer, View, Event } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
+import { directionFor } from '@/lib/textDirection';
 import { ReservationDto, ReservationStatus } from '@/types/reservation';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import styles from './ReservationCalendar.module.css';
@@ -36,7 +37,7 @@ export default function ReservationCalendar({
   onSelectReservation,
   selectedReservationIds = new Set(),
 }: ReservationCalendarProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [view, setView] = useState<View>('month');
   const [date, setDate] = useState(new Date());
 
@@ -173,6 +174,12 @@ export default function ReservationCalendar({
       </div>
 
       <Calendar
+        /* rbc has its own RTL mode and it is the only thing that flips the borders it draws in
+           `node_modules`. Without this the `border-inline-start` override in the module beside
+           this file maps to `border-right` in `ar` while rbc's hardcoded `#ddd` `border-left`
+           survives — two borders, one ignoring dark mode. The prop and that override are one
+           change (E8 slice 3b-3). */
+        rtl={directionFor(i18n.language) === 'rtl'}
         localizer={localizer}
         events={events}
         startAccessor="start"

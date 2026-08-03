@@ -5,6 +5,7 @@ import TaxConfigurationFormModal from './tax-configuration/TaxConfigurationFormM
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import { OrderType } from '@/types/order';
+import { ApiError } from '@/utils/apiClient';
 
 // Stub react-i18next so t(key, fallback) renders the fallback string (the
 // components use the t('key', 'Default') pattern) without an i18next provider.
@@ -101,11 +102,59 @@ describe('TaxConfigurationManager', () => {
 
   it('shows an error toast when the mount fetch rejects', async () => {
     mockGetAll.mockReset();
+    // A plain Error, not an `ApiError` — nothing the server authored, so the contextual fallback is
+    // correct here and this doubles as the E9 fallback case.
     mockGetAll.mockRejectedValue(new Error('boom'));
     render(<TaxConfigurationManager />);
     await waitFor(() =>
       expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Failed to load tax configurations', { variant: 'error' }),
     );
+  });
+
+  /**
+   * E9 (#383): the catches here were unbound, so the server's own diagnosis was discarded and every
+   * failure read as the same contextual sentence. A refused tax delete in particular names what
+   * still references the rate, which "Failed to delete tax configuration" cannot.
+   */
+  describe('E9 — the server gets to say why', () => {
+    it("surfaces the server's sentence instead of the contextual one when the load fails", async () => {
+      mockGetAll.mockReset();
+      mockGetAll.mockRejectedValue(new ApiError(503, 'Tax service is being reconfigured'));
+      render(<TaxConfigurationManager />);
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Tax service is being reconfigured', { variant: 'error' }),
+      );
+      expect(mockEnqueueSnackbar).not.toHaveBeenCalledWith('Failed to load tax configurations', {
+        variant: 'error',
+      });
+    });
+
+    it("prefers the server's per-rule errors[] on a refused toggle", async () => {
+      mockUpdate.mockRejectedValue(
+        new ApiError(409, 'Update failed', ['Tax is referenced by 12 open orders', 'Disable it at close of business']),
+      );
+      render(<TaxConfigurationManager />);
+      await screen.findByText('VAT');
+      fireEvent.click(screen.getByRole('button', { name: 'Disable' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith(
+          'Tax is referenced by 12 open orders, Disable it at close of business',
+          { variant: 'error' },
+        ),
+      );
+    });
+
+    it('still falls back to the CONTEXTUAL sentence when the server authored nothing', async () => {
+      mockUpdate.mockRejectedValue(new ApiError(500, ''));
+      render(<TaxConfigurationManager />);
+      await screen.findByText('VAT');
+      fireEvent.click(screen.getByRole('button', { name: 'Disable' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Failed to toggle tax configuration', { variant: 'error' }),
+      );
+    });
   });
 
   it('renders the empty state when there are no configurations', async () => {

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import { OrderType } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 import { validateRateInput } from './taxRate';
 
 export interface TaxFormData {
@@ -52,8 +53,10 @@ export function useTaxConfigurations() {
       setLoading(true);
       const data = await adminTaxConfigurationService.getAllTaxConfigurations();
       setTaxConfigs(data);
-    } catch {
-      enqueueSnackbar(t('tax_failed_to_load', 'Failed to load tax configurations'), { variant: 'error' });
+    } catch (e) {
+      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_load', 'Failed to load tax configurations'), {
+        variant: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -91,8 +94,12 @@ export function useTaxConfigurations() {
       await adminTaxConfigurationService.deleteTaxConfiguration(deletingTaxId);
       enqueueSnackbar(t('tax_deleted_successfully', 'Tax configuration deleted successfully'), { variant: 'success' });
       fetchTaxConfigs();
-    } catch {
-      enqueueSnackbar(t('tax_failed_to_delete', 'Failed to delete tax configuration'), { variant: 'error' });
+    } catch (e) {
+      // The server's reason matters most here — a refused delete usually names what still
+      // references the tax, which "Failed to delete tax configuration" cannot.
+      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_delete', 'Failed to delete tax configuration'), {
+        variant: 'error',
+      });
     } finally {
       setIsDeleteModalOpen(false);
       setDeletingTaxId(null);
@@ -119,8 +126,10 @@ export function useTaxConfigurations() {
       );
       setIsFormOpen(false);
       fetchTaxConfigs();
-    } catch {
-      enqueueSnackbar(t('tax_failed_to_save', 'Failed to save tax configuration'), { variant: 'error' });
+    } catch (e) {
+      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_save', 'Failed to save tax configuration'), {
+        variant: 'error',
+      });
     }
   };
 
@@ -142,8 +151,10 @@ export function useTaxConfigurations() {
         { variant: 'success' },
       );
       fetchTaxConfigs();
-    } catch {
-      enqueueSnackbar(t('tax_failed_to_toggle', 'Failed to toggle tax configuration'), { variant: 'error' });
+    } catch (e) {
+      enqueueSnackbar(getErrorMessage(e) ?? t('tax_failed_to_toggle', 'Failed to toggle tax configuration'), {
+        variant: 'error',
+      });
     }
   };
 

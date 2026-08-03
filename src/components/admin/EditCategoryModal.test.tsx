@@ -171,7 +171,7 @@ describe('EditCategoryModal — a failed update must not close or refresh', () =
     const { onPartialSuccess, onClose } = renderModal();
     fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
 
-    await waitFor(() => expect(screen.getByText('Another category with this name already exists')).toBeInTheDocument());
+    expect(await screen.findByText('Another category with this name already exists')).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
     expect(onPartialSuccess).not.toHaveBeenCalled();
     // A refused update must not run the steps that follow it.
@@ -185,7 +185,7 @@ describe('EditCategoryModal — a failed update must not close or refresh', () =
     const { onClose } = renderModal();
     fireEvent.click(screen.getByRole('button', { name: 'save_changes' }));
 
-    await waitFor(() => expect(screen.getByText('Name is required')).toBeInTheDocument());
+    expect(await screen.findByText('Name is required')).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
   });
 

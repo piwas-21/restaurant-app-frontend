@@ -60,10 +60,7 @@ export function useApplicableTaxes(isOpen: boolean, currentOrderType: OrderType)
   }, [isOpen, load]);
 
   const taxConfigurations = useMemo(
-    () =>
-      allTaxes.filter(
-        (tax) => tax.isEnabled && tax.applicableOrderTypes && tax.applicableOrderTypes.includes(currentOrderType),
-      ),
+    () => allTaxes.filter((tax) => tax.isEnabled && tax.applicableOrderTypes?.includes(currentOrderType)),
     [allTaxes, currentOrderType],
   );
 

@@ -156,7 +156,7 @@ describe('TaxSelectionModal — an outage must not read as "none configured"', (
     mockCurrentT = mockTDe; // what `languageChanged` does to `t`'s identity
     rerender(<TaxSelectionModal {...props} />);
 
-    await waitFor(() => expect(screen.getByText(/No tax configurations available/i)).toBeInTheDocument());
+    expect(await screen.findByText(/No tax configurations available/i)).toBeInTheDocument();
     expect(mockGetAllTaxes).toHaveBeenCalledTimes(1);
   });
 

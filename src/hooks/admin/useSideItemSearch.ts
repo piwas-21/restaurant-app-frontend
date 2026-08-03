@@ -73,7 +73,7 @@ export function useSideItemSearch(selectedSideItemIds: string[]) {
       }
 
       try {
-        const resp = await getProducts(1, 100, undefined);
+        const resp = await getProducts(1, 100);
         if (cancelled) return;
         if (!resp.success) {
           // A 200-wrapped refusal. `getProducts` returns the envelope rather than throwing, so
@@ -115,7 +115,7 @@ export function useSideItemSearch(selectedSideItemIds: string[]) {
 
     try {
       setSearchError(null);
-      const resp = await getProducts(1, 20, undefined);
+      const resp = await getProducts(1, 20);
       if (!resp.success) {
         setResults([]);
         setSearchError(

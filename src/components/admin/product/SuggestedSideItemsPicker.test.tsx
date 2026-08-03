@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { useForm } from 'react-hook-form';
 import { SuggestedSideItemsPicker } from './SuggestedSideItemsPicker';
 import { getProducts } from '@/services/menuService';
@@ -143,7 +143,7 @@ describe('SuggestedSideItemsPicker — a failed details read must explain the id
     mockCurrentT = mockTDe; // what `languageChanged` does to `t`'s identity
     rerender(<Harness selectedSideItemIds={['abc']} />);
 
-    await waitFor(() => expect(screen.getByText('Fries')).toBeInTheDocument());
+    expect(await screen.findByText('Fries')).toBeInTheDocument();
     expect(mockGetProducts).toHaveBeenCalledTimes(1);
   });
 

@@ -65,6 +65,87 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
     }
   };
 
+  /**
+   * Four mutually exclusive states, as early returns rather than a nested ternary chain: loading,
+   * the load FAILED, the server genuinely returned nothing, and the list. The order is
+   * load-bearing — the error must come before the empty state, or a failed read renders
+   * "No tax configurations available", which is an answer the server never gave.
+   */
+  const renderContent = () => {
+    if (loading) {
+      return <div className={styles.loading}>{t('loading_tax_configurations', 'Loading tax configurations...')}</div>;
+    }
+    if (loadError) {
+      return (
+        <div className={styles.emptyState} role="alert">
+          <DollarSign size={48} />
+          <p>{loadError}</p>
+          <button type="button" className={styles.cancelButton} onClick={reload}>
+            {t('retry', 'Retry')}
+          </button>
+        </div>
+      );
+    }
+    if (taxConfigurations.length === 0) {
+      return (
+        <div className={styles.emptyState}>
+          <DollarSign size={48} />
+          <p>
+            {t('no_tax_configurations_for_order_type', 'No tax configurations available for {{orderType}}', {
+              orderType: getOrderTypeLabel(currentOrderType),
+            })}
+          </p>
+          <small>
+            {t('create_tax_configuration_admin_panel', 'Please create a tax configuration in the admin panel')}
+          </small>
+        </div>
+      );
+    }
+    return (
+      <div className={styles.taxList}>
+        {/* Option for no tax */}
+        <div className={`${styles.taxCard} ${selectedTaxId === null ? styles.selected : ''}`} onClick={handleNoTax}>
+          <div className={styles.taxInfo}>
+            <h3 className={styles.taxName}>{t('no_tax', 'No Tax')}</h3>
+            <p className={styles.taxDescription}>{t('no_tax_description', 'Do not apply any tax to this order')}</p>
+          </div>
+          <div className={styles.taxRate}>0.00%</div>
+          {selectedTaxId === null && (
+            <div className={styles.checkmark}>
+              <Check size={20} />
+            </div>
+          )}
+        </div>
+
+        {taxConfigurations.map((tax) => (
+          <div
+            key={tax.id}
+            className={`${styles.taxCard} ${selectedTaxId === tax.id ? styles.selected : ''}`}
+            onClick={() => handleSelectTax(tax.id)}
+          >
+            <div className={styles.taxInfo}>
+              <h3 className={styles.taxName}>{tax.name}</h3>
+              <p className={styles.taxDescription}>{tax.description}</p>
+              <div className={styles.applicableTypes}>
+                {tax.applicableOrderTypes.map((type) => (
+                  <span key={type} className={styles.typeBadge}>
+                    {getOrderTypeLabel(type)}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className={styles.taxRate}>{(tax.rate * 100).toFixed(2)}%</div>
+            {selectedTaxId === tax.id && (
+              <div className={styles.checkmark}>
+                <Check size={20} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -80,91 +161,25 @@ export const TaxSelectionModal: React.FC<TaxSelectionModalProps> = ({
               </p>
             </div>
           </div>
-          <button onClick={onClose} className={styles.closeButton} aria-label="Close">
+          <button type="button" onClick={onClose} className={styles.closeButton} aria-label="Close">
             <X size={24} />
           </button>
         </div>
 
-        <div className={styles.content}>
-          {loading ? (
-            <div className={styles.loading}>{t('loading_tax_configurations', 'Loading tax configurations...')}</div>
-          ) : loadError ? (
-            <div className={styles.emptyState} role="alert">
-              <DollarSign size={48} />
-              <p>{loadError}</p>
-              <button type="button" className={styles.cancelButton} onClick={reload}>
-                {t('retry', 'Retry')}
-              </button>
-            </div>
-          ) : taxConfigurations.length === 0 ? (
-            <div className={styles.emptyState}>
-              <DollarSign size={48} />
-              <p>
-                {t('no_tax_configurations_for_order_type', 'No tax configurations available for {{orderType}}', {
-                  orderType: getOrderTypeLabel(currentOrderType),
-                })}
-              </p>
-              <small>
-                {t('create_tax_configuration_admin_panel', 'Please create a tax configuration in the admin panel')}
-              </small>
-            </div>
-          ) : (
-            <div className={styles.taxList}>
-              {/* Option for no tax */}
-              <div
-                className={`${styles.taxCard} ${selectedTaxId === null ? styles.selected : ''}`}
-                onClick={handleNoTax}
-              >
-                <div className={styles.taxInfo}>
-                  <h3 className={styles.taxName}>{t('no_tax', 'No Tax')}</h3>
-                  <p className={styles.taxDescription}>
-                    {t('no_tax_description', 'Do not apply any tax to this order')}
-                  </p>
-                </div>
-                <div className={styles.taxRate}>0.00%</div>
-                {selectedTaxId === null && (
-                  <div className={styles.checkmark}>
-                    <Check size={20} />
-                  </div>
-                )}
-              </div>
-
-              {taxConfigurations.map((tax) => (
-                <div
-                  key={tax.id}
-                  className={`${styles.taxCard} ${selectedTaxId === tax.id ? styles.selected : ''}`}
-                  onClick={() => handleSelectTax(tax.id)}
-                >
-                  <div className={styles.taxInfo}>
-                    <h3 className={styles.taxName}>{tax.name}</h3>
-                    <p className={styles.taxDescription}>{tax.description}</p>
-                    <div className={styles.applicableTypes}>
-                      {tax.applicableOrderTypes.map((type) => (
-                        <span key={type} className={styles.typeBadge}>
-                          {getOrderTypeLabel(type)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className={styles.taxRate}>{(tax.rate * 100).toFixed(2)}%</div>
-                  {selectedTaxId === tax.id && (
-                    <div className={styles.checkmark}>
-                      <Check size={20} />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <div className={styles.content}>{renderContent()}</div>
 
         <div className={styles.footer}>
-          <button onClick={onClose} className={styles.cancelButton}>
+          <button type="button" onClick={onClose} className={styles.cancelButton}>
             {t('cancel', 'Cancel')}
           </button>
           {/* Also disabled on `loadError`: with the list empty, Confirm resolves to `no tax` and
               would silently clear an already-set `currentTaxId` on the strength of a failed read. */}
-          <button onClick={handleConfirm} className={styles.confirmButton} disabled={loading || loadError !== null}>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className={styles.confirmButton}
+            disabled={loading || loadError !== null}
+          >
             {t('confirm_selection', 'Confirm Selection')}
           </button>
         </div>

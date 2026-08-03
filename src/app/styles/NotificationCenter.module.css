@@ -2,11 +2,17 @@
 .container {
   position: fixed;
   top: 100px;
-  /* PHYSICAL, pending the dir-aware transform pass (E8 slice 3). The stack enters via
-     `@keyframes slideInRight`, whose `translateX(400px)` is not a logical property: mirror
-     the inset alone and toasts in `ar` would fly in from off the LEFT edge to a right-hand
-     resting place, crossing the whole viewport. */
-  right: 20px;
+  /* Moves as one thing with `@keyframes slideInFromTrailingEdge` below, whose translate now
+     takes its sign from `--dir` (E8 slice 3b). Convert the inset alone and in `ar` the stack
+     rests against the leading edge while the translate still displaces it the other way, so
+     frame 0 lands 400px further along — mid-page and fully visible on a wide viewport, and
+     only genuinely off-screen under the `<=768px` rule where the toast spans the width.
+
+     Unlike the admin sidebar, a `--dir`-dependent transform is safe here: this is an
+     `animation` that runs once on mount with no fill mode, not a `transition` on a persistent
+     resting position — so a language switch cannot re-trigger it and there is nothing to
+     animate across the page. */
+  inset-inline-end: 20px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -22,7 +28,7 @@
   padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  animation: slideInRight 0.3s ease-out;
+  animation: slideInFromTrailingEdge 0.3s ease-out;
   pointer-events: auto;
   border-inline-start: 5px solid;
   min-width: 320px;
@@ -114,10 +120,14 @@
 }
 
 /* Animations */
-@keyframes slideInRight {
+/* Named for the direction it moves in READING order, not on screen: under `rtl` the same
+   declaration enters from the physical left. `var()` resolves inside `@keyframes` — the
+   substitution happens on the animating element — so one keyframe block covers both
+   directions and no `[dir='rtl']` animation-name swap is needed. */
+@keyframes slideInFromTrailingEdge {
   from {
     opacity: 0;
-    transform: translateX(400px);
+    transform: translateX(calc(var(--dir) * 400px));
   }
   to {
     opacity: 1;
@@ -138,9 +148,10 @@
 @media (max-width: 768px) {
   .container {
     top: 20px;
-    /* PHYSICAL — same animation coupling as the base `.container` rule. Symmetric anyway. */
-    right: 10px;
-    left: 10px;
+    /* Both edges, so it is direction-neutral either way — but written logically to match the
+       base rule it overrides, since a reset that names a different property than its base
+       makes the winner depend on source order (DESIGN-SYSTEM.md §8.1). */
+    inset-inline: 10px;
     max-width: none;
   }
 

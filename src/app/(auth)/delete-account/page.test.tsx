@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { ApiError } from '@/utils/apiClient';
 import DeleteAccountPage from './page';
 
 const mockConfirm = jest.fn();
@@ -52,16 +53,32 @@ describe('DeleteAccountPage — the refusal reason (E9)', () => {
     expect(await screen.findByText('Failed to delete account.')).toBeInTheDocument();
   });
 
-  it('reports a transport failure generically — nothing thrown here is showable', async () => {
-    // `confirmAccountDeletion` is a raw `fetch` that resolves for every status, so the only
-    // throws are a dead network and a non-JSON body. Both carry client-authored text that must
-    // not reach a screen, which is why this catch stays bare.
+  it('reports a transport failure generically — its text is not showable', async () => {
+    // A dead network and a non-JSON body carry client-authored text that must not reach a screen,
+    // so the translated sentence is the honest answer for them. (#414 changed what ELSE can arrive
+    // here, not this: see the thrown-server-sentence case below.)
     mockConfirm.mockRejectedValue(new TypeError('Failed to fetch'));
     render(<DeleteAccountPage />);
     fireEvent.click(confirmButton());
 
     expect(await screen.findByText('An unexpected error occurred.')).toBeInTheDocument();
     expect(screen.queryByText('Failed to fetch')).not.toBeInTheDocument();
+  });
+
+  // #414. All four of the handler's refusals — including the expired-token one this link exists to
+  // explain — are `Failure` inside `Ok(...)`, so they RESOLVE and are covered by the tests above.
+  // What changed is that a non-2xx now arrives carrying the server's sentence instead of being
+  // flattened into the generic one.
+  //
+  // A 500, because that is what this endpoint can raise. NOT a 502: `ConfirmAccountDeletionCommand`
+  // sends no email, so `EmailDeliveryException` cannot reach the middleware from here.
+  it('prints a server-authored reason that arrives as a THROWN failure', async () => {
+    mockConfirm.mockRejectedValue(new ApiError(500, 'An error occurred while processing your request'));
+    render(<DeleteAccountPage />);
+    fireEvent.click(confirmButton());
+
+    expect(await screen.findByText(/An error occurred while processing your request/)).toBeInTheDocument();
+    expect(screen.queryByText('An unexpected error occurred.')).not.toBeInTheDocument();
   });
 
   it('confirms deletion on success', async () => {

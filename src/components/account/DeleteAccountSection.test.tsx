@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { ApiError } from '@/utils/apiClient';
 import DeleteAccountSection from './DeleteAccountSection';
 
 const mockRequest = jest.fn();
@@ -45,6 +46,34 @@ describe('DeleteAccountSection — the refusal reason (E9)', () => {
 
     expect(await screen.findByText('An unexpected error occurred.')).toBeInTheDocument();
     expect(screen.queryByText(/Unexpected token/)).not.toBeInTheDocument();
+  });
+
+  // #414. `requestAccountDeletion` used to be a raw `fetch` returning `response.json()` for every
+  // status, so a non-2xx never threw with anything readable and this catch could only ever print the
+  // generic sentence. It goes through `apiClient` now, so a thrown failure carries the server's own
+  // words.
+  //
+  // A 500, deliberately — it is what this endpoint can actually raise. A 429 is not: `UserController`
+  // rate-limits `register` only. Nor a 502: the handler treats its email send as non-fatal in its own
+  // catch. Mocking either would pin a shape no producer emits.
+  it('prints a server-authored reason that arrives as a THROWN failure', async () => {
+    mockRequest.mockRejectedValue(new ApiError(500, 'An error occurred while processing your request'));
+    render(<DeleteAccountSection />);
+    fireEvent.click(deleteButton());
+
+    expect(await screen.findByText(/An error occurred while processing your request/)).toBeInTheDocument();
+    expect(screen.queryByText('An unexpected error occurred.')).not.toBeInTheDocument();
+  });
+
+  it('still falls back for a body-less 401 — an empty message is not a sentence', async () => {
+    // The expired-session case. `apiClient` signs a genuinely dead session out and navigates, so
+    // usually nothing renders from here at all; when it does, `ApiError(401, '')` carries no words
+    // and the translated sentence is the honest answer. Pins that `''` does not reach the screen.
+    mockRequest.mockRejectedValue(new ApiError(401, ''));
+    render(<DeleteAccountSection />);
+    fireEvent.click(deleteButton());
+
+    expect(await screen.findByText('An unexpected error occurred.')).toBeInTheDocument();
   });
 
   it('confirms the request on success', async () => {

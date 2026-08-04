@@ -1,5 +1,28 @@
 import { z } from 'zod';
 import { loginSchema } from '../schemas/auth.schema';
+import { apiClient } from '@/utils/apiClient';
+import type { ApiResponse } from '@/types/user';
+
+/**
+ * NOTE — this module and `apiClient` import each other, deliberately and safely.
+ *
+ * `apiClient` imports `refreshToken` from here to retry a 401; the three helpers below import
+ * `apiClient` to get a status-carrying `ApiError`. Neither module touches the other's bindings at
+ * evaluation time — only inside function bodies — so the cycle resolves whichever loads first.
+ * (`refreshToken` is a hoisted function declaration, so it is defined even in a half-evaluated
+ * module; `apiClient` is a `const` object literal, which is why nothing here may reach for it at
+ * the top level.)
+ *
+ * Two helpers must stay raw `fetch`, for DIFFERENT reasons — the recursion argument covers only the
+ * first:
+ *
+ *   - `refreshToken`, because `apiClient`'s 401 branch calls it. Routing it back through would not
+ *     merely recurse: `inFlightRefresh` collapses concurrent callers onto one promise, so the
+ *     retry would await the very promise it is running inside. A deadlock, not a stack overflow.
+ *   - `login`, because `apiClient` attaches `Authorization` from whatever token is in storage. A
+ *     stale one turns a wrong-password 401 into a refresh attempt and, when that fails,
+ *     `clearAuthAndRedirect()` — navigating away from the login page mid-sign-in.
+ */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const AUTH_API_URL = `${API_BASE_URL}/api/Auth`;
@@ -198,16 +221,8 @@ export interface ForgotPasswordCommand {
   email: string;
 }
 
-export async function forgotPassword(formData: ForgotPasswordCommand) {
-  const response = await fetch(`${AUTH_API_URL}/forgot-password`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(formData),
-  });
-
-  return response.json();
+export async function forgotPassword(formData: ForgotPasswordCommand): Promise<ApiResponse<string>> {
+  return apiClient.post<ApiResponse<string>>('/api/Auth/forgot-password', formData);
 }
 
 /**
@@ -301,27 +316,21 @@ export async function verifyEmail(formData: VerifyEmailCommand) {
   return response.json();
 }
 
-export async function requestAccountDeletion() {
-  const token = readStoredValue('auth_token');
-  const response = await fetch(`${API_BASE_URL}/api/User/request-deletion`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.json();
+export async function requestAccountDeletion(): Promise<ApiResponse<string>> {
+  // `requireAuth` so a missing token fails HERE rather than as an anonymous request the server
+  // answers with a 401 the client then has to interpret. The endpoint is `[Authorize]`, and its
+  // expired-token 401 is the whole of #414: `apiClient` refreshes and retries, and on a genuinely
+  // dead session clears the stored tokens and navigates to `/` — the HOME page, not `/auth/login`
+  // (see `clearAuthAndRedirect`). That is still the answer the customer needed, because it ends the
+  // dead session and puts a sign-in in reach; the raw `fetch` discarded the status entirely and
+  // left them re-reading "an unexpected error" and retrying forever.
+  return apiClient.post<ApiResponse<string>>('/api/User/request-deletion', undefined, { requireAuth: true });
 }
 
-export async function confirmAccountDeletion(data: { userId: string; token: string }) {
-  const response = await fetch(`${API_BASE_URL}/api/User/confirm-deletion`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
+export async function confirmAccountDeletion(data: { userId: string; token: string }): Promise<ApiResponse<string>> {
+  // Deliberately NOT `requireAuth`: this one is `[AllowAnonymous]` and authenticates by the emailed
+  // token in the body. It is followed from a mail client, where a stored session may not exist.
+  return apiClient.post<ApiResponse<string>>('/api/User/confirm-deletion', data);
 }
 
 export async function googleLogin(idToken: string) {

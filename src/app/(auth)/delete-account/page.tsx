@@ -55,13 +55,21 @@ function DeleteAccountContent() {
         // `serverMessages` reads `errors[]` first, which is where the sentence actually is.
         setErrorMessage(serverMessages(response)[0] ?? t('deletion_failed', 'Failed to delete account.'));
       }
-    } catch {
-      // IGNORED ON PURPOSE — `confirmAccountDeletion` is a raw `fetch` returning `response.json()`
-      // for EVERY status, so a refusal resolves into the branch above and never throws. What is
-      // left is a dead network (`TypeError`) or a non-JSON body (`SyntaxError`); both texts are
-      // client-authored and must not be rendered, so the generic sentence is all we can say.
+    } catch (error) {
+      // #414: `confirmAccountDeletion` goes through `apiClient` now, so a non-2xx arrives as an
+      // `ApiError` carrying its status instead of being flattened into the generic sentence.
+      //
+      // The reasons a guest actually sees are NOT here: all four of
+      // `ConfirmAccountDeletionCommandHandler`'s refusals — including the expired-token one this
+      // one-shot emailed link exists to explain — are `ApiResponse.Failure` returned inside
+      // `Ok(...)`, i.e. HTTP 200, and stay on the branch above. That branch is the load-bearing one.
+      //
+      // This catch takes a 500 (the middleware's own English sentence), a validation 400, or a dead
+      // network. Checked, not assumed: this handler sends NO email, so the 502 an earlier draft of
+      // this comment named cannot occur. A `TypeError`/`SyntaxError` authors nothing showable and
+      // those texts must not be rendered — hence the fallback.
       setStatus('error');
-      setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
+      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     }
   };
 

@@ -35,21 +35,29 @@ export default function DeleteAccountSection() {
           serverMessages(response)[0] ?? t('delete_account_request_failed', 'Failed to request account deletion.'),
         );
       }
-    } catch {
-      // IGNORED ON PURPOSE — `requestAccountDeletion` is a raw `fetch` returning `response.json()`
-      // for EVERY status, so a refusal resolves into the branch above rather than throwing. What
-      // reaches here is a dead network (`TypeError`) or a non-JSON body (`SyntaxError`); both
-      // texts are client-authored and must not be rendered, so the generic sentence is all there
-      // honestly is to say AT THIS CATCH.
+    } catch (error) {
+      // #414 closed the hole this catch used to document. `requestAccountDeletion` goes through
+      // `apiClient` now, so a non-2xx arrives as an `ApiError` carrying its status.
       //
-      // The limit of that, stated rather than hidden: an EXPIRED TOKEN lands here too. The
-      // endpoint is `[Authorize]`, its 401 has an empty body, and `.json()` rejects on it — so a
-      // customer whose session lapsed while this page was open reads "an unexpected error" and
-      // will retry forever, when the answer is "sign in again". The status that says so is in
-      // hand in `authService.requestAccountDeletion` and discarded there, before `.json()` is
-      // called. Fixing it means changing that producer to report the status, which is a wider
-      // change than this slice: tracked as frontend #414.
-      setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
+      // What actually reaches here, checked against the endpoint rather than assumed — the first
+      // draft of this comment named a 429 and a 502, and NEITHER can occur:
+      //
+      //   - an EXPIRED TOKEN (the endpoint is `[Authorize]`). This is the #414 case. `apiClient`
+      //     refreshes and retries; on a dead session it clears the tokens and navigates to `/`.
+      //     `ApiError(401, '')` carries no words, so the fallback below is what would render — and
+      //     assigning `location.href` does not halt this task, so React does commit that state
+      //     before the page unloads;
+      //   - a 500, whose message is the middleware's own English sentence;
+      //   - a dead network (`TypeError`), which authors nothing showable.
+      //
+      // NOT a 429: `UserController` rate-limits `register` only. NOT a 502: the handler wraps its
+      // email send in its own catch and treats delivery as non-fatal, so `EmailDeliveryException`
+      // never escapes. The handler's own refusal ("User not found") is an HTTP 200 and stays on the
+      // branch above.
+      //
+      // `serverMessages` yields nothing for the `TypeError` or the body-less 401, so the translated
+      // fallback covers exactly the cases where it is the honest answer.
+      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     } finally {
       setIsDeleting(false);
     }

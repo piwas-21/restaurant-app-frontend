@@ -50,32 +50,60 @@ export class ApiError extends Error {
 }
 
 /**
- * Get authentication token from storage
+ * Read one key, tolerating a browser that refuses storage.
+ *
+ * The `typeof window` guard is for SSR and is not the interesting case. The interesting one is that
+ * **reading the `localStorage` property itself throws** `SecurityError` when site data is blocked
+ * outright — Chrome's "block all cookies", Firefox with `dom.storage.enabled=false`, a sandboxed
+ * iframe without `allow-same-origin`. Both callers below run at the TOP of `request()`, outside its
+ * try, so an unguarded throw escaped as a raw `SecurityError` — not an `ApiError` — before the
+ * request was ever sent, and every caller's error handling saw something it was not written for.
+ *
+ * `authService.readStoredValue` already learned this (see its doc: the same throw made a sign-in
+ * report "Failed to connect to the server" on a browser that had never reached the network). This
+ * is the same fix on the path every other request takes. It matters most where storage is most
+ * likely to be restricted: `/delete-account` is opened from a mail-client webview.
+ *
+ * Warn and continue: a token we cannot read is indistinguishable from not having one, which the
+ * request path already handles (`requireAuth` throws a 401 for it).
  */
+function readStoredValue(key: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.warn(`Could not read ${key} from localStorage`, e);
+    return null;
+  }
+}
+
 function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('auth_token');
+  return readStoredValue('auth_token');
 }
 
-/**
- * Get session ID from storage
- */
 function getSessionId(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('rumi_session_id');
+  return readStoredValue('rumi_session_id');
 }
 
 /**
- * Clear auth state and bounce to the login/home route. Called only for a
- * definitive session end — never for a transient refresh failure (see
- * refreshToken's `transient` flag), which would otherwise log users out on a
- * rate-limit or network blip.
+ * Clear auth state and bounce to the HOME route (`/`, not `/auth/login`). Called only for a
+ * definitive session end — never for a transient refresh failure (see refreshToken's `transient`
+ * flag), which would otherwise log users out on a rate-limit or network blip.
+ *
+ * The removals are wrapped for the same reason the reads above are: on a browser that blocks site
+ * data, touching `localStorage` throws, and a throw HERE would replace the `ApiError(401)` this
+ * function precedes with a raw `SecurityError` — turning a handled session end into an unhandled
+ * one. Clearing is best-effort; the redirect is what actually ends the session for the user.
  */
 function clearAuthAndRedirect(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user');
+  try {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+  } catch (e) {
+    console.warn('Could not clear auth state from localStorage', e);
+  }
   window.location.href = '/';
 }
 

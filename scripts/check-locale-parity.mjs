@@ -108,9 +108,11 @@ const readValue = (obj, path) =>
 // Two limits worth knowing before trusting a green run here. Russian and Turkish DECLINE a city
 // name ("в Женеве", "Cenevre'deki"), and interpolation cannot — so those strings now read with an
 // uninflected city, which is a grammar cost accepted deliberately against naming the wrong city.
-// And this gate only compares placeholders that EXIST in `en.json`: `home_hero_subtitle` and
-// `address_city_placeholder` still hardcode Geneva in the English source itself, so there is
-// nothing for it to compare and it cannot see them.
+// And this gate only compares placeholders that EXIST in `en.json`, so a key that hardcodes a
+// tenant value in the ENGLISH source has nothing to compare and stays invisible here — no amount
+// of green proves the English is tenant-neutral. `home_hero_subtitle` was exactly that case (it
+// read "…Begins Here in Geneva", propagating to all ten locales); it now carries `{{city}}`, so
+// the gate covers it. Finding the next one means reading en.json, not re-running this.
 const PLACEHOLDER_BASELINE = new URL('./locale-placeholder-baseline.json', import.meta.url).pathname;
 const REGEN_BASELINES = process.argv.includes('--regen-baseline');
 

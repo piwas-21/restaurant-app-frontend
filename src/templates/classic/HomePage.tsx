@@ -155,6 +155,11 @@ export default function HomePage() {
   const restaurantName = info?.name ?? RESTAURANT_NAME;
   const addressStreet = info?.addressLine1 ?? '';
   const addressCityCountry = info ? `${info.postalCode} ${info.city}, ${info.country}` : '';
+  // The hero names the tenant's city, so it waits for RestaurantInfo like every other
+  // identity value above rather than baking one in (#125). Interpolating an empty city
+  // would leave a dangling "…Begins Here in ." on the most visible copy on the site, so
+  // the cityless variant covers the pre-load window instead.
+  const heroSubtitle = info?.city ? t('home_hero_subtitle', { city: info.city }) : t('home_hero_subtitle_no_city');
   const primaryPhone = info?.phoneNumbers.find((p) => p.isActive) ?? info?.phoneNumbers[0] ?? null;
   const phoneDisplay = primaryPhone?.number ?? '';
   const phoneTel = phoneDisplay.replace(/\s/g, '');
@@ -172,7 +177,7 @@ export default function HomePage() {
             {isClient ? t('home_hero_title') : 'Discover Authentic Turkish Flavors'}
           </h1>
           <p className={styles.heroSubtitle}>
-            {isClient ? t('home_hero_subtitle') : 'Your journey into rich tastes and traditions begins here.'}
+            {isClient ? heroSubtitle : 'Your journey into rich tastes and traditions begins here.'}
           </p>
           <div className={styles.ctaButtons}>
             <Link href="/menu" className={styles.ctaButtonPrimary} role="button">

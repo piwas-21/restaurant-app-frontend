@@ -822,6 +822,9 @@
 
 .childItem {
   display: flex;
+  /* Wraps so a component's removals (#363) drop to their own line beneath the name/price row
+     instead of being squeezed into it. No effect until that third child exists. */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
@@ -863,6 +866,13 @@
   color: var(--primary-color);
   font-weight: bold;
   font-size: 1.2rem;
+}
+
+/* A bundle component's removed ingredients. flex-basis pushes it onto its own row. */
+.childItemRemoved {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .childItemPrice {

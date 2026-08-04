@@ -113,10 +113,21 @@ function basketDiff(item: BasketItemDto): LineIngredientDiff {
     const quantity = id && item.ingredientQuantities?.[id] ? item.ingredientQuantities[id] : 1;
     return { name, quantity };
   });
-  // The basket shape has no removal channel: it never had one that worked. `excludedIngredientNames`
-  // was derived from a column that was never written (backend #283 / frontend #170), and the ORDER
-  // shape gets its removals from `isRemoved` (quantity 0) instead. See the follow-up issue.
-  return { added, removed: [] };
+  // Removals, at last from a channel that works (#363). The basket's old one,
+  // `excludedIngredientNames`, was derived from a column nothing ever wrote (backend #283 /
+  // frontend #170), so the cart could never show a removal while the order view always could.
+  //
+  // Both shapes now read the SAME thing — a saved quantity of 0 — through the same server-side
+  // base-recipe rule, so a quantity PRESENT in the saved map means the same on both. They are not
+  // yet identical: the order path additionally treats a required ingredient that is ABSENT from
+  // that map as removed, and the cart does not, so such a line still shows a removal on the order
+  // view and none here (backend `IngredientRecipeRules` remarks — tracked there, not closed by
+  // #363). It is resolved on the backend
+  // rather than here for two reasons the cart payload cannot overcome: a 0 is also written for
+  // every optional add-on the guest never chose (only a BASE-RECIPE ingredient at 0 is a removal,
+  // and `isOptional`/`isIncludedInBasePrice` are not in this payload), and a removed ingredient's
+  // name is absent entirely — `selectedIngredientNames` is index-aligned with the SELECTED ids.
+  return { added, removed: item.removedIngredientNames ?? [] };
 }
 
 function basketItemToChild(item: BasketItemDto): LineChild {

@@ -116,6 +116,18 @@ export default function CartItemCard({
                   {childItem.unitPrice > 0 && (
                     <span className={styles.childItemPrice}>+{formatPlainCurrency(childItem.unitPrice)}</span>
                   )}
+                  {/* A component's own removals (#363). Inline rather than by mounting
+                      OrderLineSummary here: this list is deliberately a compact name + price, and
+                      that component renders the ROOT diff too, which CartItemCustomizations above
+                      already shows — every line's customizations would print twice.
+                      Without this the /cart page was the one cart surface that could not show a
+                      component's removals; the /menu rail and checkout both could, so the two
+                      carts disagreed with each other. */}
+                  {childItem.removedIngredientNames && childItem.removedIngredientNames.length > 0 && (
+                    <span dir="auto" className={styles.childItemRemoved}>
+                      {t('removed_ingredients', 'Removed')}: {childItem.removedIngredientNames.join(', ')}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

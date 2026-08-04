@@ -66,6 +66,13 @@ export interface BasketItemDto {
   // Ingredient names for display purposes
   selectedIngredientNames?: string[];
   addedIngredientNames?: string[];
+  // Base-recipe ingredients the guest removed, derived server-side (backend #363).
+  // TRI-STATE, and the distinction matters: absent = there is nothing to say (the line carried no
+  // selection, or no saved quantities at all); `[]` = there was something to say and nothing was
+  // removed; a list = these were. There is no global null-stripping on the API, so `null` arrives
+  // on the wire — always test `.length`, never truthiness, or an empty list renders an empty
+  // "Removed:" label.
+  removedIngredientNames?: string[];
   // Selected side items with quantities
   selectedSideItems?: BasketSideItemDto[];
   // Child items for menu bundles (hierarchical structure)

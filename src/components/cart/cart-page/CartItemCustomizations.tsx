@@ -20,7 +20,11 @@ interface CartItemCustomizationsProps {
 export default function CartItemCustomizations({ item, styles }: Readonly<CartItemCustomizationsProps>) {
   const { t } = useTranslation();
 
-  if (!(item.selectedIngredientNames?.length || item.selectedSideItems?.length)) {
+  if (!(
+    item.selectedIngredientNames?.length ||
+    item.removedIngredientNames?.length ||
+    item.selectedSideItems?.length
+  )) {
     return null;
   }
 
@@ -53,6 +57,22 @@ export default function CartItemCustomizations({ item, styles }: Readonly<CartIt
                 </React.Fragment>
               );
             })}
+          </span>
+        </div>
+      )}
+
+      {/* Restored with a working source (#363). This block existed until #364 deleted it along
+          with `excludedIngredientNames` — correctly, since that field was derived from a column
+          nothing ever wrote, so the row could never appear. `.length`, not truthiness: the field
+          arrives as an empty array on a line that was customized without removing anything, and a
+          truthy test would print an empty "Removed:" label. */}
+      {item.removedIngredientNames && item.removedIngredientNames.length > 0 && (
+        <div className={styles.customizationDetail}>
+          <span className={styles.customizationLabel}>{t('removed_ingredients', 'Removed')}:</span>
+          {/* One isolate around the whole joined run, matching OrderLineSummary: these are names
+              only, with no per-item quantity to keep outside the isolate. */}
+          <span dir="auto" className={styles.customizationValue}>
+            {item.removedIngredientNames.join(', ')}
           </span>
         </div>
       )}

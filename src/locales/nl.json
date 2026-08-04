@@ -2550,5 +2550,6 @@
   "scan_another": "Nog een scannen",
   "server_diagnostics": "Serverdiagnostiek",
   "validate": "Valideren",
-  "validating": "Valideren..."
+  "validating": "Valideren...",
+  "setup_checklist_refresh_failed": "Opgeslagen. De checklist kon niet worden vernieuwd — herlaad de pagina."
 }

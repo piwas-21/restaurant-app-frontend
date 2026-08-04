@@ -159,6 +159,8 @@ module.exports = {
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
     'src/hooks/cart/cartFailureReporting.ts',
+    'src/hooks/checkout/useSavedAddressList.ts',
+    'src/hooks/admin/useSetupChecklist.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -199,6 +201,12 @@ module.exports = {
     // to every other gate because the old substring test type-checked and lint-passed.
     './src/utils/basketMutationError.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/hooks/cart/cartFailureReporting.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
+    // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and
+    // the one that reports a re-read failure only when the write succeeded, are invisible to every
+    // other gate. Mutation-verified — inverting either turns these red.
+    './src/hooks/checkout/useSavedAddressList.ts': { statements: 92, branches: 77, functions: 99, lines: 99 },
+    './src/hooks/admin/useSetupChecklist.ts': { statements: 94, branches: 82, functions: 76, lines: 96 },
     './src/hooks/cart/useCartItemMutations.ts': { statements: 89, branches: 99, functions: 99, lines: 89 },
     // ── E9 slice 8 — the closing slice of the bare-catch sweep (#383). ──────────────────────────
     // Pinned at actual − 1pt per the recipe above, so the coverage that pins each fix cannot be

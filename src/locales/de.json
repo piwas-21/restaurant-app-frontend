@@ -2550,5 +2550,6 @@
   "scan_another": "Weiteren scannen",
   "server_diagnostics": "Serverdiagnose",
   "validate": "Validieren",
-  "validating": "Wird validiert..."
+  "validating": "Wird validiert...",
+  "setup_checklist_refresh_failed": "Gespeichert. Die Checkliste konnte nicht aktualisiert werden — bitte neu laden."
 }

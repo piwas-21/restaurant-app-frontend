@@ -2550,5 +2550,6 @@
   "scan_another": "扫描下一个",
   "server_diagnostics": "服务器诊断",
   "validate": "验证",
-  "validating": "验证中..."
+  "validating": "验证中...",
+  "setup_checklist_refresh_failed": "已保存。清单未能刷新——请重新加载页面。"
 }

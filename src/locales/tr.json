@@ -2550,5 +2550,6 @@
   "scan_another": "Başka Tara",
   "server_diagnostics": "Sunucu Tanılama",
   "validate": "Doğrula",
-  "validating": "Doğrulanıyor..."
+  "validating": "Doğrulanıyor...",
+  "setup_checklist_refresh_failed": "Kaydedildi. Kontrol listesi yenilenemedi — en son durumu görmek için sayfayı yenileyin."
 }

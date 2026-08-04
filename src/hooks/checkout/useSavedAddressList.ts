@@ -3,7 +3,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { getCurrentUser } from '@/services/userService';
 import { getMyAddresses, type AddressDto } from '@/services/addressService';
-import { getErrorMessage } from '@/utils/apiClient';
+import { getErrorMessage, isAuthError } from '@/utils/apiClient';
 import { useStableT } from '@/hooks/useStableT';
 
 export interface SavedAddressList {
@@ -54,33 +54,53 @@ export function useSavedAddressList(enabled: boolean): SavedAddressList {
     if (!enabled) return;
     let cancelled = false;
 
-    const asGuest = () => {
+    /**
+     * Fall back to the manual form.
+     *
+     * `message` is what separates the two reasons for being here (#416). A guest is the NORMAL case
+     * and gets silence; a failure that merely LOOKS like one has to say so, or the customer reads an
+     * empty address list as "I have none saved".
+     */
+    const asGuest = (message: string | null = null) => {
       if (cancelled) return;
       setIsLoggedIn(false);
       setSavedAddresses([]);
       setShowNewAddressForm(true);
-      setListError(null);
+      setListError(message);
     };
 
     (async () => {
       let user;
       try {
         user = await getCurrentUser();
-      } catch {
-        // IGNORED ON PURPOSE for the case it was written for — a guest at checkout is the normal
-        // case and `getCurrentUser` 401s for one; `userService` suppresses its own log for the
-        // same reason, and the manual form is the intended experience.
+      } catch (err) {
+        if (cancelled) return;
+        // Split per PATH, which is what this file's header asks for and what #416 fixed.
         //
-        // **It is NOT justified for the other throws, and this file's own header says why: an
-        // ignore is justified per PATH, not per callsite.** `getCurrentUser` rethrows every
-        // `ApiError`, so a 500, a network blip, or a 429 from the per-IP `auth-refresh` limiter
-        // (one NAT = a whole venue's wifi) also land here and also run `asGuest()` — which blanks
-        // `savedAddresses`, sets `isLoggedIn: false` and deliberately clears `listError`. A
-        // signed-in customer's saved addresses vanish with no message, and `useDeliveryAddress`
-        // gates the "save this address" checkbox on `isLoggedIn`, so it then does nothing for the
-        // rest of checkout. The one-line fix is `isAuthError(err)`; tracked as issue #416, kept out
-        // of the E9 slice that found it because it changes checkout behaviour.
-        asGuest();
+        // A 401 is the NORMAL case — every guest at checkout produces one, `userService` suppresses
+        // its own log for the same reason, and the manual form is the intended experience. Silence
+        // is right for it.
+        //
+        // Every other throw used to land here too and run the same silent `asGuest()`, because
+        // `getCurrentUser` rethrows every `ApiError`: a 500, a network blip, or a 429 from the
+        // per-IP `auth-refresh` limiter (one NAT = a whole venue's wifi). A signed-in customer's
+        // saved addresses vanished with no message — and since `useDeliveryAddress` gates the
+        // "save this address" checkbox on `isLoggedIn`, it then did nothing for the rest of
+        // checkout.
+        //
+        // Still falls back to the manual form, because checkout must go through and no user object
+        // means nothing to list. What changes is that it SAYS so. `isLoggedIn` stays false on this
+        // path deliberately: the profile call is the only thing that could have established
+        // otherwise, and it just failed — guessing `true` would render a saved-address UI with no
+        // addresses behind it.
+        if (isAuthError(err)) {
+          asGuest();
+          return;
+        }
+        asGuest(
+          getErrorMessage(err) ??
+            tRef.current('failed_to_load_saved_addresses', 'Could not load your saved addresses.'),
+        );
         return;
       }
       if (!user || cancelled) {

@@ -176,7 +176,7 @@ export default function CashierPage() {
         onCloseAutoPrint={() => setShowAutoPrintSettings(false)}
         onCloseZReport={() => setShowZReport(false)}
         onCloseDiagnostics={() => setShowDiagnostics(false)}
-        onApplyDiscount={() => dialogs.showSuccess(t('cashier.discount_info_loaded') || 'Discount information loaded')}
+        onApplyDiscount={() => dialogs.showSuccess(t('cashier.discount_info_loaded'))}
         onSaveAutoPrint={saveAutoPrintSettings}
         onTestSound={() => notif.playSoundByType(notif.soundType)}
         onEnableAudio={notif.resumeAudioContext}

@@ -51,12 +51,15 @@ const resolve = (bundle: Record<string, unknown>, key: string): unknown => {
 /**
  * Keys reached by a `?? t(…)` or `|| t(…)` fallback in code this sweep touched.
  *
- * Hand-maintained, and that is a real limit rather than an oversight: a repo-wide version of this
- * check fails today. Measured against `develop` @ e107652 — 127 of the 1777 literal `t()` keys in
- * `src/**` resolve in NO bundle, and 19 of those are called with no inline English default, so
- * they render the raw key to a user (issue #417). Until that backlog is baselined, a list is what
- * can be green. Two gaps to know about: a NEWLY added `?? t('…')` is invisible here, and renaming
- * a key in a component passes both this and the component's own test (which stubs `t`).
+ * Hand-maintained, and the repo-wide version it used to say was impossible now EXISTS:
+ * `scripts/check-t-keys.mjs` (#417) reads every `t('literal')` callsite in `src/**`, resolves it the
+ * same way, and fails on any that would render its own key. The backlog that blocked it — keys
+ * missing from all ten bundles but called WITH an inline English default — is baselined there and
+ * may not grow. So this file is no longer the only thing standing between a fallback and a raw key
+ * on screen; it is the narrower check that these fourteen are TRANSLATED, not merely present.
+ *
+ * One gap that remains here and is covered there: renaming a key in a component passes both this
+ * and the component's own test (which stubs `t`), because neither reads the callsite.
  *
  * `fidelity_balance_unavailable` is the one entry that matters most — it is the only site in the
  * sweep calling `t()` with no inline default, so a miss there is a raw key on a checkout screen.

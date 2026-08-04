@@ -60,6 +60,89 @@ if (broken) {
 }
 console.log(`✓ locale parity holds across ${files.length} locales (${reference.size} keys each)`);
 
+// ── Placeholder-parity gate ───────────────────────────────────────────────────────────
+// Key parity counts keys and the value gate below compares values TO ENGLISH, so a locale can hold
+// every key, be properly translated, and still have lost an interpolation: a German string missing
+// `{{max}}` is not equal to the English one, so nothing above notices. i18next then renders the
+// sentence with the number silently absent.
+//
+// The live example is `cashier.refund_exceeds_payment` (#417) — "Refund amount cannot exceed the
+// payment amount of {{max}}". Drop `{{max}}` from one bundle and a cashier is told the refund is
+// too large without being told the limit, which is the whole point of the message.
+//
+// Compares the SET of placeholder names, not their order: word order legitimately differs between
+// languages, so position carries no meaning and demanding it would fail on correct translations.
+const placeholdersIn = (value) =>
+  typeof value === 'string' ? new Set([...value.matchAll(/\{\{\s*([\w.]+)\s*}}/g)].map((m) => m[1])) : new Set();
+
+const flatten = (obj, prefix = '') =>
+  Object.entries(obj).flatMap(([k, v]) => {
+    const path = prefix ? `${prefix}.${k}` : k;
+    return v !== null && typeof v === 'object' && !Array.isArray(v) ? flatten(v, path) : [[path, v]];
+  });
+
+const enPairs = flatten(JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8')));
+
+/**
+ * Resolve as i18next does — NESTED path first, then the literal flat key.
+ *
+ * Load-bearing, and the first draft of this check got it wrong in the way the bundles punish:
+ * `en.json` holds both a `cashier` OBJECT and 182 FLAT `cashier.*` keys, so walking the dotted path
+ * alone returns undefined for every flat one and reports its placeholders "dropped" in all nine
+ * locales — a gate that fails on correct data is worse than no gate.
+ */
+const readValue = (obj, path) =>
+  path.split('.').reduce((node, part) => (node !== null && typeof node === 'object' ? node[part] : undefined), obj) ??
+  obj[path];
+
+// BASELINED, like the untranslated gate below and for the same reason: the check found 72
+// PRE-EXISTING mismatches on its first run — `{{city}}` missing from seven page-title/description
+// strings in eight or nine locales each, plus `{{points}}` and `{{itemName}}`. Those are real
+// defects (a guest reads a title with the restaurant's city silently absent) but they are a
+// translation sweep, not this issue. Recording them stops the NEXT one without blocking on them.
+// Follow-up: the baseline should shrink to empty.
+const PLACEHOLDER_BASELINE = new URL('./locale-placeholder-baseline.json', import.meta.url).pathname;
+const REGEN_BASELINES = process.argv.includes('--regen-baseline');
+
+const placeholderMismatches = [];
+for (const file of files) {
+  if (file === REFERENCE) continue;
+  const bundle = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
+  for (const [key, enValue] of enPairs) {
+    const expected = placeholdersIn(enValue);
+    if (expected.size === 0) continue;
+    const actual = placeholdersIn(readValue(bundle, key));
+    const dropped = [...expected].filter((p) => !actual.has(p));
+    const invented = [...actual].filter((p) => !expected.has(p));
+    if (dropped.length || invented.length) placeholderMismatches.push(`${file}:${key}`);
+  }
+}
+// Same reason as the sort above: a committed baseline must not reorder itself on another machine.
+placeholderMismatches.sort((a, b) => a.localeCompare(b, 'en'));
+
+if (REGEN_BASELINES) {
+  writeFileSync(PLACEHOLDER_BASELINE, `${JSON.stringify(placeholderMismatches, null, 2)}\n`);
+  console.log(`✓ placeholder baseline regenerated (${placeholderMismatches.length} entries)`);
+} else {
+  const knownPlaceholder = new Set(JSON.parse(readFileSync(PLACEHOLDER_BASELINE, 'utf8')));
+  const newMismatches = placeholderMismatches.filter((m) => !knownPlaceholder.has(m));
+  if (newMismatches.length) {
+    console.error(`✗ ${newMismatches.length} NEW interpolation placeholder mismatch(es) vs en.json:`);
+    for (const m of newMismatches) console.error(`    ${m}`);
+    console.error(
+      '\nAn interpolation present in en.json must appear in every locale, or its value renders with' +
+        '\nthe number or name silently missing — which no other gate here can see: key parity counts' +
+        '\nkeys, and the untranslated check compares values TO ENGLISH, which a translated-but-broken' +
+        '\nstring passes.',
+    );
+    process.exit(1);
+  }
+  const shrunk = placeholderMismatches.length < knownPlaceholder.size ? ' — some were fixed; --regen-baseline' : '';
+  console.log(
+    `✓ no new placeholder mismatches (${placeholderMismatches.length} known, baseline ${knownPlaceholder.size})${shrunk}`,
+  );
+}
+
 // ── Untranslated-value gate ───────────────────────────────────────────────────────────
 // Key parity counts KEYS, not values, so a locale can hold every key and still show English.
 // That is not hypothetical: `select_your_tables` shipped as the literal "Select your Table(s)"

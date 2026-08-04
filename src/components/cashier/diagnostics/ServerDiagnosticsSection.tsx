@@ -66,7 +66,7 @@ export default function ServerDiagnosticsSection() {
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <Server size={16} style={{ color: 'var(--status-info)' }} />
-        <h4 className={styles.sectionTitle}>{t('server_diagnostics') || 'Server Diagnostics'}</h4>
+        <h4 className={styles.sectionTitle}>{t('server_diagnostics')}</h4>
         <button
           onClick={fetchServerDiagnostics}
           className={styles.iconButton}

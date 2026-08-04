@@ -72,9 +72,7 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({ isOpen, onClose, onAp
             <form onSubmit={handleScan} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ textAlign: 'center', padding: '20px', background: '#f8f9fa', borderRadius: '8px' }}>
                 <QrCode size={64} color="#6c757d" />
-                <p style={{ marginTop: '10px', color: '#6c757d' }}>
-                  {t('cashier.scan_instruction') || 'Scan QR code with handheld scanner or enter manually'}
-                </p>
+                <p style={{ marginTop: '10px', color: '#6c757d' }}>{t('cashier.scan_instruction')}</p>
               </div>
 
               <div className={styles.formGroup}>
@@ -82,7 +80,7 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({ isOpen, onClose, onAp
                   ref={inputRef}
                   type="text"
                   className={styles.input}
-                  placeholder={t('cashier.enter_qr_code') || 'Enter QR Code'}
+                  placeholder={t('cashier.enter_qr_code')}
                   value={qrCode}
                   onChange={(e) => setQrCode(e.target.value)}
                   disabled={isLoading}
@@ -101,7 +99,7 @@ const QRScannerDialog: React.FC<QRScannerDialogProps> = ({ isOpen, onClose, onAp
                   {t('cancel')}
                 </button>
                 <button type="submit" className={styles.confirmButton} disabled={isLoading || !qrCode.trim()}>
-                  {isLoading ? t('validating...') : t('validate')}
+                  {isLoading ? t('validating') : t('validate')}
                 </button>
               </div>
             </form>

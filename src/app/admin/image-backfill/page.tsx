@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import AlertDialog from '@/components/design-system/AlertDialog';
 import BackfillEntryCard from '@/components/admin/image-backfill/BackfillEntryCard';
+import BackfillPassTotals from '@/components/admin/image-backfill/BackfillPassTotals';
 import BackfillSummary from '@/components/admin/image-backfill/BackfillSummary';
 import { useImageBackfill } from '@/hooks/admin/useImageBackfill';
 import styles from './styles.module.css';
@@ -15,10 +16,30 @@ import styles from './styles.module.css';
  * Every tenant arriving with an existing photo library needs this once (RUMI's own was 195 MB).
  * The flow is deliberately two-step: preview, look at the pairs, then apply — because applying
  * overwrites the originals and the only way back is the nightly backup.
+ *
+ * A library larger than one capped window is walked one batch at a time: Preview and Apply always
+ * act on the SAME batch, and Continue is the only thing that moves to the next one — so the
+ * two-step flow holds for every batch rather than just the first.
  */
 function ImageBackfillPage() {
   const { t } = useTranslation();
-  const { report, busy, error, notice, preview, apply, clearPreviews, applyEnabled } = useImageBackfill();
+  const {
+    report,
+    busy,
+    error,
+    notice,
+    preview,
+    continueScan,
+    apply,
+    clearPreviews,
+    startOver,
+    applyEnabled,
+    canContinue,
+    resumed,
+    passWindows,
+    passTotals,
+    passFinished,
+  } = useImageBackfill();
   const [confirming, setConfirming] = useState(false);
 
   return (
@@ -46,13 +67,36 @@ function ImageBackfillPage() {
           >
             {busy === 'apply' ? t('image_backfill_applying', 'Applying…') : t('image_backfill_apply', 'Apply')}
           </button>
+          {/* Rendered only once the report on screen carries a cursor, so on a backend that
+              predates #280 the page is exactly what it was: no dead control offering a
+              continuation the server cannot perform.
+
+              …and while its OWN scan is running, because `continueScan` drops the report as it
+              advances — so `canContinue` goes false the instant the button is clicked. Without the
+              second arm the control vanishes mid-request and the page shows nothing at all for the
+              length of a 500-image server-side decode: no label, no spinner, every button greyed.
+              That is the "looks finished but is not" failure this whole change exists to remove. */}
+          {(canContinue || busy === 'continue') && (
+            <button type="button" className={styles.secondary} onClick={continueScan} disabled={busy !== null}>
+              {busy === 'continue'
+                ? t('image_backfill_scanning', 'Scanning…')
+                : t('image_backfill_continue', 'Continue')}
+            </button>
+          )}
           <button type="button" className={styles.secondary} onClick={clearPreviews} disabled={busy !== null}>
             {t('image_backfill_clear_previews', 'Clear previews')}
           </button>
+          {resumed && (
+            <button type="button" className={styles.secondary} onClick={startOver} disabled={busy !== null}>
+              {t('image_backfill_start_over', 'Start over')}
+            </button>
+          )}
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
         {notice && <p className={styles.notice}>{notice}</p>}
+
+        <BackfillPassTotals windows={passWindows} totals={passTotals} finished={passFinished} />
 
         {report && (
           <>

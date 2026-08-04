@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '@/utils/apiClient';
+import { throwServerRefusal } from '@/utils/apiFormErrors';
 import {
   CreateOrderCommand,
   CreateOrderFromBasketCommand,
@@ -21,8 +22,13 @@ import {
 export async function createOrder(command: CreateOrderCommand): Promise<OrderDto> {
   try {
     const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders', command, { requireAuth: false });
+    // Trigger condition deliberately UNCHANGED (`!data`, not `!success || !data`): #435 is about
+    // what gets thrown, not about when. Tightening it to require `success` is a separate decision
+    // with no evidence behind it — and it cannot be justified by a caller, because this export has
+    // none: `createOrder` is reachable only through the `orderService` barrel, which nothing calls.
+    // Flagged rather than deleted here; removing a dead public export is not #435's business.
     if (!response.data) {
-      throw new Error('Failed to create order');
+      throwServerRefusal(response);
     }
     return response.data;
   } catch (error) {
@@ -41,10 +47,15 @@ export async function createOrderFromBasket(command: CreateOrderFromBasketComman
     const response = await apiClient.post<OrderDtoApiResponse>('/api/Orders/from-basket', command, {
       requireAuth: false,
     });
-    // Surface envelope failures (200 OK with success:false — e.g. the backend's "empty basket"
-    // rejection) with the server's own message rather than a generic fallback.
+    // `throwServerRefusal`, NOT `throw new Error(response.message || …)` (#435). `OrdersController`
+    // returns `Ok(...)` whatever `ApiResponse.Success` says, so a refusal resolves here instead of
+    // throwing — and `ApiResponse.Failure(reason)` leaves `Message` at the literal "Operation
+    // failed" while putting the reason in `errors[0]`. The old line therefore threw a plain Error
+    // saying "Operation failed": `getErrorMessage` returns null for a non-ApiError by design, so
+    // every checkout refusal — a delivery order missing its address included — reached the customer
+    // as the generic "An unexpected error occurred."
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create order');
+      throwServerRefusal(response);
     }
     return response.data;
   } catch (error) {

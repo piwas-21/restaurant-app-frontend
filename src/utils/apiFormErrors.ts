@@ -62,6 +62,8 @@ interface ResolvedFailure {
   readonly success?: boolean;
   readonly message?: string;
   readonly errors?: unknown;
+  /** `ApiResponse.ErrorCode`, present only on `FailureWithCode` responses. */
+  readonly errorCode?: string;
 }
 
 function asResolvedFailure(value: unknown): ResolvedFailure | null {
@@ -121,9 +123,21 @@ function serverAuthoredMessage(error: unknown): string | null {
  * invented 400 would read as an HTTP validation failure to `isValidationError` with no way to tell
  * the two apart; 200 cannot be mistaken for a transport failure by anything. Nothing branches on
  * it today — every caller reads the message.
+ *
+ * `errorCode` is forwarded too (#435). It used to be dropped, which made the recommended migration
+ * off English substring matching — `ApiResponse.FailureWithCode` on the backend, `error.errorCode`
+ * on the front — silently impossible for every refusal that arrives inside a 200: the branch would
+ * compile, never fire, and fall through to the substring match that still happened to work, so the
+ * dead branch stayed invisible until the backend localised its prose. `apiClient` already reads
+ * `data.errorCode` on the thrown (non-2xx) path; this closes the same gap on the resolved one.
  */
-export function throwServerRefusal(response: { message?: string; errors?: unknown }): never {
-  throw new ApiError(200, response.message ?? '', Array.isArray(response.errors) ? response.errors : undefined);
+export function throwServerRefusal(response: { message?: string; errors?: unknown; errorCode?: string }): never {
+  throw new ApiError(
+    200,
+    response.message ?? '',
+    Array.isArray(response.errors) ? response.errors : undefined,
+    response.errorCode,
+  );
 }
 
 /**

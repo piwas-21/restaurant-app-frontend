@@ -5,7 +5,7 @@
  */
 
 import * as orderServiceModule from './orderService';
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, ApiError, getErrorMessage } from '@/utils/apiClient';
 import type {
   CreateOrderCommand,
   CreateOrderFromBasketCommand,
@@ -16,8 +16,14 @@ import type {
 } from '@/types/order';
 import { OrderType } from '@/types/order';
 
-// Mock the apiClient
-jest.mock('@/utils/apiClient');
+// Stub the HTTP surface, keep everything else REAL. A bare `jest.mock('@/utils/apiClient')`
+// automocks, which hollows out `ApiError` — `instanceof` still passes while `message`, `status` and
+// `errors` all read undefined. The envelope-failure test below asserts on the thrown message, so
+// under the automock it could only ever fail. Same form as `reservationService.test.ts` (#435).
+jest.mock('@/utils/apiClient', () => ({
+  ...jest.requireActual('@/utils/apiClient'),
+  apiClient: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(), patch: jest.fn() },
+}));
 
 const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
 
@@ -134,16 +140,23 @@ describe('OrderService', () => {
 
     it('should surface an envelope failure with the server message', async () => {
       const command: CreateOrderFromBasketCommand = { type: OrderType.DineIn };
-      // 200 OK with success:false — the backend's empty-basket rejection shape.
+      // A 200 + success:false refusal. NOT the empty-basket message this fixture used to carry:
+      // that one THROWS `BadRequestException` server-side and arrives as a genuine 400, so it can
+      // never take this branch (#435). The reason also belongs in `errors[]`, not `message` —
+      // `ApiResponse.Failure` leaves `message` at the literal "Operation failed".
       mockApiClient.post.mockResolvedValue({
         success: false,
-        message: 'Cannot create an order from an empty basket.',
+        message: 'Operation failed',
+        errors: ['Delivery address is required for delivery orders'],
         data: undefined,
       } as OrderDtoApiResponse);
 
-      await expect(orderServiceModule.createOrderFromBasket(command)).rejects.toThrow(
-        'Cannot create an order from an empty basket.',
-      );
+      // Read through `getErrorMessage`, NOT `.rejects.toThrow(...)`: `toThrow` matches `.message`,
+      // which is the literal "Operation failed" — the exact field #435 established a caller must
+      // not read. `getErrorMessage` prefers `errors[]`, which is where the reason actually is.
+      const error = await orderServiceModule.createOrderFromBasket(command).catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(ApiError);
+      expect(getErrorMessage(error)).toBe('Delivery address is required for delivery orders');
     });
   });
 

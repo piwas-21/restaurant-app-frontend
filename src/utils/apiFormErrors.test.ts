@@ -16,7 +16,7 @@ import {
  * service stops having to invent `new Error(response.message || '<English>')` at that boundary.
  */
 describe('throwServerRefusal', () => {
-  const captured = (response: { message?: string; errors?: unknown }): ApiError => {
+  const captured = (response: { message?: string; errors?: unknown; errorCode?: string }): ApiError => {
     try {
       throwServerRefusal(response);
     } catch (error) {
@@ -35,6 +35,20 @@ describe('throwServerRefusal', () => {
 
   it('leaves the message EMPTY rather than inventing English', () => {
     expect(captured({}).message).toBe('');
+  });
+
+  // #435: `errorCode` used to be dropped here, which made the recommended migration off English
+  // substring matching impossible for every refusal that arrives inside a 200 — the branch would
+  // compile, never fire, and fall through to a substring match that still happened to work, so the
+  // dead branch stayed invisible until the backend localised its prose.
+  it('forwards errorCode, so a caller can branch on it instead of on English prose', () => {
+    const error = captured({ message: 'Operation failed', errorCode: 'ModuleNotEnabled' });
+
+    expect(error.errorCode).toBe('ModuleNotEnabled');
+  });
+
+  it('leaves errorCode undefined when the response carries none', () => {
+    expect(captured({ message: 'Operation failed' }).errorCode).toBeUndefined();
   });
 
   it('uses status 200, because 200 is what the transport actually returned', () => {

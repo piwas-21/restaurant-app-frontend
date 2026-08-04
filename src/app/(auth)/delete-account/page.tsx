@@ -56,14 +56,18 @@ function DeleteAccountContent() {
         setErrorMessage(serverMessages(response)[0] ?? t('deletion_failed', 'Failed to delete account.'));
       }
     } catch (error) {
-      // #414: `confirmAccountDeletion` goes through `apiClient` now. The handler's own refusals
-      // still resolve into the branch above — the controller returns `Ok(...)` even for a failure
-      // envelope, so an expired deletion token is a 200 — but a transport-level failure now arrives
-      // here as an `ApiError` carrying the server's sentence rather than being flattened into the
-      // generic one. This link is one-shot and emailed, so the reason is the whole fix.
+      // #414: `confirmAccountDeletion` goes through `apiClient` now, so a non-2xx arrives as an
+      // `ApiError` carrying its status instead of being flattened into the generic sentence.
       //
-      // A dead network (`TypeError`) or a non-JSON body (`SyntaxError`) still yields nothing
-      // server-authored, and those texts must not be rendered — hence the fallback.
+      // The reasons a guest actually sees are NOT here: all four of
+      // `ConfirmAccountDeletionCommandHandler`'s refusals — including the expired-token one this
+      // one-shot emailed link exists to explain — are `ApiResponse.Failure` returned inside
+      // `Ok(...)`, i.e. HTTP 200, and stay on the branch above. That branch is the load-bearing one.
+      //
+      // This catch takes a 500 (the middleware's own English sentence), a validation 400, or a dead
+      // network. Checked, not assumed: this handler sends NO email, so the 502 an earlier draft of
+      // this comment named cannot occur. A `TypeError`/`SyntaxError` authors nothing showable and
+      // those texts must not be rendered — hence the fallback.
       setStatus('error');
       setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     }

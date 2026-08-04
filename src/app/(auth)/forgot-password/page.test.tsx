@@ -67,9 +67,11 @@ describe('ForgotPasswordPage', () => {
     expect(screen.queryByText('forgot_password_sent_title')).not.toBeInTheDocument();
   });
 
-  it('prints a refusal that RESOLVES with success:false (E9)', async () => {
-    // The controller does `return Ok(result)`, so a handler-level refusal is an HTTP 200 carrying a
-    // failure envelope — that path survives #414 and still lands on the resolved branch.
+  it('reports a success:false envelope instead of saying "check your inbox"', async () => {
+    // Pins the GUARD, and says so: `ForgotPasswordCommandHandler` has no `Failure` return, so no
+    // producer emits this shape today. It is here because reporting a `success:false` as "sent" is
+    // the one outcome that must not happen — the user would wait for an email nobody sent. The
+    // sentence below is a stand-in, not a claim that this endpoint emits it.
     mockForgotPassword.mockResolvedValue({
       success: false,
       message: 'Too many requests. Please slow down and try again shortly.',

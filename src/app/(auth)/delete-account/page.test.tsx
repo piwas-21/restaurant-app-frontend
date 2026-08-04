@@ -65,17 +65,19 @@ describe('DeleteAccountPage — the refusal reason (E9)', () => {
     expect(screen.queryByText('Failed to fetch')).not.toBeInTheDocument();
   });
 
-  // #414. The handler's own refusals still RESOLVE — the controller returns `Ok(...)` even for a
-  // failure envelope, so an expired deletion token is a 200 and stays on the branch above. What
-  // changed is that a transport-level failure now arrives as an `ApiError` carrying the server's
-  // sentence rather than being flattened into the generic one. This link is one-shot and emailed,
-  // so the reason is the whole fix.
+  // #414. All four of the handler's refusals — including the expired-token one this link exists to
+  // explain — are `Failure` inside `Ok(...)`, so they RESOLVE and are covered by the tests above.
+  // What changed is that a non-2xx now arrives carrying the server's sentence instead of being
+  // flattened into the generic one.
+  //
+  // A 500, because that is what this endpoint can raise. NOT a 502: `ConfirmAccountDeletionCommand`
+  // sends no email, so `EmailDeliveryException` cannot reach the middleware from here.
   it('prints a server-authored reason that arrives as a THROWN failure', async () => {
-    mockConfirm.mockRejectedValue(new ApiError(502, 'The email could not be delivered. Please try again later.'));
+    mockConfirm.mockRejectedValue(new ApiError(500, 'An error occurred while processing your request'));
     render(<DeleteAccountPage />);
     fireEvent.click(confirmButton());
 
-    expect(await screen.findByText(/could not be delivered/)).toBeInTheDocument();
+    expect(await screen.findByText(/An error occurred while processing your request/)).toBeInTheDocument();
     expect(screen.queryByText('An unexpected error occurred.')).not.toBeInTheDocument();
   });
 

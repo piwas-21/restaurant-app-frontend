@@ -105,9 +105,11 @@
  *   src/lib                   1   `analytics`
  *
  * (`src/components` no longer appears outside `admin`: `DeleteAccountSection` left with the other
- * two in #414. Areas sum to 16 + 5 + 4 + 3 + 1 + 1 + 1 = 31, re-derived from the gate's own
- * collection — the grep you would reach for instead over-counts, because this header talks about
- * `} catch {` more often than the tree contains it.)
+ * two in #414. The rows sum, in table order, to 12 + 5 + 4 + 4 + 3 + 1 + 1 + 1 = 31 — eight terms
+ * for eight rows; an earlier draft wrote seven by silently merging the two `src/hooks` rows into a
+ * 16 that appears nowhere in the table. Re-derived from the gate's OWN collection: the grep you
+ * would reach for instead returns 36, because this header talks about `} catch {` more often than
+ * the tree contains it.)
  *
  * `FidelityPointsCheckout` was in that list on the first draft of this paragraph and is not any
  * more, which is the point of writing the reason down rather than the verdict. Its ignore was

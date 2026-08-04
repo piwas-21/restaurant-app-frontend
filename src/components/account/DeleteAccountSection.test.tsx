@@ -51,13 +51,17 @@ describe('DeleteAccountSection — the refusal reason (E9)', () => {
   // #414. `requestAccountDeletion` used to be a raw `fetch` returning `response.json()` for every
   // status, so a non-2xx never threw with anything readable and this catch could only ever print the
   // generic sentence. It goes through `apiClient` now, so a thrown failure carries the server's own
-  // words — and the ones that reach here are the actionable ones.
+  // words.
+  //
+  // A 500, deliberately — it is what this endpoint can actually raise. A 429 is not: `UserController`
+  // rate-limits `register` only. Nor a 502: the handler treats its email send as non-fatal in its own
+  // catch. Mocking either would pin a shape no producer emits.
   it('prints a server-authored reason that arrives as a THROWN failure', async () => {
-    mockRequest.mockRejectedValue(new ApiError(429, 'Too many requests. Please slow down and try again shortly.'));
+    mockRequest.mockRejectedValue(new ApiError(500, 'An error occurred while processing your request'));
     render(<DeleteAccountSection />);
     fireEvent.click(deleteButton());
 
-    expect(await screen.findByText(/Too many requests/)).toBeInTheDocument();
+    expect(await screen.findByText(/An error occurred while processing your request/)).toBeInTheDocument();
     expect(screen.queryByText('An unexpected error occurred.')).not.toBeInTheDocument();
   });
 

@@ -9,9 +9,19 @@ import type { ApiResponse } from '@/types/user';
  * `apiClient` imports `refreshToken` from here to retry a 401; the three helpers below import
  * `apiClient` to get a status-carrying `ApiError`. Neither module touches the other's bindings at
  * evaluation time — only inside function bodies — so the cycle resolves whichever loads first.
+ * (`refreshToken` is a hoisted function declaration, so it is defined even in a half-evaluated
+ * module; `apiClient` is a `const` object literal, which is why nothing here may reach for it at
+ * the top level.)
  *
- * `refreshToken` and `login` must stay raw `fetch`: routing `refreshToken` through `apiClient`
- * would re-enter the 401 handler that calls it and recurse.
+ * Two helpers must stay raw `fetch`, for DIFFERENT reasons — the recursion argument covers only the
+ * first:
+ *
+ *   - `refreshToken`, because `apiClient`'s 401 branch calls it. Routing it back through would not
+ *     merely recurse: `inFlightRefresh` collapses concurrent callers onto one promise, so the
+ *     retry would await the very promise it is running inside. A deadlock, not a stack overflow.
+ *   - `login`, because `apiClient` attaches `Authorization` from whatever token is in storage. A
+ *     stale one turns a wrong-password 401 into a refresh attempt and, when that fails,
+ *     `clearAuthAndRedirect()` — navigating away from the login page mid-sign-in.
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -309,10 +319,11 @@ export async function verifyEmail(formData: VerifyEmailCommand) {
 export async function requestAccountDeletion(): Promise<ApiResponse<string>> {
   // `requireAuth` so a missing token fails HERE rather than as an anonymous request the server
   // answers with a 401 the client then has to interpret. The endpoint is `[Authorize]`, and its
-  // expired-token 401 is the whole of #414: `apiClient` refreshes and retries, and signs the
-  // customer out to the login route when the session is genuinely gone. That redirect IS the
-  // answer they needed — the raw `fetch` discarded the status and left them re-reading
-  // "an unexpected error" and retrying forever.
+  // expired-token 401 is the whole of #414: `apiClient` refreshes and retries, and on a genuinely
+  // dead session clears the stored tokens and navigates to `/` — the HOME page, not `/auth/login`
+  // (see `clearAuthAndRedirect`). That is still the answer the customer needed, because it ends the
+  // dead session and puts a sign-in in reach; the raw `fetch` discarded the status entirely and
+  // left them re-reading "an unexpected error" and retrying forever.
   return apiClient.post<ApiResponse<string>>('/api/User/request-deletion', undefined, { requireAuth: true });
 }
 

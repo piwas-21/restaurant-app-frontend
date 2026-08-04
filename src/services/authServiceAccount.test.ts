@@ -5,10 +5,16 @@ import { confirmAccountDeletion, forgotPassword, requestAccountDeletion } from '
 // here, the resulting `ApiError` keeps only its prototype — `instanceof` passes while `status`,
 // `errors` and `errorCode` all read `undefined` and the constructor body never runs. Every
 // assertion below would still be green while testing nothing, in precisely the dimension #414 is
-// about (the status). `userService.test.ts` hit the same trap from the other side, where automocking
-// turned `isAuthError` into a `jest.fn()` returning `undefined`, and works around it with a
-// `jest.requireActual` factory. Spying is the smaller version of that: the module stays entirely
-// real and only the transport is replaced.
+// about (the status). `userService.test.ts` hit the same trap from the other side, where
+// automocking turned `isAuthError` into a `jest.fn()` returning `undefined`, and works around it
+// with a `jest.requireActual` factory.
+//
+// What this does NOT do is keep the real module: `__mocks__/@/utils/apiClient.ts` shadows
+// `@/utils/apiClient` tree-wide with no `jest.mock()` call, so `apiClient.post` is already a
+// `jest.fn()` before the spy and `ApiError` here is the hand-written double. The double mirrors the
+// real constructor faithfully, which is what makes `.status` readable and these assertions real —
+// but nothing in this file exercises `apiClient`'s own 401-refresh, redirect, or error
+// construction. Those are covered by `apiClientRequest.test.ts` against the real module.
 const mockedPost = jest.spyOn(apiClient, 'post');
 
 /**

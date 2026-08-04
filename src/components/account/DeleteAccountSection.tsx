@@ -36,20 +36,27 @@ export default function DeleteAccountSection() {
         );
       }
     } catch (error) {
-      // #414 closed the hole this catch used to document. `requestAccountDeletion` now goes through
-      // `apiClient`, so a non-2xx arrives as an `ApiError` carrying its status:
+      // #414 closed the hole this catch used to document. `requestAccountDeletion` goes through
+      // `apiClient` now, so a non-2xx arrives as an `ApiError` carrying its status.
       //
-      //   - an EXPIRED TOKEN (the endpoint is `[Authorize]`) is refreshed and retried, and on a
-      //     genuinely dead session `apiClient` signs the customer out and sends them to the login
-      //     route. They no longer read "an unexpected error" and retry forever. Nothing is rendered
-      //     from here on that path because the page has already navigated away;
-      //   - anything the SERVER authored — a 502's "The email could not be delivered…", a rate
-      //     limiter's "Too many requests…" — is now shown instead of being replaced by the generic
-      //     sentence, which is the difference between retrying and giving up.
+      // What actually reaches here, checked against the endpoint rather than assumed — the first
+      // draft of this comment named a 429 and a 502, and NEITHER can occur:
       //
-      // `serverMessages` still yields nothing for a dead network (`TypeError`) or a body-less 401,
-      // and those texts are client-authored and must not be rendered — so the translated fallback
-      // remains, for exactly the cases where it is the honest answer.
+      //   - an EXPIRED TOKEN (the endpoint is `[Authorize]`). This is the #414 case. `apiClient`
+      //     refreshes and retries; on a dead session it clears the tokens and navigates to `/`.
+      //     `ApiError(401, '')` carries no words, so the fallback below is what would render — and
+      //     assigning `location.href` does not halt this task, so React does commit that state
+      //     before the page unloads;
+      //   - a 500, whose message is the middleware's own English sentence;
+      //   - a dead network (`TypeError`), which authors nothing showable.
+      //
+      // NOT a 429: `UserController` rate-limits `register` only. NOT a 502: the handler wraps its
+      // email send in its own catch and treats delivery as non-fatal, so `EmailDeliveryException`
+      // never escapes. The handler's own refusal ("User not found") is an HTTP 200 and stays on the
+      // branch above.
+      //
+      // `serverMessages` yields nothing for the `TypeError` or the body-less 401, so the translated
+      // fallback covers exactly the cases where it is the honest answer.
       setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     } finally {
       setIsDeleting(false);

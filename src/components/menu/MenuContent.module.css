@@ -7,8 +7,7 @@
   gap: 2rem;
   margin-bottom: 3rem;
   max-width: 1400px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   list-style: none;
   padding: 0;
   margin-top: 0;
@@ -20,8 +19,7 @@
   gap: 2rem;
   margin-bottom: 3rem;
   max-width: 1400px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
 }
 
 .errorMessage {

@@ -67,7 +67,7 @@
 }
 
 .selectionCount {
-  margin-left: 1rem;
+  margin-inline-start: 1rem;
   color: var(--color-gold-500);
   font-weight: normal;
   font-size: 0.9rem;
@@ -129,7 +129,7 @@
   }
 
   .selectionCount {
-    margin-left: 0.75rem;
+    margin-inline-start: 0.75rem;
     font-size: 0.85rem;
   }
 }
@@ -139,7 +139,7 @@
     padding: 0.5rem 0;
     min-height: auto;
     width: 100vw;
-    margin-left: calc(-50vw + 50%);
+    margin-inline-start: calc(-50vw + 50%);
   }
 
   .content {
@@ -169,7 +169,7 @@
   }
 
   .selectionCount {
-    margin-left: 0.25rem;
+    margin-inline-start: 0.25rem;
     font-size: 0.75rem;
   }
 }

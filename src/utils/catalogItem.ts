@@ -1,4 +1,12 @@
-import type { ItemAvailability, MenuItem, MenuBundleItem, CatalogItem, DetailedProduct } from '@/types/menu';
+import type {
+  ItemAvailability,
+  MenuItem,
+  MenuBundleItem,
+  CatalogItem,
+  DetailedProduct,
+  FeaturedSpecial,
+  PriceEditability,
+} from '@/types/menu';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 
 /**
@@ -20,8 +28,9 @@ export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
     price: item.price,
     isBundle: false,
     // Inline price-edit is safe only when the card price IS the editable base price — i.e. no
-    // variations (a variation product's displayed price is a derived "from" value).
-    priceEditable: (item.variations?.length ?? 0) === 0,
+    // variations (a variation product's displayed price is a derived "from" value). The reason
+    // travels with the verdict so the card can SAY why rather than rendering nothing.
+    priceEditability: (item.variations?.length ?? 0) === 0 ? 'editable' : 'variations',
     allergens: item.allergens,
     isSpecial: item.isSpecial,
     isAvailable: item.isAvailable,
@@ -49,11 +58,60 @@ export function toCatalogItemFromBundle(bundle: MenuBundleItem): CatalogItem {
     images: bundle.images,
     price: bundle.basePrice,
     isBundle: true,
+    // Was simply absent, which read as `undefined` and made the editor render nothing at all for
+    // every combo — indistinguishable from a bug, and the half of the report that said "SOME menu
+    // items don't have the button". Stated explicitly now, with the reason.
+    priceEditability: 'bundle',
     isSpecial: bundle.isSpecial,
     isAvailable: bundle.isAvailable,
     bundleItemNames: bundleItemNames && bundleItemNames.length > 0 ? bundleItemNames : undefined,
     availability: bundle.availability,
   };
+}
+
+/**
+ * The featured special as a `CatalogItem`, so the hero can render the same admin controls the
+ * catalog cards do (`AdminMenuCardControls` + `AdminPriceEditor`). Before this, an admin could edit
+ * the price of every item on the menu page EXCEPT the one the page is promoting.
+ *
+ * Only the fields those two controls read are mapped — this is not a card view-model, and the hero
+ * renders its own body from the `FeaturedSpecial` directly.
+ *
+ * The `priceEditability` derivation is the whole reason this is a separate mapper rather than a
+ * cast. It has to be provable from what the banner's payload actually carries:
+ *
+ * - variations present → `'variations'`, exactly as a product card derives it (the displayed price
+ *   is a derived "from" value; the real prices live per variation).
+ * - `type === 'menu'` → `'bundle'`: a combo. Nothing stops one being featured.
+ * - `type` absent → `'unknownKind'`. Against a backend older than #285 there is no way to tell, and
+ *   the wrong guess writes through the wrong validator. Refusing WITH the reason is the E3 rule:
+ *   an absence with no explanation reads as a bug, which is how this was reported in the first place.
+ */
+export function toCatalogItemFromFeaturedSpecial(special: FeaturedSpecial): CatalogItem {
+  return {
+    // `kind`/`isBundle` DO fall back to "product" when the type is absent, where `priceEditability`
+    // refuses to. The difference is what each is used for: nothing on the hero reads these two (the
+    // admin controls take the id and the editability verdict), so they carry the shape's default
+    // rather than a decision. Anything that starts reading them must revisit that.
+    kind: special.type === 'menu' ? 'bundle' : 'product',
+    id: special.id,
+    name: special.name,
+    description: special.description,
+    content: special.content,
+    imageUrl: special.imageUrl,
+    images: special.images,
+    price: special.basePrice,
+    isBundle: special.type === 'menu',
+    priceEditability: resolveFeaturedPriceEditability(special),
+    allergens: special.allergens,
+    availability: special.availability,
+  };
+}
+
+function resolveFeaturedPriceEditability(special: FeaturedSpecial): PriceEditability {
+  if ((special.variations?.length ?? 0) > 0) return 'variations';
+  if (special.type === undefined) return 'unknownKind';
+  return special.type === 'menu' ? 'bundle' : 'editable';
 }
 
 /**

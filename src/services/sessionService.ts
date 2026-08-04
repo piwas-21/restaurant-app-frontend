@@ -42,13 +42,14 @@ function generateUUID(): string {
 function isSessionExpired(expiryDate: string | null): boolean {
   if (!expiryDate) return true;
 
-  try {
-    const expiry = new Date(expiryDate);
-    const now = new Date();
-    return now >= expiry;
-  } catch {
-    return true;
-  }
+  // The `try/catch` this replaced could not fire: `new Date(str)` does NOT throw on garbage, it
+  // returns `Invalid Date`. So the catch's `return true` was unreachable and the LIVE path ran
+  // `now >= Invalid Date`, which is a NaN comparison and therefore `false` — i.e. a corrupted or
+  // tampered `rumi_session_expiry` read as NOT EXPIRED, and the 7-day window silently became
+  // unbounded. Since the session id is the only thing authorising an anonymous guest's basket
+  // (see this file's header), the unreadable case has to be checked explicitly, not caught.
+  const expiry = new Date(expiryDate).getTime();
+  return Number.isNaN(expiry) || Date.now() >= expiry;
 }
 
 /**
@@ -173,6 +174,8 @@ export function getSessionExpiryDate(): Date | null {
 
     return new Date(expiryDate);
   } catch {
+    // IGNORED ON PURPOSE: `localStorage` throws in private-browsing and blocked-storage modes.
+    // "no expiry recorded" is the honest answer and every caller already handles `null`.
     return null;
   }
 }

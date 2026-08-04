@@ -1,6 +1,18 @@
-import { toCatalogItemFromProduct, toCatalogItemFromBundle, toBundleItemFromDetail } from './catalogItem';
+import {
+  toCatalogItemFromProduct,
+  toCatalogItemFromBundle,
+  toBundleItemFromDetail,
+  toCatalogItemFromFeaturedSpecial,
+} from './catalogItem';
 import { FALLBACK_IMAGE } from './imageHelpers';
-import type { DetailedProduct, MenuItem, MenuBundleItem, MenuDefinition, MenuSection } from '@/types/menu';
+import type {
+  DetailedProduct,
+  MenuItem,
+  MenuBundleItem,
+  MenuDefinition,
+  MenuSection,
+  FeaturedSpecial,
+} from '@/types/menu';
 import { OrderType } from '@/types/order';
 
 const content = (name: string, description = '') => ({ en: { name, description, ingredient: '' } });
@@ -43,7 +55,7 @@ describe('toCatalogItemFromProduct', () => {
       imageCount: undefined,
       price: 12.5,
       isBundle: false,
-      priceEditable: true,
+      priceEditability: 'editable',
       allergens: ['gluten'],
       isSpecial: true,
       isAvailable: true,
@@ -59,7 +71,21 @@ describe('toCatalogItemFromProduct', () => {
       variations: [{ name: 'Large', isActive: true, priceModifier: 3, displayOrder: 1 }],
     };
 
-    expect(toCatalogItemFromProduct(withVariations).priceEditable).toBe(false);
+    expect(toCatalogItemFromProduct(withVariations).priceEditability).toBe('variations');
+  });
+
+  // A combo used to leave the field UNSET, which reads as `undefined` — also `!== 'editable'`, but
+  // with no reason attached, so the card rendered nothing at all. That was half of the reported
+  // "some menu items have no edit-price button".
+  it('marks a combo as locked-because-bundle rather than leaving it unset', () => {
+    const bundle = toCatalogItemFromBundle({
+      id: 'b1',
+      name: 'Lunch deal',
+      basePrice: 19,
+      images: [],
+    } as never);
+
+    expect(bundle.priceEditability).toBe('bundle');
   });
 
   it('carries the card summary fields a product renders', () => {
@@ -228,5 +254,110 @@ describe('toBundleItemFromDetail', () => {
 
   it('returns null for a menu-type product with no definition to render', () => {
     expect(toBundleItemFromDetail({ ...detail, menuDefinition: undefined })).toBeNull();
+  });
+});
+
+/**
+ * The featured banner's mapper. Only `priceEditability` gets real scrutiny — it is the field that
+ * decides whether an admin is offered a write, and the banner's payload does not carry enough to
+ * derive it the way a card does.
+ *
+ * A combo is not its own type: it is a `type: 'menu'` product, and nothing in the backend's
+ * `SetFeaturedSpecialCommand` stops one being featured. Guessing "no variations ⇒ plain product"
+ * would therefore route a combo to the product price endpoint, whose validator accepts `>= 0` where
+ * the combo's own editor requires `> 0`.
+ */
+describe('toCatalogItemFromFeaturedSpecial', () => {
+  const special = {
+    id: 'f1',
+    name: 'Adana Kebab',
+    description: 'Charcoal-grilled',
+    basePrice: 16.5,
+    featuredDate: '2026-08-01',
+    preparationTimeMinutes: 22,
+    variations: [],
+    suggestedSideItems: [],
+    detailedIngredients: [],
+    type: 'mainItem',
+  } as unknown as FeaturedSpecial;
+
+  it('maps a plain product with no variations as editable', () => {
+    const result = toCatalogItemFromFeaturedSpecial(special);
+
+    expect(result.priceEditability).toBe('editable');
+    expect(result.kind).toBe('product');
+    expect(result.isBundle).toBe(false);
+    expect(result.price).toBe(16.5);
+  });
+
+  it('refuses a variation product, naming variations — the card price is a derived "from" value', () => {
+    const result = toCatalogItemFromFeaturedSpecial({
+      ...special,
+      variations: [{ id: 'v1', name: 'Single', priceModifier: 0, finalPrice: 16.5, isActive: true, displayOrder: 1 }],
+    } as unknown as FeaturedSpecial);
+
+    expect(result.priceEditability).toBe('variations');
+  });
+
+  it('refuses a featured COMBO — the case the banner could not see before backend #285', () => {
+    const result = toCatalogItemFromFeaturedSpecial({ ...special, type: 'menu' } as unknown as FeaturedSpecial);
+
+    expect(result.priceEditability).toBe('bundle');
+    expect(result.kind).toBe('bundle');
+    expect(result.isBundle).toBe(true);
+  });
+
+  it('refuses when the backend sent no type at all, rather than assuming a plain product', () => {
+    // The additive-field ordering case: a frontend released ahead of backend #285. Assuming
+    // `'editable'` here is exactly the wrong guess — it is the combo that gets written wrongly.
+    const result = toCatalogItemFromFeaturedSpecial({ ...special, type: undefined } as unknown as FeaturedSpecial);
+
+    expect(result.priceEditability).toBe('unknownKind');
+  });
+
+  it('prefers the variations refusal over the unknown-kind one — it is the provable statement', () => {
+    const result = toCatalogItemFromFeaturedSpecial({
+      ...special,
+      type: undefined,
+      variations: [{ id: 'v1', name: 'Single', priceModifier: 0, finalPrice: 16.5, isActive: true, displayOrder: 1 }],
+    } as unknown as FeaturedSpecial);
+
+    expect(result.priceEditability).toBe('variations');
+  });
+  it('treats a special with no variations array at all as having none', () => {
+    // The banner's DTO declares `variations` required, but an older backend can omit it — and
+    // `undefined.length` is the difference between a refusal and a crash.
+    const result = toCatalogItemFromFeaturedSpecial({
+      ...special,
+      variations: undefined,
+    } as unknown as FeaturedSpecial);
+
+    expect(result.priceEditability).toBe('editable');
+  });
+});
+
+describe('the nullish arms the mappers lean on', () => {
+  it('bundle: a section with no items list contributes nothing rather than throwing', () => {
+    const result = toCatalogItemFromBundle({
+      id: 'b9',
+      name: 'Combo',
+      basePrice: 12,
+      menuDefinition: menuDefinition([{ id: 's1', name: 'Main' } as unknown as MenuSection]),
+    } as unknown as MenuBundleItem);
+
+    expect(result.bundleItemNames).toBeUndefined();
+  });
+
+  it('detail: a locale entry with no description is normalised, not widened', () => {
+    const result = toBundleItemFromDetail({
+      id: 'd1',
+      type: 'menu',
+      name: 'Combo',
+      basePrice: 12,
+      content: undefined,
+      menuDefinition: menuDefinition([]),
+    } as unknown as DetailedProduct);
+
+    expect(result?.content).toEqual({});
   });
 });

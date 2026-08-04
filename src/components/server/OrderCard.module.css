@@ -5,7 +5,10 @@
   padding: 1rem;
   margin-bottom: 1rem;
   transition: all 0.2s ease;
-  border-left: 4px solid var(--border-color);
+  /* Status accent rule. The six `.status*` rules below repaint ONLY its colour, so the width
+     here and all six colours are one set and convert together — a half-converted pair splits
+     the stripe across two edges in `ar` (the defect review caught in #390). */
+  border-inline-start: 4px solid var(--border-color);
 }
 
 .card:hover {
@@ -14,29 +17,29 @@
 
 /* Status border colors */
 .statusPending {
-  border-left-color: #f59e0b;
+  border-inline-start-color: #f59e0b;
 }
 
 .statusConfirmed {
-  border-left-color: #3b82f6;
+  border-inline-start-color: #3b82f6;
 }
 
 .statusPreparing {
-  border-left-color: #8b5cf6;
+  border-inline-start-color: #8b5cf6;
 }
 
 .statusReady {
-  border-left-color: #10b981;
+  border-inline-start-color: #10b981;
   animation: pulseGreen 2s ease-in-out infinite;
 }
 
 .statusCompleted {
-  border-left-color: #6b7280;
+  border-inline-start-color: #6b7280;
   opacity: 0.7;
 }
 
 .statusCancelled {
-  border-left-color: #ef4444;
+  border-inline-start-color: #ef4444;
   opacity: 0.6;
 }
 
@@ -207,3 +210,19 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* NO `.statusInTransit` / `.statusDelivered` here, deliberately — `orderStatusMeta` names eight
+   modifier classes and this module defines six, so those two statuses keep the card's neutral
+   default border. That is not an oversight, and adding them was tried and reverted:
+ *
+ * this file's six hard-coded hexes ARE the six `--status-*` token values, assigned to DIFFERENT
+ * statuses. `.statusReady` is #10b981, which is `--status-confirmed`; `.statusConfirmed` is
+ * #3b82f6, which is `--status-preparing`. So there is no token that does not collide: giving
+ * in-transit `--status-confirmed` paints it the same green as ready-for-pickup, and on a waiter's
+ * screen "collect it" and "already gone" are the one distinction that border exists to carry.
+ *
+ * The real fix is to repaint all six onto tokens so one system governs the file — which also ends
+ * the contradiction with `getOrderStatusColor`, where the same statuses have different hues. That
+ * changes colours on a live staff screen, so it is a follow-up, not a migration. Until then the
+ * STATUS BADGE carries these two, and it now reads a real translation instead of the raw enum.
+ */

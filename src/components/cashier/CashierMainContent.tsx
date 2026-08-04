@@ -4,6 +4,7 @@ import { OrderDto } from '@/types/order';
 import OrderList from './OrderList';
 import OrderDetails from './OrderDetails';
 import styles from './CashierMainContent.module.css';
+import { ORDER_PAYMENT_STATUSES, paymentStatusLabel } from '@/lib/paymentStatus';
 
 interface CashierMainContentProps {
   filteredOrders: OrderDto[];
@@ -92,11 +93,14 @@ export default function CashierMainContent({
                   onChange={(e) => onPaymentStatusFilterChange(e.target.value)}
                   title={t('cashier.filter_payment_status') || 'Filter by payment status'}
                 >
-                  <option value="all">All Payment Statuses</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Paid">Paid</option>
-                  <option value="PartiallyPaid">Partially Paid</option>
-                  <option value="Refunded">Refunded</option>
+                  {/* From ORDER_PAYMENT_STATUSES, not a hand-written list: this one offered `Paid`,
+                      which the backend never emits, so selecting it matched no order at all. */}
+                  <option value="all">{t('all_payment_statuses', 'All Payment Statuses')}</option>
+                  {ORDER_PAYMENT_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {paymentStatusLabel(status, t)}
+                    </option>
+                  ))}
                 </select>
 
                 <select

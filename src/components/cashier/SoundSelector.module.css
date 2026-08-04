@@ -1,7 +1,8 @@
 .dropdown {
   position: absolute;
   top: 100%;
-  right: 0;
+  /* Hangs off the trailing edge of its trigger. */
+  inset-inline-end: 0;
   margin-top: 5px;
   background-color: var(--card-background);
   border: 1px solid var(--card-border);
@@ -97,7 +98,8 @@
 
 .repeatContent {
   flex: 1;
-  margin-right: 12px;
+  /* Clears the toggle switch that sits after it in the row. */
+  margin-inline-end: 12px;
 }
 
 .repeatTitle {
@@ -120,7 +122,8 @@
 .repeatDesc {
   font-size: 12px;
   color: var(--text-secondary);
-  margin-left: 28px;
+  /* Indents under the title's text, past the 20px icon + 8px gap above it. */
+  margin-inline-start: 28px;
 }
 
 .toggleSwitch {
@@ -137,20 +140,33 @@
   background-color: #9c27b0;
 }
 
+/* The knob TRAVELS on its own inset (2px -> 26px), so the inset and the `transition` naming it
+   are one declaration and must convert TOGETHER. Measured in Chromium, not argued: with
+   `inset-inline-start` authored and `transition: left` left behind, the knob still animates under
+   `dir="ltr"` (logical insets resolve to physical at computed-value time, so `left` is still the
+   property changing) but TELEPORTS under `dir="rtl"`, where the author's inset now maps to
+   `right` and `left` never changes — `getAnimations()` drops from 3 to 1. Naming both logically
+   animates correctly in both directions. This shape is now the one to copy, transition included:
+   E8 slice 3b moved `OrderTypeManager`'s and `CookieSettingsModal`'s knobs off
+   `transform: translateX()` onto their own inset for exactly this reason. On a language switch
+   an inset flip is INSTANT — `left` goes from a length to `auto`, which is not an interpolable
+   pair, so nothing runs — where a transform reading `--dir` interpolates the knob across its
+   track (measured: a running `transform` stepping 24 -> 23.4 -> … -> 7.5). The knob does still
+   move on the flip, 2px <-> 26px here; a mirrored toggle has to. */
 .toggleKnob {
   position: absolute;
   top: 2px;
-  left: 2px;
+  inset-inline-start: 2px;
   width: 20px;
   height: 20px;
   background-color: white;
   border-radius: 50%;
-  transition: left 0.3s ease;
+  transition: inset-inline-start 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggleSwitchActive .toggleKnob {
-  left: 26px;
+  inset-inline-start: 26px;
 }
 
 .footer {

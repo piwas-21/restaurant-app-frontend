@@ -5,6 +5,7 @@ import TaxConfigurationFormModal from './tax-configuration/TaxConfigurationFormM
 import { adminTaxConfigurationService } from '@/services/adminTaxConfigurationService';
 import type { TaxConfiguration } from '@/services/adminTaxConfigurationService';
 import { OrderType } from '@/types/order';
+import { ApiError } from '@/utils/apiClient';
 
 // Stub react-i18next so t(key, fallback) renders the fallback string (the
 // components use the t('key', 'Default') pattern) without an i18next provider.
@@ -101,11 +102,98 @@ describe('TaxConfigurationManager', () => {
 
   it('shows an error toast when the mount fetch rejects', async () => {
     mockGetAll.mockReset();
+    // A plain Error, not an `ApiError` — nothing the server authored, so the contextual fallback is
+    // correct here and this doubles as the E9 fallback case.
     mockGetAll.mockRejectedValue(new Error('boom'));
     render(<TaxConfigurationManager />);
     await waitFor(() =>
       expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Failed to load tax configurations', { variant: 'error' }),
     );
+  });
+
+  /**
+   * E9 (#383): the catches here were unbound, so the server's own diagnosis was discarded and every
+   * failure read as the same contextual sentence. A refused tax delete in particular names what
+   * still references the rate, which "Failed to delete tax configuration" cannot.
+   */
+  describe('E9 — the server gets to say why', () => {
+    it("surfaces the server's sentence instead of the contextual one when the load fails", async () => {
+      mockGetAll.mockReset();
+      mockGetAll.mockRejectedValue(new ApiError(503, 'Tax service is being reconfigured'));
+      render(<TaxConfigurationManager />);
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Tax service is being reconfigured', { variant: 'error' }),
+      );
+      expect(mockEnqueueSnackbar).not.toHaveBeenCalledWith('Failed to load tax configurations', {
+        variant: 'error',
+      });
+    });
+
+    it("prefers the server's per-rule errors[] on a refused toggle", async () => {
+      mockUpdate.mockRejectedValue(
+        new ApiError(409, 'Update failed', ['Tax is referenced by 12 open orders', 'Disable it at close of business']),
+      );
+      render(<TaxConfigurationManager />);
+      await screen.findByText('VAT');
+      fireEvent.click(screen.getByRole('button', { name: 'Disable' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith(
+          'Tax is referenced by 12 open orders, Disable it at close of business',
+          { variant: 'error' },
+        ),
+      );
+    });
+
+    /**
+     * The case this describe block's own header cites as the reason the slice exists — and which
+     * the first version of it did not actually cover. A review mutation proved it: reverting
+     * `confirmDelete` to discard the server's sentence left every test green.
+     */
+    it("prefers the server's per-rule errors[] on a refused delete", async () => {
+      mockDelete.mockRejectedValue(
+        new ApiError(409, 'Delete failed', ['Rate is used by 4 active menu items', 'Reassign them first']),
+      );
+      render(<TaxConfigurationManager />);
+      await screen.findByText('VAT');
+      fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[0]);
+      fireEvent.click(await screen.findByRole('button', { name: 'yes' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Rate is used by 4 active menu items, Reassign them first', {
+          variant: 'error',
+        }),
+      );
+      expect(mockEnqueueSnackbar).not.toHaveBeenCalledWith('Failed to delete tax configuration', {
+        variant: 'error',
+      });
+    });
+
+    it("surfaces the server's sentence when a save is refused", async () => {
+      mockGetAll.mockReset();
+      mockGetAll.mockResolvedValue([]);
+      mockCreate.mockRejectedValue(new ApiError(422, 'A tax named GST already exists'));
+      render(<TaxConfigurationManager />);
+      const rateInput = await openCreateForm();
+      fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'GST' } });
+      fireEvent.change(rateInput, { target: { value: '8' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('A tax named GST already exists', { variant: 'error' }),
+      );
+    });
+
+    it('still falls back to the CONTEXTUAL sentence when the server authored nothing', async () => {
+      mockUpdate.mockRejectedValue(new ApiError(500, ''));
+      render(<TaxConfigurationManager />);
+      await screen.findByText('VAT');
+      fireEvent.click(screen.getByRole('button', { name: 'Disable' }));
+
+      await waitFor(() =>
+        expect(mockEnqueueSnackbar).toHaveBeenCalledWith('Failed to toggle tax configuration', { variant: 'error' }),
+      );
+    });
   });
 
   it('renders the empty state when there are no configurations', async () => {

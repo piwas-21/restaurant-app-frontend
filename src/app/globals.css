@@ -62,6 +62,14 @@
      token's note in design-system/tokens/colors.css. */
   --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(0, 0, 0, 0.05);
+
+  /* Sign of the inline axis; the `[dir]` rules further down flip it and explain why. This
+     default lives here rather than in its own `:root` block so there is exactly one — a second
+     one is a duplicate selector, and it also loses to the `[dir]` rules on source order alone,
+     which is a fragile way to express a fallback. It matters: with `--dir` undefined,
+     `calc(var(--dir) * -100%)` is invalid at computed-value time, `transform` falls back to
+     `none`, and a parked drawer renders ON screen. */
+  --dir: 1;
 }
 
 html[data-theme='dark'] {
@@ -70,6 +78,53 @@ html[data-theme='dark'] {
   --nav-link-hover-bg: rgba(255, 255, 255, 0.1);
   --nav-link-active-color: var(--brand-primary-elevated);
   --nav-link-active-bg: rgba(255, 255, 255, 0.05);
+}
+
+/*
+  --dir: +1 reading left-to-right, -1 right-to-left. The sign of the inline axis.
+
+  It exists because two properties this app positions with have no logical form and never will:
+  `transform: translateX()` and `box-shadow`'s x-offset. A drawer is `inset-inline-end: 0` plus
+  `translateX(100%)`; mirror the inset alone and the transform still pushes the same physical
+  way. Multiplying the distance by `--dir` lets the pair move together —
+  `translateX(calc(var(--dir) * 100%))` is byte-identical to `translateX(100%)` under `ltr` and
+  flips under `rtl`. (`background-position: right 12px center` is a third property with no
+  logical form, but its value is a KEYWORD, so a sign multiplier cannot express it — that one
+  needs a `[dir='rtl']` rule. See DESIGN-SYSTEM.md §8.1.)
+
+  `var()` also resolves inside `@keyframes` — substitution happens on the animating element — so
+  an entry animation is direction-aware from one declaration instead of a `[dir='rtl']`
+  animation-name swap. Both toast stacks ship this way, as `@keyframes slideInFromTrailingEdge`.
+  Measured on `NotificationCenter`'s, whose translate is the literal `400px`: frame 0 computes
+  `matrix(1,0,0,1,400,0)` under `ltr` and `matrix(1,0,0,1,-400,0)` under `rtl`, one animation in
+  both. `MyReservations`'s translates `100%`, so its frame 0 is one rendered element width in
+  each direction, not 400px. Safe in both because they are run-once `animation`s with no fill
+  mode. It is NOT safe in a `transition` on a resting position — see AdminPage.module.css.
+
+  CONSTRAINT that comes with this, because it keys off the `dir` ATTRIBUTE and an attribute
+  selector matches a literal value: an element inside `dir="auto"` that resolves to Arabic
+  computes `direction: rtl` — so its logical properties mirror — while `[dir='rtl']` does not
+  match it and `--dir` stays `+1`, leaving transforms unmirrored. That is a half-conversion, the
+  exact failure this token exists to prevent.
+
+  `:dir()` matches the RESOLVED direction and would close it, but it was tried and REVERTED:
+  `next dev --turbopack` runs Lightning CSS, which downlevels `:dir()` into a `:lang()` list that
+  sorts last and beats the attribute rules, so `--dir` would follow `lang` in dev while
+  `next build` keeps `:dir()` verbatim. Two behaviours, and the wrong one in the only environment
+  anyone can measure in — it silently made an explicit `<div dir="rtl">` subtree WORSE than the
+  attribute rules alone.
+
+  So the gap is closed BY CONSTRUCTION instead: **`dir="auto"` goes on LEAF text elements only** —
+  the product-authored strings in E8 slice 3b-4 (`<h2>`/`<h3>`/`<p>`/`<span>` with no element
+  children). Nothing that reads `--dir` — the drawers, the toast keyframes, the admin toggle
+  glyph — is or can be a descendant of one. Put `dir="auto"` on a CONTAINER and that stops being
+  true; if you need to, bring `:dir()` back and verify it against `next build`.
+*/
+[dir='ltr'] {
+  --dir: 1;
+}
+[dir='rtl'] {
+  --dir: -1;
 }
 
 html,
@@ -217,10 +272,44 @@ select:focus {
   border-color: var(--primary-color);
 }
 
-/* Notistack notification styles */
-.notistack-SnackbarContainer {
-  bottom: 24px !important;
-  right: 24px !important;
+/* Notistack notification positioning — SCOPED PER ANCHOR (#424).
+ *
+ * This used to be an unqualified `.notistack-SnackbarContainer { bottom; right }`, and the
+ * unqualified part was the bug: that selector matches EVERY container, and two anchors are in use.
+ * Converting it to logical properties moved the bottom-right stacks correctly and clipped the
+ * centre one, because under `dir="rtl"` `inset-inline-end` resolves to `left`, which beats
+ * notistack's centring `left: 50%` while its `translateX(-50%)` survives: measured on `/menu` in
+ * `ar` at 1400px, the toast card landed at x=-151..199 — 151px of 349px off screen, against
+ * 510..890 centred in `en`.
+ *
+ * So the class below is attached ONLY to the bottom-right containers, via the provider's `classes`
+ * prop (see `client-providers.tsx`). The centre anchor is deliberately left with no rule at all:
+ * notistack centres it correctly by itself, in both directions.
+ *
+ * The split is lopsided, which is worth knowing before touching either side. Of 89
+ * `enqueueSnackbar` call sites, exactly ONE is top-center — `useCartFeedback`'s `notifyItemAdded`.
+ * Every other toast lands here, whether it passes `bottom/right` explicitly (24 do, via a mix of
+ * inline literals and hoisted `SNACKBAR_BOTTOM_RIGHT` consts) or simply inherits the provider
+ * default (the other 64). Note that `useCartFeedback` is on BOTH sides: its sibling
+ * `notifyAddFailed` passes no anchor at all, so the add-FAILURE toast is governed by this rule
+ * while the add-success one is not.
+ *
+ * `inset-inline-start: auto` is not tidiness, it is the fix's other half. notistack's own
+ * hash-named class sets a PHYSICAL `right: 20px`; in RTL our `inset-inline-end` becomes `left`, so
+ * without clearing the opposite edge both are set at once and the container stretches — measured at
+ * 1356px wide on a 1400px viewport when a provider-level `anchorOrigin` flip was tried.
+ *
+ * `!important` wins the tie because notistack injects its <style> at runtime, so source order is
+ * not guaranteed. Its positioning is injected EAGERLY at module scope via goober — on hash-named
+ * classes (`.go2989568495 { right: 20px }`), never on `.notistack-*`, which is why grepping the
+ * document for "notistack" finds only these rules and makes its own positioning look absent.
+ *
+ * One residual, unfixable from CSS: `anchorOrigin` is frozen onto a snack at enqueue time, so a
+ * toast already on screen when the language changes never re-anchors. The next one is correct. */
+.notistack-anchor-bottom-trailing {
+  inset-block-end: 24px !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: 24px !important;
 }
 
 .notistack-Snackbar {
@@ -261,10 +350,27 @@ select:focus {
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .notistack-SnackbarContainer {
-    bottom: 16px !important;
-    right: 16px !important;
-    left: 16px !important;
+  /* Converted with the desktop rule (#424), as its previous note said it would be — and SCOPED to
+   * the same anchor, which the previous note did not anticipate and which fixes a separate bug.
+   *
+   * It used to match every container, and setting both inline edges overrode notistack's centring
+   * `left: 50%` while its `transform: translateX(-50%)` survived. Measured at 390px: the customer
+   * "added to cart" toast rendered at x=-163..195 — 163px off screen — in EVERY language, `en`
+   * included, so this was never an RTL bug. It is the same root cause as #424 (one unqualified rule
+   * serving two anchors), on the surface customers actually order from. Scoped, that toast measures
+   * 16..374 on a 390px viewport: on screen and centred, which is the whole width available to it.
+   *
+   * 358px rather than something card-shaped because `.notistack-Snackbar` below sets
+   * `width: 100% !important` in this same block, and notistack's own container rule adds
+   * `max-width: calc(100% - 32px)` under 599.95px — so a mobile toast is full-bleed whatever its
+   * message says. A first draft of this note reported 104px, measured off a probe that was missing
+   * that container class; the real render is 358.
+   *
+   * Both inline edges rather than one: that is what makes a stacked toast full-width on a phone,
+   * and it is direction-agnostic in itself. `inset-inline` is the single-property spelling of it. */
+  .notistack-anchor-bottom-trailing {
+    inset-block-end: 16px !important;
+    inset-inline: 16px !important;
   }
 
   .notistack-Snackbar {
@@ -277,10 +383,7 @@ select:focus {
 /* Modal and Dialog Styles */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
@@ -497,7 +600,7 @@ select:focus {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
-  text-align: left;
+  text-align: start;
 }
 
 .status-option:hover:not(:disabled) {
@@ -665,31 +768,33 @@ select:focus {
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
-  border-left: 4px solid transparent;
+  /* Accent rule down the leading edge. The four `.alert-*` rules below repaint ONLY its colour,
+     so the width here and all four colours are one set and move together. */
+  border-inline-start: 4px solid transparent;
   font-size: 0.95rem;
 }
 
 .alert-success {
   background-color: var(--success-color-xlight);
-  border-left-color: var(--success-color);
+  border-inline-start-color: var(--success-color);
   color: var(--success-color-dark);
 }
 
 .alert-error {
   background-color: var(--danger-color-xlight);
-  border-left-color: var(--danger-color);
+  border-inline-start-color: var(--danger-color);
   color: var(--danger-color-dark);
 }
 
 .alert-warning {
   background-color: var(--warning-color-xlight);
-  border-left-color: var(--warning-color);
+  border-inline-start-color: var(--warning-color);
   color: var(--warning-color-dark);
 }
 
 .alert-info {
   background-color: var(--info-color-xlight);
-  border-left-color: var(--info-color);
+  border-inline-start-color: var(--info-color);
   color: var(--info-color-dark);
 }
 
@@ -777,7 +882,7 @@ select:focus {
   /* Position the modal for printing - take full width */
   #order-details-print {
     position: absolute !important;
-    left: 0 !important;
+    inset-inline-start: 0 !important;
     top: 0 !important;
     width: 100% !important;
     margin: 0 !important;

@@ -159,7 +159,6 @@ Key deltas from earlier drafts:
 | `useSession.test.ts` | 5 | Create, validate, refresh, cleanup |
 | `useNotification.test.ts` | 6 | Show/hide, sound, types, auto-dismiss |
 | `usePublicMenu.test.ts` | 4 | Fetch, filter, cache |
-| `useProductForm.test.ts` | 6 | Validation, submit, image handling |
 | `useCategoryManagement.test.ts` | 4 | CRUD operations |
 | `useTableLayout.test.ts` | 5 | Drag/drop, save, load |
 | `useKeyboardShortcuts.test.ts` | 4 | Register, unregister, conflict |

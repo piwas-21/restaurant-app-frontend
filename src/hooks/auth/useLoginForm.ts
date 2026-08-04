@@ -11,6 +11,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { login as loginUser, sendEmailVerification } from '@/services/authService';
+import { getErrorMessage } from '@/utils/apiClient';
+import { serverMessages, throwServerRefusal } from '@/utils/apiFormErrors';
 import { useAuth } from '@/components/AuthContext';
 import { trackEvent } from '@/lib/analytics';
 import { moduleForPath } from '@/lib/modules';
@@ -52,18 +54,20 @@ export function useLoginForm() {
 
     try {
       const response = await sendEmailVerification({ email });
-      if (response?.success || response?.succeeded) {
-        setResendSucceeded(true);
-        setResendMessage(
-          t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'),
-        );
-      } else {
-        setResendSucceeded(false);
-        setResendMessage(t('resend_failed', 'Failed to resend email. Please try again later.'));
-      }
-    } catch {
+      // `SendEmailVerificationCommandHandler` answers `SuccessWithData` on every branch it reaches
+      // — including a mail-send that threw, which it swallows on purpose so the endpoint cannot be
+      // used to probe which addresses exist. So a `success: false` here is not a refusal the
+      // handler authored; it is the failure envelope `ExceptionHandlingMiddleware` writes when the
+      // request never got that far. Rethrowing it puts both that shape and a thrown one through
+      // one catch instead of two branches that each invent their own sentence.
+      if (!response?.success) throwServerRefusal(response ?? {});
+      setResendSucceeded(true);
+      setResendMessage(t('verification_email_resent', 'Verification email has been resent! Please check your inbox.'));
+    } catch (error) {
       setResendSucceeded(false);
-      setResendMessage(t('resend_error', 'An error occurred. Please try again.'));
+      // `getErrorMessage` is `null` for anything the server did not author, so a dead network
+      // reaches the translated sentence rather than putting `Failed to fetch` in the form.
+      setResendMessage(getErrorMessage(error) ?? t('resend_failed', 'Failed to resend email. Please try again later.'));
     } finally {
       setResendLoading(false);
       resendTimeoutRef.current = setTimeout(() => setResendMessage(''), 5000);
@@ -98,21 +102,54 @@ export function useLoginForm() {
         const targetModule = moduleForPath(target);
         router.push(targetModule === null || modules.has(targetModule) ? target : '/');
       } else {
-        const msg = `${response.message ?? ''} ${response.errors?.[0] ?? ''}`.toLowerCase();
+        // `AuthController.Login` returns `Ok(result)` and the handler answers
+        // `ApiResponse.Failure(reason, summary)` — so a refused login is a **200** carrying
+        // `{success:false}`, and `errors[0]` is where the reason lives while `message` holds the
+        // two-word summary. The lockout case is the one that showed: `Failure("Too many failed
+        // attempts. This account is temporarily locked. Please try again later.", "Account
+        // locked")` rendered as **"Account locked"**, dropping the only sentence that tells the
+        // user to wait rather than keep guessing.
+        const [serverMessage] = serverMessages(response);
+        // Both slots, unchanged from before this slice — but NOT because either alone is
+        // insufficient. The real refusal is `Failure("Please verify your email address before
+        // logging in. Check your inbox for the verification link.", "Email verification
+        // required")`, whose `errors[0]` carries "verify" AND "verification"; and when `errors` is
+        // absent `serverMessages` falls through to `message`, which carries "verification". So
+        // `serverMessage` alone matches every shape the backend currently produces. Reading both
+        // is kept as the pre-existing behaviour rather than narrowed on the strength of one
+        // handler's wording — but it is redundancy, not a requirement, and an earlier version of
+        // this comment claimed otherwise.
+        const msg = `${response.message ?? ''} ${serverMessage ?? ''}`.toLowerCase();
         const isVerify = msg.includes('verify') || msg.includes('verification');
         if (isVerify) {
           setNeedsVerification(true);
           setError(
-            response.errors?.[0] ||
-              response.message ||
-              t('email_verification_required', 'Please verify your email address before logging in.'),
+            serverMessage ?? t('email_verification_required', 'Please verify your email address before logging in.'),
           );
         } else {
-          setError(response.message || t('unknown_error', 'An unknown error occurred.'));
+          setError(serverMessage ?? t('unknown_error', 'An unknown error occurred.'));
         }
         trackEvent('login_failed', { failureReason: isVerify ? 'needs_verification' : 'invalid_credentials' });
       }
     } catch {
+      // IGNORED ON PURPOSE — binding would buy nothing here, and the paths were enumerated rather
+      // than assumed. `authService.login` is a raw `fetch` that returns the parsed body for EVERY
+      // status, so no `ApiError` is ever thrown on this path and `getErrorMessage` returns `null`
+      // for every class that lands here, which means the E9 recipe's `?? t(…)` arm is the only one
+      // reachable. The classes, in full:
+      //
+      //   1. `TypeError` from a dead network, `SyntaxError` from `response.json()` on an HTML 502.
+      //      Client-authored, and strictly worse to show than the sentence below.
+      //   2. A `TypeError` from `response.data.role` when the server answers `success: true` with
+      //      no `data`. Mis-diagnosed as network, but unreachable in practice —
+      //      `SuccessWithData` always populates `Data`.
+      //   3. A `localStorage` refusal, which was REAL and had TWO halves, not one. The write:
+      //      Safari private mode throws on `setItem`, so a sign-in the server had already granted
+      //      threw on its way out. The read: with site data blocked outright, reading the
+      //      `localStorage` PROPERTY throws, and `getSessionId()` is the first line of `login()`
+      //      — so the throw beat the request entirely and "Failed to connect to the server" was
+      //      reported by a browser that never reached the network. Both are now caught where they
+      //      happen (`authService.readStoredValue`/`persistSession`, `AuthContext.login`).
       setError(t('failed_to_connect_server', 'Failed to connect to the server.'));
       trackEvent('login_failed', { failureReason: 'network' });
     }

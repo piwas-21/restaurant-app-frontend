@@ -217,6 +217,10 @@
 
 /* Field errors — craft renders these as soft-brick Caveat notes (Prompt 11). */
 .error {
+  /* Explicit because one consumer is an `<output>` (the saved-address-list failure), which is
+     inline by default — without this its block margins below would not apply. No effect on the
+     `<p>` consumers, which are block already. */
+  display: block;
   font-family: var(--modal-body-accent-font, inherit);
   color: var(--modal-body-error-color, var(--error-color));
   font-size: var(--modal-body-accent-size, 0.9rem);
@@ -310,7 +314,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
+  text-align: start;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

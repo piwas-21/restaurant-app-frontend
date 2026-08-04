@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { updateOrderStatus as updateOrderStatusService, ServerTableDto } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 import { useServerOrdersData } from './serverOrders/useServerOrdersData';
 import { useServerOrdersStream, ConnectionState } from './serverOrders/useServerOrdersStream';
 
@@ -66,7 +67,7 @@ export function useServerOrders(): UseServerOrdersReturn {
         await refreshTables();
         return mergedOrder || updatedOrder;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to update status';
+        const errorMessage = getErrorMessage(err) ?? 'Failed to update status';
         setError(errorMessage);
         throw err;
       }

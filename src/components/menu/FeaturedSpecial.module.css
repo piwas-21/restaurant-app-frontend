@@ -2,7 +2,8 @@
 .featuredSpecialSection {
   padding: 0 1rem;
   max-width: 1400px;
-  margin: 2rem auto;
+  /* Tighter above, since the page header now sits directly on top of it. */
+  margin: 1rem auto 1.5rem;
 }
 
 .featuredSpecialContainer {
@@ -10,7 +11,7 @@
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 2px solid gold;
+  border: 2px solid var(--color-gold-300);
   position: relative;
   overflow: hidden;
 }
@@ -20,25 +21,46 @@
   border-color: var(--color-gold-600-d);
 }
 
+/* The badge and the admin edit link share a row, so the admin affordance sits at the hero's top
+   edge the way it sits at a card's — and the badge keeps its own margin off the row instead. */
+.featuredSpecialHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
 .featuredSpecialBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: gold;
+  background: var(--color-gold-300);
   color: var(--color-gray-900-f);
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
   font-weight: 700;
   font-size: 1.1rem;
-  margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
 }
 
 .featuredSpecialContent {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  /* ONE column by default; the two-column form is opt-in (`.withPhoto`). That is the way round
+     that cannot go wrong: a grid which always declares the photo column puts the DETAILS in it
+     when the photo is absent, so the copy wraps at 340px with the rest of the hero left empty —
+     which is what the live tenant shows today, its featured special having no image. */
   gap: 2rem;
   align-items: start;
+}
+
+.withPhoto {
+  /* Was a fixed `400px`. The banner now spans the full page width instead of sitting inside the
+     left column, so a fixed image column that used to dominate would simply have grown a wider text
+     column beside it; capping it keeps the photo from being the whole hero, which is the "takes too
+     much space" half of the report. `minmax(0, …)` so the column can shrink rather than overflow. */
+  grid-template-columns: minmax(0, 340px) 1fr;
 }
 
 .featuredSpecialImageContainer {
@@ -67,7 +89,7 @@
 }
 
 [data-theme='dark'] .featuredSpecialTitle {
-  color: gold;
+  color: var(--color-gold-300);
 }
 
 .featuredSpecialDescription {
@@ -90,16 +112,6 @@
   gap: 0.5rem;
 }
 
-.priceLabel {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 1rem;
-}
-
-[data-theme='dark'] .priceLabel {
-  color: var(--color-gray-400-b);
-}
-
 .priceValue {
   font-size: 2rem;
   font-weight: 700;
@@ -107,7 +119,7 @@
 }
 
 [data-theme='dark'] .priceValue {
-  color: gold;
+  color: var(--color-gold-300);
 }
 
 .featuredSpecialTime {
@@ -122,31 +134,13 @@
   color: var(--color-gray-400-b);
 }
 
-.featuredSpecialIngredients {
-  font-size: 0.95rem;
-  color: var(--color-gray-700-b);
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: rgba(100, 149, 237, 0.08);
-  border-radius: 8px;
-  border-left: 3px solid var(--color-blue-400-b);
-  line-height: 1.6;
-}
-
-[data-theme='dark'] .featuredSpecialIngredients {
-  background: rgba(100, 149, 237, 0.15);
-  color: var(--color-gray-300-b);
-}
-
-.featuredSpecialIngredients strong {
-  color: var(--color-gray-900-f);
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
-}
-
-[data-theme='dark'] .featuredSpecialIngredients strong {
-  color: var(--color-blue-400-b);
+/* The notice is built for a CARD, where `justify-content: center` sits it under a centred image.
+   At hero width that strands the chip in the middle of an otherwise left-aligned column. Making it
+   a flex ITEM here shrinks it to its content, so the shared module's own centring becomes a no-op —
+   no override, no specificity fight, and the card keeps its look. */
+.availabilitySlot {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .featuredSpecialAllergens {
@@ -170,8 +164,18 @@
 }
 
 .featuredSpecialAddButton {
-  background: var(--success-color);
-  color: white;
+  /* --success-color-darker, not --success-color: the card's Add button was moved to the darker tier
+     for AA (see MenuItemActions.module.css) and the hero was simply never brought along. Measured
+     from the rendered pixels before the change: white on --success-color is 2.78:1 in light and
+     2.01:1 in dark — the primary call to action on the page, failing AA in BOTH themes. The
+     intermediate --success-color-dark is 4.11:1, still short.
+
+     The INK has to move with it. --success-color-darker flips to a light green (#66bb6a) in dark,
+     where it is meant to carry DARK text; a hardcoded `white` only half-flips the pair and left the
+     button at 2.36:1 in dark even after the background was fixed. --button-text-color is the token
+     that flips, and it is what the card already uses. */
+  background: var(--success-color-darker);
+  color: var(--button-text-color);
   border: none;
   padding: 0.875rem 1.75rem;
   font-size: 1rem;
@@ -183,7 +187,8 @@
 }
 
 .featuredSpecialAddButton:hover {
-  background: var(--success-color-dark);
+  /* Hover keeps the AA-passing background — the affordance is the lift, exactly as on the card.
+     Reverting to --success-color-dark here would put the hovered state back under AA. */
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
 }
@@ -215,32 +220,9 @@
   transform: translateY(0);
 }
 
-.featuredSpecialButton {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
-}
-
-.featuredSpecialButton:hover {
-  background: var(--primary-color-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
-}
-
-.featuredSpecialButton:active {
-  transform: translateY(0);
-}
-
 /* Responsive styles for featured special */
 @media (max-width: 1200px) {
-  .featuredSpecialContent {
+  .withPhoto {
     grid-template-columns: 350px 1fr;
   }
 }
@@ -250,8 +232,11 @@
     padding: 0 1rem;
   }
 
-  .featuredSpecialContent {
+  .withPhoto {
     grid-template-columns: 300px 1fr;
+  }
+
+  .featuredSpecialContent {
     gap: 1.5rem;
   }
 
@@ -274,8 +259,11 @@
     padding: 1.5rem;
   }
 
-  .featuredSpecialContent {
+  .withPhoto {
     grid-template-columns: 1fr;
+  }
+
+  .featuredSpecialContent {
     gap: 1.5rem;
   }
 
@@ -295,11 +283,6 @@
     gap: 1.5rem;
   }
 
-  .featuredSpecialIngredients {
-    font-size: 0.9rem;
-    padding: 0.6rem;
-  }
-
   .featuredSpecialActions {
     flex-direction: column;
     gap: 0.75rem;
@@ -307,11 +290,6 @@
 
   .featuredSpecialAddButton,
   .featuredSpecialDetailsButton {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
-  }
-
-  .featuredSpecialButton {
     width: 100%;
     padding: 0.875rem 1.5rem;
   }
@@ -329,10 +307,13 @@
     border-width: 1px;
   }
 
+  .featuredSpecialHeader {
+    margin-bottom: 0.75rem;
+  }
+
   .featuredSpecialBadge {
     font-size: 0.875rem;
     padding: 0.375rem 1rem;
-    margin-bottom: 0.75rem;
   }
 
   .featuredSpecialBadge svg {
@@ -364,22 +345,12 @@
     margin-bottom: 0.75rem;
   }
 
-  .priceLabel {
-    font-size: 0.875rem;
-  }
-
   .priceValue {
     font-size: 1.35rem;
   }
 
   .featuredSpecialTime {
     font-size: 0.875rem;
-  }
-
-  .featuredSpecialIngredients {
-    font-size: 0.8rem;
-    padding: 0.5rem;
-    margin-bottom: 0.75rem;
   }
 
   .featuredSpecialAllergens {

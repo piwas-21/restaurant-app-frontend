@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { ApiError } from '@/utils/apiClient';
 import ForgotPasswordPage from './page';
 
 const mockForgotPassword = jest.fn();
@@ -62,8 +63,66 @@ describe('ForgotPasswordPage', () => {
       target: { value: 'owner@bistro.example' },
     });
     fireEvent.click(submit());
-    expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
+    expect(await screen.findByText('An error occurred')).toBeInTheDocument();
     expect(screen.queryByText('forgot_password_sent_title')).not.toBeInTheDocument();
+  });
+
+  it('reports a success:false envelope instead of saying "check your inbox"', async () => {
+    // Pins the GUARD, and says so: `ForgotPasswordCommandHandler` has no `Failure` return, so no
+    // producer emits this shape today. It is here because reporting a `success:false` as "sent" is
+    // the one outcome that must not happen — the user would wait for an email nobody sent. The
+    // sentence below is a stand-in, not a claim that this endpoint emits it.
+    mockForgotPassword.mockResolvedValue({
+      success: false,
+      message: 'Too many requests. Please slow down and try again shortly.',
+    });
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
+    fireEvent.click(submit());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Too many requests. Please slow down and try again');
+    expect(screen.queryByText('unexpected_error')).not.toBeInTheDocument();
+    expect(screen.queryByText('forgot_password_sent_title')).not.toBeInTheDocument();
+  });
+
+  // #414. The rate limiter rejects with a real 429, and the 502 from an email-provider outage is a
+  // real 502 — neither is a 200. While `forgotPassword` was a raw `fetch` returning
+  // `response.json()` for every status they arrived resolved; through `apiClient` they THROW, and
+  // this is the branch that has to keep printing them. Someone who pressed the button twice was
+  // told "an unexpected error occurred" and had no way to know that waiting was the fix.
+  it.each([
+    [429, 'Too many requests. Please slow down and try again shortly.'],
+    [502, 'The email could not be delivered. Please try again later.'],
+  ])('prints the server’s sentence when a %i is THROWN', async (status, sentence) => {
+    mockForgotPassword.mockRejectedValue(new ApiError(status, sentence));
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
+    fireEvent.click(submit());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(sentence);
+    expect(screen.queryByText('unexpected_error')).not.toBeInTheDocument();
+  });
+
+  it('keeps the generic sentence for a thrown transport failure', async () => {
+    // A dead network or a non-JSON body authors nothing showable; those texts are client-authored
+    // and #401 removed them from users' screens.
+    mockForgotPassword.mockRejectedValue(new TypeError('Failed to fetch'));
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
+    fireEvent.click(submit());
+
+    expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
+    expect(screen.queryByText(/Failed to fetch/)).not.toBeInTheDocument();
+  });
+
+  it('falls back to the translated generic when the failure body carries no sentence', async () => {
+    // `serverMessages` returns [] for a blank message, and `?? t('unexpected_error')` is what
+    // stops an empty error line — "the operation failed for no reason" — reaching the screen.
+    mockForgotPassword.mockResolvedValue({ success: false, message: '   ' });
+    render(<ForgotPasswordPage />);
+    fireEvent.change(screen.getByPlaceholderText('email'), { target: { value: 'owner@bistro.example' } });
+    fireEvent.click(submit());
+    expect(await screen.findByText('unexpected_error')).toBeInTheDocument();
   });
 
   it('keeps the form and reports a transport failure', async () => {

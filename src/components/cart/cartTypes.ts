@@ -81,6 +81,19 @@ export type CartAction =
  */
 export interface CartContextType {
   state: CartState;
+  /**
+   * Drop the current failure sentence.
+   *
+   * `state.error` is ONE slot written by six places (mount sync, clear, both promo actions, and the
+   * two item-mutation reporters) and cleared by exactly one reducer arm, SYNC_BASKET. That was
+   * survivable while only the legacy `/cart` route rendered it; the cart surfaces on `/menu` render
+   * it too now, and `CartProvider` sits in the root layout and never remounts on client-side
+   * navigation — so without this a bad promo code entered on `/cart` follows the guest to `/menu`
+   * and sits in the sidebar until their next SUCCESSFUL cart write. Must be referentially stable:
+   * consumers call it from a mount effect, and an unmemoized one would re-run every render and wipe
+   * live errors before they could be read.
+   */
+  clearError: () => void;
   syncBasket: () => Promise<void>;
   addItem: (payload: AddItemPayload) => Promise<void>;
   updateItem: (basketItemId: string, quantity: number, specialInstructions?: string) => Promise<void>;

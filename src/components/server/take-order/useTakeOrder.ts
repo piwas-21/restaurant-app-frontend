@@ -9,6 +9,7 @@ import {
 } from '@/services/serverService';
 import { getProducts } from '@/services/menuService';
 import { CreateOrderItemDto } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 import { CustomizationResult } from '../ProductCustomization';
 import { OrderItem, mapMenuProducts, addCustomizedItem } from './orderItems';
 
@@ -86,13 +87,9 @@ export function useTakeOrder({ tableNumber, onClose, onOrderCreated }: UseTakeOr
     }, 0);
   }, [orderItems]);
 
-  const pointsDiscount = useMemo(() => {
-    return calculateDiscountFromPoints(pointsToRedeem);
-  }, [pointsToRedeem]);
+  const pointsDiscount = useMemo(() => calculateDiscountFromPoints(pointsToRedeem), [pointsToRedeem]);
 
-  const orderTotal = useMemo(() => {
-    return Math.max(0, orderSubtotal - pointsDiscount);
-  }, [orderSubtotal, pointsDiscount]);
+  const orderTotal = useMemo(() => Math.max(0, orderSubtotal - pointsDiscount), [orderSubtotal, pointsDiscount]);
 
   const handleProductClick = useCallback((product: Product) => {
     setSelectedProductForCustomization(product);
@@ -161,7 +158,7 @@ export function useTakeOrder({ tableNumber, onClose, onOrderCreated }: UseTakeOr
       onClose();
     } catch (err) {
       console.error('Failed to create order:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create order');
+      setError(getErrorMessage(err) ?? 'Failed to create order');
     } finally {
       setIsSubmitting(false);
     }

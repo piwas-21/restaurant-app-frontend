@@ -5,7 +5,7 @@
  * Handles CRUD operations for user delivery addresses.
  */
 
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, isAuthError } from '@/utils/apiClient';
 
 /**
  * Address DTO matching backend AddressDto
@@ -89,9 +89,10 @@ export async function getMyAddresses(): Promise<AddressDto[]> {
 
     return response.data;
   } catch (error) {
-    // Don't log auth errors - they're expected for non-authenticated users during checkout
-    // Only log unexpected errors
-    if (error instanceof Error && !error.message.toLowerCase().includes('auth')) {
+    // Don't log auth errors — expected for non-authenticated users during checkout. Gated on
+    // the STATUS, not on the message containing 'auth': `apiClient` no longer authors
+    // 'Authentication required' (#401), and a substring test never reliably asked "was this a 401?".
+    if (!isAuthError(error)) {
       console.error('Error fetching addresses:', error);
     }
     throw error;

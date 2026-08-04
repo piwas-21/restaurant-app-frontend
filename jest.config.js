@@ -34,6 +34,9 @@ module.exports = {
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
     '^@/config/(.*)$': '<rootDir>/src/config/$1',
+    // Added E9 slice 8: `src/constants/` had no mapping, so the FIRST test to reach a module
+    // importing it (useOrders) failed to resolve rather than failing an assertion.
+    '^@/constants/(.*)$': '<rootDir>/src/constants/$1',
     '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
@@ -54,6 +57,14 @@ module.exports = {
   collectCoverageFrom: [
     'src/components/**/*.tsx',
     'src/app/**/*.tsx',
+    // E9 slice 8 — hooks and contexts are not collected wholesale (see the note at the end of this
+    // list), so the three the slice pinned have to be named. A `coverageThreshold` row for a file
+    // outside this list does not fail: jest reports "coverage data not found" and moves on.
+    'src/hooks/useOrders.ts',
+    'src/hooks/useCashierOrders.ts',
+    'src/hooks/cashier/useCashierManualRefresh.ts',
+    'src/contexts/TableContext.tsx',
+    'src/hooks/admin/useProductEditorFetch.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/useCustomerFormFields.ts',
@@ -65,6 +76,11 @@ module.exports = {
     'src/hooks/order/useGuestProfilePrefill.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/passwordPolicy.ts',
+    'src/schemas/password.schema.ts',
+    'src/utils/apiFormErrors.ts',
+    'src/utils/apiClient.ts',
+    'src/utils/orderErrorHandler.ts',
+    'src/services/order/orderCommands.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
@@ -72,6 +88,11 @@ module.exports = {
     'src/hooks/menu/useTrackItemBlocked.ts',
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
+    'src/hooks/menu/useFeaturedSpecialHero.ts',
+    'src/hooks/useApiError.ts',
+    'src/lib/orderStatus.ts',
+    'src/lib/paymentStatus.ts',
+    'src/utils/catalogItem.ts',
     'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
     'src/utils/templates/receiptHtml.ts',
@@ -137,6 +158,11 @@ module.exports = {
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
+    'src/utils/basketMutationError.ts',
+    'src/hooks/cart/useCartItemMutations.ts',
+    'src/hooks/cart/cartFailureReporting.ts',
+    'src/hooks/checkout/useSavedAddressList.ts',
+    'src/hooks/admin/useSetupChecklist.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -171,6 +197,72 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // ── #435 — the checkout error transport. ────────────────────────────────────────────────────
+    // These pin the two halves of a defect that was invisible to every other gate: the map in
+    // `orderErrorHandler` was 0/7 live and STILL type-checked, lint-passed and read as coverage,
+    // because the reason never left `errors[0]` — `orderCommands` threw a plain `Error` carrying
+    // the literal "Operation failed". Deleting either test file would restore that silently.
+    //
+    // Measured with CI's own command (`npm test -- --ci --runInBand --coverage`), pinned at
+    // actual − 1pt. `orderCommands.ts` is low because the file holds five more write endpoints
+    // this change does not touch; the row guards the two creators' throw shape, not the file.
+    './src/utils/orderErrorHandler.ts': { statements: 99, branches: 92, functions: 99, lines: 99 },
+    './src/services/order/orderCommands.ts': { statements: 72, branches: 55, functions: 82, lines: 72 },
+    // ── #415 — the two basket 404s. ─────────────────────────────────────────────────────────────
+    // These pin the discrimination between "the item is gone" (resync) and "the basket is gone"
+    // (report), which nothing else can see: both are a 404, and the bug they replace was invisible
+    // to every other gate because the old substring test type-checked and lint-passed.
+    './src/utils/basketMutationError.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/hooks/cart/cartFailureReporting.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
+    // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and
+    // the one that reports a re-read failure only when the write succeeded, are invisible to every
+    // other gate. Mutation-verified in BOTH directions — forcing the guest branch and forcing the
+    // non-auth branch each turn these red, which the first draft of the guest test did not.
+    //
+    // Measured with CI's own command (`npm test -- --ci --runInBand --coverage`), not a subset run:
+    // the first draft of these rows was pinned from a two-file run that reported higher numbers, and
+    // the branch failed CI. `--runInBand` is part of the measurement, not a detail.
+    './src/hooks/checkout/useSavedAddressList.ts': { statements: 90, branches: 77, functions: 99, lines: 99 },
+    './src/hooks/admin/useSetupChecklist.ts': { statements: 99, branches: 82, functions: 99, lines: 99 },
+    './src/hooks/cart/useCartItemMutations.ts': { statements: 89, branches: 99, functions: 99, lines: 89 },
+    // ── E9 slice 8 — the closing slice of the bare-catch sweep (#383). ──────────────────────────
+    // Pinned at actual − 1pt per the recipe above, so the coverage that pins each fix cannot be
+    // deleted silently. These are FLOORS, not targets: several are low because the file is large
+    // and only its error paths are tested, which is exactly what the slice was about. Raise them
+    // in a chore: MR, do not lower them.
+    './src/hooks/useOrders.ts': { statements: 94, branches: 82, functions: 75, lines: 94 },
+    './src/hooks/useCashierOrders.ts': { statements: 56, branches: 38, functions: 26, lines: 65 },
+    './src/hooks/cashier/useCashierManualRefresh.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/contexts/TableContext.tsx': { statements: 80, branches: 79, functions: 56, lines: 83 },
+    './src/components/account/DeleteAccountSection.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/cashier/ZReportModal.tsx': { statements: 64, branches: 13, functions: 29, lines: 66 },
+    './src/components/cashier/diagnostics/ServerDiagnosticsSection.tsx': {
+      statements: 71,
+      branches: 65,
+      functions: 49,
+      lines: 73,
+    },
+    './src/components/checkout/FidelityPointsCheckout.tsx': {
+      statements: 76,
+      branches: 62,
+      functions: 41,
+      lines: 76,
+    },
+    './src/app/(auth)/delete-account/page.tsx': { statements: 81, branches: 85, functions: 56, lines: 83 },
+    './src/app/admin/point-rules/page.tsx': { statements: 67, branches: 67, functions: 49, lines: 69 },
+    './src/hooks/admin/useProductEditorFetch.ts': { statements: 91, branches: 71, functions: 99, lines: 95 },
+    // ───────────────────────────────────────────────────────────────────────────────────────────
     // Password reset (SOFRA-ONBOARDING-PLAN O3). Pinned because these are the only way a
     // tenant admin can regain access to their own account — and because the route they
     // replace was MISSING for as long as the backend has been emailing links to it
@@ -199,6 +291,47 @@ module.exports = {
       lines: 100,
     },
     './src/app/(auth)/reset-password/page.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // E9 — the two halves of "show the user what the server actually said".
+    //
+    // `apiFormErrors` is pinned at 100% because every uncovered branch is a message that reaches
+    // nobody: the whole defect it fixes was a failure path that ran, produced nothing a user could
+    // act on, and looked fine. Its fallbacks are the file — there is no incidental code to leave
+    // uncovered. `password.schema` is thin zod glue over `passwordPolicy` (pinned separately above),
+    // but it is the only thing standing between a form and a guaranteed 400.
+    './src/utils/apiFormErrors.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // `apiClient` joined them in #401. It is where the sweep's premise actually lives: every
+    // `getErrorMessage(e) ?? t('…')` in the tree is only as true as this file's promise to leave
+    // `message` empty when the server authored nothing, and for five slices it silently was not —
+    // because the tests hand-built `new ApiError(500, '')`, a shape `request()` could not emit, and
+    // the file itself had NO test at all. Lines and functions are pinned at 100 so no failure path
+    // can be added without one — though note it is the STATEMENTS and BRANCHES floors that do that
+    // work, not lines: a one-line `if (x) throw new ApiError(418, '')` leaves lines at 100 while its
+    // statement goes uncovered, which is exactly the shape of the four gaps below. Those two floors
+    // drop to 94.94 / 92.96 on such an addition and fail. The gap is exactly four, counted out
+    // of `coverage-final.json` rather than guessed: the three `typeof window === 'undefined'`
+    // storage guards, reachable only from the server runtime this suite does not run in, plus
+    // `request`'s own `config: RequestConfig = {}` default, which is permanently uncoverable —
+    // `request` is module-private and every wrapper passes an object. (Two earlier drafts of this
+    // note were wrong in opposite directions: one blamed the `body instanceof FormData` ternaries,
+    // which were merely untested and now are; the correction then dropped the default-arg, which
+    // was true. Count the branch map, don't reason about it.)
+    './src/utils/apiClient.ts': {
+      statements: 96,
+      branches: 94,
+      functions: 100,
+      lines: 100,
+    },
+    './src/schemas/password.schema.ts': {
       statements: 100,
       branches: 100,
       functions: 100,
@@ -272,19 +405,43 @@ module.exports = {
       lines: 100,
     },
     // G7 — the featured banner is an ENTRY POINT: a guest can order straight from it, so a
-    // regression here is an unguarded add, not a missing chip. The uncovered branches are the
-    // `response.success && response.data` falsy arm and the render-time `!special` guard.
+    // regression here is an unguarded add, not a missing chip. Raised to 100 across the board by
+    // E9 slice 8: the two previously-uncovered arms are now pinned — the `data:null` miss (which
+    // IS the failure path, since `getFeaturedSpecial` swallows into `{success:true,data:null}`)
+    // and the `active` guard that stops a slow answer for the PREVIOUS channel overwriting the
+    // current one.
     './src/hooks/useFeaturedSpecial.ts': {
-      statements: 94,
-      branches: 74,
+      statements: 100,
+      branches: 100,
       functions: 100,
       lines: 100,
     },
     './src/components/menu/FeaturedSpecial.tsx': {
-      statements: 88,
-      branches: 74,
+      statements: 100,
+      branches: 100,
       functions: 100,
-      lines: 88,
+      lines: 100,
+    },
+    // E4 part 2 — the DECISION half of the hero, shared by both templates. Pinned because the whole
+    // reason it exists is that a second copy of this reasoning is what let `CraftMenuCard` and the
+    // hero disagree about "blocked" (E6): one checked the notice, the other also checked the
+    // server's `canOrder`. A branch that goes uncovered here is a branch one template can regress
+    // alone, which is exactly the failure this file was extracted to make impossible.
+    './src/hooks/menu/useFeaturedSpecialHero.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The banner's `priceEditability` derivation. It decides whether an admin is offered a WRITE,
+    // from a payload that does not carry enough to derive it the way a card does — and the wrong
+    // guess routes a combo to the product price endpoint, whose validator accepts >= 0 where the
+    // combo's own editor requires > 0. Every arm is covered on purpose.
+    './src/utils/catalogItem.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
     // The other half of the root-only tree (#332): what a HUMAN sees. Same silent failure mode as
     // the routing above — a component that stops being rendered produces no error, the bill just
@@ -355,6 +512,68 @@ module.exports = {
     // is exactly the property worth pinning: every customer deliverable lands twice, so a regression
     // in one template must not be masked by the other. The DECISION half lives in
     // `useItemAvailabilityNotice` (its own test file; hooks are not in collectCoverageFrom).
+    // E2 — the design system's checkbox, and the channel picker composed from it. Pinned because
+    // "which channels is this available on?" was written TWICE with nothing shared, so the two
+    // surfaces could drift on channel order, on where labels come from, and on what a disabled box
+    // means. A branch that goes uncovered here is a branch one surface can regress alone.
+    './src/components/design-system/CheckboxField.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/design-system/ChannelPicker.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // Both order-type write surfaces. The matrix had NO test at all before E2; it writes real
+    // availability rules, and every way it can be wrong is silent — a mis-wired row id saves the
+    // wrong category, and an unchecked row takes a category off sale without saying so.
+    './src/components/admin/settings/CategoryOrderTypeMatrix.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/admin/product/ProductOrderTypes.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // E1 — the one place a status becomes something a user sees, and the one place a staff surface
+    // learns what it may become NEXT. Pinned at 100 because every way this file can be wrong is
+    // silent: the ladders it replaced ended in a `default`, which is how two statuses came to render
+    // as raw English in every locale, and how the cashier's transition list stranded an order by
+    // returning an empty array that reads exactly like "this one is finished".
+    // E9 step 2 — the one error surface. Pinned at 100 because the failure it prevents is a
+    // FORGETTING, not a bug: the fallback is not a parameter, so no caller can print an
+    // untranslated generic by omission. A branch left uncovered here is a way that guarantee can
+    // quietly stop holding.
+    './src/hooks/useApiError.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The money vocabulary. Pinned at 100 because the bug it fixes was invisible from the UI: the
+    // admin "Paid" filter returned EVERY order, because the value it sent is not a backend enum
+    // member and the server's TryParse failure skipped the whole clause. A full list looks
+    // plausible; only a test that asserts `'Paid'` does NOT resolve keeps it from coming back.
+    './src/lib/paymentStatus.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/lib/orderStatus.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
     './src/components/menu/MenuCardAvailability.tsx': {
       statements: 99,
       branches: 99,

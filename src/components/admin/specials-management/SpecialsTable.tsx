@@ -56,7 +56,7 @@ const SpecialsTable: React.FC<SpecialsTableProps> = ({ specialProducts, isLoadin
                       size={16}
                       fill="gold"
                       color="gold"
-                      style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}
+                      style={{ marginInlineStart: '0.5rem', verticalAlign: 'middle' }}
                     />
                   </span>
                 )}

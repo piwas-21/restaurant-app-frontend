@@ -118,7 +118,10 @@ export default function BaseModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
-          <h2 id={titleId} className={styles.title}>
+          {/* `auto`, not inherited: a modal title may be product-authored (the customization
+              sheet passes the item name). For a locale string it is inert — an Arabic UI string
+              resolves rtl either way. DESIGN-SYSTEM.md §8.2. */}
+          <h2 id={titleId} dir="auto" className={styles.title}>
             {title}
           </h2>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label={t('close', 'Close')}>

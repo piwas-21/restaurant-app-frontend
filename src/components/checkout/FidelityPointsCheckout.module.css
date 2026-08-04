@@ -324,3 +324,14 @@
     gap: 0.5rem;
   }
 }
+
+/* Shown only when a SIGNED-IN customer's balance failed to load (E9 slice 8). A guest's 401
+   leaves this unrendered — the whole section disappears for them, as it always has. Deliberately
+   quiet: the order can still go ahead, so this is a notice, not an alert. */
+.loadError {
+  /* `<output>` is inline by default; the notice needs to fill the card like the <p> it replaced. */
+  display: block;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}

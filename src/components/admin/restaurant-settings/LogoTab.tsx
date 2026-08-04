@@ -5,6 +5,8 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { uploadRestaurantLogo, deleteRestaurantLogo } from '@/services/restaurantInfoService';
+import { getErrorMessage } from '@/utils/apiClient';
+import { serverMessages } from '@/utils/apiFormErrors';
 import type { LogoVariant } from '@/types/restaurantInfo';
 import LogoSlot from './LogoSlot';
 import styles from './LogoTab.module.css';
@@ -38,7 +40,10 @@ export default function LogoTab() {
     );
   }
 
-  const run = async (variant: LogoVariant, action: () => Promise<{ success: boolean; message?: string }>) => {
+  const run = async (
+    variant: LogoVariant,
+    action: () => Promise<{ success: boolean; message?: string; errors?: unknown }>,
+  ) => {
     setBusy(variant);
     try {
       const response = await action();
@@ -47,14 +52,32 @@ export default function LogoTab() {
         await refetch();
         enqueueSnackbar(t('logo_save_success', 'Logo saved'), { variant: 'success' });
       } else {
-        // The backend reports a rejected file (wrong type, too large) as `success: false`
-        // inside a 200, so `message` is the only place the reason exists.
-        enqueueSnackbar(response.message ?? t('logo_save_failed', 'Failed to save the logo'), {
+        // Reachable on the UPLOAD leg only. `run` wraps both `uploadRestaurantLogo` and
+        // `deleteRestaurantLogo`, and `DeleteRestaurantLogoCommand` builds no `Failure` at all —
+        // it throws `NotFoundException`, so a delete failure lands in the `catch` below.
+        //
+        // On upload, a rejected file (wrong type, too large) comes back `success: false` inside a
+        // 200: `UpdateRestaurantLogoCommand` is a bare `return Ok(result)` and both failures it
+        // builds — the file rejection and "Failed to upload logo" — leave the message argument
+        // defaulted.
+        //
+        // That form puts the reason in `Errors[0]` and leaves `Message` at its default, the literal
+        // `"Operation failed"` (`ApiResponse.cs:55-63`). The comment here used to say `message` was
+        // "the only place the reason exists" and read it directly — so an admin uploading an
+        // oversized file was told "Operation failed" while the real sentence sat unread in
+        // `errors[0]`: "File size exceeds maximum allowed size of 10MB", the limit interpolated
+        // from `FileStorageSettings.MaxFileSizeBytes` (bound to 10485760 in `appsettings.json`,
+        // NOT the 5MB C# default). `serverMessages` reads `errors[]` first for exactly this reason.
+        enqueueSnackbar(serverMessages(response)[0] ?? t('logo_save_failed', 'Failed to save the logo'), {
           variant: 'error',
         });
       }
-    } catch {
-      enqueueSnackbar(t('logo_save_failed', 'Failed to save the logo'), { variant: 'error' });
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage` rather than `useApiError`, which holds state a
+      // fire-and-forget toast has nowhere to put. This arm is the transport failures (a dead
+      // network, a 401, the `NotFoundException` when restaurant info was never initialised);
+      // the file rejections resolve and land in the `else` above.
+      enqueueSnackbar(getErrorMessage(err) ?? t('logo_save_failed', 'Failed to save the logo'), { variant: 'error' });
     } finally {
       setBusy(null);
     }

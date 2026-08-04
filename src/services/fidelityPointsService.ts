@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/utils/currency';
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, isAuthError } from '@/utils/apiClient';
 import type { FidelityPointBalance, FidelityPointsTransaction, PointsHistoryParams } from '@/types/fidelity';
 
 /**
@@ -31,8 +31,10 @@ export const fidelityPointsService = {
       });
       return response.data;
     } catch (error) {
-      // Don't log auth errors - they're expected for non-authenticated users during checkout
-      if (error instanceof Error && !error.message.toLowerCase().includes('auth')) {
+      // Don't log auth errors — expected for non-authenticated users during checkout. Gated on
+      // the STATUS, not on the message containing 'auth': `apiClient` no longer authors
+      // 'Authentication required' (#401), and a substring test never reliably asked "was this a 401?".
+      if (!isAuthError(error)) {
         console.error('Error loading fidelity points balance:', error);
       }
       throw error;
@@ -71,8 +73,10 @@ export const fidelityPointsService = {
       );
       return response.data;
     } catch (error) {
-      // Don't log auth errors
-      if (error instanceof Error && !error.message.toLowerCase().includes('auth')) {
+      // Don't log auth errors — expected for non-authenticated users during checkout. Gated on
+      // the STATUS, not on the message containing 'auth': `apiClient` no longer authors
+      // 'Authentication required' (#401), and a substring test never reliably asked "was this a 401?".
+      if (!isAuthError(error)) {
         console.error('Error calculating fidelity discount:', error);
       }
       throw error;

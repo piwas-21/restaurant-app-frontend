@@ -81,8 +81,8 @@
   color: var(--text-muted);
   margin: 0 0 2rem 0;
   max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline-start: auto;
+  margin-inline-end: auto;
 }
 
 .orderNumber {
@@ -124,7 +124,7 @@
   padding: 1.75rem 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid var(--primary-color);
+  border-inline-start: 4px solid var(--primary-color);
 }
 
 .clockIcon {
@@ -338,7 +338,7 @@
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--primary-color);
-  text-align: right;
+  text-align: end;
 }
 
 .notes {
@@ -648,7 +648,7 @@
 
   .itemPrice {
     grid-column: 2;
-    text-align: left;
+    text-align: start;
     margin-top: 0.5rem;
   }
 

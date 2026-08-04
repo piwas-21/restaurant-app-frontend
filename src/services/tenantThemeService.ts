@@ -29,6 +29,9 @@ export async function getTenantPaletteCss(): Promise<string> {
     const body = (await res.json()) as ApiResponse<RestaurantInfoDto>;
     return paletteToCss(body?.data?.themePaletteKey ?? null);
   } catch {
+    // IGNORED ON PURPOSE: this runs during server render to inline a palette. No palette is a
+    // valid outcome (the template's own tokens then apply), and there is no surface to report to
+    // — throwing here would fail the whole page over a cosmetic override.
     return '';
   }
 }

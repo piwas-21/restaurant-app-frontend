@@ -29,6 +29,22 @@ INSERT INTO categories (
 -- 2) Product (Type=0 MainItem, so the GetProducts default Menu-exclude
 -- filter still includes it). is_active + is_available + NOT is_deleted
 -- are the public-list filters the frontend cares about.
+--
+-- This is ALSO the featured special (frontend #380). `GetFeaturedSpecialQuery`
+-- requires all three of is_featured_special + is_special + is_active, so all
+-- three are set here; two out of three renders nothing and looks like a
+-- frontend bug.
+--
+-- Deliberately this product rather than a fourth one: flagging an existing item
+-- adds the hero to /menu without adding a card to the grid, so the screenshot
+-- baselines move by the hero (plus this card's "special" tape) and nothing
+-- else. It also matches production, where the special IS a menu item and
+-- appears in both places.
+--
+-- `image_url` stays NULL on purpose. The live tenant's special has no image,
+-- and the hero's no-photo layout is the case E4 had to fix (its grid always
+-- declared a photo column, so the details landed in a capped 340px column).
+-- Seeding a photo would baseline the path production does not take.
 INSERT INTO "Products" (
     id, name, description, base_price,
     display_order, image_url,
@@ -48,13 +64,21 @@ INSERT INTO "Products" (
     TRUE,
     TRUE,
     FALSE,
-    FALSE,
-    FALSE,
+    TRUE,
+    TRUE,
     0,
     5,
     0,
     'e2e-seed'
 ) ON CONFLICT (id) DO NOTHING;
+
+-- The insert above is ON CONFLICT DO NOTHING, so a database seeded before #380
+-- keeps the old flags and shows no hero — a local-only failure that looks like
+-- a broken test rather than a stale row. CI always starts fresh; this is for
+-- the developer who does not.
+UPDATE "Products"
+SET is_featured_special = TRUE, is_special = TRUE
+WHERE id = '00000000-0000-0000-0000-0000000000bb';
 
 -- 3) Product<->Category link (primary so PrimaryCategoryName resolves)
 INSERT INTO product_categories (

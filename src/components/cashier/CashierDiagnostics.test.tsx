@@ -4,6 +4,7 @@ import type { ComponentProps } from 'react';
 import CashierDiagnostics from './CashierDiagnostics';
 import { getEventsDiagnostics } from '@/services/cashierService';
 import type { SseDiagnostics } from '@/types/diagnostics';
+import { ApiError } from '@/utils/apiClient';
 
 // Stub react-i18next so t() returns the key (the component uses the
 // `t('key') || 'Fallback'` pattern, so with no fallback arg the key is what
@@ -139,12 +140,25 @@ describe('CashierDiagnostics', () => {
     expect(mockGetEventsDiagnostics).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the server error box when the mount fetch rejects', async () => {
+  it("renders the SERVER's reason in the error box when the mount fetch rejects", async () => {
     mockGetEventsDiagnostics.mockReset();
-    mockGetEventsDiagnostics.mockRejectedValue(new Error('diagnostics unavailable'));
+    mockGetEventsDiagnostics.mockRejectedValue(new ApiError(503, 'diagnostics unavailable'));
     renderDiagnostics();
     expect(await screen.findByText('diagnostics unavailable')).toBeInTheDocument();
     expect(screen.queryByText('Total Clients')).not.toBeInTheDocument();
+  });
+
+  // The backend being down is the case this panel exists for, and it used to read "Network error.
+  // Please check your internet connection." — a sentence `apiClient` wrote for every caller (#401).
+  // The panel's own contextual sentence now shows instead. Note what that does and does NOT fix:
+  // the message is now CONTEXTUAL rather than generic, but this fallback is still a hardcoded
+  // English literal, not a `t()` key, so a Turkish admin still reads English here. Translating the
+  // bound fallbacks is E9 sweep work, tracked separately — this PR makes them reachable.
+  it('falls back to its own sentence when the failure carries no server message', async () => {
+    mockGetEventsDiagnostics.mockReset();
+    mockGetEventsDiagnostics.mockRejectedValue(new ApiError(0, ''));
+    renderDiagnostics();
+    expect(await screen.findByText('Failed to fetch diagnostics')).toBeInTheDocument();
   });
 
   it('caps the rendered server logs at 10 and recent errors at 5 (slice bounds)', async () => {

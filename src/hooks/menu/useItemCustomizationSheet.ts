@@ -73,8 +73,8 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
       isOpeningRef.current = true;
       setIsLoading(true);
       // Which STEP failed, not which try caught it: the direct-add fast path runs inside the same
-      // try as the fetch, and `getProductById` swallows its own errors (falling back to the mock
-      // client), so classifying by the block would report a failed quick-add as a load failure.
+      // try as the fetch (and `getProductById` now throws rather than swallowing), so classifying
+      // by the block would report a failed quick-add as a load failure.
       let failedStep: 'load' | 'add' = 'load';
       try {
         const response = (await getProductById(productId)) as { data?: DetailedProduct };

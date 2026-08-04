@@ -1,5 +1,4 @@
 import { apiClient } from '@/utils/apiClient';
-import { mockApiClient } from './mockApiClient';
 import { Product } from '@/app/admin/menu-management/interfaces';
 import type { ProductTypeQuery } from '@/utils/productTypeFilter';
 import type { OrderType } from '@/types/order';
@@ -61,25 +60,20 @@ export const getProducts = async (
   // The channel the guest is ordering through. Does NOT filter the list — the server keeps blocked
   // items visible and only resolves each row's `availability`, so the guest reads a reason, not a hole.
   requestedOrderType?: OrderType | null,
-): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: any }> => {
-  try {
-    let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
-    if (categoryId) {
-      url += `&CategoryId=${categoryId}`;
-    }
-    if (requestedOrderType) {
-      url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
-    }
-    if (typeQuery?.type) {
-      url += `&Type=${typeQuery.type}`;
-    } else if (typeQuery?.includeMenus) {
-      url += `&IncludeMenus=true`;
-    }
-    return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: any };
-  } catch {
-    // Fallback to mock API if real API fails
-    return mockApiClient.getProducts(pageNumber, pageSize, categoryId);
+): Promise<{ success: boolean; message: string; data: PaginatedProducts; errors: unknown }> => {
+  let url = `${PRODUCTS_API_URL}?Page=${pageNumber}&PageSize=${pageSize}`;
+  if (categoryId) {
+    url += `&CategoryId=${categoryId}`;
   }
+  if (requestedOrderType) {
+    url += `&RequestedOrderType=${encodeURIComponent(requestedOrderType)}`;
+  }
+  if (typeQuery?.type) {
+    url += `&Type=${typeQuery.type}`;
+  } else if (typeQuery?.includeMenus) {
+    url += `&IncludeMenus=true`;
+  }
+  return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
 };
 
 export const createProduct = async (productData: CreateProductData) => {
@@ -92,12 +86,7 @@ export const createProduct = async (productData: CreateProductData) => {
 };
 
 export const getProductById = async (productId: string) => {
-  try {
-    return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
-  } catch {
-    // Fallback to mock API if real API fails
-    return mockApiClient.getProductById(productId);
-  }
+  return await apiClient.get(`${PRODUCTS_API_URL}/${productId}`);
 };
 
 /**
@@ -113,7 +102,10 @@ export const getFeaturedSpecial = async (requestedOrderType?: OrderType | null) 
     const query = requestedOrderType ? `?RequestedOrderType=${encodeURIComponent(requestedOrderType)}` : '';
     return await apiClient.get(`${PRODUCTS_API_URL}/featured-special${query}`);
   } catch {
-    // Return null if no featured special or API fails
+    // IGNORED ON PURPOSE, with one thing worth naming: this reports `success: true` on a FAILED
+    // call, so "no special is configured" and "the call failed" are indistinguishable to the
+    // caller. That is the intended trade — the hero is decorative, and a missing hero must never
+    // fail the home page — but it means this endpoint can never be monitored from the client.
     return { success: true, data: null, message: 'No featured special available' };
   }
 };

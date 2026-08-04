@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 import type { VariantType } from 'notistack';
 import type { TableDto, TimeSlotDto, CreateReservationDto } from '@/types/reservation';
 import { DEFAULT_FORM_FIELD_RULES, FORM_KEYS, type FormFieldRules } from '@/types/formFieldConfig';
+import { serverMessages } from '@/utils/apiFormErrors';
 
 const DEFAULT_RESERVATION_RULES = DEFAULT_FORM_FIELD_RULES[FORM_KEYS.reservation];
 
@@ -229,24 +230,33 @@ export function buildReservationPayload(
   };
 }
 
-/** Extracts the most specific API error message from a failed reservation create. */
+/**
+ * Extracts the most specific API error message from a failed reservation create.
+ *
+ * **Its first two branches read an envelope the app has never produced.** It unwrapped
+ * `err.response.data.errors` and `err.response.data.message` — the axios error shape — and axios
+ * is not a dependency here, so both were dead, and its `!== 'Request failed with status code 400'`
+ * guard filtered axios's wording rather than `apiClient`'s. Every real failure fell through to the
+ * last branch, which read `err.message`.
+ *
+ * **What that showed a guest, measured against the backend rather than assumed:**
+ * `CreateReservationCommand` answers with `ApiResponse.Failure("Table 5 is not available for the
+ * selected time slot")` — the ONE-argument overload, which puts the reason in `Errors[0]` and
+ * leaves `Message` at its default, the literal `"Operation failed"` (`ApiResponse.cs:55-63`).
+ * `ReservationsController` returns `BadRequest(result)`, so it arrives as
+ * `ApiError(400, 'Operation failed', ['Table 5 is not available…'])`. The old code read `message`
+ * and printed **"Operation failed"** to the guest — and its own `!== 'Operation failed'` filter sat
+ * on the dead axios branch, never on this one. `errors[]`, where the reason actually was, was never
+ * read at all. Its tests could not see any of it: they hand-built the envelope.
+ *
+ * `serverMessages` reads what `createReservation` actually throws — an `ApiError`, from a non-2xx
+ * or from `refused()` on a `{ success: false }` resolved inside a 200 — errors[] first, then the
+ * summary, blanks dropped.
+ *
+ * `'Operation failed'` is still filtered: it is the backend's generic wrapper, less informative
+ * than the translated sentence it would replace.
+ */
 export function extractReservationErrorMessage(err: unknown, t: TFunction): string {
-  let errorMessage = t('reservation_failed', 'Failed to create reservation');
-
-  const response = (err as { response?: { data?: { errors?: unknown; message?: string } } })?.response;
-  const data = response?.data;
-
-  if (data?.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-    // Show the first specific error from the API errors array.
-    errorMessage = String(data.errors[0]);
-  } else if (data?.message && data.message !== 'Operation failed') {
-    errorMessage = data.message;
-  } else {
-    const message = (err as { message?: string })?.message;
-    if (message && message !== 'Request failed with status code 400') {
-      errorMessage = message;
-    }
-  }
-
-  return errorMessage;
+  const specific = serverMessages(err).find((m) => m !== 'Operation failed');
+  return specific ?? t('reservation_failed', 'Failed to create reservation');
 }

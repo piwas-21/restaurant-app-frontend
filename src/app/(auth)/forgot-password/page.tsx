@@ -22,6 +22,7 @@ import { MailCheck } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
 import { AuthCard, AuthSubmit, BackToLoginFooter } from '@/components/auth/PasswordResetShell';
 import { forgotPassword } from '@/services/authService';
+import { serverMessages } from '@/utils/apiFormErrors';
 import styles from '../PasswordReset.module.css';
 
 export default function ForgotPasswordPage() {
@@ -44,19 +45,39 @@ export default function ForgotPasswordPage() {
     setFormError('');
     try {
       const res = await forgotPassword({ email: values.email });
-      // Branch on `success` ONLY, never on anything that could distinguish the two
-      // existence cases. The endpoint is anti-enumeration by design and returns 200 with a
-      // byte-identical body whether or not the address has an account — so `success:false`
-      // can only mean the SERVER broke (the mail send is awaited inline and unguarded, so
-      // a Resend outage surfaces as a 500). Reporting that is not a leak, and swallowing it
-      // told the user to wait for an email nobody sent.
+      // A GUARD, not a live path — and the difference is worth stating, because this comment used
+      // to claim the opposite. Both failures it named (the rate limiter's 429, the mail 502) are
+      // real, but neither is a 200: since #414 routed this through `apiClient` they THROW, and are
+      // handled in the catch below. And no 200 can carry `success:false` here at all —
+      // `ForgotPasswordCommandHandler` has no `Failure` return; every arm is `SuccessWithData`.
+      //
+      // Kept anyway, because the envelope is the contract and reporting a `success:false` as "check
+      // your inbox" is the one outcome that must not happen — the user would wait for an email
+      // nobody sent. If a `Failure` arm is ever added, this reports it instead of silently
+      // succeeding.
+      //
+      // Branch on `success` ONLY, never on anything that could distinguish the two existence cases:
+      // the endpoint is anti-enumeration by design and answers a known and an unknown address with
+      // a byte-identical body, so nothing reaching here is existence-dependent.
       if (res?.success === false) {
-        setFormError(t('unexpected_error'));
+        setFormError(serverMessages(res)[0] ?? t('unexpected_error'));
         return;
       }
       setSent(true);
-    } catch {
-      setFormError(t('unexpected_error'));
+    } catch (error) {
+      // #414: `forgotPassword` goes through `apiClient` now, so the two failures named above no
+      // longer depend on the endpoint choosing to answer 200. The rate limiter's 429 ("Too many
+      // requests. Please slow down and try again shortly.") and the 502's "The email could not be
+      // delivered. Please try again later." arrive HERE as an `ApiError`, and both are worth
+      // printing — someone who pressed the button twice used to be told "An unexpected error
+      // occurred" with no way to know that waiting was the fix.
+      //
+      // Still nothing existence-dependent: the endpoint is anti-enumeration by design and answers
+      // a known and an unknown address identically, so no reachable message here can distinguish
+      // them. A dead network (`TypeError`) or a non-JSON body (`SyntaxError`) yields no
+      // server-authored text, and those strings are client-authored — #401 removed them from
+      // users' screens — so the translated sentence stays as the fallback.
+      setFormError(serverMessages(error)[0] ?? t('unexpected_error'));
     }
   };
 

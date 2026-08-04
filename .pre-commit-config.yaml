@@ -108,3 +108,32 @@ repos:
         language: system
         files: \.(ts|tsx|module\.css)$
         exclude: \.(test|spec|stories)\.(ts|tsx)$
+
+  # ── E9: bare-catch ratchet ───────────────────────────────────────────
+  # `} catch {` discards the thrown ApiError, and with it the server's own
+  # per-rule messages — the defect BUGS-IMPROVEMENTS-PLAN E9 reports. The sweep
+  # runs feature area by feature area, so this is a RATCHET on the count rather
+  # than a ban: it may only go down. Whole-tree, so it runs regardless of which
+  # files are staged — a count is not a per-file property.
+  - repo: local
+    hooks:
+      - id: bare-catch
+        name: bare-catch ratchet (E9)
+        entry: node scripts/check-bare-catch.mjs
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # ── E8: physical-CSS ratchet ─────────────────────────────────────────
+  # `margin-left` and friends do not follow `dir`, so they land on the wrong
+  # side of their own text once `ar` mirrors the layout. Same shape as the
+  # bare-catch ratchet above and for the same reason: the sweep runs feature
+  # area by feature area, so the count may only go down. Whole-tree.
+  - repo: local
+    hooks:
+      - id: physical-css
+        name: physical-CSS ratchet (E8)
+        entry: node scripts/check-physical-css.mjs
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -34,6 +34,8 @@ export function orderTypeListLabel(
   try {
     return new Intl.ListFormat(language, { style: 'long', type: 'conjunction' }).format(labels);
   } catch {
+    // IGNORED ON PURPOSE: feature detection. `Intl.ListFormat` is missing on older engines and
+    // throws on a locale tag it does not know; the comma join is the intended degradation.
     return labels.join(', ');
   }
 }

@@ -78,7 +78,17 @@
 .errorAlert {
   position: fixed;
   top: 20px;
-  right: 20px;
+  /* One thing with the keyframes below, whose `translateX` parks the toast off-screen at frame
+     0 and now takes its sign from `--dir` (E8 slice 3b). Convert the inset alone and the toast
+     is pinned to the trailing edge in `ar` while the transform still displaces it the other
+     way — it would START mid-page, fully visible, and slide sideways across the content
+     instead of entering from off-screen.
+
+     It turned out NOT to need the `[dir='rtl']` animation-name swap the old comment predicted:
+     `var()` resolves inside `@keyframes`, so one block covers both directions. Safe as a
+     transform because this is a run-once `animation` with no fill mode, not a `transition` on
+     a resting position — a language switch cannot re-trigger it. */
+  inset-inline-end: 20px;
   background-color: var(--danger-color);
   color: white;
   padding: 1rem 1.5rem;
@@ -90,12 +100,13 @@
   gap: 1rem;
   max-width: 400px;
   z-index: 999;
-  animation: slideInRight 0.3s ease-out;
+  animation: slideInFromTrailingEdge 0.3s ease-out;
 }
 
-@keyframes slideInRight {
+/* Named for the direction it moves in READING order, not on screen. */
+@keyframes slideInFromTrailingEdge {
   from {
-    transform: translateX(100%);
+    transform: translateX(calc(var(--dir) * 100%));
     opacity: 0;
   }
   to {

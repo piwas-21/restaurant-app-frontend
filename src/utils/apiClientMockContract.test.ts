@@ -35,6 +35,16 @@ describe('apiClient test double', () => {
     expect(fromMock).toBeInstanceOf(Error);
   });
 
+  it('threads `cause` the same way', () => {
+    // Not covered by the spread above: `cause` set through `super(message, options)` is a
+    // NON-enumerable own property, so `{ ...err }` cannot see it in either object. The mock could
+    // drop the 5th parameter entirely and every other assertion here would still pass.
+    const original = new TypeError('Failed to fetch');
+
+    expect(new mock.ApiError(0, '', undefined, undefined, { cause: original }).cause).toBe(original);
+    expect(new real.ApiError(0, '', undefined, undefined, { cause: original }).cause).toBe(original);
+  });
+
   it('agrees with the real getErrorMessage, including its errors-before-message precedence', () => {
     const cases: unknown[][] = [
       [new mock.ApiError(400, 'Message', ['First', 'Second']), new real.ApiError(400, 'Message', ['First', 'Second'])],
@@ -58,5 +68,59 @@ describe('apiClient test double', () => {
       expect(mock.isNotFoundError(mockError)).toBe(real.isNotFoundError(realError));
       expect(mock.isErrorStatus(mockError, status)).toBe(real.isErrorStatus(realError, status));
     });
+  });
+});
+
+/**
+ * `getErrorMessage` returns the SERVER's account of a failure, or nothing.
+ *
+ * It used to end `return 'An unexpected error occurred';` — a hardcoded English literal, and
+ * verbatim the string BUGS-IMPROVEMENTS-PLAN E9 was reported for. Every caller got a generic for
+ * free, in English, without ever deciding to use one. These cases pin the absence, because that is
+ * the whole change: a caller must now supply its own translated sentence.
+ */
+describe('getErrorMessage — the null contract', () => {
+  it("returns the server's per-rule messages, joined, ahead of the summary", () => {
+    expect(real.getErrorMessage(new real.ApiError(400, 'Validation failed', ['Too short', 'No digit']))).toBe(
+      'Too short, No digit',
+    );
+  });
+
+  it("falls back to the server's summary when there are no per-rule messages", () => {
+    expect(real.getErrorMessage(new real.ApiError(409, 'That slug is taken'))).toBe('That slug is taken');
+  });
+
+  it('returns null for a CLIENT-authored throw, rather than showing it to a user', () => {
+    // `TypeError` from a dead network and `SyntaxError` from `response.json()` on an HTML 502
+    // mid-deploy are the two that actually reach these catches. Passing them through put
+    // "Failed to fetch" and `Unexpected token '<'` in front of users.
+    expect(real.getErrorMessage(new TypeError('Failed to fetch'))).toBeNull();
+    expect(real.getErrorMessage(new SyntaxError(`Unexpected token '<'`))).toBeNull();
+  });
+
+  it('returns null for a non-Error throw', () => {
+    expect(real.getErrorMessage('a string')).toBeNull();
+    expect(real.getErrorMessage(undefined)).toBeNull();
+  });
+
+  it('treats blank server text as absence, not as a message', () => {
+    // An error line with nothing in it says the operation failed for no reason — worse than the
+    // generic, because it looks like the app is broken rather than the request.
+    expect(real.getErrorMessage(new real.ApiError(400, '   '))).toBeNull();
+    expect(real.getErrorMessage(new real.ApiError(400, 'Summary', ['', '  ']))).toBe('Summary');
+  });
+
+  it('no longer produces the English literal it was reported for, for ANY input', () => {
+    const inputs: unknown[] = [
+      new real.ApiError(500, ''),
+      new TypeError('boom'),
+      null,
+      42,
+      {},
+      new real.ApiError(400, 'Real message'),
+    ];
+    for (const input of inputs) {
+      expect(real.getErrorMessage(input)).not.toBe('An unexpected error occurred');
+    }
   });
 });

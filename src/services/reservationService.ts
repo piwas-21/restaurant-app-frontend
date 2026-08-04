@@ -1,5 +1,6 @@
 // Reservation Service - API client for reservation operations
 import { apiClient } from '@/utils/apiClient';
+import { serverMessages, throwServerRefusal } from '@/utils/apiFormErrors';
 import {
   TableDto,
   ReservationDto,
@@ -52,7 +53,7 @@ export const reservationService = {
   async createTable(data: CreateTableDto): Promise<TableDto> {
     const response = await apiClient.post<ApiResponse<TableDto>>('/api/tables', data);
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create table');
+      throwServerRefusal(response);
     }
     return response.data;
   },
@@ -60,7 +61,7 @@ export const reservationService = {
   async updateTable(id: string, data: UpdateTableDto): Promise<TableDto> {
     const response = await apiClient.put<ApiResponse<TableDto>>(`/api/tables/${id}`, data);
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to update table');
+      throwServerRefusal(response);
     }
     return response.data;
   },
@@ -68,7 +69,7 @@ export const reservationService = {
   async deleteTable(id: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<boolean>>(`/api/tables/${id}`);
     if (!response.success) {
-      throw new Error(response.message || 'Failed to delete table');
+      throwServerRefusal(response);
     }
   },
 
@@ -114,49 +115,57 @@ export const reservationService = {
     date: string,
     numberOfGuests: number,
   ): Promise<{
+    /** `null` IS the failure flag — the success branch below cannot return it. */
     data: AvailableTimeSlotsDto | null;
+    /**
+     * The SERVER's sentence, or `undefined` when it authored none.
+     *
+     * It used to fall back to a client-authored English literal, which made it impossible for the
+     * caller to tell the server's own account from one we invented — so
+     * `useReservationAvailability` showed neither and the user got an empty time dropdown with no
+     * explanation. `data === null` carries the flag; this carries only what is fit to show.
+     */
     error?: string;
-    isCapacityIssue?: boolean;
   }> {
     const params = new URLSearchParams({
       date: date,
       numberOfGuests: String(numberOfGuests),
     });
 
-    try {
-      const response = await apiClient.get<ApiResponse<AvailableTimeSlotsDto>>(
-        `/api/reservations/available-slots?${params}`,
-      );
+    // No try/catch: a non-2xx is already an `ApiError` carrying the server's own account, and the
+    // catch that used to be here rethrew it as `new Error(error.message || '<English>')` — losing
+    // `status`, `errorCode`, `errors[]` and (since #401) `cause`, to say nothing more than the
+    // ApiError already said. `useReservationAvailability.fetchTimeSlots` catches it.
+    const response = await apiClient.get<ApiResponse<AvailableTimeSlotsDto>>(
+      `/api/reservations/available-slots?${params}`,
+    );
 
-      if (!response.success || !response.data) {
-        // Check errors array first, then message, then fallback
-        const errorMessage =
-          response.errors && response.errors.length > 0
-            ? response.errors[0]
-            : response.message || 'Failed to fetch available time slots';
-
-        // Check if it's a capacity issue (expected scenario)
-        const isCapacityIssue = errorMessage.toLowerCase().includes('no tables available for');
-
-        return {
-          data: null,
-          error: errorMessage,
-          isCapacityIssue,
-        };
-      }
-
-      return { data: response.data };
-    } catch (error: any) {
-      // Network or unexpected errors
-      throw new Error(error.message || 'Failed to fetch available time slots');
+    if (!response.success || !response.data) {
+      // `serverMessages` keeps the errors-then-message precedence the hand-rolled chain here had,
+      // minus the bug: it drops BLANK entries, where `errors.length > 0` happily returned `''`.
+      //
+      // Two things are gone. The client-authored English fallback, which was justified by `error`
+      // being read as a FLAG rather than rendered — true, and the defect itself: the caller cleared
+      // the slot list and said nothing. `data === null` is the flag now.
+      //
+      // And `isCapacityIssue`, which was derived by substring-matching the server's message against
+      // `'no tables available for'`. **The backend has never sent that sentence.**
+      // `GetAvailableTimeSlotsQueryHandler` has exactly three `Failure` strings — "Cannot make
+      // reservations for past dates", "No active tables found", "Failed to retrieve available time
+      // slots" — and reads `NumberOfGuests` nowhere but a log line; the party-too-large case is
+      // answered entirely client-side by `partyExceedsEveryTable`. The flag was structurally always
+      // `false`, so its consumer branched on something that could not happen.
+      return { data: null, error: serverMessages(response)[0] };
     }
+
+    return { data: response.data };
   },
 
   async createReservation(data: CreateReservationDto): Promise<ReservationDto> {
     const response = await apiClient.post<ApiResponse<any>>('/api/reservations', data);
 
     if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create reservation');
+      throwServerRefusal(response);
     }
 
     // Map string status to enum
@@ -183,7 +192,7 @@ export const reservationService = {
     const response = await apiClient.post<ApiResponse<boolean>>(`/api/reservations/${id}/cancel`);
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to cancel reservation');
+      throwServerRefusal(response);
     }
   },
 
@@ -191,7 +200,7 @@ export const reservationService = {
     const response = await apiClient.post<ApiResponse<boolean>>(`/api/reservations/${id}/confirm`);
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to confirm reservation');
+      throwServerRefusal(response);
     }
   },
 
@@ -199,7 +208,7 @@ export const reservationService = {
     const response = await apiClient.put<ApiResponse<boolean>>(`/api/reservations/${id}/status`, { status });
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to update reservation status');
+      throwServerRefusal(response);
     }
   },
 
@@ -207,7 +216,7 @@ export const reservationService = {
     const response = await apiClient.delete<ApiResponse<boolean>>(`/api/reservations/${id}`);
 
     if (!response.success) {
-      throw new Error(response.message || 'Failed to delete reservation');
+      throwServerRefusal(response);
     }
   },
 

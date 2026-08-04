@@ -2,7 +2,10 @@
 .fab {
   position: fixed;
   bottom: 1.5rem;
-  right: 1.5rem;
+  /* Mirrors with the `align-items: flex-end` below, which IS direction-aware — leave the
+     inset physical and in `ar` the stack pins to one edge while its buttons align to the
+     other. */
+  inset-inline-end: 1.5rem;
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -29,6 +32,16 @@
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
+}
+
+/* The reveal is directional and `transform` has no logical form, so this is a dir-scoped override
+   rather than a rename (DESIGN-SYSTEM.md §8.1). The list slides OUT OF the button it belongs to:
+   the FAB is pinned to the inline end, so in `ltr` that means starting 8px to the right, and in
+   `ar` — where `inset-inline-end` has already moved the whole stack to the left edge — the same
+   +8px started it on the far side of its own button and slid it the wrong way across the screen.
+   Only the resting offset needs mirroring; the revealed `translateX(0)` has no handedness. */
+[dir='rtl'] .numberList {
+  transform: translateX(-8px);
 }
 
 .fabItem:hover .numberList,
@@ -92,7 +105,7 @@
 @media (max-width: 640px) {
   .fab {
     bottom: 1rem;
-    right: 1rem;
+    inset-inline-end: 1rem;
   }
 
   .fabBtn {

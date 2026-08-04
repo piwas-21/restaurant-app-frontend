@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ServerTableDto, closeTable, openTable, releaseTable, completeAllTableOrders } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
 import { orderItemToLineSummary } from '@/components/order/lineSummary';
 import styles from './TableDetailsModal.module.css';
@@ -69,7 +70,7 @@ export default function TableDetailsModal({
       onClose();
     } catch (err) {
       console.error('Failed to close table:', err);
-      setError(err instanceof Error ? err.message : 'Failed to close table');
+      setError(getErrorMessage(err) ?? 'Failed to close table');
     } finally {
       setIsUpdating(false);
     }
@@ -84,7 +85,7 @@ export default function TableDetailsModal({
       onClose();
     } catch (err) {
       console.error('Failed to open table:', err);
-      setError(err instanceof Error ? err.message : 'Failed to open table');
+      setError(getErrorMessage(err) ?? 'Failed to open table');
     } finally {
       setIsUpdating(false);
     }
@@ -99,7 +100,7 @@ export default function TableDetailsModal({
       onClose();
     } catch (err) {
       console.error('Failed to release table:', err);
-      setError(err instanceof Error ? err.message : 'Failed to release table');
+      setError(getErrorMessage(err) ?? 'Failed to release table');
     } finally {
       setIsUpdating(false);
     }
@@ -160,7 +161,7 @@ export default function TableDetailsModal({
                       onClose();
                     } catch (err) {
                       console.error('Failed to free table:', err);
-                      setError(err instanceof Error ? err.message : 'Failed to free table');
+                      setError(getErrorMessage(err) ?? 'Failed to free table');
                       setIsUpdating(false);
                     }
                   }}

@@ -17,9 +17,10 @@ export default function CashierLayout({ children }: CashierLayoutProps) {
     // Wait for auth to load
     if (isLoading) return;
 
-    // Redirect to login if not authenticated
+    // Redirect to login if not authenticated. `/auth/login` — there is no `/login` route,
+    // and pushing to one sent an unauthenticated cashier to a 404 instead of a sign-in form.
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
 

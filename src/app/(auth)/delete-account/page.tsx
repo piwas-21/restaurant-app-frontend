@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
 import { confirmAccountDeletion } from '@/services/authService';
+import { serverMessages } from '@/utils/apiFormErrors';
 import styles from './DeleteAccount.module.css';
 
 function DeleteAccountContent() {
@@ -43,11 +44,32 @@ function DeleteAccountContent() {
         }, 3000);
       } else {
         setStatus('error');
-        setErrorMessage(response.message || t('deletion_failed', 'Failed to delete account.'));
+        // `serverMessages`, not `response.message`, and the backend is why: every arm of
+        // `ConfirmAccountDeletionCommandHandler` returns `ApiResponse.Failure("<the reason>")`,
+        // whose one-argument overload puts that reason in `errors[0]` and fills `Message` from the
+        // factory's own default PARAMETER — the literal "Operation failed" (ApiResponse.cs). So
+        // `response.message`
+        // was never empty and the `||` fallback never fired: a customer following an expired
+        // deletion link was shown "Operation failed" instead of "Invalid or expired deletion
+        // token", on a one-shot emailed link where knowing to request a new one is the whole fix.
+        // `serverMessages` reads `errors[]` first, which is where the sentence actually is.
+        setErrorMessage(serverMessages(response)[0] ?? t('deletion_failed', 'Failed to delete account.'));
       }
-    } catch {
+    } catch (error) {
+      // #414: `confirmAccountDeletion` goes through `apiClient` now, so a non-2xx arrives as an
+      // `ApiError` carrying its status instead of being flattened into the generic sentence.
+      //
+      // The reasons a guest actually sees are NOT here: all four of
+      // `ConfirmAccountDeletionCommandHandler`'s refusals — including the expired-token one this
+      // one-shot emailed link exists to explain — are `ApiResponse.Failure` returned inside
+      // `Ok(...)`, i.e. HTTP 200, and stay on the branch above. That branch is the load-bearing one.
+      //
+      // This catch takes a 500 (the middleware's own English sentence), a validation 400, or a dead
+      // network. Checked, not assumed: this handler sends NO email, so the 502 an earlier draft of
+      // this comment named cannot occur. A `TypeError`/`SyntaxError` authors nothing showable and
+      // those texts must not be rendered — hence the fallback.
       setStatus('error');
-      setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
+      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     }
   };
 

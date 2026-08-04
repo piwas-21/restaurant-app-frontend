@@ -161,8 +161,8 @@
   position: absolute;
   cursor: pointer;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   bottom: 0;
   background-color: #cbd5e1;
   transition: 0.3s;
@@ -178,10 +178,24 @@
   content: '';
   height: 20px;
   width: 20px;
-  left: 4px;
+  /* The knob now TRAVELS on this inset (4px -> 28px when checked) instead of on a
+     `transform: translateX(24px)`, which is what forced it to stay physical (E8 slice 3b).
+     Same shape as `cashier/SoundSelector.module.css` — including the transition NAMING the
+     inset rather than relying on the bare `0.3s` shorthand, which happened to cover it but
+     did not say so; narrowing that shorthand to `transition: left` later would animate in
+     `ltr` and teleport in `ar`, with every gate green (DESIGN-SYSTEM.md §8.1).
+
+     Chosen over `translateX(calc(var(--dir) * 24px))` because the transition applies to the
+     travel: a transform reading `--dir` sweeps the knob across the track on a language
+     switch. Measured — signing the translate produced a running `transform` animation
+     stepping 24 -> 23.4 -> … -> 7.5. The knob still MOVES on a flip with the inset (4px <-> 28px,
+     a 24px jump — it has to, the toggle mirrors); what it does not do is interpolate, because
+     the flip takes `left` from 4px to `auto`, which is not an interpolable pair. Instant and
+     mirrored, not animated. Identical in `ltr` either way: 4 + 24 = 28. */
+  inset-inline-start: 4px;
   bottom: 4px;
   background-color: white;
-  transition: 0.3s;
+  transition: inset-inline-start 0.3s;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
@@ -191,7 +205,10 @@
 }
 
 .toggleSwitch input:checked + .toggleSlider:before {
-  transform: translateX(24px);
+  /* 4px rest + the 24px this used to translate. Track 52px, knob 20px, so 28 + 20 = 48
+     leaves the same 4px gap at the trailing end as the resting state leaves at the leading
+     one — symmetric, so it mirrors cleanly. */
+  inset-inline-start: 28px;
 }
 
 .toggleSwitch input:disabled + .toggleSlider {

@@ -58,8 +58,15 @@ export default function OrderItemsList({ items, formatPrice, styles = defaultSty
                 </div>
               )}
               <div className={styles.itemDetails}>
-                <h3 className={styles.itemName}>{item.productName}</h3>
-                {variationName && <p className={styles.itemVariation}>{variationName}</p>}
+                {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
+                <h3 dir="auto" className={styles.itemName}>
+                  {item.productName}
+                </h3>
+                {variationName && (
+                  <p dir="auto" className={styles.itemVariation}>
+                    {variationName}
+                  </p>
+                )}
                 <p className={styles.itemQuantity}>
                   {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                 </p>

@@ -1,15 +1,82 @@
 import { z } from 'zod';
 import { loginSchema } from '../schemas/auth.schema';
+import { apiClient } from '@/utils/apiClient';
+import type { ApiResponse } from '@/types/user';
+
+/**
+ * NOTE — this module and `apiClient` import each other, deliberately and safely.
+ *
+ * `apiClient` imports `refreshToken` from here to retry a 401; the three helpers below import
+ * `apiClient` to get a status-carrying `ApiError`. Neither module touches the other's bindings at
+ * evaluation time — only inside function bodies — so the cycle resolves whichever loads first.
+ * (`refreshToken` is a hoisted function declaration, so it is defined even in a half-evaluated
+ * module; `apiClient` is a `const` object literal, which is why nothing here may reach for it at
+ * the top level.)
+ *
+ * Two helpers must stay raw `fetch`, for DIFFERENT reasons — the recursion argument covers only the
+ * first:
+ *
+ *   - `refreshToken`, because `apiClient`'s 401 branch calls it. Routing it back through would not
+ *     merely recurse: `inFlightRefresh` collapses concurrent callers onto one promise, so the
+ *     retry would await the very promise it is running inside. A deadlock, not a stack overflow.
+ *   - `login`, because `apiClient` attaches `Authorization` from whatever token is in storage. A
+ *     stale one turns a wrong-password 401 into a refresh attempt and, when that fails,
+ *     `clearAuthAndRedirect()` — navigating away from the login page mid-sign-in.
+ */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const AUTH_API_URL = `${API_BASE_URL}/api/Auth`;
 
 /**
+ * Read one key, tolerating a browser that refuses storage.
+ *
+ * The `typeof window` guard is for SSR and is not the interesting case. The interesting one is
+ * that **reading the `localStorage` property itself throws** `SecurityError` when site data is
+ * blocked outright — Chrome's "block all cookies", Firefox with `dom.storage.enabled=false`, a
+ * sandboxed iframe without `allow-same-origin`. That is a different failure from Safari private
+ * mode, where the property resolves and only `setItem` throws, and guarding only the writes left
+ * it live: `getSessionId` runs on the first line of `login()`, so the throw happened BEFORE the
+ * request and `useLoginForm`'s catch reported "Failed to connect to the server" on a browser that
+ * had never reached the network.
+ */
+function readStoredValue(key: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.warn(`Could not read ${key} from localStorage`, e);
+    return null;
+  }
+}
+
+/**
  * Get session ID from localStorage for basket merge on login
  */
 function getSessionId(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('rumi_session_id');
+  return readStoredValue('rumi_session_id');
+}
+
+/**
+ * Persist the freshly issued session tokens, tolerating a browser that refuses storage.
+ *
+ * `localStorage.setItem` throws for reasons that have nothing to do with the request that just
+ * succeeded: Safari private browsing, a full origin quota, or site data blocked outright. Three of
+ * the four sign-in paths already caught that and warned; `login` was the one that did not, so on
+ * such a browser a **successful** sign-in threw out of this service and `useLoginForm`'s catch
+ * reported "Failed to connect to the server" — a network diagnosis for a storage refusal, on a
+ * response the server had already returned 200 for.
+ *
+ * Warn and continue rather than fail: the caller still has the tokens in the response and
+ * `AuthContext` still holds the session in memory, so the tab works and only its survival across a
+ * reload is lost. That is the trade the other three paths already made.
+ */
+function persistSession(tokens: { accessToken?: string; refreshToken?: string } | undefined): void {
+  try {
+    if (tokens?.accessToken) localStorage.setItem('auth_token', tokens.accessToken);
+    if (tokens?.refreshToken) localStorage.setItem('refresh_token', tokens.refreshToken);
+  } catch (e) {
+    console.warn('Could not persist tokens to localStorage', e);
+  }
 }
 
 export async function login(formData: z.infer<typeof loginSchema>) {
@@ -29,10 +96,7 @@ export async function login(formData: z.infer<typeof loginSchema>) {
 
   if (response.ok) {
     const data = await response.json();
-    if (data.success) {
-      localStorage.setItem('auth_token', data.data.accessToken);
-      localStorage.setItem('refresh_token', data.data.refreshToken);
-    }
+    if (data.success) persistSession(data.data);
     return data;
   }
 
@@ -81,10 +145,12 @@ async function performRefresh(): Promise<RefreshResult> {
     return { success: false };
   }
 
-  const accessToken = localStorage.getItem('auth_token');
-  const storedRefreshToken = localStorage.getItem('refresh_token');
+  const accessToken = readStoredValue('auth_token');
+  const storedRefreshToken = readStoredValue('refresh_token');
 
-  // Nothing to refresh — a definitive (non-transient) miss.
+  // Nothing to refresh — a definitive (non-transient) miss. A browser that refuses storage lands
+  // here too, which is the right answer: there is no session it could read, so there is nothing to
+  // refresh, and saying so beats rejecting into whichever request happened to 401.
   if (!accessToken || !storedRefreshToken) {
     return { success: false, message: 'No session to refresh' };
   }
@@ -110,8 +176,11 @@ async function performRefresh(): Promise<RefreshResult> {
 
   const data = (await response.json().catch(() => null)) as RefreshPayload | null;
   if (response.ok && data?.success && data.data) {
-    localStorage.setItem('auth_token', data.data.accessToken);
-    localStorage.setItem('refresh_token', data.data.refreshToken);
+    // Barely reachable on a storage-refusing browser: the reads above return null there, so this
+    // function has already returned `'No session to refresh'`. Routed through the helper anyway —
+    // leaving one raw `setItem` in the same file is how the next reader concludes the bare form is
+    // safe somewhere it is not.
+    persistSession(data.data);
     return { success: true };
   }
 
@@ -140,13 +209,7 @@ export async function registerCustomer(formData: CustomerRegistrationPayload) {
 
   const data = await response.json();
   if (response.ok && data?.success) {
-    try {
-      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);
-      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);
-    } catch (e) {
-      // localStorage may be unavailable; ignore and let caller proceed
-      console.warn('Could not persist tokens to localStorage', e);
-    }
+    persistSession(data.data);
   }
   return data;
 }
@@ -158,16 +221,8 @@ export interface ForgotPasswordCommand {
   email: string;
 }
 
-export async function forgotPassword(formData: ForgotPasswordCommand) {
-  const response = await fetch(`${AUTH_API_URL}/forgot-password`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(formData),
-  });
-
-  return response.json();
+export async function forgotPassword(formData: ForgotPasswordCommand): Promise<ApiResponse<string>> {
+  return apiClient.post<ApiResponse<string>>('/api/Auth/forgot-password', formData);
 }
 
 /**
@@ -202,7 +257,7 @@ export interface ChangePasswordCommand {
 }
 
 export async function changePassword(formData: ChangePasswordCommand) {
-  const token = localStorage.getItem('auth_token');
+  const token = readStoredValue('auth_token');
 
   const response = await fetch(`${AUTH_API_URL}/change-password`, {
     method: 'POST',
@@ -261,27 +316,21 @@ export async function verifyEmail(formData: VerifyEmailCommand) {
   return response.json();
 }
 
-export async function requestAccountDeletion() {
-  const token = localStorage.getItem('auth_token');
-  const response = await fetch(`${API_BASE_URL}/api/User/request-deletion`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.json();
+export async function requestAccountDeletion(): Promise<ApiResponse<string>> {
+  // `requireAuth` so a missing token fails HERE rather than as an anonymous request the server
+  // answers with a 401 the client then has to interpret. The endpoint is `[Authorize]`, and its
+  // expired-token 401 is the whole of #414: `apiClient` refreshes and retries, and on a genuinely
+  // dead session clears the stored tokens and navigates to `/` — the HOME page, not `/auth/login`
+  // (see `clearAuthAndRedirect`). That is still the answer the customer needed, because it ends the
+  // dead session and puts a sign-in in reach; the raw `fetch` discarded the status entirely and
+  // left them re-reading "an unexpected error" and retrying forever.
+  return apiClient.post<ApiResponse<string>>('/api/User/request-deletion', undefined, { requireAuth: true });
 }
 
-export async function confirmAccountDeletion(data: { userId: string; token: string }) {
-  const response = await fetch(`${API_BASE_URL}/api/User/confirm-deletion`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
+export async function confirmAccountDeletion(data: { userId: string; token: string }): Promise<ApiResponse<string>> {
+  // Deliberately NOT `requireAuth`: this one is `[AllowAnonymous]` and authenticates by the emailed
+  // token in the body. It is followed from a mail client, where a stored session may not exist.
+  return apiClient.post<ApiResponse<string>>('/api/User/confirm-deletion', data);
 }
 
 export async function googleLogin(idToken: string) {
@@ -301,12 +350,7 @@ export async function googleLogin(idToken: string) {
 
   const data = await response.json();
   if (response.ok && data?.success) {
-    try {
-      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);
-      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);
-    } catch (e) {
-      console.warn('Could not persist tokens to localStorage', e);
-    }
+    persistSession(data.data);
   }
   return data;
 }
@@ -332,12 +376,7 @@ export async function appleLogin(idToken: string, user?: { firstName: string; la
 
   const data = await response.json();
   if (response.ok && data?.success) {
-    try {
-      if (data.data?.accessToken) localStorage.setItem('auth_token', data.data.accessToken);
-      if (data.data?.refreshToken) localStorage.setItem('refresh_token', data.data.refreshToken);
-    } catch (e) {
-      console.warn('Could not persist tokens to localStorage', e);
-    }
+    persistSession(data.data);
   }
   return data;
 }

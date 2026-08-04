@@ -87,7 +87,7 @@
 
 .orderCardAllServed {
   opacity: 0.8;
-  border-left: 5px solid var(--success-color);
+  border-inline-start: 5px solid var(--success-color);
 }
 
 .orderCardHeader {
@@ -180,7 +180,7 @@
 }
 
 .itemStatusOrAction {
-  text-align: right;
+  text-align: end;
 }
 
 .itemStatusText {
@@ -232,7 +232,7 @@
 
 .orderActionsContainer {
   margin-top: 1rem;
-  text-align: right;
+  text-align: end;
 }
 
 .noOrdersMessage {

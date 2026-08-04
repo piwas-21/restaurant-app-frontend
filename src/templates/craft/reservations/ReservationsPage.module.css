@@ -57,7 +57,7 @@
 }
 
 .selectionCount {
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
   font-size: 1.1rem;
 }
 

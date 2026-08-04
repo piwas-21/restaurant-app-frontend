@@ -2,7 +2,10 @@
 .menuPanel {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border-color);
+  /* The divider against the order panel beside it. The parent is
+     `grid-template-columns: 1fr 350px` (TakeOrderModal.module.css), and grid tracks mirror
+     under `dir="rtl"` — so the divider has to mirror with them. */
+  border-inline-end: 1px solid var(--border-color);
   overflow: hidden;
 }
 

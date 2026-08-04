@@ -105,7 +105,11 @@ export default function OrderList({ orders, selectedOrderId, onSelectOrder, isLo
             className={`${styles.orderCard} ${isSelected ? styles.orderCardSelected : ''}`}
             onClick={() => onSelectOrder(order.id)}
             style={{
-              borderLeftColor: orderTypeDisplay.color,
+              // Logical, to stay on the same edge as `.orderCard`'s `border-inline-start-width`
+              // (E8). Width and colour are one feature — the order-type accent stripe — and if
+              // only the width mirrors, `ar` gets a grey 4px bar on one side and a coloured 1px
+              // bar on the other, which is the colour coding gone.
+              borderInlineStartColor: orderTypeDisplay.color,
             }}
           >
             <div className={styles.orderCardHeader}>

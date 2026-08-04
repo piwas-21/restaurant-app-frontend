@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { basketService } from '@/services/basketService';
 import { useSessionContext } from '@/contexts/SessionContext';
 import { getErrorMessage } from '@/utils/apiClient';
+import { useTranslation } from 'react-i18next';
 import { useCartItemMutations } from '@/hooks/cart/useCartItemMutations';
 import { CartContextType } from './cartTypes';
 import { initialState, cartReducer } from './cartReducer';
@@ -17,12 +18,20 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
  */
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const { t } = useTranslation();
+  // Resolved ONCE here, where a `t` exists, and threaded into the mutation hook. `getErrorMessage`
+  // returns null when the server authored nothing, and the cart's error state is a plain string
+  // its renderer shows verbatim — so the translated sentence has to be chosen at this level.
+  const unexpectedError = t('unexpected_error', 'An unexpected error occurred.');
+  // Same reason, for the one cart failure whose server sentence is unfit to show: the backend says
+  // "Basket not found", which describes a row, not the guest's situation.
+  const basketGoneError = t('error_basket_not_found', 'Your shopping cart is empty or expired');
   const { sessionId, ensureSession } = useSessionContext();
 
   /**
    * Sync basket from backend
    */
-  const syncBasket = async () => {
+  const syncBasket = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
 
@@ -35,15 +44,23 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         dispatch({ type: 'SYNC_BASKET', payload: { basket: { ...initialState.basket!, items: [] } } });
       }
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error) ?? unexpectedError;
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
       console.error('Error syncing basket:', error);
     } finally {
       dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
     }
-  };
+    // `unexpectedError` is the only reactive value in here — it changes when the LANGUAGE does.
+  }, [unexpectedError]);
 
-  const { addItem, updateItem, removeItem } = useCartItemMutations(state, dispatch, ensureSession, syncBasket);
+  const { addItem, updateItem, removeItem } = useCartItemMutations(
+    state,
+    dispatch,
+    ensureSession,
+    syncBasket,
+    unexpectedError,
+    basketGoneError,
+  );
 
   /**
    * Clear entire basket
@@ -60,7 +77,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error) ?? unexpectedError;
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
       dispatch({ type: 'ROLLBACK', payload: { previousState } });
       console.error('Error clearing basket:', error);
@@ -85,7 +102,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error) ?? unexpectedError;
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
       dispatch({ type: 'ROLLBACK', payload: { previousState } });
       console.error('Error applying promo code:', error);
@@ -110,7 +127,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       // Sync with server response
       dispatch({ type: 'SYNC_BASKET', payload: { basket: updatedBasket } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error) ?? unexpectedError;
       dispatch({ type: 'SET_ERROR', payload: { error: errorMessage } });
       dispatch({ type: 'ROLLBACK', payload: { previousState } });
       console.error('Error removing promo code:', error);
@@ -140,10 +157,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       // syncBasket has its own try/catch (dispatches error state); fire-and-forget.
       void syncBasket();
     }
+    // Keyed on the session ONLY, deliberately. `syncBasket` now closes over the translated
+    // fallback, so it changes identity when the language does — and refetching the whole basket
+    // because someone switched to German is not what this mount-sync is for.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  // Stable identity is the contract, not an optimisation — see `CartContextType.clearError`.
+  // `dispatch` from useReducer is itself stable, so an empty dep list is correct here.
+  const clearError = useCallback(() => {
+    dispatch({ type: 'SET_ERROR', payload: { error: null } });
+  }, []);
 
   const value: CartContextType = {
     state,
+    clearError,
     syncBasket,
     addItem,
     updateItem,

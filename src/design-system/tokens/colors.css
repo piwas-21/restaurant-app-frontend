@@ -88,6 +88,11 @@
   --feedback-error: #f44336;
   --feedback-error-bg: #fdecea;
   --feedback-error-border: #f5c2c0;
+  /* Error TEXT, same idea as --feedback-warning-text below. `--feedback-error` is a fill/border red
+     and reaches only 3.2:1 as body copy on --feedback-error-bg (WCAG AA needs 4.5:1); this is the
+     same hue darkened to 5.7:1 on that tint. Overridden in the dark block, where the plain red
+     already passes at 6.6:1. Measured, not estimated. */
+  --feedback-error-text: #b3261e;
 
   /* Feedback — danger (destructive actions; separate hue family from error, kept as-is) */
   --feedback-danger: #dc3545;
@@ -365,6 +370,8 @@ html[data-theme='dark'] {
   --feedback-error: #ff8a80;
   --feedback-error-bg: #3a1f1f;
   --feedback-error-border: #5a2a2a;
+  /* 6.6:1 on --feedback-error-bg — the undarkened red is the readable one here. */
+  --feedback-error-text: #ff8a80;
 
   /* 7.1:1 on --surface-secondary — the undarkened amber is the readable one here. */
   --feedback-warning-text: #ffa500;

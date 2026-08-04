@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { updateRestaurantInfo } from '@/services/restaurantInfoService';
 import { toFullUpdateCommand } from '@/services/restaurantInfoCommand';
+import { getErrorMessage } from '@/utils/apiClient';
+import { serverMessages } from '@/utils/apiFormErrors';
 import FormField from '@/components/design-system/FormField';
 import PhoneNumberManager from './PhoneNumberManager';
 import { restaurantInfoSchema, type RestaurantInfoFormInput, type RestaurantInfoFormOutput } from './schemas';
@@ -73,12 +75,19 @@ export default function GeneralSettingsTab() {
         await refetch();
         enqueueSnackbar(t('general_settings_save_success', 'Settings saved'), { variant: 'success' });
       } else {
-        enqueueSnackbar(response.message ?? t('general_settings_save_failed', 'Failed to save'), {
+        // Defensive, not the live path — see the note in `AppearanceTab.save`. Same endpoint,
+        // same handler: it throws rather than wrapping, so refusals land in the `catch`.
+        enqueueSnackbar(serverMessages(response)[0] ?? t('general_settings_save_failed', 'Failed to save'), {
           variant: 'error',
         });
       }
-    } catch {
-      enqueueSnackbar(t('general_settings_save_failed', 'Failed to save'), { variant: 'error' });
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage`, not `useApiError`. A validator failure here
+      // ("Email is required", "Must be a valid URL") arrives as a 400 whose sentence is the
+      // diagnosis; the contextual fallback only covers a server that authored nothing.
+      enqueueSnackbar(getErrorMessage(err) ?? t('general_settings_save_failed', 'Failed to save'), {
+        variant: 'error',
+      });
     } finally {
       setIsSaving(false);
     }

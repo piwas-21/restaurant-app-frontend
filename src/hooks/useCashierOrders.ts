@@ -11,7 +11,9 @@ import {
   AddPaymentRequest,
 } from '@/services/cashierService';
 import { OrderDto } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 import { useCashierOrdersStream, ConnectionState } from './cashier/useCashierOrdersStream';
+import { useCashierOrderMutation } from './cashier/useCashierOrderMutation';
 
 const POLLING_INTERVAL_MS = 5000;
 
@@ -27,7 +29,14 @@ interface UseCashierOrdersReturn {
   error: string | null;
   lastEventTime: Date | null;
   connectionState: ConnectionState;
-  refreshOrders: () => Promise<void>;
+  /**
+   * `true` when the fetch landed, `false` when it failed — the failure itself is already on
+   * screen via `error`, so the boolean exists only so a CALLER can tell the two apart. It could
+   * not before: this resolves on both paths, so the cashier page's manual-refresh handler
+   * announced "Orders refreshed" over the top of the error banner every time the backend was
+   * down, and the `catch` it wrote for that case was unreachable.
+   */
+  refreshOrders: () => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: string) => Promise<OrderDto>;
   addPayment: (orderId: string, paymentData: AddPaymentRequest) => Promise<OrderDto>;
   refundPayment: (orderId: string, paymentId: string, amount?: number) => Promise<OrderDto>;
@@ -47,8 +56,8 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
   const lastPolledAtRef = useRef<Date | null>(null);
   const primaryPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const refreshOrders = useCallback(async (modifiedSince?: Date) => {
-    if (!isMountedRef.current) return;
+  const refreshOrders = useCallback(async (modifiedSince?: Date): Promise<boolean> => {
+    if (!isMountedRef.current) return false;
     try {
       setError(null);
       const range = dateRangeRef.current;
@@ -58,7 +67,7 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
         ...(range?.endDate ? { endDate: range.endDate } : {}),
       };
       const result = await getCashierOrders(Object.keys(filters).length > 0 ? filters : undefined);
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) return false;
 
       if (modifiedSince && result.items && result.items.length > 0) {
         // Incremental: merge new/updated rows in place.
@@ -76,12 +85,14 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
       }
       lastPolledAtRef.current = new Date();
       setIsLoading(false);
+      return true;
     } catch (err) {
-      if (!isMountedRef.current) return;
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load orders';
+      if (!isMountedRef.current) return false;
+      const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
       setError(errorMessage);
       setIsLoading(false);
       console.error('Error fetching orders:', err);
+      return false;
     }
   }, []);
 
@@ -133,29 +144,9 @@ export function useCashierOrders(dateRange?: CashierDateRange): UseCashierOrders
     void refreshOrders();
   }, [startDateMs, endDateMs, refreshOrders]);
 
-  // Mutation helper: call the API, merge the returned order into local state,
-  // surface errors via setError. Replaces five near-identical handlers.
-  const applyMutation = useCallback(
-    async (orderId: string, mutate: () => Promise<OrderDto>, errorFallback: string): Promise<OrderDto> => {
-      try {
-        const updatedOrder = await mutate();
-        let mergedOrder: OrderDto | undefined;
-        setOrders((prev) =>
-          prev.map((order) => {
-            if (order.id !== orderId) return order;
-            mergedOrder = { ...order, ...updatedOrder };
-            return mergedOrder;
-          }),
-        );
-        return mergedOrder || updatedOrder;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : errorFallback;
-        setError(errorMessage);
-        throw err;
-      }
-    },
-    [],
-  );
+  // Call the API, merge the returned order into local state, surface errors via setError.
+  // Replaces five near-identical handlers; lives in its own file since §4.
+  const applyMutation = useCashierOrderMutation(setOrders, setError);
 
   return {
     orders,

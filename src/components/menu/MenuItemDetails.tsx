@@ -55,7 +55,8 @@ export default function MenuItemDetails({
 
   return (
     <>
-      <h3 id={`item-name-${id}`} className={styles.itemTitle} {...titleProps}>
+      {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
+      <h3 id={`item-name-${id}`} dir="auto" className={styles.itemTitle} {...titleProps}>
         {title}
       </h3>
       {/* <p className={`${styles.itemDescription} ${styles.clamp2}`}>{(description || '').trim().length > 0 ? description : ' '}</p> */}

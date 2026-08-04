@@ -57,12 +57,25 @@
   outline: none;
 }
 
+/* E8 slice 3: converted together with the two things these insets are coupled to — the
+   ChevronLeft/ChevronRight glyphs inside them, mirrored below, and the ArrowLeft/ArrowRight key
+   handlers in ImageGalleryModal.tsx, which now map to previous/next by reading order rather than
+   by physical key. Converting the inset ALONE would have put "previous" on the trailing edge in
+   `ar`, still pointing at the leading one, still driven by the opposite arrow key. */
 .prev {
-  left: 0.5rem;
+  inset-inline-start: 0.5rem;
 }
 
 .next {
-  right: 0.5rem;
+  inset-inline-end: 0.5rem;
+}
+
+/* The glyph has no logical form, so it is mirrored per-direction — the same shape
+   `CategoryNav.module.css` already uses for its nav arrows. A gallery's order is reading order, so
+   unlike the floor plan (a physical room, which must NOT flip) it is right for this to mirror. */
+[dir='rtl'] .prev svg,
+[dir='rtl'] .next svg {
+  transform: scaleX(-1);
 }
 
 /* "2 / 4" — a Caveat hand-count in craft. */

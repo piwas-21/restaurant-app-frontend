@@ -10,7 +10,7 @@
 
 .searchBox svg {
   position: absolute;
-  left: 1rem;
+  inset-inline-start: 1rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-color);
@@ -19,7 +19,10 @@
 
 .searchInput {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
+  /* The 3rem gutter clears `.searchBox svg`, which now sits at `inset-inline-start`, so it has
+     to mirror with it. A 4-value shorthand is physical in slots 2 and 4. */
+  padding-block: 0.875rem;
+  padding-inline: 3rem 1rem;
   border: 2px solid var(--border-color, #e2e8f0);
   border-radius: 8px;
   font-size: 1rem;

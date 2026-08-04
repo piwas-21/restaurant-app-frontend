@@ -53,12 +53,47 @@ export function useCartPage() {
   // stays synchronous.
   const handleCheckout = () => void runCheckout();
 
+  /**
+   * IGNORED ON PURPOSE — and verified end to end rather than asserted, because "handled
+   * elsewhere" is the claim a swallowed failure always makes.
+   *
+   * Two producers, same five steps: `useCartItemMutations` (for `removeItem`/`updateItem`) and
+   * `CartContext` itself, where `applyPromoCode`/`removePromoCode` are defined inline. Each
+   * resolves the sentence with `getErrorMessage(error) ?? unexpectedError`, dispatches `SET_ERROR`,
+   * rolls the optimistic update back, logs, and then RETHROWS for the caller.
+   *
+   * `CartPageLayout` renders `state.error`, and both templates supply the
+   * `.errorContainer`/`.errorMessage` classes it needs (`app/styles/CartPage.module.css` for
+   * classic, `templates/craft/cart/CartPage.module.css` for craft) — so the message is on screen in
+   * both skins, not just the one the developer happened to run. The load-bearing link is
+   * `cartReducer`'s ROLLBACK arm, which explicitly carries `error: state.error` forward; a plain
+   * `...previousState` there would make every one of these comments false.
+   *
+   * These catches exist only to stop that deliberate rethrow becoming an unhandled rejection.
+   * Binding the error here would lower the ratchet and show the user nothing new.
+   *
+   * One exit is NOT covered by "always surfaced": `updateItem`/`removeItem` detect an item already
+   * gone (removed in another tab), resync and return WITHOUT `SET_ERROR` and without rethrowing.
+   * Nothing to report there — the basket the server returns is the truth.
+   *
+   * That exit is now scoped to the backend's `ErrorCodes.BasketItemNotFound` (#415). It used to
+   * substring-match `'not found'`, which also matches `NotFoundException("Basket not found")` — the
+   * whole BASKET row being gone, after `BasketCleanupService` runs or on an expired session id.
+   * `GetBasketQuery` answers a missing basket with an empty `BasketDto` and `SuccessWithData`, so
+   * that would have replaced the guest's entire cart with "Your cart is empty", silently.
+   *
+   * **It never actually fired.** The deployed backend wrapped both 404s in an HTTP 200 +
+   * `success:false`, so `basketService` threw a plain `Error`, `getErrorMessage` returned null, and
+   * the branch was unreachable — dead in the destructive direction AND in the benign one. The fix
+   * that matters is therefore ORDERING: the backend change that removes that wrapper is what would
+   * have armed the substring match, so it must not reach production ahead of this.
+   */
   const handleRemoveItem = async (basketItemId: string | undefined) => {
     if (!basketItemId) return;
     try {
       await removeItem(basketItemId);
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note above.
     }
   };
 
@@ -67,7 +102,7 @@ export function useCartPage() {
     try {
       await updateItem(basketItemId, newQuantity);
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note on `handleRemoveItem`.
     }
   };
 
@@ -77,6 +112,13 @@ export function useCartPage() {
     try {
       await applyPromoCode(promoCode.trim());
       setPromoCode('');
+    } catch {
+      // Surfaced by CartContext — see the note on `handleRemoveItem`. Caught rather than left to
+      // `finally` alone: `applyPromoCode` rethrows, and the Apply BUTTON calls this straight from
+      // an onClick, so the rejection went nowhere a handler could see. (The Enter-key path in
+      // `CartSummary` had its own `.catch` for exactly this, now redundant and removed.) The user
+      // always saw the message — it is in `state.error` by then — but the click path left an
+      // unhandled rejection on every refused promo code.
     } finally {
       setIsApplyingPromo(false);
     }
@@ -86,7 +128,7 @@ export function useCartPage() {
     try {
       await removePromoCode();
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note on `handleRemoveItem`.
     }
   };
 
@@ -97,7 +139,7 @@ export function useCartPage() {
       setEditingInstructions(null);
       setInstructionsValue('');
     } catch {
-      // Error already handled by CartContext
+      // Surfaced by CartContext — see the note on `handleRemoveItem`.
     }
   };
 

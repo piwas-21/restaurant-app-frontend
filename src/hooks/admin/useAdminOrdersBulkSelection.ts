@@ -42,7 +42,7 @@ export function useAdminOrdersBulkSelection(orders: OrderDto[], paginatedOrders:
   const handleBulkExportCSV = () => {
     const target = selectedOrders();
     exportOrdersToCSV(target, t);
-    enqueueSnackbar(`Exported ${target.length} orders to CSV`, {
+    enqueueSnackbar(t('bulk_export_csv_success', { count: target.length }), {
       variant: 'success',
       anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
     });
@@ -51,7 +51,7 @@ export function useAdminOrdersBulkSelection(orders: OrderDto[], paginatedOrders:
   const handleBulkExportPDF = () => {
     const target = selectedOrders();
     exportOrdersToPDF(target, t);
-    enqueueSnackbar(`Exported ${target.length} orders to PDF`, {
+    enqueueSnackbar(t('bulk_export_pdf_success', { count: target.length }), {
       variant: 'success',
       anchorOrigin: SNACKBAR_BOTTOM_RIGHT,
     });

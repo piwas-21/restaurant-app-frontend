@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { SuggestedSideItemsPickerProps, ProductSearchResult } from './types';
-import { getProducts } from '@/services/menuService';
+import { SuggestedSideItemsPickerProps } from './types';
+import { useSideItemSearch } from '@/hooks/admin/useSideItemSearch';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
@@ -15,81 +15,11 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
 }) => {
   const { t } = useTranslation();
   const [showPicker, setShowPicker] = useState(false);
-  const [search, setSearch] = useState('');
-  const [results, setResults] = useState<ProductSearchResult[]>([]);
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
-  const [selectedItemsDetails, setSelectedItemsDetails] = useState<Map<string, { name: string; description?: string }>>(
-    new Map(),
-  );
-
-  // Fetch details for selected side items on mount or when selectedSideItemIds change
-  React.useEffect(() => {
-    // Race guard: rapid changes to `selectedSideItemIds` can land an older
-    // fetch after a newer one. The service layer swallows fetch errors, so we
-    // use the cancellation-flag pattern (same idiom as
-    // `useGuestProfilePrefill`) to suppress stale state writes.
-    let cancelled = false;
-
-    const fetchSelectedItemsDetails = async () => {
-      if (selectedSideItemIds.length === 0) {
-        if (!cancelled) setSelectedItemsDetails(new Map());
-        return;
-      }
-
-      try {
-        const resp = await getProducts(1, 100, undefined);
-        if (cancelled) return;
-        if (resp.success) {
-          const detailsMap = new Map<string, { name: string; description?: string }>();
-          selectedSideItemIds.forEach((id: string) => {
-            const item = resp.data.items.find((p: any) => p.id === id);
-            if (item) {
-              detailsMap.set(id, { name: item.name, description: item.description });
-            }
-          });
-          setSelectedItemsDetails(detailsMap);
-        }
-      } catch {
-        // Handle error silently
-      }
-    };
-
-    // fetchSelectedItemsDetails has its own try/catch (silently absorbs
-    // failures); fire-and-forget.
-    void fetchSelectedItemsDetails();
-
-    return () => {
-      cancelled = true;
-    };
-    // Depend on a serialized key so the effect only re-runs when the actual
-    // IDs change. The array reference is unstable across parent renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSideItemIds.join(',')]);
-
-  const runSearch = async () => {
-    if (!search.trim()) return;
-
-    try {
-      const resp = await getProducts(1, 20, undefined);
-      if (resp.success) {
-        const filteredItems = resp.data.items
-          .filter(
-            (p: any) => p.name.toLowerCase().includes(search.toLowerCase()), // Allow any product type as side item
-          )
-          .map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            description: p.description,
-            basePrice: p.basePrice,
-            type: p.type,
-          }));
-        setResults(filteredItems);
-      }
-    } catch {
-      // Handle search error silently
-      setResults([]);
-    }
-  };
+  // Both product reads and their two error slots — see `useSideItemSearch` for what each of the
+  // two swallowed catches this replaces was costing.
+  const { search, setSearch, results, runSearch, resetSearch, searchError, detailsError, selectedItemsDetails } =
+    useSideItemSearch(selectedSideItemIds);
 
   const toggleSelect = (id: string, checked: boolean) => {
     setTempSelectedIds((prev) => (checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id)));
@@ -100,8 +30,7 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
     onChange(newSelectedIds);
     setShowPicker(false);
     setTempSelectedIds([]);
-    setSearch('');
-    setResults([]);
+    resetSearch();
   };
 
   const removeItem = (idToRemove: string) => {
@@ -146,6 +75,13 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
         {t('suggested_side_items')} {t('optional')}
       </h3>
       {errors.suggestedSideItemIds && <p className={modalStyles.errorMessage}>{errors.suggestedSideItemIds.message}</p>}
+      {/* Why the names below may be ids rather than dishes. Without this the chips just read
+          `Item 3f2a9c11...` with nothing to explain them. */}
+      {detailsError && (
+        <p className={modalStyles.errorMessage} role="alert">
+          {detailsError}
+        </p>
+      )}
 
       {getSelectedItemsDisplay()}
 
@@ -201,7 +137,16 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
             </div>
           )}
 
-          {search && results.length === 0 && <p className={modalStyles.emptyState}>{t('no_side_items_found')}</p>}
+          {/* `searchError` first, and it SUPPRESSES the empty state rather than sitting beside it:
+              "No side items found" is an answer about the menu, and a failed search has not
+              obtained one. */}
+          {searchError ? (
+            <p className={modalStyles.errorMessage} role="alert">
+              {searchError}
+            </p>
+          ) : (
+            search && results.length === 0 && <p className={modalStyles.emptyState}>{t('no_side_items_found')}</p>
+          )}
 
           <div className={detailsStyles.actionRow}>
             <button type="button" className={`${styles.adminButton}`} onClick={runSearch} disabled={!search.trim()}>
@@ -213,8 +158,7 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
               onClick={() => {
                 setShowPicker(false);
                 setTempSelectedIds([]);
-                setSearch('');
-                setResults([]);
+                resetSearch();
               }}
             >
               {t('cancel')}

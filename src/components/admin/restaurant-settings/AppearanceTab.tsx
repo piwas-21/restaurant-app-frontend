@@ -5,6 +5,8 @@ import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { updateRestaurantInfo } from '@/services/restaurantInfoService';
+import { getErrorMessage } from '@/utils/apiClient';
+import { serverMessages } from '@/utils/apiFormErrors';
 import { PALETTES } from '@/design-system/palettes';
 import { revalidateTenantTheme } from '@/app/actions/revalidateTenantTheme';
 import { toUpdateCommand } from './appearanceCommand';
@@ -56,20 +58,48 @@ export default function AppearanceTab() {
       const response = await updateRestaurantInfo(toUpdateCommand(info, selected));
       if (response.success) {
         invalidateRestaurantInfoCache();
-        // Bust the SSR palette cache so a reload reflects the new palette
-        // immediately, not after the 30s ISR window.
-        await revalidateTenantTheme();
+        // Bust the SSR palette cache so a reload reflects the new palette immediately, not after
+        // the 30s ISR window.
+        //
+        // Guarded SEPARATELY, and the guard is the point: this is a server action, so it is a
+        // second round trip that can reject on its own — and the palette is already saved by the
+        // time it runs. Left inside the outer `try` it would fall to the catch below and toast
+        // "Failed to save" for a save that succeeded, which is the same class of lie as the
+        // "Operation failed" wrapper this slice removed, just pointing the other way. A stale SSR
+        // cache is not a failed save; it costs the admin one hard reload, so it is reported as its
+        // own weaker sentence. (`refetch` needs no such guard — `useRestaurantInfo.fetchIfStale`
+        // catches internally and cannot reject.)
+        let themeRevalidated = true;
+        try {
+          await revalidateTenantTheme();
+        } catch {
+          // IGNORED ON PURPOSE as a failure — downgraded to a warning below rather than swallowed.
+          themeRevalidated = false;
+        }
         await refetch();
-        enqueueSnackbar(t('appearance_save_success', 'Palette saved — reload the site to see it'), {
-          variant: 'success',
-        });
+        enqueueSnackbar(
+          themeRevalidated
+            ? t('appearance_save_success', 'Palette saved — reload the site to see it')
+            : t('appearance_saved_cache_stale', 'Palette saved, but the site cache did not refresh — reload to see it'),
+          { variant: themeRevalidated ? 'success' : 'warning' },
+        );
       } else {
-        enqueueSnackbar(response.message ?? t('general_settings_save_failed', 'Failed to save'), {
+        // Defensive, not the live path: `UpdateRestaurantInfoCommand` builds no `Failure` at all —
+        // it throws (`NotFoundException`), so a refusal arrives as a non-2xx in the `catch` below.
+        // Read `errors[]` first anyway, because if this branch ever does fire it will be through
+        // the one-argument `ApiResponse.Failure(reason)`, whose `message` is the literal
+        // "Operation failed" and whose reason is in `errors[0]`.
+        enqueueSnackbar(serverMessages(response)[0] ?? t('general_settings_save_failed', 'Failed to save'), {
           variant: 'error',
         });
       }
-    } catch {
-      enqueueSnackbar(t('general_settings_save_failed', 'Failed to save'), { variant: 'error' });
+    } catch (err) {
+      // Snackbar, not a panel — `getErrorMessage`, not `useApiError` (which holds state a
+      // fire-and-forget toast has nowhere to put). This is the arm the update's own failures reach;
+      // the post-save revalidation is guarded above so it cannot be reported as a failed save.
+      enqueueSnackbar(getErrorMessage(err) ?? t('general_settings_save_failed', 'Failed to save'), {
+        variant: 'error',
+      });
     } finally {
       setIsSaving(false);
     }

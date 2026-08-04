@@ -67,8 +67,7 @@
   display: none;
   position: fixed;
   top: var(--craft-header-h);
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1099;
@@ -91,18 +90,25 @@
     flex-direction: column;
     position: fixed;
     top: var(--craft-header-h);
-    right: 0;
+    /* Inset, border and the translate that parks the drawer off-screen move together (E8 slice
+       3b) — the same coupling as the classic drawer in app/styles/Header.module.css, minus the
+       shadow, which craft does not cast. `border-inline-start` is the page-facing edge in both
+       directions: the drawer sits on the trailing edge, so its inline start always faces the
+       content. Like the classic one it is `display: none` when closed, so the parked transform
+       below never paints — the defect this fixes is that in `ar` the drawer used to open on the
+       opposite side of the screen from the button that opens it. */
+    inset-inline-end: 0;
     width: 280px;
     max-width: 80vw;
     height: calc(100vh - var(--craft-header-h));
     background-color: var(--surface-card);
-    border-left: 2px solid var(--border-default);
+    border-inline-start: 2px solid var(--border-default);
     padding: 1rem 0;
     z-index: 1100;
     gap: 0;
     align-items: stretch;
     overflow-y: auto;
-    transform: translateX(100%);
+    transform: translateX(calc(var(--dir) * 100%));
     transition: transform 0.3s ease-in-out;
   }
 
@@ -115,7 +121,10 @@
   .navOpen :global(.nav-link) {
     padding: 0.75rem 1.5rem;
     width: 100%;
-    text-align: left;
+    /* Not coupled to the drawer above. The drawer now mirrors too (E8 slice 3b), but this was
+       already `start` and stays `start` either way: text is read in the locale's own direction
+       regardless of which edge its container is pinned to. */
+    text-align: start;
     border-bottom: 1px dotted var(--text-muted);
     box-sizing: border-box;
     border-radius: 0;

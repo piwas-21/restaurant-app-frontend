@@ -32,6 +32,7 @@ export default function HomePage() {
     backgroundImageUrl,
     googleMapsEmbedUrl,
     restaurantName,
+    heroSubtitle,
     addressStreet,
     addressCityCountry,
     phoneDisplay,
@@ -54,7 +55,7 @@ export default function HomePage() {
             {isClient ? t('home_hero_title') : 'Discover Authentic Turkish Flavors'}
           </h1>
           <p className={styles.heroSubtitle}>
-            {isClient ? t('home_hero_subtitle') : 'Your journey into rich tastes and traditions begins here.'}
+            {isClient ? heroSubtitle : 'Your journey into rich tastes and traditions begins here.'}
           </p>
           <div className={styles.ctaRow}>
             <Link href="/menu" className={styles.ctaPrimary} role="button">

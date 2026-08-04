@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCashierOrders } from '@/hooks/useCashierOrders';
 import { useNotification } from '@/hooks/useNotification';
 import { useCashierFilters } from '@/hooks/cashier/useCashierFilters';
 import { useCashierDialogs } from '@/hooks/cashier/useCashierDialogs';
+import { useCashierManualRefresh } from '@/hooks/cashier/useCashierManualRefresh';
 import { useCashierAutoPrint } from '@/hooks/cashier/useCashierAutoPrint';
 import { useCashierOrderAlerts } from '@/hooks/cashier/useCashierOrderAlerts';
 import { useTodayOnlyDateRange } from '@/hooks/cashier/useTodayOnlyDateRange';
@@ -66,19 +67,9 @@ export default function CashierPage() {
   const [showQRScannerDialog, setShowQRScannerDialog] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showZReport, setShowZReport] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshOrders();
-      dialogs.showSuccess(t('cashier.orders_refreshed') || 'Orders refreshed');
-    } catch {
-      dialogs.showError(t('cashier.refresh_failed') || 'Failed to refresh orders');
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [refreshOrders, dialogs, t]);
+  // Owns the pending flag AND which of the two outcomes gets announced — see the hook for why
+  // that second part needed a boolean rather than a catch.
+  const { isRefreshing, handleRefresh } = useCashierManualRefresh(refreshOrders, dialogs);
 
   return (
     <div className={styles.pageWrapper}>
@@ -185,7 +176,7 @@ export default function CashierPage() {
         onCloseAutoPrint={() => setShowAutoPrintSettings(false)}
         onCloseZReport={() => setShowZReport(false)}
         onCloseDiagnostics={() => setShowDiagnostics(false)}
-        onApplyDiscount={() => dialogs.showSuccess(t('cashier.discount_info_loaded') || 'Discount information loaded')}
+        onApplyDiscount={() => dialogs.showSuccess(t('cashier.discount_info_loaded'))}
         onSaveAutoPrint={saveAutoPrintSettings}
         onTestSound={() => notif.playSoundByType(notif.soundType)}
         onEnableAudio={notif.resumeAudioContext}

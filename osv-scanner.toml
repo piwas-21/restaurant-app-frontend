@@ -2,16 +2,14 @@
 # Accepted findings only — anything with a reachable patched version gets fixed,
 # not listed here. Mirrors .npm-audit-allowlist.json, which carries the same
 # entries for the `npm audit` gate; keep the two in step.
-
-[[IgnoredVulns]]
-id = "GHSA-mh99-v99m-4gvg"
-ignoreUntil = 2026-10-31
-# brace-expansion: DoS via unbounded expansion. BUILD-TIME glob matcher only —
-# never shipped to the browser, and it only ever expands patterns we author, so
-# there is no untrusted input path. The advisory has NO back-ported fix (single
-# range, fixed: 5.0.8) and brace-expansion@5 changed its export from a function
-# to an object, which breaks minimatch@3 — a direct dependency of eslint itself.
-# #297 forced the major and silently broke every `eslint` invocation that used a
-# brace glob; #302 reverted that and accepted the finding here instead.
-# Revisit when eslint moves off minimatch@3, or at the ESLint-CLI migration.
-reason = "Build-time only, no untrusted input, no back-ported fix; forcing v5 breaks eslint's minimatch@3 (see #297/#302)."
+#
+# Currently EMPTY, and the entry that used to be here is worth remembering.
+# GHSA-mh99-v99m-4gvg (brace-expansion DoS) was accepted on the grounds that the
+# advisory had "no back-ported fix (single range, fixed: 5.0.8)" and that forcing
+# v5 broke eslint's minimatch@3 (#297, reverted by #302). That reason has since
+# EXPIRED: the advisory now carries fixes for every range — 1.1.17, 2.1.3, 3.0.3
+# and 5.0.8 — so a patch-level bump inside each existing major clears it without
+# touching minimatch@3 at all. Removed rather than left to sit until its
+# 2026-10-31 expiry, because an ignore is a claim about the world and this one
+# had stopped being true. An "unused ignores" warning from osv-scanner is the
+# tell; it does not fail the build, so nothing would have raised it on its own.

@@ -2,6 +2,8 @@ import { formatCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderStatus } from '@/types/order';
+import { orderStatusLabel } from '@/lib/orderStatus';
+import { paymentStatusLabel } from '@/lib/paymentStatus';
 import { UtensilsCrossed, Store, Truck, Package } from 'lucide-react';
 
 /**
@@ -48,54 +50,24 @@ export const useOrderHelpers = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return t('order_status_pending', 'Pending');
-      case 'Confirmed':
-        return t('order_status_confirmed', 'Confirmed');
-      case 'Preparing':
-        return t('order_status_preparing', 'Preparing');
-      case 'Ready':
-        return t('order_status_ready', 'Ready');
-      case 'InTransit':
-        return t('order_status_in_transit', 'In Transit');
-      case 'Delivered':
-        return t('order_status_delivered', 'Delivered');
-      case 'Completed':
-        return t('order_status_completed', 'Completed');
-      case 'Cancelled':
-        return t('order_status_cancelled', 'Cancelled');
-      default:
-        return status;
-    }
-  };
+  // Delegates to the single map. The ladder this replaces handled EIGHT of the union's twelve
+  // members, so `PendingApproval`, `In Progress`, `OutForDelivery` and `Refunded` all fell through
+  // its `default` and rendered as raw untranslated English in every locale.
+  const getStatusLabel = (status: string) => orderStatusLabel(status, t);
 
-  const getPaymentStatusLabel = (paymentStatus: string) => {
-    switch (paymentStatus) {
-      case 'Pending':
-        return t('payment_status_pending', 'Pending');
-      case 'Paid':
-        return t('payment_status_paid', 'Paid');
-      case 'PartiallyPaid':
-        return t('payment_status_partially_paid', 'Partially Paid');
-      case 'Refunded':
-        return t('payment_status_refunded', 'Refunded');
-      case 'Failed':
-        return t('payment_status_failed', 'Failed');
-      case 'Overpaid':
-        return t('payment_status_overpaid', 'Overpaid');
-      default:
-        return paymentStatus;
-    }
-  };
+  // The hand-written `Overpaid` case that used to live here is gone: it existed only because the
+  // frontend union omitted a real backend status, so it could not be an entry in the map. It is one
+  // now, along with `Completed` — which was falling through to the raw enum name in all ten locales.
+  const getPaymentStatusLabel = (paymentStatus: string) => paymentStatusLabel(paymentStatus, t);
 
+  // The statuses a human may pick in the status dropdowns. Deliberately NOT every union member:
+  // `PendingApproval` and `Refunded` are reached by their own flows, and `In Progress` is legacy.
   const statusOptions: OrderStatus[] = [
     'Pending',
     'Confirmed',
     'Preparing',
     'Ready',
-    'InTransit',
+    'OutForDelivery',
     'Delivered',
     'Completed',
     'Cancelled',

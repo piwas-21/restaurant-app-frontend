@@ -78,8 +78,12 @@ export default function CartSummary({
               disabled={isSyncing}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
-                  // onApplyPromoCode only has try/finally — applyPromoCode re-throws.
-                  onApplyPromoCode().catch((err) => console.error('cart: failed to apply promo', err));
+                  // `onApplyPromoCode` now catches (E9 slice 6b) — CartContext has already put the
+                  // reason in `state.error` by the time it settles, and this page renders that. The
+                  // `.catch` that used to be here logged a rejection that can no longer happen, and
+                  // its comment said `handleApplyPromoCode` had "only try/finally", which stopped
+                  // being true in the same change. `void` because the handler must stay sync.
+                  void onApplyPromoCode();
                 }
               }}
             />

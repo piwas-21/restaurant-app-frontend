@@ -99,6 +99,10 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/check-locale-parity.mjs
+      # Parity compares the ten bundles against EACH OTHER, so a key missing from all ten is
+      # perfectly consistent and passes it. This reads the CALLSITES instead — the only way to see
+      # a `t()` that renders its own key to a user (#417).
+      - run: node scripts/check-t-keys.mjs
 
   baseline_dimensions:
     # Screenshot baselines must be exactly their viewport's width. A full-page capture
@@ -200,6 +204,22 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - run: bash scripts/check-file-length.sh --all
+
+  bare_catch:
+    name: bare-catch ratchet (E9)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - run: node scripts/check-bare-catch.mjs
+
+  physical_css:
+    name: physical-CSS ratchet (E8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - run: node scripts/check-physical-css.mjs
 
   gitleaks:
     name: gitleaks (secret scan)

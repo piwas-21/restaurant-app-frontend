@@ -24,6 +24,7 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
     itemCount,
     subtotal,
     blockerMessage,
+    error,
     isSyncing,
     isResolving,
     handleQty,
@@ -35,6 +36,13 @@ export default function CraftCartContents(props: Readonly<UseCartContentsArgs>) 
   return (
     <>
       <CraftOrderTypeToggle onPick={handlePick} />
+
+      {/* See CartContents — same slot, same reason (#415). */}
+      {error && (
+        <div className={styles.cartError} role="alert">
+          {error}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className={styles.empty}>

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { enqueueSnackbar } from 'notistack';
 import { reservationService } from '@/services/reservationService';
+import { getErrorMessage } from '@/utils/apiClient';
+import { useAvailabilityNotices } from './useAvailabilityNotices';
 import { TableDto, TimeSlotDto } from '@/types/reservation';
 import {
   computeTableAvailability,
@@ -20,6 +21,7 @@ import {
  */
 export function useReservationAvailability() {
   const { t } = useTranslation();
+  const notices = useAvailabilityNotices();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -90,8 +92,8 @@ export function useReservationAvailability() {
     try {
       const tables = await reservationService.getTables(true); // Only active tables
       setAllTables(tables);
-    } catch {
-      enqueueSnackbar(t('failed_to_load_tables', 'Failed to load tables'), { variant: 'error' });
+    } catch (error) {
+      notices.tablesFailed(error);
     }
   };
 
@@ -103,8 +105,11 @@ export function useReservationAvailability() {
     try {
       const result = await reservationService.getAvailableTimeSlots(selectedDate, numberOfGuests);
 
-      if (result.error || !result.data) {
+      // `data === null` is the failure flag — `error` carries only what the SERVER authored, so a
+      // refusal it could not quote leaves it undefined and the translated sentence wins.
+      if (!result.data) {
         setAvailableTimeSlots([]);
+        notices.slotsFailed(result.error);
         return;
       }
 
@@ -113,19 +118,15 @@ export function useReservationAvailability() {
 
       // Restaurant closed on this day (no slots) — prompt the user to pick another date.
       if (timeSlots.length === 0) {
-        const dateObj = new Date(selectedDate);
-        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-        enqueueSnackbar(
-          t('restaurant_closed_on_date', 'Restaurant is closed on {{day}}, {{date}}. Please select another date.', {
-            day: dayName,
-            date: dateObj.toLocaleDateString(),
-          }),
-          { variant: 'warning', autoHideDuration: 5000 },
-        );
+        notices.restaurantClosed(selectedDate);
         setSelectedDate('');
       }
-    } catch {
+    } catch (error) {
+      // `getAvailableTimeSlots` deliberately has no try/catch of its own, so a non-2xx arrives
+      // here as the `ApiError` carrying the server's account. Discarding it left the same silent
+      // empty dropdown as the branch above.
       setAvailableTimeSlots([]);
+      notices.slotsFailed(getErrorMessage(error));
     } finally {
       setLoading(false);
     }

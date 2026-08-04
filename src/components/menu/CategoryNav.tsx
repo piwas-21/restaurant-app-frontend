@@ -32,7 +32,9 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
           onClick={() => onSelect(tab.id)}
           aria-pressed={selectedView === tab.id}
         >
-          {tab.label}
+          {/* Wrapped rather than `dir` on the button: with a notice the button has an element
+              child, and §8.2 keeps `dir="auto"` on leaves. Category names are tenant-authored. */}
+          <span dir="auto">{tab.label}</span>
           {/* Inside the button on purpose: the reason becomes part of the tab's accessible name, so
               a restricted category announces WHY, the same way a dimmed card does. */}
           {tab.notice && <span className={styles.navButtonNotice}>{tab.notice.message}</span>}

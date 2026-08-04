@@ -1,100 +1,35 @@
 import styles from '@/styles/orderStatus.module.css';
 import { OrderStatus } from '@/types/order';
+import { ORDER_STATUS_META, orderStatusMeta } from '@/lib/orderStatus';
+import { PAYMENT_STATUS_META } from '@/lib/paymentStatus';
 
 /**
- * Get the CSS class name for an order status badge
+ * Thin adapters over `@/lib/orderStatus`, kept so the existing callsites keep working while they
+ * migrate. Every mapping this file used to own now lives in one place — this module had drifted
+ * from `useOrderHelpers` on `InTransit` alone (`order_status_intransit` vs `order_status_in_transit`),
+ * which is why both spellings existed in all ten locale files.
  */
-export const getOrderStatusClass = (status: string): string => {
-  const statusLower = status.toLowerCase();
 
-  switch (statusLower) {
-    case 'pending':
-      return styles.statusPending;
-    case 'confirmed':
-      return styles.statusConfirmed;
-    case 'preparing':
-      return styles.statusPreparing;
-    case 'ready':
-      return styles.statusReady;
-    case 'intransit':
-    case 'in transit':
-      return styles.statusInTransit;
-    case 'delivered':
-      return styles.statusDelivered;
-    case 'completed':
-      return styles.statusCompleted;
-    case 'cancelled':
-      return styles.statusCancelled;
-    default:
-      return styles.statusPending;
-  }
-};
+/** CSS class for an order status badge. Unknown values keep the neutral pending look. */
+export const getOrderStatusClass = (status: string): string =>
+  styles[orderStatusMeta(status)?.className ?? 'statusPending'];
 
-/**
- * Get the CSS class name for a payment status badge
- */
+/** CSS class for a payment status badge. */
 export const getPaymentStatusClass = (status: string): string => {
-  const statusLower = status.toLowerCase();
-
-  switch (statusLower) {
-    case 'pending':
-      return styles.paymentPending;
-    case 'paid':
-      return styles.paymentPaid;
-    case 'partiallypaid':
-    case 'partially paid':
-      return styles.paymentPartiallyPaid;
-    case 'refunded':
-      return styles.paymentRefunded;
-    case 'failed':
-      return styles.paymentFailed;
-    default:
-      return styles.paymentPending;
-  }
+  const key = status.toLowerCase().replace(/\s+/g, '');
+  const match = (Object.keys(PAYMENT_STATUS_META) as (keyof typeof PAYMENT_STATUS_META)[]).find(
+    (s) => s.toLowerCase() === key,
+  );
+  return styles[match ? PAYMENT_STATUS_META[match].className : 'paymentPending'];
 };
 
-/**
- * Get combined class names for status badge
- */
-export const getStatusBadgeClasses = (status: string): string => {
-  return `${styles.statusBadge} ${getOrderStatusClass(status)}`;
-};
+export const getStatusBadgeClasses = (status: string): string => `${styles.statusBadge} ${getOrderStatusClass(status)}`;
 
-/**
- * Get combined class names for payment badge
- */
-export const getPaymentBadgeClasses = (status: string): string => {
-  return `${styles.paymentBadge} ${getPaymentStatusClass(status)}`;
-};
+export const getPaymentBadgeClasses = (status: string): string =>
+  `${styles.paymentBadge} ${getPaymentStatusClass(status)}`;
 
-/**
- * Get focus badge class
- */
-export const getFocusBadgeClass = (): string => {
-  return styles.focusBadge;
-};
+export const getFocusBadgeClass = (): string => styles.focusBadge;
 
-export const getOrderStatusTranslationKey = (status: OrderStatus): string => {
-  switch (status) {
-    case 'Pending':
-      return 'order_status_pending';
-    case 'Confirmed':
-      return 'order_status_confirmed';
-    case 'Preparing':
-      return 'order_status_preparing';
-    case 'Ready':
-      return 'order_status_ready';
-    case 'InTransit':
-      return 'order_status_intransit';
-    case 'Delivered':
-      return 'order_status_delivered';
-    case 'Completed':
-      return 'order_status_completed';
-    case 'Cancelled':
-      return 'order_status_cancelled';
-    case 'PendingApproval':
-      return 'order_status_pending_approval';
-    default:
-      return status;
-  }
-};
+/** i18n key for an order status. Unknown values return the raw string, as before. */
+export const getOrderStatusTranslationKey = (status: OrderStatus): string =>
+  ORDER_STATUS_META[status]?.i18nKey ?? status;

@@ -1,4 +1,5 @@
 import { isDuplicateEmailError, isDuplicateEmailResponse } from '../duplicateEmailDetection';
+import { ApiError } from '@/utils/apiClient';
 
 describe('isDuplicateEmailResponse', () => {
   it('returns false for null/undefined/empty', () => {
@@ -158,5 +159,55 @@ describe('isDuplicateEmailError', () => {
     // "already" without an "exist|registered|duplicate" companion must not match.
     expect(isDuplicateEmailError(new Error('Registration already attempted'))).toBe(false);
     expect(isDuplicateEmailError(new Error('Item exists in cart'))).toBe(false);
+  });
+});
+
+/**
+ * The shape `apiClient` throws. Dormant while `registerCustomer` stays on raw `fetch`, but the
+ * previous note on this branch predicted "a future apiClient that doesn't attach a structured
+ * body" — the future arrived with a KNOWN body, on `ApiError.errors`, and matching on `message`
+ * alone would have missed it.
+ */
+describe('isDuplicateEmailError — the thrown ApiError shape', () => {
+  it('reads the per-rule list, where the backend actually puts it', () => {
+    expect(isDuplicateEmailError(new ApiError(400, 'Validation failed', ['User with this email already exists']))).toBe(
+      true,
+    );
+  });
+
+  it('does not fire on an unrelated validation failure', () => {
+    expect(isDuplicateEmailError(new ApiError(400, 'Validation failed', ['Password is too short']))).toBe(false);
+  });
+
+  it('does not fire on a message-less ApiError — the backend-down case since #401', () => {
+    expect(isDuplicateEmailError(new ApiError(0, ''))).toBe(false);
+    expect(isDuplicateEmailError(new ApiError(500, ''))).toBe(false);
+  });
+
+  // The two clauses the "strict addition" claim rests on. Both survived a mutation of the source
+  // with the rest of this file green, which is the only reason they are here: an assertion that
+  // cannot fail is not a guard, and these are the guards.
+  it('defers to the BODY when there is one, rather than overriding it from `errors`', () => {
+    // `!body` scoping. Body says not-a-duplicate; the thrown `errors` says it is. The body wins,
+    // because it is the server's envelope and this is a wrapper's own field.
+    const wrapped = Object.assign(new ApiError(400, 'Validation failed', ['already exists']), {
+      body: { success: false, errors: ['Password is too short'] },
+    });
+
+    expect(isDuplicateEmailError(wrapped)).toBe(false);
+  });
+
+  it('ignores a non-array `errors` rather than walking a string one character at a time', () => {
+    const weird = Object.assign(new ApiError(400, 'Validation failed'), { errors: 'already exists' });
+
+    expect(isDuplicateEmailError(weird)).toBe(false);
+  });
+
+  it('does NOT fire on the summary message alone — the status gate still refuses that', () => {
+    // Not a regression and not "still": this returned false before too. A 400 covers every
+    // validation failure, so a summary that merely reads like a duplicate is not evidence. The
+    // per-rule list is. (An earlier draft of this PR promoted `message` here as well, which
+    // flipped this input to `true` — a behaviour change the diff had not disclosed.)
+    expect(isDuplicateEmailError(new ApiError(409, 'Email already registered'))).toBe(false);
   });
 });

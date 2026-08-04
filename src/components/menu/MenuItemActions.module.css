@@ -29,7 +29,8 @@
   transition:
     background-color 0.3s ease,
     transform 0.2s;
-  margin-left: 0.5rem;
+  /* Gap from the button before it in the row. */
+  margin-inline-start: 0.5rem;
 }
 
 .viewDetailsButton:hover {
@@ -55,7 +56,7 @@
 
 .feedbackButton {
   background-color: var(--warning-color);
-  margin-left: 0.5rem;
+  margin-inline-start: 0.5rem;
 }
 
 .feedbackButton:hover {
@@ -69,7 +70,7 @@
     display: inline-flex;
     gap: 0.25rem;
     margin-top: 0;
-    margin-left: auto; /* Push to the right */
+    margin-inline-start: auto; /* Push to the trailing edge */
     vertical-align: middle;
   }
 
@@ -86,7 +87,7 @@
   }
 
   .viewDetailsButton {
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 
   .feedbackButton {

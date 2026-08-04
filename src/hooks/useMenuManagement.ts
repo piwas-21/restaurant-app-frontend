@@ -2,12 +2,26 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { useSnackbar } from 'notistack';
 import { getProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
 import { Product, Category } from '@/app/admin/menu-management/interfaces';
 import { MenuTypeFilter, toProductTypeQuery } from '@/utils/productTypeFilter';
+import { getErrorMessage } from '@/utils/apiClient';
 
+/**
+ * `error` is a plain string, not `useApiError`, and `t` is read through a ref rather than listed as
+ * a dependency — see the header of `useCategoryManagement` for both, including why a listed `t`
+ * would send an admin on page 4 back to page 1 on a language switch.
+ */
 export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
+  const { t } = useTranslation();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+  const { enqueueSnackbar } = useSnackbar();
   const _router = useRouter();
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get('categoryId');
@@ -28,6 +42,7 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
       const requestFilter = typeFilter; // Capture which filter this request is for
       setIsLoading(true);
       setError(null);
+      const fallback = () => tRef.current('failed_to_load_menu_items', 'Failed to load menu items');
       try {
         // One endpoint for all three chips, so paging + the category filter behave
         // identically across them (the old tabs hit two endpoints with independent
@@ -42,12 +57,12 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
             setTotalCount(response.data.totalCount || 0);
             setCurrentPage(page);
           } else {
-            setError(response.message || 'Failed to fetch items');
+            setError(response.message || fallback());
           }
         }
-      } catch {
+      } catch (e) {
         if (requestFilter === typeFilterRef.current) {
-          setError('An unexpected error occurred.');
+          setError(getErrorMessage(e) ?? fallback());
         }
       } finally {
         if (requestFilter === typeFilterRef.current) {
@@ -62,17 +77,28 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
     const fetchCategories = async () => {
       try {
         // Fetch all categories for dropdown
-        const response = (await getCategories(1, 100)) as { success: boolean; data?: { items: any[] } };
-        if (response.success && response.data?.items && Array.isArray(response.data.items)) {
+        const response = await getCategories(1, 100);
+        if (response.success && Array.isArray(response.data?.items)) {
           setCategories(response.data.items);
         }
-      } catch {
-        // Silently fail - categories will remain empty
+      } catch (e) {
+        // A TOAST, not `err`: the category dropdown is a filter beside the list, and taking over
+        // the page's error surface would replace "here are your items" with a failure about a
+        // control the admin may not even be using. Same shape as `useCategoryChannelsAdmin`.
+        // Until #400 this branch was unreachable — `getCategories` answered a dead backend with
+        // invented categories — so an empty dropdown had no failure to report in the first place.
+        enqueueSnackbar(getErrorMessage(e) ?? tRef.current('failed_to_load_categories', 'Failed to load categories'), {
+          variant: 'error',
+        });
       }
     };
     // Internal try/catch absorbs errors — `void` for fire-and-forget.
     // Same below for `fetchProducts` calls.
     void fetchCategories();
+    // Mount-only ON PURPOSE. `enqueueSnackbar` is read only inside the catch, at the moment the
+    // fetch fails; listing it would tie this fetch to notistack's identity for no gain. (`t` is not
+    // listed either, but that is not what the disable is for — it is read through `tRef`.)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch when the type filter or category changes

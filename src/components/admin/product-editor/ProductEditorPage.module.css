@@ -28,7 +28,7 @@
 }
 
 .saveHint {
-  margin-right: auto;
+  margin-inline-end: auto;
   font-size: 0.875rem;
   color: var(--text-secondary);
 }
@@ -54,7 +54,7 @@
 
   .saveHint {
     width: 100%;
-    margin-right: 0;
+    margin-inline-end: 0;
     margin-bottom: 0.5rem;
   }
 }

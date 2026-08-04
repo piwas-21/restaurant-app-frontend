@@ -38,7 +38,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.push('/login');
+      router.push('/auth/login');
       return;
     }
     // fetchAll has its own try/catch (sets error state); fire-and-forget.
@@ -111,7 +111,12 @@ export default function OrdersPage() {
           </div>
         )}
 
-        {displayOrders.length === 0 ? (
+        {/* `&& !error`: an empty list means "you have no orders" only when we actually heard back.
+            Until E9 slice 8 a failed first load could not set `error` at all — both fetches
+            swallowed — so this state was the ONLY thing on screen and said the wrong thing. Now
+            that the banner above is reachable, showing both would put a reason and a claim that
+            contradicts it side by side. */}
+        {displayOrders.length === 0 && !error ? (
           <div className={styles.emptyState}>
             <Package size={64} className={styles.emptyIcon} />
             <h2>

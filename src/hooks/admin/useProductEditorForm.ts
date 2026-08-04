@@ -35,7 +35,7 @@ interface UseProductEditorFormOptions {
  * pick the schema and the endpoint.
  */
 export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved }: UseProductEditorFormOptions) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const editorDefaults = isBundle ? toBundleDefaults(product) : toItemDefaults(product);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -70,7 +70,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
 
   useEffect(() => {
     const load = async () => {
-      const response = (await getCategories()) as { success: boolean; data?: { items?: Category[] } };
+      const response = await getCategories();
       if (response.success) setCategories(response.data?.items ?? []);
     };
     // Bundles have no category control (MenuBundleDto carries none), so don't fetch for them.
@@ -151,6 +151,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
         // same `never` seam as the resolver above.
         reset: reset as never,
         setImageFiles,
+        fallbackMessage: t('unexpected_error', 'An unexpected error occurred.'),
       });
       return;
     }
@@ -169,6 +170,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
         onSaved();
       },
       onClose: () => {},
+      fallbackMessage: t('unexpected_error', 'An unexpected error occurred.'),
     });
   });
 

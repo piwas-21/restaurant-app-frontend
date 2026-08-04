@@ -29,7 +29,7 @@ interface OrderRefundResultDialogsProps {
   onCancelSuccessClose: () => void;
   // Shared
   error: string;
-  setError: (error: string) => void;
+  clearError: () => void;
 }
 
 /**
@@ -54,7 +54,7 @@ export default function OrderRefundResultDialogs({
   showCancelSuccessModal,
   onCancelSuccessClose,
   error,
-  setError,
+  clearError,
 }: OrderRefundResultDialogsProps) {
   const { t } = useTranslation();
 
@@ -67,7 +67,7 @@ export default function OrderRefundResultDialogs({
           setSelectedPayment(null);
           setRefundAmount('');
           setRefundReason('');
-          setError('');
+          clearError();
         }}
         onConfirm={onRefundPayment}
         title={t('refund_payment', 'Refund Payment')}

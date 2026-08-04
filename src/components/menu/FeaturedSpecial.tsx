@@ -1,26 +1,24 @@
 'use client';
 
 import { formatPlainCurrency } from '@/utils/currency';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Clock } from 'lucide-react';
 import Image from 'next/image';
 import styles from './FeaturedSpecial.module.css';
 // The notice's OWN styles come from the classic card's module, not this one: `MenuCardAvailability`
 // reads only `availability*` classes (its §4.5 contract), and re-declaring those ~60 lines here
-// would be a second source of truth for one look — and Sonar new-code duplication besides. The
-// banner has no craft surface override, so like the rest of it this renders classic in both
-// templates; skinning the hero for craft is its own piece of work.
+// would be a second source of truth for one look — and Sonar new-code duplication besides.
 import availabilityStyles from './MenuItemAvailability.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import MenuCardAvailability from './MenuCardAvailability';
-import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
-import { useTrackItemBlocked } from '@/hooks/menu/useTrackItemBlocked';
+import AdminMenuCardControls from './AdminMenuCardControls';
+import AdminPriceEditor from './AdminPriceEditor';
+import { useFeaturedSpecialHero } from '@/hooks/menu/useFeaturedSpecialHero';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { FeaturedSpecial as FeaturedSpecialType } from '@/types/menu';
 
-interface FeaturedSpecialProps {
+export interface FeaturedSpecialProps {
   special: FeaturedSpecialType;
   /**
    * Both handlers receive the sheet options to open with, rather than the page building them.
@@ -36,29 +34,24 @@ interface FeaturedSpecialProps {
   onSwitchOrderType?: (type: OrderType) => void;
 }
 
-const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
+/**
+ * The Chef's Special hero — classic's rendering, and the shared default for any template that ships
+ * no `FeaturedSpecial` surface of its own.
+ *
+ * Every decision it makes comes from `useFeaturedSpecialHero`; this file is composition and CSS.
+ * The former guard `if (!special) return null` is gone: the prop is non-nullable and the one caller
+ * (`app/menu/page.tsx`) renders this only inside `{featuredSpecial && …}`, so the branch was
+ * unreachable and, being unreachable, was quietly untested.
+ */
+export default function FeaturedSpecial({
   special,
   onAddToCart,
   onViewDetails,
   onSwitchOrderType,
-}) => {
+}: Readonly<FeaturedSpecialProps>) {
   const { t } = useTranslation();
-  // G7: the hero is an ENTRY POINT — a guest can order straight from it — so it carries the same
-  // verdict, the same notice component and the same rule as a catalog card.
-  const availabilityNotice = useItemAvailabilityNotice(special?.availability);
-  useTrackItemBlocked(special?.id, availabilityNotice, 'featured_special');
-
-  if (!special) {
-    return null;
-  }
-
-  // The SERVER's verdict is the gate, not our ability to render a reason for it — the same
-  // predicate `ItemCustomizationSheet` uses. `useItemAvailabilityNotice` returns null while the
-  // enabled-channel list loads AND for `reason: 'Unavailable'`, and unlike a card this hero is NOT
-  // filtered by `isVisible` (the featured query filters on IsActive, never IsAvailable), so an
-  // unavailable special reaches here with `canOrder: false` and no notice to show for it.
-  const isBlocked = availabilityNotice?.tone === 'blocked' || special?.availability?.canOrder === false;
-  const reasonId = `featured-special-availability-${special.id}`;
+  const { availabilityNotice, isBlocked, reasonId, itemName, description, price, onPriceChange, adminItem } =
+    useFeaturedSpecialHero(special);
 
   return (
     <section
@@ -70,17 +63,26 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
       aria-labelledby={isBlocked ? `featured-special-heading ${reasonId}` : 'featured-special-heading'}
     >
       <div className={styles.featuredSpecialContainer}>
-        <div className={styles.featuredSpecialBadge}>
-          <Star size={20} fill="gold" color="gold" />
-          <span>{t('chefs_special', "Chef's Special")}</span>
+        <div className={styles.featuredSpecialHeader}>
+          <div className={styles.featuredSpecialBadge}>
+            <Star size={20} fill="currentColor" aria-hidden="true" />
+            <span>{t('chefs_special', "Chef's Special")}</span>
+          </div>
+          {/* The hero was the ONE item on the menu page an admin could not act on: every card
+              renders these two, and the banner rendered neither. */}
+          <AdminMenuCardControls item={adminItem} />
         </div>
 
-        <div className={styles.featuredSpecialContent}>
+        <div
+          className={
+            special.imageUrl ? `${styles.featuredSpecialContent} ${styles.withPhoto}` : styles.featuredSpecialContent
+          }
+        >
           {special.imageUrl && (
             <div className={styles.featuredSpecialImageContainer}>
               <Image
                 src={special.imageUrl}
-                alt={special.name}
+                alt={itemName}
                 width={400}
                 height={300}
                 style={{ objectFit: 'cover' }}
@@ -90,9 +92,16 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
           )}
 
           <div className={styles.featuredSpecialDetails}>
-            <h2 id="featured-special-heading" className={styles.featuredSpecialTitle}>
-              {special.name}
+            {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+            <h2 id="featured-special-heading" dir="auto" className={styles.featuredSpecialTitle}>
+              {itemName}
             </h2>
+
+            {description && (
+              <p dir="auto" className={styles.featuredSpecialDescription}>
+                {description}
+              </p>
+            )}
 
             {special.preparationTimeMinutes > 0 && (
               <div className={styles.featuredSpecialTime}>
@@ -103,23 +112,15 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
               </div>
             )}
 
-            {/* {special.description && (
-              <p className={styles.featuredSpecialDescription}>{special.description}</p>
-            )} */}
-
             <div className={styles.featuredSpecialMeta}>
               <div className={styles.featuredSpecialPrice}>
-                {/* <span className={styles.priceLabel}>{t('price', 'Price')}:</span> */}
-                <span className={styles.priceValue}>{formatPlainCurrency(special.basePrice)}</span>
+                <span className={styles.priceValue}>{formatPlainCurrency(price)}</span>
               </div>
+              {/* Beside the price it edits, exactly as on a card. It renders nothing for a guest,
+                  and for an admin it always renders SOMETHING — the control, or the reason it
+                  cannot apply (E3). */}
+              <AdminPriceEditor item={adminItem} onPriceChange={onPriceChange} />
             </div>
-
-            {/* {ingredientsList && ingredientsList.length > 0 && (
-              <div className={styles.featuredSpecialIngredients}>
-                <strong>{t('ingredients', 'Ingredients')}:</strong>{' '}
-                <span>{ingredientsList.join(', ')}</span>
-              </div>
-            )} */}
 
             {special.allergens && special.allergens.length > 0 && (
               <div className={styles.featuredSpecialAllergens}>
@@ -136,12 +137,14 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
             )}
 
             {availabilityNotice && (
-              <MenuCardAvailability
-                notice={availabilityNotice}
-                reasonId={reasonId}
-                onSwitchOrderType={onSwitchOrderType}
-                styles={availabilityStyles}
-              />
+              <div className={styles.availabilitySlot}>
+                <MenuCardAvailability
+                  notice={availabilityNotice}
+                  reasonId={reasonId}
+                  onSwitchOrderType={onSwitchOrderType}
+                  styles={availabilityStyles}
+                />
+              </div>
             )}
 
             <div className={styles.featuredSpecialActions}>
@@ -175,6 +178,4 @@ const FeaturedSpecial: React.FC<FeaturedSpecialProps> = ({
       </div>
     </section>
   );
-};
-
-export default FeaturedSpecial;
+}

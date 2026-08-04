@@ -99,12 +99,15 @@
   transform: scale(0.95);
 }
 
+/* The gap between an arrow and the scroller it sits beside. `navArrowLeft` is the FIRST flex
+   child and `navArrowRight` the last, so in `ar` they swap sides and each gap has to swap with
+   them — logical margins do that. The glyphs are already mirrored below. */
 .navArrowLeft {
-  margin-right: 12px;
+  margin-inline-end: 12px;
 }
 
 .navArrowRight {
-  margin-left: 12px;
+  margin-inline-start: 12px;
 }
 
 /* Tablet */
@@ -151,11 +154,11 @@
   }
 
   .navArrowLeft {
-    margin-right: 10px;
+    margin-inline-end: 10px;
   }
 
   .navArrowRight {
-    margin-left: 10px;
+    margin-inline-start: 10px;
   }
 }
 
@@ -226,11 +229,11 @@
   }
 
   .navArrowLeft {
-    margin-right: 8px;
+    margin-inline-end: 8px;
   }
 
   .navArrowRight {
-    margin-left: 8px;
+    margin-inline-start: 8px;
   }
 }
 
@@ -253,4 +256,11 @@
 .navButtonActive .navButtonNotice,
 .navButton:hover .navButtonNotice {
   color: inherit;
+}
+
+/* RTL: the chevrons point at a SIDE, so they are the one thing `dir="rtl"` cannot mirror for
+   itself — the box flips, the glyph inside does not. Flipping the icon rather than swapping the
+   two components keeps the buttons' scroll handlers, positions and labels untouched. */
+[dir='rtl'] .navArrow svg {
+  transform: scaleX(-1);
 }

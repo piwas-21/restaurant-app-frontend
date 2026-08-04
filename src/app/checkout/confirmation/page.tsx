@@ -4,6 +4,9 @@ import { formatCurrency } from '@/utils/currency';
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+// The page's own ladder handled SEVEN of the ten statuses; the other three fell to a `default`
+// that printed the raw enum name at the customer, in every locale.
+import { orderStatusLabel } from '@/lib/orderStatus';
 import { getOrderById } from '@/services/orderService';
 import { OrderDto } from '@/types/order';
 import OrderLineSummary from '@/components/order/OrderLineSummary';
@@ -47,7 +50,12 @@ function ConfirmationContent() {
         const config = await adminTaxConfigurationService.getActiveTaxConfiguration();
         setTaxConfig(config);
       } catch {
-        // Silently fail - fallback to default tax label
+        // IGNORED ON PURPOSE. This call supplies ONE thing — the word beside the tax line — and
+        // `taxConfig` staying null already renders the translated "Tax" (see the total block
+        // below, `taxConfig?.name || t('tax', 'Tax')`). So the failure has a correct, visible
+        // fallback that needs no explaining, and the amount itself comes from the order, not from
+        // here. Surfacing it would put an error on a screen whose entire job is to tell a customer
+        // their order went through, over a label they cannot act on and probably would not notice.
       }
     };
     // fetchTaxConfig has its own try/catch (silently falls back); fire-and-forget.
@@ -113,27 +121,6 @@ function ConfirmationContent() {
         return t('order_type_delivery', 'Delivery');
       default:
         return orderType;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return t('order_status_pending', 'Pending');
-      case 'Confirmed':
-        return t('order_status_confirmed', 'Confirmed');
-      case 'Preparing':
-        return t('order_status_preparing', 'Preparing');
-      case 'Ready':
-        return t('order_status_ready', 'Ready');
-      case 'InTransit':
-        return t('order_status_in_transit', 'In Transit');
-      case 'Delivered':
-        return t('order_status_delivered', 'Delivered');
-      case 'Completed':
-        return t('order_status_completed', 'Completed');
-      default:
-        return status;
     }
   };
 
@@ -212,7 +199,9 @@ function ConfirmationContent() {
                 </div>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('status', 'Status')}:</span>
-                  <span className={`${styles.infoValue} ${styles.statusBadge}`}>{getStatusLabel(order.status)}</span>
+                  <span className={`${styles.infoValue} ${styles.statusBadge}`}>
+                    {orderStatusLabel(order.status, t)}
+                  </span>
                 </div>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>{t('order_date', 'Order Date')}:</span>
@@ -303,8 +292,16 @@ function ConfirmationContent() {
                       </div>
                     )}
                     <div className={styles.itemDetails}>
-                      <h3 className={styles.itemName}>{item.productName}</h3>
-                      {item.variationName && <p className={styles.itemVariation}>{item.variationName}</p>}
+                      {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2). Same markup as
+                          checkout/OrderItemsList — the guest sees these lines on both screens. */}
+                      <h3 dir="auto" className={styles.itemName}>
+                        {item.productName}
+                      </h3>
+                      {item.variationName && (
+                        <p dir="auto" className={styles.itemVariation}>
+                          {item.variationName}
+                        </p>
+                      )}
                       <p className={styles.itemQuantity}>
                         {t('quantity', 'Qty')}: {item.quantity} × {formatPrice(item.unitPrice)}
                       </p>

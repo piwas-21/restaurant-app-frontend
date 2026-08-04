@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useEditorTables } from './useEditorTables';
 import { tableLayoutService } from '@/services/tableLayoutService';
 import type { TableDto } from '@/types/reservation';
+import { ApiError } from '@/utils/apiClient';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (_k: string, f?: string) => f ?? _k, i18n: { language: 'en' } }),
@@ -49,5 +50,25 @@ describe('useEditorTables — saveProperties position sourcing', () => {
       't1',
       expect.objectContaining({ maxGuests: 6, positionX: 8, positionY: 3 }),
     );
+  });
+});
+
+describe('useEditorTables — the load failure says what the server said', () => {
+  it("passes the server's reason to notify instead of the generic", async () => {
+    const notify = jest.fn();
+    svc.getAllTables.mockRejectedValue(new ApiError(503, '', ['Floor plan service is down']));
+
+    renderHook(() => useEditorTables(notify));
+
+    await waitFor(() => expect(notify).toHaveBeenCalledWith('error', 'Floor plan service is down'));
+  });
+
+  it('falls back to the translated sentence for a client-side throw', async () => {
+    const notify = jest.fn();
+    svc.getAllTables.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    renderHook(() => useEditorTables(notify));
+
+    await waitFor(() => expect(notify).toHaveBeenCalledWith('error', 'Failed to load tables'));
   });
 });

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getDineInOrders, getTablesWithStatus, ServerTableDto } from '@/services/serverService';
 import { OrderDto } from '@/types/order';
+import { getErrorMessage } from '@/utils/apiClient';
 
 const POLLING_INTERVAL_MS = 5000;
 const POLLING_START_DELAY_MS = 100;
@@ -65,7 +66,7 @@ export function useServerOrdersData(): UseServerOrdersDataReturn {
       setIsLoading(false);
     } catch (err) {
       if (!isMountedRef.current) return;
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load orders';
+      const errorMessage = getErrorMessage(err) ?? 'Failed to load orders';
       setError(errorMessage);
       setIsLoading(false);
       console.error('Error fetching orders:', err);

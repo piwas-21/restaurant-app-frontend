@@ -99,6 +99,8 @@ Schema-first: define a Zod schema, derive the type with `z.infer`, wire to `reac
 | `BaseModal` | every modal/dialog overlay (no raw `<dialog>`, no headlessui Dialog used directly) |
 | `FormField` | every label+input+error grouping |
 | `StatusBadge` | every status pill/badge |
+| `CheckboxField` | every **new** checkbox — `FormField` puts the label ABOVE the input, which is wrong for a box. The ~65 existing raw `type="checkbox"` inputs are baselined debt; the react-hook-form ones (`{...register(…)}`) cannot migrate until this takes a ref + `name` |
+| `ChannelPicker` | the order-type channel checkbox group (composes `CheckboxField`) — one consumer today, see ADR-005 |
 
 See [ADR-005](docs/adr/ADR-005-design-system-primitives.md).
 

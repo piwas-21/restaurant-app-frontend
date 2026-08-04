@@ -349,8 +349,8 @@
 .suggestions {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   margin-top: 4px;
   background: var(--background-primary, white);
   border: 1px solid var(--border-color, #e0e0e0);

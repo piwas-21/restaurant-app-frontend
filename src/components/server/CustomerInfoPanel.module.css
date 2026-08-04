@@ -68,7 +68,7 @@
 .discountNote {
   font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .pointsSection {
@@ -93,7 +93,7 @@
 }
 
 .pointsBalance {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--primary-color);

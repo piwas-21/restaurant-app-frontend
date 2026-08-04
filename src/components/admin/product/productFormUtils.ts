@@ -4,6 +4,7 @@ import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
+import { serverMessages } from '@/utils/apiFormErrors';
 
 interface SubmitProductFormParams {
   data: FormData;
@@ -16,6 +17,13 @@ interface SubmitProductFormParams {
   onClose: () => void;
   reset: UseFormReset<FormData>;
   setImageFiles: (files: File[]) => void;
+  /**
+   * Already-translated sentence for a failure the server did not describe. Threaded in rather
+   * than resolved here (the CartContext pattern): this module is a plain util with no `t`, and
+   * the two literals it used to hold — 'An unexpected error occurred.' and 'Failed to create
+   * product' — were the English a non-English admin actually read.
+   */
+  fallbackMessage: string;
 }
 
 interface SubmitEditProductFormParams {
@@ -27,6 +35,13 @@ interface SubmitEditProductFormParams {
   setError: UseFormSetError<EditFormData>;
   onProductUpdated: () => void;
   onClose: () => void;
+  /**
+   * Already-translated sentence for a failure the server did not describe. Threaded in rather
+   * than resolved here (the CartContext pattern): this module is a plain util with no `t`, and
+   * the two literals it used to hold — 'An unexpected error occurred.' and 'Failed to create
+   * product' — were the English a non-English admin actually read.
+   */
+  fallbackMessage: string;
 }
 
 type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
@@ -98,6 +113,7 @@ export const submitProductForm = async ({
   onClose,
   reset,
   setImageFiles,
+  fallbackMessage,
 }: SubmitProductFormParams) => {
   setSubmissionStatus('creating');
   try {
@@ -228,25 +244,16 @@ export const submitProductForm = async ({
       reset();
       setImageFiles([]);
     } else {
-      setError('root', { message: productResponse.message || 'Failed to create product' });
+      setError('root', { message: serverMessages(productResponse)[0] ?? fallbackMessage });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Submit error:', error);
-    // Extract meaningful error message from backend response
-    let errorMessage = 'An unexpected error occurred.';
-    if (error?.response?.data) {
-      if (error.response.data.errors) {
-        // Combine validation errors
-        errorMessage = Object.values(error.response.data.errors).flat().join(', ');
-      } else if (error.response.data.title) {
-        errorMessage = error.response.data.title;
-      } else if (error.response.data.message) {
-        errorMessage = error.response.data.message;
-      }
-    } else if (error?.message) {
-      errorMessage = error.message;
-    }
-    setError('root', { message: errorMessage });
+    // This block used to unwrap `error.response.data` — the AXIOS error envelope — and axios is
+    // not a dependency here, so its three branches (per-field errors, `title`, `message`) were all
+    // dead. What ran was `error.message`, and after #401 a message-less `ApiError` skips that too,
+    // landing on the hardcoded English default. `serverMessages` reads what `apiClient` throws;
+    // `apiClient` has already flattened a per-field `errors` OBJECT into the array it returns.
+    setError('root', { message: serverMessages(error)[0] ?? fallbackMessage });
   } finally {
     setSubmissionStatus('idle');
   }
@@ -261,6 +268,7 @@ export const submitEditProductForm = async ({
   setError,
   onProductUpdated,
   onClose,
+  fallbackMessage,
 }: SubmitEditProductFormParams) => {
   setIsSubmitting(true);
   try {
@@ -399,7 +407,14 @@ export const submitEditProductForm = async ({
     // "At least one category is required". PUT /api/Menus takes CategoryIds as optional.
     const response = (await (data.menuDefinition
       ? updateMenuBundle(product.id, toMenuBundlePayload(productData))
-      : updateProduct(product.id, productData))) as { success: boolean; message?: string };
+      : updateProduct(product.id, productData))) as {
+      success: boolean;
+      message?: string;
+      // `errors` is what `serverMessages` reads below — the backend's one-arg
+      // `ApiResponse.Failure("<reason>")` puts the reason there and leaves `message` at
+      // "Operation failed". A cast that omitted it told the next reader it was not there.
+      errors?: unknown;
+    };
     if (response.success) {
       if (imageFiles.length > 0) {
         await uploadBulkProductImages(product.id, imageFiles);
@@ -407,10 +422,15 @@ export const submitEditProductForm = async ({
       onProductUpdated();
       onClose();
     } else {
-      setError('root', { message: response.message || 'Failed to update product' });
+      setError('root', { message: serverMessages(response)[0] ?? fallbackMessage });
     }
-  } catch {
-    setError('root', { message: 'An unexpected error occurred.' });
+  } catch (error: unknown) {
+    // Was `} catch {` — the error object discarded entirely, then a hardcoded English sentence.
+    // Bound here rather than left for the slice that owns this file, because the create path 150
+    // lines up sets the SAME `root` error and leaving one of the pair converted is worse than
+    // leaving both.
+    console.error('Edit submit error:', error);
+    setError('root', { message: serverMessages(error)[0] ?? fallbackMessage });
   } finally {
     setIsSubmitting(false);
   }

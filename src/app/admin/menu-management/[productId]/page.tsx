@@ -1,18 +1,17 @@
 'use client';
 
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
-import { getProductById } from '@/services/menuService';
-import { deleteMenuBundle, getMenuBundleById } from '@/services/menuBundleService';
+import { deleteMenuBundle } from '@/services/menuBundleService';
 import { deleteProduct } from '@/services/productService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
 import ProductEditorPage from '@/components/admin/product-editor/ProductEditorPage';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ResultModal from '@/components/common/ResultModal';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
-import { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import { useProductEditorFetch } from '@/hooks/admin/useProductEditorFetch';
 
 const LIST_ROUTE = '/admin/menu-management';
 
@@ -28,62 +27,13 @@ const ProductEditorRoute = () => {
   const router = useRouter();
   const productId = params.productId as string;
 
-  const [product, setProduct] = useState<ProductDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // The fetch, the kind-derivation and every refusal path live in the hook — see it for why the
+  // RESOLVED `success:false` branch is the one that matters here.
+  const { product, isLoading, error, refetch } = useProductEditorFetch(productId);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [resultModalMessage, setResultModalMessage] = useState('');
   const [isResultModalSuccess, setIsResultModalSuccess] = useState(false);
-
-  const fetchProductData = useCallback(async () => {
-    if (!productId) return;
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      // No `?type=` hint (PR2e): derive the kind by fetching. GET /api/Products/{id} has no
-      // type filter, so it returns a bundle too, carrying `type: 'menu'`. A bundle then needs
-      // its proper shape — MenuBundleDto formats the schedule times as strings, ProductDto as
-      // raw TimeSpans — so re-fetch via the Menus endpoint. One extra request, bundles only.
-      const productResponse = (await getProductById(productId)) as {
-        success: boolean;
-        data?: ProductDetails;
-        message?: string;
-      };
-
-      if (!productResponse.success || !productResponse.data) {
-        setError(productResponse.message || t('product_not_found'));
-        return;
-      }
-
-      if (!isMenuBundle(productResponse.data)) {
-        setProduct(productResponse.data);
-        return;
-      }
-
-      const bundleResponse = (await getMenuBundleById(productId)) as {
-        success: boolean;
-        data?: ProductDetails;
-        message?: string;
-      };
-
-      if (bundleResponse.success && bundleResponse.data) {
-        setProduct(bundleResponse.data);
-      } else {
-        setError(bundleResponse.message || t('product_not_found'));
-      }
-    } catch {
-      setError(t('product_not_found'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [productId, t]);
-
-  useEffect(() => {
-    // fetchProductData sets its own error state; fire-and-forget.
-    void fetchProductData();
-  }, [fetchProductData]);
 
   const handleConfirmDelete = async () => {
     if (!product) return;
@@ -139,7 +89,7 @@ const ProductEditorRoute = () => {
         key={product.id}
         product={product}
         isBundle={productIsBundle}
-        onSaved={fetchProductData}
+        onSaved={refetch}
         onDelete={() => setIsConfirmationOpen(true)}
         onBack={() => router.push(LIST_ROUTE)}
       />

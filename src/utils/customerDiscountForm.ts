@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 import type { CreateCustomerDiscountDto, UpdateCustomerDiscountDto } from '@/services/adminFidelityService';
+import { serverMessages } from '@/utils/apiFormErrors';
 
 /** The editable shape backing CustomerDiscountForm (all numeric fields are string-typed inputs). */
 export interface CustomerDiscountFormData {
@@ -84,8 +85,16 @@ export function buildCustomerDiscountDto(
 
 /**
  * Translates a create/update failure into a user-facing message, surfacing the API's
- * specific error (user-not-found, duplicate, validation) when present. Carried over from the
- * inline catch block; the `error` is typed `unknown` (was `any`) and narrowed.
+ * specific error (user-not-found, duplicate, validation) when present.
+ *
+ * **It used to return the fallback for every input.** It unwrapped `error.response.data` — the
+ * axios error envelope — and axios is not a dependency here, so `errorData` was always
+ * `undefined` and the function returned on its second line. The user-not-found and
+ * already-exists routing below, which is the whole reason it exists, had never run.
+ *
+ * `serverMessages` reads what `apiClient` actually throws. It also subsumes the three fallbacks
+ * that followed: a per-field `errors` OBJECT is already flattened into `ApiError.errors` by
+ * `apiClient`, and the summary `message` is what `serverMessages` returns when there is no array.
  */
 export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, userId: string, t: TFunction): string {
   const fallback = t(
@@ -93,43 +102,26 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
     `Failed to ${isUpdate ? 'update' : 'create'} discount`,
   );
 
-  const errorData = (error as { response?: { data?: unknown } })?.response?.data;
-  if (errorData == null) return fallback;
+  const [firstError] = serverMessages(error);
+  if (!firstError) return fallback;
 
-  const data = errorData as { errors?: unknown; message?: string };
-
-  // Our API format: an errors array with a leading human-readable message.
-  if (Array.isArray(data.errors) && data.errors.length > 0) {
-    const firstError = String(data.errors[0]);
-    const lower = firstError.toLowerCase();
-    if (lower.includes('user') && lower.includes('not found')) {
-      return t(
-        'user_not_found_error',
-        'User with ID "{{userId}}" was not found. Please verify the user ID and try again.',
-        { userId },
-      );
-    }
-    if (lower.includes('already exists')) {
-      return t(
-        'discount_already_exists_error',
-        'A discount already exists for this user. Please edit the existing discount instead of creating a new one.',
-      );
-    }
-    // 'invalid' and any other message both surface the first error directly.
-    return firstError;
+  const lower = firstError.toLowerCase();
+  if (lower.includes('user') && lower.includes('not found')) {
+    return t(
+      'user_not_found_error',
+      'User with ID "{{userId}}" was not found. Please verify the user ID and try again.',
+      {
+        userId,
+      },
+    );
+  }
+  if (lower.includes('already exists')) {
+    return t(
+      'discount_already_exists_error',
+      'A discount already exists for this user. Please edit the existing discount instead of creating a new one.',
+    );
   }
 
-  // Fallbacks: a plain string body, a message field, or a validation-errors object.
-  if (typeof errorData === 'string') return errorData;
-  if (data.message) return data.message;
-  if (data.errors && typeof data.errors === 'object') {
-    // An empty errors object/array joins to '' — fall through to the fallback rather than
-    // surfacing a blank snackbar.
-    const joined = Object.values(data.errors as Record<string, unknown>)
-      .flat()
-      .join(', ');
-    if (joined) return joined;
-  }
-
-  return fallback;
+  // 'invalid' and any other message both surface the server's own sentence directly.
+  return firstError;
 }

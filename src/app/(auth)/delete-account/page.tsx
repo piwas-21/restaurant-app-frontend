@@ -55,13 +55,17 @@ function DeleteAccountContent() {
         // `serverMessages` reads `errors[]` first, which is where the sentence actually is.
         setErrorMessage(serverMessages(response)[0] ?? t('deletion_failed', 'Failed to delete account.'));
       }
-    } catch {
-      // IGNORED ON PURPOSE — `confirmAccountDeletion` is a raw `fetch` returning `response.json()`
-      // for EVERY status, so a refusal resolves into the branch above and never throws. What is
-      // left is a dead network (`TypeError`) or a non-JSON body (`SyntaxError`); both texts are
-      // client-authored and must not be rendered, so the generic sentence is all we can say.
+    } catch (error) {
+      // #414: `confirmAccountDeletion` goes through `apiClient` now. The handler's own refusals
+      // still resolve into the branch above — the controller returns `Ok(...)` even for a failure
+      // envelope, so an expired deletion token is a 200 — but a transport-level failure now arrives
+      // here as an `ApiError` carrying the server's sentence rather than being flattened into the
+      // generic one. This link is one-shot and emailed, so the reason is the whole fix.
+      //
+      // A dead network (`TypeError`) or a non-JSON body (`SyntaxError`) still yields nothing
+      // server-authored, and those texts must not be rendered — hence the fallback.
       setStatus('error');
-      setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
+      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     }
   };
 

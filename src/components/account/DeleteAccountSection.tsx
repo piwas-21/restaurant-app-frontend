@@ -35,21 +35,22 @@ export default function DeleteAccountSection() {
           serverMessages(response)[0] ?? t('delete_account_request_failed', 'Failed to request account deletion.'),
         );
       }
-    } catch {
-      // IGNORED ON PURPOSE — `requestAccountDeletion` is a raw `fetch` returning `response.json()`
-      // for EVERY status, so a refusal resolves into the branch above rather than throwing. What
-      // reaches here is a dead network (`TypeError`) or a non-JSON body (`SyntaxError`); both
-      // texts are client-authored and must not be rendered, so the generic sentence is all there
-      // honestly is to say AT THIS CATCH.
+    } catch (error) {
+      // #414 closed the hole this catch used to document. `requestAccountDeletion` now goes through
+      // `apiClient`, so a non-2xx arrives as an `ApiError` carrying its status:
       //
-      // The limit of that, stated rather than hidden: an EXPIRED TOKEN lands here too. The
-      // endpoint is `[Authorize]`, its 401 has an empty body, and `.json()` rejects on it — so a
-      // customer whose session lapsed while this page was open reads "an unexpected error" and
-      // will retry forever, when the answer is "sign in again". The status that says so is in
-      // hand in `authService.requestAccountDeletion` and discarded there, before `.json()` is
-      // called. Fixing it means changing that producer to report the status, which is a wider
-      // change than this slice: tracked as frontend #414.
-      setErrorMessage(t('unexpected_error', 'An unexpected error occurred.'));
+      //   - an EXPIRED TOKEN (the endpoint is `[Authorize]`) is refreshed and retried, and on a
+      //     genuinely dead session `apiClient` signs the customer out and sends them to the login
+      //     route. They no longer read "an unexpected error" and retry forever. Nothing is rendered
+      //     from here on that path because the page has already navigated away;
+      //   - anything the SERVER authored — a 502's "The email could not be delivered…", a rate
+      //     limiter's "Too many requests…" — is now shown instead of being replaced by the generic
+      //     sentence, which is the difference between retrying and giving up.
+      //
+      // `serverMessages` still yields nothing for a dead network (`TypeError`) or a body-less 401,
+      // and those texts are client-authored and must not be rendered — so the translated fallback
+      // remains, for exactly the cases where it is the honest answer.
+      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
     } finally {
       setIsDeleting(false);
     }

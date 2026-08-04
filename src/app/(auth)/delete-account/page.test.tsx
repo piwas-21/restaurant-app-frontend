@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { ApiError } from '@/utils/apiClient';
 import DeleteAccountPage from './page';
 
 const mockConfirm = jest.fn();
@@ -52,16 +53,30 @@ describe('DeleteAccountPage — the refusal reason (E9)', () => {
     expect(await screen.findByText('Failed to delete account.')).toBeInTheDocument();
   });
 
-  it('reports a transport failure generically — nothing thrown here is showable', async () => {
-    // `confirmAccountDeletion` is a raw `fetch` that resolves for every status, so the only
-    // throws are a dead network and a non-JSON body. Both carry client-authored text that must
-    // not reach a screen, which is why this catch stays bare.
+  it('reports a transport failure generically — its text is not showable', async () => {
+    // A dead network and a non-JSON body carry client-authored text that must not reach a screen,
+    // so the translated sentence is the honest answer for them. (#414 changed what ELSE can arrive
+    // here, not this: see the thrown-server-sentence case below.)
     mockConfirm.mockRejectedValue(new TypeError('Failed to fetch'));
     render(<DeleteAccountPage />);
     fireEvent.click(confirmButton());
 
     expect(await screen.findByText('An unexpected error occurred.')).toBeInTheDocument();
     expect(screen.queryByText('Failed to fetch')).not.toBeInTheDocument();
+  });
+
+  // #414. The handler's own refusals still RESOLVE — the controller returns `Ok(...)` even for a
+  // failure envelope, so an expired deletion token is a 200 and stays on the branch above. What
+  // changed is that a transport-level failure now arrives as an `ApiError` carrying the server's
+  // sentence rather than being flattened into the generic one. This link is one-shot and emailed,
+  // so the reason is the whole fix.
+  it('prints a server-authored reason that arrives as a THROWN failure', async () => {
+    mockConfirm.mockRejectedValue(new ApiError(502, 'The email could not be delivered. Please try again later.'));
+    render(<DeleteAccountPage />);
+    fireEvent.click(confirmButton());
+
+    expect(await screen.findByText(/could not be delivered/)).toBeInTheDocument();
+    expect(screen.queryByText('An unexpected error occurred.')).not.toBeInTheDocument();
   });
 
   it('confirms deletion on success', async () => {

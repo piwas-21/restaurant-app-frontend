@@ -68,14 +68,20 @@ export default function ForgotPasswordPage() {
         return;
       }
       setSent(true);
-    } catch {
-      // IGNORED ON PURPOSE — nothing here carries a message worth showing. `forgotPassword` is a
-      // raw `fetch` that returns `response.json()` for EVERY status, so a refusal never throws:
-      // it arrives on the resolved path above. The only two ways to land here are a dead network
-      // (`TypeError`) and a body that is not JSON (`SyntaxError`, which is how an empty 502 from
-      // Caddy shows up), and both texts are client-authored — exactly the strings #401 removed
-      // from users' screens. So the generic sentence IS the whole of what we can honestly say.
-      setFormError(t('unexpected_error'));
+    } catch (error) {
+      // #414: `forgotPassword` goes through `apiClient` now, so the two failures named above no
+      // longer depend on the endpoint choosing to answer 200. The rate limiter's 429 ("Too many
+      // requests. Please slow down and try again shortly.") and the 502's "The email could not be
+      // delivered. Please try again later." arrive HERE as an `ApiError`, and both are worth
+      // printing — someone who pressed the button twice used to be told "An unexpected error
+      // occurred" with no way to know that waiting was the fix.
+      //
+      // Still nothing existence-dependent: the endpoint is anti-enumeration by design and answers
+      // a known and an unknown address identically, so no reachable message here can distinguish
+      // them. A dead network (`TypeError`) or a non-JSON body (`SyntaxError`) yields no
+      // server-authored text, and those strings are client-authored — #401 removed them from
+      // users' screens — so the translated sentence stays as the fallback.
+      setFormError(serverMessages(error)[0] ?? t('unexpected_error'));
     }
   };
 

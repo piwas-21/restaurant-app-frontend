@@ -39,12 +39,12 @@
  *   remembering that this header vouched for them for as long as it did — "ignored on purpose" is
  *   a claim about intent, and intent is not evidence that the ignore is correct.
  *
- * **THE SWEEP IS DONE. 34, and every one of them is a documented deliberate ignore — 2026-08-03,
- * after slice 8 (the last).** There is no remaining work item behind this number. What would
- * change it now is new code, which is what the ratchet is for from here on.
+ * **THE SWEEP IS DONE. 31, and every one of them is a documented deliberate ignore — 2026-08-04,
+ * after #414.** There is no remaining work item behind this number. What changes it now is new
+ * code, or a PRODUCER fix like #414 below, which is what the ratchet is for from here on.
  *
- * The end point has been wrong four times, and the corrections are the useful part — especially
- * the last one, which moved it UP:
+ * The end point has been wrong five times, and the corrections are the useful part — the fourth
+ * moved it UP, and the fifth moved it DOWN for a reason worth keeping:
  *
  * - It first read "the honest target is ~90, not 0". That was the SIZE OF THE WORK (the ~88 of the
  *   100 counted at triage that needed fixing), never a destination; read as a target count it
@@ -64,13 +64,23 @@
  *   from a survivor into a fix (see below) — the prose was written before the last change and not
  *   re-counted. Four revisions, four wrong numbers, every one of them a figure carried across an
  *   edit instead of re-derived. **Re-run the gate and re-add the table before touching this line.**
+ * - 34 → 31 (#414, 2026-08-04). Three survivors were correct ONLY because their producer was
+ *   broken. `delete-account`, `forgot-password` and `DeleteAccountSection` each called a raw
+ *   `fetch` helper in `authService` that returned `response.json()` for EVERY status, so nothing
+ *   reaching their catch carried a server sentence and ignoring it was honest. #414 routed those
+ *   three helpers through `apiClient`; a non-2xx now arrives as an `ApiError` carrying the server's
+ *   own words, so the same catches became wrong on the day the producer changed — all three now
+ *   bind and print. **A deliberate ignore is a claim about what its producer can throw; fix the
+ *   producer and you have not beaten the ratchet, you have invalidated the claim.** This is the one
+ *   shape in which the count may legitimately fall now that the sweep is closed. A fall with no
+ *   producer change behind it means a real ignore was converted to move a number.
  *
- * The 34, by area — every one carries a comment saying why the failure is ignored. One further
+ * The 31, by area — every one carries a comment saying why the failure is ignored. One further
  * site left the count without being converted: `MyOrders.tsx`'s catch went with the file, which
- * was dead code (no importer; `/my-orders` is a bare `redirect('/orders')`). So 48 → 34 is 13
- * conversions plus 1 deletion, not 14 conversions.
+ * was dead code (no importer; `/my-orders` is a bare `redirect('/orders')`). So 48 → 34 was 13
+ * conversions plus 1 deletion, and #414 then took it to 31.
  *
- *   src/hooks/<subfolders>   12   slice 6; `useCartPage` x5, the two raw-`fetch` auth forms,
+ *   src/hooks (subfolders)   12   slice 6; `useCartPage` x5, the two raw-`fetch` auth forms,
  *                                 `useSavedAddressList`, `useGuestCustomerInfo`,
  *                                 `useGuestProfilePrefill`, `useAdminOrderMutations`,
  *                                 `useSetupChecklist`
@@ -88,15 +98,16 @@
  *                                 saved, so letting it reach the outer catch toasted "Failed to
  *                                 save" for a save that succeeded. It is downgraded to a warning,
  *                                 not swallowed. A sweep can legitimately ADD a survivor.
- *   src/app                   3   slice 8: `delete-account` and `forgot-password` — both call
- *                                 raw-`fetch` `authService` helpers that return `response.json()`
- *                                 for EVERY status, so a refusal RESOLVES and the only throws are
- *                                 a dead network and a non-JSON body, whose texts are
- *                                 client-authored; and `checkout/confirmation`'s tax-label lookup,
- *                                 which has a correct visible fallback
- *   src/components            1   slice 8: `DeleteAccountSection`, same raw-`fetch` reason
+ *   src/app                   1   `checkout/confirmation`'s tax-label lookup, which has a correct
+ *                                 visible fallback. `delete-account` and `forgot-password` were
+ *                                 here until #414 fixed their producer — see the 34 → 31 note above
  *   src/contexts              1   `TableContext`
  *   src/lib                   1   `analytics`
+ *
+ * (`src/components` no longer appears outside `admin`: `DeleteAccountSection` left with the other
+ * two in #414. Areas sum to 16 + 5 + 4 + 3 + 1 + 1 + 1 = 31, re-derived from the gate's own
+ * collection — the grep you would reach for instead over-counts, because this header talks about
+ * `} catch {` more often than the tree contains it.)
  *
  * `FidelityPointsCheckout` was in that list on the first draft of this paragraph and is not any
  * more, which is the point of writing the reason down rather than the verdict. Its ignore was
@@ -172,7 +183,7 @@ process.exit(
       'Binding alone satisfies this gate and fixes nothing; the message has to reach a user.',
       'If the failure is ignored on purpose, say so in a comment and leave the count alone.',
     ],
-    holdingNote: 'E9 COMPLETE — all 34 are documented deliberate ignores',
+    holdingNote: 'E9 COMPLETE — all 31 are documented deliberate ignores',
     argv: process.argv,
   }),
 );

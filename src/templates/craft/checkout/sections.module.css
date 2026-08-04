@@ -16,14 +16,26 @@
 }
 
 /* Masking-tape label — the shared saffron .tapeLabelAccent strip, inline-flex
-   so the icon can sit in line (site overrides of a composed dependency are
-   deterministic — see primitives.module.css header). */
+   so the icon can sit in line.
+
+   The doubled selector below is load-bearing, and primitives.module.css's
+   "an override IS deterministic" only holds within ONE emitted stylesheet.
+   `.tapeLabel` (inline-block, 1.25rem) and this rule are both single classes on
+   the same element, so the winner is source order; when the two land in
+   DIFFERENT route chunks, the winner is <link> order instead, which chunking
+   decides. #189 moved a chunk boundary and flipped it: craft's checkout headings
+   lost their icon gap and dropped to 1.25rem, shortening the page 12px — caught
+   only by the screenshot baseline, since nothing else can see a cascade.
+   0,2,0 beats `.tapeLabel`'s 0,1,0 whatever the order. */
 .sectionTitle {
   composes: tapeLabelAccent from '../craft.module.css';
+  margin: 0;
+}
+
+.sectionTitle.sectionTitle {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0;
   font-weight: 700;
   font-size: 1.4rem;
 }

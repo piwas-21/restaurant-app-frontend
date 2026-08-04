@@ -272,33 +272,44 @@ select:focus {
   border-color: var(--primary-color);
 }
 
-/* Notistack notification styles.
- * PHYSICAL ON PURPOSE, and the attempt to convert them is why (E8 slice 3b-3, reverted).
+/* Notistack notification positioning — SCOPED PER ANCHOR (#424).
  *
- * This selector is UNQUALIFIED, and it serves TWO anchors: the `bottom-right` stacks, and the
- * `top-center` one `hooks/cart/useCartFeedback.ts` uses for "added to cart". Under `dir="rtl"`
- * `inset-inline-end` resolves to `left`, which beats notistack's centring `left: 50%` while its
- * `translateX(-50%)` survives — measured on `/menu` in `ar` at 1400px, the toast card landed at
- * x=-151..199, i.e. 151px of 349px clipped off the screen. In `en` it centres at 510..890. So
- * ANY logical conversion of this rule breaks one of the two anchors until the rule is scoped
- * per-anchor (notistack takes a `classes` prop keyed `containerAnchorOrigin<Vertical><Horizontal>`).
+ * This used to be an unqualified `.notistack-SnackbarContainer { bottom; right }`, and the
+ * unqualified part was the bug: that selector matches EVERY container, and two anchors are in use.
+ * Converting it to logical properties moved the bottom-right stacks correctly and clipped the
+ * centre one, because under `dir="rtl"` `inset-inline-end` resolves to `left`, which beats
+ * notistack's centring `left: 50%` while its `translateX(-50%)` survives: measured on `/menu` in
+ * `ar` at 1400px, the toast card landed at x=-151..199 — 151px of 349px off screen, against
+ * 510..890 centred in `en`.
  *
- * Flipping the provider's `anchorOrigin` does not help either: notistack resolves PER-SNACK
- * options over provider props, and TWENTY-FOUR call sites across eleven files pass their own
- * `anchorOrigin` (several via a hoisted `SNACKBAR_BOTTOM_RIGHT` const), so a provider-level flip
- * is dead for all of them. Both halves are needed and both are bigger than a CSS sweep, so this
- * is filed rather than bodged: issue #424.
+ * So the class below is attached ONLY to the bottom-right containers, via the provider's `classes`
+ * prop (see `client-providers.tsx`). The centre anchor is deliberately left with no rule at all:
+ * notistack centres it correctly by itself, in both directions.
  *
- * For the record, since a previous version of this comment got it wrong: notistack's positioning
- * is injected EAGERLY at module scope via goober, not lazily on first toast. It is simply on
- * hash-named classes (`.go2989568495 { right: 20px }`), never on `.notistack-*` — so grepping the
- * document for `notistack` finds only these rules and makes it look absent. Its base class
- * transitions `top, right, bottom, left, max-width`, so a mis-anchored container ANIMATES across
- * the viewport rather than jumping. `!important` is what wins the tie: notistack injects its
- * <style> at runtime, so source order is not guaranteed. */
-.notistack-SnackbarContainer {
-  bottom: 24px !important;
-  right: 24px !important;
+ * The split is lopsided, which is worth knowing before touching either side. Of 89
+ * `enqueueSnackbar` call sites, exactly ONE is top-center — `useCartFeedback`'s `notifyItemAdded`.
+ * Every other toast lands here, whether it passes `bottom/right` explicitly (24 do, via a mix of
+ * inline literals and hoisted `SNACKBAR_BOTTOM_RIGHT` consts) or simply inherits the provider
+ * default (the other 64). Note that `useCartFeedback` is on BOTH sides: its sibling
+ * `notifyAddFailed` passes no anchor at all, so the add-FAILURE toast is governed by this rule
+ * while the add-success one is not.
+ *
+ * `inset-inline-start: auto` is not tidiness, it is the fix's other half. notistack's own
+ * hash-named class sets a PHYSICAL `right: 20px`; in RTL our `inset-inline-end` becomes `left`, so
+ * without clearing the opposite edge both are set at once and the container stretches — measured at
+ * 1356px wide on a 1400px viewport when a provider-level `anchorOrigin` flip was tried.
+ *
+ * `!important` wins the tie because notistack injects its <style> at runtime, so source order is
+ * not guaranteed. Its positioning is injected EAGERLY at module scope via goober — on hash-named
+ * classes (`.go2989568495 { right: 20px }`), never on `.notistack-*`, which is why grepping the
+ * document for "notistack" finds only these rules and makes its own positioning look absent.
+ *
+ * One residual, unfixable from CSS: `anchorOrigin` is frozen onto a snack at enqueue time, so a
+ * toast already on screen when the language changes never re-anchors. The next one is correct. */
+.notistack-anchor-bottom-trailing {
+  inset-block-end: 24px !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: 24px !important;
 }
 
 .notistack-Snackbar {
@@ -339,13 +350,27 @@ select:focus {
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  /* Same vendor reset as the desktop rule above, and physical for the same reason. This one
-     sets BOTH edges so it is direction-agnostic in itself, but it converts when the desktop
-     rule does — a reset must name what it resets. */
-  .notistack-SnackbarContainer {
-    bottom: 16px !important;
-    right: 16px !important;
-    left: 16px !important;
+  /* Converted with the desktop rule (#424), as its previous note said it would be — and SCOPED to
+   * the same anchor, which the previous note did not anticipate and which fixes a separate bug.
+   *
+   * It used to match every container, and setting both inline edges overrode notistack's centring
+   * `left: 50%` while its `transform: translateX(-50%)` survived. Measured at 390px: the customer
+   * "added to cart" toast rendered at x=-163..195 — 163px off screen — in EVERY language, `en`
+   * included, so this was never an RTL bug. It is the same root cause as #424 (one unqualified rule
+   * serving two anchors), on the surface customers actually order from. Scoped, that toast measures
+   * 16..374 on a 390px viewport: on screen and centred, which is the whole width available to it.
+   *
+   * 358px rather than something card-shaped because `.notistack-Snackbar` below sets
+   * `width: 100% !important` in this same block, and notistack's own container rule adds
+   * `max-width: calc(100% - 32px)` under 599.95px — so a mobile toast is full-bleed whatever its
+   * message says. A first draft of this note reported 104px, measured off a probe that was missing
+   * that container class; the real render is 358.
+   *
+   * Both inline edges rather than one: that is what makes a stacked toast full-width on a phone,
+   * and it is direction-agnostic in itself. `inset-inline` is the single-property spelling of it. */
+  .notistack-anchor-bottom-trailing {
+    inset-block-end: 16px !important;
+    inset-inline: 16px !important;
   }
 
   .notistack-Snackbar {

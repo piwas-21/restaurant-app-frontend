@@ -53,6 +53,7 @@ design-system/
 > Still pending: the §2.3 status matrix, the staff/admin module burndown, and the §3–§7 token files (spacing/typography/shadows/borders/z-index/animations).
 
 ### 2.1 Primitive Palette
+
 Raw colour values, **never referenced directly by components** — only by semantic
 tokens, or (transitionally) frozen verbatim where a raw hex had no semantic token.
 The real primitive set now **LIVE** in `colors.css` is the one produced by the
@@ -79,7 +80,7 @@ values that fall in the same bucket, e.g. two near-identical dark surfaces).
 > values, e.g. `--color-material-red-400: #ef5350`), `--color-brown-*` (Material
 > browns formerly misfiled as `orange-700`/`red-800-c`), `--color-iris-*` /
 > `--color-plum-*` (the `#667eea`/`#764ba2` gradient family), `--color-neutral-*`
-> (exact Tailwind *neutral* greys formerly filed under `gray`), plus the
+> (exact Tailwind _neutral_ greys formerly filed under `gray`), plus the
 > pre-existing `--color-gold-*` and `--color-black`.
 
 ```css
@@ -94,6 +95,7 @@ values that fall in the same bucket, e.g. two near-identical dark surfaces).
 > in `colors.css`, not stay a primitive.
 
 ### 2.2 Semantic Tokens
+
 What components actually reference:
 
 ```css
@@ -139,6 +141,7 @@ What components actually reference:
 ```
 
 ### 2.3 Status Tokens
+
 Centralized colors for all status badges across the app:
 
 ```css
@@ -172,10 +175,11 @@ Centralized colors for all status badges across the app:
 ```
 
 ### 2.4 Dark Mode
+
 All semantic and status tokens have dark mode overrides using `html[data-theme="dark"]`:
 
 ```css
-html[data-theme="dark"] {
+html[data-theme='dark'] {
   --surface-primary: var(--color-gray-900);
   --text-primary: #f0f0f0;
   --brand-primary: #e06666;
@@ -186,14 +190,15 @@ html[data-theme="dark"] {
 ```
 
 ### 2.5 Backward Compatibility
+
 Old variable names alias to new tokens (zero-breakage migration):
 
 ```css
---primary-color:     var(--brand-primary);
---background-color:  var(--surface-primary);
---text-color:        var(--text-primary);
---success-color:     var(--feedback-success);
---danger-color:      var(--feedback-danger);
+--primary-color: var(--brand-primary);
+--background-color: var(--surface-primary);
+--text-color: var(--text-primary);
+--success-color: var(--feedback-success);
+--danger-color: var(--feedback-danger);
 /* ... */
 ```
 
@@ -203,21 +208,22 @@ Old variable names alias to new tokens (zero-breakage migration):
 
 4px base grid:
 
-| Token | Value | Use |
-|-------|-------|-----|
-| `--space-0` | 0 | Reset |
-| `--space-1` | 0.25rem (4px) | Tight gaps |
-| `--space-2` | 0.5rem (8px) | Input padding, small gaps |
-| `--space-3` | 0.75rem (12px) | Default inline padding |
-| `--space-4` | 1rem (16px) | Section spacing, page padding |
-| `--space-5` | 1.25rem (20px) | Card padding |
-| `--space-6` | 1.5rem (24px) | Section gaps, modal padding |
-| `--space-8` | 2rem (32px) | Large section gaps |
-| `--space-10` | 2.5rem (40px) | Page section separation |
-| `--space-12` | 3rem (48px) | Hero spacing |
-| `--space-16` | 4rem (64px) | Major section breaks |
+| Token        | Value          | Use                           |
+| ------------ | -------------- | ----------------------------- |
+| `--space-0`  | 0              | Reset                         |
+| `--space-1`  | 0.25rem (4px)  | Tight gaps                    |
+| `--space-2`  | 0.5rem (8px)   | Input padding, small gaps     |
+| `--space-3`  | 0.75rem (12px) | Default inline padding        |
+| `--space-4`  | 1rem (16px)    | Section spacing, page padding |
+| `--space-5`  | 1.25rem (20px) | Card padding                  |
+| `--space-6`  | 1.5rem (24px)  | Section gaps, modal padding   |
+| `--space-8`  | 2rem (32px)    | Large section gaps            |
+| `--space-10` | 2.5rem (40px)  | Page section separation       |
+| `--space-12` | 3rem (48px)    | Hero spacing                  |
+| `--space-16` | 4rem (64px)    | Major section breaks          |
 
 **Named aliases:**
+
 ```css
 --space-page-x: var(--space-4);
 --space-page-y: var(--space-4);
@@ -234,16 +240,16 @@ Old variable names alias to new tokens (zero-breakage migration):
 
 Major Third ratio (1.250):
 
-| Token | Size | Use |
-|-------|------|-----|
-| `--text-xs` | 0.75rem (12px) | Badges, captions, timestamps |
-| `--text-sm` | 0.875rem (14px) | Secondary text, table cells, form labels |
-| `--text-base` | 1rem (16px) | Body text |
-| `--text-lg` | 1.125rem (18px) | Section titles |
-| `--text-xl` | 1.25rem (20px) | Card titles |
-| `--text-2xl` | 1.5rem (24px) | Page titles, modal headers |
-| `--text-3xl` | 1.875rem (30px) | Hero text |
-| `--text-4xl` | 2.25rem (36px) | Display text |
+| Token         | Size            | Use                                      |
+| ------------- | --------------- | ---------------------------------------- |
+| `--text-xs`   | 0.75rem (12px)  | Badges, captions, timestamps             |
+| `--text-sm`   | 0.875rem (14px) | Secondary text, table cells, form labels |
+| `--text-base` | 1rem (16px)     | Body text                                |
+| `--text-lg`   | 1.125rem (18px) | Section titles                           |
+| `--text-xl`   | 1.25rem (20px)  | Card titles                              |
+| `--text-2xl`  | 1.5rem (24px)   | Page titles, modal headers               |
+| `--text-3xl`  | 1.875rem (30px) | Hero text                                |
+| `--text-4xl`  | 2.25rem (36px)  | Display text                             |
 
 **Weights:** `--font-normal` (400), `--font-medium` (500), `--font-semibold` (600), `--font-bold` (700)
 
@@ -254,27 +260,22 @@ Major Third ratio (1.250):
 ## 5. Shadows, Borders, Z-Index
 
 ### Shadows
+
 ```css
---shadow-xs:    0 1px 2px rgba(0,0,0,0.05)
---shadow-sm:    0 2px 4px rgba(0,0,0,0.05)
---shadow-md:    0 4px 12px rgba(0,0,0,0.1)
---shadow-lg:    0 10px 25px rgba(0,0,0,0.1)
---shadow-xl:    0 20px 25px -5px rgba(0,0,0,0.1)
---shadow-modal: 0 4px 20px rgba(0,0,0,0.3)
---shadow-focus: 0 0 0 3px var(--brand-primary-light)
+--shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05) --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05) --shadow-md: 0 4px 12px
+  rgba(0, 0, 0, 0.1) --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1) --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1)
+  --shadow-modal: 0 4px 20px rgba(0, 0, 0, 0.3) --shadow-focus: 0 0 0 3px var(--brand-primary-light);
 ```
 
 ### Border Radii
+
 ```css
---radius-sm:   4px     /* Inputs, small cards */
---radius-md:   6px     /* Badges, buttons */
---radius-lg:   8px     /* Cards, modals */
---radius-xl:   12px    /* Large cards */
---radius-2xl:  16px    /* Hero sections */
---radius-full: 9999px  /* Pills, avatars */
+--radius-sm: 4px /* Inputs, small cards */ --radius-md: 6px /* Badges, buttons */ --radius-lg: 8px /* Cards, modals */
+  --radius-xl: 12px /* Large cards */ --radius-2xl: 16px /* Hero sections */ --radius-full: 9999px /* Pills, avatars */;
 ```
 
 ### Z-Index Layering
+
 ```
 --z-sticky:          10    /* Sticky table headers */
 --z-banner:         100    /* Banners, action bars */
@@ -293,6 +294,7 @@ Major Third ratio (1.250):
 ## 6. Component API Reference
 
 ### BaseModal
+
 ```tsx
 interface BaseModalProps {
   isOpen: boolean;
@@ -300,11 +302,11 @@ interface BaseModalProps {
   title: string;
   titleIcon?: React.ReactNode;
   variant?: 'default' | 'danger' | 'success' | 'info';
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';   // 400/500/600/900/100%
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'; // 400/500/600/900/100%
   footer?: React.ReactNode;
-  closeOnBackdropClick?: boolean;  // default: true
-  closeOnEscape?: boolean;         // default: true
-  showCloseButton?: boolean;       // default: true
+  closeOnBackdropClick?: boolean; // default: true
+  closeOnEscape?: boolean; // default: true
+  showCloseButton?: boolean; // default: true
   id?: string;
   className?: string;
   children: React.ReactNode;
@@ -314,6 +316,7 @@ interface BaseModalProps {
 Features: `createPortal`, focus trap, Escape key, scroll lock, `aria-modal`, `role="dialog"`, fade+slide animation.
 
 ### AlertDialog
+
 ```tsx
 interface AlertDialogProps {
   isOpen: boolean;
@@ -325,11 +328,12 @@ interface AlertDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   isConfirming?: boolean;
-  confirmationText?: string;  // Type-to-confirm pattern
+  confirmationText?: string; // Type-to-confirm pattern
 }
 ```
 
 ### FormField
+
 ```tsx
 interface FormFieldProps {
   label: string;
@@ -343,6 +347,7 @@ interface FormFieldProps {
 ```
 
 ### StatusBadge
+
 ```tsx
 interface StatusBadgeProps {
   status: string;
@@ -353,30 +358,34 @@ interface StatusBadgeProps {
 ```
 
 ### CheckboxField
+
 Shipped 2026-08-02 (BUGS-IMPROVEMENTS-PLAN E2). `FormField` renders the label ABOVE the input, which
 is wrong for a checkbox — so before this, every checkbox in the app was a raw `<input>`.
+
 ```tsx
 interface CheckboxFieldProps {
-  label: string;                 // always required; hide it with srOnlyLabel, never omit it
+  label: string; // always required; hide it with srOnlyLabel, never omit it
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
-  srOnlyLabel?: boolean;         // table cells: the column header labels it on screen
-  error?: string;                // message + aria-invalid + aria-describedby
-  invalid?: boolean;             // aria-invalid with NO message — for a group-level failure
+  srOnlyLabel?: boolean; // table cells: the column header labels it on screen
+  error?: string; // message + aria-invalid + aria-describedby
+  invalid?: boolean; // aria-invalid with NO message — for a group-level failure
   description?: string;
-  describedBy?: string;          // ids of text OUTSIDE the component (e.g. a group error)
-  styles?: Readonly<Record<string, string>>;  // host skin; keys: field control input label srOnly disabled description error
+  describedBy?: string; // ids of text OUTSIDE the component (e.g. a group error)
+  styles?: Readonly<Record<string, string>>; // host skin; keys: field control input label srOnly disabled description error
 }
 ```
+
 The input is a direct child of the `<label>`, so the association needs no id — and the click target
 is the label rather than the 13px box. The `<label>` wraps the box and the visible text and
 **nothing else**: HTML-AAM's label-content rule folds every text node inside it into the accessible
-NAME, so a description or error rendered in there is announced as part of the name *and* again as
+NAME, so a description or error rendered in there is announced as part of the name _and_ again as
 the description. `describedBy` exists for the same reason — a wrapper `<div>` is `role="generic"`
 and is not exposed, so `aria-describedby` has to reach the input.
 
 ### ChannelPicker
+
 The order-type channel group, composed from `CheckboxField`. Order comes from `ALL_ORDER_TYPES` and
 labels from `orderTypeLabel`, so a new channel reaches every surface that lists channels. **One
 consumer today** — the product editor's channel row; the category matrix keeps its `<table>` (three
@@ -384,12 +393,13 @@ consumer today** — the product editor's channel row; the category matrix keeps
 See ADR-005's 2026-08-02 amendment for why it is admitted with one consumer. It deliberately
 does NOT own the selection — a product round-trips a nullable mask with an inherit mode, a category
 row round-trips a dirty-tracked list, and folding either in would make the other a special case.
+
 ```tsx
 interface ChannelPickerProps {
   selected: readonly OrderType[];
   onToggle: (orderType: OrderType) => void;
   disabled?: boolean;
-  error?: string;                // rendered once; every box gets aria-invalid
+  error?: string; // rendered once; every box gets aria-invalid
   errorId?: string;
   styles?: Readonly<Record<string, string>>;
   checkboxStyles?: Readonly<Record<string, string>>;
@@ -397,6 +407,7 @@ interface ChannelPickerProps {
 ```
 
 ### Button
+
 ```tsx
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'link';
@@ -410,6 +421,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 ```
 
 ### EmptyState
+
 ```tsx
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -420,6 +432,7 @@ interface EmptyStateProps {
 ```
 
 ### LoadingSpinner
+
 ```tsx
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -447,7 +460,7 @@ interface LoadingSpinnerProps {
 
 - `<html lang>` and `dir` are synced from `i18n.language` by `DocumentLanguage`; the locale set lives in `RTL_LANGUAGES` (`src/lib/textDirection.ts`) — `ar` is the only one of the ten shipped locales that is RTL. **That set is also the revert lever**: drop `ar` from it and the whole app returns to LTR without a rollback.
 - New CSS **must** use logical properties — `margin-inline-start`, `padding-inline-end`, `border-inline-start`, `inset-inline-start`/`-end`, `text-align: start | end`. The `physical-CSS ratchet (E8)` check (`scripts/check-physical-css.mjs`) holds the count of remaining physical declarations and only ever lets it fall.
-- Directional **icons** mostly do not flip yet. Four `[dir='rtl']` rules exist; **copy `ImageGalleryModal`**, which is the only one showing the FULL coupling rather than a glyph on its own — `.prev`/`.next` on `inset-inline-start`/`-end`, the chevrons mirrored with `[dir='rtl'] … svg { transform: scaleX(-1) }`, *and* `ImageGalleryModal.tsx`'s ArrowLeft/ArrowRight handlers remapped to reading order. Convert any one of those three alone and `ar` gets a "previous" control on the trailing edge pointing at the leading one, driven by the opposite key. The other three are the category-nav chevrons (`CategoryNav.module.css`, `CraftCategoryNav.module.css`) and `ContactIcons.module.css`'s reveal offset. The remaining directional icons and the craft `--craft-tape-clip` polygon are E8 slice 3.
+- Directional **icons** mostly do not flip yet. Four `[dir='rtl']` rules exist; **copy `ImageGalleryModal`**, which is the only one showing the FULL coupling rather than a glyph on its own — `.prev`/`.next` on `inset-inline-start`/`-end`, the chevrons mirrored with `[dir='rtl'] … svg { transform: scaleX(-1) }`, _and_ `ImageGalleryModal.tsx`'s ArrowLeft/ArrowRight handlers remapped to reading order. Convert any one of those three alone and `ar` gets a "previous" control on the trailing edge pointing at the leading one, driven by the opposite key. The other three are the category-nav chevrons (`CategoryNav.module.css`, `CraftCategoryNav.module.css`) and `ContactIcons.module.css`'s reveal offset. The remaining directional icons and the craft `--craft-tape-clip` polygon are E8 slice 3.
 - **A gallery mirrors; a floor plan does not.** Reading order is what flips, so lists, carousels and navigation follow the language. The floor plan is a physical room and must stay put — verified on `demo.sofrapiwas.com` in `ar`.
 - **Scroll arithmetic is directional too, and no CSS gate can see it.** A scroller reports `scrollLeft === 0` at its inline START in both directions, growing positive toward the end in LTR and NEGATIVE in RTL (measured in Chromium, not assumed). Reason in `Math.abs(scrollLeft)`, and take the sign for `scrollBy` from `getComputedStyle(el).direction` — `scrollBy` itself is not direction-aware. `useCategoryNavScroll` is the worked example.
 
@@ -455,44 +468,44 @@ interface LoadingSpinnerProps {
 
 A logical property is byte-identical to its physical twin under `dir="ltr"`, so converting is safe **unless the declaration is coupled to something that has no logical form**.
 
-**`--dir` is the answer for two of the three** (`globals.css`: `+1` under `ltr`, `-1` under `rtl`). `transform: translateX()` and `box-shadow`'s x-offset take a *distance*, so multiplying it by `--dir` lets a coupled pair move together: `translateX(calc(var(--dir) * 100%))` is byte-identical to `translateX(100%)` under `ltr` and flips under `rtl`. `background-position: right …` takes a *keyword*, which no multiplier can express — that one still needs a `[dir='rtl']` rule. `var()` resolves inside `@keyframes` too (substitution happens on the animating element), so an entry animation can be direction-aware without an animation-name swap.
+**`--dir` is the answer for two of the three** (`globals.css`: `+1` under `ltr`, `-1` under `rtl`). `transform: translateX()` and `box-shadow`'s x-offset take a _distance_, so multiplying it by `--dir` lets a coupled pair move together: `translateX(calc(var(--dir) * 100%))` is byte-identical to `translateX(100%)` under `ltr` and flips under `rtl`. `background-position: right …` takes a _keyword_, which no multiplier can express — that one still needs a `[dir='rtl']` rule. `var()` resolves inside `@keyframes` too (substitution happens on the animating element), so an entry animation can be direction-aware without an animation-name swap.
 
-**Verify RTL by switching the app's LANGUAGE, never by editing the `dir` attribute in devtools.** `next dev --turbopack` runs Lightning CSS, which downlevels logical properties and `:dir()` into `:lang()`-keyed rules; `next build` emits them verbatim. So in dev, `inset-inline-start` and friends follow `lang`, not `dir`, and a hand-flipped `dir` mirrors *some* rules and not others. Switching the language sets both attributes together, which is the only way dev agrees with production. This bit twice on this slice — once making a fix look verified when nothing had moved.
+**Verify RTL by switching the app's LANGUAGE, never by editing the `dir` attribute in devtools.** `next dev --turbopack` runs Lightning CSS, which downlevels logical properties and `:dir()` into `:lang()`-keyed rules; `next build` emits them verbatim. So in dev, `inset-inline-start` and friends follow `lang`, not `dir`, and a hand-flipped `dir` mirrors _some_ rules and not others. Switching the language sets both attributes together, which is the only way dev agrees with production. This bit twice on this slice — once making a fix look verified when nothing had moved.
 
 **`--dir` keys off the `dir` ATTRIBUTE, and that leaves one known gap.** An element inside `dir="auto"` that resolves to Arabic computes `direction: rtl` — logical properties mirror — while `[dir='rtl']` does not match and `--dir` stays `+1`: a half-conversion. `:dir()` matches the resolved direction and is the correct fix, but it was tried and reverted here, because the downleveling above makes it behave differently in dev and prod — and worse than the attribute rules in dev. Nothing uses `dir="auto"` today, so the gap is unreachable; close it in the slice that puts `dir="auto"` on product-authored text, and verify that one against `next build`.
 
-| Coupling | Why it breaks | Do instead |
-| --- | --- | --- |
-| `transform: translateX(…)` | `transform` is never logical. Mirror the inset alone and a drawer parked off-screen with `translateX(100%)` lands **on** screen in `ar`. **Grep `animation:` as well as `transform:`** — the translate is often in an `@keyframes` block further down the file, so the coupled rule contains no `transform` of its own. That indirection is what hid `MyReservations`'s `.errorAlert` from a rule-local read: an `animation:` line alone, with the `translateX(100%)` 15 lines away. (Both toast keyframes are now `slideInFromTrailingEdge` — named for reading order, since under `rtl` the same declaration enters from the physical left.) | `translateX(calc(var(--dir) * …))`, converting the inset in the same edit. |
-| `box-shadow` with a non-zero x-offset | Also never logical, and **invisible to the ratchet**, which counts properties rather than offsets. A drawer shadow cast into the page falls *under* the drawer in `ar`. | `box-shadow: calc(var(--dir) * -4px) 0 12px …` |
-| A **transitioned** property that reads `--dir` | `dir` flips *after first paint* (`layout.tsx` SSRs `dir="ltr"`; `DocumentLanguage` corrects it in a mount effect), so a `--dir` change is itself a transitionable change. The admin sidebar's closed `transform` animated the whole way across: measured at 390px, **37 of 74 frames** had part of a drawer nobody opened inside the viewport and 6 had all of it, on every admin load in `ar` **at ≤768px**, where the sidebar is off-canvas. (At ≥769px it is `position: relative` with `transform: none`, so nothing reads `--dir` and nothing sweeps.) | Make sure the element cannot be seen while it flips — `visibility: hidden` on the closed state (`AdminPage.module.css`), or `display: none` as the header drawers already do. |
-| A directional **glyph** on a control that moved | The arrow tracks the drawer's *direction of travel*, so mirroring the drawer inverts it. The admin toggle's `ChevronRight`/`ChevronLeft` became backwards in `ar` the moment the sidebar changed sides. | If the glyph must agree with a box positioned from `--dir`, drive it from `--dir` too: `transform: scaleX(var(--dir))`, so the two cannot drift (`Header.module.css`'s `.adminSidebarToggleFloating svg`). For a standalone glyph with no `--dir` partner, `[dir='rtl'] .x svg { transform: scaleX(-1) }` is fine — that is the `ImageGalleryModal`/`CategoryNav` shape. |
-| `background-position: right …` | Has no logical form, and is a keyword, so `--dir` cannot express it. A gutter that clears a chevron must mirror **with** the chevron, or text runs under it. | `padding-inline-end` plus a `[dir='rtl'] .x { background-position: left … }` rule — `AdminOrdersPage.module.css`'s sort dropdown is the worked example. |
-| A **vendor's own** injected positioning | A `:global()` override cannot win a coupling the library re-asserts, and the vendor's rules are on hash-named classes (`.go2989568495 { right: 20px }`), so grepping the document for the vendor's name finds only *your* rules and makes its positioning look absent. | Flip the vendor's own switch in the same change — the `rtl` prop for react-big-calendar is the worked example. **And check what else your selector matches**: notistack's stayed physical because one unqualified `.notistack-SnackbarContainer` rule serves two anchors, so converting it clipped the `top-center` cart toast 151px off screen in `ar` while fixing the `bottom-right` ones. Scope per-anchor first. |
-| Centring (`left: 50%` + `translateX(-50%)`, or a negative half-width margin) | Centring has no handedness — it is already correct in both directions. | Leave physical; it is not debt. |
+| Coupling                                                                     | Why it breaks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Do instead                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transform: translateX(…)`                                                   | `transform` is never logical. Mirror the inset alone and a drawer parked off-screen with `translateX(100%)` lands **on** screen in `ar`. **Grep `animation:` as well as `transform:`** — the translate is often in an `@keyframes` block further down the file, so the coupled rule contains no `transform` of its own. That indirection is what hid `MyReservations`'s `.errorAlert` from a rule-local read: an `animation:` line alone, with the `translateX(100%)` 15 lines away. (Both toast keyframes are now `slideInFromTrailingEdge` — named for reading order, since under `rtl` the same declaration enters from the physical left.) | `translateX(calc(var(--dir) * …))`, converting the inset in the same edit.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `box-shadow` with a non-zero x-offset                                        | Also never logical, and **invisible to the ratchet**, which counts properties rather than offsets. A drawer shadow cast into the page falls _under_ the drawer in `ar`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `box-shadow: calc(var(--dir) * -4px) 0 12px …`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| A **transitioned** property that reads `--dir`                               | `dir` flips _after first paint_ (`layout.tsx` SSRs `dir="ltr"`; `DocumentLanguage` corrects it in a mount effect), so a `--dir` change is itself a transitionable change. The admin sidebar's closed `transform` animated the whole way across: measured at 390px, **37 of 74 frames** had part of a drawer nobody opened inside the viewport and 6 had all of it, on every admin load in `ar` **at ≤768px**, where the sidebar is off-canvas. (At ≥769px it is `position: relative` with `transform: none`, so nothing reads `--dir` and nothing sweeps.)                                                                                     | Make sure the element cannot be seen while it flips — `visibility: hidden` on the closed state (`AdminPage.module.css`), or `display: none` as the header drawers already do.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| A directional **glyph** on a control that moved                              | The arrow tracks the drawer's _direction of travel_, so mirroring the drawer inverts it. The admin toggle's `ChevronRight`/`ChevronLeft` became backwards in `ar` the moment the sidebar changed sides.                                                                                                                                                                                                                                                                                                                                                                                                                                        | If the glyph must agree with a box positioned from `--dir`, drive it from `--dir` too: `transform: scaleX(var(--dir))`, so the two cannot drift (`Header.module.css`'s `.adminSidebarToggleFloating svg`). For a standalone glyph with no `--dir` partner, `[dir='rtl'] .x svg { transform: scaleX(-1) }` is fine — that is the `ImageGalleryModal`/`CategoryNav` shape.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `background-position: right …`                                               | Has no logical form, and is a keyword, so `--dir` cannot express it. A gutter that clears a chevron must mirror **with** the chevron, or text runs under it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `padding-inline-end` plus a `[dir='rtl'] .x { background-position: left … }` rule — `AdminOrdersPage.module.css`'s sort dropdown is the worked example.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| A **vendor's own** injected positioning                                      | A `:global()` override cannot win a coupling the library re-asserts, and the vendor's rules are on hash-named classes (`.go2989568495 { right: 20px }`), so grepping the document for the vendor's name finds only _your_ rules and makes its positioning look absent.                                                                                                                                                                                                                                                                                                                                                                         | Flip the vendor's own switch in the same change — the `rtl` prop for react-big-calendar is the worked example. **And check what else your selector matches**: notistack's `.notistack-SnackbarContainer` is unqualified and serves two anchors, so converting it clipped the `top-center` cart toast 151px off screen in `ar` while fixing the `bottom-right` ones. **Scoping per anchor is what unblocked it** (#424): notistack takes a `classes` prop keyed `containerAnchorOrigin<Vertical><Horizontal>`, so the converted rule reaches only the anchor it was written for. Two things that shape teaches. **Reset the opposite edge too** — the vendor still asserts a physical `right: 20px`, so under `rtl` both edges end up set and the container stretches (1354px of a 1400px viewport, measured); `inset-inline-start: auto` is the other half of the fix. **And an anchor you do not map falls back to the vendor's physical rule**, silently reintroducing the bug where no CSS gate can see it. |
+| Centring (`left: 50%` + `translateX(-50%)`, or a negative half-width margin) | Centring has no handedness — it is already correct in both directions.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Leave physical; it is not debt.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
-**A drawer is the worked example** — `app/styles/Header.module.css` and `templates/craft/chrome/CraftHeader.module.css` (trailing edge) and `app/styles/AdminPage.module.css` (leading edge): inset, border, shadow and transform move in one edit — whichever of the four a given drawer actually has. Only the classic header drawer has all four; craft casts no shadow, and the admin sidebar has no border. Two things it taught that the deferral comments had wrong. **The predicted defect was not the real one for the header drawers**: both are `display: none` when closed, so their parked transform never painted and no closed drawer was ever visible — what was actually broken is that in `ar` the drawer opened on the *opposite side of the screen from its own button* (measured at 390px: hamburger x=16..60, drawer x=110..390). **The admin sidebar is the opposite case**: it is never `display: none`, parked by transform alone, so for it the predicted defect was real — and it is the one that needed the `visibility` row above.
+**A drawer is the worked example** — `app/styles/Header.module.css` and `templates/craft/chrome/CraftHeader.module.css` (trailing edge) and `app/styles/AdminPage.module.css` (leading edge): inset, border, shadow and transform move in one edit — whichever of the four a given drawer actually has. Only the classic header drawer has all four; craft casts no shadow, and the admin sidebar has no border. Two things it taught that the deferral comments had wrong. **The predicted defect was not the real one for the header drawers**: both are `display: none` when closed, so their parked transform never painted and no closed drawer was ever visible — what was actually broken is that in `ar` the drawer opened on the _opposite side of the screen from its own button_ (measured at 390px: hamburger x=16..60, drawer x=110..390). **The admin sidebar is the opposite case**: it is never `display: none`, parked by transform alone, so for it the predicted defect was real — and it is the one that needed the `visibility` row above.
 
 Three more the codemod cannot see, so check them by hand:
 
-- **A `transition` / `@keyframes` naming a physical property must be renamed WITH the declaration.** This is the one coupling that is `ar`-only *and* silent — the LTR check passes, which is what makes it dangerous. Measured in Chromium on `SoundSelector`'s toggle knob (travels `2px → 26px`): with `inset-inline-start` authored and `transition: left` left behind, the knob still animates under `dir="ltr"` — logical insets resolve to physical at computed-value time, so `left` is still the property changing — but under `dir="rtl"` the author's inset maps to `right`, `left` never changes, and the knob **teleports** (`document.getAnimations().length` drops from 3 to 1). Name both logically and it animates correctly in both directions. **A knob that travels on a `transform` should be moved onto its own inset instead, not signed with `--dir`** — all three toggles in the repo now do this (`SoundSelector`, `OrderTypeManager`, `CookieSettingsModal`). Signing the translate *looks* equivalent and is not: the transition applies to the travel, so a language switch sweeps the knob across its track. Measured — `translateX(calc(var(--dir) * 24px))` under that transition produced a running `transform` animation stepping `24 → 23.4 → … → 7.5`. With an inset the knob still moves on the flip (it has to — a toggle mirrors), but it moves *instantly*: the flip takes `left` from a length to `auto`, which is not an interpolable pair, so no transition runs.
+- **A `transition` / `@keyframes` naming a physical property must be renamed WITH the declaration.** This is the one coupling that is `ar`-only _and_ silent — the LTR check passes, which is what makes it dangerous. Measured in Chromium on `SoundSelector`'s toggle knob (travels `2px → 26px`): with `inset-inline-start` authored and `transition: left` left behind, the knob still animates under `dir="ltr"` — logical insets resolve to physical at computed-value time, so `left` is still the property changing — but under `dir="rtl"` the author's inset maps to `right`, `left` never changes, and the knob **teleports** (`document.getAnimations().length` drops from 3 to 1). Name both logically and it animates correctly in both directions. **A knob that travels on a `transform` should be moved onto its own inset instead, not signed with `--dir`** — all three toggles in the repo now do this (`SoundSelector`, `OrderTypeManager`, `CookieSettingsModal`). Signing the translate _looks_ equivalent and is not: the transition applies to the travel, so a language switch sweeps the knob across its track. Measured — `translateX(calc(var(--dir) * 24px))` under that transition produced a running `transform` animation stepping `24 → 23.4 → … → 7.5`. With an inset the knob still moves on the flip (it has to — a toggle mirrors), but it moves _instantly_: the flip takes `left` from a length to `auto`, which is not an interpolable pair, so no transition runs.
 - **Asymmetric 4-value shorthands** (`padding: a b c d` where `b ≠ d`) are directional in slots 2 and 4. Split to `padding-block` + `padding-inline: <start> <end>`.
-- **A reset must use the same name as what it resets.** Mixing `left:` in a base rule with `inset-inline-start:` in an override makes the winner depend on source order rather than on specificity. **This includes rules that ship in `node_modules`**, which nothing in `src/` greps for — a `:global()` override of a vendor stylesheet must convert **in the same change** as the vendor's own RTL switch, never before it. `ReservationCalendar.module.css` is the worked example: rbc ships `.rbc-time-header-content { border-left: 1px solid #ddd }` and, under `.rbc-rtl`, `{ border-left-width: 0; border-right: 1px solid #ddd }`. Convert the override alone and `ar` gets two borders; pass `rtl` alone and the `!important` left border beats rbc's zero and `ar` gets two borders the other way. Together they land on one edge, themed — verified in both directions **and both themes**, which matters because `--border-color`'s light value *is* `#ddd`, so a light-mode colour check cannot distinguish our override from rbc's own rule.
+- **A reset must use the same name as what it resets.** Mixing `left:` in a base rule with `inset-inline-start:` in an override makes the winner depend on source order rather than on specificity. **This includes rules that ship in `node_modules`**, which nothing in `src/` greps for — a `:global()` override of a vendor stylesheet must convert **in the same change** as the vendor's own RTL switch, never before it. `ReservationCalendar.module.css` is the worked example: rbc ships `.rbc-time-header-content { border-left: 1px solid #ddd }` and, under `.rbc-rtl`, `{ border-left-width: 0; border-right: 1px solid #ddd }`. Convert the override alone and `ar` gets two borders; pass `rtl` alone and the `!important` left border beats rbc's zero and `ar` gets two borders the other way. Together they land on one edge, themed — verified in both directions **and both themes**, which matters because `--border-color`'s light value _is_ `#ddd`, so a light-mode colour check cannot distinguish our override from rbc's own rule.
 - **`!important` hides a declaration from a naive codemod.** `text-align: right !important` does not match a pattern anchored on a trailing `;` right after the value. The ratchet does count these, so a half-converted rule shows up as a count that will not fall — but check by hand.
 
 Anything deliberately physical carries a comment saying so and stays in the ratchet's count — the ratchet measures syntax, not defects.
 
 ### 8.2 Product-authored text needs `dir="auto"`
 
-CSS mirrors the *layout*. It cannot fix **bidi inside a string**: an English product name or description sitting in an Arabic page is an LTR run inside an RTL paragraph, and its trailing punctuation — `.` `,` `:` — is *neutral*, so it takes the paragraph's direction and jumps to the far end.
+CSS mirrors the _layout_. It cannot fix **bidi inside a string**: an English product name or description sitting in an Arabic page is an LTR run inside an RTL paragraph, and its trailing punctuation — `.` `,` `:` — is _neutral_, so it takes the paragraph's direction and jumps to the far end.
 
 Measured on the **classic** menu card in `ar`, on the product name `Lamb shank, slow-braised.`:
 
-| | computed `direction` | final letter | `.` |
-| --- | --- | --- | --- |
-| plain | `rtl` | x=1179 | **x=1032** — 147px to the *left* of the letter it follows, same line |
-| `dir="auto"` | `ltr` | x=1173 | x=1188 ✓ |
-| the same, in `en` | `ltr` | x=226 | x=241 — **identical with and without**, i.e. inert for the nine LTR locales |
+|                   | computed `direction` | final letter | `.`                                                                         |
+| ----------------- | -------------------- | ------------ | --------------------------------------------------------------------------- |
+| plain             | `rtl`                | x=1179       | **x=1032** — 147px to the _left_ of the letter it follows, same line        |
+| `dir="auto"`      | `ltr`                | x=1173       | x=1188 ✓                                                                    |
+| the same, in `en` | `ltr`                | x=226        | x=241 — **identical with and without**, i.e. inert for the nine LTR locales |
 
 `dir="auto"` picks the direction from the first strong character, so an Arabic product name still renders RTL — it is not "force LTR". Apply it to any field whose text comes from the **tenant**, not from `src/locales/`: item name, description, variation name, ingredient and side-item names, special instructions, category name.
 
@@ -500,17 +513,17 @@ Measured on the **classic** menu card in `ar`, on the product name `Lamb shank, 
 
 **38 elements across 19 components** are covered: both menu cards, both Chef's Special heroes, both category navs, the customization sheet and its base/variation/optional-ingredient/side-item rows, `BaseModal`'s title, cart lines, cart-page cards and their customization lines, checkout order lines on **both** `/checkout/review` and `/checkout/confirmation`, and `OrderLineSummary`. **Not swept, and still live:** all staff/admin surfaces (~64 tenant-name renders), plus a handful of customer ones — the bundle path (`BundleSectionSelector`, `BundleOptionRow`), `orders/OrderCard`, `OrderTypeConflictModal`, `MyReservationCard`, the home-page address/hours blocks and `TenantLogo`.
 
-**Put it on LEAF text elements only** (`<h2>`/`<h3>`/`<p>`/`<span>` with no element children); where the natural host has an element child — a `<strong>` label, a required-marker `<span>`, a category notice — wrap the tenant-authored half in its own span instead. `dir="auto"` *does* set the attribute; what fails is that `[dir='ltr']` / `[dir='rtl']` do not match the literal value `auto`, so `--dir` keeps whatever it inherited while logical properties follow the *resolved* direction. A `--dir`-dependent transform inside a `dir="auto"` **container** would therefore mirror its insets and not its transforms. Keeping it on leaves makes that unreachable rather than merely unlikely (§8.1, and the note in `globals.css`). Nothing enforces this — there is no gate for it.
+**Put it on LEAF text elements only** (`<h2>`/`<h3>`/`<p>`/`<span>` with no element children); where the natural host has an element child — a `<strong>` label, a required-marker `<span>`, a category notice — wrap the tenant-authored half in its own span instead. `dir="auto"` _does_ set the attribute; what fails is that `[dir='ltr']` / `[dir='rtl']` do not match the literal value `auto`, so `--dir` keeps whatever it inherited while logical properties follow the _resolved_ direction. A `--dir`-dependent transform inside a `dir="auto"` **container** would therefore mirror its insets and not its transforms. Keeping it on leaves makes that unreachable rather than merely unlikely (§8.1, and the note in `globals.css`). Nothing enforces this — there is no gate for it.
 
-**Keep separators and numeric suffixes OUTSIDE the isolate.** `dir="auto"` implies `unicode-bidi: isolate`, so a `", "` rendered *inside* the span belongs to that item's own run and paints at its leading edge — measured, the gap between two list items collapses from 9.1px to **0px** and the names run together. Isolate the name, nothing else.
+**Keep separators and numeric suffixes OUTSIDE the isolate.** `dir="auto"` implies `unicode-bidi: isolate`, so a `", "` rendered _inside_ the span belongs to that item's own run and paints at its leading edge — measured, the gap between two list items collapses from 9.1px to **0px** and the names run together. Isolate the name, nothing else.
 
-**A neutral character next to an untranslated string has the same symptom and the same fix.** `:Or select time` on `/reservations` in `ar` renders its colon 86px to the *left* of the label, measured — because the `:` is a JSX literal outside `t()`, so it is neutral and takes the paragraph direction. `dir="auto"` fixes that half exactly as it does product text. The English string is a **separate** bug and `dir="auto"` does not address it: that one is a missing translation, and `or_select_time` is not in `scripts/locale-untranslated-baseline.json` because it is not in any locale file at all — it exists only as a `t()` inline default. Per `CLAUDE.md` §9 an agent may add or remove keys in `ar`/`ru`/`zh` but must not **rephrase existing** translations there, so adding this key with a real Arabic value needs a human.
+**A neutral character next to an untranslated string has the same symptom and the same fix.** `:Or select time` on `/reservations` in `ar` renders its colon 86px to the _left_ of the label, measured — because the `:` is a JSX literal outside `t()`, so it is neutral and takes the paragraph direction. `dir="auto"` fixes that half exactly as it does product text. The English string is a **separate** bug and `dir="auto"` does not address it: that one is a missing translation, and `or_select_time` is not in `scripts/locale-untranslated-baseline.json` because it is not in any locale file at all — it exists only as a `t()` inline default. Per `CLAUDE.md` §9 an agent may add or remove keys in `ar`/`ru`/`zh` but must not **rephrase existing** translations there, so adding this key with a real Arabic value needs a human.
 
 **What must NOT mirror:** the craft `--craft-tape-clip` polygon. It is decorative asymmetry — a torn masking-tape edge, which has no reading direction, like the floor plan. Verified it costs nothing in `ar`: all five clipped elements on `/menu` have **symmetric** inline padding and zero horizontal overflow in both directions, so the torn corners never reach the text — `CraftFeaturedSpecial .tape` 22.4px, `CraftCategoryNav .tab` 20.8px, `CraftMenuCard .special` 17.6px, `CraftItemAvailability .availabilityReason` 14.4px, `CraftOrderTypeToggle .button` 12px.
 
 Those five are the ones on `/menu`, **not** the whole set: `tapeLabel`/`tapeLabelAccent`/`tapeChip` are `composes`-d at eight further sites (craft's reservations, auth, checkout sections, cart summary, tip selector at 11.2px, my-reservations, tables docket), and `order/OrderTypeToggle.module.css` takes the polygon via `--modal-body-toggle-clip` at **6.4px**. None of those were measured.
 
-The polygon's insets are **percentages of the element's own width**, so the clipped pixels scale *with* it — 2% of 100px is 2px, of 900px is 18px. Against a fixed padding the risk is **widening**, not narrowing: the 6.4px case breaks even around a 320px-wide button and the live one is 96px, where the clip eats 1.9px. Re-measure when one of these gets wider.
+The polygon's insets are **percentages of the element's own width**, so the clipped pixels scale _with_ it — 2% of 100px is 2px, of 900px is 18px. Against a fixed padding the risk is **widening**, not narrowing: the 6.4px case breaks even around a 320px-wide button and the live one is 96px, where the clip eats 1.9px. Re-measure when one of these gets wider.
 
 ---
 

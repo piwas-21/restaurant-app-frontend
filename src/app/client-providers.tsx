@@ -46,6 +46,38 @@ export default function ClientProviders({
                             maxSnack={3}
                             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                             autoHideDuration={4000}
+                            // #424. The positioning override has to be scoped PER ANCHOR, and this
+                            // prop is the only hook for it: `.notistack-SnackbarContainer` matches
+                            // every container, so one logical-property rule there necessarily
+                            // breaks whichever anchor it was not written for. Converting it moved
+                            // the bottom-right toasts correctly and clipped the top-center cart
+                            // toast to x=-151..199 in `ar` — 151px of 349px off screen — because
+                            // `inset-inline-end` resolves to `left`, which beats notistack's
+                            // centring `left: 50%` while its `translateX(-50%)` survives.
+                            //
+                            // Only two anchors exist in the tree, and the split is lopsided: of 89
+                            // `enqueueSnackbar` call sites, exactly ONE is top-center —
+                            // `useCartFeedback`'s `notifyItemAdded`. Everything else lands in the
+                            // bottom-right container, whether it passes the anchor explicitly (24
+                            // do) or inherits this default (the other 64). `useCartFeedback` is on
+                            // BOTH sides: its `notifyAddFailed` passes no anchor, so the add-FAILURE
+                            // toast is bottom-right while the add-success one is not.
+                            //
+                            // The centre one is deliberately given NO class — notistack centres it
+                            // correctly on its own, in both directions.
+                            //
+                            // Doing it here rather than flipping `anchorOrigin` is what makes it
+                            // work at all: notistack resolves per-snack options over provider
+                            // props, so a provider-level flip is dead for every call site that
+                            // passes its own. Driving it from CSS ignores what they pass.
+                            //
+                            // ⚠️ Only the anchors below are mapped. A `bottom-left` or `top-right`
+                            // toast added later would get NO class and fall back to notistack's own
+                            // PHYSICAL `left: 20px` / `right: 20px` — silently reintroducing this
+                            // exact bug, and invisibly to `check-physical-css.mjs`, which only walks
+                            // `src/**/*.css` and cannot see a vendor's injected rules. Add the
+                            // matching key here when you add the anchor.
+                            classes={{ containerAnchorOriginBottomRight: 'notistack-anchor-bottom-trailing' }}
                             action={(snackbarKey) => (
                               <button
                                 onClick={() => closeSnackbar(snackbarKey)}

@@ -616,6 +616,15 @@ module.exports = {
       functions: 66,
       lines: 87,
     },
+    // #363 gave this file its first test, covering the bundle-component removals row. The floor is
+    // set just under what that buys — the quantity/remove handlers are still unexercised, so this
+    // is a ratchet against regression, not a claim the component is covered.
+    './src/components/cart/cart-page/CartItemCard.tsx': {
+      statements: 66,
+      branches: 64,
+      functions: 40,
+      lines: 66,
+    },
     // Slice 7 PR2d — the unified admin editor. `productEditorDefaults` is the pure
     // fetched-product → form-state mapping (the load-bearing half, incl. the real
     // primary-category resolution); `ProductEditorPage` is the composition + the single

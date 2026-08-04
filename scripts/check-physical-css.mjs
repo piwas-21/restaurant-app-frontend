@@ -38,8 +38,9 @@
  *       a CSS change: one unqualified selector served two anchors, so converting it moved the
  *       bottom-right stacks correctly and clipped the top-center cart toast 151px off screen in
  *       `ar`. The fix scopes a class per anchor via notistack's `classes` prop, so the rule that
- *       converts no longer touches the centre one. Measured after, at 1400px and 390px, in `en`
- *       and `ar`: bottom-right 24px from the trailing edge both ways, centre 550..850 both ways.
+ *       converts no longer touches the centre one. Measured after, in `en` and `ar` alike:
+ *       bottom-right 24px from the trailing edge at 1400px and full-bleed at 390px; centre
+ *       550..850 at 1400px and 16..374 at 390px, where a mobile toast is full-bleed by design.
  *
  *   So **8 means "E8 is done"** — and 8 is also the FLOOR. If this number falls below 8, something
  *   that must not mirror has been converted; read the comment beside it before banking the drop.

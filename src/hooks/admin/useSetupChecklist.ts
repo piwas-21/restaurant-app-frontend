@@ -24,15 +24,6 @@ import { useApiError } from '@/hooks/useApiError';
  * There is no module-scope cache like `useRestaurantInfo`'s: this renders on exactly
  * one page, for one admin, and the answer changes as they work through it.
  */
-/**
- * What a re-read did, so the caller can decide whether it is worth reporting (#416).
- *
- * A bare `boolean` would do for today's one caller, but it would also throw the error away at the
- * only point that still holds it — and the reason this hook was in the E9 sweep at all is that a
- * boolean here discarded the server's sentence once before (#388).
- */
-type LoadOutcome = { ok: true } | { ok: false; error: unknown };
-
 export interface UseSetupChecklistResult {
   checklist: SetupChecklistDto | null;
   isLoading: boolean;
@@ -64,17 +55,22 @@ export function useSetupChecklist(): UseSetupChecklistResult {
 
   /**
    * Returns whether the read landed, so a CALLER can decide what to do about a failure — which is
-   * the whole of #416. This catch must stay silent (see below), but "silent" and "unreported" are
-   * different things, and only `mutate` knows whether a message is already on screen.
+   * the whole of #416. This catch stays silent AND unbound (see below), but "silent" and
+   * "unreported" are different things, and only `mutate` knows whether a message is already showing.
+   *
+   * A boolean rather than the error: `mutate` deliberately does not render the read failure's own
+   * words (see there), so carrying them would be a value nothing may use — and a `catch (error)`
+   * that binds without surfacing is precisely what the E9 ratchet's guidance calls out as satisfying
+   * the gate while fixing nothing.
    */
-  const load = useCallback(async (): Promise<LoadOutcome> => {
+  const load = useCallback(async (): Promise<boolean> => {
     try {
       const response = await getSetupChecklist();
       const data = response?.data ?? null;
       lastGood.current = data;
       setChecklist(data);
-      return { ok: true };
-    } catch (error) {
+      return true;
+    } catch {
       // Keep the last good copy rather than blanking the panel. A checklist that has
       // rendered once must not vanish over one failed refresh — and after a rejected
       // write, dropping it here would take the error message down with it, since the
@@ -95,7 +91,7 @@ export function useSetupChecklist(): UseSetupChecklistResult {
       // this very file. Reporting it is now `mutate`'s job, which is the only place that knows
       // whether a write message is already showing.
       setChecklist(lastGood.current);
-      return { ok: false, error };
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -135,7 +131,7 @@ export function useSetupChecklist(): UseSetupChecklistResult {
         // the local copy may already be stale from another tab or another admin. Clear
         // `pending` only AFTER it lands, so the checkbox never flickers back through
         // the old value on its way to the new one.
-        const outcome = await load();
+        const reloaded = await load();
 
         // #416. Report a failed re-read ONLY when the write itself succeeded. On a rejected write
         // `saveError` already holds the server's reason, which is the more specific of the two, and
@@ -145,7 +141,7 @@ export function useSetupChecklist(): UseSetupChecklistResult {
         // true and misleading. The fact that matters is that the change WAS saved — otherwise the
         // owner reads a snapped-back checkbox plus "could not load" and reasonably concludes it did
         // not stick, and ticks it again.
-        if (wrote && !outcome.ok) {
+        if (wrote && !reloaded) {
           saveError.show(
             t(
               'setup_checklist_refresh_failed',
@@ -170,6 +166,19 @@ export function useSetupChecklist(): UseSetupChecklistResult {
     [mutate],
   );
 
+  /**
+   * `load` narrowed to the `Promise<void>` this hook promises — its boolean is `mutate`'s business,
+   * not a caller's.
+   *
+   * Memoised, and that is not decoration: `load` itself is `useCallback(…, [])`, so exposing a fresh
+   * arrow here would hand every consumer a value that changes each render, and one
+   * `useEffect(…, [refetch])` would then refetch forever. The same footgun `useApiError` memoises
+   * its whole object to avoid.
+   */
+  const refetch = useCallback(async () => {
+    await load();
+  }, [load]);
+
   return {
     checklist,
     isLoading,
@@ -178,10 +187,6 @@ export function useSetupChecklist(): UseSetupChecklistResult {
     pending,
     setStepDone,
     setDismissed,
-    // Narrowed to `Promise<void>`: the outcome is for `mutate`, which is the only caller that has
-    // to decide whether a failed read needs saying out loud.
-    refetch: async () => {
-      await load();
-    },
+    refetch,
   };
 }

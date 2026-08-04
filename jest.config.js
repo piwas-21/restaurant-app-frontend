@@ -204,9 +204,14 @@ module.exports = {
     // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
     // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and
     // the one that reports a re-read failure only when the write succeeded, are invisible to every
-    // other gate. Mutation-verified — inverting either turns these red.
-    './src/hooks/checkout/useSavedAddressList.ts': { statements: 92, branches: 77, functions: 99, lines: 99 },
-    './src/hooks/admin/useSetupChecklist.ts': { statements: 94, branches: 82, functions: 76, lines: 96 },
+    // other gate. Mutation-verified in BOTH directions — forcing the guest branch and forcing the
+    // non-auth branch each turn these red, which the first draft of the guest test did not.
+    //
+    // Measured with CI's own command (`npm test -- --ci --runInBand --coverage`), not a subset run:
+    // the first draft of these rows was pinned from a two-file run that reported higher numbers, and
+    // the branch failed CI. `--runInBand` is part of the measurement, not a detail.
+    './src/hooks/checkout/useSavedAddressList.ts': { statements: 90, branches: 77, functions: 99, lines: 99 },
+    './src/hooks/admin/useSetupChecklist.ts': { statements: 99, branches: 82, functions: 99, lines: 99 },
     './src/hooks/cart/useCartItemMutations.ts': { statements: 89, branches: 99, functions: 99, lines: 89 },
     // ── E9 slice 8 — the closing slice of the bare-catch sweep (#383). ──────────────────────────
     // Pinned at actual − 1pt per the recipe above, so the coverage that pins each fix cannot be

@@ -19,8 +19,13 @@
 //
 // ⚠️ A dead `||` fallback is NOT a default, and this is the trap #417 was made of:
 // `t('k') || 'English'` can never reach its right-hand side, because `t()` returns the key and a key
-// is a non-empty string. Six callsites carried one and every reader took them for working
-// fallbacks. Only a real second argument counts here.
+// is a non-empty string. Only a real second argument counts here.
+//
+// To be exact about the scale, since this is the file a future reader will consult: ~207 such
+// callsites exist across `src/`. Almost all are INERT — their key resolves, so the dead branch never
+// mattered — and they are left alone. Six were not: their key was in no bundle, so the English text
+// beside them had never rendered and the user saw the key. Those six are fixed. The pattern is a
+// smell, not a bug; this gate flags the keys, not the `||`.
 //
 //   node scripts/check-t-keys.mjs                 # verify
 //   node scripts/check-t-keys.mjs --regen         # re-baseline after translating some
@@ -36,7 +41,7 @@ const en = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));
 
 /**
  * Resolve exactly as i18next does: the NESTED path first, then the literal flat key
- * (`ignoreJSONStructure`). Both forms are in use — `en.json` holds a `cashier` object AND 174 flat
+ * (`ignoreJSONStructure`). Both forms are in use — `en.json` holds a `cashier` object AND 182 flat
  * `cashier.*` keys — so checking only one of them reports keys missing that are present all along,
  * and a nested key added beside an existing flat one silently SHADOWS it.
  */
@@ -57,17 +62,107 @@ const sourceFiles = [];
 })(join(root, 'src'));
 
 /**
- * Comments are stripped first, because `t('…')` is TALKED ABOUT more than it is written here: the
- * E9 doc comments contain `?? t('…')` and `t('contextual')` as examples, and counting those put two
- * phantom keys in the first draft of this gate.
+ * Blank out comments while KEEPING string contents, because both halves matter here: `t('…')` is
+ * talked about more than it is written (the E9 doc comments contain `?? t('…')` and
+ * `t('contextual')` as examples, which put two phantom keys in the first draft of this gate), and
+ * the keys themselves live inside string literals.
+ *
+ * A naive block-comment regex cannot do this: it treats the slash-star inside `accept="image/star"`
+ * as a comment opener and deletes everything up to the next close marker — which in
+ * `ProductDetails.tsx` and `BundlePanel.tsx` swallowed a real `t()` callsite several lines below.
+ * That is a fail-OPEN hole in a gate whose entire purpose is to fail closed.
+ * `scripts/lib/ratchet.mjs` carries a `stripComments` that knows about strings for exactly this
+ * reason, but it also consumes their contents, which is precisely what this scan needs to read —
+ * hence a local walker rather than a reuse.
+ *
+ * (Written without a literal close marker in this paragraph, because the first draft of it ended
+ * this very comment early and broke the file — the same class of bug, one level up.)
+ *
+ * Comments become spaces rather than vanishing, so byte offsets stay aligned with the original and
+ * the `defaultValue` lookahead below cannot be pulled across a deleted span.
  */
-const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+function blankComments(source) {
+  let out = '';
+  let i = 0;
+  let state = 'code'; // code | line | block | ' | " | `
+  while (i < source.length) {
+    const c = source[i];
+    const next = source[i + 1];
+    if (state === 'code') {
+      if (c === '/' && next === '/') {
+        state = 'line';
+        out += '  ';
+        i += 2;
+        continue;
+      }
+      if (c === '/' && next === '*') {
+        state = 'block';
+        out += '  ';
+        i += 2;
+        continue;
+      }
+      if (c === "'" || c === '"' || c === '`') {
+        state = c;
+        out += c;
+        i += 1;
+        continue;
+      }
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (state === 'line') {
+      if (c === '\n') {
+        state = 'code';
+        out += c;
+        i += 1;
+        continue;
+      }
+      out += ' ';
+      i += 1;
+      continue;
+    }
+    if (state === 'block') {
+      if (c === '*' && next === '/') {
+        state = 'code';
+        out += '  ';
+        i += 2;
+        continue;
+      }
+      out += c === '\n' ? c : ' ';
+      i += 1;
+      continue;
+    }
+    // Inside a string: copy verbatim, honour escapes, and let a newline end a non-template quote
+    // (an unbalanced apostrophe in prose must not swallow the rest of the file).
+    if (c === '\\') {
+      out += source.slice(i, i + 2);
+      i += 2;
+      continue;
+    }
+    if (c === state) {
+      state = 'code';
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === '\n' && state !== '`') {
+      state = 'code';
+      out += c;
+      i += 1;
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  return out;
+}
 
 const CALL = /\bt\(\s*(['"])([^'"]+)\1\s*(,)?/g;
 const missing = new Map(); // key -> { hasDefault, sites:Set }
 
 for (const file of sourceFiles) {
-  const src = stripComments(readFileSync(file, 'utf8'));
+  const src = blankComments(readFileSync(file, 'utf8'));
   let m;
   while ((m = CALL.exec(src))) {
     const key = m[2];

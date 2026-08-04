@@ -4,8 +4,11 @@ import type { BasketItemDto } from '@/types/basket';
 /**
  * Normalized, read-only view-model for one order/cart line's customizations, shared by
  * `OrderLineSummary`. Both the order shape (`OrderItemDto`) and the cart shape (`BasketItemDto`)
- * adapt into this so the six display surfaces render bundle composition + customizations
- * identically (menu-bundles redesign slice 2, #174).
+ * adapt into this so every display surface renders bundle composition + customizations identically
+ * (menu-bundles redesign slice 2, #174). Nine render sites as of #189 — count them rather than
+ * trusting this sentence, with a recipe that excludes the tests and the prose (this comment
+ * included), both of which mention the tag:
+ * `grep -rn '<OrderLineSummary' src/ | grep -v '\.test\.' | grep -v lineSummary.ts`
  */
 export interface LineIngredientDiff {
   /** Ingredients added or kept at an above-default quantity, e.g. "Cheese ×2". */
@@ -27,6 +30,25 @@ export interface LineChild {
   diff: LineIngredientDiff;
   specialInstructions?: string;
   children: LineChild[];
+  /**
+   * The component's own upcharge, PER UNIT — for a bundle child this is its section's additional
+   * price (backend `BasketItemFactory`: `UnitPrice = sectionItem.AdditionalPrice`), not its share of
+   * the line total (a bundle child's `itemTotal` is 0 by design; the whole price is rolled into the
+   * parent, which accumulates `AdditionalPrice * selection.Quantity`).
+   *
+   * Per-unit is why `showChildPrices` also suppresses the child's `quantity`. The two DO reconcile
+   * when the line is built — `quantity * price` is the component's share of the line total — but
+   * nothing rescales a child when the line quantity changes, so the pair stops agreeing after one
+   * press of the cart's stepper. See `ChildList`.
+   *
+   * Populated by the CART adapter only, and rendered only where `OrderLineSummary` is asked for it
+   * (`showChildPrices`). Both restraints exist because the /cart card showed this number before it
+   * was migrated onto this component (#189) and the other eight render sites did not — carrying it
+   * unconditionally would have added a price to the order views, the checkout list and the cart
+   * rail as a side effect of a refactor. The order adapter can start setting it the day an order
+   * surface wants it.
+   */
+  price?: number;
 }
 
 export interface LineSummary {
@@ -138,6 +160,8 @@ function basketItemToChild(item: BasketItemDto): LineChild {
     diff: basketDiff(item),
     specialInstructions: item.specialInstructions || undefined,
     children: (item.childItems ?? []).map(basketItemToChild),
+    // See LineChild.price — the /cart card's component upcharge, kept through the #189 migration.
+    price: item.unitPrice,
   };
 }
 

@@ -218,7 +218,9 @@ describe('basketItemToLineSummary', () => {
   // Documentation, not a guard — measured: this passes with basketDiff reverted to `removed: []`,
   // because both produce an empty array. It also asserts through isLineSummaryEmpty, which has no
   // production callsite. The test that actually stops an empty list rendering a bare "Removed:"
-  // label is in CartItemCustomizations.test.tsx, and that one does fail on its mutant.
+  // label is "prints no Removed label for an empty removal list" in CartItemCard.test.tsx (it lived
+  // in CartItemCustomizations.test.tsx until #189 deleted that component), and that one does fail
+  // on its mutant.
   it('treats an empty removal list as nothing to show', () => {
     const summary = basketItemToLineSummary({
       quantity: 1,

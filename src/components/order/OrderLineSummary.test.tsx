@@ -53,6 +53,52 @@ describe('OrderLineSummary', () => {
     expect(screen.getByText('Child note')).toBeInTheDocument();
   });
 
+  // `showChildPrices` is opt-in so #189 could move the /cart card onto this component without
+  // adding a price to the eight render sites that never showed one. Both directions are pinned:
+  // default OFF is the guarantee those sites rest on, and the `> 0` guard stops a free component
+  // printing "+CHF 0.00".
+  it.each([
+    ['default (off)', undefined, false],
+    ['showChildPrices', true, true],
+  ])('component upcharge — %s', (_label, showChildPrices, expected) => {
+    const line: LineSummary = {
+      diff: { added: [], removed: [] },
+      sideItems: [],
+      children: [
+        { name: 'Pizza', quantity: 1, diff: { added: [], removed: [] }, children: [], price: 2.99 },
+        { name: 'Coke', quantity: 1, diff: { added: [], removed: [] }, children: [], price: 0 },
+      ],
+    };
+    render(<OrderLineSummary line={line} showChildPrices={showChildPrices} />);
+
+    expect(screen.queryByText('+CHF 2.99') !== null).toBe(expected);
+    // The free component never shows a price, whichever way the flag is set.
+    expect(screen.queryByText('+CHF 0.00')).not.toBeInTheDocument();
+  });
+
+  // Asking for the price suppresses the count, because the two stop reconciling once a stepper is
+  // used — `BasketService.UpdateBasketItemAsync` rescales the root row only, so a child keeps its
+  // add-time `Quantity` (see `ChildList`). Both directions from ONE fixture. Mutation results are
+  // RUN, not reasoned: dropping the `showQuantity &&` conjunct fails the second case only;
+  // `showQuantity = showPrices` fails BOTH; `showQuantity = false` fails the first only. So no
+  // single case carries the pair — deleting either one leaves a real mutant alive.
+  it.each([
+    ['prices off — the count shows', undefined, false, true],
+    ['prices on — the count is suppressed', true, true, false],
+  ])('component count vs upcharge — %s', (_label, showChildPrices, wantPrice, wantCount) => {
+    const line: LineSummary = {
+      diff: { added: [], removed: [] },
+      sideItems: [],
+      children: [{ name: 'Coke', quantity: 2, diff: { added: [], removed: [] }, children: [], price: 1.5 }],
+    };
+    render(<OrderLineSummary line={line} showChildPrices={showChildPrices} />);
+
+    expect(screen.queryByText('+CHF 1.50') !== null).toBe(wantPrice);
+    // Against the whole document, not the name node: scoping it to `.childName` would pass a
+    // restructure that merely moved "× 2" into a sibling span, i.e. the count back on screen.
+    expect(screen.queryByText(/×\s*2/) !== null).toBe(wantCount);
+  });
+
   it('renders a component of a component (the tree nests deeper than one level)', () => {
     const line: LineSummary = {
       diff: { added: [], removed: [] },

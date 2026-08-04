@@ -21,8 +21,11 @@ interface CartItemInstructionsEditorProps {
  * item's notes for EVERY item (customized or not). Previously gated to items without ingredient
  * customizations, which hid the "Add/Edit Instructions" button on prod, where menu dishes carry
  * recipes; the backend update only writes quantity + notes, so editing preserves customizations.
- * The read-only echo lives here, not in CartItemCustomizations, to avoid a double "special requests"
- * line. Extracted from app/cart/page.tsx (Sprint 4/6 god-file decomposition).
+ * The read-only echo lives here, which is why the card mounts OrderLineSummary with
+ * `hideInstructions` — without that flag the line's notes would print twice (#189; before it, the
+ * same job was done by CartItemCustomizations simply never rendering the row). A bundle COMPONENT's
+ * notes are not the line's and are still drawn by the summary.
+ * Extracted from app/cart/page.tsx (Sprint 4/6 god-file decomposition).
  */
 export default function CartItemInstructionsEditor({
   item,

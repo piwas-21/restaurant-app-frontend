@@ -49,6 +49,14 @@
   color: var(--text-primary);
 }
 
+/* The component's upcharge, opt-in via showChildPrices (#189). Secondary to the name it annotates:
+   it is a breakdown of a total already shown on the line. */
+.childPrice {
+  margin-inline-start: 0.35rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 .childDetails {
   margin-top: 0.15rem;
   display: flex;

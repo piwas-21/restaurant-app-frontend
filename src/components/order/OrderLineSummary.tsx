@@ -52,9 +52,29 @@ function DiffRows({ diff }: Readonly<{ diff: LineIngredientDiff }>) {
  * Bundle components, indented one level per depth. Recursive because the order/cart trees nest to
  * arbitrary depth (a component of a component would otherwise never be drawn).
  */
-function ChildList({ items }: Readonly<{ items: LineChild[] }>) {
+function ChildList({ items, showPrices }: Readonly<{ items: LineChild[]; showPrices: boolean }>) {
   const { t } = useTranslation();
   if (items.length === 0) return null;
+
+  // A surface shows the count or the price, never both — because the pair stops reconciling after
+  // one click.
+  //
+  // At ADD time it does reconcile, and it is worth being exact about that rather than repeating the
+  // guess this comment used to carry: `BasketItemFactory` stores a bundle child's `Quantity` as
+  // `item.Quantity * option.Quantity` and its `UnitPrice` as `sectionItem.AdditionalPrice`, while
+  // the parent's per-unit price sums `AdditionalPrice * selection.Quantity` and is then multiplied
+  // by `item.Quantity`. So `child.Quantity * child.UnitPrice` IS the component's share of the line
+  // total, and "× 2  +CHF 1.50" is an ordinary quantity × unit-price reading of CHF 3.00.
+  //
+  // What breaks it is that nothing rescales a child: `BasketService.UpdateBasketItemAsync` writes
+  // `Quantity`/`ItemTotal` on the matched row only. Step a bundle from 1 to 2 and the child count
+  // still says 2 when the line now holds 4 — so on /cart, the one surface with BOTH the stepper and
+  // the price, a number that reconciled a moment ago silently stops. The count is what goes,
+  // because the price is the value the guest cannot derive from anything else on the card.
+  //
+  // (The staleness itself is older and wider — `CartLineList` and `checkout/OrderItemsList` print
+  // the same count with no price beside it. Not fixed here; see the follow-up on #189.)
+  const showQuantity = !showPrices;
 
   return (
     <ul className={styles.children}>
@@ -64,8 +84,14 @@ function ChildList({ items }: Readonly<{ items: LineChild[] }>) {
           <li key={child.id ?? child.name} className={styles.child}>
             <span dir="auto" className={styles.childName}>
               {child.name}
-              {child.quantity > 1 && ` × ${child.quantity}`}
+              {showQuantity && child.quantity > 1 && ` × ${child.quantity}`}
             </span>
+            {/* Outside the name's isolate, unlike the `× N` above — that one annotates the name and
+                rides inside it, while this annotates the row. `> 0` because a bundle component with
+                no upcharge would otherwise print a bare "+0.00". */}
+            {showPrices && typeof child.price === 'number' && child.price > 0 && (
+              <span className={styles.childPrice}>+{formatPlainCurrency(child.price)}</span>
+            )}
             {hasDetails && (
               <div className={styles.childDetails}>
                 <DiffRows diff={child.diff} />
@@ -79,7 +105,7 @@ function ChildList({ items }: Readonly<{ items: LineChild[] }>) {
                 )}
               </div>
             )}
-            <ChildList items={child.children} />
+            <ChildList items={child.children} showPrices={showPrices} />
           </li>
         );
       })}
@@ -91,6 +117,14 @@ interface OrderLineSummaryProps {
   readonly line: LineSummary;
   /** Hide the line's own special-instructions row (e.g. the cart shows an editable editor instead). */
   readonly hideInstructions?: boolean;
+  /**
+   * Show each bundle component's upcharge beside its name **instead of its quantity** — the count
+   * goes stale against the price the first time a stepper is used, so no surface shows both; see
+   * `ChildList`. Off everywhere but the /cart card, which showed the upcharge and no count before
+   * it was migrated onto this component (#189) — see `LineChild.price`. Opt-IN so that migration
+   * could not add a price to the eight render sites that never had one.
+   */
+  readonly showChildPrices?: boolean;
 }
 
 /**
@@ -99,7 +133,11 @@ interface OrderLineSummaryProps {
  * nothing when there is nothing to show. The two order/cart shapes feed it via the adapters in
  * lineSummary.ts (menu-bundles redesign slice 2, #174).
  */
-export default function OrderLineSummary({ line, hideInstructions = false }: OrderLineSummaryProps) {
+export default function OrderLineSummary({
+  line,
+  hideInstructions = false,
+  showChildPrices = false,
+}: OrderLineSummaryProps) {
   const { t } = useTranslation();
   const showInstructions = !hideInstructions && !!line.specialInstructions;
 
@@ -141,7 +179,7 @@ export default function OrderLineSummary({ line, hideInstructions = false }: Ord
         </div>
       )}
 
-      <ChildList items={line.children} />
+      <ChildList items={line.children} showPrices={showChildPrices} />
     </div>
   );
 }

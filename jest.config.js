@@ -457,9 +457,12 @@ module.exports = {
       functions: 100,
       lines: 100,
     },
+    // 92 -> 94 with #189: `showChildPrices` and the `showQuantity` suppression it drives are each
+    // asserted in both directions, so the branches they add are covered and the floor moves with
+    // them rather than leaving slack behind.
     './src/components/order/OrderLineSummary.tsx': {
       statements: 100,
-      branches: 92,
+      branches: 94,
       functions: 100,
       lines: 100,
     },
@@ -615,20 +618,24 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    './src/components/cart/cart-page/CartItemCustomizations.tsx': {
-      statements: 87,
-      branches: 58,
-      functions: 66,
-      lines: 87,
-    },
-    // #363 gave this file its first test, covering the bundle-component removals row. The floor is
-    // set just under what that buys — the quantity/remove handlers are still unexercised, so this
-    // is a ratchet against regression, not a claim the component is covered.
+    // #189 deleted CartItemCustomizations.tsx (its row lived here) — the card mounts the shared
+    // OrderLineSummary instead, and that component's own floor above now covers the customizations
+    // rows. The card's tests moved with the claims rather than being dropped.
+    //
+    // The floor RISES steeply, and that is a correction, not a windfall. Deleting the "Includes:"
+    // list removed COVERED JSX (including its map callback), so the same tests measured 62/56/25 on
+    // the shorter file — a refactor that removed no capability would have pushed this floor DOWN.
+    // The controls and header block were covered to close that gap. What the remaining branch budget
+    // buys, measured rather than guessed: the `productName` fallbacks (`|| 'Unknown Item'` on the
+    // heading, `|| 'Product'` on the image alt) and the `i18n.language?.split('-')[0] || 'en'`
+    // chain, none of which any fixture reaches — `renderCard` always supplies a name and the mock
+    // always supplies 'en'. The itemId fallback is NOT among them: the controls tests drive all
+    // three of basketItemId → id → productId.
     './src/components/cart/cart-page/CartItemCard.tsx': {
-      statements: 66,
-      branches: 64,
-      functions: 40,
-      lines: 66,
+      statements: 100,
+      branches: 86,
+      functions: 100,
+      lines: 100,
     },
     // Slice 7 PR2d — the unified admin editor. `productEditorDefaults` is the pure
     // fetched-product → form-state mapping (the load-bearing half, incl. the real

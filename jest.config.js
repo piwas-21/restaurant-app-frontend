@@ -163,6 +163,11 @@ module.exports = {
     'src/hooks/cart/cartFailureReporting.ts',
     'src/hooks/checkout/useSavedAddressList.ts',
     'src/hooks/admin/useSetupChecklist.ts',
+    // #280 frontend half — the image-backfill cursor. Components under this feature are already
+    // collected by the two wildcards at the top of this list; these three are not.
+    'src/hooks/admin/useImageBackfill.ts',
+    'src/services/imageMaintenanceService.ts',
+    'src/lib/imageBackfillProgress.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -1306,6 +1311,45 @@ module.exports = {
     './src/hooks/reservations/useMyReservations.ts': {
       statements: 99,
       branches: 82,
+      functions: 99,
+      lines: 99,
+    },
+    // ── #280 frontend half — the image-backfill cursor. ─────────────────────────────────────────
+    // Every file in the feature, all at 100% → 99 per the recipe above, measured with CI's own
+    // command (`npm test -- --ci --runInBand --coverage`).
+    //
+    // Pinned at that level because the defect this closes was a screen that looked finished and
+    // was not, and every remaining way to reproduce it is a branch here that goes silently
+    // untested. Three carry most of that weight:
+    //   - `imageBackfillProgress` is the ONLY thing keeping a preview-then-apply of one 500-image
+    //     window from reading as "1000 scanned" — a number an operator would stop on.
+    //   - `useImageBackfill` decides which cursor an APPLY sends. Sending the report's
+    //     `nextCursor` instead of the window's own start would irreversibly rewrite 500 images
+    //     nobody previewed, behind a confirm dialog that just described a different set.
+    //   - `BackfillSummary` picks between "Continue scans the next batch" and "this server build
+    //     cannot continue past it" on the presence of a cursor. Both messages are false in the
+    //     other's state, and prod runs the state without one until the backend release ships.
+    // `BackfillEntryCard` had a test but no row since PR #362; it joins them here rather than
+    // staying the one deletable test in the feature.
+    './src/lib/imageBackfillProgress.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/hooks/admin/useImageBackfill.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/services/imageMaintenanceService.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/app/admin/image-backfill/page.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/components/admin/image-backfill/BackfillSummary.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/image-backfill/BackfillPassTotals.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/image-backfill/BackfillEntryCard.tsx': {
+      statements: 99,
+      branches: 99,
       functions: 99,
       lines: 99,
     },

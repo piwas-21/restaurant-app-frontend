@@ -61,8 +61,25 @@ export interface ImageBackfillReport {
   totalOriginalBytes: number;
   totalNewBytes: number;
   totalBytesSaved: number;
-  /** True when the scan stopped at the cap — re-run to continue. */
+  /** True when the scan stopped at the cap. Where it resumes is `nextCursor`. */
   truncated: boolean;
+  /**
+   * Where to resume: pass it back as `continueFrom` to process the next window. Backend
+   * `ImageBackfillReportDto.NextCursor` — non-null exactly when `truncated` is true (the
+   * controller clamps `maxFiles` to at least 1, so the DTO's "capped at zero" case cannot be
+   * reached from here).
+   *
+   * OPTIONAL rather than plain `string | null`, which is the one place this deviates from the
+   * DTO, and deliberately: the backend half of #280 is merged but unreleased, so a server that
+   * does not send this field at all is the *current* production reality, and a type that says
+   * `string | null` would be describing a payload nobody is serving yet.
+   *
+   * READ IT WITH A TRUTHINESS CHECK, never `!== null`. TypeScript will not catch that for you —
+   * `string | null | undefined` overlaps `null`, so the comparison compiles and narrows to
+   * `string | undefined`, and the cursor that reaches the wire is the literal `"undefined"`.
+   * The convention is what holds here, not the compiler.
+   */
+  nextCursor?: string | null;
   entries: ImageBackfillEntry[];
 }
 
@@ -70,8 +87,19 @@ export interface ImageBackfillReport {
 export const MAX_FILES_PER_RUN = 500;
 
 const ENDPOINTS = {
-  BACKFILL: (apply: boolean, maxFiles: number) =>
-    `/api/maintenance/images/backfill?apply=${apply}&maxFiles=${maxFiles}`,
+  /**
+   * `continueFrom` is ENCODED, never interpolated. It is a relative path, so it always carries at
+   * least one `/`, and it can carry anything else a filename can — a `&` or `#` in a folder name
+   * interpolated raw would truncate the query and silently restart the walk from the first file,
+   * which is the exact failure #280 was.
+   *
+   * Omitted entirely when absent, so the request stays byte-identical to the pre-cursor one.
+   */
+  BACKFILL: (apply: boolean, maxFiles: number, continueFrom?: string | null) => {
+    const query = new URLSearchParams({ apply: String(apply), maxFiles: String(maxFiles) });
+    if (continueFrom) query.set('continueFrom', continueFrom);
+    return `/api/maintenance/images/backfill?${query.toString()}`;
+  },
   PREVIEWS: '/api/maintenance/images/backfill/previews',
 } as const;
 
@@ -79,20 +107,33 @@ export const imageMaintenanceService = {
   /**
    * Report what the resize pipeline would do. Nothing is overwritten: each candidate is written
    * to the preview folder so `previewUrl` can be compared against `originalUrl` first.
+   *
+   * `continueFrom` is a `nextCursor` from an earlier report; null starts at the first file.
    */
-  async previewBackfill(maxFiles: number = MAX_FILES_PER_RUN): Promise<ImageBackfillReport> {
-    const response = await apiClient.post<ApiResponse<ImageBackfillReport>>(ENDPOINTS.BACKFILL(false, maxFiles));
+  async previewBackfill(
+    continueFrom?: string | null,
+    maxFiles: number = MAX_FILES_PER_RUN,
+  ): Promise<ImageBackfillReport> {
+    const response = await apiClient.post<ApiResponse<ImageBackfillReport>>(
+      ENDPOINTS.BACKFILL(false, maxFiles, continueFrom),
+    );
     return response.data;
   },
 
   /**
-   * Overwrite the originals with the resized versions.
+   * Overwrite the originals with the resized versions, over the SAME window a preview covered —
+   * pass the `continueFrom` that produced the report on screen, not its `nextCursor`.
    *
    * DESTRUCTIVE AND NOT UNDOABLE from the app — the only way back is the nightly backup. Every
    * caller must confirm first.
    */
-  async applyBackfill(maxFiles: number = MAX_FILES_PER_RUN): Promise<ImageBackfillReport> {
-    const response = await apiClient.post<ApiResponse<ImageBackfillReport>>(ENDPOINTS.BACKFILL(true, maxFiles));
+  async applyBackfill(
+    continueFrom?: string | null,
+    maxFiles: number = MAX_FILES_PER_RUN,
+  ): Promise<ImageBackfillReport> {
+    const response = await apiClient.post<ApiResponse<ImageBackfillReport>>(
+      ENDPOINTS.BACKFILL(true, maxFiles, continueFrom),
+    );
     return response.data;
   },
 

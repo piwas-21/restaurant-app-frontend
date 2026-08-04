@@ -46,6 +46,25 @@ export default function ClientProviders({
                             maxSnack={3}
                             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                             autoHideDuration={4000}
+                            // #424. The positioning override has to be scoped PER ANCHOR, and this
+                            // prop is the only hook for it: `.notistack-SnackbarContainer` matches
+                            // every container, so one logical-property rule there necessarily
+                            // breaks whichever anchor it was not written for. Converting it moved
+                            // the bottom-right toasts correctly and clipped the top-center cart
+                            // toast to x=-151..199 in `ar` — 151px of 349px off screen — because
+                            // `inset-inline-end` resolves to `left`, which beats notistack's
+                            // centring `left: 50%` while its `translateX(-50%)` survives.
+                            //
+                            // Only two anchors exist in the tree: this default (13 declarations
+                            // across 24 call sites) and `top/center` in `useCartFeedback`. The
+                            // centre one is deliberately given NO class — notistack centres it
+                            // correctly on its own, in both directions.
+                            //
+                            // Doing it here rather than flipping `anchorOrigin` is what makes it
+                            // work at all: notistack resolves per-snack options over provider
+                            // props, so a provider-level flip is dead for every call site that
+                            // passes its own. Driving it from CSS ignores what they pass.
+                            classes={{ containerAnchorOriginBottomRight: 'notistack-anchor-bottom-trailing' }}
                             action={(snackbarKey) => (
                               <button
                                 onClick={() => closeSnackbar(snackbarKey)}

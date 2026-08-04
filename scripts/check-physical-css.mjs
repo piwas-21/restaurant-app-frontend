@@ -23,9 +23,9 @@
  *   `DOMRect.left`, which is not CSS at all and is out of this tool's reach anyway).
  *   Decorative asymmetry — the craft `--craft-tape-clip` polygon — is the same story.
  *   Anything deliberately physical should carry a comment saying so and stay in the count.
- * - **Not aiming at zero. The end point is 8, and it is now ENUMERATED, not estimated.**
- *   The sweep ran 365 → 28 (slice 2) → 26 (3a) → 19 → 13 → 11 (3b). Every one of the 11 that
- *   remain has been read, and they are exactly two groups:
+ * - **Not aiming at zero. The end point is 8, it is ENUMERATED rather than estimated, and it has
+ *   now been REACHED.** The sweep ran 365 → 28 (slice 2) → 26 (3a) → 19 → 13 → 11 (3b) → 8 (#424).
+ *   Every one of the 8 that remain has been read, and they are one group:
  *
  *     EIGHT PERMANENT — centring, which has no handedness and is already correct both ways.
  *       app/styles/AdminPage.module.css:502-503     tooltip: left:50% + margin-left:-80px
@@ -34,13 +34,15 @@
  *       components/TableBanner.module.css:210-211   the mobile RESET of that pair (symmetric)
  *       components/cashier/QuickConfirmModal.module.css:17   modal: left:50%
  *
- *     THREE BLOCKED — the notistack overrides in app/globals.css. Not permanent, but not a CSS
- *       change either: one unqualified selector serves two anchors, and converting it clipped
- *       the top-center cart toast 151px off screen in `ar`. Filed as #424 with the measurement.
+ *     The three notistack overrides that were BLOCKED here are gone — #424 landed. They were not
+ *       a CSS change: one unqualified selector served two anchors, so converting it moved the
+ *       bottom-right stacks correctly and clipped the top-center cart toast 151px off screen in
+ *       `ar`. The fix scopes a class per anchor via notistack's `classes` prop, so the rule that
+ *       converts no longer touches the centre one. Measured after, at 1400px and 390px, in `en`
+ *       and `ar`: bottom-right 24px from the trailing edge both ways, centre 550..850 both ways.
  *
- *   So **11 means "E8 is done"**, and **8 is the floor** — reachable only when #424 lands.
- *   If this number falls below 8, something that must not mirror has been converted; read the
- *   comment beside it before banking the drop.
+ *   So **8 means "E8 is done"** — and 8 is also the FLOOR. If this number falls below 8, something
+ *   that must not mirror has been converted; read the comment beside it before banking the drop.
  *
  * Values are not properties. `background-position: right 12px center` is a physical *value*
  * on a non-directional property and is deliberately not matched — only declarations whose
@@ -97,7 +99,7 @@ process.exit(
       'If it is physical ON PURPOSE (it must not mirror), say so in a comment and',
       'leave the count alone — the comment is not counted.',
     ],
-    holdingNote: 'E8 COMPLETE — 8 permanent centring idioms + 3 notistack, blocked on #424',
+    holdingNote: 'E8 COMPLETE — 8 permanent centring idioms; the 3 notistack overrides landed in #424',
     argv: process.argv,
   }),
 );

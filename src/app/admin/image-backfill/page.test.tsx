@@ -221,9 +221,10 @@ describe('ImageBackfillPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
     });
 
-    act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    });
+    // Not awaited, and not wrapped: `continueScan` sets busy/report/cursor synchronously before it
+    // awaits the request, and `fireEvent` already flushes that inside its own `act`. The point is
+    // to observe the page WHILE the scan is in the air, so the promise above stays unsettled.
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
     const inFlight = screen.getByRole('button', { name: 'Scanning…' });
     expect(inFlight).toBeDisabled();

@@ -95,12 +95,22 @@ const readValue = (obj, path) =>
   path.split('.').reduce((node, part) => (node !== null && typeof node === 'object' ? node[part] : undefined), obj) ??
   obj[path];
 
-// BASELINED, like the untranslated gate below and for the same reason: the check found 72
-// PRE-EXISTING mismatches on its first run — `{{city}}` missing from seven page-title/description
-// strings in eight or nine locales each, plus `{{points}}` and `{{itemName}}`. Those are real
-// defects (a guest reads a title with the restaurant's city silently absent) but they are a
-// translation sweep, not this issue. Recording them stops the NEXT one without blocking on them.
-// Follow-up: the baseline should shrink to empty.
+// Baselined when it was introduced, because its first run found 72 PRE-EXISTING mismatches. **That
+// baseline is now EMPTY**, so this is a zero-tolerance gate: any mismatch is new.
+//
+// The 72 were worth the sweep rather than the tolerance. 63 of them were the same defect —
+// `{{city}}` replaced by a hardcoded "Genève" / "Женеве" / "日内瓦" in nine languages, across the
+// page titles and meta descriptions of the home, menu and reservations pages. That is not a missing
+// interpolation, it is TENANT-1's city baked into shared locale files: every other tenant's Russian
+// page title said they were in Geneva. The remaining 9 were two keys whose translations had drifted
+// to a different sentence entirely and so carried no placeholder to lose.
+//
+// Two limits worth knowing before trusting a green run here. Russian and Turkish DECLINE a city
+// name ("в Женеве", "Cenevre'deki"), and interpolation cannot — so those strings now read with an
+// uninflected city, which is a grammar cost accepted deliberately against naming the wrong city.
+// And this gate only compares placeholders that EXIST in `en.json`: `home_hero_subtitle` and
+// `address_city_placeholder` still hardcode Geneva in the English source itself, so there is
+// nothing for it to compare and it cannot see them.
 const PLACEHOLDER_BASELINE = new URL('./locale-placeholder-baseline.json', import.meta.url).pathname;
 const REGEN_BASELINES = process.argv.includes('--regen-baseline');
 

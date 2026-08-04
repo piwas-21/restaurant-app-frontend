@@ -81,16 +81,18 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
     let amount: number | undefined;
     if (refundType === 'partial') {
       if (!refundAmount || parseFloat(refundAmount) <= 0) {
-        setError(t('cashier.refund_amount_required') || 'Please enter a valid refund amount');
+        setError(t('cashier.refund_amount_required'));
         return;
       }
 
       amount = parseFloat(refundAmount);
       if (amount > maxRefundAmount) {
-        setError(
-          t('cashier.refund_exceeds_payment') ||
-            `Refund amount cannot exceed payment amount of ${maxRefundAmount.toFixed(2)}`,
-        );
+        // `|| '…'` removed here and above (#417): `t()` returns the KEY when a key is missing, and a
+        // key is a non-empty string, so the right-hand side could never run — the cashier saw
+        // `cashier.refund_exceeds_payment` on screen, not the English sentence that looks like a
+        // fallback. The keys now exist in all ten locales, and the amount the dead branch carried
+        // is preserved as an interpolation rather than lost.
+        setError(t('cashier.refund_exceeds_payment', { max: maxRefundAmount.toFixed(2) }));
         return;
       }
     }

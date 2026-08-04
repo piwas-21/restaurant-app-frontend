@@ -99,6 +99,10 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/check-locale-parity.mjs
+      # Parity compares the ten bundles against EACH OTHER, so a key missing from all ten is
+      # perfectly consistent and passes it. This reads the CALLSITES instead — the only way to see
+      # a `t()` that renders its own key to a user (#417).
+      - run: node scripts/check-t-keys.mjs
 
   baseline_dimensions:
     # Screenshot baselines must be exactly their viewport's width. A full-page capture

@@ -2550,5 +2550,6 @@
   "scan_another": "Escanear otro",
   "server_diagnostics": "Diagnóstico del servidor",
   "validate": "Validar",
-  "validating": "Validando..."
+  "validating": "Validando...",
+  "setup_checklist_refresh_failed": "Guardado. No se pudo actualizar la lista: recargue la página."
 }

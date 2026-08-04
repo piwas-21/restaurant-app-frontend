@@ -2550,5 +2550,6 @@
   "scan_another": "Сканировать ещё",
   "server_diagnostics": "Диагностика сервера",
   "validate": "Проверить",
-  "validating": "Проверка..."
+  "validating": "Проверка...",
+  "setup_checklist_refresh_failed": "Сохранено. Не удалось обновить список — перезагрузите страницу."
 }

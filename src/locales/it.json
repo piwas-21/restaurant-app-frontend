@@ -2550,5 +2550,6 @@
   "scan_another": "Scansiona un altro",
   "server_diagnostics": "Diagnostica del server",
   "validate": "Convalida",
-  "validating": "Convalida in corso..."
+  "validating": "Convalida in corso...",
+  "setup_checklist_refresh_failed": "Salvato. Non è stato possibile aggiornare la checklist: ricarica la pagina."
 }

@@ -39,12 +39,13 @@
  *   remembering that this header vouched for them for as long as it did — "ignored on purpose" is
  *   a claim about intent, and intent is not evidence that the ignore is correct.
  *
- * **THE SWEEP IS DONE. 31, and every one of them is a documented deliberate ignore — 2026-08-04,
- * after #414.** There is no remaining work item behind this number. What changes it now is new
- * code, or a PRODUCER fix like #414 below, which is what the ratchet is for from here on.
+ * **THE SWEEP IS DONE. 30, and every one of them is a documented deliberate ignore — 2026-08-04,
+ * after #414 and #416.** There is no remaining work item behind this number. What changes it now is
+ * new code, or a finding that one of the 30 was never right — see the last two entries below, which
+ * are the two ways that has happened.
  *
- * The end point has been wrong five times, and the corrections are the useful part — the fourth
- * moved it UP, and the fifth moved it DOWN for a reason worth keeping:
+ * The end point has been wrong six times, and the corrections are the useful part — the fourth
+ * moved it UP, and the last two moved it DOWN for reasons worth keeping:
  *
  * - It first read "the honest target is ~90, not 0". That was the SIZE OF THE WORK (the ~88 of the
  *   100 counted at triage that needed fixing), never a destination; read as a target count it
@@ -74,16 +75,37 @@
  *   producer and you have not beaten the ratchet, you have invalidated the claim.** This is the one
  *   shape in which the count may legitimately fall now that the sweep is closed. A fall with no
  *   producer change behind it means a real ignore was converted to move a number.
+ * - 31 → 30 (#416, 2026-08-04), and it disproves the sentence immediately above. The survivor it
+ *   converted, `useSavedAddressList`, was not "correct until its producer changed" — it was
+ *   MIS-SCOPED from the start, naming the guest 401 while `getCurrentUser` rethrows every ApiError,
+ *   so a 500 or a rate-limit blanked a signed-in customer's saved addresses. Its own header already
+ *   stated the rule it broke: **an ignore is justified per PATH, not per callsite.** So the honest
+ *   rule is broader than the one written above: the count may fall whenever a documented ignore is
+ *   SHOWN TO BE WRONG, whether because its producer changed (#414) or because it never covered what
+ *   it claimed (#416). What must not happen is a fall with no such finding behind it — a survivor
+ *   converted to move a number. Read the comment beside one before touching it; if the comment is
+ *   right, so is the count.
  *
- * The 31, by area — every one carries a comment saying why the failure is ignored. One further
+ *   #416 fixed a SECOND file, `useSetupChecklist`, whose ignore missed the write-succeeds-then-
+ *   read-fails path — and it stays ON this list, which is the more interesting half. Binding its
+ *   error would have lowered the count while changing nothing a user sees, exactly what the
+ *   guidance below warns about: the caller deliberately renders its own sentence ("Saved. The
+ *   checklist could not be refreshed"), because the read failure's own words say the fetch failed,
+ *   which is true and misleading. So `load` still swallows the error and now returns a BOOLEAN
+ *   instead. **A fix can be real and leave this number alone; that is the normal case, not a
+ *   loophole.** (That file's header had flagged the uncovered path, but it never stated the
+ *   per-PATH rule — an earlier draft of this entry claimed both files did.)
+ *
+ * The 30, by area — every one carries a comment saying why the failure is ignored. One further
  * site left the count without being converted: `MyOrders.tsx`'s catch went with the file, which
  * was dead code (no importer; `/my-orders` is a bare `redirect('/orders')`). So 48 → 34 was 13
- * conversions plus 1 deletion, and #414 then took it to 31.
+ * conversions plus 1 deletion; #414 then took it to 31, and #416 to 30.
  *
- *   src/hooks (subfolders)   12   slice 6; `useCartPage` x5, the two raw-`fetch` auth forms,
- *                                 `useSavedAddressList`, `useGuestCustomerInfo`,
- *                                 `useGuestProfilePrefill`, `useAdminOrderMutations`,
- *                                 `useSetupChecklist`
+ *   src/hooks (subfolders)   11   slice 6; `useCartPage` x5, the two raw-`fetch` auth forms,
+ *                                 `useGuestCustomerInfo`, `useGuestProfilePrefill`,
+ *                                 `useAdminOrderMutations`, `useSetupChecklist` (which #416 fixed
+ *                                 WITHOUT converting — see the 31 → 30 note). `useSavedAddressList`
+ *                                 was here until #416
  *   src/services              5   `authService`, `menuService`, `sessionService`,
  *                                 `tenantModulesService`, `tenantThemeService` (slice 2)
  *   src/utils                 4   `imageCompression`, `orderTypeLabels`, `qrCode` x2
@@ -105,11 +127,11 @@
  *   src/lib                   1   `analytics`
  *
  * (`src/components` no longer appears outside `admin`: `DeleteAccountSection` left with the other
- * two in #414. The rows sum, in table order, to 12 + 5 + 4 + 4 + 3 + 1 + 1 + 1 = 31 — eight terms
+ * two in #414. The rows sum, in table order, to 11 + 5 + 4 + 4 + 3 + 1 + 1 + 1 = 30 — eight terms
  * for eight rows; an earlier draft wrote seven by silently merging the two `src/hooks` rows into a
- * 16 that appears nowhere in the table. Re-derived from the gate's OWN collection: the grep you
- * would reach for instead returns 36, because this header talks about `} catch {` more often than
- * the tree contains it.)
+ * 16 that appears nowhere in the table. Re-derived from the gate's OWN collection each time: the
+ * grep you would reach for instead over-counts, because this header talks about `} catch {` more
+ * often than the tree contains it.)
  *
  * `FidelityPointsCheckout` was in that list on the first draft of this paragraph and is not any
  * more, which is the point of writing the reason down rather than the verdict. Its ignore was
@@ -185,7 +207,7 @@ process.exit(
       'Binding alone satisfies this gate and fixes nothing; the message has to reach a user.',
       'If the failure is ignored on purpose, say so in a comment and leave the count alone.',
     ],
-    holdingNote: 'E9 COMPLETE — all 31 are documented deliberate ignores',
+    holdingNote: 'E9 COMPLETE — all 30 are documented deliberate ignores',
     argv: process.argv,
   }),
 );

@@ -2550,5 +2550,6 @@
   "scan_another": "مسح آخر",
   "server_diagnostics": "تشخيص الخادم",
   "validate": "تحقق",
-  "validating": "جارٍ التحقق..."
+  "validating": "جارٍ التحقق...",
+  "setup_checklist_refresh_failed": "تم الحفظ. تعذّر تحديث قائمة المهام — أعد تحميل الصفحة لعرض آخر حالة."
 }

@@ -8,9 +8,9 @@ import { ApiError } from '@/utils/apiClient';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string, f?: string) => f ?? k }),
 }));
-jest.mock('@/services/userService', () => ({
-  getCurrentUser: jest.fn().mockRejectedValue(new Error('guest')),
-}));
+// Bare `jest.fn()`: a factory is hoisted above the imports and may not close over `ApiError`. The
+// `beforeEach` below sets the guest rejection, which every test in the file relies on anyway.
+jest.mock('@/services/userService', () => ({ getCurrentUser: jest.fn() }));
 jest.mock('@/services/addressService', () => ({
   getMyAddresses: jest.fn().mockResolvedValue([]),
   createAddress: jest.fn(),
@@ -39,7 +39,7 @@ const fillLockedFields = (result: { current: ReturnType<typeof useDeliveryAddres
 beforeEach(() => {
   jest.clearAllMocks();
   mockRules = DEFAULTS;
-  mockedUser.mockRejectedValue(new Error('guest'));
+  mockedUser.mockRejectedValue(new ApiError(401, ''));
   mockedAddresses.mockResolvedValue([]);
 });
 

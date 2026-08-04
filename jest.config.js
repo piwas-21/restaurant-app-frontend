@@ -79,6 +79,8 @@ module.exports = {
     'src/schemas/password.schema.ts',
     'src/utils/apiFormErrors.ts',
     'src/utils/apiClient.ts',
+    'src/utils/orderErrorHandler.ts',
+    'src/services/order/orderCommands.ts',
     'src/lib/checkout/contactFieldRules.ts',
     'src/schemas/deliveryAddress.schema.ts',
     'src/utils/orderItemTree.ts',
@@ -195,6 +197,17 @@ module.exports = {
   // To ratchet a row up: after a test-improvement MR raises the actual
   // pct, bump the row in a chore: MR and link the run that proves it.
   coverageThreshold: {
+    // ── #435 — the checkout error transport. ────────────────────────────────────────────────────
+    // These pin the two halves of a defect that was invisible to every other gate: the map in
+    // `orderErrorHandler` was 0/7 live and STILL type-checked, lint-passed and read as coverage,
+    // because the reason never left `errors[0]` — `orderCommands` threw a plain `Error` carrying
+    // the literal "Operation failed". Deleting either test file would restore that silently.
+    //
+    // Measured with CI's own command (`npm test -- --ci --runInBand --coverage`), pinned at
+    // actual − 1pt. `orderCommands.ts` is low because the file holds five more write endpoints
+    // this change does not touch; the row guards the two creators' throw shape, not the file.
+    './src/utils/orderErrorHandler.ts': { statements: 99, branches: 92, functions: 99, lines: 99 },
+    './src/services/order/orderCommands.ts': { statements: 72, branches: 55, functions: 82, lines: 72 },
     // ── #415 — the two basket 404s. ─────────────────────────────────────────────────────────────
     // These pin the discrimination between "the item is gone" (resync) and "the basket is gone"
     // (report), which nothing else can see: both are a 404, and the bug they replace was invisible

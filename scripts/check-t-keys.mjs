@@ -85,7 +85,15 @@ const sourceFiles = [];
  * Comments become spaces and keep their newlines, so offsets stay aligned with the original and the
  * `defaultValue` lookahead below cannot be dragged across a blanked span.
  */
-const STRING_OR_COMMENT = /'(?:\\.|[^'\\\n])*'?|"(?:\\.|[^"\\\n])*"?|`(?:\\.|[^`\\])*`?|\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+// Assembled from named parts rather than written as one literal: the two quote characters differ
+// only in the delimiter, so a backreference states that instead of duplicating the alternative, and
+// each remaining piece says what it is.
+const QUOTED = String.raw`(['"])(?:\\.|(?!\1)[^\\\n])*\1?`;
+const TEMPLATE = String.raw`\`(?:\\.|[^\\\`])*\`?`;
+const LINE_COMMENT = String.raw`//[^\n]*`;
+const BLOCK_COMMENT = String.raw`/\*[\s\S]*?\*/`;
+
+const STRING_OR_COMMENT = new RegExp([QUOTED, TEMPLATE, LINE_COMMENT, BLOCK_COMMENT].join('|'), 'g');
 
 const blankComments = (source) =>
   source.replace(STRING_OR_COMMENT, (token) =>

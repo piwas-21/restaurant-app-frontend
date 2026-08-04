@@ -161,6 +161,84 @@ describe('request() never authors a message — so getErrorMessage can return nu
   });
 
   /**
+   * A browser that blocks site data outright (Chrome "block all cookies", a sandboxed iframe)
+   * throws `SecurityError` from `localStorage.getItem` ITSELF. Both reads run at the top of
+   * `request()`, OUTSIDE its try — so before #414 guarded them the throw escaped raw, as a
+   * `SecurityError` rather than an `ApiError`, before the request was ever sent. Every caller's
+   * error handling then saw something it was not written for.
+   *
+   * This is the same failure `authService.readStoredValue` documents having already fixed once on
+   * the sign-in path; these are the reads on the path every OTHER request takes. It matters most
+   * where storage is most likely to be restricted — `/delete-account` opens from a mail webview.
+   */
+  describe('a browser that refuses storage', () => {
+    const withThrowingStorage = (fn: () => void) => {
+      const spy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new DOMException('The operation is insecure.', 'SecurityError');
+      });
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        fn();
+      } finally {
+        spy.mockRestore();
+        warn.mockRestore();
+      }
+    };
+
+    it('sends the request anyway, without the headers it could not read', async () => {
+      global.fetch = jest.fn().mockResolvedValue(jsonResponse(200, { ok: true }));
+
+      let pending!: Promise<unknown>;
+      withThrowingStorage(() => {
+        pending = apiClient.get('/api/Menu');
+      });
+      await expect(pending).resolves.toEqual({ ok: true });
+
+      // A token that cannot be read is indistinguishable from not having one.
+      const headers = (global.fetch as jest.Mock).mock.calls[0][1].headers;
+      expect(headers.Authorization).toBeUndefined();
+      expect(headers['X-Session-Id']).toBeUndefined();
+    });
+
+    it('still refuses a requireAuth call as an ApiError, not a raw SecurityError', async () => {
+      global.fetch = jest.fn();
+
+      let pending!: Promise<unknown>;
+      withThrowingStorage(() => {
+        pending = apiClient.get('/api/User/me', { requireAuth: true });
+      });
+      const error = await pending.catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(ApiError);
+      expect((error as ApiError).status).toBe(401);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('a session end still ends as ApiError(401) when the CLEAR throws too', async () => {
+      // `clearAuthAndRedirect` removes three keys. An unguarded throw there would replace the
+      // ApiError(401) it precedes with a raw SecurityError — a handled session end becoming an
+      // unhandled one, on the exact path #414 relies on.
+      localStorage.setItem('auth_token', 'expired');
+      localStorage.setItem('refresh_token', 'expired');
+      global.fetch = jest.fn().mockResolvedValue(jsonResponse(401, {}));
+      refreshToken.mockResolvedValue({ success: false, message: 'Session expired' });
+      const remove = jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+        throw new DOMException('The operation is insecure.', 'SecurityError');
+      });
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        const error = await captureFailure(() => apiClient.get('/api/Order'));
+        expect(error.status).toBe(401);
+        expect(error.message).toBe('');
+      } finally {
+        remove.mockRestore();
+        warn.mockRestore();
+      }
+    });
+  });
+
+  /**
    * All seven throw sites in `request()` in one place, so the invariant is stated once rather than
    * inferred from seven separate `it`s.
    *

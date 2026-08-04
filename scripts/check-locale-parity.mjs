@@ -117,7 +117,8 @@ for (const file of files) {
     if (dropped.length || invented.length) placeholderMismatches.push(`${file}:${key}`);
   }
 }
-placeholderMismatches.sort();
+// Same reason as the sort above: a committed baseline must not reorder itself on another machine.
+placeholderMismatches.sort((a, b) => a.localeCompare(b, 'en'));
 
 if (REGEN_BASELINES) {
   writeFileSync(PLACEHOLDER_BASELINE, `${JSON.stringify(placeholderMismatches, null, 2)}\n`);

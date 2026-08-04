@@ -62,101 +62,35 @@ const sourceFiles = [];
 })(join(root, 'src'));
 
 /**
- * Blank out comments while KEEPING string contents, because both halves matter here: `t('…')` is
- * talked about more than it is written (the E9 doc comments contain `?? t('…')` and
- * `t('contextual')` as examples, which put two phantom keys in the first draft of this gate), and
- * the keys themselves live inside string literals.
+ * Blank out comments while KEEPING string contents. Both halves matter: `t('…')` is talked about
+ * more than it is written (the E9 doc comments contain `?? t('…')` and `t('contextual')` as
+ * examples, which put two phantom keys in the first draft of this gate), and the keys themselves
+ * live inside string literals.
  *
- * A naive block-comment regex cannot do this: it treats the slash-star inside `accept="image/star"`
- * as a comment opener and deletes everything up to the next close marker — which in
- * `ProductDetails.tsx` and `BundlePanel.tsx` swallowed a real `t()` callsite several lines below.
- * That is a fail-OPEN hole in a gate whose entire purpose is to fail closed.
- * `scripts/lib/ratchet.mjs` carries a `stripComments` that knows about strings for exactly this
- * reason, but it also consumes their contents, which is precisely what this scan needs to read —
- * hence a local walker rather than a reuse.
+ * ORDER IS THE WHOLE MECHANISM. A string alternative is tried before either comment alternative, so
+ * the slash-star inside an `accept="image/…"` attribute is consumed as part of the string token and
+ * can never open a comment. A plain block-comment regex has no such protection: it treated that
+ * slash-star as an opener and deleted everything up to the next close marker, which in
+ * `ProductDetails.tsx` and `BundlePanel.tsx` swallowed a real `t()` callsite several lines below —
+ * a fail-OPEN hole in a gate whose entire purpose is to fail closed.
  *
- * (Written without a literal close marker in this paragraph, because the first draft of it ended
- * this very comment early and broke the file — the same class of bug, one level up.)
+ * (`scripts/lib/ratchet.mjs` solves the same hazard for the E9 ratchet, but by CONSUMING string
+ * contents — which is exactly what this scan needs to read, hence a local pass rather than a reuse.)
  *
- * Comments become spaces rather than vanishing, so byte offsets stay aligned with the original and
- * the `defaultValue` lookahead below cannot be pulled across a deleted span.
+ * Quoted strings exclude `\n`, so one unbalanced apostrophe in prose cannot swallow the rest of the
+ * file; template literals allow it, since they legitimately span lines. The closing delimiter is
+ * optional so an unterminated literal ends at the newline instead of failing to match and letting
+ * the scan fall through to the comment alternatives.
+ *
+ * Comments become spaces and keep their newlines, so offsets stay aligned with the original and the
+ * `defaultValue` lookahead below cannot be dragged across a blanked span.
  */
-function blankComments(source) {
-  let out = '';
-  let i = 0;
-  let state = 'code'; // code | line | block | ' | " | `
-  while (i < source.length) {
-    const c = source[i];
-    const next = source[i + 1];
-    if (state === 'code') {
-      if (c === '/' && next === '/') {
-        state = 'line';
-        out += '  ';
-        i += 2;
-        continue;
-      }
-      if (c === '/' && next === '*') {
-        state = 'block';
-        out += '  ';
-        i += 2;
-        continue;
-      }
-      if (c === "'" || c === '"' || c === '`') {
-        state = c;
-        out += c;
-        i += 1;
-        continue;
-      }
-      out += c;
-      i += 1;
-      continue;
-    }
-    if (state === 'line') {
-      if (c === '\n') {
-        state = 'code';
-        out += c;
-        i += 1;
-        continue;
-      }
-      out += ' ';
-      i += 1;
-      continue;
-    }
-    if (state === 'block') {
-      if (c === '*' && next === '/') {
-        state = 'code';
-        out += '  ';
-        i += 2;
-        continue;
-      }
-      out += c === '\n' ? c : ' ';
-      i += 1;
-      continue;
-    }
-    // Inside a string: copy verbatim, honour escapes, and let a newline end a non-template quote
-    // (an unbalanced apostrophe in prose must not swallow the rest of the file).
-    if (c === '\\') {
-      out += source.slice(i, i + 2);
-      i += 2;
-      continue;
-    }
-    if (c === state) {
-      state = 'code';
-      out += c;
-      i += 1;
-      continue;
-    }
-    if (c === '\n' && state !== '`') {
-      state = 'code';
-      out += c;
-      i += 1;
-      continue;
-    }
-    out += c;
-    i += 1;
-  }
-  return out;
-}
+const STRING_OR_COMMENT = /'(?:\\.|[^'\\\n])*'?|"(?:\\.|[^"\\\n])*"?|`(?:\\.|[^`\\])*`?|\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+
+const blankComments = (source) =>
+  source.replace(STRING_OR_COMMENT, (token) =>
+    token.startsWith('//') || token.startsWith('/*') ? token.replace(/[^\n]/g, ' ') : token,
+  );
 
 const CALL = /\bt\(\s*(['"])([^'"]+)\1\s*(,)?/g;
 const missing = new Map(); // key -> { hasDefault, sites:Set }
@@ -168,13 +102,11 @@ for (const file of sourceFiles) {
     const key = m[2];
     if (resolve(en, key) !== undefined) continue;
 
-    let hasDefault = false;
-    if (m[3] === ',') {
-      const after = src.slice(CALL.lastIndex).trimStart();
-      if (/^['"`]/.test(after)) hasDefault = true;
-      // `t('k', { count, defaultValue: '…' })` — an options object may carry the default too.
-      else if (after.startsWith('{') && /\bdefaultValue\s*:/.test(after.slice(0, 400))) hasDefault = true;
-    }
+    // A second argument counts as a default when it is a string literal, or an options object
+    // carrying `defaultValue` — `t('k', { count, defaultValue: '…' })`.
+    const after = m[3] === ',' ? src.slice(CALL.lastIndex).trimStart() : '';
+    const hasDefault =
+      /^['"`]/.test(after) || (after.startsWith('{') && /\bdefaultValue\s*:/.test(after.slice(0, 400)));
 
     const entry = missing.get(key) ?? { hasDefault: false, sites: new Set() };
     // A key called from several places counts as defaulted only if EVERY call defaults it —
@@ -185,11 +117,16 @@ for (const file of sourceFiles) {
   }
 }
 
-const raw = [...missing].filter(([, v]) => !v.hasDefault);
+// `localeCompare(…, 'en')` on every sort here, matching `check-locale-parity.mjs`: a bare `.sort()`
+// orders by UTF-16 code unit and a locale-less compare follows the HOST's locale, either of which
+// can reorder a committed baseline on a different machine for no reason.
+const byName = (a, b) => a.localeCompare(b, 'en');
+
+const raw = [...missing].filter(([, v]) => !v.hasDefault).sort(([a], [b]) => byName(a, b));
 const defaulted = [...missing]
   .filter(([, v]) => v.hasDefault)
   .map(([k]) => k)
-  .sort();
+  .sort(byName);
 
 if (REGEN) {
   writeFileSync(BASELINE_PATH, `${JSON.stringify({ defaulted }, null, 2)}\n`);
@@ -202,7 +139,7 @@ let failed = false;
 if (raw.length) {
   failed = true;
   console.error(`✗ ${raw.length} t() key(s) resolve in NO locale and carry no default — a user sees the raw key:`);
-  for (const [key, v] of raw.sort()) console.error(`    ${key}\n        ${[...v.sites].join('\n        ')}`);
+  for (const [key, v] of raw) console.error(`    ${key}\n        ${[...v.sites].join('\n        ')}`);
   console.error("\n  Add the key to all ten locales (src/locales/*.json). A `|| 'English'` after the");
   console.error('  call is NOT a fix — `t()` returns the key, which is truthy, so it never runs.');
 }

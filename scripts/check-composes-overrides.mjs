@@ -145,6 +145,41 @@ function parseComposesValue(value, file) {
   return { names, file: path.resolve(path.dirname(file), quoted[2]) };
 }
 
+/** `.x` -> {name, doubled:false}; `.x.x` -> {name, doubled:true}; anything else -> null. */
+function selectorTarget(sel) {
+  const plain = /^\.([A-Za-z0-9_-]+)$/.exec(sel);
+  if (plain) return { name: plain[1], doubled: false };
+  const dbl = /^\.([A-Za-z0-9_-]+)\.\1$/.exec(sel);
+  if (dbl) return { name: dbl[1], doubled: true };
+  return null;
+}
+
+/** Which of the three property buckets a rule's declarations belong in. */
+function bucketFor(entry, doubled, inAtRule) {
+  if (doubled) return entry.doubled;
+  if (inAtRule) return entry.media;
+  return entry.plain;
+}
+
+/** Split one rule body into `composes` edges and plain property names. */
+function applyDeclarations(entry, bucket, body, file) {
+  for (const decl of body.split(';')) {
+    const idx = decl.indexOf(':');
+    if (idx < 0) continue;
+    const prop = decl.slice(0, idx).trim();
+    const val = decl.slice(idx + 1).trim();
+    if (prop.toLowerCase() === 'composes') {
+      const composed = parseComposesValue(val, file);
+      // null = `from global`: a :global reference has no base rule to tie against.
+      if (composed !== null) {
+        for (const name of composed.names) entry.composes.push({ name, file: composed.file });
+      }
+    } else if (prop && !prop.startsWith('--')) {
+      bucket.add(prop.toLowerCase());
+    }
+  }
+}
+
 /**
  * Parse one module. Per class:
  *   plain    — props on `.x`
@@ -168,31 +203,10 @@ function parse(file) {
 
   const record = (selector, body, inAtRule) => {
     for (const raw of selector.split(',')) {
-      const sel = raw.trim();
-      const plain = /^\.([A-Za-z0-9_-]+)$/.exec(sel);
-      const dbl = /^\.([A-Za-z0-9_-]+)\.\1$/.exec(sel);
-      if (!plain && !dbl) continue;
-      const name = (plain ?? dbl)[1];
-      const entry = entryFor(name);
-      let bucket = entry.plain;
-      if (dbl) bucket = entry.doubled;
-      else if (inAtRule) bucket = entry.media;
-
-      for (const decl of body.split(';')) {
-        const idx = decl.indexOf(':');
-        if (idx < 0) continue;
-        const prop = decl.slice(0, idx).trim();
-        const val = decl.slice(idx + 1).trim();
-        if (prop.toLowerCase() === 'composes') {
-          const parsedComposes = parseComposesValue(val, file);
-          if (parsedComposes === null) continue; // `from global`: no base rule to tie against
-          for (const t of parsedComposes.names) {
-            entry.composes.push({ name: t, file: parsedComposes.file });
-          }
-        } else if (prop && !prop.startsWith('--')) {
-          bucket.add(prop.toLowerCase());
-        }
-      }
+      const target = selectorTarget(raw.trim());
+      if (target === null) continue;
+      const entry = entryFor(target.name);
+      applyDeclarations(entry, bucketFor(entry, target.doubled, inAtRule), body, file);
     }
   };
 

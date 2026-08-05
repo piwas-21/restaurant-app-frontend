@@ -62,8 +62,26 @@ const ROOT = path.resolve(HERE, '..', 'src');
 const SHORTHAND = {
   background: ['background-color', 'background-image', 'background-position', 'background-size'],
   border: ['border-color', 'border-width', 'border-style'],
-  padding: ['padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'padding-inline', 'padding-block', 'padding-inline-start', 'padding-inline-end'],
-  margin: ['margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'margin-inline', 'margin-block', 'margin-inline-start', 'margin-inline-end'],
+  padding: [
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
+    'padding-inline',
+    'padding-block',
+    'padding-inline-start',
+    'padding-inline-end',
+  ],
+  margin: [
+    'margin-top',
+    'margin-right',
+    'margin-bottom',
+    'margin-left',
+    'margin-inline',
+    'margin-block',
+    'margin-inline-start',
+    'margin-inline-end',
+  ],
   font: ['font-size', 'font-family', 'font-weight', 'font-style'],
   flex: ['flex-grow', 'flex-shrink', 'flex-basis'],
   transition: ['transition-property', 'transition-duration', 'transition-timing-function'],
@@ -90,7 +108,7 @@ function collide(a, b) {
 function sharedProps(siteProps, baseProps) {
   const out = new Set();
   for (const p of siteProps) if (collide(new Set([p]), baseProps)) out.add(p);
-  return [...out].sort();
+  return [...out].sort((a, b) => a.localeCompare(b));
 }
 
 function walk(dir) {
@@ -104,6 +122,28 @@ function walk(dir) {
 }
 
 const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+
+/**
+ * `composes: a b from './x.module.css'` | `composes: a b` | `composes: x from global`.
+ * Returns null for the `from global` form (a :global reference has no base rule to tie
+ * against). Split on the keyword rather than one regex over the whole value: the obvious
+ * `^(.+?)\s+from\s+['"](.+?)['"]$` backtracks super-linearly.
+ */
+function parseComposesValue(value, file) {
+  const fromAt = value.search(/\sfrom\s/);
+  if (fromAt < 0) {
+    return { names: value.split(/\s+/).filter(Boolean), file };
+  }
+  const names = value.slice(0, fromAt).split(/\s+/).filter(Boolean);
+  const target = value
+    .slice(fromAt)
+    .replace(/^\s*from\s*/, '')
+    .trim();
+  if (target === 'global') return null;
+  const quoted = /^(['"])([^'"]*)\1$/.exec(target);
+  if (!quoted) return { names, file };
+  return { names, file: path.resolve(path.dirname(file), quoted[2]) };
+}
 
 /**
  * Parse one module. Per class:
@@ -134,7 +174,9 @@ function parse(file) {
       if (!plain && !dbl) continue;
       const name = (plain ?? dbl)[1];
       const entry = entryFor(name);
-      const bucket = dbl ? entry.doubled : inAtRule ? entry.media : entry.plain;
+      let bucket = entry.plain;
+      if (dbl) bucket = entry.doubled;
+      else if (inAtRule) bucket = entry.media;
 
       for (const decl of body.split(';')) {
         const idx = decl.indexOf(':');
@@ -142,11 +184,11 @@ function parse(file) {
         const prop = decl.slice(0, idx).trim();
         const val = decl.slice(idx + 1).trim();
         if (prop.toLowerCase() === 'composes') {
-          if (/\bfrom\s+global\b/.test(val)) continue; // :global reference, no base rule to tie against
-          const mm = /^(.+?)\s+from\s+['"](.+?)['"]$/.exec(val);
-          const targets = mm ? mm[1].split(/\s+/) : val.split(/\s+/);
-          const target = mm ? path.resolve(path.dirname(file), mm[2]) : file;
-          for (const t of targets) if (t) entry.composes.push({ name: t, file: target });
+          const parsedComposes = parseComposesValue(val, file);
+          if (parsedComposes === null) continue; // `from global`: no base rule to tie against
+          for (const t of parsedComposes.names) {
+            entry.composes.push({ name: t, file: parsedComposes.file });
+          }
         } else if (prop && !prop.startsWith('--')) {
           bucket.add(prop.toLowerCase());
         }
@@ -154,8 +196,7 @@ function parse(file) {
     }
   };
 
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
+  for (const ch of text) {
     if (ch === '{') {
       const sel = buf.trim();
       buf = '';
@@ -163,7 +204,12 @@ function parse(file) {
     } else if (ch === '}') {
       const top = stack.pop();
       if (top === undefined) unbalanced = true;
-      else if (!top.isAt) record(top.sel, buf, stack.some((s) => s.isAt));
+      else if (!top.isAt)
+        record(
+          top.sel,
+          buf,
+          stack.some((s) => s.isAt),
+        );
       buf = '';
     } else {
       buf += ch;
@@ -180,7 +226,7 @@ const errors = [];
 
 // --- fail-closed corpus assertions ---------------------------------------------------------
 const composingFiles = [...parsed.values()].filter((p) =>
-  [...p.classes.values()].some((c) => c.composes.length > 0)
+  [...p.classes.values()].some((c) => c.composes.length > 0),
 ).length;
 
 if (files.length === 0) {
@@ -189,7 +235,7 @@ if (files.length === 0) {
 if (composingFiles === 0) {
   errors.push(
     `found ${files.length} module(s) but NONE uses \`composes\`. That is either a broken parser or a\n` +
-      `  repo-wide refactor; either way this gate is no longer protecting anything. Fix or delete it.`
+      `  repo-wide refactor; either way this gate is no longer protecting anything. Fix or delete it.`,
   );
 }
 for (const [file, p] of parsed) {
@@ -209,12 +255,11 @@ function bases(file, cls, seen = new Set()) {
       errors.push(
         `${path.relative(ROOT, file)} .${cls}: composes \`${name}\` from ` +
           `\`${path.relative(ROOT, target)}\`, which does not resolve to a class this gate can read.\n` +
-          `  Refusing to report "no violation" for a base whose properties are unknown.`
+          `  Refusing to report "no violation" for a base whose properties are unknown.`,
       );
       continue;
     }
-    out.push({ file: target, cls: name });
-    out.push(...bases(target, name, seen));
+    out.push({ file: target, cls: name }, ...bases(target, name, seen));
   }
   return out;
 }
@@ -222,37 +267,69 @@ function bases(file, cls, seen = new Set()) {
 const violations = [];
 let edges = 0;
 
+/** Check D — this class's own @media rule sits below its own doubled rule. */
+function checkMediaShadowing(file, cls, entry) {
+  const shared = sharedProps(entry.media, entry.doubled);
+  if (shared.length === 0) return [];
+  return [
+    {
+      kind: "@media override sits BELOW this class's own doubled rule",
+      site: path.relative(ROOT, file),
+      cls,
+      base: `${path.relative(ROOT, file)} .${cls}.${cls}`,
+      shared,
+      hint: `double the @media selector too (\`.${cls}.${cls}\`), or the responsive step never applies`,
+    },
+  ];
+}
+
+/** Checks A/B/C — this class against one cross-file base. */
+function checkAgainstBase(file, cls, entry, base) {
+  const b = get(base.file, base.cls);
+  const common = {
+    site: path.relative(ROOT, file),
+    cls,
+    base: `${path.relative(ROOT, base.file)} .${base.cls}`,
+  };
+  const found = [];
+
+  const tie = sharedProps(entry.plain, b.plain);
+  if (tie.length) {
+    found.push({ ...common, kind: 'source-order tie', shared: tie, hint: `move these onto \`.${cls}.${cls}\`` });
+  }
+
+  const dead = sharedProps(entry.plain, b.doubled);
+  if (dead.length) {
+    found.push({
+      ...common,
+      kind: 'base wins ALWAYS (base declares these on a doubled selector) — this override is dead',
+      shared: dead,
+      hint: 'the base should not double a property its consumers override',
+    });
+  }
+
+  const bothDoubled = sharedProps(entry.doubled, b.doubled);
+  if (bothDoubled.length) {
+    found.push({
+      ...common,
+      kind: 'source-order tie at 0,2,0 (both sides doubled)',
+      shared: bothDoubled,
+      hint: 'the doubled fix does not stack; resolve at the base',
+    });
+  }
+  return found;
+}
+
 for (const [file, p] of parsed) {
   for (const [cls, entry] of p.classes) {
     if (entry.composes.length === 0) continue;
-
-    // D — a doubled base rule that outranks this class's own @media override.
-    const shadowed = sharedProps(entry.media, entry.doubled);
-    if (shadowed.length > 0) {
-      violations.push({
-        kind: '@media override sits BELOW this class\'s own doubled rule',
-        site: path.relative(ROOT, file),
-        cls,
-        base: `${path.relative(ROOT, file)} .${cls}.${cls}`,
-        shared: shadowed,
-        hint: `double the @media selector too (\`.${cls}.${cls}\`), or the responsive step never applies`,
-      });
-    }
+    violations.push(...checkMediaShadowing(file, cls, entry));
 
     for (const base of bases(file, cls)) {
       edges += 1;
-      if (base.file === file) continue; // same stylesheet: source order cannot be split by chunking
-      const b = get(base.file, base.cls);
-      const label = `${path.relative(ROOT, base.file)} .${base.cls}`;
-
-      const a = sharedProps(entry.plain, b.plain); // A
-      if (a.length) violations.push({ kind: 'source-order tie', site: path.relative(ROOT, file), cls, base: label, shared: a, hint: `move these onto \`.${cls}.${cls}\`` });
-
-      const bb = sharedProps(entry.plain, b.doubled); // B
-      if (bb.length) violations.push({ kind: 'base wins ALWAYS (base declares these on a doubled selector) — this override is dead', site: path.relative(ROOT, file), cls, base: label, shared: bb, hint: `the base should not double a property its consumers override` });
-
-      const cc = sharedProps(entry.doubled, b.doubled); // C
-      if (cc.length) violations.push({ kind: 'source-order tie at 0,2,0 (both sides doubled)', site: path.relative(ROOT, file), cls, base: label, shared: cc, hint: `the doubled fix does not stack; resolve at the base` });
+      // Same stylesheet: source order cannot be split by chunking.
+      if (base.file === file) continue;
+      violations.push(...checkAgainstBase(file, cls, entry, base));
     }
   }
 }
@@ -264,18 +341,21 @@ if (errors.length > 0 || violations.length > 0) {
   }
   if (violations.length) {
     console.error(`\ncomposes gate: ${violations.length} override(s) whose winner is not deterministic.\n`);
-    for (const v of violations.sort((x, y) => x.site.localeCompare(y.site) || x.cls.localeCompare(y.cls))) {
+    const ordered = [...violations].sort((x, y) => x.site.localeCompare(y.site) || x.cls.localeCompare(y.cls));
+    for (const v of ordered) {
       console.error(`  ${v.site}  .${v.cls}  — ${v.kind}`);
       console.error(`    against ${v.base}`);
       console.error(`    properties: ${v.shared.join(', ')}`);
       console.error(`    fix: ${v.hint}`);
     }
   }
-  console.error(`\nWhy this matters and how the doubled-selector fix works: scripts/check-composes-overrides.mjs, and #447.\n`);
+  console.error(
+    `\nWhy this matters and how the doubled-selector fix works: scripts/check-composes-overrides.mjs, and #447.\n`,
+  );
   process.exit(1);
 }
 
 console.log(
   `composes gate: OK — ${files.length} module(s), ${composingFiles} using composes, ` +
-    `${edges} composes edge(s) checked, 0 non-deterministic overrides.`
+    `${edges} composes edge(s) checked, 0 non-deterministic overrides.`,
 );

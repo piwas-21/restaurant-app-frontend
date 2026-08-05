@@ -4,8 +4,11 @@ import type { BasketItemDto } from '@/types/basket';
 /**
  * Normalized, read-only view-model for one order/cart line's customizations, shared by
  * `OrderLineSummary`. Both the order shape (`OrderItemDto`) and the cart shape (`BasketItemDto`)
- * adapt into this so the six display surfaces render bundle composition + customizations
- * identically (menu-bundles redesign slice 2, #174).
+ * adapt into this so every display surface renders bundle composition + customizations identically
+ * (menu-bundles redesign slice 2, #174). Nine render sites as of #189 — count them rather than
+ * trusting this sentence, with a recipe that excludes the tests and the prose (this comment
+ * included), both of which mention the tag:
+ * `grep -rn '<OrderLineSummary' src/ | grep -v '\.test\.' | grep -v lineSummary.ts`
  */
 export interface LineIngredientDiff {
   /** Ingredients added or kept at an above-default quantity, e.g. "Cheese ×2". */
@@ -27,6 +30,25 @@ export interface LineChild {
   diff: LineIngredientDiff;
   specialInstructions?: string;
   children: LineChild[];
+  /**
+   * The component's own upcharge, PER UNIT — for a bundle child this is its section's additional
+   * price (backend `BasketItemFactory`: `UnitPrice = sectionItem.AdditionalPrice`), not its share of
+   * the line total (a bundle child's `itemTotal` is 0 by design; the whole price is rolled into the
+   * parent, which accumulates `AdditionalPrice * selection.Quantity`).
+   *
+   * Per-unit is why `showChildPrices` also suppresses the child's `quantity`. The two DO reconcile
+   * when the line is built — `quantity * price` is the component's share of the line total — but
+   * nothing rescales a child when the line quantity changes, so the pair stops agreeing after one
+   * press of the cart's stepper. See `ChildList`.
+   *
+   * Populated by the CART adapter only, and rendered only where `OrderLineSummary` is asked for it
+   * (`showChildPrices`). Both restraints exist because the /cart card showed this number before it
+   * was migrated onto this component (#189) and the other eight render sites did not — carrying it
+   * unconditionally would have added a price to the order views, the checkout list and the cart
+   * rail as a side effect of a refactor. The order adapter can start setting it the day an order
+   * surface wants it.
+   */
+  price?: number;
 }
 
 export interface LineSummary {
@@ -113,10 +135,21 @@ function basketDiff(item: BasketItemDto): LineIngredientDiff {
     const quantity = id && item.ingredientQuantities?.[id] ? item.ingredientQuantities[id] : 1;
     return { name, quantity };
   });
-  // The basket shape has no removal channel: it never had one that worked. `excludedIngredientNames`
-  // was derived from a column that was never written (backend #283 / frontend #170), and the ORDER
-  // shape gets its removals from `isRemoved` (quantity 0) instead. See the follow-up issue.
-  return { added, removed: [] };
+  // Removals, at last from a channel that works (#363). The basket's old one,
+  // `excludedIngredientNames`, was derived from a column nothing ever wrote (backend #283 /
+  // frontend #170), so the cart could never show a removal while the order view always could.
+  //
+  // Both shapes now read the SAME thing — a saved quantity of 0 — through the same server-side
+  // base-recipe rule, so a quantity PRESENT in the saved map means the same on both. They are not
+  // yet identical: the order path additionally treats a required ingredient that is ABSENT from
+  // that map as removed, and the cart does not, so such a line still shows a removal on the order
+  // view and none here (backend `IngredientRecipeRules` remarks — tracked there, not closed by
+  // #363). It is resolved on the backend
+  // rather than here for two reasons the cart payload cannot overcome: a 0 is also written for
+  // every optional add-on the guest never chose (only a BASE-RECIPE ingredient at 0 is a removal,
+  // and `isOptional`/`isIncludedInBasePrice` are not in this payload), and a removed ingredient's
+  // name is absent entirely — `selectedIngredientNames` is index-aligned with the SELECTED ids.
+  return { added, removed: item.removedIngredientNames ?? [] };
 }
 
 function basketItemToChild(item: BasketItemDto): LineChild {
@@ -127,6 +160,8 @@ function basketItemToChild(item: BasketItemDto): LineChild {
     diff: basketDiff(item),
     specialInstructions: item.specialInstructions || undefined,
     children: (item.childItems ?? []).map(basketItemToChild),
+    // See LineChild.price — the /cart card's component upcharge, kept through the #189 migration.
+    price: item.unitPrice,
   };
 }
 

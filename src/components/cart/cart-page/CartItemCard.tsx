@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { CartItem } from '@/components/cart/cartTypes';
-import CartItemCustomizations from './CartItemCustomizations';
+import OrderLineSummary from '@/components/order/OrderLineSummary';
+import { basketItemToLineSummary } from '@/components/order/lineSummary';
 import CartItemInstructionsEditor from './CartItemInstructionsEditor';
 
 interface CartItemCardProps {
@@ -20,8 +21,9 @@ interface CartItemCardProps {
   onSaveInstructions: (basketItemId: string | undefined, quantity: number, instructions: string) => void;
   /**
    * Host template's CSS module (the auth "cart pattern") — classic passes the
-   * original CartPage.module.css, craft its order-pad module. Also forwarded
-   * to the customizations + instructions bodies.
+   * original CartPage.module.css, craft its order-pad module. Also forwarded to
+   * the instructions editor. The line summary is NOT styled from here: since
+   * #189 it brings its own module, shared with every other surface.
    */
   styles: Readonly<Record<string, string>>;
 }
@@ -89,7 +91,21 @@ export default function CartItemCard({
           )}
         </div>
 
-        <CartItemCustomizations item={item} styles={styles} />
+        {/* The shared read-only summary — ingredient diff, add-on sides, and bundle components with
+            their own diffs (#189, finishing menu-bundles slice 2). It replaces both the card's own
+            CartItemCustomizations block AND the flat "Includes:" child list that used to sit below
+            the instructions editor: that list was a second, thinner renderer of the same data, and
+            it could only ever show what someone remembered to add to it — which is how /cart became
+            the one cart surface that could not show a bundle component's removals until #363
+            patched a row into it by hand.
+
+            `hideInstructions` because CartItemInstructionsEditor below owns the line's own notes
+            for display AND edit; without it the card would print them twice. A component's notes
+            are not covered by that editor and still render here.
+
+            `showChildPrices` preserves the "+2.99" upcharge the old Includes list showed — it is
+            opt-in precisely so this migration changes no other surface. */}
+        <OrderLineSummary line={basketItemToLineSummary(item)} hideInstructions showChildPrices />
 
         <CartItemInstructionsEditor
           styles={styles}
@@ -102,25 +118,6 @@ export default function CartItemCard({
           setInstructionsValue={setInstructionsValue}
           onSaveInstructions={onSaveInstructions}
         />
-
-        {/* Child Items for Menu Bundles */}
-        {item.childItems && item.childItems.length > 0 && (
-          <div className={styles.childItemsContainer}>
-            <h4 className={styles.childItemsTitle}>{t('includes', 'Includes')}:</h4>
-            <ul className={styles.childItemsList}>
-              {item.childItems.map((childItem, idx) => (
-                <li key={idx} className={styles.childItem}>
-                  <span dir="auto" className={styles.childItemName}>
-                    {childItem.productName}
-                  </span>
-                  {childItem.unitPrice > 0 && (
-                    <span className={styles.childItemPrice}>+{formatPlainCurrency(childItem.unitPrice)}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       {/* Item Controls */}

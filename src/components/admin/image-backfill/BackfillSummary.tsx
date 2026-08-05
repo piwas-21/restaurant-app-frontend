@@ -67,13 +67,23 @@ export default function BackfillSummary({ report }: Readonly<BackfillSummaryProp
             : t('image_backfill_state_dry_run', 'Dry run — nothing overwritten')}
         </StatusBadge>
         {/* A truncated run looks identical to a complete one in the numbers above, and the
-            difference is "you are done" vs "half your library is untouched". It deliberately
-            does NOT say "run again to continue": the backend re-enumerates from the start in a
-            fixed order with no offset, and counts skips toward the cap, so a second run stops
-            at exactly the same file. Anything past the cap is unreachable from this screen. */}
+            difference is "you are done" vs "half your library is untouched".
+
+            Which of the two messages applies is a statement about the SERVER, not the run. Backend
+            #280 gave the walk a cursor, and the controller clamps maxFiles to at least 1, so on a
+            build that has it `truncated` always comes with a `nextCursor`. A truncated run with no
+            cursor therefore means exactly one thing: this backend predates #280, re-enumerates from
+            the first file with no offset, and counts skips toward the cap — so a second run stops
+            at the same file and everything past it really is unreachable. Saying "continue" there
+            would be the same false promise this badge used to make unconditionally. */}
         {report.truncated && (
           <StatusBadge tone="warning">
-            {t('image_backfill_truncated', 'Stopped at the per-run limit — files past it are not reachable from here')}
+            {report.nextCursor
+              ? t('image_backfill_truncated_continue', 'Stopped at the per-run limit — Continue scans the next batch')
+              : t(
+                  'image_backfill_truncated_no_cursor',
+                  'Stopped at the per-run limit — this server build cannot continue past it',
+                )}
           </StatusBadge>
         )}
         {needsReview > 0 && (

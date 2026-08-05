@@ -40,9 +40,15 @@
 /* The seating-chart plate — a kraft panel pinned to the wallpaper. */
 .floorPlanSection {
   composes: cardStatic from '../primitives.module.css';
-  background-color: var(--surface-secondary);
   padding: 2rem 2rem 1.75rem;
   min-width: 0; /* Prevent grid overflow */
+}
+
+/* Doubled: `background-color` is also declared by the composed `.cardStatic` (#447). The
+   `padding` above stays at 0,1,0 on purpose — `.cardStatic` does not declare it, so it is
+   not in the tie, and the two @media overrides below still win on source order. */
+.floorPlanSection.floorPlanSection {
+  background-color: var(--surface-secondary);
 }
 
 /* Masking-tape label stuck over the plate's top edge (saffron, like the
@@ -51,9 +57,15 @@
 .sectionTitle {
   composes: tapeLabel from '../craft.module.css';
   margin: -2.9rem 0 1.25rem;
+  font-weight: 700;
+}
+
+/* Doubled: `background` and `font-size` are also declared by the composed `.tapeLabel`
+   (#447). The 768px block below is doubled to match — at 0,1,0 its font-size would now lose
+   to this rule and the mobile heading would stay at 1.45rem. */
+.sectionTitle.sectionTitle {
   background: var(--brand-accent);
   font-size: 1.45rem;
-  font-weight: 700;
 }
 
 .selectionCount {
@@ -76,9 +88,14 @@
 .panelTitle {
   composes: tapeLabel from '../craft.module.css';
   margin: -2.9rem 0 1.5rem;
+  font-weight: 700;
+}
+
+/* Doubled: all three are also declared by the composed `.tapeLabel` (#447). `transform`
+   matters most here — losing the tie would restore the primitive's own tilt angle. */
+.panelTitle.panelTitle {
   background: var(--brand-accent);
   font-size: 1.45rem;
-  font-weight: 700;
   transform: rotate(1.5deg);
 }
 
@@ -142,8 +159,9 @@ html[data-theme='dark'] .panelTitle {
     padding: 1.5rem 1.25rem;
   }
 
-  .sectionTitle,
-  .panelTitle {
+  /* Doubled to stay above the 0,2,0 base rules — see the .sectionTitle comment (#447). */
+  .sectionTitle.sectionTitle,
+  .panelTitle.panelTitle {
     font-size: 1.3rem;
     margin-top: -2.5rem;
   }

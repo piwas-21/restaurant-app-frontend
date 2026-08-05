@@ -136,8 +136,8 @@ describe('basketItemToLineSummary', () => {
       { name: 'Cheese', quantity: 2 },
       { name: 'Bacon', quantity: 1 },
     ]);
-    // The basket shape carries no removals at all — see the comment in basketDiff. The ORDER
-    // side still proves removals render, via `isRemoved` (first describe block).
+    // No `removedIngredientNames` on this fixture, so nothing to report — the absent case, which
+    // is what a line that expressed no selection returns from the server.
     expect(summary.diff.removed).toEqual([]);
     expect(summary.sideItems).toEqual([{ id: 's1', name: 'Fries', quantity: 2, price: 6 }]);
     expect(summary.specialInstructions).toBe('Crispy');
@@ -169,6 +169,68 @@ describe('basketItemToLineSummary', () => {
 
   it('is empty for a plain basket item', () => {
     const summary = basketItemToLineSummary({ quantity: 1, unitPrice: 5, itemTotal: 5, productName: 'Water' });
+    expect(isLineSummaryEmpty(summary)).toBe(true);
+  });
+
+  // #363. The cart read removals from `excludedIngredientNames`, derived from a column nothing
+  // ever wrote, so `removed` was hardcoded `[]` and the cart could never show one — while the
+  // order view always could, off `isRemoved`. Both shapes now resolve the same thing server-side.
+  it('maps removed ingredients', () => {
+    const summary = basketItemToLineSummary({
+      quantity: 1,
+      unitPrice: 10,
+      itemTotal: 10,
+      productName: 'Pizza',
+      removedIngredientNames: ['Onion', 'Olives'],
+    });
+
+    expect(summary.diff.removed).toEqual(['Onion', 'Olives']);
+    expect(isLineSummaryEmpty(summary)).toBe(false);
+  });
+
+  // Bundle components carry their own removals — the backend populates the field on children too.
+  // Nothing else in this suite asserts a child's removals, and the child mapping is a separate
+  // function from the root's.
+  it('maps removed ingredients on a bundle component', () => {
+    const summary = basketItemToLineSummary({
+      quantity: 1,
+      unitPrice: 20,
+      itemTotal: 20,
+      productName: 'Combo',
+      childItems: [
+        {
+          id: 'c1',
+          quantity: 1,
+          unitPrice: 0,
+          itemTotal: 0,
+          productName: 'Pizza',
+          removedIngredientNames: ['Cheese'],
+        },
+      ],
+    });
+
+    expect(summary.children[0].diff.removed).toEqual(['Cheese']);
+  });
+
+  // An empty list is a real server answer (the line was customized, nothing was removed) and must
+  // stay distinct from "there is something to show".
+  //
+  // Documentation, not a guard — measured: this passes with basketDiff reverted to `removed: []`,
+  // because both produce an empty array. It also asserts through isLineSummaryEmpty, which has no
+  // production callsite. The test that actually stops an empty list rendering a bare "Removed:"
+  // label is "prints no Removed label for an empty removal list" in CartItemCard.test.tsx (it lived
+  // in CartItemCustomizations.test.tsx until #189 deleted that component), and that one does fail
+  // on its mutant.
+  it('treats an empty removal list as nothing to show', () => {
+    const summary = basketItemToLineSummary({
+      quantity: 1,
+      unitPrice: 5,
+      itemTotal: 5,
+      productName: 'Water',
+      removedIngredientNames: [],
+    });
+
+    expect(summary.diff.removed).toEqual([]);
     expect(isLineSummaryEmpty(summary)).toBe(true);
   });
 });

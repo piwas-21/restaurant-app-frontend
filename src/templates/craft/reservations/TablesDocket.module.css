@@ -68,8 +68,12 @@
   align-self: flex-start;
   /* `align-self: flex-start` beside it IS direction-aware, so `start` keeps the two agreeing. */
   text-align: start;
-  font-size: 1.15rem;
   transform: rotate(-1deg);
+}
+
+/* Doubled: `font-size` is also declared by the composed `.tapeChip` (#447). */
+.combineChip.combineChip {
+  font-size: 1.15rem;
 }
 
 .combineChip:hover {

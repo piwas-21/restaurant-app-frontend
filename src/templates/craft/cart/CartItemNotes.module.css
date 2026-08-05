@@ -1,65 +1,12 @@
-/* craft cart item notes (Prompt 5 order-pad) — the read-only customizations
-   summary, bundle child items, and the special-instructions editor, split from
-   CartItemRow.module.css for the 200-LOC module limit; the craft CartPage
-   merges both objects into the single `item` styles module the shared bodies
-   expect. Primitives via composes; tokens only. */
+/* craft cart item notes (Prompt 5 order-pad) — the special-instructions editor,
+   split from CartItemRow.module.css for the 200-LOC module limit; the craft
+   CartPage merges both objects into the single `item` styles module the shared
+   bodies expect. Primitives via composes; tokens only.
 
-/* Read-only customizations — Caveat kitchen shorthand. */
-.customizationsContainer {
-  margin-top: 0.4rem;
-}
-
-.customizationsTitle,
-.childItemsTitle {
-  margin: 0 0 0.2rem;
-  font-family: 'Caveat', cursive;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.customizationDetail {
-  font-size: 0.85rem;
-}
-
-.customizationLabel {
-  margin-inline-end: 0.3rem;
-  font-family: 'Caveat', cursive;
-  font-size: 1.05rem;
-  color: var(--text-secondary);
-}
-
-.customizationValue {
-  color: var(--text-primary);
-}
-
-/* Bundle child items. */
-.childItemsContainer {
-  margin-top: 0.4rem;
-}
-
-.childItemsList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.childItem {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.childItemName {
-  flex: 1;
-  min-width: 0;
-}
-
-.childItemPrice {
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
+   The read-only customizations + bundle-child rules are gone with #189: the card
+   mounts the shared OrderLineSummary, which brings its own module. A craft-specific
+   look for that summary would now be a change to OrderLineSummary.module.css, and
+   would land on every surface that mounts it — not something to reintroduce here. */
 
 /* Special-instructions display + editor — craft-paper note. */
 .instructionsContainer {

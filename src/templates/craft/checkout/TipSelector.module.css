@@ -35,6 +35,10 @@
 
 .optionalBadge {
   composes: tapeLabel from '../craft.module.css';
+}
+
+/* Doubled: all three are also declared by the composed `.tapeLabel` (#447). */
+.optionalBadge.optionalBadge {
   padding: 0.15rem 0.7rem;
   color: var(--text-secondary);
   font-size: 1.05rem;

@@ -54,9 +54,18 @@
   flex-wrap: wrap;
   flex-shrink: 0;
   white-space: nowrap;
+  /* Stays at 0,1,0 deliberately: `.tapeChip` does not declare `transform`, so it is not in
+     the tie — and `.tab:hover` below must keep winning it. */
+  transform: rotate(var(--tab-tilt, 0deg));
+}
+
+/* Doubled: `padding` and `font-size` are also declared by the composed `.tapeChip` (#447).
+   The 768px block is doubled to match — it overrides both of these plus `display` and
+   `align-items`, and at 0,1,0 every one of them would now lose to this rule, silently
+   undoing the mobile tab layout. */
+.tab.tab {
   padding: 0.45rem 1.3rem;
   font-size: 1.4rem;
-  transform: rotate(var(--tab-tilt, 0deg));
 }
 
 .tab:hover {
@@ -110,7 +119,8 @@
     max-width: 100%;
   }
 
-  .tab {
+  /* Doubled to stay above the 0,2,0 base rule — see the .tab comment (#447). */
+  .tab.tab {
     display: inline-flex;
     align-items: center;
     min-height: 44px;

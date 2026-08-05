@@ -4,10 +4,14 @@
    handwritten error note. Craft tokens only. */
 .summaryCard {
   composes: cardLift from '../primitives.module.css';
-  background-color: var(--surface-secondary-light);
   padding: 1.75rem;
   position: sticky;
   top: 1rem;
+}
+
+/* Doubled: `background-color` is also declared by the composed `.cardLift` (#447). */
+.summaryCard.summaryCard {
+  background-color: var(--surface-secondary-light);
 }
 
 .summaryTitle {
@@ -31,10 +35,14 @@
 /* Dotted menu-leader row: label ....... value (the shared craft motif). */
 .summaryRow {
   composes: menuLeader from '../craft.module.css';
-  padding: 0;
   font-family: 'Quicksand', var(--font-family-sans);
   font-size: 0.95rem;
   color: var(--text-secondary);
+}
+
+/* Doubled: `padding` is also declared by the composed `.menuLeader` (#447). */
+.summaryRow.summaryRow {
+  padding: 0;
 }
 
 /* menuLeader tints its last child olive; the bill's value column is ink. */

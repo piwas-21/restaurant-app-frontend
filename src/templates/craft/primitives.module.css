@@ -1,9 +1,10 @@
 /* Craft interactive primitives (ADR-006 follow-on): ONE source for every
    button / tape-chip / paper-card look (before: ~10 files re-declared the CTA
    pill, 8 the paper card, 6 the tape chip — 2026-07-22 survey). Sites
-   `composes` these and keep only layout plus genuinely-local overrides — an
-   override IS deterministic: `composes` makes this file a dependency, so its
-   CSS is emitted first. Tokens only — no raw hex (CLAUDE.md §5). */
+   `composes` these and keep only layout plus genuinely-local overrides.
+   Tokens only — no raw hex (CLAUDE.md §5).
+   ⚠️ AN OVERRIDE IS NOT DETERMINISTIC BY ITSELF — this comment once promised it was, which is
+   why #447 shipped. Overriding a composed base needs `.x.x`: scripts/check-composes-overrides.mjs */
 
 /* ---------- buttons ---------- */
 
@@ -75,8 +76,10 @@
   border-color: var(--border-default);
   font-size: 1.35rem;
   padding: 0.5rem 0.9rem;
-  /* Cover the letterpressBtn motion plus our own bg swap so cascade order
-     between the composed class and this one is irrelevant. */
+}
+/* Doubled: `.letterpress` declares `transition` too, so the winner was chunk order. The old
+   inline version's "superset makes order irrelevant" was false — it only applies if it wins. #447 */
+.btnKraft.btnKraft {
   transition:
     background-color 0.15s ease,
     box-shadow 0.2s ease,

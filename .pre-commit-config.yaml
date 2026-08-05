@@ -137,3 +137,17 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # A class that `composes` a base from another file and re-declares one of that base's own
+  # properties ties on specificity, so the winner is chunk order (#447). Unlike the two
+  # ratchets above this is a HARD zero — the 16 pre-existing cases were all fixed in the PR
+  # that added the gate, so there is no baseline to carry. Whole-tree, and it FAILS if its
+  # own corpus disappears: a green run prints the file/edge counts it examined.
+  - repo: local
+    hooks:
+      - id: composes-overrides
+        name: composes override determinism (#447)
+        entry: node scripts/check-composes-overrides.mjs
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -5,10 +5,16 @@
 
 .cartSummary {
   composes: cardStatic from '../primitives.module.css';
-  background-color: var(--surface-secondary-light);
   padding: 1.5rem 1.6rem;
   position: sticky;
   top: 1rem;
+}
+
+/* Doubled: `background-color` is also declared by the composed `.cardStatic`, and two
+   single-class selectors on one element tie on specificity — the winner would be whichever
+   chunk loads later (#447). 0,2,0 settles it. */
+.cartSummary.cartSummary {
+  background-color: var(--surface-secondary-light);
 }
 
 .promoCodeSection {
@@ -80,6 +86,10 @@
 .promoCodeText {
   composes: tapeLabelAccent from '../craft.module.css';
   font-weight: 700;
+}
+
+/* Doubled: `font-size` is also declared by the composed `.tapeLabel` (#447). */
+.promoCodeText.promoCodeText {
   font-size: 1.1rem;
 }
 
@@ -91,6 +101,10 @@
 
 .removePromoButton {
   composes: btnKraft from '../primitives.module.css';
+}
+
+/* Doubled: both are also declared by the composed `.btnKraft` (#447). */
+.removePromoButton.removePromoButton {
   font-size: 1.05rem;
   padding: 0.3rem 0.7rem;
 }
@@ -105,10 +119,15 @@
 /* Dotted menu-leader row: label ....... value (the shared craft motif). */
 .priceRow {
   composes: menuLeader from '../craft.module.css';
-  padding: 0;
   font-family: 'Quicksand', var(--font-family-sans);
   font-size: 0.95rem;
   color: var(--text-secondary);
+}
+
+/* Doubled: `padding` is also declared by the composed `.menuLeader` (#447). This one
+   zeroes it, so a lost cascade would silently reinstate the leader's gutter. */
+.priceRow.priceRow {
+  padding: 0;
 }
 
 .priceRow > span:last-child {

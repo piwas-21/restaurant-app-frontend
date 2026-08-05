@@ -24,9 +24,15 @@
 /* Saffron masking-tape flavour label (the /reservations tape precedent). */
 .tapeLabel {
   composes: tapeLabel from '../craft.module.css';
+  font-weight: 700;
+}
+
+/* Doubled: `background` and `font-size` are also declared by the composed `.tapeLabel` of
+   the same name in craft.module.css (#447). The 480px override below is doubled to match —
+   at 0,1,0 it would now lose to this rule and the mobile size would stop applying. */
+.tapeLabel.tapeLabel {
   background: var(--brand-accent);
   font-size: 1.35rem;
-  font-weight: 700;
 }
 
 /* Dark ink on the pale dark-mode saffron — the inherited cream text would
@@ -163,7 +169,8 @@ html[data-theme='dark'] .tapeLabel {
     margin-bottom: 1.5rem;
   }
 
-  .tapeLabel {
+  /* Doubled to stay above the 0,2,0 base rule — see the .tapeLabel comment above (#447). */
+  .tapeLabel.tapeLabel {
     font-size: 1.2rem;
   }
 }

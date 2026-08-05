@@ -27,6 +27,8 @@
    straighter than a card's `.special`: this is the page's masthead, not a corner sticker. */
 .tape {
   composes: tapeLabel from '../craft.module.css';
+}
+.tape.tape {
   font-size: 1.5rem;
   padding: 0.35rem 1.4rem;
   transform: rotate(-1deg);
@@ -142,7 +144,6 @@
 /* Blocked for the guest's chosen channel (G7). The hero RECEDES rather than disappearing — it is
    still today's special, and hiding it would leave an unexplained hole where the guest saw one a
    moment ago.
- *
  * Scoped to the PHOTO, exactly as the craft card's `.blocked` is. A blanket `opacity` on the
  * section would composite straight through the availability notice and its "Switch to X" button —
  * and opacity on a parent cannot be undone by a child. Receding the one control the guest must
@@ -180,7 +181,7 @@
     margin: 0.75rem auto;
   }
 
-  .tape {
+  .tape.tape {
     font-size: 1.25rem;
     padding: 0.3rem 1.1rem;
   }

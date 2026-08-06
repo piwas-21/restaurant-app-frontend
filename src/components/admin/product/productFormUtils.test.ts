@@ -434,8 +434,11 @@ describe('untouched translation entries are dropped; entries carrying anything a
   // The top-level map is NOT filtered on the touched test — see the comment at the create-path
   // forEach. `contentSchema.name` is `min(1)`, so a blank-named row never reaches submit; the row
   // that DOES get through is a whitespace-only name, which `min(1)` counts as three characters.
-  // The create path used to forward it verbatim, and backend #323 would answer 400. The update path
-  // has always dropped it. This pins the two paths agreeing.
+  //
+  // Backend #323 does NOT refuse that (it leaves the top-level rule permissive on purpose, and a
+  // probe measured 200), so this is not about a 400. The create path used to persist such a row and
+  // the update path has always dropped it, which means the row was silently deleted by the next
+  // save's full replace. This pins the two paths agreeing.
   it.each([
     ['create', createWith],
     ['update', updateWith],

@@ -180,8 +180,13 @@ export const submitProductForm = async ({
     // filter rather than the "touched" test the NESTED maps use below, and the asymmetry is
     // deliberate: `contentSchema.name` is `min(1)` (schemas.ts), so the resolver already refuses a
     // blank-named top-level row before submit and there is no description-only row to preserve.
-    // What it does still catch is a WHITESPACE-only name, which passes `min(1)` — dropping it here
-    // keeps a currently-working save working once backend #323 starts refusing blank names.
+    //
+    // What it does still catch is a WHITESPACE-only name, which `min(1)` counts as three characters.
+    // Backend #323 does NOT refuse that — it deliberately leaves the top-level rule permissive — so
+    // this is not about avoiding a 400. It is about not persisting a row that is then lost silently:
+    // the row stores fine, the update path's filter omits it from the NEXT save, and the handler's
+    // `if (contentMap.Any()) RemoveRange(...)` full replace deletes it, description text and all.
+    // Create used to create exactly that row; now the two paths agree.
     data.content?.forEach((item) => {
       if (item.language && item.language !== currentLanguage && item.name?.trim()) {
         content[item.language] = {

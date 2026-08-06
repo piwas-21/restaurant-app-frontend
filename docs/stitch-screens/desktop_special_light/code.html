@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Menu</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary": "#ffffff",
+                      "on-surface": "#1c1b1b",
+                      "primary-fixed-dim": "#ffb4a8",
+                      "on-primary-fixed-variant": "#930000",
+                      "on-error-container": "#93000a",
+                      "on-surface-variant": "#5d3f3b",
+                      "on-primary-container": "#ffcdc5",
+                      "surface-dim": "#dcd9d9",
+                      "surface": "#fcf9f8",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#e7bdb6",
+                      "on-secondary-fixed-variant": "#8b191d",
+                      "on-secondary": "#ffffff",
+                      "secondary-container": "#fd6d67",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed": "#ffdad5",
+                      "primary-fixed": "#ffdad4",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-tint": "#c00000",
+                      "background": "#fcf9f8",
+                      "inverse-on-surface": "#f3f0ef",
+                      "on-error": "#ffffff",
+                      "tertiary": "#900b07",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed-dim": "#ffb3ae",
+                      "on-tertiary-fixed": "#410000",
+                      "inverse-primary": "#ffb4a8",
+                      "inverse-surface": "#313030",
+                      "surface-container": "#f0eded",
+                      "on-background": "#1c1b1b",
+                      "secondary-fixed": "#ffdad7",
+                      "secondary": "#ac3231",
+                      "on-secondary-container": "#6d000c",
+                      "on-tertiary-fixed-variant": "#910b07",
+                      "tertiary-container": "#b3281d",
+                      "surface-variant": "#e5e2e1",
+                      "on-secondary-fixed": "#410004",
+                      "surface-container-high": "#eae7e7",
+                      "tertiary-fixed-dim": "#ffb4a9",
+                      "outline": "#926f69",
+                      "surface-container-highest": "#e5e2e1",
+                      "surface-bright": "#fcf9f8",
+                      "primary-container": "#c00000",
+                      "surface-container-low": "#f6f3f2",
+                      "primary": "#930000",
+                      "on-tertiary-container": "#ffccc5",
+                      "on-primary-fixed": "#410000"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "4px",
+                      "sm": "1rem",
+                      "gutter": "16px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "32px",
+                      "lg": "2.5rem",
+                      "max-width": "1200px",
+                      "md": "1.5rem",
+                      "xl": "4rem",
+                      "xs": "0.5rem"
+              },
+              "fontFamily": {
+                      "label-muted": [
+                              "Public Sans"
+                      ],
+                      "body-main": [
+                              "Public Sans"
+                      ],
+                      "price-tag": [
+                              "Public Sans"
+                      ],
+                      "section-heading": [
+                              "Playfair Display"
+                      ],
+                      "dish-name": [
+                              "Playfair Display"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ],
+                      "button-label": [
+                              "Public Sans"
+                      ]
+              },
+              "fontSize": {
+                      "label-muted": [
+                              "0.8rem",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-main": [
+                              "0.95rem",
+                              {
+                                      "lineHeight": "1.55",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "price-tag": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "section-heading": [
+                              "1.75rem",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "dish-name": [
+                              "1.15rem",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "button-label": [
+                              "0.95rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        [data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            background-color: #fcf9f8; /* background */
+        }
+        /* Hairline border rule override for general layout structure where applicable */
+        .card-hairline {
+            border: 1px solid #DDDDDD;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen bg-background text-on-surface antialiased">
+<!-- SideNavBar (Desktop Shell) -->
+<nav class="hidden md:flex flex-col h-screen sticky top-0 w-64 border-r border-outline-variant bg-surface-container-low dark:bg-surface-container-highest flex-shrink-0 z-40 shadow-none">
+<div class="p-lg">
+<h1 class="font-section-heading text-section-heading text-primary dark:text-inverse-primary">Heritage Table</h1>
+<p class="font-label-muted text-label-muted text-on-surface-variant mt-1">Est. 2024</p>
+</div>
+<div class="flex-1 px-sm mt-md">
+<ul class="space-y-xs">
+<!-- Active: Menu -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary dark:text-inverse-primary font-bold hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-body-main text-body-main">Menu</span>
+</a>
+</li>
+<!-- Inactive: Orders -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-body-main text-body-main">Orders</span>
+</a>
+</li>
+<!-- Inactive: Reservations -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-body-main text-body-main">Reservations</span>
+</a>
+</li>
+<!-- Inactive: Profile -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-body-main text-body-main">Profile</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="p-sm">
+<button class="w-full bg-primary-container text-on-primary py-3 rounded-lg font-button-label text-button-label hover:bg-primary transition-colors press:scale-95 duration-100 shadow-sm">
+                Order Now
+            </button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col w-full relative">
+<!-- TopNavBar (Shell) -->
+<header class="docked full-width top-0 bg-surface dark:bg-inverse-surface border-b border-outline-variant shadow-sm z-30 sticky">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto h-16">
+<!-- Brand Mobile Only (Desktop handled by SideNav, but keeping struct for flex) -->
+<div class="md:hidden">
+<span class="font-display-lg text-display-lg text-primary dark:text-inverse-primary">Heritage Table</span>
+</div>
+<div class="hidden md:block"></div> <!-- Spacer for desktop -->
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors press:scale-95 duration-100">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 w-full max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-lg space-y-xl">
+<!-- CHEF'S SPECIAL Strip -->
+<section class="relative w-full border-y border-primary-container bg-surface flex flex-col md:flex-row items-center gap-md px-md md:px-lg py-md h-auto md:h-[180px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+<!-- Badge -->
+<div class="absolute top-0 left-md md:left-lg bg-primary-container text-on-primary px-3 py-1 text-xs font-bold tracking-widest uppercase shadow-sm">
+                    CHEF'S SPECIAL
+                </div>
+<!-- Image -->
+<div class="mt-4 md:mt-0 flex-shrink-0 w-full md:w-[220px] h-[120px]">
+<img class="w-full h-full object-cover card-hairline rounded" data-alt="A meticulously plated braised beef short rib sitting on a bed of creamy yellow polenta. The dish is garnished with fresh microgreens and glazed with a dark, rich red wine reduction that pools beautifully on a pristine white ceramic plate. The lighting is bright and directional, emphasizing the texture of the tender meat and the elegant restaurant setting, captured with high-end food photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7FetSjgvCQcmC_CW-0eRcvEc8eLdMxpUT0Wfpu3t8u_7gDc5duK26l5GbHtutFldJyhIUUNW3Z8iKjRsvzxKGChrSgSpb_mp6e6XehZQMiyXv2Cyu46yD61Xrfp0Jmw8hCNRQAMxEyHJP67I94SjbJvUv_sv0t-b6FFzU2oYt0SipzRN1002rBdEO91X9p8kzrAiajzJI5jrXOdijhFl4iXLzOUx8odqPr2DYeIKORXmk51dk_KFCAw"/>
+</div>
+<!-- Content -->
+<div class="flex-1 flex flex-col justify-center py-2">
+<h2 class="font-dish-name text-dish-name text-on-surface">Braised Short Rib</h2>
+<p class="font-body-main text-body-main text-on-surface-variant mt-1 line-clamp-2 md:line-clamp-1 max-w-2xl">
+                        Slow-cooked 12-hour beef short rib finished with a velvety red wine reduction, served over creamy heritage polenta and seasonal micro-herbs.
+                    </p>
+<div class="flex items-center gap-md mt-3">
+<div class="flex items-center gap-1 text-on-surface-variant font-label-muted text-label-muted">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span>25 mins</span>
+</div>
+<div class="font-price-tag text-price-tag text-primary-container">
+                            CHF 34.00
+                        </div>
+</div>
+</div>
+<!-- Action -->
+<div class="flex-shrink-0 w-full md:w-auto mt-2 md:mt-0">
+<button class="w-full md:w-auto bg-primary-container text-on-primary px-lg py-3 rounded hover:bg-primary transition-colors font-button-label text-button-label shadow-sm active:scale-95 transform duration-100">
+                        Add to Order
+                    </button>
+</div>
+</section>
+<!-- Regular Menu Section: Starters -->
+<section class="mt-xl">
+<h3 class="font-section-heading text-section-heading text-on-surface mb-sm border-b card-hairline pb-2">Starters</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter mt-md">
+<!-- Starter Card 1 -->
+<article class="bg-surface-container-lowest card-hairline rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-surface-container transition-colors group flex flex-col">
+<div class="h-48 w-full bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="A delicate serving of beef tartare presented in a perfect circle on a rustic white plate. The tartare is topped with a vibrant yellow quail egg yolk and capers, surrounded by crispy, thin artisanal toast points. The scene is lit with clean, natural daylight creating a sophisticated, appetizing culinary aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8y2fbJM3FLQy5aTD2Kn1SJITiCuqZm3kVc0oKbuaxv9qMkj-SrYxxby6ww8C5Mk-8t9lyc1Yugo-E3JsntSbsVekFhthKwhQyykSVFecJgpb-JtvovrHKKty6JHwBgt0EmkbfOO4Tv0C-4kRuWKXspIiiSaHZrkCYd3kyQtjqsd62e_SM-Sbn1tHkNW3L3waS77qCHx8W7DAwLpNb9v6GTN_iMkfBfMBeBZix3TxljM4mvMi9fgE_RQ"/>
+</div>
+<div class="p-sm flex flex-col flex-1">
+<div class="flex justify-between items-start gap-4">
+<h4 class="font-dish-name text-dish-name text-on-surface group-hover:text-primary transition-colors">Hand-Cut Beef Tartare</h4>
+<span class="font-price-tag text-price-tag text-on-surface whitespace-nowrap">CHF 19.50</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mt-2 line-clamp-2">
+                                Locally sourced beef fillet, classic garnishes, quail egg yolk, and toasted sourdough points.
+                            </p>
+<div class="mt-auto pt-4 flex gap-2">
+<span class="px-2 py-1 text-[10px] font-bold text-outline border card-hairline rounded uppercase tracking-wide">Raw</span>
+<span class="px-2 py-1 text-[10px] font-bold text-outline border card-hairline rounded uppercase tracking-wide">DF</span>
+</div>
+</div>
+</article>
+<!-- Starter Card 2 -->
+<article class="bg-surface-container-lowest card-hairline rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-surface-container transition-colors group flex flex-col">
+<div class="h-48 w-full bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="A beautifully composed burrata salad in a shallow, modern ceramic bowl. A plump, snow-white burrata sits in the center, surrounded by colorful heirloom cherry tomatoes, fresh green basil leaves, and a generous drizzle of golden extra virgin olive oil and dark balsamic glaze. Crisp, airy lighting highlights the freshness of the ingredients." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhi8x2aZUFnYiMrHmm-8ZdV9rcpRUwu76_WLY88vnSQWRgXfaZoQGoMfmZL0j81FjiD8IXtlirc9E5E8D21nDEx2eACOBtXgtfmCNEuWsJF-TGLQepJy5ANLPNt-sU7SukJaqEyzETJY2FhxrtfcXwcEywSvEgWpW8IIfckLv_W44Ll0xenFQg6zQuOtlOOCqE5cF5ynPIhc1cGjC9hp3bzp38JZEDo_J5Rq85lgrQxISjJzCZKVYKqw"/>
+</div>
+<div class="p-sm flex flex-col flex-1">
+<div class="flex justify-between items-start gap-4">
+<h4 class="font-dish-name text-dish-name text-on-surface group-hover:text-primary transition-colors">Heirloom Tomato &amp; Burrata</h4>
+<span class="font-price-tag text-price-tag text-on-surface whitespace-nowrap">CHF 16.00</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mt-2 line-clamp-2">
+                                Creamy Puglian burrata, vine-ripened heirloom tomatoes, basil oil, and aged balsamic.
+                            </p>
+<div class="mt-auto pt-4 flex gap-2">
+<span class="px-2 py-1 text-[10px] font-bold text-outline border card-hairline rounded uppercase tracking-wide">V</span>
+<span class="px-2 py-1 text-[10px] font-bold text-outline border card-hairline rounded uppercase tracking-wide">GF</span>
+</div>
+</div>
+</article>
+<!-- Starter Card 3 -->
+<article class="bg-surface-container-lowest card-hairline rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-surface-container transition-colors group flex flex-col">
+<div class="h-48 w-full bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="Three perfectly seared king scallops arranged elegantly in a row on a long, rectangular slate plate. Beneath each scallop is a small mound of vibrant green pea purée, accented with crispy, thin pancetta shards. Soft, focused restaurant lighting emphasizes the golden crust of the scallops and creates a sophisticated dining atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkSf-LwEnxj6m4Gk9JEiS1HUyBnr4R7DUbhLcnmaQueDHJjtxb39nc9shASGFcrgjVT59l3EXB2uEc08J6_ibikFgu93TSu0BoJt4EEPCmmGdF02faqU_qyPJp5i3qFa1yGjR-AAvIMfeUDEOxTY06zl63k5pNO7pV1wUvwr2cezCivazbo6Xcl1fFPcB8Midcq4lrRh-MTIJIyBvDaL2LwbWIAlBMB1WY7dI7Kgp5ieRqfscfi4JKxA"/>
+</div>
+<div class="p-sm flex flex-col flex-1">
+<div class="flex justify-between items-start gap-4">
+<h4 class="font-dish-name text-dish-name text-on-surface group-hover:text-primary transition-colors">Pan-Seared Scallops</h4>
+<span class="font-price-tag text-price-tag text-on-surface whitespace-nowrap">CHF 22.00</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mt-2 line-clamp-2">
+                                King scallops, vibrant pea purée, crispy pancetta dust, and lemon beurre blanc.
+                            </p>
+<div class="mt-auto pt-4 flex gap-2">
+<span class="px-2 py-1 text-[10px] font-bold text-outline border card-hairline rounded uppercase tracking-wide">Seafood</span>
+</div>
+</div>
+</article>
+</div>
+</section>
+</div>
+</main>
+</body></html>

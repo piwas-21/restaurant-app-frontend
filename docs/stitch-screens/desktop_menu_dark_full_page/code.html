@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bistro Elite - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#410000",
+                        "tertiary": "#900b07",
+                        "outline": "#926f69",
+                        "surface-tint": "#c00000",
+                        "on-error-container": "#93000a",
+                        "surface": "#1A1A1A", /* Overridden for dark mode requirement */
+                        "surface-container-lowest": "#000000",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-primary-fixed-variant": "#930000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "on-secondary-container": "#6d000c",
+                        "surface-bright": "#252525",
+                        "outline-variant": "#e7bdb6",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "surface-dim": "#111111",
+                        "primary": "#E06666", /* Lifted red accent */
+                        "surface-container-high": "#333333",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#c00000",
+                        "background": "#1A1A1A", /* Overridden */
+                        "inverse-on-surface": "#1c1b1b",
+                        "on-background": "#FFFFFF", /* High contrast */
+                        "inverse-surface": "#fcf9f8",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#ffcdc5",
+                        "on-tertiary-container": "#ffccc5",
+                        "secondary-fixed": "#ffdad7",
+                        "surface-container-highest": "#444444",
+                        "surface-container": "#252525", /* Card surface */
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#410000",
+                        "tertiary-container": "#b3281d",
+                        "secondary-container": "#fd6d67",
+                        "surface-variant": "#252525",
+                        "on-surface": "#FFFFFF", /* High contrast */
+                        "primary-container": "#E06666",
+                        "on-primary": "#1A1A1A", /* Dark text on primary */
+                        "on-surface-variant": "#CCCCCC",
+                        "tertiary-fixed": "#ffdad5",
+                        "secondary": "#ac3231",
+                        "primary-fixed": "#ffdad4",
+                        "on-secondary-fixed": "#410004",
+                        "surface-container-low": "#1F1F1F"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "sm": "1rem",
+                        "base": "4px",
+                        "gutter": "16px",
+                        "max-width": "1200px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "md": "1.5rem",
+                        "lg": "2.5rem",
+                        "xs": "0.5rem",
+                        "xl": "4rem"
+                    },
+                    fontFamily: {
+                        "body-main": ["Public Sans", "sans-serif"],
+                        "price-tag": ["Public Sans", "sans-serif"],
+                        "display-lg": ["Playfair Display", "serif"],
+                        "section-heading": ["Playfair Display", "serif"],
+                        "label-muted": ["Public Sans", "sans-serif"],
+                        "button-label": ["Public Sans", "sans-serif"],
+                        "dish-name": ["Playfair Display", "serif"]
+                    },
+                    fontSize: {
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-main antialiased selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-surface/95 backdrop-blur-sm border-b border-surface-container-highest">
+<div class="flex items-center gap-8">
+<a class="font-display-lg text-primary md:text-display-lg font-bold" href="#">Bistro Elite</a>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-primary border-b-2 border-primary pb-1 font-button-label text-button-label hover:text-primary transition-colors active:scale-95" href="#">Menu</a>
+<a class="text-on-surface-variant font-button-label text-button-label hover:text-primary transition-colors active:scale-95" href="#">About</a>
+<a class="text-on-surface-variant font-button-label text-button-label hover:text-primary transition-colors active:scale-95" href="#">Contact</a>
+</div>
+</div>
+<div class="flex items-center gap-4 text-on-surface">
+<button aria-label="Language" class="hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined">language</span>
+</button>
+<button aria-label="Dark Mode" class="hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button aria-label="Shopping Cart" class="hover:text-primary transition-colors active:scale-95 relative">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+</button>
+</div>
+</nav>
+<div class="flex flex-1 pt-16 h-full">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] z-40 w-64 bg-surface border-r border-surface-container-highest shadow-md">
+<div class="p-6 border-b border-surface-container-highest">
+<h2 class="font-section-heading text-section-heading text-on-background">Categories</h2>
+<p class="font-label-muted text-label-muted text-on-surface-variant mt-1">Explore our menu</p>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 flex flex-col gap-2">
+<a class="text-primary font-bold border-l-4 border-primary pl-3 py-2 flex items-center gap-3 font-button-label text-button-label hover:bg-surface-container-highest transition-all duration-200" href="#starters">
+<span class="material-symbols-outlined text-lg">play_games</span>
+                    Starters
+                </a>
+<a class="text-on-surface-variant pl-4 py-2 flex items-center gap-3 font-button-label text-button-label hover:bg-surface-container-highest transition-all duration-200 hover:text-primary" href="#mains">
+<span class="material-symbols-outlined text-lg">restaurant</span>
+                    Mains
+                </a>
+<a class="text-on-surface-variant pl-4 py-2 flex items-center gap-3 font-button-label text-button-label hover:bg-surface-container-highest transition-all duration-200 hover:text-primary" href="#desserts">
+<span class="material-symbols-outlined text-lg">icecream</span>
+                    Desserts
+                </a>
+<a class="text-on-surface-variant pl-4 py-2 flex items-center gap-3 font-button-label text-button-label hover:bg-surface-container-highest transition-all duration-200 hover:text-primary" href="#drinks">
+<span class="material-symbols-outlined text-lg">local_bar</span>
+                    Drinks
+                </a>
+<a class="text-on-surface-variant pl-4 py-2 flex items-center gap-3 font-button-label text-button-label hover:bg-surface-container-highest transition-all duration-200 hover:text-primary" href="#special">
+<span class="material-symbols-outlined text-lg">star</span>
+                    Special
+                </a>
+</nav>
+<div class="p-4 border-t border-surface-container-highest">
+<button class="w-full bg-primary text-on-primary font-button-label text-button-label py-3 rounded-DEFAULT hover:opacity-90 transition-opacity active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">shopping_cart_checkout</span>
+                    View Cart
+                </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 lg:ml-64 p-margin-mobile md:p-margin-desktop bg-background w-full max-w-max-width mx-auto">
+<!-- Hero Section / Context -->
+<div class="mb-lg rounded-xl overflow-hidden relative h-64 shadow-md border border-surface-container-highest">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A moody, high-contrast photograph of a fine dining restaurant interior at night, shot in a dark mode aesthetic with deep shadows, warm localized lighting on tables, and vibrant red accents. The atmosphere is sophisticated and quiet." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCD2aHIl0EdF0FI8-C9QBnEE6otuEyXZanC8rEuSzSLhN7VhrV7larzDUOoMEy1cxLPhlv872miHUbSimkXkm-WZ1PnRNHFpPg49KN5GNp5Fp7KVBgaw3dc-PPNQI_V8YDesOO6xoFa6Ridy_2fNT5eGYVMvAfK3I62d-IzLNOdFi0WWVwAE26HRM23nrK-jdoBuDnogy5imO7C76CdAyjrCP3KsSeNU_U0741NAbenC0JNNqVHHTYKOA')"></div>
+<div class="absolute inset-0 bg-black/60 flex flex-col justify-center items-center text-center p-6">
+<h1 class="font-display-lg text-display-lg text-white mb-2">Heritage Table</h1>
+<p class="font-body-main text-body-main text-gray-300 max-w-2xl">Experience culinary craftsmanship in the dining room at night. A curated selection of bold flavors and timeless classics.</p>
+</div>
+</div>
+<!-- Menu Grid - Bento Style -->
+<section class="mb-xl scroll-mt-24" id="starters">
+<h2 class="font-section-heading text-section-heading text-on-background mb-6 flex items-center gap-3">
+                    Starters
+                    <span class="h-[1px] flex-1 bg-surface-container-highest"></span>
+</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Featured Starter (Spans 2 columns on desktop) -->
+<article class="md:col-span-2 bg-surface-container rounded-lg border border-surface-container-highest overflow-hidden flex flex-col sm:flex-row shadow-sm hover:bg-surface-container-high transition-colors">
+<div class="sm:w-1/2 relative min-h-[200px]">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A striking top-down view of a modern wagyu beef tartare starter plated on dark artisanal ceramic in a dimly lit, upscale restaurant. The dark mode aesthetic emphasizes the vibrant red of the meat, high-contrast lighting, and deep shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDalDYWUoiDxanMYCNbK8nMy3Igb6xpdfifP8Eb41PXLy5tdDnTNoEZ9KNneDqjD5QF5ieR-z_0ZK2v9oZNtt0kNdjZK5boOHUMtrR2Uooi1HYEwrV48SmMlxpQg3yt2HTn8b9wnGZMFk6jb1t_LO9kHkXrvnQKQ-uflnCToEhFD30wIWGFI_Ku-nApYyVpbqN8YvhrG24hk69lJfWigmRE9VzsA-lJNSIbiSkPYQE3MO2IGQBENJ9raQ"/>
+</div>
+<div class="p-6 flex flex-col justify-between sm:w-1/2">
+<div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-on-background">Wagyu Beef Tartare</h3>
+<span class="font-price-tag text-price-tag text-primary ml-4">$24</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-4">Hand-cut wagyu, cured egg yolk, caper berries, shallot, served with grilled sourdough.</p>
+<div class="flex gap-2 mb-4">
+<span class="px-2 py-1 border border-primary text-primary text-[10px] uppercase tracking-wider rounded-DEFAULT">Signature</span>
+<span class="px-2 py-1 border border-surface-container-highest text-on-surface-variant text-[10px] uppercase tracking-wider rounded-DEFAULT">Gluten-Free Option</span>
+</div>
+</div>
+<button aria-label="Add to cart" class="self-end w-10 h-10 rounded-full bg-transparent border border-primary text-primary flex items-center justify-center hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</article>
+<!-- Standard Starter -->
+<article class="bg-surface-container rounded-lg border border-surface-container-highest overflow-hidden flex flex-col shadow-sm hover:bg-surface-container-high transition-colors">
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-on-background">Charred Octopus</h3>
+<span class="font-price-tag text-price-tag text-primary ml-2">$18</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-6 flex-1">Romesco sauce, fingerling potatoes, smoked paprika oil, micro cilantro.</p>
+<button class="w-full py-2 bg-transparent border border-primary text-primary font-button-label text-button-label rounded-DEFAULT hover:bg-primary/10 transition-colors flex items-center justify-center gap-2">
+<span>Add</span>
+</button>
+</div>
+</article>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer -->
+<footer class="w-full py-lg px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center bg-surface-container-lowest border-t border-surface-container-highest lg:ml-64 lg:w-[calc(100%-256px)]">
+<div class="font-display-lg text-lg text-on-background mb-4 md:mb-0">Bistro Elite</div>
+<div class="flex gap-6 mb-4 md:mb-0">
+<a class="font-label-muted text-label-muted text-on-surface-variant hover:text-primary opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="font-label-muted text-label-muted text-on-surface-variant hover:text-primary opacity-80 hover:opacity-100 transition-opacity" href="#">Terms of Service</a>
+<a class="font-label-muted text-label-muted text-on-surface-variant hover:text-primary opacity-80 hover:opacity-100 transition-opacity" href="#">Allergens</a>
+</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant">© 2024 Bistro Elite. All rights reserved.</div>
+</footer>
+</body></html>

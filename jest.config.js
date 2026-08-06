@@ -89,6 +89,7 @@ module.exports = {
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
     'src/hooks/menu/useFeaturedSpecialHero.ts',
+    'src/hooks/menu/useStickyNavOffset.ts',
     'src/hooks/useApiError.ts',
     'src/lib/orderStatus.ts',
     'src/lib/paymentStatus.ts',

@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Bu öğeyi düzenle",
   "admin_edit_item_short": "Düzenle",
   "admin_edit_price": "Fiyatı düzenle",
+  "menu_item_details_aria": "{{itemName}} ayrıntılarını görüntüle",
+  "admin_edit_price_editing": "Fiyat düzenleniyor",
   "map": "Harita",
   "list": "Liste",
   "everywhere": "Her yer",

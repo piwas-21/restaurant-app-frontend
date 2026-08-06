@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tablet Admin Price Controls</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#5d3f3b",
+                        "outline-variant": "#e7bdb6",
+                        "on-surface": "#1c1b1b",
+                        "surface-container-high": "#eae7e7",
+                        "tertiary-container": "#b3281d",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-tertiary-fixed": "#410000",
+                        "on-secondary-fixed": "#410004",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#ffccc5",
+                        "on-secondary-container": "#6d000c",
+                        "tertiary-fixed": "#ffdad5",
+                        "on-primary-fixed": "#410000",
+                        "inverse-primary": "#ffb4a8",
+                        "outline": "#926f69",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "error": "#ba1a1a",
+                        "tertiary": "#900b07",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "primary-container": "#c00000",
+                        "on-background": "#1c1b1b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "primary-fixed": "#ffdad4",
+                        "surface-container": "#f0eded",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "secondary": "#ac3231",
+                        "primary": "#930000",
+                        "on-primary-fixed-variant": "#930000",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-dim": "#dcd9d9",
+                        "background": "#fcf9f8",
+                        "secondary-container": "#fd6d67",
+                        "surface-bright": "#fcf9f8",
+                        "surface-variant": "#e5e2e1",
+                        "surface": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#c00000",
+                        "inverse-surface": "#313030",
+                        "secondary-fixed": "#ffdad7",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-container-low": "#f6f3f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "sm": "1rem",
+                        "md": "1.5rem",
+                        "gutter": "16px",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "base": "4px",
+                        "max-width": "1200px",
+                        "margin-mobile": "16px",
+                        "xs": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "section-heading": ["Playfair Display"],
+                        "dish-name": ["Playfair Display"],
+                        "label-muted": ["Public Sans"],
+                        "button-label": ["Public Sans"],
+                        "body-main": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "price-tag": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #fcf9f8; color: #1c1b1b; }
+        .hairline-border { border: 1px solid #DDDDDD; }
+        .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-body-main">
+<!-- TopNavBar -->
+<nav class="bg-surface docked full-width top-0 border-b border-outline-variant shadow-sm z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto h-16">
+<div class="font-display-lg text-display-lg text-primary">Heritage Table</div>
+<div class="flex items-center space-x-6 hidden md:flex">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-button-label text-button-label" href="#">Menu</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-button-label text-button-label" href="#">Orders</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-button-label text-button-label" href="#">Price Controls</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-button-label text-button-label" href="#">Profile</a>
+</div>
+<div class="flex items-center space-x-4">
+<button class="hover:text-primary transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</div>
+</nav>
+<div class="flex flex-1 max-w-max-width mx-auto w-full px-margin-mobile md:px-margin-desktop py-lg gap-lg">
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full">
+<header class="mb-lg flex justify-between items-end">
+<div>
+<h1 class="font-section-heading text-section-heading text-on-surface mb-xs">Pricing &amp; Availability</h1>
+<p class="font-body-main text-body-main text-on-surface-variant">Manage menu item prices and stock status.</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-surface hairline-border rounded px-4 py-2 font-button-label text-button-label text-on-surface-variant flex items-center gap-2 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter
+                    </button>
+<button class="bg-primary-container text-on-primary rounded px-4 py-2 font-button-label text-button-label hover:bg-[#890303] transition-colors shadow-sm">
+                        Publish Changes
+                    </button>
+</div>
+</header>
+<!-- Featured Strip (State 1: Normal) -->
+<div class="bg-surface-container-lowest rounded-lg hairline-border card-shadow mb-lg p-sm flex items-center gap-md">
+<div class="w-24 h-24 rounded overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A close-up, high-quality photograph of a perfectly seared ribeye steak resting on a rustic wooden cutting board. The steak is glistening with herb butter, garnished with fresh rosemary sprigs and sea salt flakes. The lighting is warm and directional, emphasizing the texture of the meat and the crisp edges. Set in a premium, elegant culinary environment reflecting a modern bistro aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5pGfrzUJHEi21ERYGAMlG-I1oAwhNQ8G3F7ioqVHmIFVWx-0BvylzHEkzU-b2YnomzumFi9i4SbfcrHwIBqcwNIuOb3GPQ6YfHaQczx2VFWFBABzsTj1SjGbJAr68bdeCbeyrOkPK5Eh2rxStAoWErsx5qontsZtyvjcRyDzhQ4eZBc5H9P_EUQwkiG0T31lyPRKSyxgZQIfubL69iOMT4uZR7DfYg-N0kfRO-emXTbaKP9R8ONMp0Q"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-xs">
+<h2 class="font-dish-name text-dish-name text-on-surface">Signature Ribeye</h2>
+<span class="font-price-tag text-price-tag text-primary">$45.00</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-sm line-clamp-2">12oz dry-aged ribeye, garlic herb butter, blistered cherry tomatoes, side of truffle fries.</p>
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full text-xs font-label-muted text-on-surface-variant hairline-border">Dinner</span>
+<span class="px-3 py-1 rounded-full text-xs font-label-muted text-on-surface-variant hairline-border bg-surface-variant">In Stock</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 ml-auto">
+<button class="text-primary font-button-label text-button-label hover:underline text-right">Edit Price</button>
+<button class="text-on-surface-variant font-button-label text-button-label hover:underline text-right text-xs">Mark Out of Stock</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-sm">
+<!-- Card 1: State 1 (Normal) -->
+<div class="bg-surface-container-lowest rounded-lg hairline-border card-shadow flex flex-col hover:bg-surface-container-low transition-colors group">
+<div class="h-40 w-full relative">
+<img class="w-full h-full object-cover rounded-t-lg" data-alt="A beautifully plated portion of wild-caught salmon on a bed of quinoa and roasted seasonal vegetables. The dish is presented on a clean, matte white ceramic plate. Soft, natural daylight illuminates the vibrant pinks of the salmon and the deep greens of the vegetables, creating a fresh, appetizing, and premium presentation consistent with a high-end light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeMm9Ee1x51JhOVtFz7LaZPrnqAAgBio-xyJQM3-WHOoG6zCM9ZUnJI1y-LxgX45-Ag9vVgYOH5OA68HDaPyvhYjKpHCr55hYA78zD8URBRwdIOVNm-w8BmrGdyUme9iS9SGnbaP5_gxaUUREMTAGVc3wkHuSfdejSkG1gL9w0GMn_S111vkF_Vn5Ke8EHHj_89eWmqGD43wHSjvonJk6JauuJo_EAUTF3JCWowxuwecJEWh4RdcHQXQ"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest px-2 py-1 rounded hairline-border font-price-tag text-price-tag text-on-surface shadow-sm">$32.00</div>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<h3 class="font-dish-name text-dish-name text-on-surface mb-1">Pan-Seared Salmon</h3>
+<p class="font-body-main text-body-main text-on-surface-variant text-sm mb-4 flex-1">Wild-caught salmon, quinoa pilaf, seasonal greens, lemon caper sauce.</p>
+<div class="flex justify-between items-center border-t border-outline-variant pt-3">
+<span class="text-xs font-label-muted text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">inventory_2</span> 15 Available
+                            </span>
+<button class="text-primary font-button-label text-button-label hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Edit</button>
+</div>
+</div>
+</div>
+<!-- Card 2: State 2 (Editing) -->
+<div class="bg-surface-container-low rounded-lg hairline-border border-primary card-shadow flex flex-col relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+<div class="p-4 flex-1 flex flex-col z-10">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-dish-name text-dish-name text-on-surface">Truffle Mushroom Risotto</h3>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-4 mb-4 flex-1">
+<div>
+<label class="block font-label-muted text-label-muted text-on-surface-variant mb-1">Price</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
+<input class="w-full pl-8 pr-3 py-2 rounded hairline-border focus:border-primary focus:ring-0 font-price-tag text-price-tag bg-surface-container-lowest" type="text" value="26.00"/>
+</div>
+</div>
+<div>
+<label class="block font-label-muted text-label-muted text-on-surface-variant mb-1">Status</label>
+<select class="w-full px-3 py-2 rounded hairline-border focus:border-primary focus:ring-0 font-body-main text-body-main bg-surface-container-lowest">
+<option>In Stock</option>
+<option>Low Stock Warning</option>
+<option>Out of Stock</option>
+<option>Hidden</option>
+</select>
+</div>
+</div>
+<div class="flex gap-2 border-t border-outline-variant pt-3">
+<button class="flex-1 bg-primary-container text-on-primary rounded py-2 font-button-label text-button-label hover:bg-[#890303] transition-colors">Save</button>
+<button class="flex-1 bg-transparent text-primary rounded py-2 font-button-label text-button-label hairline-border hover:bg-surface-variant transition-colors">Cancel</button>
+</div>
+</div>
+</div>
+<!-- Card 3: State 3 (Out of Stock / Disabled) -->
+<div class="bg-surface-container-highest rounded-lg hairline-border card-shadow flex flex-col opacity-75 grayscale-[50%]">
+<div class="h-40 w-full relative">
+<img class="w-full h-full object-cover rounded-t-lg" data-alt="A rustic ceramic bowl filled with hearty French onion soup, topped with a thick layer of bubbling, golden-brown gruyere cheese and a toasted baguette slice. The scene is shot with moody, warm lighting highlighting the steam rising from the bowl. Placed on a dark wooden table to create a comforting, rich visual texture suitable for a premium dining menu, though slightly desaturated here to indicate unavailability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB45N4iDS8JWuxturw8_DSrtw58NF3BY7lJCMRllZ8kwcNuS5CN2hLc6TTZZfbVBn0ue6wF7DHC4SN_B5GfQ_c-YTlq-qjP2Fr7iUSnJVeUy1RaTfJJgvzduSkAux7kjd3G6UzsTrgXwmpyr_r16ceT8cwYFlhCN8_A2nkdPzLLLnLtNU_2wErsSSKBaHQIKGqrCB2k2v3uZmpaGTyW91pfWhRVmxcQRGOtwqr9swUwGV4iAxOcbV39iw"/>
+<div class="absolute inset-0 bg-surface/40 flex items-center justify-center backdrop-blur-[2px]">
+<span class="bg-error-container text-on-error-container px-3 py-1 rounded-full font-button-label text-button-label shadow-sm flex items-center gap-1 border border-error/20">
+<span class="material-symbols-outlined text-sm">block</span> Out of Stock
+                            </span>
+</div>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-dish-name text-dish-name text-on-surface line-through decoration-on-surface-variant/50">French Onion Soup</h3>
+<span class="font-price-tag text-price-tag text-on-surface-variant">$14.00</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant text-sm mb-4 flex-1">Caramelized onions, rich beef broth, gruyere crouton.</p>
+<div class="flex justify-between items-center border-t border-outline-variant pt-3">
+<span class="text-xs font-label-muted text-error">Requires restock of Gruyere</span>
+<button class="text-on-surface-variant font-button-label text-button-label hover:text-primary transition-colors">Manage</button>
+</div>
+</div>
+</div>
+<!-- Card 4: State 1 (Normal) -->
+<div class="bg-surface-container-lowest rounded-lg hairline-border card-shadow flex flex-col hover:bg-surface-container-low transition-colors group">
+<div class="h-40 w-full relative">
+<img class="w-full h-full object-cover rounded-t-lg" data-alt="A vibrant, fresh Caprese salad featuring thick slices of heirloom tomatoes, fresh mozzarella rounds, and basil leaves arranged elegantly on a white platter. Drizzled with dark balsamic glaze and olive oil. Bright, crisp daylight emphasizes the vivid reds, greens, and whites, reflecting a clean, modern, and appetizing light-mode design language." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbQJ9mKkgF-N7cBz2h33njLKRMvXiBviwyd0CYb8xFdqm4ETQofqIQXrs2ofoQmduP2lRgTkO561kfXcJdkYzDui_iEubYPvz_OcfivvpYRuT91OXJfIXnBTHOfXASNSod3Cb46ZJvVS2kW_G9wPYk3ytnRWyk8iRMwRqsbMPhhYMhvQYmV0isnxLtYHp2HplLWcwcsboNjJZ3Qb82M6TnsyAZSn21Vxu2tRYOf-57GyZ-9_qJzodPsA"/>
+<div class="absolute top-2 right-2 bg-surface-container-lowest px-2 py-1 rounded hairline-border font-price-tag text-price-tag text-on-surface shadow-sm">$16.00</div>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<h3 class="font-dish-name text-dish-name text-on-surface mb-1">Heirloom Caprese</h3>
+<p class="font-body-main text-body-main text-on-surface-variant text-sm mb-4 flex-1">Local heirloom tomatoes, fresh mozzarella, basil, balsamic reduction.</p>
+<div class="flex justify-between items-center border-t border-outline-variant pt-3">
+<span class="text-xs font-label-muted text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">inventory_2</span> 24 Available
+                            </span>
+<button class="text-primary font-button-label text-button-label hover:underline opacity-0 group-hover:opacity-100 transition-opacity">Edit</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

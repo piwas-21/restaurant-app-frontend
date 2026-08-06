@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Admin Price Controls</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#5d3f3b",
+                        "outline-variant": "#e7bdb6",
+                        "on-surface": "#1c1b1b",
+                        "surface-container-high": "#eae7e7",
+                        "tertiary-container": "#b3281d",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-tertiary-fixed": "#410000",
+                        "on-secondary-fixed": "#410004",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#ffccc5",
+                        "on-secondary-container": "#6d000c",
+                        "tertiary-fixed": "#ffdad5",
+                        "on-primary-fixed": "#410000",
+                        "inverse-primary": "#ffb4a8",
+                        "outline": "#926f69",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "error": "#ba1a1a",
+                        "tertiary": "#900b07",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "primary-container": "#c00000",
+                        "on-background": "#1c1b1b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "primary-fixed": "#ffdad4",
+                        "surface-container": "#f0eded",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "secondary": "#ac3231",
+                        "primary": "#930000",
+                        "on-primary-fixed-variant": "#930000",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-dim": "#dcd9d9",
+                        "background": "#fcf9f8",
+                        "secondary-container": "#fd6d67",
+                        "surface-bright": "#fcf9f8",
+                        "surface-variant": "#e5e2e1",
+                        "surface": "#fcf9f8",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#c00000",
+                        "inverse-surface": "#313030",
+                        "secondary-fixed": "#ffdad7",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-container-low": "#f6f3f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "sm": "1rem",
+                        "md": "1.5rem",
+                        "gutter": "16px",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "base": "4px",
+                        "max-width": "1200px",
+                        "margin-mobile": "16px",
+                        "xs": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "section-heading": ["Playfair Display"],
+                        "dish-name": ["Playfair Display"],
+                        "label-muted": ["Public Sans"],
+                        "button-label": ["Public Sans"],
+                        "body-main": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "price-tag": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-inverse-surface text-inverse-on-surface antialiased min-h-screen pb-24 md:pb-0">
+<!-- Top Navigation (Mobile & Desktop) -->
+<header class="bg-inverse-surface border-b border-surface-container-highest shadow-sm docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto h-16">
+<div class="font-display-lg text-display-lg text-inverse-primary">Heritage Table</div>
+<div class="flex items-center gap-4">
+<button class="text-inverse-primary hover:text-primary transition-colors press:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="text-inverse-primary hover:text-primary transition-colors press:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-lg">
+<div class="mb-8">
+<h1 class="font-section-heading text-section-heading text-inverse-primary mb-2">Price Controls</h1>
+<p class="font-body-main text-body-main text-surface-variant">Manage menu item pricing across all locations.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Featured Strip (State 3 - Locked) -->
+<div class="col-span-1 md:col-span-12 bg-surface-container-highest border border-[#444444] rounded-lg p-sm shadow-[0_1px_3px_rgba(0,0,0,.06)] flex flex-col md:flex-row gap-sm items-center justify-between">
+<div class="flex items-center gap-sm w-full md:w-auto">
+<div class="w-16 h-16 rounded-md overflow-hidden shrink-0 border border-[#444444]">
+<img class="w-full h-full object-cover" data-alt="A close up shot of a perfectly grilled ribeye steak with a rich, dark crust, resting on a rustic wooden board. The lighting is moody and dramatic, typical of a high-end steakhouse, highlighting the juices and texture of the meat. Warm, low-key lighting with deep shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8W6ezc5-5e9q0v9whMG_qva7XYb1SIPg-aNpoz5rvqXxKCslMX-qzj98DoRCTsIal9kjmeFz-0tWhb-vn0hcec-ebshPqdECoUdMQJvDhXkaER_GN-zIPzVP7SYz9YyG2MqFRWigCClEIzfaMAHc-9WNjg28vm_MM6-X-8KtI8nGunYaJJSE5aC76PcrVz6PooLB52Y4KiFXggS4jyn2EgBbGQkOXA-DnMTmT_43DO5RehShIlO5Gag"/>
+</div>
+<div>
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface">Signature Ribeye Combo</h3>
+<p class="font-label-muted text-label-muted text-surface-variant">Includes two sides</p>
+</div>
+</div>
+<div class="flex items-center justify-between w-full md:w-auto gap-md border-t border-[#444444] md:border-t-0 pt-sm md:pt-0 mt-sm md:mt-0">
+<div class="flex flex-col items-end md:items-start">
+<span class="font-price-tag text-price-tag text-surface-variant opacity-70 line-through">$45.00</span>
+<span class="font-price-tag text-price-tag text-inverse-on-surface">$38.00</span>
+</div>
+<div class="flex items-center gap-xs bg-surface-container-high px-3 py-1.5 rounded-full border border-[#444444]">
+<span class="material-symbols-outlined text-surface-variant text-sm" data-icon="lock" data-weight="fill">lock</span>
+<span class="font-label-muted text-label-muted text-surface-variant">Combo price locked</span>
+</div>
+</div>
+</div>
+<!-- Card 1: State 1 (REST) -->
+<div class="col-span-1 md:col-span-6 bg-[#252424] border border-[#444444] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden flex flex-col transition-colors hover:bg-[#2c2b2b]">
+<div class="h-48 w-full border-b border-[#444444]">
+<img class="w-full h-full object-cover" data-alt="A beautifully plated serving of truffle mac and cheese in a cast iron skillet. The cheese is bubbly and golden brown on top, with visible flecks of black truffle. The setting is a dimly lit, cozy restaurant interior with warm ambient light catching the glossy surface of the dish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALp_mGs8JjNwYG-qQ5k1e8pVzo9rjooujH9NTooR61ivsozi1oIH5VlroxXedAATY2etuUIvP7xilbD5kOdD_EDHn_8MRwN77M7w2yGZG2C-l97uq5-4DASGc6rkFgbVVvZZhvDt2RtRMKwlSsOw0VtBu3fjUBTPKMZq1HKDxrmsW6UH_MENRoqC2-ho2vxYEfJT_es13NfbeEuDZabEMLmmqJANP3ofiZclIxa_8zScgXOi0w0LsWXw"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface">Truffle Mac &amp; Cheese</h3>
+<span class="font-price-tag text-price-tag text-inverse-primary">$18.00</span>
+</div>
+<p class="font-label-muted text-label-muted text-surface-variant mb-md flex-grow">Aged cheddar, parmesan crust, shaved black truffle.</p>
+<button class="w-full py-2 flex items-center justify-center gap-xs bg-transparent border border-inverse-primary text-inverse-primary rounded-DEFAULT font-button-label text-button-label hover:bg-inverse-primary hover:text-[#252424] transition-colors press:scale-95 duration-100">
+<span class="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
+                        Edit Price
+                    </button>
+</div>
+</div>
+<!-- Card 2: State 2 (EDITING) with Error -->
+<div class="col-span-1 md:col-span-6 bg-[#252424] border border-[#444444] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden flex flex-col ring-1 ring-inverse-primary">
+<div class="h-48 w-full border-b border-[#444444]">
+<img class="w-full h-full object-cover opacity-80" data-alt="A vibrant, fresh heirloom tomato salad with burrata cheese, drizzled with olive oil and balsamic glaze. The tomatoes are deep reds and yellows. Shot from a top-down perspective on a dark slate plate, emphasizing the bright colors of the food against the moody background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDADzdx4S9MZSY-KUnWEcLhWomLlzB0aYMQ0hf-fP4PMeWHujgX9mGnW31VnphvT87yJtm5rRfj19FAjf5YH6TxOXxX91dfaQvXmWJ-asH_e4vZO7yVMrhzNJSPJHpBNzLpa0jbi9dBAT-hkD7h8IpuvXBUkXdSmJVKEd2V74L9IaT2TOGCJkRcKHqS8CoTGJOpc21gw1dz28s4BkrObjEX7nI67eCwf-vw1aXHppJAkutoX3wxMSdEqQ"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface">Heirloom Tomato Burrata</h3>
+</div>
+<p class="font-label-muted text-label-muted text-surface-variant mb-md flex-grow">Fresh basil, aged balsamic, cold-pressed olive oil.</p>
+<div class="space-y-2">
+<label class="font-label-muted text-label-muted text-surface-variant block">Set New Price</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-surface-variant">$</span>
+<input class="w-full bg-inverse-surface border border-error-container text-inverse-on-surface rounded-DEFAULT py-2 pl-7 pr-3 font-body-main text-body-main focus:outline-none focus:border-error-container focus:ring-1 focus:ring-error-container" type="number" value="-5"/>
+</div>
+<div class="flex items-center gap-1 text-error-container bg-[#4A1515] px-2 py-1 rounded-sm border border-[#6B1B1B]">
+<span class="material-symbols-outlined text-[16px]" data-icon="error">error</span>
+<span class="font-label-muted text-label-muted font-semibold">Price must be greater than 0</span>
+</div>
+<div class="flex gap-2 mt-xs">
+<button class="flex-1 py-2 bg-transparent border border-[#444444] text-surface-variant rounded-DEFAULT font-button-label text-button-label hover:bg-surface-container-highest hover:text-inverse-on-surface transition-colors">Cancel</button>
+<button class="flex-1 py-2 bg-primary-container text-on-primary rounded-DEFAULT font-button-label text-button-label opacity-50 cursor-not-allowed">Save</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: State 3 (LOCKED) - Standard Card Size -->
+<div class="col-span-1 md:col-span-6 md:col-start-4 bg-[#252424] border border-[#444444] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden flex flex-col relative opacity-90">
+<!-- Lock Overlay indicator -->
+<div class="absolute top-2 right-2 bg-inverse-surface/80 backdrop-blur-sm px-2 py-1 rounded-full border border-[#444444] flex items-center gap-1 z-10">
+<span class="material-symbols-outlined text-surface-variant text-[14px]" data-icon="lock" data-weight="fill">lock</span>
+<span class="font-label-muted text-label-muted text-surface-variant text-[10px] uppercase tracking-wider">Locked</span>
+</div>
+<div class="h-48 w-full border-b border-[#444444]">
+<img class="w-full h-full object-cover grayscale-[30%]" data-alt="A classic craft cocktail in a lowball glass with a large clear ice cube and an orange peel garnish. The drink is a deep amber color. The setting is a sophisticated, dimly lit bar with polished wood surfaces and subtle background lighting reflecting off the glass." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFFs2b4H8ETmn8-fNhhcZGqYfRc7BCGhYGFxkEvyhbqs_pCVHKyhxA54Yu4vNxy6o-aZnKdqj11lUcKt4DZzO5x_FWeIeKPoGiUT6f0eYt1fOcNCcHyewT4NK_XfU5vUekqt-Tb11t8qnbPYevD6sNA9IMMXRDNStPyU5jcVu_uNMNHwoDqBHNwZ5naq2Ao40IE_WCZ31UEt8uIxTzlkVBiEEZ9SG_K0oymWEoFdXWhAlVlaD_PoPqUg"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-dish-name text-dish-name text-surface-variant">Smoked Old Fashioned</h3>
+<span class="font-price-tag text-price-tag text-surface-variant">$16.00</span>
+</div>
+<p class="font-label-muted text-label-muted text-surface-variant mb-md flex-grow">Bourbon, smoked maple syrup, angostura bitters.</p>
+<div class="w-full py-2 flex items-center justify-center gap-xs bg-surface-container-highest border border-[#444444] text-surface-variant rounded-DEFAULT font-button-label text-button-label cursor-not-allowed">
+<span class="material-symbols-outlined text-[18px]" data-icon="lock">lock</span>
+                        Combo price locked
+                    </div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full flex md:hidden justify-around items-center py-2 bg-inverse-surface border-t border-surface-container-highest shadow-lg z-50">
+<a class="flex flex-col items-center justify-center text-surface-variant hover:text-inverse-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-label-muted text-label-muted mt-1">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-inverse-primary" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long" data-weight="fill">receipt_long</span>
+<span class="font-label-muted text-label-muted mt-1 font-bold">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-surface-variant hover:text-inverse-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-muted text-label-muted mt-1">Book</span>
+</a>
+<a class="flex flex-col items-center justify-center text-surface-variant hover:text-inverse-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-muted text-label-muted mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

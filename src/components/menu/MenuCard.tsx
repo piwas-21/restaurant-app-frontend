@@ -66,9 +66,8 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
   const description = item.content?.[currentLanguage]?.description || item.content?.en?.description || item.description;
 
   // A combo's default picks ("Pizza + Cola") — the one thing the retired MenuBundleCard rendered
-  // that MenuItemDetails does not. Its description is in the same boat: MenuItemDetails keeps both
-  // its description and its ingredient blocks commented out until that feature lands, so a bundle
-  // renders them here or loses them.
+  // that MenuItemDetails still does not. Its DESCRIPTION used to be in the same boat and no longer
+  // is: MenuItemDetails renders that for both kinds now, so only this line is rendered here.
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
 
   // Add to Order: a simple product adds straight to the cart. Details/title: always open the sheet
@@ -115,26 +114,26 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
           // whenever that block is uncommented.
           ingredients={resolveIngredientSummary(item, currentLanguage)}
           allergens={item.allergens}
-          price={price}
           dietaryTags={item.dietaryTags ?? []}
           t={t}
           onTitleClick={openDetails}
+          // The card's Details affordance, on the description block rather than as a second
+          // full-size button beside Add to Order.
+          onDetailsClick={openDetails}
+          detailsLabel={t('details')}
+          detailsAria={t('menu_item_details_aria', { itemName })}
           initialRatingData={{ average: 0, count: 0 }}
         />
 
-        {item.isBundle && (description || bundleIncludes) && (
+        {/* Only the default picks. The description used to be rendered here too, because
+            `MenuItemDetails` had its own copy commented out and a combo would otherwise have lost
+            it; that block is live again, so keeping this one would print the sentence twice. */}
+        {item.isBundle && bundleIncludes && (
           <div className={styles.bundleSummary}>
             {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
-            {description && (
-              <p dir="auto" className={styles.bundleDescription}>
-                {description}
-              </p>
-            )}
-            {bundleIncludes && (
-              <p dir="auto" className={styles.bundleIncludes}>
-                {bundleIncludes}
-              </p>
-            )}
+            <p dir="auto" className={styles.bundleIncludes}>
+              {bundleIncludes}
+            </p>
           </div>
         )}
 
@@ -147,20 +146,20 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
           />
         )}
 
-        {/* The price renders twice by viewport (`.itemPrice` in MenuItemDetails on
-            desktop, `.mobilePrice` here below 600px), so the editor rides in this
-            row — inline with the mobile price, and directly under the desktop one
-            — rather than being duplicated into both. */}
+        {/* One row, one price, at every viewport — the card used to carry two price nodes with
+            only CSS deciding which was showing (`.itemPrice` in MenuItemDetails above 600px,
+            `.mobilePrice` here below it). The admin editor rides in the same row, beside the
+            price it edits. */}
         <div className={styles.priceActionsRow}>
-          <span className={styles.mobilePrice}>{formatPlainCurrency(price)}</span>
+          <span className={styles.rowPrice} aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}>
+            {formatPlainCurrency(price)}
+          </span>
           <AdminPriceEditor item={item} onPriceChange={setPrice} />
           <MenuItemActions
             onAdd={open}
             onFeedback={() => setShowFeedbackForm(true)}
             addAria={t('add_item_to_order', { itemName })}
             addLabel={t('add_to_order')}
-            onDetails={openDetails}
-            detailsLabel={t('details')}
             showAdd={!isBlocked}
             feedbackAria={`${t('feedback_form_heading')} ${itemName}`}
             feedbackLabel={t('feedback_form_heading')}

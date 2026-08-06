@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bistro Elite - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#fcf9f8",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdad5",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdad7",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "surface-bright": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-surface": "#1c1b1b",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#ffb4a8",
+                        "surface-dim": "#dcd9d9",
+                        "primary": "#930000",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#410004",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-surface-variant": "#5d3f3b",
+                        "secondary-container": "#fd6d67",
+                        "on-background": "#1c1b1b",
+                        "outline": "#926f69",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ffccc5",
+                        "surface": "#fcf9f8",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#6d000c",
+                        "tertiary-container": "#b3281d",
+                        "primary-container": "#c00000",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-high": "#eae7e7",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "surface-variant": "#e5e2e1",
+                        "outline-variant": "#e7bdb6",
+                        "secondary": "#ac3231",
+                        "primary-fixed": "#ffdad4",
+                        "surface-container": "#f0eded",
+                        "surface-tint": "#c00000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "on-primary-fixed": "#410000",
+                        "tertiary": "#900b07",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410000",
+                        "on-primary-fixed-variant": "#930000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "0.5rem",
+                        "sm": "1rem",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "xl": "4rem",
+                        "md": "1.5rem",
+                        "lg": "2.5rem",
+                        "max-width": "1200px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "button-label": ["Public Sans"],
+                        "dish-name": ["Playfair Display"],
+                        "body-main": ["Public Sans"],
+                        "section-heading": ["Playfair Display"],
+                        "price-tag": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "label-muted": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #1a1a1a; color: #f9f9f9; }
+        .hairline-border { border: 1px solid #444444; }
+        .lifted-button { background-color: #E06666; color: #1a1a1a; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3); transition: transform 0.2s, box-shadow 0.2s; }
+        .lifted-button:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4); }
+        .lifted-button:active { transform: translateY(0); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3); }
+        .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: background-color 0.2s; }
+        .card-shadow:hover { background-color: #252525; }
+    </style>
+</head>
+<body class="font-body-main antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-[#1a1a1a]/90 backdrop-blur-md border-b border-[#444444] flat no shadows">
+<div class="flex items-center gap-4">
+<span class="font-display-lg text-display-lg font-bold text-[#E06666]">Bistro Elite</span>
+</div>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant dark:text-[#a0a0a0] hover:text-[#E06666] transition-colors font-button-label text-button-label" href="#">Home</a>
+<a class="text-[#E06666] border-b-2 border-[#E06666] pb-1 font-button-label text-button-label" href="#">Menu</a>
+<a class="text-on-surface-variant dark:text-[#a0a0a0] hover:text-[#E06666] transition-colors font-button-label text-button-label" href="#">Reservations</a>
+</nav>
+<div class="flex items-center gap-4 text-[#E06666]">
+<button class="hover:text-[#ff9999] transition-colors press:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="hover:text-[#ff9999] transition-colors press:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex pt-16">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 flex flex-col py-6 bg-[#1a1a1a] border-r border-[#444444] hidden lg:block flat no shadows overflow-y-auto">
+<div class="px-6 mb-8">
+<h2 class="font-section-heading text-section-heading text-[#f9f9f9]">Categories</h2>
+<p class="font-body-main text-body-main text-[#a0a0a0] mt-2">Browse our seasonal menu</p>
+</div>
+<nav class="flex flex-col">
+<a class="flex items-center gap-4 px-6 py-4 text-on-surface-variant dark:text-[#a0a0a0] hover:bg-[#252525] transition-all font-body-main text-body-main" href="#">
+<span class="material-symbols-outlined" data-icon="set_meal">set_meal</span>
+                    Starters
+                </a>
+<a class="flex items-center gap-4 px-6 py-4 text-[#E06666] font-bold border-r-4 border-[#E06666] bg-[#E06666]/10 Active: translate-x-1 duration-200 font-body-main text-body-main" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+                    Main Courses
+                </a>
+<a class="flex items-center gap-4 px-6 py-4 text-on-surface-variant dark:text-[#a0a0a0] hover:bg-[#252525] transition-all font-body-main text-body-main" href="#">
+<span class="material-symbols-outlined" data-icon="icecream">icecream</span>
+                    Desserts
+                </a>
+<a class="flex items-center gap-4 px-6 py-4 text-on-surface-variant dark:text-[#a0a0a0] hover:bg-[#252525] transition-all font-body-main text-body-main" href="#">
+<span class="material-symbols-outlined" data-icon="local_cafe">local_cafe</span>
+                    Beverages
+                </a>
+<a class="flex items-center gap-4 px-6 py-4 text-on-surface-variant dark:text-[#a0a0a0] hover:bg-[#252525] transition-all font-body-main text-body-main" href="#">
+<span class="material-symbols-outlined" data-icon="wine_bar">wine_bar</span>
+                    Wine List
+                </a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 lg:ml-64 p-margin-mobile md:p-margin-desktop max-w-[1200px] mx-auto min-h-screen">
+<header class="mb-lg mt-md">
+<h1 class="font-section-heading text-4xl text-[#f9f9f9] mb-2">Main Courses</h1>
+<p class="font-body-main text-lg text-[#a0a0a0] max-w-2xl">Experience our carefully curated selection of entrees, prepared with the finest seasonal ingredients in a warm, intimate dining atmosphere.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm">
+<!-- Card 1 (Special) -->
+<article class="bg-[#1e1e1e] rounded-lg hairline-border card-shadow flex flex-col overflow-hidden relative">
+<div class="absolute top-4 left-4 z-10 bg-[#E06666] text-[#1a1a1a] px-3 py-1 rounded-full font-button-label text-[0.75rem] font-bold uppercase tracking-wider shadow-md">Chef's Special</div>
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A beautifully plated seared duck breast with a dark cherry gastrique, vibrant green asparagus spears, and parsnip purée. Shot in a moody, low-light fine dining restaurant setting with warm ambient lighting highlighting the glossy sauce and perfectly cooked medium-rare meat. Corporate modern aesthetic, rich colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRPFSCAQVmHb8RA-XUsSDSrof3MW9rEQ6pkzsh-RY8zvkaDndNR_opWrPBzzQh8palupzSxZi2mPu7p81_b3-6sAUSSJj9_rRTcNSo2-vsQgHGmUbHU-_wr-vCNJQHEGqnm0HZMmg7kXhkUJ4D4AK2J90OZDotPx09N2Hq1qQg8XYKaNURk0vGFQLRMG7IOIuXeSUOP_16pQXX9ewrk-93VjhQLeyNKjUZFensxV_-fN7B2F4ftx4-aA"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-[#f9f9f9]">Seared Duck Breast</h3>
+<span class="font-price-tag text-price-tag text-[#E06666]">$38</span>
+</div>
+<p class="font-body-main text-sm text-[#a0a0a0] mb-4 flex-1 line-clamp-3">Pan-seared Muscovy duck breast, dark cherry gastrique, parsnip purée, and butter-glazed asparagus.</p>
+<div class="flex gap-2 mb-4">
+<span class="px-2 py-1 text-xs text-[#a0a0a0] hairline-border rounded-full">Gluten-Free</span>
+</div>
+<button class="lifted-button w-full py-3 rounded-md font-button-label text-button-label flex items-center justify-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-[1.2rem]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                            Add to Order
+                        </button>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-[#1e1e1e] rounded-lg hairline-border card-shadow flex flex-col overflow-hidden">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A classic elegant beef wellington cut open to reveal a perfectly pink center and mushroom duxelles, resting on a pool of rich dark demi-glace. Served on a pristine white plate in a dimly lit, upscale dining room with subtle background bokeh. Modern culinary aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq1uoLvtwRmX0RYwpRoiV3_y8xoc53vyTyIBGEIGhzllDxFoHRurMUZ4Bu1spBTph5IaDLYZnjXc25qm6TGtDoaszybFNLgObuYjq2cToQFw2W8TYwKv1YR8ZCDH17F3Kqiw4MqNnXrWxJyqSUawTZe42_GIZyZ-oO2dh_DFFKmS2bQZ8-3_G0sfDlUwo-JF-epcUyONjpi1qMjlUsSuyOtUBG55vF3-2MqaG2mexoPqDrRXxbdvJk0Q"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-[#f9f9f9]">Beef Wellington</h3>
+<span class="font-price-tag text-price-tag text-[#E06666]">$45</span>
+</div>
+<p class="font-body-main text-sm text-[#a0a0a0] mb-4 flex-1 line-clamp-3">Prime beef fillet wrapped in mushroom duxelles and flaky puff pastry, served with a rich red wine demi-glace.</p>
+<div class="flex gap-2 mb-4 h-[26px]">
+<!-- Empty chip area for alignment -->
+</div>
+<button class="lifted-button w-full py-3 rounded-md font-button-label text-button-label flex items-center justify-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-[1.2rem]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                            Add to Order
+                        </button>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="bg-[#1e1e1e] rounded-lg hairline-border card-shadow flex flex-col overflow-hidden">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A delicate pan-seared sea bass fillet topped with a vibrant citrus beurre blanc sauce, resting on a bed of vivid green herb risotto. The setting is a sophisticated dark-themed restaurant table at night, illuminated by a warm spotlight creating dramatic shadows. High-end modern dining." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBap5Nc6YozpUlLJ7YMrcmUjf_1of5m8I8q_98SqEOG6eUhmiLYZ9_7aYlBc7RCDudZ-s_bUU_KFY1cepkbxjJBjCA1RgHphRUDsSc6NZqcBDt2KX0pQB5GZ5-HBJq_HZugwFwmtM2ksIe5WdzFKx09jkTXP9SjXvmC3fXpJaDLUqheER0d77iUHGnd3jDIAMOjG5ocIJDjZYVI2JE-7_Vl9Pxi7mhm8rFJQbVJKIAkWyXNrhBJBCv_0g"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-[#f9f9f9]">Chilean Sea Bass</h3>
+<span class="font-price-tag text-price-tag text-[#E06666]">$42</span>
+</div>
+<p class="font-body-main text-sm text-[#a0a0a0] mb-4 flex-1 line-clamp-3">Pan-roasted sea bass, delicate citrus beurre blanc, served over a vibrant spring pea and herb risotto.</p>
+<div class="flex gap-2 mb-4">
+<span class="px-2 py-1 text-xs text-[#a0a0a0] hairline-border rounded-full">Pescatarian</span>
+</div>
+<button class="lifted-button w-full py-3 rounded-md font-button-label text-button-label flex items-center justify-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-[1.2rem]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                            Add to Order
+                        </button>
+</div>
+</article>
+<!-- Card 4 (Special) -->
+<article class="bg-[#1e1e1e] rounded-lg hairline-border card-shadow flex flex-col overflow-hidden relative">
+<div class="absolute top-4 left-4 z-10 bg-[#E06666] text-[#1a1a1a] px-3 py-1 rounded-full font-button-label text-[0.75rem] font-bold uppercase tracking-wider shadow-md">Seasonal Local</div>
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A beautiful modern vegetarian dish featuring roasted heirloom carrots with cumin and honey, whipped feta spread, toasted pistachios, and micro-cilantro. Shot on dark stoneware in an intimate, low-key restaurant setting with warm candle-like lighting. Earthy, rich, corporate modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGtce8O6X4XtMPoQTa93b9A3WWYhMyC7vzxasJEU0x12--wZJF5Wu4xFJDYylmKbCRdmdyyx_G5vQjtlgIuqkQbw8bSGeFdj-GZq6KAV4ECEHkKHNbmnULPVO-_TQRa_IhoRZRsdMLU-RZv6hy87Oq0DjyIDecNlHavl6rgc691g-cRwzU1h-Fa_c5rr69HpVzDGlw5uacvBk_gspJfpqFqGaxuHdqNorW0YyMMWAxCactLfqhfwhP7Q"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-[#f9f9f9]">Roasted Heirloom Carrots</h3>
+<span class="font-price-tag text-price-tag text-[#E06666]">$24</span>
+</div>
+<p class="font-body-main text-sm text-[#a0a0a0] mb-4 flex-1 line-clamp-3">Cumin-spiced roasted local carrots, whipped feta, toasted pistachios, hot honey drizzle, and micro-herbs.</p>
+<div class="flex gap-2 mb-4">
+<span class="px-2 py-1 text-xs text-[#a0a0a0] hairline-border rounded-full">Vegetarian</span>
+</div>
+<button class="lifted-button w-full py-3 rounded-md font-button-label text-button-label flex items-center justify-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-[1.2rem]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                            Add to Order
+                        </button>
+</div>
+</article>
+<!-- Card 5 -->
+<article class="bg-[#1e1e1e] rounded-lg hairline-border card-shadow flex flex-col overflow-hidden">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A rustic yet refined wild mushroom risotto garnished with shaved fresh black truffle, parmesan crisps, and a drizzle of white truffle oil. Served in a shallow dark ceramic bowl on a dark wooden table in a dimly lit, cozy bistro setting. Rich, savory, and atmospheric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmtFAdYoxjPs_8dBxQ3kdx2QttEjrJ0iXWHdVrgxV0XgeBZCQpRYtdyGFVSUJSGToD5KYm8pan5-04Kbuvgp6cgHRI2Z3HdaQGfg8LmJ9V6MSKbA7Oul5Gg6d3_4_QuQ8QcHGzXlS34sH9mv6OsBZmtcsFrVw8JmpFhUZepjdTvotY-jTFj7TiQHZy8gHVjJOfGKGa4nSyAQFOTUTV1djZXvcbCKZzdcSN7p--KXjPKGi-NjGQdmxvMg"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-[#f9f9f9]">Wild Mushroom Risotto</h3>
+<span class="font-price-tag text-price-tag text-[#E06666]">$28</span>
+</div>
+<p class="font-body-main text-sm text-[#a0a0a0] mb-4 flex-1 line-clamp-3">Creamy Arborio rice folded with foraged seasonal mushrooms, finished with white truffle oil and shaved Parmigiano-Reggiano.</p>
+<div class="flex gap-2 mb-4">
+<span class="px-2 py-1 text-xs text-[#a0a0a0] hairline-border rounded-full">Vegetarian</span>
+<span class="px-2 py-1 text-xs text-[#a0a0a0] hairline-border rounded-full">Gluten-Free</span>
+</div>
+<button class="lifted-button w-full py-3 rounded-md font-button-label text-button-label flex items-center justify-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-[1.2rem]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                            Add to Order
+                        </button>
+</div>
+</article>
+<!-- Card 6 -->
+<article class="bg-[#1e1e1e] rounded-lg hairline-border card-shadow flex flex-col overflow-hidden">
+<div class="h-48 w-full relative">
+<img class="w-full h-full object-cover" data-alt="A thick, juicy, grilled bone-in ribeye steak with perfect crosshatch grill marks, topped with melting herb compound butter. Served alongside crispy golden frites and a small watercress salad. Photographed in a moody, dark steakhouse environment with warm, focused lighting. High contrast, premium feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGIzz0ZUJWesn5ztYKA29OtnV9wyvwXFehkM-CMr2j3PoYMtARcSLnExvfyki8G12paDqAzOzINJEas56pBjfUH4RO0zGoAGOVZfUlWZys5yHMdcSbwc5Gc4vTkovfNY6PJWP8IcYFuTTEvmurDS_799GzUVphnTELBa5WcIHT3z4CIRET30dY1aCSif7TYb7SfiIXPopRfVq82zIvMbud5VVybAfamh6xNfrxnn2K6uwwifjFAE7nmg"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-dish-name text-dish-name text-[#f9f9f9]">Bone-In Ribeye</h3>
+<span class="font-price-tag text-price-tag text-[#E06666]">$58</span>
+</div>
+<p class="font-body-main text-sm text-[#a0a0a0] mb-4 flex-1 line-clamp-3">16oz dry-aged prime ribeye, grilled to order, topped with roasted garlic herb butter. Served with truffle frites.</p>
+<div class="flex gap-2 mb-4 h-[26px]">
+<!-- Empty chip area for alignment -->
+</div>
+<button class="lifted-button w-full py-3 rounded-md font-button-label text-button-label flex items-center justify-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-[1.2rem]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                            Add to Order
+                        </button>
+</div>
+</article>
+</div>
+</main>
+</div>
+</body></html>

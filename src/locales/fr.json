@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Modifier cet article",
   "admin_edit_item_short": "Modifier",
   "admin_edit_price": "Modifier le prix",
+  "menu_item_details_aria": "Voir les détails de {{itemName}}",
+  "admin_edit_price_editing": "Modification du prix",
   "map": "Plan",
   "list": "Liste",
   "everywhere": "Partout",

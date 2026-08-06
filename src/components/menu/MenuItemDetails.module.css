@@ -1,36 +1,69 @@
 /* Menu Item Details Styles */
+/* 1.15rem/600, the DESIGN.md `dish-name` step — down from 1.6rem, which on a three-up grid made
+   the name shout over the dish photo above it. Two lines, not one: real names ("Hand-Cut Beef
+   Tartare") wrap, and the old `-webkit-line-clamp: 1` + `min-height` pair truncated them mid-word
+   while still reserving the height of a line that was no longer there. */
 .itemTitle {
-  font-size: 1.6rem;
-  margin-bottom: 0.7rem;
-  color: var(--text-color);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  overflow: hidden;
-  min-height: 1.8rem;
-}
-
-.itemDescription {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.8rem;
-}
-
-.clamp2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 0.4rem;
+  color: var(--text-primary);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
-  min-height: 2.8rem;
 }
 
-.itemPrice {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--primary-color);
-  margin-bottom: 1.2rem;
+/* Clamped to two lines at every viewport. The full text is one tap away in the details sheet, and
+   an unclamped description made cards in the same grid row wildly different heights. */
+.itemDescription {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* The details affordance. Styled as a text link but it IS a <button> — see MenuItemDetails.tsx.
+   `align-self: start` so the hit area is the width of the word, not the width of the card.
+
+   NO `margin-top: auto` here. `MenuItemDetails` returns a fragment, so this is a direct flex child
+   of the same column as `.priceActionsRow`, which already claims the free space that way — two auto
+   margins SPLIT it, opening a drifting gap above this link on every card shorter than the tallest
+   in its grid row.
+
+   --brand-primary-elevated, not --brand-primary: this is small brand-coloured text sitting on
+   surfaces the card actually takes, and the plain brand only clears AA on ONE of them in dark —
+   4.57:1 on the resting card, but 3.23:1 on `.menuItem:hover` (--surface-secondary-light) and
+   4.16:1 on `.menuItem.blocked` (--surface-secondary). The elevated token exists for precisely this
+   "brand as small text on a tinted surface" case and clears all three in both themes (5.0–9.6).
+   All three pairs are gated in adminPriceEditorContrast.test.ts. */
+.detailsLink {
+  align-self: flex-start;
+  padding: 0.35rem 0;
+  background: none;
+  border: none;
+  color: var(--brand-primary-elevated);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: start;
+}
+
+.detailsLink:hover {
+  text-decoration: underline;
+}
+
+.detailsLink:focus-visible {
+  outline: 2px solid var(--brand-primary-elevated);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .allergyTags {
@@ -72,62 +105,44 @@
   opacity: 0.9;
 }
 
-/* Legacy allergyTag styles - kept for backward compatibility */
+/* Dietary chips: 1px border, 10px radius, muted text, NO background fill — DESIGN.md §Components.
+   They used to be four differently-tinted pills (green vegan, blue vegetarian, amber gluten-free,
+   grey halal), which put three more colour families on a card already carrying too many and made
+   the chips louder than the dish name above them. One neutral outline for all of them — the meaning
+   is in the word, which is the part a guest actually reads. The per-diet classes are gone rather
+   than flattened to identical rules, so nothing looks like it is still varying by diet. */
 .allergyTag {
   display: inline-block;
-  padding: 0.4em 0.8em;
-  border-radius: 15px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin: 0.25rem;
-  border: 1px solid transparent;
-}
-
-.allergyTag.vegan {
-  background-color: var(--success-color-xlight);
-  color: var(--success-color-dark);
-  border-color: var(--success-color-light);
-}
-
-.allergyTag.vegetarian {
-  background-color: var(--info-color-xlight);
-  color: var(--info-color-dark);
-  border-color: var(--info-color-light);
-}
-
-.allergyTag.halal {
-  background-color: var(--secondary-color-light);
-  color: var(--text-secondary);
-  border-color: var(--border-color-light);
-}
-
-.allergyTag.gluten-free {
-  background-color: var(--warning-color-xlight);
-  color: var(--warning-color-dark);
-  border-color: var(--warning-color-light);
+  padding: 0.25em 0.6em;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin: 0.15rem;
+  background-color: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
 }
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
   .itemTitle {
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    min-height: auto;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
   }
 
+  /* Was `display: none` — "hide description on mobile for cleaner look". What it actually did was
+     strip the row card down to a name and a price, and leave the details affordance with nothing
+     to attach to. It stays clamped to two lines; the row has space for them. */
   .itemDescription {
-    display: none; /* Hide description on mobile for cleaner look */
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin-bottom: 0.35rem;
   }
 
-  .clamp2 {
-    min-height: auto;
-  }
-
-  .itemPrice {
-    display: none; /* Hide - shown in mobilePrice instead */
+  .detailsLink {
+    margin-top: 0;
+    font-size: 0.8rem;
+    padding: 0.25rem 0;
   }
 
   .allergyTags {

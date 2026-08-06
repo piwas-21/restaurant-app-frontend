@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Редактировать этот элемент",
   "admin_edit_item_short": "Изменить",
   "admin_edit_price": "Изменить цену",
+  "menu_item_details_aria": "Показать подробности: {{itemName}}",
+  "admin_edit_price_editing": "Изменение цены",
   "map": "Карта",
   "list": "Список",
   "everywhere": "Везде",

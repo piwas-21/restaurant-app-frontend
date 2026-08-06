@@ -1,96 +1,85 @@
-/* Menu Item Actions Styles */
+/* The card's single call to action — see MenuItemActions.tsx for why there is only one.
+
+   The background is the BRAND, not the old --success-color-darker green. The classic menu page was
+   running three unrelated accent families at once: a red brand, a green CTA and a gold featured
+   panel, none derived from the others. That is why it read as assembled rather than designed, and
+   the redesign's first rule is one accent family (docs/stitch-screens/heritage_table/DESIGN.md).
+   The pair is gated in adminPriceEditorContrast.test.ts — --text-on-primary on --brand-primary is
+   6.48:1 light and 5.19:1 dark, comfortably past the 4.5 the green tier was originally chosen for. */
 .itemActions {
   margin-top: auto;
-}
-
-.addToOrderButton,
-.feedbackButton {
-  color: var(--button-text-color);
-  border: none;
-  padding: 0.8rem 1.3rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  border-radius: 20px;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s;
-  margin-top: 0.5rem;
-  font-weight: 500;
-}
-
-.viewDetailsButton {
-  background-color: var(--secondary-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 0.8rem 1.3rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  border-radius: 20px;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s;
-  /* Gap from the button before it in the row. */
-  margin-inline-start: 0.5rem;
-}
-
-.viewDetailsButton:hover {
-  background-color: var(--secondary-color-light);
-  transform: translateY(-1px);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .addToOrderButton {
-  /* --success-color-darker is the WCAG-AA success tier: ~5.5:1 against white
-     button text in light mode and ~5.7:1 against the dark-surface text in dark
-     mode. The plain --success-color gave only ~2.7:1 on white; the intermediate
-     --success-color-dark was 4.11:1, still under AA's 4.5 threshold. The
-     menu-and-cart e2e test catches regressions to either via axe-core. */
-  background-color: var(--success-color-darker);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border: none;
+  /* 10px is the system's ONE radius — no pills, no sharp corners (DESIGN.md §Shapes). */
+  border-radius: 10px;
+  padding: 0.7rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  min-height: 44px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
 }
 
+/* Shifts colour rather than growing a shadow or lifting — DESIGN.md §Elevation: depth is tonal
+   here, and a transform on a card-sized grid made the whole page twitch on pointer move.
+   --brand-primary-hover, NOT --brand-primary-dark: the latter is declared only in the light block,
+   so in dark it would put dark ink on #890303 at 1.72:1. */
 .addToOrderButton:hover {
-  /* Hover keeps the same bg colour (already AA-pass) — affordance comes
-     from the transform + cursor change. Going darker still would need a
-     fourth design-token tier for marginal UX gain. */
-  transform: translateY(-1px);
+  background-color: var(--brand-primary-hover);
 }
 
-.feedbackButton {
-  background-color: var(--warning-color);
-  margin-inline-start: 0.5rem;
+.addToOrderButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
-.feedbackButton:hover {
-  background-color: var(--warning-color-dark);
-  transform: translateY(-1px);
+/* The icon is the MOBILE form of this button; above 600px the written label carries it. */
+.addIcon {
+  display: none;
 }
 
-/* Responsive adjustments */
 @media (max-width: 600px) {
   .itemActions {
-    display: inline-flex;
-    gap: 0.25rem;
     margin-top: 0;
-    margin-inline-start: auto; /* Push to the trailing edge */
-    vertical-align: middle;
+    /* Push to the trailing edge of the price row, opposite the price. */
+    margin-inline-start: auto;
+    align-items: center;
   }
 
-  .addToOrderButton,
-  .feedbackButton,
-  .viewDetailsButton {
-    padding: 0.15rem 0.4rem;
-    font-size: 0.6rem;
-    border-radius: 3px;
-    margin: 0;
-    margin-top: 0;
-    line-height: 1;
-    min-height: unset;
+  /* A round icon button at the 44px minimum. The label is REMOVED from the box rather than
+     visually hidden — `aria-label` is what names this button in both forms, so there is nothing
+     for a screen reader to lose. */
+  .addToOrderButton {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    gap: 0;
   }
 
-  .viewDetailsButton {
-    margin-inline-start: 0;
+  .addToOrderButton:active {
+    transform: scale(0.96);
   }
 
-  .feedbackButton {
-    display: none; /* Hide feedback on mobile for space */
+  .addLabel {
+    display: none;
+  }
+
+  .addIcon {
+    display: block;
   }
 }

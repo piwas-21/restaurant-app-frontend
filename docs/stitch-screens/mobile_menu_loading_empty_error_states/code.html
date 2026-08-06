@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Menu States</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#410000",
+                        "tertiary": "#900b07",
+                        "outline": "#926f69",
+                        "surface-tint": "#c00000",
+                        "on-error-container": "#93000a",
+                        "surface": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-primary-fixed-variant": "#930000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "on-secondary-container": "#6d000c",
+                        "surface-bright": "#fcf9f8",
+                        "outline-variant": "#e7bdb6",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "surface-dim": "#dcd9d9",
+                        "primary": "#930000",
+                        "surface-container-high": "#eae7e7",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#ffb4a8",
+                        "background": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-background": "#1c1b1b",
+                        "inverse-surface": "#313030",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#ffcdc5",
+                        "on-tertiary-container": "#ffccc5",
+                        "secondary-fixed": "#ffdad7",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-container": "#f0eded",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#410000",
+                        "tertiary-container": "#b3281d",
+                        "secondary-container": "#fd6d67",
+                        "surface-variant": "#e5e2e1",
+                        "on-surface": "#1c1b1b",
+                        "primary-container": "#c00000",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#5d3f3b",
+                        "tertiary-fixed": "#ffdad5",
+                        "secondary": "#ac3231",
+                        "primary-fixed": "#ffdad4",
+                        "on-secondary-fixed": "#410004",
+                        "surface-container-low": "#f6f3f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "1rem",
+                        "base": "4px",
+                        "gutter": "16px",
+                        "max-width": "1200px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "md": "1.5rem",
+                        "lg": "2.5rem",
+                        "xs": "0.5rem",
+                        "xl": "4rem"
+                    },
+                    "fontFamily": {
+                        "body-main": ["Public Sans"],
+                        "price-tag": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "section-heading": ["Playfair Display"],
+                        "label-muted": ["Public Sans"],
+                        "button-label": ["Public Sans"],
+                        "dish-name": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "display-lg-mobile": ["28px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .skeleton-shimmer {
+            background: linear-gradient(90deg, #eae7e7 0%, #f6f3f2 50%, #eae7e7 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface font-body-main min-h-screen flex items-center justify-center p-8 gap-8 flex-wrap">
+<!-- Frame 1: Loading Skeleton -->
+<div class="w-[390px] h-[844px] bg-surface relative overflow-hidden flex flex-col border border-surface-dim rounded-[32px] shadow-2xl">
+<!-- Header Skeleton -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface/95 backdrop-blur-sm border-b border-outline-variant absolute">
+<div class="w-8 h-8 skeleton-shimmer rounded-full"></div>
+<div class="w-32 h-6 skeleton-shimmer rounded"></div>
+<div class="w-8 h-8 skeleton-shimmer rounded-full"></div>
+</header>
+<div class="flex-1 overflow-y-auto pt-20 px-margin-mobile pb-24">
+<!-- Special Strip Skeleton -->
+<div class="mb-lg">
+<div class="w-48 h-8 skeleton-shimmer rounded mb-sm"></div>
+<div class="flex gap-sm overflow-x-hidden">
+<div class="w-64 h-40 skeleton-shimmer rounded-xl shrink-0"></div>
+<div class="w-64 h-40 skeleton-shimmer rounded-xl shrink-0"></div>
+</div>
+</div>
+<!-- List Skeleton -->
+<div class="space-y-sm">
+<div class="w-32 h-6 skeleton-shimmer rounded mb-sm mt-lg"></div>
+<div class="flex items-center gap-sm p-4 bg-surface-container-lowest border border-surface-dim rounded-xl">
+<div class="w-20 h-20 skeleton-shimmer rounded-lg shrink-0"></div>
+<div class="flex-1 space-y-2">
+<div class="w-3/4 h-5 skeleton-shimmer rounded"></div>
+<div class="w-1/2 h-4 skeleton-shimmer rounded"></div>
+<div class="w-1/4 h-4 skeleton-shimmer rounded mt-2"></div>
+</div>
+</div>
+<div class="flex items-center gap-sm p-4 bg-surface-container-lowest border border-surface-dim rounded-xl">
+<div class="w-20 h-20 skeleton-shimmer rounded-lg shrink-0"></div>
+<div class="flex-1 space-y-2">
+<div class="w-2/3 h-5 skeleton-shimmer rounded"></div>
+<div class="w-3/4 h-4 skeleton-shimmer rounded"></div>
+<div class="w-1/3 h-4 skeleton-shimmer rounded mt-2"></div>
+</div>
+</div>
+<div class="flex items-center gap-sm p-4 bg-surface-container-lowest border border-surface-dim rounded-xl">
+<div class="w-20 h-20 skeleton-shimmer rounded-lg shrink-0"></div>
+<div class="flex-1 space-y-2">
+<div class="w-5/6 h-5 skeleton-shimmer rounded"></div>
+<div class="w-1/2 h-4 skeleton-shimmer rounded"></div>
+<div class="w-1/4 h-4 skeleton-shimmer rounded mt-2"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Nav Skeleton -->
+<div class="absolute bottom-0 w-full h-[80px] bg-surface-container-lowest border-t border-outline-variant flex justify-around items-center px-4">
+<div class="w-12 h-12 skeleton-shimmer rounded-full"></div>
+<div class="w-12 h-12 skeleton-shimmer rounded-full"></div>
+<div class="w-12 h-12 skeleton-shimmer rounded-full"></div>
+<div class="w-12 h-12 skeleton-shimmer rounded-full"></div>
+</div>
+</div>
+<!-- Frame 2: Empty State -->
+<div class="w-[390px] h-[844px] bg-surface relative overflow-hidden flex flex-col border border-surface-dim rounded-[32px] shadow-2xl">
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface/95 backdrop-blur-sm border-b border-outline-variant absolute">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-display-lg text-display-lg-mobile font-bold text-primary">Bistro Elite</h1>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</header>
+<!-- Categories Tabs -->
+<div class="absolute top-16 w-full px-margin-mobile py-sm overflow-x-auto whitespace-nowrap bg-surface border-b border-outline-variant z-40 flex gap-4 scrollbar-hide">
+<button class="font-button-label text-button-label px-4 py-2 rounded-full border border-primary text-primary bg-primary/10">Special</button>
+<button class="font-button-label text-button-label px-4 py-2 rounded-full border border-outline text-on-surface-variant">Starters</button>
+<button class="font-button-label text-button-label px-4 py-2 rounded-full border border-outline text-on-surface-variant">Mains</button>
+<button class="font-button-label text-button-label px-4 py-2 rounded-full border border-outline text-on-surface-variant">Desserts</button>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center p-8 text-center pt-32">
+<div class="w-32 h-32 mb-6 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-6xl text-surface-dim">restaurant_menu</span>
+</div>
+<h2 class="font-section-heading text-section-heading text-on-surface mb-2">No dishes here yet</h2>
+<p class="font-body-main text-body-main text-on-surface-variant max-w-[250px]">We're currently curating this section of our menu. Please check back later or explore our other offerings.</p>
+<button class="mt-8 bg-transparent border border-primary text-primary font-button-label text-button-label px-6 py-3 rounded-lg hover:bg-primary/5 transition-colors">
+                Browse Full Menu
+            </button>
+</div>
+<div class="absolute bottom-0 w-full h-[80px] bg-surface-container-lowest border-t border-outline-variant flex justify-around items-center px-4">
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined filled">restaurant</span>
+<span class="text-[10px] font-button-label mt-1">Menu</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-button-label mt-1">Search</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-button-label mt-1">Orders</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-button-label mt-1">Profile</span>
+</div>
+</div>
+</div>
+<!-- Frame 3: Error State -->
+<div class="w-[390px] h-[844px] bg-surface relative overflow-hidden flex flex-col border border-surface-dim rounded-[32px] shadow-2xl">
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface/95 backdrop-blur-sm border-b border-outline-variant absolute">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-display-lg text-display-lg-mobile font-bold text-primary">Bistro Elite</h1>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</header>
+<div class="flex-1 flex flex-col items-center justify-center p-8 text-center pt-16 bg-surface-container-lowest">
+<div class="w-32 h-32 mb-6 rounded-full bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-6xl">wifi_off</span>
+</div>
+<h2 class="font-section-heading text-section-heading text-on-surface mb-2">Unable to load menu</h2>
+<p class="font-body-main text-body-main text-on-surface-variant mb-8 max-w-[250px]">We're having trouble connecting to our kitchen. Please check your connection and try again.</p>
+<button class="bg-surface-tint text-on-primary font-button-label text-button-label px-8 py-3 rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.06)] active:scale-95">
+                Retry Connection
+            </button>
+</div>
+<div class="absolute bottom-0 w-full h-[80px] bg-surface-container-lowest border-t border-outline-variant flex justify-around items-center px-4">
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined filled">restaurant</span>
+<span class="text-[10px] font-button-label mt-1">Menu</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-button-label mt-1">Search</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-button-label mt-1">Orders</span>
+</div>
+<div class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-button-label mt-1">Profile</span>
+</div>
+</div>
+</div>
+</body></html>

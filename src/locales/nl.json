@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Dit item bewerken",
   "admin_edit_item_short": "Bewerken",
   "admin_edit_price": "Prijs bewerken",
+  "menu_item_details_aria": "Details van {{itemName}} bekijken",
+  "admin_edit_price_editing": "Prijs bewerken",
   "map": "Kaart",
   "list": "Lijst",
   "everywhere": "Overal",

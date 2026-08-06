@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bistro Elite - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#fcf9f8",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdad5",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdad7",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "surface-bright": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-surface": "#1c1b1b",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#ffb4a8",
+                        "surface-dim": "#dcd9d9",
+                        "primary": "#930000",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#410004",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-surface-variant": "#5d3f3b",
+                        "secondary-container": "#fd6d67",
+                        "on-background": "#1c1b1b",
+                        "outline": "#926f69",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ffccc5",
+                        "surface": "#fcf9f8",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#6d000c",
+                        "tertiary-container": "#b3281d",
+                        "primary-container": "#c00000",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-high": "#eae7e7",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "surface-variant": "#e5e2e1",
+                        "outline-variant": "#e7bdb6",
+                        "secondary": "#ac3231",
+                        "primary-fixed": "#ffdad4",
+                        "surface-container": "#f0eded",
+                        "surface-tint": "#c00000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "on-primary-fixed": "#410000",
+                        "tertiary": "#900b07",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410000",
+                        "on-primary-fixed-variant": "#930000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "0.5rem",
+                        "sm": "1rem",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "xl": "4rem",
+                        "md": "1.5rem",
+                        "lg": "2.5rem",
+                        "max-width": "1200px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "button-label": ["Public Sans"],
+                        "dish-name": ["Playfair Display"],
+                        "body-main": ["Public Sans"],
+                        "section-heading": ["Playfair Display"],
+                        "price-tag": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "label-muted": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }]
+                    },
+                    boxShadow: {
+                        'card-soft': '0 1px 3px rgba(0,0,0,.06)'
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pt-24 pb-16">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-background/80 backdrop-blur-md border-b border-outline-variant shadow-none">
+<div class="flex items-center gap-6">
+<span class="font-display-lg text-display-lg font-bold text-primary tracking-tight">Bistro Elite</span>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-button-label text-button-label" href="#">Starters</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-button-label text-button-label" href="#">Main Courses</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-button-label text-button-label" href="#">Desserts</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-button-label text-button-label" href="#">Beverages</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:scale-95 duration-100 relative">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="absolute -top-1 -right-1 bg-primary text-on-primary text-[10px] w-4 h-4 rounded-full flex items-center justify-center">2</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors hover:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="mb-lg">
+<h1 class="font-section-heading text-section-heading text-on-background">Main Courses</h1>
+<p class="font-body-main text-body-main text-on-surface-variant mt-2">Discover our signature dishes, crafted with seasonal ingredients and traditional techniques.</p>
+</div>
+<!-- 3-Column Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter lg:gap-margin-desktop">
+<!-- Card 1: Standard Description -->
+<article class="bg-surface-container-lowest rounded-[10px] border border-[#DDDDDD] shadow-card-soft overflow-hidden hover:bg-surface-container-low transition-colors duration-200 flex flex-col group cursor-pointer">
+<div class="relative h-[240px] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A top-down view of a perfectly seared steak frites on a crisp white ceramic plate, served with a side of golden shoestring fries and a sprig of fresh thyme. Bright, natural daylight floods the scene, enhancing the textures of the meat and the crispy edges of the potatoes. The styling is modern, clean, and appetizing, fitting a premium bistro menu." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzsSu1TPvmx2bqK-WthJoSU8TeZ1quP9UkgbegU1Cb0QsuiAPl2aOq-qir0A0IPQxM16QXYGHTJCQOLz03RcUSb9deD9d999HyGItCUo9UL30DPWSe_vNkl_RReI_1XAciFywGmqAF6k09207VsNGyU768EBCYPC6jfUt1I1isb_2MQE80xTwP9dLbiwP9wD53dTHc3bQAmSqPZQR9bKvENZFQwHa6GBUmR6dmycaRO4j6INbWrb65bA"/>
+</div>
+<div class="p-4 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h2 class="font-dish-name text-dish-name text-on-background">Steak Frites</h2>
+<div class="flex gap-1 flex-wrap justify-end max-w-[40%]">
+<span class="inline-block border border-[#DDDDDD] rounded-[10px] px-2 py-0.5 font-label-muted text-label-muted text-[#6B7280]">GF</span>
+</div>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-4 flex-grow line-clamp-3">Classic ribeye steak cooked to perfection, accompanied by our signature crispy shoestring fries and a side of house-made herb butter.</p>
+<div class="flex justify-between items-center mt-auto pt-4 border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-background">CHF 38.50</span>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded-[4px] font-button-label text-button-label hover:bg-[#890303] transition-colors active:scale-95 shadow-sm">Add to Order</button>
+</div>
+</div>
+</article>
+<!-- Card 2: Long Description & Multiple Tags -->
+<article class="bg-surface-container-lowest rounded-[10px] border border-[#DDDDDD] shadow-card-soft overflow-hidden hover:bg-surface-container-low transition-colors duration-200 flex flex-col group cursor-pointer">
+<div class="relative h-[240px] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A beautifully plated portion of wild mushroom risotto in a shallow, wide white bowl. The risotto is creamy, garnished with shaved parmesan, fresh parsley, and a drizzle of truffle oil. The lighting is soft and directional, highlighting the rich textures and earthy tones of the mushrooms. The setting is elegant and minimalist." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC14cydTnQzYxvex9GWqtLSBwJXDG6Jeb9yjsUXjB-CDV3NB93cheP1wiOGGxu56hcaRkOB9ghTBaL2Mr_lEIdxiEcH_hyQ2Vrmvjeu-kQ-fq9xGcZuB6GJis59-cxwtPo7v8Ippes53xkU8p7su3uXXYKAaGp4RSwYVST9h_gR41kW9-8qDi5-_68QHJR4cMQn8vKonTTAJECp9WNXJdeqbtAgkuRRVl2Ir2dOFbKBgBCUtJ9y-RFMMQ"/>
+</div>
+<div class="p-4 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h2 class="font-dish-name text-dish-name text-on-background">Wild Mushroom Risotto</h2>
+<div class="flex gap-1 flex-wrap justify-end max-w-[40%]">
+<span class="inline-block border border-[#DDDDDD] rounded-[10px] px-2 py-0.5 font-label-muted text-label-muted text-[#6B7280]">V</span>
+<span class="inline-block border border-primary rounded-[10px] px-2 py-0.5 font-label-muted text-label-muted text-primary">Chef's Pick</span>
+</div>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-4 flex-grow text-sm">Creamy Arborio rice slow-cooked with a seasonal blend of wild porcini and chanterelle mushrooms. Finished with a generous shaving of aged Parmigiano-Reggiano, a drizzle of white truffle oil, and fresh micro-herbs for a rich, earthy flavor profile.</p>
+<div class="flex justify-between items-center mt-auto pt-4 border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-background">CHF 26.00</span>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded-[4px] font-button-label text-button-label hover:bg-[#890303] transition-colors active:scale-95 shadow-sm">Add to Order</button>
+</div>
+</div>
+</article>
+<!-- Card 3: Short Description -->
+<article class="bg-surface-container-lowest rounded-[10px] border border-[#DDDDDD] shadow-card-soft overflow-hidden hover:bg-surface-container-low transition-colors duration-200 flex flex-col group cursor-pointer">
+<div class="relative h-[240px] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant, fresh fillet of seared salmon resting on a bed of bright green asparagus and quinoa. The salmon has a crispy skin and is drizzled with a light citrus glaze. The composition is clean and centered on a pristine white plate, shot in bright, natural studio lighting typical of high-end food photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxCMfBDi7_uKGmYBAnSbNyRnqOWhBIUwDJUseB4ZCLhE5Ywhs52G1xPbWimdLzQceifGgyY25xlW5cXRs2zJTKuDGHsBMIcl1phHNJBoDy31_5vg9ugU4B6YRilM1yhngGyyDoMB1I12eSsmsBqwZphcjZxOPoAL2h84v6EgzZClGwY1xotmMkS9b-DPA3BWm62F-HAMwUn2V-_peDeCBrfcEu7de_Ciisqrtvj9sz5TeE3lJbLymSAw"/>
+</div>
+<div class="p-4 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h2 class="font-dish-name text-dish-name text-on-background">Citrus Glazed Salmon</h2>
+<div class="flex gap-1 flex-wrap justify-end max-w-[40%]">
+<span class="inline-block border border-[#DDDDDD] rounded-[10px] px-2 py-0.5 font-label-muted text-label-muted text-[#6B7280]">P</span>
+</div>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-4 flex-grow">Pan-seared Atlantic salmon fillet with a tangy lemon-orange glaze, served over a bed of tender spring asparagus.</p>
+<div class="flex justify-between items-center mt-auto pt-4 border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-background">CHF 32.50</span>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded-[4px] font-button-label text-button-label hover:bg-[#890303] transition-colors active:scale-95 shadow-sm">Add to Order</button>
+</div>
+</div>
+</article>
+</div>
+</main>
+</body></html>

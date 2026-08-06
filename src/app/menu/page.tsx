@@ -5,6 +5,7 @@ import styles from '../styles/MenuPage.module.css';
 import { useTranslation } from 'react-i18next';
 import TableBanner from '@/components/TableBanner';
 
+import { useStickyNavOffset } from '@/hooks/menu/useStickyNavOffset';
 import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
@@ -55,6 +56,7 @@ export default function MenuPage() {
 
   const { state: cartState } = useCart();
   const orderTypeFollowUp = useOrderTypeFollowUp();
+  const stickyNavOffset = useStickyNavOffset();
 
   // Tag the funnel event with the surface that triggered it, so a switch driven by a blocked menu
   // card is distinguishable from the sidebar toggle.
@@ -107,7 +109,9 @@ export default function MenuPage() {
   const cartTotal = cartState.basket?.total || 0;
 
   return (
-    <main className={styles.menuContainer} aria-labelledby="menu-page-heading">
+    // `style` carries the sticky-nav offset the category bar reads — a computed value, which is
+    // what §5.6 keeps inline styles for. See useStickyNavOffset for why it is not a constant.
+    <main className={styles.menuContainer} aria-labelledby="menu-page-heading" style={stickyNavOffset}>
       <MenuPageHeader />
 
       <TableBanner position="top" />

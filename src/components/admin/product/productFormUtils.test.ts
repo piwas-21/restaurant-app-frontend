@@ -316,3 +316,141 @@ describe('the failure paths surface the server’s reason, or the caller’s tra
     expect(rootMessage()).toBe('translated fallback');
   });
 });
+
+// The admin editor sends a great many translation entries the admin never touched, and backend #323
+// turns those from a silent server-side skip into a 400. These pin the client half.
+//
+// The fixtures are the editor's REAL defaults, not invented ones: ProductVariations.tsx registers a
+// name and a description input for all ten LANGUAGE_CODES inside a <details> (which hides its
+// children without unmounting them, so they register unopened), and
+// ProductIngredientsManager.handleAddIngredient seeds exactly these seven.
+describe('untouched translation entries are dropped; entries carrying anything are sent', () => {
+  const blank = () => ({ name: '', description: '' });
+  const untouchedVariationContent = () =>
+    Object.fromEntries(['en', 'tr', 'es', 'ar', 'de', 'fr', 'nl', 'it', 'ru', 'zh'].map((l) => [l, blank()]));
+  const seededIngredientContent = () =>
+    Object.fromEntries(['en', 'tr', 'de', 'fr', 'it', 'ar', 'es'].map((l) => [l, blank()]));
+
+  const variation = (content: unknown) => ({
+    name: 'Large',
+    description: '',
+    priceModifier: 2,
+    isActive: true,
+    displayOrder: 0,
+    content,
+  });
+  const ingredient = (content: unknown) => ({ id: 'temp-1', name: 'Cheese', isOptional: false, content });
+
+  const createWith = async (data: Record<string, unknown>, detailedIngredients: unknown[] = []) => {
+    await submitProductForm({
+      data: data as never,
+      imageFiles: [],
+      currentLanguage: 'en',
+      detailedIngredients: detailedIngredients as never,
+      setSubmissionStatus: () => {},
+      setError,
+      onProductCreated: () => {},
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      reset: () => {},
+      setImageFiles: () => {},
+    });
+    expect(setError).not.toHaveBeenCalled();
+    return (createProduct as jest.Mock).mock.calls[0][0];
+  };
+
+  const updateWith = async (data: Record<string, unknown>, detailedIngredients: unknown[] = []) => {
+    await submitEditProductForm({
+      data: { ...itemFormData(), ...data } as never,
+      product: { id: 'product-1' },
+      imageFiles: [],
+      detailedIngredients: detailedIngredients as never,
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+    });
+    expect(setError).not.toHaveBeenCalled();
+    return (updateProduct as jest.Mock).mock.calls[0][1];
+  };
+
+  it('create: drops all ten untouched variation entries', async () => {
+    const payload = await createWith({ ...itemFormData(), variations: [variation(untouchedVariationContent())] });
+
+    expect(payload.variations[0].content).toEqual({});
+  });
+
+  it('create: drops the seven blank entries seeded on a newly added ingredient', async () => {
+    const payload = await createWith(itemFormData(), [ingredient(seededIngredientContent())]);
+
+    expect(payload.detailedIngredients[0].content).toEqual({});
+  });
+
+  it('update: drops all ten untouched variation entries', async () => {
+    const payload = await updateWith({ variations: [variation(untouchedVariationContent())] });
+
+    expect(payload.variations[0].content).toEqual({});
+  });
+
+  it('update: drops the seven blank entries seeded on a newly added ingredient', async () => {
+    const payload = await updateWith({}, [ingredient(seededIngredientContent())]);
+
+    expect(payload.detailedIngredients[0].content).toEqual({});
+  });
+
+  // The point of filtering on TOUCHED rather than on a blank name. Dropping this here would move
+  // #323's silent discard from the server to the client; the server answers 400 "A translation's
+  // name is required ('fr')" instead.
+  it.each([
+    ['create', createWith],
+    ['update', updateWith],
+  ])('%s: SENDS a description-only variation entry so the server can refuse it', async (_label, run) => {
+    const content = { ...untouchedVariationContent(), fr: { name: '', description: 'Grande portion' } };
+
+    const payload = await run({ variations: [variation(content)] } as Record<string, unknown>, []);
+
+    expect(payload.variations[0].content).toEqual({ fr: { name: '', description: 'Grande portion' } });
+  });
+
+  // NOT covered here, deliberately: a null entry (`{"en": null}`). The filter keeps one rather than
+  // swallowing it, but no test pins that, because neither surface can produce one and one of them
+  // never reaches the filter at all. `variationSchema.content` is `z.record(z.string(),
+  // z.object(...))`, so the resolver refuses a null value; detailedIngredients bypass Zod, but the
+  // global-ingredient prefetch above dereferences `(content as any).name` on every entry first and
+  // throws on a null — measured, and a pre-existing trap this PR does not touch.
+
+  // Blankness is a trim test, so an entry holding only spaces is untouched and goes. One holding a
+  // whitespace name AND a real description is sent, and the server refuses it — #323 asked for
+  // IsNullOrWhiteSpace precisely because `name="   "` used to persist.
+  it('create: drops an all-whitespace entry but sends a whitespace name that carries a description', async () => {
+    const content = { en: { name: '  ', description: '  ' }, fr: { name: '   ', description: 'Grande' } };
+
+    const payload = await createWith({ ...itemFormData(), variations: [variation(content)] });
+
+    expect(payload.variations[0].content).toEqual({ fr: { name: '   ', description: 'Grande' } });
+  });
+
+  // The top-level map is NOT filtered on the touched test — see the comment at the create-path
+  // forEach. `contentSchema.name` is `min(1)`, so a blank-named row never reaches submit; the row
+  // that DOES get through is a whitespace-only name, which `min(1)` counts as three characters.
+  // The create path used to forward it verbatim, and backend #323 would answer 400. The update path
+  // has always dropped it. This pins the two paths agreeing.
+  it.each([
+    ['create', createWith],
+    ['update', updateWith],
+  ])('%s: drops a whitespace-only top-level name that would become a blank one', async (_label, run) => {
+    const payload = await run(
+      {
+        ...itemFormData(),
+        content: [
+          { language: 'en', name: 'Margherita', description: 'A pizza' },
+          { language: 'fr', name: '   ', description: 'Une pizza' },
+        ],
+      } as Record<string, unknown>,
+      [],
+    );
+
+    expect(payload.content).toEqual({ en: { name: 'Margherita', description: 'A pizza' } });
+  });
+});

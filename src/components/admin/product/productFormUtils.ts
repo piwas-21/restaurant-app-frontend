@@ -86,21 +86,71 @@ const toMenuDefinitionPayload = (menuDefinition: MenuDefinitionInput | undefined
 };
 
 /**
- * The two update commands disagree on `Content`: UpdateProductCommand takes it nullable and its
- * handler no-ops on an empty map (`if (contentMap.Any())` guards the RemoveRange), while
- * UpdateMenuBundleCommand takes it non-null and its handler enumerates it directly after an
- * UNCONDITIONAL `RemoveRange(product.Descriptions)`. The form yields `undefined` once every
- * language row is removed, which the bundle endpoint would deserialize to null and NRE on.
+ * Sends `{}` rather than omitting `content`, mirroring what MenuBundleDetails already sends
+ * (`product.content || {}`). The form yields `undefined` once every language row is removed.
  *
- * So `{}` is not a neutral default: on the bundle path it means "delete every description", where
- * the identical UI action on the product path means "change nothing". That asymmetry is the
- * backend's, and this mirrors what MenuBundleDetails already sends (`product.content || {}`) —
- * chosen deliberately over inventing a different rule for this one caller.
+ * This comment used to justify that by an asymmetry between the two update commands — that
+ * UpdateMenuBundleCommand took `Content` non-null and enumerated it after an UNCONDITIONAL
+ * `RemoveRange(product.Descriptions)`, so `{}` meant "delete every description" on the bundle path
+ * where it meant "change nothing" on the product path. **That is no longer true, and was already
+ * untrue when it was written**: backend #190 gave the bundle handler both guards, and on `main` and
+ * `develop` alike it now reads `var contentMap = command.Content ?? new ProductDescriptionsDto();`
+ * followed by `if (contentMap.Any()) { RemoveRange(...) }` — verified in both refs, not inferred.
+ *
+ * So `{}` is neutral on both paths and this call is now belt-and-braces rather than load-bearing.
+ * Kept because it matches the sibling caller and costs nothing; do not re-derive a contract from
+ * the claim above.
  */
 const toMenuBundlePayload = <T extends { content?: unknown }>(productData: T) => ({
   ...productData,
   content: productData.content ?? {},
 });
+
+const isBlank = (value: string | null | undefined) => !(value ?? '').trim();
+
+/** One language's entry in a nested `content` map — both fields optional, per `variationSchema`. */
+type TranslationEntry = { name?: string | null; description?: string | null };
+
+/**
+ * Drops the translation entries the admin never touched — `name` AND `description` both blank —
+ * from a nested `content` map.
+ *
+ * The editor sends a lot of those. `ProductVariations.tsx` registers a name and a description input
+ * for EVERY supported language on every variation, inside a `<details>` that hides its children
+ * without unmounting them, so all ten register whether or not the panel is ever opened;
+ * `ProductIngredientsManager.tsx` seeds seven blank entries on every newly added ingredient. Both
+ * reached the API verbatim — measured, not read — and the backend dropped them with an unstated
+ * handler guard. Backend #323 replaces that guard with a 400, so they have to stop being sent.
+ *
+ * It filters on TOUCHED rather than on a blank name, and that difference is the whole point: the
+ * variation panel has a description input as well as a name one, and `variationSchema.content`
+ * declares both optional, so `{name: '', description: 'Grande portion'}` is a shape an admin can
+ * really type and the resolver will pass. Dropping it here would move #323's silent discard from
+ * the server to the client. It is sent instead, so that once #323 lands the server refuses it by
+ * name — today, still, the server silently skips it, which is the defect #323 is open on.
+ *
+ * The `!entry` arm keeps a null entry rather than swallowing it, and exists mainly so this function
+ * cannot itself throw on one. It is unpinned by tests on purpose: `variationSchema.content` refuses
+ * a null value, and although `detailedIngredients` bypass Zod, the global-ingredient prefetch below
+ * dereferences `(content as any).name` on every entry and throws on a null before this runs — a
+ * pre-existing trap, measured, not fixed here.
+ */
+const withoutUntouchedTranslations = <T extends { name?: string | null; description?: string | null }>(
+  content: Record<string, T> | null | undefined,
+): Record<string, T> | undefined => {
+  if (!content) return undefined;
+  return Object.fromEntries(
+    Object.entries(content).filter(([, entry]) => !entry || !(isBlank(entry.name) && isBlank(entry.description))),
+  ) as Record<string, T>;
+};
+
+/** Applies {@link withoutUntouchedTranslations} to each item's `content`, leaving the rest alone. */
+const withCleanedItemTranslations = <T extends { content?: unknown }>(items: T[]): T[] =>
+  items.map((item) =>
+    item?.content
+      ? { ...item, content: withoutUntouchedTranslations(item.content as Record<string, TranslationEntry>) }
+      : item,
+  );
 
 export const submitProductForm = async ({
   data,
@@ -126,9 +176,14 @@ export const submitProductForm = async ({
       description: data.description || '',
     };
 
-    // Add any additional multilingual content
+    // Add any additional multilingual content. The name test mirrors the update path's existing
+    // filter rather than the "touched" test the NESTED maps use below, and the asymmetry is
+    // deliberate: `contentSchema.name` is `min(1)` (schemas.ts), so the resolver already refuses a
+    // blank-named top-level row before submit and there is no description-only row to preserve.
+    // What it does still catch is a WHITESPACE-only name, which passes `min(1)` — dropping it here
+    // keeps a currently-working save working once backend #323 starts refusing blank names.
     data.content?.forEach((item) => {
-      if (item.language && item.language !== currentLanguage) {
+      if (item.language && item.language !== currentLanguage && item.name?.trim()) {
         content[item.language] = {
           name: item.name,
           description: item.description || '',
@@ -208,8 +263,8 @@ export const submitProductForm = async ({
       ...data,
       content,
       primaryCategoryId: data.primaryCategoryId || null,
-      variations: data.variations || [],
-      detailedIngredients: cleanedIngredients,
+      variations: withCleanedItemTranslations(data.variations || []),
+      detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
       menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     };
 
@@ -312,7 +367,7 @@ export const submitEditProductForm = async ({
         priceModifier: parseNum(v.priceModifier, 0),
         isActive: v.isActive ?? true,
         displayOrder: Number.isInteger(v.displayOrder as any) ? (v.displayOrder as any) : 0,
-        content: v.content,
+        content: withoutUntouchedTranslations(v.content as Record<string, TranslationEntry>),
       }));
 
     // Process ingredients: check for new ones and create them globally
@@ -396,7 +451,7 @@ export const submitEditProductForm = async ({
       primaryCategoryId: primaryCategoryId || null,
       variations: cleanedVariations,
       content: formattedContent,
-      detailedIngredients: cleanedIngredients,
+      detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
       menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     } as any;
 

@@ -12,7 +12,18 @@
   position: sticky;
   top: calc(var(--menu-header-offset, 80px) + var(--menu-banner-offset, 0px));
   background-color: var(--surface-primary);
-  padding: 0;
+  /* Page chrome, not a widget in the article column: cancel the page's inline gutter and re-add it
+     as padding, so the surface and the hairline run edge to edge — measured 0→1280 at 1280px, level
+     with the header's own hairline. `MenuPage.module.css` owns the one gutter value.
+
+     `max-width: none` is load-bearing, not tidiness: globals.css gives EVERY element
+     `max-width: 100%` under 768px, and a class outranks the universal selector. Without it the box
+     keeps its capped width and the negative margin only DRAGS it inline-start — measured 0→327
+     instead of 0→375 at 375px, i.e. shifted, not widened. */
+  margin-inline: calc(-1 * var(--menu-page-gutter, 0px));
+  padding-block: 0;
+  padding-inline: var(--menu-page-gutter, 0px);
+  max-width: none;
   z-index: 100;
   border-bottom: 1px solid var(--border-default);
   /* The one shadow level DESIGN.md §Elevation permits, and the one the light screen puts on this
@@ -22,14 +33,21 @@
   margin-bottom: 1.5rem;
 }
 
-/* No `justify-content`: the scroller takes the whole row, and both desktop screens start their tabs
-   at the inline edge rather than centring a capped strip in a wider bar. */
+/* No `justify-content`, and NO `max-width` — the row tracks the content it labels.
+   The 1200px cap that stood here was harmless while the bar lived in the 775px article column,
+   because it never bound. Once the bar spans the viewport it starts binding at >1296px, and the
+   page content does not: measured, the tab row sat 72px inside the card grid at 1440px and 292px
+   at 1920px — tabs indented from the dishes they filter, which is worse than either extreme.
+   The screens do not support the split either: `classic_nav_desktop_light_scrolling` puts the nav
+   row on `max-w-max-width mx-auto`, but it puts `<main>` on the SAME track, and
+   `desktop_menu_light_full_page` wraps the whole page body in one. They have one 1200px content
+   track; capping only the nav gives two. Capping the page to match is the other valid answer and a
+   larger change — it moves the grid at every width above 1296 — so it belongs with the rail-width
+   question (plan §4 D10), not here. */
 .navWrapper {
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 1200px; /* DESIGN.md §Layout — the desktop grid */
-  margin: 0 auto;
   padding: 0 1rem;
 }
 

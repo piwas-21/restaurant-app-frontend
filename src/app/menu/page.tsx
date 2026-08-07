@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import TableBanner from '@/components/TableBanner';
 
 import { useStickyNavOffset } from '@/hooks/menu/useStickyNavOffset';
-import { usePublicMenu, ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
+import { usePublicMenu } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
@@ -14,22 +14,23 @@ import OrderFlowModals from '@/components/order/OrderFlowModals';
 import DefaultOrderFlowSidebar from '@/components/order/OrderFlowSidebar';
 import MobileCartSheet from '@/components/order/MobileCartSheet';
 import { surfaceOr } from '@/templates/resolve-surface';
-import { getCategoryDisplayName } from '@/utils/categoryNameMapper';
+import { getSelectedViewLabel } from '@/utils/categoryNameMapper';
 import type { OrderType } from '@/types/order';
 
 import MenuPageHeader from '@/components/menu/MenuPageHeader';
 import MenuContent from '@/components/menu/MenuContent';
+import DefaultCategoryNav from '@/components/menu/CategoryNav';
 import DefaultFeaturedSpecial from '@/components/menu/FeaturedSpecial';
 import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
-// The active template's cart-rail override (craft = ruled-paper order pad) or the
-// shared default (classic) — resolved at build time, so classic never bundles
-// craft (T4).
+// The active template's overrides (craft = ruled-paper order pad, masking-tape tabs) or the
+// shared defaults (classic) — resolved at build time, so classic never bundles craft (T4).
 const OrderFlowSidebar = surfaceOr('OrderFlowSidebar', DefaultOrderFlowSidebar);
 const FeaturedSpecialComponent = surfaceOr('FeaturedSpecial', DefaultFeaturedSpecial);
+const CategoryNav = surfaceOr('CategoryNav', DefaultCategoryNav);
 
 export default function MenuPage() {
   const { t } = useTranslation();
@@ -92,17 +93,7 @@ export default function MenuPage() {
     return null;
   }
 
-  // Get display name for selected category
-  const categoryDisplayName =
-    selectedView === ALL_ITEMS_KEY
-      ? t('all_categories_nav')
-      : selectedView === MENU_BUNDLES_KEY
-        ? t('menu_bundles')
-        : (() => {
-            const category = categoriesForNav.find((c) => c.id === selectedView);
-            if (!category) return String(selectedView);
-            return getCategoryDisplayName(category.name, t);
-          })();
+  const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t);
 
   // Calculate cart totals for floating button
   const itemCount = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -116,12 +107,22 @@ export default function MenuPage() {
 
       <TableBanner position="top" />
 
-      {/* ABOVE the two-column layout, not inside its left column.
-          `.menuLayout` is a grid with `align-items: start`, so the basket rail's top edge aligns
-          with whatever starts the left column. With the banner in there, the rail lined up with the
-          BANNER and the menu grid — the thing a guest reads alongside their basket — began one
-          banner-height lower. Nothing was misaligned by accident; the hero was simply inside the
-          column it should sit above. Moving it also gives it the full width a hero wants. */}
+      {/* Both of the next two sit ABOVE the two-column layout, not inside its left column.
+          The bar first (D7): inside `.menuMain` its background and hairline stopped at the left
+          column's edge — 775px of a 1280px frame — and a phone guest scrolled the whole promotion
+          before the tabs appeared, then watched them jump when it scrolled past. It is page chrome.
+          The hero second: `.menuLayout` is a grid with `align-items: start`, so with the hero in the
+          left column the basket rail's top edge aligned with the HERO and the menu grid — the thing
+          a guest reads alongside their basket — began one hero-height lower. */}
+      {categoriesForNav.length > 0 && (
+        <CategoryNav
+          categories={categoriesForNav}
+          selectedView={selectedView}
+          onSelect={setSelectedView}
+          allLabel={t('all_categories_nav')}
+        />
+      )}
+
       {featuredSpecial && (
         <FeaturedSpecialComponent
           special={featuredSpecial}
@@ -135,9 +136,7 @@ export default function MenuPage() {
       <div className={styles.menuLayout}>
         <div className={styles.menuMain}>
           <MenuContent
-            categoriesForNav={categoriesForNav}
             selectedView={selectedView}
-            onSelectView={setSelectedView}
             categoryDisplayName={categoryDisplayName}
             isLoadingItems={isLoadingItems}
             errorLoadingItems={errorLoadingItems}

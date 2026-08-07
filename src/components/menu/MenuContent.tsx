@@ -1,26 +1,22 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MenuItem, MenuBundleItem, ApiCategory, CatalogItem } from '@/types/menu';
+import type { MenuItem, MenuBundleItem, CatalogItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
-import DefaultCategoryNav from '@/components/menu/CategoryNav';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import MenuList from '@/components/menu/MenuList';
 import Pagination from '@/components/common/Pagination';
 import { surfaceOr } from '@/templates/resolve-surface';
 import styles from './MenuContent.module.css';
 
-// The active template's overrides (craft = masking-tape tabs + Amatic heading /
-// kraft skeleton / hand-drawn empty plate) or the shared defaults (classic) —
-// resolved at build time, so classic never bundles the craft versions (T4).
-const CategoryNav = surfaceOr('CategoryNav', DefaultCategoryNav);
+// The active template's override (craft = Amatic heading / kraft skeleton /
+// hand-drawn empty plate) or the shared default (classic) — resolved at build
+// time, so classic never bundles the craft version (T4).
 const MenuSectionStatus = surfaceOr('MenuSectionStatus', DefaultMenuSectionStatus);
 
 interface MenuContentProps {
-  categoriesForNav: ApiCategory[];
   selectedView: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY;
-  onSelectView: (view: string | typeof ALL_ITEMS_KEY | typeof MENU_BUNDLES_KEY) => void;
   categoryDisplayName: string;
   isLoadingItems: boolean;
   errorLoadingItems: string | null;
@@ -37,9 +33,7 @@ interface MenuContentProps {
 }
 
 export default function MenuContent({
-  categoriesForNav,
   selectedView,
-  onSelectView,
   categoryDisplayName,
   isLoadingItems,
   errorLoadingItems,
@@ -76,16 +70,6 @@ export default function MenuContent({
 
   return (
     <>
-      {/* Category Navigation */}
-      {categoriesForNav.length > 0 && (
-        <CategoryNav
-          categories={categoriesForNav}
-          selectedView={selectedView}
-          onSelect={onSelectView}
-          allLabel={t('all_categories_nav')}
-        />
-      )}
-
       {/* Menu Items Section.
           `data-testid` because E2E-STRATEGY's preferred role+name lookup cannot address this
           section: its accessible name is the translated category label, which is "All" by default

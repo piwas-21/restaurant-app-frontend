@@ -28,9 +28,18 @@ function withoutComments(source: string): string {
 }
 
 const NAV_CSS = withoutComments(readFileSync(join(__dirname, 'CategoryNav.module.css'), 'utf8'));
+const PAGE_CSS = withoutComments(readFileSync(join(__dirname, '../../app/styles/MenuPage.module.css'), 'utf8'));
 const OFFSET_HOOK = withoutComments(readFileSync(join(__dirname, '../../hooks/menu/useStickyNavOffset.ts'), 'utf8'));
 const MENU_PAGE = readFileSync(join(__dirname, '../../app/menu/page.tsx'), 'utf8');
+const MENU_CONTENT = readFileSync(join(__dirname, 'MenuContent.tsx'), 'utf8');
 const TABLE_BANNER = readFileSync(join(__dirname, '../TableBanner.tsx'), 'utf8');
+
+/** The offset of a marker in the menu page's source, so "before/after" questions are answerable. */
+function pageIndexOf(needle: string): number {
+  const at = MENU_PAGE.indexOf(needle);
+  if (at === -1) throw new Error(`marker not found in menu/page.tsx: ${needle}`);
+  return at;
+}
 
 describe('sticky category-nav offset', () => {
   it('is computed from a banner variable, not a hardcoded header+banner total', () => {
@@ -90,5 +99,89 @@ describe('sticky category-nav offset', () => {
     // The hook can be correct and still change nothing if the page stops passing it through.
     expect(MENU_PAGE).toContain('useStickyNavOffset');
     expect(MENU_PAGE).toMatch(/style=\{stickyNavOffset\}/);
+  });
+});
+
+/**
+ * The bar is page chrome, not a widget in the article column (S11).
+ *
+ * It used to render inside `MenuContent`, which sits in the LEFT cell of `.menuLayout`
+ * (`minmax(0, 1fr) 360px`). A sticky bar with a background, a hairline and a shadow therefore
+ * painted across 775px of a 1280px frame and stopped dead under the basket rail. Same class of
+ * defect as the one `featuredSpecialPlacement.test.ts` guards, and read the same way: which parent
+ * an element is under is a source-structure fact, and jsdom computes neither sticky nor cascade.
+ */
+describe('the category bar is page chrome, not a column widget', () => {
+  it('renders OUTSIDE the two-column layout', () => {
+    // Assert the bar is on the page BEFORE asserting where it is not. "Not inside the layout" is
+    // equally true of a page that does not render it at all — which is what this looked like
+    // before the hoist, and the first draft of this test passed against that source.
+    expect(pageIndexOf('<CategoryNav')).toBeGreaterThan(0);
+    const layoutStart = pageIndexOf('className={styles.menuLayout}');
+    expect(MENU_PAGE.slice(layoutStart).includes('<CategoryNav')).toBe(false);
+  });
+
+  it('renders above the featured strip and the layout, in that order (D7)', () => {
+    // Nav-first is the decision: below the strip, a phone guest scrolled the whole promotion before
+    // the tabs appeared and then watched them jump when it scrolled past.
+    expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('<FeaturedSpecialComponent'));
+    expect(pageIndexOf('<FeaturedSpecialComponent')).toBeLessThan(pageIndexOf('className={styles.menuLayout}'));
+  });
+
+  it('is not rendered by the column component it was lifted out of', () => {
+    // The other direction: nothing stops someone re-adding it where it used to be, which would
+    // render two bars rather than fail visibly.
+    expect(MENU_CONTENT).not.toContain('<CategoryNav');
+  });
+
+  it('cancels the page gutter with the same variable the page publishes', () => {
+    const container = /\.menuContainer\s*\{[^}]*\}/.exec(PAGE_CSS)?.[0];
+    expect(container).toBeDefined();
+    expect(container).toContain('--menu-page-gutter:');
+    // The page box has to reach the viewport edge for the bar to, which means cancelling the
+    // shell's own inset. Shape, not number: a negative inline margin, whatever the shell insets by.
+    expect(container).toMatch(/margin-inline:\s*-/);
+
+    const sticky = /\.stickyNav\s*\{[^}]*\}/.exec(NAV_CSS)?.[0];
+    expect(sticky).toMatch(/margin-inline:\s*calc\(-1 \* var\(--menu-page-gutter/);
+    expect(sticky).toMatch(/padding-inline:\s*var\(--menu-page-gutter/);
+    // globals.css caps EVERY element at `max-width: 100%` below 768px. A class outranks the
+    // universal selector, and without this the negative margins only shift the bar inline-start.
+    expect(sticky).toContain('max-width: none');
+
+    // The page box has to be able to reach the edge too. `width: 98%` put its 2% slack on ONE side,
+    // which left the bar 56.97px short of the right edge at 1280px — measured. Both declarations
+    // are load-bearing and neither is obvious from the other.
+    expect(container).toContain('width: auto');
+    expect(container).toContain('max-width: none');
+  });
+
+  /**
+   * The shell inset is a CROSS-FILE coupling, and the shape-only assertion above cannot see it: a
+   * shell that changed to `2rem` would leave the page inset 16px a side with this gate green.
+   * Both templates inset by the same 1rem today, and the bar's negative margin is written to match.
+   */
+  it('cancels an inset that matches what the chrome actually applies', () => {
+    const classicChrome = readFileSync(join(__dirname, '../../templates/classic/chrome/CustomerChrome.tsx'), 'utf8');
+    const craftChrome = readFileSync(join(__dirname, '../../templates/craft/chrome/chrome.module.css'), 'utf8');
+
+    // Classic insets its <main> inline; craft does it in CSS. Both are 1rem, which is what
+    // `.menuContainer`'s `margin-inline: -1rem` exists to cancel.
+    expect(classicChrome).toMatch(/padding:\s*isHomePage \? '0' : '1rem'/);
+    expect(craftChrome).toMatch(/padding:\s*1rem/);
+
+    const menuContainer = /\.menuContainer\s*\{[^}]*\}/.exec(PAGE_CSS)?.[0];
+    expect(menuContainer).toMatch(/margin-inline:\s*-1rem/);
+  });
+
+  it('never re-hardcodes the page gutter at a breakpoint', () => {
+    // The bar reads one variable. A breakpoint that narrows the container's padding without
+    // narrowing that variable makes the bar overflow the page by the difference on each side.
+    const blocks = PAGE_CSS.match(/\.menuContainer\s*\{[^}]*\}/g) ?? [];
+    expect(blocks.length).toBeGreaterThan(1);
+    for (const block of blocks) {
+      if (!block.includes('padding')) continue;
+      expect(block).toMatch(/padding:[^;]*var\(--menu-page-gutter\)/);
+    }
   });
 });

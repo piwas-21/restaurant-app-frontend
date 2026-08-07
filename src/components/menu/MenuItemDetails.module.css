@@ -24,10 +24,12 @@
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--text-secondary);
-  /* `mb-4` — the description carries the card's breathing room, then `flex-1` pushes the price row
-     to the floor. */
-  margin: 0 0 1rem;
-  flex: 1;
+  /* `mt-1` down to the Details line (mobile_menu_light), not `mb-4` — and NO `flex: 1`. Flex-grow
+     is served before auto margins, so this paragraph swallowed the card's slack and pushed Details
+     to the floor whatever its DOM position: re-anchoring Details is this declaration, not just the
+     JSX order. The desktop screens do grow their <p>, but nothing follows it there, so growing it
+     and `.priceActionsRow`'s `margin-top: auto` draw the same card. */
+  margin: 0 0 0.25rem;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -40,15 +42,17 @@
 
    NO `margin-top: auto` here. `MenuItemDetails` returns a fragment, so this is a direct flex child
    of the same column as `.priceActionsRow`, which already claims the free space that way — two auto
-   margins SPLIT it, opening a drifting gap above this link on every card shorter than the tallest
-   in its grid row.
+   margins SPLIT it, opening a drifting gap above this link on every card shorter than its row.
 
-   --brand-primary-elevated, not --brand-primary: this is small brand-coloured text sitting on
-   surfaces the card actually takes, and the plain brand only clears AA on ONE of them in dark —
-   4.57:1 on the resting card, but 3.23:1 on `.menuItem:hover` (--surface-secondary-light) and
-   4.16:1 on `.menuItem.blocked` (--surface-secondary). The elevated token exists for precisely this
-   "brand as small text on a tinted surface" case and clears all three in both themes (5.0–9.6).
-   All three pairs are gated in adminPriceEditorContrast.test.ts. */
+   NOT underlined at rest — every classic screen renders it `hover:underline decoration-1
+   underline-offset-2`, and the two decoration properties below are inert until that fires. It used
+   to underline at rest and then re-declare the SAME underline under `:hover`, revealing nothing.
+
+   --brand-primary-elevated, not --brand-primary: small brand-coloured text on whichever surface the
+   card currently has, and the plain brand clears AA on only ONE of them in dark — 4.57:1 resting,
+   3.23:1 on `.menuItem:hover` (--surface-secondary-light), 4.16:1 on `.menuItem.blocked`
+   (--surface-secondary). The elevated token is exactly this case and clears all three in both
+   themes (5.0–9.6). All three pairs are gated in adminPriceEditorContrast.test.ts. */
 .detailsLink {
   align-self: flex-start;
   padding: 0.25rem 0;
@@ -63,12 +67,13 @@
   letter-spacing: 0.02em;
   cursor: pointer;
   text-align: start;
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
-.detailsLink:hover {
+.detailsLink:hover,
+.detailsLink:focus-visible {
   text-decoration: underline;
 }
 
@@ -151,12 +156,11 @@
   /* Was `display: none` — "hide description on mobile for cleaner look". What it actually did was
      strip the row card down to a name and a price, and leave the details affordance with nothing
      to attach to. It stays clamped to two lines; the row has space for them. */
-  /* `text-sm line-clamp-2 mt-1` */
+  /* `text-sm line-clamp-2 mt-1`, and `mt-1` again down to the Details line. */
   .itemDescription {
     font-size: 0.875rem;
     line-height: 1.45;
-    margin: 0.25rem 0 0;
-    flex: 0 1 auto;
+    margin: 0.25rem 0;
   }
 
   .detailsLink {

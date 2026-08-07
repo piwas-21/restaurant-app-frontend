@@ -9,20 +9,45 @@
    Either way the colour is the BRAND, not the old --success-color-darker green: the page was
    running a red brand, a green CTA and a gold featured panel at once, and the design system is
    explicit that "green for success or gold for premium features are strictly prohibited". */
+/* `flex: 1 1 min-content` is what keeps `.priceActionsRow` on one line.
+   A flex container decides where to BREAK from each item's hypothetical main size — its content
+   width — not from how far it could shrink, so a button that merely *could* wrap its label still
+   pushed itself onto a second row. Offering the min-content width instead means the row only
+   breaks when even the button's narrowest form does not fit, and the grow claims the slack back so
+   the button still renders at its natural width wherever there is room. */
 .itemActions {
   margin-top: 0;
   display: flex;
   justify-content: flex-end;
+  flex: 1 1 min-content;
+  min-width: 0;
 }
 
+/* D1 (MENU-DESIGN-CONFORMANCE-PLAN §4): the resting OUTLINE moves off `--brand-primary-elevated`
+   onto `--brand-primary`. DESIGN.md §Components spells the secondary button out — "transparent
+   background with a 1px brand border and brand text" — and the elevated token resolves to
+   `--brand-primary-dark`, i.e. the PRESSED shade, so the button was resting in the
+   colour its own hover is supposed to move it to.
+
+   The LABEL follows it in LIGHT only. `desktop_menu_light_full_page` gives the grid card
+   `border border-primary text-primary` — the same colour for both — and in light that is safe:
+   plain `--brand-primary` measures 6.15:1 on the resting card, 5.94:1 hovered and 5.69:1 blocked.
+
+   In DARK it is not. Measured on the real token values: 4.57:1 resting (--surface-card), **3.23:1
+   on a hovered card** (--surface-secondary-light) and 4.16:1 blocked (--surface-secondary) — so a
+   brand label would sit under AA for as long as a guest's cursor is on the card. The dark override
+   below puts the label back on `--brand-primary-elevated`, which clears 5.03–7.12 on all three.
+
+   A 1px edge is non-text and clears at 3:1, so the BORDER takes the plain brand in both themes;
+   3.23 is its worst case. Both families are gated in adminPriceEditorContrast.test.ts. */
 .addToOrderButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
   background-color: transparent;
-  color: var(--brand-primary-elevated);
-  border: 1px solid var(--brand-primary-elevated);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
   /* 4px — `rounded`, the design's DEFAULT step. Only cards take the 10px. */
   border-radius: 4px;
   padding: 0.375rem 0.75rem;
@@ -32,10 +57,38 @@
   letter-spacing: 0.02em;
   line-height: 1;
   cursor: pointer;
-  white-space: nowrap;
+  /* This is where the price row's pressure goes. It used to be `white-space: nowrap`, which — with
+     an unshrinkable price beside it — left `flex-wrap` on `.priceActionsRow` as the row's only
+     escape, and 6 of 10 locales took it at 1280px. The label now wraps INSIDE the box: German
+     "Zur Bestellung hinzufügen" becomes a 130×60 three-line button at 1280px instead of dropping
+     under the price, and English is untouched at every measured width (122×29, one line).
+
+     `break-word`, NOT `anywhere`. They render the same but size differently: `anywhere` lets the
+     breaks it introduces count toward min-content, which collapses this button's contribution to a
+     single character — and with it the `min-content` flex-basis on `.itemActions` that stops the
+     row breaking too eagerly. Measured with `anywhere`, an admin card at 1280px kept one line by
+     crushing Add to 44×120. */
+  min-width: 0;
+  overflow-wrap: break-word;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+}
+
+/* Dark only, and ABOVE 600px only. The border keeps the plain brand at every viewport (non-text,
+   3:1); the outlined LABEL cannot, because dark's lifted brand measures 3.23:1 on a hovered card
+   and 4.16:1 on a blocked one. Light is left on the plain brand so the button matches
+   `desktop_menu_light_full_page`'s `border border-primary text-primary` exactly.
+
+   The `min-width: 601px` guard is load-bearing, not tidiness. `html[data-theme='dark'] .x` is
+   (0,2,1) and the mobile block's `.addToOrderButton` is (0,1,0), so an unscoped rule would outrank
+   it regardless of source order — and below 600px this button is a SOLID brand disc whose only
+   visible content is a `+` glyph inheriting `currentColor`. It would have rendered
+   `--brand-primary-elevated` on `--brand-primary`: #ef9a9a on #e06666, 1.5:1, an invisible plus. */
+@media (min-width: 601px) {
+  html[data-theme='dark'] .addToOrderButton {
+    color: var(--brand-primary-elevated);
+  }
 }
 
 .addToOrderButton:hover {

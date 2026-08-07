@@ -128,10 +128,26 @@ describe('AdminPriceEditor colour pairs', () => {
     });
 
     /**
-     * The card's Details link, its mobile row price, the featured strip's price and the admin
-     * price trigger — all small brand-coloured TEXT, and all sitting on whichever of three surfaces
-     * the card currently has: resting, hovered (`--surface-secondary-light`) and blocked
-     * (`--surface-secondary`).
+     * D1 (MENU-DESIGN-CONFORMANCE-PLAN §4): the card's outlined "Add to Order" rests on
+     * `--brand-primary` rather than the `--brand-primary-elevated` (= pressed) shade it shipped in,
+     * matching DESIGN.md §Components — "transparent background with a 1px #C00000 border".
+     *
+     * A 1px edge is chrome, not text, so WCAG 1.4.11 applies and 3:1 is the bar. That is the whole
+     * reason the border can take the plain brand while the LABEL below cannot: the worst pair here
+     * is 3.23:1 (dark, hovered card) — clear for a boundary, short for a word.
+     */
+    it.each(['--surface-card', '--surface-secondary-light', '--surface-secondary'])(
+      "the add button's 1px brand outline clears the non-text threshold on %s in this theme",
+      (surface) => {
+        expect(contrast(v['--brand-primary'], v[surface])).toBeGreaterThanOrEqual(AA_NON_TEXT);
+      },
+    );
+
+    /**
+     * The card's Details link, its outlined add button's LABEL, its mobile row price, the featured
+     * strip's price and the admin price trigger — all small brand-coloured TEXT, and all sitting on
+     * whichever of three surfaces the card currently has: resting, hovered
+     * (`--surface-secondary-light`) and blocked (`--surface-secondary`).
      *
      * All three are gated, because the resting one alone is not the risk. Measured on
      * `--brand-primary`: 4.57:1 resting in dark (a pass, by 0.07), but 3.23:1 hovered and 4.16:1
@@ -280,6 +296,21 @@ describe('AdminPriceEditor colour pairs', () => {
     expect(contrast(dark['--feedback-success'], light['--feedback-success-dark'])).toBeLessThan(AA_TEXT);
   });
 
+  /**
+   * Why D1 re-points the add button's BORDER to `--brand-primary` but leaves its LABEL on
+   * `--brand-primary-elevated` — a split that reads like an oversight unless the measurement is
+   * written down. One pair, two thresholds: on a hovered card in dark the plain brand is a
+   * perfectly legible 1px edge and an illegible word. Fires the exact pairing the "simplify it,
+   * make them the same token" edit would introduce.
+   */
+  it('records that D1 could not take the label with the border — 3.23:1 on a hovered dark card', () => {
+    const dark = tokens("html[data-theme='dark'] {");
+    const pair = contrast(dark['--brand-primary'], dark['--surface-secondary-light']);
+
+    expect(pair).toBeGreaterThanOrEqual(AA_NON_TEXT); // fine as a border
+    expect(pair).toBeLessThan(AA_TEXT); // not fine as a label
+  });
+
   // The retired GREEN CTA tier. Kept because it records why the button is not green: both pairings
   // it ever had really do fail, so nobody re-derives that choice from the token names alone.
   it('records that the retired green CTA failed on its old background, in BOTH themes', () => {
@@ -297,5 +328,94 @@ describe('AdminPriceEditor colour pairs', () => {
     const v = tokens("html[data-theme='dark'] {");
     // #ffffff on #66bb6a — the half-flipped pair, 2.36:1.
     expect(contrast('#ffffff', v['--feedback-success-darker'])).toBeLessThan(AA_TEXT);
+  });
+});
+
+/**
+ * The CALL SITES, not just the pairs (MENU-DESIGN-CONFORMANCE-PLAN S3).
+ *
+ * Everything above reads `colors.css` and therefore cannot see which token a rule actually reaches
+ * for — and both card defects this file now guards were call-site choices, not token bugs. The
+ * foot rule asked for `--border-light`, which is declared on `:root` and NOWHERE in the dark block,
+ * so it painted #e0e0e0 over the #252525 dark card; the pair `--border-light` / `--surface-card`
+ * measures a perfectly innocent 1.25:1 if you only ever evaluate it in light. And the add button's
+ * border and label deliberately take DIFFERENT tokens, which is the kind of asymmetry a later
+ * reader tidies away unless something fails when they do.
+ */
+describe('menu card call sites', () => {
+  /**
+   * The DECLARATIONS for `selector`, read from the real stylesheet with comments stripped.
+   *
+   * Stripping is not tidiness. These rules are heavily commented, and the comments name the very
+   * declarations that were removed — the first run of the `white-space: nowrap` case below failed
+   * against the sentence explaining why that declaration is gone, i.e. the gate was reading its own
+   * documentation rather than the CSS.
+   */
+  function block(file: string, selector: string): string {
+    const css = readFileSync(join(__dirname, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const start = css.indexOf(`${selector} {`);
+    if (start === -1) throw new Error(`selector not found in ${file}: ${selector}`);
+    const end = css.indexOf('\n}', start);
+    if (end === -1) throw new Error(`unterminated rule in ${file}: ${selector}`);
+    return css.slice(start, end);
+  }
+
+  it('closes the card with a border token that has a dark override', () => {
+    const row = block('MenuItem.module.css', '.priceActionsRow');
+
+    expect(row).toContain('border-top: 1px solid var(--border-default)');
+    // The defect, stated as the thing that must stay true of the token it used to use.
+    expect(CSS).toMatch(/--border-light:/);
+    expect(tokens("html[data-theme='dark'] {")['--border-light']).toBeUndefined();
+  });
+
+  it('outlines the add button in the brand, and lifts only the DARK label off it', () => {
+    const css = readFileSync(join(__dirname, 'MenuItemActions.module.css'), 'utf8');
+    const button = block('MenuItemActions.module.css', '.addToOrderButton');
+
+    // D1: the resting outline is the brand, no longer the pressed shade — in both themes, because
+    // a 1px edge is non-text and its worst case (3.23:1 on a hovered dark card) clears 3:1.
+    expect(button).toContain('border: 1px solid var(--brand-primary)');
+    // The LIGHT label follows it, which is what `desktop_menu_light_full_page` draws
+    // (`border border-primary text-primary`) and what light's 5.69–6.15:1 allows.
+    expect(button).toContain('color: var(--brand-primary)');
+    expect(button).not.toContain('color: var(--brand-primary-elevated)');
+
+    // Dark lifts it, because 3.23:1 on a hovered card is a border, not a word. Two things have to
+    // stay true of that override and neither is visible to a screenshot in English:
+    const dark = css.slice(css.indexOf('@media (min-width: 601px)'));
+    expect(dark).toContain("html[data-theme='dark'] .addToOrderButton");
+    expect(dark).toContain('color: var(--brand-primary-elevated)');
+    // …and it MUST stay behind the min-width guard. `html[data-theme='dark'] .x` is (0,2,1) and the
+    // ≤600px block's `.addToOrderButton` is (0,1,0), so an unguarded rule outranks it regardless of
+    // source order — and below 600px this button is a solid brand disc whose `+` glyph inherits
+    // `currentColor`. Unguarded it renders #ef9a9a on #e06666: 1.5:1, an invisible plus.
+    expect(css.indexOf('@media (min-width: 601px)')).toBeLessThan(
+      css.indexOf("html[data-theme='dark'] .addToOrderButton"),
+    );
+  });
+
+  /**
+   * The price row holds one line because the BUTTON yields, not because the row cannot break.
+   *
+   * Three declarations carry that between two files, and each is silently reversible: drop the
+   * `min-content` basis and the row breaks from the button's full label again (6 of 10 locales at
+   * 1280px); put `white-space: nowrap` back and the button stops wrapping; "simplify"
+   * `overflow-wrap` to `anywhere` and the basis collapses to one character, which measured as a
+   * 44×120 Add button on an admin card. None of it is visible to a screenshot in English, which is
+   * the only locale the baselines shoot.
+   */
+  it('lets the button, never the price, absorb a long label', () => {
+    const actions = block('MenuItemActions.module.css', '.itemActions');
+    const button = block('MenuItemActions.module.css', '.addToOrderButton');
+
+    // The price stays whole…
+    expect(block('MenuItem.module.css', '.rowPrice')).toContain('flex-shrink: 0');
+    // …so the give is the button: it wraps its label…
+    expect(button).not.toContain('white-space: nowrap');
+    expect(button).toContain('overflow-wrap: break-word');
+    expect(button).toContain('min-width: 0');
+    // …and contributes only that wrapped width to where the row breaks.
+    expect(actions).toContain('flex: 1 1 min-content');
   });
 });

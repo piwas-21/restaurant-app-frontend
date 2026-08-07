@@ -122,6 +122,53 @@ describe('MenuCard — one card for both catalog kinds', () => {
     expect(container.querySelector('[data-testid="special-badge"]')).not.toBeInTheDocument();
   });
 
+  /**
+   * The ribbon belongs to the PHOTO. Positioned against the `<li>` it only landed correctly where
+   * the photo is full-bleed across the top of a grid card; on the ≤600px row the photo is an 88px
+   * square inset by the card's padding, so the badge floated over the padding beside it (visible
+   * in the committed mobile baseline). Asserted structurally rather than by class, because the
+   * containing block is what the CSS depends on.
+   */
+  it('pins the Special ribbon inside the photo, not over the card', () => {
+    const { container } = render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    const badge = container.querySelector('[data-testid="special-badge"]');
+    expect(badge).toBeInTheDocument();
+    expect(badge?.closest('[data-testid="menu-item-image"]')).not.toBeNull();
+  });
+
+  /**
+   * Moving the badge inside the enlarge `<button>` puts it behind that button's `aria-label`, so
+   * the word would have left the accessible tree entirely. It comes back on the card's own name,
+   * the same way the blocked reason already does — "Special Lunch Combo", not a decorative corner
+   * only sighted guests can see.
+   */
+  it('keeps "Special" in the card accessible name once the badge moves into the photo', () => {
+    const { container } = render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(container.querySelector('li')).toHaveAttribute('aria-labelledby', 'item-special-b1 item-name-b1');
+    expect(container.querySelector('#item-special-b1')).toHaveTextContent('special');
+  });
+
+  /**
+   * Details is the DESCRIPTION's affordance — it opens the sheet holding the rest of the sentence
+   * the paragraph clamps. It used to render last, after the allergen block and the dietary chips,
+   * which on a RUMI card (neither populated) stranded it above the price rule with nothing to
+   * attach to. Pinned as an immediate sibling so it cannot drift back out of place.
+   */
+  it('renders Details immediately after the description, ahead of the allergen block', () => {
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    const description = screen.getByText('Classic pizza');
+    const details = screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' });
+    const allergens = screen.getByRole('group', { name: 'Allergens' });
+
+    expect(description.tagName).toBe('P');
+    expect(description.nextElementSibling).toBe(details);
+    // Plain FOLLOWING, no CONTAINS bit: they are siblings in the card's text column, in that order.
+    expect(details.compareDocumentPosition(allergens)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it('Add opens without forcing (fast-add allowed) but Details forces the sheet — never a silent add', () => {
     const onOpen = jest.fn();
     render(<MenuCard item={product} onOpen={onOpen} onFeedbackSuccess={jest.fn()} />);

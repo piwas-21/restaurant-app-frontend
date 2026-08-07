@@ -55,6 +55,7 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
   const isBlocked = isItemBlocked(item.availability, availabilityNotice);
   const nameId = `item-name-${item.id}`;
   const reasonId = `item-availability-${item.id}`;
+  const specialId = `item-special-${item.id}`;
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   // Locally reflect an admin inline price edit; resync if the item prop changes.
@@ -86,14 +87,10 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
     // an AT could act on. Setting it anyway is markup `jsx-a11y/role-supports-aria-props` rejects.
     <li
       className={isBlocked ? `${styles.menuItem} ${styles.blocked}` : styles.menuItem}
-      aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
+      aria-labelledby={[item.isSpecial ? specialId : null, nameId, isBlocked ? reasonId : null]
+        .filter(Boolean)
+        .join(' ')}
     >
-      {item.isSpecial && (
-        <div className={styles.specialBadge} data-testid="special-badge">
-          {t('special')}
-        </div>
-      )}
-
       <AdminMenuCardControls item={item} />
 
       <MenuCardImage
@@ -103,6 +100,19 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
         enlargeLabel={t('menu_item_image_enlarge_aria', 'Enlarge {{itemName}} image', { itemName })}
+        // The ribbon belongs to the PHOTO, so it is handed to the image as a slot rather than
+        // positioned against the <li> — against the card it only landed correctly where the photo
+        // is full-bleed, and on the ≤600px row it floated over the padding beside the 88px
+        // thumbnail. Inside the enlarge button it is outside that button's accessible name, so the
+        // id is folded into the card's `aria-labelledby` above: the card announces "Special
+        // <dish>" instead of losing the word to a decorative corner.
+        badge={
+          item.isSpecial ? (
+            <span id={specialId} className={styles.specialBadge} data-testid="special-badge">
+              {t('special')}
+            </span>
+          ) : undefined
+        }
         onError={() => setImageFailed(true)}
       />
       <div className={styles.contentWrapper}>

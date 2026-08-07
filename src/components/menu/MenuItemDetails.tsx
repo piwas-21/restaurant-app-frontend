@@ -91,6 +91,28 @@ export default function MenuItemDetails({
           {description}
         </p>
       )}
+
+      {/* Immediately after the description, because it is the description's affordance: it opens
+          the sheet that holds the rest of the sentence this <p> clamps to two lines. It used to
+          render last — after the allergen block and the dietary chips — which on a RUMI card (no
+          allergens, no tags) left it stranded above the price rule with nothing to attach to; the
+          committed baselines show it floating in that blank band.
+
+          `mobile_menu_light` puts it here as `<a class="inline-block mt-1 …">`. Still a real
+          <button> with the same aria-label: `tablet_menu_light` folds it into the paragraph as a
+          <span>, and moving the onClick onto the <p> would strand keyboard users. */}
+      {onDetailsClick && (
+        <button
+          type="button"
+          className={styles.detailsLink}
+          onClick={onDetailsClick}
+          // Falls back to the visible text rather than to nothing: a caller that passes the handler
+          // without a label would otherwise render a button with no name at all.
+          aria-label={detailsAria ?? detailsLabel}
+        >
+          {detailsLabel}
+        </button>
+      )}
       {/* {(() => {
         const text = (ingredients || '').trim();
         const parts = text
@@ -154,21 +176,6 @@ export default function MenuItemDetails({
             </span>
           ))}
         </div>
-      )}
-
-      {/* A real button, so Enter/Space and the focus ring come for free. It reads as a text link
-          rather than a second CTA — the card has exactly one of those, and it is the add control. */}
-      {onDetailsClick && (
-        <button
-          type="button"
-          className={styles.detailsLink}
-          onClick={onDetailsClick}
-          // Falls back to the visible text rather than to nothing: a caller that passes the handler
-          // without a label would otherwise render a button with no name at all.
-          aria-label={detailsAria ?? detailsLabel}
-        >
-          {detailsLabel}
-        </button>
       )}
     </>
   );

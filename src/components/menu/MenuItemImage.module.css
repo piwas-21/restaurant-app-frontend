@@ -45,11 +45,17 @@
    `order: 2`, i.e. on the trailing edge, which put the one scannable column (name → description →
    price) hard against the screen edge and the photo where the eye lands last. */
 @media (max-width: 600px) {
+  /* The row's thumbnail is a standalone object, not a bleed off the card edge, so it takes the
+     hairline every other boxed thing on the page takes: `mobile_menu_light` gives it
+     `rounded-lg overflow-hidden border border-outline-variant`, and `mobile_menu_dark` the same in
+     its own dark step — exactly the two values `--border-default` carries. The desktop rule above
+     keeps `border: 0`, where the photo IS full-bleed and the card's own edge closes it. */
   .itemImageContainer {
     width: 88px;
     height: 88px;
     min-width: 88px;
     margin-bottom: 0;
+    border: 1px solid var(--border-default);
     border-radius: 8px;
     order: 0;
   }

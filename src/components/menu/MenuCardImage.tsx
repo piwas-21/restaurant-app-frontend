@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import MenuItemImage from './MenuItemImage';
 import ImageGalleryModal from './ImageGalleryModal';
 import { useImageGallery } from '@/hooks/menu/useImageGallery';
@@ -14,6 +15,8 @@ interface MenuCardImageProps {
   countLabel?: string;
   /** Accessible name for the enlarge-on-click button (distinct from the dish name). */
   enlargeLabel: string;
+  /** Overlay pinned to the photo (the classic card's "Special" ribbon) — see `MenuItemImage`. */
+  badge?: ReactNode;
   onError?: () => void;
 }
 
@@ -31,6 +34,7 @@ export default function MenuCardImage({
   imageCount,
   countLabel,
   enlargeLabel,
+  badge,
   onError,
 }: Readonly<MenuCardImageProps>) {
   const gallery = images && images.length > 0 ? images : [{ url: imageUrl, alt }];
@@ -44,6 +48,7 @@ export default function MenuCardImage({
         imageCount={imageCount}
         countLabel={countLabel}
         enlargeLabel={enlargeLabel}
+        badge={badge}
         onClick={() => state.open()}
         onError={onError}
       />

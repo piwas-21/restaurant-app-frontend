@@ -122,23 +122,23 @@
   opacity: 0.9;
 }
 
-/* Dietary chips: 1px border, 10px radius, muted text, NO background fill — DESIGN.md §Components.
-   They used to be four differently-tinted pills (green vegan, blue vegetarian, amber gluten-free,
-   grey halal), which put three more colour families on a card already carrying too many and made
-   the chips louder than the dish name above them. One neutral outline for all of them — the meaning
-   is in the word, which is the part a guest actually reads. The per-diet classes are gone rather
-   than flattened to identical rules, so nothing looks like it is still varying by diet. */
+/* Dietary chips: 1px border, 10px radius, no background fill — DESIGN.md §Components. They used to
+   be four differently-tinted pills (green vegan, blue vegetarian, amber gluten-free, grey halal),
+   which put three more colour families on a card already carrying too many. The per-diet classes are
+   gone rather than flattened to identical rules, so nothing looks like it is still varying by diet.
+   S12 reconciled radius and ink with the card's OTHER chip family, `AllergenDisplay.module.css`:
+   this rule said 4px while the line above it said 10px, and `--text-muted` clears AA on the resting
+   card (4.59:1) but not hovered (4.43:1) or blocked (4.24:1). Gated in allergenChipContrast.test.ts. */
 .allergyTag {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  /* `rounded` = 4px. Only the CARD takes 10px; chips and buttons take the default step. */
-  border-radius: 4px;
+  border-radius: 10px;
   font-family: var(--font-family-sans);
   font-size: 0.75rem;
   font-weight: 600;
   margin: 0.15rem;
   background-color: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   border: 1px solid var(--border-default);
 }
 

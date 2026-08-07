@@ -239,6 +239,11 @@
 
   /* Borders */
   --border-default: #eae0d2; /* kraft */
+  /* The allergen chip's outline. It cannot take `--border-default` here: that is the same hex as
+     `--surface-secondary` above, so on a blocked card (CraftMenuCard `.card.blocked`) and in a
+     bundle's Customize panel the chip's border measured exactly 1.00:1 and the chip lost every
+     visual boundary. Olive ink reads as a drawn line on kraft — 5.02:1 on the blocked card. */
+  --chip-border: var(--text-secondary);
   --border-light: #f1eae0;
   --border-extra-light: #f8f3ec;
 
@@ -286,6 +291,8 @@ html[data-theme='dark'] {
   --link-hover: #f7cbae;
 
   --border-default: #3e3630;
+  /* Same collision in dark — `#3e3630` is `--surface-secondary`. 5.93:1 on the blocked card. */
+  --chip-border: var(--text-secondary);
 
   /* Unlike the shared layer (which leaves --feedback-danger's base value
      unset in dark, at a known sub-AA 3.8:1 gap it already ships with —

@@ -1361,14 +1361,18 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    // ── S1 — the empty-allergen spacer. ───────────────────────────────────────────────────────────
+    // ── S1 — the empty-allergen spacer, and S12 — the chip itself. ────────────────────────────────
     // `AllergenDisplay.test.tsx` is the only thing standing between the tree and a `visibility:
     // hidden` placeholder returning to reserve ~80px on every card that carries no allergens — which
     // is the state most of RUMI's menu is in, and the state every product in `e2e/seed/seed.sql` is
     // in. Nothing asserted that band for as long as it shipped, so without a row here the test is
-    // deletable and the regression silently re-enabled. Measured at 92.3/90/83.33/92.3 with CI's own
-    // command and pinned at actual − 1, per this block's house rule. The uncovered lines are the
-    // `compact` variant's "+N more" title.
-    './src/components/common/AllergenDisplay.tsx': { statements: 91, branches: 89, functions: 82, lines: 91 },
+    // deletable and the regression silently re-enabled. It now also carries D9: a substance warning
+    // renders a glyph and a dietary claim does not, a split no screenshot can see because the seed
+    // products carry no allergens at all.
+    // S12 raised this from 91/89/82/91 (measured 92.3/90/83.33/92.3). The three duplicated chip
+    // bodies became one, which retired the uncovered "+N more" title on the `compact` variant, and
+    // the last default-arg branch is now exercised. Re-measured at 100/100/100/100 with CI's own
+    // command and pinned at actual − 1, per this block's house rule.
+    './src/components/common/AllergenDisplay.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
   },
 };

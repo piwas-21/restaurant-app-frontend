@@ -17,13 +17,13 @@
 The four reported issues are not the same kind of problem. Two are design work; one is a code bug
 Stitch cannot help with; one is already fixed and released.
 
-| # | Reported | Verdict | Where it goes |
-|---|---|---|---|
-| 1a | "Edit-price button's design doesn't look nice… including its edit mode in classic" | **Design** — genuine | **Prompt 5** |
-| 1b | "Some menu items don't have edit-price button when logged in as admin" | **Already fixed and in prod** — see below | nothing to do |
-| 2 | "Chef's Special doesn't look nice / doesn't fit classic / takes too much space" | **Design** — genuine, and the root cause is nameable | **Prompts 3, 4** |
-| 3 | "Add order and details buttons take too much space" | **Design** — genuine, and worse than reported | **Prompts 1, 2** |
-| 4 | "Categories nav bar has empty space on top in mobile when scrolling" | **Not a design issue — a one-line CSS bug** | fix directly, see below |
+| #   | Reported                                                                           | Verdict                                              | Where it goes           |
+| --- | ---------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------- |
+| 1a  | "Edit-price button's design doesn't look nice… including its edit mode in classic" | **Design** — genuine                                 | **Prompt 5**            |
+| 1b  | "Some menu items don't have edit-price button when logged in as admin"             | **Already fixed and in prod** — see below            | nothing to do           |
+| 2   | "Chef's Special doesn't look nice / doesn't fit classic / takes too much space"    | **Design** — genuine, and the root cause is nameable | **Prompts 3, 4**        |
+| 3   | "Add order and details buttons take too much space"                                | **Design** — genuine, and worse than reported        | **Prompts 1, 2**        |
+| 4   | "Categories nav bar has empty space on top in mobile when scrolling"               | **Not a design issue — a one-line CSS bug**          | fix directly, see below |
 
 ### 1b — the missing edit-price button is already fixed
 
@@ -42,7 +42,7 @@ Today those cards render a **locked pill** instead — a lock glyph plus the rea
 
 **So if you are still seeing "no button", you are almost certainly looking at that locked pill** — and
 that is a fair complaint, just a different one: it is a low-contrast grey pill with no border and no
-control affordance, so it reads as *absence* rather than as *refusal*. **Prompt 5 designs all three
+control affordance, so it reads as _absence_ rather than as _refusal_. **Prompt 5 designs all three
 states** (rest, editing, locked) so the locked one is legible as a deliberate state.
 
 ### 4 — the category-nav gap is a CSS bug, not a layout to redesign
@@ -51,14 +51,24 @@ Root cause, confirmed in the source. [`CategoryNav.module.css`](../src/component
 hardcodes the sticky offset at both mobile breakpoints:
 
 ```css
-@media (max-width: 768px) { .stickyNav { top: 130px; /* 80px header + 50px TableBanner */ } }
-@media (max-width: 480px) { .stickyNav { top: 130px; /* 80px header + 50px TableBanner */ } }
+@media (max-width: 768px) {
+  .stickyNav {
+    top: 130px; /* 80px header + 50px TableBanner */
+  }
+}
+@media (max-width: 480px) {
+  .stickyNav {
+    top: 130px; /* 80px header + 50px TableBanner */
+  }
+}
 ```
 
 But [`TableBanner`](../src/components/TableBanner.tsx) returns `null` when there is no table context:
 
 ```tsx
-if (!hasTableContext) { return null; }
+if (!hasTableContext) {
+  return null;
+}
 ```
 
 The banner only renders for a guest who arrived by scanning a table QR. **For everyone else the 50px
@@ -89,7 +99,9 @@ fixes a palette collision. **Prompt 3 puts the hero back on brand.**
 [`MenuItemActions.module.css`](../src/components/menu/MenuItemActions.module.css) under `@media (max-width: 600px)`:
 
 ```css
-.addToOrderButton, .feedbackButton, .viewDetailsButton {
+.addToOrderButton,
+.feedbackButton,
+.viewDetailsButton {
   padding: 0.15rem 0.4rem;
   font-size: 0.6rem;
   border-radius: 3px;
@@ -98,7 +110,7 @@ fixes a palette collision. **Prompt 3 puts the hero back on brand.**
 ```
 
 0.6rem type and `min-height: unset` on the page's primary conversion action — well under the 44px
-touch target that the category nav on the *same page* carefully honours (`min-height: 44px`, with a
+touch target that the category nav on the _same page_ carefully honours (`min-height: 44px`, with a
 comment citing Apple/Google HIG). So the real mobile problem is that two buttons were squeezed to fit
 a space that only holds one. Your instinct — one icon-ish primary action on mobile — is the right
 correction, and it also repairs the touch target.
@@ -127,7 +139,7 @@ make the description clickable is well-founded, and it costs nothing in reachabi
 5. Tick the row in the **Progress tracker** at the bottom.
 
 > **Re-skin, not re-flow.** Keep the existing information architecture and **all four UI states** —
-> loading, empty, error, success. Stitch is generating a *look* for structure that already exists.
+> loading, empty, error, success. Stitch is generating a _look_ for structure that already exists.
 
 ---
 
@@ -432,7 +444,7 @@ featured-special strip.
 ## Prompt 6 — Sticky category navigation, both templates
 
 > Design only. The empty-strip bug is a CSS offset error — see the Triage section — and is fixed in
-> code, not here. Worth a prompt anyway because the bar's *look* is dated.
+> code, not here. Worth a prompt anyway because the bar's _look_ is dated.
 
 ```
 Design the STICKY CATEGORY NAVIGATION bar for the menu page. Two versions —
@@ -537,37 +549,38 @@ Show the four page states and one Arabic RTL mobile frame.
 
 ## Progress tracker
 
-| # | Surface | Template | Generated | Implemented |
-|---|---|---|---|---|
-| 0A | Design system pin | classic | ☑ `design_system_specimen_sheet/`, `heritage_table/DESIGN.md` | ☑ |
-| 0B | Design system pin | craft | — | reuse craft Prompt 1 |
-| 1 | Menu item card | classic | ☑ `{mobile,tablet,desktop}_menu_{light,dark}/` | ☑ |
-| 2 | Menu item card | craft | ☐ | ☐ |
-| 3 | Chef's Special strip | classic | ☑ `{mobile,tablet,desktop}_special_*/` | ☑ |
-| 4 | Chef's Special strip | craft | ☐ | ☐ |
-| 5 | Admin price control (3 states) | classic | ☑ `*_admin_price_controls_*/` | ☑ |
-| 6 | Sticky category nav | classic | ☑ `classic_nav_*/` | ☑ |
-| 6b | Sticky category nav | craft | ☑ `craft_nav_*/` | ☐ |
-| 7 | Whole menu page | classic | ☑ `*_menu_*_full_page/`, `*_states*/` | ☑ |
-| 8 | Whole menu page | craft | ☐ | ☐ |
+| #   | Surface                        | Template | Generated                                                     | Implemented          |
+| --- | ------------------------------ | -------- | ------------------------------------------------------------- | -------------------- |
+| 0A  | Design system pin              | classic  | ☑ `design_system_specimen_sheet/`, `heritage_table/DESIGN.md` | ☑                    |
+| 0B  | Design system pin              | craft    | —                                                             | reuse craft Prompt 1 |
+| 1   | Menu item card                 | classic  | ☑ `{mobile,tablet,desktop}_menu_{light,dark}/`                | ☑                    |
+| 2   | Menu item card                 | craft    | ☐                                                             | ☐                    |
+| 3   | Chef's Special strip           | classic  | ☑ `{mobile,tablet,desktop}_special_*/`                        | ☑                    |
+| 4   | Chef's Special strip           | craft    | ☐                                                             | ☐                    |
+| 5   | Admin price control (3 states) | classic  | ☑ `*_admin_price_controls_*/`                                 | ☑                    |
+| 6   | Sticky category nav            | classic  | ☑ `classic_nav_*/`                                            | ☑                    |
+| 6b  | Sticky category nav            | craft    | ☑ `craft_nav_*/`                                              | ☐                    |
+| 7   | Whole menu page                | classic  | ☑ `*_menu_*_full_page/`, `*_states*/`                         | ☑                    |
+| 8   | Whole menu page                | craft    | ☐                                                             | ☐                    |
 
 **Classic is implemented** (this PR). The design system landed as `heritage_table/DESIGN.md` — Playfair
 Display + Public Sans, a single 10px radius, hairline borders, one soft shadow, and the rule that
-decided most of the work: *"green for success or gold for premium features are strictly prohibited to
-maintain brand integrity."*
+decided most of the work: _"green for success or gold for premium features are strictly prohibited to
+maintain brand integrity."_
 
-### Known off-palette surfaces still on the menu page
+### Off-palette surfaces — now closed
 
-Both are separate components with their own Stitch screens still to come, so they were deliberately
-left out of the classic-menu PR rather than repainted blind:
+Both were deliberately left out of the classic-menu PR (#452) because they are separate components,
+and both were closed straight after in **#454**:
 
-- **`CartContents` "Proceed to Checkout"** — still `--success-color-darker` green. It renders in the
-  menu page's basket rail, and also on `/cart`, in `MobileCartSheet` and in checkout, so moving it to
-  the brand is a cart-surface change, not a menu one.
-- **`TableBanner`** — still an iris→plum `linear-gradient`, i.e. a fourth accent family *and* the one
-  remaining gradient on the page. Only visible to guests who arrived by QR scan.
-
----
+- **`CartContents` "Proceed to Checkout"** — was `--success-color-darker` green, the last green CTA
+  on a page whose every other action had moved to the brand. Now `--brand-primary`, with
+  `--text-on-primary` so the ink flips with the theme.
+- **`TableBanner`** — was an iris→plum `linear-gradient`, i.e. a fourth accent family _and_ the last
+  gradient on the page. Now flat brand. It also rendered the literal string `{{number}}` to any
+  guest who scanned a table QR, because `t()` was called with no interpolation values while all ten
+  locales carry the placeholder; fixed by interpolating rather than by editing translations, since
+  `tr` and `zh` put the token mid-sentence.
 
 ## After the screens exist
 

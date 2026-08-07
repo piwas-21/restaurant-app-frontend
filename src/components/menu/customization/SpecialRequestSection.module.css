@@ -24,7 +24,10 @@
   padding: 0.875rem 1rem;
   background-color: var(--secondary-color-light);
   border: var(--modal-body-option-border, 1px solid var(--border-color));
-  border-radius: var(--modal-body-option-radius, 8px);
+  /* DESIGN.md §Shapes: the universal 10px. This control renders in EVERY sheet — both
+     `ProductSheetBody` and `BundleSheetBody` render it unconditionally — so an 8px input was the
+     one off-step radius always on screen. */
+  border-radius: var(--modal-body-option-radius, 10px);
   font-family: inherit;
   font-size: 0.9375rem;
   color: var(--text-color);

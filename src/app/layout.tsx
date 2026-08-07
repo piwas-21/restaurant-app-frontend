@@ -43,7 +43,12 @@ const { Shell, fonts } = template;
 // needs them addressable separately, so it declares `variable` on both — with `className` the body
 // rendered entirely in Playfair while `var(--font-display)` stayed undefined and fell back to
 // Georgia, i.e. exactly inverted. Craft declares no `variable` and keeps the className path.
-const fontClassNames: string[] = fonts.map((font) => font.variable ?? font.className);
+// `||`, NOT `??`. next/font emits a `variable` key on every font object and leaves it EMPTY when
+// the loader was called without one, so `??` (which only falls back on null/undefined) kept the
+// empty string — stripping craft's three font classNames off <body> entirely and rendering every
+// craft page in the system font. It failed the craft visual baseline on all 14 screens, not just
+// the menu, which is what gave it away: a menu-page change cannot move the login page.
+const fontClassNames: string[] = fonts.map((font) => font.variable || font.className);
 const bodyClassName = fontClassNames.join(' ');
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

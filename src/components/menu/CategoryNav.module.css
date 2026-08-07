@@ -1,11 +1,10 @@
 /* Sticky Category Navigation.
  *
- * The offset is computed, not assumed. It used to be a hardcoded `top: 130px` at both mobile
- * breakpoints with the comment "80px header + 50px TableBanner" — but `TableBanner` returns null
- * unless the guest arrived by scanning a table QR, so for every ordinary mobile visit the page
- * reserved 50px for a banner that never rendered and the bar parked in mid-air. That is the empty
- * strip in the report. `--menu-banner-offset` is set on the menu page root from the same
- * `hasTableContext` the banner itself reads, and defaults to 0 for every other consumer.
+ * The offset is computed, not assumed. It used to be a hardcoded `top: 130px` ("80px header + 50px
+ * TableBanner") at both mobile breakpoints, but `TableBanner` returns null unless the guest scanned
+ * a table QR — so every ordinary mobile visit reserved 50px for nothing and the bar parked in
+ * mid-air. `--menu-banner-offset` comes from the same `hasTableContext` the banner itself reads and
+ * defaults to 0. Full account in categoryNavStickyOffset.test.ts, which gates the shape of this.
  *
  * The tabs are underline-indicated, not filled pills: a row of grey pills with one red pill in it
  * is a lot of chrome to sit permanently above the content the guest came for. */
@@ -16,19 +15,26 @@
   padding: 0;
   z-index: 100;
   border-bottom: 1px solid var(--border-default);
+  /* The one shadow level DESIGN.md §Elevation permits, and the one the light screen puts on this
+     bar. Dark separates itself with 95% opacity + an 8px blur — a second mechanism needing a token,
+     and Prompt 6 wants no "heavy toolbar", so one hairline lift serves both themes. */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   margin-bottom: 1.5rem;
 }
 
+/* No `justify-content`: the scroller takes the whole row, and both desktop screens start their tabs
+   at the inline edge rather than centring a capped strip in a wider bar. */
 .navWrapper {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  max-width: 1400px;
+  max-width: 1200px; /* DESIGN.md §Layout — the desktop grid */
   margin: 0 auto;
   padding: 0 1rem;
 }
 
+/* `px-8 lg:px-10` — the arrows are absolutely positioned over these lanes, so this padding is what
+   keeps the end tabs from under a glyph. A lane that existed only while an arrow did WAS the jolt. */
 .navScrollContainer {
   overflow-x: auto;
   overflow-y: hidden;
@@ -37,7 +43,7 @@
   -ms-overflow-style: none; /* IE and Edge */
   flex: 1;
   min-width: 0;
-  max-width: 900px;
+  padding-inline: 2.5rem;
 }
 
 .navScrollContainer::-webkit-scrollbar {
@@ -51,20 +57,18 @@
   min-width: min-content;
 }
 
-/* A transparent tab with a 2px transparent bottom border that the active state paints. The border
-   is present at rest so selecting a tab does not shift the row by 2px. */
-/* `font-dish-name text-dish-name … pb-1 border-b-2` — the tabs are PLAYFAIR at the dish-name step,
-   not a sans label. That is deliberate in the design: the category row reads as part of the menu's
-   typography rather than as app chrome, and it is the detail that most separates this bar from a
-   generic filter strip. `flex-direction: column` because a restricted category carries a second
-   line under its name. */
+/* `font-dish-name text-dish-name … pb-1 border-b-2` — PLAYFAIR at the dish-name step (1.15rem/600),
+   not a sans label: the row reads as part of the menu's typography rather than as app chrome, and
+   DESIGN.md §Typography names category headers as a serif. The 2px bottom border is present at
+   rest, transparent, so selecting a tab cannot shift the row. Column because a restricted category
+   carries a second line under its name. */
 .navButton {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 0.5rem 0 0.25rem;
-  min-height: 44px;
+  min-height: 44px; /* Apple/Google HIG touch target */
   cursor: pointer;
   border: none;
   border-bottom: 2px solid transparent;
@@ -76,14 +80,14 @@
   font-family: var(--font-family-display);
   font-size: 1.15rem;
   line-height: 1.4;
-  font-weight: 500;
+  font-weight: 600; /* `text-dish-name` carries its own 600; 500 was drift */
   color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .navButton:hover {
-  color: var(--brand-primary-elevated);
+  color: var(--brand-primary);
   /* `hover:border-primary/50` — a half-strength preview of the active underline. */
   border-bottom-color: var(--border-default);
 }
@@ -93,14 +97,21 @@
   outline-offset: -2px;
 }
 
-/* Colour is not the only signal — the underline and the heavier weight carry it too. */
+/* Colour is not the only signal — the underline and the heavier weight carry it too.
+   `--brand-primary`, NOT `--brand-primary-elevated`: that token's own comment scopes it to the top
+   nav's pill (#373737), a surface this bar is not. On `--surface-primary` the plain brand is
+   6.48:1 light (#c00000 on #ffffff) and 5.19:1 dark (#e06666 on #1a1a1a) — both AA, and the dark
+   screen paints this exact tab #E06666. The lift bought nothing and paled the hue to #ef9a9a. */
 .navButtonActive {
-  color: var(--brand-primary-elevated);
-  border-bottom-color: var(--brand-primary-elevated);
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
   font-weight: 700;
 }
 
 .navArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   background-color: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: 50%;
@@ -114,7 +125,6 @@
     background-color 0.2s ease,
     color 0.2s ease;
   color: var(--text-secondary);
-  flex-shrink: 0;
   z-index: 1;
 }
 
@@ -124,25 +134,19 @@
   border-color: var(--brand-primary);
 }
 
-/* The gap between an arrow and the scroller it sits beside. `navArrowLeft` is the FIRST flex
-   child and `navArrowRight` the last, so in `ar` they swap sides and each gap has to swap with
-   them — logical margins do that. The glyphs are already mirrored below. */
+/* Out of flow, one pinned to each end. As FLEX children the arrows shoved the whole row ~44px
+   sideways whenever overflow started or stopped; absolute means mounting one moves nothing. The
+   class names stay physical — they name an END — and the logical insets swap those under `rtl`. */
 .navArrowLeft {
-  margin-inline-end: 0.5rem;
+  inset-inline-start: 0;
 }
 
 .navArrowRight {
-  margin-inline-start: 0.5rem;
+  inset-inline-end: 0;
 }
 
 /* Tablet */
 @media (max-width: 768px) {
-  .navWrapper {
-    padding: 0 1rem;
-    width: 100%;
-    max-width: 100%;
-  }
-
   .navScrollContainer {
     -webkit-overflow-scrolling: touch;
   }
@@ -156,22 +160,14 @@
 
   .navWrapper {
     padding: 0 0.5rem;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
   }
 
-  .navScrollContainer {
-    flex: 1;
-    min-width: 0;
-    -webkit-overflow-scrolling: touch;
-  }
-
+  /* The one screen drawn at this width sets its tabs at 0.95rem. It also sets them in Public Sans
+     and this bar keeps Playfair — DESIGN.md §Typography names category headers as a serif and both
+     desktop screens agree — but on SIZE that screen is the only evidence there is, and the shipped
+     1.05rem came from no screen at all. */
   .navButton {
-    padding: 0.5rem 0 0.25rem;
-    font-size: 1.05rem;
-    /* Accessibility: minimum touch target size */
-    min-height: 44px;
+    font-size: 0.95rem;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -182,18 +178,25 @@
 }
 
 /* ── Per-order-type channel restriction on a category tab (ORDER-TYPE-AVAILABILITY-PLAN §4.4) ──
-   The tab keeps its label and stays selectable; the restriction is a second line INSIDE the button
-   so it joins the tab's accessible name. */
-/* `font-label-muted text-[10px] uppercase text-outline` — a quiet second line under the name. */
+   `font-label-muted text-[10px] uppercase text-outline` — a quiet second line under the name. The
+   tab keeps its label and stays selectable; the restriction sits INSIDE the button so it joins the
+   tab's accessible name. */
 .navButtonNotice {
   display: block;
   margin-top: 2px;
   font-family: var(--font-family-sans);
   font-size: 0.625rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  line-height: 1.2;
+  font-weight: 400;
   text-transform: uppercase;
   color: var(--text-muted);
+  /* `white-space: normal` was inert: the tab is `nowrap` and `flex-shrink: 0` inside a
+     `min-width: min-content` row, so the notice never had a reason to break. The cap is what lets
+     it — 16ch keeps a single-channel notice ("DINE-IN ONLY") on one line as both desktop screens
+     draw it, and folds "TAKEAWAY AND DELIVERY ONLY" onto two instead of widening one tab past
+     170px on a 375px bar. */
+  max-width: 16ch;
+  text-align: center;
   white-space: normal;
 }
 
@@ -204,9 +207,9 @@
   color: inherit;
 }
 
-/* RTL: the chevrons point at a SIDE, so they are the one thing `dir="rtl"` cannot mirror for
-   itself — the box flips, the glyph inside does not. Flipping the icon rather than swapping the
-   two components keeps the buttons' scroll handlers, positions and labels untouched. */
+/* RTL: the chevrons point at a SIDE, the one thing `dir="rtl"` cannot mirror for itself — the box
+   flips, the glyph inside does not. Flipping the icon rather than swapping the two components keeps
+   the buttons' scroll handlers, positions and labels untouched. */
 [dir='rtl'] .navArrow svg {
   transform: scaleX(-1);
 }

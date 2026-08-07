@@ -1,7 +1,24 @@
 /* Core Menu Page Styles */
 .menuContainer {
-  padding: 2rem;
-  width: 98%;
+  /* The whole inline distance from the viewport edge to the page's content, published as a variable
+     because a child has to be able to CANCEL it: the sticky category bar is page chrome and pulls
+     itself back out to those edges with a matching negative margin (CategoryNav.module.css). One
+     declaration, so the bar and the page it sits on cannot disagree.
+     2rem of it is this page's own gutter; the other 1rem is the shell's — BOTH templates' customer
+     chrome insets every non-home route by `padding: 1rem` (classic CustomerChrome.tsx's inline
+     `mainStyles`, craft chrome.module.css `.main`). The page cancels that inset and re-adds it here
+     so its box reaches the viewport edge and the bar's hairline can line up with the header's.
+     Measured at 1280px: page box 0→1280, content 48→1232 — the content does not move. */
+  --menu-page-gutter: 3rem;
+  margin-inline: -1rem;
+  padding: 2rem var(--menu-page-gutter);
+  /* `auto` + `max-width: none`, not the old `width: 98%`. The 2% was slack on ONE side (the inline
+     end — the left in `ar`), leaving the page box 25px short of its parent at 1280px, which no
+     negative margin on the bar could make symmetric. `auto` lets the negative margins widen the box;
+     `max-width` is load-bearing because globals.css caps EVERY element at 100% below 768px, and a
+     capped box SHIFTS instead of widening. Content stays bounded by `.itemsGrid`'s own max-width. */
+  width: auto;
+  max-width: none;
   font-family: var(--font-family-sans);
   background-color: var(--page-canvas);
   color: var(--text-color);
@@ -56,16 +73,18 @@
   font-weight: 500;
 }
 
-/* Tablet */
+/* Tablet. The gutter narrows here and NOT at 480 — which is the breakpoint the bar has to match,
+   because a bar cancelling 2rem inside a 0.5rem container overflows the page by 1.5rem a side. */
 @media (max-width: 768px) {
   .menuContainer {
-    padding: 1rem 0.5rem;
+    --menu-page-gutter: 1.5rem; /* 0.5rem page gutter + the shell's unchanged 1rem */
+    padding: 1rem var(--menu-page-gutter);
   }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
   .menuContainer {
-    padding: 0.75rem 0.5rem;
+    padding: 0.75rem var(--menu-page-gutter);
   }
 }

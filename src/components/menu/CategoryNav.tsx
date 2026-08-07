@@ -22,9 +22,14 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
   const tabs = useCategoryTabs(categories, allLabel);
   const nav = useCategoryNavScroll(categories.length);
 
-  // Rounded-pill tabs (classic); the sticky bar + scroll arrows live in the shared shell.
+  // Underline-indicated tabs (classic); the sticky bar + scroll arrows live in the shared shell.
+  // No arrow gate is passed on purpose. `useCategoryNavScroll` already measures whether there is
+  // anything to scroll to, which is exactly what Prompt 6 asks the arrows to express ("appearing
+  // only when there is more to scroll"). The `tabs.length > 5` that used to sit here was a COUNT:
+  // with `All` and `Menu Bundles` always prepended it meant "4+ tenant categories", so a bar that
+  // overflowed on three could not show an arrow and a bar that fit on six showed two.
   return (
-    <CategoryNavShell styles={styles} showNavArrows={tabs.length > 5} {...nav}>
+    <CategoryNavShell styles={styles} {...nav}>
       {tabs.map((tab) => (
         <button
           key={tab.id}

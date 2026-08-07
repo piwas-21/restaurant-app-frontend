@@ -20,7 +20,15 @@ export type CategoryNavShellStyles = Readonly<Record<string, string>>;
 interface CategoryNavShellProps {
   styles: CategoryNavShellStyles;
   scrollContainerRef: RefObject<HTMLDivElement | null>;
-  showNavArrows: boolean;
+  /**
+   * An EXTRA condition on top of the measured overflow, defaulting to none.
+   *
+   * `canScrollBack`/`canScrollForward` are the real answer — they come from the container's own
+   * `scrollWidth`/`clientWidth`, which is what "there is more to scroll" means. Classic passes
+   * nothing and rides on that alone. Craft still passes `tabs.length > 5`, a count that is not a
+   * fit; removing it is a craft-track change, so the prop stays rather than disappearing.
+   */
+  showNavArrows?: boolean;
   canScrollBack: boolean;
   canScrollForward: boolean;
   scroll: (direction: 'back' | 'forward') => void;
@@ -30,7 +38,7 @@ interface CategoryNavShellProps {
 export default function CategoryNavShell({
   styles,
   scrollContainerRef,
-  showNavArrows,
+  showNavArrows = true,
   canScrollBack,
   canScrollForward,
   scroll,
@@ -42,8 +50,9 @@ export default function CategoryNavShell({
     <nav className={styles.stickyNav} aria-label={t('category_navigation_aria', 'Category navigation')}>
       <div className={styles.navWrapper}>
         {/*
-          `navArrowLeft`/`navArrowRight` stay PHYSICAL class names and that is correct: they are
-          the arrow's position in the flex row, which the row already mirrors under `dir="rtl"`.
+          `navArrowLeft`/`navArrowRight` stay PHYSICAL class names and that is still correct: they
+          name the arrow's END of the bar, and each template's module is what pins that end so
+          `dir="rtl"` swaps the two (classic with a logical inset, craft with its flex order).
           What is logical is the direction of travel — `back`/`forward` — matching the aria-labels
           these buttons have always carried, and the chevron glyph that
           `[dir='rtl'] .navArrow svg { transform: scaleX(-1) }` already mirrors.

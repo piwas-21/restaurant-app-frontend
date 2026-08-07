@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import FeaturedSpecial from './FeaturedSpecial';
 import type { FeaturedSpecial as FeaturedSpecialType } from '@/types/menu';
@@ -103,26 +105,43 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
     expect(screen.getByRole('button', { name: 'Add to Order' })).toBeInTheDocument();
   });
 
-  it('blocked tone: REMOVES Add, keeps Details, and offers the switch', () => {
+  it('blocked tone: REMOVES Add, keeps the dish name as the way into the sheet, offers the switch', () => {
     // Removed rather than disabled — the S4 rule: nothing focusable-but-dead, and the switch is the
-    // way out. Details stays because it only SHOWS the item.
+    // way out. The route to the sheet survives because it is now the HEADING, and a heading is not
+    // something the blocked state takes away. That is the whole reason S2 could drop the second
+    // button rather than simply deleting it: reachability had to move somewhere first.
     mockedNotice.mockReturnValue(BLOCKED);
     const onSwitchOrderType = jest.fn();
+    const onViewDetails = jest.fn();
 
     render(
       <FeaturedSpecial
         special={special}
         onAddToCart={jest.fn()}
-        onViewDetails={jest.fn()}
+        onViewDetails={onViewDetails}
         onSwitchOrderType={onSwitchOrderType}
       />,
     );
 
     expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'View Details' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Chef Special' }));
+    expect(onViewDetails).toHaveBeenCalledWith({ forceSheet: true, availability: AVAILABILITY });
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
+  });
+
+  it('leaves exactly one button beside the name — every generated special screen has one action', () => {
+    // The strip carried both an Add and a Details, and no `*_special_*` screen draws two. Counting
+    // is the assertion: a `queryByRole('button', {name: 'View Details'})` that returns null passes
+    // just as happily against a third button nobody meant to add.
+    render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
+
+    expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual([
+      'Chef Special',
+      'Add to Order',
+    ]);
   });
 
   it('folds the reason into the section’s accessible name while blocked', () => {
@@ -164,7 +183,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
     expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
   });
 
-  it('hands the verdict to BOTH buttons — the §9.10 hand-over lives in the banner, not the page', () => {
+  it('hands the verdict to BOTH routes — the §9.10 hand-over lives in the banner, not the page', () => {
     const onAddToCart = jest.fn();
     const onViewDetails = jest.fn();
 
@@ -173,9 +192,31 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add to Order' }));
     expect(onAddToCart).toHaveBeenCalledWith({ availability: AVAILABILITY });
 
-    fireEvent.click(screen.getByRole('button', { name: 'View Details' }));
-    // Details forces the sheet — it must SHOW the item, never quick-add it.
+    fireEvent.click(screen.getByRole('button', { name: 'Chef Special' }));
+    // The name forces the sheet — it must SHOW the item, never quick-add it.
     expect(onViewDetails).toHaveBeenCalledWith({ forceSheet: true, availability: AVAILABILITY });
+  });
+
+  it('keeps the <h2> a heading, so the section still announces itself with its reason', () => {
+    // The card's title takes `role="button"`, which would have cost this strip its only heading AND
+    // rewritten the accessible name `aria-labelledby` reads off it. A nested <button> is why the
+    // localized-name and blocked-region assertions in this file still hold.
+    mockedNotice.mockReturnValue(BLOCKED);
+
+    render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Chef Special' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Chef Special Takeaway and Delivery only/ })).toBeInTheDocument();
+  });
+
+  it('renders the name as plain text when no sheet handler is wired', () => {
+    // The `onViewDetails` arm's other side. Without it the pinned 100% branch floor on this file
+    // fails, and — more to the point — a template that omits the handler would render a button
+    // wired to nothing.
+    render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} />);
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Chef Special' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Chef Special' })).not.toBeInTheDocument();
   });
 });
 
@@ -272,5 +313,84 @@ describe('the optional blocks', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(container.querySelector('[class*="featuredSpecialAllergens"]')).toBeNull();
     expect(container.querySelector('[class*="featuredSpecialTime"]')).toBeNull();
+  });
+});
+
+/**
+ * The photoless branch. Omitting the <Image> was never the problem — the component has always done
+ * that, and RUMI's live special has no photo. Nothing in the CSS reacted, so the strip went on
+ * holding a photo's worth of height, and the badge (absolute over a photo that is not there) landed
+ * on the dish name: measured on staging at 375px, badge bottom 143.8 against title top 135.8.
+ *
+ * The modifier CLASS is the assertion, not `:has(img)`: a selector the review gate and older Safari
+ * treat unevenly, to express a boolean the component already holds.
+ */
+describe('the photoless collapse', () => {
+  const noPhotoClass = (c: HTMLElement) => c.querySelector('[class*="featuredSpecialNoPhoto"]');
+
+  it('marks the strip when the special carries no image', () => {
+    const { container } = render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} />);
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(noPhotoClass(container)).not.toBeNull();
+  });
+
+  it('does NOT mark it when there is a photo to lay the badge over', () => {
+    const { container } = render(
+      <FeaturedSpecial
+        special={{ ...special, imageUrl: '/uploads/kebab.jpg' } as FeaturedSpecialType}
+        onAddToCart={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('img', { name: 'Chef Special' })).toBeInTheDocument();
+    expect(noPhotoClass(container)).toBeNull();
+  });
+
+  it('keeps the badge inside the text column, ahead of the name it used to strike through', () => {
+    // Position, not presence: the badge rendered before this change too. What it did not do was
+    // precede the heading in the flow, which is the only arrangement that cannot overlap it.
+    const { container } = render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} />);
+
+    const details = container.querySelector('[class*="featuredSpecialDetails"]');
+    const badge = container.querySelector('[class*="featuredSpecialBadge"]');
+    expect(details).not.toBeNull();
+    expect(details).toContainElement(badge as HTMLElement);
+    expect(badge?.compareDocumentPosition(screen.getByRole('heading', { level: 2 }))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
+  /**
+   * Three stylesheet facts jsdom cannot see — it computes no layout, and no screenshot baseline
+   * shoots a tablet width or a photo-bearing special, so these are the only gate on them.
+   */
+  describe('the stylesheet', () => {
+    const CSS = readFileSync(join(__dirname, 'FeaturedSpecial.module.css'), 'utf8');
+    const rule = (selector: string) => {
+      const at = CSS.indexOf(selector);
+      expect(at).toBeGreaterThan(-1);
+      return CSS.slice(at, CSS.indexOf('}', at));
+    };
+
+    it('keeps the heading button out of the global 44px tap-target rule', () => {
+      // globals.css pads EVERY button to 44px below 768px. This slice is what nested a real
+      // <button> in the <h2>, so without this reset the heading row measures 44px instead of
+      // 23.5px on a phone — ~20px of dead space under the dish name.
+      expect(rule('.featuredSpecialTitleButton {')).toContain('min-height: 0');
+    });
+
+    it('gives the dish name a visible affordance, since it is now the only route to the sheet', () => {
+      expect(CSS).toContain('.featuredSpecialTitleButton:hover');
+      expect(rule('.featuredSpecialTitleButton:hover')).toContain('text-decoration: underline');
+    });
+
+    it('lets the 601-768px band grow instead of clipping its availability notice', () => {
+      // A photo plus an `info` notice in a column narrow enough for a long name to wrap laid the
+      // notice out below the 180px clip box — invisible. A floor cannot clip.
+      const band = CSS.slice(CSS.indexOf('@media (min-width: 601px) and (max-width: 768px)'));
+      expect(band).toContain('height: auto');
+      expect(band).toContain('min-height: 180px');
+    });
   });
 });

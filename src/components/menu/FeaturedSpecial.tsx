@@ -2,7 +2,7 @@
 
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
-import { Star, Clock } from 'lucide-react';
+import { Star, Clock, Plus } from 'lucide-react';
 import Image from 'next/image';
 import styles from './FeaturedSpecial.module.css';
 // The notice's OWN styles come from the classic card's module, not this one: `MenuCardAvailability`
@@ -62,26 +62,26 @@ export default function FeaturedSpecial({
       // with its cause rather than as an unexplained style (same rule as the card).
       aria-labelledby={isBlocked ? `featured-special-heading ${reasonId}` : 'featured-special-heading'}
     >
-      <div className={styles.featuredSpecialContainer}>
-        {/* A ribbon over the strip's leading corner — on the photo when there is one, on the panel
-            when there isn't. It was a chip inside a header ROW above the content, which cost the
-            strip a whole band of height for one word and is not the shape the design has. A direct
-            child of the container rather than of the photo, so the no-photo special still gets it. */}
-        <div className={styles.featuredSpecialBadge}>
-          <Star size={14} fill="currentColor" aria-hidden="true" />
-          <span>{t('chefs_special', "Chef's Special")}</span>
-        </div>
-
+      <div
+        className={
+          special.imageUrl
+            ? styles.featuredSpecialContainer
+            : `${styles.featuredSpecialContainer} ${styles.featuredSpecialNoPhoto}`
+        }
+      >
         {/* The hero was the ONE item on the menu page an admin could not act on: every card
             renders these two, and the banner rendered neither. */}
         <div className={styles.featuredSpecialHeader}>
           <AdminMenuCardControls item={adminItem} />
         </div>
 
-        {/* No `.withPhoto` modifier any more. The old grid had to declare a photo COLUMN, so when
-            a special had no image — which is what the live tenant's actually has — the details
-            landed in the photo's column and wrapped at 340px with the rest of the hero empty. A
-            flex row with the photo as an optional first child cannot express that state. */}
+        {/* The photo is an OPTIONAL first child of a flex row — the old grid declared a photo
+            COLUMN, so a special with no image (which is what the live tenant's actually has) put
+            the details in the photo's cell and wrapped at 340px with the rest of the hero empty.
+            The `.featuredSpecialNoPhoto` modifier above is the CSS half of the same fact: the
+            markup already omitted the <Image>, but the strip went on reserving a photo's worth of
+            height for it. A class, not `:has()` — the review gate and older Safari treat that
+            unevenly, and one boolean the component already knows does not need a selector. */}
         <div className={styles.featuredSpecialContent}>
           {special.imageUrl && (
             <div className={styles.featuredSpecialImageContainer}>
@@ -98,9 +98,39 @@ export default function FeaturedSpecial({
           )}
 
           <div className={styles.featuredSpecialDetails}>
-            {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+            {/* A ribbon on the photo's leading corner when there IS a photo (it is absolutely placed
+                against the container, which is the positioned ancestor, so living in this column
+                changes nothing there) and an in-flow pill above the name when there is not. It used
+                to be absolute at EVERY width, and RUMI's live special carries no image — so on a
+                375px phone the badge ran straight through the dish name: badge bottom 143.8 against
+                title top 135.8, measured on staging. */}
+            <div className={styles.featuredSpecialBadge}>
+              <Star size={14} fill="currentColor" aria-hidden="true" />
+              <span>{t('chefs_special', "Chef's Special")}</span>
+            </div>
+
+            {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2).
+                The name is the route into the details sheet, as it already is on every card
+                (`MenuItemDetails`) — a real <button> nested in the heading rather than
+                `role="button"` ON it, so the strip keeps its <h2> and the section's accessible name
+                still reads "<dish> <reason>" while blocked. That is what let the second, competing
+                "Details" button go: every generated special screen has exactly one action. */}
             <h2 id="featured-special-heading" dir="auto" className={styles.featuredSpecialTitle}>
-              {itemName}
+              {onViewDetails ? (
+                <button
+                  type="button"
+                  className={styles.featuredSpecialTitleButton}
+                  // The verdict rides along, exactly as Details handed it over: the sheet's own
+                  // footer Add is the two-clicks-away path S4 closed on the cards. Unlike Add this
+                  // is NOT removed while blocked — showing the item is always allowed, and it is
+                  // now the only route to the sheet.
+                  onClick={() => onViewDetails({ forceSheet: true, availability: special.availability })}
+                >
+                  {itemName}
+                </button>
+              ) : (
+                itemName
+              )}
             </h2>
 
             {description && (
@@ -128,6 +158,9 @@ export default function FeaturedSpecial({
             </div>
 
             {special.allergens && special.allergens.length > 0 && (
+              // The wrapper is `display: none` at every width — allergens belong on the dish CARD
+              // and in the sheet. The two layout classes that used to be handed down here went with
+              // it: they had been dressing the subtree of a hidden element.
               <div className={styles.featuredSpecialAllergens}>
                 <AllergenDisplay
                   allergens={special.allergens}
@@ -135,8 +168,6 @@ export default function FeaturedSpecial({
                   maxVisible={10}
                   showLabel={true}
                   variant="admin"
-                  className={styles.allergenContainer}
-                  contentClassName={styles.allergensContentLeft}
                 />
               </div>
             )}
@@ -157,27 +188,18 @@ export default function FeaturedSpecial({
               hero from a stacked card into a strip: photo | text | action, on one baseline. */}
           <div className={styles.featuredSpecialActions}>
             {/* REMOVED, not disabled, while blocked — the S4 rule: nothing focusable-but-dead, and
-                the switch inside the notice above is the way out. Details stays: it only SHOWS the
-                item, and the sheet is handed the same verdict so it refuses the add too. */}
+                the switch inside the notice above is the way out. The dish name above stays live,
+                and the sheet is handed the same verdict so it refuses the add too.
+                Below 600px this collapses to the 44px round disc the catalog cards already use
+                (`MenuItemActions`): the label leaves the box, `aria-label` names it in both forms. */}
             {onAddToCart && !isBlocked && (
               <button
                 className={styles.featuredSpecialAddButton}
                 onClick={() => onAddToCart({ availability: special.availability })}
                 aria-label={t('add_to_order', 'Add to Order')}
               >
-                {t('add_to_order', 'Add to Order')}
-              </button>
-            )}
-            {onViewDetails && (
-              <button
-                className={styles.featuredSpecialDetailsButton}
-                // Details only SHOWS the item, so it stays reachable while blocked — which is
-                // precisely why the verdict has to ride along: the sheet's footer Add is the
-                // two-clicks-away path S4 closed on the cards.
-                onClick={() => onViewDetails({ forceSheet: true, availability: special.availability })}
-                aria-label={t('view_details', 'View Details')}
-              >
-                {t('details', 'Details')}
+                <Plus className={styles.featuredSpecialAddIcon} size={20} aria-hidden="true" />
+                <span className={styles.featuredSpecialAddLabel}>{t('add_to_order', 'Add to Order')}</span>
               </button>
             )}
           </div>

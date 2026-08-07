@@ -43,9 +43,8 @@ const { Shell, fonts } = template;
 // needs them addressable separately, so it declares `variable` on both — with `className` the body
 // rendered entirely in Playfair while `var(--font-display)` stayed undefined and fell back to
 // Georgia, i.e. exactly inverted. Craft declares no `variable` and keeps the className path.
-const bodyClassName = fonts
-  .map((font) => ('variable' in font && font.variable ? font.variable : font.className))
-  .join(' ');
+const fontClassNames: string[] = fonts.map((font) => font.variable ?? font.className);
+const bodyClassName = fontClassNames.join(' ');
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   // Runtime colour palette (ADR-007): fetched server-side, injected as a

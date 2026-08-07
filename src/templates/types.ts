@@ -16,14 +16,22 @@ import type { OrderFlowSidebarProps } from '@/components/order/OrderFlowSidebar'
 import type { CartContentsProps } from '@/components/order/CartContents';
 
 /**
- * A loaded `next/font` instance. Structural subset of next/font's return
- * type — templates apply fonts via className (as the root layout always
- * did with Inter), so `variable`-based loading is not part of the v1
- * contract. Any `next/font/google` or `next/font/local` result satisfies
- * this shape.
+ * A loaded `next/font` instance. Structural subset of next/font's return type. Any
+ * `next/font/google` or `next/font/local` result satisfies this shape.
+ *
+ * `variable` was NOT part of the v1 contract — templates applied fonts via `className`, as the root
+ * layout always did with Inter. That stopped being sufficient when classic took two families
+ * (Public Sans for body, Playfair Display for display): next/font's `className` SETS `font-family`,
+ * so joining two of them onto <body> makes the last font win outright and neither is addressable
+ * from CSS. A template that needs more than one family declares `variable` on each and names them
+ * through custom properties instead; the root layout prefers `variable` when it is present.
+ *
+ * Optional, so a single-family template (craft, which names its three faces directly in its own
+ * CSS) keeps the className path unchanged.
  */
 export interface TemplateFont {
   className: string;
+  variable?: string;
 }
 
 export interface ShellProps {

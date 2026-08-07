@@ -143,8 +143,13 @@ export default function MenuItemDetails({
           {/* One chip style for every diet. The per-diet class lookup that used to be appended here
               resolved against `.vegan` / `.vegetarian` / `.halal` / `.gluten-free` rules that no
               longer exist — see the stylesheet for why they went. */}
+          {/* No `role="status"`. A dietary chip is STATIC content — "Vegan" is not an event being
+              announced — so a live-region role made every card shout its tags at a screen reader on
+              render. The wrapper's `aria-label` already names the group. (It is also an S6819
+              target, which is how it surfaced; the repo's answer elsewhere is `<output>`, but that
+              is for genuine status text and would be the same mistake here.) */}
           {dietaryTags.map((tag) => (
-            <span key={tag} className={styles.allergyTag} role="status">
+            <span key={tag} className={styles.allergyTag}>
               {t(tag, tag)}
             </span>
           ))}

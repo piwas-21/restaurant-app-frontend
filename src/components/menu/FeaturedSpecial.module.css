@@ -329,9 +329,6 @@
 
   .featuredSpecialAddButton {
     flex: 1;
-  }
-
-  .featuredSpecialAddButton {
     padding: 0.45rem 0.7rem;
     font-size: 0.8rem;
     min-height: 40px;

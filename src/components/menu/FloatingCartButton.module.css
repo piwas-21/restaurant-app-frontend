@@ -12,15 +12,22 @@
   min-width: 160px;
   height: 64px;
 
-  /* craft hooks (consistency pass): var fallback = exact classic literal.
-     Craft flattens the gradient to a terracotta letterpress pill. */
-  background: var(--fab-bg, linear-gradient(135deg, var(--color-red-700-c) 0%, var(--color-red-800-b) 100%));
-  color: var(--fab-fg, var(--text-on-accent));
+  /* craft hooks: var fallback = the classic literal, and classic's literal is now what
+     mobile_menu_light_full_page/code.html:286 draws — `bg-primary text-on-primary`.
+     This gradient was the last one on /menu. Craft pins every --fab-* itself.
+     --text-on-primary, not --text-on-accent: the latter is white in BOTH themes, and
+     white on the dark brand measures 3.35:1. This one flips, so 6.48:1 / 5.19:1. */
+  background: var(--fab-bg, var(--brand-primary));
+  color: var(--fab-fg, var(--text-on-primary));
 
   border: none;
+  /* `rounded-full` on that screen, so DESIGN.md §Shapes' universal 10px loses here. */
   border-radius: var(--fab-radius, 32px);
 
-  box-shadow: var(--fab-shadow, 0 8px 32px rgba(192, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15));
+  /* `shadow-lg` on that screen. The defect was the red TINT, not the size: DESIGN.md:141
+     scopes its single shadow to cards, "without becoming a floating element", and this is
+     the one element that deliberately is one. Neutral, not a 32px red glow. */
+  box-shadow: var(--fab-shadow, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1));
 
   cursor: pointer;
 
@@ -38,22 +45,34 @@
   opacity: 1;
 }
 
+/* DESIGN.md:142 in full — on hover or press the shadow does not grow, "instead, the
+   surface color shifts slightly to a secondary surface tone". The screen agrees
+   (`hover:bg-tertiary`), and :active carries it too because a phone never hovers.
+   --brand-primary-hover is DESIGN.md:153's press shade in light and brightens in dark.
+   Craft pins --fab-press-bg to its own bg: it signals press by shadow instead. */
+.floatingButton:hover,
+.floatingButton:active {
+  background: var(--fab-press-bg, var(--brand-primary-hover));
+}
+
 .floatingButton:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--fab-shadow-hover, 0 12px 48px rgba(192, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2));
+  box-shadow: var(--fab-shadow-hover, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1));
 }
 
 .floatingButton:active {
   transform: translateY(0) scale(0.98);
 }
 
+/* A brand ring separated from the brand pill by a page-coloured gap, so the ring
+   is read against the PAGE (6.48:1 light / 5.19:1 dark) rather than against itself. */
 .floatingButton:focus {
   outline: none;
   box-shadow: var(
     --fab-shadow-focus,
-    0 8px 32px rgba(192, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    0 0 0 4px rgba(192, 0, 0, 0.2)
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 0 0 2px var(--surface-primary),
+    0 0 0 4px var(--brand-primary)
   );
 }
 
@@ -101,11 +120,16 @@
   height: 20px;
   padding: 0 6px;
 
-  background: var(--feedback-danger);
-  color: var(--fab-badge-fg, white);
+  /* The screen's badge is `bg-on-primary text-primary` — paper, brand digits, no border.
+     Was inverted: the count sat on a SECOND, lighter red (--feedback-danger, which has no
+     dark override at all) on the red pill. 9.60:1 light, 7.12:1 dark. */
+  background: var(--fab-badge-bg, var(--surface-card));
+  color: var(--fab-badge-fg, var(--brand-primary-elevated));
 
   border-radius: 10px;
-  border: 2px solid var(--text-on-accent);
+  /* The ring separated a RED badge from a RED pill; that premise is gone. It measured
+     1.05:1 on the new badge in light (invisible) and 15.3:1 in dark (a white halo). */
+  border: var(--fab-badge-border, none);
 
   font-size: 12px;
   font-weight: 700;
@@ -152,19 +176,24 @@
 @media (max-width: 768px) {
   .floatingButton {
     bottom: 16px;
-    inset-inline: 16px;
+    /* A compact bottom-right pill — mobile_menu_light_full_page is `fixed bottom-6 right-6`.
+       `inset-inline: 16px` pinned BOTH edges, producing the full-bleed docked bar of
+       mobile_menu_rtl_mirror_arabic/code.html:352, a different screen. Craft's organic
+       --fab-radius was drawn against that 343px bar, so craft pins the start inset, the
+       justification and the price alignment and keeps the bar until a craft slice says
+       otherwise. Measured at 375px: without these hooks craft's width went 343px -> 139px. */
+    inset-inline: var(--fab-mobile-inset-start, auto) 16px;
 
-    justify-content: space-between;
+    justify-content: var(--fab-mobile-justify, normal);
 
     min-width: auto;
     height: 56px;
-    padding: 12px 20px;
 
     border-radius: var(--fab-radius, 28px);
   }
 
   .priceContainer {
-    align-items: flex-end;
+    align-items: var(--fab-mobile-price-align, flex-start);
   }
 
   .totalLabel {
@@ -200,26 +229,9 @@
   }
 }
 
-/* Dark mode support (data-theme selector since #263). These 0-2-0 rules beat
-   the var-hooked 0-1-0 base rules, so craft's --fab-* hooks must ride here
-   too — classic keeps the exact dark literals as fallbacks. */
-[data-theme='dark'] .floatingButton {
-  background: var(--fab-bg, linear-gradient(135deg, var(--color-red-400-c) 0%, var(--color-red-700-c) 100%));
-  box-shadow: var(--fab-shadow, 0 8px 32px rgba(224, 102, 102, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3));
-}
-
-[data-theme='dark'] .floatingButton:hover {
-  box-shadow: var(--fab-shadow-hover, 0 12px 48px rgba(224, 102, 102, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4));
-}
-
-[data-theme='dark'] .floatingButton:focus {
-  box-shadow: var(
-    --fab-shadow-focus,
-    0 8px 32px rgba(224, 102, 102, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    0 0 0 4px rgba(224, 102, 102, 0.2)
-  );
-}
+/* No [data-theme='dark'] block: it carried only dark red-glow literals. Every fallback
+   above resolves through a token that already flips, and craft reaches the same computed
+   values through the base rule's --fab-* hooks. */
 
 /* Accessibility - Reduce motion */
 @media (prefers-reduced-motion: reduce) {

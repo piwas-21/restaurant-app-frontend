@@ -147,6 +147,20 @@
   --fab-label-size: 1rem;
   --fab-label-transform: none; /* Caveat reads wrong uppercased */
   --fab-badge-fg: var(--text-on-primary);
+  /* Pinned so S9 does not move craft. Classic's new badge fallback is the paper surface,
+     which under craft's cream --text-on-primary measures 1.02:1 — invisible. The ring is
+     right against craft's brick badge and wrong against classic's paper one. */
+  --fab-badge-bg: var(--feedback-danger);
+  --fab-badge-border: 2px solid var(--text-on-accent);
+  /* Craft signals hover/press with its letterpress shadow, not a surface shift, so this
+     pins the surface to the resting one rather than taking classic's --brand-primary-hover. */
+  --fab-press-bg: var(--brand-primary);
+  /* Geometry, mobile only. Craft's --fab-radius above is an organic blob drawn against the
+     full-bleed 343px bar; classic now takes the compact right-hand pill, and without these
+     three craft's mobile FAB measured left 16 -> 220 and width 343px -> 139px at 375px. */
+  --fab-mobile-inset-start: 16px;
+  --fab-mobile-justify: space-between;
+  --fab-mobile-price-align: flex-end;
 
   /* Cookie-consent banner buttons (non-modal shared chrome). */
   --ctl-btn-radius: var(--craft-radius);

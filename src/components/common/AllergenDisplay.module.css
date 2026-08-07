@@ -1,10 +1,14 @@
 /* Allergen Display Styles */
+/* Start-aligned, and no floor. `align-items: center` centred the chip band on the cross axis of a
+   column flex container — i.e. horizontally — inside a card whose title, description and details
+   affordance are all start-aligned, so the one row that could render was the one row out of line.
+   `min-height: 32px` was the other half of the spacer that used to reserve height here; the empty
+   band is gone (AllergenDisplay.tsx), so a floor under the populated one has nothing left to match. */
 .allergensSection {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   margin: 0.5rem 0 1rem 0;
-  min-height: 32px;
 }
 
 .allergensLabel {
@@ -171,15 +175,12 @@
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Mobile - left align allergens */
+/* Mobile — tighter margins only. The two alignment resets that used to live here are gone: both now
+   repeat what the base rules already say (`.allergensSection` is start-aligned at every width, and
+   `.allergensContent` has carried `justify-content: flex-start` all along). */
 @media (max-width: 600px) {
   .allergensSection {
-    align-items: flex-start;
     margin: 0.25rem 0;
-  }
-
-  .allergensContent {
-    justify-content: flex-start;
   }
 
   .allergenTag {

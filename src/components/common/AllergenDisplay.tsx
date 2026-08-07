@@ -26,26 +26,16 @@ export default function AllergenDisplay({
 }: AllergenDisplayProps) {
   const { t } = useTranslation();
 
+  // Nothing to show, at every variant.
+  //
+  // `full` used to return a `visibility: hidden` label plus a placeholder chip here, "to preserve
+  // space to maintain layout alignment". It did not preserve alignment — it preserved 79.8px of blank
+  // card on desktop and 57.0px on mobile, which is MORE than the 56.0px a populated band actually
+  // takes, on every item that carries no allergens (i.e. most of RUMI's menu). That band is the gap
+  // the details affordance was left floating in, and most of why a phone showed three list rows where
+  // the design fits five. Cards in a grid row are equal-height because the grid's default
+  // `align-items: stretch` makes them so, not because of a spacer.
   if (!allergens || allergens.length === 0) {
-    // For menu items, preserve space to maintain layout alignment
-    if (variant === 'full') {
-      return (
-        <div
-          role="group"
-          className={`${styles.allergensSection} ${className}`}
-          aria-label={t('allergens', 'Allergens')}
-        >
-          <div className={styles.allergensLabel} style={{ visibility: 'hidden' }}>
-            {t('allergens', 'Allergens')}
-          </div>
-          <div className={styles.allergensContent} style={{ visibility: 'hidden' }}>
-            <span className={styles.allergenTag}>placeholder</span>
-          </div>
-        </div>
-      );
-    }
-
-    // For admin or compact views, return null when no allergens
     return null;
   }
 

@@ -1361,5 +1361,14 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // ── S1 — the empty-allergen spacer. ───────────────────────────────────────────────────────────
+    // `AllergenDisplay.test.tsx` is the only thing standing between the tree and a `visibility:
+    // hidden` placeholder returning to reserve ~80px on every card that carries no allergens — which
+    // is the state most of RUMI's menu is in, and the state every product in `e2e/seed/seed.sql` is
+    // in. Nothing asserted that band for as long as it shipped, so without a row here the test is
+    // deletable and the regression silently re-enabled. Measured at 92.3/90/83.33/92.3 with CI's own
+    // command and pinned at actual − 1, per this block's house rule. The uncovered lines are the
+    // `compact` variant's "+N more" title.
+    './src/components/common/AllergenDisplay.tsx': { statements: 91, branches: 89, functions: 82, lines: 91 },
   },
 };

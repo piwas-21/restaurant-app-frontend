@@ -1,7 +1,11 @@
 .banner {
   width: 100%;
-  background: linear-gradient(135deg, var(--color-iris-400) 0%, var(--color-plum-600) 100%);
-  color: white;
+  /* Flat brand, not an iris->plum gradient. It was a FOURTH accent family on the menu page — after
+     the red brand, the green CTA and the gold special — and the last gradient left on it, which the
+     classic design system prohibits outright. Only QR-scan guests ever saw it, which is why it
+     survived every look at the page. */
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 100;
   animation: slideDown 0.3s ease-out;
@@ -82,15 +86,9 @@
 }
 
 .label {
-  font-size: 0.875rem;
-  opacity: 0.95;
-  font-weight: 500;
-}
-
-.tableNumber {
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  /* Carries the whole sentence now, including the table number — see TableBanner.tsx. */
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 
 .badge {
@@ -127,7 +125,7 @@
 
 /* Dark mode support */
 [data-theme='dark'] .banner {
-  background: linear-gradient(135deg, var(--color-iris-600) 0%, var(--color-plum-700) 100%);
+  background: var(--brand-primary-hover);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 

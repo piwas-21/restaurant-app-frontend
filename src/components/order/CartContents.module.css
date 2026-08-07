@@ -145,8 +145,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background-color: var(--success-color-darker);
-  color: var(--text-on-accent);
+  /* Brand, not the green success tier — the last green CTA beside the redesigned menu's red ones.
+     --text-on-primary, not --text-on-accent: it FLIPS with the brand (dark ink on dark-mode red). */
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
   border: none;
   padding: 0.85rem 1.25rem;
   font-size: 1rem;
@@ -160,6 +162,8 @@
 
 .checkoutButton:hover:not(:disabled),
 .checkoutButton:focus-visible:not(:disabled) {
+  /* The `background-color` transition above had nothing to transition to. Gated for contrast. */
+  background-color: var(--brand-primary-hover);
   transform: translateY(-1px);
   outline: none;
 }

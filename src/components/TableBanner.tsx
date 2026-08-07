@@ -52,8 +52,17 @@ export default function TableBanner({ position = 'top' }: TableBannerProps) {
           </div>
 
           <div className={styles.info}>
-            <span className={styles.label}>{t('ordering_for_table', 'Ordering for Table')}</span>
-            <span className={styles.tableNumber}>{tableContext.tableNumber}</span>
+            {/* ONE interpolated sentence. It used to render the label and the number as two
+                separate spans while the translated value carries a `{{number}}` placeholder that
+                `t()` was never given values for — so a guest who scanned a QR read the literal
+                "Ordering for Table {{number}} 7".
+
+                Interpolating rather than stripping the placeholder from the ten locale files:
+                `tr` ("Masa {{number}} için Sipariş") and `zh` ("为桌号 {{number}} 下单") put it
+                mid-sentence, so removing the token would mangle the grammar in exactly the
+                languages CLAUDE.md §9 says not to rewrite. This fixes all ten with no translation
+                edits at all — it is the interpolation the strings were written for. */}
+            <span className={styles.label}>{t('ordering_for_table', { number: tableContext.tableNumber })}</span>
             {tableContext.isOutdoor && <span className={styles.badge}>🌤️ {t('outdoor', 'Outdoor')}</span>}
           </div>
 

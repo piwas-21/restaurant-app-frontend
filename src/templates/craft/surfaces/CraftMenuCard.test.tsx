@@ -47,11 +47,32 @@ const product: CatalogItem = {
 };
 
 describe('CraftMenuCard', () => {
-  it('renders allergen tags WITH their icon (shared AllergenDisplay, not the old raw-key text)', () => {
-    render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
-    // The vegan tag now shows the emoji icon + a translated label (was: "allergens: vegan", no icon).
-    expect(screen.getByText('🌱')).toBeInTheDocument();
-    expect(screen.getByText('vegan')).toBeInTheDocument();
+  /**
+   * Craft renders the SHARED `AllergenDisplay` (was: a raw "allergens: vegan" string of its own),
+   * and it takes the shared chip treatment with it — deliberately, not by accident. The rule that
+   * replaced eleven colour families is written entirely in semantic tokens, so craft repaints it
+   * olive-on-kraft from its own `tokens.css` rather than inheriting classic's greys.
+   *
+   * This used to assert the vegan emoji. D9 removed it: `vegan` is a dietary *claim* and claims get
+   * no glyph, so the assertion is now the split itself — the substance chip carries one, the claim
+   * does not, on craft exactly as on classic.
+   */
+  it('renders the shared allergen chips, with a glyph on the substance and none on the claim', () => {
+    const { container } = render(
+      <CraftMenuCard
+        item={{ ...product, allergens: ['vegan', 'sesame'] }}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+      />,
+    );
+
+    const chipFor = (word: string) => screen.getByText(word).closest('.allergenTag') as HTMLElement;
+    expect(chipFor('vegan')).toBeInTheDocument();
+    expect(chipFor('vegan').querySelector('svg')).toBeNull();
+    expect(chipFor('sesame').querySelector('svg')).toBeInTheDocument();
+
+    // …and no emoji reaches craft either. Zero of the design screens carry one.
+    expect(container.textContent).not.toMatch(/\p{Extended_Pictographic}/u);
   });
 
   it('keeps BOTH craft actions: Add fast-adds (no forceSheet); Details + title force the sheet', () => {

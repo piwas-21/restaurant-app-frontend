@@ -17,8 +17,27 @@ jest.mock('@/contexts/TableContext', () => ({ useTableContext: () => mockTableSt
 jest.mock('@/contexts/OrderTypeContext', () => ({
   useOrderType: () => ({ state: mockOrderTypeState, clearOrderType: mockClearOrderType }),
 }));
+// The second argument is a STRING fallback for most keys but an interpolation OBJECT for
+// `ordering_for_table` ("Ordering for Table {{number}}"). Returning it verbatim made React throw
+// "Objects are not valid as a React child" — the stub, not the component. Interpolate instead, so
+// the rendered text is what a guest actually reads and an unfilled placeholder would be visible.
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+  useTranslation: () => ({
+    t: (key: string, arg?: string | Record<string, unknown>) => {
+      if (typeof arg === 'string') return arg;
+      if (arg && typeof arg === 'object') {
+        // Resolve against the REAL en.json value for the one interpolated key on this banner —
+        // echoing the key back would leave nothing to interpolate, and the test would pass whether
+        // or not the placeholder was ever filled.
+        const source = key === 'ordering_for_table' ? 'Ordering for Table {{number}}' : key;
+        return Object.entries(arg).reduce<string>(
+          (acc, [name, value]) => acc.replaceAll(`{{${name}}}`, String(value)),
+          source,
+        );
+      }
+      return key;
+    },
+  }),
 }));
 
 const openConfirm = () => fireEvent.click(screen.getAllByRole('button', { name: 'Clear table selection' })[0]);
@@ -41,6 +60,21 @@ describe('TableBanner', () => {
     const { container } = render(<TableBanner />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  /**
+   * The reported defect: `ordering_for_table` is "Ordering for Table {{number}}" in all ten
+   * locales, but `t()` was called with no interpolation values and the number was rendered in a
+   * SEPARATE span beside it — so a guest who scanned a QR read the literal
+   * "Ordering for Table {{number}} 7". Asserting on the absence of `{{` rather than on the exact
+   * sentence, because the same mistake in any other key on this banner should also fail here.
+   */
+  it('renders the table number INTO the sentence, leaving no unfilled placeholder', () => {
+    render(<TableBanner />);
+
+    const banner = screen.getAllByRole('status')[0];
+    expect(banner).toHaveTextContent('Ordering for Table 5');
+    expect(banner.textContent).not.toContain('{{');
   });
 
   it('confirms before clearing rather than blocking on window.confirm', () => {

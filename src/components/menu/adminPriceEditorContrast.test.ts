@@ -41,6 +41,25 @@ function tokens(selector: string): Record<string, string> {
   return out;
 }
 
+/**
+ * The `color:` declaration of one rule in one component's CSS Module.
+ *
+ * The pairing assertions below measure two token NAMES against each other, which proves the pair is
+ * legible but not that any element uses it — a gate that would still be green after someone pointed
+ * the price back at green. These readers close that: they bind the assertion to the declaration
+ * that actually ships, so reverting the CSS turns this file red. Proven by doing it: all three
+ * cases fail with the old token names in `Received`.
+ */
+function ruleColor(modulePath: string, selector: string): string {
+  const css = readFileSync(join(__dirname, modulePath), 'utf8');
+  const start = css.indexOf(`\n${selector} {`);
+  if (start === -1) throw new Error(`selector not found in ${modulePath}: ${selector}`);
+  const block = css.slice(start, css.indexOf('\n}', start));
+  const match = /(?:^|\n)\s{2}color:\s*([^;]+);/.exec(block);
+  if (!match) throw new Error(`no color declaration in ${modulePath} ${selector}`);
+  return match[1].trim();
+}
+
 function channel(c: number): number {
   const s = c / 255;
   return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
@@ -131,6 +150,39 @@ describe('AdminPriceEditor colour pairs', () => {
     );
 
     /**
+     * The item customization sheet's money.
+     *
+     * Three prices live one tap from every dish, and all three were failing when measured:
+     *   - the ingredient surcharge was `--feedback-success` — 2.55:1 on the resting row and
+     *     2.47:1 once the row turned `--feedback-success-xlight`. It is now ink.
+     *   - the suggested side's price and the variation's price were the plain `--brand-primary` on
+     *     the same tinted rows: 3.23:1 and 4.16:1 in dark. Both are now `-elevated`, the token the
+     *     block above already establishes for brand-coloured text on a surface off the paper.
+     *
+     * Gated at unit level because nothing else can see them. The sheet only exists after a click,
+     * and neither `customer-routes.screen.ts` nor the axe pass in `menu-and-cart.e2e.ts` ever opens
+     * it — so the screenshot gate and the accessibility gate are both structurally blind here. A
+     * green price could sit on the menu page's second screen indefinitely, which is exactly what
+     * happened through two redesign PRs.
+     *
+     * Both row fills are gated, not just the resting one: an ingredient row shifts to
+     * `--surface-secondary` when ticked, and a variation shifts to it when selected.
+     */
+    it.each(['--surface-secondary-light', '--surface-secondary'])(
+      'the item sheet ingredient price clears AA on %s in this theme',
+      (surface) => {
+        expect(contrast(v['--text-primary'], v[surface])).toBeGreaterThanOrEqual(AA_TEXT);
+      },
+    );
+
+    it.each(['--surface-secondary-light', '--surface-secondary', '--surface-card'])(
+      'the item sheet side/variation price clears AA on %s in this theme',
+      (surface) => {
+        expect(contrast(v['--brand-primary-elevated'], v[surface])).toBeGreaterThanOrEqual(AA_TEXT);
+      },
+    );
+
+    /**
      * The card's closing hairline. `--border-extra-light` is declared only on `:root` with no dark
      * override, so using it here painted #f0f0f0 over the #252525 dark card — a 13:1 white rule
      * across the bottom of every card. `--border-default` flips, and is the pair DESIGN.md
@@ -182,6 +234,50 @@ describe('AdminPriceEditor colour pairs', () => {
     expect(dark['--border-extra-light']).toBeUndefined();
     const light = tokens(':root {');
     expect(contrast(light['--border-extra-light'], dark['--surface-card'])).toBeGreaterThan(10);
+  });
+
+  /**
+   * Binds the pairing assertions above to the CSS that ships.
+   *
+   * Each of these three prices is one `color:` declaration on a surface no e2e gate opens, so the
+   * only thing standing between them and a repeat of the green is this file. Asserting the token
+   * NAME (rather than re-measuring) is deliberate: the ratios are already gated per-theme above, so
+   * what is left to prove is that the sheet still reaches for the token that was measured.
+   */
+  it.each([
+    ['customization/OptionalIngredientsSection.module.css', '.ingredientPrice', 'var(--text-primary)'],
+    ['customization/SuggestedSideItemsSection.module.css', '.sideItemPrice', 'var(--brand-primary-elevated)'],
+    ['customization/VariationsSection.module.css', '.variationPrice', 'var(--brand-primary-elevated)'],
+    // `BundleOptionRow` renders INSIDE this same sheet — ItemCustomizationSheet -> BundleSheetBody ->
+    // BundleSectionSelector -> here — and its rows sit on `--surface-secondary` (`.row.selected`, and
+    // `.panel` for the whole expansion), the surface where plain `--brand-primary` is 4.16:1 in dark.
+    // Both of these were on the plain brand until this slice.
+    ['customization/BundleOptionRow.module.css', '.price', 'var(--brand-primary-elevated)'],
+    ['customization/BundleOptionRow.module.css', '.customizeButton', 'var(--brand-primary-elevated)'],
+  ])('%s %s uses the token this file measured', (modulePath, selector, expected) => {
+    expect(ruleColor(modulePath, selector)).toBe(expected);
+  });
+
+  /**
+   * Fires the item sheet's retired green surcharge, on every background it ever had.
+   *
+   * `--feedback-success-xlight` (the ticked row) and `--feedback-success-dark` (its dark twin) are
+   * declared only on `:root`, so the dark theme inherited the LIGHT fill under its own lifted
+   * green — which is why the worst reading of the four, 2.05:1, is the dark one. Reasoning from
+   * the token names would have called a *-dark background under a light-green label safe.
+   */
+  it('records that the item sheet surcharge failed as green, on every fill it had', () => {
+    const light = tokens(':root {');
+    const dark = tokens("html[data-theme='dark'] {");
+
+    // Light: on the resting row (2.55:1) and on the ticked row (2.47:1).
+    expect(contrast(light['--feedback-success'], light['--surface-secondary-light'])).toBeLessThan(AA_TEXT);
+    expect(contrast(light['--feedback-success'], light['--feedback-success-xlight'])).toBeLessThan(AA_TEXT);
+
+    // Neither fill is redeclared for dark — that is what makes the dark reading the worst one.
+    expect(dark['--feedback-success-xlight']).toBeUndefined();
+    expect(dark['--feedback-success-dark']).toBeUndefined();
+    expect(contrast(dark['--feedback-success'], light['--feedback-success-dark'])).toBeLessThan(AA_TEXT);
   });
 
   // The retired GREEN CTA tier. Kept because it records why the button is not green: both pairings

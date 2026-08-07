@@ -25,7 +25,8 @@
   gap: 0.875rem;
 }
 
-/* Side Item */
+/* Side Item. `--border-default` rather than the legacy `--border-color` alias, and DESIGN.md's
+   universal 10px rather than an 8px this sheet uses nowhere else. */
 .sideItem {
   display: flex;
   align-items: center;
@@ -33,20 +34,27 @@
   gap: 1rem;
   padding: 1rem;
   background-color: var(--secondary-color-light);
-  border: var(--modal-body-option-border, 1px solid var(--border-color));
-  border-radius: var(--modal-body-option-radius, 8px);
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 10px);
   box-shadow: var(--modal-body-option-shadow, none);
-  transition: all 0.2s;
+  transition: border-color 0.2s;
+}
+
+/* Hover moves the BORDER to brand — the card keeps its surface, which is what DESIGN.md means by
+   "the shadow does not grow". The second shadow level that stood here also overrode
+   `--modal-body-option-shadow`, so under craft hovering a side swapped its letterpress offset for a
+   soft classic drop.
+   The rule sits AFTER the dark block on purpose. Its old position left it tied on specificity
+   (0,2,0) with `[data-theme='dark'] .sideItem`'s `border-color`, which came later and therefore won
+   — so in dark the hover border never changed, and deleting the shadow would have left dark hover
+   with no feedback at all. The dark `border-color` was itself redundant (`--border-default` flips),
+   so it is gone and the hover is now the only rule that touches this border. */
+[data-theme='dark'] .sideItem {
+  background-color: var(--secondary-color);
 }
 
 .sideItem:hover {
-  border-color: var(--primary-color);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-[data-theme='dark'] .sideItem {
-  background-color: var(--secondary-color);
-  border-color: var(--border-color);
+  border-color: var(--brand-primary);
 }
 
 /* Side Item Info */
@@ -76,11 +84,16 @@
   -webkit-box-orient: vertical;
 }
 
+/* `--brand-primary-elevated`, not the plain brand: this price is small brand-coloured TEXT sitting
+   on the row's tinted fill, not on the sheet's paper. The plain brand on `--surface-secondary-light`
+   measures 3.23:1 in dark — the same pairing adminPriceEditorContrast already records as failing
+   for the card's Details link. The elevated token is the one tuned for a surface off the paper:
+   9.27:1 light, 5.03:1 dark. */
 .sideItemPrice {
   font-family: var(--modal-body-accent-font, inherit);
   font-size: var(--modal-body-accent-size, 0.875rem);
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--brand-primary-elevated);
 }
 
 /* Side Item Actions */
@@ -94,7 +107,7 @@
   background-color: var(--primary-color);
   color: var(--button-text-color);
   border: none;
-  border-radius: var(--modal-body-btn-radius, 6px);
+  border-radius: var(--modal-body-btn-radius, 10px);
   box-shadow: var(--modal-body-btn-shadow, none);
   font-family: var(--modal-body-btn-font, inherit);
   font-size: var(--modal-body-btn-size, 0.875rem);
@@ -128,20 +141,16 @@
   background-color: var(--primary-color);
 }
 
-/* Quantity Control */
+/* Quantity Control. The `[data-theme='dark']` twin that stood here restated the same two tokens,
+   both of which flip on their own. */
 .quantityControl {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   background-color: var(--background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
   padding: 0.25rem;
-}
-
-[data-theme='dark'] .quantityControl {
-  background-color: var(--background-color);
-  border-color: var(--border-color);
 }
 
 .quantityButton {
@@ -153,7 +162,7 @@
   background-color: var(--secondary-color-light);
   color: var(--text-color);
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.2s;
   padding: 0;
@@ -185,13 +194,8 @@
   color: var(--text-color);
 }
 
-/* Empty State */
-.emptyState {
-  padding: 2rem 1rem;
-  text-align: center;
-  color: var(--text-secondary);
-  font-style: italic;
-}
+/* `.emptyState` was deleted here for the same reason as in OptionalIngredientsSection: no render
+   site — SuggestedSideItemsSection.tsx never references it. */
 
 /* Responsive Design */
 @media (max-width: 768px) {

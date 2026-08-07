@@ -30,6 +30,18 @@
      is the other direction — the dark brand is already a light tint — so the dark block
      below carries its own value and craft overrides it. */
   --brand-primary-elevated: var(--brand-primary-dark);
+  /* A brand-tinted HAIRLINE — a 1px structural BORDER, never text. DESIGN.md's hairline rule gives
+     cards the neutral #DDDDDD/#444444; the Chef's Special strip is the one element the design
+     singles out with the brand family (MENU-DESIGN-CONFORMANCE-PLAN D3), so it gets a name of its
+     own — a seam a template or a later decision can move without hunting through call sites.
+     An ALIAS, not a literal, and not a value in the dark block either. ADR-007 palettes re-declare
+     a BOUNDED set (palettes/types.ts) that this name is not in; a literal would leave a tenant's
+     strip outlined in classic's #c00000 while everything around it repainted — the exact failure
+     --brand-primary-elevated exists to prevent. The palette writes `:root:root`, the same element
+     this resolves on, so the alias follows it and follows the dark block for free.
+     Non-text contrast needs 3:1. Measured on --surface-card: 6.15:1 light (#c00000 on #f9f9f9) and
+     4.57:1 dark (#e06666 on #252525); on the blocked strip's --surface-secondary, 5.69:1 / 4.16:1. */
+  --brand-hairline: var(--brand-primary);
 
   /* Surfaces */
   --surface-primary: #ffffff;

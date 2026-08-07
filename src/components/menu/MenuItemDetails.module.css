@@ -1,13 +1,14 @@
 /* Menu Item Details Styles */
-/* 1.15rem/600, the DESIGN.md `dish-name` step — down from 1.6rem, which on a three-up grid made
-   the name shout over the dish photo above it. Two lines, not one: real names ("Hand-Cut Beef
-   Tartare") wrap, and the old `-webkit-line-clamp: 1` + `min-height` pair truncated them mid-word
-   while still reserving the height of a line that was no longer there. */
+/* `dish-name`: Playfair Display 1.15rem / 1.4 / 600 — the exact step every generated screen's
+   tailwind config declares. The SERIF is the point: it is what makes a dish name read as a printed
+   menu line rather than a catalogue entry, and rendering it in the body sans (Inter, previously)
+   was the single largest reason the implemented page did not resemble the designs. */
 .itemTitle {
+  font-family: var(--font-family-display);
   font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.4;
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.5rem;
   color: var(--text-primary);
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -19,10 +20,14 @@
 /* Clamped to two lines at every viewport. The full text is one tap away in the details sheet, and
    an unclamped description made cards in the same grid row wildly different heights. */
 .itemDescription {
+  font-family: var(--font-family-sans);
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--text-secondary);
-  margin: 0 0 0.5rem;
+  /* `mb-4` — the description carries the card's breathing room, then `flex-1` pushes the price row
+     to the floor. */
+  margin: 0 0 1rem;
+  flex: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -46,14 +51,21 @@
    All three pairs are gated in adminPriceEditorContrast.test.ts. */
 .detailsLink {
   align-self: flex-start;
-  padding: 0.35rem 0;
+  padding: 0.25rem 0;
   background: none;
   border: none;
   color: var(--brand-primary-elevated);
-  font-size: 0.9rem;
+  font-family: var(--font-family-sans);
+  /* `text-xs` on the link specifically — the design keeps it quieter than body copy so it reads as
+     an affordance on the description, not as a second action competing with Add. */
+  font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
   text-align: start;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 .detailsLink:hover {
@@ -113,9 +125,11 @@
    than flattened to identical rules, so nothing looks like it is still varying by diet. */
 .allergyTag {
   display: inline-block;
-  padding: 0.25em 0.6em;
-  border-radius: 10px;
-  font-size: 0.72rem;
+  padding: 0.125rem 0.5rem;
+  /* `rounded` = 4px. Only the CARD takes 10px; chips and buttons take the default step. */
+  border-radius: 4px;
+  font-family: var(--font-family-sans);
+  font-size: 0.75rem;
   font-weight: 600;
   margin: 0.15rem;
   background-color: transparent;
@@ -125,18 +139,24 @@
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
+  /* `truncate` — one line. A row card is 88px tall beside its thumbnail; a name allowed to wrap
+     to two pushes the description or the price row out of it. */
   .itemTitle {
-    font-size: 1rem;
-    margin-bottom: 0.2rem;
+    font-size: 1.05rem;
+    margin-bottom: 0.15rem;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
   }
 
   /* Was `display: none` — "hide description on mobile for cleaner look". What it actually did was
      strip the row card down to a name and a price, and leave the details affordance with nothing
      to attach to. It stays clamped to two lines; the row has space for them. */
+  /* `text-sm line-clamp-2 mt-1` */
   .itemDescription {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     line-height: 1.45;
-    margin-bottom: 0.35rem;
+    margin: 0.25rem 0 0;
+    flex: 0 1 auto;
   }
 
   .detailsLink {
@@ -158,8 +178,8 @@
   }
 
   .allergyTag {
-    font-size: 0.65rem;
-    padding: 0.2em 0.5em;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
     margin: 0.1rem;
     margin-inline-start: 0;
   }

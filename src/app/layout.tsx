@@ -35,7 +35,17 @@ export const viewport: Viewport = {
 };
 
 const { Shell, fonts } = template;
-const bodyClassName = fonts.map((font) => font.className).join(' ');
+// `variable` when the template loaded the font as a CSS custom property, `className` otherwise.
+//
+// This distinction is load-bearing and was got wrong once: next/font's `className` SETS
+// `font-family` on whatever it is applied to, so joining two of them onto <body> makes the last
+// font win outright. Classic loads two families (Public Sans body + Playfair Display display) and
+// needs them addressable separately, so it declares `variable` on both — with `className` the body
+// rendered entirely in Playfair while `var(--font-display)` stayed undefined and fell back to
+// Georgia, i.e. exactly inverted. Craft declares no `variable` and keeps the className path.
+const bodyClassName = fonts
+  .map((font) => ('variable' in font && font.variable ? font.variable : font.className))
+  .join(' ');
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   // Runtime colour palette (ADR-007): fetched server-side, injected as a

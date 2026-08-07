@@ -63,13 +63,18 @@ export default function FeaturedSpecial({
       aria-labelledby={isBlocked ? `featured-special-heading ${reasonId}` : 'featured-special-heading'}
     >
       <div className={styles.featuredSpecialContainer}>
+        {/* A ribbon over the strip's leading corner — on the photo when there is one, on the panel
+            when there isn't. It was a chip inside a header ROW above the content, which cost the
+            strip a whole band of height for one word and is not the shape the design has. A direct
+            child of the container rather than of the photo, so the no-photo special still gets it. */}
+        <div className={styles.featuredSpecialBadge}>
+          <Star size={14} fill="currentColor" aria-hidden="true" />
+          <span>{t('chefs_special', "Chef's Special")}</span>
+        </div>
+
+        {/* The hero was the ONE item on the menu page an admin could not act on: every card
+            renders these two, and the banner rendered neither. */}
         <div className={styles.featuredSpecialHeader}>
-          <div className={styles.featuredSpecialBadge}>
-            <Star size={20} fill="currentColor" aria-hidden="true" />
-            <span>{t('chefs_special', "Chef's Special")}</span>
-          </div>
-          {/* The hero was the ONE item on the menu page an admin could not act on: every card
-              renders these two, and the banner rendered neither. */}
           <AdminMenuCardControls item={adminItem} />
         </div>
 

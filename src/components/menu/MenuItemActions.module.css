@@ -1,13 +1,16 @@
 /* The card's single call to action — see MenuItemActions.tsx for why there is only one.
 
-   The background is the BRAND, not the old --success-color-darker green. The classic menu page was
-   running three unrelated accent families at once: a red brand, a green CTA and a gold featured
-   panel, none derived from the others. That is why it read as assembled rather than designed, and
-   the redesign's first rule is one accent family (docs/stitch-screens/heritage_table/DESIGN.md).
-   The pair is gated in adminPriceEditorContrast.test.ts — --text-on-primary on --brand-primary is
-   6.48:1 light and 5.19:1 dark, comfortably past the 4.5 the green tier was originally chosen for. */
+   OUTLINED, not solid. `desktop_menu_light_full_page` gives every grid card
+   `border border-primary text-primary px-3 py-1.5 rounded hover:bg-primary/5` and reserves the
+   SOLID `bg-primary` treatment for the Chef's Special strip alone — so the promoted dish owns the
+   only filled button on the page and thirty identical red blocks do not fight it. The implemented
+   version had it the other way round.
+
+   Either way the colour is the BRAND, not the old --success-color-darker green: the page was
+   running a red brand, a green CTA and a gold featured panel at once, and the design system is
+   explicit that "green for success or gold for premium features are strictly prohibited". */
 .itemActions {
-  margin-top: auto;
+  margin-top: 0;
   display: flex;
   justify-content: flex-end;
 }
@@ -16,29 +19,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
-  border: none;
-  /* 10px is the system's ONE radius — no pills, no sharp corners (DESIGN.md §Shapes). */
-  border-radius: 10px;
-  padding: 0.7rem 1.15rem;
+  gap: 0.35rem;
+  background-color: transparent;
+  color: var(--brand-primary-elevated);
+  border: 1px solid var(--brand-primary-elevated);
+  /* 4px — `rounded`, the design's DEFAULT step. Only cards take the 10px. */
+  border-radius: 4px;
+  padding: 0.375rem 0.75rem;
+  font-family: var(--font-family-sans);
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1;
-  min-height: 44px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-/* Shifts colour rather than growing a shadow or lifting — DESIGN.md §Elevation: depth is tonal
-   here, and a transform on a card-sized grid made the whole page twitch on pointer move.
-   --brand-primary-hover, NOT --brand-primary-dark: the latter is declared only in the light block,
-   so in dark it would put dark ink on #890303 at 1.72:1. */
 .addToOrderButton:hover {
-  background-color: var(--brand-primary-hover);
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border-color: var(--brand-primary);
 }
 
 .addToOrderButton:focus-visible {
@@ -53,15 +56,14 @@
 
 @media (max-width: 600px) {
   .itemActions {
-    margin-top: 0;
-    /* Push to the trailing edge of the price row, opposite the price. */
     margin-inline-start: auto;
     align-items: center;
   }
 
-  /* A round icon button at the 44px minimum. The label is REMOVED from the box rather than
-     visually hidden — `aria-label` is what names this button in both forms, so there is nothing
-     for a screen reader to lose. */
+  /* `w-[44px] h-[44px] rounded-full bg-primary-container text-on-primary` — on mobile the design
+     DOES fill it, because there is no written label to carry the emphasis and a hollow circle
+     reads as disabled. The label is removed from the box rather than visually hidden; `aria-label`
+     is what names this button in both forms, so nothing is lost to a screen reader. */
   .addToOrderButton {
     width: 44px;
     min-width: 44px;
@@ -69,10 +71,14 @@
     padding: 0;
     border-radius: 50%;
     gap: 0;
+    background-color: var(--brand-primary);
+    color: var(--text-on-primary);
+    border-color: var(--brand-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
   .addToOrderButton:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
   }
 
   .addLabel {

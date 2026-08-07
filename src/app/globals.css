@@ -49,9 +49,18 @@
      brand red the name implies — renamed in the text/status token slice. */
   --primary-color-xlight: rgba(0, 123, 255, 0.1);
 
+  /* `--font-body` / `--font-display` are published by the ACTIVE TEMPLATE's fonts.ts via next/font
+     (classic: Public Sans + Playfair Display, per heritage_table/DESIGN.md §Typography). They are
+     read through `var(…, <fallback>)` rather than assumed: craft loads three different families and
+     names them directly in its own CSS, so it supplies neither variable and keeps the system stack
+     it has always had. This declaration stays HERE rather than in classic/tokens.css because the
+     root layout imports the template tokens BEFORE globals.css — a :root declaration over there
+     would simply be overwritten by this one. */
   --font-family-sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol';
+    var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif),
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  /* The serif that carries dish names, section headings and category tabs. */
+  --font-family-display: var(--font-display, Georgia, Cambria, 'Times New Roman', Times, serif);
   --font-family-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
 
   --nav-link-color: var(--text-color);
@@ -70,6 +79,20 @@
      `calc(var(--dir) * -100%)` is invalid at computed-value time, `transform` falls back to
      `none`, and a parked drawer renders ON screen. */
   --dir: 1;
+}
+
+/* Re-resolved at BODY scope, which is the whole reason this block exists.
+   next/font's variable classes are applied to <body> by the root layout, so `--font-body` /
+   `--font-display` are defined THERE — and custom properties inherit downwards only. The `:root`
+   declarations above are evaluated on <html>, one level ABOVE the definitions, so they silently
+   took their fallbacks: the page rendered in the system stack with Georgia headings while both
+   fonts were loaded and sitting unused. Declaring the same two tokens here lets them resolve where
+   the fonts actually are; `:root` keeps the fallback copies for anything outside <body>. */
+body {
+  --font-family-sans:
+    var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif),
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-display: var(--font-display, Georgia, Cambria, 'Times New Roman', Times, serif);
 }
 
 html[data-theme='dark'] {

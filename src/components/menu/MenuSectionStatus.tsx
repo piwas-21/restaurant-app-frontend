@@ -30,12 +30,20 @@ export default function MenuSectionStatus({
 }: Readonly<MenuSectionStatusProps>) {
   return (
     <>
-      {/* sr-only: the category nav already shows + highlights the active category,
-          so the visible sub-title is redundant; kept for the section's accessible
-          name (aria-labelledby target) and as a screen-reader landmark. */}
-      <h2 id={headingId} className="sr-only">
-        {title}
-      </h2>
+      {/* VISIBLE again. It was `sr-only` on the reasoning that the category nav already highlights
+          the active category — true, but every generated screen carries this heading as a
+          Playfair rule-underlined band above the grid
+          (`desktop_menu_light_full_page`: `<h2 class="font-section-heading …">Mains</h2>` inside a
+          `border-b … pb-2` row). It is the anchor that makes a scrolling page read as a menu with
+          sections rather than one undifferentiated grid, and the redundancy with the nav is the
+          same redundancy a printed menu has. The trailing hairline is decorative, so it is
+          aria-hidden. */}
+      <div className={styles.sectionHeadingRow}>
+        <h2 id={headingId} className={styles.sectionHeading}>
+          {title}
+        </h2>
+        <span className={styles.sectionHeadingRule} aria-hidden="true" />
+      </div>
       {isLoading && <p>{loadingMessage}</p>}
       {errorMessage && <p className={styles.errorMessage}>{errorMessage}</p>}
       {!isLoading && !errorMessage && isEmpty && <p>{emptyMessage}</p>}

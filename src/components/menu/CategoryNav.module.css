@@ -44,16 +44,26 @@
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* `gap-8` — the tabs are set wide apart, which is what stops a serif row reading as a word jumble. */
 .navButtonsContainer {
   display: flex;
-  gap: 0.25rem;
+  gap: 2rem;
   min-width: min-content;
 }
 
 /* A transparent tab with a 2px transparent bottom border that the active state paints. The border
    is present at rest so selecting a tab does not shift the row by 2px. */
+/* `font-dish-name text-dish-name … pb-1 border-b-2` — the tabs are PLAYFAIR at the dish-name step,
+   not a sans label. That is deliberate in the design: the category row reads as part of the menu's
+   typography rather than as app chrome, and it is the detail that most separates this bar from a
+   generic filter strip. `flex-direction: column` because a restricted category carries a second
+   line under its name. */
 .navButton {
-  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0 0.25rem;
   min-height: 44px;
   cursor: pointer;
   border: none;
@@ -63,15 +73,18 @@
   transition:
     color 0.2s,
     border-color 0.2s;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-family: var(--font-family-display);
+  font-size: 1.15rem;
+  line-height: 1.4;
+  font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .navButton:hover {
-  color: var(--text-primary);
+  color: var(--brand-primary-elevated);
+  /* `hover:border-primary/50` — a half-strength preview of the active underline. */
   border-bottom-color: var(--border-default);
 }
 
@@ -82,8 +95,8 @@
 
 /* Colour is not the only signal — the underline and the heavier weight carry it too. */
 .navButtonActive {
-  color: var(--brand-primary);
-  border-bottom-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+  border-bottom-color: var(--brand-primary-elevated);
   font-weight: 700;
 }
 
@@ -155,8 +168,8 @@
   }
 
   .navButton {
-    padding: 0.875rem 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.5rem 0 0.25rem;
+    font-size: 1.05rem;
     /* Accessibility: minimum touch target size */
     min-height: 44px;
     -webkit-tap-highlight-color: transparent;
@@ -171,12 +184,14 @@
 /* ── Per-order-type channel restriction on a category tab (ORDER-TYPE-AVAILABILITY-PLAN §4.4) ──
    The tab keeps its label and stays selectable; the restriction is a second line INSIDE the button
    so it joins the tab's accessible name. */
+/* `font-label-muted text-[10px] uppercase text-outline` — a quiet second line under the name. */
 .navButtonNotice {
   display: block;
   margin-top: 2px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--font-family-sans);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
   white-space: normal;

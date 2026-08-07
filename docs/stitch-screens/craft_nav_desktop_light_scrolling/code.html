@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bistro Modern - Mains</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;family=Caveat:wght@400..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#ffccc5",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#410004",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#ffdad7",
+                        "on-surface-variant": "#5d3f3b",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary-container": "#fd6d67",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "surface": "#fcf9f8",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-bright": "#fcf9f8",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-secondary-container": "#6d000c",
+                        "secondary": "#ac3231",
+                        "on-tertiary-fixed": "#410000",
+                        "surface-container": "#f0eded",
+                        "surface-container-highest": "#e5e2e1",
+                        "tertiary": "#900b07",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dcd9d9",
+                        "tertiary-container": "#b3281d",
+                        "surface-variant": "#e5e2e1",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "outline": "#926f69",
+                        "on-primary-fixed-variant": "#930000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#e7bdb6",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "surface-tint": "#c00000",
+                        "tertiary-fixed": "#ffdad5",
+                        "on-surface": "#1c1b1b",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#c00000",
+                        "primary-fixed": "#ffdad4",
+                        "error-container": "#ffdad6",
+                        "primary": "#930000",
+                        "on-background": "#1c1b1b",
+                        "inverse-surface": "#313030",
+                        "inverse-primary": "#ffb4a8",
+                        "on-primary-fixed": "#410000",
+                        "background": "#fcf9f8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "xl": "4rem",
+                        "xs": "0.5rem",
+                        "gutter": "16px",
+                        "md": "1.5rem",
+                        "max-width": "1200px",
+                        "sm": "1rem",
+                        "lg": "2.5rem"
+                    },
+                    "fontFamily": {
+                        "label-muted": ["Public Sans", "sans-serif"],
+                        "section-heading": ["Playfair Display", "serif"],
+                        "body-main": ["Public Sans", "sans-serif"],
+                        "dish-name": ["Playfair Display", "serif"],
+                        "button-label": ["Public Sans", "sans-serif"],
+                        "price-tag": ["Public Sans", "sans-serif"],
+                        "display-lg": ["Playfair Display", "serif"],
+                        "craft": ["Caveat", "cursive"]
+                    },
+                    "fontSize": {
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .tape-edge {
+            clip-path: polygon(1% 0%, 100% 2%, 99% 98%, 0% 100%);
+        }
+        .tape-edge-alt {
+            clip-path: polygon(0% 1%, 98% 0%, 100% 99%, 2% 100%);
+        }
+        /* Scrollbar hiding for the horizontal nav */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-main antialiased min-h-screen selection:bg-primary-container selection:text-on-primary-container">
+<header class="bg-surface docked full-width top-0 border-b border-outline-variant shadow-sm z-50 relative">
+<div class="flex justify-between items-center w-full px-margin-desktop max-w-max-width mx-auto h-16">
+<div class="flex items-center gap-6">
+<span class="font-display-lg text-display-lg text-primary tracking-tight">Bistro Modern</span>
+<nav class="hidden md:flex gap-6 ml-8">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-dish-name text-dish-name cursor-pointer active:opacity-70" href="#">Menu</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-dish-name text-dish-name cursor-pointer active:opacity-70" href="#">Orders</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-dish-name text-dish-name cursor-pointer active:opacity-70" href="#">Reservations</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-dish-name text-dish-name cursor-pointer active:opacity-70" href="#">Profile</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="flex items-center gap-2 bg-transparent border border-primary text-primary px-4 py-2 rounded font-button-label text-button-label hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="shopping_cart">shopping_cart</span>
+                    Cart
+                </button>
+</div>
+</div>
+</header>
+<div class="sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b border-surface-container-high py-4">
+<div class="max-w-max-width mx-auto px-margin-desktop relative flex items-center">
+<button class="absolute left-4 z-10 w-8 h-8 flex items-center justify-center bg-surface rounded-full shadow-sm border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<div class="flex-1 overflow-x-auto no-scrollbar px-8 flex gap-6 items-center py-2 -mx-4 mask-edges" style="-webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);">
+<div class="flex-none -translate-x-12 flex gap-6 items-center">
+<button class="tape-edge bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform -rotate-2 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Specials
+                    </button>
+<button class="tape-edge-alt bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform rotate-1 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Starters (Dine-in only)
+                    </button>
+<button class="tape-edge bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform -rotate-1 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Pizzas
+                    </button>
+<button class="tape-edge bg-surface text-tertiary font-craft text-3xl font-bold px-8 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)] transform rotate-0 border border-outline-variant/30">
+                        Mains
+                    </button>
+<button class="tape-edge-alt bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform rotate-2 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Burgers
+                    </button>
+<button class="tape-edge bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform -rotate-1 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Desserts (Takeaway only)
+                    </button>
+<button class="tape-edge-alt bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform rotate-1 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Salads
+                    </button>
+<button class="tape-edge bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform -rotate-2 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Drinks
+                    </button>
+<button class="tape-edge-alt bg-surface-container-high text-on-surface-variant font-craft text-2xl px-6 py-2 shadow-sm transform rotate-1 hover:rotate-0 hover:bg-surface-container-highest transition-all">
+                        Sides
+                    </button>
+</div>
+</div>
+<button class="absolute right-4 z-10 w-8 h-8 flex items-center justify-center bg-surface rounded-full shadow-sm border border-outline-variant text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<main class="max-w-max-width mx-auto px-margin-desktop py-xl">
+<header class="mb-lg flex justify-between items-end border-b border-surface-container-highest pb-4">
+<h1 class="font-section-heading text-section-heading text-on-background">Mains</h1>
+<span class="font-label-muted text-label-muted text-on-surface-variant">Served from 11:30 AM to Close</span>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm">
+<article class="bg-surface-bright rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden group hover:bg-surface-container-low transition-colors duration-300 flex flex-col">
+<div class="relative w-full aspect-[4/3] bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A top-down view of a perfectly seared king salmon fillet resting on a bed of vibrant green asparagus spears. The salmon features a crispy, golden-brown crust and a tender, flaky pink interior. A light drizzle of citrus-herb emulsion pools elegantly around the fish on a pristine, matte white ceramic plate. The lighting is bright and natural, casting soft, appetizing shadows that highlight the textures of the dish within a modern, minimalist restaurant setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwcUrKqannOUM-SrsGraT5rpGVZt4Xz_49YyXClWKHBc1N21EBZuvr2wH_SY1TwGceUXM_hW_aBH1lwRJ5tRtrZ1lmwNcNJuxTED8S1CLWYNfug6_oJo0QG5bm6oCN1jecdBGImp7O-XEAYGpUuisqZwQfw41xKtljWWJR2p6812kVGXpEnhReZ0wN3Jv1k9a1ZZzCYZgQj8tpYWe43EbpUKbM91fdaDx-7GgNW8E_bnNbz9eF4K9U_g"/>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2 gap-4">
+<h2 class="font-dish-name text-dish-name text-on-background">Seared King Salmon</h2>
+<span class="font-price-tag text-price-tag text-primary shrink-0">$32.00</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-4 flex-1">
+                        Pan-seared sustainably sourced salmon served with charred asparagus, delicate potato purée, and a bright lemon-dill beurre blanc.
+                    </p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="inline-flex items-center px-2 py-1 rounded border border-[#DDDDDD] font-label-muted text-label-muted text-[#6B7280]">Gluten Free</span>
+<span class="inline-flex items-center px-2 py-1 rounded border border-[#DDDDDD] font-label-muted text-label-muted text-[#6B7280]">High Protein</span>
+</div>
+<button class="w-full bg-primary text-on-primary font-button-label text-button-label py-3 rounded active:bg-[#890303] transition-colors flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Add to Order
+                    </button>
+</div>
+</article>
+<article class="bg-surface-bright rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] overflow-hidden group hover:bg-surface-container-low transition-colors duration-300 flex flex-col">
+<div class="relative w-full aspect-[4/3] bg-surface-container-highest">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of a rich, creamy wild mushroom risotto served in a shallow, earthen-toned artisan bowl. The risotto is generously speckled with deeply roasted cremini and porcini mushrooms, finished with shavings of aged parmesan and a delicate sprig of fresh thyme. The scene is illuminated by warm, ambient lighting that emphasizes the glossy texture of the rice and the rustic, comforting mood of a high-end bistro experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnN2hQCU6-LE8yytye79l7dy8lk9pQB1IAi_93W2r7roWgxm1TPpqEIFAHSQMl7zrTexAHYXhiJLyfLr9Y2-r937qdTLnDyKAaDtp3DsAN03VMb-bbBephJ4kV-0iEP_cTvLqDEletr7FAQyqQJh0NSwoE2dGcfzZ4J3ctAZ4mjCKbjaor_Od-Px4pZnP6l09nF4acCKpiQQqHUPMV4wHnGKnZXbhamdzMr-lqRx2dW2uYtI2Pjd3eZg"/>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-2 gap-4">
+<h2 class="font-dish-name text-dish-name text-on-background">Wild Mushroom Risotto</h2>
+<span class="font-price-tag text-price-tag text-primary shrink-0">$26.00</span>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-4 flex-1">
+                        Arborio rice slowly simmered in rich vegetable brodo with roasted local foraged mushrooms, finished with truffle oil and aged Parmigiano-Reggiano.
+                    </p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="inline-flex items-center px-2 py-1 rounded border border-[#DDDDDD] font-label-muted text-label-muted text-[#6B7280]">Vegetarian</span>
+</div>
+<button class="w-full bg-primary text-on-primary font-button-label text-button-label py-3 rounded active:bg-[#890303] transition-colors flex justify-center items-center gap-2 mt-auto">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Add to Order
+                    </button>
+</div>
+</article>
+</div>
+</main>
+</body></html>

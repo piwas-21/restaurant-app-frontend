@@ -6,3 +6,27 @@
    The root layout imports this file FIRST (before globals.css), preserving
    the exact CSS order globals.css produced when it held this import. */
 @import '../../design-system/tokens/index.css';
+
+/* Typography — classic only (heritage_table/DESIGN.md §Typography):
+   Playfair Display for dish names, section headings and category tabs; Public Sans for body,
+   prices, buttons and labels. `fonts.ts` loads both as CSS variables.
+
+   Declared HERE rather than in globals.css so craft's CSS stays byte-identical to develop. The
+   first attempt rewrote globals.css's shared `--font-family-sans` into a `var(--font-body, …)`
+   with the same fallback — semantically identical for craft, which supplies no `--font-body` — and
+   craft's visual baseline still moved a few pixels on every page. Rather than accept a
+   cross-template change nobody could explain, the whole declaration moved behind the template
+   boundary, which is what that boundary is for.
+
+   `body`, not `:root`: next/font's variable classes are applied to <body> by the root layout, so
+   `--font-body` / `--font-display` are defined THERE, and custom properties inherit downwards only.
+   A `:root` declaration is evaluated on <html>, one level above the definitions, and silently takes
+   its fallback — the page rendered in the system stack with Georgia headings while both fonts were
+   loaded and sitting unused. This file is imported BEFORE globals.css, and globals.css declares
+   these two custom properties nowhere, so there is nothing to lose a cascade fight with. */
+body {
+  --font-family-sans:
+    var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif),
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-display: var(--font-display, Georgia, Cambria, 'Times New Roman', Times, serif);
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { Check, Lock, Tag, X } from 'lucide-react';
+import { AlertCircle, Check, Lock, Pencil, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useIsAdmin } from '@/hooks/menu/useIsAdmin';
 import { updateProductPrice } from '@/services/productService';
@@ -127,6 +127,9 @@ export default function AdminPriceEditor({ item, onPriceChange }: Readonly<Admin
       // a rejected save was a red border, which tells an admin that something is wrong and nothing
       // about what.
       <span className={styles.editing}>
+        {/* Names the mode. On a grid of admin cards the only previous signal that one was being
+            edited was that its pill had become an input. */}
+        <span className={styles.editingLegend}>{t('admin_edit_price_editing', 'Editing price')}</span>
         <span className={styles.inputRow}>
           {/* The currency marker lives beside the field rather than inside the value, so the input
               stays a real `type="number"` and the admin is not typing around a symbol. */}
@@ -176,6 +179,7 @@ export default function AdminPriceEditor({ item, onPriceChange }: Readonly<Admin
         </span>
         {error && (
           <span id={errorId} className={styles.error} role="alert" data-testid="admin-price-error">
+            <AlertCircle size={13} aria-hidden="true" />
             {error}
           </span>
         )}
@@ -185,7 +189,9 @@ export default function AdminPriceEditor({ item, onPriceChange }: Readonly<Admin
 
   return (
     <button type="button" className={styles.trigger} onClick={startEditing} data-testid="admin-edit-price">
-      <Tag size={14} aria-hidden="true" />
+      {/* A pencil, not a tag: the tag glyph named the THING (a price) where the control needs to
+          name the ACTION, and it was the same glyph the retired image-corner control used. */}
+      <Pencil size={13} aria-hidden="true" />
       {label}
     </button>
   );

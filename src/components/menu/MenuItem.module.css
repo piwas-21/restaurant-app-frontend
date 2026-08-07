@@ -1,35 +1,35 @@
-/* Menu Item Card Container Styles */
+/* Menu Item Card — built to docs/stitch-screens/desktop_menu_light_full_page (desktop grid card)
+   and mobile_menu_light (mobile list row). Those two are deliberately DIFFERENT objects:
+   desktop is a bordered card with a photo on top, mobile is a flat list row separated by rules. */
 
-/* Carried from the retired MenuBundleCard when one card started rendering both kinds
-   (menu-bundles redesign #175, slice 6); anchors on .menuItem's `position: relative`. */
+/* The "Special" ribbon, over the photo's leading corner. */
 .specialBadge {
   position: absolute;
-  top: 12px;
-  inset-inline-end: 12px;
+  top: 0.5rem;
+  inset-inline-start: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   background-color: var(--brand-primary);
-  color: var(--brand-on-primary, var(--surface-primary));
-  padding: 4px 12px;
-  border-radius: 20px;
+  color: var(--text-on-primary);
+  padding: 0.25rem 0.5rem;
+  /* 4px — the design's DEFAULT radius, which is what every chip and button uses. Only the card
+     itself gets 10px. */
+  border-radius: 4px;
+  font-family: var(--font-family-sans);
   font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-/* A combo's description + "Pizza + Cola" line. Carried from the retired MenuBundleCard, which
-   rendered both in its own markup — MenuItemDetails keeps its equivalents commented out. */
+/* A combo's "Pizza + Cola" line. */
 .bundleSummary {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin: 0.25rem 0;
-}
-
-.bundleDescription {
-  margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
 }
 
 .bundleIncludes {
@@ -39,33 +39,31 @@
   color: var(--text-primary);
 }
 
+/* `rounded-[10px] border border-outline-variant overflow-hidden flex flex-col
+    shadow-[0_1px_3px_rgba(0,0,0,.06)] hover:bg-surface-container-lowest transition-colors` */
 .menuItem {
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  background-color: var(--card-background);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 0;
+  overflow: hidden;
+  text-align: start;
+  background-color: var(--surface-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  transition:
-    box-shadow 0.3s ease,
-    transform 0.3s ease;
-  color: var(--text-color);
-  max-width: 380px;
+  transition: background-color 0.2s ease;
+  color: var(--text-primary);
   width: 100%;
 }
 
+/* Depth is tonal — the surface shifts, the shadow does not grow. */
 .menuItem:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  background-color: var(--surface-secondary-light);
 }
 
 /* Per-order-type availability (S4). The card RECEDES rather than fades — a blanket `opacity` would
-   drag the reason, the one thing the guest must read, down with it, and a child cannot undo a
-   parent's opacity. (`.contentWrapper` is `display: contents` on desktop and carries no box at all.) */
+   drag the reason, the one thing the guest must read, down with it. */
 .menuItem.blocked {
   background-color: var(--surface-secondary);
 }
@@ -75,59 +73,89 @@
   opacity: 0.7;
 }
 
-/* Content wrapper - no effect on desktop */
+/* `p-gutter` = 16px. */
 .contentWrapper {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 16px;
 }
 
-/* Price and Actions Row - hidden on desktop */
+/* `mt-auto pt-2 border-t border-outline-variant/50` — the price and the single action, closed off
+   by a half-strength rule. */
 .priceActionsRow {
-  display: contents;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-light);
 }
 
-.mobilePrice {
-  display: none;
+/* `font-price-tag text-price-tag` — Public Sans 1rem/1/600, tabular so a column of prices aligns. */
+.rowPrice {
+  font-family: var(--font-family-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* Mobile List View - Horizontal Layout */
+/* Mobile — a LIST, not a grid of cards. The design drops the card entirely below 600px: rows sit
+   on the page background, separated by a single rule, with no radius, no shadow and no side
+   borders. That is most of why the implemented mobile view read as a catalogue of tiles where the
+   design reads as a menu. (`mobile_menu_light`: `article … p-margin-mobile border-t border-b`.) */
 @media (max-width: 600px) {
   .menuItem {
     flex-direction: row;
     flex-wrap: nowrap;
-    max-width: 100%;
-    padding: 0.875rem;
-    text-align: start;
-    gap: 0.75rem;
     align-items: flex-start;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    gap: 16px;
+    padding: 16px;
+    border: none;
+    border-top: 1px solid var(--border-default);
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+  }
+
+  /* Only the last row draws a bottom rule, so adjacent rows do not double up. */
+  .menuItem:last-child {
+    border-bottom: 1px solid var(--border-default);
   }
 
   .menuItem:hover {
-    transform: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: transparent;
+  }
+
+  /* A blocked row still needs to recede, and with no card there is no card colour to shift. */
+  .menuItem.blocked {
+    background-color: var(--surface-secondary);
   }
 
   .contentWrapper {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
+    padding: 0;
     order: 1;
   }
 
+  /* `mt-3`, and no rule: the row separator above already closes the item. */
   .priceActionsRow {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.35rem;
+    margin-top: 0.75rem;
+    padding-top: 0;
+    border-top: none;
   }
 
-  .mobilePrice {
-    display: inline-block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--primary-color);
+  .specialBadge {
+    top: 0.25rem;
+    inset-inline-start: 0.25rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.6rem;
   }
 }

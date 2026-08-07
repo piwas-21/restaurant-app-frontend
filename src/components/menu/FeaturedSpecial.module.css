@@ -1,150 +1,176 @@
-/* Featured Special Section Styles */
+/* The Chef's Special strip — built to docs/stitch-screens/desktop_menu_light_full_page:
+ *   `w-full bg-surface border rounded-lg overflow-hidden flex h-auto md:h-[180px] shadow-…`
+ *   photo `w-1/4 h-full` with the badge absolutely placed OVER it, content `flex-1 p-sm`.
+ *
+ * Was a GOLD hero: a `linear-gradient(135deg, …gold…)` panel with a 2px gold border and a gold
+ * badge carrying its own coloured glow — on a page whose brand is RUMI Red, and the only gradient
+ * surface anywhere on it. Every gold token and every gradient is gone.
+ *
+ * The photo runs edge to edge as the strip's leading quarter rather than sitting inset with the
+ * text; the badge is a ribbon on the photo, not a chip in a header row above it. That is the shape
+ * the design actually has, and it is what lets the whole thing hold 180px.
+ */
+
 .featuredSpecialSection {
   padding: 0 1rem;
   max-width: 1400px;
-  /* Tighter above, since the page header now sits directly on top of it. */
   margin: 1rem auto 1.5rem;
 }
 
+/* `rounded-lg` on this one — the strip is a wider object than a dish card and the design gives it
+   the 8px step, not the card's 10px. */
 .featuredSpecialContainer {
-  background: linear-gradient(135deg, var(--color-gold-100-b) 0%, var(--color-gold-50) 100%);
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 2px solid var(--color-gold-300);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 0;
   position: relative;
   overflow: hidden;
-}
-
-[data-theme='dark'] .featuredSpecialContainer {
-  background: linear-gradient(135deg, var(--color-yellow-950) 0%, var(--color-yellow-900-b) 100%);
-  border-color: var(--color-gold-600-d);
-}
-
-/* The badge and the admin edit link share a row, so the admin affordance sits at the hero's top
-   edge the way it sits at a card's — and the badge keeps its own margin off the row instead. */
-.featuredSpecialHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  /* `md:h-[180px]` — a FIXED height, not a floor. With `min-height` the strip grew to 282px as
+     soon as the details column had a title, a three-line description and a meta row to stack, and
+     the whole point of this element is that the menu starts above the fold. `overflow: hidden` on
+     the container is what makes a fixed height safe. */
+  height: 180px;
 }
 
+/* The admin edit link, which has nowhere else to go now the header row is gone. */
+.featuredSpecialHeader {
+  position: absolute;
+  top: 0.5rem;
+  inset-inline-end: 0.5rem;
+  z-index: 11;
+}
+
+/* `absolute top-2 left-2 bg-primary text-on-primary text-xs px-2 py-1 rounded` — over the photo. */
 .featuredSpecialBadge {
+  position: absolute;
+  top: 0.5rem;
+  inset-inline-start: 0.5rem;
+  z-index: 10;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--color-gold-300);
-  color: var(--color-gray-900-f);
-  padding: 0.5rem 1.5rem;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 8px rgba(218, 165, 32, 0.3);
+  gap: 0.25rem;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--font-family-sans);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+/* The strip's own body: photo | text | action. `flex: 1` so it fills the container the photo
+   shares. */
 .featuredSpecialContent {
-  display: grid;
-  /* ONE column by default; the two-column form is opt-in (`.withPhoto`). That is the way round
-     that cannot go wrong: a grid which always declares the photo column puts the DETAILS in it
-     when the photo is absent, so the copy wraps at 340px with the rest of the hero left empty —
-     which is what the live tenant shows today, its featured special having no image. */
-  gap: 2rem;
-  align-items: start;
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
 }
 
-.withPhoto {
-  /* Was a fixed `400px`. The banner now spans the full page width instead of sitting inside the
-     left column, so a fixed image column that used to dominate would simply have grown a wider text
-     column beside it; capping it keeps the photo from being the whole hero, which is the "takes too
-     much space" half of the report. `minmax(0, …)` so the column can shrink rather than overflow. */
-  grid-template-columns: minmax(0, 340px) 1fr;
-}
-
+/* `w-1/4 h-full` — a full-bleed leading quarter, not an inset thumbnail. */
 .featuredSpecialImageContainer {
   position: relative;
-  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  width: 25%;
+  max-width: 280px;
+  align-self: stretch;
 }
 
 .featuredSpecialImage {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  border-radius: 12px;
 }
 
+/* `min-width: 0` so a long description can ellipsise instead of forcing the strip wider than its
+   container — the classic flex-child overflow trap. */
+/* `flex-1 p-sm flex flex-col justify-center` — 1rem padding, vertically centred. */
 .featuredSpecialDetails {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 1rem;
 }
 
+/* `font-dish-name` — the same Playfair step the cards use, so the promoted dish reads as one of
+   the menu's lines rather than as a banner headline. */
 .featuredSpecialTitle {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 1rem 0;
-  color: var(--primary-color);
+  font-family: var(--font-family-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--text-primary);
 }
 
-[data-theme='dark'] .featuredSpecialTitle {
-  color: var(--color-gold-300);
-}
-
+/* One line. The full text is one click away in the details sheet, and an unclamped description is
+   what made the old hero's height unpredictable. */
 .featuredSpecialDescription {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin: 0 0 1.5rem 0;
-  color: var(--text-color);
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
+/* Prep time, price and the admin price control on ONE line — three stacked blocks before. */
 .featuredSpecialMeta {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-
-.featuredSpecialPrice {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.priceValue {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-[data-theme='dark'] .priceValue {
-  color: var(--color-gold-300);
+  flex-wrap: wrap;
+  gap: 0.875rem;
 }
 
 .featuredSpecialTime {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: 0.85rem;
 }
 
-[data-theme='dark'] .featuredSpecialTime {
-  color: var(--color-gray-400-b);
+/* Elevated: the strip recedes to --surface-secondary while blocked, where the plain brand is
+   4.16:1 in dark. Same rule as the card's Details link. */
+/* `font-price-tag text-on-surface` — the strip's price is INK, not brand. The brand is spent on
+   the one solid button beside it; colouring both made the strip shout twice. */
+.priceValue {
+  font-family: var(--font-family-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* The notice is built for a CARD, where `justify-content: center` sits it under a centred image.
-   At hero width that strands the chip in the middle of an otherwise left-aligned column. Making it
-   a flex ITEM here shrinks it to its content, so the shared module's own centring becomes a no-op —
-   no override, no specificity fight, and the card keeps its look. */
+   At strip width that strands the chip in the middle of an otherwise start-aligned column. Making
+   it a flex ITEM here shrinks it to its content, so the shared module's own centring becomes a
+   no-op — no override, no specificity fight, and the card keeps its look. */
 .availabilitySlot {
   display: flex;
   justify-content: flex-start;
 }
 
+/* Not on the strip. The design's Chef's Special carries a name, a description, a price and one
+   button — nothing else — and at a fixed 180px an allergen row is what overflows first. Allergens
+   stay on every dish CARD and in the details sheet, which is where a guest checking them looks. */
 .featuredSpecialAllergens {
-  margin-bottom: 1.5rem;
+  display: none;
 }
 
 .allergensContentLeft {
@@ -154,232 +180,168 @@
 .allergenContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .featuredSpecialActions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 1rem 1rem 1rem 0;
 }
 
+/* Brand red, matching the card's single CTA — see MenuItemActions.module.css for why the green
+   tier is gone. The pair is gated in adminPriceEditorContrast.test.ts. */
+/* The page's ONE solid button. Every grid card below is outlined, so this is what the eye lands
+   on first — `bg-primary text-on-primary px-4 py-2 rounded`. */
 .featuredSpecialAddButton {
-  /* --success-color-darker, not --success-color: the card's Add button was moved to the darker tier
-     for AA (see MenuItemActions.module.css) and the hero was simply never brought along. Measured
-     from the rendered pixels before the change: white on --success-color is 2.78:1 in light and
-     2.01:1 in dark — the primary call to action on the page, failing AA in BOTH themes. The
-     intermediate --success-color-dark is 4.11:1, still short.
-
-     The INK has to move with it. --success-color-darker flips to a light green (#66bb6a) in dark,
-     where it is meant to carry DARK text; a hardcoded `white` only half-flips the pair and left the
-     button at 2.36:1 in dark even after the background was fixed. --button-text-color is the token
-     that flips, and it is what the card already uses. */
-  background: var(--success-color-darker);
-  color: var(--button-text-color);
-  border: none;
-  padding: 0.875rem 1.75rem;
-  font-size: 1rem;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  border: 1px solid var(--brand-primary);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
   font-weight: 600;
-  border-radius: 8px;
+  letter-spacing: 0.02em;
+  border-radius: 4px;
+  min-height: 44px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
 }
 
 .featuredSpecialAddButton:hover {
-  /* Hover keeps the AA-passing background — the affordance is the lift, exactly as on the card.
-     Reverting to --success-color-dark here would put the hovered state back under AA. */
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  background: var(--brand-primary-hover);
 }
 
-.featuredSpecialAddButton:active {
-  transform: translateY(0);
-}
-
+/* Secondary button per DESIGN.md §Components: transparent fill, 1px brand border, brand text. */
 .featuredSpecialDetailsButton {
-  background: var(--secondary-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 0.875rem 1.75rem;
-  font-size: 1rem;
+  background: transparent;
+  color: var(--brand-primary-elevated);
+  border: 1px solid var(--brand-primary-elevated);
+  padding: 0.5rem 0.85rem;
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 4px;
+  min-height: 44px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .featuredSpecialDetailsButton:hover {
-  background: var(--secondary-color-light);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
 }
 
-.featuredSpecialDetailsButton:active {
-  transform: translateY(0);
+.featuredSpecialAddButton:focus-visible,
+.featuredSpecialDetailsButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
-/* Responsive styles for featured special */
-@media (max-width: 1200px) {
-  .withPhoto {
-    grid-template-columns: 350px 1fr;
-  }
+/* Blocked (S4): the strip recedes, and the reason inside it does not. */
+.featuredSpecialBlocked .featuredSpecialContainer {
+  background: var(--surface-secondary);
+}
+
+.featuredSpecialBlocked .featuredSpecialImage {
+  filter: grayscale(0.85);
+  opacity: 0.7;
 }
 
 @media (max-width: 992px) {
-  .featuredSpecialSection {
-    padding: 0 1rem;
-  }
-
-  .withPhoto {
-    grid-template-columns: 300px 1fr;
-  }
-
-  .featuredSpecialContent {
-    gap: 1.5rem;
-  }
-
-  .featuredSpecialTitle {
-    font-size: 1.75rem;
-  }
-
-  .priceValue {
-    font-size: 1.75rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .featuredSpecialSection {
-    padding: 0 1rem;
-    margin: 1.5rem auto;
-  }
-
   .featuredSpecialContainer {
-    padding: 1.5rem;
-  }
-
-  .withPhoto {
-    grid-template-columns: 1fr;
-  }
-
-  .featuredSpecialContent {
-    gap: 1.5rem;
+    min-height: 150px;
   }
 
   .featuredSpecialImageContainer {
-    max-width: 100%;
-  }
-
-  .featuredSpecialTitle {
-    font-size: 1.5rem;
-  }
-
-  .priceValue {
-    font-size: 1.5rem;
-  }
-
-  .featuredSpecialMeta {
-    gap: 1.5rem;
-  }
-
-  .featuredSpecialActions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .featuredSpecialAddButton,
-  .featuredSpecialDetailsButton {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .featuredSpecialSection {
-    padding: 0;
-    margin: 0.75rem auto;
-    max-width: 400px;
-  }
-
-  .featuredSpecialContainer {
-    padding: 0.875rem;
-    border-width: 1px;
-  }
-
-  .featuredSpecialHeader {
-    margin-bottom: 0.75rem;
-  }
-
-  .featuredSpecialBadge {
-    font-size: 0.875rem;
-    padding: 0.375rem 1rem;
-  }
-
-  .featuredSpecialBadge svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .featuredSpecialImageContainer {
-    max-height: 180px;
-    overflow: hidden;
-  }
-
-  .featuredSpecialTitle {
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
+    width: 33%;
   }
 
   .featuredSpecialDescription {
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.5;
-  }
-
-  .featuredSpecialMeta {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .priceValue {
-    font-size: 1.35rem;
-  }
-
-  .featuredSpecialTime {
-    font-size: 0.875rem;
-  }
-
-  .featuredSpecialAllergens {
-    margin-bottom: 0.75rem;
-  }
-
-  .featuredSpecialActions {
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-
-  .featuredSpecialAddButton,
-  .featuredSpecialDetailsButton {
-    padding: 0.7rem 1.1rem;
-    font-size: 0.9rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 }
 
-/* Blocked for the guest's chosen channel (G7). The hero RECEDES rather than disappearing — the
-   special is still today's special, and hiding it would leave an unexplained hole where the guest
-   saw one a moment ago.
- *
- * Scoped to the IMAGE, exactly as the catalog card's `.blocked` is (MenuItem.module.css). A blanket
- * `opacity` on the section would composite straight through the availability notice and its "Switch
- * to X" button — and those two were given their own surfaces in S4 *specifically* so a recede could
- * not push them below AA (the review that added them measured the info chip at 4.24:1 and the
- * switch label at 4.16:1 in dark before the fix). Receding the one control the guest must click is
- * the opposite of what the state needs. */
-.featuredSpecialBlocked .featuredSpecialImage {
-  opacity: 0.7;
-  filter: grayscale(0.7);
+/* Mobile — `flex h-auto` with the photo as a fixed 33% band and everything stacked inside the text
+   column. The two buttons sit on the price row rather than in a column of their own: stacked, they
+   set the strip's height by themselves. Description, prep time and allergens drop out; at 390px
+   they are what pushed the first dish below the fold. */
+@media (max-width: 600px) {
+  .featuredSpecialSection {
+    margin: 0.5rem auto 1rem;
+    padding: 0 1rem;
+  }
+
+  .featuredSpecialContainer {
+    min-height: 0;
+  }
+
+  /* Photo and text on row one, the actions full-width on row two. The actions are a SIBLING of
+     the text column in the DOM, so they cannot nest into it here — and left in the row they claim
+     ~200px of a 390px screen and end up on top of the title. Wrapping is the only arrangement that
+     cannot overlap at an arbitrary translated label length. */
+  .featuredSpecialContent {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .featuredSpecialImageContainer {
+    width: 33%;
+    max-width: 120px;
+  }
+
+  .featuredSpecialDetails {
+    padding: 0.75rem;
+    gap: 0.25rem;
+  }
+
+  .featuredSpecialTitle {
+    font-size: 1.05rem;
+    /* One line. Wrapping a three-word dish name down the side of the photo is most of what made
+       this strip outgrow the 120px it is budgeted. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+  }
+
+  .featuredSpecialDescription,
+  .featuredSpecialTime,
+  .featuredSpecialAllergens {
+    display: none;
+  }
+
+  /* Back inside the text column, on the price row — there is no width for a third column at 390px,
+     and the buttons overlapped the title when they tried to keep one. */
+  .featuredSpecialActions {
+    width: 100%;
+    padding: 0 0.75rem 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .featuredSpecialAddButton {
+    flex: 1;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+  }
+
+  .featuredSpecialDetailsButton {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  .featuredSpecialBadge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
 }

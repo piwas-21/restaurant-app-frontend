@@ -1,13 +1,22 @@
-/* Sticky Category Navigation */
+/* Sticky Category Navigation.
+ *
+ * The offset is computed, not assumed. It used to be a hardcoded `top: 130px` at both mobile
+ * breakpoints with the comment "80px header + 50px TableBanner" — but `TableBanner` returns null
+ * unless the guest arrived by scanning a table QR, so for every ordinary mobile visit the page
+ * reserved 50px for a banner that never rendered and the bar parked in mid-air. That is the empty
+ * strip in the report. `--menu-banner-offset` is set on the menu page root from the same
+ * `hasTableContext` the banner itself reads, and defaults to 0 for every other consumer.
+ *
+ * The tabs are underline-indicated, not filled pills: a row of grey pills with one red pill in it
+ * is a lot of chrome to sit permanently above the content the guest came for. */
 .stickyNav {
   position: sticky;
-  top: 80px;
-  background-color: var(--card-background);
-  padding: 12px 0;
+  top: calc(var(--menu-header-offset, 80px) + var(--menu-banner-offset, 0px));
+  background-color: var(--surface-primary);
+  padding: 0;
   z-index: 100;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 1.5rem;
 }
 
 .navWrapper {
@@ -28,156 +37,126 @@
   -ms-overflow-style: none; /* IE and Edge */
   flex: 1;
   min-width: 0;
-  max-width: 800px;
+  max-width: 900px;
 }
 
 .navScrollContainer::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* `gap-8` — the tabs are set wide apart, which is what stops a serif row reading as a word jumble. */
 .navButtonsContainer {
   display: flex;
-  gap: 8px;
-  padding: 0 8px;
+  gap: 2rem;
   min-width: min-content;
 }
 
+/* A transparent tab with a 2px transparent bottom border that the active state paints. The border
+   is present at rest so selecting a tab does not shift the row by 2px. */
+/* `font-dish-name text-dish-name … pb-1 border-b-2` — the tabs are PLAYFAIR at the dish-name step,
+   not a sans label. That is deliberate in the design: the category row reads as part of the menu's
+   typography rather than as app chrome, and it is the detail that most separates this bar from a
+   generic filter strip. `flex-direction: column` because a restricted category carries a second
+   line under its name. */
 .navButton {
-  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0 0.25rem;
+  min-height: 44px;
   cursor: pointer;
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  background-color: var(--secondary-color);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background-color: transparent;
   transition:
-    background-color 0.3s,
-    color 0.3s,
-    transform 0.2s;
+    color 0.2s,
+    border-color 0.2s;
+  font-family: var(--font-family-display);
+  font-size: 1.15rem;
+  line-height: 1.4;
   font-weight: 500;
-  color: var(--text-color);
+  color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .navButton:hover {
-  background-color: var(--link-hover-color);
-  border-color: var(--link-hover-color);
-  transform: translateY(-2px);
+  color: var(--brand-primary-elevated);
+  /* `hover:border-primary/50` — a half-strength preview of the active underline. */
+  border-bottom-color: var(--border-default);
 }
 
+.navButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+/* Colour is not the only signal — the underline and the heavier weight carry it too. */
 .navButtonActive {
-  background-color: var(--primary-color);
-  color: var(--button-text-color);
-  border-color: var(--primary-color);
-  font-weight: bold;
+  color: var(--brand-primary-elevated);
+  border-bottom-color: var(--brand-primary-elevated);
+  font-weight: 700;
 }
 
 .navArrow {
-  background-color: var(--card-background);
-  border: 1px solid var(--border-color);
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-color);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  color: var(--text-secondary);
   flex-shrink: 0;
   z-index: 1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .navArrow:hover {
-  background-color: var(--primary-color);
-  color: var(--button-text-color);
-  border-color: var(--primary-color);
-  transform: scale(1.1);
-}
-
-.navArrow:active {
-  transform: scale(0.95);
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border-color: var(--brand-primary);
 }
 
 /* The gap between an arrow and the scroller it sits beside. `navArrowLeft` is the FIRST flex
    child and `navArrowRight` the last, so in `ar` they swap sides and each gap has to swap with
    them — logical margins do that. The glyphs are already mirrored below. */
 .navArrowLeft {
-  margin-inline-end: 12px;
+  margin-inline-end: 0.5rem;
 }
 
 .navArrowRight {
-  margin-inline-start: 12px;
+  margin-inline-start: 0.5rem;
 }
 
 /* Tablet */
 @media (max-width: 768px) {
-  .stickyNav {
-    position: sticky;
-    top: 130px; /* 80px header + 50px TableBanner */
-    padding: 12px 0;
-    background-color: var(--card-background);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-  }
-
   .navWrapper {
     padding: 0 1rem;
-    width: 100%; /* Use full width */
+    width: 100%;
     max-width: 100%;
   }
 
   .navScrollContainer {
     -webkit-overflow-scrolling: touch;
   }
-
-  .navButton {
-    padding: 12px 18px;
-    font-size: 1rem;
-    min-height: 44px; /* Accessibility minimum */
-    border-radius: 22px;
-  }
-
-  .navButton:active {
-    transform: scale(0.96);
-  }
-
-  .navArrow {
-    width: 44px;
-    height: 44px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  .navArrow svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  .navArrowLeft {
-    margin-inline-end: 10px;
-  }
-
-  .navArrowRight {
-    margin-inline-start: 10px;
-  }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
   .stickyNav {
-    position: sticky;
-    top: 130px; /* 80px header + 50px TableBanner */
-    padding: 12px 0;
-    margin-bottom: 1.5rem;
-    background-color: var(--card-background);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    /* Ensure it stays on top of content */
-    z-index: 100;
+    margin-bottom: 1rem;
   }
 
   .navWrapper {
-    padding: 0 0.75rem;
-    width: 100%; /* Use full width on mobile */
+    padding: 0 0.5rem;
+    width: 100%;
     max-width: 100%;
     margin: 0;
   }
@@ -185,74 +164,41 @@
   .navScrollContainer {
     flex: 1;
     min-width: 0;
-    /* Enhanced scrolling on mobile */
     -webkit-overflow-scrolling: touch;
   }
 
-  .navButtonsContainer {
-    gap: 10px;
-    padding: 0 4px;
-  }
-
   .navButton {
-    /* Larger touch targets per Apple/Google HIG - minimum 44px */
-    padding: 14px 20px;
-    font-size: 1rem; /* Increased from 0.9rem for better readability */
-    min-width: fit-content;
-    min-height: 44px; /* Accessibility: minimum touch target size */
-    border-radius: 22px;
-    font-weight: 500;
-    /* Better tap feedback */
+    padding: 0.5rem 0 0.25rem;
+    font-size: 1.05rem;
+    /* Accessibility: minimum touch target size */
+    min-height: 44px;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .navButton:active {
-    transform: scale(0.96);
-  }
-
-  .navButtonActive {
-    font-weight: 600;
-  }
-
   .navArrow {
-    /* Larger touch targets for arrows */
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
-    /* Better visual prominence */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  .navArrow svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  .navArrowLeft {
-    margin-inline-end: 8px;
-  }
-
-  .navArrowRight {
-    margin-inline-start: 8px;
+    width: 40px;
+    height: 40px;
   }
 }
 
 /* ── Per-order-type channel restriction on a category tab (ORDER-TYPE-AVAILABILITY-PLAN §4.4) ──
    The tab keeps its label and stays selectable; the restriction is a second line INSIDE the button
-   so it joins the tab's accessible name. Tokens mirror the card chip's
-   (MenuItemAvailability.module.css) so a category and the items inside it speak in one voice. */
+   so it joins the tab's accessible name. */
+/* `font-label-muted text-[10px] uppercase text-outline` — a quiet second line under the name. */
 .navButtonNotice {
   display: block;
   margin-top: 2px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
   white-space: normal;
 }
 
-/* An ACTIVE tab paints `--primary-color` behind this text, where `--text-secondary` is not
-   contrast-verified; the button's own colour is, in both themes. (A hovered tab repaints the
-   background too — same reason, same fix.) */
+/* An active or hovered tab repaints its own text colour; the notice follows it rather than staying
+   on a muted grey that was only contrast-verified against the resting state. */
 .navButtonActive .navButtonNotice,
 .navButton:hover .navButtonNotice {
   color: inherit;

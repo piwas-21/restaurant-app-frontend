@@ -81,12 +81,15 @@ describe('MenuCard — one card for both catalog kinds', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.getByText('Margherita')).toBeInTheDocument();
-    // Two nodes by design: the card carries a separate mobile price that CSS swaps in.
-    expect(screen.getAllByText('CHF 12.50')).toHaveLength(2);
-    // A product shows no summary block: MenuItemDetails keeps its ingredient/description blocks
-    // commented out, and this card does not second-guess that.
+    // ONE price node. The card used to render two — `.itemPrice` in MenuItemDetails above 600px
+    // and a separate `.mobilePrice` below it — with only CSS deciding which was showing. The price
+    // lives on the action row at every viewport now, and carries the accessible label the
+    // desktop-only node used to own.
+    expect(screen.getByText('CHF 12.50')).toHaveAttribute('aria-label', 'checkout_total_label CHF 12.50');
+    // The description IS rendered now (it is the card's details affordance). Ingredients are not:
+    // that block in MenuItemDetails is still commented out, and this card does not second-guess it.
+    expect(screen.getByText('Classic pizza')).toBeInTheDocument();
     expect(screen.queryByText('Tomato, Basil')).not.toBeInTheDocument();
-    expect(screen.queryByText('Classic pizza')).not.toBeInTheDocument();
   });
 
   it('keeps a combo description and its default picks — the bundle card rendered both itself', () => {
@@ -128,7 +131,9 @@ describe('MenuCard — one card for both catalog kinds', () => {
     expect(onOpen).toHaveBeenLastCalledWith(product);
 
     // Details: forceSheet so the sheet ALWAYS opens to view the item (the #234 regression).
-    fireEvent.click(screen.getByRole('button', { name: 'details' }));
+    // Its accessible name carries the DISH, not just "Details" — every card offers one, and a
+    // screen-reader user listing the page's buttons would otherwise get N identical entries.
+    fireEvent.click(screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' }));
     expect(onOpen).toHaveBeenLastCalledWith(product, { forceSheet: true });
 
     // The clickable title is a view affordance too — it forces the sheet, never adds.
@@ -141,7 +146,7 @@ describe('MenuCard — one card for both catalog kinds', () => {
     const onOpen = jest.fn();
     render(<MenuCard item={bundle} onOpen={onOpen} onFeedbackSuccess={jest.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'details' }));
+    fireEvent.click(screen.getByRole('button', { name: 'menu_item_details_aria(Lunch Combo)' }));
     expect(onOpen).toHaveBeenCalledWith(bundle, { forceSheet: true });
   });
 });
@@ -313,7 +318,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     // Add is gone rather than disabled: a disabled control fires no click and explains nothing.
     expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();
     // …but Details stays live, so the guest can still read the item.
-    expect(screen.getByRole('button', { name: 'details' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);

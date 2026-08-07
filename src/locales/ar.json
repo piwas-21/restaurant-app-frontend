@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "تعديل هذا العنصر",
   "admin_edit_item_short": "تعديل",
   "admin_edit_price": "تعديل السعر",
+  "menu_item_details_aria": "عرض تفاصيل {{itemName}}",
+  "admin_edit_price_editing": "جارٍ تعديل السعر",
   "map": "خريطة",
   "list": "قائمة",
   "everywhere": "كل الأماكن",

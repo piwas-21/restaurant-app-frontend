@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tablet Menu Item Cards</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#fcf9f8",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdad5",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdad7",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "surface-bright": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-surface": "#1c1b1b",
+                        "on-tertiary": "#ffffff",
+                        "inverse-primary": "#ffb4a8",
+                        "surface-dim": "#dcd9d9",
+                        "primary": "#930000",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e5e2e1",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#410004",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-surface-variant": "#5d3f3b",
+                        "secondary-container": "#fd6d67",
+                        "on-background": "#1c1b1b",
+                        "outline": "#926f69",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#ffccc5",
+                        "surface": "#fcf9f8",
+                        "inverse-surface": "#313030",
+                        "on-secondary-container": "#6d000c",
+                        "tertiary-container": "#b3281d",
+                        "primary-container": "#c00000",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container-high": "#eae7e7",
+                        "error-container": "#ffdad6",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "surface-variant": "#e5e2e1",
+                        "outline-variant": "#e7bdb6",
+                        "secondary": "#ac3231",
+                        "primary-fixed": "#ffdad4",
+                        "surface-container": "#f0eded",
+                        "surface-tint": "#c00000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "on-primary-fixed": "#410000",
+                        "tertiary": "#900b07",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#410000",
+                        "on-primary-fixed-variant": "#930000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "0.5rem",
+                        "sm": "1rem",
+                        "base": "4px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "xl": "4rem",
+                        "md": "1.5rem",
+                        "lg": "2.5rem",
+                        "max-width": "1200px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "button-label": ["Public Sans"],
+                        "dish-name": ["Playfair Display"],
+                        "body-main": ["Public Sans"],
+                        "section-heading": ["Playfair Display"],
+                        "price-tag": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "label-muted": ["Public Sans"]
+                    },
+                    "fontSize": {
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .hairline-border {
+            border: 1px solid #DDDDDD;
+        }
+        .card-shadow {
+            box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        }
+        .hover-surface-shift:hover {
+            background-color: #f6f3f2; /* surface-container-low */
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-main min-h-screen">
+<main class="w-full max-w-[1200px] mx-auto px-margin-desktop py-lg">
+<header class="mb-lg">
+<h1 class="font-section-heading text-section-heading text-on-surface">Main Courses</h1>
+<p class="font-body-main text-body-main text-on-surface-variant mt-sm">Select a dish to view details or add directly to your order.</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Card 1: Standard Dish -->
+<article class="bg-surface-container-lowest rounded-[10px] hairline-border card-shadow flex flex-col overflow-hidden transition-colors hover-surface-shift group">
+<div class="w-full h-48 bg-surface-dim relative">
+<img class="w-full h-full object-cover" data-alt="A beautifully plated seared salmon fillet on a bed of quinoa with vibrant asparagus spears. High-end culinary photography, bright natural lighting, elegant white ceramic plate on a light wood surface, shallow depth of field, warm and inviting dining atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfbBaPBZ1kUQw_iBj76G8vEc_uwJQmY5PNJ_tIvfIzjooMhHXJURxWqJ_dQNjvpz1UhbWQVyT37SFvQyoCHbfG2dLI3dsr2qaNpz4t5gNCLmN8NkPpwM-paOf4bRNayiW4ElkJc39zjbwMhspwS-4rvX7tYRlNENaOBvg-XNKi2S-EtnjBIAIsnOBp3kgQOvE0Spib2x0p9w2pRumoaR2Nz1bFG2tIEnw81lGAdqkuhWc8Xv2DRnAdtQ"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h2 class="font-dish-name text-dish-name text-on-surface">Seared King Salmon</h2>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-sm flex-grow">Pan-seared Atlantic salmon accompanied by herb-infused quinoa, grilled asparagus, and a delicate citrus beurre blanc. <span class="text-primary hover:underline cursor-pointer">Details</span></p>
+<div class="flex justify-between items-end mt-auto pt-sm border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 32.50</span>
+<button class="bg-primary-container text-on-primary font-button-label text-button-label px-sm py-xs rounded-[4px] hover:bg-[#890303] transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Add to Order
+                        </button>
+</div>
+</div>
+</article>
+<!-- Card 2: Special Dish with Chips -->
+<article class="bg-surface-container-lowest rounded-[10px] hairline-border card-shadow flex flex-col overflow-hidden transition-colors hover-surface-shift group">
+<div class="w-full h-48 bg-surface-dim relative">
+<div class="absolute top-sm right-sm z-10 bg-primary-container text-on-primary px-xs py-1 rounded-[4px] font-label-muted text-label-muted uppercase tracking-wider font-bold">Chef's Special</div>
+<img class="w-full h-full object-cover" data-alt="A rustic yet elegant wild mushroom risotto in a shallow white bowl. Garnished with shaved truffle, fresh herbs, and a drizzle of olive oil. Top-down view, soft moody lighting typical of fine dining bistros, warm earthy tones dominating the palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBatpX3INhLR_MVybEKvIl3pRRZQL8nxW8LML3UnR-YVFMMWyWqpK1cVrB2eBuH8_hrerj0wWcR2GjvyM6ddFW6FSIc7m87u8POJy-Jx0EUhxUL-KRAloGCBHxDWAsHzuh7lc_R6196PJaX15AqOFnHYVKqI4-3MOQtQeH6xQma1qcObDd6mfI_TyWWY0OPSqHwh75zlYLH4bHu8UyQFSbONWQp8tULEgHQf4spqoWQSmieG6xiC6lOiA"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex flex-col mb-xs">
+<h2 class="font-dish-name text-dish-name text-on-surface">Wild Mushroom Risotto</h2>
+<div class="flex gap-xs mt-xs">
+<span class="inline-block border border-[#DDDDDD] rounded-[10px] px-2 py-0.5 text-[#6B7280] font-label-muted text-label-muted bg-transparent">Vegetarian</span>
+<span class="inline-block border border-[#DDDDDD] rounded-[10px] px-2 py-0.5 text-[#6B7280] font-label-muted text-label-muted bg-transparent">Gluten-Free</span>
+</div>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-sm flex-grow">Creamy Arborio rice simmered with seasonal wild mushrooms, finished with aged Parmigiano-Reggiano and truffle oil. <span class="text-primary hover:underline cursor-pointer">Details</span></p>
+<div class="flex justify-between items-end mt-auto pt-sm border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 28.00</span>
+<button class="bg-primary-container text-on-primary font-button-label text-button-label px-sm py-xs rounded-[4px] hover:bg-[#890303] transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Add to Order
+                        </button>
+</div>
+</div>
+</article>
+<!-- Card 3: Standard Dish -->
+<article class="bg-surface-container-lowest rounded-[10px] hairline-border card-shadow flex flex-col overflow-hidden transition-colors hover-surface-shift group">
+<div class="w-full h-48 bg-surface-dim relative">
+<img class="w-full h-full object-cover" data-alt="A perfectly cooked medium-rare beef tenderloin steak sliced on a plate. Served with pomme purée and a rich dark demi-glace. Professional food photography, high contrast lighting emphasizing the texture of the meat, elegant setting with polished cutlery visible on the edge." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUp5a1C6RALGR7JhnK_dxYOIaF5O43kQ25lpm3RbfwXAe9tZ8TiuFB-pD93uPlRH9by3kcA-8b6eh-qZ5ofxo1zVEgPb9ItsUvQhYa6aquACyIS4zwAQhOkKegEK94KQgdltzhN__eLMEv9CWABr19WM_nPkHU5hwnQeVpjOS7v6cKnp62KbRCLEwILZDSz-fOFNlYE1eJVapjeTy63zogT-MVritH_TqkOJ6TIb7LFef6OyW6S-oxxg"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h2 class="font-dish-name text-dish-name text-on-surface">Beef Tenderloin</h2>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-sm flex-grow">Grass-fed beef tenderloin cooked to your preference, served with smooth pomme purée and a rich red wine demi-glace. <span class="text-primary hover:underline cursor-pointer">Details</span></p>
+<div class="flex justify-between items-end mt-auto pt-sm border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 45.00</span>
+<button class="bg-transparent border border-primary text-primary font-button-label text-button-label px-sm py-xs rounded-[4px] hover:bg-surface-container-low transition-colors flex items-center gap-xs">
+                             Options
+                        </button>
+</div>
+</div>
+</article>
+<!-- Card 4: Standard Dish -->
+<article class="bg-surface-container-lowest rounded-[10px] hairline-border card-shadow flex flex-col overflow-hidden transition-colors hover-surface-shift group">
+<div class="w-full h-48 bg-surface-dim relative">
+<img class="w-full h-full object-cover" data-alt="A vibrant, fresh burrata salad with heirloom tomatoes in red, yellow, and green. Drizzled with balsamic glaze and fresh basil leaves. Bright, airy lighting, clean white plate background, crisp summery aesthetic typical of modern European bistros." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtopCAMPI0NRUcCigpkynASAccknl-UQA1wDSWYgwT65R6l_70a-Xw-W5o4mvns9gg_wHlk3JOvAxk7FW7OUmLTww1VuMJAAtYi6h5BxU632Bs8hXAuWZEZwcMyLYLfcEriFbMAB6CWai-cbVq1V84u6NvN4JkaKE_lht9ulslf4CmlEvpco8ovUy5_26U4-b_dteDBFQrsmh1YzcB2PCMedlb5VicuyWLroQWRZyr3kTgXRVSMItgWQ"/>
+</div>
+<div class="p-sm flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-xs">
+<h2 class="font-dish-name text-dish-name text-on-surface">Heirloom Tomato Burrata</h2>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant mb-sm flex-grow">Fresh creamy burrata cheese served with seasonal heirloom tomatoes, fresh basil, and a balsamic reduction drizzle. <span class="text-primary hover:underline cursor-pointer">Details</span></p>
+<div class="flex justify-between items-end mt-auto pt-sm border-t border-[#DDDDDD]">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 18.50</span>
+<button class="bg-primary-container text-on-primary font-button-label text-button-label px-sm py-xs rounded-[4px] hover:bg-[#890303] transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Add to Order
+                        </button>
+</div>
+</div>
+</article>
+</div>
+</main>
+</body></html>

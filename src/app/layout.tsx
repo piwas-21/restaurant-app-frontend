@@ -35,7 +35,21 @@ export const viewport: Viewport = {
 };
 
 const { Shell, fonts } = template;
-const bodyClassName = fonts.map((font) => font.className).join(' ');
+// `variable` when the template loaded the font as a CSS custom property, `className` otherwise.
+//
+// This distinction is load-bearing and was got wrong once: next/font's `className` SETS
+// `font-family` on whatever it is applied to, so joining two of them onto <body> makes the last
+// font win outright. Classic loads two families (Public Sans body + Playfair Display display) and
+// needs them addressable separately, so it declares `variable` on both — with `className` the body
+// rendered entirely in Playfair while `var(--font-display)` stayed undefined and fell back to
+// Georgia, i.e. exactly inverted. Craft declares no `variable` and keeps the className path.
+// `||`, NOT `??`. next/font emits a `variable` key on every font object and leaves it EMPTY when
+// the loader was called without one, so `??` (which only falls back on null/undefined) kept the
+// empty string — stripping craft's three font classNames off <body> entirely and rendering every
+// craft page in the system font. It failed the craft visual baseline on all 14 screens, not just
+// the menu, which is what gave it away: a menu-page change cannot move the login page.
+const fontClassNames: string[] = fonts.map((font) => font.variable || font.className);
+const bodyClassName = fontClassNames.join(' ');
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   // Runtime colour palette (ADR-007): fetched server-side, injected as a

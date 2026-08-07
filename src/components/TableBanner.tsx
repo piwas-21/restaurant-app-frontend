@@ -7,6 +7,7 @@ import { useTableContext } from '@/contexts/TableContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { OrderType } from '@/types/order';
 import BaseModal from '@/components/design-system/BaseModal';
+import { STICKY_BANNER_ATTR } from '@/hooks/menu/useStickyNavOffset';
 import styles from './TableBanner.module.css';
 
 interface TableBannerProps {
@@ -39,6 +40,9 @@ export default function TableBanner({ position = 'top' }: TableBannerProps) {
     <>
       <div
         className={`${styles.banner} ${position === 'floating' ? styles.floating : styles.top}`}
+        // Only the sticky variant participates in the menu page's offset arithmetic; the floating
+        // one is out of flow and the category nav never has to clear it.
+        {...(position === 'top' ? { [STICKY_BANNER_ATTR]: '' } : {})}
         role="status"
         aria-live="polite"
       >

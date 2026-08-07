@@ -18,9 +18,14 @@
   }
 }
 
+/* Sticks BELOW the fixed site header, not at the viewport top. It stuck at 0, which put it behind
+   the header once the page scrolled — invisible, while the sticky category nav underneath it was
+   still reserving its height. The reserved band therefore rendered as an empty strip, which is the
+   other half of the bug `useStickyNavOffset` fixes: that hook reserves the space, this makes the
+   banner actually occupy it. Same variable on both sides so they cannot disagree. */
 .banner.top {
   position: sticky;
-  top: 0;
+  top: var(--menu-header-offset, 80px);
 }
 
 .banner.floating {

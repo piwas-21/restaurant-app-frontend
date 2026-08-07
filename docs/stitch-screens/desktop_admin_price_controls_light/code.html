@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Price Controls - Heritage Table</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-surface-variant": "#5d3f3b",
+                "outline-variant": "#e7bdb6",
+                "on-surface": "#1c1b1b",
+                "surface-container-high": "#eae7e7",
+                "tertiary-container": "#b3281d",
+                "tertiary-fixed-dim": "#ffb4a9",
+                "on-tertiary-fixed": "#410000",
+                "on-secondary-fixed": "#410004",
+                "error-container": "#ffdad6",
+                "on-tertiary-container": "#ffccc5",
+                "on-secondary-container": "#6d000c",
+                "tertiary-fixed": "#ffdad5",
+                "on-primary-fixed": "#410000",
+                "inverse-primary": "#ffb4a8",
+                "outline": "#926f69",
+                "on-error-container": "#93000a",
+                "secondary-fixed-dim": "#ffb3ae",
+                "error": "#ba1a1a",
+                "tertiary": "#900b07",
+                "on-primary": "#ffffff",
+                "primary-fixed-dim": "#ffb4a8",
+                "inverse-on-surface": "#f3f0ef",
+                "primary-container": "#c00000",
+                "on-background": "#1c1b1b",
+                "surface-container-lowest": "#ffffff",
+                "on-secondary-fixed-variant": "#8b191d",
+                "primary-fixed": "#ffdad4",
+                "surface-container": "#f0eded",
+                "on-secondary": "#ffffff",
+                "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#910b07",
+                "secondary": "#ac3231",
+                "primary": "#930000",
+                "on-primary-fixed-variant": "#930000",
+                "surface-container-highest": "#e5e2e1",
+                "surface-dim": "#dcd9d9",
+                "background": "#fcf9f8",
+                "secondary-container": "#fd6d67",
+                "surface-bright": "#fcf9f8",
+                "surface-variant": "#e5e2e1",
+                "surface": "#fcf9f8",
+                "on-error": "#ffffff",
+                "surface-tint": "#c00000",
+                "inverse-surface": "#313030",
+                "secondary-fixed": "#ffdad7",
+                "on-primary-container": "#ffcdc5",
+                "surface-container-low": "#f6f3f2"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "margin-desktop": "32px",
+                "sm": "1rem",
+                "md": "1.5rem",
+                "gutter": "16px",
+                "xl": "4rem",
+                "lg": "2.5rem",
+                "base": "4px",
+                "max-width": "1200px",
+                "margin-mobile": "16px",
+                "xs": "0.5rem"
+        },
+        "fontFamily": {
+                "section-heading": [
+                        "Playfair Display"
+                ],
+                "dish-name": [
+                        "Playfair Display"
+                ],
+                "label-muted": [
+                        "Public Sans"
+                ],
+                "button-label": [
+                        "Public Sans"
+                ],
+                "body-main": [
+                        "Public Sans"
+                ],
+                "display-lg": [
+                        "Playfair Display"
+                ],
+                "price-tag": [
+                        "Public Sans"
+                ]
+        },
+        "fontSize": {
+                "section-heading": [
+                        "1.75rem",
+                        {
+                                "lineHeight": "1.3",
+                                "fontWeight": "700"
+                        }
+                ],
+                "dish-name": [
+                        "1.15rem",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-muted": [
+                        "0.8rem",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "400"
+                        }
+                ],
+                "button-label": [
+                        "0.95rem",
+                        {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-main": [
+                        "0.95rem",
+                        {
+                                "lineHeight": "1.55",
+                                "fontWeight": "400"
+                        }
+                ],
+                "display-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "fontWeight": "700"
+                        }
+                ],
+                "price-tag": [
+                        "1rem",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "600"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+  body {
+    background-color: #fcf9f8;
+    color: #1c1b1b;
+  }
+  .card-border {
+    border: 1px solid #DDDDDD;
+  }
+  .card-shadow {
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+</style>
+</head>
+<body class="min-h-screen bg-background font-body-main text-body-main flex">
+<!-- SideNavBar Semantic Shell -->
+<aside class="hidden md:flex flex-col h-screen sticky top-0 bg-surface-container-low border-r border-outline-variant h-full w-64 border-r border-outline-variant">
+<div class="p-margin-desktop flex-grow">
+<div class="mb-xl">
+<h1 class="font-section-heading text-section-heading text-primary">Heritage Table</h1>
+<p class="font-label-muted text-label-muted text-on-surface-variant mt-xs">Est. 2024</p>
+</div>
+<nav class="space-y-sm">
+<a class="flex items-center space-x-sm px-sm py-xs rounded-lg text-primary font-bold bg-surface-variant transition-all hover:bg-surface-variant active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span>Menu</span>
+</a>
+<a class="flex items-center space-x-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>Orders</span>
+</a>
+<a class="flex items-center space-x-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span>Reservations</span>
+</a>
+<a class="flex items-center space-x-sm px-sm py-xs rounded-lg text-on-surface-variant hover:bg-surface-variant transition-all active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span>Profile</span>
+</a>
+</nav>
+</div>
+<div class="p-margin-desktop">
+<button class="w-full py-sm bg-primary-container text-on-primary font-button-label text-button-label rounded hover:bg-tertiary transition-colors">
+        Order Now
+      </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto">
+<!-- Top Nav Area (Admin Context, distinct from main shell nav but needed for top area structure) -->
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-40">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16">
+<h2 class="font-display-lg text-display-lg text-on-surface">Menu Pricing Controls</h2>
+<div class="flex items-center space-x-sm text-on-surface-variant">
+<span class="font-label-muted text-label-muted">Admin User</span>
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="manage_accounts">manage_accounts</span>
+</div>
+</div>
+</div>
+</header>
+<div class="max-w-max-width mx-auto p-margin-desktop">
+<!-- Featured Strip: Chef's Special (REST State) -->
+<section class="mb-xl">
+<h3 class="font-section-heading text-section-heading text-on-surface mb-sm">Featured Special</h3>
+<div class="bg-surface card-border rounded-lg card-shadow p-sm flex items-center justify-between hover:bg-surface-variant transition-colors">
+<div class="flex items-center space-x-md">
+<div class="w-24 h-24 rounded bg-surface-dim overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A beautifully plated signature dish, perhaps a prime cut of steak with rich reduction sauce and microgreens, shot top-down on a textured ceramic plate. Warm, natural lighting highlighting the culinary details. Minimalist light mode background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAycakVcHvtd8WClVZDgRs32IqgglugCy9mS9Lzp1h461L5lfOKEp7kK4d6vri2ODzT0Cxuz5sJTot523n3vViGkILApkhTqOKuMAIEb6Pg2G5QxaIpPhu20Mkfa-nSKew33nx00wi9T0wX-jnn2Q1WbBGDqqOctJ0z-hkH0HoW2VUxfc7M6sZfMXhfYNDZ9sIn4K6qy2ubbTEcBay3RZgnzzDz0Jmo-228XPm9cmW1pgkjuWojLrguBw"/>
+</div>
+<div>
+<h4 class="font-dish-name text-dish-name text-on-surface">Wagyu Truffle Burger</h4>
+<p class="font-body-main text-body-main text-on-surface-variant mt-xs max-w-md">Premium wagyu beef patty, shaved black truffles, aged gruyere, artisanal brioche bun.</p>
+<div class="flex gap-2 mt-xs">
+<span class="px-2 py-1 rounded text-[10px] font-semibold tracking-wider uppercase border border-outline-variant text-on-surface-variant">Signature</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end border-l border-outline-variant pl-md ml-md">
+<div class="font-price-tag text-price-tag text-on-surface">CHF 45.00</div>
+<button class="mt-sm flex items-center space-x-xs text-primary hover:text-tertiary transition-colors px-3 py-1.5 border border-primary rounded bg-transparent font-button-label text-button-label group">
+<span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform" data-icon="edit">edit</span>
+<span>Edit Price</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Grid Layout -->
+<section>
+<div class="flex items-center justify-between mb-sm">
+<h3 class="font-section-heading text-section-heading text-on-surface">Main Courses</h3>
+<div class="flex space-x-2">
+<button class="px-3 py-1 border border-outline-variant rounded-full text-on-surface-variant font-label-muted text-label-muted hover:bg-surface-variant">Filter</button>
+<button class="px-3 py-1 border border-outline-variant rounded-full text-on-surface-variant font-label-muted text-label-muted hover:bg-surface-variant">Sort</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm">
+<!-- Card 1: State 1 (REST) -->
+<article class="bg-surface card-border rounded-lg card-shadow flex flex-col overflow-hidden hover:bg-surface-variant transition-colors group">
+<div class="h-48 w-full bg-surface-dim relative">
+<img class="w-full h-full object-cover" data-alt="A rustic pan-seared salmon fillet resting on a bed of vibrant green asparagus and quinoa. Bright, appetizing overhead lighting, crisp details, soft light-grey background. Fine dining presentation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjLY7-gIiwDgXC-nzTIP9TqImLEHeXG7NeqDY_ejngQNmJSVL_ETRCIJwd0FrWBzQRbCR9xsbzu9AZAGUiHWugUDD8VKbhd_2NyGf1NSMbuiAk86TYW2RHzAsAdo-4aQp5fX5qj9esWDcfj9oQLsiRV7vuGcO-YL4uzX4jRtobQtEkoKH--SdVDqC6OefcX_FCnTH0lBqpSkdPE3YYFOexR7_kSPjlh9XMjFecXXf_v2Ijy9uVjzfadw"/>
+<div class="absolute top-2 right-2 bg-surface px-2 py-1 rounded shadow-sm text-xs font-semibold text-on-surface flex items-center">
+<span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span> Available
+               </div>
+</div>
+<div class="p-sm flex-grow flex flex-col">
+<h4 class="font-dish-name text-dish-name text-on-surface">Pan-Seared Salmon</h4>
+<p class="font-body-main text-body-main text-on-surface-variant mt-xs line-clamp-2 flex-grow">Wild caught salmon, seasonal vegetables, lemon dill emulsion.</p>
+<div class="mt-md pt-sm border-t border-outline-variant flex items-center justify-between">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 32.50</span>
+<button class="flex items-center space-x-xs text-primary hover:text-tertiary transition-colors px-2 py-1 rounded bg-transparent font-button-label text-button-label opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+<span>Edit</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 2: State 2 (EDITING) -->
+<article class="bg-surface card-border rounded-lg card-shadow flex flex-col overflow-hidden ring-1 ring-primary ring-offset-2">
+<div class="h-48 w-full bg-surface-dim relative">
+<img class="w-full h-full object-cover" data-alt="A hearty bowl of artisan pasta, perhaps pappardelle with a rich wild boar ragu. Steaming hot, garnished with fresh parmesan and parsley. Warm lighting, tactile ceramic bowl, clean minimalist setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcNBpps-Aw9EUiz4Mw-SsDxZY7ziaq68Ah6_kXm8cCivd-NGg2XLpOz28JeIejk-Qe0uLrpeg0gQaUP40dPiru5qdYcjS9-Vk0vJNMKOaTxNZvNh5V2lHFV9T_-oGCNgntW9NeQKFeTiT2LyEapn4EyeUOQ-LjVK5FRv5wn8tmpLl2VJk_wh8kXeaJeHZIkvAXQfkbDNRweqw64fZOQv-eyx1MoTsuV4CyGpHes9NDYScZ9IXuXlxSBA"/>
+</div>
+<div class="p-sm flex-grow flex flex-col">
+<h4 class="font-dish-name text-dish-name text-on-surface">Wild Boar Pappardelle</h4>
+<p class="font-body-main text-body-main text-on-surface-variant mt-xs line-clamp-2 flex-grow">Handmade ribbon pasta, slow-cooked ragu, aged pecorino.</p>
+<div class="mt-md pt-sm border-t border-outline-variant flex flex-col">
+<div class="flex items-center space-x-2 w-full">
+<span class="font-price-tag text-price-tag text-on-surface-variant w-10">CHF</span>
+<input class="flex-1 w-full border border-primary rounded px-2 py-1 font-price-tag text-price-tag text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" step="0.01" type="number" value="28.00"/>
+</div>
+<div class="flex justify-end space-x-2 mt-sm">
+<button class="px-3 py-1 border border-outline-variant text-on-surface-variant rounded font-button-label text-button-label hover:bg-surface-variant transition-colors">Cancel</button>
+<button class="px-3 py-1 bg-primary-container text-on-primary rounded font-button-label text-button-label hover:bg-tertiary transition-colors">Save</button>
+</div>
+<div class="mt-xs flex items-center space-x-1 text-error text-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="error">error</span>
+<span>Server connection lost</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: State 3 (LOCKED) -->
+<article class="bg-surface-container-low card-border rounded-lg card-shadow flex flex-col overflow-hidden opacity-75">
+<div class="h-48 w-full bg-surface-dim relative grayscale-[30%]">
+<img class="w-full h-full object-cover" data-alt="A classic caesar salad in a wide bowl, featuring crisp romaine, giant croutons, and shaved parmesan. Crisp lighting, white marble table background, creating a fresh, upscale vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPCUOAA-56PCq--6X_agw9_py_H7-rDjDIp-PhrOwOju6in-ielH47HDdEudx-07g8WzbKr2AHsE8T5e1GxZWEm-TJ4-mMvLLFFQK0aa-HeyilEP9qAK9C8GAqmTjzzQQcMzgb5o1_tmkvEDQK4VdylAXQUWstpGkHDQKKFIb_55rBolbxEDgPPARdffr2t27V_TioXej2sToDbgwkXQXOtbbT1i1LTpn-HOmZepYx8wjVq4u93UFVNQ"/>
+<div class="absolute inset-0 bg-surface/20 flex items-center justify-center backdrop-blur-[1px]">
+<div class="bg-surface/80 p-2 rounded-full shadow">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="lock">lock</span>
+</div>
+</div>
+</div>
+<div class="p-sm flex-grow flex flex-col">
+<h4 class="font-dish-name text-dish-name text-on-surface flex justify-between items-center">
+                Classic Caesar
+              </h4>
+<p class="font-body-main text-body-main text-on-surface-variant mt-xs line-clamp-2 flex-grow">Crisp romaine, anchovy dressing, focaccia croutons.</p>
+<div class="mt-md pt-sm border-t border-outline-variant flex items-center justify-between">
+<span class="font-price-tag text-price-tag text-on-surface-variant">CHF 18.00</span>
+<div class="flex items-center space-x-1 text-on-surface-variant text-xs">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+<span>Fixed combo price</span>
+</div>
+</div>
+</div>
+</article>
+</div>
+</section>
+</div>
+</main>
+</body></html>

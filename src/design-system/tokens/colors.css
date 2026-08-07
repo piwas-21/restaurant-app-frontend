@@ -9,6 +9,15 @@
   /* Brand */
   --brand-primary: #c00000; /* RUMI Red */
   --brand-primary-dark: #890303;
+  /* Hover/press background for a SOLID brand button. DESIGN-SYSTEM.md §2.2 has promised this
+     name since S15 T1 but nothing ever defined it, so every brand button either had no hover or
+     reached for --brand-primary-dark — which is declared here and NOT in the dark block, i.e. it
+     does not flip. Dark ink (--text-on-primary #1a1a1a) on that #890303 measures 1.72:1: the
+     half-flipped pair described in the header of adminPriceEditorContrast.test.ts, invisible to
+     any check that reads one token. In light the press goes DARKER (the DESIGN.md pressed shade,
+     10.1:1 on white); in dark it goes LIGHTER, because the dark brand is already a light tint on
+     dark paper and darkening it moves the pair the wrong way. Both are gated. */
+  --brand-primary-hover: #890303;
   --brand-accent: #d9534f;
   /* The brand as used on an ELEVATED surface — today only the top nav's current-page
      pill, which washes 5% black (light) / white (dark) over --surface-secondary. That
@@ -337,6 +346,9 @@
 
 html[data-theme='dark'] {
   --brand-primary: #e06666; /* lighter RUMI Red for dark mode */
+  /* Brightens rather than darkens — see the light block's note. 6.26:1 against the dark ink
+     --text-on-primary puts on a brand button here, where inheriting light's #890303 would be 1.72. */
+  --brand-primary-hover: #e87b7b;
   --brand-accent: #ec7063;
   /* 5.53:1 on the nav pill's own background, MEASURED in a browser with axe — the pill
      washes 5% white over --surface-secondary (#2c2c2c), which renders #373737, and

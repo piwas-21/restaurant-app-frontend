@@ -2550,5 +2550,9 @@
   "server_diagnostics": "Sunucu Tanılama",
   "validate": "Doğrula",
   "validating": "Doğrulanıyor...",
-  "setup_checklist_refresh_failed": "Kaydedildi. Kontrol listesi yenilenemedi — en son durumu görmek için sayfayı yenileyin."
+  "setup_checklist_refresh_failed": "Kaydedildi. Kontrol listesi yenilenemedi — en son durumu görmek için sayfayı yenileyin.",
+  "menu_state_empty_heading": "Burada henüz yemek yok",
+  "menu_state_error_heading": "Menü yüklenemedi",
+  "browse_full_menu": "Tüm menüye göz at",
+  "error_loading_menu_bundles": "Menü paketleri yüklenemedi. Lütfen tekrar deneyin."
 }

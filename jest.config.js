@@ -45,6 +45,10 @@ module.exports = {
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
     '^@/design-system/(.*)$': '<rootDir>/src/design-system/$1',
+    // Added S10, same reason as `src/constants/` above: `src/templates/` had no mapping, so the
+    // first test to reach a module importing `@/templates/resolve-surface` (MenuContent) failed to
+    // RESOLVE rather than failing an assertion — which reads as a broken test, not a missing alias.
+    '^@/templates/(.*)$': '<rootDir>/src/templates/$1',
     // Tenant UI template alias (ADR-006). Jest always resolves to `classic`,
     // matching the tsconfig type-source; templates get covered by the
     // per-template Playwright screenshot suite, not unit tests.

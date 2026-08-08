@@ -2550,5 +2550,9 @@
   "server_diagnostics": "Server Diagnostics",
   "validate": "Validate",
   "validating": "Validating...",
-  "setup_checklist_refresh_failed": "Saved. The checklist could not be refreshed — reload to see the latest."
+  "setup_checklist_refresh_failed": "Saved. The checklist could not be refreshed — reload to see the latest.",
+  "menu_state_empty_heading": "No dishes here yet",
+  "menu_state_error_heading": "Unable to load menu",
+  "browse_full_menu": "Browse full menu",
+  "error_loading_menu_bundles": "Failed to load menu bundles. Please try again."
 }

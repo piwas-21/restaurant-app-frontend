@@ -30,6 +30,10 @@ interface MenuContentProps {
   onOpenItem: (item: CatalogItem, opts?: OpenSheetOptions) => void;
   /** Card "Switch to X" — the page's `useOrderTypeFollowUp().pickType`, so the follow-up modal opens. */
   onSwitchOrderType?: (type: OrderType) => void;
+  /** Reload the active view — `usePublicMenu().refetch`, behind the error state's Retry button. */
+  onRetry?: () => void;
+  /** Leave an empty category for the full menu (D5). Not offered when this view IS the full menu. */
+  onBrowseFullMenu?: () => void;
 }
 
 export default function MenuContent({
@@ -45,6 +49,8 @@ export default function MenuContent({
   onPageChange,
   onOpenItem,
   onSwitchOrderType,
+  onRetry,
+  onBrowseFullMenu,
 }: MenuContentProps) {
   const { t } = useTranslation();
 
@@ -77,11 +83,10 @@ export default function MenuContent({
           better — the basket rail renders one too once the cart has items. Tests need to reach the
           GRID specifically because the featured-special hero sits ABOVE it and offers a button with
           the same accessible name, so an unscoped `.first()` silently exercises the banner. */}
-      <section
-        className={styles.categorySection}
-        data-testid="menu-grid"
-        aria-labelledby={`category-heading-${selectedView}`}
-      >
+      {/* No `className` — `styles.categorySection` was one, and `MenuContent.module.css` has never
+          declared that class, so this element has been shipping `class="undefined"`. Removing the
+          reference is the fix rather than inventing a rule: nothing was ever styled through it. */}
+      <section data-testid="menu-grid" aria-labelledby={`category-heading-${selectedView}`}>
         {/* Heading + loading/error/empty states (craft re-skins this via the slot). */}
         <MenuSectionStatus
           headingId={`category-heading-${selectedView}`}
@@ -91,6 +96,14 @@ export default function MenuContent({
           isEmpty={displayItems.length === 0}
           loadingMessage={loadingMessage}
           emptyMessage={emptyMessage}
+          emptyHeading={t('menu_state_empty_heading', 'No dishes here yet')}
+          errorHeading={t('menu_state_error_heading', 'Unable to load menu')}
+          retryLabel={t('retry', 'Retry')}
+          browseLabel={t('browse_full_menu', 'Browse full menu')}
+          onRetry={onRetry}
+          // Withheld when the empty view already IS the full menu: the button would take the guest
+          // to the page they are looking at, which is worse than no button at all.
+          onBrowseFullMenu={selectedView === ALL_ITEMS_KEY ? undefined : onBrowseFullMenu}
         />
 
         {/* Menu Items or Bundles — one grid, one card; the view only picks which list feeds it. */}

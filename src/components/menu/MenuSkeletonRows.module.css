@@ -1,0 +1,133 @@
+/* The loading skeleton for the classic menu grid (MENU-DESIGN-CONFORMANCE-PLAN S10).
+
+   Split out of `MenuSectionStatus.module.css` on the §4 ceiling: the two states are separate
+   concerns and one file holding both ran to 215 lines. Governing screen:
+   docs/stitch-screens/mobile_menu_loading_empty_error_states/code.html, frame 1. */
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* `flex items-center gap-sm p-4 … border … rounded-xl` — the row is a CARD, so the wait has the
+   shape of the list it becomes. 10px, not the screen's rounded-xl: §Shapes is universal. */
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background-color: var(--surface-card);
+}
+
+.skeletonThumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+}
+
+.skeletonLines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* A name, a description and a price — three bars, not three identical bars, and the widths VARY BY
+   ROW because the screen varies them: 3/4-1/2-1/4, then 2/3-3/4-1/3, then 5/6-1/2-1/4 (code.html
+   :151-171). Row 2 deliberately breaks the descending shape — its middle bar is wider than its top
+   one — which is what stops three rows reading as a repeating pattern instead of as varied content.
+   Rendering row 1 three times was the first version and it looked like wallpaper. */
+.skeletonLineWide,
+.skeletonLineMid,
+.skeletonLineShort {
+  border-radius: 10px;
+}
+
+.skeletonLineWide {
+  height: 1.25rem;
+}
+
+.skeletonLineMid,
+.skeletonLineShort {
+  height: 1rem;
+}
+
+.rowA .skeletonLineWide {
+  width: 75%;
+}
+
+.rowA .skeletonLineMid {
+  width: 50%;
+}
+
+.rowA .skeletonLineShort {
+  width: 25%;
+}
+
+.rowB .skeletonLineWide {
+  width: 66%;
+}
+
+.rowB .skeletonLineMid {
+  width: 75%;
+}
+
+.rowB .skeletonLineShort {
+  width: 33%;
+}
+
+.rowC .skeletonLineWide {
+  width: 83%;
+}
+
+.rowC .skeletonLineMid {
+  width: 50%;
+}
+
+.rowC .skeletonLineShort {
+  width: 25%;
+}
+
+/* The shimmer, per the screen: a 200%-wide gradient swept -200% -> 200% over 1.5s, linear and
+   infinite. Not a spinner — a spinner says "something is happening", a skeleton says "this is what
+   is coming". Tokens rather than the screen's literal #eae7e7 / #f6f3f2 (§5), and those two flip
+   for dark where the literals do not. `prefers-reduced-motion` holds the sweep at the resting
+   tone; the bars are aria-hidden and the sentence lives in the <output>, so nothing is lost. */
+.skeletonThumb,
+.skeletonLineWide,
+.skeletonLineMid,
+.skeletonLineShort {
+  background: linear-gradient(
+    90deg,
+    var(--surface-secondary) 0%,
+    var(--surface-secondary-light) 50%,
+    var(--surface-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonThumb,
+  .skeletonLineWide,
+  .skeletonLineMid,
+  .skeletonLineShort {
+    animation: none;
+    background: var(--surface-secondary);
+  }
+}

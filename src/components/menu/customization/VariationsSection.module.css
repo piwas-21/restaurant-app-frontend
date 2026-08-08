@@ -17,26 +17,28 @@
   gap: 0.75rem;
 }
 
+/* DESIGN.md's hairline rule is 1px, and the token it names is `--border-default` — the legacy
+   `--border-color` alias holds the same value on :root but is re-pointed by the
+   `.home-overlay-header` subtree, so it is not the name to reach for. Classic radius is the
+   universal 10px; the craft hooks are untouched. */
 .variationOption {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  border: var(--modal-body-option-border, 2px solid var(--border-color));
-  border-radius: var(--modal-body-option-radius, 0.5rem);
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 10px);
   box-shadow: var(--modal-body-option-shadow, none);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
   background-color: var(--card-background);
 }
 
-.variationOption:hover {
-  border-color: var(--primary-color);
-  background-color: var(--secondary-color);
-}
-
+.variationOption:hover,
 .variationOption:has(.variationRadio:checked) {
-  border-color: var(--primary-color);
+  border-color: var(--brand-primary);
   background-color: var(--secondary-color);
 }
 
@@ -45,7 +47,7 @@
   width: 1.25rem;
   height: 1.25rem;
   cursor: pointer;
-  accent-color: var(--primary-color);
+  accent-color: var(--brand-primary);
   flex-shrink: 0;
 }
 
@@ -78,10 +80,13 @@
   line-height: 1.4;
 }
 
+/* Same pairing as the sides list: small brand text that spends half its life on the SELECTED
+   option's `--secondary-color` fill, where the plain brand is 4.16:1 in dark. `-elevated` is the
+   token for the brand on a tinted surface — 6.49:1 there, and it clears the resting card too. */
 .variationPrice {
   font-family: var(--modal-body-accent-font, inherit);
   font-weight: 600;
-  color: var(--primary-color);
+  color: var(--brand-primary-elevated);
   font-size: var(--modal-body-accent-size, 1rem);
   white-space: nowrap;
   display: flex;

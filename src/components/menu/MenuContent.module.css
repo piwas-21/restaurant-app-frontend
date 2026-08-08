@@ -1,12 +1,65 @@
 /* Menu Content Section */
 /* A real <ul> (its children are <li> cards) — hence the list reset, which keeps the rendered grid
    byte-identical to the div it replaced. */
+/* The section heading band — `flex items-center gap-3 border-b border-outline-variant pb-2`, with
+   the heading in Playfair 1.75rem/1.3/700 (`section-heading`) and a decorative hairline running
+   out to the edge. */
+.sectionHeadingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-default);
+  margin-inline: auto;
+}
+
+.sectionHeading {
+  font-family: var(--font-family-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.sectionHeadingRule {
+  height: 1px;
+  flex: 1;
+  background: var(--border-light);
+}
+
 .itemsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  /* TWO, not three, while the basket rail is on screen (D11). Measured at 1280px before this slice:
+     layout 1184 = main 800 + 24 gap + 360 rail, and `repeat(3, 1fr)` made each card 256px against
+     the ~380px every classic screen draws. Two give (800 - 16) / 2 = 392px at 1280 and (816 - 16)
+     / 2 = 400px once D12's cap binds — without touching the rail, which D10 deliberately kept and
+     which needs its width for the 3-up order-type picker's German labels (S4).
+
+     There is a step at the rail-hide edge, and it is worth stating with both sides measured rather
+     than waved at. The rail is `display: none` AT AND BELOW 1024px, so one pixel changes the space
+     available by 384px. Measured, branch vs develop (staging):
+
+       1025px (rail shown):  265px x2   <- was 171px x3
+       1024px (rail hidden): 456px x2   <- was 299px x3
+
+     So the step is pre-existing and its MAGNITUDE is essentially unchanged — 1.72x here against
+     1.75x on develop — and both sides get wider. What is new is that the rail-less side now
+     overshoots: 456px against the ~380px the screens draw, where develop's 299 undershot by less.
+     The narrow side improves far more than the wide side regresses (171 -> 265 against 380).
+
+     Not reconciled here. The real cause is that two breakpoints disagree — the rail hides at 1024
+     (MenuPage.module.css) and this grid changes at 968 — and closing that gap is a change to the
+     page's breakpoint scheme, not to this slice's two-columns-beside-a-rail decision. Follow-up. */
+  grid-template-columns: repeat(2, 1fr);
+  /* `gap-sm` = 1rem. 2rem spread a three-up row so wide the cards stopped reading as a set. */
+  gap: 1rem;
   margin-bottom: 3rem;
-  max-width: 1400px;
+  /* No `max-width` here any more. 1400px could never bind once the page track caps at 1200 and the
+     rail takes 360 of it — a dead cap reads as a live constraint, and the next person to widen the
+     track would have hunted for why the grid stopped growing. `.menuContainer`'s
+     `--menu-track-max` is the one place that decides. */
   margin-inline: auto;
   list-style: none;
   padding: 0;
@@ -18,7 +71,6 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
-  max-width: 1400px;
   margin-inline: auto;
 }
 
@@ -39,8 +91,9 @@
 
 /* Tablet */
 @media (max-width: 968px) {
+  /* No `grid-template-columns` — two is now the base (D11), so restating it here said nothing.
+     The gap and the trailing margin DO change: with no rail the cards are wider and can afford air. */
   .itemsGrid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     margin-bottom: 2.5rem;
   }
@@ -53,10 +106,21 @@
 
 /* Mobile */
 @media (max-width: 600px) {
+  /* A LIST, not a one-column grid. The rows carry their own separating rules
+     (MenuItem.module.css), so any gap here would break the run of them into floating slabs — which
+     is exactly what the implemented mobile view looked like. */
   .itemsGrid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0;
     margin-bottom: 2rem;
+  }
+
+  .sectionHeadingRow {
+    margin-bottom: 0.75rem;
+  }
+
+  .sectionHeading {
+    font-size: 1.375rem;
   }
 
   .bundlesGrid {

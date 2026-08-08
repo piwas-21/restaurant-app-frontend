@@ -1,96 +1,144 @@
-/* Menu Item Actions Styles */
+/* The card's single call to action — see MenuItemActions.tsx for why there is only one.
+
+   OUTLINED, not solid. `desktop_menu_light_full_page` gives every grid card
+   `border border-primary text-primary px-3 py-1.5 rounded hover:bg-primary/5` and reserves the
+   SOLID `bg-primary` treatment for the Chef's Special strip alone — so the promoted dish owns the
+   only filled button on the page and thirty identical red blocks do not fight it. The implemented
+   version had it the other way round.
+
+   Either way the colour is the BRAND, not the old --success-color-darker green: the page was
+   running a red brand, a green CTA and a gold featured panel at once, and the design system is
+   explicit that "green for success or gold for premium features are strictly prohibited". */
+/* `flex: 1 1 min-content` is what keeps `.priceActionsRow` on one line.
+   A flex container decides where to BREAK from each item's hypothetical main size — its content
+   width — not from how far it could shrink, so a button that merely *could* wrap its label still
+   pushed itself onto a second row. Offering the min-content width instead means the row only
+   breaks when even the button's narrowest form does not fit, and the grow claims the slack back so
+   the button still renders at its natural width wherever there is room. */
 .itemActions {
-  margin-top: auto;
+  margin-top: 0;
+  display: flex;
+  justify-content: flex-end;
+  flex: 1 1 min-content;
+  min-width: 0;
 }
 
-.addToOrderButton,
-.feedbackButton {
-  color: var(--button-text-color);
-  border: none;
-  padding: 0.8rem 1.3rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  border-radius: 20px;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s;
-  margin-top: 0.5rem;
-  font-weight: 500;
-}
+/* D1 (MENU-DESIGN-CONFORMANCE-PLAN §4): the resting OUTLINE moves off `--brand-primary-elevated`
+   onto `--brand-primary`. DESIGN.md §Components spells the secondary button out — "transparent
+   background with a 1px brand border and brand text" — and the elevated token resolves to
+   `--brand-primary-dark`, i.e. the PRESSED shade, so the button was resting in the
+   colour its own hover is supposed to move it to.
 
-.viewDetailsButton {
-  background-color: var(--secondary-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 0.8rem 1.3rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  border-radius: 20px;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s;
-  /* Gap from the button before it in the row. */
-  margin-inline-start: 0.5rem;
-}
+   The LABEL follows it in LIGHT only. `desktop_menu_light_full_page` gives the grid card
+   `border border-primary text-primary` — the same colour for both — and in light that is safe:
+   plain `--brand-primary` measures 6.15:1 on the resting card, 5.94:1 hovered and 5.69:1 blocked.
 
-.viewDetailsButton:hover {
-  background-color: var(--secondary-color-light);
-  transform: translateY(-1px);
-}
+   In DARK it is not. Measured on the real token values: 4.57:1 resting (--surface-card), **3.23:1
+   on a hovered card** (--surface-secondary-light) and 4.16:1 blocked (--surface-secondary) — so a
+   brand label would sit under AA for as long as a guest's cursor is on the card. The dark override
+   below puts the label back on `--brand-primary-elevated`, which clears 5.03–7.12 on all three.
 
+   A 1px edge is non-text and clears at 3:1, so the BORDER takes the plain brand in both themes;
+   3.23 is its worst case. Both families are gated in adminPriceEditorContrast.test.ts. */
 .addToOrderButton {
-  /* --success-color-darker is the WCAG-AA success tier: ~5.5:1 against white
-     button text in light mode and ~5.7:1 against the dark-surface text in dark
-     mode. The plain --success-color gave only ~2.7:1 on white; the intermediate
-     --success-color-dark was 4.11:1, still under AA's 4.5 threshold. The
-     menu-and-cart e2e test catches regressions to either via axe-core. */
-  background-color: var(--success-color-darker);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background-color: transparent;
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  /* 4px — `rounded`, the design's DEFAULT step. Only cards take the 10px. */
+  border-radius: 4px;
+  padding: 0.375rem 0.75rem;
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  cursor: pointer;
+  /* This is where the price row's pressure goes. It used to be `white-space: nowrap`, which — with
+     an unshrinkable price beside it — left `flex-wrap` on `.priceActionsRow` as the row's only
+     escape, and 6 of 10 locales took it at 1280px. The label now wraps INSIDE the box: German
+     "Zur Bestellung hinzufügen" becomes a 130×60 three-line button at 1280px instead of dropping
+     under the price, and English is untouched at every measured width (122×29, one line).
+
+     `break-word`, NOT `anywhere`. They render the same but size differently: `anywhere` lets the
+     breaks it introduces count toward min-content, which collapses this button's contribution to a
+     single character — and with it the `min-content` flex-basis on `.itemActions` that stops the
+     row breaking too eagerly. Measured with `anywhere`, an admin card at 1280px kept one line by
+     crushing Add to 44×120. */
+  min-width: 0;
+  overflow-wrap: break-word;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Dark only, and ABOVE 600px only. The border keeps the plain brand at every viewport (non-text,
+   3:1); the outlined LABEL cannot, because dark's lifted brand measures 3.23:1 on a hovered card
+   and 4.16:1 on a blocked one. Light is left on the plain brand so the button matches
+   `desktop_menu_light_full_page`'s `border border-primary text-primary` exactly.
+
+   The `min-width: 601px` guard is load-bearing, not tidiness. `html[data-theme='dark'] .x` is
+   (0,2,1) and the mobile block's `.addToOrderButton` is (0,1,0), so an unscoped rule would outrank
+   it regardless of source order — and below 600px this button is a SOLID brand disc whose only
+   visible content is a `+` glyph inheriting `currentColor`. It would have rendered
+   `--brand-primary-elevated` on `--brand-primary`: #ef9a9a on #e06666, 1.5:1, an invisible plus. */
+@media (min-width: 601px) {
+  html[data-theme='dark'] .addToOrderButton {
+    color: var(--brand-primary-elevated);
+  }
 }
 
 .addToOrderButton:hover {
-  /* Hover keeps the same bg colour (already AA-pass) — affordance comes
-     from the transform + cursor change. Going darker still would need a
-     fourth design-token tier for marginal UX gain. */
-  transform: translateY(-1px);
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  border-color: var(--brand-primary);
 }
 
-.feedbackButton {
-  background-color: var(--warning-color);
-  margin-inline-start: 0.5rem;
+.addToOrderButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
-.feedbackButton:hover {
-  background-color: var(--warning-color-dark);
-  transform: translateY(-1px);
+/* The icon is the MOBILE form of this button; above 600px the written label carries it. */
+.addIcon {
+  display: none;
 }
 
-/* Responsive adjustments */
 @media (max-width: 600px) {
   .itemActions {
-    display: inline-flex;
-    gap: 0.25rem;
-    margin-top: 0;
-    margin-inline-start: auto; /* Push to the trailing edge */
-    vertical-align: middle;
+    margin-inline-start: auto;
+    align-items: center;
   }
 
-  .addToOrderButton,
-  .feedbackButton,
-  .viewDetailsButton {
-    padding: 0.15rem 0.4rem;
-    font-size: 0.6rem;
-    border-radius: 3px;
-    margin: 0;
-    margin-top: 0;
-    line-height: 1;
-    min-height: unset;
+  /* `w-[44px] h-[44px] rounded-full bg-primary-container text-on-primary` — on mobile the design
+     DOES fill it, because there is no written label to carry the emphasis and a hollow circle
+     reads as disabled. The label is removed from the box rather than visually hidden; `aria-label`
+     is what names this button in both forms, so nothing is lost to a screen reader. */
+  .addToOrderButton {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    gap: 0;
+    background-color: var(--brand-primary);
+    color: var(--text-on-primary);
+    border-color: var(--brand-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
-  .viewDetailsButton {
-    margin-inline-start: 0;
+  .addToOrderButton:active {
+    transform: scale(0.95);
   }
 
-  .feedbackButton {
-    display: none; /* Hide feedback on mobile for space */
+  .addLabel {
+    display: none;
+  }
+
+  .addIcon {
+    display: block;
   }
 }

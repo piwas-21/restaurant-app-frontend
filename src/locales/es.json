@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Editar este artículo",
   "admin_edit_item_short": "Editar",
   "admin_edit_price": "Editar precio",
+  "menu_item_details_aria": "Ver detalles de {{itemName}}",
+  "admin_edit_price_editing": "Editando precio",
   "map": "Mapa",
   "list": "Lista",
   "everywhere": "En todas partes",
@@ -2548,5 +2550,9 @@
   "server_diagnostics": "Diagnóstico del servidor",
   "validate": "Validar",
   "validating": "Validando...",
-  "setup_checklist_refresh_failed": "Guardado. No se pudo actualizar la lista: recargue la página."
+  "setup_checklist_refresh_failed": "Guardado. No se pudo actualizar la lista: recargue la página.",
+  "menu_state_empty_heading": "Aún no hay platos aquí",
+  "menu_state_error_heading": "No se pudo cargar el menú",
+  "browse_full_menu": "Ver todo el menú",
+  "error_loading_menu_bundles": "No se pudieron cargar los menús combinados. Inténtalo de nuevo."
 }

@@ -13,76 +13,118 @@
  * `prefers-color-scheme` (§5 rule 7).
  */
 
+/* A sentence with a link under it — not a control (S7). Every governing classic screen renders it
+   that way: `mobile_special_states_dark` has `<p class="font-label-muted …">Takeaway and Delivery
+   only</p>` followed by an underlined `mt-1 block` link, and `mobile_states_rtl_mirror` the same
+   two parts inline. What shipped instead was two 20px-radius capsules, centred, with no bottom
+   margin — measured in the committed desktop baseline (`classic/screenshots-desktop/menu-light.png`):
+   the reason's border box runs y=912..932 (1px #dddddd rule, 19px #f0f0f0 fill, 1px rule) and
+   `.priceActionsRow`'s own `border-top` is the very next pixel row, y=933 #e0e0e0. Two hairlines
+   with nothing between them is why the card's foot read as broken. Hence the bottom margin, which
+   matches the price row's own 0.5rem padding-top so the rule sits in even air.
+
+   Column, start-aligned, at every viewport: the previous `justify-content: center` (undone again
+   below 600px, and again by `FeaturedSpecial`'s `.availabilitySlot`) only ever made sense for a
+   chip. `align-items` is left at `stretch` so a long reason wraps to the card's width; the switch
+   opts out with `align-self` instead. Both are inline-axis properties in a column, so RTL mirrors
+   with no override. */
 .availability {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  margin: 0.4rem 0 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.4rem 0 0.5rem;
 }
 
-/* The chip needs a BORDER, not just a fill: the blocked card recedes onto --surface-secondary and
-   the dark palette's surfaces sit within ~1.1:1 of each other, so a fill-only chip would vanish
-   into the one card state it exists to explain. */
+/* `font-label-muted` / `text-label-muted` — Public Sans 0.8rem/1.2/400, the screens' own scale for
+   this line. No fill, no border, no radius: those were the chip. The tone classes set colour only. */
 .availabilityReason {
   margin: 0;
-  padding: 0.15rem 0.6rem;
-  border: 1px solid var(--border-default);
-  border-radius: 20px;
-  background-color: var(--surface-secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.2;
 }
 
-/* `--text-secondary`, not `--text-muted`: muted is calibrated as "the lightest text still AA on
-   --surface-primary" (4.8:1 on white), and this chip's fill is the DARKER secondary surface, which
-   spends the whole margin — 4.24:1, an AA fail on the feature's most-rendered state. */
-.availabilityInfo .availabilityReason {
+/* Tone does not change the copy's COLOUR — it changes what is offered. Both governing screens render
+   the reason in muted grey (`text-outline-variant`, `text-on-surface-variant`) and spend the brand on
+   the switch alone, which is the one thing a guest can act on; the amber this replaced said
+   "caution" about a routing fact, and a red sentence is a code the guest has no key for. What marks
+   a blocked card is the recede it already has plus the presence of the switch link.
+
+   Declared on the two tone classes rather than on `.availabilityReason` because `MenuCardAvailability`
+   emits exactly one of them on the container unconditionally: a classic module that defines only the
+   descendant rule would leave `styles.availabilityBlocked` undefined and put the word `undefined` in
+   the DOM's class list.
+
+   `--text-secondary`, not `--text-muted`. Muted is calibrated as "the lightest text still AA on
+   --surface-primary" (4.83:1 on white) and this line no longer has a fill of its own, so it now sits
+   on whatever the card is: 4.59:1 on --surface-card and 4.43:1 on --surface-secondary-light
+   (`.menuItem:hover`) — an AA fail on a hover state that costs one mouse movement to reach.
+   --text-secondary clears every surface the card takes in both themes (5.04–5.74 light,
+   6.70–10.77 dark), the blocked recede and the mobile row's bare page background included. */
+.availabilityInfo,
+.availabilityBlocked {
   color: var(--text-secondary);
 }
 
-/* `--feedback-warning` is a FILL colour (1.7–2.0:1 as body copy); warning TEXT uses `-text`. The
-   fill is themed too — the light cream would carry dark mode's orange text at ~2:1. */
-.availabilityBlocked .availabilityReason {
-  border-color: var(--feedback-warning-text);
-  background-color: var(--feedback-warning-xlight);
-  color: var(--feedback-warning-text);
-}
-
-[data-theme='dark'] .availabilityBlocked .availabilityReason {
-  background-color: var(--surface-card);
-}
-
+/* Same scale as the reason — this is the second half of the same sentence, not a caption. Colour
+   comes from the tone classes above; it is the same secondary ink. */
 .availabilityHint {
   margin: 0;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.2;
 }
 
-/* Its own surface rather than the receded card's: this button only ever renders inside a blocked
-   card, and brand-primary on that recede is 4.16:1 in dark — the recede would push the one control
-   the guest must click below AA. (Craft's `btnOutline` primitive does the same.) */
+/* The design's underlined text link, shaped like `MenuItemDetails`' `.detailsLink` one card away —
+   but still a `<button>`: five assertions across `MenuCard.test.tsx` and `FeaturedSpecial.test.tsx`
+   resolve it with `getByRole('button')`, and a real button beats the screens' bare `<a href="#">`.
+   This is where the brand is spent, and the only place: it is the one thing a guest can act on.
+
+   `--brand-primary-elevated`, not plain `--brand-primary`. The switch renders only inside
+   `.menuItem.blocked` / `.featuredSpecialBlocked`, i.e. on --surface-secondary, where the plain brand
+   measures 4.16:1 in dark — an AA fail, and a pairing adminPriceEditorContrast.test.ts already fires
+   by name as a known regression. The elevated token is the design system's "brand as small text on a
+   tinted surface", measures 8.87:1 light / 6.49:1 dark there, and that test gates it on all three
+   card surfaces in both themes (5.03–9.60). The old capsule dodged the same problem by painting
+   itself --surface-card; without the fill the token has to be the one that holds on the recede.
+
+   `min-height` is the whole point of the padding here. Losing the capsule loses the box, and on
+   desktop nothing replaces it — globals.css pads every `button` to 44px only below 768px, so this
+   control was a 22.6px target on every desktop card and 44px on every mobile one. Pinning it in the
+   module (class beats element) makes the target the same everywhere and stops depending on a global
+   media query. No gate would have caught the regression: `e2e/helpers/a11y.ts` pins
+   wcag2a/wcag2aa/wcag21a/wcag21aa and target size is a WCAG 2.2 rule.
+
+   `align-self`, so the hit area is the width of the label rather than the width of the card. */
 .availabilitySwitch {
-  padding: 0.2rem 0.7rem;
-  border: 1px solid var(--brand-primary);
-  border-radius: 20px;
-  background-color: var(--surface-card);
-  color: var(--brand-primary);
-  font-size: 0.75rem;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary-elevated);
+  font-size: 0.85rem;
   font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: start;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
   cursor: pointer;
 }
 
+/* Thickening the rule, not filling a box: the hover state that flooded this with --brand-primary is
+   what made a link look like a button. Colour is left alone so the AA pairing above holds in
+   every state. */
 .availabilitySwitch:hover,
 .availabilitySwitch:focus-visible {
-  background-color: var(--brand-primary);
-  color: var(--text-on-primary);
+  text-decoration-thickness: 2px;
 }
 
-/* The mobile card is a left-aligned row, so the notice follows suit. */
-@media (max-width: 600px) {
-  .availability {
-    justify-content: flex-start;
-  }
+.availabilitySwitch:focus-visible {
+  outline: 2px solid var(--brand-primary-elevated);
+  outline-offset: 2px;
+  border-radius: 4px;
 }

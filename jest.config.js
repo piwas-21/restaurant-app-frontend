@@ -45,6 +45,10 @@ module.exports = {
     '^@/lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
     '^@/design-system/(.*)$': '<rootDir>/src/design-system/$1',
+    // Added S10, same reason as `src/constants/` above: `src/templates/` had no mapping, so the
+    // first test to reach a module importing `@/templates/resolve-surface` (MenuContent) failed to
+    // RESOLVE rather than failing an assertion — which reads as a broken test, not a missing alias.
+    '^@/templates/(.*)$': '<rootDir>/src/templates/$1',
     // Tenant UI template alias (ADR-006). Jest always resolves to `classic`,
     // matching the tsconfig type-source; templates get covered by the
     // per-template Playwright screenshot suite, not unit tests.
@@ -89,6 +93,7 @@ module.exports = {
     'src/hooks/menu/useCategoryTabs.ts',
     'src/hooks/menu/useItemAvailabilityNotice.ts',
     'src/hooks/menu/useFeaturedSpecialHero.ts',
+    'src/hooks/menu/useStickyNavOffset.ts',
     'src/hooks/useApiError.ts',
     'src/lib/orderStatus.ts',
     'src/lib/paymentStatus.ts',
@@ -1360,5 +1365,18 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // ── S1 — the empty-allergen spacer, and S12 — the chip itself. ────────────────────────────────
+    // `AllergenDisplay.test.tsx` is the only thing standing between the tree and a `visibility:
+    // hidden` placeholder returning to reserve ~80px on every card that carries no allergens — which
+    // is the state most of RUMI's menu is in, and the state every product in `e2e/seed/seed.sql` is
+    // in. Nothing asserted that band for as long as it shipped, so without a row here the test is
+    // deletable and the regression silently re-enabled. It now also carries D9: a substance warning
+    // renders a glyph and a dietary claim does not, a split no screenshot can see because the seed
+    // products carry no allergens at all.
+    // S12 raised this from 91/89/82/91 (measured 92.3/90/83.33/92.3). The three duplicated chip
+    // bodies became one, which retired the uncovered "+N more" title on the `compact` variant, and
+    // the last default-arg branch is now exercised. Re-measured at 100/100/100/100 with CI's own
+    // command and pinned at actual − 1, per this block's house rule.
+    './src/components/common/AllergenDisplay.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
   },
 };

@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Modifier cet article",
   "admin_edit_item_short": "Modifier",
   "admin_edit_price": "Modifier le prix",
+  "menu_item_details_aria": "Voir les détails de {{itemName}}",
+  "admin_edit_price_editing": "Modification du prix",
   "map": "Plan",
   "list": "Liste",
   "everywhere": "Partout",
@@ -2548,5 +2550,9 @@
   "server_diagnostics": "Diagnostics du serveur",
   "validate": "Valider",
   "validating": "Validation en cours...",
-  "setup_checklist_refresh_failed": "Enregistré. La liste n'a pas pu être actualisée — rechargez la page."
+  "setup_checklist_refresh_failed": "Enregistré. La liste n'a pas pu être actualisée — rechargez la page.",
+  "menu_state_empty_heading": "Aucun plat ici pour le moment",
+  "menu_state_error_heading": "Impossible de charger le menu",
+  "browse_full_menu": "Voir toute la carte",
+  "error_loading_menu_bundles": "Impossible de charger les menus. Veuillez réessayer."
 }

@@ -1,20 +1,26 @@
 /* Allergen Display Styles */
+/* Start-aligned, and no floor. `align-items: center` centred the chip band on the cross axis of a
+   column flex container — i.e. horizontally — inside a card whose title, description and details
+   affordance are all start-aligned, so the one row that could render was the one row out of line.
+   `min-height: 32px` was the other half of the spacer that used to reserve height here; the empty
+   band is gone (AllergenDisplay.tsx), so a floor under the populated one has nothing left to match. */
 .allergensSection {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   margin: 0.5rem 0 1rem 0;
-  min-height: 32px;
 }
 
+/* The only colour left in this file, and it renders on ONE surface: the `admin` variant's heading in
+   the product editor. `--warning-color-dark` has no dark-theme override and this label sets no
+   background of its own, so in dark it landed on the card at 3.04:1 — an AA fail on customer-facing
+   allergen text. The `-text` token is the sanctioned warning TEXT colour and flips with the theme
+   (§9.9). It is not a chip, so the neutral-outline rule below does not reach it. */
 .allergensLabel {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
-  /* `--warning-color-dark` (#a06000) has no dark-theme override and this label sets no background
-     of its own, so in dark it landed on the card at 3.04:1 — an AA fail on customer-facing allergen
-     text. The `-text` token is the sanctioned warning TEXT colour and flips with the theme (§9.9). */
   color: var(--feedback-warning-text);
   font-weight: 600;
 }
@@ -27,164 +33,71 @@
   max-width: 100%; /* Respect container width */
 }
 
+/* ONE chip. DESIGN.md §Components: a 1px border, a 10px radius, muted text, and — stated outright —
+   no background fills for chips. What shipped instead was fourteen rules across eleven colour
+   families (three greens, two golds, blue, purple, pink, teal, amber, red, neutral), several of them
+   reaching past the semantic layer into `--color-material-*` primitives. On one card a guest saw a
+   green "Vegan", a purple "Halal" and a gold "Contains Gluten" stacked under the dish name, on a page
+   whose design system names the brand red as the sole accent and prohibits green and gold outright.
+   Only five of the fourteen had a dark override, so the other nine kept a near-white pastel fill on a
+   dark card while their text darkened — the half-flipped pair, and the reason those rules are DELETED
+   rather than flattened to identical values: nothing should look like it is still varying by diet.
+
+   The ink is `--text-secondary`, not the `--text-muted` the design names literally. `--text-muted` IS
+   that value, and it clears AA on the resting card (4.59:1) — but the card has three surfaces, and it
+   fails on the other two: 4.43:1 hovered and 4.24:1 blocked in light, 4.26:1 hovered in dark.
+   `--text-secondary` is the nearest token that clears 4.5:1 on all three in both themes and in both
+   templates (worst reading 5.02:1). Same substitution, same reason, as the locked-reason pill in
+   `adminPriceEditorContrast.test.ts`, which gates this pairing.
+
+   The border deliberately sits below 3:1 against every card surface — that is DESIGN.md's hairline
+   rule, the same weight the card's own edge takes. It is grouping, not information: the substance is
+   the word, and the word is what carries the contrast. */
 .allergenTag {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 16px;
-  font-size: 0.85rem;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 10px;
+  font-family: var(--font-family-sans);
+  font-size: 0.8rem;
   font-weight: 500;
-  border: 1px solid;
-  transition: all 0.2s ease;
+  background-color: transparent;
+  color: var(--text-secondary);
+  /* `--chip-border` exists because ONE template needs a different value, not for symmetry. Classic
+     takes DESIGN.md's hairline (`#DDDDDD` / its dark step) at 1.19-1.57:1 against the card — a
+     hairline is meant to be quiet. Craft cannot: it sets `--border-default` and `--surface-secondary`
+     to the SAME hex in both themes (`#eae0d2` / `#3e3630`), so on a BLOCKED craft card the chip's
+     border measured exactly 1.00:1 — no boundary at all, in either theme. It pins the hook to its
+     olive ink instead (5.02-5.93:1 there). */
+  border: 1px solid var(--chip-border, var(--border-default));
 }
 
-.allergenTag:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
+/* Sized in `em` so the glyph tracks the chip's own text rather than a second scale. The emoji it
+   replaces were set at 1rem against 0.85rem text — the decoration outweighed the word. */
 .allergenIcon {
-  font-size: 1rem;
-  line-height: 1;
+  width: 0.85em;
+  height: 0.85em;
+  flex-shrink: 0;
 }
 
 .allergenText {
   line-height: 1;
 }
 
-/* Positive allergen types */
-.allergenTag.vegan {
-  background-color: var(--success-color-xlight);
-  color: var(--success-color-dark);
-  border-color: var(--success-color-light);
-}
-
-.allergenTag.vegetarian {
-  background-color: var(--success-color-xlight);
-  color: var(--success-color-dark);
-  border-color: var(--success-color-light);
-}
-
-.allergenTag.glutenFree {
-  background-color: var(--color-gold-100);
-  color: var(--color-material-orange-900);
-  border-color: var(--color-gold-400);
-}
-
-.allergenTag.dairyFree {
-  background-color: var(--color-material-blue-50);
-  color: var(--color-material-blue-900);
-  border-color: var(--color-material-blue-400);
-}
-
-.allergenTag.nutFree {
-  background-color: var(--color-material-purple-50);
-  color: var(--color-material-purple-900);
-  border-color: var(--color-material-purple-400);
-}
-
-.allergenTag.halal {
-  background-color: var(--color-green-100-b);
-  color: var(--color-material-green-900);
-  border-color: var(--color-material-green-500);
-}
-
-.allergenTag.kosher {
-  background-color: var(--color-material-blue-50);
-  color: var(--color-material-blue-900);
-  border-color: var(--status-info);
-}
-
-.allergenTag.organic {
-  background-color: var(--color-material-lightgreen-50);
-  color: var(--color-material-lightgreen-900);
-  border-color: var(--status-success-light);
-}
-
-.allergenTag.sugarFree {
-  background-color: var(--color-material-pink-50);
-  color: var(--color-material-pink-900);
-  border-color: var(--color-material-pink-500);
-}
-
-.allergenTag.lowSodium {
-  background-color: var(--color-material-teal-50);
-  color: var(--color-material-teal-900);
-  border-color: var(--color-material-teal-400);
-}
-
-.allergenTag.warning {
-  background-color: var(--warning-color-xlight);
-  color: var(--warning-color-dark);
-  border-color: var(--warning-color-light);
-}
-
-.allergenTag.spicy {
-  background-color: var(--color-material-red-50);
-  color: var(--color-material-red-800);
-  border-color: var(--color-material-red-400);
-}
-
-.allergenTag.default {
-  background-color: var(--surface-secondary-light);
-  color: var(--text-secondary);
-  border-color: var(--border-color);
-}
-
+/* The "+N" counter. Same outline as every other chip — it differs only in being the one chip whose
+   `title` carries information the label does not, hence the help cursor. */
 .allergenTag.more {
-  background-color: var(--surface-secondary);
-  color: var(--text-secondary);
-  border-color: var(--border-color);
   font-weight: 600;
   cursor: help;
 }
 
-/* Dark mode adjustments */
-[data-theme='dark'] .allergenTag.vegan {
-  background-color: rgba(76, 175, 80, 0.15);
-  color: var(--color-material-green-300);
-  border-color: rgba(76, 175, 80, 0.3);
-}
-
-[data-theme='dark'] .allergenTag.vegetarian {
-  background-color: rgba(102, 187, 106, 0.15);
-  color: var(--color-material-green-200);
-  border-color: rgba(102, 187, 106, 0.3);
-}
-
-[data-theme='dark'] .allergenTag.warning {
-  background-color: rgba(255, 183, 77, 0.15);
-  color: var(--color-gold-600-c);
-  border-color: rgba(255, 183, 77, 0.3);
-}
-
-[data-theme='dark'] .allergenTag.default {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-[data-theme='dark'] .allergenTag.more {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Mobile - left align allergens */
+/* Mobile — tighter margins only.
+   The chip's own radius and padding are NOT re-stated here. They used to be, at a third radius
+   (12px) and a second padding, which meant the geometry a reviewer read at the top of the file was
+   not the geometry a phone rendered. One chip, one size, every width. */
 @media (max-width: 600px) {
   .allergensSection {
-    align-items: flex-start;
     margin: 0.25rem 0;
-  }
-
-  .allergensContent {
-    justify-content: flex-start;
-  }
-
-  .allergenTag {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.7rem;
-    border-radius: 12px;
   }
 }

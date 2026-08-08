@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Diesen Artikel bearbeiten",
   "admin_edit_item_short": "Bearbeiten",
   "admin_edit_price": "Preis bearbeiten",
+  "menu_item_details_aria": "Details zu {{itemName}} anzeigen",
+  "admin_edit_price_editing": "Preis wird bearbeitet",
   "map": "Karte",
   "list": "Liste",
   "everywhere": "Überall",
@@ -2548,5 +2550,9 @@
   "server_diagnostics": "Serverdiagnose",
   "validate": "Validieren",
   "validating": "Wird validiert...",
-  "setup_checklist_refresh_failed": "Gespeichert. Die Checkliste konnte nicht aktualisiert werden — bitte neu laden."
+  "setup_checklist_refresh_failed": "Gespeichert. Die Checkliste konnte nicht aktualisiert werden — bitte neu laden.",
+  "error_loading_menu_bundles": "Menü-Kombinationen konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+  "menu_state_empty_heading": "Noch keine Gerichte hier",
+  "menu_state_error_heading": "Menü konnte nicht geladen werden",
+  "browse_full_menu": "Ganze Speisekarte ansehen"
 }

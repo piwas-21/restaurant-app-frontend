@@ -1,0 +1,128 @@
+/* Empty and error for the classic menu grid (MENU-DESIGN-CONFORMANCE-PLAN S10).
+
+   Governing screen: docs/stitch-screens/mobile_menu_loading_empty_error_states/code.html — classic
+   (it carries a code.html), three frames, with mobile_states_rtl_mirror and
+   mobile_special_states_dark as the RTL and dark companions.
+
+   Its own module, not a section of `MenuContent.module.css`: that is the host's stylesheet, it
+   holds the heading row this component still reads from it, and it would not survive §4. The
+   LOADING half lives in `MenuSkeletonRows.module.css` — one file carrying both was 215 lines. */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+/* The live region wrapping the skeleton. It styles MenuSectionStatus's OWN <output>, so it lives
+   here — it spent one iteration in MenuSkeletonRows.module.css, which this file does not import, so
+   `styles.loading` resolved to `undefined` and the element shipped `class="undefined"`, keeping the
+   UA's `display: inline`. Nothing could see that: `identity-obj-proxy` makes every CSS-module
+   lookup a truthy string in Jest, and Next types the module as an index signature. Gated by
+   cssModuleBindings.test.ts, which reads the stylesheet rather than the render. */
+.loading {
+  display: block;
+  width: 100%;
+}
+
+/* D5's dashed panel: the screen's CONTENTS without its full-height centred flex, which would push
+   the illustration under the sticky category bar. Empty only — an error is not an area. */
+.statePanel {
+  border: 1px dashed var(--border-default);
+  border-radius: 10px;
+}
+
+/* `w-32 h-32 rounded-full bg-surface-container-high` holding a 6xl glyph. */
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background-color: var(--surface-secondary);
+  color: var(--text-muted);
+}
+
+/* The screen's `bg-error-container` + `text-error`. --feedback-error-bg/-text is the pair that
+   flips; --feedback-error is a fill and icon hue that reads at 3.5:1 as text on a card. */
+.glyphError {
+  background-color: var(--feedback-error-bg);
+  color: var(--feedback-error-text);
+}
+
+/* `font-section-heading` = Playfair. An <h3>: the section already owns an <h2> (the category name)
+   directly above, so a second <h2> would announce the state as a SIBLING section — but a <p> is
+   worse in the other direction, leaving a screen-reader user who navigates by heading on "Combos"
+   with nothing said about why it is empty. <h3> is subordinate to the section it belongs to and
+   still reachable. The screen uses <h2> in both frames, and cannot settle it: those frames carry no
+   section heading above the state. */
+.stateHeading {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+/* `max-w-[250px]` on a 390px frame — a measure, not a fixed width, so it holds on desktop too. */
+.stateBody {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.solidAction,
+.outlinedAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+/* §Components primary: solid brand, white label, the page's one card shadow — which the screen
+   gives the error button and withholds from the empty one. */
+.solidAction {
+  border: 1px solid var(--brand-primary);
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.solidAction:hover,
+.solidAction:focus-visible {
+  background-color: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+}
+
+/* §Components secondary: transparent, 1px brand border, brand text. `-elevated` for the LABEL —
+   small brand text on a surface off the paper, the pairing gated in the contrast suite. */
+.outlinedAction {
+  border: 1px solid var(--brand-primary);
+  background-color: transparent;
+  color: var(--brand-primary-elevated);
+}
+
+.outlinedAction:hover,
+.outlinedAction:focus-visible {
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.solidAction:focus-visible,
+.outlinedAction:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

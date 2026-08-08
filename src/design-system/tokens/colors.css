@@ -9,6 +9,15 @@
   /* Brand */
   --brand-primary: #c00000; /* RUMI Red */
   --brand-primary-dark: #890303;
+  /* Hover/press background for a SOLID brand button. DESIGN-SYSTEM.md §2.2 has promised this
+     name since S15 T1 but nothing ever defined it, so every brand button either had no hover or
+     reached for --brand-primary-dark — which is declared here and NOT in the dark block, i.e. it
+     does not flip. Dark ink (--text-on-primary #1a1a1a) on that #890303 measures 1.72:1: the
+     half-flipped pair described in the header of adminPriceEditorContrast.test.ts, invisible to
+     any check that reads one token. In light the press goes DARKER (the DESIGN.md pressed shade,
+     10.1:1 on white); in dark it goes LIGHTER, because the dark brand is already a light tint on
+     dark paper and darkening it moves the pair the wrong way. Both are gated. */
+  --brand-primary-hover: #890303;
   --brand-accent: #d9534f;
   /* The brand as used on an ELEVATED surface — today only the top nav's current-page
      pill, which washes 5% black (light) / white (dark) over --surface-secondary. That
@@ -21,6 +30,18 @@
      is the other direction — the dark brand is already a light tint — so the dark block
      below carries its own value and craft overrides it. */
   --brand-primary-elevated: var(--brand-primary-dark);
+  /* A brand-tinted HAIRLINE — a 1px structural BORDER, never text. DESIGN.md's hairline rule gives
+     cards the neutral #DDDDDD/#444444; the Chef's Special strip is the one element the design
+     singles out with the brand family (MENU-DESIGN-CONFORMANCE-PLAN D3), so it gets a name of its
+     own — a seam a template or a later decision can move without hunting through call sites.
+     An ALIAS, not a literal, and not a value in the dark block either. ADR-007 palettes re-declare
+     a BOUNDED set (palettes/types.ts) that this name is not in; a literal would leave a tenant's
+     strip outlined in classic's #c00000 while everything around it repainted — the exact failure
+     --brand-primary-elevated exists to prevent. The palette writes `:root:root`, the same element
+     this resolves on, so the alias follows it and follows the dark block for free.
+     Non-text contrast needs 3:1. Measured on --surface-card: 6.15:1 light (#c00000 on #f9f9f9) and
+     4.57:1 dark (#e06666 on #252525); on the blocked strip's --surface-secondary, 5.69:1 / 4.16:1. */
+  --brand-hairline: var(--brand-primary);
 
   /* Surfaces */
   --surface-primary: #ffffff;
@@ -60,13 +81,54 @@
      can re-skin EVERY modal's shell at once (ADR-006 — Prompt 9) with no
      per-call-site change. Declared HERE (the shared layer both templates import
      before their :root), NOT in globals.css, so a template override wins
-     regardless of import order (the --page-canvas lesson). Classic defaults are
-     the exact current literals — byte-identical. Craft overrides them for a
-     letterpress / organic-radius / Amatic-title look. */
-  --modal-radius: 16px;
-  --modal-border: none;
-  --modal-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --modal-rule: 1px solid var(--border-color);
+     regardless of import order (the --page-canvas lesson). Craft overrides all
+     seven in its own :root for a letterpress / organic-radius / Amatic-title
+     look, so nothing below reaches a craft page.
+
+     The classic values were carried over verbatim from the pre-design-system
+     modal and never reconciled with heritage_table/DESIGN.md, which is this
+     surface's ENTIRE spec: no classic `code.html` draws a dialog at all
+     (`role="dialog"` / `aria-modal` / `fixed inset-0` match zero of the 28
+     classic screens, and every modal-shaped folder under docs/stitch-screens/
+     — modal_shell, item_details, confirmation_dialog, order_type,
+     table_selection, image_lightbox, contact_details, delivery_address,
+     order_received, reservation_status — carries only a screen.png, so they
+     are craft and do not govern).
+
+     The radius and the border are conformance fixes: §Shapes calls 10px
+     universal, and §Elevation calls the 1px hairline non-negotiable, where the
+     shell had 16px and no border at all. (§Shapes' prose and DESIGN.md's own
+     front-matter disagree — `rounded.lg` there is 1rem, i.e. the 16px being
+     removed. The generated screens settle it against the front-matter:
+     design_system_specimen_sheet draws the card as `rounded-[10px]`, an
+     explicit override of `rounded-lg`.)
+
+     The shadow is token hygiene, not conformance, and worth stating as such:
+     §Elevation scopes its one-shadow rule to *cards*, and a dialog over a scrim
+     is the floating element that section's rationale excludes. Neither value is
+     visible either — the overlay is already rgba(0, 0, 0, 0.6) and the dialog
+     is its child, so both shadows paint black onto black. This just leaves the
+     page one shadow literal instead of two; the hairline is what now does the
+     separating. (It is not the app's only remaining shadow: the item sheet's
+     textarea still carries a focus glow, against §Components' explicit "no
+     outer glow" for inputs. Out of this slice's scope.)
+
+     --modal-rule reads --border-default rather than the legacy --border-color
+     alias (§5 "new code uses the semantic names"). Visually identical in both
+     themes: --border-color IS var(--border-default) at :root, and the only
+     place it diverges is the .home-overlay-header subtree, which no modal
+     renders inside.
+
+     --modal-title-font stays `inherit` here and is overridden to the display
+     serif in templates/classic/tokens.css. It CANNOT be set here: the font
+     custom properties are body-scoped (next/font puts its variable class on
+     <body>), so `var(--font-family-display)` substituted at :root is
+     guaranteed-invalid and font-family silently falls back to the inherited
+     sans — the change would have looked applied and done nothing. */
+  --modal-radius: 10px;
+  --modal-border: 1px solid var(--border-default);
+  --modal-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --modal-rule: 1px solid var(--border-default);
   --modal-title-font: inherit;
   --modal-title-size: 1.25rem;
   --modal-title-weight: 600;
@@ -337,6 +399,9 @@
 
 html[data-theme='dark'] {
   --brand-primary: #e06666; /* lighter RUMI Red for dark mode */
+  /* Brightens rather than darkens — see the light block's note. 6.26:1 against the dark ink
+     --text-on-primary puts on a brand button here, where inheriting light's #890303 would be 1.72. */
+  --brand-primary-hover: #e87b7b;
   --brand-accent: #ec7063;
   /* 5.53:1 on the nav pill's own background, MEASURED in a browser with axe — the pill
      washes 5% white over --surface-secondary (#2c2c2c), which renders #373737, and

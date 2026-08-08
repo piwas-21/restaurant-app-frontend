@@ -81,12 +81,15 @@ describe('MenuCard — one card for both catalog kinds', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.getByText('Margherita')).toBeInTheDocument();
-    // Two nodes by design: the card carries a separate mobile price that CSS swaps in.
-    expect(screen.getAllByText('CHF 12.50')).toHaveLength(2);
-    // A product shows no summary block: MenuItemDetails keeps its ingredient/description blocks
-    // commented out, and this card does not second-guess that.
+    // ONE price node. The card used to render two — `.itemPrice` in MenuItemDetails above 600px
+    // and a separate `.mobilePrice` below it — with only CSS deciding which was showing. The price
+    // lives on the action row at every viewport now, and carries the accessible label the
+    // desktop-only node used to own.
+    expect(screen.getByText('CHF 12.50')).toHaveAttribute('aria-label', 'checkout_total_label CHF 12.50');
+    // The description IS rendered now (it is the card's details affordance). Ingredients are not:
+    // that block in MenuItemDetails is still commented out, and this card does not second-guess it.
+    expect(screen.getByText('Classic pizza')).toBeInTheDocument();
     expect(screen.queryByText('Tomato, Basil')).not.toBeInTheDocument();
-    expect(screen.queryByText('Classic pizza')).not.toBeInTheDocument();
   });
 
   it('keeps a combo description and its default picks — the bundle card rendered both itself', () => {
@@ -119,6 +122,53 @@ describe('MenuCard — one card for both catalog kinds', () => {
     expect(container.querySelector('[data-testid="special-badge"]')).not.toBeInTheDocument();
   });
 
+  /**
+   * The ribbon belongs to the PHOTO. Positioned against the `<li>` it only landed correctly where
+   * the photo is full-bleed across the top of a grid card; on the ≤600px row the photo is an 88px
+   * square inset by the card's padding, so the badge floated over the padding beside it (visible
+   * in the committed mobile baseline). Asserted structurally rather than by class, because the
+   * containing block is what the CSS depends on.
+   */
+  it('pins the Special ribbon inside the photo, not over the card', () => {
+    const { container } = render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    const badge = container.querySelector('[data-testid="special-badge"]');
+    expect(badge).toBeInTheDocument();
+    expect(badge?.closest('[data-testid="menu-item-image"]')).not.toBeNull();
+  });
+
+  /**
+   * Moving the badge inside the enlarge `<button>` puts it behind that button's `aria-label`, so
+   * the word would have left the accessible tree entirely. It comes back on the card's own name,
+   * the same way the blocked reason already does — "Special Lunch Combo", not a decorative corner
+   * only sighted guests can see.
+   */
+  it('keeps "Special" in the card accessible name once the badge moves into the photo', () => {
+    const { container } = render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(container.querySelector('li')).toHaveAttribute('aria-labelledby', 'item-special-b1 item-name-b1');
+    expect(container.querySelector('#item-special-b1')).toHaveTextContent('special');
+  });
+
+  /**
+   * Details is the DESCRIPTION's affordance — it opens the sheet holding the rest of the sentence
+   * the paragraph clamps. It used to render last, after the allergen block and the dietary chips,
+   * which on a RUMI card (neither populated) stranded it above the price rule with nothing to
+   * attach to. Pinned as an immediate sibling so it cannot drift back out of place.
+   */
+  it('renders Details immediately after the description, ahead of the allergen block', () => {
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    const description = screen.getByText('Classic pizza');
+    const details = screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' });
+    const allergens = screen.getByRole('group', { name: 'Allergens' });
+
+    expect(description.tagName).toBe('P');
+    expect(description.nextElementSibling).toBe(details);
+    // Plain FOLLOWING, no CONTAINS bit: they are siblings in the card's text column, in that order.
+    expect(details.compareDocumentPosition(allergens)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
   it('Add opens without forcing (fast-add allowed) but Details forces the sheet — never a silent add', () => {
     const onOpen = jest.fn();
     render(<MenuCard item={product} onOpen={onOpen} onFeedbackSuccess={jest.fn()} />);
@@ -128,7 +178,9 @@ describe('MenuCard — one card for both catalog kinds', () => {
     expect(onOpen).toHaveBeenLastCalledWith(product);
 
     // Details: forceSheet so the sheet ALWAYS opens to view the item (the #234 regression).
-    fireEvent.click(screen.getByRole('button', { name: 'details' }));
+    // Its accessible name carries the DISH, not just "Details" — every card offers one, and a
+    // screen-reader user listing the page's buttons would otherwise get N identical entries.
+    fireEvent.click(screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' }));
     expect(onOpen).toHaveBeenLastCalledWith(product, { forceSheet: true });
 
     // The clickable title is a view affordance too — it forces the sheet, never adds.
@@ -141,7 +193,7 @@ describe('MenuCard — one card for both catalog kinds', () => {
     const onOpen = jest.fn();
     render(<MenuCard item={bundle} onOpen={onOpen} onFeedbackSuccess={jest.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'details' }));
+    fireEvent.click(screen.getByRole('button', { name: 'menu_item_details_aria(Lunch Combo)' }));
     expect(onOpen).toHaveBeenCalledWith(bundle, { forceSheet: true });
   });
 });
@@ -171,6 +223,43 @@ describe('MenuCard — admin quick-edit', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.getByTestId('admin-edit-price')).toBeInTheDocument();
+  });
+
+  /**
+   * S14: the CARD marks itself while its price is open, not just the price row.
+   *
+   * The screenshot suite runs as a guest, so it never renders any of this — the whole admin surface
+   * is invisible to it. And the row-level signal it replaces was genuinely weak: the editor lives
+   * inside one ~200px price row, so on a grid of cards the only indication of WHICH card was open
+   * was that row changing shape. All five classic admin screens that draw an editing state mark the
+   * whole card instead; three ring it and two use a brand border plus a wash. `outline` is the
+   * decision (see AdminPriceEditorHost.module.css), the whole-card mark is the transcription.
+   *
+   * Asserted on the `<li>` rather than by querying for the class, so it fails if the class is
+   * applied to the wrong element — which is the mistake worth catching, the ring being invisible
+   * from the component's own markup. `identity-obj-proxy` maps the CSS Module name through.
+   */
+  it('rings the whole card while its price is being edited, and stops when the edit ends', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    const { container } = render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+    const card = container.querySelector('li');
+
+    expect(card).not.toHaveClass('hostEditing');
+
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+    expect(card).toHaveClass('hostEditing');
+
+    fireEvent.click(screen.getByLabelText('Cancel'));
+    expect(card).not.toHaveClass('hostEditing');
+  });
+
+  /** A guest's card must never carry the mark — and `'hidden'` is reported, not merely absent. */
+  it('never rings a guest card', () => {
+    const { container } = render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(container.querySelector('li')).not.toHaveClass('hostEditing');
+    expect(screen.queryByTestId('admin-edit-price')).not.toBeInTheDocument();
   });
 
   it('swaps the price editor for a reason when the price is derived (e.g. has variations)', () => {
@@ -313,7 +402,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     // Add is gone rather than disabled: a disabled control fires no click and explains nothing.
     expect(screen.queryByRole('button', { name: 'add_item_to_order(Margherita)' })).not.toBeInTheDocument();
     // …but Details stays live, so the guest can still read the item.
-    expect(screen.getByRole('button', { name: 'details' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);

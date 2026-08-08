@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1c1b1b",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-primary-fixed-variant": "#930000",
+                        "on-error-container": "#93000a",
+                        "on-surface-variant": "#5d3f3b",
+                        "on-primary-container": "#ffcdc5",
+                        "surface-dim": "#dcd9d9",
+                        "surface": "#fcf9f8",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#e7bdb6",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#fd6d67",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#ffdad5",
+                        "primary-fixed": "#ffdad4",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#c00000",
+                        "background": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-error": "#ffffff",
+                        "tertiary": "#900b07",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-tertiary-fixed": "#410000",
+                        "inverse-primary": "#ffb4a8",
+                        "inverse-surface": "#313030",
+                        "surface-container": "#f0eded",
+                        "on-background": "#1c1b1b",
+                        "secondary-fixed": "#ffdad7",
+                        "secondary": "#ac3231",
+                        "on-secondary-container": "#6d000c",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "tertiary-container": "#b3281d",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#410004",
+                        "surface-container-high": "#eae7e7",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "outline": "#926f69",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-bright": "#fcf9f8",
+                        "primary-container": "#c00000",
+                        "surface-container-low": "#f6f3f2",
+                        "primary": "#930000",
+                        "on-tertiary-container": "#ffccc5",
+                        "on-primary-fixed": "#410000"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "base": "4px",
+                        "sm": "1rem",
+                        "gutter": "16px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "lg": "2.5rem",
+                        "max-width": "1200px",
+                        "md": "1.5rem",
+                        "xl": "4rem",
+                        "xs": "0.5rem"
+                    },
+                    fontFamily: {
+                        "label-muted": ["Public Sans"],
+                        "body-main": ["Public Sans"],
+                        "price-tag": ["Public Sans"],
+                        "section-heading": ["Playfair Display"],
+                        "dish-name": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "button-label": ["Public Sans"]
+                    },
+                    fontSize: {
+                        "label-muted": ["0.8rem", { lineHeight: "1.2", fontWeight: "400" }],
+                        "body-main": ["0.95rem", { lineHeight: "1.55", fontWeight: "400" }],
+                        "price-tag": ["1rem", { lineHeight: "1", fontWeight: "600" }],
+                        "section-heading": ["1.75rem", { lineHeight: "1.3", fontWeight: "700" }],
+                        "dish-name": ["1.15rem", { lineHeight: "1.4", fontWeight: "600" }],
+                        "display-lg": ["32px", { lineHeight: "1.2", fontWeight: "700" }],
+                        "button-label": ["0.95rem", { lineHeight: "1", letterSpacing: "0.02em", fontWeight: "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface dark:bg-[#252525] text-on-surface dark:text-inverse-on-surface min-h-screen flex">
+<!-- Side NavBar -->
+<nav class="bg-surface-container-low dark:bg-surface-container-highest h-full w-64 border-r border-outline-variant flat no shadows hidden md:flex flex-col h-screen sticky top-0 shrink-0">
+<div class="p-lg">
+<h1 class="font-section-heading text-section-heading text-primary dark:text-inverse-primary">Heritage Table</h1>
+<p class="font-label-muted text-label-muted mt-xs text-on-surface-variant dark:text-surface-variant">Est. 2024</p>
+</div>
+<div class="flex-1 px-sm py-md flex flex-col gap-sm">
+<a class="flex items-center gap-sm p-sm rounded-lg text-primary dark:text-inverse-primary font-bold bg-surface-variant dark:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu" data-weight="fill" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span class="font-button-label text-button-label">Menu</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-button-label text-button-label">Orders</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-button-label text-button-label">Reservations</span>
+</a>
+<a class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-button-label text-button-label">Profile</span>
+</a>
+</div>
+<div class="p-lg">
+<button class="w-full bg-primary text-on-primary font-button-label text-button-label py-sm rounded-lg active:bg-primary-fixed-variant transition-colors flex items-center justify-center gap-xs">
+                Order Now
+            </button>
+</div>
+</nav>
+<!-- Main Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-y-auto">
+<!-- Top App Bar -->
+<header class="bg-surface dark:bg-inverse-surface border-b border-outline-variant shadow-sm flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto docked full-width top-0 sticky z-40 py-sm">
+<h2 class="font-display-lg text-display-lg text-primary dark:text-inverse-primary">Menu</h2>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors press:scale-95 duration-100 p-xs">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+</div>
+</header>
+<!-- Content -->
+<div class="p-margin-mobile md:p-margin-desktop max-w-max-width mx-auto w-full flex-1">
+<!-- Chef's Special Strip -->
+<div class="bg-[#313030] border-l-4 border-[#E06666] p-md mb-lg shadow-sm flex items-baseline justify-between gap-lg rounded-r-DEFAULT">
+<div class="flex items-baseline gap-md flex-1">
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface whitespace-nowrap">CHEF'S SPECIAL: Braised Short Rib</h3>
+<p class="font-body-main text-body-main text-surface-variant truncate">Slow-cooked in red wine reduction with root vegetables and creamy polenta.</p>
+</div>
+<div class="flex items-baseline gap-md shrink-0">
+<span class="font-label-muted text-label-muted text-surface-variant flex items-center gap-base">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 25 mins
+                    </span>
+<span class="font-price-tag text-price-tag text-[#E06666]">CHF 34.00</span>
+<button class="bg-[#E06666] text-[#252525] font-button-label text-button-label px-sm py-xs rounded-DEFAULT hover:opacity-90 transition-opacity">
+                        Add to Order
+                    </button>
+</div>
+</div>
+<!-- Category Section -->
+<section class="mb-xl">
+<h2 class="font-section-heading text-section-heading text-inverse-on-surface border-b border-surface-variant pb-sm mb-lg">Mains</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-sm">
+<!-- Card 1 -->
+<div class="bg-[#313030] rounded-[10px] border border-[#444444] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden hover:bg-[#383737] transition-colors cursor-pointer group flex flex-col">
+<div class="h-48 w-full bg-surface-variant relative">
+<img class="w-full h-full object-cover" data-alt="A beautifully plated dish of seared salmon resting on a bed of quinoa, garnished with fresh herbs and a drizzle of lemon butter sauce, shot from directly above in a moody, low-key lighting setup suitable for a high-end late-night dining menu. Deep blacks and rich colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOyB2cAxmdEKHD0LzuRwHyTJvNqy3UVW9-VepO8SOKT3X0TQPAUWVwuFgKeAtyHTd3frh5jiA4AqaufQw-vGCN98MbCkxelAJ6KtFIHkbfTFwl6roZXnmxKFgQTb1G-FUcjz-zJ06SZef-GaCwx7RAZOJ7ObjSC16bCC_R6hMvHUTKFG36oy2qmQKhOup_JcEmSqizuzgObF_wLa4shsxFKvZ1BsUtBH3KA-AvIP7NDmobuTiWYJ6PWQ"/>
+</div>
+<div class="p-sm flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface">Seared King Salmon</h3>
+<span class="font-price-tag text-price-tag text-inverse-on-surface">CHF 28.00</span>
+</div>
+<p class="font-body-main text-body-main text-surface-variant flex-1">Pan-roasted salmon fillet, quinoa tabbouleh, lemon butter emulsion.</p>
+<div class="mt-sm flex gap-xs">
+<span class="border border-[#444444] rounded-[10px] px-xs py-base font-label-muted text-label-muted text-surface-variant">Gluten Free</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-[#313030] rounded-[10px] border border-[#444444] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden hover:bg-[#383737] transition-colors cursor-pointer group flex flex-col">
+<div class="h-48 w-full bg-surface-variant relative">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of a gourmet mushroom risotto, steam gently rising off the creamy rice, topped with shaved parmesan and truffle oil. The lighting is warm but directional, emerging from the dark background typical of a sophisticated late-night restaurant setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtlueySe5BUDCGiIb0JCgyAyF-bBVtSWBdOThPBYJzR0QD16mphDjgVSzXW7CQ2AGcosoPSRDkmrKYNEYCGE2SES0_kvOWSCSZTF3tZmuu_LwjqEcGxBkSQRgHo-HqikbQdn1f-Y8CkBggOokzCIT_jBqKrbK0tHx4kBn8-JKpAx4ZJuSpjySae3W-pTITvX-9jsD9ENWD7jVKhIBNYPiRS7hhXB9MliWdLxh5-L_-B8efbcwH8ypa-g"/>
+</div>
+<div class="p-sm flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface">Wild Mushroom Risotto</h3>
+<span class="font-price-tag text-price-tag text-inverse-on-surface">CHF 24.00</span>
+</div>
+<p class="font-body-main text-body-main text-surface-variant flex-1">Arborio rice, seasonal forest mushrooms, aged parmesan, truffle essence.</p>
+<div class="mt-sm flex gap-xs">
+<span class="border border-[#444444] rounded-[10px] px-xs py-base font-label-muted text-label-muted text-surface-variant">Vegetarian</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-[#313030] rounded-[10px] border border-[#444444] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden hover:bg-[#383737] transition-colors cursor-pointer group flex flex-col">
+<div class="h-48 w-full bg-surface-variant relative">
+<img class="w-full h-full object-cover" data-alt="A rustic yet refined duck confit leg resting on a bed of puy lentils. The scene is lit with dramatic, contrasting light against a dark charcoal background, highlighting the crispy skin of the duck and the rich textures of the lentils, evoking a cozy late-night French bistro atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlDsx8Nw4-ZcPkdemlqJc5jnZaxGweq4Jox6yKX54cJirJrnLdE9_wVvH9_jPohSPix-FoVwU_dToAoJdMY274Ecq1rg97IIP4u6UqnYF0ay7t_UF2r2TDuNJJ2z_Ur4U1hC4bp5acFPKHxW1oeYoMQfJCMWd-0Bhl1dDLDv8u43PfA0ePXz_dxu-jS8JLg4mwGU6wHEIEqlsG9dpCa5IAgK3dmh_z72NJ3N50r5lPGfpad0ktMEu3nQ"/>
+</div>
+<div class="p-sm flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-dish-name text-dish-name text-inverse-on-surface">Duck Confit</h3>
+<span class="font-price-tag text-price-tag text-inverse-on-surface">CHF 32.00</span>
+</div>
+<p class="font-body-main text-body-main text-surface-variant flex-1">Crispy duck leg, puy lentils, pancetta, red wine jus.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Nav Bar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full flex md:hidden justify-around items-center py-2 bg-surface dark:bg-inverse-surface border-t border-outline-variant shadow-lg z-50">
+<a class="flex flex-col items-center justify-center text-primary dark:text-inverse-primary scale-110 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu" data-weight="fill" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span class="font-label-muted text-label-muted mt-base">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant active:bg-surface-variant scale-110 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-muted text-label-muted mt-base">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant active:bg-surface-variant scale-110 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-label-muted text-label-muted mt-base">Book</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant active:bg-surface-variant scale-110 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-muted text-label-muted mt-base">Profile</span>
+</a>
+</nav>
+</body></html>

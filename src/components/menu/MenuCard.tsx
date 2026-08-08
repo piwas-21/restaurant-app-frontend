@@ -17,6 +17,11 @@ import AdminMenuCardControls from './AdminMenuCardControls';
 import AdminPriceEditor from './AdminPriceEditor';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
+// The admin editor's mark on its HOST card (the editing ring). Its own module, not a section of
+// `MenuItem.module.css`: that file is at exactly the 200-line §4 ceiling, and the class styles the
+// CARD on the admin control's behalf rather than the customer card's own chrome. Same
+// pattern as `availabilityStyles` below — this card already composes a second module.
+import adminPriceStyles from './AdminPriceEditorHost.module.css';
 // The classic card's own availability styling, split out of `MenuItem.module.css` (200-LOC limit).
 // Still the HOST's stylesheet — `MenuCardAvailability` is the shared shell and takes whichever
 // module its host hands it; craft passes its own. The shell reads only `availability*` classes.
@@ -55,20 +60,24 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
   const isBlocked = isItemBlocked(item.availability, availabilityNotice);
   const nameId = `item-name-${item.id}`;
   const reasonId = `item-availability-${item.id}`;
+  const specialId = `item-special-${item.id}`;
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   // Locally reflect an admin inline price edit; resync if the item prop changes.
   const [price, setPrice] = useState(item.price);
   useEffect(() => setPrice(item.price), [item.price]);
+  // Whether this card's price is open in the admin editor, so the CARD can say so rather than
+  // leaving it to one 200px row. Always false for a guest — the editor owns the condition, this
+  // never re-derives it.
+  const [priceEditing, setPriceEditing] = useState(false);
 
   const currentLanguage = (i18n.language || 'en').split('-')[0];
   const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
   const description = item.content?.[currentLanguage]?.description || item.content?.en?.description || item.description;
 
   // A combo's default picks ("Pizza + Cola") — the one thing the retired MenuBundleCard rendered
-  // that MenuItemDetails does not. Its description is in the same boat: MenuItemDetails keeps both
-  // its description and its ingredient blocks commented out until that feature lands, so a bundle
-  // renders them here or loses them.
+  // that MenuItemDetails still does not. Its DESCRIPTION used to be in the same boat and no longer
+  // is: MenuItemDetails renders that for both kinds now, so only this line is rendered here.
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
 
   // Add to Order: a simple product adds straight to the cart. Details/title: always open the sheet
@@ -86,15 +95,17 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
     // order" is REMOVED while blocked rather than left disabled-and-unexplained, so there is nothing
     // an AT could act on. Setting it anyway is markup `jsx-a11y/role-supports-aria-props` rejects.
     <li
-      className={isBlocked ? `${styles.menuItem} ${styles.blocked}` : styles.menuItem}
-      aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
+      className={[
+        styles.menuItem,
+        isBlocked ? styles.blocked : null,
+        priceEditing ? adminPriceStyles.hostEditing : null,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      aria-labelledby={[item.isSpecial ? specialId : null, nameId, isBlocked ? reasonId : null]
+        .filter(Boolean)
+        .join(' ')}
     >
-      {item.isSpecial && (
-        <div className={styles.specialBadge} data-testid="special-badge">
-          {t('special')}
-        </div>
-      )}
-
       <AdminMenuCardControls item={item} />
 
       <MenuCardImage
@@ -104,6 +115,19 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
         enlargeLabel={t('menu_item_image_enlarge_aria', 'Enlarge {{itemName}} image', { itemName })}
+        // The ribbon belongs to the PHOTO, so it is handed to the image as a slot rather than
+        // positioned against the <li> — against the card it only landed correctly where the photo
+        // is full-bleed, and on the ≤600px row it floated over the padding beside the 88px
+        // thumbnail. Inside the enlarge button it is outside that button's accessible name, so the
+        // id is folded into the card's `aria-labelledby` above: the card announces "Special
+        // <dish>" instead of losing the word to a decorative corner.
+        badge={
+          item.isSpecial ? (
+            <span id={specialId} className={styles.specialBadge} data-testid="special-badge">
+              {t('special')}
+            </span>
+          ) : undefined
+        }
         onError={() => setImageFailed(true)}
       />
       <div className={styles.contentWrapper}>
@@ -115,26 +139,26 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
           // whenever that block is uncommented.
           ingredients={resolveIngredientSummary(item, currentLanguage)}
           allergens={item.allergens}
-          price={price}
           dietaryTags={item.dietaryTags ?? []}
           t={t}
           onTitleClick={openDetails}
+          // The card's Details affordance, on the description block rather than as a second
+          // full-size button beside Add to Order.
+          onDetailsClick={openDetails}
+          detailsLabel={t('details')}
+          detailsAria={t('menu_item_details_aria', { itemName })}
           initialRatingData={{ average: 0, count: 0 }}
         />
 
-        {item.isBundle && (description || bundleIncludes) && (
+        {/* Only the default picks. The description used to be rendered here too, because
+            `MenuItemDetails` had its own copy commented out and a combo would otherwise have lost
+            it; that block is live again, so keeping this one would print the sentence twice. */}
+        {item.isBundle && bundleIncludes && (
           <div className={styles.bundleSummary}>
             {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
-            {description && (
-              <p dir="auto" className={styles.bundleDescription}>
-                {description}
-              </p>
-            )}
-            {bundleIncludes && (
-              <p dir="auto" className={styles.bundleIncludes}>
-                {bundleIncludes}
-              </p>
-            )}
+            <p dir="auto" className={styles.bundleIncludes}>
+              {bundleIncludes}
+            </p>
           </div>
         )}
 
@@ -147,20 +171,23 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
           />
         )}
 
-        {/* The price renders twice by viewport (`.itemPrice` in MenuItemDetails on
-            desktop, `.mobilePrice` here below 600px), so the editor rides in this
-            row — inline with the mobile price, and directly under the desktop one
-            — rather than being duplicated into both. */}
+        {/* One row, one price, at every viewport — the card used to carry two price nodes with
+            only CSS deciding which was showing (`.itemPrice` in MenuItemDetails above 600px,
+            `.mobilePrice` here below it). The admin editor rides in the same row, beside the
+            price it edits. */}
         <div className={styles.priceActionsRow}>
-          <span className={styles.mobilePrice}>{formatPlainCurrency(price)}</span>
-          <AdminPriceEditor item={item} onPriceChange={setPrice} />
+          <span className={styles.rowPrice} aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}>
+            {formatPlainCurrency(price)}
+          </span>
+          {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an effect
+              keyed on that boolean, and a useState setter is the referentially stable identity the
+              contract needs. An inline arrow would re-fire it on every render. */}
+          <AdminPriceEditor item={item} onPriceChange={setPrice} onEditingChange={setPriceEditing} />
           <MenuItemActions
             onAdd={open}
             onFeedback={() => setShowFeedbackForm(true)}
             addAria={t('add_item_to_order', { itemName })}
             addLabel={t('add_to_order')}
-            onDetails={openDetails}
-            detailsLabel={t('details')}
             showAdd={!isBlocked}
             feedbackAria={`${t('feedback_form_heading')} ${itemName}`}
             feedbackLabel={t('feedback_form_heading')}

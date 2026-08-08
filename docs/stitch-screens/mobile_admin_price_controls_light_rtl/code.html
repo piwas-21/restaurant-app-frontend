@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Admin Price Controls</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface-variant": "#5d3f3b",
+                      "outline-variant": "#e7bdb6",
+                      "on-surface": "#1c1b1b",
+                      "surface-container-high": "#eae7e7",
+                      "tertiary-container": "#b3281d",
+                      "tertiary-fixed-dim": "#ffb4a9",
+                      "on-tertiary-fixed": "#410000",
+                      "on-secondary-fixed": "#410004",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-container": "#ffccc5",
+                      "on-secondary-container": "#6d000c",
+                      "tertiary-fixed": "#ffdad5",
+                      "on-primary-fixed": "#410000",
+                      "inverse-primary": "#ffb4a8",
+                      "outline": "#926f69",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed-dim": "#ffb3ae",
+                      "error": "#ba1a1a",
+                      "tertiary": "#900b07",
+                      "on-primary": "#ffffff",
+                      "primary-fixed-dim": "#ffb4a8",
+                      "inverse-on-surface": "#f3f0ef",
+                      "primary-container": "#c00000",
+                      "on-background": "#1c1b1b",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed-variant": "#8b191d",
+                      "primary-fixed": "#ffdad4",
+                      "surface-container": "#f0eded",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#910b07",
+                      "secondary": "#ac3231",
+                      "primary": "#930000",
+                      "on-primary-fixed-variant": "#930000",
+                      "surface-container-highest": "#e5e2e1",
+                      "surface-dim": "#dcd9d9",
+                      "background": "#fcf9f8",
+                      "secondary-container": "#fd6d67",
+                      "surface-bright": "#fcf9f8",
+                      "surface-variant": "#e5e2e1",
+                      "surface": "#fcf9f8",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#c00000",
+                      "inverse-surface": "#313030",
+                      "secondary-fixed": "#ffdad7",
+                      "on-primary-container": "#ffcdc5",
+                      "surface-container-low": "#f6f3f2"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "32px",
+                      "sm": "1rem",
+                      "md": "1.5rem",
+                      "gutter": "16px",
+                      "xl": "4rem",
+                      "lg": "2.5rem",
+                      "base": "4px",
+                      "max-width": "1200px",
+                      "margin-mobile": "16px",
+                      "xs": "0.5rem"
+              },
+              "fontFamily": {
+                      "section-heading": [
+                              "Playfair Display"
+                      ],
+                      "dish-name": [
+                              "Playfair Display"
+                      ],
+                      "label-muted": [
+                              "Public Sans"
+                      ],
+                      "button-label": [
+                              "Public Sans"
+                      ],
+                      "body-main": [
+                              "Public Sans"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ],
+                      "price-tag": [
+                              "Public Sans"
+                      ]
+              },
+              "fontSize": {
+                      "section-heading": [
+                              "1.75rem",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "dish-name": [
+                              "1.15rem",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-muted": [
+                              "0.8rem",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "button-label": [
+                              "0.95rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-main": [
+                              "0.95rem",
+                              {
+                                      "lineHeight": "1.55",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "price-tag": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+          font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-main min-h-screen pb-20">
+<!-- TopNavBar -->
+<header class="bg-surface text-primary font-button-label docked full-width top-0 border-b border-outline-variant shadow-sm flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto py-3 sticky z-50">
+<div class="font-display-lg text-display-lg text-primary">
+            Heritage Table
+        </div>
+<div class="flex gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors press:scale-95 duration-100 flex items-center justify-center p-2 rounded-full">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</header>
+<main class="w-full px-margin-mobile max-w-max-width mx-auto pt-lg">
+<!-- Header -->
+<div class="mb-lg">
+<h1 class="font-section-heading text-section-heading text-on-surface mb-xs">Menu Management</h1>
+<p class="font-body-main text-body-main text-on-surface-variant">Update pricing and availability directly from your mobile device.</p>
+</div>
+<!-- Chef's Special (State 1: Rest) -->
+<section class="mb-lg">
+<h2 class="font-dish-name text-dish-name text-primary mb-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">star</span>
+                Featured Special
+             </h2>
+<div class="bg-surface-container-low rounded-lg border border-outline-variant overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+<div class="flex flex-col md:flex-row">
+<div class="w-full md:w-1/3 h-48 md:h-auto shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="A beautifully plated truffle risotto in a rustic ceramic bowl, garnished with fresh herbs and shaved black truffle. Shot in soft, natural overhead lighting against a clean white marble table, evoking a modern, premium bistro dining experience. High resolution food photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEUacstGlOaPxpEaSRotaZ507_WHu-Wi6PdVxTB-Om2SWBu3TaADLRj_W1eSVQ1CbAF_Ojw2iglqSZQgG9tmifjTWOzwYxzkqd7kIBfIB7oyrryONKe_u3-kYLrQf-YgA2eEmiEIvBvnHKYGfN_yyr7iPGScct46Fc-SbBhYxSRdJzJj24Qm5Ogy3CBHZ14cT8YZy2L8sQskTUl6YhWzhvxcSPg-XpHBu_dgBbu_3K3nOg_7SC7M_fJw"/>
+</div>
+<div class="p-sm flex flex-col justify-between w-full">
+<div>
+<h3 class="font-dish-name text-dish-name text-on-surface mb-xs">Truffle Risotto</h3>
+<p class="font-body-main text-body-main text-on-surface-variant line-clamp-2 mb-sm">Creamy Arborio rice with black truffle paste, Parmigiano-Reggiano, and finished with white truffle oil.</p>
+</div>
+<div class="flex items-center justify-between mt-sm pt-sm border-t border-outline-variant">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 28.50</span>
+<button class="flex items-center gap-2 bg-primary-fixed text-on-primary-fixed px-3 py-1.5 rounded hover:bg-primary-fixed-dim transition-colors text-sm font-button-label border border-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                 Edit Price
+                             </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Vertical List -->
+<div class="space-y-sm">
+<h2 class="font-dish-name text-dish-name text-on-surface border-b border-outline-variant pb-xs mb-sm">Main Courses</h2>
+<!-- Card 1: State 1 (REST) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-sm shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col gap-sm">
+<div class="flex justify-between items-start gap-4">
+<div>
+<h3 class="font-dish-name text-dish-name text-on-surface">Classic Beef Tartare</h3>
+<p class="font-body-main text-body-main text-on-surface-variant mt-1">Hand-cut local beef, capers, shallots, egg yolk, and toasted sourdough.</p>
+</div>
+<img class="w-20 h-20 object-cover rounded shrink-0" data-alt="A classic beef tartare served on a crisp white plate, topped with a bright yellow raw egg yolk and accompanied by thin slices of toasted sourdough. Soft, diffused lighting highlighting the rich red color of the beef. Premium restaurant setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQkFnBtcnnmb-FfjgSIjaBkK9nXVsO_2iKXURgSEx_cfuINab_G8Cxd4ofZk5kcGxi59flrdPgIhId8scFeBk4HoEmPzfFRex2oRcTjcJ8GVEZ7ybKQMImFyHGUhC3xPAWn_f1hTDycNL4imuaZ1vhQYW63gdLBBvcQ3YhZRMc_8P8eZXGohtuBAiY1q_nAIz2WSnVAIZYxFI90AYkK6M5hhWy0g-DtXrbRM8ouVIs6c2hvtvUrK1Ykw"/>
+</div>
+<div class="flex items-center justify-between pt-sm border-t border-outline-variant">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 12.50</span>
+<button class="flex items-center gap-2 bg-primary-fixed text-on-primary-fixed px-3 py-1.5 rounded hover:bg-primary-fixed-dim transition-colors text-sm font-button-label border border-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                        Edit Price
+                    </button>
+</div>
+</div>
+<!-- Card 2: State 2 (EDITING) -->
+<div class="bg-surface-container-lowest rounded-lg border-2 border-primary-container p-sm shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col gap-sm relative">
+<div class="absolute -top-3 left-4 bg-surface px-1 font-label-muted text-label-muted text-primary font-bold">
+                    Editing Price
+                 </div>
+<div class="flex justify-between items-start gap-4 mt-2">
+<div>
+<h3 class="font-dish-name text-dish-name text-on-surface">Pan-Seared Scallops</h3>
+<p class="font-body-main text-body-main text-on-surface-variant mt-1">Served with cauliflower purée, crispy pancetta, and herb oil.</p>
+</div>
+<img class="w-20 h-20 object-cover rounded shrink-0" data-alt="Three perfectly pan-seared scallops with golden-brown crusts, resting on a bed of smooth white cauliflower purée, garnished with crispy pancetta bits and drops of vibrant green herb oil. Clean, minimalist presentation in a fine dining atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsYDZur2w8Hh97RJdeHDLOPCwFuz_THr21r5bWFEPWXiBo5x4-6l6qU6-v2FkW21rDZPxj8hIP7ujk7ooU2TzKl7cGsV2n0SOt5pB2Lh5_5FvfGXQAE3tWreAQ5eU1DQ6s8puBZHnAdU71Kj-ykPjESB2mjQ06FYyVHOSEfCGuyyWNftd4joS5FR1ntM7VD5fYleoBG5WuGOQIJKKJ9tOBuzE4psywevioMq5bpAQx-FkUerrOVTTv-g"/>
+</div>
+<div class="pt-sm border-t border-outline-variant flex flex-col gap-2">
+<div class="flex items-center gap-2 w-full">
+<div class="flex-1 relative flex items-center">
+<span class="absolute left-3 font-price-tag text-price-tag text-on-surface-variant">CHF</span>
+<input class="w-full pl-12 pr-3 py-2 border border-outline-variant rounded focus:border-primary-container focus:ring-0 font-price-tag text-price-tag text-on-surface bg-surface-container-lowest" type="number" value="14.00"/>
+</div>
+<button class="bg-primary-container text-on-primary p-2 rounded hover:bg-tertiary-container transition-colors flex items-center justify-center shrink-0 w-[42px] h-[42px]">
+<span class="material-symbols-outlined">check</span>
+</button>
+<button class="bg-surface text-primary border border-primary p-2 rounded hover:bg-surface-variant transition-colors flex items-center justify-center shrink-0 w-[42px] h-[42px]">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex items-center gap-1 text-error font-label-muted text-label-muted mt-1">
+<span class="material-symbols-outlined text-[16px]">error</span>
+<span>Enter a price of 0 or more</span>
+</div>
+</div>
+</div>
+<!-- Card 3: State 3 (LOCKED) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-sm shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col gap-sm">
+<div class="flex justify-between items-start gap-4">
+<div>
+<h3 class="font-dish-name text-dish-name text-on-surface">Artisan Cheese Board</h3>
+<p class="font-body-main text-body-main text-on-surface-variant mt-1">Selection of local and imported cheeses, honeycomb, and crackers.</p>
+</div>
+<img class="w-20 h-20 object-cover rounded shrink-0" data-alt="A rustic wooden board loaded with a variety of cheeses including blue cheese, aged cheddar, and soft brie. Accompanied by a piece of golden honeycomb, fresh grapes, and artisanal crackers. Warm, inviting restaurant lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpTyzkrg-0Xfsf4N4z0An-ef4HdGv0ni3TzqTbEATANyln74w5j2145cAFUj7-Tqb7hTQVFzPW3LXghIDg1vEwqC5S-RYiTruZAGnhBHPrkBjaZ-gsToOJaLu7GrtFYHT3uKCiC1hrfduL8AIzbs_ChJYY7_C-FszXUVI1b_zkEXhIPlHryjr0d7I95znvaVangGnsE7lI2LSLzRvHliuDGjJBzr5gMMmZQZiOLYfSwBYGZYVd6OL3Xg"/>
+</div>
+<div class="flex items-center justify-between pt-sm border-t border-outline-variant">
+<span class="font-price-tag text-price-tag text-on-surface">CHF 32.00</span>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-muted text-label-muted bg-surface-container py-1.5 px-3 rounded">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+                        Price fixed by variations
+                    </div>
+</div>
+</div>
+</div>
+<!-- Arabic RTL Mirror -->
+<div class="mt-xl space-y-sm" dir="rtl">
+<h2 class="font-dish-name text-dish-name text-on-surface border-b border-outline-variant pb-xs mb-sm">الأطباق الرئيسية (RTL)</h2>
+<!-- RTL Card (State 1) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant p-sm shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col gap-sm">
+<div class="flex justify-between items-start gap-4">
+<div>
+<h3 class="font-dish-name text-dish-name text-on-surface">تارتار اللحم البقري الكلاسيكي</h3>
+<p class="font-body-main text-body-main text-on-surface-variant mt-1">لحم بقري محلي مقطع يدوياً، كبر، كراث، صفار بيض، وخبز العجين المخمر المحمص.</p>
+</div>
+<img class="w-20 h-20 object-cover rounded shrink-0" data-alt="A classic beef tartare served on a crisp white plate, topped with a bright yellow raw egg yolk and accompanied by thin slices of toasted sourdough. Soft, diffused lighting highlighting the rich red color of the beef. Premium restaurant setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgJqZiKI4fowF4nKjVJx9evgwWGR8uKC28pI5qR-EJku_RxGfeeORnaegldiTU6d7p6VLF49Jku46DNylT3Wsw_Keu4nH1mkyWk9QA36aI2b7V5PmpnGbXotSzZr9-Exhbx_6hr75F2DsGWm5Stif_mgv-rZAecZBkrpXXJc_qKtfvbC0lnXhES8mv9LT7gXCaU0RE3jzJvTQsMyn9tBMASTEZ3GM_Zy8wM2LFQ9XEeHOjY1yWefCQWA"/>
+</div>
+<div class="flex items-center justify-between pt-sm border-t border-outline-variant">
+<span class="font-price-tag text-price-tag text-on-surface">١٢٫٥٠ فرنك سويسري</span>
+<button class="flex items-center gap-2 bg-primary-fixed text-on-primary-fixed px-3 py-1.5 rounded hover:bg-primary-fixed-dim transition-colors text-sm font-button-label border border-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                        تعديل السعر
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Hidden on desktop as per JSON, but active item logic applied) -->
+<nav class="fixed bottom-0 left-0 w-full flex md:hidden justify-around items-center py-2 bg-surface border-t border-outline-variant shadow-lg z-50">
+<a class="flex flex-col items-center justify-center text-primary font-bold active:bg-surface-variant p-2 rounded" href="#">
+<span class="material-symbols-outlined filled">restaurant_menu</span>
+<span class="font-label-muted text-label-muted mt-1">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant p-2 rounded" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-muted text-label-muted mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant p-2 rounded" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-label-muted text-label-muted mt-1">Book</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant p-2 rounded" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-muted text-label-muted mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

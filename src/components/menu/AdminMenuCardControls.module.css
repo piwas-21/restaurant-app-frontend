@@ -5,13 +5,15 @@
 .editButton {
   position: absolute;
   top: 0.5rem;
-  /* Top INLINE-START: on the CLASSIC card the special badge (MenuItem.module.css) and the shared
-     image-count badge (MenuItemImage.module.css) both sit at the inline END, so anchoring here
-     keeps it clear of them — and all three are logical, so they stay apart in `ar` too.
-     On the CRAFT card this pill already overlaps the tape special (CraftMenuCard.module.css
-     `.special`, same corner, but this one's z-index 11 wins). That predates the RTL sweep, is
-     admin-only, and both are inline-start, so `ar` inherits exactly the LTR relationship. */
-  inset-inline-start: 0.5rem;
+  /* Top INLINE-END. It used to be inline-START, which was correct while the classic special badge
+     and the image-count chip both sat at the inline END — that is no longer true. The redesign
+     moves the special badge to the leading corner (it is a ribbon on the photo now) and the count
+     chip to the BOTTOM trailing corner, so the top trailing corner is the free one on both cards.
+     All four are logical properties, so the arrangement holds in `ar`.
+     This also retires a wart the old comment recorded: on the CRAFT card this pill sat on top of
+     the tape special, winning on z-index. Craft's tape is inline-START too, so moving here
+     separates them rather than relying on stacking order. */
+  inset-inline-end: 0.5rem;
   /* Above the classic special badge (z-index 10) so it is never covered / unclickable. */
   z-index: 11;
 

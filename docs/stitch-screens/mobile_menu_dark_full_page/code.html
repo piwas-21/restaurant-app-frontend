@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#410000",
+                        "tertiary": "#900b07",
+                        "outline": "#926f69",
+                        "surface-tint": "#c00000",
+                        "on-error-container": "#93000a",
+                        "surface": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-primary-fixed-variant": "#930000",
+                        "on-secondary-fixed-variant": "#8b191d",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#910b07",
+                        "on-secondary-container": "#6d000c",
+                        "surface-bright": "#fcf9f8",
+                        "outline-variant": "#e7bdb6",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "surface-dim": "#dcd9d9",
+                        "primary": "#930000",
+                        "surface-container-high": "#eae7e7",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#ffb4a8",
+                        "background": "#fcf9f8",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-background": "#1c1b1b",
+                        "inverse-surface": "#313030",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-container": "#ffcdc5",
+                        "on-tertiary-container": "#ffccc5",
+                        "secondary-fixed": "#ffdad7",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-container": "#f0eded",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#410000",
+                        "tertiary-container": "#b3281d",
+                        "secondary-container": "#fd6d67",
+                        "surface-variant": "#e5e2e1",
+                        "on-surface": "#1c1b1b",
+                        "primary-container": "#c00000",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#5d3f3b",
+                        "tertiary-fixed": "#ffdad5",
+                        "secondary": "#ac3231",
+                        "primary-fixed": "#ffdad4",
+                        "on-secondary-fixed": "#410004",
+                        "surface-container-low": "#f6f3f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "1rem",
+                        "base": "4px",
+                        "gutter": "16px",
+                        "max-width": "1200px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "md": "1.5rem",
+                        "lg": "2.5rem",
+                        "xs": "0.5rem",
+                        "xl": "4rem"
+                    },
+                    "fontFamily": {
+                        "body-main": ["Public Sans"],
+                        "price-tag": ["Public Sans"],
+                        "display-lg": ["Playfair Display"],
+                        "section-heading": ["Playfair Display"],
+                        "label-muted": ["Public Sans"],
+                        "button-label": ["Public Sans"],
+                        "dish-name": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "body-main": ["0.95rem", { "lineHeight": "1.55", "fontWeight": "400" }],
+                        "price-tag": ["1rem", { "lineHeight": "1", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "section-heading": ["1.75rem", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "label-muted": ["0.8rem", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "button-label": ["0.95rem", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "dish-name": ["1.15rem", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface dark:bg-inverse-surface text-on-surface dark:text-inverse-on-surface font-body-main antialiased min-h-screen pb-24">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-surface/95 dark:bg-inverse-surface/95 backdrop-blur-sm border-b border-outline-variant dark:border-outline">
+<div class="font-display-lg text-display-lg-mobile md:text-display-lg font-bold text-primary dark:text-inverse-primary">
+            Bistro Elite
+        </div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary scale-95 active:transition-transform hover:text-primary dark:hover:text-inverse-primary transition-colors cursor-pointer" data-icon="language">language</span>
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary scale-95 active:transition-transform hover:text-primary dark:hover:text-inverse-primary transition-colors cursor-pointer" data-icon="dark_mode">dark_mode</span>
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary scale-95 active:transition-transform hover:text-primary dark:hover:text-inverse-primary transition-colors cursor-pointer" data-icon="shopping_cart">shopping_cart</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 px-margin-mobile">
+<!-- Hero Section -->
+<section class="mb-lg">
+<div class="h-48 w-full rounded-lg overflow-hidden border border-outline dark:border-[#444444] mb-sm relative">
+<img class="w-full h-full object-cover" data-alt="A dark moody top-down shot of a rustic wooden table set for a fine dining experience. Warm, low-key lighting highlights a perfectly plated artisanal dish in the center, casting soft shadows. The aesthetic is sophisticated and intimate, with deep burgundy napkins and gleaming dark silverware, emphasizing a premium restaurant atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCtKhCw5FkFu9eeoRFT9x58208UrQlB02DQdNaflXzo6Im10o5cQGH6iZPLKqLXDNByppJl_BQvkRt7A0v1BkFx_zBCMAPnlTfHr4ZfxmR6avLyy7nAbdMCjf7pSNoEbpn8dqpmpxK-mJRhHhL4YR8T1e1pGeH4F_aH1CdzkIj8R5ky5Azdhy6vah62f9cpQ_d_GIFJxSK36D12S66CFMTFS4lV2bdGvtZPZ8xg2M4tLyR_LKIGqm6PQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-sm">
+<h1 class="font-display-lg text-display-lg-mobile text-white drop-shadow-md">Our Menu</h1>
+</div>
+</div>
+<p class="font-body-main text-body-main text-on-surface-variant dark:text-surface-variant text-center px-sm">
+                Discover our carefully curated selection of seasonal dishes, crafted with passion and heritage.
+            </p>
+</section>
+<!-- Menu Categories (Bento Grid Style) -->
+<section class="mb-lg space-y-lg">
+<!-- Starters -->
+<div>
+<h2 class="font-section-heading text-section-heading text-on-surface dark:text-inverse-on-surface mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary" data-icon="appetizer" data-weight="fill">play_games</span>
+                    Starters
+                </h2>
+<div class="grid grid-cols-1 gap-sm">
+<!-- Item 1 -->
+<div class="bg-surface dark:bg-[#2A2A2A] rounded-lg border border-[#DDDDDD] dark:border-[#444444] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col hover:bg-surface-container-high dark:hover:bg-[#333333] transition-colors">
+<img class="w-full h-32 object-cover border-b border-[#DDDDDD] dark:border-[#444444]" data-alt="Close up food photography of a delicate beef carpaccio appetizer. The thin slices of raw beef are beautifully arranged on a dark ceramic plate, drizzled with olive oil and topped with shaved parmesan and fresh microgreens. The lighting is dramatic and warm, creating a premium dining aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZx7Vwl12PmscslmyPdfgHG6u60Xk8L-ZxJ5zpTmpvbpV_IV26upmx5j8QoGUcfjjkkFYwDwix5O91nMXt3CibowhizutDL04FYVo5gcUJpIIK8WYNuRnOiRLy7xERJtq6nMCG9aSb7Mv29i7pTx3igl-fuofG1Qh27wDQBxmI-88uIe4stSo_dX0Z5eWSSVeaTmvEeHto5qrWNXcUBNIHiNrnUykOPFij07bUoJbdULCc-nha4K0FNw"/>
+<div class="p-sm flex flex-col justify-between flex-grow">
+<div>
+<div class="flex justify-between items-start mb-base">
+<h3 class="font-dish-name text-dish-name text-on-surface dark:text-inverse-on-surface">Wagyu Carpaccio</h3>
+<span class="font-price-tag text-price-tag text-on-surface dark:text-inverse-on-surface">$18</span>
+</div>
+<p class="font-body-main text-label-muted text-on-surface-variant dark:text-[#AAAAAA] line-clamp-2">Thinly sliced premium wagyu beef, truffle oil, aged parmesan, and wild arugula.</p>
+</div>
+<div class="mt-sm flex justify-between items-center">
+<span class="px-2 py-1 text-xs border border-[#DDDDDD] dark:border-[#444444] rounded text-[#6B7280] dark:text-[#AAAAAA]">GF</span>
+<button class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:bg-tertiary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Mains -->
+<div>
+<h2 class="font-section-heading text-section-heading text-on-surface dark:text-inverse-on-surface mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary" data-icon="restaurant" data-weight="fill">restaurant</span>
+                    Mains
+                </h2>
+<div class="grid grid-cols-1 gap-sm">
+<!-- Item 2 -->
+<div class="bg-surface dark:bg-[#2A2A2A] rounded-lg border border-[#DDDDDD] dark:border-[#444444] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col hover:bg-surface-container-high dark:hover:bg-[#333333] transition-colors">
+<img class="w-full h-40 object-cover border-b border-[#DDDDDD] dark:border-[#444444]" data-alt="A mouth-watering high-end food shot of a perfectly seared duck breast, sliced to reveal a medium-rare pink center. It is plated elegantly with a rich cherry reduction sauce and accompanied by a small portion of root vegetable purée. The setting is dark and moody, emphasizing the rich colors of the dish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq0CH3jHN-ENt4Ol38eFyWJ1oOv5UvoEp2r5b3opZRWOKRab_-g8rY2CkjMRA2aIdd4uhTHrnDjsNrXXjxHKdTpqJ9i4QMCTLhEyZj-tBBs8dL9wG9jDzNuqa9bmy3ZYu5O4rdfgyILrlyYAXK1g3Abc4ikTnYclKLjfmQCOMS235C2JOrixi6ErlKzzqGNDBD7a2oo_dlKXSwVRVinL6ERtV964W2cpDw0W20l_y7WbmMQ2yuU5-4iQ"/>
+<div class="p-sm flex flex-col justify-between flex-grow">
+<div>
+<div class="flex justify-between items-start mb-base">
+<h3 class="font-dish-name text-dish-name text-on-surface dark:text-inverse-on-surface">Pan-Seared Duck Breast</h3>
+<span class="font-price-tag text-price-tag text-on-surface dark:text-inverse-on-surface">$34</span>
+</div>
+<p class="font-body-main text-label-muted text-on-surface-variant dark:text-[#AAAAAA] line-clamp-2">Cherry-port reduction, parsnip purée, and seasonal market vegetables.</p>
+</div>
+<div class="mt-sm flex justify-between items-center">
+<span class="px-2 py-1 text-xs border border-primary text-primary rounded">Chef's Choice</span>
+<button class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center hover:bg-tertiary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-lg px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center bg-surface-container-lowest dark:bg-surface-container-highest border-t border-outline-variant dark:border-outline flat no shadows mt-xl">
+<div class="font-display-lg text-lg text-on-surface dark:text-inverse-on-surface mb-sm md:mb-0">
+            Bistro Elite
+        </div>
+<div class="flex gap-4 mb-sm md:mb-0 font-label-muted text-label-muted text-on-surface-variant dark:text-[#AAAAAA]">
+<a class="hover:text-primary dark:hover:text-inverse-primary transition-colors opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="hover:text-primary dark:hover:text-inverse-primary transition-colors opacity-80 hover:opacity-100 transition-opacity" href="#">Terms of Service</a>
+<a class="hover:text-primary dark:hover:text-inverse-primary transition-colors opacity-80 hover:opacity-100 transition-opacity" href="#">Allergens</a>
+</div>
+<div class="font-label-muted text-label-muted text-on-surface-variant dark:text-[#AAAAAA] opacity-80">
+            © 2024 Bistro Elite. All rights reserved.
+        </div>
+</footer>
+</body></html>

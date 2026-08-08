@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Редактировать этот элемент",
   "admin_edit_item_short": "Изменить",
   "admin_edit_price": "Изменить цену",
+  "menu_item_details_aria": "Показать подробности: {{itemName}}",
+  "admin_edit_price_editing": "Изменение цены",
   "map": "Карта",
   "list": "Список",
   "everywhere": "Везде",
@@ -2548,5 +2550,9 @@
   "server_diagnostics": "Диагностика сервера",
   "validate": "Проверить",
   "validating": "Проверка...",
-  "setup_checklist_refresh_failed": "Сохранено. Не удалось обновить список — перезагрузите страницу."
+  "setup_checklist_refresh_failed": "Сохранено. Не удалось обновить список — перезагрузите страницу.",
+  "menu_state_empty_heading": "Здесь пока нет блюд",
+  "menu_state_error_heading": "Не удалось загрузить меню",
+  "browse_full_menu": "Смотреть всё меню",
+  "error_loading_menu_bundles": "Не удалось загрузить комбо-меню. Пожалуйста, попробуйте ещё раз."
 }

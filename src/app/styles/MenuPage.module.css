@@ -1,7 +1,44 @@
 /* Core Menu Page Styles */
 .menuContainer {
-  padding: 2rem;
-  width: 98%;
+  /* The whole inline distance from the viewport edge to the page's content, published as a variable
+     because a child has to be able to CANCEL it: the sticky category bar is page chrome and pulls
+     itself back out to those edges with a matching negative margin (CategoryNav.module.css). One
+     declaration, so the bar and the page it sits on cannot disagree.
+     2rem of it is this page's own gutter; the other 1rem is the shell's — BOTH templates' customer
+     chrome insets every non-home route by `padding: 1rem` (classic CustomerChrome.tsx's inline
+     `mainStyles`, craft chrome.module.css `.main`). The page cancels that inset and re-adds it here
+     so its box reaches the viewport edge and the bar's hairline can line up with the header's.
+     Measured at 1280px: page box 0→1280, content 48→1232 — the content does not move. */
+  --menu-page-gutter: 3rem;
+  /* DESIGN.md §Layout: "12-column grid with a max-width of 1200px. Content is centered with
+     generous outer margins to simulate a centered menu page." Published as a variable for the same
+     reason the gutter is — the category bar has to land on the SAME track as the cards it filters,
+     and two independent 1200px declarations are two things that can drift.
+
+     A variable rather than a cap on this element, because `.menuContainer` must stay full-bleed:
+     it paints `--page-canvas` and it is what the sticky bar cancels its inline gutter against to
+     run its surface and hairline edge to edge (S11's gain, measured 0->1280 at 1280px). Capping the
+     box would take that back. So the CONTENT is capped and the box is not.
+
+     Not folded into `--menu-page-gutter` as a percentage either, which was the first attempt. A
+     percentage always resolves against the REFERENCING element's containing block, so the same
+     declaration is a different length here (containing block: the shell's <main>) and in
+     `.stickyNav` (containing block: this element's content box, already 96px narrower). The
+     variable is not the cause — two literal `calc((100% - 1200px)/2)` rules would diverge the same
+     way — it is the concealment: the gutter comment above promises "one declaration, so the bar and
+     the page cannot disagree", which holds for a length and not for a percentage. And `.stickyNav`
+     reads that variable in `margin-inline` as well as in padding, so a percentage would break the
+     edge-to-edge cancellation, not just the inset. A plain length cannot disagree with itself. */
+  --menu-track-max: 1200px;
+  margin-inline: -1rem;
+  padding: 2rem var(--menu-page-gutter);
+  /* `auto` + `max-width: none`, not the old `width: 98%`. The 2% was slack on ONE side (the inline
+     end — the left in `ar`), leaving the page box 25px short of its parent at 1280px, which no
+     negative margin on the bar could make symmetric. `auto` lets the negative margins widen the box;
+     `max-width` is load-bearing because globals.css caps EVERY element at 100% below 768px, and a
+     capped box SHIFTS instead of widening. Content is bounded by `--menu-track-max` below. */
+  width: auto;
+  max-width: none;
   font-family: var(--font-family-sans);
   background-color: var(--page-canvas);
   color: var(--text-color);
@@ -18,6 +55,17 @@
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 1.5rem;
   align-items: start;
+  /* D12. Below ~1296px this does not bind and nothing moves; above it, the grid stops stretching
+     indefinitely, which is the other half of why the page stopped reading like the screens.
+     At the cap: main = 1200 - 360 - 24 = 816, so a card is (816 - 16) / 2 = 400px.
+     The cap goes here and NOT on `.menuContainer`: that box paints `--page-canvas` and is what
+     `.stickyNav` cancels its inline gutter against to run edge to edge (S11's gain, measured
+     0->1920 at 1920px). Capping it would take that back. A `margin-inline: calc(50% - 50vw)` on the
+     bar would also work around a capped box, but it pays in viewport units — which include the
+     scrollbar — and forks the single-gutter-declaration invariant. This is the least-machinery
+     answer, not the only possible one. */
+  max-width: var(--menu-track-max);
+  margin-inline: auto;
 }
 
 .menuMain {
@@ -26,6 +74,16 @@
 
 .menuSidebarColumn {
   display: block;
+  /* `align-items: start` above shrink-wraps every cell, which made this column exactly as tall as
+     the rail inside it (measured 369.6px for a 369.6px rail). A `position: sticky` element cannot
+     leave its containing block, so with zero travel the rail's sticky was **inert** — it scrolled
+     with the page and its `top` had never done anything. Stretching only this cell gives it the
+     row's height (637.3px here) so the rail can actually pin; the `<aside>` keeps its own content
+     height, so nothing else moves.
+
+     `align-self` on this cell rather than dropping `align-items: start` from the grid, because only
+     this cell holds a sticky child — the narrower change is the one whose blast radius is known. */
+  align-self: stretch;
 }
 
 @media (max-width: 1024px) {
@@ -56,16 +114,18 @@
   font-weight: 500;
 }
 
-/* Tablet */
+/* Tablet. The gutter narrows here and NOT at 480 — which is the breakpoint the bar has to match,
+   because a bar cancelling 2rem inside a 0.5rem container overflows the page by 1.5rem a side. */
 @media (max-width: 768px) {
   .menuContainer {
-    padding: 1rem 0.5rem;
+    --menu-page-gutter: 1.5rem; /* 0.5rem page gutter + the shell's unchanged 1rem */
+    padding: 1rem var(--menu-page-gutter);
   }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
   .menuContainer {
-    padding: 0.75rem 0.5rem;
+    padding: 0.75rem var(--menu-page-gutter);
   }
 }

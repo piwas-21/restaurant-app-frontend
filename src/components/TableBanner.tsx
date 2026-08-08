@@ -7,6 +7,7 @@ import { useTableContext } from '@/contexts/TableContext';
 import { useOrderType } from '@/contexts/OrderTypeContext';
 import { OrderType } from '@/types/order';
 import BaseModal from '@/components/design-system/BaseModal';
+import { STICKY_BANNER_ATTR } from '@/hooks/menu/useStickyNavOffset';
 import styles from './TableBanner.module.css';
 
 interface TableBannerProps {
@@ -39,6 +40,9 @@ export default function TableBanner({ position = 'top' }: TableBannerProps) {
     <>
       <div
         className={`${styles.banner} ${position === 'floating' ? styles.floating : styles.top}`}
+        // Only the sticky variant participates in the menu page's offset arithmetic; the floating
+        // one is out of flow and the category nav never has to clear it.
+        {...(position === 'top' ? { [STICKY_BANNER_ATTR]: '' } : {})}
         role="status"
         aria-live="polite"
       >
@@ -48,8 +52,17 @@ export default function TableBanner({ position = 'top' }: TableBannerProps) {
           </div>
 
           <div className={styles.info}>
-            <span className={styles.label}>{t('ordering_for_table', 'Ordering for Table')}</span>
-            <span className={styles.tableNumber}>{tableContext.tableNumber}</span>
+            {/* ONE interpolated sentence. It used to render the label and the number as two
+                separate spans while the translated value carries a `{{number}}` placeholder that
+                `t()` was never given values for — so a guest who scanned a QR read the literal
+                "Ordering for Table {{number}} 7".
+
+                Interpolating rather than stripping the placeholder from the ten locale files:
+                `tr` ("Masa {{number}} için Sipariş") and `zh` ("为桌号 {{number}} 下单") put it
+                mid-sentence, so removing the token would mangle the grammar in exactly the
+                languages CLAUDE.md §9 says not to rewrite. This fixes all ten with no translation
+                edits at all — it is the interpolation the strings were written for. */}
+            <span className={styles.label}>{t('ordering_for_table', { number: tableContext.tableNumber })}</span>
             {tableContext.isOutdoor && <span className={styles.badge}>🌤️ {t('outdoor', 'Outdoor')}</span>}
           </div>
 

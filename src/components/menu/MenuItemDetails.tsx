@@ -1,6 +1,5 @@
 'use client';
 
-import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import styles from './MenuItemDetails.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
@@ -13,7 +12,6 @@ type Props = {
   description: string;
   ingredients?: string;
   allergens?: string[];
-  price: number;
   dietaryTags: string[];
   t: (key: string, defaultValue?: any) => string;
   /**
@@ -23,19 +21,46 @@ type Props = {
    * action buttons inside `MenuItemActions`.
    */
   onTitleClick?: () => void;
+  /**
+   * Opens the details sheet from the description block — the card's Details affordance, which used
+   * to be a second full-size button competing with "Add to Order" in `MenuItemActions`.
+   */
+  onDetailsClick?: () => void;
+  detailsLabel?: string;
+  /**
+   * Accessible name for that button. Separate from the visible label because the visible one is
+   * just "Details" on every card — a screen-reader user listing the page's buttons would get N
+   * identical entries, where the add control beside it already says which dish it adds.
+   */
+  detailsAria?: string;
   initialRatingData?: RatingData;
 };
 
+/**
+ * The card's text column: name, description, allergens, dietary tags.
+ *
+ * The description is rendered again after a long dormancy. It was commented out here AND hidden by
+ * `display: none` below 600px, so the card showed a name, some chips and a price — which is a large
+ * part of why the page read as a catalogue rather than a menu. It comes back as the details
+ * affordance: two clamped lines followed by a real `<button>` (not an onClick on a `<p>`, which
+ * would strand keyboard users on cards whose title wraps).
+ *
+ * The price is no longer rendered here. It belongs on the card's action row beside the add control
+ * — one row, one price — and rendering it in both places meant the card carried two price nodes
+ * with only CSS deciding which was a lie at a given width.
+ */
 export default function MenuItemDetails({
   id,
   title,
-  description: _description,
+  description,
   ingredients: _ingredients,
   allergens,
-  price,
   dietaryTags,
   t,
   onTitleClick,
+  onDetailsClick,
+  detailsLabel,
+  detailsAria,
   initialRatingData: _initialRatingData,
 }: Props) {
   const titleProps = onTitleClick
@@ -59,7 +84,35 @@ export default function MenuItemDetails({
       <h3 id={`item-name-${id}`} dir="auto" className={styles.itemTitle} {...titleProps}>
         {title}
       </h3>
-      {/* <p className={`${styles.itemDescription} ${styles.clamp2}`}>{(description || '').trim().length > 0 ? description : ' '}</p> */}
+
+      {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+      {description && description.trim().length > 0 && (
+        <p dir="auto" className={styles.itemDescription}>
+          {description}
+        </p>
+      )}
+
+      {/* Immediately after the description, because it is the description's affordance: it opens
+          the sheet that holds the rest of the sentence this <p> clamps to two lines. It used to
+          render last — after the allergen block and the dietary chips — which on a RUMI card (no
+          allergens, no tags) left it stranded above the price rule with nothing to attach to; the
+          committed baselines show it floating in that blank band.
+
+          `mobile_menu_light` puts it here as `<a class="inline-block mt-1 …">`. Still a real
+          <button> with the same aria-label: `tablet_menu_light` folds it into the paragraph as a
+          <span>, and moving the onClick onto the <p> would strand keyboard users. */}
+      {onDetailsClick && (
+        <button
+          type="button"
+          className={styles.detailsLink}
+          onClick={onDetailsClick}
+          // Falls back to the visible text rather than to nothing: a caller that passes the handler
+          // without a label would otherwise render a button with no name at all.
+          aria-label={detailsAria ?? detailsLabel}
+        >
+          {detailsLabel}
+        </button>
+      )}
       {/* {(() => {
         const text = (ingredients || '').trim();
         const parts = text
@@ -105,20 +158,20 @@ export default function MenuItemDetails({
       {/* Allergens section - display below ingredients */}
       <AllergenDisplay allergens={allergens} id={id} maxVisible={3} showLabel={true} variant="full" />
 
-      <p className={styles.itemPrice} aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}>
-        {formatPlainCurrency(price)}
-      </p>
-
       {/* <AverageRating dishId={id} initialRatingData={initialRatingData} /> */}
 
       {dietaryTags && dietaryTags.length > 0 && (
         <div className={styles.allergyTags} aria-label={t('dietary_information_label')}>
+          {/* One chip style for every diet. The per-diet class lookup that used to be appended here
+              resolved against `.vegan` / `.vegetarian` / `.halal` / `.gluten-free` rules that no
+              longer exist — see the stylesheet for why they went. */}
+          {/* No `role="status"`. A dietary chip is STATIC content — "Vegan" is not an event being
+              announced — so a live-region role made every card shout its tags at a screen reader on
+              render. The wrapper's `aria-label` already names the group. (It is also an S6819
+              target, which is how it surfaced; the repo's answer elsewhere is `<output>`, but that
+              is for genuine status text and would be the same mistake here.) */}
           {dietaryTags.map((tag) => (
-            <span
-              key={tag}
-              className={`${styles.allergyTag} ${styles[(tag || '').toLowerCase().replace(/\s+/g, '-')] || ''}`}
-              role="status"
-            >
+            <span key={tag} className={styles.allergyTag}>
               {t(tag, tag)}
             </span>
           ))}

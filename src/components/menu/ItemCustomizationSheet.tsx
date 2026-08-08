@@ -113,6 +113,10 @@ export default function ItemCustomizationSheet({
   return (
     <BaseModal isOpen={isOpen} onClose={close} title={title} size="lg" footer={footer}>
       <div className={styles.body}>
+        {/* No dish photo here, deliberately (MENU-DESIGN-CONFORMANCE-PLAN D8). The two
+            `item_details_*` screens that show one are CRAFT designs, not classic, so they do not
+            govern this surface; the lightbox already owns the photo from the card; and a hero would
+            push the variations and the Add button below the fold at 390px. Settled — do not re-open. */}
         {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
         {description && (
           <p dir="auto" className={styles.description}>

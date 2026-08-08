@@ -3,7 +3,11 @@
   margin-bottom: 2rem;
 }
 
-/* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
+/* craft modal-body hooks (Prompts 10–13): var fallback = the classic literal. The classic rule is
+   1px — DESIGN.md's hairline — which is also what this hook's only other consumer
+   (GuestCustomerInfoFields) already falls back to; 2px was this file alone.
+   The `[data-theme='dark']` twin that stood here restated the same two tokens, both of which flip
+   on their own, so it painted nothing the light rule had not already painted. */
 .sectionTitle {
   font-family: var(--modal-body-title-font, inherit);
   font-size: var(--modal-body-title-size, 1.125rem);
@@ -11,12 +15,7 @@
   color: var(--text-color);
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: var(--modal-body-rule, 2px solid var(--border-color));
-}
-
-[data-theme='dark'] .sectionTitle {
-  color: var(--text-color);
-  border-bottom-color: var(--border-color);
+  border-bottom: var(--modal-body-rule, 1px solid var(--border-default));
 }
 
 /* Ingredient Groups */
@@ -45,16 +44,31 @@
   gap: 0.75rem;
 }
 
-/* Ingredient Item */
+/* Ingredient Item — a hairline-separated list row with NO fill of its own (DESIGN.md "Lists": a 1px
+   bottom rule between items, no zebra striping).
+   The fill is gone rather than recoloured because this component renders on two different parent
+   surfaces: the sheet body (`--surface-card`) and a bundle's Customize panel, which
+   `BundleOptionRow.module.css` paints `--surface-secondary`. Any fixed row fill therefore matches
+   one of its two backgrounds exactly — measured in Chromium, the old green and its replacement both
+   rendered #f0f0f0-on-#f0f0f0 (light) and #2c2c2c-on-#2c2c2c (dark) inside that panel, i.e. the
+   whole ingredient list vanished into one flat block. A hairline reads on either surface.
+   The `--modal-body-option-border` hook still carries craft's 2px kraft edge.
+
+   Six `border-color` declarations were deleted with the fills: nothing here sets `border-style`, so
+   the used width was 0 and they had no edge to paint. Two more declarations were removed
+   deliberately, not as dead code — `.ingredientItem:hover`'s `box-shadow` DID paint (the nested
+   reset below clears `background`, not `box-shadow`, and an optional row's checkbox is not
+   `disabled`), and the dark hover flipped a row to `--background-color`. Both go because DESIGN.md
+   gives hover to the surface, not to a shadow, and hover now lives on `.ingredientItemWrapper` —
+   the shape that owns a border and can show it on any parent surface. */
 .ingredientItem {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  background-color: var(--secondary-color-light);
-  border-radius: var(--modal-body-option-radius, 8px);
+  border-block-end: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 0);
   cursor: pointer;
-  transition: all 0.2s;
   user-select: none;
 }
 
@@ -63,44 +77,12 @@
   opacity: 0.85;
 }
 
-.ingredientItem:hover {
-  background-color: var(--secondary-color-light);
-  border-color: var(--primary-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.ingredientItem:has(:disabled):hover {
-  background-color: var(--secondary-color-light);
-  border-color: var(--border-color);
-  box-shadow: none;
-}
-
-.ingredientItem:has(:checked) {
-  background-color: var(--success-color-xlight);
-  border-color: var(--success-color);
-}
-
-[data-theme='dark'] .ingredientItem {
-  background-color: var(--secondary-color);
-  border-color: var(--border-color);
-}
-
-[data-theme='dark'] .ingredientItem:hover {
-  background-color: var(--background-color);
-  border-color: var(--primary-color);
-}
-
-[data-theme='dark'] .ingredientItem:has(:checked) {
-  background-color: var(--success-color-dark);
-  border-color: var(--success-color);
-}
-
 /* Checkbox */
 .checkbox {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: var(--success-color);
+  accent-color: var(--brand-primary);
   flex-shrink: 0;
 }
 
@@ -121,24 +103,34 @@
   white-space: nowrap;
 }
 
-/* Ingredient Price */
+/* Ingredient Price.
+   A surcharge is a piece of financial information, not a success state. It was `--success-color`,
+   which measures 2.55:1 on the resting row and 2.47:1 on the row once ticked — WCAG AA wants
+   4.5:1, and no gate could see it: the sheet is click-opened, so neither the screenshot run nor
+   the axe pass ever reaches it. Ink clears AA on both row fills in both themes (15.96 / 15.27
+   light, 12.25 dark) and is what DESIGN.md's "Ink and Paper" palette leaves for a price. Gated in
+   adminPriceEditorContrast.test.ts. */
 .ingredientPrice {
   font-family: var(--modal-body-accent-font, inherit);
   font-size: var(--modal-body-accent-size, 0.875rem);
   font-weight: 600;
-  color: var(--success-color);
+  color: var(--text-primary);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-/* Ingredient Item Wrapper */
+/* Ingredient Item Wrapper — the only row shape here that owns a real border, so hover and selection
+   are both carried by that border rather than by a fill. `--border-default`, not the legacy
+   `--border-color` alias: same value on :root, but the semantic name is the one guaranteed to flip.
+   Fill-less for the same reason as the row above — it renders inside the bundle panel too, where
+   `--secondary-color` was byte-identical to the panel. The two dark rules that set those fills went
+   with it; the border tokens flip on their own. */
 .ingredientItemWrapper {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: var(--secondary-color-light);
-  border: var(--modal-body-option-border, 1px solid var(--border-color));
-  border-radius: var(--modal-body-option-radius, 8px);
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 10px);
   padding-inline-end: 0.75rem;
 }
 
@@ -150,38 +142,27 @@
   padding: 0.875rem 1rem;
 }
 
-.ingredientItemWrapper:hover {
-  background-color: var(--secondary-color-light);
-  border-color: var(--primary-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-[data-theme='dark'] .ingredientItemWrapper {
-  background-color: var(--secondary-color);
-  border-color: var(--border-color);
-}
-
-[data-theme='dark'] .ingredientItemWrapper:hover {
-  background-color: var(--background-color);
-  border-color: var(--primary-color);
+.ingredientItemWrapper:hover,
+.ingredientItemWrapper:has(:checked) {
+  border-color: var(--brand-primary);
 }
 
 /* Quantity Controls */
-/* craft modal-body hooks: var fallback = exact classic literal (this stepper
-   sits inside the item sheet and was the last unskinned control there). */
+/* craft modal-body hooks: var fallback = the classic literal (this stepper sits inside the item
+   sheet and was the last unskinned control there). The classic radius is DESIGN.md's universal
+   10px, matching the row it sits in rather than adding a third value to the same sheet. */
 .quantityControls {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem;
   background-color: var(--background-color);
-  border-radius: var(--modal-body-option-radius, 6px);
-  border: var(--modal-body-option-border, 1px solid var(--border-color));
+  border-radius: var(--modal-body-option-radius, 10px);
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
 }
 
 [data-theme='dark'] .quantityControls {
   background-color: var(--secondary-color);
-  border-color: var(--border-color);
 }
 
 .quantityBtn {
@@ -193,7 +174,7 @@
   border: none;
   background-color: var(--secondary-color-light);
   color: var(--text-color);
-  border-radius: var(--modal-body-btn-radius, 4px);
+  border-radius: var(--modal-body-btn-radius, 10px);
   cursor: pointer;
   font-weight: bold;
   font-size: 1rem;
@@ -233,13 +214,8 @@
   min-width: 0;
 }
 
-/* Empty State */
-.emptyState {
-  padding: 2rem 1rem;
-  text-align: center;
-  color: var(--text-secondary);
-  font-style: italic;
-}
+/* `.emptyState` was deleted: the component returns `null` when it has no active ingredients
+   (OptionalIngredientsSection.tsx), so the class had no render site in any template. */
 
 /* Responsive Design */
 @media (max-width: 768px) {

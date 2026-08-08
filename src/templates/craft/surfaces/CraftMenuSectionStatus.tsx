@@ -19,6 +19,10 @@ export default function CraftMenuSectionStatus({
   isEmpty,
   loadingMessage,
   emptyMessage,
+  retryLabel,
+  browseLabel,
+  onRetry,
+  onBrowseFullMenu,
 }: Readonly<MenuSectionStatusProps>) {
   return (
     <div className={styles.section}>
@@ -40,10 +44,21 @@ export default function CraftMenuSectionStatus({
         </output>
       )}
 
+      {/* The note keeps craft's handwritten voice; the BUTTON is the part S10 added, because the
+          copy behind `errorMessage` has always ended "Please try again." with nothing to press.
+          `emptyHeading` / `errorHeading` are deliberately not rendered here: the shared default
+          takes the screen's two-line anatomy, and craft's states are one hand-written line by
+          design (craft-stitch-prompts.md Prompt 4). Same information, different skin — which is the
+          surface-slot contract. */}
       {errorMessage && (
-        <p className={styles.error} role="alert">
-          {errorMessage}
-        </p>
+        <div className={styles.stateBlock} role="alert">
+          <p className={styles.error}>{errorMessage}</p>
+          {onRetry && (
+            <button type="button" className={styles.stateAction} onClick={onRetry}>
+              {retryLabel}
+            </button>
+          )}
+        </div>
       )}
 
       {!isLoading && !errorMessage && isEmpty && (
@@ -62,6 +77,11 @@ export default function CraftMenuSectionStatus({
             />
           </svg>
           <p className={styles.emptyText}>{emptyMessage}</p>
+          {onBrowseFullMenu && (
+            <button type="button" className={styles.stateAction} onClick={onBrowseFullMenu}>
+              {browseLabel}
+            </button>
+          )}
         </div>
       )}
     </div>

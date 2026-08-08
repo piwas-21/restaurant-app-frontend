@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heritage Table - Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#410000",
+                      "tertiary": "#900b07",
+                      "outline": "#926f69",
+                      "surface-tint": "#c00000",
+                      "on-error-container": "#93000a",
+                      "surface": "#fcf9f8",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb4a9",
+                      "primary-fixed-dim": "#ffb4a8",
+                      "on-primary-fixed-variant": "#930000",
+                      "on-secondary-fixed-variant": "#8b191d",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#910b07",
+                      "on-secondary-container": "#6d000c",
+                      "surface-bright": "#fcf9f8",
+                      "outline-variant": "#e7bdb6",
+                      "on-error": "#ffffff",
+                      "secondary-fixed-dim": "#ffb3ae",
+                      "surface-dim": "#dcd9d9",
+                      "primary": "#930000",
+                      "surface-container-high": "#eae7e7",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#ffb4a8",
+                      "background": "#fcf9f8",
+                      "inverse-on-surface": "#f3f0ef",
+                      "on-background": "#1c1b1b",
+                      "inverse-surface": "#313030",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-container": "#ffcdc5",
+                      "on-tertiary-container": "#ffccc5",
+                      "secondary-fixed": "#ffdad7",
+                      "surface-container-highest": "#e5e2e1",
+                      "surface-container": "#f0eded",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#410000",
+                      "tertiary-container": "#b3281d",
+                      "secondary-container": "#fd6d67",
+                      "surface-variant": "#e5e2e1",
+                      "on-surface": "#1c1b1b",
+                      "primary-container": "#c00000",
+                      "on-primary": "#ffffff",
+                      "on-surface-variant": "#5d3f3b",
+                      "tertiary-fixed": "#ffdad5",
+                      "secondary": "#ac3231",
+                      "primary-fixed": "#ffdad4",
+                      "on-secondary-fixed": "#410004",
+                      "surface-container-low": "#f6f3f2"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "1rem",
+                      "base": "4px",
+                      "gutter": "16px",
+                      "max-width": "1200px",
+                      "margin-desktop": "32px",
+                      "margin-mobile": "16px",
+                      "md": "1.5rem",
+                      "lg": "2.5rem",
+                      "xs": "0.5rem",
+                      "xl": "4rem"
+              },
+              "fontFamily": {
+                      "body-main": [
+                              "Public Sans"
+                      ],
+                      "price-tag": [
+                              "Public Sans"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ],
+                      "section-heading": [
+                              "Playfair Display"
+                      ],
+                      "label-muted": [
+                              "Public Sans"
+                      ],
+                      "button-label": [
+                              "Public Sans"
+                      ],
+                      "dish-name": [
+                              "Playfair Display"
+                      ]
+              },
+              "fontSize": {
+                      "body-main": [
+                              "0.95rem",
+                              {
+                                      "lineHeight": "1.55",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "price-tag": [
+                              "1rem",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "section-heading": [
+                              "1.75rem",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-muted": [
+                              "0.8rem",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "button-label": [
+                              "0.95rem",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "dish-name": [
+                              "1.15rem",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-main antialiased pb-24 md:hidden mx-auto max-w-[390px] relative min-h-screen">
+<!-- Header / Top Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex flex-col bg-surface/95 backdrop-blur-sm border-b border-outline-variant shadow-sm max-w-[390px] mx-auto right-0">
+<div class="flex justify-between items-center px-margin-mobile h-16">
+<h1 class="font-display-lg text-[24px] font-bold text-primary">Heritage Table</h1>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+<!-- Table Banner -->
+<div class="bg-surface-container-high py-1 px-margin-mobile text-center">
+<span class="font-label-muted text-label-muted text-on-surface-variant">Ordering for Table 7</span>
+</div>
+<!-- Sticky Category Nav -->
+<nav class="w-full overflow-x-auto no-scrollbar px-margin-mobile py-2 bg-surface">
+<ul class="flex gap-6 whitespace-nowrap">
+<li><a class="font-button-label text-button-label text-primary border-b-2 border-primary pb-1" href="#">Starters</a></li>
+<li><a class="font-button-label text-button-label text-on-surface-variant" href="#">Mains</a></li>
+<li><a class="font-button-label text-button-label text-on-surface-variant" href="#">Desserts</a></li>
+<li><a class="font-button-label text-button-label text-on-surface-variant" href="#">Drinks</a></li>
+</ul>
+</nav>
+</header>
+<main class="pt-[116px] px-margin-mobile flex flex-col gap-lg">
+<!-- Chef's Special (Compact) -->
+<section class="mt-4">
+<h2 class="font-section-heading text-[1.25rem] text-on-surface mb-sm">Chef's Special</h2>
+<div class="bg-surface-container-lowest rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] flex items-center h-[120px] overflow-hidden">
+<img class="w-[120px] h-full object-cover shrink-0" data-alt="A close up food photography shot of a perfectly seared scallops dish on a minimalist white plate, garnished with microgreens and a vibrant red pepper puree. The lighting is bright and modern, casting soft shadows, highlighting the crispy texture of the scallops. The aesthetic is clean, premium, and appetizing, fitting for a modern bistro setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwjroIYFWBsDtogprWf6neCuopZF1jbzRID4gsse-PvuY1vfJsxe4wiX2fb6D6YtJjmr454RkHtdF7l0rV37MQWdf626L2bqqFjmAs2dOKuf31-GXLY7HgId7Or2OXzJa0FAax1yzukP9d9FRW-jTxkGuii4gC3dODnf5rZSG4hWjo9EpBH-Z0HsckzTeMI9935GlgdCtBRHDEt0BvVOeQBizXrGlS7avgzjnB13FVKN8GRW2ZYzJwwQ"/>
+<div class="p-sm flex-1 flex flex-col justify-between h-full">
+<div>
+<h3 class="font-dish-name text-dish-name text-on-surface line-clamp-1">Seared Hokkaido Scallops</h3>
+<p class="font-label-muted text-label-muted text-on-surface-variant mt-1 line-clamp-2">Cauliflower purée, crispy pancetta, herb oil.</p>
+</div>
+<div class="flex justify-between items-center mt-2">
+<span class="font-price-tag text-price-tag text-primary">$24.00</span>
+<button class="bg-primary text-on-primary rounded-full w-8 h-8 flex items-center justify-center active:bg-tertiary">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Dish List -->
+<section>
+<h2 class="font-section-heading text-[1.25rem] text-on-surface mb-sm hidden">Starters</h2>
+<div class="flex flex-col gap-sm">
+<!-- Dish Item 1 -->
+<article class="bg-surface-container-lowest rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] flex p-2 gap-3 items-center">
+<img class="w-[88px] h-[88px] rounded object-cover shrink-0" data-alt="A beautifully plated heirloom tomato salad with fresh burrata cheese, drizzled with olive oil and balsamic glaze, topped with fresh basil leaves. The plate is white and set on a light wooden table. The lighting is natural and bright, emphasizing the vibrant red of the tomatoes and the creamy texture of the cheese, reflecting a modern culinary style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAleUKCVvWAtTjFaCdnx_g_kYGBdqyY_5S4YvwJIC7MlPTZlkJLfP70SJgPJ9Wx58Vu0PbYf5k-EwMYEFgnu_8RboJiuoJz60GMvrc-1YnnYOcK7YrzazobvIE8IhHDZTiP461bNfAq82lIh9MwE394H-UIyEaPw7t_8Kkn783J8udpwHiC_N5N_mRu1RMgaGWarceiJFbFBKU175hP3rjNJ-OjJipG6FeFnEoeXs0bAU7Wk8hnCYMGXA"/>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-dish-name text-[1rem] leading-tight text-on-surface mb-1">Heirloom Tomato Burrata</h3>
+<p class="font-label-muted text-[0.75rem] text-on-surface-variant line-clamp-2 mb-2">Aged balsamic, fresh basil, extra virgin olive oil, grilled sourdough.</p>
+<div class="flex justify-between items-center">
+<span class="font-price-tag text-[0.9rem] text-primary">$18.00</span>
+<button class="bg-surface text-primary border border-primary rounded-full w-7 h-7 flex items-center justify-center active:bg-surface-variant">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Dish Item 2 -->
+<article class="bg-surface-container-lowest rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] flex p-2 gap-3 items-center">
+<img class="w-[88px] h-[88px] rounded object-cover shrink-0" data-alt="Crispy golden arancini balls served on a bed of rich red marinara sauce in a shallow bowl. Garnished with freshly grated parmesan cheese and parsley. The scene is warmly lit, highlighting the crunchy exterior of the risotto balls against the smooth sauce. The overall aesthetic is appetizing, rustic yet refined, suitable for a modern bistro." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmzX2Qx3pekfcfNXX_H-vZkY34muoA3G4kWeOwUd_XeqWA9PzFj_v76xFI2b4g11uoDsrdaWk5liaRCOGMoxW-y_OlZervDB1KpLmmklfHtDv-9w99I44C_oJ8lKegJNfTwUWyLWR3LdYLG235L1V_r-WX3IhLe-NIHYG956GA2jMHs-jB0TQim7sGOISfFuPROxQYlemfN2KDWjQranG20iigZ62aKEMgfXaWGc9x1EMZ8ZkofVyPsw"/>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-dish-name text-[1rem] leading-tight text-on-surface mb-1">Truffle Arancini</h3>
+<p class="font-label-muted text-[0.75rem] text-on-surface-variant line-clamp-2 mb-2">Wild mushroom risotto, mozzarella center, parmesan cream sauce.</p>
+<div class="flex justify-between items-center">
+<span class="font-price-tag text-[0.9rem] text-primary">$16.00</span>
+<button class="bg-surface text-primary border border-primary rounded-full w-7 h-7 flex items-center justify-center active:bg-surface-variant">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Dish Item 3 -->
+<article class="bg-surface-container-lowest rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] flex p-2 gap-3 items-center">
+<img class="w-[88px] h-[88px] rounded object-cover shrink-0" data-alt="A delicate beef tartare dish formed into a perfect circle, topped with a bright yellow quail egg yolk, surrounded by thin crostini on a dark slate plate. The lighting is dramatic but clean, focusing on the fresh texture of the meat and the glossy egg. The presentation is highly sophisticated and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD435YeHVTVg00h7ZzhNrg_lbH3x0QIVYdMB88kCmYiceIk13cO1l-p_Ds_cwI1TcWyrqgaV0xis1O1GBAPgbxjJyZENbVgEFUE2A8kNM83VHsyYwi8ney8OFGuLwPsnoj_jY5RGNnh0BVZzH4IfrnH5b5NSh77KEUlcn_Ks4trC9TMgRA0BtSj8du78jhtS6yt4TBHYYTaJhEBEKqOiytKqRgO-G2qr5-0ELq2wer9lSS__YrsPFIlQ"/>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-dish-name text-[1rem] leading-tight text-on-surface mb-1">Wagyu Beef Tartare</h3>
+<p class="font-label-muted text-[0.75rem] text-on-surface-variant line-clamp-2 mb-2">Capers, shallots, Dijon mustard, quail egg, house-made crostini.</p>
+<div class="flex justify-between items-center">
+<span class="font-price-tag text-[0.9rem] text-primary">$22.00</span>
+<button class="bg-surface text-primary border border-primary rounded-full w-7 h-7 flex items-center justify-center active:bg-surface-variant">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Dish Item 4 -->
+<article class="bg-surface-container-lowest rounded-lg border border-[#DDDDDD] shadow-[0_1px_3px_rgba(0,0,0,.06)] flex p-2 gap-3 items-center">
+<img class="w-[88px] h-[88px] rounded object-cover shrink-0" data-alt="A rustic wooden board presenting freshly baked artisanal bread slices, accompanied by a small ramekin of whipped cultured butter and a sprinkle of flaky sea salt. The setting is warm and inviting, with soft natural light catching the crusty texture of the bread. The style emphasizes simple, high-quality ingredients." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvbvPf3KS1Z_EItF_nFgt8JbC_VNCDf8ZHFMkC3e3uj5uKeixo7q_Dz5J6BojgOm6EkjgcSR4g-_4PNjSnGJeIdr0gFaEZqD1vFCUpObay1LWFI_5J-E7rTb6BFUKEXrmyVUPAR-lZ3gTpccJ8RnX2bQDc3zltis0oI88ND97cOclBHLF5pN73nDEGHoZ_ewQIT4X8OhdnInKFJzofhGercDE_xD16s0WqNQmKyPIfyVS-2R0VKz-84g"/>
+<div class="flex-1 flex flex-col justify-center">
+<h3 class="font-dish-name text-[1rem] leading-tight text-on-surface mb-1">Artisan Bread Service</h3>
+<p class="font-label-muted text-[0.75rem] text-on-surface-variant line-clamp-2 mb-2">Warm sourdough, whipped cultured butter, smoked sea salt.</p>
+<div class="flex justify-between items-center">
+<span class="font-price-tag text-[0.9rem] text-primary">$8.00</span>
+<button class="bg-surface text-primary border border-primary rounded-full w-7 h-7 flex items-center justify-center active:bg-surface-variant">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Floating Cart Button -->
+<div class="fixed bottom-6 right-6 z-50">
+<button class="bg-primary hover:bg-tertiary text-on-primary rounded-full h-14 px-4 flex items-center justify-between gap-3 shadow-lg transition-transform active:scale-95">
+<div class="relative">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute -top-2 -right-2 bg-on-primary text-primary text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
+</div>
+<span class="font-button-label text-button-label border-l border-on-primary/30 pl-3">$40.00</span>
+</button>
+</div>
+</body></html>

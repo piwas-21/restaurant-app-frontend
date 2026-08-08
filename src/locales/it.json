@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Modifica questo articolo",
   "admin_edit_item_short": "Modifica",
   "admin_edit_price": "Modifica prezzo",
+  "menu_item_details_aria": "Vedi i dettagli di {{itemName}}",
+  "admin_edit_price_editing": "Modifica del prezzo",
   "map": "Mappa",
   "list": "Elenco",
   "everywhere": "Ovunque",
@@ -2548,5 +2550,9 @@
   "server_diagnostics": "Diagnostica del server",
   "validate": "Convalida",
   "validating": "Convalida in corso...",
-  "setup_checklist_refresh_failed": "Salvato. Non è stato possibile aggiornare la checklist: ricarica la pagina."
+  "setup_checklist_refresh_failed": "Salvato. Non è stato possibile aggiornare la checklist: ricarica la pagina.",
+  "menu_state_empty_heading": "Ancora nessun piatto qui",
+  "menu_state_error_heading": "Impossibile caricare il menu",
+  "browse_full_menu": "Sfoglia tutto il menu",
+  "error_loading_menu_bundles": "Impossibile caricare i menu combinati. Riprova."
 }

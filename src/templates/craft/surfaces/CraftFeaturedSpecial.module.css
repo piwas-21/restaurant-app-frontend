@@ -4,9 +4,9 @@
 
 .hero {
   composes: cardStatic from '../primitives.module.css';
-  /* Matches the classic hero's page gutter and cap so the two templates put the banner in the same
-     box — only its contents differ. It sits ABOVE `.menuLayout`, full width (E4 part 1). */
-  max-width: 1400px;
+  /* The page's content track (S15/D12) — craft too, because `MenuList` has no craft override and so
+     craft's grid took the two-column change. Sits ABOVE `.menuLayout`, full width (E4 part 1). */
+  max-width: var(--menu-track-max, 1400px);
   margin: 1rem auto 1.5rem;
   padding: 1.5rem 1.75rem 1.75rem;
   position: relative;

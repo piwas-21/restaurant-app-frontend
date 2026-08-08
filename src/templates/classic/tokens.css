@@ -6,3 +6,44 @@
    The root layout imports this file FIRST (before globals.css), preserving
    the exact CSS order globals.css produced when it held this import. */
 @import '../../design-system/tokens/index.css';
+
+/* Typography — classic only (heritage_table/DESIGN.md §Typography):
+   Playfair Display for dish names, section headings and category tabs; Public Sans for body,
+   prices, buttons and labels. `fonts.ts` loads both as CSS variables.
+
+   Declared HERE rather than in globals.css so craft's CSS stays byte-identical to develop. The
+   first attempt rewrote globals.css's shared `--font-family-sans` into a `var(--font-body, …)`
+   with the same fallback — semantically identical for craft, which supplies no `--font-body` — and
+   craft's visual baseline still moved a few pixels on every page. Rather than accept a
+   cross-template change nobody could explain, the whole declaration moved behind the template
+   boundary, which is what that boundary is for.
+
+   `body`, not `:root`: next/font's variable classes are applied to <body> by the root layout, so
+   `--font-body` / `--font-display` are defined THERE, and custom properties inherit downwards only.
+   A `:root` declaration is evaluated on <html>, one level above the definitions, and silently takes
+   its fallback — the page rendered in the system stack with Georgia headings while both fonts were
+   loaded and sitting unused. This file is imported BEFORE globals.css, and globals.css declares
+   these two custom properties nowhere, so there is nothing to lose a cascade fight with. */
+body {
+  --font-family-sans:
+    var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif),
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-display: var(--font-display, Georgia, Cambria, 'Times New Roman', Times, serif);
+
+  /* BaseModal's title, the one --modal-* token that has to live at BODY scope.
+     A modal title is a dish name on the item sheet, so DESIGN.md §Typography's
+     `dish-name` applies and it is Playfair — yet the shared default is `inherit`,
+     which meant tapping a card swapped the name out of the serif it was drawn in
+     and into Public Sans. Every other --modal-* token is a plain value and stays
+     in the shared layer (design-system/tokens/colors.css).
+
+     Scope is load-bearing, not stylistic: --font-family-display is declared two
+     lines up on `body` because next/font applies its variable class there, and
+     custom properties inherit downwards only. Declared at :root instead, the
+     var() would be substituted on <html> where --font-family-display does not
+     exist, making the whole declaration invalid at computed-value time — and
+     since font-family is inherited, BaseModal's .title would quietly keep the
+     body sans. It would read as shipped and change nothing. (BaseModal portals
+     into document.body, so the dialog is always inside this scope.) */
+  --modal-title-font: var(--font-family-display);
+}

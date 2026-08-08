@@ -2213,6 +2213,8 @@
   "admin_edit_menu_item": "Edit this item",
   "admin_edit_item_short": "Edit",
   "admin_edit_price": "Edit price",
+  "menu_item_details_aria": "View details for {{itemName}}",
+  "admin_edit_price_editing": "Editing price",
   "map": "Map",
   "list": "List",
   "everywhere": "Everywhere",
@@ -2548,5 +2550,9 @@
   "server_diagnostics": "Server Diagnostics",
   "validate": "Validate",
   "validating": "Validating...",
-  "setup_checklist_refresh_failed": "Saved. The checklist could not be refreshed — reload to see the latest."
+  "setup_checklist_refresh_failed": "Saved. The checklist could not be refreshed — reload to see the latest.",
+  "menu_state_empty_heading": "No dishes here yet",
+  "menu_state_error_heading": "Unable to load menu",
+  "browse_full_menu": "Browse full menu",
+  "error_loading_menu_bundles": "Failed to load menu bundles. Please try again."
 }

@@ -1,92 +1,122 @@
-/* Admin price quick-edit, shown inline beside a card's price. Tokens only —
-   no raw hex (CLAUDE.md §5). Deliberately a labelled pill, not a bare icon:
-   the previous tag glyph sat in the image corner with nothing to say what it
-   did or what it applied to. */
+/* Admin price quick-edit, shown inline beside a card's price. Tokens only — no raw hex (CLAUDE.md §5).
 
+   Three states, and the redesign's brief was that all three must be distinguishable at a glance:
+   the REST control reads as an available admin action, EDITING reads as a form that can fail, and
+   LOCKED reads as a deliberate refusal rather than as a missing button. The last one is the whole
+   reason this component exists in its current shape — it used to render nothing at all for a combo
+   or a variation product, which is indistinguishable from a defect and is how it was reported. */
+
+/* Secondary button per DESIGN.md §Components: transparent fill, 1px brand border, brand text — so
+   it is legible as a control without competing with the card's one solid CTA beside it. Was a
+   DASHED grey outline, which reads as a disabled chip. */
 .trigger {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  border: 1px dashed var(--border-default);
-  background: var(--surface-secondary);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 10px;
+  /* Elevated for the same reason as the card's Details link — small brand text on surfaces that
+     shift under hover/blocked, where the plain brand is under AA in dark. */
+  border: 1px solid var(--brand-primary-elevated);
+  background: transparent;
+  color: var(--brand-primary-elevated);
+  font-size: 0.78rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.3;
   white-space: nowrap;
   cursor: pointer;
   transition:
     background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
+    color 0.15s ease;
 }
 
 .trigger:hover,
 .trigger:focus-visible {
   background: var(--brand-primary);
   color: var(--text-on-primary);
-  border-style: solid;
-  border-color: var(--brand-primary);
 }
 
 /* The refusal state. Deliberately NOT a disabled <button>: there is no action to offer, and a
-   focusable-but-dead control is the thing the card rules elsewhere forbid. A quiet label that says
-   why beats the empty space this used to render. */
+   focusable-but-dead control is the thing the card rules elsewhere forbid.
+
+   A sentence, not a chip. It used to carry a hairline and a --surface-secondary fill, which is the
+   shape of a STATUS BADGE.
+
+   The screens do NOT settle this — four draw a locked reason and they split 2-2. Bare icon + text
+   on the card's own surface: desktop light :327 (`text-on-surface-variant text-xs`) and desktop
+   dark :198. Filled and bordered: mobile dark :223 and mobile RTL :283. So this is a tie broken on
+   internal consistency rather than a transcription: S7 took the availability notice one row above
+   from a pill to a sentence, and two notices stacked in one price row cannot be a pill and a
+   sentence. A filled pill beside a price reads as a state token to be scanned, where this is an
+   explanation to be read — and what marks the card is now the card, not a box around three words.
+
+   --text-secondary, NOT --text-muted. Measured: muted is 4.24:1 on --surface-secondary in light,
+   below WCAG AA for this small label; secondary clears AA on all three surfaces this now sits
+   directly on — resting --surface-card (5.45 light / 9.49 dark), hovered --surface-secondary-light
+   (5.27 / 6.70) and blocked --surface-secondary (5.04 / 8.65). All three are gated in
+   adminPriceEditorContrast.test.ts rather than just the resting one: the surface under this label
+   changed when the fill came off, and a token measured on the resting surface and shipped onto a
+   tinted one is the error this plan has now made three times. */
 .locked {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  background: var(--surface-secondary);
-  /* --text-secondary, NOT --text-muted. Measured on the running app: muted is 4.24:1 on
-     --surface-secondary in the light theme, i.e. below WCAG AA for this 0.72rem label. Secondary
-     clears it in both (light 5.04, dark 8.65). The dark theme would have hidden this — muted is
-     5.5:1 there, so reading only the dark screenshot would have called it fine. */
   color: var(--text-secondary);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
-/* Inline editor (input + save/cancel), replacing the trigger in place. A column so the error has
-   somewhere to sit; it used to have nowhere, so a rejected save could only turn the border red. */
+/* Inline editor (input + save/cancel), replacing the trigger in place. A bordered box with a
+   legend, so an admin can see WHICH card is in edit mode on a grid of them — previously the only
+   signal was that one card's pill had turned into an input. */
 .editing {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.25rem;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  border: 1px solid var(--brand-primary);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+
+.editingLegend {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand-primary-elevated);
 }
 
 .inputRow {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .currency {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-secondary);
 }
 
 .priceInput {
   /* Was 4.5rem, which clipped a four-figure price mid-digit under the spinner. */
   width: 5.5rem;
-  padding: 0.25rem 0.45rem;
-  border-radius: 8px;
+  padding: 0.3rem 0.45rem;
+  border-radius: 10px;
   border: 1px solid var(--border-default);
-  background: var(--surface-card);
+  background: var(--surface-primary);
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .priceInput:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 1px;
+  outline: none;
   border-color: var(--brand-primary);
+  box-shadow: 0 0 0 1px var(--brand-primary);
 }
 
 .priceInputError {
@@ -94,42 +124,53 @@
 }
 
 .error {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   max-width: 12rem;
   /* --feedback-error is 3.5:1 on --surface-card in the light theme — it is tuned as a BORDER and
      an icon hue, not as body text. --feedback-danger-dark is the pair that clears AA in both
-     (light 5.33, dark 5.52). The border below keeps --feedback-error: 3.23:1 passes the 3:1
-     non-text threshold that applies to a UI boundary. */
+     (light 5.33, dark 5.52). The input border above keeps --feedback-error: 3.23:1 passes the
+     3:1 non-text threshold that applies to a UI boundary. */
   color: var(--feedback-danger-dark);
   font-size: 0.72rem;
   font-weight: 500;
   line-height: 1.3;
 }
 
-/* Save is the primary of the two, so it reads as such at rest rather than only on hover — the pair
-   were previously identical circles and the destructive-looking one was on the left. */
-.confirm {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
-}
-
+/* Save is the primary of the two and reads as such at rest — the pair were once identical circles
+   with the destructive-looking one on the leading edge. Both are square-ish 10px controls now, at
+   32px, which is the largest this can be without the row outgrowing a mobile card. */
 .iconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 999px;
-  background: var(--surface-card);
-  color: var(--text-primary);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
   border: 1px solid var(--border-default);
   cursor: pointer;
 }
 
 .iconButton:hover:not(:disabled),
 .iconButton:focus-visible:not(:disabled) {
-  background: var(--brand-primary);
-  color: var(--text-on-primary);
   border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.confirm {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.confirm:hover:not(:disabled),
+.confirm:focus-visible:not(:disabled) {
+  background: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+  color: var(--text-on-primary);
 }
 
 .iconButton:disabled {

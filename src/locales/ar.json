@@ -2550,5 +2550,9 @@
   "server_diagnostics": "تشخيص الخادم",
   "validate": "تحقق",
   "validating": "جارٍ التحقق...",
-  "setup_checklist_refresh_failed": "تم الحفظ. تعذّر تحديث قائمة المهام — أعد تحميل الصفحة لعرض آخر حالة."
+  "setup_checklist_refresh_failed": "تم الحفظ. تعذّر تحديث قائمة المهام — أعد تحميل الصفحة لعرض آخر حالة.",
+  "menu_state_empty_heading": "لا توجد أطباق هنا بعد",
+  "menu_state_error_heading": "تعذّر تحميل القائمة",
+  "browse_full_menu": "تصفّح القائمة كاملة",
+  "error_loading_menu_bundles": "تعذّر تحميل قوائم الوجبات. يرجى المحاولة مرة أخرى."
 }

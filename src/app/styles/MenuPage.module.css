@@ -43,6 +43,16 @@
 
 .menuSidebarColumn {
   display: block;
+  /* `align-items: start` above shrink-wraps every cell, which made this column exactly as tall as
+     the rail inside it (measured 369.6px for a 369.6px rail). A `position: sticky` element cannot
+     leave its containing block, so with zero travel the rail's sticky was **inert** — it scrolled
+     with the page and its `top` had never done anything. Stretching only this cell gives it the
+     row's height (637.3px here) so the rail can actually pin; the `<aside>` keeps its own content
+     height, so nothing else moves.
+
+     `align-self` on this cell rather than dropping `align-items: start` from the grid, because only
+     this cell holds a sticky child — the narrower change is the one whose blast radius is known. */
+  align-self: stretch;
 }
 
 @media (max-width: 1024px) {

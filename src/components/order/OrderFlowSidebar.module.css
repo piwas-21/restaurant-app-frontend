@@ -1,19 +1,52 @@
+/* The desktop basket rail (MENU-DESIGN-CONFORMANCE-PLAN S6).
+ *
+ * The offset is computed for the same reason `CategoryNav.module.css`'s is, and this rule is why:
+ * `top: 1rem` cleared neither the 80px header nor — since S11 made the category bar page-wide
+ * chrome that spans this column too — the nav. Measured at 1280px scrolled 360px, the rail's top
+ * edge sat at y=55.4 against a nav bottom of 146.8: 91.3px of the rail, including its heading,
+ * scrolled underneath the page chrome.
+ *
+ * The nav term is a measured variable, not a constant, because the bar's height moves with the tab
+ * set (an order-type sublabel makes it 66.8px on the seeded catalogue), the locale and the
+ * breakpoint. `--menu-nav-offset` comes from `useStickyNavOffset` and falls back to `0px`, which is
+ * also its value on the first paint before the observer has measured. The header term keeps the
+ * same `80px` fallback `CategoryNav.module.css` uses: it is the one term that really is a constant,
+ * and defaulting it to 0 would make a missing variable silently reinstate the bug.
+ *
+ * The screenshot suite shoots an unscrolled `fullPage`, so **the offset alone** is invisible to it,
+ * and its evidence is manual (plan §5, tier 2). That does not extend to the rest of this file: the
+ * desktop matrix runs at 1280px, above the 1024px breakpoint that hides this column, so the surface,
+ * the radius and the heading font below all move `classic/screenshots-desktop/menu-{light,dark}.png`
+ * and are regenerated in this slice. An earlier draft of this comment claimed the whole slice was
+ * invisible to the gate, which is how S4 reached CI with stale baselines. */
 .sidebar {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   padding: 1.25rem;
-  background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
+  /* `--surface-secondary`, which IS the #F0F0F0 heritage_table/DESIGN.md §Components names for the
+     Cart Summary: "stick to the Secondary Surface to distinguish the order summary from the main
+     browsing experience". It was `--card-background`, i.e. byte-identical to a menu card, so the
+     rail read as one more card in the grid rather than as the page's other half. The line items
+     keep the card surface and now sit ON this one — the tonal layering §Elevation asks for. */
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  /* §Shapes: a universal 10px on cards, buttons, inputs and image containers. Was 16px. */
+  border-radius: 10px;
   position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 2rem);
+  top: calc(var(--menu-header-offset, 80px) + var(--menu-banner-offset, 0px) + var(--menu-nav-offset, 0px) + 1rem);
+  max-height: calc(
+    100vh - var(--menu-header-offset, 80px) - var(--menu-banner-offset, 0px) - var(--menu-nav-offset, 0px) - 2rem
+  );
   overflow-y: auto;
 }
 
 .title {
   margin: 0;
+  /* §Typography section-heading: Playfair Display, the serif every heading on this page already
+     uses. This one set no font-family at all, so the rail's heading was the only Public Sans
+     heading on a page of serif ones — next to an <h2> "All" that is Playfair. */
+  font-family: var(--font-family-display);
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-color);

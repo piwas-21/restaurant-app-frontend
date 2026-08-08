@@ -94,7 +94,7 @@
      as stock UI next to craft's whittled cards. */
   --modal-body-btn-radius: var(--craft-radius);
   --modal-body-btn-shadow: 3px 3px 0 var(--border-default);
-  --modal-body-confirm-bg: var(--brand-primary); /* terracotta Confirm (classic keeps green) */
+  --modal-body-confirm-bg: var(--brand-primary); /* terracotta Confirm; classic falls back to its own red */
   --modal-body-confirm-fg: var(--text-on-primary);
   --modal-body-error-color: var(--feedback-danger); /* soft-brick notes, never harsh red */
   --modal-body-flat-card-bg: var(--brand-primary); /* replaces classic's red gradients — zero gradients */

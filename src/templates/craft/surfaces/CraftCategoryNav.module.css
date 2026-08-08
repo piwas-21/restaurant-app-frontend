@@ -14,12 +14,14 @@
   border-bottom: 2px dotted var(--border-default);
 }
 
+/* Same track as craft's grid and hero (S15/D12) — see CraftFeaturedSpecial.module.css for why craft
+   is in scope at all. Classic's equivalent rule carries the identical declaration. */
 .navWrapper {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: 1400px;
+  max-width: var(--menu-track-max, 1400px);
   margin: 0 auto;
   padding: 0 1rem;
 }

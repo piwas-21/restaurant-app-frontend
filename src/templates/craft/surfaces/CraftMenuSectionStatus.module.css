@@ -22,11 +22,15 @@
   margin: 0 0 1.5rem;
 }
 
+/* TWO plates, matching the two-column grid they stand in for (S15/D11). `MenuList` has no craft
+   override, so craft's real grid took that change; a three-up skeleton resolving into a two-up grid
+   reflows the page on every craft menu load — the one thing a skeleton exists to prevent.
+   The 1400 cap goes with it: the track caps at 1200 and the rail takes 384 of it, so it could not
+   bind, and a dead cap reads as a live constraint. */
 .skeletonGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  max-width: 1400px;
   margin: 0 auto 3rem;
 }
 

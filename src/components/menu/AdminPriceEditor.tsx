@@ -14,6 +14,31 @@ interface AdminPriceEditorProps {
   item: CatalogItem;
   /** Called with the new base price after a successful edit, so the card can reflect it. */
   onPriceChange?: (price: number) => void;
+  /**
+   * Report that this control is open, so the host can mark the CARD and not just the price row.
+   *
+   * All five classic admin screens that draw an editing state mark the whole card; they disagree
+   * only on how. Three ring it (`ring-1 ring-primary ring-offset-2` desktop light,
+   * `ring-primary-container` desktop dark, `ring-inverse-primary` mobile dark), two use a brand
+   * border plus a tint (tablet, mobile RTL). The unanimous half is the half this prop serves: the
+   * editor lives inside one ~200px price row, so on a grid the only signal for WHICH card was open
+   * was that row changing shape.
+   *
+   * A boolean, not the control's full state. `'locked'` and `'editable'` would have no consumer —
+   * the locked card deliberately does NOT recede (see AdminPriceEditor.module.css), so nothing
+   * outside this component needs to know about them, and an API that reports more than anyone reads
+   * is a contract to keep working for free.
+   *
+   * Fired from an effect keyed on `editing` rather than from the handlers, because three separate
+   * places end an edit — Cancel, Escape and a successful save — and one of them is an inline
+   * `onKeyDown` with no button to hang a call on. A handler-by-handler version that missed one
+   * would leave a card ringed with nothing open. One effect cannot drift.
+   *
+   * Must therefore be a referentially STABLE callback: pass a `useState` setter, not an inline
+   * arrow, and never one that also builds a new object (`(v) => setMap(m => ({...m, [id]: v}))`
+   * re-fires the effect every render and loops). Nothing type-checks that.
+   */
+  onEditingChange?: (editing: boolean) => void;
 }
 
 /**
@@ -44,7 +69,7 @@ const LOCKED_REASON_KEYS: Record<Exclude<PriceEditability, 'editable'>, { key: s
  * `priceEditability` is derived in `utils/catalogItem.ts`, NOT the backend's say-so
  * as this comment used to claim: `PriceEditable` exists nowhere in the backend.
  */
-export default function AdminPriceEditor({ item, onPriceChange }: Readonly<AdminPriceEditorProps>) {
+export default function AdminPriceEditor({ item, onPriceChange, onEditingChange }: Readonly<AdminPriceEditorProps>) {
   const { t } = useTranslation();
   const isAdmin = useIsAdmin();
   const [editing, setEditing] = useState(false);
@@ -60,6 +85,12 @@ export default function AdminPriceEditor({ item, onPriceChange }: Readonly<Admin
   useEffect(() => {
     if (editing) inputRef.current?.focus();
   }, [editing]);
+
+  // Above the early return, because hooks cannot run below one. Effects do fire on a component that
+  // renders `null`, which is what lets a guest's host be told `false` rather than nothing at all.
+  useEffect(() => {
+    onEditingChange?.(editing);
+  }, [editing, onEditingChange]);
 
   // Nothing for a guest, and nothing when the host did not wire a handler — in both cases there is
   // no admin looking, so an explanation would be noise rather than information.

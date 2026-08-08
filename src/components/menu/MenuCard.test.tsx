@@ -225,6 +225,43 @@ describe('MenuCard — admin quick-edit', () => {
     expect(screen.getByTestId('admin-edit-price')).toBeInTheDocument();
   });
 
+  /**
+   * S14: the CARD marks itself while its price is open, not just the price row.
+   *
+   * The screenshot suite runs as a guest, so it never renders any of this — the whole admin surface
+   * is invisible to it. And the row-level signal it replaces was genuinely weak: the editor lives
+   * inside one ~200px price row, so on a grid of cards the only indication of WHICH card was open
+   * was that row changing shape. All five classic admin screens that draw an editing state mark the
+   * whole card instead; three ring it and two use a brand border plus a wash. `outline` is the
+   * decision (see AdminPriceEditorHost.module.css), the whole-card mark is the transcription.
+   *
+   * Asserted on the `<li>` rather than by querying for the class, so it fails if the class is
+   * applied to the wrong element — which is the mistake worth catching, the ring being invisible
+   * from the component's own markup. `identity-obj-proxy` maps the CSS Module name through.
+   */
+  it('rings the whole card while its price is being edited, and stops when the edit ends', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    const { container } = render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+    const card = container.querySelector('li');
+
+    expect(card).not.toHaveClass('hostEditing');
+
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+    expect(card).toHaveClass('hostEditing');
+
+    fireEvent.click(screen.getByLabelText('Cancel'));
+    expect(card).not.toHaveClass('hostEditing');
+  });
+
+  /** A guest's card must never carry the mark — and `'hidden'` is reported, not merely absent. */
+  it('never rings a guest card', () => {
+    const { container } = render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(container.querySelector('li')).not.toHaveClass('hostEditing');
+    expect(screen.queryByTestId('admin-edit-price')).not.toBeInTheDocument();
+  });
+
   it('swaps the price editor for a reason when the price is derived (e.g. has variations)', () => {
     (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
 

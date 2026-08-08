@@ -17,6 +17,11 @@ import AdminMenuCardControls from './AdminMenuCardControls';
 import AdminPriceEditor from './AdminPriceEditor';
 import FeedbackForm from '@/components/feedback/FeedbackForm';
 import styles from './MenuItem.module.css';
+// The admin editor's mark on its HOST card (the editing ring). Its own module, not a section of
+// `MenuItem.module.css`: that file is at exactly the 200-line §4 ceiling, and the class styles the
+// CARD on the admin control's behalf rather than the customer card's own chrome. Same
+// pattern as `availabilityStyles` below — this card already composes a second module.
+import adminPriceStyles from './AdminPriceEditorHost.module.css';
 // The classic card's own availability styling, split out of `MenuItem.module.css` (200-LOC limit).
 // Still the HOST's stylesheet — `MenuCardAvailability` is the shared shell and takes whichever
 // module its host hands it; craft passes its own. The shell reads only `availability*` classes.
@@ -61,6 +66,10 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
   // Locally reflect an admin inline price edit; resync if the item prop changes.
   const [price, setPrice] = useState(item.price);
   useEffect(() => setPrice(item.price), [item.price]);
+  // Whether this card's price is open in the admin editor, so the CARD can say so rather than
+  // leaving it to one 200px row. Always false for a guest — the editor owns the condition, this
+  // never re-derives it.
+  const [priceEditing, setPriceEditing] = useState(false);
 
   const currentLanguage = (i18n.language || 'en').split('-')[0];
   const itemName = item.content?.[currentLanguage]?.name || item.content?.en?.name || item.name;
@@ -86,7 +95,13 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
     // order" is REMOVED while blocked rather than left disabled-and-unexplained, so there is nothing
     // an AT could act on. Setting it anyway is markup `jsx-a11y/role-supports-aria-props` rejects.
     <li
-      className={isBlocked ? `${styles.menuItem} ${styles.blocked}` : styles.menuItem}
+      className={[
+        styles.menuItem,
+        isBlocked ? styles.blocked : null,
+        priceEditing ? adminPriceStyles.hostEditing : null,
+      ]
+        .filter(Boolean)
+        .join(' ')}
       aria-labelledby={[item.isSpecial ? specialId : null, nameId, isBlocked ? reasonId : null]
         .filter(Boolean)
         .join(' ')}
@@ -164,7 +179,10 @@ export default function MenuCard({ item, onOpen, onFeedbackSuccess, onSwitchOrde
           <span className={styles.rowPrice} aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}>
             {formatPlainCurrency(price)}
           </span>
-          <AdminPriceEditor item={item} onPriceChange={setPrice} />
+          {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an effect
+              keyed on that boolean, and a useState setter is the referentially stable identity the
+              contract needs. An inline arrow would re-fire it on every render. */}
+          <AdminPriceEditor item={item} onPriceChange={setPrice} onEditingChange={setPriceEditing} />
           <MenuItemActions
             onAdd={open}
             onFeedback={() => setShowFeedbackForm(true)}

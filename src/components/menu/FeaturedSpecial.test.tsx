@@ -268,6 +268,42 @@ describe('admin controls on the hero', () => {
 
     expect(screen.getByTestId('admin-edit-price-locked')).toHaveTextContent('Open the item to edit its price');
   });
+
+  /**
+   * S14: the hero marks itself while its price is open, exactly as a catalog card does.
+   *
+   * Pinned separately from the card's copy rather than assumed to follow from it. The two hosts
+   * wire the same callback into different elements, so nothing about the card's test constrains
+   * this one — deleting the hero's wiring outright left the card's test, this file and the contrast
+   * gate all green when it was tried.
+   *
+   * The class goes on the CONTAINER, not the `<section>`: the container is the box that carries the
+   * strip's border, radius and surface, so an outline on the section would trace a rectangle nobody
+   * drew. Asserted by walking down from the section for that reason — a `querySelector` for the
+   * class would pass wherever it landed.
+   */
+  it('rings the hero while its price is being edited, and stops when the edit ends', () => {
+    asAdmin(true);
+    const { container } = render(
+      <FeaturedSpecial special={{ ...special, type: 'mainItem' }} onAddToCart={jest.fn()} />,
+    );
+    const box = container.querySelector('section > div');
+
+    expect(box).not.toHaveClass('hostEditing');
+
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+    expect(box).toHaveClass('hostEditing');
+
+    fireEvent.click(screen.getByLabelText('Cancel'));
+    expect(box).not.toHaveClass('hostEditing');
+  });
+
+  it('never rings the hero for a guest', () => {
+    asAdmin(false);
+    const { container } = render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} />);
+
+    expect(container.querySelector('section > div')).not.toHaveClass('hostEditing');
+  });
 });
 
 describe('localized content', () => {

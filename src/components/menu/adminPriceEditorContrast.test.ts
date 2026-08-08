@@ -4,8 +4,9 @@ import { join } from 'node:path';
 /**
  * Contrast gate for `AdminPriceEditor`'s two new text surfaces, and for the featured hero's CTA.
  *
- * It exists because both of them shipped failing when measured. The locked-reason pill used
- * `--text-muted` on `--surface-secondary` (**4.24:1** in light) and the save-error line used
+ * It exists because both of them shipped failing when measured. The locked reason — a filled pill
+ * at the time, a bare sentence since S14 — used `--text-muted` on `--surface-secondary` (**4.24:1**
+ * in light) and the save-error line used
  * `--feedback-error` on `--surface-card` (**3.50:1** in light) — and the dark theme hid both, at
  * 5.5 and 6.71. Reading the dark screenshot, or reasoning about the token names, would have called
  * them fine; only measuring the light pair found them.
@@ -87,10 +88,41 @@ describe('AdminPriceEditor colour pairs', () => {
   describe.each(THEMES)('%s theme', (_theme, selector) => {
     const v = tokens(selector);
 
-    it('the locked-reason pill clears AA', () => {
-      // Was --text-muted, which fails at 4.24 in light.
-      expect(contrast(v['--text-secondary'], v['--surface-secondary'])).toBeGreaterThanOrEqual(AA_TEXT);
-    });
+    /**
+     * The locked reason, on all three surfaces it can now sit on.
+     *
+     * It used to be one surface, because the label had its own `--surface-secondary` fill. S14 took
+     * the fill off — the five classic admin screens draw this as bare icon + text — so the label now
+     * sits directly on whatever the card has: resting `--surface-card`, hovered
+     * `--surface-secondary-light`, blocked `--surface-secondary`. Removing a fill silently changes
+     * what a colour was measured against, which is the exact shape of the error this plan has made
+     * three times, so all three are gated rather than the one it used to have.
+     *
+     * `--text-secondary`, not `--text-muted`: muted is 4.24:1 on `--surface-secondary` in light.
+     * Secondary's worst reading across the six pairings below is 5.04:1.
+     */
+    it.each(['--surface-card', '--surface-secondary-light', '--surface-secondary'])(
+      'the locked reason clears AA on %s in this theme',
+      (surface) => {
+        expect(contrast(v['--text-secondary'], v[surface])).toBeGreaterThanOrEqual(AA_TEXT);
+      },
+    );
+
+    /**
+     * The editing ring S14 puts on the host card.
+     *
+     * Chrome, not text, so WCAG 1.4.11's 3:1 applies. `outline-offset: 2px` means the ring is drawn
+     * clear of the card, so the surface behind it is the page — but the ring also has to stay
+     * perceivable where it abuts the card itself, and the card has three surfaces. The worst
+     * reading is 3.23:1, dark and hovered; the page background (`--surface-primary`) is 5.19:1
+     * there. Gated on all four so a future palette change cannot quietly sink one of them.
+     */
+    it.each(['--surface-primary', '--surface-card', '--surface-secondary-light', '--surface-secondary'])(
+      'the editing ring clears the non-text threshold on %s in this theme',
+      (surface) => {
+        expect(contrast(v['--brand-primary'], v[surface])).toBeGreaterThanOrEqual(AA_NON_TEXT);
+      },
+    );
 
     it('the save-error line clears AA', () => {
       // Was --feedback-error, which fails at 3.50 in light — it is tuned as a border/icon hue.

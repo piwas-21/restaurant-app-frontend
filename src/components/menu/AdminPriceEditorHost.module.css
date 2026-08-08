@@ -1,0 +1,38 @@
+/* The mark `AdminPriceEditor` puts on its HOST card (MENU-DESIGN-CONFORMANCE-PLAN S14).
+
+   Its own module rather than a section of `AdminPriceEditor.module.css`, and not `MenuItem.module.css`
+   either. The concern is different — this styles the CARD, not the control — and both alternatives
+   are blocked by the §4 ceiling anyway: `MenuItem.module.css` sits at exactly 200 lines, and folding
+   this back into the editor's own module put that file at 208. Splitting also means a host imports
+   only the one class it applies rather than the whole editor stylesheet.
+
+   Consumed by `MenuCard.tsx` and `FeaturedSpecial.tsx`. Craft's own card surfaces deliberately do not
+   take it: `CraftMenuCard` / `CraftFeaturedSpecial` render the shared editor without the callback, and
+   a classic brand outline would be wrong against craft's organic radii and kraft borders. */
+
+/* "This card is the one being edited." All five classic admin screens that draw an editing state
+   mark the whole card — that part is unanimous, and it is the point: the editor occupies one narrow
+   price row, so on a grid nothing said WHICH card was open.
+
+   HOW they mark it is 3-2, so the ring is a decision rather than a transcription. Three ring:
+   `ring-1 ring-primary ring-offset-2` (desktop light :287), `ring-primary-container` (desktop dark
+   :222), `ring-inverse-primary` (mobile dark :181). Two use a brand border plus a wash: tablet :186
+   (`hairline-border border-primary` over an `inset-0 bg-primary/5`) and mobile RTL :242
+   (`border-2 border-primary-container`).
+
+   The ring wins on two grounds neither screen can see. A border on this box would be a SECOND
+   border — both hosts already set one — so the two CSS Modules would have to win a cascade against
+   each other, which is decided by chunk order and is exactly what shifted craft's checkout by 2px
+   in S11 (plan trap 6). And a border participates in layout: on a grid of equal-height cards, an
+   extra 1px would resize the card the moment an edit opened. An outline is drawn outside the box
+   and reflows nothing — measured live at 0x0. It is also the same 2px/2px-offset brand ring the
+   page's focus indicators already use, so the page keeps one ring style rather than two.
+
+   Non-text chrome, so WCAG 1.4.11's 3:1 applies rather than 4.5. The 2px offset exposes the PARENT's
+   background — the page in both hosts — where --brand-primary is 6.48:1 light and 5.19:1 dark. The
+   card's own surfaces are gated too, at a worst 3.23:1, so a future layout that closes the offset
+   cannot silently drop it below the line. */
+.hostEditing {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}

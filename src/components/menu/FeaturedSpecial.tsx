@@ -1,6 +1,7 @@
 'use client';
 
 import { formatPlainCurrency } from '@/utils/currency';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Clock, Plus } from 'lucide-react';
 import Image from 'next/image';
@@ -13,6 +14,8 @@ import AllergenDisplay from '@/components/common/AllergenDisplay';
 import MenuCardAvailability from './MenuCardAvailability';
 import AdminMenuCardControls from './AdminMenuCardControls';
 import AdminPriceEditor from './AdminPriceEditor';
+// The editing ring, shared with the catalog card so the two hosts cannot drift into two rings.
+import adminPriceStyles from './AdminPriceEditorHost.module.css';
 import { useFeaturedSpecialHero } from '@/hooks/menu/useFeaturedSpecialHero';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
@@ -52,6 +55,7 @@ export default function FeaturedSpecial({
   const { t } = useTranslation();
   const { availabilityNotice, isBlocked, reasonId, itemName, description, price, onPriceChange, adminItem } =
     useFeaturedSpecialHero(special);
+  const [priceEditing, setPriceEditing] = useState(false);
 
   return (
     <section
@@ -62,12 +66,17 @@ export default function FeaturedSpecial({
       // with its cause rather than as an unexplained style (same rule as the card).
       aria-labelledby={isBlocked ? `featured-special-heading ${reasonId}` : 'featured-special-heading'}
     >
+      {/* The ring goes on the CONTAINER, not the <section>: the container is the box that carries
+          the strip's border, radius and surface — the <section> is a layout wrapper with no box of
+          its own, so an outline on it would trace a rectangle nobody drew. */}
       <div
-        className={
-          special.imageUrl
-            ? styles.featuredSpecialContainer
-            : `${styles.featuredSpecialContainer} ${styles.featuredSpecialNoPhoto}`
-        }
+        className={[
+          styles.featuredSpecialContainer,
+          special.imageUrl ? null : styles.featuredSpecialNoPhoto,
+          priceEditing ? adminPriceStyles.hostEditing : null,
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
         {/* The hero was the ONE item on the menu page an admin could not act on: every card
             renders these two, and the banner rendered neither. */}
@@ -154,7 +163,7 @@ export default function FeaturedSpecial({
               {/* Beside the price it edits, exactly as on a card. It renders nothing for a guest,
                   and for an admin it always renders SOMETHING — the control, or the reason it
                   cannot apply (E3). */}
-              <AdminPriceEditor item={adminItem} onPriceChange={onPriceChange} />
+              <AdminPriceEditor item={adminItem} onPriceChange={onPriceChange} onEditingChange={setPriceEditing} />
             </div>
 
             {special.allergens && special.allergens.length > 0 && (

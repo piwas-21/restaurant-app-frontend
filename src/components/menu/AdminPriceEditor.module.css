@@ -37,20 +37,30 @@
 }
 
 /* The refusal state. Deliberately NOT a disabled <button>: there is no action to offer, and a
-   focusable-but-dead control is the thing the card rules elsewhere forbid. */
+   focusable-but-dead control is the thing the card rules elsewhere forbid.
+
+   A sentence, not a chip. It used to carry a hairline and a --surface-secondary fill, which is the
+   shape of a STATUS BADGE.
+
+   The screens do NOT settle this — four draw a locked reason and they split 2-2. Bare icon + text
+   on the card's own surface: desktop light :327 (`text-on-surface-variant text-xs`) and desktop
+   dark :198. Filled and bordered: mobile dark :223 and mobile RTL :283. So this is a tie broken on
+   internal consistency rather than a transcription: S7 took the availability notice one row above
+   from a pill to a sentence, and two notices stacked in one price row cannot be a pill and a
+   sentence. A filled pill beside a price reads as a state token to be scanned, where this is an
+   explanation to be read — and what marks the card is now the card, not a box around three words.
+
+   --text-secondary, NOT --text-muted. Measured: muted is 4.24:1 on --surface-secondary in light,
+   below WCAG AA for this small label; secondary clears AA on all three surfaces this now sits
+   directly on — resting --surface-card (5.45 light / 9.49 dark), hovered --surface-secondary-light
+   (5.27 / 6.70) and blocked --surface-secondary (5.04 / 8.65). All three are gated in
+   adminPriceEditorContrast.test.ts rather than just the resting one: the surface under this label
+   changed when the fill came off, and a token measured on the resting surface and shipped onto a
+   tinted one is the error this plan has now made three times. */
 .locked {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 10px;
-  border: 1px solid var(--border-default);
-  background: var(--surface-secondary);
-  /* --text-secondary, NOT --text-muted. Measured on the running app: muted is 4.24:1 on
-     --surface-secondary in the light theme, i.e. below WCAG AA for this small label. Secondary
-     clears it in both (light 5.04, dark 8.65). The dark theme would have hidden this — muted is
-     5.5:1 there, so reading only the dark screenshot would have called it fine.
-     Gated by adminPriceEditorContrast.test.ts. */
   color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 500;

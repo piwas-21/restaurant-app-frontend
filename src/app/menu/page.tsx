@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import TableBanner from '@/components/TableBanner';
 
 import { useStickyNavOffset } from '@/hooks/menu/useStickyNavOffset';
-import { usePublicMenu } from '@/hooks/usePublicMenu';
+import { ALL_ITEMS_KEY, usePublicMenu } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
 import { useCart } from '@/components/cart/CartContext';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
@@ -38,7 +38,6 @@ export default function MenuPage() {
   const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
   const [isMobileCartSheetOpen, setIsMobileCartSheetOpen] = useState(false);
 
-  // Custom hooks
   const {
     categories: categoriesForNav,
     selectedView,
@@ -51,6 +50,7 @@ export default function MenuPage() {
     totalPages,
     totalCount,
     onPageChange,
+    refetch,
   } = usePublicMenu();
 
   const { featuredSpecial } = useFeaturedSpecial();
@@ -95,7 +95,6 @@ export default function MenuPage() {
 
   const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t);
 
-  // Calculate cart totals for floating button
   const itemCount = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cartState.basket?.total || 0;
 
@@ -151,6 +150,9 @@ export default function MenuPage() {
             // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
             // its own instance would set the type and swallow the table/address/contact step.
             onSwitchOrderType={switchOrderTypeFromCard}
+            // Retry — the copy has promised "Please try again." since before a control existed.
+            onRetry={refetch}
+            onBrowseFullMenu={() => setSelectedView(ALL_ITEMS_KEY)}
           />
         </div>
 
@@ -164,7 +166,6 @@ export default function MenuPage() {
       <ItemCustomizationSheet controller={sheet.product} onSwitchOrderType={switchOrderTypeFromCard} />
       <ItemCustomizationSheet controller={sheet.bundle} onSwitchOrderType={switchOrderTypeFromCard} />
 
-      {/* Floating Cart Button */}
       <FloatingCartButton
         itemCount={itemCount}
         totalPrice={cartTotal}

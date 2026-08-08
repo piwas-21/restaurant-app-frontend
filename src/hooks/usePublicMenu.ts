@@ -91,6 +91,31 @@ export function usePublicMenu() {
     [fetchProducts, fetchMenuBundles],
   );
 
+  /**
+   * Reload the active view.
+   *
+   * `useCallback` since S10, when this stopped being unused. Until then it was a fresh arrow on
+   * every render and nothing consumed it.
+   *
+   * Reference hygiene rather than a measured fix, and worth saying plainly: nothing in the chain it
+   * now travels — `MenuContent`, `MenuSectionStatus`, `MenuList`, `Pagination` — is wrapped in
+   * `memo`, so today an unstable identity would cost nothing either. What it buys is that the first
+   * `memo` anyone adds along that path works, instead of being silently defeated by a prop from
+   * three components up. (`page.tsx` still passes `onBrowseFullMenu` as an inline arrow for the
+   * same reason in reverse: there is no memo to protect and the page is at its §4 line ceiling.)
+   *
+   * `currentPage` is the only reactive dependency — the view and the order type are already read
+   * from refs, which is what makes this safe to hand out.
+   */
+  const refetch = useCallback(() => {
+    // Returns the promise so callers (e.g. admin save flows) can `await`
+    // a fresh load instead of racing the next render.
+    if (selectedViewRef.current === MENU_BUNDLES_KEY) {
+      return fetchMenuBundles(currentPage, orderTypeRef.current);
+    }
+    return fetchProducts(currentPage, selectedViewRef.current, orderTypeRef.current);
+  }, [currentPage, fetchMenuBundles, fetchProducts]);
+
   return {
     categories,
     selectedView,
@@ -104,13 +129,6 @@ export function usePublicMenu() {
     totalCount,
     pageSize,
     onPageChange: handlePageChange,
-    refetch: () => {
-      // Returns the promise so callers (e.g. admin save flows) can `await`
-      // a fresh load instead of racing the next render.
-      if (selectedViewRef.current === MENU_BUNDLES_KEY) {
-        return fetchMenuBundles(currentPage, orderTypeRef.current);
-      }
-      return fetchProducts(currentPage, selectedViewRef.current, orderTypeRef.current);
-    },
+    refetch,
   } as const;
 }

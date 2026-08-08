@@ -2550,5 +2550,9 @@
   "server_diagnostics": "服务器诊断",
   "validate": "验证",
   "validating": "验证中...",
-  "setup_checklist_refresh_failed": "已保存。清单未能刷新——请重新加载页面。"
+  "setup_checklist_refresh_failed": "已保存。清单未能刷新——请重新加载页面。",
+  "menu_state_empty_heading": "这里还没有菜品",
+  "menu_state_error_heading": "无法加载菜单",
+  "browse_full_menu": "浏览完整菜单",
+  "error_loading_menu_bundles": "无法加载套餐菜单。请重试。"
 }

@@ -2550,5 +2550,9 @@
   "server_diagnostics": "Serverdiagnostiek",
   "validate": "Valideren",
   "validating": "Valideren...",
-  "setup_checklist_refresh_failed": "Opgeslagen. De checklist kon niet worden vernieuwd — herlaad de pagina."
+  "setup_checklist_refresh_failed": "Opgeslagen. De checklist kon niet worden vernieuwd — herlaad de pagina.",
+  "menu_state_empty_heading": "Hier nog geen gerechten",
+  "menu_state_error_heading": "Menu kon niet worden geladen",
+  "browse_full_menu": "Bekijk het hele menu",
+  "error_loading_menu_bundles": "Menucombinaties konden niet worden geladen. Probeer het opnieuw."
 }

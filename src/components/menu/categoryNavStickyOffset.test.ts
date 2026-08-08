@@ -185,3 +185,78 @@ describe('the category bar is page chrome, not a column widget', () => {
     }
   });
 });
+
+/**
+ * The basket rail sticks below the bar (S6).
+ *
+ * Since S11 made the bar page-wide chrome it spans the rail's column too, and the rail's `top: 1rem`
+ * cleared neither it nor the header: measured at 1280px, 91.3px of the rail — heading included —
+ * scrolled underneath. The screenshot suite shoots an unscrolled `fullPage`, so none of this is
+ * visible to it; these are the only automated assertions the offset has.
+ */
+describe('basket rail sticky offset', () => {
+  const RAIL_CSS = withoutComments(readFileSync(join(__dirname, '../order/OrderFlowSidebar.module.css'), 'utf8'));
+  const CRAFT_RAIL_CSS = withoutComments(
+    readFileSync(join(__dirname, '../../templates/craft/surfaces/CraftOrderFlowSidebar.module.css'), 'utf8'),
+  );
+  const NAV_SHELL = readFileSync(join(__dirname, 'CategoryNavShell.tsx'), 'utf8');
+
+  it('publishes the bar height the rail reads', () => {
+    expect(OFFSET_HOOK).toMatch(/'--menu-nav-offset':\s*`\$\{navHeight\}px`/);
+    // The bar has to carry the marker, or the height silently stays 0 and the rail keeps the bug.
+    expect(NAV_SHELL).toContain('STICKY_NAV_ATTR');
+  });
+
+  /**
+   * The nav mounts AFTER this hook — `MenuPage` returns `null` until it has a selected view — and
+   * React then REPLACES the node rather than resizing it. A `ResizeObserver` alone survives neither:
+   * the first published `0px` forever, the second `45px` against a live 66.8px bar. Both were
+   * shipped and caught by measuring the running page, so the mechanism is pinned here.
+   */
+  it('keeps tracking the bar when it mounts late or is replaced', () => {
+    expect(OFFSET_HOOK).toContain('MutationObserver');
+    // Identity comparison, not a "have we got one yet" flag — the latter is exactly the one-shot
+    // version that published the stale 45px.
+    expect(OFFSET_HOOK).toContain('el === tracked');
+  });
+
+  /**
+   * Each template reads ITS OWN header height. `--menu-header-offset` is published as a flat 80px
+   * for both, and craft's header is 76px — so craft takes `--craft-header-h`, the variable
+   * `CraftCategoryNav.module.css` already sticks its own bar to. Pinned per template because the
+   * first draft gave craft the shared 80px and put the pad 4px off the bar it sits against.
+   */
+  it.each([
+    ['classic', () => RAIL_CSS, '--menu-header-offset'],
+    ['craft', () => CRAFT_RAIL_CSS, '--craft-header-h'],
+  ])('%s rail clears its own header AND the bar, from variables', (_name, css, headerVar) => {
+    const sidebar = /\.sidebar\s*\{[^}]*\}/.exec(css())?.[0];
+    expect(sidebar).toBeDefined();
+    expect(sidebar).toContain('position: sticky');
+    expect(sidebar).toContain(headerVar);
+    expect(sidebar).toContain('--menu-nav-offset');
+    // `top: 1rem` was the whole defect: a bare literal that clears nothing.
+    expect(sidebar).not.toMatch(/(?<![\w-])top:\s*[\d.]+(px|rem)\s*;/);
+  });
+
+  it('does not give craft the classic template’s header constant', () => {
+    // 80px vs craft's 76px. The shared variable is right for classic and wrong here.
+    expect(CRAFT_RAIL_CSS).not.toContain('--menu-header-offset');
+  });
+
+  /**
+   * The half that makes the other half do anything.
+   *
+   * `.menuLayout` sets `align-items: start`, which shrink-wrapped this cell to exactly the rail's
+   * own height (measured 369.6px for a 369.6px rail). A sticky element cannot leave its containing
+   * block, so with zero travel the rail's `position: sticky` was **inert** — it had never stuck at
+   * any offset, and correcting `top` alone would have changed nothing on the page.
+   */
+  it('gives the rail somewhere to stick', () => {
+    const column = /\.menuSidebarColumn\s*\{[^}]*\}/.exec(PAGE_CSS)?.[0];
+    expect(column).toBeDefined();
+    expect(column).toContain('align-self: stretch');
+    // The grid rule this is compensating for. If it ever goes away, so can the override.
+    expect(/\.menuLayout\s*\{[^}]*\}/.exec(PAGE_CSS)?.[0]).toContain('align-items: start');
+  });
+});

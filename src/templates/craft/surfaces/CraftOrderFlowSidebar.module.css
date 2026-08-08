@@ -16,8 +16,24 @@
   gap: 1rem;
   padding: 1.4rem 1.3rem;
   position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 2rem);
+  /* Same offset as the classic rail, and forced by the same fix: `.menuSidebarColumn` (shared
+     `MenuPage.module.css`, both templates) used to shrink-wrap to the rail, so `position: sticky`
+     here had zero travel and never engaged. Making that column stretch is what fixes the classic
+     rail — and it necessarily switches this one on too. A `top: 1rem` that had been inert would
+     have started pinning the pad 16px from the viewport top, i.e. underneath the fixed header and
+     the page-wide category bar. Left alone, the shared fix would have introduced here exactly the
+     defect it removes there.
+
+     `--craft-header-h`, NOT the `--menu-header-offset` the classic rail reads: that variable is
+     published as a flat 80px for both templates, and craft's own header is 76px
+     (`craft/tokens.css`). `CraftCategoryNav.module.css` already sticks to `--craft-header-h`, so
+     reusing the shared 80px here would put the pad 4px below the bar it is supposed to sit against
+     — a hardcoded constant that is wrong for this template, which is the class of bug this slice
+     exists to remove. The bar term stays shared because it is measured from the real element. */
+  top: calc(var(--craft-header-h, 76px) + var(--menu-banner-offset, 0px) + var(--menu-nav-offset, 0px) + 1rem);
+  max-height: calc(
+    100vh - var(--craft-header-h, 76px) - var(--menu-banner-offset, 0px) - var(--menu-nav-offset, 0px) - 2rem
+  );
   overflow-y: auto;
 }
 

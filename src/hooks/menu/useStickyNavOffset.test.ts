@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { STICKY_BANNER_ATTR, useStickyNavOffset } from './useStickyNavOffset';
+import { STICKY_BANNER_ATTR, STICKY_NAV_ATTR, useStickyNavOffset } from './useStickyNavOffset';
 import { useTableContext } from '@/contexts/TableContext';
 
 jest.mock('@/contexts/TableContext', () => ({ useTableContext: jest.fn() }));
@@ -112,5 +112,88 @@ describe('useStickyNavOffset', () => {
 
     expect(globalThis.ResizeObserver).toBeUndefined();
     expect(() => renderHook(() => useStickyNavOffset())).not.toThrow();
+  });
+});
+
+/**
+ * `--menu-nav-offset` (S6), which the basket rail sticks below.
+ *
+ * The banner cases above all mount their element BEFORE the hook renders, and that is the one
+ * arrangement the nav never has: `MenuPage` returns `null` until it is both mounted and holding a
+ * selected view, so the first effect pass runs against an empty document. A `querySelector` that
+ * gives up when it finds nothing published `0px` for the page's whole life — and nothing would have
+ * caught it, because the rail's `top` still *looked* right in the stylesheet.
+ */
+describe('useStickyNavOffset — the category bar', () => {
+  /** Puts a marked nav in the document at a given height, as `CategoryNavShell` does. */
+  function mountNav(height: number): HTMLElement {
+    const el = document.createElement('nav');
+    el.setAttribute(STICKY_NAV_ATTR, '');
+    el.getBoundingClientRect = () => ({ height, width: 1280, top: 80, left: 0 }) as DOMRect;
+    document.body.appendChild(el);
+    return el;
+  }
+
+  /** Lets the MutationObserver deliver — it is a microtask, so awaiting a tick is enough. */
+  async function settle(): Promise<void> {
+    await act(async () => {
+      await Promise.resolve();
+    });
+  }
+
+  it('reserves the nav MEASURED height, not a constant', async () => {
+    mockedTableContext.mockReturnValue({ hasTableContext: false });
+    mountNav(66.75);
+
+    const { result } = renderHook(() => useStickyNavOffset());
+
+    // The real height on the seeded catalogue, where one category carries an order-type sublabel.
+    // A constant would have been 45px — what the bar measures before it has its second line.
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('66.75px');
+  });
+
+  it('measures a nav that mounts AFTER the hook — the case the rail actually has', async () => {
+    mockedTableContext.mockReturnValue({ hasTableContext: false });
+
+    const { result } = renderHook(() => useStickyNavOffset());
+    // MenuPage rendered `null`: nothing to measure yet, and no reservation claimed.
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('0px');
+
+    mountNav(66.75);
+    await settle();
+
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('66.75px');
+  });
+
+  it('follows the nav when React REPLACES the node rather than resizing it', async () => {
+    mockedTableContext.mockReturnValue({ hasTableContext: false });
+    const first = mountNav(45);
+
+    const { result } = renderHook(() => useStickyNavOffset());
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('45px');
+
+    // Exactly what shipped in the first attempt: an observer bound to a node React had already
+    // swapped out, publishing 45px against a live 66.75px bar. Only re-querying on mutation catches
+    // it — a ResizeObserver on the old node stays silent forever, because a detached element does
+    // not resize.
+    first.remove();
+    mountNav(66.75);
+    await settle();
+
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('66.75px');
+  });
+
+  it('drops the reservation when the nav goes away', async () => {
+    mockedTableContext.mockReturnValue({ hasTableContext: false });
+    const nav = mountNav(66.75);
+
+    const { result } = renderHook(() => useStickyNavOffset());
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('66.75px');
+
+    nav.remove();
+    await settle();
+
+    // Same rule the banner established: no element, no reserved band.
+    expect(result.current['--menu-nav-offset' as keyof typeof result.current]).toBe('0px');
   });
 });

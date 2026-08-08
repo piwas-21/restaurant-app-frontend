@@ -9,6 +9,7 @@
 import type { ReactNode, RefObject } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { STICKY_NAV_ATTR } from '@/hooks/menu/useStickyNavOffset';
 
 // The shell reads these class names off the passed CSS module (each template
 // supplies its own): stickyNav, navWrapper, navScrollContainer,
@@ -47,7 +48,14 @@ export default function CategoryNavShell({
   const { t } = useTranslation();
 
   return (
-    <nav className={styles.stickyNav} aria-label={t('category_navigation_aria', 'Category navigation')}>
+    // The attribute, not a ref: `useStickyNavOffset` lives on the page and this shell is reached
+    // through a template surface, so a ref would have to be threaded through both templates'
+    // CategoryNav wrappers. Same mechanism `TableBanner` already uses for its own height.
+    <nav
+      className={styles.stickyNav}
+      aria-label={t('category_navigation_aria', 'Category navigation')}
+      {...{ [STICKY_NAV_ATTR]: '' }}
+    >
       <div className={styles.navWrapper}>
         {/*
           `navArrowLeft`/`navArrowRight` stay PHYSICAL class names and that is still correct: they

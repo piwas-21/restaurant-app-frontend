@@ -20,16 +20,14 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
-
+/* §Lists: a rule BETWEEN items, no fills, no gap. Were cards, 1.08:1 on the rail. See the PR. */
 .item {
-  padding: 0.75rem;
-  background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  padding: 0.75rem 0;
 }
-
+.item + .item {
+  border-top: 1px solid var(--border-default);
+}
 .itemRow {
   display: flex;
   justify-content: space-between;
@@ -45,11 +43,13 @@
   line-height: 1.3;
 }
 
+/* §Typography: tabular here, on `.qty` and `.totalValue` — Public Sans figures are proportional. */
 .itemPrice {
   font-weight: 600;
   color: var(--text-color);
   white-space: nowrap;
   font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .itemControls {
@@ -123,6 +123,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--text-color);
+  font-variant-numeric: tabular-nums;
 }
 
 .totalRow {
@@ -138,6 +139,7 @@
 .totalValue {
   font-weight: 700;
   font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .checkoutButton {
@@ -153,7 +155,7 @@
   padding: 0.85rem 1.25rem;
   font-size: 1rem;
   font-weight: 600;
-  border-radius: 999px;
+  border-radius: 10px; /* §Shapes forbids pills for buttons; was 999px */
   cursor: pointer;
   transition:
     background-color 0.15s ease,

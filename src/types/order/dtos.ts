@@ -81,20 +81,39 @@ export interface OrderItemDto extends CreateOrderItemDto {
 }
 
 /**
- * Payment details for orders
+ * The tender declared when an order is placed — an *intent* to pay, not a record of money
+ * received.
+ *
+ * Deliberately carries no gateway metadata, and deliberately no longer the parent of
+ * `OrderPaymentDto`. `transactionId` / `referenceNumber` / `cardLastFourDigits` / `cardType` /
+ * `paymentGateway` used to live here and were sent to `POST /api/Orders` — an ANONYMOUS endpoint
+ * that wrote them into the ledger verbatim, so a caller could invent a payment reference for a
+ * payment that never happened. The backend DTO dropped them; this mirrors that.
+ *
+ * They still exist on `AddPaymentToOrderCommand` (`src/types/order/commands.ts`), the staff-only
+ * till path, which is the correct home: it runs after a human has taken the money.
  */
 export interface CreateOrderPaymentDto {
   paymentMethod: PaymentMethod;
   amount: number;
+  paymentNotes?: string;
+}
+
+/**
+ * A payment as the backend reports it. Declared standalone rather than extending
+ * `CreateOrderPaymentDto`: the write shape is now a strict subset of the read shape, and
+ * inheriting would have silently deleted these five fields from every read site when the write
+ * DTO was tightened. Mirrors backend `Features/Orders/Dtos/OrderPaymentDto.cs`.
+ */
+export interface OrderPaymentDto {
+  paymentMethod: PaymentMethod;
+  amount: number;
+  paymentNotes?: string;
   transactionId?: string;
   referenceNumber?: string;
   cardLastFourDigits?: string;
   cardType?: string;
   paymentGateway?: string;
-  paymentNotes?: string;
-}
-
-export interface OrderPaymentDto extends CreateOrderPaymentDto {
   id: string;
   orderId: string;
   /**

@@ -19,8 +19,8 @@
 
 /* The live region wrapping the skeleton. It styles MenuSectionStatus's OWN <output>, so it lives
    here — it spent one iteration in MenuSkeletonRows.module.css, which this file does not import, so
-   `styles.loading` resolved to `undefined` and the element shipped `class="undefined"`, keeping the
-   UA's `display: inline`. Nothing could see that: `identity-obj-proxy` makes every CSS-module
+   `styles.loading` resolved to `undefined`, so the element shipped with no class attribute at all
+   (React omits one whose value is `undefined`) and kept the UA's `display: inline`. Nothing could see that: `identity-obj-proxy` makes every CSS-module
    lookup a truthy string in Jest, and Next types the module as an index signature. Gated by
    cssModuleBindings.test.ts, which reads the stylesheet rather than the render. */
 .loading {

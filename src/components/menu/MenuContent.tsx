@@ -84,8 +84,11 @@ export default function MenuContent({
           GRID specifically because the featured-special hero sits ABOVE it and offers a button with
           the same accessible name, so an unscoped `.first()` silently exercises the banner. */}
       {/* No `className` — `styles.categorySection` was one, and `MenuContent.module.css` has never
-          declared that class, so this element has been shipping `class="undefined"`. Removing the
-          reference is the fix rather than inventing a rule: nothing was ever styled through it. */}
+          declared that class, so this element has been shipping with NO class attribute at all:
+          React omits an attribute whose value is `undefined` rather than rendering the string.
+          Measured on prod before and after removing it, `getAttribute('class')` is `null` both
+          times — which is what proves the reference was inert. Removing it is the fix rather than
+          inventing a rule; nothing was ever styled through it. */}
       <section data-testid="menu-grid" aria-labelledby={`category-heading-${selectedView}`}>
         {/* Heading + loading/error/empty states (craft re-skins this via the slot). */}
         <MenuSectionStatus

@@ -16,7 +16,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  /* Stack the label under the icon so it gets the segment's full width. At the
+     360px rail each segment is ~96px and the label had ~60px of room beside the
+     icon, against the 66px "Takeaway" needs — it was truncated to "Takea…". No
+     padding tweak fixes that: every other locale is longer still ("Zum
+     Mitnehmen", "Comer en el restaurante", "Restoranda Dine").
+
+     This module is NOT rail-only, and it is not classic-only either: it is also
+     the picker inside `EditOrderTypeModal` (the review page's "Edit Order
+     Details"), which craft does not override — craft styles it through the
+     --modal-body-toggle-* hooks below rather than replacing it. Both were
+     checked rather than assumed. The modal is 560px, so its segments are 159px
+     with 146px of content — still short of the 154.6px German and the 172.9px
+     Spanish label need inline (measured in craft's own Caveat), i.e. that
+     surface was truncating too, in both templates. Craft's torn-tape clip-path
+     is percentage-based, so it re-reads correctly on the taller chip.
+
+     Column rather than `flex-wrap: wrap`, which was the first attempt: wrapping
+     is decided per segment, so English rendered Takeaway stacked between two
+     inline neighbours, and which segments stacked changed with the locale. A
+     fixed column is uniform and independent of string length. */
+  flex-direction: column;
+  gap: 0.25rem;
   padding: 0.6rem 0.4rem;
   min-width: 0;
   /* craft: kraft torn-tape chips (same vocabulary as CraftOrderTypeToggle on
@@ -40,12 +61,30 @@
 .button:hover,
 .button:focus-visible {
   background-color: var(--modal-body-toggle-hover-bg, var(--nav-link-hover-bg));
-  outline: none;
 }
 
+/* The hover tint was the ONLY focus feedback, and `.button:focus-visible` is
+   (0,2,0) — the same specificity as `.button.active`, which is declared later
+   and therefore wins the background. Keyboard-focusing the *selected* segment
+   left it byte-identical to its resting state with `outline: none` on top: no
+   focus indicator at all (WCAG 2.4.7). Verified by tabbing to it, not by
+   reading. The ring is offset outward so it stays legible against the segment's
+   own brand fill. */
+.button:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* Brand, not `--success-color-darker`. `--modal-body-confirm-bg` is declared
+   only in craft's tokens, so classic always took the fallback — a #2e7d32 green
+   segment on a page whose design system reserves red as the sole action colour
+   and prohibits green outright (heritage_table/DESIGN.md §Colors). The
+   foreground moves with it: `--text-on-accent` is white in BOTH themes, and
+   white on dark-mode `--brand-primary` (#e06666) is 3.35:1 — below AA.
+   `--text-on-primary` flips to dark ink there and measures 5.19:1. */
 .button.active {
-  background-color: var(--modal-body-confirm-bg, var(--success-color-darker));
-  color: var(--modal-body-confirm-fg, var(--text-on-accent));
+  background-color: var(--modal-body-confirm-bg, var(--brand-primary));
+  color: var(--modal-body-confirm-fg, var(--text-on-primary));
 }
 
 .icon {
@@ -55,9 +94,11 @@
 }
 
 .label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-align: center;
+  /* Last-resort guard only: a locale whose single word is wider than the whole
+     segment would otherwise paint outside it. Normal multi-word labels break at
+     spaces long before this applies. */
+  overflow-wrap: break-word;
   min-width: 0;
 }
 

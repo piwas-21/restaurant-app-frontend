@@ -3,10 +3,19 @@
    promote to design-system primitives). */
 
 /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal.
-   Craft turns Confirm into a terracotta letterpress pill; classic keeps green. */
+   Craft turns Confirm into a terracotta letterpress pill; classic is brand red.
+
+   Was `--success-color-darker` / `--text-on-accent`. Since `--modal-body-confirm-bg`
+   is declared only in craft's tokens, classic always took the fallback, so every
+   Confirm across the FOUR modals that share this class painted green — the colour
+   heritage_table/DESIGN.md prohibits: TableSelection, DeliveryAddress,
+   OrderTypeConflict, Takeaway. (`EditOrderTypeModal` imports this module too but
+   uses only `.secondaryButton`; it has no Confirm.) The foreground has to move with
+   the background: `--text-on-accent` is white in both themes and would sit at
+   3.35:1 on dark mode's lifted `--brand-primary`. */
 .primaryButton {
-  background-color: var(--modal-body-confirm-bg, var(--success-color-darker));
-  color: var(--modal-body-confirm-fg, var(--text-on-accent));
+  background-color: var(--modal-body-confirm-bg, var(--brand-primary));
+  color: var(--modal-body-confirm-fg, var(--text-on-primary));
   border: none;
   padding: 0.65rem 1.4rem;
   font-family: var(--modal-body-btn-font, inherit);
@@ -23,7 +32,16 @@
 .primaryButton:hover:not(:disabled),
 .primaryButton:focus-visible:not(:disabled) {
   transform: translateY(-1px);
-  outline: none;
+}
+
+/* A 1px lift was the whole focus affordance on the modals' confirming action —
+   not a visible focus indicator by any reading of WCAG 2.4.7, and invisible
+   entirely to anyone with `prefers-reduced-motion`. Offset outward so the ring
+   never sits on the button's own brand fill. */
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 .primaryButton:disabled {
@@ -54,7 +72,6 @@
 .secondaryButton:hover:not(:disabled),
 .secondaryButton:focus-visible:not(:disabled) {
   background-color: var(--nav-link-hover-bg);
-  outline: none;
 }
 
 /* Focus target for the #208 "you still need a table" jump. The outline is suppressed because the

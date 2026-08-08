@@ -33,22 +33,43 @@
   margin-bottom: 1.5rem;
 }
 
-/* No `justify-content`, and NO `max-width` — the row tracks the content it labels.
-   The 1200px cap that stood here was harmless while the bar lived in the 775px article column,
-   because it never bound. Once the bar spans the viewport it starts binding at >1296px, and the
-   page content does not: measured, the tab row sat 72px inside the card grid at 1440px and 292px
-   at 1920px — tabs indented from the dishes they filter, which is worse than either extreme.
-   The screens do not support the split either: `classic_nav_desktop_light_scrolling` puts the nav
-   row on `max-w-max-width mx-auto`, but it puts `<main>` on the SAME track, and
-   `desktop_menu_light_full_page` wraps the whole page body in one. They have one 1200px content
-   track; capping only the nav gives two. Capping the page to match is the other valid answer and a
-   larger change — it moves the grid at every width above 1296 — so it belongs with the rail-width
-   question (plan §4 D10), not here. */
+/* The tab ROW on the page's content track, while `.stickyNav` around it stays full-bleed (S15/D12).
+   That split is the point: the surface and its hairline run edge to edge — S11's gain, and what
+   makes the bar read as page chrome — while the tabs track the cards they filter.
+
+   Three states, in order, because this rule has now been on both sides of the argument and the
+   comment that used to stand here said "NO `max-width`".
+
+     - Before S11: `.navWrapper` was capped at 1200 and the page was not. The bar had just started
+       spanning the viewport, so the cap began binding above 1296px while the content did not —
+       measured, the tab row sat 72px INSIDE the card grid at 1440px. Tabs indented from their own
+       dishes, which is worse than either extreme.
+     - S11 removed the cap for exactly that reason. Row and grid then shared a track, and what they
+       shared was an uncapped page: both grew without limit (1344px of content at 1440).
+     - S15 caps the page, and this rule follows it back onto the same track. NOT a revert of S11:
+       what S11 removed was a cap the page did not have. `--menu-track-max` is declared once, on
+       `.menuContainer`, so the two cannot disagree the way they did before.
+
+   The cap has to be here rather than being inherited from `.menuLayout`: `.stickyNav` is a SIBLING
+   of the layout in `app/menu/page.tsx`, not a descendant, so no cap on the layout can reach it.
+   (Plan §4 D12 says the nav should need no cap of its own; that is wrong about the DOM, and the
+   plan is amended in the same MR.)
+
+   Measured on the branch: row and `<main>` share a left edge at every width — 48 at 1280, 120 at
+   1440, 360 at 1920 — while `.stickyNav` still spans 0->viewport. Which is what
+   `classic_nav_desktop_light_scrolling` draws: `max-w-max-width mx-auto` on the nav row, with
+   `<main>` on the same track, and `desktop_menu_light_full_page` wrapping the whole body in one.
+
+   Not fixed here, and pre-existing: the first TAB still starts 56px inside the first card — 1rem
+   from this rule plus the 2.5rem arrow lane on `.navScrollContainer`. Identical on develop, so the
+   row and the grid share an edge; the tab inside the row does not. */
 .navWrapper {
   position: relative;
   display: flex;
   align-items: center;
   padding: 0 1rem;
+  max-width: var(--menu-track-max, none);
+  margin-inline: auto;
 }
 
 /* `px-8 lg:px-10` — the arrows are absolutely positioned over these lanes, so this padding is what

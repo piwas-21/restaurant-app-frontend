@@ -9,8 +9,13 @@
 
 /* No inline padding and no max-width of its own: `.menuContainer` already sets the page gutter, so
    a second one inset the strip a further 1rem past every card below it. */
+/* On the page's one content track (D12). Without this the strip alone keeps stretching past 1200px
+   while the grid below it stops, and a hero wider than the dishes it promotes is the misalignment
+   the cap exists to remove. `--menu-track-max` is declared on `.menuContainer` and inherits; the
+   fallback keeps this rule honest if the strip is ever rendered outside the menu page. */
 .featuredSpecialSection {
-  margin: 1rem 0 1.5rem;
+  margin: 1rem auto 1.5rem;
+  max-width: var(--menu-track-max, none);
 }
 
 .featuredSpecialContainer {

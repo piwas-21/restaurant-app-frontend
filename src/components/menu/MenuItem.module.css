@@ -1,14 +1,10 @@
-/* Menu Item Card — built to docs/stitch-screens/desktop_menu_light_full_page (desktop grid card)
-   and mobile_menu_light (mobile list row). Those two are deliberately DIFFERENT objects:
-   desktop is a bordered card with a photo on top, mobile is a flat list row separated by rules. */
+/* Menu Item Card — built to `stitch_classic_restaurant_design_system` (desktop grid card) and
+   `mobile_menu_light` (mobile list row). Those two are deliberately DIFFERENT objects: desktop is a
+   bordered card with a photo on top, mobile is a flat list row separated by rules. */
 
-/* The "Special" ribbon, pinned INSIDE the photo's leading corner — it is handed to `MenuItemImage`
-   as a slot (MenuCard.tsx), so it positions against the image box rather than against the <li>.
-   It used to be a direct child of the card, which reads correctly only where the photo is
-   full-bleed across the top: on the ≤600px row the photo is an 88px square inset by the card's
-   16px padding, so the badge floated over the padding above-left of it (visible in the committed
-   mobile baseline). `mobile_menu_light`: `absolute top-0 left-0 … rounded-br-lg text-[10px]
-   font-bold uppercase tracking-wider`. */
+/* The "Special" ribbon, pinned INSIDE the photo's leading corner — handed to `MenuItemImage` as a
+   slot (MenuCard.tsx), so it positions against the image box rather than against the <li>.
+   `mobile_menu_light`: `absolute top-0 left-0 … rounded-br-lg text-[10px] font-bold uppercase`. */
 .specialBadge {
   position: absolute;
   top: 0;
@@ -19,8 +15,8 @@
   background-color: var(--brand-primary);
   color: var(--text-on-primary);
   padding: 0.25rem 0.5rem;
-  /* Only the corner that faces INTO the photo is rounded; the two that meet the image's own edges
-     stay square so the ribbon sits flush in the corner rather than floating in it. */
+  /* Only the corner facing INTO the photo is rounded; the two meeting the image's own edges stay
+     square so the ribbon sits flush in the corner rather than floating in it. */
   border-radius: 0;
   border-end-end-radius: 8px;
   font-family: var(--font-family-sans);
@@ -32,15 +28,8 @@
 }
 
 /* A combo's "Pizza + Cola" line. */
-.bundleSummary {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin: 0 0 0.5rem;
-}
-
 .bundleIncludes {
-  margin: 0;
+  margin: 0 0 0.5rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -56,12 +45,18 @@
   text-align: start;
   background-color: var(--surface-card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  /* The containing block for both corner ribbons — the "Special" flag on the photo and the
+     order-type band on the card itself. */
   position: relative;
   display: flex;
   flex-direction: column;
   transition: background-color 0.2s ease;
   color: var(--text-primary);
   width: 100%;
+  /* Every card in a grid row ends its action button on the same baseline. Without this the button
+     floats directly under whatever the description left behind, and a row of cards whose names wrap
+     differently ends up with four buttons at four heights. */
+  height: 100%;
 }
 
 /* Depth is tonal — the surface shifts, the shadow does not grow. */
@@ -70,17 +65,19 @@
 }
 
 /* Per-order-type availability (S4). The card RECEDES rather than fades — a blanket `opacity` would
-   drag the reason, the one thing the guest must read, down with it. */
+   drag the reason, the one thing the guest must read, down with it. The PHOTO desaturates, which is
+   the half a guest reads across a grid at a glance; the diagonal band says why. */
 .menuItem.blocked {
   background-color: var(--surface-secondary);
 }
 
 .menuItem.blocked img {
-  filter: grayscale(0.85);
-  opacity: 0.7;
+  filter: grayscale(0.9);
+  opacity: 0.65;
 }
 
-/* `p-gutter` = 16px. */
+/* `p-gutter` = 16px. A column, so the action button's `margin-top: auto` can push itself to the
+   foot however tall the text above it turns out to be. */
 .contentWrapper {
   display: flex;
   flex-direction: column;
@@ -89,78 +86,36 @@
   padding: 16px;
 }
 
-/* `mt-auto pt-2 border-t border-outline-variant` — the price and the single action, closed off by the
-   hairline. ONE line: every classic screen renders this as `flex justify-between items-center`
-   and none of them wraps it.
-
-   `flex-wrap: wrap` stays, but it is no longer how the row copes. Both children used to refuse to
-   shrink — `.rowPrice` is `nowrap; flex-shrink: 0` and the button was `nowrap` — so breaking the
-   row was the only escape left and it took it: measured at the four grid widths, the row broke in
-   two for 6 of the 10 locales at 1280px (de/it/fr/nl/es/ru), plus English on the committed 1280px
-   baseline, where the button sits left-aligned under the price.
-   The pressure now goes into the BUTTON, which wraps its label inside its own box and offers only
-   its MIN-content to line breaking (MenuItemActions.module.css) — so all 10 locales hold one line
-   at 768/1024/1280/1440 and the price is never shrunk.
-
-   Those are the widths the baselines shoot, and they are not the worst case: the narrowest card
-   sits JUST ABOVE 1024px, where MenuPage drops the 360px rail but MenuContent keeps three columns
-   (968px). Measured across that band a residual wrap survives — de/nl/fr up to ~1200px, all clear
-   from ~1225px. Still a large net improvement (the old CSS wrapped there AND at 1280/1440) and it
-   degrades to a wrap, never an overflow — but it is a band, not an absolute.
-
-   Removing the wrap outright was tried and reverted: an ADMIN card carries a third child in this
-   row (`AdminPriceEditor`, itself `nowrap`), and with no wrap the admin row overflowed its card by
-   9px in English and 43px in German at 1280px, squeezing Add to 26-47px wide against its own
-   padding-and-border floor. It is kept as a genuine last resort — three unshrinkable controls, or a
-   5-digit price beside the 44px disc on a 320px phone, which now degrades to a second line instead
-   of being clipped by this card's `overflow: hidden`.
-
-   `--border-default`, not `--border-light`: the light token has no `html[data-theme='dark']`
-   override, so it kept its light value over the dark card — an 11.6:1 near-white rule across the
-   foot of every card. `--border-default` flips, is 1.29:1 / 1.57:1 against
-   the card in the two themes, and is the value DESIGN.md's hairline rule and every classic
-   `code.html` actually name. Fixed at the call site rather than by adding a dark
-   `--border-light` — that token is shared, this rule is not. */
-.priceActionsRow {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border-default);
-}
-
-/* `font-price-tag text-price-tag` — Public Sans 1rem/1/600, tabular so a column of prices aligns. */
+/* `font-price-tag text-price-tag` — Public Sans 1rem/1/600, tabular so a column of prices aligns.
+   On the TITLE row now, not in a foot of its own. */
 .rowPrice {
   font-family: var(--font-family-sans);
   font-size: 1rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.4;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* Mobile — a LIST, not a grid of cards. The design drops the card entirely below 600px: rows sit
-   on the page background, separated by a single rule, with no radius, no shadow and no side
-   borders. That is most of why the implemented mobile view read as a catalogue of tiles where the
-   design reads as a menu. (`mobile_menu_light`: `article … p-margin-mobile border-t border-b`.) */
+/* Mobile — a LIST, not a grid of cards. The design drops the card entirely below 600px: rows sit on
+   the page background, separated by a single rule, with no radius, no shadow and no side borders.
+   That is most of why the implemented mobile view read as a catalogue of tiles where the design
+   reads as a menu. (`mobile_menu_light`: `article … p-margin-mobile border-t border-b`.) */
 @media (max-width: 600px) {
   .menuItem {
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: flex-start;
-    gap: 16px;
-    padding: 16px;
+    gap: 12px;
+    padding: 12px 0;
     border: none;
     border-top: 1px solid var(--border-default);
     border-radius: 0;
     box-shadow: none;
     background-color: transparent;
+    height: auto;
   }
 
   /* Only the last row draws a bottom rule, so adjacent rows do not double up. */
@@ -179,14 +134,9 @@
 
   .contentWrapper {
     padding: 0;
-    order: 1;
-  }
-
-  /* `mt-3`, and no rule: the row separator above already closes the item. */
-  .priceActionsRow {
-    margin-top: 0.75rem;
-    padding-top: 0;
-    border-top: none;
+    /* The row's action disc is pinned to the text column's own end, not to the row's foot — the
+       thumbnail is 88px and the text column is what the disc belongs to. */
+    align-items: stretch;
   }
 
   /* `text-[10px]`, still flush in the thumbnail's leading corner. The offsets are inherited as 0
@@ -196,5 +146,18 @@
     padding: 0.1rem 0.35rem;
     font-size: 0.625rem;
     border-end-end-radius: 6px;
+  }
+
+  .rowPrice {
+    font-size: 0.9rem;
+    color: var(--brand-primary-elevated);
+  }
+
+  /* A blocked row's title line ends UNDER the diagonal band without this. The band is pinned to the
+     row's own top inline-end corner and the title row is the first thing at that corner, so the
+     price rendered as "CHF 6.0" with the rest behind grey — measured at 390px. The reserve is only
+     on the blocked row, so an ordinary row keeps its full width. */
+  .menuItem.blocked .contentWrapper {
+    padding-inline-end: 2rem;
   }
 }

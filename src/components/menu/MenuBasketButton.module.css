@@ -1,0 +1,91 @@
+/* The basket button at the inline end of the sticky category bar — see MenuBasketButton.tsx. */
+.basketButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  /* Clears the bar's own arrow lane so the last category tab can never scroll under it. */
+  margin-inline-start: 0.75rem;
+  min-height: 40px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background-color: var(--surface-card);
+  color: var(--text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.basketButton:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+}
+
+.basketButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* An empty basket is quiet chrome; a basket with something in it is the thing the guest is building
+   and takes the brand. `--brand-primary-elevated` for the ink — small brand text on a tinted
+   surface, where plain `--brand-primary` measures 4.16:1 in dark. */
+.filled {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+  background-color: var(--surface-secondary);
+}
+
+.iconWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* The count, on the cart's shoulder. Solid brand with `--text-on-primary` — the one pairing the
+   design system guarantees in both themes (light #ffffff on #c00000, dark #1a1a1a on #e06666). */
+.badge {
+  position: absolute;
+  top: -0.4rem;
+  inset-inline-end: -0.45rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background-color: var(--brand-primary);
+  color: var(--text-on-primary);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Below 900px the bar is a scrolling row of tabs with no room for a price beside them; the disc
+   alone carries the button, and the total is still the first thing inside the sheet it opens. */
+@media (max-width: 900px) {
+  .basketButton {
+    margin-inline-start: 0.5rem;
+    padding: 0;
+    width: 40px;
+    min-width: 40px;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .total {
+    display: none;
+  }
+}

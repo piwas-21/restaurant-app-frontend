@@ -156,17 +156,29 @@ describe('MenuCard — one card for both catalog kinds', () => {
    * which on a RUMI card (neither populated) stranded it above the price rule with nothing to
    * attach to. Pinned as an immediate sibling so it cannot drift back out of place.
    */
-  it('renders Details immediately after the description, ahead of the allergen block', () => {
+  it('renders Details INSIDE the description, and the allergen band up on the title row', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
-    const description = screen.getByText('Classic pizza');
+    const description = screen.getByText('Classic pizza', { selector: 'p' });
     const details = screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' });
     const allergens = screen.getByRole('group', { name: 'Allergens' });
+    // Queried by id, not by role: the title carries `role="button"` (it opens the same sheet), so
+    // it is deliberately NOT a heading in the accessibility tree.
+    const title = document.getElementById('item-name-p1')!;
 
+    // Details is a CHILD of the paragraph now, not its next sibling: it is floated to the end of
+    // the description's second line ("…grilled sourdough... Details"), which is where
+    // `mobile_menu_light` draws it. As a sibling it cost every card a whole line of height and, on
+    // the many dishes with no allergens, left the word floating in a blank band.
     expect(description.tagName).toBe('P');
-    expect(description.nextElementSibling).toBe(details);
-    // Plain FOLLOWING, no CONTAINS bit: they are siblings in the card's text column, in that order.
-    expect(details.compareDocumentPosition(allergens)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(description.contains(details)).toBe(true);
+    // It has to be FIRST in the paragraph — a float is only wrapped by content that follows it, so
+    // moving it after the text puts the link back under the paragraph instead of on its last line.
+    expect(description.firstElementChild).toBe(details);
+
+    // The allergen glyphs sit on the title row, sharing the dish name's line with the price.
+    expect(allergens.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(title.parentElement?.contains(allergens)).toBe(true);
   });
 
   it('Add opens without forcing (fast-add allowed) but Details forces the sheet — never a silent add', () => {
@@ -414,7 +426,11 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.queryByRole('button', { name: 'Switch to Takeaway' })).not.toBeInTheDocument();
-    expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
+    // TWO nodes carry the reason on a blocked card, by design: the corner ribbon (a glance-level
+    // marker readable across a grid) and the sentence above the switch. `getAllByText` rather than
+    // `getByText` because a single-match query here would go red the day the ribbon was added and
+    // read as "the reason disappeared".
+    expect(screen.getAllByText('Takeaway and Delivery only')).toHaveLength(2);
   });
 
   it('QR-pinned dine-in: shows the ask-your-server hint instead of a nonsensical switch', () => {

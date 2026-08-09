@@ -8,11 +8,9 @@ import TableBanner from '@/components/TableBanner';
 import { useStickyNavOffset } from '@/hooks/menu/useStickyNavOffset';
 import { ALL_ITEMS_KEY, usePublicMenu } from '@/hooks/usePublicMenu';
 import { useFeaturedSpecial } from '@/hooks/useFeaturedSpecial';
-import { useCart } from '@/components/cart/CartContext';
 import { useOrderTypeFollowUp } from '@/hooks/order/useOrderTypeFollowUp';
 import OrderFlowModals from '@/components/order/OrderFlowModals';
-import DefaultOrderFlowSidebar from '@/components/order/OrderFlowSidebar';
-import MobileCartSheet from '@/components/order/MobileCartSheet';
+import CartSheet from '@/components/order/CartSheet';
 import { surfaceOr } from '@/templates/resolve-surface';
 import { getSelectedViewLabel } from '@/utils/categoryNameMapper';
 import type { OrderType } from '@/types/order';
@@ -23,20 +21,20 @@ import DefaultCategoryNav from '@/components/menu/CategoryNav';
 import DefaultFeaturedSpecial from '@/components/menu/FeaturedSpecial';
 import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
+import { useMenuCart } from '@/hooks/menu/useMenuCart';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
+import MenuBasketButton from '@/components/menu/MenuBasketButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 // The active template's overrides (craft = ruled-paper order pad, masking-tape tabs) or the
 // shared defaults (classic) — resolved at build time, so classic never bundles craft (T4).
-const OrderFlowSidebar = surfaceOr('OrderFlowSidebar', DefaultOrderFlowSidebar);
+// `OrderFlowSidebar` is no longer among them: /menu has no rail, and /cart resolves its own.
 const FeaturedSpecialComponent = surfaceOr('FeaturedSpecial', DefaultFeaturedSpecial);
 const CategoryNav = surfaceOr('CategoryNav', DefaultCategoryNav);
 
 export default function MenuPage() {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
-  const [cartAnimationTrigger, setCartAnimationTrigger] = useState(false);
-  const [isMobileCartSheetOpen, setIsMobileCartSheetOpen] = useState(false);
 
   const {
     categories: categoriesForNav,
@@ -49,13 +47,16 @@ export default function MenuPage() {
     currentPage,
     totalPages,
     totalCount,
+    pageSize,
     onPageChange,
     refetch,
   } = usePublicMenu();
 
   const { featuredSpecial } = useFeaturedSpecial();
 
-  const { state: cartState } = useCart();
+  // The basket's totals, the slide-over's open state and the add pulse — one owner, because the
+  // sticky bar's button, the floating button and the sheet all read them.
+  const cart = useMenuCart();
   const orderTypeFollowUp = useOrderTypeFollowUp();
   const stickyNavOffset = useStickyNavOffset();
 
@@ -67,13 +68,7 @@ export default function MenuPage() {
   // One customization sheet for the whole page (menu-bundles redesign #175, slice 6): the browse
   // grid and the featured banner both open it, and it owns the selection, live pricing and the add.
   const bundlesById = useMemo(() => new Map(menuBundles.map((bundle) => [bundle.id, bundle])), [menuBundles]);
-  const sheet = useCatalogSheet({
-    findBundle: (id) => bundlesById.get(id),
-    onAdded: () => {
-      setCartAnimationTrigger(true);
-      setTimeout(() => setCartAnimationTrigger(false), 100);
-    },
-  });
+  const sheet = useCatalogSheet({ findBundle: (id) => bundlesById.get(id), onAdded: cart.flash });
 
   useEffect(() => {
     setIsMounted(true);
@@ -94,9 +89,10 @@ export default function MenuPage() {
   }
 
   const categoryDisplayName = getSelectedViewLabel(selectedView, categoriesForNav, t);
-
-  const itemCount = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cartState.basket?.total || 0;
+  // The tenant's own blurb for the selected category, when it has one. `''` on every RUMI category
+  // today, so nothing renders — the field exists on `CategoryDto` and the design has a paragraph
+  // there, and a tenant that fills it in gets it without another release.
+  const categoryDescription = categoriesForNav.find((category) => category.id === selectedView)?.description;
 
   return (
     // `style` carries the sticky-nav offset the category bar reads — a computed value, which is
@@ -106,59 +102,67 @@ export default function MenuPage() {
 
       <TableBanner position="top" />
 
-      {/* Both of the next two sit ABOVE the two-column layout, not inside its left column.
-          The bar first (D7): inside `.menuMain` its background and hairline stopped at the left
-          column's edge — 775px of a 1280px frame — and a phone guest scrolled the whole promotion
-          before the tabs appeared, then watched them jump when it scrolled past. It is page chrome.
-          The hero second: `.menuLayout` is a grid with `align-items: start`, so with the hero in the
-          left column the basket rail's top edge aligned with the HERO and the menu grid — the thing
-          a guest reads alongside their basket — began one hero-height lower. */}
+      {/* The bar is PAGE CHROME and stays above the content track (D7): inside the column its
+          background and hairline stopped at the column's edge — 775px of a 1280px frame — and a
+          phone guest scrolled the whole promotion before the tabs appeared, then watched them jump
+          when it scrolled past.
+
+          The basket button rides in it. That is the whole cost of removing the 360px rail: the
+          order-type toggle a guest used to reach there is inside the sheet this opens. */}
       {categoriesForNav.length > 0 && (
         <CategoryNav
           categories={categoriesForNav}
           selectedView={selectedView}
           onSelect={setSelectedView}
           allLabel={t('all_categories_nav')}
-        />
-      )}
-
-      {featuredSpecial && (
-        <FeaturedSpecialComponent
-          special={featuredSpecial}
-          // The banner builds its own options (it holds the verdict); the page only routes.
-          onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
-          onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
-          onSwitchOrderType={switchOrderTypeFromCard}
+          trailing={
+            <MenuBasketButton
+              itemCount={cart.itemCount}
+              totalPrice={cart.cartTotal}
+              onClick={() => cart.openSheet('menu_bar')}
+            />
+          }
         />
       )}
 
       <div className={styles.menuLayout}>
-        <div className={styles.menuMain}>
-          <MenuContent
-            selectedView={selectedView}
-            categoryDisplayName={categoryDisplayName}
-            isLoadingItems={isLoadingItems}
-            errorLoadingItems={errorLoadingItems}
-            currentMenuItems={currentMenuItems}
-            menuBundles={menuBundles}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onPageChange={onPageChange}
-            onOpenItem={sheet.openForCatalogItem}
-            // A card's "Switch to Takeaway" must go through the PAGE's follow-up instance: that
-            // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
-            // its own instance would set the type and swallow the table/address/contact step.
-            onSwitchOrderType={switchOrderTypeFromCard}
-            // Retry — the copy has promised "Please try again." since before a control existed.
-            onRetry={refetch}
-            onBrowseFullMenu={() => setSelectedView(ALL_ITEMS_KEY)}
-          />
-        </div>
-
-        <div className={styles.menuSidebarColumn}>
-          <OrderFlowSidebar followUp={orderTypeFollowUp} />
-        </div>
+        <MenuContent
+          selectedView={selectedView}
+          categoryDisplayName={categoryDisplayName}
+          categoryDescription={categoryDescription}
+          isLoadingItems={isLoadingItems}
+          errorLoadingItems={errorLoadingItems}
+          currentMenuItems={currentMenuItems}
+          menuBundles={menuBundles}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          onOpenItem={sheet.openForCatalogItem}
+          // A card's "Switch to Takeaway" must go through the PAGE's follow-up instance: that
+          // hook owns the modal state `OrderFlowModals` (below) renders from, so a card owning
+          // its own instance would set the type and swallow the table/address/contact step.
+          onSwitchOrderType={switchOrderTypeFromCard}
+          // Retry — the copy has promised "Please try again." since before a control existed.
+          onRetry={refetch}
+          onBrowseFullMenu={() => setSelectedView(ALL_ITEMS_KEY)}
+          // The Chef's Special is the grid's FIRST CELL now, spanning two columns, which is where
+          // the design puts it. The page still resolves the template SURFACE — classic ships one
+          // hero, craft ships `CraftFeaturedSpecial` — and hands the element down; `MenuList` only
+          // decides where it sits. Resolving it inside the list would bundle craft into classic.
+          featuredSlot={
+            featuredSpecial ? (
+              <FeaturedSpecialComponent
+                special={featuredSpecial}
+                // The banner builds its own options (it holds the verdict); the page only routes.
+                onAddToCart={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+                onViewDetails={(opts) => sheet.openForProductId(featuredSpecial.id, opts)}
+                onSwitchOrderType={switchOrderTypeFromCard}
+              />
+            ) : undefined
+          }
+        />
       </div>
 
       {/* Same switch handler as the cards: the sheet refuses an add the card refused (§9.10), and
@@ -167,30 +171,19 @@ export default function MenuPage() {
       <ItemCustomizationSheet controller={sheet.bundle} onSwitchOrderType={switchOrderTypeFromCard} />
 
       <FloatingCartButton
-        itemCount={itemCount}
-        totalPrice={cartTotal}
-        onAnimate={cartAnimationTrigger}
-        onClick={() => {
-          // Fire once per genuine user-action click on the FAB. The sheet
-          // open state is set in the same handler so this never re-fires
-          // on hydration / re-render. Sidebar has no equivalent open
-          // event because it's always-mounted on desktop.
-          trackEvent('cart_opened', {
-            source: 'mobile_sheet',
-            itemCount,
-            loggedIn: isLoggedInForAnalytics(),
-          });
-          setIsMobileCartSheetOpen(true);
-        }}
+        itemCount={cart.itemCount}
+        totalPrice={cart.cartTotal}
+        onAnimate={cart.pulse}
+        onClick={() => cart.openSheet('mobile_sheet')}
       />
 
       {/* Closed while an order-type conflict is being confirmed. The sheet hosts the very toggle
           that raises the confirm, so leaving it open stacks two BaseModals — and both register a
           GLOBAL window keydown, so one Escape dismisses both. Same rule §9.10 landed for the
           customization sheet: the surface that hands a verdict over closes behind it. */}
-      <MobileCartSheet
-        isOpen={isMobileCartSheetOpen && orderTypeFollowUp.switchFlow.pending === null}
-        onClose={() => setIsMobileCartSheetOpen(false)}
+      <CartSheet
+        isOpen={cart.isSheetOpen && orderTypeFollowUp.switchFlow.pending === null}
+        onClose={cart.closeSheet}
         followUp={orderTypeFollowUp}
       />
 

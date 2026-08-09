@@ -107,6 +107,12 @@ export type ApiCategory = {
   id: string;
   name: string;
   /**
+   * The tenant's blurb for the category, rendered under the menu's section heading. `CategoryDto`
+   * has always sent it; nothing read it until the heading gained a paragraph. Empty string on every
+   * RUMI category, which is why the render site checks for content rather than for presence.
+   */
+  description?: string;
+  /**
    * The order types this category permits, **already decoded by the server** (`CategoryDto`
    * computes it from the stored `OrderChannels` mask precisely so no client decodes one — the bits
    * are 1/2/4 while `OrderType` is 1/2/3). Optional: a backend predating the feature omits it, and

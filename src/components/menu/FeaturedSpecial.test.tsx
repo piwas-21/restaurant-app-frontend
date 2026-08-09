@@ -13,7 +13,16 @@ jest.mock('react-i18next', () => ({
   // `i18n` is needed now that the hero resolves its localized name/description from `content`, as
   // every catalog card already did — the classic hero used to print the base (English) value in
   // every locale.
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key, i18n: { language: 'en' } }),
+  // Interpolating form, matching `MenuCard.test.tsx` and `CraftMenuCard.test.tsx`: a string second
+  // argument is a fallback, an object is interpolation values and renders as `key(v1,v2)`. The hero
+  // needs it now that its add control names the DISH ("Add Chef Special to order") rather than
+  // saying a generic "Add to Order" — the same accessible name every catalog card gives, so a
+  // screen-reader user listing the page's buttons gets N distinct entries instead of N identical.
+  useTranslation: () => ({
+    t: (key: string, second?: string | Record<string, unknown>) =>
+      typeof second === 'string' ? second : second ? `${key}(${Object.values(second).join(',')})` : key,
+    i18n: { language: 'en' },
+  }),
 }));
 
 // The admin controls render nothing for a guest, which is the state every existing case below
@@ -92,7 +101,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
   it('offers Add when the server reports no restriction', () => {
     render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Add to Order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Chef Special)' })).toBeInTheDocument();
     expect(screen.queryByText('Takeaway and Delivery only')).not.toBeInTheDocument();
   });
 
@@ -102,7 +111,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
     render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
     expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add to Order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Chef Special)' })).toBeInTheDocument();
   });
 
   it('blocked tone: REMOVES Add, keeps the dish name as the way into the sheet, offers the switch', () => {
@@ -123,7 +132,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Chef Special)' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Chef Special' }));
     expect(onViewDetails).toHaveBeenCalledWith({ forceSheet: true, availability: AVAILABILITY });
@@ -140,7 +149,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
 
     expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual([
       'Chef Special',
-      'Add to Order',
+      'add_item_to_order(Chef Special)',
     ]);
   });
 
@@ -180,7 +189,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
 
     render(<FeaturedSpecial special={unavailable} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Chef Special)' })).not.toBeInTheDocument();
   });
 
   it('hands the verdict to BOTH routes — the §9.10 hand-over lives in the banner, not the page', () => {
@@ -189,7 +198,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
 
     render(<FeaturedSpecial special={special} onAddToCart={onAddToCart} onViewDetails={onViewDetails} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add to Order' }));
+    fireEvent.click(screen.getByRole('button', { name: 'add_item_to_order(Chef Special)' }));
     expect(onAddToCart).toHaveBeenCalledWith({ availability: AVAILABILITY });
 
     fireEvent.click(screen.getByRole('button', { name: 'Chef Special' }));
@@ -423,10 +432,16 @@ describe('the photoless collapse', () => {
 
     it('lets the 601-768px band grow instead of clipping its availability notice', () => {
       // A photo plus an `info` notice in a column narrow enough for a long name to wrap laid the
-      // notice out below the 180px clip box — invisible. A floor cannot clip.
-      const band = CSS.slice(CSS.indexOf('@media (min-width: 601px) and (max-width: 768px)'));
+      // notice out below the clip box — invisible. A floor cannot clip.
+      //
+      // The base rule is `height: 100%` now, not a definite `180px`: the hero is a CELL of the menu
+      // grid spanning two columns, so it fills the row and ends level with the dish cards beside
+      // it. The floor moved to that base rule as `min-height`, and the escape band widened to 900px
+      // — the width below which the hero spans the whole row and has no card beside it to match.
+      const base = CSS.slice(CSS.indexOf('.featuredSpecialContainer'));
+      expect(base.slice(0, base.indexOf('\n}'))).toContain('min-height: 180px');
+      const band = CSS.slice(CSS.indexOf('@media (min-width: 601px) and (max-width: 900px)'));
       expect(band).toContain('height: auto');
-      expect(band).toContain('min-height: 180px');
     });
   });
 });

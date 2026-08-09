@@ -1,0 +1,87 @@
+/* The diagonal "Delivery only" corner band on a blocked card — see OrderTypeRibbon.tsx.
+
+   Two boxes, not one. `.ribbon` is a square clipping window pinned to the card's top inline-end
+   corner; `.ribbonLabel` is a wider band rotated 45° inside it, so the band's ends are cut off by
+   the window and it reads as a strip wrapped around the corner rather than a floating rectangle.
+   A single rotated box cannot do that — its corners would poke outside the card, and the card's own
+   `overflow: hidden` would clip them square.
+
+   Every inset here is LOGICAL (`inset-inline-end`), so the whole assembly moves to the other corner
+   under `dir="rtl"` on its own — E8's floor is 8 physical declarations and this file adds none. The
+   one thing a logical inset cannot mirror is the ROTATION: `transform` has no directional twin, so
+   a band that moved corners while still rotating +45° would run out of the card. That single
+   override is the `[dir='rtl']` rule at the bottom. */
+.ribbon {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  width: 116px;
+  height: 116px;
+  overflow: hidden;
+  /* Never a target. The band states a fact; the card's own switch link is what a guest acts on, and
+     an overlay that ate clicks would cover the corner of the photo's enlarge button. */
+  pointer-events: none;
+  z-index: 6;
+}
+
+.ribbonLabel {
+  position: absolute;
+  display: block;
+  /* Wider than the window's diagonal (116 × √2 ≈ 164) so both ends are clipped at full height —
+     a band narrower than that tapers to a point and reads as a triangle. */
+  width: 190px;
+  top: 26px;
+  inset-inline-end: -52px;
+  transform: rotate(45deg);
+
+  /* `--text-secondary` as a FILL with `--surface-primary` as the ink. Both flip with the theme, and
+     the pair measures 5.74:1 in light (#ffffff on #666666) and 11.07:1 in dark (#1a1a1a on
+     #cdcbcb) — AA for normal-size text in both, which is the bar this small uppercase type has to
+     clear. Deliberately NOT the brand red or a feedback colour: a channel restriction is a routing
+     fact, not an error and not a promotion. `mobile_menu_light` paints it the same way
+     (`bg-on-surface-variant text-on-primary`). */
+  background-color: var(--text-secondary);
+  color: var(--surface-primary);
+
+  font-family: var(--font-family-sans);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0.25rem 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+
+  /* A long reason ("Takeaway and Delivery only" in German) must not push the band to two lines and
+     burst the clipping window — it truncates instead, and the full sentence is still in the card's
+     accessible name and in the switch link below the description. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The corner has already moved (the logical insets did that). Only the angle is left: mirrored, the
+   band has to lean the other way or it runs out of the card it is wrapping. */
+[dir='rtl'] .ribbonLabel {
+  transform: rotate(-45deg);
+}
+
+/* The row is only ~143px tall and its title line starts at the very corner the band wraps, so the
+   window shrinks to something the row can reserve against (`.menuItem.blocked .contentWrapper`
+   pads 2rem). The visible band is 68 × √2 ≈ 96px, which still holds "DELIVERY ONLY" at 9px. */
+@media (max-width: 600px) {
+  .ribbon {
+    width: 68px;
+    height: 68px;
+  }
+
+  .ribbonLabel {
+    width: 120px;
+    top: 12px;
+    inset-inline-end: -36px;
+    font-size: 0.5625rem;
+    letter-spacing: 0.03em;
+    padding: 0.15rem 0;
+  }
+}

@@ -121,11 +121,16 @@ describe('the category bar is page chrome, not a column widget', () => {
     expect(MENU_PAGE.slice(layoutStart).includes('<CategoryNav')).toBe(false);
   });
 
-  it('renders above the featured strip and the layout, in that order (D7)', () => {
-    // Nav-first is the decision: below the strip, a phone guest scrolled the whole promotion before
+  it('renders above everything else on the page, including the hero (D7)', () => {
+    // Nav-first is the decision: below the promotion, a phone guest scrolled the whole thing before
     // the tabs appeared and then watched them jump when it scrolled past.
+    //
+    // The hero is no longer a strip BETWEEN the two — it is the grid's first cell, handed down as
+    // `featuredSlot` — so the old three-way ordering collapses to "the bar comes before the
+    // layout", and the hero's own position is `featuredSpecialPlacement.test.ts`'s subject.
+    expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('className={styles.menuLayout}'));
     expect(pageIndexOf('<CategoryNav')).toBeLessThan(pageIndexOf('<FeaturedSpecialComponent'));
-    expect(pageIndexOf('<FeaturedSpecialComponent')).toBeLessThan(pageIndexOf('className={styles.menuLayout}'));
+    expect(pageIndexOf('<FeaturedSpecialComponent')).toBeGreaterThan(pageIndexOf('className={styles.menuLayout}'));
   });
 
   it('is not rendered by the column component it was lifted out of', () => {
@@ -245,18 +250,26 @@ describe('basket rail sticky offset', () => {
   });
 
   /**
-   * The half that makes the other half do anything.
+   * The rail is GONE from /menu, and with it the whole class of sticky-offset problem this block
+   * was written about.
    *
-   * `.menuLayout` sets `align-items: start`, which shrink-wrapped this cell to exactly the rail's
-   * own height (measured 369.6px for a 369.6px rail). A sticky element cannot leave its containing
-   * block, so with zero travel the rail's `position: sticky` was **inert** — it had never stuck at
-   * any offset, and correcting `top` alone would have changed nothing on the page.
+   * The original defect: `.menuLayout` set `align-items: start`, which shrink-wrapped the rail's
+   * cell to exactly the rail's own height (measured 369.6px for a 369.6px rail), so a `position:
+   * sticky` with zero travel had never stuck at any offset. The fix was `align-self: stretch` on
+   * the cell. Both are now moot — the basket is a slide-over opened from the sticky bar
+   * (`CartSheet`), which is a dialog and does not stick to anything.
+   *
+   * Asserted as an ABSENCE rather than deleted, so re-adding a rail to this page cannot quietly
+   * reintroduce a cell with no travel: the rules would have to come back with it, and this fails
+   * the moment one does without the other.
    */
-  it('gives the rail somewhere to stick', () => {
-    const column = /\.menuSidebarColumn\s*\{[^}]*\}/.exec(PAGE_CSS)?.[0];
-    expect(column).toBeDefined();
-    expect(column).toContain('align-self: stretch');
-    // The grid rule this is compensating for. If it ever goes away, so can the override.
-    expect(/\.menuLayout\s*\{[^}]*\}/.exec(PAGE_CSS)?.[0]).toContain('align-items: start');
+  it('has no rail column left to stick, and no orphan rules pretending otherwise', () => {
+    expect(/\.menuSidebarColumn\s*\{/.exec(PAGE_CSS)).toBeNull();
+    expect(PAGE_CSS).not.toContain('align-items: start');
+    expect(MENU_PAGE).not.toContain('<OrderFlowSidebar');
+    // The replacement is reachable without scrolling, which is the property the rail had and the
+    // one a floating cart button does not: the FAB renders nothing while the basket is empty.
+    expect(MENU_PAGE).toContain('<MenuBasketButton');
+    expect(MENU_PAGE).toContain('trailing={');
   });
 });

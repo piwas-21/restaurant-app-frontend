@@ -1,75 +1,131 @@
-/* Menu Item Details Styles */
+/* The card's text column — see MenuItemDetails.tsx. */
+
+/* Name on the inline start, allergen glyphs + price on the inline end, on ONE line.
+   `align-items: baseline` so the price sits on the dish name's baseline rather than being centred
+   against a name that may have wrapped to two lines. */
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
 /* `dish-name`: Playfair Display 1.15rem / 1.4 / 600 — the exact step every generated screen's
    tailwind config declares. The SERIF is the point: it is what makes a dish name read as a printed
-   menu line rather than a catalogue entry, and rendering it in the body sans (Inter, previously)
-   was the single largest reason the implemented page did not resemble the designs. */
+   menu line rather than a catalogue entry. */
 .itemTitle {
   font-family: var(--font-family-display);
   font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.4;
-  margin: 0 0 0.5rem;
+  margin: 0;
   color: var(--text-primary);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  /* Yields the row's slack to the price band, which must never shrink or wrap. */
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
-/* Clamped to two lines at every viewport. The full text is one tap away in the details sheet, and
-   an unclamped description made cards in the same grid row wildly different heights. */
+.itemTitle[role='button'] {
+  cursor: pointer;
+}
+
+/* The glyph band + the price. `flex-shrink: 0` because a truncated price is a wrong price, and a
+   half-clipped allergen glyph is worse than none. */
+.titleMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Exactly two lines, always — `height`, not `max-height`. A card whose description runs short still
+   reserves the second line, which keeps the Details link on one baseline across a grid row.
+
+   `--desc-line` is this paragraph's own line box, published so the floated link can offset itself
+   by EXACTLY one. It was `margin-top: 1.55em` on the LINK, where `em` resolves against the link's
+   0.8rem rather than the paragraph's 0.95rem — the float started 19.8px into a 23.6px first line
+   and overlapped the text it was meant to follow. The two sizes differ on purpose, so the offset
+   cannot be written in either element's own `em`. */
 .itemDescription {
+  --desc-line: calc(0.95rem * 1.55);
   font-family: var(--font-family-sans);
   font-size: 0.95rem;
   line-height: 1.55;
   color: var(--text-secondary);
-  /* `mt-1` down to the Details line (mobile_menu_light), not `mb-4` — and NO `flex: 1`. Flex-grow
-     is served before auto margins, so this paragraph swallowed the card's slack and pushed Details
-     to the floor whatever its DOM position: re-anchoring Details is this declaration, not just the
-     JSX order. The desktop screens do grow their <p>, but nothing follows it there, so growing it
-     and `.priceActionsRow`'s `margin-top: auto` draw the same card. */
-  margin: 0 0 0.25rem;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  margin: 0 0 0.5rem;
+  height: calc(2 * var(--desc-line));
   overflow: hidden;
 }
 
 /* The details affordance. Styled as a text link but it IS a <button> — see MenuItemDetails.tsx.
-   `align-self: start` so the hit area is the width of the word, not the width of the card.
 
-   NO `margin-top: auto` here. `MenuItemDetails` returns a fragment, so this is a direct flex child
-   of the same column as `.priceActionsRow`, which already claims the free space that way — two auto
-   margins SPLIT it, opening a drifting gap above this link on every card shorter than its row.
+   `float` + `margin-top: var(--desc-line)` puts it at the END of the description's second line: the
+   box starts exactly one line down, so line one is untouched and line two wraps against it. It must
+   be FIRST in the DOM (a float is only wrapped by what follows it) — hence the inverted JSX — and
+   its height is pinned to one line, or it would eat into line one from below.
 
-   NOT underlined at rest — every classic screen renders it `hover:underline decoration-1
-   underline-offset-2`, and the two decoration properties below are inert until that fires. It used
-   to underline at rest and then re-declare the SAME underline under `:hover`, revealing nothing.
+   `float: right` + an explicit RTL flip, NOT `float: inline-end`: `next dev` downlevels logical
+   properties off `:lang()`, so the logical keyword is right in a production build and silently
+   wrong in dev, the one place a reviewer looks.
 
-   --brand-primary-elevated, not --brand-primary: small brand-coloured text on whichever surface the
-   card currently has, and the plain brand clears AA on only ONE of them in dark — 4.57:1 resting,
-   3.23:1 on `.menuItem:hover` (--surface-secondary-light), 4.16:1 on `.menuItem.blocked`
-   (--surface-secondary). The elevated token is exactly this case and clears all three in both
-   themes (5.0–9.6). All three pairs are gated in adminPriceEditorContrast.test.ts. */
+   --brand-primary-elevated, not --brand-primary: small brand text on whichever surface the card
+   has, and plain brand clears AA on only ONE in dark — 4.57:1 resting, 3.23:1 hovered, 4.16:1
+   blocked. Elevated clears all three (5.0–9.6). Gated in adminPriceEditorContrast.test.ts. */
 .detailsLink {
-  align-self: flex-start;
-  padding: 0.25rem 0;
+  float: right;
+  margin-top: var(--desc-line);
+  height: var(--desc-line);
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  /* Beats globals.css's `@media (max-width: 768px) { button { min-height: 44px } }` — a class is
+     (0,1,0) against its (0,0,1). A 44px float inside a 38px clipped paragraph lays out on line two
+     and paints below the clip, i.e. the word vanishes; measured at 390px, the box came back 60x44.
+     The target is given back by `::after` below, not taken away. */
+  min-height: 0;
+  min-width: 0;
+  /* The gap between the clipped text and the link. `padding` rather than `margin` so the whole
+     strip including the space is part of the hit area. */
+  padding: 0 0 0 0.35rem;
   background: none;
   border: none;
   color: var(--brand-primary-elevated);
   font-family: var(--font-family-sans);
-  /* `text-xs` on the link specifically — the design keeps it quieter than body copy so it reads as
-     an affordance on the description, not as a second action competing with Add. */
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1.55;
   letter-spacing: 0.02em;
   cursor: pointer;
   text-align: start;
   text-decoration: none;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+}
+
+/* The hit area, decoupled from the visual line: 24px — WCAG 2.2 §2.5.8's minimum — centred on a
+   link painted one 17.7px line tall, so the visual stays inside the two-line clip and the target
+   does not shrink with it. Honest limit: `overflow: hidden` clips hit testing as well as painting,
+   so on a phone the last ~2px is unreachable and the effective target is ~22px. The same sheet is
+   opened by the dish TITLE above (a 2-line, ~104px button), which is 2.5.8's "equivalent control"
+   exception — the affordance does not rest on these 22px. */
+.detailsLink::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 24px;
+  transform: translateY(-50%);
+}
+
+[dir='rtl'] .detailsLink {
+  float: left;
+  padding: 0 0.35rem 0 0;
 }
 
 .detailsLink:hover,
@@ -83,116 +139,45 @@
   border-radius: 4px;
 }
 
-.allergyTags {
-  margin-bottom: 1rem;
-  min-height: 20px;
-}
-
-.ingredientsSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 1rem 0;
-  min-height: 32px;
-}
-
-.ingredientsLabel {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
-  opacity: 0.8;
-}
-
-.ingredientsContent {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.ingredientTag {
-  display: inline-block;
-  padding: 0.3rem 0.6rem;
-  background-color: var(--surface-secondary-light);
-  border-radius: 12px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  opacity: 0.9;
-}
-
-/* Dietary chips: 1px border, 10px radius, no background fill — DESIGN.md §Components. They used to
-   be four differently-tinted pills (green vegan, blue vegetarian, amber gluten-free, grey halal),
-   which put three more colour families on a card already carrying too many. The per-diet classes are
-   gone rather than flattened to identical rules, so nothing looks like it is still varying by diet.
-   S12 reconciled radius and ink with the card's OTHER chip family, `AllergenDisplay.module.css`:
-   this rule said 4px while the line above it said 10px, and `--text-muted` clears AA on the resting
-   card (4.59:1) but not hovered (4.43:1) or blocked (4.24:1). Gated in allergenChipContrast.test.ts. */
-.allergyTag {
-  display: inline-block;
-  padding: 0.125rem 0.5rem;
-  border-radius: 10px;
-  font-family: var(--font-family-sans);
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin: 0.15rem;
-  background-color: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-}
-
-/* Responsive adjustments */
+/* ── The mobile list row ────────────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  /* `truncate` — one line. A row card is 88px tall beside its thumbnail; a name allowed to wrap
-     to two pushes the description or the price row out of it. */
+  /* TWO lines, as `mobile_menu_light` draws it ("Heirloom Tomato / Burrata" wrapping under its own
+     badges). One line was the old rule, and a 234px text column cannot afford it once the glyphs
+     and the price share that line: measured at 390px, three 28px chips plus "CHF 6.00" left ~70px
+     for the name and every dish read "Café…", "Caffè…", "Cap". */
   .itemTitle {
-    font-size: 1.05rem;
-    margin-bottom: 0.15rem;
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
+    font-size: 1rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
-  /* Was `display: none` — "hide description on mobile for cleaner look". What it actually did was
-     strip the row card down to a name and a price, and leave the details affordance with nothing
-     to attach to. It stays clamped to two lines; the row has space for them. */
-  /* `text-sm line-clamp-2 mt-1`, and `mt-1` again down to the Details line. */
+  /* `flex-start`, not the baseline the wide card uses: a name that wraps to two lines would drag
+     the price down to its SECOND baseline, i.e. below the glyphs it is meant to sit beside. */
+  .titleRow {
+    align-items: flex-start;
+    margin-bottom: 0.15rem;
+    gap: 0.35rem;
+  }
+
+  /* The glyphs are what yields on a phone; the name and the price are both load-bearing. */
+  .titleMeta {
+    gap: 0.25rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* Still exactly two lines — the row has space for them, and the design's mobile card is built
+     around a two-line description ending in "… Details". */
   .itemDescription {
-    font-size: 0.875rem;
+    --desc-line: calc(0.8125rem * 1.45);
+    font-size: 0.8125rem;
     line-height: 1.45;
-    margin: 0.25rem 0;
+    height: calc(2 * var(--desc-line));
+    margin-bottom: 0.35rem;
   }
 
   .detailsLink {
-    margin-top: 0;
-    font-size: 0.8rem;
-    padding: 0.25rem 0;
-  }
-
-  .allergyTags {
-    margin-bottom: 0.35rem;
-    margin-top: 0.25rem;
-    min-height: auto;
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    text-align: start;
-    margin-inline-start: 0;
-    padding-inline-start: 0;
-  }
-
-  .allergyTag {
-    font-size: 0.7rem;
-    padding: 0.1rem 0.4rem;
-    margin: 0.1rem;
-    margin-inline-start: 0;
-  }
-
-  .allergyTag:first-child {
-    margin-inline-start: 0;
-  }
-
-  .ingredientsSection {
-    display: none; /* Hide on mobile */
+    font-size: 0.75rem;
+    line-height: 1.45;
   }
 }

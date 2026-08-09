@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle } from 'lucide-react';
-import { getAllergenInfo } from '@/lib/allergens';
+import AllergenIcon from './AllergenIcon';
 import styles from './AllergenDisplay.module.css';
 
 interface AllergenDisplayProps {
@@ -11,7 +10,13 @@ interface AllergenDisplayProps {
   id?: string;
   maxVisible?: number;
   showLabel?: boolean;
-  variant?: 'compact' | 'full' | 'admin';
+  /**
+   * `icons` is the card's title-row band: one glyph per allergen, no words, sized to sit beside the
+   * price without stealing a line from the dish name. The word survives as the chip's `title` and
+   * as visually-hidden text, so the accessible name is identical to the labelled variants — only
+   * the pixels are shorter.
+   */
+  variant?: 'compact' | 'full' | 'admin' | 'icons';
   className?: string;
   contentClassName?: string;
 }
@@ -28,7 +33,8 @@ function AllergenChips({
   allergens,
   id,
   maxVisible,
-}: Readonly<{ allergens: string[]; id: string; maxVisible: number }>) {
+  iconOnly = false,
+}: Readonly<{ allergens: string[]; id: string; maxVisible: number; iconOnly?: boolean }>) {
   const { t } = useTranslation();
   const label = (allergen: string) =>
     t(`allergen_${allergen.toLowerCase().replaceAll(' ', '_')}`, allergen.replaceAll('_', ' '));
@@ -41,21 +47,22 @@ function AllergenChips({
       {shown.map((allergen, idx) => {
         const text = label(allergen);
         return (
-          <span key={`${id}-allergen-${idx}`} className={styles.allergenTag} title={text}>
-            {/* D9: one monochrome glyph for the EU-14 substances, nothing for a dietary claim.
-                A "contains nuts" is a warning a guest may need before ordering; "vegan" is a
-                selling point they chose to read. `aria-hidden` because the word beside it already
-                says which substance — the icon would otherwise announce as a second, vaguer copy. */}
-            {getAllergenInfo(allergen).kind === 'substance' && (
-              <AlertTriangle className={styles.allergenIcon} aria-hidden="true" />
-            )}
-            <span className={styles.allergenText}>{text}</span>
+          <span
+            key={`${id}-allergen-${idx}`}
+            className={iconOnly ? `${styles.allergenTag} ${styles.iconChip}` : styles.allergenTag}
+            title={text}
+          >
+            {/* One glyph PER allergen (see AllergenIcon.tsx) — a wheat ear for gluten, a carton for
+                milk. `aria-hidden` there, because the word is carried either by the visible text
+                below or, in the icon-only chip, by the `.sr-only` span. */}
+            <AllergenIcon allergen={allergen} className={styles.allergenIcon} />
+            <span className={iconOnly ? 'sr-only' : styles.allergenText}>{text}</span>
           </span>
         );
       })}
       {remaining > 0 && (
         <span
-          className={`${styles.allergenTag} ${styles.more}`}
+          className={`${styles.allergenTag} ${styles.more} ${iconOnly ? styles.iconChip : ''}`.trim()}
           title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(label).join(', ')}`}
         >
           +{remaining}
@@ -87,6 +94,15 @@ export default function AllergenDisplay({
   // `align-items: stretch` makes them so, not because of a spacer.
   if (!allergens || allergens.length === 0) {
     return null;
+  }
+
+  // The card's title-row band: glyphs only, inline beside the price.
+  if (variant === 'icons') {
+    return (
+      <span role="group" className={`${styles.iconRow} ${className}`.trim()} aria-label={t('allergens', 'Allergens')}>
+        <AllergenChips allergens={allergens} id={id} maxVisible={maxVisible} iconOnly />
+      </span>
+    );
   }
 
   // Different layouts based on variant

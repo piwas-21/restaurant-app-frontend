@@ -21,7 +21,7 @@ import { join } from 'node:path';
 
 const HERE = __dirname;
 const CHIP_CSS = readFileSync(join(HERE, 'AllergenDisplay.module.css'), 'utf8');
-const DETAILS_CSS = readFileSync(join(HERE, '../menu/MenuItemDetails.module.css'), 'utf8');
+const DETAILS_CSS = readFileSync(join(HERE, '../menu/MenuItemDietaryTags.module.css'), 'utf8');
 
 /**
  * The stylesheet with comments removed.

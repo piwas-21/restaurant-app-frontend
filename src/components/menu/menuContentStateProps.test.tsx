@@ -33,6 +33,7 @@ const base = {
   currentPage: 1,
   totalPages: 1,
   totalCount: 0,
+  pageSize: 200,
   onPageChange: jest.fn(),
   onOpenItem: jest.fn(),
 };

@@ -2554,5 +2554,13 @@
   "menu_state_empty_heading": "No dishes here yet",
   "menu_state_error_heading": "Unable to load menu",
   "browse_full_menu": "Browse full menu",
-  "error_loading_menu_bundles": "Failed to load menu bundles. Please try again."
+  "error_loading_menu_bundles": "Failed to load menu bundles. Please try again.",
+  "menu_filters_label": "Filter dishes",
+  "menu_filter_specials": "Chef's Specials",
+  "menu_filter_without": "No {{allergen}}",
+  "menu_filters_clear": "Clear filters",
+  "menu_filters_count": "{{shown}} of {{total}} dishes",
+  "menu_filters_none": "No dishes match these filters",
+  "menu_state_filtered_heading": "Nothing matches",
+  "open_basket_aria": "Open basket, {{count}} items, {{total}}"
 }

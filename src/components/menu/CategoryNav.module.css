@@ -64,12 +64,23 @@
    from this rule plus the 2.5rem arrow lane on `.navScrollContainer`. Identical on develop, so the
    row and the grid share an edge; the tab inside the row does not. */
 .navWrapper {
-  position: relative;
   display: flex;
   align-items: center;
   padding: 0 1rem;
   max-width: var(--menu-track-max, none);
   margin-inline: auto;
+}
+
+/* The tabs and their two arrows, as one box the trailing slot sits beside. `position: relative`
+   moved here from `.navWrapper`: the arrows are absolute against their nearest positioned ancestor,
+   so while that was the wrapper the forward arrow pinned itself to the wrapper's inline end — i.e.
+   on top of the basket button, measured clipping it to `CHF 0.0(`. */
+.navScroller {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 
 /* `px-8 lg:px-10` — the arrows are absolutely positioned over these lanes, so this padding is what

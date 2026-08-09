@@ -2554,5 +2554,13 @@
   "menu_state_empty_heading": "Burada henüz yemek yok",
   "menu_state_error_heading": "Menü yüklenemedi",
   "browse_full_menu": "Tüm menüye göz at",
-  "error_loading_menu_bundles": "Menü paketleri yüklenemedi. Lütfen tekrar deneyin."
+  "error_loading_menu_bundles": "Menü paketleri yüklenemedi. Lütfen tekrar deneyin.",
+  "menu_filters_label": "Yemekleri filtrele",
+  "menu_filter_specials": "Şefin Önerileri",
+  "menu_filter_without": "{{allergen}} içermeyen",
+  "menu_filters_clear": "Filtreleri temizle",
+  "menu_filters_count": "{{total}} yemekten {{shown}} tanesi",
+  "menu_filters_none": "Bu filtrelere uyan yemek yok",
+  "menu_state_filtered_heading": "Eşleşme yok",
+  "open_basket_aria": "Sepeti aç, {{count}} ürün, {{total}}"
 }

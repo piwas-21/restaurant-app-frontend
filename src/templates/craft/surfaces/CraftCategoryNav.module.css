@@ -16,6 +16,17 @@
 
 /* Same track as craft's grid and hero (S15/D12) — see CraftFeaturedSpecial.module.css for why craft
    is in scope at all. Classic's equivalent rule carries the identical declaration. */
+/* Mirrors classic's: the arrows position against this box so a `trailing` slot can sit beside it
+   rather than under the forward arrow. Craft passes no trailing slot today; the box costs nothing
+   and keeps the two modules answering the shared shell's class list identically. */
+.navScroller {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
 .navWrapper {
   position: relative;
   display: flex;

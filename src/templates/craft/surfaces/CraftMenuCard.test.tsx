@@ -57,7 +57,7 @@ describe('CraftMenuCard', () => {
    * no glyph, so the assertion is now the split itself — the substance chip carries one, the claim
    * does not, on craft exactly as on classic.
    */
-  it('renders the shared allergen chips, with a glyph on the substance and none on the claim', () => {
+  it('renders the shared allergen chips, one distinct glyph per allergen', () => {
     const { container } = render(
       <CraftMenuCard
         item={{ ...product, allergens: ['vegan', 'sesame'] }}
@@ -66,10 +66,16 @@ describe('CraftMenuCard', () => {
       />,
     );
 
+    // Craft reads the SAME `AllergenIcon` table classic does — the point of the shared component is
+    // that a tenant on either skin sees the same mark for the same substance. D9's one-triangle rule
+    // is superseded: every allergen carries its own glyph now, claims included.
     const chipFor = (word: string) => screen.getByText(word).closest('.allergenTag') as HTMLElement;
     expect(chipFor('vegan')).toBeInTheDocument();
-    expect(chipFor('vegan').querySelector('svg')).toBeNull();
+    expect(chipFor('vegan').querySelector('svg')).toBeInTheDocument();
     expect(chipFor('sesame').querySelector('svg')).toBeInTheDocument();
+    expect(chipFor('vegan').querySelector('svg')?.getAttribute('class')).not.toBe(
+      chipFor('sesame').querySelector('svg')?.getAttribute('class'),
+    );
 
     // …and no emoji reaches craft either. Zero of the design screens carry one.
     expect(container.textContent).not.toMatch(/\p{Extended_Pictographic}/u);

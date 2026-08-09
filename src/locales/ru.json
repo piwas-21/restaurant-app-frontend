@@ -2554,5 +2554,13 @@
   "menu_state_empty_heading": "Здесь пока нет блюд",
   "menu_state_error_heading": "Не удалось загрузить меню",
   "browse_full_menu": "Смотреть всё меню",
-  "error_loading_menu_bundles": "Не удалось загрузить комбо-меню. Пожалуйста, попробуйте ещё раз."
+  "error_loading_menu_bundles": "Не удалось загрузить комбо-меню. Пожалуйста, попробуйте ещё раз.",
+  "menu_filters_label": "Фильтр блюд",
+  "menu_filter_specials": "Рекомендации шефа",
+  "menu_filter_without": "Без {{allergen}}",
+  "menu_filters_clear": "Сбросить фильтры",
+  "menu_filters_count": "{{shown}} из {{total}} блюд",
+  "menu_filters_none": "Нет блюд, подходящих под эти фильтры",
+  "menu_state_filtered_heading": "Ничего не найдено",
+  "open_basket_aria": "Открыть корзину, {{count}} товаров, {{total}}"
 }

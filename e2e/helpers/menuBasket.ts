@@ -61,15 +61,31 @@ export async function openMenuBasket(page: Page): Promise<Locator> {
  * Clicking Accept rather than pre-seeding storage, deliberately: `addInitScript` has to run before
  * `page.goto`, and this helper is called long after navigation — so a seed here would be a no-op
  * that looked like a fix. Clicking is also what a guest does.
+ *
+ * **Whether to wait is decided by localStorage, not by looking.** The first cut asked
+ * `accept.isVisible({ timeout: 2_000 })` — and `isVisible()` does NOT auto-wait. It answers about
+ * the current instant and ignores the `timeout` option entirely, so on any run where the banner had
+ * not hydrated yet it returned `false`, the dismiss was skipped, and the click was intercepted a
+ * moment later. That is a RACE, and it read as a fix because it genuinely repaired the four tests
+ * whose timing happened to land the other way: 13 failures became 9, which looks like progress and
+ * is actually the same bug.
+ *
+ * The consent key is the deterministic answer to "will a banner appear?", so it decides whether to
+ * wait for one. Present ⇒ no banner is coming, return immediately and cost nothing. Absent ⇒ one IS
+ * coming, so wait for it properly.
  */
 export async function dismissCookieBanner(page: Page): Promise<void> {
+  const consented = await page
+    .evaluate(() => Boolean(window.localStorage.getItem('rumi_cookie_consent')))
+    // Not yet on a real origin (localStorage throws on about:blank). Nothing has rendered, so
+    // there is no banner either.
+    .catch(() => true);
+  if (consented) return;
+
   const accept = page.getByRole('button', { name: /^accept$/i });
-  // Short timeout and a swallowed miss: most callers arrive with consent already given (a prior
-  // step in the same test, or a seeded storage state), and the banner is simply absent.
-  if (await accept.isVisible({ timeout: 2_000 }).catch(() => false)) {
-    await accept.click();
-    await expect(accept).toBeHidden({ timeout: 5_000 });
-  }
+  await accept.waitFor({ state: 'visible', timeout: 15_000 });
+  await accept.click();
+  await expect(accept).toBeHidden({ timeout: 5_000 });
 }
 
 /** Close it again, so the grid behind it is clickable. */

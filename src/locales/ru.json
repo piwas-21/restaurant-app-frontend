@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Сбросить фильтры",
   "menu_filters_count": "{{shown}} из {{total}} блюд",
   "menu_filters_none": "Нет блюд, подходящих под эти фильтры",
-  "menu_state_filtered_heading": "Ничего не найдено",
-  "open_basket_aria": "Открыть корзину, {{count}} товаров, {{total}}"
+  "menu_state_filtered_heading": "Ничего не найдено"
 }

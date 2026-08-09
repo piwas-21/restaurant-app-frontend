@@ -59,7 +59,10 @@ describe('Chef’s Special placement on the menu page', () => {
     expect(SOURCE).not.toContain('<OrderFlowSidebar');
     expect(SOURCE).not.toContain('menuSidebarColumn');
     expect(SOURCE).toContain('<CartSheet');
-    expect(SOURCE).toContain('<MenuBasketButton');
+    // Opened by the FLOATING cart button, which is the page's only cart entry point — a second
+    // copy in the sticky bar did the same job from the other corner and is gone.
+    expect(SOURCE).toContain('<FloatingCartButton');
+    expect(SOURCE).not.toContain('<MenuBasketButton');
   });
 });
 

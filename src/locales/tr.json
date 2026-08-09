@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Filtreleri temizle",
   "menu_filters_count": "{{total}} yemekten {{shown}} tanesi",
   "menu_filters_none": "Bu filtrelere uyan yemek yok",
-  "menu_state_filtered_heading": "Eşleşme yok",
-  "open_basket_aria": "Sepeti aç, {{count}} ürün, {{total}}"
+  "menu_state_filtered_heading": "Eşleşme yok"
 }

@@ -1,8 +1,7 @@
 /* The card's text column — see MenuItemDetails.tsx. */
 
-/* Name on the inline start, allergen glyphs + price on the inline end, on ONE line.
-   `align-items: baseline` so the price sits on the dish name's baseline rather than being centred
-   against a name that may have wrapped to two lines. */
+/* Name on the inline start, allergen glyphs + price on the inline end, on ONE line. `baseline` so
+   the price sits on the dish name's baseline, not centred against a name that wrapped to two. */
 .titleRow {
   display: flex;
   align-items: baseline;
@@ -44,14 +43,12 @@
   flex-shrink: 0;
 }
 
-/* Exactly two lines, always — `height`, not `max-height`. A card whose description runs short still
-   reserves the second line, which keeps the Details link on one baseline across a grid row.
-
-   `--desc-line` is this paragraph's own line box, published so the floated link can offset itself
-   by EXACTLY one. It was `margin-top: 1.55em` on the LINK, where `em` resolves against the link's
+/* Exactly two lines, always — `height`, not `max-height`, so a short description still reserves the
+   second line and the Details link stays on one baseline across a grid row.
+   `--desc-line` is this paragraph's line box, published so the floated link can offset itself by
+   EXACTLY one. It was `margin-top: 1.55em` on the LINK, where `em` resolves against the link's
    0.8rem rather than the paragraph's 0.95rem — the float started 19.8px into a 23.6px first line
-   and overlapped the text it was meant to follow. The two sizes differ on purpose, so the offset
-   cannot be written in either element's own `em`. */
+   and overlapped the text it was meant to follow. */
 .itemDescription {
   --desc-line: calc(0.95rem * 1.55);
   font-family: var(--font-family-sans);
@@ -77,17 +74,18 @@
    --brand-primary-elevated, not --brand-primary: small brand text on whichever surface the card
    has, and plain brand clears AA on only ONE in dark — 4.57:1 resting, 3.23:1 hovered, 4.16:1
    blocked. Elevated clears all three (5.0–9.6). Gated in adminPriceEditorContrast.test.ts. */
-.detailsLink {
-  float: right;
-  margin-top: var(--desc-line);
-  height: var(--desc-line);
+/* Both Details variants share everything but their layout: `.detailsLink` floats onto the end of
+   the description's clipped second line, `.detailsLinkBlock` sits under it as an ordinary link (see
+   `detailsInline` in MenuItemDetails.tsx — blocked cards use the block form because their
+   order-type band wraps the very corner the float lands in on a phone). */
+.detailsLink,
+.detailsLinkBlock {
   display: inline-flex;
   align-items: center;
   position: relative;
   /* Beats globals.css's `@media (max-width: 768px) { button { min-height: 44px } }` — a class is
-     (0,1,0) against its (0,0,1). A 44px float inside a 38px clipped paragraph lays out on line two
-     and paints below the clip, i.e. the word vanishes; measured at 390px, the box came back 60x44.
-     The target is given back by `::after` below, not taken away. */
+     (0,1,0) against its (0,0,1). A 44px float inside a 38px clipped paragraph paints below the
+     clip, i.e. the word vanishes (measured at 390px: 60x44). `::after` gives the target back. */
   min-height: 0;
   min-width: 0;
   /* The gap between the clipped text and the link. `padding` rather than `margin` so the whole
@@ -109,11 +107,10 @@
 }
 
 /* The hit area, decoupled from the visual line: 24px — WCAG 2.2 §2.5.8's minimum — centred on a
-   link painted one 17.7px line tall, so the visual stays inside the two-line clip and the target
-   does not shrink with it. Honest limit: `overflow: hidden` clips hit testing as well as painting,
-   so on a phone the last ~2px is unreachable and the effective target is ~22px. The same sheet is
-   opened by the dish TITLE above (a 2-line, ~104px button), which is 2.5.8's "equivalent control"
-   exception — the affordance does not rest on these 22px. */
+   one-line link, so the visual stays inside the two-line clip and the target does not shrink with
+   it. Honest limit: `overflow: hidden` clips hit testing too, so ~2px is unreachable on a phone.
+   The dish TITLE above opens the same sheet (a 2-line, ~104px button) — 2.5.8's "equivalent
+   control" exception, so the affordance does not rest on those 22px. */
 .detailsLink::after {
   content: '';
   position: absolute;
@@ -123,17 +120,38 @@
   transform: translateY(-50%);
 }
 
+.detailsLinkBlock:focus-visible {
+  outline: 2px solid var(--brand-primary-elevated);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.detailsLink {
+  float: right;
+  margin-top: var(--desc-line);
+  height: var(--desc-line);
+}
+
+.detailsLinkBlock {
+  align-self: flex-start;
+  min-height: 44px;
+  margin-bottom: 0.25rem;
+}
+
 [dir='rtl'] .detailsLink {
   float: left;
   padding: 0 0.35rem 0 0;
 }
 
 .detailsLink:hover,
-.detailsLink:focus-visible {
+.detailsLink:focus-visible,
+.detailsLinkBlock:hover,
+.detailsLinkBlock:focus-visible {
   text-decoration: underline;
 }
 
-.detailsLink:focus-visible {
+.detailsLink:focus-visible,
+.detailsLinkBlock:focus-visible {
   outline: 2px solid var(--brand-primary-elevated);
   outline-offset: 2px;
   border-radius: 4px;
@@ -141,10 +159,9 @@
 
 /* ── The mobile list row ────────────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  /* TWO lines, as `mobile_menu_light` draws it ("Heirloom Tomato / Burrata" wrapping under its own
-     badges). One line was the old rule, and a 234px text column cannot afford it once the glyphs
-     and the price share that line: measured at 390px, three 28px chips plus "CHF 6.00" left ~70px
-     for the name and every dish read "Café…", "Caffè…", "Cap". */
+  /* TWO lines, as `mobile_menu_light` draws it. One line was the old rule, and a 234px text column
+     cannot afford it once the glyphs and the price share that line: measured at 390px, three 28px
+     chips plus "CHF 6.00" left ~70px for the name and every dish read "Café…", "Cap". */
   .itemTitle {
     font-size: 1rem;
     -webkit-line-clamp: 2;

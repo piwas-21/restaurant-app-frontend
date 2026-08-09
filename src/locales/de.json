@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Filter zurücksetzen",
   "menu_filters_count": "{{shown}} von {{total}} Gerichten",
   "menu_filters_none": "Keine Gerichte entsprechen diesen Filtern",
-  "menu_state_filtered_heading": "Keine Treffer",
-  "open_basket_aria": "Warenkorb öffnen, {{count}} Artikel, {{total}}"
+  "menu_state_filtered_heading": "Keine Treffer"
 }

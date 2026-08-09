@@ -4,6 +4,7 @@ import { formatPlainCurrency } from '@/utils/currency';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Clock } from 'lucide-react';
+import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import Image from 'next/image';
 import styles from './FeaturedSpecial.module.css';
 // The notice's OWN styles come from the classic card's module, not this one: `MenuCardAvailability`
@@ -11,6 +12,7 @@ import styles from './FeaturedSpecial.module.css';
 // would be a second source of truth for one look — and Sonar new-code duplication besides.
 import availabilityStyles from './MenuItemAvailability.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
+import OrderTypeRibbon from './OrderTypeRibbon';
 import MenuCardAvailability from './MenuCardAvailability';
 import AddToOrderButton from './AddToOrderButton';
 import AdminMenuCardControls from './AdminMenuCardControls';
@@ -85,6 +87,11 @@ export default function FeaturedSpecial({
           <AdminMenuCardControls item={adminItem} />
         </div>
 
+        {/* The same corner band every blocked CARD carries. The hero used to state its restriction
+            only as a sentence, so the one dish the page promotes was the one dish whose channel
+            limit a guest could not see at a glance. */}
+        {isBlocked && availabilityNotice && <OrderTypeRibbon label={availabilityNotice.message} />}
+
         {/* The photo is an OPTIONAL first child of a flex row — the old grid declared a photo
             COLUMN, so a special with no image (which is what the live tenant's actually has) put
             the details in the photo's cell and wrapped at 340px with the rest of the hero empty.
@@ -93,19 +100,22 @@ export default function FeaturedSpecial({
             height for it. A class, not `:has()` — the review gate and older Safari treat that
             unevenly, and one boolean the component already knows does not need a selector. */}
         <div className={styles.featuredSpecialContent}>
-          {special.imageUrl && (
-            <div className={styles.featuredSpecialImageContainer}>
-              {/* `object-fit` moved to the stylesheet — it is a fixed rule, not a computed value,
-                  and §5.6 keeps inline styles for the computed ones only. */}
-              <Image
-                src={special.imageUrl}
-                alt={itemName}
-                width={400}
-                height={300}
-                className={styles.featuredSpecialImage}
-              />
-            </div>
-          )}
+          {/* ALWAYS a photo box, falling back to the same placeholder every card uses. It used to
+              render nothing at all without `imageUrl`, so the promoted dish was the one item on the
+              page with no image while the identical dish in the grid two cells away showed the
+              placeholder. `.featuredSpecialNoPhoto` still marks the case for the badge's in-flow
+              fallback, but it no longer means "render no photo". */}
+          <div className={styles.featuredSpecialImageContainer}>
+            {/* `object-fit` moved to the stylesheet — it is a fixed rule, not a computed value,
+                and §5.6 keeps inline styles for the computed ones only. */}
+            <Image
+              src={special.imageUrl || FALLBACK_IMAGE}
+              alt={itemName}
+              width={400}
+              height={300}
+              className={styles.featuredSpecialImage}
+            />
+          </div>
 
           <div className={styles.featuredSpecialDetails}>
             {/* A ribbon on the photo's leading corner when there IS a photo (it is absolutely placed
@@ -147,6 +157,15 @@ export default function FeaturedSpecial({
                 )}
               </h2>
               <span className={styles.featuredSpecialTitleMeta}>
+                {/* Glyphs, exactly as on a card — the hero was the only dish on the menu whose
+                    allergens were hidden (`display: none` from an earlier slice), which is the one
+                    place a guest with an allergy is most likely to look first. */}
+                <AllergenDisplay
+                  allergens={special.allergens}
+                  id={`featured-special-${special.id}`}
+                  maxVisible={3}
+                  variant="icons"
+                />
                 <span className={styles.priceValue}>{formatPlainCurrency(price)}</span>
                 {/* Beside the price it edits, exactly as on a card. It renders nothing for a guest,
                     and for an admin it always renders SOMETHING — the control, or the reason it
@@ -161,6 +180,20 @@ export default function FeaturedSpecial({
               </p>
             )}
 
+            {/* The hero had no Details control — only the dish NAME opened the sheet, a target a
+                guest has no reason to expect to be clickable. Stays live while blocked: reading an
+                item is always allowed, and it is the only route to its ingredients. */}
+            {onViewDetails && (
+              <button
+                type="button"
+                className={styles.featuredSpecialDetailsLink}
+                onClick={() => onViewDetails({ forceSheet: true, availability: special.availability })}
+                aria-label={t('menu_item_details_aria', { itemName })}
+              >
+                {t('details')}
+              </button>
+            )}
+
             {/* Prep time only — the price moved up to the title row above it. */}
             {special.preparationTimeMinutes > 0 && (
               <div className={styles.featuredSpecialMeta}>
@@ -170,21 +203,6 @@ export default function FeaturedSpecial({
                     {special.preparationTimeMinutes} {t('minutes', 'min')}
                   </span>
                 </span>
-              </div>
-            )}
-
-            {special.allergens && special.allergens.length > 0 && (
-              // The wrapper is `display: none` at every width — allergens belong on the dish CARD
-              // and in the sheet. The two layout classes that used to be handed down here went with
-              // it: they had been dressing the subtree of a hidden element.
-              <div className={styles.featuredSpecialAllergens}>
-                <AllergenDisplay
-                  allergens={special.allergens}
-                  id={`featured-special-${special.id}`}
-                  maxVisible={10}
-                  showLabel={true}
-                  variant="admin"
-                />
               </div>
             )}
 
@@ -209,10 +227,8 @@ export default function FeaturedSpecial({
                 the switch inside the notice above is the way out. The dish name stays live, and the
                 sheet is handed the same verdict so it refuses the add too. */}
             <div className={styles.featuredSpecialActions}>
-              <span className={styles.signatureLabel}>
-                <Star size={14} aria-hidden="true" />
-                {t('chefs_special', "Chef's Special")}
-              </span>
+              {/* No signature label here. The badge at the top of the hero already says "Chef's
+                  Special"; a second copy at the foot said it twice on one card. */}
               {onAddToCart && !isBlocked && (
                 /* SOLID, and the only filled button on the page — the shared control the grid cards
                    render outlined. One component, so the promoted dish and the dishes below it

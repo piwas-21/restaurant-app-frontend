@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Borrar filtros",
   "menu_filters_count": "{{shown}} de {{total}} platos",
   "menu_filters_none": "Ningún plato coincide con estos filtros",
-  "menu_state_filtered_heading": "Sin resultados",
-  "open_basket_aria": "Abrir la cesta, {{count}} artículos, {{total}}"
+  "menu_state_filtered_heading": "Sin resultados"
 }

@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { openMenuBasket } from '../helpers/menuBasket';
 
 /**
  * Determinism helpers for the screenshot-baseline suite (S15 T1 close-out).
@@ -146,11 +147,10 @@ export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   }
   await basketWritePromise;
 
-  // Open the slide-over. It renders at every count, including zero, which is what makes it a
-  // replacement for the rail rather than for the floating cart button.
-  await page.getByRole('button', { name: /open basket/i }).click();
-  const basket = page.getByRole('dialog', { name: /shopping basket/i });
-  await expect(basket).toBeVisible({ timeout: 10_000 });
+  // Open the slide-over from the FLOATING cart button — /menu's only cart entry point. The
+  // sticky-bar copy that briefly did the same job is gone; `e2e/helpers/menuBasket.ts` is the one
+  // place that knows this, and this driver predates it.
+  const basket = await openMenuBasket(page);
 
   await basket
     .getByRole('group', { name: /order type/i })

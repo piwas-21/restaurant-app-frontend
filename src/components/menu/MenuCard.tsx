@@ -158,8 +158,6 @@ export default function MenuCard({
           title={itemName}
           description={description ?? ''}
           allergens={item.allergens}
-          dietaryTags={item.dietaryTags ?? []}
-          t={t}
           priceSlot={
             <>
               <span
@@ -177,6 +175,8 @@ export default function MenuCard({
           onTitleClick={openDetails}
           onDetailsClick={openDetails}
           detailsLabel={t('details')}
+          // A blocked card's ribbon wraps the very corner the floated link sits in on a phone.
+          detailsInline={!isBlocked}
           detailsAria={t('menu_item_details_aria', { itemName })}
         />
 

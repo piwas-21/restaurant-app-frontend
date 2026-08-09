@@ -153,11 +153,9 @@
     color: var(--brand-primary-elevated);
   }
 
-  /* A blocked row's title line ends UNDER the diagonal band without this. The band is pinned to the
-     row's own top inline-end corner and the title row is the first thing at that corner, so the
-     price rendered as "CHF 6.0" with the rest behind grey — measured at 390px. The reserve is only
-     on the blocked row, so an ordinary row keeps its full width. */
-  .menuItem.blocked .contentWrapper {
-    padding-inline-end: 2rem;
-  }
+  /* No title-line reserve any more. The band moved to the row's BOTTOM inline-end corner
+     (OrderTypeRibbon.module.css) precisely because reserving space for it at the top crushed the
+     dish name to 32px while still overlapping the price. Nothing sits in the bottom-end corner of
+     a blocked row — its add button is removed and its switch link is inline-start — so the row
+     keeps its full width back. */
 }

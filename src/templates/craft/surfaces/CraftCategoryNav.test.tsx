@@ -85,23 +85,4 @@ describe('CraftCategoryNav — channel restriction chip (§4.4)', () => {
 
     expect(screen.getByRole('button', { name: 'Wraps Takeaway and Delivery only' })).toBeInTheDocument();
   });
-  it('forwards the `trailing` slot — /menu has no basket without it', () => {
-    // /menu is ONE page for both templates; only the surfaces differ. When the basket rail left
-    // that page it left this template's too, and the slot in the sticky bar is what replaced it.
-    // A nav that accepts the prop and drops it leaves a guest with no basket and no order-type
-    // picker at all — the floating cart button renders nothing while the basket is empty. That is
-    // exactly what shipped for craft in the first cut of this change, and it was caught by a
-    // screenshot run rather than by a test.
-    render(
-      <CraftCategoryNav
-        categories={[]}
-        selectedView="all"
-        onSelect={jest.fn()}
-        allLabel="All"
-        trailing={<button type="button">Open basket</button>}
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: 'Open basket' })).toBeInTheDocument();
-  });
 });

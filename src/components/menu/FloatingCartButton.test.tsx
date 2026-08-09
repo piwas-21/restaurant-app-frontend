@@ -35,11 +35,17 @@ jest.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
 beforeEach(() => mockPush.mockClear());
 
 describe('FloatingCartButton — behaviour', () => {
-  it('renders nothing while the basket is empty', () => {
-    const { container } = render(<FloatingCartButton itemCount={0} totalPrice={0} />);
+  it('renders while the basket is EMPTY — it is /menu\u2019s only cart entry point', () => {
+    // It used to return null at zero, which was harmless while /menu also had a pinned basket rail.
+    // The rail is a slide-over now and the order-type toggle lives inside it, so a guest with an
+    // empty basket had no control on screen that could open it — and therefore no way to choose
+    // Dine-in / Takeaway / Delivery at all. Asserted as behaviour, not styling: this is the whole
+    // reason the zero-count branch went.
+    render(<FloatingCartButton itemCount={0} totalPrice={0} />);
 
-    expect(container).toBeEmptyDOMElement();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
+    // …and it does not claim a count it does not have.
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
   });
 
   it('adds the visible class after the entrance delay', () => {

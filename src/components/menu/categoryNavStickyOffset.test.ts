@@ -267,9 +267,12 @@ describe('basket rail sticky offset', () => {
     expect(/\.menuSidebarColumn\s*\{/.exec(PAGE_CSS)).toBeNull();
     expect(PAGE_CSS).not.toContain('align-items: start');
     expect(MENU_PAGE).not.toContain('<OrderFlowSidebar');
-    // The replacement is reachable without scrolling, which is the property the rail had and the
-    // one a floating cart button does not: the FAB renders nothing while the basket is empty.
-    expect(MENU_PAGE).toContain('<MenuBasketButton');
-    expect(MENU_PAGE).toContain('trailing={');
+    // The replacement is the FLOATING cart button, and the property that makes it a replacement is
+    // that it renders at every count — the rail's own guarantee. A second copy briefly lived in
+    // this bar doing the same job from the other corner; it is gone, and the sticky bar is back to
+    // being only a category bar.
+    expect(MENU_PAGE).toContain('<FloatingCartButton');
+    expect(MENU_PAGE).not.toContain('<MenuBasketButton');
+    expect(readFileSync(join(__dirname, 'FloatingCartButton.tsx'), 'utf8')).not.toContain('itemCount === 0');
   });
 });

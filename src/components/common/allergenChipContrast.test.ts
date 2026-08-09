@@ -21,7 +21,6 @@ import { join } from 'node:path';
 
 const HERE = __dirname;
 const CHIP_CSS = readFileSync(join(HERE, 'AllergenDisplay.module.css'), 'utf8');
-const DETAILS_CSS = readFileSync(join(HERE, '../menu/MenuItemDietaryTags.module.css'), 'utf8');
 
 /**
  * The stylesheet with comments removed.
@@ -151,18 +150,18 @@ describe('the allergen chip carries no fill and no off-palette colour', () => {
     expect(chip).toContain('border-radius: 10px');
   });
 
-  /**
-   * The card's other chip family. `MenuItemDetails`' `.allergyTag` renders the dietary tags on the
-   * same card as these chips and had drifted to a different radius and a different ink; leaving it
-   * would mean two "one neutral outline" chips that are not the same outline.
+  /*
+   * The card's SECOND chip family used to be gated here — `MenuItemDetails`' `.allergyTag`, the
+   * dietary tags — because it had drifted to a different radius and a different ink from the
+   * allergen chips on the same card.
+   *
+   * It is gone, not untested. Those chips could never render on the public menu: the browse grid's
+   * mapper hardcodes `dietaryTags: []` (`hooks/publicMenu/mappers.ts:115`), so the whole path from
+   * the prop to the stylesheet was unreachable. What a guest actually sees is `AllergenDisplay`,
+   * off the `allergens` array, which the cases above gate. The DATA contract survives — the field
+   * is still on `MenuItem`/`CatalogItem` and `utils/catalogItem.test.ts` covers the mapping — so
+   * wiring real dietary tags later means re-adding a render path, and a chip rule with it.
    */
-  it('keeps MenuItemDetails’ dietary chip on the same outline', () => {
-    const chip = rule(DETAILS_CSS, '.allergyTag');
-    expect(chip).toContain('background-color: transparent');
-    expect(chip).toContain('color: var(--text-secondary)');
-    expect(chip).toContain('border: 1px solid var(--border-default)');
-    expect(chip).toContain('border-radius: 10px');
-  });
 });
 
 describe.each(TOKEN_FILES)('%s chip contrast', (_template, file) => {

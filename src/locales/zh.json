@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "清除筛选",
   "menu_filters_count": "{{total}} 道菜中的 {{shown}} 道",
   "menu_filters_none": "没有符合这些筛选条件的菜品",
-  "menu_state_filtered_heading": "无匹配结果",
-  "open_basket_aria": "打开购物车，{{count}} 件商品，{{total}}"
+  "menu_state_filtered_heading": "无匹配结果"
 }

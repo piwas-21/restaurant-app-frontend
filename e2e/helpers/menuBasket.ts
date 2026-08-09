@@ -7,7 +7,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
  * `getByRole('complementary', { name: /shopping basket/i })` to get at the order-type toggle and
  * Proceed to Checkout inside it. When the rail became a slide-over — /menu needed its width back
  * for the card grid the design draws — all six broke at once, which is the cost of having had no
- * helper. This is that helper.
+ * helper. This is that helper, and it has already earned itself: the entry point moved a second
+ * time (sticky-bar button → floating cart button) and only this file changed.
  *
  * Note for the next person: the panel is a MODAL. Anything behind it (a dish card, the category
  * tabs) is unreachable while it is open, so a flow that picks a channel and then adds an item has
@@ -29,9 +30,11 @@ export function menuBasketPanel(page: Page): Locator {
 export async function openMenuBasket(page: Page): Promise<Locator> {
   const panel = menuBasketPanel(page);
   if (!(await panel.isVisible().catch(() => false))) {
-    // The entry point is in the sticky category bar, and it renders at EVERY count including zero —
-    // unlike the floating cart button, which renders nothing while the basket is empty.
-    await page.getByRole('button', { name: /open basket/i }).click();
+    // The FLOATING cart button is /menu's only cart entry point. A second copy briefly lived in the
+    // sticky category bar doing the same job from the other corner; it is gone, and the FAB now
+    // renders at EVERY count including zero — which is what makes it a replacement for the rail
+    // rather than only a convenience once something is in the basket.
+    await page.getByRole('button', { name: /view cart/i }).click();
   }
   await expect(panel).toBeVisible({ timeout: 15_000 });
   return panel;

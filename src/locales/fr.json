@@ -587,7 +587,7 @@
   "product_type_menu": "Forfait Menu",
   "allergen_halal": "Halal",
   "allergen_vegan": "Vegan",
-  "allergen_vegetarian": "égétarien",
+  "allergen_vegetarian": "Végétarien",
   "allergen_contains_dairy": "Contient des produits laitiers",
   "allergen_contains_nuts": "Contient des fruits à coque",
   "allergen_gluten_free": "Sans gluten",
@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Effacer les filtres",
   "menu_filters_count": "{{shown}} sur {{total}} plats",
   "menu_filters_none": "Aucun plat ne correspond à ces filtres",
-  "menu_state_filtered_heading": "Aucun résultat",
-  "open_basket_aria": "Ouvrir le panier, {{count}} articles, {{total}}"
+  "menu_state_filtered_heading": "Aucun résultat"
 }

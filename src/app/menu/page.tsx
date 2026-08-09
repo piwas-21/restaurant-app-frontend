@@ -23,7 +23,6 @@ import ItemCustomizationSheet from '@/components/menu/ItemCustomizationSheet';
 import { useCatalogSheet } from '@/hooks/menu/useCatalogSheet';
 import { useMenuCart } from '@/hooks/menu/useMenuCart';
 import FloatingCartButton from '@/components/menu/FloatingCartButton';
-import MenuBasketButton from '@/components/menu/MenuBasketButton';
 import { isLoggedInForAnalytics, trackEvent } from '@/lib/analytics';
 
 // The active template's overrides (craft = ruled-paper order pad, masking-tape tabs) or the
@@ -107,21 +106,14 @@ export default function MenuPage() {
           phone guest scrolled the whole promotion before the tabs appeared, then watched them jump
           when it scrolled past.
 
-          The basket button rides in it. That is the whole cost of removing the 360px rail: the
-          order-type toggle a guest used to reach there is inside the sheet this opens. */}
+          The basket has ONE entry point on this page — the floating button below. A second copy
+          lived in this bar for a while and did the same job from the other corner. */}
       {categoriesForNav.length > 0 && (
         <CategoryNav
           categories={categoriesForNav}
           selectedView={selectedView}
           onSelect={setSelectedView}
           allLabel={t('all_categories_nav')}
-          trailing={
-            <MenuBasketButton
-              itemCount={cart.itemCount}
-              totalPrice={cart.cartTotal}
-              onClick={() => cart.openSheet('menu_bar')}
-            />
-          }
         />
       )}
 
@@ -151,6 +143,9 @@ export default function MenuPage() {
           // the design puts it. The page still resolves the template SURFACE — classic ships one
           // hero, craft ships `CraftFeaturedSpecial` — and hands the element down; `MenuList` only
           // decides where it sits. Resolving it inside the list would bundle craft into classic.
+          // The data behind the slot, so `MenuContent` can filter the special by the same rule as
+          // the grid rather than hiding it whenever any chip is on.
+          featuredFilterable={featuredSpecial ? { allergens: featuredSpecial.allergens, isSpecial: true } : undefined}
           featuredSlot={
             featuredSpecial ? (
               <FeaturedSpecialComponent

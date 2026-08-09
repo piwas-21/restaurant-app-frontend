@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "مسح عوامل التصفية",
   "menu_filters_count": "{{shown}} من {{total}} طبقًا",
   "menu_filters_none": "لا توجد أطباق تطابق عوامل التصفية هذه",
-  "menu_state_filtered_heading": "لا توجد نتائج",
-  "open_basket_aria": "فتح السلة، {{count}} عنصرًا، {{total}}"
+  "menu_state_filtered_heading": "لا توجد نتائج"
 }

@@ -78,6 +78,43 @@ describe('useMenuFilters — the options it offers', () => {
   });
 });
 
+describe('useMenuFilters — counts are LIVE', () => {
+  /**
+   * The reported "filters don't work properly", and it was never the predicate.
+   *
+   * On a menu where the one Halal dish also contains gluten, static counts read "Halal 1" beside
+   * "No gluten 2" — which looks like the pair should yield something. It yields nothing, correctly,
+   * and there was no way to see that before pressing. A live count says 0 first.
+   */
+  it('recomputes each chip against the chips already on', () => {
+    const { result } = renderHook(() => useMenuFilters(MENU));
+    const countOf = (id: string) => result.current.options.find((o) => o.id === id)?.count;
+
+    expect(countOf('claim:halal')).toBe(2);
+    expect(countOf('without:milk')).toBe(2);
+
+    act(() => result.current.toggle('claim:halal'));
+
+    // Both Halal dishes contain milk, so "No milk" on top of "Halal" would empty the menu — and
+    // the chip says so rather than looking like it would leave 2.
+    expect(countOf('without:milk')).toBe(0);
+    // The pressed chip keeps reporting what it is currently showing.
+    expect(countOf('claim:halal')).toBe(2);
+  });
+
+  it('does not reshuffle the chips as counts change', () => {
+    const { result } = renderHook(() => useMenuFilters(MENU));
+    const order = () => result.current.options.map((o) => o.id);
+    const before = order();
+
+    act(() => result.current.toggle('claim:halal'));
+
+    // Ordered by how common the TAG is, which is stable data. Ordering by the live count would move
+    // chips under the guest's finger every time one was pressed.
+    expect(order()).toEqual(before);
+  });
+});
+
 describe('useMenuFilters — what it filters', () => {
   it('shows everything until a chip is pressed', () => {
     const { result } = renderHook(() => useMenuFilters(MENU));

@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Filters wissen",
   "menu_filters_count": "{{shown}} van {{total}} gerechten",
   "menu_filters_none": "Geen gerechten voldoen aan deze filters",
-  "menu_state_filtered_heading": "Geen resultaten",
-  "open_basket_aria": "Winkelmandje openen, {{count}} artikelen, {{total}}"
+  "menu_state_filtered_heading": "Geen resultaten"
 }

@@ -2,9 +2,6 @@
 
 import React, { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import styles from './MenuItemDetails.module.css';
-// The dietary-chip family, in its own module — see that file for why it is split and why nothing
-// on the public menu currently renders it.
-import dietaryStyles from './MenuItemDietaryTags.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 
 type Props = {
@@ -12,8 +9,6 @@ type Props = {
   title: string;
   description: string;
   allergens?: string[];
-  dietaryTags: string[];
-  t: (key: string, defaultValue?: any) => string;
   /**
    * The price (and, for an admin, its inline editor) — handed in as a slot rather than rendered
    * here, because the host owns the optimistic price state the editor writes to. It sits on the
@@ -31,6 +26,16 @@ type Props = {
   /** Opens the details sheet. Rendered INSIDE the description, at the end of its second line. */
   onDetailsClick?: () => void;
   detailsLabel?: string;
+  /**
+   * Float the Details link onto the END of the description's clipped second line (the default), or
+   * drop it below as a plain block link.
+   *
+   * Blocked cards pass `false`. Their diagonal order-type band wraps the row's bottom inline-end
+   * corner on a phone — the only corner a blocked row leaves free — and the floated link sits in
+   * exactly that corner, so it rendered half-covered ("…Déta▓▓▓"). Nothing else about a blocked
+   * card needs the line-end, because it has no add button competing for the space.
+   */
+  detailsInline?: boolean;
   /**
    * Accessible name for that button. Separate from the visible label because the visible one is
    * just "Details" on every card — a screen-reader user listing the page's buttons would get N
@@ -60,13 +65,12 @@ export default function MenuItemDetails({
   title,
   description,
   allergens,
-  dietaryTags,
-  t,
   priceSlot,
   onTitleClick,
   onDetailsClick,
   detailsLabel,
   detailsAria,
+  detailsInline = true,
 }: Props) {
   const hasDescription = description.trim().length > 0;
   const { ref: descriptionRef, isClipped } = useIsClipped(description);
@@ -88,7 +92,7 @@ export default function MenuItemDetails({
   const detailsButton = onDetailsClick ? (
     <button
       type="button"
-      className={styles.detailsLink}
+      className={detailsInline ? styles.detailsLink : styles.detailsLinkBlock}
       onClick={onDetailsClick}
       // Falls back to the visible text rather than to nothing: a caller that passes the handler
       // without a label would otherwise render a button with no name at all.
@@ -116,7 +120,7 @@ export default function MenuItemDetails({
         </span>
       </div>
 
-      {hasDescription ? (
+      {hasDescription && detailsInline ? (
         // product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2)
         <p dir="auto" ref={descriptionRef} className={styles.itemDescription}>
           {/* FIRST in source order on purpose: a float is only wrapped by the content that follows
@@ -125,19 +129,15 @@ export default function MenuItemDetails({
           {description}
         </p>
       ) : (
-        detailsButton
-      )}
-
-      {dietaryTags && dietaryTags.length > 0 && (
-        <div className={dietaryStyles.allergyTags} aria-label={t('dietary_information_label')}>
-          {/* One chip style for every diet. No `role="status"` — a dietary chip is STATIC content,
-              so a live-region role made every card shout its tags at a screen reader on render. */}
-          {dietaryTags.map((tag) => (
-            <span key={tag} className={dietaryStyles.allergyTag}>
-              {t(tag, tag)}
-            </span>
-          ))}
-        </div>
+        <>
+          {hasDescription && (
+            // product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2)
+            <p dir="auto" ref={descriptionRef} className={styles.itemDescription}>
+              {description}
+            </p>
+          )}
+          {detailsButton}
+        </>
       )}
     </>
   );

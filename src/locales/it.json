@@ -2561,6 +2561,5 @@
   "menu_filters_clear": "Cancella filtri",
   "menu_filters_count": "{{shown}} di {{total}} piatti",
   "menu_filters_none": "Nessun piatto corrisponde a questi filtri",
-  "menu_state_filtered_heading": "Nessun risultato",
-  "open_basket_aria": "Apri il carrello, {{count}} articoli, {{total}}"
+  "menu_state_filtered_heading": "Nessun risultato"
 }

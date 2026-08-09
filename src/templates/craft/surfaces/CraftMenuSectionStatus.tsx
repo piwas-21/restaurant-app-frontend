@@ -23,6 +23,7 @@ export default function CraftMenuSectionStatus({
   browseLabel,
   onRetry,
   onBrowseFullMenu,
+  filtersSlot,
 }: Readonly<MenuSectionStatusProps>) {
   return (
     <div className={styles.section}>
@@ -32,6 +33,12 @@ export default function CraftMenuSectionStatus({
       <h2 id={headingId} className="sr-only">
         {title}
       </h2>
+
+      {/* Forwarded, not ignored. This is the menu's filter row, and it has to sit ABOVE the state
+          panels below — a row rendered after them lands under the "nothing matches" state it
+          caused. Craft dropping the slot would leave its guests with no filters at all, which is
+          the same omission that briefly cost craft its basket button. */}
+      {filtersSlot}
 
       {isLoading && (
         <output className={styles.loading}>

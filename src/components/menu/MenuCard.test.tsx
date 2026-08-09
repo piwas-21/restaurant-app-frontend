@@ -161,7 +161,10 @@ describe('MenuCard — one card for both catalog kinds', () => {
 
     const description = screen.getByText('Classic pizza', { selector: 'p' });
     const details = screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' });
-    const allergens = screen.getByRole('group', { name: 'Allergens' });
+    // Queried by testid, not by `role="group"`: that role is gone (typescript:S6819 — the rule
+    // wants a native element, and none of the four it offers fits a row of non-interactive chips).
+    // The grouping is carried as visually-hidden TEXT instead, asserted just below.
+    const allergens = screen.getByTestId('allergen-chips');
     // Queried by id, not by role: the title carries `role="button"` (it opens the same sheet), so
     // it is deliberately NOT a heading in the accessibility tree.
     const title = document.getElementById('item-name-p1')!;
@@ -188,6 +191,9 @@ describe('MenuCard — one card for both catalog kinds', () => {
     const enlarge = screen.getByTestId('menu-item-image');
     const photoFrame = enlarge.parentElement!;
     expect(photoFrame.contains(allergens)).toBe(true);
+    // The word a screen reader hears before the chips. It replaced an `aria-label` on a
+    // `role="group"`, so losing it would quietly strip the context rather than break a query.
+    expect(allergens).toHaveTextContent('Allergens');
     expect(enlarge.contains(allergens)).toBe(false);
     expect(title.contains(allergens)).toBe(false);
     // …and BEFORE the name in the document, since the photo sits above the text column.

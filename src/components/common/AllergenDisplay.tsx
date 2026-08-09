@@ -131,16 +131,23 @@ export default function AllergenDisplay({
     );
   }
 
-  // On the photo. `<span>`s all the way down, not the `<div>`s the other variants use: this lands
-  // inside `MenuItemImage`'s enlarge `<button>` (that button is the photo's positioned ancestor, so
-  // an overlay has to live in it), and flow content inside a button is invalid markup.
+  // On the photo. `<span>`s all the way down, not the `<div>`s the other variants use: this sits in
+  // `MenuItemImage`'s photo frame, which is itself a `<span>` so that the frame stays valid
+  // wherever the image is placed. Flow content in here would be invalid markup.
+  //
+  // A visually-hidden LABEL rather than `role="group"` + `aria-label` (typescript:S6819). The rule
+  // wants a native element, and none of the four it offers fits: `<fieldset>` groups form controls
+  // and these chips are labels, not controls — which is exactly why `MenuFilters` legitimately DOES
+  // use one for chips that are buttons. The genuinely correct element would be a `<ul>`, and it
+  // cannot go here: a list is flow content and this is a phrasing-only position.
+  //
+  // So the grouping is carried as TEXT, which is a small upgrade rather than a workaround — a
+  // `role="group"` name is announced inconsistently across screen readers (the substance of S6819's
+  // complaint), while a hidden word is just read.
   if (variant === 'photo') {
     return (
-      <span
-        role="group"
-        className={`${photoStyles.photoRow} ${className}`.trim()}
-        aria-label={t('allergens', 'Allergens')}
-      >
+      <span className={`${photoStyles.photoRow} ${className}`.trim()} data-testid="allergen-chips">
+        <span className="sr-only">{t('allergens', 'Allergens')}</span>
         <AllergenChips
           allergens={allergens}
           id={id}

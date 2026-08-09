@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { captureAnalytics } from '../../helpers/analytics';
+import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — C1 item #15: Playwright happy-path coverage of the new
@@ -48,18 +49,20 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     const analytics = await captureAnalytics(page);
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+    const sidebar = await openMenuBasket(page);
 
     // ── Step 1: add a product (no analytics event tied to this — by design,
     //           cart-adds are noisy and weren't in the legacy funnel either).
+    // The basket is a MODAL now, so the grid behind it is unreachable while it is open.
+    await closeMenuBasket(page);
     const basketWritePromise = page.waitForResponse(
       (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
       { timeout: 15_000 },
     );
     await page
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
+      .getByTestId('menu-card')
       .first()
+      .getByRole('button', { name: /^Add( .+)? to order$/i })
       .click();
     // Some products open a customisation modal — handle both branches.
     try {
@@ -71,6 +74,8 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
       /* plain add — no modal */
     }
     await basketWritePromise;
+    // Back into the basket for the toggle / Proceed / line assertions below.
+    await openMenuBasket(page);
 
     // ── Step 2: pick Takeaway. Fires order_type_selected and opens the
     //           takeaway info modal (guest needs to provide contact info).
@@ -161,8 +166,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     const analytics = await captureAnalytics(page);
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+    const sidebar = await openMenuBasket(page);
 
     await sidebar
       .getByRole('group', { name: /order type/i })
@@ -189,8 +193,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     const analytics = await captureAnalytics(page);
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+    const sidebar = await openMenuBasket(page);
 
     await sidebar
       .getByRole('group', { name: /order type/i })
@@ -220,8 +223,7 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     const analytics = await captureAnalytics(page);
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+    const sidebar = await openMenuBasket(page);
     const toggle = sidebar.getByRole('group', { name: /order type/i });
 
     await toggle.getByRole('button', { name: /dine in/i }).click();

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — C1.5.c acceptance: the user picks order type via the
@@ -20,8 +21,7 @@ test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async
   // No welcome modal; the sidebar's order-type toggle is the entry point.
   await expect(page.getByRole('dialog')).toBeHidden();
 
-  const aside = page.getByRole('complementary', { name: /shopping basket/i });
-  await expect(aside).toBeVisible({ timeout: 15_000 });
+  const aside = await openMenuBasket(page);
 
   // The toggle exposes a role="group" with aria-label="Order type".
   const toggle = aside.getByRole('group', { name: /order type/i });
@@ -37,8 +37,7 @@ test('dine-in: sidebar toggle → DineIn → table-selection modal opens', async
 test('delivery: sidebar toggle → Delivery → address modal opens', async ({ page }) => {
   await page.goto('/menu');
 
-  const aside = page.getByRole('complementary', { name: /shopping basket/i });
-  await expect(aside).toBeVisible({ timeout: 15_000 });
+  const aside = await openMenuBasket(page);
 
   const toggle = aside.getByRole('group', { name: /order type/i });
   await toggle.getByRole('button', { name: /delivery/i }).click();
@@ -52,8 +51,7 @@ test('delivery: sidebar toggle → Delivery → address modal opens', async ({ p
 test('takeaway: sidebar toggle → Takeaway → guest info modal opens', async ({ page }) => {
   await page.goto('/menu');
 
-  const aside = page.getByRole('complementary', { name: /shopping basket/i });
-  await expect(aside).toBeVisible({ timeout: 15_000 });
+  const aside = await openMenuBasket(page);
 
   const toggle = aside.getByRole('group', { name: /order type/i });
   await toggle.getByRole('button', { name: /takeaway/i }).click();

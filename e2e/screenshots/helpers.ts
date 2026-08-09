@@ -121,13 +121,14 @@ export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/menu');
 
-  // Scoped to the GRID. The seeded product is also the featured special, and the hero's add control
-  // now carries the same item-specific accessible name the card's does — deliberately, so a screen
-  // reader hears which dish each button adds. Unscoped, this is a strict-mode violation resolving
-  // to two elements (it was: the hero used to say a generic "Add to Order"). The same warning is
-  // already written on `data-testid="menu-grid"` in MenuContent.tsx.
-  const grid = page.getByTestId('menu-grid');
-  const seededAddButton = grid.getByRole('button', { name: /^Add E2E Test Product to order$/i });
+  // Scoped to a CARD, not to the grid: the hero is a cell OF the grid now, so `menu-grid` contains
+  // both. The seeded product is also the featured special, and the hero's add control carries the
+  // same item-specific accessible name the card's does — deliberately, so a screen reader hears
+  // which dish each button adds (it said a generic "Add to Order" before). Unscoped, and scoped to
+  // the grid, this is a strict-mode violation resolving to two elements.
+  const seededAddButton = page
+    .getByTestId('menu-card')
+    .getByRole('button', { name: /^Add E2E Test Product to order$/i });
   await expect(seededAddButton).toBeVisible({ timeout: 15_000 });
 
   const basketWritePromise = page.waitForResponse(

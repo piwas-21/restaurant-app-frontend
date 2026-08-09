@@ -392,62 +392,57 @@ describe('menu card call sites', () => {
     return css.slice(start, end);
   }
 
-  it('closes the card with a border token that has a dark override', () => {
-    const row = block('MenuItem.module.css', '.priceActionsRow');
-
-    expect(row).toContain('border-top: 1px solid var(--border-default)');
-    // The defect, stated as the thing that must stay true of the token it used to use.
-    expect(CSS).toMatch(/--border-light:/);
-    expect(tokens("html[data-theme='dark'] {")['--border-light']).toBeUndefined();
+  it('keeps the price whole in the card foot, and makes the ACTION yield beside it', () => {
+    // Third answer to one question — which side of a shared row gives way — and worth reading as a
+    // sequence, because the answer follows the layout rather than being a preference:
+    //   · price in a foot row under a full-width button ⇒ the BUTTON gave (`flex: 1 1 min-content`)
+    //   · price on the dish name's line (§7b)           ⇒ the NAME gave (`flex: 1 1 auto`)
+    //   · price beside the button in the foot (here)    ⇒ the BUTTON gives again
+    // The invariant across all three is the only thing that was ever really fixed: a truncated
+    // price is a WRONG price, so the price never shrinks and never wraps.
+    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('flex-shrink: 0');
+    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('white-space: nowrap');
+    expect(block('MenuCardFoot.module.css', '.footAction')).toContain('min-width: 0');
   });
 
   it('outlines the add button in the brand, and lifts only the DARK label off it', () => {
-    const css = readFileSync(join(__dirname, 'MenuItemActions.module.css'), 'utf8');
-    const button = block('MenuItemActions.module.css', '.addToOrderButton');
+    const css = readFileSync(join(__dirname, 'AddToOrderButton.module.css'), 'utf8');
+    const outline = block('AddToOrderButton.module.css', '.outline');
 
     // D1: the resting outline is the brand, no longer the pressed shade — in both themes, because
     // a 1px edge is non-text and its worst case (3.23:1 on a hovered dark card) clears 3:1.
-    expect(button).toContain('border: 1px solid var(--brand-primary)');
+    expect(outline).toContain('border: 1px solid var(--brand-primary)');
     // The LIGHT label follows it, which is what `desktop_menu_light_full_page` draws
     // (`border border-primary text-primary`) and what light's 5.69–6.15:1 allows.
-    expect(button).toContain('color: var(--brand-primary)');
-    expect(button).not.toContain('color: var(--brand-primary-elevated)');
+    expect(outline).toContain('color: var(--brand-primary)');
+    expect(outline).not.toContain('color: var(--brand-primary-elevated)');
 
-    // Dark lifts it, because 3.23:1 on a hovered card is a border, not a word. Two things have to
-    // stay true of that override and neither is visible to a screenshot in English:
-    const dark = css.slice(css.indexOf('@media (min-width: 601px)'));
-    expect(dark).toContain("html[data-theme='dark'] .addToOrderButton");
-    expect(dark).toContain('color: var(--brand-primary-elevated)');
-    // …and it MUST stay behind the min-width guard. `html[data-theme='dark'] .x` is (0,2,1) and the
-    // ≤600px block's `.addToOrderButton` is (0,1,0), so an unguarded rule outranks it regardless of
-    // source order — and below 600px this button is a solid brand disc whose `+` glyph inherits
-    // `currentColor`. Unguarded it renders #ef9a9a on #e06666: 1.5:1, an invisible plus.
-    expect(css.indexOf('@media (min-width: 601px)')).toBeLessThan(
-      css.indexOf("html[data-theme='dark'] .addToOrderButton"),
+    // Dark lifts it, because 3.23:1 on a hovered card is a border, not a word.
+    expect(css).toContain("html[data-theme='dark'] .outline:not(.disc)");
+    expect(block('AddToOrderButton.module.css', "html[data-theme='dark'] .outline:not(.disc)")).toContain(
+      'color: var(--brand-primary-elevated)',
     );
+
+    // …and the `:not(.disc)` guard is load-bearing, not tidiness. A disc is a SOLID brand circle
+    // whose only content is a `+` inheriting `currentColor`; without the guard it renders
+    // #ef9a9a on #e06666 — 1.5:1, an invisible plus. The old code bought the same protection with
+    // an `@media (min-width: 601px)` wrapper, which only worked while the disc was mobile-only.
+    expect(css).not.toMatch(/html\[data-theme='dark'\] \.outline\s*\{/);
   });
 
-  /**
-   * The price row holds one line because the BUTTON yields, not because the row cannot break.
-   *
-   * Three declarations carry that between two files, and each is silently reversible: drop the
-   * `min-content` basis and the row breaks from the button's full label again (6 of 10 locales at
-   * 1280px); put `white-space: nowrap` back and the button stops wrapping; "simplify"
-   * `overflow-wrap` to `anywhere` and the basis collapses to one character, which measured as a
-   * 44×120 Add button on an admin card. None of it is visible to a screenshot in English, which is
-   * the only locale the baselines shoot.
-   */
-  it('lets the button, never the price, absorb a long label', () => {
-    const actions = block('MenuItemActions.module.css', '.itemActions');
-    const button = block('MenuItemActions.module.css', '.addToOrderButton');
+  it('gives the button a real touch target at every viewport', () => {
+    // globals.css pads a <button> to 44px only BELOW 768px, so the grid card's control measured
+    // 22.6px on every desktop card. No gate would have caught it: `e2e/helpers/a11y.ts` pins
+    // wcag2a/wcag2aa/wcag21a/wcag21aa and target size is a WCAG 2.2 rule.
+    expect(block('AddToOrderButton.module.css', '.addToOrderButton')).toContain('min-height: 44px');
+  });
 
-    // The price stays whole…
-    expect(block('MenuItem.module.css', '.rowPrice')).toContain('flex-shrink: 0');
-    // …so the give is the button: it wraps its label…
-    expect(button).not.toContain('white-space: nowrap');
-    expect(button).toContain('overflow-wrap: break-word');
-    expect(button).toContain('min-width: 0');
-    // …and contributes only that wrapped width to where the row breaks.
-    expect(actions).toContain('flex: 1 1 min-content');
+  it('hovers the filled button with the token that actually flips', () => {
+    // `--brand-primary-dark` is declared in the light block ONLY, so a dark-theme hover using it
+    // jumps to light's #890303 on a dark page. `--brand-primary-hover` is the pair that flips.
+    const solidHover = block('AddToOrderButton.module.css', '.solid:hover');
+    expect(solidHover).toContain('var(--brand-primary-hover)');
+    expect(tokens("html[data-theme='dark'] {")['--brand-primary-hover']).toBeDefined();
+    expect(tokens("html[data-theme='dark'] {")['--brand-primary-dark']).toBeUndefined();
   });
 });

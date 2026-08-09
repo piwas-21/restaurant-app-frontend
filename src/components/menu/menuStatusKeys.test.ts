@@ -52,8 +52,30 @@ const LOCALES = ['en', 'de', 'tr', 'it', 'ar', 'fr', 'nl', 'es', 'ru', 'zh'] as 
  * key held in a `const`. Neither appears in `MenuContent.tsx`, and catching them needs a real
  * parser rather than a wider regex.
  */
+/**
+ * Keys chosen by a LOCAL HELPER — `t(errorKeyFor(view, isBundles), { … })`.
+ *
+ * Without this the scan sees only the identifier `errorKeyFor` and reports zero keys for the error
+ * state, which is exactly the hole that let `error_loading_menu_bundles` ship missing in the first
+ * place. It regressed the moment that ternary moved out of the `t(` call to satisfy a
+ * cognitive-complexity rule: the gate went green while covering strictly less. That is the failure
+ * mode the corpus assertion below exists to catch, and it did.
+ */
+function keysFromKeyHelpers(source: string): string[] {
+  const keys: string[] = [];
+  for (const [, helper] of source.matchAll(/\bt\(\s*([A-Za-z_$][\w$]*)\s*\(/g)) {
+    const at = source.indexOf(`function ${helper}(`);
+    if (at === -1) continue;
+    const body = source.slice(at, source.indexOf('\n}', at));
+    keys.push(...[...body.matchAll(/'([a-z][a-z0-9_]*)'/g)].map(([, key]) => key));
+  }
+  return keys;
+}
+
 function keysWithoutFallback(source: string): string[] {
   const keys: string[] = [];
+
+  keys.push(...keysFromKeyHelpers(source));
 
   for (const call of source.matchAll(/\bt\(/g)) {
     let depth = 0;
@@ -88,6 +110,9 @@ describe('menu section status i18n keys', () => {
   /** The gate is only as good as its corpus — an empty list would pass every assertion below. */
   it('finds the keys it is supposed to be checking', () => {
     expect(keys).toEqual(expect.arrayContaining(['error_loading_menu_bundles', 'no_bundles_available']));
+    // `error_loading_menu_bundles` is now returned by `errorKeyFor` rather than written inside the
+    // `t(` call, so this also pins that the helper-following branch above is doing its job.
+    expect(keys).toEqual(expect.arrayContaining(['error_loading_all_menu_items', 'error_loading_menu_items']));
     expect(keys.length).toBeGreaterThanOrEqual(4);
   });
 

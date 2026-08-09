@@ -59,15 +59,17 @@ export type OrderStatus =
 /**
  * Payment status — TWO types, because the backend has two things wearing one enum.
  *
- * `PaymentStatus.cs` has eight members, but `Order.PaymentStatus` and `OrderPayment.Status` write
- * DISJOINT subsets of them, and three members are never written by anything. Verified by reading
- * every write site in the API:
+ * `PaymentStatus.cs` has eight members, and `Order.PaymentStatus` and `OrderPayment.Status` write
+ * DISJOINT subsets of them. Verified by reading every write site in the API:
  *
  * | written by                       | values |
  * |----------------------------------|--------|
  * | `Order.PaymentStatus`            | `Pending` `PartiallyPaid` `Completed` `Overpaid` `Refunded` |
- * | `OrderPayment.Status`            | `Pending` `Completed` `PartiallyRefunded` `Refunded` |
- * | *nothing*                        | `Processing` `Failed` |
+ * | `OrderPayment.Status`            | `Pending` `Processing` `Completed` `Failed` `PartiallyRefunded` `Refunded` |
+ *
+ * There is no longer a never-written row. `Processing` and `Failed` both became real in the
+ * backend's S5 (online payments): an online tender waits in `Processing` while the diner is on
+ * Stripe's hosted page, and lands in `Failed` if that session is abandoned or expires.
  *
  * One shared union is what let three bugs ship, all of them from a value the backend never emits:
  *
@@ -90,14 +92,23 @@ export type OrderPaymentStatus = 'Pending' | 'PartiallyPaid' | 'Completed' | 'Ov
  * What `OrderPayment.Status` can be — ONE payment record. Narrower than the order's, but not by as
  * much as it first looks; enumerate the writers rather than assuming:
  *
- * - `Pending` — every record is CREATED pending (`OrderPaymentBuilder:35`,
- *   `AddPaymentToOrderCommand:91`), and **a cash payment stays that way** until it is explicitly
+ * - `Pending` — every record except an online one is CREATED pending (`OrderPaymentBuilder`,
+ *   `AddPaymentToOrderCommand`), and **a cash payment stays that way** until it is explicitly
  *   completed. Cash is the common case in a restaurant, so this is not an edge state.
- * - `Completed` — non-cash auto-completes on create (`OrderPaymentBuilder:53`); cash on
- *   `AddPaymentToOrderCommand:110`.
+ * - `Processing` — an ONLINE tender, from creation until Stripe confirms the money arrived. It is
+ *   deliberately not `Pending`: `AddPaymentToOrderCommand` deletes every Pending tender on an order
+ *   when the till takes a payment, which would erase the record that a payment is live at Stripe.
+ *   Like `Pending` it is not captured, so it never counts toward the order's `totalPaid`.
+ * - `Completed` — the till completes a tender through `AddPaymentToOrderCommand`, and the settle
+ *   path completes an online one after re-fetching from Stripe. **Nothing auto-completes at order
+ *   creation any more** — that was the anonymous-order hole closed backend-side in S0.
+ * - `Failed` — an online tender whose Stripe session expired or was abandoned. It exists so the
+ *   tender has a way OUT of `Processing` that is not payment: without it the order counts as
+ *   awaiting a payment that will never arrive, and staff cannot confirm it even after the diner
+ *   pays cash at the till. Not captured, so it never counts as money either.
  * - `PartiallyRefunded` — a PARTIAL refund
- *   (`RefundPaymentCommand:72`: `RefundAmount == Amount ? Refunded : PartiallyRefunded`).
- * - `Refunded` — a full refund, and `CancelOrderCommand:92`.
+ *   (`RefundPaymentCommand`: `RefundAmount == Amount ? Refunded : PartiallyRefunded`).
+ * - `Refunded` — a full refund, and `CancelOrderCommand`.
  *
  * ⚠️ `PartiallyPaid` is deliberately NOT here, and that is the whole distinction this file exists
  * for. It is an ORDER-level word — "some tenders in, balance outstanding" — and a single tender is
@@ -106,4 +117,4 @@ export type OrderPaymentStatus = 'Pending' | 'PartiallyPaid' | 'Completed' | 'Ov
  * end-of-day money report entirely. Fixed backend-side in #286; this union moved with it, and a
  * comparison against `'PartiallyPaid'` on a payment record is now a compile error again.
  */
-export type PaymentRecordStatus = 'Pending' | 'Completed' | 'PartiallyRefunded' | 'Refunded';
+export type PaymentRecordStatus = 'Pending' | 'Processing' | 'Completed' | 'Failed' | 'PartiallyRefunded' | 'Refunded';

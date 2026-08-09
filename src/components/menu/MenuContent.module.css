@@ -29,41 +29,51 @@
   background: var(--border-light);
 }
 
+/* The card count is DERIVED, never declared. One `auto-fill` + a 340px card minimum replaces what
+   used to be a per-breakpoint column count, and it is what makes the wide-screen steps in
+   `MenuPage.module.css` mean "more dishes per row" instead of "wider cards".
+
+   Measured against the track widths that page sets — content = track, gap = 16:
+     1200 -> floor(1216/356) = 3 cards of 389px   (the design's own number)
+     1560 -> floor(1576/356) = 4 cards of 378px
+     1880 -> floor(1896/356) = 5 cards of 363px
+   and on the way down, without any rule of its own: 1184 (1280px viewport) -> 3 x 394px,
+   928 (1024px viewport) -> 2 x 456px.
+
+   340px is the minimum a card can be and still hold the design's shape: a 192px photo above a
+   title row that has to fit a dish name, up to three allergen glyphs and a price on one line.
+   Below it the title row starts wrapping, which is what the two overrides underneath are for.
+
+   The `2, 1fr` era ended with the basket rail — see `.menuLayout`. */
 .itemsGrid {
   display: grid;
-  /* TWO, not three, while the basket rail is on screen (D11). Measured at 1280px before this slice:
-     layout 1184 = main 800 + 24 gap + 360 rail, and `repeat(3, 1fr)` made each card 256px against
-     the ~380px every classic screen draws. Two give (800 - 16) / 2 = 392px at 1280 and (816 - 16)
-     / 2 = 400px once D12's cap binds — without touching the rail, which D10 deliberately kept and
-     which needs its width for the 3-up order-type picker's German labels (S4).
-
-     There is a step at the rail-hide edge, and it is worth stating with both sides measured rather
-     than waved at. The rail is `display: none` AT AND BELOW 1024px, so one pixel changes the space
-     available by 384px. Measured, branch vs develop (staging):
-
-       1025px (rail shown):  265px x2   <- was 171px x3
-       1024px (rail hidden): 456px x2   <- was 299px x3
-
-     So the step is pre-existing and its MAGNITUDE is essentially unchanged — 1.72x here against
-     1.75x on develop — and both sides get wider. What is new is that the rail-less side now
-     overshoots: 456px against the ~380px the screens draw, where develop's 299 undershot by less.
-     The narrow side improves far more than the wide side regresses (171 -> 265 against 380).
-
-     Not reconciled here. The real cause is that two breakpoints disagree — the rail hides at 1024
-     (MenuPage.module.css) and this grid changes at 968 — and closing that gap is a change to the
-     page's breakpoint scheme, not to this slice's two-columns-beside-a-rail decision. Follow-up. */
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   /* `gap-sm` = 1rem. 2rem spread a three-up row so wide the cards stopped reading as a set. */
   gap: 1rem;
   margin-bottom: 3rem;
-  /* No `max-width` here any more. 1400px could never bind once the page track caps at 1200 and the
-     rail takes 360 of it — a dead cap reads as a live constraint, and the next person to widen the
-     track would have hunted for why the grid stopped growing. `.menuContainer`'s
-     `--menu-track-max` is the one place that decides. */
+  /* No `max-width` here. `.menuContainer`'s `--menu-track-max` is the one place that decides how
+     wide the content track is, and a second cap here could only ever disagree with it. */
   margin-inline: auto;
   list-style: none;
   padding: 0;
   margin-top: 0;
+}
+
+/* The Chef's Special, as the first cell of the grid rather than a strip above it — which is where
+   the new design puts it (`lg:col-span-2` on the hero card) and what stops the promoted dish from
+   pushing every actual dish one hero-height down the page.
+
+   `span 2` only above 900px, where `auto-fill` is guaranteed to have produced at least two columns.
+   Below that it becomes `1 / -1`: `span 2` against a ONE-column grid does not clamp — it creates an
+   implicit second column and tears the layout in half. */
+.featuredCell {
+  grid-column: span 2;
+}
+
+@media (max-width: 900px) {
+  .featuredCell {
+    grid-column: 1 / -1;
+  }
 }
 
 .bundlesGrid {
@@ -89,12 +99,14 @@
   font-weight: 500;
 }
 
-/* Tablet */
-@media (max-width: 968px) {
-  /* No `grid-template-columns` — two is now the base (D11), so restating it here said nothing.
-     The gap and the trailing margin DO change: with no rail the cards are wider and can afford air. */
+/* Tablet. Two columns is a FLOOR here, overriding what `auto-fill` would derive: between roughly
+   600 and 900px the 340px minimum yields one full-width card, and a single 584px card on a tablet
+   reads as a broken grid rather than a dense menu. Density is worth more than the card's ideal
+   width on that band. */
+@media (max-width: 900px) {
   .itemsGrid {
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
     margin-bottom: 2.5rem;
   }
 
@@ -115,6 +127,13 @@
     margin-bottom: 2rem;
   }
 
+  /* The hero is the one cell that keeps a gap: it is a card among rows, and a rule between it and
+     the first dish would read as if it were one of them. */
+  .featuredCell {
+    grid-column: auto;
+    margin-bottom: 1rem;
+  }
+
   .sectionHeadingRow {
     margin-bottom: 0.75rem;
   }
@@ -132,4 +151,16 @@
     font-size: 1rem;
     padding: 1.5rem;
   }
+}
+
+/* The category blurb under its heading — `font-body-main text-on-surface-variant mt-2 max-w-2xl`.
+   Capped at ~65 characters a line: a paragraph run across a 1880px track is unreadable, and the
+   design caps it at `max-w-2xl` for the same reason. */
+.sectionDescription {
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 42rem;
+  margin: -1rem 0 1.5rem;
 }

@@ -2388,6 +2388,7 @@
   "reorder_partial": "{{added}} van {{total}} items toegevoegd.",
   "availability_only_for": "Alleen {{orderTypes}}",
   "availability_switch_to": "Overschakelen naar {{orderType}}",
+  "availability_not_for": "Niet voor {{orderType}}",
   "availability_ask_server": "Vraag het de bediening",
   "order_type_conflict_title": "Sommige items zijn niet beschikbaar",
   "order_type_conflict_intro": "Overschakelen naar {{orderType}} verwijdert deze items uit je bestelling:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "Kon de prijs niet opslaan",
   "scroll_categories_back": "Categorieën terugscrollen",
   "scroll_categories_forward": "Categorieën vooruitscrollen",
+  "scroll_filters_back": "Filters terugscrollen",
+  "scroll_filters_forward": "Filters vooruitscrollen",
   "category_navigation_aria": "Categorienavigatie",
   "order_status_refunded": "Terugbetaald",
   "bulk_status_update_success": "Bijgewerkte bestellingen: {{count}}",
@@ -2554,5 +2557,12 @@
   "menu_state_empty_heading": "Hier nog geen gerechten",
   "menu_state_error_heading": "Menu kon niet worden geladen",
   "browse_full_menu": "Bekijk het hele menu",
-  "error_loading_menu_bundles": "Menucombinaties konden niet worden geladen. Probeer het opnieuw."
+  "error_loading_menu_bundles": "Menucombinaties konden niet worden geladen. Probeer het opnieuw.",
+  "menu_filters_label": "Gerechten filteren",
+  "menu_filter_specials": "Aanbevelingen van de chef",
+  "menu_filter_without": "Zonder {{allergen}}",
+  "menu_filters_clear": "Filters wissen",
+  "menu_filters_count": "{{shown}} van {{total}} gerechten",
+  "menu_filters_none": "Geen gerechten voldoen aan deze filters",
+  "menu_state_filtered_heading": "Geen resultaten"
 }

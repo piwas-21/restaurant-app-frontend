@@ -68,6 +68,7 @@ const BLOCKED: AvailabilityNotice = {
   message: 'Takeaway and Delivery only',
   switchTo: OrderType.Takeaway,
   switchLabel: 'Switch to Takeaway',
+  shortMessage: 'Not for Dine-in',
   hint: null,
 };
 

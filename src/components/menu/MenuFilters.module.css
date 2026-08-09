@@ -1,0 +1,142 @@
+/* The dietary / allergen filter row — `flex flex-wrap gap-3 mb-lg` with
+   `px-4 py-1.5 border rounded-[10px]` chips, from the design's filter band. */
+/* A <fieldset> (see MenuFilters.tsx), so its UA chrome has to go: the default border, the inset
+   padding and the legend gap are all page furniture nobody asked for.
+   `min-width: 0` is the load-bearing one — a fieldset's intrinsic minimum width is its CONTENT, not
+   0, so without it the chip row refuses to shrink and pushes the page into a horizontal scroll on a
+   narrow phone. That is a fieldset quirk with no equivalent on a <div>. */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  /* 44px is the touch target globals.css only guarantees below 768px; a filter row is a row of
+     small targets and is exactly where that matters. */
+  min-height: 44px;
+  padding: 0.35rem 0.875rem;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-family-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.chip:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* Pressed. The border AND the ink move, and a tint goes behind them — colour alone is not a state
+   signal, and `aria-pressed` carries the same fact to a screen reader.
+   `--brand-primary-elevated` for the ink: small brand text on a tinted surface is exactly the case
+   that token exists for, and plain `--brand-primary` measures 4.16:1 on a tint in dark. */
+.chipActive {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+  background-color: var(--surface-secondary);
+}
+
+.chipIcon {
+  width: 0.95em;
+  height: 0.95em;
+  flex-shrink: 0;
+  stroke-width: 1.75;
+}
+
+/* The survivor count. Quieter than the label — it is a hint about the chip, not part of its name. */
+.chipCount {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  padding-inline-start: 0.125rem;
+}
+
+.chipActive .chipCount {
+  color: inherit;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.count {
+  font-family: var(--font-family-sans);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 44px;
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary-elevated);
+  font-family: var(--font-family-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.clear:hover,
+.clear:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+.clear:focus-visible {
+  outline: 2px solid var(--brand-primary-elevated);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.clearIcon {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+@media (max-width: 600px) {
+  .filters {
+    margin-bottom: 1rem;
+  }
+
+  .chip {
+    min-height: 38px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+}

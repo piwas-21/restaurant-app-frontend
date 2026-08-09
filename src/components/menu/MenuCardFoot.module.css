@@ -1,0 +1,99 @@
+/* The classic card's FOOT — price at the inline start, one action at the inline end.
+ *
+ * Its own module rather than more of `MenuItem.module.css` for the reason that file has already
+ * been split twice (`MenuItemAvailability.module.css`, `AdminPriceEditorHost.module.css`): it is at
+ * the §4 200-LOC ceiling. Same host, same card, different concern.
+ *
+ * WHY THE FOOT AGAIN. The price sat here until 2026-08-09, moved to the title row by the layout
+ * redesign (MENU-DESIGN-CONFORMANCE-PLAN §7b: "both governing screens put it there, and a guest
+ * reading a grid compares names to prices"), and is back after the owner's review of that redesign:
+ * *"the price and allergens being in the same row with item name makes it too noisy and not user
+ * friendly … better to put the price to the left bottom corner inline with add button"*. Both
+ * readings are defensible and the owner's crop is the tiebreaker; what is NOT a repeat of the old
+ * arrangement is the rest of the row. The pre-§7 foot had the price and a FULL-WIDTH button
+ * stacked, which is the "two objects competing for the eye" §7b objected to. Here they share one
+ * baseline, which is what the crop draws and what leaves the row reading as a single line.
+ */
+
+/* `margin-top: auto` is what makes a row of cards end on one baseline — the card is a column, so
+   this pushes the foot to the bottom however tall the description above it turned out. It moved
+   here from `AddToOrderButton`'s `.card` shape, which no longer spans the row and so can no longer
+   be the thing that does it. */
+.footRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  /* The hairline in the owner's crop. `--border-default` is DESIGN.md's hairline token, the same
+     one the card's own edge takes — not a second, heavier rule. */
+  border-top: 1px solid var(--border-default);
+  /* A 44px control on one side and a ~20px price on the other must not stretch the row past the
+     control's own height. */
+  min-height: 44px;
+}
+
+/* `font-price-tag text-price-tag` — Public Sans 1rem/1/600, tabular so a column of prices aligns
+   down the grid. `min-width: 0` and the price still never shrinks: it is the ACTION that yields,
+   because a truncated price is a wrong price. */
+.footPrice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-family-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* The action end of the row. Holds the Add button on an orderable card and, on a blocked one, the
+   availability notice — whose only VISIBLE part while blocked is the "Switch to Takeaway" link
+   (its reason sentence is clipped, see MenuItemAvailability.module.css).
+ *
+ * That substitution is the whole mechanism behind the owner's *"the listed items better to have
+ * same hight with or without labels"*. A blocked card was taller by two separate things: a 44px
+ * block "Details" link the ordinary card renders inside its description instead, and a 44px switch
+ * link stacked UNDER the foot rather than in it. Put the switch where the Add button would have
+ * been and the two cards have the same number of rows of the same heights — not by reserving
+ * space, which would leave a hole on every ordinary card, but because the states genuinely have the
+ * same anatomy. */
+.footAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  /* Yields to the price. */
+  min-width: 0;
+}
+
+/* An `info` notice ("also available for Delivery") is NOT the blocked case: nothing is dimmed,
+   nothing is substituted, its reason sentence is visible, and the Add button still occupies the
+   foot. So it stays in the text column above the foot, and this slot owns the spacing that
+   `.availability` used to carry itself. */
+.noticeSlot {
+  margin: 0.4rem 0 0.5rem;
+}
+
+@media (max-width: 600px) {
+  /* No rule and no reserved height on a list row. The row is already separated from its neighbour
+     by the row divider `MenuItem.module.css` draws, and a second hairline 12px above it read as a
+     broken box — the same doubling S7 removed from the availability pill. The control here is a
+     44px disc that sets the row's last line height on its own. */
+  .footRow {
+    padding-top: 0.35rem;
+    border-top: 0;
+    min-height: 0;
+  }
+
+  /* `--brand-primary-elevated`: on a phone the row has no card behind it, so the price sits on the
+     page background and carries the emphasis the missing card box used to. Measured for AA on
+     every surface the row takes in adminPriceEditorContrast.test.ts. */
+  .footPrice {
+    font-size: 0.9rem;
+    color: var(--brand-primary-elevated);
+  }
+}

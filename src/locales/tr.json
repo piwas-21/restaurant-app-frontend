@@ -2388,6 +2388,7 @@
   "reorder_partial": "{{total}} üründen {{added}} tanesi sepete eklendi.",
   "availability_only_for": "Sadece {{orderTypes}}",
   "availability_switch_to": "{{orderType}} seçeneğine geç",
+  "availability_not_for": "{{orderType}} için değil",
   "availability_ask_server": "Servis görevlisine sorun",
   "order_type_conflict_title": "Bazı ürünler mevcut değil",
   "order_type_conflict_intro": "{{orderType}} seçeneğine geçmek bu ürünleri siparişinizden kaldırır:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "Fiyat kaydedilemedi",
   "scroll_categories_back": "Kategorileri geri kaydır",
   "scroll_categories_forward": "Kategorileri ileri kaydır",
+  "scroll_filters_back": "Filtreleri geri kaydır",
+  "scroll_filters_forward": "Filtreleri ileri kaydır",
   "category_navigation_aria": "Kategori gezinmesi",
   "order_status_refunded": "İade Edildi",
   "bulk_status_update_success": "Güncellenen sipariş: {{count}}",
@@ -2554,5 +2557,12 @@
   "menu_state_empty_heading": "Burada henüz yemek yok",
   "menu_state_error_heading": "Menü yüklenemedi",
   "browse_full_menu": "Tüm menüye göz at",
-  "error_loading_menu_bundles": "Menü paketleri yüklenemedi. Lütfen tekrar deneyin."
+  "error_loading_menu_bundles": "Menü paketleri yüklenemedi. Lütfen tekrar deneyin.",
+  "menu_filters_label": "Yemekleri filtrele",
+  "menu_filter_specials": "Şefin Önerileri",
+  "menu_filter_without": "{{allergen}} içermeyen",
+  "menu_filters_clear": "Filtreleri temizle",
+  "menu_filters_count": "{{total}} yemekten {{shown}} tanesi",
+  "menu_filters_none": "Bu filtrelere uyan yemek yok",
+  "menu_state_filtered_heading": "Eşleşme yok"
 }

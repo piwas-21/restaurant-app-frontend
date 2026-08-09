@@ -51,8 +51,13 @@ test('mobile FAB opens cart bottom-sheet with the same controls as the desktop s
   }
   await basketWritePromise;
 
-  // Sidebar is hidden at this viewport; the FAB is the cart entry point.
-  await expect(page.getByRole('complementary', { name: /shopping basket/i })).toBeHidden();
+  // There is no pinned rail at ANY viewport now — /menu dropped it so the card grid could have the
+  // design's columns back. Asserting the old `complementary` is hidden would pass vacuously against
+  // an element that no longer exists anywhere, so this asserts the thing that is actually true and
+  // load-bearing here: the basket is CLOSED until something opens it, and the FAB is one of the two
+  // things that can (the sticky bar's button being the other, and the only one that renders while
+  // the basket is empty).
+  await expect(page.getByRole('dialog', { name: /shopping basket/i })).toBeHidden();
   const fab = page.getByRole('button', { name: /view cart/i });
   await expect(fab).toBeVisible({ timeout: 5_000 });
 

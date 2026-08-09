@@ -26,6 +26,20 @@ export interface AvailabilityNotice {
   tone: 'info' | 'blocked';
   /** The reason line, e.g. "Takeaway and Delivery only". */
   message: string;
+  /**
+   * The same fact in the fewest words that still name a channel, e.g. "Not for Dine-in" — empty
+   * unless `tone` is `blocked`.
+   *
+   * It exists for one surface: the corner marker on a PHONE, where the card is an 88px thumbnail
+   * beside a text column and `message` (34 characters in French) does not fit anywhere on it. The
+   * short form names the channel the guest has CHOSEN rather than the ones the dish allows, which
+   * is the shorter sentence and also the more useful one at a glance — the "Switch to X" link
+   * under the row is what says where to go instead.
+   *
+   * Deliberately NOT a truncation of `message`: a clipped "Takeaway and Deliv…" reads as an
+   * available channel, i.e. the exact opposite of what it means.
+   */
+  shortMessage: string;
   /** The one-tap switch target, or `null` when there is none worth offering. */
   switchTo: OrderType | null;
   /** Label for the switch control; empty when `switchTo` is null. */
@@ -109,9 +123,23 @@ export function useItemAvailabilityNotice(availability: ItemAvailability | undef
   const askServer = blocked && hasTableContext && orderType === OrderType.DineIn;
   const switchTo = blocked && !askServer ? (orderable.find((type) => type !== orderType) ?? null) : null;
 
+  // `orderType` should always be set when `blocked`, but nothing enforces it: `resolveChannelNotice`
+  // derives `blocked` from `canOrder` alone, with no guard on the chosen channel. So the fallback is
+  // the LONG form, not an empty string — the phone's marker renders a filled bar whenever
+  // `tone === 'blocked'`, and an empty `shortMessage` would paint a blank grey band across the
+  // thumbnail saying nothing. A too-long sentence in a small box is a worse fit; a wordless warning
+  // is a worse BUG.
+  let shortMessage = '';
+  if (blocked) {
+    shortMessage = orderType
+      ? t('availability_not_for', 'Not for {{orderType}}', { orderType: orderTypeLabel(orderType, t) })
+      : message;
+  }
+
   return {
     tone: blocked ? 'blocked' : 'info',
     message,
+    shortMessage,
     switchTo,
     switchLabel: switchTo
       ? t('availability_switch_to', 'Switch to {{orderType}}', {

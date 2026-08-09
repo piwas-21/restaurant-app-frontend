@@ -28,11 +28,15 @@
    chip. `align-items` is left at `stretch` so a long reason wraps to the card's width; the switch
    opts out with `align-self` instead. Both are inline-axis properties in a column, so RTL mirrors
    with no override. */
+/* NO margin of its own. It renders in two slots now — `.noticeSlot` in the text column for an
+   `info` notice, and the foot row's action end for a blocked one, where the switch link stands in
+   for the removed Add button (`MenuCardFoot.module.css`). A margin baked in here would push the
+   foot row's own baseline off the price beside it. Each host pads its slot. */
 .availability {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin: 0.4rem 0 0.5rem;
+  margin: 0;
 }
 
 /* `font-label-muted` / `text-label-muted` — Public Sans 0.8rem/1.2/400, the screens' own scale for
@@ -64,6 +68,27 @@
 .availabilityInfo,
 .availabilityBlocked {
   color: var(--text-secondary);
+}
+
+/* On a BLOCKED card the reason is written twice — the diagonal corner ribbon and this sentence —
+   and the ribbon is the one a guest reads across a grid. So the sentence is hidden from the layout
+   and NOT from the accessibility tree: this <p> carries `id={reasonId}`, which the card's own
+   `aria-labelledby` points at, so removing it would take the reason out of the card's accessible
+   name and leave a dimmed card announcing no cause. The ribbon cannot stand in for it — it is
+   `aria-hidden` precisely because this <p> already says it.
+
+   Only the BLOCKED tone. An `info` notice ("also available for delivery") draws no ribbon, so
+   hiding its sentence would delete the information rather than de-duplicate it. */
+.availabilityBlocked .availabilityReason {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Same scale as the reason — this is the second half of the same sentence, not a caption. Colour

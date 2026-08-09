@@ -13,7 +13,16 @@ jest.mock('react-i18next', () => ({
   // `i18n` is needed now that the hero resolves its localized name/description from `content`, as
   // every catalog card already did — the classic hero used to print the base (English) value in
   // every locale.
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key, i18n: { language: 'en' } }),
+  // Interpolating form, matching `MenuCard.test.tsx` and `CraftMenuCard.test.tsx`: a string second
+  // argument is a fallback, an object is interpolation values and renders as `key(v1,v2)`. The hero
+  // needs it now that its add control names the DISH ("Add Chef Special to order") rather than
+  // saying a generic "Add to Order" — the same accessible name every catalog card gives, so a
+  // screen-reader user listing the page's buttons gets N distinct entries instead of N identical.
+  useTranslation: () => ({
+    t: (key: string, second?: string | Record<string, unknown>) =>
+      typeof second === 'string' ? second : second ? `${key}(${Object.values(second).join(',')})` : key,
+    i18n: { language: 'en' },
+  }),
 }));
 
 // The admin controls render nothing for a guest, which is the state every existing case below
@@ -81,6 +90,7 @@ const BLOCKED: AvailabilityNotice = {
   message: 'Takeaway and Delivery only',
   switchTo: OrderType.Takeaway,
   switchLabel: 'Switch to Takeaway',
+  shortMessage: 'Not for Dine-in',
   hint: null,
 };
 
@@ -92,7 +102,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
   it('offers Add when the server reports no restriction', () => {
     render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Add to Order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Chef Special)' })).toBeInTheDocument();
     expect(screen.queryByText('Takeaway and Delivery only')).not.toBeInTheDocument();
   });
 
@@ -102,7 +112,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
     render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
     expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add to Order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Chef Special)' })).toBeInTheDocument();
   });
 
   it('blocked tone: REMOVES Add, keeps the dish name as the way into the sheet, offers the switch', () => {
@@ -123,7 +133,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Chef Special)' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Chef Special' }));
     expect(onViewDetails).toHaveBeenCalledWith({ forceSheet: true, availability: AVAILABILITY });
@@ -132,15 +142,34 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
   });
 
-  it('leaves exactly one button beside the name — every generated special screen has one action', () => {
-    // The strip carried both an Add and a Details, and no `*_special_*` screen draws two. Counting
-    // is the assertion: a `queryByRole('button', {name: 'View Details'})` that returns null passes
-    // just as happily against a third button nobody meant to add.
+  it('Details opens the sheet to VIEW the item, and keeps doing so while blocked', () => {
+    // The hero's own Details, not the dish name. It hands over the same verdict the name does —
+    // `forceSheet` plus the server's availability — so the sheet refuses an add the hero refused
+    // (§9.10). And unlike Add it is NOT removed while blocked: reading an item is always allowed,
+    // and the sheet is the only place its ingredients and allergens are listed in full.
+    mockedNotice.mockReturnValue(BLOCKED);
+    const onViewDetails = jest.fn();
+
+    render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={onViewDetails} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'menu_item_details_aria(Chef Special)' }));
+    expect(onViewDetails).toHaveBeenCalledWith({ forceSheet: true, availability: AVAILABILITY });
+  });
+
+  it('offers the name, Details and Add — and nothing else', () => {
+    // Counting, not spot-checking: a `queryByRole('button', {name: 'X'})` that returns null passes
+    // just as happily against a fourth button nobody meant to add.
+    //
+    // Details is back, deliberately. S2 removed it when the only other control was Add and the
+    // generated screens drew one action — but that left the dish NAME as the sole route into the
+    // sheet, a target a guest has no reason to expect is clickable, and every catalog card beside
+    // the hero offers a Details of its own.
     render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
     expect(screen.getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual([
       'Chef Special',
-      'Add to Order',
+      'menu_item_details_aria(Chef Special)',
+      'add_item_to_order(Chef Special)',
     ]);
   });
 
@@ -180,7 +209,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
 
     render(<FeaturedSpecial special={unavailable} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Chef Special)' })).not.toBeInTheDocument();
   });
 
   it('hands the verdict to BOTH routes — the §9.10 hand-over lives in the banner, not the page', () => {
@@ -189,7 +218,7 @@ describe('FeaturedSpecial — per-order-type guard (G7)', () => {
 
     render(<FeaturedSpecial special={special} onAddToCart={onAddToCart} onViewDetails={onViewDetails} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add to Order' }));
+    fireEvent.click(screen.getByRole('button', { name: 'add_item_to_order(Chef Special)' }));
     expect(onAddToCart).toHaveBeenCalledWith({ availability: AVAILABILITY });
 
     fireEvent.click(screen.getByRole('button', { name: 'Chef Special' }));
@@ -346,8 +375,10 @@ describe('the optional blocks', () => {
       <FeaturedSpecial special={{ ...special, allergens: [] } as FeaturedSpecialType} onAddToCart={jest.fn()} />,
     );
 
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(container.querySelector('[class*="featuredSpecialAllergens"]')).toBeNull();
+    // The PHOTO is no longer optional: it falls back to the same placeholder every catalog card
+    // uses, so the promoted dish stopped being the one item on the page with no image while the
+    // identical dish two cells away showed one.
+    expect(screen.getByRole('img')).toHaveAttribute('src', expect.stringContaining('placeholder'));
     expect(container.querySelector('[class*="featuredSpecialTime"]')).toBeNull();
   });
 });
@@ -367,7 +398,9 @@ describe('the photoless collapse', () => {
   it('marks the strip when the special carries no image', () => {
     const { container } = render(<FeaturedSpecial special={special} onAddToCart={jest.fn()} />);
 
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    // Still MARKED as photoless — the badge's in-flow fallback keys off that class — but it renders
+    // the shared placeholder rather than nothing.
+    expect(screen.getByRole('img')).toHaveAttribute('src', expect.stringContaining('placeholder'));
     expect(noPhotoClass(container)).not.toBeNull();
   });
 
@@ -423,10 +456,23 @@ describe('the photoless collapse', () => {
 
     it('lets the 601-768px band grow instead of clipping its availability notice', () => {
       // A photo plus an `info` notice in a column narrow enough for a long name to wrap laid the
-      // notice out below the 180px clip box — invisible. A floor cannot clip.
-      const band = CSS.slice(CSS.indexOf('@media (min-width: 601px) and (max-width: 768px)'));
+      // notice out below the clip box — invisible. A floor cannot clip.
+      //
+      // The base rule is `height: 100%` now, not a definite `180px`: the hero is a CELL of the menu
+      // grid spanning two columns, so it fills the row and ends level with the dish cards beside
+      // it. The floor moved to that base rule as `min-height`, and the escape band widened to 900px
+      // — the width below which the hero spans the whole row and has no card beside it to match.
+      const base = CSS.slice(CSS.indexOf('.featuredSpecialContainer'));
+      expect(base.slice(0, base.indexOf('\n}'))).toContain('min-height: 180px');
+      // The escape widened to ≤900px, which is exactly where the hero stops having a card beside it
+      // to match. Above that it must FILL its grid row: `height: auto` there is what made a
+      // photoless special render ~248px against 400px cards — reported, and the reason the
+      // `.featuredSpecialNoPhoto` override moved into this block.
+      const band = CSS.slice(CSS.indexOf('@media (max-width: 900px)'));
       expect(band).toContain('height: auto');
-      expect(band).toContain('min-height: 180px');
+      expect(band).toContain('.featuredSpecialNoPhoto');
+      const noPhotoBase = CSS.slice(CSS.indexOf('.featuredSpecialNoPhoto'), CSS.indexOf('@media'));
+      expect(noPhotoBase).not.toContain('height: auto');
     });
   });
 });

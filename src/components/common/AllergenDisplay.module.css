@@ -76,9 +76,45 @@
 /* Sized in `em` so the glyph tracks the chip's own text rather than a second scale. The emoji it
    replaces were set at 1rem against 0.85rem text — the decoration outweighed the word. */
 .allergenIcon {
-  width: 0.85em;
-  height: 0.85em;
+  width: 0.95em;
+  height: 0.95em;
   flex-shrink: 0;
+  /* A line icon at 12px is mush at the default 2px stroke — lucide's own guidance is to thin the
+     stroke as the glyph shrinks. Set here rather than per-icon so every allergen glyph, in either
+     chip form, is drawn at one weight. */
+  stroke-width: 1.75;
+}
+
+/* ── The icon-only chip (variant="icons"), for the card's title row ────────────────────────────
+   A square, not a pill: with no word inside it, a 10px-radius capsule around a single glyph reads
+   as a button. The square + hairline matches the `V`/`GF` boxes the mobile screen draws beside the
+   dish name, which is where this band sits.
+
+   28px is the smallest box that keeps a 14px glyph off its own border and still gives a pointer a
+   real target for the tooltip. It is deliberately NOT 44px: this is not a control — it is a label
+   with a `title`, and nothing here is focusable or clickable. */
+.iconRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.iconChip {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  /* The glyph carries the whole chip here, so it takes the chip's ink at full size rather than the
+     0.95em it uses when a word sits beside it. */
+  color: var(--text-secondary);
+}
+
+.iconChip .allergenIcon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .allergenText {
@@ -99,5 +135,33 @@
 @media (max-width: 600px) {
   .allergensSection {
     margin: 0.25rem 0;
+  }
+
+  /* BARE glyphs on a phone — no box, no hairline. The bordered 28px square is right on a card
+     where the title row has ~350px to spend; on a 244px row it is three more outlined objects
+     competing with the dish name and the price for the same line, and measured at 390px it left
+     "Cappuccino" rendering as "Cap". Dropping the box takes the band from ~100px to ~47px and the
+     name gets its two lines back. The `title` and the `.sr-only` word are untouched, so nothing
+     the box was carrying is lost — it was carrying only itself. */
+  .iconChip {
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .iconChip .allergenIcon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  /* The "+2" counter has no glyph, so without its box it needs to stay legible on its own. */
+  .iconChip.more {
+    font-size: 0.625rem;
+    padding-inline-start: 0.1rem;
+  }
+
+  .iconRow {
+    gap: 0.25rem;
   }
 }

@@ -1,6 +1,17 @@
+/* `--cookie-banner-h` is published by `CookieConsentBanner` while it is on screen, and is absent
+   otherwise (so the fallback `0px` is the normal case — every visit after the first).
+   Without it this button sits UNDER the consent banner: the banner is `z-index: 2000` against this
+   100, and measured at 1280×720 it occupies y 644–720 against the button's 632–696, so a
+   first-time guest's tap lands on the banner. That was survivable while the sticky category bar
+   carried a second basket button at the TOP of the page; it is not now that this is `/menu`'s only
+   route to the cart. Thirteen e2e tests found it before any human did.
+   The banner's height is read rather than assumed because it rewraps by width and by locale.
+   The lift ANIMATES for free: this rule's `transition: all` further down already covers `bottom`,
+   and `prefers-reduced-motion` already turns it off. A `transition: bottom` added up here would be
+   dead — the later `all` in the same rule wins — while reading as though it did the work. */
 .floatingButton {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + var(--cookie-banner-h, 0px));
   inset-inline-end: 24px;
   z-index: 100;
 
@@ -175,7 +186,11 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .floatingButton {
-    bottom: 16px;
+    /* Same clearance rule as the base, at the phone's tighter inset. It matters MORE here: the
+       banner is taller at this width (the copy wraps to more lines) and the button is bigger
+       relative to the screen, so without the term it is not merely tapped-through but fully
+       buried. */
+    bottom: calc(16px + var(--cookie-banner-h, 0px));
     /* A compact bottom-right pill — mobile_menu_light_full_page is `fixed bottom-6 right-6`.
        `inset-inline: 16px` pinned BOTH edges, producing the full-bleed docked bar of
        mobile_menu_rtl_mirror_arabic/code.html:352, a different screen. Craft's organic

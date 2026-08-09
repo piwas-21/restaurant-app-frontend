@@ -103,7 +103,12 @@ test.describe('a channel is chosen', () => {
 
     const item = card(page, f.product.name);
     await expect(item).toBeVisible();
-    await expect(item.getByText(f.expectedChipText)).toBeVisible();
+    // TWO nodes carry the reason on a blocked card, by design: the diagonal corner ribbon — the
+    // marker a guest reads at a glance across a grid, where the recede alone says "something is off
+    // about this dish" without saying what — and the sentence above the switch link. Counting both
+    // rather than asserting one: `toBeVisible()` on a single match went red the day the ribbon
+    // landed, which reads as "the reason disappeared" when the truth is the opposite.
+    await expect(item.getByText(f.expectedChipText)).toHaveCount(2);
 
     // Add is REMOVED, not disabled — a disabled control fires no click and explains nothing (#208).
     await expect(item.getByRole('button', { name: `Add ${f.product.name} to order` })).toHaveCount(0);

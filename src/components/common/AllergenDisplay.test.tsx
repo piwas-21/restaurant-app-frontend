@@ -74,17 +74,66 @@ describe('AllergenDisplay', () => {
   });
 
   /**
-   * D9 (MENU-DESIGN-CONFORMANCE-PLAN §4). A substance *warning* earns one monochrome glyph; a
-   * dietary *claim* earns none. Asserted on the rendered chip rather than on `getAllergenInfo`,
-   * because the split only matters if the component acts on it — the table used to hand back a
-   * per-entry emoji and the component rendered whatever arrived, so a claim losing its glyph and
-   * the component still drawing one would look identical to a passing unit test on the table.
+   * Every allergen gets its OWN glyph, and no two of them get the same one.
+   *
+   * This supersedes D9, which collapsed all fourteen substances onto a single `AlertTriangle` and
+   * left dietary claims bare. That was right about EMOJI — zero of the 28 classic screens carry one
+   * — and wrong about icons: one triangle repeated four times on a card tells a guest there are
+   * four warnings without saying what any of them is, which is the opposite of what an allergen
+   * line is for.
+   *
+   * Asserted on the rendered chip rather than on the lookup table, because the distinction only
+   * matters if the component acts on it: a table returning per-entry icons and a component drawing
+   * one fixed glyph would look identical to a passing unit test on the table.
    */
-  it('marks a substance warning with a glyph and leaves a dietary claim bare', () => {
-    render(<AllergenDisplay allergens={['vegan', 'gluten']} variant="full" />);
+  it('gives each allergen its own glyph, distinct from its neighbours', () => {
+    render(<AllergenDisplay allergens={['vegan', 'gluten', 'milk', 'fish']} variant="full" maxVisible={4} />);
 
-    expect(chipFor('gluten').querySelector('svg')).toBeInTheDocument();
-    expect(chipFor('vegan').querySelector('svg')).toBeNull();
+    const iconOf = (word: string) => chipFor(word).querySelector('svg')?.getAttribute('class') ?? '';
+    for (const word of ['vegan', 'gluten', 'milk', 'fish']) expect(iconOf(word)).toContain('lucide-');
+    expect(new Set(['vegan', 'gluten', 'milk', 'fish'].map(iconOf)).size).toBe(4);
+  });
+
+  /**
+   * A spelling the vocabulary aliases draws the SAME mark as the entry it resolves to. This is the
+   * half a per-entry icon table gets wrong by omission: `dairy` and `milk` are one substance, and a
+   * card showing them as two different glyphs is a card that has invented a distinction.
+   */
+  it('draws an aliased spelling with its canonical entry’s glyph', () => {
+    render(<AllergenDisplay allergens={['dairy', 'wheat']} variant="full" />);
+    const dairy = chipFor('dairy').querySelector('svg')?.getAttribute('class');
+
+    render(<AllergenDisplay allergens={['milk']} variant="full" />);
+    expect(chipFor('milk').querySelector('svg')?.getAttribute('class')).toBe(dairy);
+  });
+
+  /**
+   * An icon-only chip is the card's title-row band. It must lose the WORD from the layout without
+   * losing it from the accessible name — otherwise a guest using a screen reader is handed a row of
+   * unlabelled boxes.
+   */
+  it('keeps the word in the accessible name when the chip shows only a glyph', () => {
+    render(<AllergenDisplay allergens={['gluten']} variant="icons" />);
+
+    const chip = chipFor('gluten');
+    expect(chip.querySelector('svg')).toBeInTheDocument();
+    expect(chip).toHaveAttribute('title', 'gluten');
+    // The word is present and hidden, not absent.
+    expect(screen.getByText('gluten')).toHaveClass('sr-only');
+  });
+
+  /**
+   * The "+N" counter is the one chip with no glyph of its own, so it is the one that has to carry
+   * the overflowed WORDS in its `title` — in icon mode there is no visible text anywhere on the
+   * band, and without this a guest hovering "+2" learns only that two things are hidden.
+   */
+  it('names the allergens it hid behind the counter, in icon mode too', () => {
+    render(<AllergenDisplay allergens={['gluten', 'milk', 'fish', 'eggs', 'nuts']} variant="icons" maxVisible={2} />);
+
+    const counter = screen.getByText('+3');
+    expect(counter).toHaveAttribute('title', '+3 more allergens: fish, eggs, nuts');
+    // It takes the icon-chip box like its neighbours rather than staying a wide labelled pill.
+    expect(counter.className).toContain('iconChip');
   });
 
   /**

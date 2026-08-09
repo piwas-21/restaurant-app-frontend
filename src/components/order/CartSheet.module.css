@@ -1,0 +1,103 @@
+/* Sheet-mode override of BaseModal's centered-dialog defaults. The `.sheet` class is appended to
+   BaseModal's `.dialog`, so positioning is overridden by the cascade — keep this file scoped to
+   layout, not the dialog's own colors / borders / shadow which BaseModal owns. */
+
+/* ── Phone: a bottom sheet ──────────────────────────────────────────────────────────────────── */
+.sheet {
+  /* Pin to the bottom edge of the overlay (the overlay is a flex container; centering is the
+     BaseModal default). */
+  align-self: flex-end;
+
+  width: 100%;
+  max-width: 560px;
+
+  /* Generous body height while still leaving room to dismiss by tapping the backdrop above. */
+  max-height: 80vh;
+
+  /* Round only the top corners — the bottom flush against the screen. */
+  border-radius: 18px 18px 0 0;
+
+  animation: sheetSlideUp 0.25s ease-out;
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ── Desktop: a right-edge slide-over ───────────────────────────────────────────────────────── */
+/* 769px, matching the width at which the page stops being a list of rows. The panel takes the
+   rail's old 360px as a MINIMUM rather than as a permanent column: it is the width the 3-up
+   order-type picker inside `CartContents` needs for German labels (S4), and the one thing the rail
+   was genuinely sized for.
+
+   `margin-inline-start: auto` rather than `align-self: flex-end` on the inline axis: BaseModal's
+   overlay is a flex ROW-less centring container, and pushing with an auto margin also mirrors
+   correctly under `dir="rtl"` — the panel comes from the left on an Arabic page, which is the edge
+   a right-to-left reader's eye finishes on. */
+@media (min-width: 769px) {
+  .sheet {
+    align-self: stretch;
+    /* BaseModal's overlay pads 1rem on EVERY side. A bottom sheet can live inside that padding; an
+       edge-anchored slide-over cannot. Measured on the deployed build at 1440px: the panel's layout
+       box ended at 1424 — 16px short of the very edge it is anchored to — with square outer corners
+       announcing the gap, and 16px short top and bottom of a panel that calls itself full height.
+       Cancelled on the three edges this panel is meant to reach; the inline START keeps `auto`, so
+       it still pushes itself to the end rather than being positioned. With `align-self: stretch`
+       the negative block margins are also what makes it full height — no `height: 100%` needed,
+       and that declaration was measuring the PADDED box anyway. */
+    margin-block: -1rem;
+    margin-inline-end: -1rem;
+    margin-inline-start: auto;
+    width: min(420px, 92vw);
+    min-width: 360px;
+    max-width: none;
+    max-height: none;
+    border-radius: 18px 0 0 18px;
+    animation: sheetSlideIn 0.25s ease-out;
+  }
+
+  [dir='rtl'] .sheet {
+    margin-inline-start: -1rem;
+    margin-inline-end: auto;
+    border-radius: 0 18px 18px 0;
+  }
+}
+
+/* `translateX(100%)` is the physical direction the panel travels from, and under RTL it has to be
+   the other one — a keyframe cannot read `dir`, so the mirrored animation is its own rule. */
+@keyframes sheetSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 769px) {
+  [dir='rtl'] .sheet {
+    animation: sheetSlideInRtl 0.25s ease-out;
+  }
+}
+
+@keyframes sheetSlideInRtl {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* A panel that flies in is motion, and a guest who asked for less of it gets the panel without the
+   flight — not a panel they cannot open. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}

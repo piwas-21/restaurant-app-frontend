@@ -2388,6 +2388,7 @@
   "reorder_partial": "Aggiunti {{added}} articoli su {{total}}.",
   "availability_only_for": "Solo {{orderTypes}}",
   "availability_switch_to": "Passa a {{orderType}}",
+  "availability_not_for": "Non per {{orderType}}",
   "availability_ask_server": "Chiedi al cameriere",
   "order_type_conflict_title": "Alcuni articoli non sono disponibili",
   "order_type_conflict_intro": "Passare a {{orderType}} rimuove questi articoli dal tuo ordine:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "Impossibile salvare il prezzo",
   "scroll_categories_back": "Scorri le categorie indietro",
   "scroll_categories_forward": "Scorri le categorie avanti",
+  "scroll_filters_back": "Scorri i filtri indietro",
+  "scroll_filters_forward": "Scorri i filtri avanti",
   "category_navigation_aria": "Navigazione categorie",
   "order_status_refunded": "Rimborsato",
   "bulk_status_update_success": "Ordini aggiornati: {{count}}",
@@ -2554,5 +2557,12 @@
   "menu_state_empty_heading": "Ancora nessun piatto qui",
   "menu_state_error_heading": "Impossibile caricare il menu",
   "browse_full_menu": "Sfoglia tutto il menu",
-  "error_loading_menu_bundles": "Impossibile caricare i menu combinati. Riprova."
+  "error_loading_menu_bundles": "Impossibile caricare i menu combinati. Riprova.",
+  "menu_filters_label": "Filtra i piatti",
+  "menu_filter_specials": "Specialità dello chef",
+  "menu_filter_without": "Senza {{allergen}}",
+  "menu_filters_clear": "Cancella filtri",
+  "menu_filters_count": "{{shown}} di {{total}} piatti",
+  "menu_filters_none": "Nessun piatto corrisponde a questi filtri",
+  "menu_state_filtered_heading": "Nessun risultato"
 }

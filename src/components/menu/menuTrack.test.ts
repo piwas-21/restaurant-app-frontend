@@ -71,10 +71,17 @@ describe('menu page content track', () => {
     ).toEqual(['src/app/styles/MenuPage.module.css']);
   });
 
-  /** Every surface that should be on the track reads the variable — both templates. */
+  /**
+   * Every surface that should be on the track reads the variable — both templates.
+   *
+   * `components/menu/FeaturedSpecial.module.css` left this list, and that is the point of the
+   * redesign rather than an omission: classic's hero is no longer a band spanning the page above
+   * the layout, it is the first CELL of the grid (`MenuList`, `.featuredCell`), so the grid places
+   * it and a track cap of its own could only fight the grid. Craft's hero is still a band and still
+   * reads the variable, which is why only one of the two moved.
+   */
   it.each([
     'app/styles/MenuPage.module.css',
-    'components/menu/FeaturedSpecial.module.css',
     'components/menu/CategoryNav.module.css',
     'templates/craft/surfaces/CraftFeaturedSpecial.module.css',
     'templates/craft/surfaces/CraftCategoryNav.module.css',
@@ -119,19 +126,53 @@ describe('menu page content track', () => {
   });
 
   /**
-   * Two columns while the rail is on screen (D11), and the dead caps are gone.
+   * The column COUNT is derived from a card minimum, not declared per breakpoint — and the dead
+   * caps stay gone.
    *
-   * `1400px` stood on `.itemsGrid`, `.sectionHeadingRow` and `.bundlesGrid` and could never bind
-   * once the track caps at 1200 and the rail takes 384 of it — the widest the grid reaches is 816px
-   * with the rail and 928px without. A cap that cannot bind reads as a live constraint to the next
-   * person widening the track, so this asserts they are gone rather than merely harmless.
-   * (`.bundlesGrid` is dead CSS besides — no consumer anywhere in `src`.)
+   * It was `repeat(2, 1fr)`, and the old comment beside it said why in as many words: two "while
+   * the basket rail is on screen". The rail took 360 of a 1200px track, leaving 816 for a grid the
+   * design draws at three ~389px cards. With the rail gone the count has no reason to be a
+   * constant — one `auto-fill` + `minmax(340px, 1fr)` gives 3 at a 1200 track, 4 at 1560 and 5 at
+   * 1880, and the wide-screen steps in `MenuPage.module.css` become "more dishes per row" instead
+   * of "wider cards".
+   *
+   * Pinned as the SHAPE (auto-fill + a minmax floor), not as a number of columns, because a number
+   * is exactly what this rule should no longer contain.
+   *
+   * `1400px` stood on `.itemsGrid`, `.sectionHeadingRow` and `.bundlesGrid` and could never bind. A
+   * cap that cannot bind reads as a live constraint to the next person widening the track, so this
+   * asserts they are gone rather than merely harmless.
    */
-  it('drops the grid to two columns and removes the caps that can no longer bind', () => {
+  it('derives the column count from a card minimum, and keeps the dead caps out', () => {
     const base = CONTENT.replace(/\/\*[\s\S]*?\*\//g, '').split('@media')[0];
+    const grid = decl(base.slice(base.indexOf('.itemsGrid')), 'grid-template-columns') ?? '';
 
-    expect(decl(base.slice(base.indexOf('.itemsGrid')), 'grid-template-columns')).toBe('repeat(2, 1fr)');
+    expect(grid).toMatch(/^repeat\(auto-fill, minmax\(\d+px, 1fr\)\)$/);
+    // The floor has to stay near the design's card. Far below it and a 1200px track silently
+    // becomes four cramped columns; far above and the wide-screen steps buy nothing.
+    const floor = Number(/minmax\((\d+)px/.exec(grid ?? '')?.[1]);
+    expect(floor).toBeGreaterThanOrEqual(300);
+    expect(floor).toBeLessThanOrEqual(400);
     expect(CONTENT.replace(/\/\*[\s\S]*?\*\//g, '')).not.toContain('1400px');
+  });
+
+  /**
+   * The wide-screen steps are the answer to "huge empty spaces on both sides", and they are steps
+   * in the TRACK, never in the card. Measured on prod at 1440px before this: the track was 1200,
+   * the grid got 816 of it and the rail's own box was 393px tall against a 2082px grid.
+   */
+  it('grows the track on wide screens instead of leaving the page empty', () => {
+    const page = read('app/styles/MenuPage.module.css').replace(/\/\*[\s\S]*?\*\//g, '');
+    const steps = [...page.matchAll(/@media \(min-width: (\d+)px\)\s*\{[^}]*--menu-track-max:\s*(\d+)px/g)].map(
+      ([, at, track]) => [Number(at), Number(track)],
+    );
+
+    expect(steps.length).toBeGreaterThanOrEqual(2);
+    // Monotonic, and never wider than the viewport that unlocks it — a track larger than its own
+    // breakpoint is a cap that cannot bind, which is the thing three rules above just deleted.
+    for (const [at, track] of steps) expect(track).toBeLessThan(at);
+    expect(steps.map(([at]) => at)).toEqual([...steps.map(([at]) => at)].sort((a, b) => a - b));
+    expect(steps.map(([, track]) => track)).toEqual([...steps.map(([, track]) => track)].sort((a, b) => a - b));
   });
 
   /**

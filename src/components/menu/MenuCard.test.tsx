@@ -156,17 +156,56 @@ describe('MenuCard — one card for both catalog kinds', () => {
    * which on a RUMI card (neither populated) stranded it above the price rule with nothing to
    * attach to. Pinned as an immediate sibling so it cannot drift back out of place.
    */
-  it('renders Details immediately after the description, ahead of the allergen block', () => {
+  it('renders Details INSIDE the description, the allergens on the PHOTO and the price in the foot', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
-    const description = screen.getByText('Classic pizza');
+    const description = screen.getByText('Classic pizza', { selector: 'p' });
     const details = screen.getByRole('button', { name: 'menu_item_details_aria(Margherita)' });
-    const allergens = screen.getByRole('group', { name: 'Allergens' });
+    // Queried by testid, not by `role="group"`: that role is gone (typescript:S6819 — the rule
+    // wants a native element, and none of the four it offers fits a row of non-interactive chips).
+    // The grouping is carried as visually-hidden TEXT instead, asserted just below.
+    const allergens = screen.getByTestId('allergen-chips');
+    // Queried by id, not by role: the title carries `role="button"` (it opens the same sheet), so
+    // it is deliberately NOT a heading in the accessibility tree.
+    const title = document.getElementById('item-name-p1')!;
 
+    // Details is a CHILD of the paragraph, not its next sibling: it is floated to the end of the
+    // description's second line ("…grilled sourdough... Details"), which is where
+    // `mobile_menu_light` draws it. As a sibling it cost every card a whole line of height and, on
+    // the many dishes with no allergens, left the word floating in a blank band.
     expect(description.tagName).toBe('P');
-    expect(description.nextElementSibling).toBe(details);
-    // Plain FOLLOWING, no CONTAINS bit: they are siblings in the card's text column, in that order.
-    expect(details.compareDocumentPosition(allergens)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(description.contains(details)).toBe(true);
+    // It has to be FIRST in the paragraph — a float is only wrapped by content that follows it, so
+    // moving it after the text puts the link back under the paragraph instead of on its last line.
+    expect(description.firstElementChild).toBe(details);
+
+    // The allergens are ON THE PHOTOGRAPH — not on the dish name's line, where the owner's
+    // 2026-08-09 review found them too noisy beside the price. Asserted by containment rather than
+    // by class, because the class is what a rendering test cannot see (`identity-obj-proxy` makes
+    // every CSS-module lookup truthy — trap 11).
+    //
+    // In the photo's FRAME and deliberately NOT inside the enlarge button, which is
+    // children-presentational and would prune the chips out of the accessibility tree. That is its
+    // own defect with its own case — `MenuCardImage.test.tsx` — and this line only pins that the
+    // chips ended up on the picture rather than back in the text column.
+    const enlarge = screen.getByTestId('menu-item-image');
+    const photoFrame = enlarge.parentElement!;
+    expect(photoFrame.contains(allergens)).toBe(true);
+    // The word a screen reader hears before the chips. It replaced an `aria-label` on a
+    // `role="group"`, so losing it would quietly strip the context rather than break a query.
+    expect(allergens).toHaveTextContent('Allergens');
+    expect(enlarge.contains(allergens)).toBe(false);
+    expect(title.contains(allergens)).toBe(false);
+    // …and BEFORE the name in the document, since the photo sits above the text column.
+    expect(allergens.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // The price left the title row for the card's foot, where it shares a baseline with the add
+    // control. Both are after the description; the price comes first in the row.
+    const price = screen.getByLabelText(/checkout_total_label/);
+    const add = screen.getByRole('button', { name: 'add_item_to_order(Margherita)' });
+    expect(title.contains(price)).toBe(false);
+    expect(description.compareDocumentPosition(price) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(price.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('Add opens without forcing (fast-add allowed) but Details forces the sheet — never a silent add', () => {
@@ -329,6 +368,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     message: 'Takeaway and Delivery only',
     switchTo: null,
     switchLabel: '',
+    shortMessage: '',
     hint: null,
   };
   const BLOCKED: AvailabilityNotice = {
@@ -336,6 +376,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     message: 'Takeaway and Delivery only',
     switchTo: OrderType.Takeaway,
     switchLabel: 'Switch to Takeaway',
+    shortMessage: 'Not for Dine-in',
     hint: null,
   };
 
@@ -414,7 +455,11 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(screen.queryByRole('button', { name: 'Switch to Takeaway' })).not.toBeInTheDocument();
-    expect(screen.getByText('Takeaway and Delivery only')).toBeInTheDocument();
+    // TWO nodes carry the reason on a blocked card, by design: the corner ribbon (a glance-level
+    // marker readable across a grid) and the sentence above the switch. `getAllByText` rather than
+    // `getByText` because a single-match query here would go red the day the ribbon was added and
+    // read as "the reason disappeared".
+    expect(screen.getAllByText('Takeaway and Delivery only')).toHaveLength(2);
   });
 
   it('QR-pinned dine-in: shows the ask-your-server hint instead of a nonsensical switch', () => {
@@ -432,5 +477,15 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(useTrackItemBlocked).toHaveBeenCalledWith('p1', BLOCKED);
+  });
+  it('is addressable as a card, separately from the hero sharing its grid', () => {
+    // The Chef's Special is a cell OF the menu grid now, and when the promoted dish is also in the
+    // catalogue its hero and its card offer a button with the SAME accessible name ("Add <dish> to
+    // order"). Role+name cannot separate them and neither can `data-testid="menu-grid"`, which
+    // contains both — so the screenshot suite addresses the card directly. It shipped without this
+    // once and the failure was a strict-mode violation in CI, not a red test.
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByTestId('menu-card')).toBeInTheDocument();
   });
 });

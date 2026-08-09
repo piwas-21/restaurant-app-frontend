@@ -21,7 +21,14 @@ export interface UseCartContentsArgs {
   pickType: (type: OrderType, source?: string, forceModal?: boolean) => void;
   /** Fired right after Proceed-to-Checkout (lets a mobile sheet close first). */
   onProceed?: () => void;
-  /** Analytics surface tag ('sidebar' | 'mobile_sheet' | …). */
+  /**
+   * Analytics surface tag — WHICH cart surface the guest acted on.
+   *
+   * `'sidebar'` (the default) is /cart's pinned rail. `'cart_sheet'` is the slide-over, which is
+   * the only cart surface on /menu since the rail left that page — it was `'mobile_sheet'` while
+   * that sheet was mobile-only, and that name stopped being true when it grew a desktop form.
+   * The ENTRY POINT stays distinguishable on `cart_opened`'s own source.
+   */
   analyticsSource?: string;
 }
 

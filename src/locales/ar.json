@@ -2388,6 +2388,7 @@
   "reorder_partial": "تمت إضافة {{added}} من أصل {{total}} عنصرًا.",
   "availability_only_for": "{{orderTypes}} فقط",
   "availability_switch_to": "التبديل إلى {{orderType}}",
+  "availability_not_for": "غير متاح لـ {{orderType}}",
   "availability_ask_server": "اسأل النادل",
   "order_type_conflict_title": "بعض العناصر غير متوفرة",
   "order_type_conflict_intro": "التبديل إلى {{orderType}} يزيل هذه العناصر من طلبك:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "تعذّر حفظ السعر",
   "scroll_categories_back": "تمرير الفئات للخلف",
   "scroll_categories_forward": "تمرير الفئات للأمام",
+  "scroll_filters_back": "تمرير عوامل التصفية للخلف",
+  "scroll_filters_forward": "تمرير عوامل التصفية للأمام",
   "category_navigation_aria": "التنقل بين الفئات",
   "order_status_refunded": "مسترد",
   "bulk_status_update_success": "الطلبات المحدَّثة: {{count}}",
@@ -2554,5 +2557,12 @@
   "menu_state_empty_heading": "لا توجد أطباق هنا بعد",
   "menu_state_error_heading": "تعذّر تحميل القائمة",
   "browse_full_menu": "تصفّح القائمة كاملة",
-  "error_loading_menu_bundles": "تعذّر تحميل قوائم الوجبات. يرجى المحاولة مرة أخرى."
+  "error_loading_menu_bundles": "تعذّر تحميل قوائم الوجبات. يرجى المحاولة مرة أخرى.",
+  "menu_filters_label": "تصفية الأطباق",
+  "menu_filter_specials": "اختيارات الشيف",
+  "menu_filter_without": "بدون {{allergen}}",
+  "menu_filters_clear": "مسح عوامل التصفية",
+  "menu_filters_count": "{{shown}} من {{total}} طبقًا",
+  "menu_filters_none": "لا توجد أطباق تطابق عوامل التصفية هذه",
+  "menu_state_filtered_heading": "لا توجد نتائج"
 }

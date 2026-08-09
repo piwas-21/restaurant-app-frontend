@@ -91,6 +91,8 @@ describe('useItemAvailabilityNotice — no channel chosen (the dominant browse s
     expect(notice(NOT_DINE_IN)).toEqual({
       tone: 'info',
       message: 'Takeaway and Delivery only',
+      // Empty for an `info` notice: nothing is blocked, so there is no channel to name.
+      shortMessage: '',
       switchTo: null,
       switchLabel: '',
       hint: null,
@@ -107,6 +109,9 @@ describe('useItemAvailabilityNotice — a channel is chosen and cannot order the
     expect(notice(blockedForDineIn)).toEqual({
       tone: 'blocked',
       message: 'Takeaway and Delivery only',
+      // Names the channel the guest CHOSE, not the ones the dish allows — the phone's corner
+      // marker has an 88px thumbnail to fit on and `message` is 34 characters in French.
+      shortMessage: 'Not for Dine In',
       switchTo: OrderType.Takeaway,
       switchLabel: 'Switch to Takeaway',
       hint: null,
@@ -119,10 +124,33 @@ describe('useItemAvailabilityNotice — a channel is chosen and cannot order the
     expect(notice(blockedForDineIn)).toEqual({
       tone: 'blocked',
       message: 'Takeaway and Delivery only',
+      shortMessage: 'Not for Dine In',
       switchTo: null,
       switchLabel: '',
       hint: 'Ask your server',
     });
+  });
+
+  /**
+   * The branch the pre-PR review asked for, and it is reachable rather than defensive.
+   *
+   * `shortMessage` normally names the channel the guest CHOSE ("Not for Dine-in") because the
+   * phone's corner marker has an 88px thumbnail to fit on. That needs a chosen channel — and
+   * `resolveChannelNotice` derives `blocked` from `canOrder` ALONE, with no guard on `orderType`
+   * (`channelNotice.ts`: `const blocked = !canOrder`). So a server that refuses an item before the
+   * guest has picked anything lands here with `tone: 'blocked'` and `orderType: null`.
+   *
+   * It falls back to the long form, NOT to `''`. An empty string is the dangerous answer: the
+   * marker renders on tone alone, so it would paint a filled bar across the thumbnail saying
+   * nothing. A sentence too long for a small box beats a wordless warning.
+   */
+  it('falls back to the long reason when the server blocks before a channel is chosen', () => {
+    setup({ orderType: null });
+
+    const result = notice(blockedForDineIn);
+    expect(result?.tone).toBe('blocked');
+    expect(result?.shortMessage).toBe('Takeaway and Delivery only');
+    expect(result?.shortMessage).not.toBe('');
   });
 
   it('never offers a switch back to the channel already chosen', () => {
@@ -171,6 +199,7 @@ describe('useItemAvailabilityNotice — admin-disabled channels do not exist', (
     expect(notice({ ...NOT_DINE_IN, canOrder: false, reason: 'WrongOrderType' })).toEqual({
       tone: 'blocked',
       message: 'Unavailable',
+      shortMessage: 'Not for Dine In',
       switchTo: null,
       switchLabel: '',
       hint: null,
@@ -201,9 +230,17 @@ describe('isItemBlocked', () => {
     message: 'Takeaway only',
     switchTo: null,
     switchLabel: '',
+    shortMessage: 'Not for Dine-in',
     hint: null,
   } as const;
-  const infoNotice = { tone: 'info', message: 'Takeaway only', switchTo: null, switchLabel: '', hint: null } as const;
+  const infoNotice = {
+    tone: 'info',
+    message: 'Takeaway only',
+    shortMessage: '',
+    switchTo: null,
+    switchLabel: '',
+    hint: null,
+  } as const;
 
   it('blocks on the notice tone', () => {
     expect(isItemBlocked(undefined, blockedNotice)).toBe(true);

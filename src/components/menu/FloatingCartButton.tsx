@@ -1,8 +1,14 @@
 /**
  * Floating Cart Button Component
  *
- * Always-visible cart button that floats at the bottom of the screen
- * Shows item count, total price, and provides quick access to cart
+ * Always-visible cart button that floats at the bottom of the screen.
+ * Shows item count, total price, and provides quick access to cart.
+ *
+ * It renders at EVERY count, including zero. It used to return null on an empty cart, which was
+ * harmless while /menu also had a pinned basket rail — and became a dead end when the rail was
+ * replaced by a slide-over: the order-type toggle lives inside that sheet, so a guest with nothing
+ * in their basket had no control on screen that could open it, and therefore no way to choose
+ * Dine-in / Takeaway / Delivery at all. This is /menu's only cart entry point now.
  */
 
 'use client';
@@ -51,11 +57,6 @@ export default function FloatingCartButton({
       return () => clearTimeout(timer);
     }
   }, [onAnimate, itemCount]);
-
-  // Don't render if no items (optional: can always show with 0 items)
-  if (itemCount === 0) {
-    return null;
-  }
 
   const handleClick = () => {
     if (onClick) {

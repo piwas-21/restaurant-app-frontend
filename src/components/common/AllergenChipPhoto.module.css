@@ -1,0 +1,98 @@
+/* The allergen chip ON A PHOTOGRAPH (`AllergenDisplay variant="photo"`).
+ *
+ * Its own module rather than more of `AllergenDisplay.module.css` for two reasons, and the second
+ * is the interesting one. The plain reason is length: that file is at the §4 200-LOC ceiling. The
+ * real one is that this chip CONTRADICTS it. Every other variant there is built on DESIGN.md
+ * §Components' "no background fills for chips" — the rule S12 collapsed fourteen colour families
+ * down to — and this one carries a solid fill on purpose. Keeping a rule and its exception under
+ * one heading is how an exception quietly becomes the rule.
+ * `allergenChipContrast.test.ts` gates both, separately, for the same reason.
+ *
+ * These are FLAT classes handed to the chips through `AllergenDisplay`'s `classes` override, not
+ * descendant selectors under `.photoRow`. Descendants would not work: `.photoRow .allergenTag`
+ * written here compiles to this module's hash for `.allergenTag`, and the element carries
+ * `AllergenDisplay.module.css`'s — so the rule would silently match nothing. A CSS-module class is
+ * only ever a selector for the file that declares it.
+ */
+
+.photoRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  /* Never wraps to a second line over the photo — a dish with five allergens must cost the same
+     pixels as a dish with one. The `+N` chip is what absorbs the rest. */
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+/* Three things differ from every other chip in this component, and each is forced by the surface:
+ *
+ * 1. A SOLID fill, not the hairline outline DESIGN.md §Components specifies. That rule is written
+ *    for a chip on a card — a known, flat, tokenised surface. This one sits on a photograph the
+ *    tenant uploaded, where a 1px `--border-default` line is invisible over half the images and
+ *    the text has no contrast guarantee at all. The fill restores one: `--surface-primary` under
+ *    `--text-primary` is the page's own body pairing, so the chip is legible over a white plate
+ *    and over a dark cast-iron pan alike — and it still FLIPS with the theme, where the obvious
+ *    way to write this (a hardcoded white pill) is white-on-white the moment the page is dark.
+ * 2. A PILL radius, not §Shapes' universal 10px. The owner's crop draws a pill, and the precedent
+ *    is on this same page: the floating cart button's `rounded-full` beat the 10px rule because
+ *    the screen drew it that way (MENU-DESIGN-CONFORMANCE-PLAN §0).
+ * 3. A shadow, because over a busy photo a fill alone still merges into the image. The same
+ *    `0 1px 3px` the card itself takes, not a new elevation step. */
+.photoChip {
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* A long allergen word ("Contains Gluten", and worse in German) shortens rather than pushing its
+   neighbour off the photo. The ellipsis has to be declared HERE and not on the chip: the chip is an
+   `inline-flex` container and `text-overflow` has no effect on a flex box — it needs an inline
+   formatting context, which is what this span provides. */
+.photoText {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .photoRow {
+    gap: 0.2rem;
+  }
+
+  /* The row's thumbnail is 88px square, which holds two glyph pills and a counter and not one
+     written word. `min-width` keeps the `+N` counter — the one chip with no glyph — from collapsing
+     to a disc narrower than its own number. */
+  .photoChip {
+    padding: 0.2rem;
+    min-width: 1.5rem;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  }
+
+  /* The word is CLIPPED, not `display: none`, and the difference is the whole point: `display:
+     none` would take "Vegetarian" out of the accessibility tree along with the pixels, and this
+     variant exists because a guest with an allergy needs to find it. Clipped, the chip is
+     glyph-only to the eye and unchanged to a screen reader, and the `title` still shows the word on
+     a pointer. Same technique the blocked card's reason sentence uses in
+     MenuItemAvailability.module.css. */
+  .photoText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}

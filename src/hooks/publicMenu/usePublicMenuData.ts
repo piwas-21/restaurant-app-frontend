@@ -9,7 +9,17 @@ import { ALL_ITEMS_KEY } from './constants';
 import { isVisible, mapBundleDtoToMenuBundleItem, mapProductDtoToMenuItem } from './mappers';
 import type { MenuBundleListResponse, ProductListResponse } from './types';
 
-const PAGE_SIZE = 10;
+/**
+ * One page holds a whole category, so the client-side filters (`useMenuFilters`) filter the whole
+ * category rather than page 1 of N. It was 10, which is what made a "Gluten-free" chip a lie: it
+ * would hide matching dishes on pages 2–7 with nothing on screen to say so.
+ *
+ * 200 rather than "all": it is comfortably above any single category a restaurant menu has (RUMI's
+ * whole catalogue is 71 across 9 categories) while still bounding what one request can pull. A
+ * tenant who exceeds it keeps pagination and the filter row keeps printing its match count against
+ * what it actually loaded, so the number on screen stays true either way.
+ */
+const PAGE_SIZE = 200;
 
 /**
  * Extract a human error message from an unknown thrown value.

@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path';
  *     inside S10).
  *   - `MenuContent.tsx` has read `styles.categorySection` since long before this slice, and
  *     `MenuContent.module.css` has never declared it. The menu grid's `<section>` — the element
- *     every E2E test addresses — has been rendering `class="undefined"` in production.
+ *     every E2E test addresses — has been rendering with no class attribute at all in production.
  *
  * NOTHING else can see this class of defect, which is why it survived:
  *
@@ -21,6 +21,10 @@ import { dirname, join, resolve } from 'node:path';
  *     through a mutation that pointed the class at a name nobody had written.
  *   - Next types a CSS module as an index signature, so `tsc --noEmit` is clean for any key.
  *   - ESLint has no rule for it, and the screenshot gate cannot see a class that styles nothing.
+ *   - And there is no telltale in the DOM. React OMITS an attribute whose value is `undefined`
+ *     rather than rendering `class="undefined"`, so you cannot grep the served HTML for it either.
+ *     Measured on prod: `getAttribute('class')` is `null` before AND after the reference was
+ *     removed. That is what makes reading the stylesheet the only check that can fail.
  *
  * Scoped to the menu section's own components. Repo-wide the same scan finds dangling references in
  * ~17 more files (cashier, admin, account, the cookie banner) — real, and a different slice's work.
@@ -33,6 +37,22 @@ const COMPONENTS = [
   'MenuSectionStatus.tsx',
   'MenuSkeletonRows.tsx',
   '../../templates/craft/surfaces/CraftMenuSectionStatus.tsx',
+  // Added 2026-08-09, and by the defect rather than by policy: the owner's review of the layout
+  // redesign moved chunks of markup between modules, and all three of these came out of it holding
+  // a class no stylesheet declares. `MenuFilters.tsx` was the bad one — its two dangling names sat
+  // inside a TEMPLATE LITERAL (`${a} ${b}`), where `undefined` stringifies instead of being omitted,
+  // so it really did serve `class="… undefined"`. The other two were bare refs and merely dead.
+  //
+  // The lesson for this list: the risk is not a component being new, it is markup MOVING between
+  // modules. Every file this list covers earned its place that way.
+  'MenuFilters.tsx',
+  'MenuCard.tsx',
+  'MenuItemDetails.tsx',
+  'MenuItemImage.tsx',
+  'FeaturedSpecial.tsx',
+  'FeaturedSpecialCopy.tsx',
+  '../../templates/craft/surfaces/CraftMenuCard.tsx',
+  '../../templates/craft/surfaces/CraftFeaturedSpecial.tsx',
 ];
 
 /** `import x from './y.module.css'` → `{ x: '<abs path>' }`. Relative specifiers only. */

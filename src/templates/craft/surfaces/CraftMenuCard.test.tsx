@@ -57,7 +57,7 @@ describe('CraftMenuCard', () => {
    * no glyph, so the assertion is now the split itself — the substance chip carries one, the claim
    * does not, on craft exactly as on classic.
    */
-  it('renders the shared allergen chips, with a glyph on the substance and none on the claim', () => {
+  it('renders the shared allergen chips, one distinct glyph per allergen', () => {
     const { container } = render(
       <CraftMenuCard
         item={{ ...product, allergens: ['vegan', 'sesame'] }}
@@ -66,10 +66,16 @@ describe('CraftMenuCard', () => {
       />,
     );
 
+    // Craft reads the SAME `AllergenIcon` table classic does — the point of the shared component is
+    // that a tenant on either skin sees the same mark for the same substance. D9's one-triangle rule
+    // is superseded: every allergen carries its own glyph now, claims included.
     const chipFor = (word: string) => screen.getByText(word).closest('.allergenTag') as HTMLElement;
     expect(chipFor('vegan')).toBeInTheDocument();
-    expect(chipFor('vegan').querySelector('svg')).toBeNull();
+    expect(chipFor('vegan').querySelector('svg')).toBeInTheDocument();
     expect(chipFor('sesame').querySelector('svg')).toBeInTheDocument();
+    expect(chipFor('vegan').querySelector('svg')?.getAttribute('class')).not.toBe(
+      chipFor('sesame').querySelector('svg')?.getAttribute('class'),
+    );
 
     // …and no emoji reaches craft either. Zero of the design screens carry one.
     expect(container.textContent).not.toMatch(/\p{Extended_Pictographic}/u);
@@ -122,6 +128,7 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
     message: 'Takeaway and Delivery only',
     switchTo: OrderType.Takeaway,
     switchLabel: 'Switch to Takeaway',
+    shortMessage: 'Not for Dine-in',
     hint: null,
   };
 
@@ -131,6 +138,7 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
       message: 'Takeaway and Delivery only',
       switchTo: null,
       switchLabel: '',
+      shortMessage: '',
       hint: null,
     } satisfies AvailabilityNotice);
 
@@ -190,5 +198,15 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
     render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     expect(useTrackItemBlocked).toHaveBeenCalledWith(product.id, BLOCKED);
+  });
+  it('is addressable as a card, separately from the hero sharing its grid', () => {
+    // The Chef's Special is a cell OF the menu grid now, and when the promoted dish is also in the
+    // catalogue its hero and its card offer a button with the SAME accessible name ("Add <dish> to
+    // order"). Role+name cannot separate them and neither can `data-testid="menu-grid"`, which
+    // contains both — so the screenshot suite addresses the card directly. It shipped without this
+    // once and the failure was a strict-mode violation in CI, not a red test.
+    render(<CraftMenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByTestId('menu-card')).toBeInTheDocument();
   });
 });

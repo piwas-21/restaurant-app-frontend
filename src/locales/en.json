@@ -2388,6 +2388,7 @@
   "reorder_partial": "Added {{added}} of {{total}} items.",
   "availability_only_for": "{{orderTypes}} only",
   "availability_switch_to": "Switch to {{orderType}}",
+  "availability_not_for": "Not for {{orderType}}",
   "availability_ask_server": "Ask your server",
   "order_type_conflict_title": "Some items are not available",
   "order_type_conflict_intro": "Switching to {{orderType}} removes these items from your order:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "Could not save the price",
   "scroll_categories_back": "Scroll categories back",
   "scroll_categories_forward": "Scroll categories forward",
+  "scroll_filters_back": "Scroll filters back",
+  "scroll_filters_forward": "Scroll filters forward",
   "category_navigation_aria": "Category navigation",
   "order_status_refunded": "Refunded",
   "bulk_status_update_success": "Orders updated: {{count}}",
@@ -2561,6 +2564,5 @@
   "menu_filters_clear": "Clear filters",
   "menu_filters_count": "{{shown}} of {{total}} dishes",
   "menu_filters_none": "No dishes match these filters",
-  "menu_state_filtered_heading": "Nothing matches",
-  "open_basket_aria": "Open basket, {{count}} items, {{total}}"
+  "menu_state_filtered_heading": "Nothing matches"
 }

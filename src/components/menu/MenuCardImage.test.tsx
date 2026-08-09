@@ -54,4 +54,40 @@ describe('MenuCardImage', () => {
     fireEvent.click(button);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  /**
+   * The `overlay` slot must render OUTSIDE the enlarge button, and no other gate can tell.
+   *
+   * A `<button>` carrying an `aria-label` is children-presentational: the whole subtree is pruned
+   * from the accessibility tree. The allergen chips shipped inside it for one commit, which made
+   * them unreachable to a screen reader — and on a phone their word is visually clipped as well, so
+   * there was no channel left at all. Nothing caught it: the chips still RENDER, so a
+   * `getByText`-style assertion passes, jest-dom does not compute accessible names from
+   * presentational-children rules, and axe's rules for this do not fire on a decorative overlay.
+   *
+   * Asserted structurally — the overlay is not a descendant of the button — because that is the
+   * property that actually matters and the one a future refactor would silently undo.
+   */
+  it('renders the overlay slot OUTSIDE the enlarge button, where the a11y tree can reach it', () => {
+    render(
+      <MenuCardImage
+        imageUrl="hero.jpg"
+        alt="Adana Kebab"
+        enlargeLabel="Enlarge Adana Kebab image"
+        badge={<span data-testid="corner-mark">Special</span>}
+        overlay={<span data-testid="allergen-chips">Halal</span>}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: 'Enlarge Adana Kebab image' });
+    const chips = screen.getByTestId('allergen-chips');
+
+    expect(button.contains(chips)).toBe(false);
+    // …but still inside the photo frame, or it would not be positioned against the picture.
+    expect(button.parentElement?.contains(chips)).toBe(true);
+
+    // The corner mark stays INSIDE on purpose: it is decorative there, and the marks that carry
+    // meaning are already in the card's own `aria-labelledby`.
+    expect(button.contains(screen.getByTestId('corner-mark'))).toBe(true);
+  });
 });

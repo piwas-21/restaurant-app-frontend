@@ -15,8 +15,10 @@ interface MenuCardImageProps {
   countLabel?: string;
   /** Accessible name for the enlarge-on-click button (distinct from the dish name). */
   enlargeLabel: string;
-  /** Overlay pinned to the photo (the classic card's "Special" ribbon) — see `MenuItemImage`. */
+  /** Self-positioning corner marks on the photo — the "Special" flag, the order-type band. */
   badge?: ReactNode;
+  /** Content the photo lays out at its bottom inline-start — the allergen chips. */
+  overlay?: ReactNode;
   onError?: () => void;
 }
 
@@ -35,6 +37,7 @@ export default function MenuCardImage({
   countLabel,
   enlargeLabel,
   badge,
+  overlay,
   onError,
 }: Readonly<MenuCardImageProps>) {
   const gallery = images && images.length > 0 ? images : [{ url: imageUrl, alt }];
@@ -49,6 +52,7 @@ export default function MenuCardImage({
         countLabel={countLabel}
         enlargeLabel={enlargeLabel}
         badge={badge}
+        overlay={overlay}
         onClick={() => state.open()}
         onError={onError}
       />

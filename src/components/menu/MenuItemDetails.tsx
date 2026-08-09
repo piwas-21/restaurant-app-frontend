@@ -1,26 +1,12 @@
 'use client';
 
-import React, { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import styles from './MenuItemDetails.module.css';
-// The dietary-chip family, in its own module — see that file for why it is split and why nothing
-// on the public menu currently renders it.
-import dietaryStyles from './MenuItemDietaryTags.module.css';
-import AllergenDisplay from '@/components/common/AllergenDisplay';
 
 type Props = {
   id: string;
   title: string;
   description: string;
-  allergens?: string[];
-  dietaryTags: string[];
-  t: (key: string, defaultValue?: any) => string;
-  /**
-   * The price (and, for an admin, its inline editor) — handed in as a slot rather than rendered
-   * here, because the host owns the optimistic price state the editor writes to. It sits on the
-   * TITLE row: both governing screens put the price on the dish name's line, and the guest reading
-   * a grid compares names to prices, not names to buttons.
-   */
-  priceSlot?: ReactNode;
   /**
    * Optional handler for clicking the item title. When provided, the title
    * becomes a button (clickable + keyboard-focusable). Lets the parent route
@@ -40,8 +26,14 @@ type Props = {
 };
 
 /**
- * The card's text column: a title row (name · allergen glyphs · price), then the description with
- * its Details affordance at the end of the second line.
+ * The card's text column: the dish name, then the description with its Details affordance at the
+ * end of the second line.
+ *
+ * The name is ALONE on its line. It shared that line with the allergen glyphs and the price until
+ * the owner's 2026-08-09 review — *"the price and allergens being in the same row with item name
+ * makes it too noisy"* — which sent the glyphs onto the photograph and the price into the card's
+ * foot. What is left needed no `.titleRow` flex wrapper and no `.titleMeta` band, so both are gone
+ * rather than left as single-child containers.
  *
  * **Details is inside the paragraph, not under it.** It used to be a block-level link on its own
  * line, which cost every card a full line of height and — on the many RUMI dishes with no allergens
@@ -49,6 +41,12 @@ type Props = {
  * only wrap content that follows them) offset down by exactly one line, so the description's second
  * line ends and the link begins, which is what `mobile_menu_light` draws: `…grilled sourdough...
  * Details`.
+ *
+ * It is now inline on EVERY card. Blocked cards used to opt out (`detailsInline={false}`) because
+ * their order-type band wrapped the row's bottom inline-end corner on a phone and covered the
+ * floated link; that band no longer touches the row — it is a caption on the thumbnail — so the
+ * exception has nothing left to avoid. Removing it is also what makes a blocked row and an
+ * ordinary row the same height, since the block form cost a 44px line the inline form does not.
  *
  * The leading ellipsis is rendered only when the text is genuinely clipped, measured after layout
  * rather than guessed from a character count — a count cannot know the card's width, the locale's
@@ -59,10 +57,6 @@ export default function MenuItemDetails({
   id,
   title,
   description,
-  allergens,
-  dietaryTags,
-  t,
-  priceSlot,
   onTitleClick,
   onDetailsClick,
   detailsLabel,
@@ -88,7 +82,14 @@ export default function MenuItemDetails({
   const detailsButton = onDetailsClick ? (
     <button
       type="button"
-      className={styles.detailsLink}
+      // `.detailsLink` floats onto the description's second line; `.detailsLinkBlock` is the
+      // standalone form for a dish with NO description, where there is no line to float onto. That
+      // case used to render `.detailsLink` anyway, which put a `float` on a direct child of the
+      // card's flex column — where floats do not apply at all — so the rules meant to place it
+      // (`float`, and a `margin-top` reading a `--desc-line` that only exists on the paragraph)
+      // silently did nothing and the link landed as a plain left-aligned block with a 44px global
+      // min-height. It looked deliberate. It was not.
+      className={hasDescription ? styles.detailsLink : styles.detailsLinkBlock}
       onClick={onDetailsClick}
       // Falls back to the visible text rather than to nothing: a caller that passes the handler
       // without a label would otherwise render a button with no name at all.
@@ -103,18 +104,10 @@ export default function MenuItemDetails({
 
   return (
     <>
-      <div className={styles.titleRow}>
-        {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
-        <h3 id={`item-name-${id}`} dir="auto" className={styles.itemTitle} {...titleProps}>
-          {title}
-        </h3>
-        {/* Glyphs, no words — the band has to share the name's line with the price. The word for
-            each is carried by `.sr-only` text and a `title`, so the accessible name is unchanged. */}
-        <span className={styles.titleMeta}>
-          <AllergenDisplay allergens={allergens} id={id} maxVisible={3} variant="icons" />
-          {priceSlot}
-        </span>
-      </div>
+      {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
+      <h3 id={`item-name-${id}`} dir="auto" className={styles.itemTitle} {...titleProps}>
+        {title}
+      </h3>
 
       {hasDescription ? (
         // product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2)
@@ -126,18 +119,6 @@ export default function MenuItemDetails({
         </p>
       ) : (
         detailsButton
-      )}
-
-      {dietaryTags && dietaryTags.length > 0 && (
-        <div className={dietaryStyles.allergyTags} aria-label={t('dietary_information_label')}>
-          {/* One chip style for every diet. No `role="status"` — a dietary chip is STATIC content,
-              so a live-region role made every card shout its tags at a screen reader on render. */}
-          {dietaryTags.map((tag) => (
-            <span key={tag} className={dietaryStyles.allergyTag}>
-              {t(tag, tag)}
-            </span>
-          ))}
-        </div>
       )}
     </>
   );

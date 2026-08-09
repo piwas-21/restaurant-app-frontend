@@ -48,17 +48,27 @@
    clipped all four.) A floor cannot clip, and still renders at 180 whenever the content fits. */
 /* 601-900px the hero spans the full two-column row and there is no card beside it to match, so it
    takes its own content height. Above that it fills the row; below 601 it is a card among rows. */
-@media (min-width: 601px) and (max-width: 900px) {
-  .featuredSpecialContainer {
+@media (max-width: 900px) {
+  /* Below 900 the hero spans the whole row with no card beside it to match, so it takes its own
+     content height — including the photoless case, which is why `auto` lives here and not on the
+     base rule. */
+  .featuredSpecialContainer,
+  .featuredSpecialNoPhoto {
     height: auto;
   }
 }
 
-/* The photoless collapse. The markup always omitted the <Image> — RUMI's live special has no photo
-   — but no CSS reacted, so the strip held a photo's worth of height around text needing ~130px of
-   it. `min-h-[100px]` is State 3 of mobile_special_states_dark, the only screen that draws it. */
+/* The photoless case. The markup now always renders a photo box (falling back to the same
+   placeholder a card uses), so this no longer means "no image" — it means "no image of its own",
+   which is still what the badge's in-flow fallback keys off.
+
+   `height: auto` is GONE from the base rule and lives only in the ≤900px block below. It was
+   overriding the `height: 100%` that makes the hero as tall as the dish cards sharing its grid row,
+   so a special without its own photo rendered ~248px beside 400px cards — reported, and visible in
+   any screenshot of a menu whose special has no photo (which is every RUMI-shaped tenant). Above
+   900px the hero has cards beside it and must match them; below, it is a card among list rows with
+   nothing to match, and there `auto` is right. */
 .featuredSpecialNoPhoto {
-  height: auto;
   min-height: 100px;
 }
 
@@ -140,20 +150,19 @@
   padding: 1.25rem;
 }
 
-/* Name | price, the same anatomy `MenuItemDetails.module.css` gives every card's title row —
-   including which side yields: the NAME shrinks, the price never does. */
-.featuredSpecialTitleRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.featuredSpecialTitleMeta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
+/* The allergen chips on the hero's photograph — the same corner and the same reasoning as
+   `.photoOverlay` in MenuItemImage.module.css, restated here because the hero draws its own
+   `<Image>` rather than going through `MenuItemImage`. Bottom inline-start: the order-type band
+   takes the top inline-end, and the bottom-start is nearest the copy the chips qualify.
+   Never a target — the chips are labels with a `title`, and the photo behind them is not clickable
+   on the hero the way it is on a card. */
+.featuredSpecialPhotoOverlay {
+  position: absolute;
+  bottom: 10px;
+  inset-inline-start: 10px;
+  max-width: calc(100% - 20px);
+  z-index: 5;
+  pointer-events: none;
 }
 
 /* `font-dish-name` — the same Playfair step the cards use, so the promoted dish reads as one of
@@ -196,18 +205,21 @@
   text-underline-offset: 3px;
 }
 
-/* Clamped. An unclamped description is what made the old hero's height unpredictable; the full
-   text is one click away in the details sheet. */
+/* Exactly three lines. It was `-webkit-line-clamp`, which cannot host the floated Details link:
+   `-webkit-box` replaces the paragraph's block formatting entirely and floats inside one are
+   dropped. A fixed `height` of three line boxes plus `overflow: hidden` clips identically and
+   leaves a normal block, which is what the float needs — the same construction
+   `MenuItemDetails.module.css` uses for its two-line version, and `--desc-line` is published for
+   the same reason: so the link can offset itself by exact line boxes rather than by an `em` that
+   would resolve against its own smaller font. */
 .featuredSpecialDescription {
+  --desc-line: calc(0.95rem * 1.5);
   font-family: var(--font-family-sans);
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
   color: var(--text-secondary);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  height: calc(3 * var(--desc-line));
   overflow: hidden;
 }
 
@@ -228,14 +240,20 @@
 }
 
 /* `font-price-tag text-on-surface` — the price is INK, not brand (D4). The brand is spent on the
-   one solid button beside it; colouring both made the strip shout twice. */
+   one solid button beside it; colouring both made the strip shout twice.
+   `inline-flex` because it now also hosts the admin price editor, which used to be a sibling in
+   the title row's meta band. */
 .priceValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-family-sans);
   font-size: 1rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.4;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* The notice is built for a CARD, where `justify-content: center` sits it under a centred image; at
@@ -246,16 +264,89 @@
   justify-content: flex-start;
 }
 
-/* Not on the strip: the design's Chef's Special carries a name, a description, a price and one
-   button, nothing else. Allergens stay on every dish CARD and in the details sheet. The two rules
-   that used to style this block's insides went with the S2 sweep — they had been dressing the
-   subtree of a `display: none` element since the day this rule was written. */
-.featuredSpecialAllergens {
-  display: none;
+/* The hero's Details affordance, shaped like `MenuItemDetails`' `.detailsLink` one card away — and
+   now placed like it too: floated onto the END of the description's clipped last line, rather than
+   sitting under the paragraph as a block. The owner's 2026-08-09 review asked for it on the cards
+   (*"closer to the description like abc ...details"*) and the hero follows the cards.
+   `--brand-primary-elevated` for the same reason the card's uses it: small brand text that must
+   also clear AA on the blocked hero's recede. */
+.featuredSpecialDetailsLink,
+.featuredSpecialDetailsLinkBlock {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  background: none;
+  border: 0;
+  color: var(--brand-primary-elevated);
+  font-family: var(--font-family-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  cursor: pointer;
+  text-align: start;
+  text-decoration: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  padding: 0 0 0 0.35rem;
 }
 
-/* The hero's foot: the signature label and the one filled button on a shared baseline, pushed
-   there by `margin-top: auto` however tall the copy above turns out to be. */
+/* Offset by TWO line boxes so it lands on the third and last line, and pinned to one line box tall
+   — a taller float would eat into the lines above it from below. `float: right` with an explicit
+   RTL flip rather than `float: inline-end`: `next dev` downlevels logical properties off
+   `:lang()`, so the logical keyword is right in a production build and silently wrong in dev.
+   `min-height: 0` beats globals.css's 44px floor on every `button` below 768px, which would
+   otherwise paint this float below the paragraph's clip — i.e. make the word vanish. */
+.featuredSpecialDetailsLink {
+  float: right;
+  margin-top: calc(2 * var(--desc-line));
+  height: var(--desc-line);
+  min-height: 0;
+}
+
+[dir='rtl'] .featuredSpecialDetailsLink {
+  float: left;
+  padding: 0 0.35rem 0 0;
+}
+
+/* The hit area, decoupled from the visual line: 24px, WCAG 2.2 §2.5.8's minimum, centred on the
+   one-line link so the visual stays inside the clip while the target does not shrink with it. */
+.featuredSpecialDetailsLink::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 24px;
+  transform: translateY(-50%);
+}
+
+/* No description means no line to float onto — a plain link under the name. `align-self:
+   flex-start` matters: without any class at all (which is how this first shipped, when the rule
+   failed to land) the browser's default button chrome rendered a 396px grey box across the hero. */
+.featuredSpecialDetailsLinkBlock {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0.25rem 0;
+}
+
+.featuredSpecialDetailsLink:hover,
+.featuredSpecialDetailsLink:focus-visible,
+.featuredSpecialDetailsLinkBlock:hover,
+.featuredSpecialDetailsLinkBlock:focus-visible {
+  text-decoration: underline;
+}
+
+.featuredSpecialDetailsLink:focus-visible,
+.featuredSpecialDetailsLinkBlock:focus-visible {
+  outline: 2px solid var(--brand-primary-elevated);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* The hero's foot: the price and the one filled button on a shared baseline, pushed there by
+   `margin-top: auto` however tall the copy above turns out to be. The hairline is the card's
+   (`MenuCardFoot.module.css`) — the hero is a cell of the same grid and closes its foot the same
+   way. */
 .featuredSpecialActions {
   display: flex;
   align-items: center;
@@ -264,21 +355,7 @@
   flex-wrap: wrap;
   margin-top: auto;
   padding-top: 0.75rem;
-}
-
-/* `inline-flex items-center gap-1 font-label-muted text-secondary` with a filled star — the
-   design's "Chef's Signature" line. `--brand-primary-elevated`, not the plain brand: it is small
-   text and the hero recedes to `--surface-secondary` while blocked, where plain brand is 4.16:1 in
-   dark. */
-.signatureLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-family: var(--font-family-sans);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--brand-primary-elevated);
+  border-top: 1px solid var(--border-default);
 }
 
 /* The BUTTON is `AddToOrderButton` now — one component for the hero's filled control, the grid
@@ -310,9 +387,15 @@
     width: 33%;
   }
 
+  /* Two lines here, three above. `height`, not `-webkit-line-clamp`, for the reason the base rule
+     gives: the clamp's `-webkit-box` drops floats, and the floated Details link is the whole point.
+     Both numbers have to move together — the link offsets itself past every line BUT the last. */
   .featuredSpecialDescription {
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    height: calc(2 * var(--desc-line));
+  }
+
+  .featuredSpecialDetailsLink {
+    margin-top: var(--desc-line);
   }
 }
 
@@ -345,19 +428,54 @@
     gap: 0.25rem;
   }
 
-  /* One line — a three-word name wrapping down the side of the photo is most of what made this strip
-     outgrow its budget. Truncation, not `-webkit-line-clamp`: the text is inside a nested button. */
-  .featuredSpecialTitle,
-  .featuredSpecialTitleButton {
+  /* TWO lines, not one truncated. The clamp stays even though the name now has the row to itself:
+     a long dish name at 1.05rem still runs past a ~200px column beside a 120px thumbnail.
+     `-webkit-line-clamp` needs the clamp on the element that HOLDS the text, which here is the
+     nested button. */
+  .featuredSpecialTitle {
     font-size: 1.05rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  .featuredSpecialDescription,
+  .featuredSpecialTitleButton {
+    font-size: 1.05rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    text-align: start;
+  }
+
+  /* The description TEXT goes, the paragraph stays. It is the Details link's host now, and hiding
+     the <p> — which is what this rule used to do — would leave a phone guest with no Details
+     control on the one dish the page promotes. So the link stops floating (there is no line left
+     to float onto) and becomes the ordinary block link it is on a card with no description. */
+  .featuredSpecialDescriptionText,
   .featuredSpecialTime {
     display: none;
+  }
+
+  .featuredSpecialDescription {
+    height: auto;
+  }
+
+  .featuredSpecialDetailsLink {
+    float: none;
+    margin-top: 0;
+    height: auto;
+    min-height: 44px;
+    padding-inline-start: 0;
+  }
+
+  /* `padding-inline-START`, not end. The gap this has to remove is the LEADING one, and in RTL
+     that is `padding-right` — which the base rule above sets via the shorthand
+     `padding: 0 0.35rem 0 0`. `inline-end` is the left side under RTL, where the padding is already
+     0, so the earlier spelling removed nothing and left a ~5.6px indent in `ar` only. Invisible to
+     `check-physical-css.mjs`, whose regex reads `padding-left`/`padding-right` and not the
+     shorthand. */
+  [dir='rtl'] .featuredSpecialDetailsLink {
+    float: none;
+    padding-inline-start: 0;
   }
 
   /* The label and the disc on one row, tight against the thumbnail. The disc itself is
@@ -366,10 +484,6 @@
   .featuredSpecialActions {
     padding-top: 0.5rem;
     gap: 0.5rem;
-  }
-
-  .signatureLabel {
-    font-size: 0.7rem;
   }
 
   .featuredSpecialBadge {

@@ -91,12 +91,17 @@ html[data-theme='dark'] .outline:not(.disc) {
 
 /* ── Box ────────────────────────────────────────────────────────────────────────────────────── */
 
-/* `mt-4 w-full` — the grid card's foot. Full width is what makes a row of cards read as a set:
-   every dish offers the same target in the same place, instead of a small button floating at a
-   different inline offset on each card depending on how long its price is. */
+/* The grid card's action. It was `w-full` + `margin-top: auto` — a full-width block that WAS the
+   card's foot. It is now one half of a foot row it shares with the price
+   (`MenuCardFoot.module.css`), so it shrink-wraps and the ROW owns the push to the bottom.
+   The owner's 2026-08-09 crop draws it that way: price at the inline start, a small outlined "Add"
+   opposite it.
+   Full width used to be justified as "what makes a row of cards read as a set" — every dish
+   offering the same target in the same place. The foot row keeps that property by a different
+   means: the row is what is common, and the button is pinned to its inline end, so the targets
+   still line up down the grid however long each price is. */
 .card {
-  width: 100%;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 /* The Chef's Special's — shrink-wrapped so the filled button sits at its natural width at the end
@@ -151,9 +156,6 @@ html[data-theme='dark'] .outline:not(.disc) {
 @media (max-width: 600px) {
   .card,
   .hero {
-    /* Pinned to the END of the text column, on the row's own last line — `mobile_menu_light` puts
-       it there, opposite the price on the title row above it. */
-    align-self: flex-end;
     width: 44px;
     min-width: 44px;
     height: 44px;
@@ -164,6 +166,14 @@ html[data-theme='dark'] .outline:not(.disc) {
     color: var(--text-on-primary);
     border-color: var(--brand-primary);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Only the hero still pins itself. The card's disc sits in `.footAction`, which places it at the
+     row's inline end — `align-self` there would be the CROSS axis (vertical) and say nothing about
+     the horizontal position it used to control back when this button was a child of the card's
+     own column. */
+  .hero {
+    align-self: flex-end;
   }
 
   .card:active,

@@ -34,29 +34,39 @@
   transform: rotate(-1deg);
 }
 
+/* Two columns, always. The photo column used to be opt-in (`.withPhoto`) because the hero rendered
+   no photo box at all without an `imageUrl`; it falls back to the placeholder now, as every card
+   does, so there is always something in that column.
+   Capped rather than fixed: the hero spans the full page width, so a fixed photo column would just
+   grow the text column beside it. `minmax(0, …)` lets the column shrink instead of overflow. */
 .content {
   display: grid;
-  /* ONE column by default; two is opt-in (`.withPhoto`). A grid that always declares the photo
-     column puts the DETAILS in it when the photo is absent, capping the copy at 320px with the rest
-     of the hero empty — which is what the live tenant shows, its special having no image. */
+  grid-template-columns: minmax(0, 320px) 1fr;
   gap: 1.75rem;
   align-items: start;
 }
 
-.withPhoto {
-  /* Capped rather than fixed: the hero spans the full page width, so a fixed photo column would
-     just grow the text column beside it. `minmax(0, …)` lets the column shrink instead of overflow. */
-  grid-template-columns: minmax(0, 320px) 1fr;
-}
-
 /* Pinned on at an angle, the way a photo is taped to a board, with craft's letterpress lift on
-   hover. */
+   hover. `position: relative` because it is the containing block for the two marks pinned to the
+   photograph — the order-type band and the allergen chips.
+   Both ride the rotation with it, which is correct: they belong to the photo, not to the board. */
 .photo {
   composes: letterpress from '../craft.module.css';
   composes: roundedCraft from '../craft.module.css';
   overflow: hidden;
   transform: rotate(-1.25deg);
   background: var(--surface-secondary);
+  position: relative;
+}
+
+/* Same corner and same reasoning as the card's — bottom inline-start, opposite the band. */
+.photoOverlay {
+  position: absolute;
+  bottom: 10px;
+  inset-inline-start: 10px;
+  max-width: calc(100% - 20px);
+  z-index: 5;
+  pointer-events: none;
 }
 
 /* The tilt is RESTATED, not inherited: `transform` is one property, not additive, and
@@ -79,11 +89,6 @@
   min-width: 0;
 }
 
-/* The hand-lettered `dish ..... price` header — the craft menu-board signature, at hero scale. */
-.leader {
-  composes: menuLeader from '../craft.module.css';
-}
-
 .name {
   font-family: 'Amatic SC', cursive;
   font-size: 2.9rem;
@@ -94,27 +99,28 @@
 }
 
 .price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
   font-family: 'Amatic SC', cursive;
   font-size: 2.4rem;
   font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
-/* Collapses to nothing for guests (AdminPriceEditor renders null). */
-.adminRow {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.adminRow:empty {
-  display: none;
-}
-
+/* THREE lines by HEIGHT, not `-webkit-line-clamp`: the clamp's `-webkit-box` drops floats, and the
+   floated Details link is the point. `--desc-line` is published so the link can offset itself by
+   exact line boxes rather than by an `em` resolving against its own smaller font. */
 .description {
+  --desc-line: calc(1rem * 1.6);
   font-size: 1rem;
   line-height: 1.6;
   color: var(--text-secondary);
   margin: 0;
+  height: calc(3 * var(--desc-line));
+  overflow: hidden;
 }
 
 .time {
@@ -127,18 +133,55 @@
   color: var(--text-secondary);
 }
 
-.actions {
-  display: flex;
+/* `CHF 45.00 ..... [Add]` — the `.dottedFoot` motif at hero scale. */
+.foot {
+  composes: dottedFoot from '../craft.module.css';
   gap: 0.6rem;
+  padding-top: 0.4rem;
+}
+
+/* DOUBLED selector, and it has to be (#447). This overrides `margin-top` from the motif it
+   composes, and `.foot` against `.dottedFoot` is (0,1,0) against (0,1,0) — a tie, decided by which
+   stylesheet the bundler happens to emit last, which is not a property of either file. `.foot.foot`
+   is (0,2,0) and wins wherever it lands.
+   The override itself: the motif's `margin-top: auto` pushes a CARD's foot to the bottom of its
+   grid cell. The hero is not a grid cell with slack to consume, so `auto` there resolves to zero
+   and the row butts against the copy above it. */
+.foot.foot {
   margin-top: 0.6rem;
+}
+
+/* DOUBLED for the same reason `.foot.foot` above is, and this one the #447 gate cannot see: its
+   `selectorTarget` matches `^\.x$` and `^\.x\.x$` only, so a PSEUDO-ELEMENT rule is skipped
+   entirely. `min-width` here overrides `.dottedFoot::before`'s 1.5rem, and `.foot::before` against
+   `.dottedFoot::before` is (0,1,1) against (0,1,1) — a tie broken by stylesheet emission order.
+   `margin-bottom` is not in the motif, so it would be safe on its own; it rides along rather than
+   splitting one rule in two. */
+.foot.foot::before {
+  margin-bottom: 0.4em;
+  min-width: 2rem;
 }
 
 .addButton {
   composes: btnPrimary from '../primitives.module.css';
+  flex-shrink: 0;
 }
 
+/* Details, floated onto the end of the description's clipped third line — the shared `.detailsLink`
+   motif, which the craft card wears too. Only the float geometry is local: the hero clips at three
+   lines of 1.6 where the card clips at three of 1.5, so the offset cannot be shared. */
+.detailsLink {
+  composes: detailsLink from '../craft.module.css';
+  margin-top: calc(2 * var(--desc-line));
+  height: var(--desc-line);
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+/* No description means no line to float onto — the standalone kraft button, as before. */
 .detailsButton {
   composes: btnKraft from '../primitives.module.css';
+  align-self: flex-start;
 }
 
 /* Blocked for the guest's chosen channel (G7). The hero RECEDES rather than disappearing — it is
@@ -158,11 +201,8 @@
 }
 
 @media (max-width: 900px) {
-  .withPhoto {
-    grid-template-columns: 1fr;
-  }
-
   .content {
+    grid-template-columns: 1fr;
     gap: 1.25rem;
   }
 
@@ -194,7 +234,9 @@
     font-size: 1.7rem;
   }
 
-  .actions {
-    flex-direction: column;
+  /* The dotted fill needs a minimum to read as a fill; below that the row stacks instead, and the
+     leader is dropped rather than squeezed to three dots. */
+  .foot {
+    flex-wrap: wrap;
   }
 }

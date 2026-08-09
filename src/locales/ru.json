@@ -2388,6 +2388,7 @@
   "reorder_partial": "Добавлено {{added}} из {{total}} позиций.",
   "availability_only_for": "Только {{orderTypes}}",
   "availability_switch_to": "Переключиться на {{orderType}}",
+  "availability_not_for": "Не для {{orderType}}",
   "availability_ask_server": "Спросите официанта",
   "order_type_conflict_title": "Некоторые позиции недоступны",
   "order_type_conflict_intro": "Переход на {{orderType}} удалит эти позиции из вашего заказа:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "Не удалось сохранить цену",
   "scroll_categories_back": "Прокрутить категории назад",
   "scroll_categories_forward": "Прокрутить категории вперёд",
+  "scroll_filters_back": "Прокрутить фильтры назад",
+  "scroll_filters_forward": "Прокрутить фильтры вперёд",
   "category_navigation_aria": "Навигация по категориям",
   "order_status_refunded": "Возвращён",
   "bulk_status_update_success": "Заказов обновлено: {{count}}",
@@ -2561,6 +2564,5 @@
   "menu_filters_clear": "Сбросить фильтры",
   "menu_filters_count": "{{shown}} из {{total}} блюд",
   "menu_filters_none": "Нет блюд, подходящих под эти фильтры",
-  "menu_state_filtered_heading": "Ничего не найдено",
-  "open_basket_aria": "Открыть корзину, {{count}} товаров, {{total}}"
+  "menu_state_filtered_heading": "Ничего не найдено"
 }

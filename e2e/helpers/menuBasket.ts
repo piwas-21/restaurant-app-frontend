@@ -7,7 +7,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
  * `getByRole('complementary', { name: /shopping basket/i })` to get at the order-type toggle and
  * Proceed to Checkout inside it. When the rail became a slide-over — /menu needed its width back
  * for the card grid the design draws — all six broke at once, which is the cost of having had no
- * helper. This is that helper.
+ * helper. This is that helper, and it has already earned itself: the entry point moved a second
+ * time (sticky-bar button → floating cart button) and only this file changed.
  *
  * Note for the next person: the panel is a MODAL. Anything behind it (a dish card, the category
  * tabs) is unreachable while it is open, so a flow that picks a channel and then adds an item has
@@ -29,12 +30,62 @@ export function menuBasketPanel(page: Page): Locator {
 export async function openMenuBasket(page: Page): Promise<Locator> {
   const panel = menuBasketPanel(page);
   if (!(await panel.isVisible().catch(() => false))) {
-    // The entry point is in the sticky category bar, and it renders at EVERY count including zero —
-    // unlike the floating cart button, which renders nothing while the basket is empty.
-    await page.getByRole('button', { name: /open basket/i }).click();
+    await dismissCookieBanner(page);
+    // The FLOATING cart button is /menu's only cart entry point. A second copy briefly lived in the
+    // sticky category bar doing the same job from the other corner; it is gone, and the FAB now
+    // renders at EVERY count including zero — which is what makes it a replacement for the rail
+    // rather than only a convenience once something is in the basket.
+    await page.getByRole('button', { name: /view cart/i }).click();
   }
   await expect(panel).toBeVisible({ timeout: 15_000 });
   return panel;
+}
+
+/**
+ * Answer the cookie banner, because on `/menu` it sits ON the button this helper has to click.
+ *
+ * Both are `position: fixed` at the bottom of the viewport, and the banner wins — Playwright's
+ * call log is unambiguous about it: *"`<div class="CookieConsentBanner…">` intercepts pointer
+ * events"*, 114 retries, then the test times out. Thirteen tests across six suites failed this way
+ * at once.
+ *
+ * **It is not a test-only problem, and the fix here does not pretend otherwise.** A first-time
+ * guest on `/menu` also has the banner over their only route to the basket. It stopped being
+ * theoretical for two independent reasons on this branch: the sticky-bar basket button was removed
+ * (it sat at the TOP, which the banner never covered), and the FAB started rendering at zero items
+ * (so it is now under the banner from first paint rather than only after an add).
+ * `mobile-cart-sheet.e2e.ts` hit the same wall earlier and solved it privately with an
+ * `addInitScript`; that note is still there and is now one of several. Logged for the owner as a
+ * real UX question rather than silently absorbed.
+ *
+ * Clicking Accept rather than pre-seeding storage, deliberately: `addInitScript` has to run before
+ * `page.goto`, and this helper is called long after navigation — so a seed here would be a no-op
+ * that looked like a fix. Clicking is also what a guest does.
+ *
+ * **Whether to wait is decided by localStorage, not by looking.** The first cut asked
+ * `accept.isVisible({ timeout: 2_000 })` — and `isVisible()` does NOT auto-wait. It answers about
+ * the current instant and ignores the `timeout` option entirely, so on any run where the banner had
+ * not hydrated yet it returned `false`, the dismiss was skipped, and the click was intercepted a
+ * moment later. That is a RACE, and it read as a fix because it genuinely repaired the four tests
+ * whose timing happened to land the other way: 13 failures became 9, which looks like progress and
+ * is actually the same bug.
+ *
+ * The consent key is the deterministic answer to "will a banner appear?", so it decides whether to
+ * wait for one. Present ⇒ no banner is coming, return immediately and cost nothing. Absent ⇒ one IS
+ * coming, so wait for it properly.
+ */
+export async function dismissCookieBanner(page: Page): Promise<void> {
+  const consented = await page
+    .evaluate(() => Boolean(window.localStorage.getItem('rumi_cookie_consent')))
+    // Not yet on a real origin (localStorage throws on about:blank). Nothing has rendered, so
+    // there is no banner either.
+    .catch(() => true);
+  if (consented) return;
+
+  const accept = page.getByRole('button', { name: /^accept$/i });
+  await accept.waitFor({ state: 'visible', timeout: 15_000 });
+  await accept.click();
+  await expect(accept).toBeHidden({ timeout: 5_000 });
 }
 
 /** Close it again, so the grid behind it is clickable. */

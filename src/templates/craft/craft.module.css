@@ -82,3 +82,98 @@
   order: 3;
   color: var(--text-secondary);
 }
+
+/* ── The floated "Details" link ────────────────────────────────────────────────────────────────
+   Shared by the craft card and the craft Chef's Special hero, which had identical copies of these
+   ~30 lines after the 2026-08-09 review moved the link inside the description on both. A motif,
+   like the dotted leader and the tape label above it: kraft ink in Caveat, sitting at the end of a
+   clipped line of copy.
+
+   The two consumers `composes` this and add only what genuinely differs — how far down to float
+   (each has its own line count and line height) and the type size. Everything below is the same on
+   both, and every one of these declarations is load-bearing:
+
+   · `float: right` + an explicit RTL flip, NOT `float: inline-end`. `next dev` downlevels logical
+     properties off `:lang()`, so the logical keyword is right in a production build and silently
+     wrong in dev — the one place a reviewer looks.
+   · `min-height: 0` beats globals.css's 44px floor on every `button` below 768px. Without it a
+     44px float inside a clipped paragraph paints below the clip, i.e. the word disappears.
+   · `::after` gives the 24px hit area back, decoupled from the one-line visual so the target does
+     not shrink with it (WCAG 2.2 §2.5.8). The dish name opens the same sheet, which is that
+     criterion's "equivalent control". */
+.detailsLink {
+  float: right;
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  padding: 0 0 0 0.35rem;
+  background: none;
+  border: 0;
+  color: var(--brand-primary-elevated);
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+[dir='rtl'] .detailsLink {
+  float: left;
+  padding: 0 0.35rem 0 0;
+}
+
+.detailsLink::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 24px;
+  transform: translateY(-50%);
+}
+
+.detailsLink:hover,
+.detailsLink:focus-visible {
+  text-decoration: underline;
+}
+
+.detailsLink:focus-visible {
+  outline: 2px solid var(--brand-primary-elevated);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── The dotted foot ───────────────────────────────────────────────────────────────────────────
+   `CHF 45.00 ..... [Add]` — the printed-menu leader, in the place the 2026-08-09 review moved the
+   price to. Shared by the craft card and the craft hero, which grew identical copies of it.
+
+   NOT `composes: menuLeader`, even though the fill is the same three declarations. `.menuLeader`
+   ends with `> :last-child { color: var(--text-secondary) }` — a (0,1,1) rule written when the last
+   child was a PRICE. Here the last child is the terracotta Add button, whose own `.btnPrimarySm`
+   colour is (0,1,0), so composing the older primitive would repaint the button's label muted with
+   nothing in either file saying why. The dotted fill is reproduced; the assumption about what it
+   joins is not.
+
+   `margin-top: auto` is what lands every card's foot on one baseline down a grid row, however tall
+   the description above it turned out. */
+.dottedFoot {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+}
+
+.dottedFoot::before {
+  content: '';
+  order: 2;
+  flex: 1;
+  border-bottom: 2px dotted var(--border-default);
+  min-width: 1.5rem;
+}
+
+.dottedFoot > :first-child {
+  order: 1;
+}
+
+.dottedFoot > :last-child {
+  order: 3;
+}

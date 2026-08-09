@@ -1,0 +1,105 @@
+/* The filter row's SCROLL RAIL — the horizontal scroller and its two arrows.
+ *
+ * Split from `MenuFilters.module.css` (which is at the §4 200-LOC ceiling) along a real seam: that
+ * file is the CHIP — its resting outline, its pressed state, its count — and this one is the
+ * mechanism that shows one row of them at a time. The chip is a design decision; the rail is a
+ * measurement.
+ *
+ * WHY A RAIL AT ALL. The row wrapped above 600px until the owner's 2026-08-09 review: *"the
+ * allergens filters section better to be limited to one row properly to make it more user
+ * friendly"*. The chips are derived from the dishes on screen, so their number is a property of the
+ * tenant's menu — on a large one the row was three deep and the first dish sat below the fold. The
+ * ≤600px rule had said one line for months; the wide viewport, where most guests browse, had not.
+ */
+
+/* The rail: an optional arrow, the scroller, an optional arrow. The arrows are OUTSIDE the
+   scroller so they stay put while its content moves. */
+.chipRail {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* ONE row, at every width — it wrapped above 600px until the owner's 2026-08-09 review. The chips
+   are derived from the dishes on screen, so on a large menu the row was three deep and the first
+   dish sat under the fold.
+
+   `min-width: 0` is what actually permits the shrink: a flex item's default `min-width: auto` is
+   its CONTENT, so without this the scroller refuses to be narrower than the whole chip row and
+   pushes the page into a horizontal scroll instead of scrolling itself. Same failure mode the
+   `.filters` fieldset carries a note about, and the reason `overflow-x: auto` alone does nothing
+   here. */
+.chipScroller {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* A chip is a 44px target and the arrows are the affordance; a scrollbar under a single row of
+     buttons is chrome nobody reads. */
+  -ms-overflow-style: none;
+}
+
+.chipScroller::-webkit-scrollbar {
+  display: none;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  /* Content-sized, so the scroller has something to scroll. */
+  width: max-content;
+}
+
+/* Same shape as the category bar's arrow one row up — this is deliberately not a new control. The
+   glyph is mirrored for RTL by the rule at the bottom of this block, exactly as `.navArrow` is. */
+.railArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 50%;
+  background-color: var(--surface-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.railArrow:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-elevated);
+}
+
+.railArrow:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* `back`/`forward` are directions of travel; the CHEVRON is the thing that has to mirror, and
+   `transform` has no logical twin. Same rule, same reason, as `.navArrow svg` in
+   CategoryNav.module.css. */
+[dir='rtl'] .railArrow svg {
+  transform: scaleX(-1);
+}
+
+@media (max-width: 600px) {
+  /* The one-line rule is the BASE rule now (it used to live only here). What is still phone-only is
+     the gutter cancel — the scroller bleeds to the screen edges so the last chip can reach them
+     instead of stopping short, the same trick the category bar above uses. On a card-width page
+     there is no gutter to cancel. */
+  .chipScroller {
+    margin-inline: calc(-1 * var(--menu-page-gutter, 0px));
+    padding-inline: var(--menu-page-gutter, 0px);
+  }
+
+  /* No arrows on a touch screen: the row is swipeable, and two 32px buttons flanking it would eat
+     a fifth of a 390px line to duplicate a gesture the guest already has. They are hidden rather
+     than not rendered so the decision is one CSS rule and not a viewport check in JS, which would
+     be wrong on first paint. */
+  .railArrow {
+    display: none;
+  }
+}

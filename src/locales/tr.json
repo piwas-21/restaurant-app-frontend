@@ -2388,6 +2388,7 @@
   "reorder_partial": "{{total}} üründen {{added}} tanesi sepete eklendi.",
   "availability_only_for": "Sadece {{orderTypes}}",
   "availability_switch_to": "{{orderType}} seçeneğine geç",
+  "availability_not_for": "{{orderType}} için değil",
   "availability_ask_server": "Servis görevlisine sorun",
   "order_type_conflict_title": "Bazı ürünler mevcut değil",
   "order_type_conflict_intro": "{{orderType}} seçeneğine geçmek bu ürünleri siparişinizden kaldırır:",
@@ -2514,6 +2515,8 @@
   "admin_edit_price_failed": "Fiyat kaydedilemedi",
   "scroll_categories_back": "Kategorileri geri kaydır",
   "scroll_categories_forward": "Kategorileri ileri kaydır",
+  "scroll_filters_back": "Filtreleri geri kaydır",
+  "scroll_filters_forward": "Filtreleri ileri kaydır",
   "category_navigation_aria": "Kategori gezinmesi",
   "order_status_refunded": "İade Edildi",
   "bulk_status_update_success": "Güncellenen sipariş: {{count}}",
@@ -2561,6 +2564,5 @@
   "menu_filters_clear": "Filtreleri temizle",
   "menu_filters_count": "{{total}} yemekten {{shown}} tanesi",
   "menu_filters_none": "Bu filtrelere uyan yemek yok",
-  "menu_state_filtered_heading": "Eşleşme yok",
-  "open_basket_aria": "Sepeti aç, {{count}} ürün, {{total}}"
+  "menu_state_filtered_heading": "Eşleşme yok"
 }

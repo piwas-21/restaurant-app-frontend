@@ -4,6 +4,19 @@
 /* Full-bleed across the top of the card: no radius and no bottom margin of its own, because the
    card is `padding: 0` + `overflow: hidden` and clips this to its own 10px corners. DESIGN.md
    §Components — "food images should be top-aligned with no internal padding to the card edge". */
+/* The frame wraps the enlarge button AND the laid-out overlay, and it exists for an accessibility
+   reason rather than a layout one: a `<button>` with an `aria-label` is children-presentational, so
+   the allergen chips had to come out of it (see MenuItemImage.tsx). Something still has to be the
+   overlay's positioned ancestor and the card's flex item, so that job moved here.
+   It has no box of its own — no border, no background, no overflow — those stay on the button,
+   which is what clips the photo and the corner band. */
+.itemImageFrame {
+  display: block;
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+}
+
 .itemImageContainer {
   display: block;
   width: 100%;
@@ -15,7 +28,6 @@
   border: 0;
   background: transparent;
   overflow: hidden;
-  flex-shrink: 0;
   cursor: pointer;
   font: inherit;
   color: inherit;
@@ -25,6 +37,24 @@
 .itemImage {
   object-fit: cover;
   transition: transform 0.3s ease;
+}
+
+/* The laid-out overlay slot (`overlay` in MenuItemImage.tsx) — the allergen chips.
+   BOTTOM inline-START. Every other corner of this photo is spoken for: the "Special" flag is flush
+   in the top-start corner, the admin "Edit item" pill sits top-end, and the image counter is
+   bottom-end. It is also the corner nearest the dish name the chips qualify, which is the reason to
+   prefer it even if the others were free.
+   `max-width` keeps a five-allergen dish inside the photo — the chip row's own `nowrap` + the `+N`
+   counter do the shortening. */
+.photoOverlay {
+  position: absolute;
+  bottom: 10px;
+  inset-inline-start: 10px;
+  max-width: calc(100% - 20px);
+  /* Above the photo, below the corner marks. Never a target: the chips are labels with a `title`,
+     and swallowing clicks here would punch a hole in the enlarge button that owns this box. */
+  z-index: 5;
+  pointer-events: none;
 }
 
 /* BOTTOM trailing corner. It was top-trailing, which is where the admin "Edit item" pill now sits
@@ -50,14 +80,22 @@
      `rounded-lg overflow-hidden border border-outline-variant`, and `mobile_menu_dark` the same in
      its own dark step — exactly the two values `--border-default` carries. The desktop rule above
      keeps `border: 0`, where the photo IS full-bleed and the card's own edge closes it. */
-  .itemImageContainer {
+  /* The row's THUMBNAIL is the frame, because the frame is the flex item of the row — `order` and
+     the width floor have to be on it or the text column collapses the photo. The button fills it. */
+  .itemImageFrame {
     width: 88px;
-    height: 88px;
     min-width: 88px;
+    height: 88px;
+    order: 0;
+  }
+
+  .itemImageContainer {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
     margin-bottom: 0;
     border: 1px solid var(--border-default);
     border-radius: 8px;
-    order: 0;
   }
 
   /* Kept, at a smaller step. Hiding it removed the only hint that a dish has more than one photo
@@ -68,5 +106,16 @@
     padding: 0.1rem 0.35rem;
     border-radius: 6px;
     font-size: 0.65rem;
+  }
+
+  /* Same corner, tighter inset — and the chips inside it drop their words at this width (see
+     `AllergenChipPhoto.module.css`), so what sits here is two ~20px glyph pills and a counter, not
+     two labelled ones. The budget is real and worth writing down: the thumbnail is 88px, the image
+     counter opposite takes ~26px of the same line, and that leaves ~54px. Both call sites pass
+     `maxVisible={2}`, so anything beyond the second allergen is the `+N` chip at every width. */
+  .photoOverlay {
+    bottom: 4px;
+    inset-inline-start: 4px;
+    max-width: calc(100% - 8px);
   }
 }

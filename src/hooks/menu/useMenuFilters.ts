@@ -17,7 +17,11 @@ export interface MenuFilterOption {
   kind: MenuFilterKind;
   /** The canonical allergen token (`vegan`, `gluten`), or `''` for the specials filter. */
   token: string;
-  /** How many of the loaded items this chip would leave on screen, on its own. */
+  /**
+   * How many of the loaded items this chip would leave GIVEN the chips already active — not on its
+   * own. `0` means pressing it empties the menu, which is what a guest needs to see before pressing
+   * rather than after.
+   */
   count: number;
 }
 
@@ -56,7 +60,15 @@ function canonicalTokens(item: FilterableItem): Set<string> {
   return new Set((item.allergens ?? []).map((a) => getAllergenInfo(a).canonical));
 }
 
-function matches(item: FilterableItem, activeIds: ReadonlySet<string>): boolean {
+/**
+ * Does one item survive a set of active chips?
+ *
+ * Exported because the Chef's Special is filtered by the SAME rule as the grid it sits in, and it
+ * is not part of the list this hook is given — it is a separate fetch rendered as a slot. It used
+ * to be withheld outright whenever any chip was on, which is wrong in both directions: a special
+ * that matches disappears for no reason, and the guest loses the promoted dish they came for.
+ */
+export function matchesFilters(item: FilterableItem, activeIds: ReadonlySet<string>): boolean {
   if (activeIds.size === 0) return true;
   const tokens = canonicalTokens(item);
   for (const id of activeIds) {
@@ -91,29 +103,48 @@ function matches(item: FilterableItem, activeIds: ReadonlySet<string>): boolean 
 export function useMenuFilters<T extends FilterableItem>(items: T[]) {
   const [activeIds, setActiveIds] = useState<ReadonlySet<string>>(() => new Set<string>());
 
-  const options = useMemo<MenuFilterOption[]>(() => {
+  // Ids first, counts second, and the ACTIVE set pruned in between — the three are computed
+  // together because each needs the one before it. Splitting them into separate memos meant the
+  // counts were derived from a raw active set that could still contain a chip the current category
+  // does not offer.
+  const { options, visibleActiveIds } = useMemo(() => {
     const { claims, substances, specials } = tally(items);
 
-    // Most-common first, then alphabetical — so the chips a guest is most likely to want are the
-    // ones that fit before the row wraps, and the order is stable between renders of the same data.
+    // Ordered by how common the tag is — stable DATA, deliberately not by the live count below, or
+    // the chips would reshuffle under the guest's finger every time one was pressed.
     const byCountThenName = (a: [string, number], b: [string, number]) => b[1] - a[1] || a[0].localeCompare(b[0]);
-
-    return [
-      ...(specials > 0 ? [{ id: SPECIAL_FILTER_ID, kind: 'special' as const, token: '', count: specials }] : []),
+    const ids = [
+      ...(specials > 0 ? [{ id: SPECIAL_FILTER_ID, kind: 'special' as const, token: '' }] : []),
       ...[...claims.entries()]
         .sort(byCountThenName)
-        .map(([token, count]) => ({ id: `claim:${token}`, kind: 'claim' as const, token, count })),
-      // An exclusion chip's count is how many dishes SURVIVE it, not how many carry the substance —
-      // the number beside "No gluten" has to be the number of dishes a guest avoiding gluten can
-      // eat. Counting the other way round is the mistake that makes such a chip read as a warning.
-      ...[...substances.entries()].sort(byCountThenName).map(([token, count]) => ({
-        id: `without:${token}`,
-        kind: 'without' as const,
-        token,
-        count: items.length - count,
-      })),
+        .map(([token]) => ({ id: `claim:${token}`, kind: 'claim' as const, token })),
+      ...[...substances.entries()]
+        .sort(byCountThenName)
+        .map(([token]) => ({ id: `without:${token}`, kind: 'without' as const, token })),
     ];
-  }, [items]);
+
+    // Chips are pruned against the CURRENT options rather than cleared on every category change: a
+    // guest who filtered to "Vegan" and then switched category keeps that intent where the new
+    // category can honour it, and loses it only where it cannot.
+    const known = new Set(ids.map((o) => o.id));
+    const pruned: ReadonlySet<string> = new Set([...activeIds].filter((id) => known.has(id)));
+
+    // LIVE counts: how many dishes this chip would leave GIVEN the chips already on, not on its
+    // own. The static version was the reported "filters don't work" — on a menu where the one Halal
+    // dish also contains gluten, "Halal 1" beside "No gluten 2" reads as though the pair should
+    // yield something, and it yields nothing with no way to see that before pressing. A chip that
+    // would empty the menu now says 0.
+    const withChip = (id: string) => {
+      const next = new Set(pruned);
+      next.add(id);
+      return items.filter((item) => matchesFilters(item, next)).length;
+    };
+
+    return {
+      options: ids.map((o) => ({ ...o, count: withChip(o.id) })) as MenuFilterOption[],
+      visibleActiveIds: pruned,
+    };
+  }, [items, activeIds]);
 
   const toggle = useCallback((id: string) => {
     setActiveIds((current) => {
@@ -125,18 +156,13 @@ export function useMenuFilters<T extends FilterableItem>(items: T[]) {
 
   const clear = useCallback(() => setActiveIds(new Set<string>()), []);
 
-  // Chips are pruned against the CURRENT options rather than cleared on every category change: a
-  // guest who filtered to "Vegan" and then switched category keeps that intent where the new
-  // category can honour it, and loses it only where it cannot.
-  const visibleActiveIds = useMemo(() => {
-    const known = new Set(options.map((o) => o.id));
-    return new Set([...activeIds].filter((id) => known.has(id)));
-  }, [activeIds, options]);
-
   // Filtering uses the PRUNED set, not the raw one. Against the raw set, a chip carried over from a
   // category that offered it would go on hiding dishes in a category that does not — an empty menu
   // with no lit chip anywhere on screen to explain it.
-  const filtered = useMemo(() => items.filter((item) => matches(item, visibleActiveIds)), [items, visibleActiveIds]);
+  const filtered = useMemo(
+    () => items.filter((item) => matchesFilters(item, visibleActiveIds)),
+    [items, visibleActiveIds],
+  );
 
   return { options, activeIds: visibleActiveIds, toggle, clear, filtered, totalLoaded: items.length };
 }

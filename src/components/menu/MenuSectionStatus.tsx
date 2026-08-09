@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { RefreshCw, UtensilsCrossed, WifiOff } from 'lucide-react';
 import MenuSkeletonRows from './MenuSkeletonRows';
 import headingStyles from './MenuContent.module.css';
@@ -48,6 +49,16 @@ export interface MenuSectionStatusProps {
    * which case the button would reload the page into the state the guest is already looking at.
    */
   onBrowseFullMenu?: () => void;
+  /**
+   * Rendered between the heading and the loading / error / empty panels — the menu's filter row.
+   *
+   * A slot rather than a component import, because this is a template SURFACE and craft ships its
+   * own. It has to be here rather than after this component: the empty panel lives INSIDE it, so a
+   * filter row rendered as a sibling afterwards ended up BELOW the "Nothing matches" state it had
+   * caused — measured at y=574 against the panel's y=288 — with "Clear filters" at the very bottom
+   * of the page. Reported.
+   */
+  filtersSlot?: ReactNode;
 }
 
 export default function MenuSectionStatus({
@@ -65,6 +76,7 @@ export default function MenuSectionStatus({
   browseLabel,
   onRetry,
   onBrowseFullMenu,
+  filtersSlot,
 }: Readonly<MenuSectionStatusProps>) {
   return (
     <>
@@ -89,6 +101,10 @@ export default function MenuSectionStatus({
           {description}
         </p>
       )}
+
+      {/* The filter row, ABOVE every state panel — the controls that can empty the grid must sit
+          above the emptiness they cause. */}
+      {filtersSlot}
 
       {/* Skeleton rows rather than a spinner (see MenuSkeletonRows). `<output>` with the sentence
           inside it and the bars aria-hidden: the bars carry nothing a screen reader can use, and a

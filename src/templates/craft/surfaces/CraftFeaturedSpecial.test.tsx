@@ -9,7 +9,14 @@ import { useIsAdmin } from '@/hooks/menu/useIsAdmin';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     i18n: { language: 'en' },
-    t: (key: string, fallback?: string) => fallback ?? key,
+    // Matches the classic surfaces' mock so the two hero tests read alike: a string second arg is
+    // a dev fallback and wins; an OBJECT second arg is i18next's interpolation options, and is
+    // rendered as `key(values)` so an assertion can prove which values reached it.
+    t: (key: string, arg?: unknown) => {
+      if (typeof arg === 'string') return arg;
+      if (arg && typeof arg === 'object') return `${key}(${Object.values(arg).join(',')})`;
+      return key;
+    },
   }),
 }));
 
@@ -49,6 +56,7 @@ const BLOCKED: AvailabilityNotice = {
   message: 'Takeaway and Delivery only',
   switchTo: OrderType.Takeaway,
   switchLabel: 'Switch to Takeaway',
+  shortMessage: 'Not for Dine-in',
   hint: null,
 };
 
@@ -75,7 +83,7 @@ describe('CraftFeaturedSpecial', () => {
   it('offers Add when the server reports no restriction', () => {
     render(<CraftFeaturedSpecial special={special} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Add to Order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Adana Kebab)' })).toBeInTheDocument();
   });
 
   it('blocked: REMOVES Add, keeps Details, and offers the switch — parity with the classic hero', () => {
@@ -91,8 +99,8 @@ describe('CraftFeaturedSpecial', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'View Details' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Adana Kebab)' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'menu_item_details_aria(Adana Kebab)' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch to Takeaway' }));
     expect(onSwitchOrderType).toHaveBeenCalledWith(OrderType.Takeaway);
@@ -109,7 +117,7 @@ describe('CraftFeaturedSpecial', () => {
 
     render(<CraftFeaturedSpecial special={unavailable} onAddToCart={jest.fn()} onViewDetails={jest.fn()} />);
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Adana Kebab)' })).not.toBeInTheDocument();
   });
 
   it('folds the reason into the section’s accessible name while blocked', () => {
@@ -126,8 +134,8 @@ describe('CraftFeaturedSpecial', () => {
 
     render(<CraftFeaturedSpecial special={special} onAddToCart={onAddToCart} onViewDetails={onViewDetails} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add to Order' }));
-    fireEvent.click(screen.getByRole('button', { name: 'View Details' }));
+    fireEvent.click(screen.getByRole('button', { name: 'add_item_to_order(Adana Kebab)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'menu_item_details_aria(Adana Kebab)' }));
 
     expect(onAddToCart).toHaveBeenCalledWith({ availability: AVAILABILITY });
     expect(onViewDetails).toHaveBeenCalledWith({ forceSheet: true, availability: AVAILABILITY });
@@ -156,11 +164,18 @@ describe('CraftFeaturedSpecial', () => {
     expect(container.querySelector('[class*="blocked"]')).toBeNull();
   });
 
-  it('renders no photo block at all when the special has no image', () => {
-    // Not an empty frame: a taped-up photo border with nothing in it is worse than no photo.
-    const { container } = render(<CraftFeaturedSpecial special={special} onAddToCart={jest.fn()} />);
+  it('falls back to the placeholder when the special has no image, rather than omitting the photo', () => {
+    // The REVERSE of what this asserted until 2026-08-09, and the reversal is the point. Omitting
+    // the block was defensible on its own terms — "a taped-up photo border with nothing in it is
+    // worse than no photo" — but not in context: every CARD in the grid below falls back to the
+    // same placeholder, so the one dish the page promotes was the only item on the page with no
+    // picture at all. The classic hero was fixed for this a day earlier; craft had not been, which
+    // is the concrete form of the owner's "craft doesn't even have the classic improvements".
+    render(<CraftFeaturedSpecial special={special} onAddToCart={jest.fn()} />);
 
-    expect(container.querySelector('[class*="photo"]')).toBeNull();
+    const img = screen.getByRole('img', { name: 'Adana Kebab' });
+    expect(img).toBeInTheDocument();
+    expect(img.getAttribute('src')).toContain('placeholder');
   });
 
   it('renders the photo when there is one', () => {
@@ -188,8 +203,8 @@ describe('CraftFeaturedSpecial', () => {
   it('omits each action the page did not wire, rather than rendering a dead control', () => {
     render(<CraftFeaturedSpecial special={special} />);
 
-    expect(screen.queryByRole('button', { name: 'Add to Order' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'View Details' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'add_item_to_order(Adana Kebab)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'menu_item_details_aria(Adana Kebab)' })).not.toBeInTheDocument();
   });
 });
 

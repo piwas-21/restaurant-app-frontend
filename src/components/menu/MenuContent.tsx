@@ -4,7 +4,7 @@ import type { MenuItem, MenuBundleItem, CatalogItem } from '@/types/menu';
 import type { OrderType } from '@/types/order';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { ALL_ITEMS_KEY, MENU_BUNDLES_KEY } from '@/hooks/usePublicMenu';
-import { useMenuFilters } from '@/hooks/menu/useMenuFilters';
+import { matchesFilters, useMenuFilters } from '@/hooks/menu/useMenuFilters';
 import DefaultMenuSectionStatus from '@/components/menu/MenuSectionStatus';
 import MenuFilters from '@/components/menu/MenuFilters';
 import MenuList from '@/components/menu/MenuList';
@@ -65,6 +65,11 @@ interface MenuContentProps {
   onBrowseFullMenu?: () => void;
   /** The Chef's Special hero — the grid's first cell, spanning two columns. See `MenuList`. */
   featuredSlot?: ReactNode;
+  /**
+   * The special's own allergens, so it can be FILTERED by the same rule as the grid rather than
+   * withheld. The slot above is an opaque element — this is the data behind it.
+   */
+  featuredFilterable?: { allergens?: string[]; isSpecial?: boolean };
 }
 
 export default function MenuContent({
@@ -85,6 +90,7 @@ export default function MenuContent({
   onRetry,
   onBrowseFullMenu,
   featuredSlot,
+  featuredFilterable,
 }: MenuContentProps) {
   const { t } = useTranslation();
 
@@ -132,20 +138,21 @@ export default function MenuContent({
         // the page they are looking at) and when a FILTER is what emptied it (clearing the filters
         // is the way back, and it is offered by the filter row itself).
         onBrowseFullMenu={selectedView === ALL_ITEMS_KEY || isFiltered ? undefined : onBrowseFullMenu}
+        // Between the heading and the state panels — NOT after this component. The empty panel
+        // lives inside it, so a sibling row landed below the "nothing matches" it had caused.
+        filtersSlot={
+          !displayError && (
+            <MenuFilters
+              options={filters.options}
+              activeIds={filters.activeIds}
+              onToggle={filters.toggle}
+              onClear={filters.clear}
+              shown={displayItems.length}
+              total={filters.totalLoaded}
+            />
+          )
+        }
       />
-
-      {/* Between the heading and the grid, as the design places it. Rendered while loading too, so
-          the row does not appear under the guest's cursor once the fetch lands. */}
-      {!displayError && (
-        <MenuFilters
-          options={filters.options}
-          activeIds={filters.activeIds}
-          onToggle={filters.toggle}
-          onClear={filters.clear}
-          shown={displayItems.length}
-          total={filters.totalLoaded}
-        />
-      )}
 
       {/* Menu Items or Bundles — one grid, one card; the view only picks which list feeds it. */}
       {!isLoadingItems && !displayError && displayItems.length > 0 && (
@@ -156,9 +163,12 @@ export default function MenuContent({
             onOpenItem={onOpenItem}
             onFeedbackSuccess={() => {}}
             onSwitchOrderType={onSwitchOrderType}
-            // The hero belongs to the whole menu, not to a filtered subset: a guest who filtered to
-            // "No gluten" must not be shown a promoted dish that has gluten in it.
-            featuredSlot={isFiltered ? undefined : featuredSlot}
+            // FILTERED like any other dish, not withheld. It used to disappear whenever any chip
+            // was on, which is wrong in both directions: a special that matches vanishes for no
+            // reason, and a guest filtering "No gluten" must not be shown one that has gluten.
+            featuredSlot={
+              featuredFilterable && !matchesFilters(featuredFilterable, filters.activeIds) ? undefined : featuredSlot
+            }
           />
 
           {/* Hidden while filtering. The filter runs over the LOADED page, so paging through a

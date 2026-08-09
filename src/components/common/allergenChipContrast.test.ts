@@ -21,7 +21,6 @@ import { join } from 'node:path';
 
 const HERE = __dirname;
 const CHIP_CSS = readFileSync(join(HERE, 'AllergenDisplay.module.css'), 'utf8');
-const DETAILS_CSS = readFileSync(join(HERE, '../menu/MenuItemDietaryTags.module.css'), 'utf8');
 
 /**
  * The stylesheet with comments removed.
@@ -151,17 +150,63 @@ describe('the allergen chip carries no fill and no off-palette colour', () => {
     expect(chip).toContain('border-radius: 10px');
   });
 
-  /**
-   * The card's other chip family. `MenuItemDetails`' `.allergyTag` renders the dietary tags on the
-   * same card as these chips and had drifted to a different radius and a different ink; leaving it
-   * would mean two "one neutral outline" chips that are not the same outline.
+  /*
+   * The card's SECOND chip family used to be gated here — `MenuItemDetails`' `.allergyTag`, the
+   * dietary tags — because it had drifted to a different radius and a different ink from the
+   * allergen chips on the same card.
+   *
+   * It is gone, not untested. Those chips could never render on the public menu: the browse grid's
+   * mapper hardcodes `dietaryTags: []` (`hooks/publicMenu/mappers.ts:115`), so the whole path from
+   * the prop to the stylesheet was unreachable. What a guest actually sees is `AllergenDisplay`,
+   * off the `allergens` array, which the cases above gate. The DATA contract survives — the field
+   * is still on `MenuItem`/`CatalogItem` and `utils/catalogItem.test.ts` covers the mapping — so
+   * wiring real dietary tags later means re-adding a render path, and a chip rule with it.
    */
-  it('keeps MenuItemDetails’ dietary chip on the same outline', () => {
-    const chip = rule(DETAILS_CSS, '.allergyTag');
-    expect(chip).toContain('background-color: transparent');
-    expect(chip).toContain('color: var(--text-secondary)');
-    expect(chip).toContain('border: 1px solid var(--border-default)');
-    expect(chip).toContain('border-radius: 10px');
+});
+
+/**
+ * The chip ON A PHOTOGRAPH (`variant="photo"`), which lives in its own module BECAUSE the card
+ * chip's rules cannot apply to it — see that file's header.
+ *
+ * This variant is what the owner's 2026-08-09 review asked for: allergens off the dish name's line
+ * and onto the picture. It is the one chip on the page where a fill is correct rather than a
+ * regression, so what has to be gated here is different — and it is the thing that would silently
+ * break. A hardcoded white pill is the obvious way to write "a chip on a photo", it looks right in
+ * light mode, and it is a white-on-white card the moment the page is dark. That is the same
+ * half-flipped-pair failure that put nine pastel fills on dark cards before S12, and the cases
+ * above cannot catch it because it is not in the file they read.
+ */
+describe('the allergen chip ON A PHOTO', () => {
+  const PHOTO_CSS = readFileSync(join(HERE, 'AllergenChipPhoto.module.css'), 'utf8');
+  const photo = rule(PHOTO_CSS, '.photoChip');
+
+  it('paints itself from tokens that flip with the theme, not a hardcoded light pill', () => {
+    expect(photo).toContain('background-color: var(--surface-primary)');
+    expect(photo).toContain('color: var(--text-primary)');
+  });
+
+  it('drops the hairline it no longer needs rather than keeping a border that cannot be seen', () => {
+    // A `--border-default` line measures ~1.2:1 against the card it was designed for; over a
+    // photograph it is invisible at any luminance. The fill is what separates the chip now.
+    expect(photo).toContain('border: 0');
+  });
+
+  it('carries no raw colour literal outside the shadow that lifts it off the image', () => {
+    // The shadow is the one `rgba()` allowed here, and it is the same `0 1px 3px` the card itself
+    // takes rather than a new elevation step — a fill alone still merges into a busy photo. Every
+    // other value has to be a token.
+    const withoutShadow = photo.replace(/box-shadow:[^;]+;/g, '');
+    expect(withoutShadow).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/);
+  });
+});
+
+describe.each(TOKEN_FILES)('%s photo-chip contrast', (_template, file) => {
+  it.each(THEMES)('%s theme clears AA for the pill on a photograph', (_theme, selector) => {
+    const v = tokens(file, selector);
+    // The pairing the rule above pins, measured on the values that ship. This is the page's own
+    // body pairing, so it is the strongest one available — but it is measured rather than assumed,
+    // because a template is free to redefine either token and craft in fact redefines both.
+    expect(contrast(v['--text-primary'], v['--surface-primary'])).toBeGreaterThanOrEqual(AA_TEXT);
   });
 });
 

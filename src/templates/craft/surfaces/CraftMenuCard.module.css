@@ -108,6 +108,10 @@
   min-height: 44px;
 }
 
+/* Single class is SAFE here, unlike the hero's: `margin-bottom` is not declared on
+   `.dottedFoot::before`, so there is nothing to tie with. Anything that IS in the motif —
+   `min-width`, `flex`, `border-bottom` — has to be doubled to `.foot.foot::before`, and the #447
+   gate will not tell you (it skips pseudo-element selectors). */
 .foot::before {
   margin-bottom: 0.3em;
 }

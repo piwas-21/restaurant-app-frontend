@@ -123,13 +123,18 @@ export function useItemAvailabilityNotice(availability: ItemAvailability | undef
   const askServer = blocked && hasTableContext && orderType === OrderType.DineIn;
   const switchTo = blocked && !askServer ? (orderable.find((type) => type !== orderType) ?? null) : null;
 
-  // `orderType` is always set when `blocked` — `resolveChannelNotice` cannot reach that tone
-  // without a chosen channel — but it is typed nullable, so fall back to the long form rather than
-  // interpolating "Not for null" if that ever stops being true.
-  const shortMessage =
-    blocked && orderType
+  // `orderType` should always be set when `blocked`, but nothing enforces it: `resolveChannelNotice`
+  // derives `blocked` from `canOrder` alone, with no guard on the chosen channel. So the fallback is
+  // the LONG form, not an empty string — the phone's marker renders a filled bar whenever
+  // `tone === 'blocked'`, and an empty `shortMessage` would paint a blank grey band across the
+  // thumbnail saying nothing. A too-long sentence in a small box is a worse fit; a wordless warning
+  // is a worse BUG.
+  let shortMessage = '';
+  if (blocked) {
+    shortMessage = orderType
       ? t('availability_not_for', 'Not for {{orderType}}', { orderType: orderTypeLabel(orderType, t) })
-      : '';
+      : message;
+  }
 
   return {
     tone: blocked ? 'blocked' : 'info',

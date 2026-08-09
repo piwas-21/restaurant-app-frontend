@@ -151,7 +151,13 @@
   margin-top: 0.6rem;
 }
 
-.foot::before {
+/* DOUBLED for the same reason `.foot.foot` above is, and this one the #447 gate cannot see: its
+   `selectorTarget` matches `^\.x$` and `^\.x\.x$` only, so a PSEUDO-ELEMENT rule is skipped
+   entirely. `min-width` here overrides `.dottedFoot::before`'s 1.5rem, and `.foot::before` against
+   `.dottedFoot::before` is (0,1,1) against (0,1,1) — a tie broken by stylesheet emission order.
+   `margin-bottom` is not in the motif, so it would be safe on its own; it rides along rather than
+   splitting one rule in two. */
+.foot.foot::before {
   margin-bottom: 0.4em;
   min-width: 2rem;
 }

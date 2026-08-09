@@ -130,7 +130,11 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
             <button type="button" className={styles.detailsLink} onClick={openDetails}>
               {t('details', 'Details')}
             </button>
-            <span className={styles.descriptionText}>{description}</span>
+            {/* No wrapper span. Classic's hero wraps its description text so the ≤600px rule can
+                hide the TEXT without hiding the paragraph that hosts the Details link; craft never
+                hides either, at any width, so a wrapper here would be a class that no craft module
+                declares — i.e. a reference that reads as intentional and does nothing. */}
+            {description}
           </p>
         ) : (
           <button type="button" className={styles.detailsButton} onClick={openDetails}>

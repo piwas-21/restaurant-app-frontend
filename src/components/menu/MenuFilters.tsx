@@ -84,7 +84,12 @@ export default function MenuFilters({
         {canScrollBack && (
           <button
             type="button"
-            className={`${rail.railArrow} ${rail.railArrowBack}`}
+            // One class, not the `${railArrow} ${railArrowLeft}` pair `CategoryNavShell` uses:
+            // there the side classes pin each arrow to an end of a positioned bar, and this rail is
+            // a plain flex row where source order already does that. Copying the pair put two
+            // undeclared names into a TEMPLATE LITERAL, which renders the string "undefined" into
+            // the class attribute rather than being omitted the way a bare `{styles.x}` is.
+            className={rail.railArrow}
             onClick={() => scroll('back')}
             aria-label={t('scroll_filters_back', 'Scroll filters back')}
           >
@@ -119,7 +124,7 @@ export default function MenuFilters({
         {canScrollForward && (
           <button
             type="button"
-            className={`${rail.railArrow} ${rail.railArrowForward}`}
+            className={rail.railArrow}
             onClick={() => scroll('forward')}
             aria-label={t('scroll_filters_forward', 'Scroll filters forward')}
           >

@@ -85,11 +85,6 @@
   transform: scaleX(-1);
 }
 
-/* The design's resting chip: a hairline, a 10px radius, no fill — the same one treatment
-   DESIGN.md §Components permits, and the same one the allergen chips on a card already take. The
-   brand is spent on the ACTIVE state alone, because that is the only thing here that is a state
-   rather than an option. */
-
 @media (max-width: 600px) {
   /* The one-line rule is the BASE rule now (it used to live only here). What is still phone-only is
      the gutter cancel — the scroller bleeds to the screen edges so the last chip can reach them

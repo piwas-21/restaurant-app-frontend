@@ -112,7 +112,9 @@ export default function CraftFeaturedSpecial({
                   {t('details', 'Details')}
                 </button>
               )}
-              <span className={styles.descriptionText}>{description}</span>
+              {/* No wrapper span — craft's hero keeps its description at every width, so there is
+                  nothing for one to hide. See `CraftMenuCard`. */}
+              {description}
             </p>
           ) : (
             onViewDetails && (

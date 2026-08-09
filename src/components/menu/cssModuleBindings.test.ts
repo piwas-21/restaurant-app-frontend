@@ -37,6 +37,22 @@ const COMPONENTS = [
   'MenuSectionStatus.tsx',
   'MenuSkeletonRows.tsx',
   '../../templates/craft/surfaces/CraftMenuSectionStatus.tsx',
+  // Added 2026-08-09, and by the defect rather than by policy: the owner's review of the layout
+  // redesign moved chunks of markup between modules, and all three of these came out of it holding
+  // a class no stylesheet declares. `MenuFilters.tsx` was the bad one — its two dangling names sat
+  // inside a TEMPLATE LITERAL (`${a} ${b}`), where `undefined` stringifies instead of being omitted,
+  // so it really did serve `class="… undefined"`. The other two were bare refs and merely dead.
+  //
+  // The lesson for this list: the risk is not a component being new, it is markup MOVING between
+  // modules. Every file this list covers earned its place that way.
+  'MenuFilters.tsx',
+  'MenuCard.tsx',
+  'MenuItemDetails.tsx',
+  'MenuItemImage.tsx',
+  'FeaturedSpecial.tsx',
+  'FeaturedSpecialCopy.tsx',
+  '../../templates/craft/surfaces/CraftMenuCard.tsx',
+  '../../templates/craft/surfaces/CraftFeaturedSpecial.tsx',
 ];
 
 /** `import x from './y.module.css'` → `{ x: '<abs path>' }`. Relative specifiers only. */

@@ -176,12 +176,19 @@ describe('MenuCard — one card for both catalog kinds', () => {
     // moving it after the text puts the link back under the paragraph instead of on its last line.
     expect(description.firstElementChild).toBe(details);
 
-    // The allergens are ON THE PHOTOGRAPH, inside the enlarge button that owns that box — not on
-    // the dish name's line, where the owner's 2026-08-09 review found them too noisy beside the
-    // price. Asserted by containment rather than by class, because the class is what a rendering
-    // test cannot see (`identity-obj-proxy` makes every CSS-module lookup truthy — trap 11).
-    const photo = screen.getByTestId('menu-item-image');
-    expect(photo.contains(allergens)).toBe(true);
+    // The allergens are ON THE PHOTOGRAPH — not on the dish name's line, where the owner's
+    // 2026-08-09 review found them too noisy beside the price. Asserted by containment rather than
+    // by class, because the class is what a rendering test cannot see (`identity-obj-proxy` makes
+    // every CSS-module lookup truthy — trap 11).
+    //
+    // In the photo's FRAME and deliberately NOT inside the enlarge button, which is
+    // children-presentational and would prune the chips out of the accessibility tree. That is its
+    // own defect with its own case — `MenuCardImage.test.tsx` — and this line only pins that the
+    // chips ended up on the picture rather than back in the text column.
+    const enlarge = screen.getByTestId('menu-item-image');
+    const photoFrame = enlarge.parentElement!;
+    expect(photoFrame.contains(allergens)).toBe(true);
+    expect(enlarge.contains(allergens)).toBe(false);
     expect(title.contains(allergens)).toBe(false);
     // …and BEFORE the name in the document, since the photo sits above the text column.
     expect(allergens.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

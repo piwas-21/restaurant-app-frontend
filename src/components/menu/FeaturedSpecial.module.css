@@ -467,9 +467,15 @@
     padding-inline-start: 0;
   }
 
+  /* `padding-inline-START`, not end. The gap this has to remove is the LEADING one, and in RTL
+     that is `padding-right` — which the base rule above sets via the shorthand
+     `padding: 0 0.35rem 0 0`. `inline-end` is the left side under RTL, where the padding is already
+     0, so the earlier spelling removed nothing and left a ~5.6px indent in `ar` only. Invisible to
+     `check-physical-css.mjs`, whose regex reads `padding-left`/`padding-right` and not the
+     shorthand. */
   [dir='rtl'] .featuredSpecialDetailsLink {
     float: none;
-    padding-inline-end: 0;
+    padding-inline-start: 0;
   }
 
   /* The label and the disc on one row, tight against the thumbnail. The disc itself is

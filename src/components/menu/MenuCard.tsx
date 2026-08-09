@@ -108,6 +108,12 @@ export default function MenuCard({
     // interactive element, and this card has no inert control for the state to describe — "Add to
     // order" is REMOVED while blocked rather than left disabled-and-unexplained.
     <li
+      // Addressable as a CARD, distinct from the Chef's Special hero that now shares this grid.
+      // E2E-STRATEGY prefers role+name, and role+name cannot separate them here: when the promoted
+      // dish is also in the catalogue (which is exactly the seeded fixture's case) both its hero and
+      // its card offer a button named "Add <dish> to order", and both sit inside
+      // `data-testid="menu-grid"`.
+      data-testid="menu-card"
       className={[
         styles.menuItem,
         isBlocked ? styles.blocked : null,

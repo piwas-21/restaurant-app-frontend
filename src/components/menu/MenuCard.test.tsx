@@ -449,4 +449,14 @@ describe('MenuCard — per-order-type availability (S4)', () => {
 
     expect(useTrackItemBlocked).toHaveBeenCalledWith('p1', BLOCKED);
   });
+  it('is addressable as a card, separately from the hero sharing its grid', () => {
+    // The Chef's Special is a cell OF the menu grid now, and when the promoted dish is also in the
+    // catalogue its hero and its card offer a button with the SAME accessible name ("Add <dish> to
+    // order"). Role+name cannot separate them and neither can `data-testid="menu-grid"`, which
+    // contains both — so the screenshot suite addresses the card directly. It shipped without this
+    // once and the failure was a strict-mode violation in CI, not a red test.
+    render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByTestId('menu-card')).toBeInTheDocument();
+  });
 });

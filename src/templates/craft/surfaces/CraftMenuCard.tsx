@@ -54,6 +54,12 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
     // Blocked cards stay listed with every control focusable, and the reason is folded into the
     // accessible name — parity with the shared card, including why `aria-disabled` is absent.
     <li
+      // Addressable as a CARD, distinct from the Chef's Special hero that now shares this grid.
+      // E2E-STRATEGY prefers role+name, and role+name cannot separate them here: when the promoted
+      // dish is also in the catalogue (which is exactly the seeded fixture's case) both its hero and
+      // its card offer a button named "Add <dish> to order", and both sit inside
+      // `data-testid="menu-grid"`.
+      data-testid="menu-card"
       className={isBlocked ? `${styles.card} ${styles.blocked}` : styles.card}
       aria-labelledby={isBlocked ? `${nameId} ${reasonId}` : nameId}
     >

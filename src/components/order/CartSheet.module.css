@@ -42,19 +42,27 @@
 @media (min-width: 769px) {
   .sheet {
     align-self: stretch;
+    /* BaseModal's overlay pads 1rem on EVERY side. A bottom sheet can live inside that padding; an
+       edge-anchored slide-over cannot. Measured on the deployed build at 1440px: the panel's layout
+       box ended at 1424 — 16px short of the very edge it is anchored to — with square outer corners
+       announcing the gap, and 16px short top and bottom of a panel that calls itself full height.
+       Cancelled on the three edges this panel is meant to reach; the inline START keeps `auto`, so
+       it still pushes itself to the end rather than being positioned. With `align-self: stretch`
+       the negative block margins are also what makes it full height — no `height: 100%` needed,
+       and that declaration was measuring the PADDED box anyway. */
+    margin-block: -1rem;
+    margin-inline-end: -1rem;
     margin-inline-start: auto;
-    margin-block: 0;
     width: min(420px, 92vw);
     min-width: 360px;
     max-width: none;
     max-height: none;
-    height: 100%;
     border-radius: 18px 0 0 18px;
     animation: sheetSlideIn 0.25s ease-out;
   }
 
   [dir='rtl'] .sheet {
-    margin-inline-start: 0;
+    margin-inline-start: -1rem;
     margin-inline-end: auto;
     border-radius: 0 18px 18px 0;
   }

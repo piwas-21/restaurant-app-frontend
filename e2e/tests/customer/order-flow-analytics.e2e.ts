@@ -94,7 +94,11 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     expect(typeEvents[0]).toMatchObject({
       event: 'order_type_selected',
       orderType: 'Takeaway',
-      source: 'sidebar',
+      // `cart_sheet`, not `sidebar`: on /menu the pick happens in the basket SLIDE-OVER now — the
+      // rail this used to name exists only on /cart, where `sidebar` is still what it reports.
+      // The entry point stays distinguishable on `cart_opened`'s own source (`menu_bar` from the
+      // sticky bar, `mobile_sheet` from the floating button).
+      source: 'cart_sheet',
       loggedIn: false,
     });
 
@@ -182,7 +186,11 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     expect(dineInEvents[0]).toMatchObject({
       event: 'order_type_selected',
       orderType: 'DineIn',
-      source: 'sidebar',
+      // `cart_sheet`, not `sidebar`: on /menu the pick happens in the basket SLIDE-OVER now — the
+      // rail this used to name exists only on /cart, where `sidebar` is still what it reports.
+      // The entry point stays distinguishable on `cart_opened`'s own source (`menu_bar` from the
+      // sticky bar, `mobile_sheet` from the floating button).
+      source: 'cart_sheet',
       loggedIn: false,
     });
   });
@@ -209,7 +217,11 @@ test.describe('order-flow analytics: events fire on the new C1.5 funnel', () => 
     expect(deliveryEvents[0]).toMatchObject({
       event: 'order_type_selected',
       orderType: 'Delivery',
-      source: 'sidebar',
+      // `cart_sheet`, not `sidebar`: on /menu the pick happens in the basket SLIDE-OVER now — the
+      // rail this used to name exists only on /cart, where `sidebar` is still what it reports.
+      // The entry point stays distinguishable on `cart_opened`'s own source (`menu_bar` from the
+      // sticky bar, `mobile_sheet` from the floating button).
+      source: 'cart_sheet',
       loggedIn: false,
     });
   });

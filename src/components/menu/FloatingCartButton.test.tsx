@@ -169,4 +169,35 @@ describe('FloatingCartButton — stylesheet (S9)', () => {
     const unpinned = used.filter((name) => !new RegExp(`${name}\\s*:`).test(CRAFT_TOKENS));
     expect(unpinned).toEqual([]);
   });
+
+  /**
+   * The consent banner sat ON this button and nothing could see it.
+   *
+   * Both are `position: fixed` at the bottom of the viewport; the banner is `z-index: 2000` against
+   * this button's 100. Measured at 1280×720 with consent cleared: banner y 644–720, button y
+   * 632–696, and `elementFromPoint` at the button's centre returns the banner. It became reachable
+   * when the sticky category bar's basket button was removed — that one sat at the TOP, where the
+   * banner never goes — leaving this as `/menu`'s only route to the cart.
+   *
+   * Gated on the STYLESHEET rather than by rendering, for the reason this whole block exists:
+   * `identity-obj-proxy` makes every CSS-module lookup truthy in Jest, so a render test cannot see
+   * a rule at all. The e2e suite meets the real thing, but it now dismisses the banner (it has to —
+   * it is testing the cart, not consent), so it would no longer fail if this term were dropped.
+   */
+  it('clears the cookie banner, at both insets', () => {
+    const base = rule('.floatingButton');
+    // The fallback is the point: absent on every visit after the first, so the term costs nothing.
+    expect(base).toContain('bottom: calc(24px + var(--cookie-banner-h, 0px))');
+
+    // The phone inset needs it MORE — a taller banner over a bigger button — and it is a separate
+    // declaration in a media query, so it is exactly the kind of thing a base-rule fix misses.
+    expect(FAB_CSS).toMatch(/bottom:\s*calc\(16px \+ var\(--cookie-banner-h, 0px\)\)/);
+
+    // Every `bottom` on this control has to carry the term; a bare one would be a hole.
+    const bottoms = [...FAB_CSS.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/bottom:\s*([^;]+);/g)].map((m) =>
+      m[1].trim(),
+    );
+    expect(bottoms.length).toBeGreaterThan(0);
+    for (const value of bottoms) expect(value).toContain('--cookie-banner-h');
+  });
 });

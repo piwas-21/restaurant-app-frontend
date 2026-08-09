@@ -52,7 +52,13 @@ export default function MenuFilters({
   };
 
   return (
-    <div className={styles.filters} role="group" aria-label={t('menu_filters_label', 'Filter dishes')}>
+    // A real <fieldset>/<legend>, not `role="group"` — these chips ARE controls, which is exactly
+    // the case the native element exists for (typescript:S6819), and it is better supported by
+    // assistive tech than the ARIA role. The legend is visually hidden because the row already sits
+    // under the category heading and a second visible "Filter dishes" title would be noise; hiding
+    // it is not the same as omitting it, which would leave the group unnamed.
+    <fieldset className={styles.filters}>
+      <legend className="sr-only">{t('menu_filters_label', 'Filter dishes')}</legend>
       <div className={styles.chipRow}>
         {options.map((option) => {
           const isActive = activeIds.has(option.id);
@@ -87,6 +93,6 @@ export default function MenuFilters({
           </button>
         </div>
       )}
-    </div>
+    </fieldset>
   );
 }

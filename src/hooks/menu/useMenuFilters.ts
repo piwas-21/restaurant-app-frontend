@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { getAllergenInfo } from '@/lib/allergens';
+import { getAllergenInfo, type AllergenKind } from '@/lib/allergens';
 
 /** Everything the filter needs from an item — satisfied by `MenuItem` and `MenuBundleItem` alike. */
 export interface FilterableItem {
@@ -23,6 +23,15 @@ export interface MenuFilterOption {
 
 export const SPECIAL_FILTER_ID = 'special';
 
+type Buckets = { claims: Map<string, number>; substances: Map<string, number> };
+
+/** Which tally a token belongs in, or `null` when it belongs in neither. */
+function bucketFor(kind: AllergenKind, buckets: Buckets): Map<string, number> | null {
+  if (kind === 'substance') return buckets.substances;
+  if (kind === 'claim') return buckets.claims;
+  return null;
+}
+
 /** How many loaded items carry each claim, each substance, and the specials count. */
 function tally(items: FilterableItem[]) {
   const claims = new Map<string, number>();
@@ -32,8 +41,9 @@ function tally(items: FilterableItem[]) {
   for (const item of items) {
     if (item.isSpecial) specials += 1;
     for (const token of canonicalTokens(item)) {
-      const { kind } = getAllergenInfo(token);
-      const bucket = kind === 'substance' ? substances : kind === 'claim' ? claims : null;
+      // A token in NEITHER vocabulary is counted in neither bucket: it has no include/exclude
+      // meaning, so offering a chip for it would be a guess about what a guest wanted.
+      const bucket = bucketFor(getAllergenInfo(token).kind, { claims, substances });
       bucket?.set(token, (bucket.get(token) ?? 0) + 1);
     }
   }

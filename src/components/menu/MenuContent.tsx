@@ -17,6 +17,24 @@ import styles from './MenuContent.module.css';
 // time, so classic never bundles the craft version (T4).
 const MenuSectionStatus = surfaceOr('MenuSectionStatus', DefaultMenuSectionStatus);
 
+/**
+ * Which "there is nothing here" sentence the active view earns.
+ *
+ * Two different emptinesses, and telling them apart is the point: "this category has no dishes"
+ * needs a link to the full menu, while "your filters match nothing" needs the filters cleared —
+ * offering "Browse full menu" there would throw away a choice the guest just made.
+ */
+function emptyMessageFor(
+  // `TFunction`'s own overloads, borrowed off the hook rather than re-typed: hand-writing a
+  // `(key, options) => string` shape here does not satisfy them.
+  t: ReturnType<typeof useTranslation>['t'],
+  view: { isFiltered: boolean; isMenuBundlesView: boolean; categoryDisplayName: string },
+): string {
+  if (view.isFiltered) return t('menu_filters_none', 'No dishes match these filters');
+  if (view.isMenuBundlesView) return t('no_bundles_available');
+  return t('no_items_in_category', { categoryName: view.categoryDisplayName });
+}
+
 /** Which "could not load" sentence the active view earns. */
 function errorKeyFor(selectedView: string, isMenuBundlesView: boolean): string {
   if (selectedView === ALL_ITEMS_KEY) return 'error_loading_all_menu_items';
@@ -85,11 +103,7 @@ export default function MenuContent({
   // Two different emptinesses, and telling them apart is the whole point: "this category has no
   // dishes" needs a link to the full menu, while "your filters match nothing" needs the filters
   // cleared — offering "Browse full menu" there would throw away a choice the guest just made.
-  const emptyMessage = isFiltered
-    ? t('menu_filters_none', 'No dishes match these filters')
-    : t(isMenuBundlesView ? 'no_bundles_available' : 'no_items_in_category', {
-        categoryName: categoryDisplayName,
-      });
+  const emptyMessage = emptyMessageFor(t, { isFiltered, isMenuBundlesView, categoryDisplayName });
 
   const loadingMessage = isMenuBundlesView ? t('loading_menu_bundles') : t('loading_items', 'Loading items...');
 

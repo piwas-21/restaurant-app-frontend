@@ -1,10 +1,18 @@
 /* The dietary / allergen filter row — `flex flex-wrap gap-3 mb-lg` with
    `px-4 py-1.5 border rounded-[10px]` chips, from the design's filter band. */
+/* A <fieldset> (see MenuFilters.tsx), so its UA chrome has to go: the default border, the inset
+   padding and the legend gap are all page furniture nobody asked for.
+   `min-width: 0` is the load-bearing one — a fieldset's intrinsic minimum width is its CONTENT, not
+   0, so without it the chip row refuses to shrink and pushes the page into a horizontal scroll on a
+   narrow phone. That is a fieldset quirk with no equivalent on a <div>. */
 .filters {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: 0;
+  min-width: 0;
 }
 
 .chipRow {

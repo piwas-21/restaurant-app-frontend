@@ -35,7 +35,7 @@ interface CartSheetProps {
  * `onProceed` closes the sheet *before* the smart-skip router pushes to /checkout/review, so the
  * user does not see it still open as the route transitions.
  */
-export default function CartSheet({ isOpen, onClose, followUp }: CartSheetProps) {
+export default function CartSheet({ isOpen, onClose, followUp }: Readonly<CartSheetProps>) {
   const { t } = useTranslation();
 
   return (

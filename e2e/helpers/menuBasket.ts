@@ -30,6 +30,7 @@ export function menuBasketPanel(page: Page): Locator {
 export async function openMenuBasket(page: Page): Promise<Locator> {
   const panel = menuBasketPanel(page);
   if (!(await panel.isVisible().catch(() => false))) {
+    await dismissCookieBanner(page);
     // The FLOATING cart button is /menu's only cart entry point. A second copy briefly lived in the
     // sticky category bar doing the same job from the other corner; it is gone, and the FAB now
     // renders at EVERY count including zero — which is what makes it a replacement for the rail
@@ -38,6 +39,37 @@ export async function openMenuBasket(page: Page): Promise<Locator> {
   }
   await expect(panel).toBeVisible({ timeout: 15_000 });
   return panel;
+}
+
+/**
+ * Answer the cookie banner, because on `/menu` it sits ON the button this helper has to click.
+ *
+ * Both are `position: fixed` at the bottom of the viewport, and the banner wins — Playwright's
+ * call log is unambiguous about it: *"`<div class="CookieConsentBanner…">` intercepts pointer
+ * events"*, 114 retries, then the test times out. Thirteen tests across six suites failed this way
+ * at once.
+ *
+ * **It is not a test-only problem, and the fix here does not pretend otherwise.** A first-time
+ * guest on `/menu` also has the banner over their only route to the basket. It stopped being
+ * theoretical for two independent reasons on this branch: the sticky-bar basket button was removed
+ * (it sat at the TOP, which the banner never covered), and the FAB started rendering at zero items
+ * (so it is now under the banner from first paint rather than only after an add).
+ * `mobile-cart-sheet.e2e.ts` hit the same wall earlier and solved it privately with an
+ * `addInitScript`; that note is still there and is now one of several. Logged for the owner as a
+ * real UX question rather than silently absorbed.
+ *
+ * Clicking Accept rather than pre-seeding storage, deliberately: `addInitScript` has to run before
+ * `page.goto`, and this helper is called long after navigation — so a seed here would be a no-op
+ * that looked like a fix. Clicking is also what a guest does.
+ */
+export async function dismissCookieBanner(page: Page): Promise<void> {
+  const accept = page.getByRole('button', { name: /^accept$/i });
+  // Short timeout and a swallowed miss: most callers arrive with consent already given (a prior
+  // step in the same test, or a seeded storage state), and the banner is simply absent.
+  if (await accept.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await accept.click();
+    await expect(accept).toBeHidden({ timeout: 5_000 });
+  }
 }
 
 /** Close it again, so the grid behind it is clickable. */

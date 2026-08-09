@@ -59,8 +59,13 @@ for (const theme of THEMES) {
     test(`checkout review page matches the ${theme} baseline`, async ({ page }, testInfo) => {
       await prepareForScreenshots(page, theme);
       await driveGuestCheckoutToReview(page);
-      // The driver runs at desktop width (sidebar ≥1024px); restore the
-      // project's viewport before capturing.
+      // Park the pointer off-canvas before capturing. The driver's last click leaves the mouse
+      // wherever that control was, and on /checkout/review that landed on the tip amount's
+      // `<input type="number">` — whose Chromium stepper arrows only paint on hover. It would have
+      // been baked into the craft baseline as a 2.2% pixel diff with no product change behind it,
+      // and re-broken the moment any future driver clicked somewhere else.
+      await page.mouse.move(0, 0);
+      // The driver runs at desktop width; restore the project's viewport before capturing.
       const viewport = testInfo.project.use.viewport ?? { width: 1280, height: 720 };
       await page.setViewportSize(viewport);
       await waitForStablePage(page, theme);

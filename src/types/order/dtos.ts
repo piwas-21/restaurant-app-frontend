@@ -119,8 +119,9 @@ export interface OrderPaymentDto {
   /**
    * Typed rather than `string` so a comparison against a state a payment record cannot hold is a
    * COMPILE error — `RefundDialog` compared it to `'Paid'`, and its refundable list was always
-   * empty. See `PaymentRecordStatus` for the four values and who writes each; `Pending` in
-   * particular is the resting state of every CASH payment, not an edge case.
+   * empty. See `PaymentRecordStatus` for the six values and who writes each; `Pending` in
+   * particular is the resting state of every CASH payment, not an edge case, and `Processing` is
+   * an online tender still at Stripe — neither is money the restaurant holds.
    */
   status: PaymentRecordStatus;
   paymentDate?: string;

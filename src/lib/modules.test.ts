@@ -12,6 +12,10 @@ describe('module vocabulary', () => {
       'reservations',
       'loyalty',
       'printing',
+      // Gates no ROUTE, so it has no ROUTE_MODULE_ENTRIES row — it turns a payment METHOD on
+      // inside the existing checkout rather than revealing a page. Enforcement is the
+      // availability endpoint ANDing this flag with a configured Stripe account.
+      'online-payments',
       'extra-languages',
     ]);
   });

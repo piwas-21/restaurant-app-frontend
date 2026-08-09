@@ -19,6 +19,7 @@ export const MODULE_IDS = [
   'reservations',
   'loyalty',
   'printing',
+  'online-payments',
   'extra-languages',
 ] as const;
 

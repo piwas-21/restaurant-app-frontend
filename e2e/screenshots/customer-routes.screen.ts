@@ -29,10 +29,14 @@ const STATIC_ROUTES: ReadonlyArray<{
     // An unreachable backend (e.g. a CSP/CORS misconfig) now renders the
     // menu's error state rather than data — assert the SEEDED product is on
     // screen so that page can never become a committed baseline.
+    //
+    // Scoped to the GRID: the seeded product is also the featured special, and the hero's add
+    // control carries the same item-specific accessible name the card's does, so unscoped this is
+    // a strict-mode violation resolving to two elements.
     assertReady: async (page) => {
-      await expect(page.getByRole('button', { name: /^Add E2E Test Product to order$/i })).toBeVisible({
-        timeout: 15_000,
-      });
+      await expect(
+        page.getByTestId('menu-grid').getByRole('button', { name: /^Add E2E Test Product to order$/i }),
+      ).toBeVisible({ timeout: 15_000 });
     },
   },
   { name: 'cart-empty', path: '/cart' },

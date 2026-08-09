@@ -16,6 +16,12 @@ export interface MenuSectionStatusProps {
   headingId: string;
   /** Localized category / view name. */
   title: string;
+  /**
+   * The tenant's own blurb for this category, under the heading — the design's
+   * "Expertly crafted main courses…" paragraph. Optional and usually absent: `CategoryDto` carries
+   * the field but RUMI's categories all store `""`, so nothing renders unless a tenant fills it in.
+   */
+  description?: string;
   isLoading: boolean;
   /** Localized error message, or null when there's no error. */
   errorMessage: string | null;
@@ -47,6 +53,7 @@ export interface MenuSectionStatusProps {
 export default function MenuSectionStatus({
   headingId,
   title,
+  description,
   isLoading,
   errorMessage,
   isEmpty,
@@ -75,6 +82,13 @@ export default function MenuSectionStatus({
         </h2>
         <span className={headingStyles.sectionHeadingRule} aria-hidden="true" />
       </div>
+
+      {/* product-authored text: dir="auto" (DESIGN-SYSTEM.md §8.2) */}
+      {description && description.trim().length > 0 && (
+        <p dir="auto" className={headingStyles.sectionDescription}>
+          {description}
+        </p>
+      )}
 
       {/* Skeleton rows rather than a spinner (see MenuSkeletonRows). `<output>` with the sentence
           inside it and the bars aria-hidden: the bars carry nothing a screen reader can use, and a

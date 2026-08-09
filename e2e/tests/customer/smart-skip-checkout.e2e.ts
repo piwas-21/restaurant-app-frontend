@@ -3,6 +3,7 @@ import { test as publicTest } from '@playwright/test';
 import { request } from '@playwright/test';
 import { apiBaseUrl } from '../../helpers/config';
 import { deleteUserByEmail } from '../../helpers/db';
+import { menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — smart-skip checkout (BUGS-IMPROVEMENTS-PLAN §C1.5.d + §C1.5.e).
@@ -46,16 +47,17 @@ authedTest('logged-in user with phone skips customer-info on Takeaway', async ({
   try {
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
-
+    // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
+    // needs it and leaves the grid behind it clickable in between.
+    const sidebar = menuBasketPanel(page);
     const basketWritePromise = page.waitForResponse(
       (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
       { timeout: 10_000 },
     );
     await page
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
+      .getByTestId('menu-card')
       .first()
+      .getByRole('button', { name: /^Add( .+)? to order$/i })
       .click();
     try {
       await page
@@ -66,6 +68,8 @@ authedTest('logged-in user with phone skips customer-info on Takeaway', async ({
       /* no customization modal — direct add */
     }
     await basketWritePromise;
+    // Back into the basket for the toggle / Proceed / line assertions below.
+    await openMenuBasket(page);
 
     await sidebar
       .getByRole('group', { name: /order type/i })
@@ -91,16 +95,17 @@ authedTest(
     try {
       await page.goto('/menu');
 
-      const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-      await expect(sidebar).toBeVisible({ timeout: 15_000 });
-
+      // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
+      // needs it and leaves the grid behind it clickable in between.
+      const sidebar = menuBasketPanel(page);
       const basketWritePromise = page.waitForResponse(
         (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
         { timeout: 10_000 },
       );
       await page
-        .getByRole('button', { name: /^Add( .+)? to order$/i })
+        .getByTestId('menu-card')
         .first()
+        .getByRole('button', { name: /^Add( .+)? to order$/i })
         .click();
       try {
         await page
@@ -111,6 +116,8 @@ authedTest(
         /* no modal */
       }
       await basketWritePromise;
+      // Back into the basket for the toggle / Proceed / line assertions below.
+      await openMenuBasket(page);
 
       await sidebar
         .getByRole('group', { name: /order type/i })
@@ -144,16 +151,17 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
   try {
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
-
+    // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
+    // needs it and leaves the grid behind it clickable in between.
+    const sidebar = menuBasketPanel(page);
     const basketWritePromise = page.waitForResponse(
       (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
       { timeout: 10_000 },
     );
     await page
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
+      .getByTestId('menu-card')
       .first()
+      .getByRole('button', { name: /^Add( .+)? to order$/i })
       .click();
     try {
       await page
@@ -164,6 +172,8 @@ publicTest('guest fills Takeaway modal and skips customer-info', async ({ browse
       /* no modal */
     }
     await basketWritePromise;
+    // Back into the basket for the toggle / Proceed / line assertions below.
+    await openMenuBasket(page);
 
     await sidebar
       .getByRole('group', { name: /order type/i })
@@ -201,16 +211,17 @@ publicTest('guest opts in to inline registration via Takeaway modal (§C1.5.g)',
   try {
     await page.goto('/menu');
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
-
+    // A LOCATOR, not an open panel: the basket is a modal now, so the test opens it only when it
+    // needs it and leaves the grid behind it clickable in between.
+    const sidebar = menuBasketPanel(page);
     const basketWritePromise = page.waitForResponse(
       (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
       { timeout: 10_000 },
     );
     await page
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
+      .getByTestId('menu-card')
       .first()
+      .getByRole('button', { name: /^Add( .+)? to order$/i })
       .click();
     try {
       await page
@@ -221,6 +232,8 @@ publicTest('guest opts in to inline registration via Takeaway modal (§C1.5.g)',
       /* no modal */
     }
     await basketWritePromise;
+    // Back into the basket for the toggle / Proceed / line assertions below.
+    await openMenuBasket(page);
 
     await sidebar
       .getByRole('group', { name: /order type/i })

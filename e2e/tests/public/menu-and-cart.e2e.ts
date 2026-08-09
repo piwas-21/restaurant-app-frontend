@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { expectNoA11yViolations } from '../../helpers/a11y';
+import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
 
 /**
  * The menu GRID, excluding the featured-special hero.
@@ -114,8 +115,7 @@ test('customer can browse the menu, add an item, and update its quantity in the 
 test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', async ({ page }) => {
   await page.goto('/menu');
 
-  const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-  await expect(sidebar).toBeVisible({ timeout: 15_000 });
+  const sidebar = await openMenuBasket(page);
 
   // Pick Takeaway. As a guest (§C1.5.e), the TakeawayInfoModal opens
   // asking for name + email + phone — dismiss it; this test only
@@ -128,11 +128,13 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
 
   // Add the first menu item to cart, wait for /api/Basket POST/PUT to
   // settle so the sidebar's items list re-renders deterministically.
+  // The basket is a MODAL now, so the grid behind it is unreachable while it is open.
+  await closeMenuBasket(page);
   const basketWritePromise = page.waitForResponse(
     (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
     { timeout: 10_000 },
   );
-  await grid(page).getByRole('button', { name: /^Add( .+)? to order$/i }).first().click();
+  await grid(page).getByTestId('menu-card').first().getByRole('button', { name: /^Add( .+)? to order$/i }).click();
   // If a customization dialog appears, confirm through it; otherwise the
   // card click already triggered the basket write.
   try {
@@ -141,6 +143,8 @@ test('sidebar happy-path: pick Takeaway, add an item, proceed to checkout', asyn
     /* no customization modal — direct add */
   }
   await basketWritePromise;
+  // Back into the basket for the toggle / Proceed / line assertions below.
+  await openMenuBasket(page);
 
   // Sidebar shows the added item.
   await expect(sidebar.getByRole('button', { name: /increase quantity/i })).toBeVisible();

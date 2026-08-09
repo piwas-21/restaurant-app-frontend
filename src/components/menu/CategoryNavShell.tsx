@@ -34,6 +34,13 @@ interface CategoryNavShellProps {
   canScrollForward: boolean;
   scroll: (direction: 'back' | 'forward') => void;
   children: ReactNode;
+  /**
+   * Pinned to the inline END of the bar, outside the scrolling tab strip — the menu page's basket
+   * button. A slot rather than a component import because this shell is shared with craft, and
+   * because what belongs at the end of a category bar is the HOST page's business: the bar itself
+   * has no idea a basket exists.
+   */
+  trailing?: ReactNode;
 }
 
 export default function CategoryNavShell({
@@ -44,6 +51,7 @@ export default function CategoryNavShell({
   canScrollForward,
   scroll,
   children,
+  trailing,
 }: Readonly<CategoryNavShellProps>) {
   const { t } = useTranslation();
 
@@ -57,7 +65,11 @@ export default function CategoryNavShell({
       {...{ [STICKY_NAV_ATTR]: '' }}
     >
       <div className={styles.navWrapper}>
-        {/*
+        {/* The arrows are absolutely positioned against THIS box, not against `.navWrapper` — the
+            trailing slot is a sibling of it, so the forward arrow lands on the last tab rather
+            than on top of the basket button. */}
+        <div className={styles.navScroller}>
+          {/*
           `navArrowLeft`/`navArrowRight` stay PHYSICAL class names and that is still correct: they
           name the arrow's END of the bar, and each template's module is what pins that end so
           `dir="rtl"` swaps the two (classic with a logical inset, craft with its flex order).
@@ -65,31 +77,36 @@ export default function CategoryNavShell({
           these buttons have always carried, and the chevron glyph that
           `[dir='rtl'] .navArrow svg { transform: scaleX(-1) }` already mirrors.
         */}
-        {showNavArrows && canScrollBack && (
-          <button
-            className={`${styles.navArrow} ${styles.navArrowLeft}`}
-            onClick={() => scroll('back')}
-            aria-label={t('scroll_categories_back', 'Scroll categories back')}
-            type="button"
-          >
-            <ChevronLeft size={24} />
-          </button>
-        )}
+          {showNavArrows && canScrollBack && (
+            <button
+              className={`${styles.navArrow} ${styles.navArrowLeft}`}
+              onClick={() => scroll('back')}
+              aria-label={t('scroll_categories_back', 'Scroll categories back')}
+              type="button"
+            >
+              <ChevronLeft size={24} />
+            </button>
+          )}
 
-        <div ref={scrollContainerRef} className={styles.navScrollContainer}>
-          <div className={styles.navButtonsContainer}>{children}</div>
+          <div ref={scrollContainerRef} className={styles.navScrollContainer}>
+            <div className={styles.navButtonsContainer}>{children}</div>
+          </div>
+
+          {showNavArrows && canScrollForward && (
+            <button
+              className={`${styles.navArrow} ${styles.navArrowRight}`}
+              onClick={() => scroll('forward')}
+              aria-label={t('scroll_categories_forward', 'Scroll categories forward')}
+              type="button"
+            >
+              <ChevronRight size={24} />
+            </button>
+          )}
         </div>
 
-        {showNavArrows && canScrollForward && (
-          <button
-            className={`${styles.navArrow} ${styles.navArrowRight}`}
-            onClick={() => scroll('forward')}
-            aria-label={t('scroll_categories_forward', 'Scroll categories forward')}
-            type="button"
-          >
-            <ChevronRight size={24} />
-          </button>
-        )}
+        {/* OUTSIDE the scroller: inside it the button would scroll away with the tabs, which is the
+            one thing an always-reachable basket must not do. */}
+        {trailing}
       </div>
     </nav>
   );

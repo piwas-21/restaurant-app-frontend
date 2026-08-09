@@ -28,7 +28,15 @@
      way — it is the concealment: the gutter comment above promises "one declaration, so the bar and
      the page cannot disagree", which holds for a length and not for a percentage. And `.stickyNav`
      reads that variable in `margin-inline` as well as in padding, so a percentage would break the
-     edge-to-edge cancellation, not just the inset. A plain length cannot disagree with itself. */
+     edge-to-edge cancellation, not just the inset. A plain length cannot disagree with itself.
+
+     1200px is the design's own number and it is kept as the BASE, where it produces exactly the
+     three ~389px cards the screens draw. It is not kept as a ceiling. On a 1920px monitor a fixed
+     1200px track leaves 360px of empty page down each side — measured on prod at 1440 it was
+     113px/127px, and the owner's own screenshot at ~2000px showed roughly 500px a side. The steps
+     below spend that width on MORE DISHES PER ROW, never on wider cards: the grid derives its
+     column count from a 340px minimum (MenuContent.module.css), so 1560 gives four ~378px cards and
+     1880 gives five ~363px — all within a few pixels of the design's card. */
   --menu-track-max: 1200px;
   margin-inline: -1rem;
   padding: 2rem var(--menu-page-gutter);
@@ -46,24 +54,21 @@
   overflow: visible;
 }
 
-/* 2-column grid: menu content (left) + cart sidebar (right) on desktop.
-   Single column on tablet/mobile — sidebar is hidden, FloatingCartButton
-   takes over (BUGS-IMPROVEMENTS-PLAN §C1.5.c — full mobile FAB sheet
-   lands in a follow-up MR). */
+/* ONE column, the width of the track. The 360px basket rail that used to take the right third of
+   this grid is now a slide-over (`CartSheet`, opened from the button in the sticky bar), and that
+   is the single change this redesign rests on.
+
+   Measured on prod at 1440px before the change: the layout track was 1200px, the grid got 816px of
+   it — two 400px cards where every design screen draws three — and the rail's own box was **393px
+   tall against a 2082px grid**, so ~1700px of that column was empty page. The grid was cut to two
+   columns *specifically* to fit the rail (the old `MenuContent.module.css` comment says so
+   outright). Neither the new Stitch screens nor the repo's own `desktop_menu_light_full_page` has a
+   basket rail at all.
+
+   `max-width` + `margin-inline: auto` stay, and stay HERE rather than on `.menuContainer`: that box
+   paints `--page-canvas` and is what `.stickyNav` cancels its inline gutter against to run edge to
+   edge (S11's gain). Capping it would take that back. */
 .menuLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 1.5rem;
-  align-items: start;
-  /* D12. Below ~1296px this does not bind and nothing moves; above it, the grid stops stretching
-     indefinitely, which is the other half of why the page stopped reading like the screens.
-     At the cap: main = 1200 - 360 - 24 = 816, so a card is (816 - 16) / 2 = 400px.
-     The cap goes here and NOT on `.menuContainer`: that box paints `--page-canvas` and is what
-     `.stickyNav` cancels its inline gutter against to run edge to edge (S11's gain, measured
-     0->1920 at 1920px). Capping it would take that back. A `margin-inline: calc(50% - 50vw)` on the
-     bar would also work around a capped box, but it pays in viewport units — which include the
-     scrollbar — and forks the single-gutter-declaration invariant. This is the least-machinery
-     answer, not the only possible one. */
   max-width: var(--menu-track-max);
   margin-inline: auto;
 }
@@ -72,27 +77,19 @@
   min-width: 0; /* lets the column shrink rather than overflow */
 }
 
-.menuSidebarColumn {
-  display: block;
-  /* `align-items: start` above shrink-wraps every cell, which made this column exactly as tall as
-     the rail inside it (measured 369.6px for a 369.6px rail). A `position: sticky` element cannot
-     leave its containing block, so with zero travel the rail's sticky was **inert** — it scrolled
-     with the page and its `top` had never done anything. Stretching only this cell gives it the
-     row's height (637.3px here) so the rail can actually pin; the `<aside>` keeps its own content
-     height, so nothing else moves.
-
-     `align-self` on this cell rather than dropping `align-items: start` from the grid, because only
-     this cell holds a sticky child — the narrower change is the one whose blast radius is known. */
-  align-self: stretch;
+/* Wide screens buy MORE COLUMNS, not more whitespace. The grid derives its own count from a 340px
+   card minimum, so these two steps are the only thing that has to be stated: how much track there
+   is to divide. The numbers are chosen so the resulting card stays within ~25px of the design's
+   389px at every step — 1560/4 = 378, 1880/5 = 363. */
+@media (min-width: 1600px) {
+  .menuContainer {
+    --menu-track-max: 1560px;
+  }
 }
 
-@media (max-width: 1024px) {
-  .menuLayout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .menuSidebarColumn {
-    display: none;
+@media (min-width: 1920px) {
+  .menuContainer {
+    --menu-track-max: 1880px;
   }
 }
 

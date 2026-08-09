@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { deleteUserByEmail } from '../../helpers/db';
 import { expectNoA11yViolations } from '../../helpers/a11y';
+import { closeMenuBasket, menuBasketPanel, openMenuBasket } from '../../helpers/menuBasket';
 
 /**
  * HIGH-tier — guest places an order end-to-end.
@@ -70,19 +71,21 @@ test.describe('checkout-guest: public ordering as guest', () => {
     // landing view (no exclusions).
     await expectNoA11yViolations(page);
 
-    const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-    await expect(sidebar).toBeVisible({ timeout: 15_000 });
+    const sidebar = await openMenuBasket(page);
 
     // Add the first available product. Wait on the basket POST so we
     // don't race React-Query's optimistic update before clicking Proceed.
+    // The basket is a MODAL now, so the grid behind it is unreachable while it is open.
+    await closeMenuBasket(page);
     const basketWritePromise = page.waitForResponse(
       (r) => r.url().includes('/api/Basket') && ['POST', 'PUT'].includes(r.request().method()),
       { timeout: 15_000 },
     );
 
     await page
-      .getByRole('button', { name: /^Add( .+)? to order$/i })
+      .getByTestId('menu-card')
       .first()
+      .getByRole('button', { name: /^Add( .+)? to order$/i })
       .click();
 
     // Some products open a customisation modal; if so, confirm. If not,
@@ -98,6 +101,8 @@ test.describe('checkout-guest: public ordering as guest', () => {
     }
 
     await basketWritePromise;
+    // Back into the basket for the toggle / Proceed / line assertions below.
+    await openMenuBasket(page);
 
     // Choose Takeaway → TakeawayInfoModal opens (guest hasn't filled
     // name/email/phone yet, so checkout-completeness check fails and
@@ -126,7 +131,10 @@ test.describe('checkout-guest: public ordering as guest', () => {
 
     // --- Regression (bug 1): "Edit" opens the order/contact editor IN PLACE and does NOT bounce
     // to /menu (the buttons used to route to the retired /checkout/order-type + /menu stubs). ---
-    await page.getByRole('button', { name: /^edit$/i }).first().click();
+    await page
+      .getByRole('button', { name: /^edit$/i })
+      .first()
+      .click();
     const editModal = page.getByRole('dialog');
     await expect(editModal).toBeVisible({ timeout: 5_000 });
     await expect(page).toHaveURL(/\/checkout\/review$/); // stayed on review — no redirect
@@ -161,9 +169,7 @@ test.describe('checkout-guest: public ordering as guest', () => {
 
     // --- Regression (bug 3): placing an order resets the order type (both contexts), so the next
     // order starts from a clean toggle — no stale "active" selection that leaves Proceed a no-op. ---
-    const orderTypeGroup = page
-      .getByRole('complementary', { name: /shopping basket/i })
-      .getByRole('group', { name: /order type/i });
+    const orderTypeGroup = (await openMenuBasket(page)).getByRole('group', { name: /order type/i });
     await expect(orderTypeGroup).toBeVisible({ timeout: 10_000 });
     await expect(orderTypeGroup.getByRole('button', { pressed: true })).toHaveCount(0);
   });

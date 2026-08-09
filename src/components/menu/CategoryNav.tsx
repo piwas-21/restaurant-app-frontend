@@ -1,6 +1,7 @@
 'use client';
 
 import styles from './CategoryNav.module.css';
+import type { ReactNode } from 'react';
 import type { ApiCategory } from '@/types/menu';
 import { useCategoryNavScroll } from '@/hooks/menu/useCategoryNavScroll';
 import { useCategoryTabs } from '@/hooks/menu/useCategoryTabs';
@@ -16,9 +17,17 @@ export interface CategoryNavProps {
   selectedView: string;
   onSelect: (value: string) => void;
   allLabel: string;
+  /** Pinned to the bar's inline end — the menu page's basket button. See `CategoryNavShell`. */
+  trailing?: ReactNode;
 }
 
-export default function CategoryNav({ categories, selectedView, onSelect, allLabel }: Readonly<CategoryNavProps>) {
+export default function CategoryNav({
+  categories,
+  selectedView,
+  onSelect,
+  allLabel,
+  trailing,
+}: Readonly<CategoryNavProps>) {
   const tabs = useCategoryTabs(categories, allLabel);
   const nav = useCategoryNavScroll(categories.length);
 
@@ -29,7 +38,7 @@ export default function CategoryNav({ categories, selectedView, onSelect, allLab
   // with `All` and `Menu Bundles` always prepended it meant "4+ tenant categories", so a bar that
   // overflowed on three could not show an arrow and a bar that fit on six showed two.
   return (
-    <CategoryNavShell styles={styles} {...nav}>
+    <CategoryNavShell styles={styles} trailing={trailing} {...nav}>
       {tabs.map((tab) => (
         <button
           key={tab.id}

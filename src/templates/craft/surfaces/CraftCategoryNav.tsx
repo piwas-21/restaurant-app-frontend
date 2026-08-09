@@ -18,12 +18,22 @@ import styles from './CraftCategoryNav.module.css';
 // the CSS can compose the tilt with the hover-lift; no raw colours inline.
 const TILTS = ['-2deg', '1.5deg', '-0.75deg', '2deg', '-1.25deg'];
 
-export default function CraftCategoryNav({ categories, selectedView, onSelect, allLabel }: Readonly<CategoryNavProps>) {
+export default function CraftCategoryNav({
+  categories,
+  selectedView,
+  onSelect,
+  allLabel,
+  trailing,
+}: Readonly<CategoryNavProps>) {
   const tabs = useCategoryTabs(categories, allLabel);
   const nav = useCategoryNavScroll(categories.length);
 
   return (
-    <CategoryNavShell styles={styles} showNavArrows={tabs.length > 5} {...nav}>
+    // `trailing` is forwarded, not ignored. /menu is ONE page for both templates — only the
+    // surfaces differ — so when the basket rail left that page it left craft's too. Dropping the
+    // slot here would leave a craft guest with no basket and no order-type picker on /menu at all,
+    // because the floating cart button renders nothing while the basket is empty.
+    <CategoryNavShell styles={styles} showNavArrows={tabs.length > 5} trailing={trailing} {...nav}>
       {tabs.map((tab, index) => (
         <button
           key={tab.id}

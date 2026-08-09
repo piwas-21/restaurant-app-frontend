@@ -109,20 +109,26 @@ export async function gotoStable(page: Page, path: string, theme: Theme): Promis
  * e2e/tests/customer/smart-skip-checkout.e2e.ts (guest path). All inputs are
  * fixed values; the cart holds 1× the seeded "E2E Test Product".
  *
- * The cart sidebar needs a ≥1024px viewport, so we drive at desktop size;
- * the caller restores the project viewport before capturing.
+ * Driven at desktop size because that is the width the baselines are cut at for the desktop
+ * project; the caller restores the project viewport before capturing.
+ *
+ * The basket is a SLIDE-OVER now, not a permanently-pinned `<aside>` rail — /menu dropped the rail
+ * so the card grid could have the design's three columns back. So this opens it from the basket
+ * button in the sticky category bar and drives the same `CartContents` inside it: the order-type
+ * toggle and Proceed to Checkout are the very same controls, one click further in.
  */
 export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/menu');
 
-  const sidebar = page.getByRole('complementary', { name: /shopping basket/i });
-  await expect(sidebar).toBeVisible({ timeout: 15_000 });
-
-  // Target the SEEDED product explicitly (not `.first()`): `.first()` would
-  // accept whatever card happens to render, so this assertion pins the
-  // baseline to the seeded fixture rather than to an incidental page state.
-  const seededAddButton = page.getByRole('button', { name: /^Add E2E Test Product to order$/i });
+  // Scoped to a CARD, not to the grid: the hero is a cell OF the grid now, so `menu-grid` contains
+  // both. The seeded product is also the featured special, and the hero's add control carries the
+  // same item-specific accessible name the card's does — deliberately, so a screen reader hears
+  // which dish each button adds (it said a generic "Add to Order" before). Unscoped, and scoped to
+  // the grid, this is a strict-mode violation resolving to two elements.
+  const seededAddButton = page
+    .getByTestId('menu-card')
+    .getByRole('button', { name: /^Add E2E Test Product to order$/i });
   await expect(seededAddButton).toBeVisible({ timeout: 15_000 });
 
   const basketWritePromise = page.waitForResponse(
@@ -140,7 +146,13 @@ export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   }
   await basketWritePromise;
 
-  await sidebar
+  // Open the slide-over. It renders at every count, including zero, which is what makes it a
+  // replacement for the rail rather than for the floating cart button.
+  await page.getByRole('button', { name: /open basket/i }).click();
+  const basket = page.getByRole('dialog', { name: /shopping basket/i });
+  await expect(basket).toBeVisible({ timeout: 10_000 });
+
+  await basket
     .getByRole('group', { name: /order type/i })
     .getByRole('button', { name: /takeaway/i })
     .click();
@@ -153,6 +165,6 @@ export async function driveGuestCheckoutToReview(page: Page): Promise<void> {
   await modal.getByRole('button', { name: /^confirm$/i }).click();
   await expect(modal).toBeHidden({ timeout: 5_000 });
 
-  await sidebar.getByRole('button', { name: /proceed to checkout/i }).click();
+  await basket.getByRole('button', { name: /proceed to checkout/i }).click();
   await expect(page).toHaveURL(/\/checkout\/review$/, { timeout: 10_000 });
 }

@@ -3,7 +3,7 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Star, Clock, Plus } from 'lucide-react';
+import { Star, Clock } from 'lucide-react';
 import Image from 'next/image';
 import styles from './FeaturedSpecial.module.css';
 // The notice's OWN styles come from the classic card's module, not this one: `MenuCardAvailability`
@@ -12,6 +12,7 @@ import styles from './FeaturedSpecial.module.css';
 import availabilityStyles from './MenuItemAvailability.module.css';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
 import MenuCardAvailability from './MenuCardAvailability';
+import AddToOrderButton from './AddToOrderButton';
 import AdminMenuCardControls from './AdminMenuCardControls';
 import AdminPriceEditor from './AdminPriceEditor';
 // The editing ring, shared with the catalog card so the two hosts cannot drift into two rings.
@@ -124,23 +125,35 @@ export default function FeaturedSpecial({
                 `role="button"` ON it, so the strip keeps its <h2> and the section's accessible name
                 still reads "<dish> <reason>" while blocked. That is what let the second, competing
                 "Details" button go: every generated special screen has exactly one action. */}
-            <h2 id="featured-special-heading" dir="auto" className={styles.featuredSpecialTitle}>
-              {onViewDetails ? (
-                <button
-                  type="button"
-                  className={styles.featuredSpecialTitleButton}
-                  // The verdict rides along, exactly as Details handed it over: the sheet's own
-                  // footer Add is the two-clicks-away path S4 closed on the cards. Unlike Add this
-                  // is NOT removed while blocked — showing the item is always allowed, and it is
-                  // now the only route to the sheet.
-                  onClick={() => onViewDetails({ forceSheet: true, availability: special.availability })}
-                >
-                  {itemName}
-                </button>
-              ) : (
-                itemName
-              )}
-            </h2>
+            {/* Name against price on ONE row, the same anatomy every card below uses — the price
+                used to sit two blocks lower, beside the prep time, so the hero was the one dish on
+                the page whose price was not where the eye had just learned to look. */}
+            <div className={styles.featuredSpecialTitleRow}>
+              <h2 id="featured-special-heading" dir="auto" className={styles.featuredSpecialTitle}>
+                {onViewDetails ? (
+                  <button
+                    type="button"
+                    className={styles.featuredSpecialTitleButton}
+                    // The verdict rides along, exactly as Details handed it over: the sheet's own
+                    // footer Add is the two-clicks-away path S4 closed on the cards. Unlike Add this
+                    // is NOT removed while blocked — showing the item is always allowed, and it is
+                    // now the only route to the sheet.
+                    onClick={() => onViewDetails({ forceSheet: true, availability: special.availability })}
+                  >
+                    {itemName}
+                  </button>
+                ) : (
+                  itemName
+                )}
+              </h2>
+              <span className={styles.featuredSpecialTitleMeta}>
+                <span className={styles.priceValue}>{formatPlainCurrency(price)}</span>
+                {/* Beside the price it edits, exactly as on a card. It renders nothing for a guest,
+                    and for an admin it always renders SOMETHING — the control, or the reason it
+                    cannot apply (E3). */}
+                <AdminPriceEditor item={adminItem} onPriceChange={onPriceChange} onEditingChange={setPriceEditing} />
+              </span>
+            </div>
 
             {description && (
               <p dir="auto" className={styles.featuredSpecialDescription}>
@@ -148,23 +161,17 @@ export default function FeaturedSpecial({
               </p>
             )}
 
-            {/* Prep time, price and the admin control share ONE line. They were three stacked
-                blocks with a 1.5rem margin each, which is most of the height this strip lost. */}
-            <div className={styles.featuredSpecialMeta}>
-              {special.preparationTimeMinutes > 0 && (
+            {/* Prep time only — the price moved up to the title row above it. */}
+            {special.preparationTimeMinutes > 0 && (
+              <div className={styles.featuredSpecialMeta}>
                 <span className={styles.featuredSpecialTime}>
                   <Clock size={15} aria-hidden="true" />
                   <span>
                     {special.preparationTimeMinutes} {t('minutes', 'min')}
                   </span>
                 </span>
-              )}
-              <span className={styles.priceValue}>{formatPlainCurrency(price)}</span>
-              {/* Beside the price it edits, exactly as on a card. It renders nothing for a guest,
-                  and for an admin it always renders SOMETHING — the control, or the reason it
-                  cannot apply (E3). */}
-              <AdminPriceEditor item={adminItem} onPriceChange={onPriceChange} onEditingChange={setPriceEditing} />
-            </div>
+              </div>
+            )}
 
             {special.allergens && special.allergens.length > 0 && (
               // The wrapper is `display: none` at every width — allergens belong on the dish CARD
@@ -191,26 +198,34 @@ export default function FeaturedSpecial({
                 />
               </div>
             )}
-          </div>
 
-          {/* A SIBLING of the text column, not the last block inside it — that is what turns the
-              hero from a stacked card into a strip: photo | text | action, on one baseline. */}
-          <div className={styles.featuredSpecialActions}>
-            {/* REMOVED, not disabled, while blocked — the S4 rule: nothing focusable-but-dead, and
-                the switch inside the notice above is the way out. The dish name above stays live,
-                and the sheet is handed the same verdict so it refuses the add too.
-                Below 600px this collapses to the 44px round disc the catalog cards already use
-                (`MenuItemActions`): the label leaves the box, `aria-label` names it in both forms. */}
-            {onAddToCart && !isBlocked && (
-              <button
-                className={styles.featuredSpecialAddButton}
-                onClick={() => onAddToCart({ availability: special.availability })}
-                aria-label={t('add_to_order', 'Add to Order')}
-              >
-                <Plus className={styles.featuredSpecialAddIcon} size={20} aria-hidden="true" />
-                <span className={styles.featuredSpecialAddLabel}>{t('add_to_order', 'Add to Order')}</span>
-              </button>
-            )}
+            {/* The LAST ROW of the text column, not a column of its own. As a third sibling the
+                action was full-cell height beside a 180px strip, which stopped reading as an
+                action once the hero became a card in the grid rather than a band above it — the
+                design puts the signature label and the filled button on one baseline at the foot
+                of the copy.
+
+                REMOVED, not disabled, while blocked — the S4 rule: nothing focusable-but-dead, and
+                the switch inside the notice above is the way out. The dish name stays live, and the
+                sheet is handed the same verdict so it refuses the add too. */}
+            <div className={styles.featuredSpecialActions}>
+              <span className={styles.signatureLabel}>
+                <Star size={14} aria-hidden="true" />
+                {t('chefs_special', "Chef's Special")}
+              </span>
+              {onAddToCart && !isBlocked && (
+                /* SOLID, and the only filled button on the page — the shared control the grid cards
+                   render outlined. One component, so the promoted dish and the dishes below it
+                   cannot drift apart in radius, target size or hover colour. */
+                <AddToOrderButton
+                  onAdd={() => onAddToCart({ availability: special.availability })}
+                  label={t('add_to_order', 'Add to Order')}
+                  ariaLabel={t('add_item_to_order', { itemName })}
+                  variant="solid"
+                  shape="hero"
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

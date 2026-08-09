@@ -29,10 +29,14 @@ const STATIC_ROUTES: ReadonlyArray<{
     // An unreachable backend (e.g. a CSP/CORS misconfig) now renders the
     // menu's error state rather than data — assert the SEEDED product is on
     // screen so that page can never become a committed baseline.
+    //
+    // Scoped to a CARD, not to the grid — the hero is a cell OF the grid now. The seeded product
+    // is also the featured special, and the hero's add control carries the same item-specific
+    // accessible name the card's does, so anything wider resolves to two elements.
     assertReady: async (page) => {
-      await expect(page.getByRole('button', { name: /^Add E2E Test Product to order$/i })).toBeVisible({
-        timeout: 15_000,
-      });
+      await expect(
+        page.getByTestId('menu-card').getByRole('button', { name: /^Add E2E Test Product to order$/i }),
+      ).toBeVisible({ timeout: 15_000 });
     },
   },
   { name: 'cart-empty', path: '/cart' },
@@ -55,8 +59,13 @@ for (const theme of THEMES) {
     test(`checkout review page matches the ${theme} baseline`, async ({ page }, testInfo) => {
       await prepareForScreenshots(page, theme);
       await driveGuestCheckoutToReview(page);
-      // The driver runs at desktop width (sidebar ≥1024px); restore the
-      // project's viewport before capturing.
+      // Park the pointer off-canvas before capturing. The driver's last click leaves the mouse
+      // wherever that control was, and on /checkout/review that landed on the tip amount's
+      // `<input type="number">` — whose Chromium stepper arrows only paint on hover. It would have
+      // been baked into the craft baseline as a 2.2% pixel diff with no product change behind it,
+      // and re-broken the moment any future driver clicked somewhere else.
+      await page.mouse.move(0, 0);
+      // The driver runs at desktop width; restore the project's viewport before capturing.
       const viewport = testInfo.project.use.viewport ?? { width: 1280, height: 720 };
       await page.setViewportSize(viewport);
       await waitForStablePage(page, theme);

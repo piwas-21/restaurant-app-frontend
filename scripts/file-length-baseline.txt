@@ -88,6 +88,7 @@ src/components/menu/CategoryNav.module.css
 src/components/menu/customization/OptionalIngredientsSection.module.css
 src/components/menu/customization/SuggestedSideItemsSection.module.css
 src/components/menu/FeaturedSpecial.module.css
+src/templates/craft/surfaces/CraftFeaturedSpecial.module.css
 src/components/menu/FloatingCartButton.module.css
 src/components/TableBanner.module.css
 src/components/orders/OrderCard.tsx

@@ -16,7 +16,12 @@ import AddToOrderButton from './AddToOrderButton';
 import OrderTypeRibbon from './OrderTypeRibbon';
 import AdminMenuCardControls from './AdminMenuCardControls';
 import AdminPriceEditor from './AdminPriceEditor';
+import AllergenDisplay from '@/components/common/AllergenDisplay';
 import styles from './MenuItem.module.css';
+// The card's last row (price + one action). Its own module because `MenuItem.module.css` is at the
+// §4 200-LOC ceiling — the third split off that file, after the availability notice and the admin
+// editing ring.
+import footStyles from './MenuCardFoot.module.css';
 // The admin editor's mark on its HOST card (the editing ring). Its own module, not a section of
 // `MenuItem.module.css`: that file is at the §4 ceiling, and the class styles the CARD on the admin
 // control's behalf rather than the customer card's own chrome.
@@ -54,12 +59,13 @@ export interface MenuCardProps {
  * The single customer catalog card (menu-bundles redesign #175, slice 6). Renders a plain product
  * and a combo from one `CatalogItem` view-model.
  *
- * Layout follows `stitch_classic_restaurant_design_system` (desktop grid card) and
- * `mobile_menu_light` (the ≤600px list row): photo, then a title row carrying the dish name against
- * its allergen glyphs and price, then two lines of description ending in the Details link, then one
- * full-width action. The price used to sit in a separate foot row beside the button — two objects
- * competing for the eye at the bottom of every card, and the reason the card's own foot needed a
- * hairline to look closed.
+ * Anatomy, after the owner's 2026-08-09 review of the layout redesign: a photo carrying the dish's
+ * allergen chips, the dish name alone on its line, two lines of description ending in the Details
+ * link, and a foot row with the price at the inline start and one action at the inline end.
+ *
+ * Three of those reverse a §7b decision: the glyphs and the price both came OFF the title row
+ * ("too noisy and not user friendly"), and the action stopped spanning the card so it could share
+ * the foot's baseline. `MenuCardFoot.module.css` says why that foot is not the pre-§7 one restored.
  *
  * The title and Details affordances open the shared `ItemCustomizationSheet` to VIEW the item
  * (`forceSheet`); Add to Order opens the same sheet to customize, but a simple product with nothing
@@ -108,11 +114,9 @@ export default function MenuCard({
     // interactive element, and this card has no inert control for the state to describe — "Add to
     // order" is REMOVED while blocked rather than left disabled-and-unexplained.
     <li
-      // Addressable as a CARD, distinct from the Chef's Special hero that now shares this grid.
-      // E2E-STRATEGY prefers role+name, and role+name cannot separate them here: when the promoted
-      // dish is also in the catalogue (which is exactly the seeded fixture's case) both its hero and
-      // its card offer a button named "Add <dish> to order", and both sit inside
-      // `data-testid="menu-grid"`.
+      // Addressable as a CARD, distinct from the Chef's Special hero that shares this grid. Role +
+      // name cannot separate them: when the promoted dish is also in the catalogue (the seeded
+      // fixture's case) both offer a button named "Add <dish> to order", inside one `menu-grid`.
       data-testid="menu-card"
       className={[
         styles.menuItem,
@@ -127,12 +131,6 @@ export default function MenuCard({
     >
       <AdminMenuCardControls item={item} />
 
-      {/* The diagonal corner band. Only while BLOCKED — an `info` notice ("also available for
-          delivery") is not a restriction on what the guest is doing now, and a ribbon on every card
-          would say nothing. It is rendered against the <li>, outside the photo, so it wraps the
-          card's own corner at both breakpoints. */}
-      {isBlocked && availabilityNotice && <OrderTypeRibbon label={availabilityNotice.message} />}
-
       <MenuCardImage
         imageUrl={imageFailed ? FALLBACK_IMAGE : (item.imageUrl ?? FALLBACK_IMAGE)}
         alt={itemName || t('menu_item_image_alt')}
@@ -140,16 +138,29 @@ export default function MenuCard({
         imageCount={item.imageCount}
         countLabel={t('images_count_label')}
         enlargeLabel={t('menu_item_image_enlarge_aria', 'Enlarge {{itemName}} image', { itemName })}
-        // The ribbon belongs to the PHOTO, so it is handed to the image as a slot rather than
-        // positioned against the <li>. Inside the enlarge button it is outside that button's
-        // accessible name, so the id is folded into the card's `aria-labelledby` above.
+        // Both corner marks belong to the PHOTO, so they are handed to the image rather than
+        // positioned against the <li>. Inside the enlarge button they are outside that button's
+        // accessible name, so each id is folded into the card's `aria-labelledby` above.
+        //
+        // The order-type band is drawn only while BLOCKED — an `info` notice ("also available for
+        // delivery") is not a restriction on what the guest is doing now, and a band on every card
+        // would say nothing.
         badge={
-          item.isSpecial ? (
-            <span id={specialId} className={styles.specialBadge} data-testid="special-badge">
-              {t('special')}
-            </span>
-          ) : undefined
+          <>
+            {item.isSpecial && (
+              <span id={specialId} className={styles.specialBadge} data-testid="special-badge">
+                {t('special')}
+              </span>
+            )}
+            {isBlocked && availabilityNotice && (
+              <OrderTypeRibbon label={availabilityNotice.message} compactLabel={availabilityNotice.shortMessage} />
+            )}
+          </>
         }
+        // On the photo, not on the title row. The owner's review: the name, the glyphs and the
+        // price on one line "makes it too noisy and not user friendly". Two, not three: these
+        // carry their WORD now, and a third labelled pill runs off a 400px card's photo.
+        overlay={<AllergenDisplay allergens={item.allergens} id={item.id} maxVisible={2} variant="photo" />}
         onError={() => setImageFailed(true)}
       />
       <div className={styles.contentWrapper}>
@@ -157,26 +168,9 @@ export default function MenuCard({
           id={item.id}
           title={itemName}
           description={description ?? ''}
-          allergens={item.allergens}
-          priceSlot={
-            <>
-              <span
-                className={styles.rowPrice}
-                aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}
-              >
-                {formatPlainCurrency(price)}
-              </span>
-              {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an
-                  effect keyed on that boolean, and a useState setter is the referentially stable
-                  identity the contract needs. An inline arrow would re-fire it on every render. */}
-              <AdminPriceEditor item={item} onPriceChange={setPrice} onEditingChange={setPriceEditing} />
-            </>
-          }
           onTitleClick={openDetails}
           onDetailsClick={openDetails}
           detailsLabel={t('details')}
-          // A blocked card's ribbon wraps the very corner the floated link sits in on a phone.
-          detailsInline={!isBlocked}
           detailsAria={t('menu_item_details_aria', { itemName })}
         />
 
@@ -187,27 +181,69 @@ export default function MenuCard({
           </p>
         )}
 
-        {availabilityNotice && (
-          <MenuCardAvailability
-            notice={availabilityNotice}
-            reasonId={reasonId}
-            onSwitchOrderType={onSwitchOrderType}
-            styles={availabilityStyles}
-          />
+        {/* An `info` notice is a sentence about where this dish CAN be ordered, so it reads as part
+            of the copy and stays in the text column. The blocked one goes in the foot instead —
+            see below. */}
+        {availabilityNotice && !isBlocked && (
+          <div className={footStyles.noticeSlot}>
+            <MenuCardAvailability
+              notice={availabilityNotice}
+              reasonId={reasonId}
+              onSwitchOrderType={onSwitchOrderType}
+              styles={availabilityStyles}
+            />
+          </div>
         )}
 
-        {/* REMOVED, not disabled, while blocked: a disabled control fires no click and explains
-            nothing, while the switch inside the notice above is the way out. The card's Details
-            affordance stays live so the guest can still read the dish. */}
-        {!isBlocked && (
-          <AddToOrderButton
-            onAdd={open}
-            label={t('add_to_order')}
-            ariaLabel={t('add_item_to_order', { itemName })}
-            variant="outline"
-            shape="card"
-          />
-        )}
+        <div className={footStyles.footRow}>
+          <span
+            className={footStyles.footPrice}
+            aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}
+          >
+            {formatPlainCurrency(price)}
+            {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an
+                effect keyed on that boolean, and a useState setter is the referentially stable
+                identity the contract needs. An inline arrow would re-fire it on every render. */}
+            <AdminPriceEditor item={item} onPriceChange={setPrice} onEditingChange={setPriceEditing} />
+          </span>
+
+          <div className={footStyles.footAction}>
+            {/* The add control is REMOVED, not disabled, while blocked: a disabled control fires no
+                click and explains nothing. What takes its place in the row is the notice, whose
+                only visible part while blocked is the "Switch to Takeaway" link — the way out. One
+                slot, two states, so a blocked card and an orderable one are the same height. The
+                card's Details affordance stays live either way, so the guest can still read the
+                dish. */}
+            {/* Keyed on `isBlocked`, NOT on `isBlocked && availabilityNotice`. The two are not the
+                same: `isItemBlocked` is also true when the server says `canOrder: false` with no
+                notice to render (the hook returns null there deliberately), and a condition that
+                fell through to the else branch in that case would put a live Add on an item the
+                server has already refused — the exact hole `isItemBlocked`'s own doc comment
+                exists to close. Blocked with no notice renders no action at all. */}
+            {isBlocked ? (
+              availabilityNotice && (
+                <MenuCardAvailability
+                  notice={availabilityNotice}
+                  reasonId={reasonId}
+                  onSwitchOrderType={onSwitchOrderType}
+                  styles={availabilityStyles}
+                />
+              )
+            ) : (
+              <AddToOrderButton
+                onAdd={open}
+                // "Add", not "Add to Order". The button now sits beside the price on one short row
+                // and the long label pushed that row into two on a phone; the accessible name is
+                // still the full "Add {dish} to order" sentence, so nothing is lost to a screen
+                // reader — only the pixels are shorter.
+                label={t('add')}
+                ariaLabel={t('add_item_to_order', { itemName })}
+                variant="outline"
+                shape="card"
+              />
+            )}
+          </div>
+        </div>
       </div>
     </li>
   );

@@ -128,6 +128,7 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
     message: 'Takeaway and Delivery only',
     switchTo: OrderType.Takeaway,
     switchLabel: 'Switch to Takeaway',
+    shortMessage: 'Not for Dine-in',
     hint: null,
   };
 
@@ -137,6 +138,7 @@ describe('CraftMenuCard — per-order-type availability (S4)', () => {
       message: 'Takeaway and Delivery only',
       switchTo: null,
       switchLabel: '',
+      shortMessage: '',
       hint: null,
     } satisfies AvailabilityNotice);
 

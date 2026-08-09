@@ -27,6 +27,16 @@ type Props = {
    * the overlay announced must reference it by id from the card (`MenuCard` does).
    */
   badge?: ReactNode;
+  /**
+   * Content the PHOTO lays out, as opposed to `badge`, whose members pin themselves to a corner.
+   * Today the allergen chips, at the photo's bottom inline-start — the one corner the special flag
+   * (top-start, flush), the admin pill (top-end) and the image counter (bottom-end) all leave free.
+   *
+   * It is a slot rather than a rendered `AllergenDisplay` because the two templates disagree about
+   * what belongs on a photo, and the placement is what they share. Same phrasing-content rule as
+   * `badge`: this lands inside the enlarge `<button>`.
+   */
+  overlay?: ReactNode;
   onClick: () => void;
   onError?: () => void;
 };
@@ -38,6 +48,7 @@ export default function MenuItemImage({
   countLabel,
   enlargeLabel,
   badge,
+  overlay,
   onClick,
   onError,
 }: Readonly<Props>) {
@@ -66,6 +77,7 @@ export default function MenuItemImage({
         onError={onError}
       />
       {badge}
+      {overlay && <span className={styles.photoOverlay}>{overlay}</span>}
       {imageCount && imageCount > 1 && (
         <span className={styles.imageCount}>
           {imageCount} {countLabel}

@@ -1,10 +1,15 @@
-/* The diagonal "Delivery only" corner band on a blocked card — see OrderTypeRibbon.tsx.
+/* The "Delivery only" marker on a blocked card — see OrderTypeRibbon.tsx.
 
-   Two boxes. `.ribbon` is a square clipping window pinned to the card's top inline-end corner;
+   TWO renderings of one component, chosen by breakpoint, because the surface it sits on changes
+   shape: a diagonal band wrapping the photo's corner on a card, and a caption bar across the
+   thumbnail on a phone. The component always emits both labels and these rules show one.
+
+   ── The diagonal (≥601px) ─────────────────────────────────────────────────────────────────────
+   Two boxes. `.ribbon` is a square clipping window pinned to the photo's top inline-end corner;
    `.ribbonLabel` is a band rotated 45° inside it, so the band's ends are cut off by the window and
    it reads as a strip wrapped around the corner rather than a floating rectangle. A single rotated
-   box cannot do that — its corners would poke outside the card and be clipped square by the card's
-   own `overflow: hidden`.
+   box cannot do that — its corners would poke outside and be clipped square by the photo's own
+   `overflow: hidden`.
 
    THE GEOMETRY IS DERIVED, NOT TUNED, and that is the whole point of this file. It was three hand-
    picked pixel offsets (`width: 220px; top: 30px; inset-inline-end: -58px` against a 132px window),
@@ -21,8 +26,8 @@
 
    Every inset is LOGICAL, so the assembly moves to the other corner under `dir="rtl"` on its own —
    E8's floor is 8 physical declarations and this file adds none. The one thing a logical inset
-   cannot mirror is the ROTATION: `transform` has no directional twin, so the `[dir='rtl']` rule at
-   the bottom flips the angle to match the corner the insets already moved to. */
+   cannot mirror is the ROTATION: `transform` has no directional twin, so the `[dir='rtl']` rule
+   flips the angle to match the corner the insets already moved to. */
 .ribbon {
   position: absolute;
   top: 0;
@@ -50,9 +55,7 @@
   transform: translateY(-50%) rotate(45deg);
   /* `globals.css` gives EVERY element `max-width: 100%` below 768px, and a class outranks the
      universal selector only if it says so. Without this the band collapses from 141.42% to 100% of
-     its window on a phone — measured: a 68px content box, the French label wrapping to FOUR lines
-     of ~62px, and `line-clamp` eating half of it, so the phone showed "À emporter / et". Same trap
-     `.stickyNav` carries a comment about. */
+     its window between 601 and 768px. Same trap `.stickyNav` carries a comment about. */
   max-width: none;
 
   /* `--text-secondary` as a FILL with `--surface-primary` as the ink. Both flip with the theme, and
@@ -85,45 +88,75 @@
   overflow-wrap: break-word;
 }
 
+/* The caption is the phone's rendering; on a card it is not drawn at all. */
+.ribbonCaption {
+  display: none;
+}
+
 /* The corner has already moved (the logical insets did that). Only the angle is left: mirrored, the
-   band has to lean the other way or it runs out of the card it is wrapping. */
+   band has to lean the other way or it runs out of the photo it is wrapping. */
 [dir='rtl'] .ribbonLabel {
   transform: translateY(-50%) rotate(-45deg);
 }
 
-/* The mobile row is ~143px tall and its title line starts at the very corner the band wraps, so the
-   window shrinks — but not below what the worst-case sentence needs. 118 × √2 ≈ 167px of band minus
-   2 × 14px padding leaves 139px against a ~129px line at 9px: ~10px of slack, kept deliberately
-   because this is measured on macOS and rendered on Linux in CI and in prod, where the same string
-   at the same size is not the same number of pixels.
-   It is a big corner for a short row, which is why a blocked row reserves 3.5rem of its title line
-   (`MenuItem.module.css`): legible beats small, now that this is the only place the restriction is
-   written. */
+/* ── The caption bar (≤600px) ───────────────────────────────────────────────────────────────────
+   A phone row's photo is an 88px thumbnail, and NO diagonal fits on it: a band big enough to hold
+   the worst-case sentence is ~118px, wider than the whole thumbnail. That is why the band used to
+   be pinned to the ROW's bottom inline-end corner instead — which is the placement the owner's
+   2026-08-09 review rejected ("looks off … it doesn't look nice").
+
+   So on a phone the marker stops being diagonal. It is a caption across the foot of the thumbnail,
+   carrying the SHORT label ("Not for Dine-in") that names the guest's own chosen channel — see
+   `AvailabilityNotice.shortMessage`. Full-bleed across the thumbnail rather than tucked into a
+   corner, because at 88px a corner chip is smaller than its own padding.
+
+   The row's height is unaffected either way: this is `position: absolute` inside the thumbnail, so
+   a blocked row and an ordinary row are the same height, which is the other half of what the review
+   asked for. */
 @media (max-width: 600px) {
-  /* THE BOTTOM corner, not the top. A band big enough to hold the worst-case sentence is ~118px,
-     and on a 390px list row the top inline-end corner is where the PRICE is: reserving enough of
-     the title line to clear it crushed the dish name to 32px ("Ada…") and still left the price
-     overlapping — measured, price right edge 294 against a band reaching 270.
-     A blocked row has no add button (the host removes it and offers the switch link instead), so
-     its bottom inline-end corner is genuinely empty, and the switch link sits at the inline start.
-     Same band, same legibility, nothing to collide with. */
   .ribbon {
-    width: 118px;
-    height: 118px;
-    top: auto;
-    bottom: 0;
+    /* The window stops being square and stops clipping a rotation — it IS the caption's box now. */
+    top: 0;
+    bottom: auto;
+    inset-inline: 0;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    /* Above the "Special" flag, which is flush in the same corner. A dish that is both promoted and
+       un-orderable on the chosen channel is rare, and when it happens the restriction is the fact
+       that changes what the guest does — so it wins the pixels. The flag's id is still in the
+       card's `aria-labelledby`, so "Special" is not lost, only covered. The other two thumbnail
+       overlays are at the BOTTOM (allergen chips inline-start, image counter inline-end) and this
+       never reaches them. */
+    z-index: 11;
   }
 
-  /* Mirrored angle: a band wrapping the BOTTOM-end corner runs the other diagonal. The `[dir=rtl]`
-     rule below flips it back for the bottom-START corner the logical inset moves it to. */
   .ribbonLabel {
-    transform: translateY(-50%) rotate(-45deg);
-    font-size: 0.5625rem;
-    letter-spacing: 0.02em;
-    padding: 0.15rem 14px;
+    display: none;
   }
 
-  [dir='rtl'] .ribbonLabel {
-    transform: translateY(-50%) rotate(45deg);
+  .ribbonCaption {
+    display: block;
+    background-color: var(--text-secondary);
+    color: var(--surface-primary);
+    font-family: var(--font-family-sans);
+    /* 9px. Smaller than the 10px the diagonal uses, and deliberately: it buys "Not for Takeaway"
+       one line instead of two on an 88px thumbnail. It is a marker, not prose — the same fact is a
+       full sentence in the card's accessible name and a live "Switch to X" link in the row. */
+    font-size: 0.5625rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.15;
+    padding: 0.15rem 0.2rem;
+    /* Wraps rather than clipping, for the same reason the diagonal does — German "Nicht für
+       Lieferung" needs the second line and half a word is worse than two lines. */
+    white-space: normal;
+    overflow-wrap: break-word;
   }
+
+  /* Nothing to mirror: the caption spans the thumbnail, so there is no corner to move to and no
+     rotation to flip. The `[dir='rtl']` rule above only reaches `.ribbonLabel`, which is hidden
+     here — restated so a reader does not go looking for the RTL case. */
 }

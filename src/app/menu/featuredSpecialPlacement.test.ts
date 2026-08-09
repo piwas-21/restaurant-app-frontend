@@ -68,16 +68,21 @@ describe('Chef’s Special placement on the menu page', () => {
 
 describe('Chef’s Special banner markup', () => {
   const BANNER = readFileSync(join(__dirname, '../../components/menu/FeaturedSpecial.tsx'), 'utf8');
+  // The name + description + Details column was extracted for length (§4) on 2026-08-09. Read as
+  // one string, because what these cases are about is the RENDERED hero, and splitting a component
+  // in two must not be able to make an assertion about it pass by moving the code out of view.
+  const COPY = readFileSync(join(__dirname, '../../components/menu/FeaturedSpecialCopy.tsx'), 'utf8');
+  const HERO = `${BANNER}\n${COPY}`;
 
   // The hero was tall because of a 400px photo and thin because its copy was COMMENTED OUT rather
   // than deleted — description, price label and the whole ingredients block.
   it('carries no commented-out JSX', () => {
-    expect(BANNER).not.toMatch(/\{\/\*\s*\{special\./);
-    expect(BANNER).not.toMatch(/\{\/\*\s*<span className=\{styles\.priceLabel\}/);
+    expect(HERO).not.toMatch(/\{\/\*\s*\{special\./);
+    expect(HERO).not.toMatch(/\{\/\*\s*<span className=\{styles\.priceLabel\}/);
   });
 
   it('renders the description it used to hide', () => {
-    expect(BANNER).toContain('styles.featuredSpecialDescription');
+    expect(HERO).toContain('styles.featuredSpecialDescription');
   });
 
   it('shares the ONE add button rather than keeping a hand-synchronised copy', () => {

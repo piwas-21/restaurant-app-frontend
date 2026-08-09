@@ -16,6 +16,7 @@ const notice = (tone: 'info' | 'blocked'): AvailabilityNotice => ({
   message: 'Takeaway and Delivery only',
   switchTo: null,
   switchLabel: '',
+  shortMessage: '',
   hint: null,
 });
 

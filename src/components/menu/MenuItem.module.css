@@ -86,18 +86,9 @@
   padding: 16px;
 }
 
-/* `font-price-tag text-price-tag` — Public Sans 1rem/1/600, tabular so a column of prices aligns.
-   On the TITLE row now, not in a foot of its own. */
-.rowPrice {
-  font-family: var(--font-family-sans);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
+/* The price lives in `MenuCardFoot.module.css` now — it moved out of the title row in the owner's
+   2026-08-09 review, and out of this file because it took the whole foot row with it and this
+   module is at the §4 ceiling. */
 
 /* Mobile — a LIST, not a grid of cards. The design drops the card entirely below 600px: rows sit on
    the page background, separated by a single rule, with no radius, no shadow and no side borders.
@@ -148,14 +139,11 @@
     border-end-end-radius: 6px;
   }
 
-  .rowPrice {
-    font-size: 0.9rem;
-    color: var(--brand-primary-elevated);
-  }
-
-  /* No title-line reserve any more. The band moved to the row's BOTTOM inline-end corner
-     (OrderTypeRibbon.module.css) precisely because reserving space for it at the top crushed the
-     dish name to 32px while still overlapping the price. Nothing sits in the bottom-end corner of
-     a blocked row — its add button is removed and its switch link is inline-start — so the row
-     keeps its full width back. */
+  /* No reserve for the order-type band anywhere on the row, because the band is no longer ON the
+     row: below 600px it is a caption across the 88px thumbnail (OrderTypeRibbon.module.css). It
+     wrapped the row's bottom inline-end corner until the owner's 2026-08-09 review — *"the order
+     type availability label looks off as it is displayed on the right bottom corner"* — a corner
+     picked only because it was the one a blocked row left free. Being absolutely positioned inside
+     the thumbnail, it now costs the row no height at all, which is the other half of *"the listed
+     items better to have same hight with or without labels"*. */
 }

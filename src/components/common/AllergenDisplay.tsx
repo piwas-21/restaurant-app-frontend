@@ -4,6 +4,9 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import AllergenIcon from './AllergenIcon';
 import styles from './AllergenDisplay.module.css';
+// The `photo` variant's paint, in its own module because it is the one chip in this component that
+// deliberately breaks DESIGN.md §Components' "no background fills for chips" — see its header.
+import photoStyles from './AllergenChipPhoto.module.css';
 
 interface AllergenDisplayProps {
   allergens?: string[];
@@ -11,12 +14,17 @@ interface AllergenDisplayProps {
   maxVisible?: number;
   showLabel?: boolean;
   /**
-   * `icons` is the card's title-row band: one glyph per allergen, no words, sized to sit beside the
-   * price without stealing a line from the dish name. The word survives as the chip's `title` and
-   * as visually-hidden text, so the accessible name is identical to the labelled variants — only
-   * the pixels are shorter.
+   * `icons` is a glyph-only band — one glyph per allergen, no words. It was the card's title-row
+   * band until the owner's 2026-08-09 review found the name, the glyphs and the price on one line
+   * too noisy to scan; nothing on `/menu` renders it now, and it stays because it is the compact
+   * form any future dense surface wants. The word survives as the chip's `title` and as
+   * visually-hidden text, so the accessible name is identical to the labelled variants.
+   *
+   * `photo` is what replaced it: a labelled pill that sits ON the dish photograph. Solid surface
+   * rather than the hairline outline the other variants take, because a 1px border disappears over
+   * a photo and the chip has to read against an image the tenant chose, not against a card.
    */
-  variant?: 'compact' | 'full' | 'admin' | 'icons';
+  variant?: 'compact' | 'full' | 'admin' | 'icons' | 'photo';
   className?: string;
   contentClassName?: string;
 }
@@ -34,7 +42,21 @@ function AllergenChips({
   id,
   maxVisible,
   iconOnly = false,
-}: Readonly<{ allergens: string[]; id: string; maxVisible: number; iconOnly?: boolean }>) {
+  classes,
+}: Readonly<{
+  allergens: string[];
+  id: string;
+  maxVisible: number;
+  iconOnly?: boolean;
+  /**
+   * Extra classes for the chip and its word, from ANOTHER module. Only the `photo` variant passes
+   * them, and it has to: its paint lives in `AllergenChipPhoto.module.css`, and a descendant
+   * selector written there (`.photoRow .allergenTag`) would compile to that file's own hash for
+   * `.allergenTag` and match nothing. Handing the class down is the only way one module can style
+   * an element another module named.
+   */
+  classes?: { chip?: string; text?: string };
+}>) {
   const { t } = useTranslation();
   const label = (allergen: string) =>
     t(`allergen_${allergen.toLowerCase().replaceAll(' ', '_')}`, allergen.replaceAll('_', ' '));
@@ -49,20 +71,24 @@ function AllergenChips({
         return (
           <span
             key={`${id}-allergen-${idx}`}
-            className={iconOnly ? `${styles.allergenTag} ${styles.iconChip}` : styles.allergenTag}
+            className={[styles.allergenTag, iconOnly ? styles.iconChip : null, classes?.chip].filter(Boolean).join(' ')}
             title={text}
           >
             {/* One glyph PER allergen (see AllergenIcon.tsx) — a wheat ear for gluten, a carton for
                 milk. `aria-hidden` there, because the word is carried either by the visible text
                 below or, in the icon-only chip, by the `.sr-only` span. */}
             <AllergenIcon allergen={allergen} className={styles.allergenIcon} />
-            <span className={iconOnly ? 'sr-only' : styles.allergenText}>{text}</span>
+            <span className={iconOnly ? 'sr-only' : [styles.allergenText, classes?.text].filter(Boolean).join(' ')}>
+              {text}
+            </span>
           </span>
         );
       })}
       {remaining > 0 && (
         <span
-          className={`${styles.allergenTag} ${styles.more} ${iconOnly ? styles.iconChip : ''}`.trim()}
+          className={[styles.allergenTag, styles.more, iconOnly ? styles.iconChip : null, classes?.chip]
+            .filter(Boolean)
+            .join(' ')}
           title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(label).join(', ')}`}
         >
           +{remaining}
@@ -101,6 +127,26 @@ export default function AllergenDisplay({
     return (
       <span role="group" className={`${styles.iconRow} ${className}`.trim()} aria-label={t('allergens', 'Allergens')}>
         <AllergenChips allergens={allergens} id={id} maxVisible={maxVisible} iconOnly />
+      </span>
+    );
+  }
+
+  // On the photo. `<span>`s all the way down, not the `<div>`s the other variants use: this lands
+  // inside `MenuItemImage`'s enlarge `<button>` (that button is the photo's positioned ancestor, so
+  // an overlay has to live in it), and flow content inside a button is invalid markup.
+  if (variant === 'photo') {
+    return (
+      <span
+        role="group"
+        className={`${photoStyles.photoRow} ${className}`.trim()}
+        aria-label={t('allergens', 'Allergens')}
+      >
+        <AllergenChips
+          allergens={allergens}
+          id={id}
+          maxVisible={maxVisible}
+          classes={{ chip: photoStyles.photoChip, text: photoStyles.photoText }}
+        />
       </span>
     );
   }

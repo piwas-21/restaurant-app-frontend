@@ -392,16 +392,17 @@ describe('menu card call sites', () => {
     return css.slice(start, end);
   }
 
-  it('keeps the price whole and makes the NAME yield on the title row', () => {
-    // The price used to sit in a foot row of its own beside the add button, and the give came out
-    // of the BUTTON (`flex: 1 1 min-content`) so the row would not break. The redesign puts the
-    // price on the dish name's line instead, so the same question has a new answer: the name is
-    // what shrinks, and neither the glyph band nor the price may.
-    expect(block('MenuItemDetails.module.css', '.itemTitle')).toContain('min-width: 0');
-    expect(block('MenuItemDetails.module.css', '.itemTitle')).toContain('flex: 1 1 auto');
-    expect(block('MenuItemDetails.module.css', '.titleMeta')).toContain('flex-shrink: 0');
-    expect(block('MenuItem.module.css', '.rowPrice')).toContain('flex-shrink: 0');
-    expect(block('MenuItem.module.css', '.rowPrice')).toContain('white-space: nowrap');
+  it('keeps the price whole in the card foot, and makes the ACTION yield beside it', () => {
+    // Third answer to one question — which side of a shared row gives way — and worth reading as a
+    // sequence, because the answer follows the layout rather than being a preference:
+    //   · price in a foot row under a full-width button ⇒ the BUTTON gave (`flex: 1 1 min-content`)
+    //   · price on the dish name's line (§7b)           ⇒ the NAME gave (`flex: 1 1 auto`)
+    //   · price beside the button in the foot (here)    ⇒ the BUTTON gives again
+    // The invariant across all three is the only thing that was ever really fixed: a truncated
+    // price is a WRONG price, so the price never shrinks and never wraps.
+    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('flex-shrink: 0');
+    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('white-space: nowrap');
+    expect(block('MenuCardFoot.module.css', '.footAction')).toContain('min-width: 0');
   });
 
   it('outlines the add button in the brand, and lifts only the DARK label off it', () => {

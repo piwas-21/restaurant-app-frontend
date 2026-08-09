@@ -15,16 +15,6 @@
   min-width: 0;
 }
 
-.chipRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-/* The design's resting chip: a hairline, a 10px radius, no fill — the same one treatment
-   DESIGN.md §Components permits, and the same one the allergen chips on a card already take. The
-   brand is spent on the ACTIVE state alone, because that is the only thing here that is a state
-   rather than an option. */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -141,22 +131,6 @@
 @media (max-width: 600px) {
   .filters {
     margin-bottom: 1rem;
-  }
-
-  /* One scrolling line rather than three wrapped ones: on a 375px phone these chips wrapped to a
-     block taller than the first dish, so the menu began below the fold. */
-  .chipRow {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    /* The row cancels the page gutter so the last chip can scroll to the screen edge instead of
-       stopping short of it — the same trick the category bar above uses. */
-    margin-inline: calc(-1 * var(--menu-page-gutter, 0px));
-    padding-inline: var(--menu-page-gutter, 0px);
-  }
-
-  .chipRow::-webkit-scrollbar {
-    display: none;
   }
 
   .chip {

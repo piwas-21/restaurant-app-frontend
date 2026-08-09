@@ -27,6 +27,24 @@
   transition: transform 0.3s ease;
 }
 
+/* The laid-out overlay slot (`overlay` in MenuItemImage.tsx) — the allergen chips.
+   BOTTOM inline-START. Every other corner of this photo is spoken for: the "Special" flag is flush
+   in the top-start corner, the admin "Edit item" pill sits top-end, and the image counter is
+   bottom-end. It is also the corner nearest the dish name the chips qualify, which is the reason to
+   prefer it even if the others were free.
+   `max-width` keeps a five-allergen dish inside the photo — the chip row's own `nowrap` + the `+N`
+   counter do the shortening. */
+.photoOverlay {
+  position: absolute;
+  bottom: 10px;
+  inset-inline-start: 10px;
+  max-width: calc(100% - 20px);
+  /* Above the photo, below the corner marks. Never a target: the chips are labels with a `title`,
+     and swallowing clicks here would punch a hole in the enlarge button that owns this box. */
+  z-index: 5;
+  pointer-events: none;
+}
+
 /* BOTTOM trailing corner. It was top-trailing, which is where the admin "Edit item" pill now sits
    (AdminMenuCardControls.module.css) — and where the design puts this chip anyway, tucked into the
    photo's bottom corner rather than competing with the special ribbon opposite it. */
@@ -68,5 +86,16 @@
     padding: 0.1rem 0.35rem;
     border-radius: 6px;
     font-size: 0.65rem;
+  }
+
+  /* Same corner, tighter inset — and the chips inside it drop their words at this width (see
+     `.photoRow` in AllergenDisplay.module.css), so what sits here is two ~20px glyph pills and a
+     counter, not two labelled ones. The budget is real and worth writing down: the thumbnail is
+     88px, the image counter opposite takes ~26px of the same line, and that leaves ~54px. Which is
+     also why the cap is TWO here and not the three a card shows. */
+  .photoOverlay {
+    bottom: 4px;
+    inset-inline-start: 4px;
+    max-width: calc(100% - 8px);
   }
 }

@@ -10,6 +10,11 @@
   gap: 0.75rem;
   padding: 0.9rem;
   position: relative;
+  /* Fills its grid cell, so every card in a row ends its foot on the same baseline — the same rule
+     the classic card carries, and the precondition for `.foot`'s `margin-top: auto` to have any
+     slack to consume. Without it the card shrink-wraps its content and the foot is simply the last
+     thing, at a different height on every card. */
+  height: 100%;
 }
 
 /* Pulled forward from the templates area of the E8 sweep because it is the COUPLED PARTNER of
@@ -30,17 +35,26 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 0 0.25rem 0.25rem;
+  /* Takes the card's leftover height so the foot inside it has somewhere to be pushed to. */
+  flex: 1;
+  min-height: 0;
 }
 
-/* The hand-lettered `name ..... price` header (menuLeader supplies the dotted
-   fill + baseline layout). A button so the whole line opens the sheet. */
-.leader {
-  composes: menuLeader from '../craft.module.css';
+/* The hand-lettered dish name, alone on its line. It was the first half of a `name ..... price`
+   dotted leader; the price moved to the foot in the owner's 2026-08-09 review and took the leader
+   with it (`.foot` below), because a dotted fill needs two things to join and the name now has
+   only itself. A button so the whole line opens the sheet. */
+.nameButton {
+  display: block;
   width: 100%;
+  padding: 0.35rem 0 0;
   background: none;
   border: none;
   cursor: pointer;
   text-align: start;
+  /* globals.css floors every `button` at 44px below 768px; the name is 1.9rem of Amatic and sets
+     its own height, and the floor would add ~14px of dead space under it on a phone. */
+  min-height: 0;
 }
 
 .name {
@@ -52,28 +66,29 @@
 }
 
 .price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
   font-family: 'Amatic SC', cursive;
   font-size: 1.6rem;
   font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
-/* Admin price quick-edit row — pushed to the price end of the leader above it.
-   Collapses to nothing for guests (AdminPriceEditor renders null), so the flex
-   `gap` is the only cost. */
-.adminRow {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.adminRow:empty {
-  display: none;
-}
-
+/* THREE lines, by height rather than by `-webkit-line-clamp`. The clamp's `-webkit-box` replaces
+   the paragraph's block formatting and silently drops floats inside it — and the floated Details
+   link is the point. `--desc-line` is published so that link can offset itself by exact line
+   boxes; an `em` on the link would resolve against the link's own smaller font instead. */
 .description {
+  --desc-line: calc(0.95rem * 1.5);
   font-size: 0.95rem;
+  line-height: 1.5;
   color: var(--text-secondary);
   margin: 0;
+  height: calc(3 * var(--desc-line));
+  overflow: hidden;
 }
 
 .includes {
@@ -83,21 +98,43 @@
   margin: 0;
 }
 
-/* Action row — terracotta letterpress "Add" + kraft "Details", Caveat lettering
-   and organic corners (composed from craft.letterpressBtn / roundedCraft). */
-.actions {
-  display: flex;
-  gap: 0.6rem;
-  margin-top: 0.5rem;
+/* `CHF 45.00 ..... [Add]` — the `.dottedFoot` motif, plus this card's own spacing. `min-height`
+   pins the row to the add control's 44px target so a blocked card (whose action is a switch link)
+   and an orderable one come out the same height. */
+.foot {
+  composes: dottedFoot from '../craft.module.css';
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  min-height: 44px;
+}
+
+.foot::before {
+  margin-bottom: 0.3em;
 }
 
 .addButton {
   composes: btnPrimarySm from '../primitives.module.css';
-  flex: 1;
+  flex-shrink: 0;
 }
 
+/* Details, floated onto the END of the description's clipped third line — out of the action row,
+   where it used to sit beside Add competing for the same corner. Kraft ink and Caveat lettering
+   (the `.detailsLink` motif) rather than the pressed-card `.btnKraft` button it was: at the end of
+   a sentence it is a text link, and a second button inside a paragraph reads as a mistake.
+   Only the float geometry is local — the card clips its description at three lines of 1.5, and the
+   hero at three of 1.6, so the offset cannot be shared. */
+.detailsLink {
+  composes: detailsLink from '../craft.module.css';
+  margin-top: calc(2 * var(--desc-line));
+  height: var(--desc-line);
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+/* A dish with no description has no line to float onto — the standalone kraft button, as before. */
 .detailsButton {
   composes: btnKraft from '../primitives.module.css';
+  align-self: flex-start;
 }
 
 /* ---------- per-order-type availability (S4) ---------- */

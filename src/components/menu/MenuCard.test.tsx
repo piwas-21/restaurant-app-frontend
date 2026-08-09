@@ -156,7 +156,7 @@ describe('MenuCard — one card for both catalog kinds', () => {
    * which on a RUMI card (neither populated) stranded it above the price rule with nothing to
    * attach to. Pinned as an immediate sibling so it cannot drift back out of place.
    */
-  it('renders Details INSIDE the description, and the allergen band up on the title row', () => {
+  it('renders Details INSIDE the description, the allergens on the PHOTO and the price in the foot', () => {
     render(<MenuCard item={product} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 
     const description = screen.getByText('Classic pizza', { selector: 'p' });
@@ -166,8 +166,8 @@ describe('MenuCard — one card for both catalog kinds', () => {
     // it is deliberately NOT a heading in the accessibility tree.
     const title = document.getElementById('item-name-p1')!;
 
-    // Details is a CHILD of the paragraph now, not its next sibling: it is floated to the end of
-    // the description's second line ("…grilled sourdough... Details"), which is where
+    // Details is a CHILD of the paragraph, not its next sibling: it is floated to the end of the
+    // description's second line ("…grilled sourdough... Details"), which is where
     // `mobile_menu_light` draws it. As a sibling it cost every card a whole line of height and, on
     // the many dishes with no allergens, left the word floating in a blank band.
     expect(description.tagName).toBe('P');
@@ -176,9 +176,23 @@ describe('MenuCard — one card for both catalog kinds', () => {
     // moving it after the text puts the link back under the paragraph instead of on its last line.
     expect(description.firstElementChild).toBe(details);
 
-    // The allergen glyphs sit on the title row, sharing the dish name's line with the price.
-    expect(allergens.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(title.parentElement?.contains(allergens)).toBe(true);
+    // The allergens are ON THE PHOTOGRAPH, inside the enlarge button that owns that box — not on
+    // the dish name's line, where the owner's 2026-08-09 review found them too noisy beside the
+    // price. Asserted by containment rather than by class, because the class is what a rendering
+    // test cannot see (`identity-obj-proxy` makes every CSS-module lookup truthy — trap 11).
+    const photo = screen.getByTestId('menu-item-image');
+    expect(photo.contains(allergens)).toBe(true);
+    expect(title.contains(allergens)).toBe(false);
+    // …and BEFORE the name in the document, since the photo sits above the text column.
+    expect(allergens.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // The price left the title row for the card's foot, where it shares a baseline with the add
+    // control. Both are after the description; the price comes first in the row.
+    const price = screen.getByLabelText(/checkout_total_label/);
+    const add = screen.getByRole('button', { name: 'add_item_to_order(Margherita)' });
+    expect(title.contains(price)).toBe(false);
+    expect(description.compareDocumentPosition(price) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(price.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('Add opens without forcing (fast-add allowed) but Details forces the sheet — never a silent add', () => {
@@ -341,6 +355,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     message: 'Takeaway and Delivery only',
     switchTo: null,
     switchLabel: '',
+    shortMessage: '',
     hint: null,
   };
   const BLOCKED: AvailabilityNotice = {
@@ -348,6 +363,7 @@ describe('MenuCard — per-order-type availability (S4)', () => {
     message: 'Takeaway and Delivery only',
     switchTo: OrderType.Takeaway,
     switchLabel: 'Switch to Takeaway',
+    shortMessage: 'Not for Dine-in',
     hint: null,
   };
 

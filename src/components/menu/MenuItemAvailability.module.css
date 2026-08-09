@@ -28,11 +28,15 @@
    chip. `align-items` is left at `stretch` so a long reason wraps to the card's width; the switch
    opts out with `align-self` instead. Both are inline-axis properties in a column, so RTL mirrors
    with no override. */
+/* NO margin of its own. It renders in two slots now — `.noticeSlot` in the text column for an
+   `info` notice, and the foot row's action end for a blocked one, where the switch link stands in
+   for the removed Add button (`MenuCardFoot.module.css`). A margin baked in here would push the
+   foot row's own baseline off the price beside it. Each host pads its slot. */
 .availability {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin: 0.4rem 0 0.5rem;
+  margin: 0;
 }
 
 /* `font-label-muted` / `text-label-muted` — Public Sans 0.8rem/1.2/400, the screens' own scale for

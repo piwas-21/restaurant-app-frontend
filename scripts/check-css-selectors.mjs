@@ -42,29 +42,145 @@ const ROOT = path.resolve(HERE, '..', 'src');
  */
 const ELEMENTS = new Set([
   // Document + sections
-  'html', 'body', 'head', 'header', 'footer', 'main', 'section', 'article', 'aside', 'nav',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'address',
+  'html',
+  'body',
+  'head',
+  'header',
+  'footer',
+  'main',
+  'section',
+  'article',
+  'aside',
+  'nav',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'hgroup',
+  'address',
   // Grouping
-  'div', 'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'figure',
+  'div',
+  'p',
+  'hr',
+  'pre',
+  'blockquote',
+  'ol',
+  'ul',
+  'li',
+  'dl',
+  'dt',
+  'dd',
+  'figure',
   'figcaption',
   // Text level
-  'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data', 'time', 'code', 'var',
-  'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'ruby', 'bdi', 'bdo', 'span', 'br', 'wbr',
+  'a',
+  'em',
+  'strong',
+  'small',
+  's',
+  'cite',
+  'q',
+  'dfn',
+  'abbr',
+  'data',
+  'time',
+  'code',
+  'var',
+  'samp',
+  'kbd',
+  'sub',
+  'sup',
+  'i',
+  'b',
+  'u',
+  'mark',
+  'ruby',
+  'bdi',
+  'bdo',
+  'span',
+  'br',
+  'wbr',
   // Edits + embedded
-  'ins', 'del', 'picture', 'source', 'img', 'iframe', 'embed', 'object', 'video', 'audio',
-  'track', 'map', 'area', 'canvas',
+  'ins',
+  'del',
+  'picture',
+  'source',
+  'img',
+  'iframe',
+  'embed',
+  'object',
+  'video',
+  'audio',
+  'track',
+  'map',
+  'area',
+  'canvas',
   // Tables
-  'table', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th',
+  'table',
+  'caption',
+  'colgroup',
+  'col',
+  'tbody',
+  'thead',
+  'tfoot',
+  'tr',
+  'td',
+  'th',
   // Forms
-  'form', 'label', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea',
-  'output', 'progress', 'meter', 'fieldset', 'legend',
+  'form',
+  'label',
+  'input',
+  'button',
+  'select',
+  'datalist',
+  'optgroup',
+  'option',
+  'textarea',
+  'output',
+  'progress',
+  'meter',
+  'fieldset',
+  'legend',
   // Interactive + scripting
-  'details', 'summary', 'dialog', 'slot', 'template',
+  'details',
+  'summary',
+  'dialog',
+  'slot',
+  'template',
   // SVG (the subset this tree styles)
-  'svg', 'g', 'path', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'rect', 'text',
-  'tspan', 'defs', 'use', 'symbol', 'marker', 'clipPath', 'mask', 'pattern', 'image',
-  'linearGradient', 'radialGradient', 'stop', 'filter', 'foreignObject',
+  'svg',
+  'g',
+  'path',
+  'circle',
+  'ellipse',
+  'line',
+  'polyline',
+  'polygon',
+  'rect',
+  'text',
+  'tspan',
+  'defs',
+  'use',
+  'symbol',
+  'marker',
+  'clipPath',
+  'mask',
+  'pattern',
+  'image',
+  'linearGradient',
+  'radialGradient',
+  'stop',
+  'filter',
+  'foreignObject',
 ]);
+
+/** Block and statement boundaries — everything else is prelude text. */
+const BOUNDARIES = new Set(['{', '}', ';']);
+
+/** String delimiters CSS recognises. */
+const QUOTES = new Set(["'", '"']);
 
 /** At-rules whose direct children are rules we must inspect. */
 const NESTING_AT_RULES = new Set(['media', 'supports', 'layer', 'container', 'scope']);
@@ -113,27 +229,36 @@ function endOfQuoted(css, start) {
  * alternation inside a repetition, which is the classic super-linear backtracking shape for a check
  * that runs on every commit.
  */
+/** The quoted span at `start`, delimiters kept and interior blanked. */
+function blankQuoted(css, start) {
+  const quote = css[start];
+  const next = endOfQuoted(css, start);
+  const span = css.slice(start, next);
+  const closed = span.length > 1 && span.endsWith(quote);
+  const interior = blank(span.slice(1, closed ? -1 : undefined));
+
+  return { text: quote + interior + (closed ? quote : ''), next };
+}
+
+/** The comment span at `start`, blanked whole. */
+function blankComment(css, start) {
+  const close = css.indexOf('*/', start + 2);
+  const next = close === -1 ? css.length : close + 2;
+
+  return { text: blank(css.slice(start, next)), next };
+}
+
 function sanitize(css) {
   let out = '';
   let i = 0;
 
   while (i < css.length) {
     const ch = css[i];
+    const span = ch === '/' && css[i + 1] === '*' ? blankComment(css, i) : QUOTES.has(ch) ? blankQuoted(css, i) : null;
 
-    if (ch === '/' && css[i + 1] === '*') {
-      const close = css.indexOf('*/', i + 2);
-      const end = close === -1 ? css.length : close + 2;
-      out += blank(css.slice(i, end));
-      i = end;
-      continue;
-    }
-
-    if (ch === "'" || ch === '"') {
-      const end = endOfQuoted(css, i);
-      const span = css.slice(i, end);
-      const closed = span.length > 1 && span.endsWith(ch);
-      out += ch + blank(span.slice(1, closed ? -1 : undefined)) + (closed ? ch : '');
-      i = end;
+    if (span) {
+      out += span.text;
+      i = span.next;
       continue;
     }
 
@@ -161,6 +286,10 @@ function frameFor(prelude) {
   return name && NESTING_AT_RULES.has(name) ? 'rule' : 'opaque';
 }
 
+/** Whether a prelude is a real selector list, given what encloses it. */
+const isSelectorList = (prelude, stack) =>
+  Boolean(prelude) && !prelude.startsWith('@') && !stack.includes('keyframes') && !stack.includes('opaque');
+
 /** Every rule prelude in the file, with the line it starts on. */
 function preludes(css) {
   const found = [];
@@ -177,30 +306,24 @@ function preludes(css) {
       continue;
     }
 
+    // Anything that is not a block or statement boundary is just more prelude.
+    if (!BOUNDARIES.has(ch)) {
+      buffer += ch;
+      continue;
+    }
+
     if (ch === '{') {
       const prelude = buffer.trim();
-      const opaque = stack.includes('keyframes') || stack.includes('opaque');
-
-      if (prelude && !prelude.startsWith('@') && !opaque) {
-        found.push({ prelude, line: bufferLine });
-      }
-
+      if (isSelectorList(prelude, stack)) found.push({ prelude, line: bufferLine });
       stack.push(frameFor(prelude));
-      buffer = '';
-      bufferLine = line;
-      continue;
+    } else if (ch === '}') {
+      stack.pop();
     }
 
-    // `}` closes a block; `;` ends a declaration or an at-statement like `@import`. Neither can be
-    // part of a prelude, so both just reset the buffer.
-    if (ch === '}' || ch === ';') {
-      if (ch === '}') stack.pop();
-      buffer = '';
-      bufferLine = line;
-      continue;
-    }
-
-    buffer += ch;
+    // `}` closes a block and `;` ends a declaration or an at-statement like `@import`; neither can
+    // be part of a prelude, so every boundary resets the buffer.
+    buffer = '';
+    bufferLine = line;
   }
 
   return found;
@@ -297,9 +420,7 @@ if (violations.length > 0) {
     console.error(`  ${v.file}:${v.line}  ${v.selector}`);
     console.error(`      unknown element name(s): ${v.unknown.join(', ')}`);
   }
-  console.error(
-    '\nIf one of these IS a real element, add it to ELEMENTS in scripts/check-css-selectors.mjs.',
-  );
+  console.error('\nIf one of these IS a real element, add it to ELEMENTS in scripts/check-css-selectors.mjs.');
   process.exit(1);
 }
 

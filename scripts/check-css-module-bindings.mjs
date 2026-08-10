@@ -102,9 +102,41 @@ function walk(dir) {
  * So strings are TRACKED (to find comment openers correctly) but PRESERVED. The cost is that an
  * import specifier survives; import lines are blanked separately below.
  */
+/** String delimiters JS/TSX recognises. A backtick span survives a newline; the other two do not. */
+const QUOTES = new Set(["'", '"', '`']);
+
 /**
- * One line, comments removed and strings preserved. Returns the text plus the span still open at
- * the end of it — only a template literal and a block comment survive a newline.
+ * Copy from `from` up to and including the closing `quote`.
+ *
+ * Returns the text, the next index, and the quote if the span is still OPEN at end of line — which
+ * only matters for a template literal.
+ */
+function copyToQuoteEnd(line, from, quote) {
+  let text = '';
+  let j = from;
+
+  while (j < line.length) {
+    if (line[j] === '\\') {
+      text += line.slice(j, j + 2);
+      j += 2;
+      continue;
+    }
+
+    text += line[j];
+    j += 1;
+    if (text.endsWith(quote)) return { text, next: j, open: null };
+  }
+
+  return { text, next: j, open: quote };
+}
+
+/**
+ * One line, comments removed and strings PRESERVED, plus the span still open at the end of it.
+ *
+ * Strings are tracked but kept, which is the whole point: tracking is what stops the `/*` inside
+ * `accept="image/*"` opening a comment that swallows the rest of the file, and keeping is what
+ * leaves `className={`${styles.a}`}` visible — a stripper that drops template contents reports zero
+ * interpolated references, blind to the one class this gate most needs to see.
  */
 function stripLine(line, carried) {
   let out = '';
@@ -112,40 +144,45 @@ function stripLine(line, carried) {
   let i = 0;
 
   while (i < line.length) {
-    const two = line.slice(i, i + 2);
-
     if (state === 'block') {
-      if (two === '*/') state = 'code';
-      i += two === '*/' ? 2 : 1;
+      const close = line.indexOf('*/', i);
+      if (close === -1) return { out, carried: 'block' };
+      i = close + 2;
+      state = 'code';
       continue;
     }
 
     if (state !== 'code') {
-      out += line[i];
-      if (line[i] === '\\') {
-        out += line[i + 1] ?? '';
-        i += 2;
-        continue;
-      }
-      if (line[i] === state) state = 'code';
-      i += 1;
+      const span = copyToQuoteEnd(line, i, state);
+      out += span.text;
+      i = span.next;
+      state = span.open ?? 'code';
       continue;
     }
+
+    const two = line.slice(i, i + 2);
+    if (two === '//') break;
 
     if (two === '/*') {
       state = 'block';
       i += 2;
       continue;
     }
-    if (two === '//') break;
 
-    if (line[i] === "'" || line[i] === '"' || line[i] === '`') state = line[i];
+    if (QUOTES.has(line[i])) {
+      const span = copyToQuoteEnd(line, i + 1, line[i]);
+      out += line[i] + span.text;
+      i = span.next;
+      state = span.open ?? 'code';
+      continue;
+    }
+
     out += line[i];
     i += 1;
   }
 
-  // A plain quoted string cannot span lines; resetting here stops one unbalanced apostrophe
-  // swallowing the rest of the file.
+  // Only a block comment and a template literal carry across a newline; resetting the other two
+  // stops one unbalanced apostrophe swallowing the rest of the file.
   return { out, carried: state === 'block' || state === '`' ? state : 'code' };
 }
 
@@ -185,9 +222,7 @@ function cssImports(lines, fromDir) {
   // and a commented-out import contributes nothing, which is the point of stripping first.
   const live = lines.join('\n');
 
-  for (const [, binding, spec] of live.matchAll(
-    /import\s+(\w+)\s+from\s+['"]([^'"]*\.module\.css)['"]/g,
-  )) {
+  for (const [, binding, spec] of live.matchAll(/import\s+(\w+)\s+from\s+['"]([^'"]*\.module\.css)['"]/g)) {
     if (spec.startsWith('.')) {
       out[binding] = path.resolve(fromDir, spec);
       continue;
@@ -196,9 +231,7 @@ function cssImports(lines, fromDir) {
     if (!spec.startsWith('@/')) continue;
 
     const tail = spec.slice(2);
-    const resolved = ALIAS_ROOTS.map((root) => path.join(REPO, root, tail)).find((p) =>
-      existsSync(p),
-    );
+    const resolved = ALIAS_ROOTS.map((root) => path.join(REPO, root, tail)).find((p) => existsSync(p));
     // Unresolvable is reported as a missing stylesheet below, never silently dropped.
     out[binding] = resolved ?? path.join(REPO, ALIAS_ROOTS[0], tail);
   }

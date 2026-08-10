@@ -78,6 +78,14 @@ module.exports = {
     'src/hooks/order/useAssertBasketChannel.ts',
     'src/hooks/order/needsTakeawayInfoModal.ts',
     'src/hooks/order/useGuestProfilePrefill.ts',
+    // S8 — the online-payment branch (SOFRA-PAYMENTS-PLAN §5). Named individually for the same
+    // reason as the E9 rows above: `src/hooks`, `src/services`, `src/lib` and `src/config` are not
+    // collected wholesale, and a coverageThreshold row for an uncollected file silently no-ops.
+    'src/services/paymentService.ts',
+    'src/hooks/checkout/useOnlineCheckout.ts',
+    'src/hooks/checkout/useOnlinePaymentAvailability.ts',
+    'src/lib/checkout/unpaidOnlineOrder.ts',
+    'src/config/paymentMethods.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/passwordPolicy.ts',
     'src/schemas/password.schema.ts',
@@ -223,6 +231,23 @@ module.exports = {
     // (report), which nothing else can see: both are a 404, and the bug they replace was invisible
     // to every other gate because the old substring test type-checked and lint-passed.
     './src/utils/basketMutationError.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── S8 — the online-payment branch (SOFRA-PAYMENTS-PLAN §5). ─────────────────────────────────
+    // Three of these pin behaviour that review found and that no other gate can see: the retry
+    // classification (a 429 is TRANSIENT — `checkout-session` is rate-limited per IP while order
+    // creation is not, so treating it as permanent minted a duplicate order per press), the
+    // "did the server actually speak" discriminator in the availability catch (a status test warned
+    // on the empty-body 404 that is universal across the fleet today), and the remembered order
+    // surviving the round trip to Stripe. All measured with CI's own command
+    // (`npx jest --ci --runInBand --coverage`), pinned at actual − 1pt; every one of these five
+    // files is at 100 on every axis today.
+    './src/services/paymentService.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/hooks/checkout/useOnlineCheckout.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/hooks/checkout/useOnlinePaymentAvailability.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/lib/checkout/unpaidOnlineOrder.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/config/paymentMethods.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // The selector is lower because its file holds the disabled-radio onChange guard, which the
+    // component renders but no offered method can reach. The row guards the availability branch.
+    './src/components/checkout/PaymentMethodSelector.tsx': { statements: 84, branches: 85, functions: 65, lines: 84 },
     './src/hooks/cart/cartFailureReporting.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
     // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and

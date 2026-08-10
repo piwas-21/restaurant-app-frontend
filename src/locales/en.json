@@ -1457,6 +1457,7 @@
   "future_discount": "future discount",
   "your_current_balance": "Your Current Balance",
   "payment_methods_info": "Currently, only cash payment is available. Other payment methods are coming soon!",
+  "payment_methods_info_online": "Pay in cash at the restaurant, or pay by card now — we will take you to our secure payment page.",
   "order_confirmed": "Order Confirmed!",
   "order_confirmation_message": "Thank you for your order. We have received it and will start preparing it shortly.",
   "login_to_track_order": "💡 Login to your account to track your order status in real-time.",

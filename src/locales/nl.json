@@ -1457,6 +1457,7 @@
   "future_discount": "toekomstige korting",
   "your_current_balance": "Je huidige saldo",
   "payment_methods_info": "Momenteel is alleen contante betaling mogelijk. Andere betaalmethoden volgen binnenkort!",
+  "payment_methods_info_online": "Betaal contant in het restaurant, of nu met de kaart — we brengen je naar onze beveiligde betaalpagina.",
   "order_confirmed": "Bestelling bevestigd!",
   "order_confirmation_message": "Bedankt voor je bestelling. We hebben deze ontvangen en beginnen zo met de bereiding.",
   "login_to_track_order": "💡 Log in op je account om je bestelstatus in realtime te volgen.",

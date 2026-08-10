@@ -1417,6 +1417,7 @@
   "future_discount": "sconto futuro",
   "your_current_balance": "Il tuo saldo attuale",
   "payment_methods_info": "Attualmente è disponibile solo il pagamento in contanti. Altri metodi di pagamento arriveranno presto!",
+  "payment_methods_info_online": "Paga in contanti al ristorante, oppure con carta adesso — ti porteremo alla nostra pagina di pagamento sicura.",
   "order_confirmed": "Ordine confermato!",
   "order_confirmation_message": "Grazie per il tuo ordine. L'abbiamo ricevuto e inizieremo a prepararlo a breve.",
   "login_to_track_order": "💡 Accedi al tuo account per tracciare lo stato del tuo ordine in tempo reale.",

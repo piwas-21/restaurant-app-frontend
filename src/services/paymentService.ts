@@ -10,6 +10,8 @@ import { throwServerRefusal } from '@/utils/apiFormErrors';
 import type {
   CheckoutSessionDto,
   CheckoutSessionApiResponse,
+  CheckoutSettlementDto,
+  CheckoutSettlementApiResponse,
   OnlinePaymentAvailabilityApiResponse,
 } from '@/types/payment';
 
@@ -80,6 +82,33 @@ export async function createCheckoutSession(orderId: string): Promise<CheckoutSe
   // whose Stripe account cannot charge — RESOLVES here with the reason in `errors[0]` while
   // `message` stays the literal "Operation failed". Throwing on the message would show the diner
   // that sentence instead of the real one (frontend #435).
+  if (!response.success || !response.data) {
+    throwServerRefusal(response);
+  }
+
+  return response.data;
+}
+
+/**
+ * The return trip from Stripe: settle the session and learn where that leaves the order (S9).
+ *
+ * **This is the PRIMARY settle trigger**, not a read. S7's reconciler is the backstop for a diner
+ * who closed the tab; almost every payment in practice settles because this call was made. So it
+ * must be made even when the page could render something from elsewhere.
+ *
+ * It does NOT fail closed the way availability does, and the difference is the point: money has
+ * moved by the time anyone calls this, so a failure has to be surfaced rather than swallowed. The
+ * caller shows the diner that we could not confirm it yet — never that it failed, which we do not
+ * know.
+ */
+export async function getCheckoutStatus(sessionId: string): Promise<CheckoutSettlementDto> {
+  const response = await apiClient.get<CheckoutSettlementApiResponse>(
+    `/api/payments/checkout-status?sessionId=${encodeURIComponent(sessionId)}`,
+    { requireAuth: false },
+  );
+
+  // Same reasoning as createCheckoutSession: a 200-wrapped refusal must not reach the diner as the
+  // literal "Operation failed" (#435).
   if (!response.success || !response.data) {
     throwServerRefusal(response);
   }

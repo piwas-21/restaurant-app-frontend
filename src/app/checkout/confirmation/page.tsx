@@ -29,6 +29,7 @@ import {
 import Image from 'next/image';
 import styles from '../../styles/ConfirmationPage.module.css';
 import ConfirmationSuccessHeader from './ConfirmationSuccessHeader';
+import CheckoutReturnView from '@/components/checkout/CheckoutReturnView';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 
 function ConfirmationContent() {
@@ -421,7 +422,22 @@ export default function ConfirmationPage() {
         </main>
       }
     >
-      <ConfirmationContent />
+      <ConfirmationRoute />
     </Suspense>
   );
+}
+
+/**
+ * A `sessionId` means the diner is coming back from Stripe, and that is a different page: the
+ * question is "did my payment go through", not "what did I order". The order detail below is
+ * auth-gated, so a returning GUEST rendered through ConfirmationContent would be shown a load
+ * error exactly where the answer about their money belongs.
+ *
+ * Branching HERE rather than inside ConfirmationContent keeps that component untouched and, more
+ * usefully, keeps the settle call — which is a WRITE — off every ordinary confirmation visit.
+ */
+function ConfirmationRoute() {
+  const sessionId = useSearchParams().get('sessionId');
+
+  return sessionId ? <CheckoutReturnView sessionId={sessionId} /> : <ConfirmationContent />;
 }

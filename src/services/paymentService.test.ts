@@ -12,7 +12,7 @@
  * be minted, mid-checkout, after they have chosen to pay. The tests are asymmetric on purpose.
  */
 
-import { getOnlinePaymentAvailability, createCheckoutSession } from './paymentService';
+import { getOnlinePaymentAvailability, createCheckoutSession, getCheckoutStatus } from './paymentService';
 import { apiClient, ApiError } from '@/utils/apiClient';
 
 // Mock the HTTP surface only — a bare `jest.mock('@/utils/apiClient')` automocks the module and
@@ -191,5 +191,56 @@ describe('createCheckoutSession', () => {
     mockApiClient.post.mockRejectedValue(new ApiError(500, 'Internal Server Error'));
 
     await expect(createCheckoutSession('order-1')).rejects.toThrow();
+  });
+});
+
+describe('getCheckoutStatus', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const settlement = { orderNumber: 'A-001', paymentStatus: 'Completed', orderStatus: 'Confirmed' };
+
+  it('settles the session and returns where that leaves the order', () => {
+    mockApiClient.get.mockResolvedValue({ success: true, data: settlement });
+
+    return expect(getCheckoutStatus('cs_test_1')).resolves.toEqual(settlement);
+  });
+
+  it('encodes the session id into the query string', async () => {
+    mockApiClient.get.mockResolvedValue({ success: true, data: settlement });
+
+    await getCheckoutStatus('cs_test/1+2');
+
+    expect(mockApiClient.get).toHaveBeenCalledWith('/api/payments/checkout-status?sessionId=cs_test%2F1%2B2', {
+      requireAuth: false,
+    });
+  });
+
+  it('is ANONYMOUS — a returning guest has no account (ADR-004)', async () => {
+    mockApiClient.get.mockResolvedValue({ success: true, data: settlement });
+
+    await getCheckoutStatus('cs_test_1');
+
+    expect(mockApiClient.get).toHaveBeenCalledWith(expect.any(String), { requireAuth: false });
+  });
+
+  it('does NOT fail closed, unlike availability — money has already moved', async () => {
+    // Swallowing this into a `false`-shaped answer would leave the caller unable to tell "not paid"
+    // from "we could not ask", and those must reach the diner as different sentences.
+    mockApiClient.get.mockRejectedValue(new ApiError(500, 'Internal Server Error'));
+
+    await expect(getCheckoutStatus('cs_test_1')).rejects.toThrow();
+  });
+
+  it('throws the SERVER’s sentence for a 200-wrapped refusal', async () => {
+    mockApiClient.get.mockResolvedValue({
+      success: false,
+      message: 'Operation failed',
+      errors: ['Checkout session not found'],
+    });
+
+    await expect(getCheckoutStatus('cs_test_1')).rejects.toMatchObject({
+      status: 200,
+      errors: ['Checkout session not found'],
+    });
   });
 });

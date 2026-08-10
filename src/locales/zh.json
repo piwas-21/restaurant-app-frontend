@@ -559,6 +559,7 @@
   "standard": "标准",
   "ingredients": "配料",
   "allergens": "过敏原",
+  "allergens_more_title": "另有 {{count}} 种过敏原：{{list}}",
   "variations": "规格",
   "preparation_time": "准备时间",
   "suggested_sides": "建议搭配",

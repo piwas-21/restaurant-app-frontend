@@ -565,6 +565,7 @@
   "standard": "Standart",
   "ingredients": "İçindekiler",
   "allergens": "Alerjenler",
+  "allergens_more_title": "+{{count}} alerjen daha: {{list}}",
   "variations": "Varyasyonlar",
   "preparation_time": "Hazırlık Süresi",
   "suggested_sides": "Önerilen Yan Yemekler",

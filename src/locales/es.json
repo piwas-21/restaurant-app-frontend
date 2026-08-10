@@ -557,6 +557,7 @@
   "select_primary_category": "Seleccione una categoría principal...",
   "ingredients": "Ingredientes",
   "allergens": "Alérgenos",
+  "allergens_more_title": "+{{count}} alérgenos más: {{list}}",
   "variations": "Variaciones",
   "preparation_time": "Tiempo de preparación",
   "suggested_sides": "Acompañamientos sugeridos",

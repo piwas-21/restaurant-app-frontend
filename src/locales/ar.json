@@ -563,6 +563,7 @@
   "select_primary_category": "اختر فئة أساسية...",
   "ingredients": "المكونات",
   "allergens": "المواد المسببة للحساسية",
+  "allergens_more_title": "+{{count}} مسببات حساسية أخرى: {{list}}",
   "variations": "الخيارات",
   "preparation_time": "وقت التحضير",
   "suggested_sides": "الأطباق الجانبية المقترحة",

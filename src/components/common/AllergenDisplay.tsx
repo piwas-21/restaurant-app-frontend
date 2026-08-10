@@ -89,7 +89,11 @@ function AllergenChips({
           className={[styles.allergenTag, styles.more, iconOnly ? styles.iconChip : null, classes?.chip]
             .filter(Boolean)
             .join(' ')}
-          title={`+${remaining} more allergens: ${allergens.slice(maxVisible).map(label).join(', ')}`}
+          title={t('allergens_more_title', {
+            count: remaining,
+            list: allergens.slice(maxVisible).map(label).join(', '),
+            defaultValue: '+{{count}} more allergens: {{list}}',
+          })}
         >
           +{remaining}
         </span>

@@ -1396,6 +1396,7 @@
   "future_discount": "未来折扣",
   "your_current_balance": "您的当前积分余额",
   "payment_methods_info": "目前仅支持现金支付。更多支付方式即将推出！",
+  "payment_methods_info_online": "可在餐厅现金支付，或现在使用银行卡支付——我们会将您引导至安全支付页面。",
   "order_confirmed": "订单已确认！",
   "order_confirmation_message": "感谢您的订单，我们已收到并将尽快开始准备。",
   "login_to_track_order": "💡 登录您的账户即可实时跟踪订单状态。",

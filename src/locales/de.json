@@ -1420,6 +1420,7 @@
   "future_discount": "zukünftiger Rabatt",
   "your_current_balance": "Ihr aktueller Kontostand",
   "payment_methods_info": "Derzeit ist nur Barzahlung verfügbar. Weitere Zahlungsmethoden werden bald verfügbar sein!",
+  "payment_methods_info_online": "Zahlen Sie bar im Restaurant oder jetzt mit Karte — wir leiten Sie zu unserer sicheren Zahlungsseite weiter.",
   "order_confirmed": "Bestellung bestätigt!",
   "order_confirmation_message": "Vielen Dank für Ihre Bestellung. Wir haben sie erhalten und werden sie in Kürze zubereiten.",
   "login_to_track_order": "💡 Melden Sie sich bei Ihrem Konto an, um Ihren Bestellstatus in Echtzeit zu verfolgen.",

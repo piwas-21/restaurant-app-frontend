@@ -1422,6 +1422,7 @@
   "future_discount": "gelecekteki indirim",
   "your_current_balance": "Mevcut Bakiyeniz",
   "payment_methods_info": "Şu anda yalnızca nakit ödeme mevcut. Diğer ödeme yöntemleri yakında gelecek!",
+  "payment_methods_info_online": "Restoranda nakit ödeyin veya şimdi kartla ödeyin — sizi güvenli ödeme sayfamıza yönlendireceğiz.",
   "order_confirmed": "Sipariş Onaylandı!",
   "order_confirmation_message": "Siparişiniz için teşekkür ederiz. Siparişinizi aldık ve kısa süre içinde hazırlamaya başlayacağız.",
   "login_to_track_order": "💡 Sipariş durumunuzu gerçek zamanlı olarak izlemek için hesabınıza giriş yapın.",

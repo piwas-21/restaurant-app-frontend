@@ -18,6 +18,10 @@ export interface PaymentMethodOption {
   disabled: boolean;
 }
 
+/**
+ * The full payment-method vocabulary. `disabled` here is the *default* — see
+ * {@link offerablePaymentMethods}, which is what the checkout page must render.
+ */
 export const PAYMENT_METHODS: PaymentMethodOption[] = [
   {
     value: PaymentMethod.Cash,
@@ -74,3 +78,32 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
     disabled: true,
   },
 ];
+
+/**
+ * The methods a checkout page may actually show, given whether this restaurant can take an
+ * online payment (SOFRA-PAYMENTS-PLAN §5 S8 — the answer comes from
+ * `GET /api/payments/availability`, which fails closed).
+ *
+ * **Online payment is HIDDEN when unavailable rather than shown "Coming Soon", and that is a
+ * deliberate departure from its four neighbours.** Credit card, debit card, mobile payment and
+ * bank transfer are placeholders for work nobody has started; "coming soon" is true of them.
+ * Online payment is a purchasable module — on a tenant that did not buy it, "coming soon"
+ * promises something that will never arrive unless they pay for it, and the codebase's own rule
+ * for an unbought module is that its surface does not exist on this instance (the backend
+ * answers 404, not 403, for exactly that reason).
+ */
+export function offerablePaymentMethods(onlinePaymentAvailable: boolean): PaymentMethodOption[] {
+  if (!onlinePaymentAvailable) {
+    return PAYMENT_METHODS.filter((method) => method.value !== PaymentMethod.OnlinePayment);
+  }
+
+  // A copy, never a mutation of the shared catalog. The justification here first named
+  // `paymentMethodDisplay` as the victim of an in-place flip — that was WRONG, it reads only
+  // `.label` and never `.disabled`. The real reason is plainer and does not depend on today's
+  // consumers: `PAYMENT_METHODS` is module-level mutable state, so flipping a flag in it makes
+  // one call to this function change what every LATER call returns, including calls that pass
+  // `false`. That is a bug no test of this function's return value would show.
+  return PAYMENT_METHODS.map((method) =>
+    method.value === PaymentMethod.OnlinePayment ? { ...method, disabled: false } : method,
+  );
+}

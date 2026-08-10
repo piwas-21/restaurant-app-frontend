@@ -1422,6 +1422,7 @@
   "future_discount": "réduction future",
   "your_current_balance": "Votre solde actuel",
   "payment_methods_info": "Actuellement, seul le paiement en espèces est disponible. D'autres méthodes de paiement arrivent bientôt!",
+  "payment_methods_info_online": "Payez en espèces au restaurant, ou par carte maintenant — nous vous dirigerons vers notre page de paiement sécurisée.",
   "order_confirmed": "Commande confirmée !",
   "order_confirmation_message": "Merci pour votre commande. Nous l'avons reçue et commencerons à la préparer bientôt.",
   "login_to_track_order": "💡 Connectez-vous à votre compte pour suivre votre statut de commande en temps réel.",

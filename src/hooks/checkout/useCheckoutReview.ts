@@ -5,9 +5,10 @@
 // Verbatim lift: payment/points/tip state, display tax (useCheckoutTax), the
 // place-order submit (buildOrderCommand), and the confirmation modal +
 // auth-aware close routing. The prereq guard now lives in
-// useCheckoutPrereqGuard, which owns its store-hydration gate.
+// useCheckoutPrereqGuard, which owns its store-hydration gate; the success
+// modal in useOrderConfirmationModal; the online-payment branch in
+// useOnlineCheckout (S8).
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { useCheckout } from '@/contexts/CheckoutContext';
@@ -24,10 +25,12 @@ import { PaymentMethod, OrderType as OrderTypeEnum } from '@/types/order';
 import { buildOrderCommand } from '@/lib/checkout/buildOrderCommand';
 import { useCheckoutTax } from './useCheckoutTax';
 import { useCheckoutPrereqGuard } from './useCheckoutPrereqGuard';
+import { useOrderConfirmationModal } from './useOrderConfirmationModal';
+import { useOnlinePaymentAvailability } from './useOnlinePaymentAvailability';
+import { useOnlineCheckout } from './useOnlineCheckout';
 
 export function useCheckoutReview() {
   const { t } = useTranslation();
-  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const { state: checkoutState, clearCheckout, setTipAmount } = useCheckout();
   const { clearOrderType } = useOrderType();
@@ -42,24 +45,15 @@ export function useCheckoutReview() {
   const [pointsDiscount, setPointsDiscount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [confirmedOrder, setConfirmedOrder] = useState<{
-    id: string;
-    orderNumber: string;
-    customerEmail: string;
-  } | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const confirmation = useOrderConfirmationModal();
+  const onlinePaymentAvailable = useOnlinePaymentAvailability();
+  const { payOnline } = useOnlineCheckout();
 
   const { taxConfig, taxAmount } = useCheckoutTax(checkoutState.orderType, cartState.basket);
   // Skipped while a just-confirmed order is showing — placing the order clears
   // both stores, and the success modal must not be redirected out from under it.
-  const { isMissingPrereqs } = useCheckoutPrereqGuard(confirmedOrder !== null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsLoggedIn(!!localStorage.getItem('auth_token'));
-    }
-  }, []);
+  const { isMissingPrereqs } = useCheckoutPrereqGuard(confirmation.confirmedOrder !== null);
 
   // Page-view event — fire ONCE on first client mount (ref guard survives
   // StrictMode double-invoke + cart/tax re-renders).
@@ -70,31 +64,18 @@ export function useCheckoutReview() {
     trackEvent('checkout_review_viewed', { loggedIn: isLoggedInForAnalytics() });
   }, []);
 
-  useEffect(() => {
-    if (confirmedOrder) setShowConfirmationModal(true);
-  }, [confirmedOrder]);
-
   const handlePointsRedemption = (points: number, discountAmount: number) => {
     setRedeemedPoints(points);
     setPointsDiscount(discountAmount);
   };
 
-  // Close (X / ESC / backdrop / "Back to Menu"). The confirmation page is
-  // auth-gated, so guests would hit "Failed to load order details" → send them
-  // to /menu (they already saw the number + email).
-  const handleCloseConfirmationModal = () => {
-    setShowConfirmationModal(false);
-    if (!confirmedOrder) return;
-    if (isLoggedIn) {
-      router.push(`/checkout/confirmation?orderId=${confirmedOrder.id}&orderNumber=${confirmedOrder.orderNumber}`);
-    } else {
-      router.push('/menu');
-    }
-  };
-
   const handlePlaceOrder = async () => {
     setIsSubmitting(true);
     setSubmitError('');
+    // Set only on the online branch's success path, where the browser is leaving for Stripe and
+    // Place Order must STAY disabled. A `return` inside `try` still runs `finally`, so the flag
+    // is what makes that true rather than the comment beside the return.
+    let leavingForStripe = false;
 
     try {
       const orderCommand = buildOrderCommand({
@@ -112,6 +93,21 @@ export function useCheckoutReview() {
         redeemedPoints,
       });
 
+      // The online branch leaves this page for Stripe and finishes on the return trip (S9), so
+      // NONE of the completion below applies to it: no success modal for an order nobody has
+      // paid for, no confirmation email, and — the one the plan calls out — the cart is
+      // deliberately NOT cleared. A diner who abandons Stripe comes back to a page that still
+      // works; clearing here would return them to an expired order and an empty basket.
+      if (selectedPaymentMethod === PaymentMethod.OnlinePayment) {
+        await payOnline(orderCommand);
+        // Leave Place Order DISABLED: the browser is already navigating to Stripe, and
+        // re-enabling it for the fraction of a second that takes invites a second press —
+        // `checkout-session` is rate-limited at 10 per 15 minutes per IP, and a whole dine-in
+        // room shares one.
+        leavingForStripe = true;
+        return;
+      }
+
       const createdOrder = await createOrderFromBasket(orderCommand);
 
       trackEvent('checkout_completed', {
@@ -122,7 +118,7 @@ export function useCheckoutReview() {
         source: 'review',
       });
 
-      setConfirmedOrder({
+      confirmation.setConfirmedOrder({
         id: createdOrder.id,
         orderNumber: createdOrder.orderNumber,
         customerEmail: checkoutState.customerInfo?.email || '',
@@ -153,7 +149,7 @@ export function useCheckoutReview() {
         anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
       });
     } finally {
-      setIsSubmitting(false);
+      if (!leavingForStripe) setIsSubmitting(false);
     }
   };
 
@@ -168,6 +164,7 @@ export function useCheckoutReview() {
     orderTypeFollowUp,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
+    onlinePaymentAvailable,
     redeemedPoints,
     handlePointsRedemption,
     taxConfig,
@@ -176,15 +173,15 @@ export function useCheckoutReview() {
     setTipAmount,
     isSubmitting,
     submitError,
-    showConfirmationModal,
-    confirmedOrder,
-    isLoggedIn,
-    handleCloseConfirmationModal,
+    showConfirmationModal: confirmation.showConfirmationModal,
+    confirmedOrder: confirmation.confirmedOrder,
+    isLoggedIn: confirmation.isLoggedIn,
+    handleCloseConfirmationModal: confirmation.handleCloseConfirmationModal,
     handlePlaceOrder,
     formatPrice,
     formatTotal,
     // Loading placeholder only when prereqs are missing AND no just-confirmed
     // order (the confirmation modal renders instead).
-    isLoading: isMissingPrereqs && !confirmedOrder,
+    isLoading: isMissingPrereqs && !confirmation.confirmedOrder,
   };
 }

@@ -52,6 +52,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
     orderTypeFollowUp,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
+    onlinePaymentAvailable,
     redeemedPoints,
     handlePointsRedemption,
     taxConfig,
@@ -137,6 +138,7 @@ export default function CheckoutReviewLayout({ styles: bundle }: { readonly styl
               <PaymentMethodSelector
                 selectedMethod={selectedPaymentMethod}
                 onMethodChange={setSelectedPaymentMethod}
+                onlinePaymentAvailable={onlinePaymentAvailable}
                 styles={bundle.payment}
               />
 

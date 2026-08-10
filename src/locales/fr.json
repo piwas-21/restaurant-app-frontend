@@ -930,6 +930,7 @@
   "cancellation_reason_placeholder": "Veuillez spécifier une raison d'annulation...",
   "cancelling": "Annulation en cours...",
   "refund_payment_warning": "Cela traitera un remboursement pour le paiement sélectionné.",
+  "gateway_refund_notice": "Les paiements en ligne sont remboursés depuis votre tableau de bord {{gateway}} — ils ne peuvent pas être remboursés ici.",
   "select_payment": "Sélectionner un Paiement",
   "select_payment_to_refund": "Sélectionnez un paiement à rembourser",
   "refund_amount": "Montant du Remboursement",

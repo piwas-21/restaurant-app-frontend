@@ -932,6 +932,7 @@
   "cancellation_reason_placeholder": "Please provide a reason for cancelling this order...",
   "cancelling": "Cancelling...",
   "refund_payment_warning": "This will process a refund for the selected payment.",
+  "gateway_refund_notice": "Online payments are refunded from your {{gateway}} dashboard — they cannot be refunded here.",
   "select_payment": "Select Payment",
   "select_payment_to_refund": "Select a payment to refund",
   "refund_amount": "Refund Amount",

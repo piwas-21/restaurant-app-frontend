@@ -41,7 +41,10 @@ export interface AddPaymentToOrderCommand {
   referenceNumber?: string;
   cardLastFourDigits?: string;
   cardType?: string;
-  paymentGateway?: string;
+  // `paymentGateway` was declared here and set by nothing. It is gone because the backend command
+  // no longer binds it (S11): the field decides whether a tender can be refunded at all, so a
+  // request that could set it was a way to make a real till payment permanently unrefundable.
+  // Same removal #472 made on the order-creation path, one endpoint later.
   paymentNotes?: string;
 }
 

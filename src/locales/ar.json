@@ -924,6 +924,7 @@
   "cancellation_reason_placeholder": "يرجى تحديد سبب الإلغاء...",
   "cancelling": "جاري الإلغاء...",
   "refund_payment_warning": "سيؤدي هذا إلى معالجة استرداد للدفع المحدد.",
+  "gateway_refund_notice": "تتم إعادة المدفوعات عبر الإنترنت من لوحة تحكم {{gateway}} — ولا يمكن ردها من هنا.",
   "select_payment": "اختر الدفع",
   "select_payment_to_refund": "اختر دفعة لاستردادها",
   "refund_amount": "مبلغ الاسترداد",

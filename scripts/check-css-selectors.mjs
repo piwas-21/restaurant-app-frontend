@@ -248,13 +248,21 @@ function blankComment(css, start) {
   return { text: blank(css.slice(start, next)), next };
 }
 
+/** The span to blank at `i` — a comment or a quoted string — or null if `i` is ordinary CSS. */
+function blankableAt(css, i) {
+  if (css[i] === '/' && css[i + 1] === '*') return blankComment(css, i);
+  if (QUOTES.has(css[i])) return blankQuoted(css, i);
+
+  return null;
+}
+
 function sanitize(css) {
   let out = '';
   let i = 0;
 
   while (i < css.length) {
     const ch = css[i];
-    const span = ch === '/' && css[i + 1] === '*' ? blankComment(css, i) : QUOTES.has(ch) ? blankQuoted(css, i) : null;
+    const span = blankableAt(css, i);
 
     if (span) {
       out += span.text;

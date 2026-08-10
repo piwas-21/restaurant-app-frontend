@@ -86,6 +86,8 @@ module.exports = {
     'src/hooks/checkout/useOnlinePaymentAvailability.ts',
     'src/lib/checkout/unpaidOnlineOrder.ts',
     'src/config/paymentMethods.ts',
+    // S9 — the return trip.
+    'src/hooks/checkout/useCheckoutReturn.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/passwordPolicy.ts',
     'src/schemas/password.schema.ts',
@@ -245,6 +247,14 @@ module.exports = {
     './src/hooks/checkout/useOnlinePaymentAvailability.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/lib/checkout/unpaidOnlineOrder.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/config/paymentMethods.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── S9 — the return trip (SOFRA-PAYMENTS-PLAN §5). ───────────────────────────────────────────
+    // `useCheckoutReturn` decides whether a diner is told their payment succeeded, and its rule is
+    // "pending unless proven paid" — an optimistic default reddens four of its tests. The panel's
+    // row guards the assertion the component exists for: the "Order Received" banner renders on
+    // exactly one of five outcomes.
+    './src/hooks/checkout/useCheckoutReturn.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/components/checkout/CheckoutReturnPanel.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/components/checkout/CheckoutReturnView.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
     // The selector is lower because its file holds the disabled-radio onChange guard, which the
     // component renders but no offered method can reach. The row guards the availability branch.
     './src/components/checkout/PaymentMethodSelector.tsx': { statements: 84, branches: 85, functions: 65, lines: 84 },

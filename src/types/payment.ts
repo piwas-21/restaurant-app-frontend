@@ -26,5 +26,20 @@ export interface CheckoutSessionDto {
   amountMinor: number;
 }
 
+/**
+ * Mirrors `CheckoutSettlementDto` — what the return trip learns (S9).
+ *
+ * Three fields and no amount, deliberately: the endpoint is anonymous, so everything here is
+ * readable by anyone holding a session id, and the diner just saw the amount on Stripe's own page.
+ */
+export interface CheckoutSettlementDto {
+  orderNumber: string;
+  /** The ORDER's aggregate payment state, not the tender's. Enum NAME, e.g. `Completed`. */
+  paymentStatus: string;
+  /** Enum NAME, e.g. `Confirmed` / `Cancelled`. */
+  orderStatus: string;
+}
+
 export type OnlinePaymentAvailabilityApiResponse = ApiResponse<OnlinePaymentAvailabilityDto>;
+export type CheckoutSettlementApiResponse = ApiResponse<CheckoutSettlementDto>;
 export type CheckoutSessionApiResponse = ApiResponse<CheckoutSessionDto>;

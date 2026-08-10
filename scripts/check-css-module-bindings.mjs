@@ -102,45 +102,64 @@ function walk(dir) {
  * So strings are TRACKED (to find comment openers correctly) but PRESERVED. The cost is that an
  * import specifier survives; import lines are blanked separately below.
  */
-function stripComments(source) {
-  const out = [];
-  let inBlock = false;
+/**
+ * One line, comments removed and strings preserved. Returns the text plus the span still open at
+ * the end of it — only a template literal and a block comment survive a newline.
+ */
+function stripLine(line, carried) {
+  let out = '';
+  let state = carried;
+  let i = 0;
 
-  for (const line of source.split('\n')) {
-    let result = '';
-    let quote = null;
-    let i = 0;
+  while (i < line.length) {
+    const two = line.slice(i, i + 2);
 
-    while (i < line.length) {
-      const two = line.slice(i, i + 2);
-
-      if (inBlock) {
-        if (two === '*/') { inBlock = false; i += 2; } else { i += 1; }
-        continue;
-      }
-
-      if (quote) {
-        result += line[i];
-        if (line[i] === '\\') { result += line[i + 1] ?? ''; i += 2; continue; }
-        if (line[i] === quote) quote = null;
-        i += 1;
-        continue;
-      }
-
-      if (two === '/*') { inBlock = true; i += 2; continue; }
-      if (two === '//') break;
-
-      if (line[i] === "'" || line[i] === '"' || line[i] === '`') quote = line[i];
-      result += line[i];
-      i += 1;
+    if (state === 'block') {
+      if (two === '*/') state = 'code';
+      i += two === '*/' ? 2 : 1;
+      continue;
     }
 
-    // A plain quoted string cannot span lines; only a template literal and a block comment can.
-    if (quote !== '`') quote = null;
-    out.push(result);
+    if (state !== 'code') {
+      out += line[i];
+      if (line[i] === '\\') {
+        out += line[i + 1] ?? '';
+        i += 2;
+        continue;
+      }
+      if (line[i] === state) state = 'code';
+      i += 1;
+      continue;
+    }
+
+    if (two === '/*') {
+      state = 'block';
+      i += 2;
+      continue;
+    }
+    if (two === '//') break;
+
+    if (line[i] === "'" || line[i] === '"' || line[i] === '`') state = line[i];
+    out += line[i];
+    i += 1;
   }
 
-  return out;
+  // A plain quoted string cannot span lines; resetting here stops one unbalanced apostrophe
+  // swallowing the rest of the file.
+  return { out, carried: state === 'block' || state === '`' ? state : 'code' };
+}
+
+function stripComments(source) {
+  const lines = [];
+  let carried = 'code';
+
+  for (const line of source.split('\n')) {
+    const step = stripLine(line, carried);
+    carried = step.carried;
+    lines.push(step.out);
+  }
+
+  return lines;
 }
 
 /** Import lines blanked, so a specifier cannot masquerade as a usage (`styles.module`). */
@@ -237,7 +256,7 @@ for (const file of files) {
     }
 
     const used = new Set(
-      [...body.matchAll(new RegExp(`\\b${binding}\\.([A-Za-z]\\w*)`, 'g'))].map(([, n]) => n),
+      [...body.matchAll(new RegExp(String.raw`\b${binding}\.([A-Za-z]\w*)`, 'g'))].map(([, n]) => n),
     );
     referenceCount += used.size;
 
@@ -246,7 +265,7 @@ for (const file of files) {
 
       // Interpolated into a template literal, `undefined` stringifies into the class attribute
       // instead of being omitted — the difference between dead and actively wrong.
-      const interpolated = new RegExp(`\\$\\{[^}]*\\b${binding}\\.${name}\\b`).test(body);
+      const interpolated = new RegExp(String.raw`\$\{[^}]*\b${binding}\.${name}\b`).test(body);
 
       violations.push({
         file: path.relative(REPO, file),
@@ -264,6 +283,13 @@ if (files.length === 0 || bindingCount === 0) {
   );
   process.exit(2);
 }
+
+/** How each violation kind is explained in the failure output. */
+const NOTES = {
+  'renders-undefined': 'INTERPOLATED — this really does serve class="… undefined"',
+  'missing-stylesheet': 'the imported stylesheet does not exist',
+  dead: 'dead reference (React omits the attribute entirely)',
+};
 
 const key = (v) => `${v.file} :: ${v.name}`;
 const current = violations.map(key).sort((a, b) => a.localeCompare(b));
@@ -301,13 +327,7 @@ if (added.length > 0) {
   console.error('CSS-module bindings: new dangling reference(s).\n');
 
   for (const v of added) {
-    const note =
-      v.kind === 'renders-undefined'
-        ? 'INTERPOLATED — this really does serve class="… undefined"'
-        : v.kind === 'missing-stylesheet'
-          ? 'the imported stylesheet does not exist'
-          : 'dead reference (React omits the attribute entirely)';
-    console.error(`  ${v.file}  ${v.name}\n      ${note}`);
+    console.error(`  ${v.file}  ${v.name}\n      ${NOTES[v.kind] ?? NOTES.dead}`);
   }
 
   console.error(

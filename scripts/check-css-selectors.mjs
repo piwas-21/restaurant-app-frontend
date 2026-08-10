@@ -79,40 +79,64 @@ function walk(dir) {
   return out;
 }
 
+/** Everything but newlines replaced by spaces, so offsets and line numbers survive. */
+const blank = (text) => text.replace(/[^\n]/g, ' ');
+
+/** Index just past the closing quote of the string starting at `start` (or end of input). */
+function endOfQuoted(css, start) {
+  const quote = css[start];
+  let i = start + 1;
+
+  while (i < css.length) {
+    if (css[i] === '\\') {
+      i += 2;
+      continue;
+    }
+    if (css[i] === quote) return i + 1;
+    i += 1;
+  }
+
+  return i;
+}
+
 /**
- * Blank out comments while preserving offsets, so a reported line number still points at the line
- * the author is looking at. Replacing them with '' would shift every line after the first comment.
+ * Blank comment bodies AND string interiors in one pass, preserving offsets so a reported line
+ * number still points at the line the author is looking at.
  *
- * STRING-AWARE, and it has to be: `content: '/*'` is a legal declaration, and a regex stripper
- * reads it as opening a comment and blanks everything to the next `*​/` — which would swallow real
- * prose and let this gate pass the very bug it exists for. Quoted spans are copied through
- * untouched; only genuine comments are blanked.
+ * Both halves are needed, and for different reasons. Comments must be found STRING-AWARE, or
+ * `content: '/*'` reads as opening a comment and blanks everything to the next `*​/` — swallowing
+ * real prose and letting this gate pass the very bug it exists for. And string interiors must then
+ * be emptied, or `content: '{'` pushes the rule stack and `content: '}'` pops it, desynchronising
+ * every prelude after it in the file.
+ *
+ * Written as a scanner rather than two regexes: the obvious `'([^'\\\n]|\\.)*'` puts an
+ * alternation inside a repetition, which is the classic super-linear backtracking shape for a check
+ * that runs on every commit.
  */
-function blankComments(css) {
+function sanitize(css) {
   let out = '';
-  let quote = null;
   let i = 0;
 
   while (i < css.length) {
     const ch = css[i];
 
-    if (quote) {
-      out += ch;
-      if (ch === '\\') { out += css[i + 1] ?? ''; i += 2; continue; }
-      if (ch === quote) quote = null;
-      i += 1;
-      continue;
-    }
-
     if (ch === '/' && css[i + 1] === '*') {
-      const end = css.indexOf('*/', i + 2);
-      const stop = end === -1 ? css.length : end + 2;
-      out += css.slice(i, stop).replace(/[^\n]/g, ' ');
-      i = stop;
+      const close = css.indexOf('*/', i + 2);
+      const end = close === -1 ? css.length : close + 2;
+      out += blank(css.slice(i, end));
+      i = end;
       continue;
     }
 
-    if (ch === "'" || ch === '"') quote = ch;
+    if (ch === "'" || ch === '"') {
+      const end = endOfQuoted(css, i);
+      const span = css.slice(i, end);
+      const closed = span.length > 1 && span.endsWith(ch);
+      out += ch + blank(span.slice(1, closed ? -1 : undefined)) + (closed ? ch : '');
+      i = end;
+      continue;
+    }
+
     out += ch;
     i += 1;
   }
@@ -121,23 +145,23 @@ function blankComments(css) {
 }
 
 /**
- * Blank out the CONTENTS of quoted strings, offsets preserved.
+ * What a `{` opens, from the prelude in front of it.
  *
- * Run after comments, and for the other half of the same hazard: `content: '{'` would otherwise pop
- * the rule stack and `content: '}'` would push it, desynchronising every prelude after it in the
- * file. The strings themselves are never selectors, so nothing is lost by emptying them.
+ * `keyframes` bodies hold `from`/`to`/percentages; any other NON-nesting at-rule (`@font-face`,
+ * `@property`) holds declarations. Neither contains selectors, so both are opaque. A nesting
+ * at-rule (`@media`, `@supports`, `@layer`) is transparent — that is where half of this tree's CSS
+ * lives, and its children are ordinary rules.
  */
-function blankStrings(css) {
-  return css.replace(/'([^'\\\n]|\\.)*'|"([^"\\\n]|\\.)*"/g, (m) => m[0] + ' '.repeat(m.length - 2) + m[0]);
+function frameFor(prelude) {
+  if (!prelude.startsWith('@')) return 'rule';
+
+  const name = /^@([\w-]+)/.exec(prelude)?.[1]?.toLowerCase();
+  if (name === 'keyframes') return 'keyframes';
+
+  return name && NESTING_AT_RULES.has(name) ? 'rule' : 'opaque';
 }
 
-/**
- * Every rule prelude in the file, with the line it starts on.
- *
- * At-rule preludes are skipped (`@media (min-width: …)` is not a selector), and so is everything
- * inside `@keyframes`, whose "selectors" are `from`, `to` and percentages. Rules nested inside
- * `@media`/`@supports`/`@layer` ARE collected — that is where half of this tree's CSS lives.
- */
+/** Every rule prelude in the file, with the line it starts on. */
 function preludes(css) {
   const found = [];
   const stack = [];
@@ -145,11 +169,9 @@ function preludes(css) {
   let bufferLine = 1;
   let line = 1;
 
-  for (let i = 0; i < css.length; i++) {
-    const ch = css[i];
-
+  for (const ch of css) {
     if (ch === '\n') {
-      line++;
+      line += 1;
       if (!buffer.trim()) bufferLine = line;
       buffer += ch;
       continue;
@@ -157,33 +179,22 @@ function preludes(css) {
 
     if (ch === '{') {
       const prelude = buffer.trim();
-      const isAtRule = prelude.startsWith('@');
-      const atName = isAtRule ? /^@([\w-]+)/.exec(prelude)?.[1]?.toLowerCase() : null;
-      // `keyframes` selectors are `from`/`to`/percentages; any other non-nesting at-rule
-      // (`@font-face`, `@property`) contains declarations, never selectors. Both are skipped —
-      // the marker is consulted rather than merely recorded, which an earlier draft did not do.
-      const insideOpaque = stack.some((f) => f === 'keyframes' || f === 'opaque');
+      const opaque = stack.includes('keyframes') || stack.includes('opaque');
 
-      if (!isAtRule && !insideOpaque && prelude) {
+      if (prelude && !prelude.startsWith('@') && !opaque) {
         found.push({ prelude, line: bufferLine });
       }
 
-      // `keyframes` marks its whole body as off-limits; a nesting at-rule is transparent.
-      stack.push(atName === 'keyframes' ? 'keyframes' : atName && !NESTING_AT_RULES.has(atName) ? 'opaque' : 'rule');
+      stack.push(frameFor(prelude));
       buffer = '';
       bufferLine = line;
       continue;
     }
 
-    if (ch === '}') {
-      stack.pop();
-      buffer = '';
-      bufferLine = line;
-      continue;
-    }
-
-    if (ch === ';') {
-      // A declaration, or an at-statement like `@import`. Never a prelude.
+    // `}` closes a block; `;` ends a declaration or an at-statement like `@import`. Neither can be
+    // part of a prelude, so both just reset the buffer.
+    if (ch === '}' || ch === ';') {
+      if (ch === '}') stack.pop();
       buffer = '';
       bufferLine = line;
       continue;
@@ -196,6 +207,33 @@ function preludes(css) {
 }
 
 /**
+ * Blank out `[...]` and `(...)` spans, tracking DEPTH.
+ *
+ * Their contents are selectors in their own right (`:is(.a, .b)`) and a nested one that mattered
+ * would be caught on its own rule anyway. Depth-tracked rather than regex-replaced because
+ * `:is(:not(.x))` nests, which a `\([^)]*\)` pass mis-handles — and because that pass was flagged
+ * for super-linear backtracking.
+ */
+function stripBracketed(selector) {
+  let out = '';
+  let depth = 0;
+
+  for (const ch of selector) {
+    if (ch === '[' || ch === '(') {
+      depth += 1;
+      out += ' ';
+    } else if (ch === ']' || ch === ')') {
+      depth = Math.max(0, depth - 1);
+      out += ' ';
+    } else {
+      out += depth > 0 ? ' ' : ch;
+    }
+  }
+
+  return out;
+}
+
+/**
  * The element names a selector begins its compounds with.
  *
  * Only a name in TYPE position counts — one not preceded by `.`, `#`, `:`, `[` or `%`. `.card p`
@@ -203,16 +241,9 @@ function preludes(css) {
  */
 function typeSelectors(selector) {
   const out = [];
-  // Strip attribute selectors and parenthesised argument lists (`:is(...)`, `:global(...)`,
-  // `url(...)`) before splitting: their contents are selectors in their own right, and a nested
-  // one that mattered would be caught on its own rule anyway.
-  const flat = selector.replace(/\[[^\]]*\]/g, ' ').replace(/\([^)]*\)/g, ' ');
 
-  for (const compound of flat.split(/[\s>+~,]+/)) {
-    const token = compound.trim();
-    if (!token) continue;
-
-    const match = /^([A-Za-z][A-Za-z0-9-]*)/.exec(token);
+  for (const compound of stripBracketed(selector).split(/[\s>+~,]+/)) {
+    const match = /^([A-Za-z][A-Za-z0-9-]*)/.exec(compound.trim());
     if (match) out.push(match[1]);
   }
 
@@ -225,7 +256,7 @@ let ruleCount = 0;
 let selectorCount = 0;
 
 for (const file of files) {
-  const css = blankStrings(blankComments(readFileSync(file, 'utf8')));
+  const css = sanitize(readFileSync(file, 'utf8'));
 
   for (const { prelude, line } of preludes(css)) {
     ruleCount++;

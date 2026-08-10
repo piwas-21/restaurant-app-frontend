@@ -7,6 +7,7 @@ import BaseModal from '@/components/design-system/BaseModal';
 import { OrderDto } from '@/types/order';
 import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
 import { formatOrderPrice } from '@/utils/orderDetailsFormatters';
+import { gatewayNames, isHeldByGateway } from '@/utils/tenderCustody';
 import styles from '../OrderDetailsModal.module.css';
 
 interface OrderRefundResultDialogsProps {
@@ -58,6 +59,19 @@ export default function OrderRefundResultDialogs({
 }: OrderRefundResultDialogsProps) {
   const { t } = useTranslation();
 
+  // S11. Mirrors the cashier dialog and the server: a gateway-captured tender is refunded in that
+  // gateway's dashboard, so offering it here is a button that always fails.
+  //
+  // The NOTICE is derived from Completed tenders only, exactly as the cashier's is. A `Processing`
+  // Stripe tender is money still in flight and a `Refunded` one is money already returned — telling
+  // an admin to go and refund either in the dashboard is worse than saying nothing. This filter is
+  // not shared with the select below on purpose: that list has never filtered on status (a
+  // pre-existing looseness the server still refuses), and narrowing it here would be a second,
+  // unrelated behaviour change smuggled into a payments slice.
+  const completedPayments = (order.payments ?? []).filter((p) => p.status === 'Completed');
+  const selectablePayments = (order.payments ?? []).filter((p) => !isHeldByGateway(p));
+  const gateways = gatewayNames(completedPayments);
+
   return (
     <>
       <AlertDialog
@@ -78,6 +92,9 @@ export default function OrderRefundResultDialogs({
         <p className={styles.confirmModalMessage}>
           {t('refund_payment_warning', 'This will process a refund for the selected payment.')}
         </p>
+        {gateways.length > 0 && (
+          <p className={styles.confirmModalMessage}>{t('gateway_refund_notice', { gateway: gateways.join(', ') })}</p>
+        )}
         <div className={styles.formGroup}>
           <label htmlFor="paymentSelect">{t('select_payment', 'Select Payment')} *</label>
           <select
@@ -87,10 +104,10 @@ export default function OrderRefundResultDialogs({
             className={styles.select}
           >
             <option value="">{t('select_payment_to_refund', '-- Select Payment --')}</option>
-            {/* Optional-chain: AlertDialog evaluates its children on every render (even when
-                closed), unlike the previous `{showRefundModal && (...)}` gate — so guard against
-                an order without a payments array to avoid a crash on the closed dialog. */}
-            {order.payments?.map((payment) => (
+            {/* Nullish-coalesced above: AlertDialog evaluates its children on every render (even
+                when closed), unlike the previous `{showRefundModal && (...)}` gate — so an order
+                without a payments array must not crash the closed dialog. */}
+            {selectablePayments.map((payment) => (
               <option key={payment.id} value={payment.id}>
                 {getPaymentMethodLabel(payment.paymentMethod)} - {formatOrderPrice(payment.amount)}
               </option>

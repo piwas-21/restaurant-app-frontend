@@ -8,12 +8,15 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, Info, CheckCircle } from 'lucide-react';
 import { PaymentMethod } from '@/types/order';
-import { PAYMENT_METHODS } from '@/config/paymentMethods';
+import { offerablePaymentMethods } from '@/config/paymentMethods';
 import defaultStyles from './PaymentMethodSelector.module.css';
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod;
   onMethodChange: (method: PaymentMethod) => void;
+  /** Whether this restaurant can take an online payment (S8). Defaults to false so a caller
+   *  that has not been taught to ask cannot accidentally offer it. */
+  onlinePaymentAvailable?: boolean;
   /** Active-template CSS module (T4 re-skin). Defaults to the classic module, so
    *  callers that omit it — and classic — render byte-identically. */
   styles?: Readonly<Record<string, string>>;
@@ -22,9 +25,11 @@ interface PaymentMethodSelectorProps {
 export default function PaymentMethodSelector({
   selectedMethod,
   onMethodChange,
+  onlinePaymentAvailable = false,
   styles = defaultStyles,
 }: Readonly<PaymentMethodSelectorProps>) {
   const { t } = useTranslation();
+  const methods = offerablePaymentMethods(onlinePaymentAvailable);
 
   return (
     <section className={styles.section}>
@@ -35,19 +40,26 @@ export default function PaymentMethodSelector({
         </h2>
       </div>
 
-      {/* Info message about payment methods under development */}
+      {/* The banner states what this restaurant can actually take. The "only cash" sentence was
+          unconditional, so on a tenant that HAS online payment it contradicted the enabled option
+          rendered directly beneath it. */}
       <div className={styles.infoMessage}>
         <Info size={18} />
         <p>
-          {t(
-            'payment_methods_info',
-            'Currently, only cash payment is available. Other payment methods are coming soon!',
-          )}
+          {onlinePaymentAvailable
+            ? t(
+                'payment_methods_info_online',
+                'Pay in cash at the restaurant, or pay by card now — we will take you to our secure payment page.',
+              )
+            : t(
+                'payment_methods_info',
+                'Currently, only cash payment is available. Other payment methods are coming soon!',
+              )}
         </p>
       </div>
 
       <div className={styles.paymentMethods}>
-        {PAYMENT_METHODS.map((method) => {
+        {methods.map((method) => {
           const Icon = method.icon;
           const isDisabled = method.disabled;
 

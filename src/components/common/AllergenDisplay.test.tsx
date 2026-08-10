@@ -2,9 +2,32 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import AllergenDisplay from './AllergenDisplay';
 
+/**
+ * `t` handles BOTH call shapes this component uses: `t(key, 'fallback')` and the interpolating
+ * `t(key, { defaultValue, ...vars })`. The second is spelled out rather than left to `?? key`
+ * because the options object silently stringifies to `[object Object]` otherwise — which is what
+ * the counter's title became when it was localized, and what these tests caught.
+ *
+ * It is a `jest.fn` (the `mock` prefix is jest's hoisting rule, not style) so the counter's assertions can read the CALL. A mock whose default return IS
+ * the English default cannot tell a translated string from a hardcoded one: asserting the rendered
+ * text passes identically either way, so it would not notice `t()` being removed again.
+ */
+const mockTranslate = jest.fn((key: string, options?: string | Record<string, unknown>) => {
+  if (typeof options === 'string') return options;
+  if (options && typeof options === 'object') {
+    const template = String(options.defaultValue ?? key);
+    return template.replace(/\{\{(\w+)\}\}/g, (_m, name) => String(options[name] ?? ''));
+  }
+  return key;
+});
+
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, fallback?: string) => fallback ?? key }),
+  useTranslation: () => ({
+    t: (key: string, options?: string | Record<string, unknown>) => mockTranslate(key, options),
+  }),
 }));
+
+beforeEach(() => mockTranslate.mockClear());
 
 /** The chip element itself, from the word inside it. */
 const chipFor = (word: string) => screen.getByText(word).closest('.allergenTag') as HTMLElement;
@@ -49,7 +72,14 @@ describe('AllergenDisplay', () => {
     expect(screen.getByText('vegan')).toBeInTheDocument();
     expect(screen.getByText('gluten')).toBeInTheDocument();
     expect(screen.queryByText('milk')).not.toBeInTheDocument();
-    // The counter's title is the only place the hidden allergens are named at all.
+    // The counter's title is the only place the hidden allergens are named at all — and it must be
+    // ASKED for through i18n, not assembled in English. Asserting the call is what makes that
+    // falsifiable; the rendered text alone would read the same if the sentence went back inline.
+    expect(mockTranslate).toHaveBeenCalledWith('allergens_more_title', {
+      count: 2,
+      list: 'milk, nuts',
+      defaultValue: '+{{count}} more allergens: {{list}}',
+    });
     expect(screen.getByText('+2')).toHaveAttribute('title', '+2 more allergens: milk, nuts');
   });
 
@@ -57,6 +87,10 @@ describe('AllergenDisplay', () => {
     render(<AllergenDisplay allergens={['vegan', 'gluten', 'milk']} variant="compact" maxVisible={1} />);
 
     expect(screen.getByText('vegan')).toBeInTheDocument();
+    expect(mockTranslate).toHaveBeenCalledWith(
+      'allergens_more_title',
+      expect.objectContaining({ list: 'gluten, milk' }),
+    );
     expect(screen.getByText('+2')).toHaveAttribute('title', '+2 more allergens: gluten, milk');
   });
 
@@ -131,6 +165,7 @@ describe('AllergenDisplay', () => {
     render(<AllergenDisplay allergens={['gluten', 'milk', 'fish', 'eggs', 'nuts']} variant="icons" maxVisible={2} />);
 
     const counter = screen.getByText('+3');
+    expect(mockTranslate).toHaveBeenCalledWith('allergens_more_title', expect.objectContaining({ count: 3 }));
     expect(counter).toHaveAttribute('title', '+3 more allergens: fish, eggs, nuts');
     // It takes the icon-chip box like its neighbours rather than staying a wide labelled pill.
     expect(counter.className).toContain('iconChip');

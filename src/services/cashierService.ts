@@ -91,7 +91,8 @@ export interface AddPaymentRequest {
   referenceNumber?: string;
   cardLastFourDigits?: string;
   cardType?: string;
-  paymentGateway?: string;
+  // See `AddPaymentToOrderCommand` in src/types/order/commands.ts — the backend stopped binding
+  // `paymentGateway` in S11, and nothing here ever sent it.
   paymentNotes?: string;
 }
 

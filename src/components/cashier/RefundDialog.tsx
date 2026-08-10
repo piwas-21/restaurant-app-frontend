@@ -4,7 +4,8 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OrderDto } from '@/types/order';
 import { X } from 'lucide-react';
-import { getPaymentMethodLabel } from '@/utils/paymentMethodDisplay';
+import { isHeldByGateway } from '@/utils/tenderCustody';
+import RefundPaymentPicker from './RefundPaymentPicker';
 
 interface RefundDialogProps {
   order: OrderDto | null;
@@ -30,11 +31,18 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
   // Refunded, so the old comparison matched nothing and this list was ALWAYS empty: a cashier could
   // never select a payment to refund. `PaymentRecordStatus` now makes that comparison uncompilable.
   //
-  // `Completed` alone mirrors the server's own guard (`RefundPaymentCommand:52` refuses anything
-  // that is not Completed), so an already partially-refunded payment is correctly absent: the
-  // backend cannot take a second refund against it. Widening this list would only move the refusal
-  // to a place the cashier finds out about later.
-  const refundablePayments = order?.payments?.filter((p) => p.status === 'Completed') || [];
+  // `Completed` alone mirrors the server's own guard (`RefundPaymentCommand` refuses anything that
+  // is not Completed), so an already partially-refunded payment is correctly absent: the backend
+  // cannot take a second refund against it. Widening this list would only move the refusal to a
+  // place the cashier finds out about later.
+  //
+  // The custody split mirrors the server's OTHER guard, added in S11: a tender captured by a
+  // gateway is refunded in that gateway's dashboard, never here. Both halves are kept, not just
+  // the refundable one — a payment that vanishes with no explanation is how a cashier concludes
+  // the system lost it.
+  const completedPayments = order?.payments?.filter((p) => p.status === 'Completed') || [];
+  const gatewayHeldPayments = completedPayments.filter(isHeldByGateway);
+  const refundablePayments = completedPayments.filter((p) => !isHeldByGateway(p));
 
   const selectedPayment = refundablePayments.find((p) => p.id === selectedPaymentId);
   const maxRefundAmount = selectedPayment?.amount || 0;
@@ -127,33 +135,16 @@ export default function RefundDialog({ order, isOpen, onClose, onConfirm, isLoad
         </div>
 
         <div className="modal-body">
-          {refundablePayments.length === 0 ? (
-            <div className="alert alert-info">
-              {t('cashier.no_refundable_payments') || 'No refundable payments available for this order'}
-            </div>
-          ) : (
-            <>
-              {/* Select Payment */}
-              <div className="form-group">
-                <label className="form-label">{t('cashier.select_payment') || 'Select Payment'} *</label>
-                <div className="payment-options">
-                  {refundablePayments.map((payment) => (
-                    <button
-                      key={payment.id}
-                      className={`payment-option ${selectedPaymentId === payment.id ? 'selected' : ''}`}
-                      onClick={() => handlePaymentSelect(payment.id)}
-                      disabled={isLoading}
-                    >
-                      <div className="payment-info">
-                        <span className="payment-method">{getPaymentMethodLabel(payment.paymentMethod)}</span>
-                        <span className="payment-amount">{(payment.amount || 0).toFixed(2)}</span>
-                      </div>
-                      <span className="payment-date">{new Date(payment.paymentDate || '').toLocaleDateString()}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <RefundPaymentPicker
+            refundable={refundablePayments}
+            gatewayHeld={gatewayHeldPayments}
+            selectedPaymentId={selectedPaymentId}
+            onSelect={handlePaymentSelect}
+            isLoading={isLoading}
+          />
 
+          {refundablePayments.length > 0 && (
+            <>
               {selectedPaymentId && (
                 <>
                   {/* Refund Type */}

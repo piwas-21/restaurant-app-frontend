@@ -151,3 +151,33 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # NOTHING else in CI parses CSS. A comment that loses its opening `/*` leaves English prose
+  # where selectors go, and prose is VALID CSS — prettier reformats it as selectors and calls the
+  # file clean, tsc/eslint/jest never look, and the browser is the first thing to object, with a
+  # 500. So this asserts something stronger than "it parses": every type selector must name a real
+  # element. Hard zero, whole-tree, and it fails if its own corpus disappears.
+  - repo: local
+    hooks:
+      - id: css-selectors
+        name: CSS selectors are selectors (§6.11)
+        entry: node scripts/check-css-selectors.mjs
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # `styles.x` where the stylesheet declares no `.x`. Nothing else can see it: identity-obj-proxy
+  # makes every `styles.x` truthy in jest, Next types a module as an index signature so tsc is
+  # clean for any key, and React omits an attribute whose value is `undefined` so there is no DOM
+  # telltale either — reading the stylesheet is the only check that can fail. Baselined at 65
+  # (10 of them inside a template literal, where `undefined` STRINGIFIES and the element really
+  # does serve `class="… undefined"`); the baseline may only shrink, and those 10 are named on
+  # every green run so they cannot quietly become permanent.
+  - repo: local
+    hooks:
+      - id: css-module-bindings
+        name: CSS-module bindings resolve (§6.2)
+        entry: node scripts/check-css-module-bindings.mjs
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -491,6 +491,7 @@
   "standard": "Стандарт",
   "ingredients": "Ингредиенты",
   "allergens": "Аллергены",
+  "allergens_more_title": "+{{count}} других аллергенов: {{list}}",
   "variations": "Вариации",
   "preparation_time": "Время приготовления",
   "suggested_sides": "Рекомендуемые гарниры",

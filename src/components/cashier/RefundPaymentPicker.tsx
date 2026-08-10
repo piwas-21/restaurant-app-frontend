@@ -29,7 +29,7 @@ export default function RefundPaymentPicker({
   selectedPaymentId,
   onSelect,
   isLoading,
-}: RefundPaymentPickerProps) {
+}: Readonly<RefundPaymentPickerProps>) {
   const { t } = useTranslation();
   const gateways = gatewayNames(gatewayHeld);
 
@@ -54,6 +54,10 @@ export default function RefundPaymentPicker({
             {refundable.map((payment) => (
               <button
                 key={payment.id}
+                // Explicit, and not cosmetic: a <button> with no type defaults to `submit`. These
+                // sit in a modal today, but the dialog they came out of is one wrapper away from a
+                // <form>, and there "pick which payment to refund" would submit it.
+                type="button"
                 className={`payment-option ${selectedPaymentId === payment.id ? 'selected' : ''}`}
                 onClick={() => onSelect(payment.id)}
                 disabled={isLoading}

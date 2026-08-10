@@ -932,6 +932,7 @@
   "cancellation_reason_placeholder": "Geef een reden op voor het annuleren van deze bestelling...",
   "cancelling": "Annuleren...",
   "refund_payment_warning": "Hiermee wordt een terugbetaling verwerkt voor de geselecteerde betaling.",
+  "gateway_refund_notice": "Online betalingen worden terugbetaald via uw {{gateway}}-dashboard — hier terugbetalen is niet mogelijk.",
   "select_payment": "Selecteer betaling",
   "select_payment_to_refund": "Selecteer een betaling om terug te betalen",
   "refund_amount": "Terugbetaalbedrag",

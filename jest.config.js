@@ -88,6 +88,9 @@ module.exports = {
     'src/config/paymentMethods.ts',
     // S9 — the return trip.
     'src/hooks/checkout/useCheckoutReturn.ts',
+    // S11 — refund custody. `src/components/**/*.tsx` is collected wholesale, so the two dialogs
+    // and the picker need no row here; `src/utils` is not, so the predicate they all share does.
+    'src/utils/tenderCustody.ts',
     'src/hooks/checkout/useDeliveryAddress.ts',
     'src/lib/passwordPolicy.ts',
     'src/schemas/password.schema.ts',
@@ -259,6 +262,12 @@ module.exports = {
     // component renders but no offered method can reach. The row guards the availability branch.
     './src/components/checkout/PaymentMethodSelector.tsx': { statements: 84, branches: 85, functions: 65, lines: 84 },
     './src/hooks/cart/cartFailureReporting.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── S11 — honest refunds (SOFRA-PAYMENTS-PLAN §5). ───────────────────────────────────────────
+    // `tenderCustody` is the client mirror of the server's rule about whose money it is. Both
+    // dialogs read it and neither would fail loudly if it started answering false — the refund
+    // would simply be offered again and refused later, which is the state S11 exists to end.
+    './src/utils/tenderCustody.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+    './src/components/cashier/RefundPaymentPicker.tsx': { statements: 100, branches: 100, functions: 100, lines: 100 },
     // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
     // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and
     // the one that reports a re-read failure only when the write succeeded, are invisible to every

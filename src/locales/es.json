@@ -919,6 +919,7 @@
   "cancellation_reason_placeholder": "Por favor especifique un motivo de cancelación...",
   "cancelling": "Cancelando...",
   "refund_payment_warning": "Esto procesará un reembolso para el pago seleccionado.",
+  "gateway_refund_notice": "Los pagos en línea se reembolsan desde tu panel de {{gateway}}: no se pueden reembolsar aquí.",
   "select_payment": "Seleccionar Pago",
   "select_payment_to_refund": "Seleccione un pago para reembolsar",
   "refund_amount": "Monto de Reembolso",

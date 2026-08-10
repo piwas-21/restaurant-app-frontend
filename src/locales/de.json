@@ -930,6 +930,7 @@
   "cancellation_reason_placeholder": "Bitte geben Sie einen Grund für die Stornierung an...",
   "cancelling": "Wird storniert...",
   "refund_payment_warning": "Dies wird eine Rückerstattung für die ausgewählte Zahlung verarbeiten.",
+  "gateway_refund_notice": "Online-Zahlungen werden über Ihr {{gateway}}-Dashboard erstattet – eine Rückerstattung ist hier nicht möglich.",
   "select_payment": "Zahlung auswählen",
   "select_payment_to_refund": "Wählen Sie eine zu erstattende Zahlung",
   "refund_amount": "Erstattungsbetrag",

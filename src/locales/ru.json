@@ -861,6 +861,7 @@
   "cancellation_reason_placeholder": "Пожалуйста, укажите причину отмены заказа...",
   "cancelling": "Отмена...",
   "refund_payment_warning": "Это приведет к возврату средств по выбранному платежу.",
+  "gateway_refund_notice": "Онлайн-платежи возвращаются через панель {{gateway}} — здесь возврат невозможен.",
   "select_payment": "Выберите платеж",
   "select_payment_to_refund": "Выберите платеж для возврата",
   "refund_amount": "Сумма возврата",

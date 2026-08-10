@@ -930,6 +930,7 @@
   "cancellation_reason_placeholder": "请输入取消订单的原因...",
   "cancelling": "正在取消...",
   "refund_payment_warning": "这将为所选支付记录处理退款。",
+  "gateway_refund_notice": "在线支付需在您的 {{gateway}} 后台退款，无法在此处退款。",
   "select_payment": "选择支付记录",
   "select_payment_to_refund": "选择要退款的支付记录",
   "refund_amount": "退款金额",

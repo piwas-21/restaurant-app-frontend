@@ -925,6 +925,7 @@
   "cancellation_reason_placeholder": "Si prega di specificare un motivo di annullamento...",
   "cancelling": "Annullamento in corso...",
   "refund_payment_warning": "Questo elaborerà un rimborso per il pagamento selezionato.",
+  "gateway_refund_notice": "I pagamenti online vengono rimborsati dalla dashboard {{gateway}} — non possono essere rimborsati qui.",
   "select_payment": "Seleziona Pagamento",
   "select_payment_to_refund": "Seleziona un pagamento da rimborsare",
   "refund_amount": "Importo Rimborso",

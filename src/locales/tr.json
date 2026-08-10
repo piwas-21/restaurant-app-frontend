@@ -927,6 +927,7 @@
   "cancellation_reason_placeholder": "Lütfen iptal nedenini belirtin...",
   "cancelling": "İptal ediliyor...",
   "refund_payment_warning": "Bu işlem seçili ödeme için iade işlemi gerçekleştirecektir.",
+  "gateway_refund_notice": "Çevrimiçi ödemeler {{gateway}} panonuzdan iade edilir — burada iade edilemez.",
   "select_payment": "Ödeme Seç",
   "select_payment_to_refund": "İade edilecek ödemeyi seçin",
   "refund_amount": "İade Tutarı",

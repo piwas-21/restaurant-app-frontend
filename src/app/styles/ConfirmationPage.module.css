@@ -246,7 +246,7 @@
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--background-light);
+  background-color: var(--surface-card);
   border-radius: 8px;
   margin-top: 0.5rem;
 }
@@ -287,7 +287,7 @@
   grid-template-columns: auto 1fr auto;
   gap: 1rem;
   padding: 1rem;
-  background-color: var(--background-light);
+  background-color: var(--surface-card);
   border-radius: 8px;
   align-items: center;
 }
@@ -479,7 +479,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-color);
-  background-color: var(--background-light);
+  background-color: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;

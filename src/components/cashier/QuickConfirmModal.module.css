@@ -76,7 +76,7 @@
 }
 
 .closeButton:hover {
-  background: var(--background-light);
+  background: var(--surface-card);
   color: var(--text-color);
 }
 
@@ -92,7 +92,7 @@
 
 /* Order Summary */
 .orderSummary {
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.25rem;
@@ -308,7 +308,7 @@
 .infoText {
   margin: 0;
   padding: 1rem;
-  background: var(--background-light);
+  background: var(--surface-card);
   border-radius: 8px;
   color: var(--text-muted);
   font-size: 0.8125rem;

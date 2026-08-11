@@ -160,7 +160,11 @@
 }
 
 .statusDropdownItem:hover:not(:disabled) {
-  background: var(--background-light);
+  /* NOT --surface-card: the row rests transparent inside .statusDropdownMenu, which IS
+     --card-background (= --surface-card), so highlighting to --surface-card would be a zero-colour
+     hover on the one control where the fill is the affordance. Only --text-color lands on the row
+     (its other child is a 10px dot), so --surface-secondary is contrast-safe in all four themes. */
+  background: var(--surface-secondary);
   /* Nudges the row in from its leading edge on hover; the base `padding` shorthand above is
      symmetric, so this longhand only has to win on source order. */
   padding-inline-start: 1.5rem;
@@ -382,7 +386,7 @@
 
 /* Payment Cards */
 .paymentCard {
-  background: var(--background-light);
+  background: var(--surface-card);
   padding: 0.875rem;
   border-radius: 8px;
   margin-bottom: 0.625rem;
@@ -484,7 +488,15 @@
 }
 
 .notesHeader {
-  background: linear-gradient(135deg, var(--background-light) 0%, var(--card-background) 100%);
+  /* The only site where the undefined token was NOT simply swapped for --surface-card. Doing that
+     here would make both stops the same colour (--card-background IS --surface-card), leaving a
+     gradient that paints flat and a :hover below that changes nothing — with a `transition:
+     background` animating it. Those two rules are the evidence of the intent: a sheen at rest that
+     flattens to the card colour on hover. --surface-secondary is safe for the leading stop because
+     the only text on this header is .notesTitle at --text-color; measured 15.3:1 classic light,
+     10.0:1 craft light, 12.3:1 classic dark, 9.8:1 craft dark. --text-muted never lands here, which
+     is what rules --surface-secondary out on the other 21 sites. */
+  background: linear-gradient(135deg, var(--surface-secondary) 0%, var(--surface-card) 100%);
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
@@ -495,7 +507,7 @@
 }
 
 .notesHeader:hover {
-  background: var(--background-light);
+  background: var(--surface-card);
 }
 
 .notesHeaderLeft {
@@ -525,7 +537,7 @@
 }
 
 .existingNote {
-  background: var(--background-light);
+  background: var(--surface-card);
   /* Accent rule down the leading edge. Nothing repaints it per-state, so the whole
      declaration moves as one (contrast the cashier order-type stripe in #391, where a
      `borderLeftColor` inline style had to move with it). */
@@ -563,7 +575,7 @@
 .noteTextarea {
   width: 100%;
   padding: 0.875rem;
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-color);

@@ -17,19 +17,29 @@
  *     cashier surfaces that no baseline covers.
  *
  * Only a browser knows, and only for the one route it is pointed at. #335 was one instance
- * (`--background-light`, 22 references, defined nowhere); #489 measured 34 more.
+ * (`--background-light`, 22 references, defined nowhere); this baselines 30 more
+ * properties across 62 sites. (#489's headline says 34; its own enumerated list has 29, and the
+ * list is right — the 30th is `--font-family-display`, which #489 could not see. See below.)
  *
  * FOUR WAYS THE NAIVE VERSION FAILS **OPEN**. Each was found by prototyping, and each would have
  * made a green run meaningless:
  *
  *   1. **A fallback is not a defect.** `var(--x, #fff)` always resolves, so an undefined name
- *      there cannot produce an invalid declaration. 127 references carry one. They are COUNTED
- *      and reported, never failed on — folding them in would have tripled the baseline with
- *      non-defects and buried the 34 real ones.
+ *      there cannot produce an invalid declaration. **1296 of this tree's 5307 references carry
+ *      one** (#489's "127" is the count of distinct PROPERTIES, not references). They are COUNTED
+ *      and reported, never failed on — folding them in would have buried the real ones many times
+ *      over.
  *   2. **CSS is not the only definition mechanism.** `--font-body` / `--font-display` are declared
- *      by next/font's `variable:` option in each template's `fonts.ts` and never appear as a `--x:`
- *      declaration anywhere. Inline `style={{ '--x': v }}` and `element.style.setProperty('--x')`
+ *      by next/font's `variable:` option in `templates/classic/fonts.ts` — craft's `fonts.ts` uses
+ *      classNames and declares none — and never appear as a `--x:` declaration anywhere. Inline `style={{ '--x': v }}` and `element.style.setProperty('--x')`
  *      are definitions too. A CSS-only scan calls all three undefined.
+ *
+ *      **Like guard 3, these three currently change no verdict, and the same honesty applies.**
+ *      Ablated (CSS definitions only), the violation set is IDENTICAL and definitions drop 370 →
+ *      364: every bare `var(--font-body)` / `var(--font-display)` in the tree sits inside a
+ *      comment, and the three live references all carry fallbacks. So the mechanism is real and
+ *      the guard is correct, but it is protection, not present filtering — do not cite it as
+ *      having cleaned the baseline.
  *
  *      (This very comment had to be reworded: writing that path with a glob puts a `*` and a `/`
  *      adjacent, which CLOSES this block comment and makes the file a syntax error. Same family as
@@ -85,21 +95,103 @@ function walk(dir) {
   return out;
 }
 
+/** String delimiters to track. CSS has the first two; TSX adds the template literal. */
+const QUOTES = new Set(["'", '"', '`']);
+
+/** Copy from `from` through the closing `quote`; report the span still open at end of line. */
+function copyToQuoteEnd(line, from, quote) {
+  let text = '';
+  let j = from;
+
+  while (j < line.length) {
+    if (line[j] === '\\') {
+      text += line.slice(j, j + 2);
+      j += 2;
+      continue;
+    }
+    text += line[j];
+    j += 1;
+    if (text.endsWith(quote)) return { text, next: j, open: null };
+  }
+
+  return { text, next: j, open: quote };
+}
+
 /**
- * Comments blanked, length-preserving so reported offsets stay honest.
+ * Comments removed, strings TRACKED but PRESERVED.
  *
- * Both syntaxes, because the corpus is mixed: `/* *​/` covers CSS and JS/TSX, `//` only the latter.
- * Stripping first is not tidiness — a commented-out rule explaining a property that was REMOVED
- * otherwise reports the very reference the fix deleted as still live. That exact shape has bitten
- * the CSS readers in this repo repeatedly (see `check-css-selectors.mjs`).
+ * Both halves are load-bearing and pull in opposite directions:
  *
- * A `//` inside a CSS url() or a string would be mangled, so it is applied to `.css` files as
- * block-comments-only. CSS has no line comments, so nothing is lost.
+ *   - **Tracked**, or the `/*` inside `accept="image/*"` opens a comment that runs to the file's
+ *     next real close. The naive regex version of this function did exactly that and blanked **21
+ *     lines** of live JSX in `BundlePanel.tsx` and 6 in `ProductDetails.tsx` — a fail-open in both
+ *     directions, since a swallowed `style={{ '--x': v }}` drops a real DEFINITION and invents a
+ *     violation elsewhere. `lib/ratchet.mjs` records this same trap blinding two earlier gates, and
+ *     the docstring above name-checks it, which is exactly how it got re-introduced here: knowing
+ *     the trap is not the same as not writing it.
+ *   - **Preserved**, because TSX puts real references inside strings — `stroke="var(--fp-faint)"`,
+ *     `` className={`${a}`} ``. A stripper that drops string contents (as `lib/ratchet.mjs` does,
+ *     correctly for counting code patterns) would go blind to them.
+ *
+ * Line comments are TSX-only: CSS has none, and `//` there is a protocol-relative URL.
  */
 function stripComments(source, isCss) {
-  let out = source.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
-  if (!isCss) out = out.replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + ' '.repeat(m.length - p.length));
-  return out;
+  const out = [];
+  let carried = 'code';
+
+  for (const line of source.split('\n')) {
+    let text = '';
+    let state = carried;
+    let i = 0;
+
+    while (i < line.length) {
+      if (state === 'block') {
+        const close = line.indexOf('*/', i);
+        if (close === -1) {
+          i = line.length;
+          break;
+        }
+        i = close + 2;
+        state = 'code';
+        continue;
+      }
+
+      if (state !== 'code') {
+        const span = copyToQuoteEnd(line, i, state);
+        text += span.text;
+        i = span.next;
+        state = span.open ?? 'code';
+        continue;
+      }
+
+      const two = line.slice(i, i + 2);
+      if (!isCss && two === '//') break;
+
+      if (two === '/*') {
+        state = 'block';
+        i += 2;
+        continue;
+      }
+
+      if (QUOTES.has(line[i])) {
+        const span = copyToQuoteEnd(line, i + 1, line[i]);
+        text += line[i] + span.text;
+        i = span.next;
+        state = span.open ?? 'code';
+        continue;
+      }
+
+      text += line[i];
+      i += 1;
+    }
+
+    // Only a block comment and a template literal survive a newline; resetting the other two stops
+    // one unbalanced apostrophe swallowing the rest of the file.
+    carried = state === 'block' || state === '`' ? state : 'code';
+    out.push(text);
+  }
+
+  return out.join('\n');
 }
 
 /**
@@ -169,24 +261,78 @@ function definitions(text, isCss) {
   return names;
 }
 
+/**
+ * Which template a path belongs to, or `null` for shared code.
+ *
+ * TEMPLATES ARE MUTUALLY EXCLUSIVE AT RUNTIME, and that is what makes a global definition set
+ * wrong. `app/layout.tsx` imports `@active-template/tokens.css`, an alias that resolves to exactly
+ * ONE template at build time — so a property defined only under `templates/classic/` does not
+ * exist when the craft skin ships, and a bare `var()` on it is invalid there.
+ *
+ * Found by review, not by me, and it was hiding live defects rather than being theoretical:
+ * `--font-family-display` is defined in exactly one place (`templates/classic/tokens.css`) and
+ * referenced with no fallback from SHARED stylesheets that render under both skins —
+ * `menu/MenuContent.module.css` and `menu/MenuItemDetails.module.css` have no craft replacement,
+ * so those `font-family` declarations are invalid at computed-value time under craft. Neither the
+ * global-scope gate nor #489's own list contained them: both came out of the same scanner design,
+ * so their agreement was never independent evidence.
+ */
+function templateOf(file) {
+  const rel = path.relative(ROOT, file);
+  const m = /^templates[/\\]([^/\\]+)[/\\]/.exec(rel);
+  return m ? m[1] : null;
+}
+
 const files = walk(ROOT);
 
-const defined = new Set();
+/** Definitions that are always present (anything not inside a template's own tree). */
+const globalDefs = new Set();
+/** Per-template definitions, keyed by template name. */
+const templateDefs = new Map();
 const scanned = [];
 
 for (const file of files) {
   const isCss = file.endsWith('.css');
   const text = stripComments(readFileSync(file, 'utf8'), isCss);
-  for (const name of definitions(text, isCss)) defined.add(name);
-  scanned.push({ file, text, isCss });
+  const template = templateOf(file);
+
+  for (const name of definitions(text, isCss)) {
+    if (template === null) globalDefs.add(name);
+    else {
+      if (!templateDefs.has(template)) templateDefs.set(template, new Set());
+      templateDefs.get(template).add(name);
+    }
+  }
+
+  scanned.push({ file, text, isCss, template });
+}
+
+const templateNames = [...templateDefs.keys()].sort();
+
+/**
+ * Shared code may only rely on a property that survives EVERY skin: defined outside the templates,
+ * or defined by all of them. A property defined by some-but-not-all is precisely the defect.
+ */
+const sharedDefs = new Set(globalDefs);
+if (templateNames.length > 0) {
+  for (const name of templateDefs.get(templateNames[0])) {
+    if (templateNames.every((t) => templateDefs.get(t).has(name))) sharedDefs.add(name);
+  }
+}
+
+/** What a given file is allowed to see: its own template's definitions, or the shared floor. */
+function visibleDefs(template) {
+  if (template === null) return sharedDefs;
+  return new Set([...globalDefs, ...(templateDefs.get(template) ?? [])]);
 }
 
 const violations = [];
 let referenceCount = 0;
 let fallbackCount = 0;
 
-for (const { file, text } of scanned) {
+for (const { file, text, template } of scanned) {
   const seen = new Set();
+  const visible = visibleDefs(template);
 
   for (const { name, hasFallback } of varReferences(text)) {
     referenceCount += 1;
@@ -194,7 +340,7 @@ for (const { file, text } of scanned) {
       fallbackCount += 1;
       continue;
     }
-    if (defined.has(name)) continue;
+    if (visible.has(name)) continue;
 
     // One entry per (file, property). A property used on ten rules in one stylesheet is one site
     // to fix, and ten baseline rows would make the burn-down look ten times larger than it is.
@@ -207,10 +353,10 @@ for (const { file, text } of scanned) {
 
 const cssCount = scanned.filter((s) => s.isCss).length;
 
-if (files.length === 0 || referenceCount === 0 || defined.size === 0) {
+if (files.length === 0 || referenceCount === 0 || globalDefs.size === 0) {
   console.error(
     `Undefined-CSS-var gate examined NOTHING useful (${files.length} file(s), ` +
-      `${referenceCount} reference(s), ${defined.size} definition(s)). ` +
+      `${referenceCount} reference(s), ${globalDefs.size} definition(s)). ` +
       `Expected sources under ${ROOT}. Failing rather than passing vacuously.`,
   );
   process.exit(2);
@@ -277,5 +423,5 @@ if (fixed.length > 0) {
 console.log(
   `Undefined CSS vars OK — examined ${files.length} file(s) (${cssCount} stylesheet(s)), ` +
     `${referenceCount} var() reference(s) of which ${fallbackCount} carry a fallback, ` +
-    `${defined.size} definition(s); ${baseline.length} baselined (target 0, see #489).`,
+    `${globalDefs.size} shared + ${templateNames.length} template scope(s); ${baseline.length} baselined (target 0, see #489).`,
 );

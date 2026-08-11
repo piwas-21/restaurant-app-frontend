@@ -76,47 +76,41 @@ function takeStringSpan(line, i, quote, opening) {
  * `lineComments` is false for CSS: it has no `//` syntax, and treating one as a comment would eat
  * the rest of a protocol-relative `url(//cdn…)`.
  */
+/**
+ * One step of the scanner: what to emit at `i`, where to go next, and the state to carry.
+ *
+ * Split out of `stripLine` so each case sits at depth 1 instead of nested inside the loop — the
+ * branches are the same, but the loop below becomes trivial and neither function is a thicket.
+ * `stop` means the rest of the line is comment (a `//`, or a block that runs past the end).
+ */
+function consumeToken(line, i, state, lineComments) {
+  if (state === 'block') {
+    const step = skipBlockComment(line, i);
+    return step.state === 'block' ? { stop: true, state: 'block' } : { text: '', next: step.next, state: 'code' };
+  }
+
+  // A quote we are still inside, carried from the previous line (only a template literal can be).
+  if (state !== 'code') return takeStringSpan(line, i, state, false);
+
+  const two = line.slice(i, i + 2);
+  if (lineComments && two === '//') return { stop: true, state: 'code' };
+  if (two === '/*') return { text: '', next: i + 2, state: 'block' };
+  if (QUOTES.has(line[i])) return takeStringSpan(line, i, line[i], true);
+
+  return { text: line[i], next: i + 1, state: 'code' };
+}
+
 function stripLine(line, carried, lineComments) {
   let out = '';
   let state = carried;
   let i = 0;
 
   while (i < line.length) {
-    if (state === 'block') {
-      const step = skipBlockComment(line, i);
-      i = step.next;
-      state = step.state;
-      if (state === 'block') break;
-      continue;
-    }
-
-    if (state !== 'code') {
-      const span = takeStringSpan(line, i, state, false);
-      out += span.text;
-      i = span.next;
-      state = span.state;
-      continue;
-    }
-
-    const two = line.slice(i, i + 2);
-    if (lineComments && two === '//') break;
-
-    if (two === '/*') {
-      state = 'block';
-      i += 2;
-      continue;
-    }
-
-    if (QUOTES.has(line[i])) {
-      const span = takeStringSpan(line, i, line[i], true);
-      out += span.text;
-      i = span.next;
-      state = span.state;
-      continue;
-    }
-
-    out += line[i];
-    i += 1;
+    const step = consumeToken(line, i, state, lineComments);
+    state = step.state;
+    if (step.stop) break;
+    out += step.text;
+    i = step.next;
   }
 
   // Only a block comment and a template literal carry across a newline; resetting the other two

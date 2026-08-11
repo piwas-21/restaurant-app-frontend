@@ -143,6 +143,54 @@ describe('useLoginForm', () => {
     expect(result.current.needsVerification).toBe(false);
   });
 
+  /**
+   * The one swept #490 site where the server's string feeds a BRANCH (`isVerify`) and not only a
+   * display — so it is the one where "join instead of `[0]`" could change more than the wording.
+   * Both halves are asserted here because every other fixture in this file is single-entry or
+   * `errors: []`, which leaves the join itself unpinned: reverting to `serverMessages(...)[0]`
+   * failed no test before these two.
+   *
+   * Login cannot actually produce this shape today — it has no `AbstractValidator<LoginCommand>`,
+   * so `ValidationBehavior` never runs on it (see the note at the call site). These pin the HOOK's
+   * handling of a multi-entry refusal, which is what has to hold if login ever gains a validator.
+   */
+  it('shows every reason of a multi-entry refusal, not just the first', async () => {
+    mockLoginUser.mockResolvedValue({
+      success: false,
+      message: 'Email is required; Password is required',
+      errors: ['Email is required', 'Password is required'],
+    });
+    const { result } = renderHook(() => useLoginForm());
+    act(() => {
+      result.current.setEmail('a@b.co');
+      result.current.setPassword('secret1');
+    });
+    await act(async () => result.current.handleSubmit(submit));
+
+    expect(result.current.error).toBe('Email is required; Password is required');
+    expect(result.current.needsVerification).toBe(false);
+  });
+
+  it('sees a verification reason that is NOT the first entry — the branch widens, deliberately', async () => {
+    // The documented consequence of joining: `isVerify` reads the whole string, so a reason in
+    // position two now flips the resend-email UI where `[0]` would have missed it. Asserted rather
+    // than left implicit, because it is the only behavioural widening in the #490 sweep.
+    mockLoginUser.mockResolvedValue({
+      success: false,
+      message: 'Operation failed',
+      errors: ['Your session expired', 'Please verify your email address before logging in'],
+    });
+    const { result } = renderHook(() => useLoginForm());
+    act(() => {
+      result.current.setEmail('a@b.co');
+      result.current.setPassword('secret1');
+    });
+    await act(async () => result.current.handleSubmit(submit));
+
+    expect(result.current.needsVerification).toBe(true);
+    expect(result.current.error).toBe('Your session expired; Please verify your email address before logging in');
+  });
+
   it('still reads the summary when the refusal carries no errors[]', async () => {
     mockLoginUser.mockResolvedValue({ success: false, message: 'Invalid credentials' });
     const { result } = renderHook(() => useLoginForm());

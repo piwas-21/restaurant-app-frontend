@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getProducts } from '@/services/menuService';
 import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import { useStableT } from '@/hooks/useStableT';
 import type { ProductSearchResult, ProductType } from '@/components/admin/product/types';
 
@@ -78,11 +78,11 @@ export function useSideItemSearch(selectedSideItemIds: string[]) {
         if (!resp.success) {
           // A 200-wrapped refusal. `getProducts` returns the envelope rather than throwing, so
           // without this branch a `success: false` read exactly like an empty product list — and
-          // `serverMessages` because the reason is in `errors[]`, `message` being "Operation
+          // `serverMessage` because the reason is in `errors[]`, `message` being "Operation
           // failed" on the one-argument `Failure`. Falling straight to the generic here would be
           // the half-fix the ratchet cannot see.
           setDetailsError(
-            serverMessages(resp)[0] ?? tRef.current('side_items_load_failed', 'Could not load the selected side items'),
+            serverMessage(resp) ?? tRef.current('side_items_load_failed', 'Could not load the selected side items'),
           );
           return;
         }
@@ -118,9 +118,7 @@ export function useSideItemSearch(selectedSideItemIds: string[]) {
       const resp = await getProducts(1, 20);
       if (!resp.success) {
         setResults([]);
-        setSearchError(
-          serverMessages(resp)[0] ?? tRef.current('side_items_search_failed', 'Could not search side items'),
-        );
+        setSearchError(serverMessage(resp) ?? tRef.current('side_items_search_failed', 'Could not search side items'));
         return;
       }
       const needle = search.toLowerCase();

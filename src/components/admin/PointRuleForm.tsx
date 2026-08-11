@@ -7,7 +7,7 @@ import type { PointEarningRule } from '@/types/fidelity';
 import { X, Loader2 } from 'lucide-react';
 import { useSnackbar } from 'notistack';
 import styles from './PointRuleForm.module.css';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import { TENANT_CURRENCY } from '@/utils/currency';
 
 interface PointRuleFormProps {
@@ -177,7 +177,7 @@ export default function PointRuleForm({ rule, onSuccess, onCancel }: PointRuleFo
       // The regex is deleted rather than revived: it reformatted a sentence the server already
       // sends, and it built a raw English literal where the generic it replaced is translated, so
       // reviving it would have REGRESSED a non-English admin.
-      const [serverReason] = serverMessages(error);
+      const serverReason = serverMessage(error);
 
       enqueueSnackbar(serverReason ?? t('error_saving_rule', 'Failed to save point rule'), {
         variant: 'error',

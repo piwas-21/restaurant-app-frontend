@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getProductById } from '@/services/menuService';
 import { getMenuBundleById } from '@/services/menuBundleService';
 import { isMenuBundle } from '@/utils/productTypeFilter';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
 /**
@@ -46,7 +46,7 @@ export function useProductEditorFetch(productId: string) {
         // the literal "Operation failed" — so this line printed exactly the placeholder the rest
         // of this slice exists to stop, on the most ordinary path there is: opening a product that
         // was deleted in another tab.
-        setError(serverMessages(productResponse)[0] ?? t('product_not_found'));
+        setError(serverMessage(productResponse) ?? t('product_not_found'));
         return;
       }
 
@@ -67,12 +67,12 @@ export function useProductEditorFetch(productId: string) {
         // Near-dead — `MenusController` returns `NotFound(result)`, so a missing bundle THROWS and
         // lands in the catch. Aligned anyway: two readers of one shape that disagree is how the
         // resolved branch above went unnoticed for as long as it did.
-        setError(serverMessages(bundleResponse)[0] ?? t('product_not_found'));
+        setError(serverMessage(bundleResponse) ?? t('product_not_found'));
       }
     } catch (err) {
       // Both fetches go through `apiClient`, which THROWS on every non-2xx — so a 403 (not an
       // admin for this tenant), a 409 and a genuine 404 all landed here and all printed "Product
-      // not found", when only one of them meant it. `serverMessages` reads the thrown shape AND a
+      // not found", when only one of them meant it. `serverMessage` reads the thrown shape AND a
       // resolved `success:false`.
       //
       // What this does NOT fix, so nobody goes looking: a 401. `apiClient` throws
@@ -80,7 +80,7 @@ export function useProductEditorFetch(productId: string) {
       // either never asked or its words end at the sign-out — so the fallback below still renders,
       // and on an expired refresh `clearAuthAndRedirect()` navigates away before it could be read.
       // Telling an admin their session lapsed is a change in `apiClient`, not here.
-      setError(serverMessages(err)[0] ?? t('product_not_found'));
+      setError(serverMessage(err) ?? t('product_not_found'));
     } finally {
       setIsLoading(false);
     }

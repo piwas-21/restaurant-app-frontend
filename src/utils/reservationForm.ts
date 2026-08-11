@@ -257,6 +257,9 @@ export function buildReservationPayload(
  * than the translated sentence it would replace.
  */
 export function extractReservationErrorMessage(err: unknown, t: TFunction): string {
-  const specific = serverMessages(err).find((m) => m !== 'Operation failed');
-  return specific ?? t('reservation_failed', 'Failed to create reservation');
+  // `filter` where this used to `find`: since backend #291 a validator failure arrives as one entry
+  // PER BROKEN RULE, so taking the first non-generic one showed the guest one reason and dropped
+  // the rest. Joined with the backend's own `'; '`.
+  const specific = serverMessages(err).filter((m) => m !== 'Operation failed');
+  return specific.length > 0 ? specific.join('; ') : t('reservation_failed', 'Failed to create reservation');
 }

@@ -7,6 +7,7 @@ import {
   STAFF_REGISTRATION_MATCHERS,
   formLevelMessage,
   routeApiError,
+  serverMessage,
   serverMessages,
   throwServerRefusal,
 } from './apiFormErrors';
@@ -107,6 +108,49 @@ describe('serverMessages', () => {
 
   it('ignores a non-array `errors`, rather than iterating a string one char at a time', () => {
     expect(serverMessages(new ApiError(400, 'Summary', 'oops' as unknown as string[]))).toEqual(['Summary']);
+  });
+});
+
+describe('serverMessage', () => {
+  it('joins EVERY reason with the backend separator, which is the whole point of #490', () => {
+    // The regression this helper exists to close. Pre-#291 the backend joined the rules itself and
+    // sent one entry, so `[0]` showed all of them; now it sends one entry per rule and `[0]` shows
+    // one. `'; '` is the backend's own join, so this reproduces the pre-#291 string exactly rather
+    // than a near-miss of it — a `', '` here would silently make every one of these surfaces differ
+    // from the `message` the same response carries.
+    const error = new ApiError(400, 'Name is required; Price must be greater than 0', [
+      'Name is required',
+      'Price must be greater than 0',
+    ]);
+
+    expect(serverMessage(error)).toBe('Name is required; Price must be greater than 0');
+    expect(serverMessage(error)).toBe(error.message);
+  });
+
+  it('is null — not an empty string — when the server authored nothing', () => {
+    // Load-bearing, and the reason the return type is `string | null`. Every call site is
+    // `serverMessage(x) ?? t('…')`, and `??` does NOT fall through an empty string: returning `''`
+    // would put a blank error line where the TRANSLATED fallback belongs, on a dead network and a
+    // body-less 401 alike.
+    expect(serverMessage(new TypeError('Failed to fetch'))).toBeNull();
+    expect(serverMessage(new ApiError(400, '   ', ['', '  ']))).toBeNull();
+    expect(serverMessage(null)).toBeNull();
+    expect(serverMessage({ success: true, message: 'fine' })).toBeNull();
+
+    expect(serverMessage(new TypeError('x')) ?? 'translated fallback').toBe('translated fallback');
+  });
+
+  it('agrees with serverMessages on the single-reason shapes, so nothing else moved', () => {
+    // The 22 swept sites mostly meet one-reason refusals. Those must render the identical string
+    // before and after, or this change is not the mechanical sweep it claims to be.
+    for (const input of [
+      new ApiError(409, 'That slug is taken'),
+      new ApiError(400, 'Operation failed', ['Delivery address is required for delivery orders']),
+      { success: false, errors: ['User with ID "x" was not found'] },
+      { success: false, message: 'Operation failed' },
+    ]) {
+      expect(serverMessage(input)).toBe(serverMessages(input)[0]);
+    }
   });
 });
 

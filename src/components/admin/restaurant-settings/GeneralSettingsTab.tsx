@@ -9,7 +9,7 @@ import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRes
 import { updateRestaurantInfo } from '@/services/restaurantInfoService';
 import { toFullUpdateCommand } from '@/services/restaurantInfoCommand';
 import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import FormField from '@/components/design-system/FormField';
 import PhoneNumberManager from './PhoneNumberManager';
 import { restaurantInfoSchema, type RestaurantInfoFormInput, type RestaurantInfoFormOutput } from './schemas';
@@ -77,7 +77,7 @@ export default function GeneralSettingsTab() {
       } else {
         // Defensive, not the live path — see the note in `AppearanceTab.save`. Same endpoint,
         // same handler: it throws rather than wrapping, so refusals land in the `catch`.
-        enqueueSnackbar(serverMessages(response)[0] ?? t('general_settings_save_failed', 'Failed to save'), {
+        enqueueSnackbar(serverMessage(response) ?? t('general_settings_save_failed', 'Failed to save'), {
           variant: 'error',
         });
       }

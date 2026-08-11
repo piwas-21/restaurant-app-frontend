@@ -12,20 +12,23 @@ import { ApiError } from '@/utils/apiClient';
  * migrate to (BUGS-IMPROVEMENTS-PLAN E9) — so its edge cases matter more than one screen's worth:
  * a hole here is a hole in every migration that copies it.
  *
- * **Where a multi-entry `errors[]` actually comes from — corrected 2026-08-03.** This header used to
- * say the per-rule messages arrive in `errors[]` from `ValidationExceptionHandlingMiddleware`.
- * Neither half is true, and the field-routing below was designed around the belief that it was.
- * Nothing in the backend throws FluentValidation's `ValidationException`, so that middleware never
- * runs (backend #291): a FluentValidation failure is joined with `"; "` into one
- * `BadRequestException` and arrives as a **single-element** `errors[]`. With one blob, the first
- * matching pattern claims the whole string — so a registration failing on password AND email files
- * the entire text under `password` and leaves the email field silent.
+ * **Where a multi-entry `errors[]` comes from — corrected twice, now current as of backend #347.**
+ * This header first said the per-rule messages arrive from `ValidationExceptionHandlingMiddleware`;
+ * that was false (nothing threw FluentValidation's `ValidationException`, so the middleware was dead
+ * and is now deleted). The correction said a validator failure arrives as a **single-element**
+ * `errors[]`, joined with `"; "` into one `BadRequestException` blob — true until backend #291/#292
+ * fixed exactly that. **A FluentValidation failure now arrives as one entry PER BROKEN RULE**, with
+ * the joined sentence kept on `message`. So the per-field routing below finally gets what it was
+ * designed for: a registration failing on password AND email files each under its own field instead
+ * of the first matching pattern claiming the whole blob.
  *
- * The routing is not useless, because a multi-entry `errors[]` IS real — it comes from **Identity**,
- * not FluentValidation: duplicate email, a password refused by `StrongPasswordValidator`, an invalid
- * reset token. Those are exactly the registration and reset paths this helper serves, and there each
- * reason is its own entry. So: per-field routing works for Identity failures and degrades to
- * form-level for validator failures. Fixing the latter is backend #291's call, not this file's.
+ * Identity failures — duplicate email, a password refused by `StrongPasswordValidator`, an invalid
+ * reset token — were always multi-entry and are unchanged. Both sources now look the same here.
+ *
+ * **The cost, and why `serverMessage` exists.** Anything reading only `errors[0]` used to see every
+ * reason (they were one string) and now sees only the first. That is what `serverMessage` below is
+ * for: it joins them back with the backend's own `"; "`. Reach for it whenever the destination is
+ * ONE sentence a user reads; `serverMessages` is for when the parts are branched on separately.
  */
 
 /**
@@ -172,6 +175,33 @@ export function serverMessages(error: unknown): string[] {
 }
 
 /**
+ * EVERY server reason as one sentence, or `null` when the server said nothing worth showing.
+ *
+ * This is the right call for the common case: a `setError`/`enqueueSnackbar`/`setFormError`
+ * destination that renders ONE string. Use `serverMessages` only when the individual parts are
+ * branched on (`routeApiError`'s per-field routing, `useLoginForm`'s verification check).
+ *
+ * **Why it exists (frontend #490).** Callers wrote `serverMessages(x)[0] ?? fallback`, which was
+ * lossless while a validator failure was a single `"; "`-joined blob. Backend #291/#292 split that
+ * into one entry per broken rule, so `[0]` silently became "show the first reason and drop the
+ * rest" — the user fixes it, resubmits, and meets the next one. `CreateProductCommandValidator`
+ * has 12 `RuleFor`s, so that is a real queue, not a hypothetical.
+ *
+ * **`'; '` and not `', '`** — deliberately the backend's own separator (`ValidationBehavior`'s
+ * join, still what `message` carries), so these surfaces render the string they rendered before
+ * #291 rather than a near-miss of it. `getErrorMessage` and `routeApiError` use `', '`; neither
+ * regressed at #291 (both already joined every entry), so unifying the three is a cosmetic sweep
+ * across five independent joiners and deliberately not done here.
+ *
+ * **Not `?? ''`**: `null` is what lets the caller's `?? t('...')` reach a TRANSLATED fallback. An
+ * empty string is truthy-adjacent enough to have swallowed it (`''` would satisfy `??`).
+ */
+export function serverMessage(error: unknown): string | null {
+  const messages = serverMessages(error);
+  return messages.length > 0 ? messages.join('; ') : null;
+}
+
+/**
  * Split an unknown thrown (or resolved) failure into per-field and form-level messages.
  *
  * Messages are the SERVER's, verbatim and therefore in English. That is a deliberate trade against
@@ -216,9 +246,11 @@ export function routeApiError<TField extends string>(
   // FORM, where the leftovers are usually a single message and the separator never shows.
   // `useMemberManagement` passes no matchers at all, so EVERY message lands here. (An earlier
   // version of this note justified the change with "a staff edit that trips six password rules was
-  // one run-on paragraph" — measured, that request produced ONE message, and a validator failure
-  // cannot produce a multi-entry array at all. The real multi-entry case is an Identity failure:
-  // several reasons for one refused registration or password reset.)
+  // one run-on paragraph" — measured, that request produced ONE message. A second version then
+  // claimed a validator failure "cannot produce a multi-entry array at all", which was true of the
+  // blob shape and is FALSE since backend #291: a six-rule failure is now six entries, and this
+  // join is what puts the unmatched ones back on one line. Identity failures — several reasons for
+  // one refused registration or password reset — were always multi-entry.)
   return { fieldErrors, rootMessage: presentable(unmatched.join(', ')) };
 }
 

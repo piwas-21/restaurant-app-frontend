@@ -102,11 +102,17 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
     `Failed to ${isUpdate ? 'update' : 'create'} discount`,
   );
 
-  const [firstError] = serverMessages(error);
-  if (!firstError) return fallback;
+  // Matched PER ENTRY, not against the joined string, and the difference is not stylistic. Backend
+  // #291 made a validator failure one entry per rule, so a reason that used to be first can now be
+  // second — matching only `[0]` would miss it. But matching the JOIN would be worse: the
+  // user-not-found test is an AND of two independent `includes`, so "…user…" in one entry and
+  // "…not found…" in another would satisfy it across a boundary neither entry claims.
+  const messages = serverMessages(error);
+  if (messages.length === 0) return fallback;
 
-  const lower = firstError.toLowerCase();
-  if (lower.includes('user') && lower.includes('not found')) {
+  const matches = (predicate: (lower: string) => boolean) => messages.some((m) => predicate(m.toLowerCase()));
+
+  if (matches((lower) => lower.includes('user') && lower.includes('not found'))) {
     return t(
       'user_not_found_error',
       'User with ID "{{userId}}" was not found. Please verify the user ID and try again.',
@@ -115,13 +121,15 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
       },
     );
   }
-  if (lower.includes('already exists')) {
+  if (matches((lower) => lower.includes('already exists'))) {
     return t(
       'discount_already_exists_error',
       'A discount already exists for this user. Please edit the existing discount instead of creating a new one.',
     );
   }
 
-  // 'invalid' and any other message both surface the server's own sentence directly.
-  return firstError;
+  // 'invalid' and any other message both surface the server's own sentence directly — ALL of them,
+  // joined the way the backend joins them, so a two-rule refusal does not queue the admin through
+  // one reason at a time.
+  return messages.join('; ');
 }

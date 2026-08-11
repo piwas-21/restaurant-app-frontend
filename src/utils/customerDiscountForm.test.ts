@@ -43,6 +43,40 @@ describe('parseCustomerDiscountError', () => {
     expect(parseCustomerDiscountError(error, false, USER_ID, t)).toBe('Discount percentage must be between 1 and 100');
   });
 
+  it('shows every unrecognised reason, not just the first (frontend #490)', () => {
+    const error = new ApiError(400, 'Validation failed', [
+      'Discount percentage must be between 1 and 100',
+      'Start date must be in the future',
+    ]);
+
+    expect(parseCustomerDiscountError(error, false, USER_ID, t)).toBe(
+      'Discount percentage must be between 1 and 100; Start date must be in the future',
+    );
+  });
+
+  it('recognises a reason that is not first — backend #291 can reorder it', () => {
+    // The old `[0]` read would fall through to the raw server sentence here, losing the actionable
+    // reword that is the whole reason this function exists.
+    const error = new ApiError(409, 'Validation failed', [
+      'Discount percentage must be between 1 and 100',
+      'A discount already exists for this user',
+    ]);
+
+    expect(parseCustomerDiscountError(error, true, USER_ID, t)).toBe(
+      'A discount already exists for this user. Please edit the existing discount instead of creating a new one.',
+    );
+  });
+
+  it('does NOT assemble a match across two entries', () => {
+    // The user-not-found test is an AND of two independent `includes`, so matching against the
+    // JOINED string would let "…user…" in one entry and "…not found…" in another satisfy it —
+    // rewording a refusal neither entry made, and interpolating a user id nothing complained about.
+    // This is why the matcher runs per entry rather than on `messages.join('; ')`.
+    const error = new ApiError(400, 'Validation failed', ['Discount user is inactive', 'Tier not found']);
+
+    expect(parseCustomerDiscountError(error, false, USER_ID, t)).toBe('Discount user is inactive; Tier not found');
+  });
+
   it('reads the summary when the server sent no per-rule list', () => {
     expect(parseCustomerDiscountError(new ApiError(400, 'Discount window is closed'), false, USER_ID, t)).toBe(
       'Discount window is closed',

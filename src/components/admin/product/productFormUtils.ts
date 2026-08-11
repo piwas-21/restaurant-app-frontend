@@ -4,7 +4,7 @@ import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 
 interface SubmitProductFormParams {
   data: FormData;
@@ -304,16 +304,16 @@ export const submitProductForm = async ({
       reset();
       setImageFiles([]);
     } else {
-      setError('root', { message: serverMessages(productResponse)[0] ?? fallbackMessage });
+      setError('root', { message: serverMessage(productResponse) ?? fallbackMessage });
     }
   } catch (error: unknown) {
     console.error('Submit error:', error);
     // This block used to unwrap `error.response.data` — the AXIOS error envelope — and axios is
     // not a dependency here, so its three branches (per-field errors, `title`, `message`) were all
     // dead. What ran was `error.message`, and after #401 a message-less `ApiError` skips that too,
-    // landing on the hardcoded English default. `serverMessages` reads what `apiClient` throws;
+    // landing on the hardcoded English default. `serverMessage` reads what `apiClient` throws;
     // `apiClient` has already flattened a per-field `errors` OBJECT into the array it returns.
-    setError('root', { message: serverMessages(error)[0] ?? fallbackMessage });
+    setError('root', { message: serverMessage(error) ?? fallbackMessage });
   } finally {
     setSubmissionStatus('idle');
   }
@@ -470,7 +470,7 @@ export const submitEditProductForm = async ({
       : updateProduct(product.id, productData))) as {
       success: boolean;
       message?: string;
-      // `errors` is what `serverMessages` reads below — the backend's one-arg
+      // `errors` is what `serverMessage` reads below — the backend's one-arg
       // `ApiResponse.Failure("<reason>")` puts the reason there and leaves `message` at
       // "Operation failed". A cast that omitted it told the next reader it was not there.
       errors?: unknown;
@@ -482,7 +482,7 @@ export const submitEditProductForm = async ({
       onProductUpdated();
       onClose();
     } else {
-      setError('root', { message: serverMessages(response)[0] ?? fallbackMessage });
+      setError('root', { message: serverMessage(response) ?? fallbackMessage });
     }
   } catch (error: unknown) {
     // Was `} catch {` — the error object discarded entirely, then a hardcoded English sentence.
@@ -490,7 +490,7 @@ export const submitEditProductForm = async ({
     // lines up sets the SAME `root` error and leaving one of the pair converted is worse than
     // leaving both.
     console.error('Edit submit error:', error);
-    setError('root', { message: serverMessages(error)[0] ?? fallbackMessage });
+    setError('root', { message: serverMessage(error) ?? fallbackMessage });
   } finally {
     setIsSubmitting(false);
   }

@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
 import { confirmAccountDeletion } from '@/services/authService';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import styles from './DeleteAccount.module.css';
 
 function DeleteAccountContent() {
@@ -44,7 +44,7 @@ function DeleteAccountContent() {
         }, 3000);
       } else {
         setStatus('error');
-        // `serverMessages`, not `response.message`, and the backend is why: every arm of
+        // `serverMessage`, not `response.message`, and the backend is why: every arm of
         // `ConfirmAccountDeletionCommandHandler` returns `ApiResponse.Failure("<the reason>")`,
         // whose one-argument overload puts that reason in `errors[0]` and fills `Message` from the
         // factory's own default PARAMETER — the literal "Operation failed" (ApiResponse.cs). So
@@ -52,8 +52,8 @@ function DeleteAccountContent() {
         // was never empty and the `||` fallback never fired: a customer following an expired
         // deletion link was shown "Operation failed" instead of "Invalid or expired deletion
         // token", on a one-shot emailed link where knowing to request a new one is the whole fix.
-        // `serverMessages` reads `errors[]` first, which is where the sentence actually is.
-        setErrorMessage(serverMessages(response)[0] ?? t('deletion_failed', 'Failed to delete account.'));
+        // `serverMessage` reads `errors[]` first, which is where the sentence actually is.
+        setErrorMessage(serverMessage(response) ?? t('deletion_failed', 'Failed to delete account.'));
       }
     } catch (error) {
       // #414: `confirmAccountDeletion` goes through `apiClient` now, so a non-2xx arrives as an
@@ -69,7 +69,7 @@ function DeleteAccountContent() {
       // this comment named cannot occur. A `TypeError`/`SyntaxError` authors nothing showable and
       // those texts must not be rendered — hence the fallback.
       setStatus('error');
-      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
+      setErrorMessage(serverMessage(error) ?? t('unexpected_error', 'An unexpected error occurred.'));
     }
   };
 

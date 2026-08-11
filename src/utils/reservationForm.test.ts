@@ -283,10 +283,24 @@ describe('buildReservationPayload', () => {
  * it could not reach was `errors[]`. These use what `createReservation` actually throws.
  */
 describe('extractReservationErrorMessage', () => {
-  it('prefers the first entry of the API errors array', () => {
+  it('shows EVERY entry of the API errors array, not just the first', () => {
+    // This asserted `'Table gone'` alone until frontend #490. It was lossless while a validator
+    // failure was one `'; '`-joined blob; backend #291 splits it per rule, so keeping the old
+    // assertion would have pinned "tell the guest one reason and drop the rest" as the contract.
     expect(extractReservationErrorMessage(new ApiError(400, 'Validation failed', ['Table gone', 'other']), t)).toBe(
-      'Table gone',
+      'Table gone; other',
     );
+  });
+
+  it('drops the generic wrapper but keeps every real reason beside it', () => {
+    // `'Operation failed'` is filtered out — it is the backend's `ApiResponse.Failure` default and
+    // says less than the translated fallback. The reasons around it must survive that filter.
+    expect(
+      extractReservationErrorMessage(
+        new ApiError(400, 'Operation failed', ['Operation failed', 'Table gone', 'Party too large']),
+        t,
+      ),
+    ).toBe('Table gone; Party too large');
   });
 
   it("shows the server's summary when there is no errors array", () => {

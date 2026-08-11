@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { updateRestaurantInfo } from '@/services/restaurantInfoService';
 import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import { PALETTES } from '@/design-system/palettes';
 import { revalidateTenantTheme } from '@/app/actions/revalidateTenantTheme';
 import { toUpdateCommand } from './appearanceCommand';
@@ -89,7 +89,7 @@ export default function AppearanceTab() {
         // Read `errors[]` first anyway, because if this branch ever does fire it will be through
         // the one-argument `ApiResponse.Failure(reason)`, whose `message` is the literal
         // "Operation failed" and whose reason is in `errors[0]`.
-        enqueueSnackbar(serverMessages(response)[0] ?? t('general_settings_save_failed', 'Failed to save'), {
+        enqueueSnackbar(serverMessage(response) ?? t('general_settings_save_failed', 'Failed to save'), {
           variant: 'error',
         });
       }

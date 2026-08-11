@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { requestAccountDeletion } from '@/services/authService';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import styles from './DeleteAccountSection.module.css';
 
 export default function DeleteAccountSection() {
@@ -26,13 +26,13 @@ export default function DeleteAccountSection() {
           ),
         );
       } else {
-        // `serverMessages`, not `response.message`: `RequestAccountDeletionCommandHandler` returns
+        // `serverMessage`, not `response.message`: `RequestAccountDeletionCommandHandler` returns
         // `ApiResponse.Failure("User not found")`, and that overload puts the reason in `errors[0]`
         // while `Message` is filled from the factory's own default parameter, the literal
         // "Operation failed" (ApiResponse.cs). So the `||` here
         // never reached the translated fallback — it printed the server's placeholder summary.
         setErrorMessage(
-          serverMessages(response)[0] ?? t('delete_account_request_failed', 'Failed to request account deletion.'),
+          serverMessage(response) ?? t('delete_account_request_failed', 'Failed to request account deletion.'),
         );
       }
     } catch (error) {
@@ -55,9 +55,9 @@ export default function DeleteAccountSection() {
       // never escapes. The handler's own refusal ("User not found") is an HTTP 200 and stays on the
       // branch above.
       //
-      // `serverMessages` yields nothing for the `TypeError` or the body-less 401, so the translated
+      // `serverMessage` yields nothing for the `TypeError` or the body-less 401, so the translated
       // fallback covers exactly the cases where it is the honest answer.
-      setErrorMessage(serverMessages(error)[0] ?? t('unexpected_error', 'An unexpected error occurred.'));
+      setErrorMessage(serverMessage(error) ?? t('unexpected_error', 'An unexpected error occurred.'));
     } finally {
       setIsDeleting(false);
     }

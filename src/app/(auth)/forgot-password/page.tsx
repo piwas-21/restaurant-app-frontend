@@ -22,7 +22,7 @@ import { MailCheck } from 'lucide-react';
 import FormField from '@/components/design-system/FormField';
 import { AuthCard, AuthSubmit, BackToLoginFooter } from '@/components/auth/PasswordResetShell';
 import { forgotPassword } from '@/services/authService';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import styles from '../PasswordReset.module.css';
 
 export default function ForgotPasswordPage() {
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
       // the endpoint is anti-enumeration by design and answers a known and an unknown address with
       // a byte-identical body, so nothing reaching here is existence-dependent.
       if (res?.success === false) {
-        setFormError(serverMessages(res)[0] ?? t('unexpected_error'));
+        setFormError(serverMessage(res) ?? t('unexpected_error'));
         return;
       }
       setSent(true);
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
       // them. A dead network (`TypeError`) or a non-JSON body (`SyntaxError`) yields no
       // server-authored text, and those strings are client-authored — #401 removed them from
       // users' screens — so the translated sentence stays as the fallback.
-      setFormError(serverMessages(error)[0] ?? t('unexpected_error'));
+      setFormError(serverMessage(error) ?? t('unexpected_error'));
     }
   };
 

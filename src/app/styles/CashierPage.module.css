@@ -11,7 +11,7 @@
 .orderCard {
   padding: 1.25rem;
   margin-bottom: 1rem;
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-inline-start-width: 4px;
   border-radius: 10px;
@@ -257,7 +257,7 @@
 }
 
 .noteItem {
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 1rem;
@@ -293,7 +293,7 @@
 .noteInput {
   width: 100%;
   padding: 0.75rem;
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--text-color);

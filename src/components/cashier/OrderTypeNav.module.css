@@ -2,7 +2,7 @@
   display: flex;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
-  background: var(--background-light);
+  background: var(--surface-card);
   border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
 }

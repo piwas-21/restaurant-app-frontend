@@ -56,7 +56,13 @@
 }
 
 .closeButton:hover {
-  background-color: var(--background-light);
+  /* The only site here that needs --surface-secondary-light, and the reason is a theme split: this
+     modal's own fill FLIPS token, --card-background in light but --secondary-color in dark (see
+     `[data-theme='dark'] .modal` above). So --surface-card is a no-op in light and
+     --surface-secondary is an EXACT no-op in both dark themes — measured. --surface-secondary-light
+     is the one surface that differs from the modal in all four, and --text-color rides it at
+     16.0 / 9.5 / 11.2 / 8.4. */
+  background-color: var(--surface-secondary-light);
   color: var(--text-color);
 }
 

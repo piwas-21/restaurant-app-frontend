@@ -74,6 +74,8 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { stripComments } from './lib/comment-stripper.mjs';
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
 const ROOT = path.join(REPO, 'src');
@@ -95,142 +97,52 @@ function walk(dir) {
   return out;
 }
 
-/** String delimiters to track. CSS has the first two; TSX adds the template literal. */
-const QUOTES = new Set(["'", '"', '`']);
-
-/** Copy from `from` through the closing `quote`; report the span still open at end of line. */
-function copyToQuoteEnd(line, from, quote) {
-  let text = '';
+/** The custom-property name starting at `from`, and the index just past it. */
+function readName(text, from) {
   let j = from;
+  while (j < text.length && /\s/.test(text[j])) j += 1;
 
-  while (j < line.length) {
-    if (line[j] === '\\') {
-      text += line.slice(j, j + 2);
-      j += 2;
-      continue;
-    }
-    text += line[j];
-    j += 1;
-    if (text.endsWith(quote)) return { text, next: j, open: null };
-  }
-
-  return { text, next: j, open: quote };
+  const nameStart = j;
+  while (j < text.length && /[\w-]/.test(text[j])) j += 1;
+  return { name: text.slice(nameStart, j), next: j };
 }
 
 /**
- * Comments removed, strings TRACKED but PRESERVED.
+ * Walk one `var(` call to its own closing paren.
  *
- * Both halves are load-bearing and pull in opposite directions:
- *
- *   - **Tracked**, or the `/*` inside `accept="image/*"` opens a comment that runs to the file's
- *     next real close. The naive regex version of this function did exactly that and blanked **21
- *     lines** of live JSX in `BundlePanel.tsx` and 6 in `ProductDetails.tsx` — a fail-open in both
- *     directions, since a swallowed `style={{ '--x': v }}` drops a real DEFINITION and invents a
- *     violation elsewhere. `lib/ratchet.mjs` records this same trap blinding two earlier gates, and
- *     the docstring above name-checks it, which is exactly how it got re-introduced here: knowing
- *     the trap is not the same as not writing it.
- *   - **Preserved**, because TSX puts real references inside strings — `stroke="var(--fp-faint)"`,
- *     `` className={`${a}`} ``. A stripper that drops string contents (as `lib/ratchet.mjs` does,
- *     correctly for counting code patterns) would go blind to them.
- *
- * Line comments are TSX-only: CSS has none, and `//` there is a protocol-relative URL.
+ * `hasFallback` is a comma at depth 1 — THIS call's argument separator. Depth matters because
+ * `var(--a, var(--b))` nests: the outer reference has a fallback and the inner one does NOT, so it
+ * is a real defect. A regex either misses the inner call or mis-attributes the outer's comma.
+ * `closed` is false for an unterminated call, where the file does not parse and no verdict is safe.
  */
-function stripComments(source, isCss) {
-  const out = [];
-  let carried = 'code';
+function scanCall(text, from) {
+  let depth = 1;
+  let hasFallback = false;
 
-  for (const line of source.split('\n')) {
-    let text = '';
-    let state = carried;
-    let i = 0;
-
-    while (i < line.length) {
-      if (state === 'block') {
-        const close = line.indexOf('*/', i);
-        if (close === -1) {
-          i = line.length;
-          break;
-        }
-        i = close + 2;
-        state = 'code';
-        continue;
-      }
-
-      if (state !== 'code') {
-        const span = copyToQuoteEnd(line, i, state);
-        text += span.text;
-        i = span.next;
-        state = span.open ?? 'code';
-        continue;
-      }
-
-      const two = line.slice(i, i + 2);
-      if (!isCss && two === '//') break;
-
-      if (two === '/*') {
-        state = 'block';
-        i += 2;
-        continue;
-      }
-
-      if (QUOTES.has(line[i])) {
-        const span = copyToQuoteEnd(line, i + 1, line[i]);
-        text += line[i] + span.text;
-        i = span.next;
-        state = span.open ?? 'code';
-        continue;
-      }
-
-      text += line[i];
-      i += 1;
-    }
-
-    // Only a block comment and a template literal survive a newline; resetting the other two stops
-    // one unbalanced apostrophe swallowing the rest of the file.
-    carried = state === 'block' || state === '`' ? state : 'code';
-    out.push(text);
+  for (let k = from; k < text.length && depth > 0; k += 1) {
+    const c = text[k];
+    if (c === '(') depth += 1;
+    else if (c === ')') depth -= 1;
+    else if (c === ',' && depth === 1) hasFallback = true;
   }
 
-  return out.join('\n');
+  return { hasFallback, closed: depth === 0 };
 }
 
-/**
- * Every `var(--name)` reference, split by whether it carries a fallback.
- *
- * Hand-scanned rather than regexed because the fallback test is a TOP-LEVEL comma inside the
- * `var(` call, and `var(--a, var(--b))` nests: the outer reference has a fallback, the inner one
- * does NOT and is a real defect. A regex either misses the inner call or mis-attributes the comma.
- */
+/** Every `var(--name)` reference, split by whether it carries a fallback. */
 function varReferences(text) {
   const refs = [];
 
   for (let i = text.indexOf('var('); i !== -1; i = text.indexOf('var(', i + 1)) {
-    let j = i + 4;
-    while (j < text.length && /\s/.test(text[j])) j += 1;
-
-    const nameStart = j;
-    while (j < text.length && /[\w-]/.test(text[j])) j += 1;
-    const name = text.slice(nameStart, j);
+    const { name, next } = readName(text, i + 4);
     if (!name.startsWith('--')) continue;
 
     // A name immediately continued by a template placeholder is CONSTRUCTED, not referenced
     // (`var(--fp-${id})`). Reporting the literal prefix invents a property nobody can define.
-    if (text.startsWith('${', j)) continue;
+    if (text.startsWith('${', next)) continue;
 
-    // Walk to this call's own closing paren, tracking depth, and note a comma seen at depth 0.
-    let depth = 1;
-    let hasFallback = false;
-    let k = j;
-    for (; k < text.length && depth > 0; k += 1) {
-      const c = text[k];
-      if (c === '(') depth += 1;
-      else if (c === ')') depth -= 1;
-      else if (c === ',' && depth === 1) hasFallback = true;
-    }
-    // An unterminated call means the file does not parse; do not guess a verdict from it.
-    if (depth !== 0) continue;
-
-    refs.push({ name, hasFallback });
+    const { hasFallback, closed } = scanCall(text, next);
+    if (closed) refs.push({ name, hasFallback });
   }
 
   return refs;
@@ -293,7 +205,7 @@ const scanned = [];
 
 for (const file of files) {
   const isCss = file.endsWith('.css');
-  const text = stripComments(readFileSync(file, 'utf8'), isCss);
+  const text = stripComments(readFileSync(file, 'utf8'), { lineComments: !isCss });
   const template = templateOf(file);
 
   for (const name of definitions(text, isCss)) {
@@ -307,7 +219,7 @@ for (const file of files) {
   scanned.push({ file, text, isCss, template });
 }
 
-const templateNames = [...templateDefs.keys()].sort();
+const templateNames = [...templateDefs.keys()].sort((a, b) => a.localeCompare(b));
 
 /**
  * Shared code may only rely on a property that survives EVERY skin: defined outside the templates,

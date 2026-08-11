@@ -63,19 +63,13 @@ function skipBlockComment(line, from) {
  * Consume a string span, either OPENING one at `i` or continuing one carried from a previous line.
  *
  * Both callers want the same three things back, so they share this rather than each spelling out
- * the `?? 'code'` — which is also what keeps `stripLine` under the cognitive-complexity ceiling.
+ * the `?? 'code'` fallback.
  */
 function takeStringSpan(line, i, quote, opening) {
   const span = copyToQuoteEnd(line, opening ? i + 1 : i, quote);
   return { text: (opening ? quote : '') + span.text, next: span.next, state: span.open ?? 'code' };
 }
 
-/**
- * One line, comments removed and strings preserved, plus the span still open at the end of it.
- *
- * `lineComments` is false for CSS: it has no `//` syntax, and treating one as a comment would eat
- * the rest of a protocol-relative `url(//cdn…)`.
- */
 /**
  * One step of the scanner: what to emit at `i`, where to go next, and the state to carry.
  *
@@ -100,6 +94,12 @@ function consumeToken(line, i, state, lineComments) {
   return { text: line[i], next: i + 1, state: 'code' };
 }
 
+/**
+ * One line, comments removed and strings preserved, plus the span still open at the end of it.
+ *
+ * `lineComments` is false for CSS: it has no `//` syntax, and treating one as a comment would eat
+ * the rest of a protocol-relative `url(//cdn…)`.
+ */
 function stripLine(line, carried, lineComments) {
   let out = '';
   let state = carried;

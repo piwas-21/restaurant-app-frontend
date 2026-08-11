@@ -19,13 +19,13 @@ repos:
         exclude: \.(svg|patch)$
       - id: check-yaml
         # GitLab CI YAML uses extensions that the default parser rejects
-        args: ["--unsafe"]
+        args: ['--unsafe']
       - id: check-json
         # Skip files that legitimately hold credentials placeholders
         exclude: "(secrets|credentials|service-account)\\.json"
       - id: check-merge-conflict
       - id: check-added-large-files
-        args: ["--maxkb=1000"]
+        args: ['--maxkb=1000']
         # RUMI's hero photo is a pre-existing tracked blob that MOVED out of the shared
         # default set (public/branding/) into its own tenant set, so the hook sees an add.
         # Already re-encoded RGB-lossless (1762 -> 1297 KB, pixel-identical); the remainder
@@ -34,7 +34,7 @@ repos:
         exclude: ^public/branding-rumi/hero\.png$
       - id: no-commit-to-branch
         # `master` included defensively in case of accidental rename / fork.
-        args: ["--branch", "main", "--branch", "develop", "--branch", "master"]
+        args: ['--branch', 'main', '--branch', 'develop', '--branch', 'master']
 
   # ── Secret scanning ──────────────────────────────────────────────────
   - repo: https://github.com/Yelp/detect-secrets
@@ -46,7 +46,7 @@ repos:
         # captures, leaving the team without visibility when new "secrets"
         # appear in those paths. Prefer regenerating the baseline:
         #   detect-secrets scan --baseline .secrets.baseline
-        args: ["--baseline", ".secrets.baseline"]
+        args: ['--baseline', '.secrets.baseline']
 
   # ── Sprint 2: format gate ────────────────────────────────────────────
   # Verifies staged files are prettier-clean. To fix: `npm run format`
@@ -178,6 +178,23 @@ repos:
       - id: css-module-bindings
         name: CSS-module bindings resolve (§6.2)
         entry: node scripts/check-css-module-bindings.mjs
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # A `var(--x)` written with NO fallback, naming a property nothing defines. The whole
+  # declaration is then invalid at computed-value time, so the element paints its inherited or
+  # initial value — `background: var(--card-bg)` on an admin panel is transparent, not "slightly
+  # off". Invisible to every other gate: prettier and stylelint accept `var(--anything)` because
+  # it IS valid syntax, and identity-obj-proxy blinds jest to values entirely. #335 was one
+  # instance (22 references); #489 measured 29 more properties across 56 sites, which is the
+  # baseline. THE TARGET IS ZERO — it is debt to burn down, not a budget: never re-baseline to get
+  # a change past it. References WITH a fallback always resolve and are counted, never failed on.
+  - repo: local
+    hooks:
+      - id: undefined-css-vars
+        name: custom properties resolve (#489)
+        entry: node scripts/check-undefined-css-vars.mjs
         language: system
         pass_filenames: false
         always_run: true

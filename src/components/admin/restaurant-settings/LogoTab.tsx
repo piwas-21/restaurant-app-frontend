@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
 import { uploadRestaurantLogo, deleteRestaurantLogo } from '@/services/restaurantInfoService';
 import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import type { LogoVariant } from '@/types/restaurantInfo';
 import LogoSlot from './LogoSlot';
 import styles from './LogoTab.module.css';
@@ -67,8 +67,8 @@ export default function LogoTab() {
         // oversized file was told "Operation failed" while the real sentence sat unread in
         // `errors[0]`: "File size exceeds maximum allowed size of 10MB", the limit interpolated
         // from `FileStorageSettings.MaxFileSizeBytes` (bound to 10485760 in `appsettings.json`,
-        // NOT the 5MB C# default). `serverMessages` reads `errors[]` first for exactly this reason.
-        enqueueSnackbar(serverMessages(response)[0] ?? t('logo_save_failed', 'Failed to save the logo'), {
+        // NOT the 5MB C# default). `serverMessage` reads `errors[]` first for exactly this reason.
+        enqueueSnackbar(serverMessage(response) ?? t('logo_save_failed', 'Failed to save the logo'), {
           variant: 'error',
         });
       }

@@ -80,7 +80,7 @@
 }
 
 .emailInfo {
-  background: var(--background-light);
+  background: var(--surface-card);
   border-radius: var(--modal-body-option-radius, 8px);
   padding: 1rem;
   margin-bottom: 2rem;
@@ -137,7 +137,12 @@
 }
 
 .secondaryButton {
-  background: var(--background-light);
+  /* NOT --surface-card like the rest of this file: `:hover` below sets `background: transparent`,
+     and this module is body-only content inside BaseModal, whose `.modal` is --card-background —
+     i.e. --surface-card. Resting on --surface-card would make that hover reveal the exact colour it
+     just left, which is the same dead-declaration shape the .notesHeader gradient had. Safe on
+     contrast: only --text-color lands here (15.3 / 12.3 / 10.0 / 9.8 across the four themes). */
+  background: var(--surface-secondary);
   color: var(--text-color);
   border: var(--modal-body-option-border, 1px solid var(--border-color));
   border-radius: var(--modal-body-btn-radius, 8px);
@@ -169,7 +174,7 @@
   margin: 0.5rem 0 0 0;
   line-height: 1.5;
   padding: 0.75rem;
-  background: var(--background-light);
+  background: var(--surface-card);
   border-inline-start: 3px solid var(--primary-color);
   border-radius: var(--modal-body-option-radius, 6px);
 }

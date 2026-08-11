@@ -102,11 +102,28 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
     `Failed to ${isUpdate ? 'update' : 'create'} discount`,
   );
 
-  const [firstError] = serverMessages(error);
-  if (!firstError) return fallback;
+  // Matched PER ENTRY rather than on `[0]` or on the joined string. **This endpoint cannot
+  // currently send more than one entry, and that is measured, not assumed:**
+  // `CustomerDiscountsController` injects `ICustomerDiscountService` directly — no mediator, so
+  // `ValidationBehavior` never runs — and nothing wires `AddFluentValidationAutoValidation`, so
+  // `CustomerDiscountRuleValidators`' 17 rules are registered and never invoked. Every refusal is
+  // the one-argument `ApiResponse.Failure(reason)`: exactly one entry. So per-entry matching is
+  // defence against the shape changing, not a response to a live reorder.
+  //
+  // Given that, why not just join and match once? Because the join is the one option that is
+  // actively WRONG: the user-not-found test is an AND of two independent `includes`, so "…user…"
+  // in one entry and "…not found…" in another would satisfy it across a boundary neither entry
+  // claims — rewording a refusal nobody made and interpolating a user id nothing complained about.
+  //
+  // Known and accepted: when a matcher DOES hit, the reworded sentence replaces every entry,
+  // including ones it did not match. That is the loss #490 exists to stop, kept here because the
+  // reword is the actionable sentence and the raw reason beside it would read as contradiction.
+  const messages = serverMessages(error);
+  if (messages.length === 0) return fallback;
 
-  const lower = firstError.toLowerCase();
-  if (lower.includes('user') && lower.includes('not found')) {
+  const matches = (predicate: (lower: string) => boolean) => messages.some((m) => predicate(m.toLowerCase()));
+
+  if (matches((lower) => lower.includes('user') && lower.includes('not found'))) {
     return t(
       'user_not_found_error',
       'User with ID "{{userId}}" was not found. Please verify the user ID and try again.',
@@ -115,13 +132,15 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
       },
     );
   }
-  if (lower.includes('already exists')) {
+  if (matches((lower) => lower.includes('already exists'))) {
     return t(
       'discount_already_exists_error',
       'A discount already exists for this user. Please edit the existing discount instead of creating a new one.',
     );
   }
 
-  // 'invalid' and any other message both surface the server's own sentence directly.
-  return firstError;
+  // 'invalid' and any other message both surface the server's own sentence directly — ALL of them,
+  // joined the way the backend joins them, so a two-rule refusal does not queue the admin through
+  // one reason at a time.
+  return messages.join('; ');
 }

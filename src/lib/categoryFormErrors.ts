@@ -1,4 +1,4 @@
-import { formLevelMessage, routeApiError, serverMessages, type FieldMatchers } from '@/utils/apiFormErrors';
+import { formLevelMessage, routeApiError, serverMessage, type FieldMatchers } from '@/utils/apiFormErrors';
 
 /**
  * Failure handling shared by `CreateCategoryModal` and `EditCategoryModal` (E9 step 3, slice 7).
@@ -35,7 +35,7 @@ import { formLevelMessage, routeApiError, serverMessages, type FieldMatchers } f
  * Every one of those handlers uses the **one-argument** `ApiResponse.Failure(reason)`. That overload
  * puts the reason in `Errors[0]` and leaves `Message` at its default — the literal string
  * `"Operation failed"` (`ApiResponse.cs:55-63`). Anything reading `message` therefore shows the
- * admin a wrapper where the diagnosis should be. `serverMessages` exists for exactly this and reads
+ * admin a wrapper where the diagnosis should be. `serverMessage` exists for exactly this and reads
  * `errors[]` first; `reasonOr` below is its one-line application to the partial-success sentences.
  */
 
@@ -123,7 +123,7 @@ export function applyCategoryFailure(failure: unknown, fallback: string, setErro
  * upload failed: Operation failed" while the real sentence sat unread in `errors[0]`.
  */
 export function reasonOr(response: unknown, fallback: string): string {
-  return serverMessages(response)[0] ?? fallback;
+  return serverMessage(response) ?? fallback;
 }
 
 /**

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { invalidateRestaurantInfoCache, useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { addPhoneNumber, deletePhoneNumber, updatePhoneNumber } from '@/services/restaurantInfoService';
 import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { serverMessage } from '@/utils/apiFormErrors';
 import type { RestaurantPhoneNumberDto } from '@/types/restaurantInfo';
 import {
   phoneNumberSchema,
@@ -95,7 +95,7 @@ export default function PhoneNumberManager({ phones }: Props) {
       } else {
         // Defensive, not the live path: `AddPhoneNumberCommand` / `UpdatePhoneNumberCommand` build
         // no `Failure` — they throw. `errors[]` first regardless, per the note in `AppearanceTab`.
-        enqueueSnackbar(serverMessages(response)[0] ?? t('phone_save_failed', 'Failed to save phone'), {
+        enqueueSnackbar(serverMessage(response) ?? t('phone_save_failed', 'Failed to save phone'), {
           variant: 'error',
         });
       }
@@ -131,7 +131,7 @@ export default function PhoneNumberManager({ phones }: Props) {
         enqueueSnackbar(t('phone_delete_success', 'Phone deleted'), { variant: 'success' });
       } else {
         // Defensive, not the live path — `DeletePhoneNumberCommand` throws `NotFoundException`.
-        enqueueSnackbar(serverMessages(response)[0] ?? t('phone_delete_failed', 'Failed to delete'), {
+        enqueueSnackbar(serverMessage(response) ?? t('phone_delete_failed', 'Failed to delete'), {
           variant: 'error',
         });
       }

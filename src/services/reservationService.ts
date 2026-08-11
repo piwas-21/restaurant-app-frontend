@@ -1,6 +1,6 @@
 // Reservation Service - API client for reservation operations
 import { apiClient } from '@/utils/apiClient';
-import { serverMessages, throwServerRefusal } from '@/utils/apiFormErrors';
+import { serverMessage, throwServerRefusal } from '@/utils/apiFormErrors';
 import {
   TableDto,
   ReservationDto,
@@ -141,7 +141,7 @@ export const reservationService = {
     );
 
     if (!response.success || !response.data) {
-      // `serverMessages` keeps the errors-then-message precedence the hand-rolled chain here had,
+      // `serverMessage` keeps the errors-then-message precedence the hand-rolled chain here had,
       // minus the bug: it drops BLANK entries, where `errors.length > 0` happily returned `''`.
       //
       // Two things are gone. The client-authored English fallback, which was justified by `error`
@@ -155,7 +155,11 @@ export const reservationService = {
       // slots" — and reads `NumberOfGuests` nowhere but a log line; the party-too-large case is
       // answered entirely client-side by `partyExceedsEveryTable`. The flag was structurally always
       // `false`, so its consumer branched on something that could not happen.
-      return { data: null, error: serverMessages(response)[0] };
+      // `?? undefined` and not a widened field type: the declared contract above is
+      // `error?: string` ("the SERVER's sentence, or `undefined`"), and `serverMessage` says the
+      // same absence with `null`. Normalising here keeps one spelling of "nothing" at the boundary
+      // rather than making every caller test for two.
+      return { data: null, error: serverMessage(response) ?? undefined };
     }
 
     return { data: response.data };

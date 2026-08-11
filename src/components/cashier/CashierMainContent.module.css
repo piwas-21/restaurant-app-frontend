@@ -46,7 +46,7 @@
   padding: 0.75rem 1rem;
   font-size: 0.9375rem;
   color: var(--text-color);
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   outline: none;
@@ -74,7 +74,7 @@
   padding: 0.625rem 0.75rem;
   font-size: 0.875rem;
   color: var(--text-color);
-  background: var(--background-light);
+  background: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;

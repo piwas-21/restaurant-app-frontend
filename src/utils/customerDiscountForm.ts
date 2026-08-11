@@ -102,11 +102,22 @@ export function parseCustomerDiscountError(error: unknown, isUpdate: boolean, us
     `Failed to ${isUpdate ? 'update' : 'create'} discount`,
   );
 
-  // Matched PER ENTRY, not against the joined string, and the difference is not stylistic. Backend
-  // #291 made a validator failure one entry per rule, so a reason that used to be first can now be
-  // second — matching only `[0]` would miss it. But matching the JOIN would be worse: the
-  // user-not-found test is an AND of two independent `includes`, so "…user…" in one entry and
-  // "…not found…" in another would satisfy it across a boundary neither entry claims.
+  // Matched PER ENTRY rather than on `[0]` or on the joined string. **This endpoint cannot
+  // currently send more than one entry, and that is measured, not assumed:**
+  // `CustomerDiscountsController` injects `ICustomerDiscountService` directly — no mediator, so
+  // `ValidationBehavior` never runs — and nothing wires `AddFluentValidationAutoValidation`, so
+  // `CustomerDiscountRuleValidators`' 17 rules are registered and never invoked. Every refusal is
+  // the one-argument `ApiResponse.Failure(reason)`: exactly one entry. So per-entry matching is
+  // defence against the shape changing, not a response to a live reorder.
+  //
+  // Given that, why not just join and match once? Because the join is the one option that is
+  // actively WRONG: the user-not-found test is an AND of two independent `includes`, so "…user…"
+  // in one entry and "…not found…" in another would satisfy it across a boundary neither entry
+  // claims — rewording a refusal nobody made and interpolating a user id nothing complained about.
+  //
+  // Known and accepted: when a matcher DOES hit, the reworded sentence replaces every entry,
+  // including ones it did not match. That is the loss #490 exists to stop, kept here because the
+  // reword is the actionable sentence and the raw reason beside it would read as contradiction.
   const messages = serverMessages(error);
   if (messages.length === 0) return fallback;
 

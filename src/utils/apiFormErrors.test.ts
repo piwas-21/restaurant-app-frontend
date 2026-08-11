@@ -140,6 +140,16 @@ describe('serverMessage', () => {
     expect(serverMessage(new TypeError('x')) ?? 'translated fallback').toBe('translated fallback');
   });
 
+  it('joins the real reasons without stitching the blanks between them', () => {
+    // The filter/join interaction, which neither helper tests alone. `presentable` drops the blank
+    // BEFORE the join, so the separator cannot end up doubled or trailing — a naive
+    // `errors.join('; ')` on this input yields "; Name is required; ", which renders as a stray
+    // leading separator in the form.
+    expect(serverMessage(new ApiError(400, 'Summary', ['', 'Name is required', '   ', 'Price is required']))).toBe(
+      'Name is required; Price is required',
+    );
+  });
+
   it('agrees with serverMessages on the single-reason shapes, so nothing else moved', () => {
     // The 22 swept sites mostly meet one-reason refusals. Those must render the identical string
     // before and after, or this change is not the mechanical sweep it claims to be.

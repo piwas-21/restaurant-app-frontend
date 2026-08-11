@@ -147,13 +147,18 @@ export function throwServerRefusal(response: { message?: string; errors?: unknow
  * The SERVER's messages, most specific first, from whichever shape carries them — newest to
  * oldest: `errors[]` if present, else the summary `message`, else nothing.
  *
- * Exported because four screens need the messages as a LIST rather than as one routed sentence:
- * they branch on the first one (an overlap range to interpolate, a user-not-found to reword) and
- * `routeApiError` has already joined it with `', '` by the time they see it. They each used to
- * read `error.response.data.errors` — **an axios envelope this app has never produced, because
- * axios is not a dependency** — so every one of those branches was dead and the screens fell
- * through to their generic. `getErrorMessage` is the right call when a single string is wanted;
- * this is for when the parts matter.
+ * Exported for the callers that need the messages as a LIST rather than as one sentence. That used
+ * to mean "four screens that branch on the FIRST one"; after frontend #490 it means the two that
+ * inspect every entry separately — `customerDiscountForm` (matchers run per entry, so a reason in
+ * position two is still recognised) and `reservationForm` (drops the `'Operation failed'` wrapper
+ * and keeps the rest) — plus `serverMessage` below. **Nothing branches on `[0]` any more**, which
+ * is the whole point of #490: the entries are per-rule now, so "the first one" is an arbitrary
+ * rule, not a summary. `serverMessage` is the right call when the destination renders one string;
+ * this is for when the parts genuinely have to be told apart.
+ *
+ * They each used to read `error.response.data.errors` — **an axios envelope this app has never
+ * produced, because axios is not a dependency** — so every one of those branches was dead and the
+ * screens fell through to their generic.
  *
  * **Why `errors[]` first.** On a controller's own `ApiResponse.Failure("<reason>")` — the common
  * refusal — the ONE-argument overload puts the reason in `Errors[0]` and leaves `Message` at its

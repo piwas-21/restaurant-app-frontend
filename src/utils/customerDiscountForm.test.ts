@@ -54,9 +54,12 @@ describe('parseCustomerDiscountError', () => {
     );
   });
 
-  it('recognises a reason that is not first — backend #291 can reorder it', () => {
+  it('recognises a reason that is not first', () => {
     // The old `[0]` read would fall through to the raw server sentence here, losing the actionable
-    // reword that is the whole reason this function exists.
+    // reword that is the whole reason this function exists. NOT a shape this endpoint sends today
+    // — `CustomerDiscountsController` bypasses the mediator, so its refusals are single-entry (see
+    // the note in customerDiscountForm.ts). This pins the FUNCTION's contract, which takes
+    // `unknown` and is the thing that has to survive the endpoint moving onto a validator.
     const error = new ApiError(409, 'Validation failed', [
       'Discount percentage must be between 1 and 100',
       'A discount already exists for this user',

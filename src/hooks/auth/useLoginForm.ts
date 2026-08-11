@@ -109,9 +109,19 @@ export function useLoginForm() {
         // attempts. This account is temporarily locked. Please try again later.", "Account
         // locked")` rendered as **"Account locked"**, dropping the only sentence that tells the
         // user to wait rather than keep guessing.
-        // ALL the reasons, not `[0]`: backend #291 splits a validator failure per rule, and
-        // `LoginCommandValidator` can refuse email AND password in one request. The verification
-        // check below reads the same string, so joining can only make it match MORE, never less.
+        // ALL the reasons, not `[0]` — but on THIS path that is uniformity, not a fix, and saying
+        // otherwise would point the next reader at a mechanism that does not exist. Login has no
+        // FluentValidation validator: `LoginCommandValidator.cs` is an empty `public class` stub,
+        // not an `AbstractValidator<LoginCommand>`, and no such type exists anywhere in the
+        // backend — so `ValidationBehavior` never runs here and backend #291 changes nothing about
+        // what this endpoint sends. Every refusal is `ApiResponse.Failure(detail, message)`, one
+        // entry. The join is a no-op today and the sweep is what keeps it that way if login ever
+        // gains a validator.
+        //
+        // It is also the ONE swept site where the string feeds a BRANCH rather than a display, so
+        // the consequence is worth stating: joining can only make `isVerify` match MORE, never
+        // less. A refusal carrying "verification" in a non-first entry would flip the resend-email
+        // UI on. Unreachable while login is unvalidated; a widening, not a narrowing, if it is not.
         const reason = serverMessage(response);
         // Both slots, unchanged from before this slice — but NOT because either alone is
         // insufficient. The real refusal is `Failure("Please verify your email address before

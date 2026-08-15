@@ -49,6 +49,15 @@ export function isNotFoundError(error: unknown): boolean {
   return isErrorStatus(error, 404);
 }
 
+/**
+ * Mirrors the real helper's SHAPE, not its source: the real one reads the cached `i18nextLng`, which
+ * a suite using this double has not written. `null` is the honest answer here and is also what the
+ * real one returns in that state. A mock function rather than a plain one so a suite can vary it
+ * without re-mocking the module; a test that needs the HEADER asserted goes through the real module
+ * by relative path (`src/utils/apiClientLanguage.test.ts`), because this file shadows the alias.
+ */
+export const getRequestLanguage = jest.fn((): string | null => null);
+
 export const apiClient = {
   get: jest.fn(),
   post: jest.fn(),

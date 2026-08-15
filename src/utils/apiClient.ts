@@ -77,6 +77,36 @@ function readStoredValue(key: string): string | null {
   }
 }
 
+/**
+ * The language every request tells the backend it is in (`Accept-Language`).
+ *
+ * This is the ONLY channel the guest's language reaches the server on — GAP-2 S4 freezes it onto
+ * the order/reservation/account row at creation and every mail about that row is then written in
+ * it (EMAIL-LOCALISATION-PLAN §1 rank 3). A checkout that sends no header produces a row carrying
+ * the tenant's language instead of the diner's, and the receipt arrives in the wrong one.
+ *
+ * Read from `i18nextLng` in storage rather than from the i18next singleton, and that is a size
+ * decision, not a taste one: `import i18n from 'i18next'` here pulls the i18next runtime into every
+ * route that touches this module — measured at +13 kB first-load on `/dev-portal`, which is over
+ * its budget in `scripts/check-bundle-size.mjs`. The key holds the same value: `src/i18n.ts` sets
+ * `detection.caches: ['localStorage']`, so the detector writes it on first visit, and
+ * `LanguageSwitcher` writes it on every explicit choice. When storage is unreadable or nothing has
+ * been detected yet there is no header, which resolves to the tenant's language rather than a guess.
+ *
+ * SSR sends nothing at all (the guard is inside `readStoredValue`) — there is no user there, and a
+ * server-rendered call must not put the container's locale on the wire.
+ *
+ * The value may be a REGION tag (`fr-CH`): i18next stores what it detected, and the backend reduces
+ * a tag to its primary subtag itself (`LanguageCode.Normalize`). Do not "fix" it into a split here —
+ * a header is a weighted list to the server, and the one thing that must not happen is this sending
+ * something that is not a well-formed tag.
+ *
+ * `Accept-Language` is a CORS-safelisted request header, so this adds no preflight.
+ */
+export function getRequestLanguage(): string | null {
+  return readStoredValue('i18nextLng');
+}
+
 function getAuthToken(): string | null {
   return readStoredValue('auth_token');
 }
@@ -113,13 +143,24 @@ function clearAuthAndRedirect(): void {
 interface RequestConfig extends RequestInit {
   requireAuth?: boolean;
   requireSession?: boolean;
+  /**
+   * Whether a definitively dead session should END the session — clear storage and bounce to `/`.
+   * Default `true`, which is right for anything a user asked for: they cannot continue anyway.
+   *
+   * `false` is for a BACKGROUND write nobody asked for. That distinction is not cosmetic: the
+   * redirect happens inside this module, so a caller's own try/catch cannot stop it, and a
+   * best-effort language write fired from a menu click (`saveLanguagePreference`) would otherwise
+   * be able to throw away a half-filled checkout form the moment a refresh token expired. The
+   * caller still gets its `ApiError(401)` and can decide to do nothing with it, which is the point.
+   */
+  signOutOn401?: boolean;
 }
 
 /**
  * Make HTTP request with error handling
  */
 async function request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
-  const { requireAuth = false, requireSession = false, ...fetchConfig } = config;
+  const { requireAuth = false, requireSession = false, signOutOn401 = true, ...fetchConfig } = config;
 
   // Build headers
   const headers: Record<string, string> = {};
@@ -133,6 +174,13 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
   if (fetchConfig.headers) {
     const existingHeaders = fetchConfig.headers as Record<string, string>;
     Object.assign(headers, existingHeaders);
+  }
+
+  // Set before the auth token, and deliberately NOT overwriting a caller's own value: a caller
+  // that asked for a specific language means it.
+  const language = getRequestLanguage();
+  if (language && !headers['Accept-Language']) {
+    headers['Accept-Language'] = language;
   }
 
   // Add authentication token if available or required
@@ -187,9 +235,15 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
         // 429 body is empty). The one branch that can carry the server's own words, `data?.message`,
         // is the NON-transient one, and it ends at the sign-out below.
         throw new ApiError(429, '');
-      } else {
+      } else if (signOutOn401) {
         // Genuine invalid/expired session — sign out and send to login.
         clearAuthAndRedirect();
+        throw new ApiError(401, '');
+      } else {
+        // The same dead session, reported rather than acted on: this call was a background
+        // best-effort write, and ending someone's session — and navigating them away — because a
+        // write THEY DID NOT ASK FOR found an expired token is a worse outcome than the write not
+        // happening. The next request the user actually makes signs them out.
         throw new ApiError(401, '');
       }
     }

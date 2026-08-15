@@ -29,6 +29,11 @@ export interface UserDto {
   orderLimitAmount: number;
   discountPercentage: number;
   isDiscountActive: boolean;
+  /**
+   * The language this account's mails are written in (GAP-2 §1 rank 2), or absent when the person
+   * never expressed one. A primary subtag — `fr`, never `fr-CH`.
+   */
+  preferredLanguage?: string;
 }
 
 /**
@@ -72,6 +77,11 @@ export interface UpdateUserProfileCommand {
   firstName: string;
   lastName: string;
   phoneNumber?: string;
+  /**
+   * ABSENT MEANS UNCHANGED — the backend leaves a stored preference alone when the field is
+   * missing, null or empty, so a profile form that does not know about it cannot clear it.
+   */
+  preferredLanguage?: string;
 }
 
 /**

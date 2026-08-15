@@ -17,11 +17,21 @@ export type { UpdateUserProfileCommand, UserDto };
 const USER_API_URL = `/api/User`;
 
 /**
+ * The subset of `apiClient`'s request config a caller of these two needs: whether a dead session
+ * should be ENDED by this call. Only a background write passes it (`false`); everything a user
+ * asked for keeps the default.
+ */
+type BackgroundCallOptions = { signOutOn401?: boolean };
+
+/** @see saveLanguagePreference — the only writer, and the reason this is module state. */
+let latestLanguageChoice: string | null = null;
+
+/**
  * Get current user profile
  */
-export async function getCurrentUser(): Promise<UserDto> {
+export async function getCurrentUser(options?: BackgroundCallOptions): Promise<UserDto> {
   try {
-    const json = await apiClient.get<ApiResponse<UserDto>>(`${USER_API_URL}/profile`);
+    const json = await apiClient.get<ApiResponse<UserDto>>(`${USER_API_URL}/profile`, options);
 
     if (!json.data) {
       throw new Error('Failed to fetch user profile');
@@ -42,9 +52,12 @@ export async function getCurrentUser(): Promise<UserDto> {
 /**
  * Update current user's profile
  */
-export async function updateProfile(command: UpdateUserProfileCommand): Promise<UserDto> {
+export async function updateProfile(
+  command: UpdateUserProfileCommand,
+  options?: BackgroundCallOptions,
+): Promise<UserDto> {
   try {
-    const json = await apiClient.put<ApiResponse<UserDto>>(`${USER_API_URL}/profile`, command);
+    const json = await apiClient.put<ApiResponse<UserDto>>(`${USER_API_URL}/profile`, command, options);
 
     if (!json.data) {
       throw new Error('Failed to update profile');
@@ -57,6 +70,56 @@ export async function updateProfile(command: UpdateUserProfileCommand): Promise<
   }
 }
 
+/**
+ * Record the language a signed-in user just chose, so their MAIL follows it too (GAP-2 §1 rank 2).
+ *
+ * Best-effort by construction, and the caller must treat it as such: the UI language has already
+ * changed locally when this runs, and a failed write must not undo that or interrupt anyone. It is
+ * also the only rank that survives the device — a guest's `Accept-Language` covers the row they are
+ * creating right now, while this covers the password reset they ask for from a hotel computer next
+ * month.
+ *
+ * The names are re-read from the server rather than taken from the auth context: `PUT /profile`
+ * requires them and overwrites them, so posting a cached copy would silently revert a rename made
+ * in another tab. Returns whether the preference was stored.
+ */
+export async function saveLanguagePreference(language: string): Promise<boolean> {
+  // Last click wins. Two quick choices run two independent GET→PUT pairs, and without this the
+  // second PUT can land first — leaving the account on a language the UI is not showing, which is
+  // exactly the "the setting does not stick" failure the backend validator refuses to allow.
+  latestLanguageChoice = language;
+
+  try {
+    // `signOutOn401: false` on both calls: nobody asked for this write. apiClient's default is to
+    // end a dead session and navigate to `/`, from inside the module, where no caller's catch can
+    // stop it — a menu click must not be able to throw away a half-filled checkout form.
+    const current = await getCurrentUser({ signOutOn401: false });
+
+    if (latestLanguageChoice !== language) {
+      return true;
+    }
+
+    if (current.preferredLanguage === language) {
+      return true;
+    }
+
+    await updateProfile(
+      {
+        firstName: current.firstName,
+        lastName: current.lastName,
+        phoneNumber: current.phoneNumber,
+        preferredLanguage: language,
+      },
+      { signOutOn401: false },
+    );
+
+    return true;
+  } catch (error) {
+    // Not surfaced: nobody asked for this write, and the switcher's own job already succeeded.
+    console.warn('Could not store the language preference on the account', error);
+    return false;
+  }
+}
 /**
  * Fetch users with filters (Admin only)
  */

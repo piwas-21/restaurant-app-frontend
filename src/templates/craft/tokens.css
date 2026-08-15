@@ -198,6 +198,36 @@
     'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
+  /* The DISPLAY half of the same pair, added 2026-08-11 (#489). Craft defined --font-family-sans
+     and stopped, but the shared stylesheets reference BOTH — so under craft
+     `font-family: var(--font-family-display)` is invalid at computed-value time and the element
+     silently keeps the inherited body face.
+
+     **No craft surface renders any of the six affected rules today, and that was traced rather
+     than assumed — twice, because the first two answers were both wrong.** #489 and its review
+     said two sites were live; then MenuItemDetails turned out to be replaced TRANSITIVELY (its
+     only importer is MenuCard, which surfaces.ts overrides); then the last survivor,
+     `MenuContent.module.css`'s `.sectionHeading`, turned out to be declared in that stylesheet but
+     consumed only by `MenuSectionStatus.tsx` — which craft also overrides. Reachability here is
+     not "does this component have a Craft* twin": a class can be declared in one module, imported
+     by another, and killed by the override of a third.
+
+     So this fixes a LATENT defect and changes no pixel today — the craft menu screenshot baselines
+     should be byte-identical, which is the check that proves it. It earns its place because the
+     shared stylesheets are shared: the first craft surface to reuse one of these classes would
+     otherwise silently render the body face, and the gate cannot tell a dead invalid rule from a
+     live one.
+
+     Amatic SC and not Caveat: craft already calls Amatic SC its title face in this file
+     (--modal-title-font, and --modal-body-title-font's own comment says "section titles"), and
+     CraftMenuCard's dish name uses it. Caveat is the accent/annotation face.
+
+     :root, unlike classic's `body` scope — classic must sit on <body> because next/font applies
+     its variable class there and custom properties inherit downwards only. Craft's fonts.ts
+     registers no CSS variables at all (it references families literally), so there is nothing to
+     inherit from and :root is correct, matching --font-family-sans two lines up. */
+  --font-family-display: 'Amatic SC', cursive;
+
   /* Brand */
   --brand-primary: #a84b2f; /* terracotta clay */
   --brand-primary-dark: #7a3a24; /* pressed/hover shade */

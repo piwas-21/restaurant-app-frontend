@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import styles from '../app/styles/LanguageSwitcher.module.css';
 import { SUPPORTED_LANGUAGES, LanguageCode } from '@/config/languageConfig';
+import { useAuth } from '@/components/AuthContext';
+import { saveLanguagePreference } from '@/services/userService';
 
 const languages = SUPPORTED_LANGUAGES;
 
@@ -13,6 +15,7 @@ export type { LanguageCode };
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
+  const { user } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +25,17 @@ export default function LanguageSwitcher() {
     // This is typically not considered a tracking/preference cookie
     localStorage.setItem('i18nextLng', lng);
     setDropdownOpen(false);
+
+    // And, for someone signed in, on the ACCOUNT — which is what makes their mail follow the
+    // choice (GAP-2 §1 rank 2). Deliberately fire-and-forget: the UI has already switched, and
+    // awaiting it would make a menu click wait on the network. Safe to `void` because
+    // `saveLanguagePreference` never rejects — it reports failure by resolving `false` — and never
+    // signs anyone out, which a background write triggering apiClient's session-end would. A guest
+    // needs nothing here: the `Accept-Language` header apiClient now sends carries their choice
+    // onto the row they create.
+    if (user) {
+      void saveLanguagePreference(lng);
+    }
   };
 
   const toggleDropdown = () => {

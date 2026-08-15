@@ -59,6 +59,8 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { stripCommentLines } from './lib/comment-stripper.mjs';
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..');
 const ROOT = path.join(REPO, 'src');
@@ -87,117 +89,15 @@ function walk(dir) {
  * attribute, and the lib's own docstring records the same bug biting two earlier gates.
  */
 /**
- * Blank out comments, per line, WITHOUT touching string or template contents.
+ * Comments stripped before ANY scan — see `lib/comment-stripper.mjs` for why strings must be
+ * TRACKED (so the `/*` inside `accept="image/*"` cannot open a comment) yet PRESERVED (because
+ * `` className={`${styles.a}`} `` puts the references being checked inside exactly that span).
  *
- * Two constraints pull in opposite directions and both matter:
- *
- *   - It must know about strings, or the `/*` inside `accept="image/*"` opens a comment that
- *     swallows the rest of the file. Four files here contain exactly that attribute, and
- *     `lib/ratchet.mjs` records the same bug blinding two earlier gates.
- *   - It must NOT drop what is inside a template literal. `lib/ratchet.mjs`'s stripper does — right
- *     for counting patterns in code, wrong here, because `className={`${styles.a} ${styles.b}`}`
- *     puts the references being checked inside exactly that span. Reusing it made the gate report
- *     ZERO interpolated cases, which is the single class it most needs to see.
- *
- * So strings are TRACKED (to find comment openers correctly) but PRESERVED. The cost is that an
- * import specifier survives; import lines are blanked separately below.
+ * Extracted to the shared lib 2026-08-11 when `check-undefined-css-vars.mjs` needed the same
+ * thing and its own naive version blanked 21 lines of live JSX. Behaviour here is unchanged —
+ * verified by comparing this gate's full output and regenerated baseline across the move.
  */
-/** String delimiters JS/TSX recognises. A backtick span survives a newline; the other two do not. */
-const QUOTES = new Set(["'", '"', '`']);
-
-/**
- * Copy from `from` up to and including the closing `quote`.
- *
- * Returns the text, the next index, and the quote if the span is still OPEN at end of line — which
- * only matters for a template literal.
- */
-function copyToQuoteEnd(line, from, quote) {
-  let text = '';
-  let j = from;
-
-  while (j < line.length) {
-    if (line[j] === '\\') {
-      text += line.slice(j, j + 2);
-      j += 2;
-      continue;
-    }
-
-    text += line[j];
-    j += 1;
-    if (text.endsWith(quote)) return { text, next: j, open: null };
-  }
-
-  return { text, next: j, open: quote };
-}
-
-/**
- * One line, comments removed and strings PRESERVED, plus the span still open at the end of it.
- *
- * Strings are tracked but kept, which is the whole point: tracking is what stops the `/*` inside
- * `accept="image/*"` opening a comment that swallows the rest of the file, and keeping is what
- * leaves `className={`${styles.a}`}` visible — a stripper that drops template contents reports zero
- * interpolated references, blind to the one class this gate most needs to see.
- */
-function stripLine(line, carried) {
-  let out = '';
-  let state = carried;
-  let i = 0;
-
-  while (i < line.length) {
-    if (state === 'block') {
-      const close = line.indexOf('*/', i);
-      if (close === -1) return { out, carried: 'block' };
-      i = close + 2;
-      state = 'code';
-      continue;
-    }
-
-    if (state !== 'code') {
-      const span = copyToQuoteEnd(line, i, state);
-      out += span.text;
-      i = span.next;
-      state = span.open ?? 'code';
-      continue;
-    }
-
-    const two = line.slice(i, i + 2);
-    if (two === '//') break;
-
-    if (two === '/*') {
-      state = 'block';
-      i += 2;
-      continue;
-    }
-
-    if (QUOTES.has(line[i])) {
-      const span = copyToQuoteEnd(line, i + 1, line[i]);
-      out += line[i] + span.text;
-      i = span.next;
-      state = span.open ?? 'code';
-      continue;
-    }
-
-    out += line[i];
-    i += 1;
-  }
-
-  // Only a block comment and a template literal carry across a newline; resetting the other two
-  // stops one unbalanced apostrophe swallowing the rest of the file.
-  return { out, carried: state === 'block' || state === '`' ? state : 'code' };
-}
-
-function stripComments(source) {
-  const lines = [];
-  let carried = 'code';
-
-  for (const line of source.split('\n')) {
-    const step = stripLine(line, carried);
-    carried = step.carried;
-    lines.push(step.out);
-  }
-
-  return lines;
-}
+const stripComments = (source) => stripCommentLines(source);
 
 /** Import lines blanked, so a specifier cannot masquerade as a usage (`styles.module`). */
 const codeOnly = (lines) => lines.map((l) => (/^\s*import\s/.test(l) ? '' : l)).join('\n');

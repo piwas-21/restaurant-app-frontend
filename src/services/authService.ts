@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { loginSchema } from '../schemas/auth.schema';
-import { apiClient } from '@/utils/apiClient';
+import { apiClient, getRequestLanguage } from '@/utils/apiClient';
 import type { ApiResponse } from '@/types/user';
 
 /**
@@ -198,11 +198,19 @@ export type CustomerRegistrationPayload = {
 };
 
 export async function registerCustomer(formData: CustomerRegistrationPayload) {
+  // One of the two requests in the app whose Accept-Language becomes a stored fact rather than a
+  // rendering hint: the backend freezes it on the new account (GAP-2 S4) and every later mail to
+  // that person — starting with the verification mail this very call triggers — is written in it.
+  // A raw `fetch` for the reasons in this module's header, so the header apiClient adds has to be
+  // added here by hand. Read through the exported helper so there is one definition of it.
+  const language = getRequestLanguage();
+
   const response = await fetch(`${API_BASE_URL}/api/User/register/customer`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       accept: 'text/plain',
+      ...(language ? { 'Accept-Language': language } : {}),
     },
     body: JSON.stringify(formData),
   });

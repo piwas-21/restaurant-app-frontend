@@ -138,7 +138,10 @@ jobs:
       # which fails the run if global stmt/branch/func/line % drops below
       # the pinned floor. See jest.config.js for the rationale + ratchet
       # policy. Mirrors the backend's coverlet gate (workspace CLAUDE.md §7).
-      - run: npm test -- --ci --runInBand --coverage
+      # Runs with jest's default worker pool (no --runInBand): the suite is
+      # parallel-safe and per-file coverage is worker-invariant — verified by
+      # a byte-identical coverage table serial vs parallel (CI-PERFORMANCE-PLAN F4).
+      - run: npm test -- --ci --coverage
 
   bundle_size:
     # First-Load-JS budget gate (DEV-PHASES-PLAN W2, D2 performance) — fails if

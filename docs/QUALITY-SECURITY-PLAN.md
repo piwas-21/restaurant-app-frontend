@@ -46,7 +46,7 @@ Drop `retire.js` from the **per-PR** pipeline once OSV-Scanner + npm audit are w
 ```
 
 ### 2.2 Coverage thresholds (`jest.config.js`)
-**Landed (issue #21, 2026-05).** CI `npm_test` job now runs `npm test -- --ci --runInBand --coverage`, which activates `coverageThreshold` in `jest.config.js`:
+**Landed (issue #21, 2026-05).** CI `npm_test` job now runs `npm test -- --ci --coverage`, which activates `coverageThreshold` in `jest.config.js`:
 ```js
 coverageThreshold: {
   global: { branches: 0.3, functions: 0.4, lines: 0.3, statements: 0.3 }

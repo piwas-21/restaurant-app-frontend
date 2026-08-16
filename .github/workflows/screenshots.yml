@@ -4,9 +4,13 @@ name: Screenshots
 # the tenant-templates plan — docs/plans/SOFRA-TENANT-TEMPLATES-PLAN.md in
 # the workspace meta-repo).
 #
-# NON-BLOCKING BY DESIGN: this is a separate workflow that is NOT in the
-# required checks while the suite beds in. Promote to required once it has
-# proven stable across a few weeks of PRs.
+# REQUIRED, NOT OPTIONAL: "playwright screenshots (visual baseline)" is in the
+# `main-develop` ruleset's required status checks on both `main` and `develop`,
+# so a red screenshots run BLOCKS the merge — never treat it as ignorable. The
+# required name is produced by the aggregate `screenshots_result` job below,
+# which passes iff EVERY template leg (classic AND craft) passed; the per-leg
+# checks are suffixed "(classic)"/"(craft)" and are not individually required.
+# Verify with: gh api repos/piwas-21/restaurant-app-frontend/rulesets
 #
 # Determinism: the Playwright step runs INSIDE the pinned
 # mcr.microsoft.com/playwright image (tag = @playwright/test version from

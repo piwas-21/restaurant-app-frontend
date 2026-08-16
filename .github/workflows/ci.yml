@@ -161,6 +161,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --prefer-offline --no-audit
+      # Next.js incremental build cache. This job logged "⚠ No build cache found"
+      # on every run until now, so `next build` recompiled the whole tree each
+      # time (measured 2026-08-16: 92s on run 31977679689). Keyed on the lockfile
+      # AND a hash of every input `next build` reads, so an exact hit can only
+      # come from a tree that produces the same output; `restore-keys` then falls
+      # back to the newest cache for the same dependency set, which is what
+      # actually pays — Next reuses the compilation units that did not change.
+      # The gate itself is unaffected: check-bundle-size.mjs reads the emitted
+      # route sizes, and an incremental build emits the same bundles as a cold
+      # one (the cache only stores intermediate compiler output).
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-bundle-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'next.config.ts', 'tsconfig.json', '.env.production') }}
+          restore-keys: |
+            ${{ runner.os }}-next-bundle-${{ hashFiles('package-lock.json') }}-
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
@@ -490,6 +506,20 @@ jobs:
       - name: Install npm deps
         run: npm ci --ignore-scripts --prefer-offline --no-audit
 
+      # NuGet package cache for the sibling backend build below. Keyed on every
+      # file that determines the restore graph (csproj + Directory.Build.props +
+      # the pinned local tool manifest); restore-keys falls back to the newest
+      # cache so a single added package still restores the other ~200 from disk.
+      # Measured 2026-08-16: "Restore + build backend" took 85s cold on run
+      # 31977679689, most of it downloading packages.
+      - name: Cache NuGet packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.Build.props', 'backend/.config/dotnet-tools.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: Restore + build backend
         working-directory: backend
         run: dotnet build RestaurantSystem.sln --configuration Release --nologo
@@ -533,11 +563,38 @@ jobs:
           tail -200 /tmp/backend.log || true
           exit 1
 
+      # Browser binaries keyed on the RESOLVED @playwright/test version (read
+      # from the installed package, i.e. what package-lock.json pinned), not on
+      # the lockfile hash: the download only changes when Playwright does, and a
+      # stale-version hit would run a browser the client refuses to drive. No
+      # restore-keys on purpose — a near-miss here is a wrong browser, not a
+      # partial speed-up.
+      - name: Resolve Playwright version
+        run: echo "PLAYWRIGHT_VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_ENV"
+
+      - name: Cache Playwright browsers
+        id: playwright_cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
       # Both go through package.json scripts, not `npx`: the local binary is
       # the lockfile-pinned @playwright/test, and a missing one must fail the
       # job rather than have npx pull an unpinned release off the registry.
       - name: Install Playwright browsers
+        if: steps.playwright_cache.outputs.cache-hit != 'true'
         run: npm run test:e2e:install
+
+      - name: Verify cached Playwright browsers
+        if: steps.playwright_cache.outputs.cache-hit == 'true'
+        # Cheap no-op on a good cache (the binary is already under
+        # ~/.cache/ms-playwright); re-downloads if the archive was partial, so a
+        # corrupt cache degrades to the cold path instead of a failed suite. The
+        # `--with-deps` apt step is skipped: the OS libs it installs are not in
+        # the cache, but ubuntu-latest already ships chromium's runtime libs and
+        # the cold path proves them sufficient every time it runs.
+        run: npm run test:e2e:install:verify
 
       - name: Run Playwright tests
         run: npm run test:e2e

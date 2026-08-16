@@ -45,22 +45,14 @@ concurrency:
 permissions:
   contents: read
 
+# No `install_deps` fan-in job: every job below restores the npm tarball cache
+# through its own `actions/setup-node` `cache: npm` (measured: all of them log a
+# cache HIT) and then runs its own `npm ci`. A shared warm-up job therefore warms
+# nothing — it only serialised the pipeline, delaying every heavy job by ~34s.
+# Removed 2026-08-16 (CI-PERFORMANCE-PLAN F3).
 jobs:
-  install_deps:
-    name: install (cache npm modules)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci --ignore-scripts --prefer-offline --no-audit
-
   prettier_check:
     name: prettier --check
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -74,7 +66,6 @@ jobs:
 
   typecheck:
     name: tsc --noEmit
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -90,7 +81,6 @@ jobs:
     # Locale-parity gate (ADR-003, DEV-PHASES-PLAN W1) - BLOCKING since the
     # parity repair landed (deterministic check, no flake surface).
     name: i18n parity (10 locales)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -122,7 +112,6 @@ jobs:
 
   eslint:
     name: eslint (--max-warnings=0)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -136,7 +125,6 @@ jobs:
 
   npm_test:
     name: npm test (jest)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -161,7 +149,6 @@ jobs:
     # don't change bundle shape). Re-baseline via `--update` when growth is
     # intended — see scripts/check-bundle-size.mjs.
     name: bundle size (First Load JS budget)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -178,7 +165,6 @@ jobs:
 
   npm_audit:
     name: npm audit (high+)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -332,7 +318,6 @@ jobs:
 
   osv_scanner:
     name: OSV-Scanner (dependency CVEs)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -345,7 +330,6 @@ jobs:
 
   license_compliance:
     name: license-compliance (transitive NPM)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Mirrors trivy_fs / gitleaks: SHA-pinned checkout, capped timeout,
@@ -411,7 +395,6 @@ jobs:
   # §CI for the design rationale; tracked in frontend #37.
   playwright_e2e:
     name: playwright (e2e)
-    needs: install_deps
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:

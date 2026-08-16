@@ -226,7 +226,7 @@ module.exports = {
     // because the reason never left `errors[0]` — `orderCommands` threw a plain `Error` carrying
     // the literal "Operation failed". Deleting either test file would restore that silently.
     //
-    // Measured with CI's own command (`npm test -- --ci --runInBand --coverage`), pinned at
+    // Measured with CI's own command (`npm test -- --ci --coverage`), pinned at
     // actual − 1pt. `orderCommands.ts` is low because the file holds five more write endpoints
     // this change does not touch; the row guards the two creators' throw shape, not the file.
     './src/utils/orderErrorHandler.ts': { statements: 99, branches: 92, functions: 99, lines: 99 },
@@ -243,7 +243,7 @@ module.exports = {
     // "did the server actually speak" discriminator in the availability catch (a status test warned
     // on the empty-body 404 that is universal across the fleet today), and the remembered order
     // surviving the round trip to Stripe. All measured with CI's own command
-    // (`npx jest --ci --runInBand --coverage`), pinned at actual − 1pt; every one of these five
+    // (`npx jest --ci --coverage`), pinned at actual − 1pt; every one of these five
     // files is at 100 on every axis today.
     './src/services/paymentService.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/hooks/checkout/useOnlineCheckout.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
@@ -274,9 +274,9 @@ module.exports = {
     // other gate. Mutation-verified in BOTH directions — forcing the guest branch and forcing the
     // non-auth branch each turn these red, which the first draft of the guest test did not.
     //
-    // Measured with CI's own command (`npm test -- --ci --runInBand --coverage`), not a subset run:
+    // Measured with CI's own command (`npm test -- --ci --coverage`), not a subset run:
     // the first draft of these rows was pinned from a two-file run that reported higher numbers, and
-    // the branch failed CI. `--runInBand` is part of the measurement, not a detail.
+    // the branch failed CI. The full-suite run is part of the measurement, not a detail.
     './src/hooks/checkout/useSavedAddressList.ts': { statements: 90, branches: 77, functions: 99, lines: 99 },
     './src/hooks/admin/useSetupChecklist.ts': { statements: 99, branches: 82, functions: 99, lines: 99 },
     './src/hooks/cart/useCartItemMutations.ts': { statements: 89, branches: 99, functions: 99, lines: 89 },
@@ -1372,7 +1372,7 @@ module.exports = {
     },
     // ── #280 frontend half — the image-backfill cursor. ─────────────────────────────────────────
     // Every file in the feature, all at 100% → 99 per the recipe above, measured with CI's own
-    // command (`npm test -- --ci --runInBand --coverage`).
+    // command (`npm test -- --ci --coverage`).
     //
     // Pinned at that level because the defect this closes was a screen that looked finished and
     // was not, and every remaining way to reproduce it is a branch here that goes silently

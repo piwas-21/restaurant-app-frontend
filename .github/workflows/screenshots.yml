@@ -18,7 +18,7 @@ name: Screenshots
 # `scripts/screenshots-docker.sh` uses to (re)generate baselines locally.
 # Baselines are linux-only — see e2e/README.md §Screenshot baseline.
 #
-# The backend stack (postgres + redis services, the PUBLISHED backend image
+# The backend stack (postgres + redis as background containers, the PUBLISHED backend image
 # pulled from GHCR at backend develop HEAD, SQL seed) mirrors the
 # playwright_e2e job in ci.yml. Mailpit is omitted: no screenshot page sends email.
 #
@@ -56,31 +56,6 @@ jobs:
       fail-fast: false
       matrix:
         template: [classic, craft]
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres123 # pragma: allowlist secret
-          POSTGRES_DB: restaurantdb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      # Required by Aspire's AddRedisDistributedCache("redis") in backend
-      # Program.cs. SHA-pinned to redis:7.4-alpine (same pin as ci.yml).
-      redis:
-        image: redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99 # 7.4-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
     env:
       # Backend runtime config — mirrors ci.yml playwright_e2e, except the
       # allowed CORS origin: the screenshot production server listens on 3100.
@@ -111,6 +86,36 @@ jobs:
     steps:
       - name: Checkout frontend
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # postgres + redis used to be `services:` on the job. GitHub brings those
+      # up in the "Initialize containers" phase BEFORE the first step, serially
+      # and on the critical path: measured 2026-08-17 at 20-30s per leg (a ~6s
+      # postgres pull, a ~1s redis pull, then the runner's own 2s/4s/7s
+      # exponential-backoff health poll, which is where most of it goes).
+      #
+      # Started here as plain background containers instead, they overlap the
+      # ~30s of setup-node + npm ci that follows. `--network host` is what the
+      # rest of the job already assumes (the backend container and the suite
+      # both talk to localhost), so nothing about the topology changes: the same
+      # pinned images listen on the same localhost ports with the same
+      # credentials. Readiness moves to the explicit gate below, which fails the
+      # job with the container log rather than timing out mysteriously.
+      - name: Start postgres + redis (background)
+        env:
+          # Same throwaway credential the job's connection strings already use.
+          POSTGRES_PASSWORD: postgres123 # pragma: allowlist secret
+        run: |
+          nohup bash -c '
+            set -e
+            docker run -d --name rumi-postgres --network host \
+              -e POSTGRES_USER=postgres \
+              -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+              -e POSTGRES_DB=restaurantdb \
+              postgres:16-alpine
+            docker run -d --name rumi-redis --network host \
+              redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99
+          ' > /tmp/services.log 2>&1 &
+          echo "starting postgres + redis in the background"
 
       - name: Setup Node 22
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -176,6 +181,31 @@ jobs:
             docker pull -q "$IMAGE:staging"
             echo "BACKEND_IMAGE=$IMAGE:staging" >> "$GITHUB_ENV"
           fi
+
+      # Join the two background containers. Normally already healthy by now
+      # (npm ci alone outlasts their pulls), so this is a fast no-op; the
+      # bounded loops keep a broken pull from eating the job timeout and dump
+      # what happened instead.
+      - name: Wait for postgres + redis
+        env:
+          PGPASSWORD: postgres123 # pragma: allowlist secret
+        run: |
+          for _ in $(seq 1 120); do
+            pg_isready -h localhost -U postgres -d restaurantdb >/dev/null 2>&1 && PG_OK=1 && break
+            sleep 1
+          done
+          for _ in $(seq 1 60); do
+            docker exec rumi-redis redis-cli ping >/dev/null 2>&1 && REDIS_OK=1 && break
+            sleep 1
+          done
+          if [ "$PG_OK" != "1" ] || [ "$REDIS_OK" != "1" ]; then
+            echo "::error::postgres/redis did not come up (pg=$PG_OK redis=$REDIS_OK)"
+            cat /tmp/services.log 2>/dev/null || true
+            docker logs --tail 100 rumi-postgres 2>&1 || true
+            docker logs --tail 100 rumi-redis 2>&1 || true
+            exit 1
+          fi
+          echo "postgres + redis ready"
 
       # No `dotnet ef database update` step: the app applies its own migrations
       # and runs its entity seeders on startup (Program.cs ->
@@ -251,9 +281,9 @@ jobs:
         if: failure()
         run: docker logs --tail 300 rumi-backend || true
 
-      - name: Stop backend
+      - name: Stop backend + services
         if: always()
-        run: docker rm -f rumi-backend 2>/dev/null || true
+        run: docker rm -f rumi-backend rumi-postgres rumi-redis 2>/dev/null || true
 
       # On a comparison failure the *-actual/*-diff PNGs land in test-results/.
       - name: Upload diff images + report

@@ -26,6 +26,12 @@ const BASE_URL = `http://localhost:${PORT}`;
 // The build bakes it via NEXT_PUBLIC_TEMPLATE; the snapshot path is segmented by
 // it so craft PNGs never overwrite classic. Default classic (the existing suite).
 const TEMPLATE = process.env.SCREENSHOT_TEMPLATE ?? 'classic';
+// See the webServer.command comment: keeping `.next/cache` is only sound when the
+// cache is known to belong to the same template, so it is opt-in.
+const CLEAN_BUILD_DIR =
+  process.env.SCREENSHOT_KEEP_NEXT_CACHE === '1'
+    ? 'mkdir -p .next && find .next -mindepth 1 -maxdepth 1 ! -name cache -exec rm -rf {} +'
+    : 'rm -rf .next';
 
 export default defineConfig({
   testDir: './e2e/screenshots',
@@ -78,11 +84,17 @@ export default defineConfig({
   ],
 
   webServer: {
-    // `rm -rf .next` FIRST: NEXT_PUBLIC_TEMPLATE is inlined at build time and the
-    // template also swings the @active-template alias (which modules bundle), so a
-    // reused .next/cache from a prior template would serve a stale build → wrong
-    // baselines. CI is fresh per matrix leg; this guards local template switches.
-    command: `rm -rf .next && npm run build && npm run start -- --port ${PORT}`,
+    // Wipe the previous build FIRST: NEXT_PUBLIC_TEMPLATE is inlined at build time
+    // and the template also swings the @active-template alias (which modules
+    // bundle), so a reused .next/cache from a prior template would serve a stale
+    // build → wrong baselines. That is why the default is a full `rm -rf .next`.
+    //
+    // SCREENSHOT_KEEP_NEXT_CACHE=1 keeps `.next/cache` (Next's incremental
+    // compiler cache) and wipes everything else. Only set it when the caller can
+    // GUARANTEE the cache was produced by the SAME template: CI does, because
+    // .github/workflows/screenshots.yml keys actions/cache on ${matrix.template}.
+    // Never set it by hand when switching templates locally.
+    command: `${CLEAN_BUILD_DIR} && npm run build && npm run start -- --port ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',

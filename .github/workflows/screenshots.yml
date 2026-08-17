@@ -193,6 +193,24 @@ jobs:
       # Runs inside the version-pinned Playwright image so rendering matches
       # the committed (linux-generated) baselines byte-for-byte. The host
       # node_modules are reused — host and container are both linux x64.
+      # Next's incremental compiler cache for the production build the screenshot
+      # webServer runs. Measured 2026-08-17: `next build` is 83s of the 206s
+      # "Run screenshot suite" step, cold on every leg (no cache existed here);
+      # the same cache on ci.yml's bundle_size job took its build 92s -> 69s.
+      # SEGMENTED BY TEMPLATE — this is load-bearing, not cosmetic:
+      # NEXT_PUBLIC_TEMPLATE is inlined at build time and swings the
+      # @active-template alias, so a classic cache must never reach a craft
+      # build. `restore-keys` falls back only within the same template + the
+      # same dependency set. The visual baselines are the safety net: if a
+      # restored cache ever produced a different pixel, the comparison goes RED.
+      - name: Restore Next build cache (per template)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-shot-${{ matrix.template }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'next.config.ts', 'tsconfig.json') }}
+          restore-keys: |
+            ${{ runner.os }}-next-shot-${{ matrix.template }}-${{ hashFiles('package-lock.json') }}-
+
       - name: Run screenshot suite (pinned Playwright container)
         run: |
           PW_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
@@ -206,8 +224,16 @@ jobs:
             -e CI=1 \
             -e E2E_API_BASE_URL="$E2E_API_BASE_URL" \
             -e SCREENSHOT_TEMPLATE="$SCREENSHOT_TEMPLATE" \
+            -e SCREENSHOT_KEEP_NEXT_CACHE=1 \
             "mcr.microsoft.com/playwright:v${PW_VERSION}-noble" \
             npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG
+
+      # The Playwright container runs as root, so the build wrote .next/cache as
+      # root; the post-run cache save runs as the runner user and would fail to
+      # read it. Chown before the implicit save step.
+      - name: Reclaim ownership of the Next build cache
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" .next 2>/dev/null || true
 
       # Log dump BEFORE the container is removed — `docker rm -f` would take
       # the logs with it.

@@ -214,9 +214,12 @@ test that drives the login UI.
 ## CI
 
 - Runs on every MR and every push to `develop` and `main`.
-- The backend test profile (real Postgres, in-memory queues, no real SMTP /
-  payment / printer) is brought up by the existing backend
-  `docker-compose-dev-all.yml`-style script before Playwright runs.
+- The backend is **pulled, not compiled**: `ci.yml` (and `screenshots.yml`)
+  run `ghcr.io/piwas-21/restaurant-app-backend` at the `sha-` tag of backend
+  `develop` HEAD, with Postgres/Redis/Mailpit as service containers. The image
+  migrates and seeds itself on startup; `e2e/seed/seed.sql` is applied on top.
+  If that commit's image is not published yet the job falls back to `:staging`
+  and says so with a `::warning::` annotation.
 - Playwright browsers cached by version.
 - Artifact upload (`playwright-report/`, `test-results/`) is **best-effort,
   non-blocking** — a storage hiccup doesn't fail the MR.

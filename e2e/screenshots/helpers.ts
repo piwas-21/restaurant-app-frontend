@@ -53,9 +53,11 @@ export async function prepareForScreenshots(page: Page, theme: Theme): Promise<v
  * force every `loading="lazy"` image to actually load (fullPage captures
  * don't scroll, so an unforced lazy image would stay a permanent blank —
  * and on narrow viewports the load event never fires, hanging an unbounded
- * wait), web fonts loaded, and every <img> decoded. The per-image wait is
- * bounded: a permanently stuck image then shows up as a visible diff
- * instead of a test timeout.
+ * wait), web fonts loaded, and every RENDERED <img> decoded. The per-image
+ * wait is bounded: a permanently stuck image then shows up as a visible diff
+ * instead of a test timeout. Images with no client rect are skipped — see the
+ * filter below for why that is a 10s-per-mobile-case saving and not a
+ * relaxation.
  */
 export async function waitForStablePage(page: Page, theme: Theme): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -83,7 +85,16 @@ export async function waitForStablePage(page: Page, theme: Theme): Promise<void>
   await page.evaluate(() =>
     Promise.all(
       Array.from(document.images)
-        .filter((img) => !img.complete)
+        // Only images that actually OCCUPY A BOX can contribute a pixel to the capture. An image
+        // with no client rect is `display: none` (or in a `display: none` ancestor) — Chromium
+        // never even starts its `loading="lazy"` fetch, so `complete` stays false and neither
+        // `load` nor `error` ever fires. Measured on the mobile project: the header's
+        // LanguageSwitcher flag lives in the closed mobile drawer (`.navLinksContainer` is
+        // `display: none` below 768px), so EVERY mobile case burned the full 10s fallback below
+        // — ~11.2s per case vs ~2s for the identical desktop case. Excluding boxless images
+        // removes that dead wait without relaxing anything: a boxless image is not rendered, so
+        // it cannot change a single pixel of the PNG.
+        .filter((img) => !img.complete && img.getClientRects().length > 0)
         .map(
           (img) =>
             new Promise((resolve) => {

@@ -18,9 +18,9 @@ name: Screenshots
 # `scripts/screenshots-docker.sh` uses to (re)generate baselines locally.
 # Baselines are linux-only — see e2e/README.md §Screenshot baseline.
 #
-# The backend stack (postgres + redis services, sibling backend checkout,
-# EF migrations, SQL seed, native `dotnet run`) mirrors the playwright_e2e
-# job in ci.yml. Mailpit is omitted: no screenshot page sends email.
+# The backend stack (postgres + redis services, the PUBLISHED backend image
+# pulled from GHCR at backend develop HEAD, SQL seed) mirrors the
+# playwright_e2e job in ci.yml. Mailpit is omitted: no screenshot page sends email.
 #
 # Security: no untrusted-input expressions in run: commands (the
 # update_snapshots boolean input is passed via env). All third-party
@@ -103,8 +103,6 @@ jobs:
       EmailSettings__FrontendBaseUrl: http://localhost:3100
       EmailSettings__BackendBaseUrl: http://localhost:5221
       CorsSettings__AllowedOrigins__0: http://localhost:3100
-      DOTNET_NOLOGO: 'true'
-      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
       E2E_API_BASE_URL: http://localhost:5221
       UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots == true && 'true' || 'false' }}
       # Trusted (hardcoded matrix literal). Baked into the build + segments the
@@ -114,57 +112,59 @@ jobs:
       - name: Checkout frontend
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Checkout backend (sibling repo at ./backend)
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          repository: piwas-21/restaurant-app-backend
-          ref: develop
-          path: backend
-          token: ${{ secrets.BACKEND_REPO_TOKEN }}
-
       - name: Setup Node 22
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          dotnet-version: '10.0.x'
-
       - name: Install npm deps
         run: npm ci --ignore-scripts --prefer-offline --no-audit
 
-      - name: Restore + build backend
-        working-directory: backend
-        run: dotnet build RestaurantSystem.sln --configuration Release --nologo
-
-      - name: Apply EF migrations
-        working-directory: backend
-        run: |
-          # backend pins dotnet-ef via .config/dotnet-tools.json (local manifest,
-          # isRoot); a --global install is shadowed by it, so restore the pinned
-          # local tool instead (a global install now errors "run dotnet tool restore").
-          dotnet tool restore
-          dotnet ef database update \
-            --project RestaurantSystem.Infrastructure \
-            --startup-project RestaurantSystem.Api \
-            --no-build --configuration Release
-
-      - name: Seed test data
+      # The backend is PULLED, not compiled (2026-08-17, CI-PERFORMANCE-PLAN
+      # §2). This job used to check the backend repo out at `ref: develop` and
+      # `dotnet build` it: 73-84s for the build + 9-11s for `dotnet ef` + 7-9s
+      # for setup-dotnet + 7s of NuGet cache restore, on every one of the three
+      # backend-bearing legs a frontend PR runs (this job + two screenshot
+      # templates). build-image.yml publishes the identical develop code to
+      # GHCR on every develop push, tagged both `sha-<commit>` and `:staging`;
+      # the image is 110MB compressed.
+      #
+      # Staleness, stated honestly: we resolve backend develop HEAD and pull
+      # that exact `sha-` tag, so the normal case is the same commit the old
+      # checkout compiled. Only when the image for that commit does not exist
+      # yet (build-image.yml still running, i.e. the first few minutes after a
+      # backend merge) do we fall back to `:staging`, the previous develop
+      # build — one merge stale, and announced with a ::warning:: annotation so
+      # a surprising red is traceable in the log. Note the old step was already
+      # a moving target: `ref: develop` never tested the PR against a matched
+      # or unmerged backend either.
+      - name: Resolve backend image (develop HEAD, else :staging)
         env:
-          PGPASSWORD: postgres123 # pragma: allowlist secret
+          GH_TOKEN: ${{ secrets.BACKEND_REPO_TOKEN }}
         run: |
-          psql -h localhost -U postgres -d restaurantdb \
-            -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
+          IMAGE=ghcr.io/piwas-21/restaurant-app-backend
+          SHA=$(gh api repos/piwas-21/restaurant-app-backend/commits/develop --jq .sha)
+          echo "backend develop HEAD: $SHA"
+          if docker pull -q "$IMAGE:sha-$SHA"; then
+            echo "BACKEND_IMAGE=$IMAGE:sha-$SHA" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No published image for backend develop HEAD ($SHA) yet — build-image.yml has probably not finished. Falling back to :staging (the previous develop build, one merge stale)."
+            docker pull -q "$IMAGE:staging"
+            echo "BACKEND_IMAGE=$IMAGE:staging" >> "$GITHUB_ENV"
+          fi
 
-      - name: Start backend
-        working-directory: backend
+      # No `dotnet ef database update` step: the app applies its own migrations
+      # and runs its entity seeders on startup (Program.cs ->
+      # MigrateApplicationDatabaseAsync), which is exactly how it comes up on a
+      # box. --network host so the container reaches the postgres/redis
+      # service containers on localhost and the suite reaches the API on
+      # localhost:5221. The env file is the job-level backend config, filtered
+      # by prefix — the same variables `dotnet run` used to inherit.
+      - name: Start backend (published image)
         run: |
-          nohup dotnet run --project RestaurantSystem.Api --no-build --configuration Release \
-            > /tmp/backend.log 2>&1 &
-          echo $! > /tmp/backend.pid
+          env | grep -E '^(ASPNETCORE_|ConnectionStrings__|JwtSettings__|EmailSettings__|CorsSettings__)' > /tmp/backend.env
+          docker run -d --name rumi-backend --network host --env-file /tmp/backend.env "$BACKEND_IMAGE"
 
       - name: Wait for backend health
         run: |
@@ -176,8 +176,19 @@ jobs:
             sleep 1
           done
           echo "::error::Backend never came up. Last 200 log lines:"
-          tail -200 /tmp/backend.log || true
+          docker logs --tail 200 rumi-backend || true
           exit 1
+
+      # AFTER the backend is up, because the schema now arrives with the app's
+      # startup migration rather than a build-time `dotnet ef` step. Safe in
+      # that order: the seed is idempotent (fixed UUIDs + ON CONFLICT DO
+      # NOTHING) and the startup seeders write disjoint rows.
+      - name: Seed test data
+        env:
+          PGPASSWORD: postgres123 # pragma: allowlist secret
+        run: |
+          psql -h localhost -U postgres -d restaurantdb \
+            -v ON_ERROR_STOP=1 -f e2e/seed/seed.sql
 
       # Runs inside the version-pinned Playwright image so rendering matches
       # the committed (linux-generated) baselines byte-for-byte. The host
@@ -198,16 +209,15 @@ jobs:
             "mcr.microsoft.com/playwright:v${PW_VERSION}-noble" \
             npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG
 
-      - name: Stop backend
-        if: always()
-        run: |
-          if [ -f /tmp/backend.pid ]; then
-            kill "$(cat /tmp/backend.pid)" 2>/dev/null || true
-          fi
-
+      # Log dump BEFORE the container is removed — `docker rm -f` would take
+      # the logs with it.
       - name: Dump backend log on failure
         if: failure()
-        run: tail -300 /tmp/backend.log || true
+        run: docker logs --tail 300 rumi-backend || true
+
+      - name: Stop backend
+        if: always()
+        run: docker rm -f rumi-backend 2>/dev/null || true
 
       # On a comparison failure the *-actual/*-diff PNGs land in test-results/.
       - name: Upload diff images + report

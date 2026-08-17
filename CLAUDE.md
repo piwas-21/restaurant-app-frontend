@@ -31,7 +31,7 @@
 | Coding conventions | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) |
 | Test work | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) |
 | Adding/changing a Playwright E2E | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules |
-| Quality / security gate work | [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) |
+| Quality / security gate work | §7 below (live gate list + what is planned-but-unbuilt) + workspace [DEV-PHASES-PLAN.md](../docs/plans/DEV-PHASES-PLAN.md) §2 |
 | Security review / threat model | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) |
 | Architectural decisions | [docs/adr/README.md](docs/adr/README.md) — index of ADRs |
 | Bug or UX item | [../docs/plans/BUGS-IMPROVEMENTS-PLAN.md](../docs/plans/BUGS-IMPROVEMENTS-PLAN.md) (workspace meta-repo) — Track A/B/C items |
@@ -169,9 +169,38 @@ Grep for the component / hook / type you're adding or modifying. List every call
 ## §7 — Quality gates (all blocking; source of truth `.github/workflows/ci.yml` + `.pre-commit-config.yaml`)
 
 - **Pre-commit / pre-push** (on staged `src/` files): trailing-ws / EOF / large-files / secret-scan / no-commit-to-protected; `prettier --check`; `tsc --noEmit`; `eslint --max-warnings=0`; file-length. On push, `scripts/test-affected.sh` runs Jest `--findRelatedTests` vs `origin/develop` (not a substitute for CI `npm test`).
-- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy image scan (zero HIGH/CRITICAL, `.trivyignore`); **bundle size** (`bundle_size` job: `next build` → `scripts/check-bundle-size.mjs`, fails on any route's gzipped First Load JS growing >10% past `scripts/bundle-size-baseline.json` — DEV-PHASES W2 D2; re-baseline via `--update` when growth is intended); plus prettier/tsc/eslint/file-length repeated. `npm run build` is still manual pre-commit locally, but now also runs in CI for the bundle gate.
+- **CI**: `npm test` (Jest) + per-file coverage thresholds (`jest.config.js` — pinned per tested file, no fragile global floor); `npm audit` (high+); Gitleaks; njsscan; semgrep; retire.js; `license-checker` (`LICENSES.allowlist`); Trivy **filesystem** scan (misconfig + secrets, `.trivyignore`); **bundle size** (`bundle_size` job: `next build` → `scripts/check-bundle-size.mjs`, fails on any route's gzipped First Load JS growing >10% past `scripts/bundle-size-baseline.json` — DEV-PHASES W2 D2; re-baseline via `--update` when growth is intended); plus prettier/tsc/eslint/file-length repeated. `npm run build` is still manual pre-commit locally, but now also runs in CI for the bundle gate.
 - **Weekly** `security-audit.yml` (cron): deep full-tree scans (npm audit + OSV `-r`, retire.js pinned DB, Trivy fs, license drift) — reporting, not a merge blocker; suppress via `.retireignore.json` with justification.
 - **New-dev setup**: `bash scripts/setup_hooks.sh` · `bash scripts/dev-secrets.sh` · `bash scripts/dev-up.sh`.
+
+### Planned but NOT built (carried over from the retired `docs/QUALITY-SECURITY-PLAN.md`, 2026-08-17)
+
+That doc was GitLab-era and is deleted; everything else in it either landed (prettier / eslint
+`--max-warnings=0` / `tsc --noEmit` / Jest coverage / Playwright in CI / OSV / gitleaks / TruffleHog /
+njsscan / semgrep / license-compliance / weekly `security-audit.yml` / ADRs / dev scripts) or is obsolete
+(GitLab CI stages, `.gitlab/` templates, `trivy config` over the gitops manifests — now the deploy repo's
+job). These are the items that were planned and are still **not** enforced anywhere:
+
+- **No container-image scan.** There is `trivy_fs` (filesystem) in `ci.yml` and in the weekly sweep, but
+  **no Trivy scan of the built image** — `build-image.yml` has no scan step at all. (This §7 previously
+  claimed "Trivy image scan"; that claim was wrong and is now corrected.)
+- **No bundle/CSP audit after `next build`.** Planned `scripts/check-csp.sh`: fail on source maps shipped
+  in `.next/static/`, fail on `sk_live` / `pk_live` / JWT / SMTP-credential strings baked into the bundle.
+  The third planned check — a CSP header — *is* done (`next.config.ts` `headers()`), so only the
+  build-output scan is missing.
+- **No SBOM artifact.** `cyclonedx-npm` CycloneDX SBOM per build was planned, never wired.
+- **No DAST.** OWASP ZAP full-scan against staging + `.zap/rules.tsv` — deferred when staging moved, still open.
+- **Forbidden-pattern checks are advisory, not blocking.** `: any` (eslint `no-explicit-any` is `off`),
+  inline hex in `style={{}}`, `@media (prefers-color-scheme: dark)`, `*Dialog.tsx` filenames, and
+  `process.env.NEXT_PUBLIC_*` outside `src/lib/config.ts` are only **warned** on by the PostToolUse
+  `scripts/check-single-file.mjs` and by the review gate. The planned blocking CI job (`check-quality.mjs`)
+  was never built — only file-length made it into CI.
+- **No full-history secret scan.** Per-PR TruffleHog + gitleaks scan the tree; `--since-commit=root` over
+  the whole history was deferred and never scheduled.
+- **No `npm outdated` report** (informational artifact, lowest value of this list).
+
+Sonar is not in this list: SonarCloud runs as automatic analysis (its rule IDs are cited throughout the
+workflows) and the merge gate blocks on its quality gate — no `sonar-project.properties` is needed.
 
 ---
 

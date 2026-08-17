@@ -133,5 +133,4 @@ Required sections: summary, sprint-task link, acceptance-criteria coverage, back
 | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) | Security findings + status |
 | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) | Test strategy (Jest + Playwright phases, coverage targets) |
 | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) | Playwright E2E rules — scope, tiers, selectors, auth, reliability |
-| [docs/QUALITY-SECURITY-PLAN.md](docs/QUALITY-SECURITY-PLAN.md) | CI / quality / security gate plan |
 | [docs/adr/](docs/adr/) | Architecture Decision Records |

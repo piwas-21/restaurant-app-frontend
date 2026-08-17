@@ -8,8 +8,9 @@ name: Screenshots
 # `main-develop` ruleset's required status checks on both `main` and `develop`,
 # so a red screenshots run BLOCKS the merge — never treat it as ignorable. The
 # required name is produced by the aggregate `screenshots_result` job below,
-# which passes iff EVERY template leg (classic AND craft) passed; the per-leg
-# checks are suffixed "(classic)"/"(craft)" and are not individually required.
+# which passes iff EVERY matrix leg passed; the per-leg checks are suffixed with
+# their matrix values — "(classic, 1)", "(craft, 2)", … (two templates x two test
+# shards since 2026-08-17) — and are not individually required.
 # Verify with: gh api repos/piwas-21/restaurant-app-frontend/rulesets
 #
 # Determinism: the Playwright step runs INSIDE the pinned
@@ -52,10 +53,29 @@ jobs:
       contents: read
     # One leg per UI template (S15 T3 DoD): each builds with its own
     # NEXT_PUBLIC_TEMPLATE and compares against its own baseline segment.
+    #
+    # ...and SHARDED two ways per template since 2026-08-17, because this
+    # workflow — not ci.yml — is the PR's critical path (measured on the same PR,
+    # run 31981952294: Screenshots 278s wall vs CI 265s). Per-leg breakdown of the
+    # 274s classic leg: 74s of job setup, then a 200s suite step that is 24s of
+    # `docker pull` for the pinned Playwright image + 83s of `rm -rf .next && next
+    # build` + 92s of 28 tests on 2 workers. So the floor is ~181s and the tests
+    # ~92s: sharding buys ~47s per leg (181 + 46), not half the job. It is taken
+    # anyway because nothing else shortens the binding path, but note the
+    # asymmetry with ci.yml — here the floor dominates, so DO NOT go past 2
+    # shards, and if the floor is ever cut (share one `next build` between the
+    # legs; keep the Playwright image warm) re-measure whether sharding still pays
+    # at all.
+    #
+    # NOTHING IS SKIPPED: `--shard=i/2` partitions the same 28 tests per template,
+    # and `screenshots_result` below is red unless all four legs are green.
+    # Isolation is free — each leg is its own job with its own postgres/redis
+    # containers, its own production build on port 3100 and its own seeded DB.
     strategy:
       fail-fast: false
       matrix:
         template: [classic, craft]
+        shard: [1, 2]
     services:
       postgres:
         image: postgres:16-alpine
@@ -108,6 +128,9 @@ jobs:
       # Trusted (hardcoded matrix literal). Baked into the build + segments the
       # baseline path via playwright.screenshots.config.ts.
       SCREENSHOT_TEMPLATE: ${{ matrix.template }}
+      # Trusted (hardcoded matrix literal). Passed via env, never interpolated
+      # into a run: script (githubactions:S8264).
+      SHARD_INDEX: ${{ matrix.shard }}
     steps:
       - name: Checkout frontend
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -207,7 +230,8 @@ jobs:
             -e E2E_API_BASE_URL="$E2E_API_BASE_URL" \
             -e SCREENSHOT_TEMPLATE="$SCREENSHOT_TEMPLATE" \
             "mcr.microsoft.com/playwright:v${PW_VERSION}-noble" \
-            npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG
+            npx playwright test -c playwright.screenshots.config.ts \
+            "--shard=${SHARD_INDEX}/2" $UPDATE_FLAG
 
       # Log dump BEFORE the container is removed — `docker rm -f` would take
       # the logs with it.
@@ -224,7 +248,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
-          name: screenshot-diffs-${{ matrix.template }}-${{ github.run_id }}
+          name: screenshot-diffs-${{ matrix.template }}-shard${{ matrix.shard }}-${{ github.run_id }}
           path: |
             test-results/
             playwright-report/
@@ -233,20 +257,26 @@ jobs:
 
       # workflow_dispatch + update_snapshots=true: download this artifact and
       # commit its contents to e2e/screenshots/__screenshots__/ on a branch.
+      # NOTE since sharding: each leg regenerates only ITS shard's PNGs, so a full
+      # regeneration means downloading ALL FOUR artifacts (2 templates x 2 shards)
+      # and unpacking them over the same directory. They touch disjoint files.
       - name: Upload regenerated baselines
         if: env.UPDATE_SNAPSHOTS == 'true'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
-          name: screenshot-baselines-${{ matrix.template }}-${{ github.run_id }}
+          name: screenshot-baselines-${{ matrix.template }}-shard${{ matrix.shard }}-${{ github.run_id }}
           path: e2e/screenshots/__screenshots__/
           retention-days: 14
           if-no-files-found: error
 
   # Aggregate gate carrying the EXACT branch-protection check name. The ruleset
   # requires a single context "playwright screenshots (visual baseline)", but the
-  # per-template matrix suffixes its checks with "(classic)"/"(craft)". This job
-  # restores the stable required name and passes iff EVERY matrix leg passed — so
-  # the required check tracks the matrix without a ruleset edit.
+  # matrix suffixes its checks with the matrix values — "(classic, 1)",
+  # "(craft, 2)", … This job restores the stable required name and passes iff
+  # EVERY matrix leg passed — so the required check tracks the template list AND
+  # the shard count without a ruleset edit. A cancelled or skipped leg makes
+  # `needs.*.result` something other than "success", so it reads as RED, never
+  # as green.
   screenshots_result:
     name: playwright screenshots (visual baseline)
     if: always()

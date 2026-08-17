@@ -118,6 +118,29 @@ jobs:
           node-version: 22
           cache: npm
 
+      # The pinned Playwright image is 22-32s of `docker pull` (measured
+      # 2026-08-17 across four legs) and it used to be paid SERIALLY, implicitly,
+      # by the `docker run` in the test step — i.e. after npm ci, after the
+      # backend pull and after the health wait, on the critical path of the check
+      # that binds the PR. Start it here in the background instead: the ~45s of
+      # npm ci + backend resolve/start + health wait that follow is more than the
+      # pull needs, so by the time the suite runs the image is local. Zero extra
+      # runner cost — same bytes, just overlapped.
+      #
+      # PW_VERSION comes from package-lock.json (same source the test step uses)
+      # and is passed to the background shell via the environment, never
+      # interpolated into a workflow expression.
+      - name: Prefetch pinned Playwright image (background)
+        run: |
+          PW_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
+          PW_IMAGE="mcr.microsoft.com/playwright:v${PW_VERSION}-noble"
+          echo "PW_IMAGE=$PW_IMAGE" >> "$GITHUB_ENV"
+          rm -f /tmp/pw-pull.done
+          PW_IMAGE="$PW_IMAGE" nohup bash -c \
+            'docker pull -q "$PW_IMAGE" > /tmp/pw-pull.log 2>&1; echo "$?" > /tmp/pw-pull.done' \
+            > /dev/null 2>&1 &
+          echo "prefetching $PW_IMAGE in the background"
+
       - name: Install npm deps
         run: npm ci --ignore-scripts --prefer-offline --no-audit
 
@@ -195,7 +218,20 @@ jobs:
       # node_modules are reused — host and container are both linux x64.
       - name: Run screenshot suite (pinned Playwright container)
         run: |
-          PW_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")
+          # Join the background prefetch: normally already finished, so this is
+          # a no-op. Bounded so a stuck pull cannot eat the job timeout, and a
+          # failed prefetch surfaces its log then falls through to a foreground
+          # `docker pull` that fails the step loudly.
+          for _ in $(seq 1 180); do
+            [ -f /tmp/pw-pull.done ] && break
+            sleep 1
+          done
+          if [ "$(cat /tmp/pw-pull.done 2>/dev/null)" != "0" ]; then
+            echo "::warning::Background prefetch of $PW_IMAGE did not succeed; pulling in the foreground."
+            cat /tmp/pw-pull.log 2>/dev/null || true
+            docker pull -q "$PW_IMAGE"
+          fi
+
           UPDATE_FLAG=""
           if [ "$UPDATE_SNAPSHOTS" = "true" ]; then
             UPDATE_FLAG="--update-snapshots"
@@ -206,7 +242,7 @@ jobs:
             -e CI=1 \
             -e E2E_API_BASE_URL="$E2E_API_BASE_URL" \
             -e SCREENSHOT_TEMPLATE="$SCREENSHOT_TEMPLATE" \
-            "mcr.microsoft.com/playwright:v${PW_VERSION}-noble" \
+            "$PW_IMAGE" \
             npx playwright test -c playwright.screenshots.config.ts $UPDATE_FLAG
 
       # Log dump BEFORE the container is removed — `docker rm -f` would take

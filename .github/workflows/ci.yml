@@ -415,6 +415,46 @@ jobs:
     name: playwright (e2e)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # SHARDED (2026-08-17). Measured on run 31981952315 (warm caches): the job
+    # took 256s, of which only ~86s is fixed setup (containers 24s, checkout +
+    # node 6s, npm ci 22s, backend pull + health 16s, browser cache 7s) and
+    # ~170s is `npm run test:e2e` (13s dev-server boot + ~157s of 45 tests on 2
+    # workers). Because the tests dominate the floor ~2:1, splitting them across
+    # two runners that each re-pay the floor still wins: 86 + 13 + ~79 = ~178s,
+    # i.e. ~78s off the wall clock for ~2x the runner minutes. NOTHING IS
+    # SKIPPED — `--shard=i/2` partitions the same 45 tests, and the aggregate
+    # `playwright_e2e_result` job below is red unless BOTH shards are green.
+    #
+    # Isolation: shards are separate jobs, so each gets its OWN postgres/redis/
+    # mailpit service containers, its own dev server and its own seeded
+    # database — no cross-shard contamination is possible. (globalTeardown
+    # deliberately does not purge users for exactly this reason.)
+    #
+    # CONFIRMED on run 32012215749: the shards took 158s and 122s (the split is by
+    # test COUNT, not duration, so they are uneven) and this workflow's wall clock
+    # went 265s -> 163s. That is the full gain on a `develop` push, where ci.yml is
+    # the entire gate. On a PULL REQUEST it buys nothing today: the separate
+    # `Screenshots` workflow is the critical path at ~279s, so the PR waits on that
+    # either way.
+    #
+    # Do not raise the shard count without re-measuring: at 4 shards each leg
+    # would run ~40s of tests against a ~99s floor, so the wall clock stops
+    # improving while the runner bill keeps doubling.
+    #
+    # SHARDING THE SCREENSHOT SUITE WAS TRIED HERE AND REJECTED (same day, run
+    # 32012215727). Its legs are floor-dominated, not test-dominated: of a 274s
+    # leg, ~181s is fixed (74s job setup + 24s `docker pull` of the pinned
+    # Playwright image + 83s of `rm -rf .next && next build`) and only 92s is
+    # tests. Two shards measured 206/259s (classic) and 195/256s (craft) — the
+    # count-based split landed 26s of tests in one shard and 74s in the other — so
+    # the workflow wall clock went 278s -> 279s: ZERO gain for double the runner
+    # minutes. Do not retry it until that floor is cut (share one `next build`
+    # across the legs, keep the Playwright image warm); the floor, not the test
+    # time, is where the PR's remaining minutes are.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     services:
       postgres:
         image: postgres:16-alpine
@@ -586,8 +626,12 @@ jobs:
         # the cold path proves them sufficient every time it runs.
         run: npm run test:e2e:install:verify
 
+      # SHARD_INDEX comes from the hardcoded matrix literal (trusted), passed via
+      # env rather than interpolated into the script (githubactions:S8264 shape).
       - name: Run Playwright tests
-        run: npm run test:e2e
+        env:
+          SHARD_INDEX: ${{ matrix.shard }}
+        run: npm run test:e2e -- "--shard=${SHARD_INDEX}/2"
 
       # Log dump BEFORE the container is removed — `docker rm -f` would take
       # the logs with it.
@@ -603,9 +647,34 @@ jobs:
         if: always()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
-          name: playwright-report-${{ github.run_id }}
+          name: playwright-report-shard${{ matrix.shard }}-${{ github.run_id }}
           path: |
             playwright-report/
             test-results/
           retention-days: 14
           if-no-files-found: ignore
+
+  # Aggregate gate carrying the EXACT branch-protection check name. The ruleset
+  # requires a single context "playwright (e2e)", but the sharded matrix suffixes
+  # its per-leg checks with "(1)"/"(2)". This job restores the stable required
+  # name and passes iff EVERY shard passed — so the required check tracks the
+  # shard count without a ruleset edit. Same shape as screenshots.yml's
+  # `screenshots_result`.
+  #
+  # `if: always()` + an explicit equality test on the matrix result is what makes
+  # a cancelled or skipped shard read as FAILURE rather than as green: `result` is
+  # "success" only when every leg succeeded, and any other value exits 1.
+  playwright_e2e_result:
+    name: playwright (e2e)
+    if: always()
+    needs: playwright_e2e
+    runs-on: ubuntu-latest
+    # Reads only the matrix result from the `needs` context — no repo access.
+    permissions: {}
+    steps:
+      - name: Gate on shard results
+        env:
+          RESULT: ${{ needs.playwright_e2e.result }}
+        run: |
+          echo "e2e shard matrix result: $RESULT"
+          [ "$RESULT" = "success" ] || { echo "::error::an e2e shard did not pass"; exit 1; }

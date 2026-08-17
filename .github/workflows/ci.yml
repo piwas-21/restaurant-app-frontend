@@ -430,9 +430,27 @@ jobs:
     # database — no cross-shard contamination is possible. (globalTeardown
     # deliberately does not purge users for exactly this reason.)
     #
+    # CONFIRMED on run 32012215749: the shards took 158s and 122s (the split is by
+    # test COUNT, not duration, so they are uneven) and this workflow's wall clock
+    # went 265s -> 163s. That is the full gain on a `develop` push, where ci.yml is
+    # the entire gate. On a PULL REQUEST it buys nothing today: the separate
+    # `Screenshots` workflow is the critical path at ~279s, so the PR waits on that
+    # either way.
+    #
     # Do not raise the shard count without re-measuring: at 4 shards each leg
     # would run ~40s of tests against a ~99s floor, so the wall clock stops
     # improving while the runner bill keeps doubling.
+    #
+    # SHARDING THE SCREENSHOT SUITE WAS TRIED HERE AND REJECTED (same day, run
+    # 32012215727). Its legs are floor-dominated, not test-dominated: of a 274s
+    # leg, ~181s is fixed (74s job setup + 24s `docker pull` of the pinned
+    # Playwright image + 83s of `rm -rf .next && next build`) and only 92s is
+    # tests. Two shards measured 206/259s (classic) and 195/256s (craft) — the
+    # count-based split landed 26s of tests in one shard and 74s in the other — so
+    # the workflow wall clock went 278s -> 279s: ZERO gain for double the runner
+    # minutes. Do not retry it until that floor is cut (share one `next build`
+    # across the legs, keep the Playwright image warm); the floor, not the test
+    # time, is where the PR's remaining minutes are.
     strategy:
       fail-fast: false
       matrix:

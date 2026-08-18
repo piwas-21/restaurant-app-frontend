@@ -128,6 +128,12 @@ Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warn
 12. **No hardcoded `process.env.NEXT_PUBLIC_*`** literals scattered across components — read once in `src/lib/config.ts`, export typed constants.
 13. **No hardcoded URLs** — backend URL via `NEXT_PUBLIC_API_URL`, image base via `NEXT_PUBLIC_IMAGE_BASE_URL`, etc.
 14. **Cross-feature imports** (`src/features/X/` reaching into `src/features/Y/`) are forbidden. Shared code goes in `src/components/` or `src/lib/`.
+15. **Which calendar day it is belongs to the RESTAURANT, not the device.** Never derive an operational day from the browser (`new Date().toISOString().split('T')[0]` is the device's *UTC* day — not even its local one) and send it to the backend: only the server knows the tenant's zone (`Localization:TimeZone`, backend #372). Omit the date parameter and read the day back off the answer (`src/utils/zReportDay.ts`, frontend #511). A wire value that is a calendar DAY (midnight UTC) must also be *rendered* with `timeZone: 'UTC'` — formatting it in the device zone prints the previous day west of UTC. Pin any such test with the timezone environment, never on the runner's ambient zone: on a UTC host (every CI runner and container here) a local-clock implementation and a correct one agree, so the test is a tautology —
+    ```
+    /** @jest-environment ./jest-environments/timezone.js */
+    /** @jest-environment-options {"timezone": "America/Los_Angeles"} */
+    ```
+    and assert the premise (that the zone really is away from UTC) inside the suite. The same rule covers the ambient **locale**: `formatBytes`/`toLocaleString` output is the runner's, so match `/^5[.,]6 MB$/`, not `'5.6 MB'`.
 
 ---
 

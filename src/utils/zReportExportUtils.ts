@@ -3,12 +3,17 @@ import { printHtmlContent } from './pdfExportUtils';
 import { formatCurrency } from './currency';
 import { RESTAURANT_NAME } from '@/lib/config';
 
+// `reportDate` is a calendar DAY pinned at 00:00 UTC on the wire, not an instant
+// (`GetZReportQuery.cs`), so it is rendered in UTC. Without `timeZone`, the device's zone decides:
+// west of UTC this printed `Dienstag, 18. August 2026` on a report covering the 19th — the paper
+// naming a different day from the figures on it (frontend #511).
 const formatDate = (dateStr: string): string => {
   return new Date(dateStr).toLocaleDateString('de-CH', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC',
   });
 };
 

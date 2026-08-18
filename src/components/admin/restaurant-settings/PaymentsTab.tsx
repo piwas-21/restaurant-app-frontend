@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPaymentsOnboarding } from '@/services/paymentsOnboardingService';
 import { useApiError } from '@/hooks/useApiError';
-import type { PaymentsOnboardingDto } from '@/types/paymentsOnboarding';
+import type { PaymentsOnboardingDto, PaymentsOnboardingState } from '@/types/paymentsOnboarding';
 import styles from './PaymentsTab.module.css';
 
 /**
@@ -81,32 +81,72 @@ export default function PaymentsTab() {
     );
   }
 
-  // Anything that is not exactly `configured` reads as not configured, including a value a
-  // newer backend invented (P7b adds one). Guidance is the safe default: it tells the owner
-  // to go and finish something, which is never wrong while we are unsure.
-  const isConfigured = onboarding.state === 'configured';
+  // Three known states and one rule for everything else: a value this bundle does not
+  // recognise reads as NOT configured. Guidance is the safe default — it tells the owner to
+  // go and finish something, which is never wrong while we are unsure, whereas "you are set
+  // up" would be a claim the page cannot back.
+  const state: PaymentsOnboardingState =
+    onboarding.state === 'configured' || onboarding.state === 'awaitingVerification'
+      ? onboarding.state
+      : 'notConfigured';
+
+  // P7b's upgrade to the copy. Until the backend could read the connected account, this page
+  // could only say the smaller true thing (§9 Q1) — "we are switching this on for you" —
+  // because it genuinely could not tell "waiting on Stripe" from "waiting on us". Now, in the
+  // one state where it CAN tell, it says the larger true thing instead. Every other state is
+  // unchanged, including the soft-fail, which still lands on `configured`.
+  const STATUS_KEYS: Record<PaymentsOnboardingState, { readonly key: string; readonly fallback: string }> = {
+    configured: {
+      key: 'payments_tab_state_configured',
+      fallback: 'Your restaurant is set up to take card payments.',
+    },
+    awaitingVerification: {
+      key: 'payments_tab_state_awaiting',
+      fallback: 'Stripe still needs to verify your business.',
+    },
+    notConfigured: {
+      key: 'payments_tab_state_not_configured',
+      fallback: 'Card payments are not switched on for this restaurant yet.',
+    },
+  };
+  const HINT_KEYS: Record<PaymentsOnboardingState, { readonly key: string; readonly fallback: string }> = {
+    configured: {
+      key: 'payments_tab_configured_hint',
+      fallback:
+        'Payments go straight to your own Stripe account — we never hold your money. The checklist ticks this off after your first online payment settles.',
+    },
+    awaitingVerification: {
+      key: 'payments_tab_awaiting_hint',
+      fallback:
+        'Finish the form in your Stripe dashboard and card payment turns on by itself. Until then your restaurant is fully live and taking cash as usual.',
+    },
+    notConfigured: {
+      key: 'payments_tab_not_configured_hint',
+      fallback:
+        'We are switching this on for you. There is nothing to do here yet — we will tell you when card payment appears at your checkout.',
+    },
+  };
 
   return (
     <div className={styles.wrap}>
       <h2 className={styles.title}>{t('payments_tab_title', 'Card payments')}</h2>
 
-      <p className={styles.status} data-state={isConfigured ? 'configured' : 'notConfigured'}>
-        {isConfigured
-          ? t('payments_tab_state_configured', 'Your restaurant is set up to take card payments.')
-          : t('payments_tab_state_not_configured', 'Card payments are not switched on for this restaurant yet.')}
+      <p className={styles.status} data-state={state}>
+        {t(STATUS_KEYS[state].key, STATUS_KEYS[state].fallback)}
       </p>
 
-      <p className={styles.hint}>
-        {isConfigured
-          ? t(
-              'payments_tab_configured_hint',
-              'Payments go straight to your own Stripe account — we never hold your money. The checklist ticks this off after your first online payment settles.',
-            )
-          : t(
-              'payments_tab_not_configured_hint',
-              'We are switching this on for you. There is nothing to do here yet — we will tell you when card payment appears at your checkout.',
-            )}
-      </p>
+      <p className={styles.hint}>{t(HINT_KEYS[state].key, HINT_KEYS[state].fallback)}</p>
+
+      {/* The COUNT and never the names — the backend does not send them, and it is not this
+          page's business to ask. Rendered only while it means something: on a verified
+          account Stripe still lists future items ahead of a deadline. */}
+      {state === 'awaitingVerification' && onboarding.requirementsDue !== null && onboarding.requirementsDue > 0 && (
+        <p className={styles.hint}>
+          {t('payments_tab_requirements_due', '{{count}} details still to fill in on Stripe.', {
+            count: onboarding.requirementsDue,
+          })}
+        </p>
+      )}
 
       {onboarding.connectedAccountId && (
         <p className={styles.account}>

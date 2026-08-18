@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "Los pagos van directamente a tu propia cuenta de Stripe: nunca retenemos tu dinero. La lista marca este paso cuando se liquida tu primer pago en línea.",
   "payments_tab_not_configured_hint": "Lo estamos activando para ti. Aquí no hay nada que hacer todavía: te avisaremos cuando el pago con tarjeta aparezca en tu caja.",
   "payments_tab_account": "Cuenta de Stripe",
-  "payments_tab_dashboard_link": "Abrir tu panel de Stripe"
+  "payments_tab_dashboard_link": "Abrir tu panel de Stripe",
+  "payments_tab_state_awaiting": "Stripe todavía tiene que verificar tu negocio.",
+  "payments_tab_awaiting_hint": "Completa el formulario en tu panel de Stripe y el pago con tarjeta se activa solo. Hasta entonces tu restaurante está plenamente en línea y cobra en efectivo como siempre.",
+  "payments_tab_requirements_due": "Quedan {{count}} datos por rellenar en Stripe."
 }

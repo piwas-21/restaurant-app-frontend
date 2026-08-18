@@ -14,18 +14,17 @@ jest.mock('react-i18next', () => ({
 
 const mocked = service as jest.Mocked<typeof service>;
 
-const answer = (dto: PaymentsOnboardingDto) =>
-  mocked.getPaymentsOnboarding.mockResolvedValue({ success: true, data: dto } as never);
+const answer = (dto: Partial<PaymentsOnboardingDto> & Pick<PaymentsOnboardingDto, 'state'>) =>
+  mocked.getPaymentsOnboarding.mockResolvedValue({
+    success: true,
+    data: { connectedAccountId: null, dashboardUrl: 'https://dashboard.stripe.com', requirementsDue: null, ...dto },
+  } as never);
 
 beforeEach(() => jest.clearAllMocks());
 
 describe('PaymentsTab', () => {
   it('names the account and links to the restaurant OWN dashboard when configured', async () => {
-    answer({
-      state: 'configured',
-      connectedAccountId: 'acct_1Example',
-      dashboardUrl: 'https://dashboard.stripe.com',
-    });
+    answer({ state: 'configured', connectedAccountId: 'acct_1Example' });
 
     render(<PaymentsTab />);
 
@@ -41,7 +40,7 @@ describe('PaymentsTab', () => {
   });
 
   it('says the smaller true thing when nothing is configured, and names no account', async () => {
-    answer({ state: 'notConfigured', connectedAccountId: null, dashboardUrl: 'https://dashboard.stripe.com' });
+    answer({ state: 'notConfigured' });
 
     render(<PaymentsTab />);
 
@@ -58,15 +57,39 @@ describe('PaymentsTab', () => {
     // A newer backend ships `awaitingVerification` (P7b) before this bundle does. Guidance
     // is the safe default: it tells the owner to go and finish something, which is never
     // wrong while we are unsure — whereas "you are set up" would be a claim we cannot back.
-    answer({
-      state: 'awaitingVerification' as PaymentsOnboardingDto['state'],
-      connectedAccountId: 'acct_1Future',
-      dashboardUrl: 'https://dashboard.stripe.com',
-    });
+    answer({ state: 'somethingNewer' as PaymentsOnboardingDto['state'], connectedAccountId: 'acct_1Future' });
 
     render(<PaymentsTab />);
 
     expect(await screen.findByText('payments_tab_state_not_configured')).toBeInTheDocument();
+  });
+
+  it('says Stripe is still verifying you, and how many details are left', async () => {
+    // P7b's whole point. Before it, this window rendered "we are switching this on for you" —
+    // the smaller true thing (§9 Q1), because the page could not tell "waiting on Stripe" from
+    // "waiting on us". Now it can, in this one state, so it says the larger true thing.
+    answer({ state: 'awaitingVerification', connectedAccountId: 'acct_1Kyc', requirementsDue: 14 });
+
+    render(<PaymentsTab />);
+
+    expect(await screen.findByText('payments_tab_state_awaiting')).toBeInTheDocument();
+    expect(screen.getByText('payments_tab_awaiting_hint')).toBeInTheDocument();
+    expect(screen.getByText('payments_tab_requirements_due')).toBeInTheDocument();
+    // Not the other two states — a page that says both is worse than one that says neither.
+    expect(screen.queryByText('payments_tab_state_configured')).not.toBeInTheDocument();
+    expect(screen.queryByText('payments_tab_state_not_configured')).not.toBeInTheDocument();
+  });
+
+  it('does not show a count when the backend did not send one', async () => {
+    // The soft-fail's shape: an unreadable account lands on `configured` with a null count, and
+    // a count is also null in `awaitingVerification` if the backend ever omits it. Rendering
+    // "0 details still to fill in" beside "Stripe is verifying you" reads as finished.
+    answer({ state: 'awaitingVerification', connectedAccountId: 'acct_1Kyc', requirementsDue: null });
+
+    render(<PaymentsTab />);
+
+    expect(await screen.findByText('payments_tab_state_awaiting')).toBeInTheDocument();
+    expect(screen.queryByText('payments_tab_requirements_due')).not.toBeInTheDocument();
   });
 
   it('offers a retry rather than a blank strip when the read fails', async () => {

@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "Платежи поступают прямо на ваш собственный счёт Stripe — мы никогда не держим ваши деньги. Чек-лист отметит этот пункт после расчёта вашего первого онлайн-платежа.",
   "payments_tab_not_configured_hint": "Мы включаем это для вас. Здесь пока ничего делать не нужно — мы сообщим, когда оплата картой появится на вашей кассе.",
   "payments_tab_account": "Счёт Stripe",
-  "payments_tab_dashboard_link": "Открыть ваш дашборд Stripe"
+  "payments_tab_dashboard_link": "Открыть ваш дашборд Stripe",
+  "payments_tab_state_awaiting": "Stripe ещё должен проверить ваш бизнес.",
+  "payments_tab_awaiting_hint": "Заполните форму в вашем дашборде Stripe — оплата картой включится сама. До тех пор ваш ресторан полностью работает и принимает наличные как обычно.",
+  "payments_tab_requirements_due": "Осталось заполнить {{count}} данных в Stripe."
 }

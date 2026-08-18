@@ -7,13 +7,18 @@
  */
 
 /**
- * The `state` vocabulary. A UNION rather than a boolean because P7b adds a third value
- * (`awaitingVerification`), and a boolean would have to be replaced rather than extended.
+ * The `state` vocabulary. A UNION rather than a boolean, which is what let P7b add the middle
+ * value without replacing anything this bundle already read.
  *
- * An unknown value arriving from a newer backend must render as guidance, never crash —
- * see `PaymentsTab`, which treats anything that is not `configured` as not configured.
+ * `awaitingVerification` means Stripe reports `charges_enabled: false` — the restaurant is
+ * plumbed in and Stripe has not finished checking their business. `configured` is the weaker
+ * claim of the two: either Stripe says charges are enabled, or the backend could not read the
+ * account at all and is reporting what configuration alone supports.
+ *
+ * An unknown value arriving from a newer backend must render as guidance, never crash — see
+ * `PaymentsTab`, which treats anything it does not recognise as not configured.
  */
-export type PaymentsOnboardingState = 'notConfigured' | 'configured';
+export type PaymentsOnboardingState = 'notConfigured' | 'awaitingVerification' | 'configured';
 
 export interface PaymentsOnboardingDto {
   state: PaymentsOnboardingState;
@@ -21,4 +26,11 @@ export interface PaymentsOnboardingDto {
   connectedAccountId: string | null;
   /** The restaurant's own Stripe dashboard. Their login, not ours (Connect Standard). */
   dashboardUrl: string;
+  /**
+   * How many KYC fields Stripe is still waiting for, or null when we do not know — which covers
+   * both "nothing to ask about" and "the read was refused". A COUNT and never the field list:
+   * those names are the restaurant's own identity data and Stripe shows them on the page where
+   * they can act on them.
+   */
+  requirementsDue: number | null;
 }

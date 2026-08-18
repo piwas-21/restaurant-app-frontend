@@ -6,7 +6,7 @@
 # Sprint 1: hygiene + secret scanning.
 # Sprint 2:   prettier --check.
 # Sprint 2.5: tsc --noEmit, eslint --max-warnings=0.
-# See docs/QUALITY-SECURITY-PLAN.md.
+# See CLAUDE.md §7 for the full gate list (CI + hooks) and the planned-but-unbuilt gaps.
 
 repos:
   # ── General hygiene ──────────────────────────────────────────────────

@@ -2575,5 +2575,14 @@
   "menu_filters_clear": "مسح عوامل التصفية",
   "menu_filters_count": "{{shown}} من {{total}} طبقًا",
   "menu_filters_none": "لا توجد أطباق تطابق عوامل التصفية هذه",
-  "menu_state_filtered_heading": "لا توجد نتائج"
+  "menu_state_filtered_heading": "لا توجد نتائج",
+  "payments_settings": "الدفع بالبطاقة",
+  "payments_tab_title": "الدفع بالبطاقة",
+  "payments_tab_load_failed": "تعذّر تحميل إعدادات الدفع",
+  "payments_tab_state_configured": "مطعمك جاهز لاستقبال الدفع بالبطاقة.",
+  "payments_tab_state_not_configured": "الدفع بالبطاقة غير مفعّل لهذا المطعم بعد.",
+  "payments_tab_configured_hint": "تذهب المدفوعات مباشرة إلى حساب Stripe الخاص بك — نحن لا نحتفظ بأموالك أبدًا. تضع القائمة علامة على هذه الخطوة بعد تسوية أول دفعة إلكترونية لك.",
+  "payments_tab_not_configured_hint": "نحن نفعّله لك الآن. لا شيء عليك فعله هنا بعد — سنخبرك عندما يظهر الدفع بالبطاقة عند صندوقك.",
+  "payments_tab_account": "حساب Stripe",
+  "payments_tab_dashboard_link": "افتح لوحة Stripe الخاصة بك"
 }

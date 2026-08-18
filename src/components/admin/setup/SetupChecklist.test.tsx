@@ -52,16 +52,16 @@ describe('SetupChecklist', () => {
     });
   });
 
-  it('renders the online-payments row as guidance: state icon, no checkbox, no link', async () => {
-    // O7 P6. The tenant is Stripe-configured (which is why the backend sent the step at
-    // all) and nobody has paid them online yet, so the row must say "not done yet" out
-    // loud — a derived row carries its state ONLY in the icon, and an aria-hidden icon
-    // plus line-through styling announces nothing.
+  it('renders the online-payments row as derived, and points it at the payments tab', async () => {
+    // O7 P6 + P7a. The tenant is Stripe-configured (which is why the backend sent the
+    // step at all) and nobody has paid them online yet, so the row must say "not done
+    // yet" OUT LOUD — a derived row carries its state only in the icon, and an
+    // aria-hidden icon plus line-through styling announces nothing.
     //
-    // No LINK either, and that is the half worth pinning: the work is the restaurant's
-    // own Stripe onboarding, on Stripe's hosted pages, and this app has no payments
-    // surface to send them to until P7a. A row that linked somewhere now would link to
-    // a page that does not exist.
+    // No checkbox: the step is derived and the API answers 400 to an acknowledgement, so
+    // a control here would invite a claim the server refuses. The LINK is new in P7a —
+    // until this bundle had a payments tab the row was guidance only, because a link to a
+    // page that does not exist is worse than none.
     renderWith(
       checklist({
         steps: [{ key: 'online-payments', moduleId: 'online-payments', isDerived: true, isDone: false }],
@@ -73,7 +73,26 @@ describe('SetupChecklist', () => {
     expect(screen.getByText('setup_step_online_payments_hint')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'setup_step_state_todo' })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/admin/restaurant-settings?tab=payments');
+  });
+
+  it('drops the online-payments row on a tenant that did not buy it', async () => {
+    // Its destination lives on an UNGATED page (`/admin/restaurant-settings`), so the
+    // route half of `isSetupStepReachable` cannot save us here — the step's own moduleId
+    // is what does. Without it the row would link a Core tenant to a tab their own page
+    // does not render.
+    renderWith(
+      checklist({
+        steps: [
+          { key: 'restaurant-info', moduleId: null, isDerived: false, isDone: false },
+          { key: 'online-payments', moduleId: 'online-payments', isDerived: true, isDone: false },
+        ],
+      }),
+      ['core'],
+    );
+
+    expect(await screen.findByText('setup_step_restaurant_info_title')).toBeInTheDocument();
+    expect(screen.queryByText('setup_step_online_payments_title')).not.toBeInTheDocument();
   });
 
   it('drops a step whose module this instance does not run', async () => {

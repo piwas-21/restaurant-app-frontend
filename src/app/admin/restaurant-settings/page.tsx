@@ -11,7 +11,9 @@ import TaxConfigurationManager from '@/components/admin/settings/TaxConfiguratio
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
 import LogoTab from '@/components/admin/restaurant-settings/LogoTab';
-import { isTabId, type TabType } from './tabs';
+import PaymentsTab from '@/components/admin/restaurant-settings/PaymentsTab';
+import { useModules } from '@/contexts/ModulesContext';
+import { isTabAvailable, isTabId, type TabType } from './tabs';
 
 function RestaurantSettingsContent() {
   const { t } = useTranslation();
@@ -20,7 +22,14 @@ function RestaurantSettingsContent() {
   // value: the tab buttons own it from then on, and re-syncing would fight them.
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<TabType>(isTabId(requestedTab) ? requestedTab : 'hours');
+  const modules = useModules();
+  // A tab this tenant does not have is not a tab. Checked on the REQUESTED id too, not
+  // only on the strip: `?tab=payments` is a link the checklist hands out, and on a tenant
+  // without the module it would otherwise select a tab with no button and no content.
+  const available = (id: TabType) => isTabAvailable(id, modules);
+  const [activeTab, setActiveTab] = useState<TabType>(
+    isTabId(requestedTab) && available(requestedTab) ? requestedTab : 'hours',
+  );
 
   const tabs = [
     { id: 'hours' as TabType, label: t('working_hours', 'Working Hours'), icon: '🕐' },
@@ -29,7 +38,8 @@ function RestaurantSettingsContent() {
     { id: 'general' as TabType, label: t('general_settings', 'General Settings'), icon: '⚙️' },
     { id: 'appearance' as TabType, label: t('appearance_settings', 'Appearance'), icon: '🎨' },
     { id: 'logo' as TabType, label: t('logo_settings', 'Logo'), icon: '🖼️' },
-  ];
+    { id: 'payments' as TabType, label: t('payments_settings', 'Card Payments'), icon: '💳' },
+  ].filter((tab) => available(tab.id));
 
   return (
     <div className={styles.container}>
@@ -67,6 +77,7 @@ function RestaurantSettingsContent() {
         {activeTab === 'general' && <GeneralSettingsTab />}
         {activeTab === 'appearance' && <AppearanceTab />}
         {activeTab === 'logo' && <LogoTab />}
+        {activeTab === 'payments' && <PaymentsTab />}
       </div>
     </div>
   );

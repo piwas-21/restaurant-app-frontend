@@ -2575,5 +2575,14 @@
   "menu_filters_clear": "Clear filters",
   "menu_filters_count": "{{shown}} of {{total}} dishes",
   "menu_filters_none": "No dishes match these filters",
-  "menu_state_filtered_heading": "Nothing matches"
+  "menu_state_filtered_heading": "Nothing matches",
+  "payments_settings": "Card Payments",
+  "payments_tab_title": "Card payments",
+  "payments_tab_load_failed": "Could not load your payment settings",
+  "payments_tab_state_configured": "Your restaurant is set up to take card payments.",
+  "payments_tab_state_not_configured": "Card payments are not switched on for this restaurant yet.",
+  "payments_tab_configured_hint": "Payments go straight to your own Stripe account — we never hold your money. The checklist ticks this off after your first online payment settles.",
+  "payments_tab_not_configured_hint": "We are switching this on for you. There is nothing to do here yet — we will tell you when card payment appears at your checkout.",
+  "payments_tab_account": "Stripe account",
+  "payments_tab_dashboard_link": "Open your Stripe dashboard"
 }

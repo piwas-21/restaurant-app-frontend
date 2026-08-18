@@ -13,14 +13,13 @@ const only =
 describe('setupStepHref', () => {
   it('maps every step key the backend can send', () => {
     // The backend owns the vocabulary; an unmapped key would render as a step with no
-    // way to act on it. Two steps are deliberate nulls — the printer app is a binary,
-    // not a page here, and online payments happen on Stripe's own hosted pages, which
-    // this app has no surface for until P7a.
-    const guidanceOnly = ['printing', 'online-payments'];
-    const unmapped = SETUP_STEP_KEYS.filter((k) => !guidanceOnly.includes(k) && !setupStepHref(k));
+    // way to act on it. `printing` is the one deliberate null — the printer app is a
+    // binary, not a page here. `online-payments` stopped being one when P7a gave this
+    // app a payments tab to point at.
+    const unmapped = SETUP_STEP_KEYS.filter((k) => k !== 'printing' && !setupStepHref(k));
     expect(unmapped).toEqual([]);
     expect(setupStepHref('printing')).toBeNull();
-    expect(setupStepHref('online-payments')).toBeNull();
+    expect(setupStepHref('online-payments')).toBe('/admin/restaurant-settings?tab=payments');
   });
 
   it('points every step at a page that actually exists on disk', () => {
@@ -62,7 +61,11 @@ describe('setupStepPathname', () => {
     expect(setupStepPathname('opening-hours')).toBe('/admin/restaurant-settings');
     expect(setupStepPathname('menu')).toBe('/admin/menu-management');
     expect(setupStepPathname('printing')).toBeNull();
-    expect(setupStepPathname('online-payments')).toBeNull();
+    // The tab lives on an UNGATED page, so this resolves to no module — the step's own
+    // `moduleId` is what keeps it off a tenant that did not buy payments, and the tab
+    // strip enforces the same thing a second time (`TAB_MODULE`).
+    expect(setupStepPathname('online-payments')).toBe('/admin/restaurant-settings');
+    expect(moduleForPath('/admin/restaurant-settings')).toBeNull();
   });
 });
 

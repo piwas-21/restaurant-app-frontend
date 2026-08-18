@@ -2575,5 +2575,14 @@
   "menu_filters_clear": "清除筛选",
   "menu_filters_count": "{{total}} 道菜中的 {{shown}} 道",
   "menu_filters_none": "没有符合这些筛选条件的菜品",
-  "menu_state_filtered_heading": "无匹配结果"
+  "menu_state_filtered_heading": "无匹配结果",
+  "payments_settings": "刷卡付款",
+  "payments_tab_title": "刷卡付款",
+  "payments_tab_load_failed": "无法加载你的付款设置",
+  "payments_tab_state_configured": "你的餐厅已可以接受刷卡付款。",
+  "payments_tab_state_not_configured": "本餐厅尚未开通刷卡付款。",
+  "payments_tab_configured_hint": "款项直接进入你自己的 Stripe 账户——我们从不代持你的钱。首笔在线付款结算后，清单会自动勾选这一项。",
+  "payments_tab_not_configured_hint": "我们正在为你开通。这里暂时无需操作——刷卡付款出现在你的收银台时我们会通知你。",
+  "payments_tab_account": "Stripe 账户",
+  "payments_tab_dashboard_link": "打开你的 Stripe 后台"
 }

@@ -2575,5 +2575,14 @@
   "menu_filters_clear": "Filter zurücksetzen",
   "menu_filters_count": "{{shown}} von {{total}} Gerichten",
   "menu_filters_none": "Keine Gerichte entsprechen diesen Filtern",
-  "menu_state_filtered_heading": "Keine Treffer"
+  "menu_state_filtered_heading": "Keine Treffer",
+  "payments_settings": "Kartenzahlung",
+  "payments_tab_title": "Kartenzahlung",
+  "payments_tab_load_failed": "Ihre Zahlungseinstellungen konnten nicht geladen werden",
+  "payments_tab_state_configured": "Ihr Restaurant ist für Kartenzahlung eingerichtet.",
+  "payments_tab_state_not_configured": "Kartenzahlung ist für dieses Restaurant noch nicht freigeschaltet.",
+  "payments_tab_configured_hint": "Zahlungen gehen direkt auf Ihr eigenes Stripe-Konto — wir halten Ihr Geld nie. Die Checkliste hakt diesen Punkt ab, sobald Ihre erste Online-Zahlung abgerechnet ist.",
+  "payments_tab_not_configured_hint": "Wir schalten das gerade für Sie frei. Hier ist noch nichts zu tun — wir sagen Ihnen Bescheid, wenn die Kartenzahlung an Ihrer Kasse erscheint.",
+  "payments_tab_account": "Stripe-Konto",
+  "payments_tab_dashboard_link": "Ihr Stripe-Dashboard öffnen"
 }

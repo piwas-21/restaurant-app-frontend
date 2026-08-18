@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "تذهب المدفوعات مباشرة إلى حساب Stripe الخاص بك — نحن لا نحتفظ بأموالك أبدًا. تضع القائمة علامة على هذه الخطوة بعد تسوية أول دفعة إلكترونية لك.",
   "payments_tab_not_configured_hint": "نحن نفعّله لك الآن. لا شيء عليك فعله هنا بعد — سنخبرك عندما يظهر الدفع بالبطاقة عند صندوقك.",
   "payments_tab_account": "حساب Stripe",
-  "payments_tab_dashboard_link": "افتح لوحة Stripe الخاصة بك"
+  "payments_tab_dashboard_link": "افتح لوحة Stripe الخاصة بك",
+  "payments_tab_state_awaiting": "لا يزال على Stripe التحقق من نشاطك التجاري.",
+  "payments_tab_awaiting_hint": "أكمل النموذج في لوحة Stripe الخاصة بك وسيُفعَّل الدفع بالبطاقة تلقائيًا. حتى ذلك الحين مطعمك يعمل بالكامل ويقبل النقد كالمعتاد.",
+  "payments_tab_requirements_due": "بقي {{count}} من البيانات لتعبئتها في Stripe."
 }

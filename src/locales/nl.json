@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "Betalingen gaan rechtstreeks naar je eigen Stripe-account — wij houden je geld nooit vast. De checklist vinkt dit af zodra je eerste online betaling is afgerekend.",
   "payments_tab_not_configured_hint": "We zetten dit voor je aan. Hier hoef je nog niets te doen — we laten het weten zodra kaartbetaling bij je kassa verschijnt.",
   "payments_tab_account": "Stripe-account",
-  "payments_tab_dashboard_link": "Open je Stripe-dashboard"
+  "payments_tab_dashboard_link": "Open je Stripe-dashboard",
+  "payments_tab_state_awaiting": "Stripe moet je bedrijf nog verifiëren.",
+  "payments_tab_awaiting_hint": "Vul het formulier in je Stripe-dashboard af, dan gaat kaartbetaling vanzelf aan. Tot die tijd staat je restaurant volledig online en neemt het gewoon contant geld aan.",
+  "payments_tab_requirements_due": "Nog {{count}} gegevens in te vullen bij Stripe."
 }

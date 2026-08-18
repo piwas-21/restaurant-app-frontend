@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "Zahlungen gehen direkt auf Ihr eigenes Stripe-Konto — wir halten Ihr Geld nie. Die Checkliste hakt diesen Punkt ab, sobald Ihre erste Online-Zahlung abgerechnet ist.",
   "payments_tab_not_configured_hint": "Wir schalten das gerade für Sie frei. Hier ist noch nichts zu tun — wir sagen Ihnen Bescheid, wenn die Kartenzahlung an Ihrer Kasse erscheint.",
   "payments_tab_account": "Stripe-Konto",
-  "payments_tab_dashboard_link": "Ihr Stripe-Dashboard öffnen"
+  "payments_tab_dashboard_link": "Ihr Stripe-Dashboard öffnen",
+  "payments_tab_state_awaiting": "Stripe muss Ihr Unternehmen noch überprüfen.",
+  "payments_tab_awaiting_hint": "Füllen Sie das Formular in Ihrem Stripe-Dashboard aus, dann schaltet sich die Kartenzahlung von selbst frei. Bis dahin ist Ihr Restaurant vollständig online und nimmt wie gewohnt Bargeld an.",
+  "payments_tab_requirements_due": "{{count}} Angaben fehlen noch bei Stripe."
 }

@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "Payments go straight to your own Stripe account — we never hold your money. The checklist ticks this off after your first online payment settles.",
   "payments_tab_not_configured_hint": "We are switching this on for you. There is nothing to do here yet — we will tell you when card payment appears at your checkout.",
   "payments_tab_account": "Stripe account",
-  "payments_tab_dashboard_link": "Open your Stripe dashboard"
+  "payments_tab_dashboard_link": "Open your Stripe dashboard",
+  "payments_tab_state_awaiting": "Stripe still needs to verify your business.",
+  "payments_tab_awaiting_hint": "Finish the form in your Stripe dashboard and card payment turns on by itself. Until then your restaurant is fully live and taking cash as usual.",
+  "payments_tab_requirements_due": "{{count}} details still to fill in on Stripe."
 }

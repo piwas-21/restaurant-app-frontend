@@ -2584,5 +2584,8 @@
   "payments_tab_configured_hint": "款项直接进入你自己的 Stripe 账户——我们从不代持你的钱。首笔在线付款结算后，清单会自动勾选这一项。",
   "payments_tab_not_configured_hint": "我们正在为你开通。这里暂时无需操作——刷卡付款出现在你的收银台时我们会通知你。",
   "payments_tab_account": "Stripe 账户",
-  "payments_tab_dashboard_link": "打开你的 Stripe 后台"
+  "payments_tab_dashboard_link": "打开你的 Stripe 后台",
+  "payments_tab_state_awaiting": "Stripe 还需要核验你的商户信息。",
+  "payments_tab_awaiting_hint": "在你的 Stripe 后台填完表格，刷卡付款就会自动开启。在那之前你的餐厅完全在线，照常收现金。",
+  "payments_tab_requirements_due": "Stripe 上还有 {{count}} 项资料待填写。"
 }

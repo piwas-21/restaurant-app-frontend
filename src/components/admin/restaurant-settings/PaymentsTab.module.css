@@ -22,6 +22,12 @@
   color: var(--feedback-success-dark);
 }
 
+/* Not an error colour. The restaurant has done nothing wrong and nothing is broken —
+   Stripe is checking them, which is a wait, not a fault. */
+.status[data-state='awaitingVerification'] {
+  color: var(--feedback-info-dark);
+}
+
 .hint {
   margin: 0;
   color: var(--text-secondary);

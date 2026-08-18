@@ -14,10 +14,12 @@ describe('setupStepHref', () => {
   it('maps every step key the backend can send', () => {
     // The backend owns the vocabulary; an unmapped key would render as a step with no
     // way to act on it. `printing` is the one deliberate null — the printer app is a
-    // binary, not a page here.
+    // binary, not a page here. `online-payments` stopped being one when P7a gave this
+    // app a payments tab to point at.
     const unmapped = SETUP_STEP_KEYS.filter((k) => k !== 'printing' && !setupStepHref(k));
     expect(unmapped).toEqual([]);
     expect(setupStepHref('printing')).toBeNull();
+    expect(setupStepHref('online-payments')).toBe('/admin/restaurant-settings?tab=payments');
   });
 
   it('points every step at a page that actually exists on disk', () => {
@@ -59,6 +61,35 @@ describe('setupStepPathname', () => {
     expect(setupStepPathname('opening-hours')).toBe('/admin/restaurant-settings');
     expect(setupStepPathname('menu')).toBe('/admin/menu-management');
     expect(setupStepPathname('printing')).toBeNull();
+    // The tab lives on an UNGATED page, so this resolves to no module — the step's own
+    // `moduleId` is what keeps it off a tenant that did not buy payments, and the tab
+    // strip enforces the same thing a second time (`TAB_MODULE`).
+    expect(setupStepPathname('online-payments')).toBe('/admin/restaurant-settings');
+    expect(moduleForPath('/admin/restaurant-settings')).toBeNull();
+  });
+});
+
+/**
+ * The row's strings, in all ten locales.
+ *
+ * `check-locale-parity.mjs` diffs the other nine AGAINST `en.json`, so a key missing
+ * from all ten is perfectly "in parity" — and i18next returns the key itself on a
+ * lookup miss, so the row would render `setup_step_online_payments_title` as its own
+ * title, everywhere at once, with every gate green. This is the second time that exact
+ * shape would have shipped raw keys, hence the test.
+ */
+describe('the online-payments row is translated everywhere', () => {
+  const LOCALES = ['en', 'de', 'tr', 'it', 'ar', 'fr', 'nl', 'es', 'ru', 'zh'] as const;
+  const KEYS = ['setup_step_online_payments_title', 'setup_step_online_payments_hint'];
+
+  it.each(LOCALES)('%s has a title and a hint', (locale) => {
+    const messages = jest.requireActual(`../locales/${locale}.json`) as Record<string, string>;
+    for (const key of KEYS) {
+      expect(messages[key]?.trim()).toBeTruthy();
+      // …and not the key echoed back as its own translation, which is what a
+      // copy-paste placeholder looks like and what i18next would have produced anyway.
+      expect(messages[key]).not.toBe(key);
+    }
   });
 });
 

@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Bepaal hoe gasten punten sparen en besteden.",
   "setup_step_printing_title": "Installeer de printer-app",
   "setup_step_printing_hint": "Draait op een Windows-pc of Android-apparaat naast je printer. Vraag ons om de download.",
+  "setup_step_online_payments_title": "Ontvang je eerste kaartbetaling",
+  "setup_step_online_payments_hint": "Klaar zodra een gast je online heeft betaald. Rond eerst je Stripe-verificatie af — we laten het weten zodra kaartbetaling bij je kassa verschijnt.",
   "setup_step_state_done": "Klaar",
   "setup_step_state_todo": "Nog niet klaar",
   "admin_image_backfill_title": "Afbeeldingen bijwerken",
@@ -2573,5 +2575,17 @@
   "menu_filters_clear": "Filters wissen",
   "menu_filters_count": "{{shown}} van {{total}} gerechten",
   "menu_filters_none": "Geen gerechten voldoen aan deze filters",
-  "menu_state_filtered_heading": "Geen resultaten"
+  "menu_state_filtered_heading": "Geen resultaten",
+  "payments_settings": "Kaartbetalingen",
+  "payments_tab_title": "Kaartbetalingen",
+  "payments_tab_load_failed": "Je betaalinstellingen konden niet worden geladen",
+  "payments_tab_state_configured": "Je restaurant is ingesteld om kaartbetalingen aan te nemen.",
+  "payments_tab_state_not_configured": "Kaartbetalingen staan nog niet aan voor dit restaurant.",
+  "payments_tab_configured_hint": "Betalingen gaan rechtstreeks naar je eigen Stripe-account — wij houden je geld nooit vast. De checklist vinkt dit af zodra je eerste online betaling is afgerekend.",
+  "payments_tab_not_configured_hint": "We zetten dit voor je aan. Hier hoef je nog niets te doen — we laten het weten zodra kaartbetaling bij je kassa verschijnt.",
+  "payments_tab_account": "Stripe-account",
+  "payments_tab_dashboard_link": "Open je Stripe-dashboard",
+  "payments_tab_state_awaiting": "Stripe moet je bedrijf nog verifiëren.",
+  "payments_tab_awaiting_hint": "Vul het formulier in je Stripe-dashboard af, dan gaat kaartbetaling vanzelf aan. Tot die tijd staat je restaurant volledig online en neemt het gewoon contant geld aan.",
+  "payments_tab_requirements_due": "Nog {{count}} gegevens in te vullen bij Stripe."
 }

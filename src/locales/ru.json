@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Решите, как гости зарабатывают и тратят баллы.",
   "setup_step_printing_title": "Установите приложение печати",
   "setup_step_printing_hint": "Работает на ПК с Windows или устройстве Android рядом с принтером. Запросите у нас ссылку.",
+  "setup_step_online_payments_title": "Примите первый платёж картой",
+  "setup_step_online_payments_hint": "Готово, как только гость оплатит вам онлайн. Сначала завершите проверку в Stripe — мы сообщим, когда оплата картой появится на вашей кассе.",
   "setup_step_state_done": "Готово",
   "setup_step_state_todo": "Ещё не сделано",
   "admin_image_backfill_title": "Обработка изображений",
@@ -2573,5 +2575,17 @@
   "menu_filters_clear": "Сбросить фильтры",
   "menu_filters_count": "{{shown}} из {{total}} блюд",
   "menu_filters_none": "Нет блюд, подходящих под эти фильтры",
-  "menu_state_filtered_heading": "Ничего не найдено"
+  "menu_state_filtered_heading": "Ничего не найдено",
+  "payments_settings": "Оплата картой",
+  "payments_tab_title": "Оплата картой",
+  "payments_tab_load_failed": "Не удалось загрузить настройки оплаты",
+  "payments_tab_state_configured": "Ваш ресторан настроен на приём оплаты картой.",
+  "payments_tab_state_not_configured": "Оплата картой для этого ресторана ещё не включена.",
+  "payments_tab_configured_hint": "Платежи поступают прямо на ваш собственный счёт Stripe — мы никогда не держим ваши деньги. Чек-лист отметит этот пункт после расчёта вашего первого онлайн-платежа.",
+  "payments_tab_not_configured_hint": "Мы включаем это для вас. Здесь пока ничего делать не нужно — мы сообщим, когда оплата картой появится на вашей кассе.",
+  "payments_tab_account": "Счёт Stripe",
+  "payments_tab_dashboard_link": "Открыть ваш дашборд Stripe",
+  "payments_tab_state_awaiting": "Stripe ещё должен проверить ваш бизнес.",
+  "payments_tab_awaiting_hint": "Заполните форму в вашем дашборде Stripe — оплата картой включится сама. До тех пор ваш ресторан полностью работает и принимает наличные как обычно.",
+  "payments_tab_requirements_due": "Осталось заполнить {{count}} данных в Stripe."
 }

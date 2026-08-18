@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "حدّد كيف يجمع الضيوف النقاط وكيف ينفقونها.",
   "setup_step_printing_title": "ثبّت تطبيق الطابعة",
   "setup_step_printing_hint": "يعمل على جهاز Windows أو Android بجوار طابعتك. اطلب منا رابط التنزيل.",
+  "setup_step_online_payments_title": "استلم أول دفعة بالبطاقة",
+  "setup_step_online_payments_hint": "يكتمل بمجرد أن يدفع لك ضيف عبر الإنترنت. أكمل تحققك في Stripe أولًا — وسنخبرك عندما يظهر الدفع بالبطاقة عند صندوقك.",
   "setup_step_state_done": "مكتمل",
   "setup_step_state_todo": "لم يكتمل بعد",
   "admin_image_backfill_title": "معالجة الصور",
@@ -2573,5 +2575,17 @@
   "menu_filters_clear": "مسح عوامل التصفية",
   "menu_filters_count": "{{shown}} من {{total}} طبقًا",
   "menu_filters_none": "لا توجد أطباق تطابق عوامل التصفية هذه",
-  "menu_state_filtered_heading": "لا توجد نتائج"
+  "menu_state_filtered_heading": "لا توجد نتائج",
+  "payments_settings": "الدفع بالبطاقة",
+  "payments_tab_title": "الدفع بالبطاقة",
+  "payments_tab_load_failed": "تعذّر تحميل إعدادات الدفع",
+  "payments_tab_state_configured": "مطعمك جاهز لاستقبال الدفع بالبطاقة.",
+  "payments_tab_state_not_configured": "الدفع بالبطاقة غير مفعّل لهذا المطعم بعد.",
+  "payments_tab_configured_hint": "تذهب المدفوعات مباشرة إلى حساب Stripe الخاص بك — نحن لا نحتفظ بأموالك أبدًا. تضع القائمة علامة على هذه الخطوة بعد تسوية أول دفعة إلكترونية لك.",
+  "payments_tab_not_configured_hint": "نحن نفعّله لك الآن. لا شيء عليك فعله هنا بعد — سنخبرك عندما يظهر الدفع بالبطاقة عند صندوقك.",
+  "payments_tab_account": "حساب Stripe",
+  "payments_tab_dashboard_link": "افتح لوحة Stripe الخاصة بك",
+  "payments_tab_state_awaiting": "لا يزال على Stripe التحقق من نشاطك التجاري.",
+  "payments_tab_awaiting_hint": "أكمل النموذج في لوحة Stripe الخاصة بك وسيُفعَّل الدفع بالبطاقة تلقائيًا. حتى ذلك الحين مطعمك يعمل بالكامل ويقبل النقد كالمعتاد.",
+  "payments_tab_requirements_due": "بقي {{count}} من البيانات لتعبئتها في Stripe."
 }

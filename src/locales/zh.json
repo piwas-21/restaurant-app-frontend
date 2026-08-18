@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "决定顾客如何赚取和使用积分。",
   "setup_step_printing_title": "安装打印机应用",
   "setup_step_printing_hint": "在打印机旁的 Windows 电脑或安卓设备上运行。向我们索取下载链接。",
+  "setup_step_online_payments_title": "收到第一笔刷卡付款",
+  "setup_step_online_payments_hint": "只要有顾客在线付款给你就算完成。请先完成 Stripe 验证——刷卡付款出现在你的收银台时我们会通知你。",
   "setup_step_state_done": "已完成",
   "setup_step_state_todo": "尚未完成",
   "admin_image_backfill_title": "图片批量优化",
@@ -2573,5 +2575,17 @@
   "menu_filters_clear": "清除筛选",
   "menu_filters_count": "{{total}} 道菜中的 {{shown}} 道",
   "menu_filters_none": "没有符合这些筛选条件的菜品",
-  "menu_state_filtered_heading": "无匹配结果"
+  "menu_state_filtered_heading": "无匹配结果",
+  "payments_settings": "刷卡付款",
+  "payments_tab_title": "刷卡付款",
+  "payments_tab_load_failed": "无法加载你的付款设置",
+  "payments_tab_state_configured": "你的餐厅已可以接受刷卡付款。",
+  "payments_tab_state_not_configured": "本餐厅尚未开通刷卡付款。",
+  "payments_tab_configured_hint": "款项直接进入你自己的 Stripe 账户——我们从不代持你的钱。首笔在线付款结算后，清单会自动勾选这一项。",
+  "payments_tab_not_configured_hint": "我们正在为你开通。这里暂时无需操作——刷卡付款出现在你的收银台时我们会通知你。",
+  "payments_tab_account": "Stripe 账户",
+  "payments_tab_dashboard_link": "打开你的 Stripe 后台",
+  "payments_tab_state_awaiting": "Stripe 还需要核验你的商户信息。",
+  "payments_tab_awaiting_hint": "在你的 Stripe 后台填完表格，刷卡付款就会自动开启。在那之前你的餐厅完全在线，照常收现金。",
+  "payments_tab_requirements_due": "Stripe 上还有 {{count}} 项资料待填写。"
 }

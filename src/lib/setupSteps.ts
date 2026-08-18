@@ -25,6 +25,7 @@ export const SETUP_STEP_KEYS = [
   'reservations',
   'loyalty',
   'printing',
+  'online-payments',
 ] as const;
 
 export type SetupStepKey = (typeof SETUP_STEP_KEYS)[number];
@@ -35,6 +36,12 @@ export type SetupStepKey = (typeof SETUP_STEP_KEYS)[number];
  * `printing` is deliberately null: the printer app is a desktop/Android binary, not a
  * page in this app, so the step is instructions rather than a link. A step mapped to a
  * route that does not exist would be worse than one with no link at all.
+ *
+ * `online-payments` was null for the same reason with a different subject, until P7a gave
+ * this app a payments tab to point at. It now deep-links there. The work itself is still
+ * the restaurant's own Stripe onboarding on Stripe's hosted pages — the tab REPORTS state
+ * and links out, it does not switch anything on — but "here is where we stand" is a real
+ * page in this app, and a step that names it should land on it.
  */
 const STEP_ROUTES: Readonly<Record<string, string | null>> = {
   'restaurant-info': '/admin/restaurant-settings?tab=general',
@@ -50,6 +57,7 @@ const STEP_ROUTES: Readonly<Record<string, string | null>> = {
   reservations: '/admin/reservations-management',
   loyalty: '/admin/point-rules',
   printing: null,
+  'online-payments': '/admin/restaurant-settings?tab=payments',
 };
 
 /** Where `key` sends the owner, or null when the step is guidance only. */

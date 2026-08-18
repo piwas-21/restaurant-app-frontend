@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Legen Sie fest, wie Gäste Punkte sammeln und einlösen.",
   "setup_step_printing_title": "Installieren Sie die Drucker-App",
   "setup_step_printing_hint": "Läuft auf einem Windows-PC oder Android-Gerät neben Ihrem Drucker. Fragen Sie uns nach dem Download.",
+  "setup_step_online_payments_title": "Nehmen Sie Ihre erste Kartenzahlung an",
+  "setup_step_online_payments_hint": "Erledigt, sobald ein Gast Sie online bezahlt hat. Schließen Sie zuerst Ihre Stripe-Verifizierung ab — wir sagen Ihnen Bescheid, wenn die Kartenzahlung an Ihrer Kasse erscheint.",
   "setup_step_state_done": "Erledigt",
   "setup_step_state_todo": "Noch offen",
   "admin_image_backfill_title": "Bild-Nachbearbeitung",

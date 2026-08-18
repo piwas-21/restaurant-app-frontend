@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Misafirlerin puanı nasıl kazanıp harcayacağına karar verin.",
   "setup_step_printing_title": "Yazıcı uygulamasını kurun",
   "setup_step_printing_hint": "Yazıcınızın yanındaki bir Windows bilgisayarda veya Android cihazda çalışır. İndirme bağlantısı için bize yazın.",
+  "setup_step_online_payments_title": "İlk kartlı ödemenizi alın",
+  "setup_step_online_payments_hint": "Bir misafir size çevrimiçi ödeme yaptığında tamamlanır. Önce Stripe doğrulamanızı bitirin — kartlı ödeme kasanızda göründüğünde size haber vereceğiz.",
   "setup_step_state_done": "Tamamlandı",
   "setup_step_state_todo": "Henüz tamamlanmadı",
   "admin_image_backfill_title": "Görsel Yeniden İşleme",

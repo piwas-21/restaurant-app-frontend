@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "决定顾客如何赚取和使用积分。",
   "setup_step_printing_title": "安装打印机应用",
   "setup_step_printing_hint": "在打印机旁的 Windows 电脑或安卓设备上运行。向我们索取下载链接。",
+  "setup_step_online_payments_title": "收到第一笔刷卡付款",
+  "setup_step_online_payments_hint": "只要有顾客在线付款给你就算完成。请先完成 Stripe 验证——刷卡付款出现在你的收银台时我们会通知你。",
   "setup_step_state_done": "已完成",
   "setup_step_state_todo": "尚未完成",
   "admin_image_backfill_title": "图片批量优化",

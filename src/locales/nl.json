@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Bepaal hoe gasten punten sparen en besteden.",
   "setup_step_printing_title": "Installeer de printer-app",
   "setup_step_printing_hint": "Draait op een Windows-pc of Android-apparaat naast je printer. Vraag ons om de download.",
+  "setup_step_online_payments_title": "Ontvang je eerste kaartbetaling",
+  "setup_step_online_payments_hint": "Klaar zodra een gast je online heeft betaald. Rond eerst je Stripe-verificatie af — we laten het weten zodra kaartbetaling bij je kassa verschijnt.",
   "setup_step_state_done": "Klaar",
   "setup_step_state_todo": "Nog niet klaar",
   "admin_image_backfill_title": "Afbeeldingen bijwerken",

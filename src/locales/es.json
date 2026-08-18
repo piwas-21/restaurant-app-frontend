@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Decide cómo tus clientes ganan y gastan puntos.",
   "setup_step_printing_title": "Instala la app de impresión",
   "setup_step_printing_hint": "Funciona en un PC con Windows o un dispositivo Android junto a tu impresora. Pídenos la descarga.",
+  "setup_step_online_payments_title": "Cobra tu primer pago con tarjeta",
+  "setup_step_online_payments_hint": "Listo en cuanto un cliente te pague en línea. Completa antes tu verificación de Stripe: te avisaremos cuando el pago con tarjeta aparezca en tu caja.",
   "setup_step_state_done": "Hecho",
   "setup_step_state_todo": "Aún sin hacer",
   "admin_image_backfill_title": "Reprocesado de imágenes",

@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Decidi come i clienti guadagnano e spendono i punti.",
   "setup_step_printing_title": "Installa l'app della stampante",
   "setup_step_printing_hint": "Gira su un PC Windows o un dispositivo Android accanto alla stampante. Chiedici il download.",
+  "setup_step_online_payments_title": "Incassa il tuo primo pagamento con carta",
+  "setup_step_online_payments_hint": "Fatto appena un cliente ti paga online. Completa prima la verifica Stripe: ti avvisiamo quando il pagamento con carta compare alla tua cassa.",
   "setup_step_state_done": "Completato",
   "setup_step_state_todo": "Non ancora completato",
   "admin_image_backfill_title": "Rielaborazione immagini",

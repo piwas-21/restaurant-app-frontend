@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "حدّد كيف يجمع الضيوف النقاط وكيف ينفقونها.",
   "setup_step_printing_title": "ثبّت تطبيق الطابعة",
   "setup_step_printing_hint": "يعمل على جهاز Windows أو Android بجوار طابعتك. اطلب منا رابط التنزيل.",
+  "setup_step_online_payments_title": "استلم أول دفعة بالبطاقة",
+  "setup_step_online_payments_hint": "يكتمل بمجرد أن يدفع لك ضيف عبر الإنترنت. أكمل تحققك في Stripe أولًا — وسنخبرك عندما يظهر الدفع بالبطاقة عند صندوقك.",
   "setup_step_state_done": "مكتمل",
   "setup_step_state_todo": "لم يكتمل بعد",
   "admin_image_backfill_title": "معالجة الصور",

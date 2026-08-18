@@ -52,6 +52,30 @@ describe('SetupChecklist', () => {
     });
   });
 
+  it('renders the online-payments row as guidance: state icon, no checkbox, no link', async () => {
+    // O7 P6. The tenant is Stripe-configured (which is why the backend sent the step at
+    // all) and nobody has paid them online yet, so the row must say "not done yet" out
+    // loud — a derived row carries its state ONLY in the icon, and an aria-hidden icon
+    // plus line-through styling announces nothing.
+    //
+    // No LINK either, and that is the half worth pinning: the work is the restaurant's
+    // own Stripe onboarding, on Stripe's hosted pages, and this app has no payments
+    // surface to send them to until P7a. A row that linked somewhere now would link to
+    // a page that does not exist.
+    renderWith(
+      checklist({
+        steps: [{ key: 'online-payments', moduleId: 'online-payments', isDerived: true, isDone: false }],
+      }),
+      ['core', 'online-payments'],
+    );
+
+    expect(await screen.findByText('setup_step_online_payments_title')).toBeInTheDocument();
+    expect(screen.getByText('setup_step_online_payments_hint')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'setup_step_state_todo' })).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('drops a step whose module this instance does not run', async () => {
     // Defence in depth: the API already filters, but a checklist row is a link to a
     // route, and this is the same route map the guard and the sidebar use.

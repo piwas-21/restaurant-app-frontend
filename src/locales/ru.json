@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Решите, как гости зарабатывают и тратят баллы.",
   "setup_step_printing_title": "Установите приложение печати",
   "setup_step_printing_hint": "Работает на ПК с Windows или устройстве Android рядом с принтером. Запросите у нас ссылку.",
+  "setup_step_online_payments_title": "Примите первый платёж картой",
+  "setup_step_online_payments_hint": "Готово, как только гость оплатит вам онлайн. Сначала завершите проверку в Stripe — мы сообщим, когда оплата картой появится на вашей кассе.",
   "setup_step_state_done": "Готово",
   "setup_step_state_todo": "Ещё не сделано",
   "admin_image_backfill_title": "Обработка изображений",

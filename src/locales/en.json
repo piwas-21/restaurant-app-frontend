@@ -2462,6 +2462,8 @@
   "setup_step_loyalty_hint": "Decide how guests earn and spend points.",
   "setup_step_printing_title": "Install the printer app",
   "setup_step_printing_hint": "Runs on a Windows PC or Android device next to your printer. Ask us for the download.",
+  "setup_step_online_payments_title": "Take your first card payment",
+  "setup_step_online_payments_hint": "Ready once a guest has paid you online. Finish your Stripe verification first — we'll tell you when card payment appears at your checkout.",
   "setup_step_state_done": "Done",
   "setup_step_state_todo": "Not done yet",
   "admin_image_backfill_title": "Image Backfill",

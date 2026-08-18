@@ -25,6 +25,7 @@ export const SETUP_STEP_KEYS = [
   'reservations',
   'loyalty',
   'printing',
+  'online-payments',
 ] as const;
 
 export type SetupStepKey = (typeof SETUP_STEP_KEYS)[number];
@@ -35,6 +36,12 @@ export type SetupStepKey = (typeof SETUP_STEP_KEYS)[number];
  * `printing` is deliberately null: the printer app is a desktop/Android binary, not a
  * page in this app, so the step is instructions rather than a link. A step mapped to a
  * route that does not exist would be worse than one with no link at all.
+ *
+ * `online-payments` is null for the SAME reason with a different subject: the work is
+ * the restaurant's own Stripe onboarding, which happens on Stripe's hosted pages, and
+ * this app has no payments surface at all to point at. P7a adds one and this entry
+ * becomes a route then — deliberately not before, because a link that resolves to a
+ * page that does not yet exist is the failure the test below is written to catch.
  */
 const STEP_ROUTES: Readonly<Record<string, string | null>> = {
   'restaurant-info': '/admin/restaurant-settings?tab=general',
@@ -50,6 +57,7 @@ const STEP_ROUTES: Readonly<Record<string, string | null>> = {
   reservations: '/admin/reservations-management',
   loyalty: '/admin/point-rules',
   printing: null,
+  'online-payments': null,
 };
 
 /** Where `key` sends the owner, or null when the step is guidance only. */

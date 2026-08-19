@@ -7,7 +7,7 @@ import { apiClient } from '@/utils/apiClient';
 import { OrderDto } from '@/types/order';
 import { TableDto, ReservationDto, ApiResponse, PagedResult as ReservationPagedResult } from '@/types/reservation';
 import { getTenantToday } from '@/services/tenantTimeService';
-import { todayOnDevice } from '@/utils/calendarDay';
+import { isCalendarDay, todayOnDevice } from '@/utils/calendarDay';
 import { getDineInOrders } from './orders';
 
 const RESERVATION_IMMINENT_WINDOW_MS = 30 * 60 * 1000;
@@ -39,14 +39,24 @@ export async function getTables(): Promise<TableDto[]> {
  * @param day The tenant's calendar day, when the caller already knows it.
  */
 export async function getUpcomingReservations(day?: string): Promise<ReservationPagedResult<ReservationDto>> {
-  const today = day ?? (await getTenantToday())?.date ?? todayOnDevice();
+  // A day handed in is trusted only as far as it is a day: this is exported service API and the
+  // value lands in a query string.
+  const named = day && isCalendarDay(day) ? day : undefined;
+  const today = named ?? (await getTenantToday())?.date ?? todayOnDevice();
   const response = await apiClient.get<ApiResponse<ReservationPagedResult<ReservationDto>>>(
-    `/api/reservations?date=${today}&status=1&pageSize=50`, // status=1 is Confirmed
+    `/api/reservations?date=${encodeURIComponent(today)}&status=1&pageSize=50`, // status=1 is Confirmed
   );
 
   return response.data || { items: [], totalCount: 0, page: 1, pageSize: 50, totalPages: 0 };
 }
 
+/**
+ * The floor view's table grid. Called on mount, on every SSE table event, and by a 5-second poll.
+ *
+ * That poll is why `getTenantToday()` caches rather than why the day is threaded in here: one
+ * cached answer per minute serves every one of those refreshes, and it means the floor picks up
+ * the venue's midnight within a minute with no extra plumbing through the polling hook.
+ */
 export async function getTablesWithStatus(): Promise<ServerTableDto[]> {
   const [tables, ordersResult, reservationsResult] = await Promise.all([
     getTables(),

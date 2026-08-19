@@ -64,4 +64,13 @@ describe("the floor view asks for the RESTAURANT's day (#517)", () => {
 
     expect(mockGet.mock.calls[0][0]).toContain('status=1');
   });
+
+  it('ignores a "day" a caller made up', async () => {
+    // Exported service API, and the value lands in a query string.
+    mockTenantToday.mockResolvedValue({ date: '2026-08-19', timeZone: 'Europe/Zurich' });
+
+    await getUpcomingReservations('2026-13-45');
+
+    expect(requestedDate()).toBe('2026-08-19');
+  });
 });

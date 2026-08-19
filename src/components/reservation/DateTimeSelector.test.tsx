@@ -66,6 +66,14 @@ describe('DateTimeSelector unavailable slots', () => {
  * thing that does render through `Intl` is the weekday label, and west of UTC a UTC-anchored day
  * formatted on the local clock names the day before.
  */
+describe('the device is deliberately NOT on UTC', () => {
+  it('renders a UTC-anchored day as the day BEFORE on its own clock', () => {
+    // The premise of the weekday assertion below. On a UTC host it is false and that assertion
+    // passes against a label formatted on the local clock.
+    expect(new Date('2026-08-19T00:00:00Z').toLocaleDateString('en-CA')).toBe('2026-08-18');
+  });
+});
+
 describe('DateTimeSelector — the day a guest taps is the day the form sends', () => {
   // The device's clock is pinned far away from the day under test, so an implementation that
   // quietly reads `new Date()` instead of the prop cannot coincide with the right answer.
@@ -100,8 +108,9 @@ describe('DateTimeSelector — the day a guest taps is the day the form sends', 
     // 2026-08-19 is a Wednesday. Formatted on this device's own clock the same instant is Tuesday
     // the 18th, so this asserts the label is read in UTC like the day it belongs to.
     expect(days[0].textContent).toContain('Wed');
-    // Across a month end, which naive `+ i` arithmetic on a day-of-month gets wrong.
-    expect(days[13].textContent).toContain('1');
+    // Across a month end, which naive `+ i` arithmetic on a day-of-month gets wrong. The whole
+    // label, not `toContain('1')` — that matches 1, 11, 14, 19, 21 and 31 alike.
+    expect(days[13].textContent).toBe('1Tue');
   });
 
   it('sends exactly the day it printed on the button', () => {

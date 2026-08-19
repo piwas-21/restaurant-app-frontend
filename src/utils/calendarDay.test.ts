@@ -47,6 +47,17 @@ describe('weekdayLabel — read in UTC, like the day it belongs to', () => {
   it('says nothing about a day that is not one', () => {
     expect(weekdayLabel('not a day', 'en')).toBe('');
   });
+
+  it('says nothing rather than throwing on a language tag Intl rejects', () => {
+    // `i18n.language` is seeded from a user-writable localStorage key, and `Intl` answers a
+    // malformed tag with a RangeError — which would take the whole booking form down.
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    expect(weekdayLabel('2026-08-19', 'not a locale')).toBe('');
+    expect(warn).toHaveBeenCalled();
+
+    warn.mockRestore();
+  });
 });
 
 describe('addCalendarDays — arithmetic that cannot drift into a neighbouring day', () => {
@@ -70,6 +81,13 @@ describe('addCalendarDays — arithmetic that cannot drift into a neighbouring d
     const fortnight = Array.from({ length: 14 }, (_, i) => addCalendarDays('2026-03-01', i));
     expect(new Set(fortnight).size).toBe(14);
     expect(fortnight[13]).toBe('2026-03-14');
+  });
+
+  it('stays a DAY past the year 9999, where ISO changes shape', () => {
+    // `toISOString()` produces the extended form `+010000-01-01` there, whose first ten characters
+    // are `+010000-01` — which every consumer would then treat as a day.
+    expect(addCalendarDays('9999-12-31', 1)).toBe('10000-01-01');
+    expect(addCalendarDays('9999-12-30', 1)).toBe('9999-12-31');
   });
 
   it('refuses a day it cannot trust rather than inventing one', () => {

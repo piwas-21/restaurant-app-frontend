@@ -25,7 +25,7 @@ export function useReservationAvailability() {
   const notices = useAvailabilityNotices();
   // Which day the RESTAURANT is on. The date picker is built from this rather than from the
   // browser's clock, which knows nothing about the tenant's timezone (frontend #517).
-  const { today } = useTenantToday();
+  const today = useTenantToday();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -72,6 +72,16 @@ export function useReservationAvailability() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, numberOfGuests]);
+
+  // A day that has fallen into the past must not stay selected. The strip re-anchors when the
+  // venue's day rolls over (a floor tablet, or a guest who left the page open), and `min` does not
+  // constrain a value React state put there rather than the input — while `canSubmit` only checks
+  // that a date is SET. Without this the form posts yesterday and the server refuses it (#369).
+  useEffect(() => {
+    if (today && selectedDate && selectedDate < today) {
+      setSelectedDate('');
+    }
+  }, [today, selectedDate]);
 
   // Update booked tables when the time changes or slots update.
   useEffect(() => {

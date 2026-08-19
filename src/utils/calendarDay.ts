@@ -50,13 +50,20 @@ export function todayOnDevice(): string {
 export function addCalendarDays(day: string, days: number): string | null {
   if (!isCalendarDay(day) || !Number.isInteger(days)) return null;
 
-  // Anchored at midnight UTC and read back in UTC, so the arithmetic cannot land in a
-  // neighbouring day — and, unlike `setDate` on a local Date, it is unaffected by a DST
-  // transition on the device's zone, which can make a "day" 23 or 25 hours long.
+  // Anchored at midnight UTC and read back in UTC. `setDate` on a LOCAL date is itself DST-safe
+  // (it sets the date field, it does not add 24 hours) — measured, because the first version of
+  // this comment claimed otherwise. What breaks is the COMBINATION the old code had: a local date
+  // formatted with `toISOString()`, which re-reads it in UTC and lands a day earlier east of it.
+  // Staying in UTC end to end is what removes that seam rather than getting it right.
   const utc = new Date(`${day}T00:00:00Z`);
   utc.setUTCDate(utc.getUTCDate() + days);
 
-  return utc.toISOString().slice(0, 10);
+  // Formatted by hand rather than `toISOString().slice(0, 10)`: past year 9999 that produces the
+  // extended form `+010000-01-01`, whose first ten characters are `+010000-01` — not a day.
+  const month = `${utc.getUTCMonth() + 1}`.padStart(2, '0');
+  const date = `${utc.getUTCDate()}`.padStart(2, '0');
+
+  return `${utc.getUTCFullYear()}`.padStart(4, '0') + `-${month}-${date}`;
 }
 
 /** The day-of-month a day names, as the digits the day itself carries. */
@@ -74,5 +81,15 @@ export function dayOfMonth(day: string): string {
 export function weekdayLabel(day: string, locale: string): string {
   if (!isCalendarDay(day)) return '';
 
-  return new Date(`${day}T00:00:00Z`).toLocaleDateString(locale, { weekday: 'short', timeZone: 'UTC' });
+  try {
+    return new Date(`${day}T00:00:00Z`).toLocaleDateString(locale, { weekday: 'short', timeZone: 'UTC' });
+  } catch (error) {
+    // Not surfaced to the guest ON PURPOSE: `Intl` throws `RangeError` on a malformed language tag,
+    // and the tag here comes from `i18n.language`, seeded from a user-writable `localStorage` key.
+    // A day with no weekday beside it is a cosmetic loss; a throw takes the whole booking form
+    // down. Logged, because it means this device's language setting is unusable everywhere else too.
+    console.warn(`Could not label ${day} in "${locale}":`, error);
+
+    return '';
+  }
 }

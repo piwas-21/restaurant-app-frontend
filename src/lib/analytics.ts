@@ -55,7 +55,13 @@ export type AnalyticsEventName =
   // reasoning as above and the same non-escalation: the guest did not ask for this and must not be
   // interrupted, but a basket still armed on a channel nobody holds refuses adds for a reason the
   // guest cannot see, so it must be observable by someone.
-  | 'basket_channel_clear_failed';
+  | 'basket_channel_clear_failed'
+  // Consistency-style event (frontend #517): the restaurant could not be asked which day it is on,
+  // so this device fell back to its OWN day. No user action, and deliberately not surfaced —
+  // showing a guest a warning about a timezone would be worse than the fallback. But the fallback
+  // silently decides which day a table is booked for whenever the guest's zone differs from the
+  // venue's, so it has to be observable by someone. `failureReason` says which way it failed.
+  | 'tenant_day_unavailable';
 
 export interface AnalyticsEventPayload {
   /** Order type when known (DineIn | Takeaway | Delivery). */

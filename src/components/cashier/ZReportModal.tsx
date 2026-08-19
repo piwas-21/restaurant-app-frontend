@@ -29,15 +29,24 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Only the newest request may write. Two days picked in quick succession can answer out of
+  // order — the till talks to the box over the venue's own wifi — and the loser would land its
+  // figures AND rewrite the date field, putting a day beside takings that are not its own. That
+  // mismatch is the whole subject of this component, so it is refused rather than raced.
+  const latestRequest = useRef(0);
+
   // `date` omitted = "the day the restaurant is on" — the server decides it, from the tenant
   // clock. A date passed in is a day the cashier NAMED, and the server reads that on the same
   // wall clock, so both paths agree on whose calendar is in force.
   const fetchReport = useCallback(
     async (date?: string) => {
+      latestRequest.current += 1;
+      const request = latestRequest.current;
       setIsLoading(true);
       setError(null);
       try {
         const data = await getZReport(date);
+        if (request !== latestRequest.current) return;
         setReportData(data);
         // Which day did we actually get? The answer carries it, so the picker shows the day the
         // figures are for rather than the day this device guessed.
@@ -55,10 +64,14 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
         // with an empty message on purpose, so the fallback below still renders.)
         // `getZReport` also throws a plain `Error('Failed to fetch Z-Report')` for a 200 with no
         // body; `getErrorMessage` returns null for that, so the English literal never renders.
+        // A superseded request must not report either: its failure would clear figures the newer
+        // one has already delivered, and its `finally` would stop the spinner while that newer
+        // one is still in flight.
+        if (request !== latestRequest.current) return;
         setError(getErrorMessage(err) ?? (t('cashier.zreport.error') || 'Failed to load Z-Report'));
         setReportData(null);
       } finally {
-        setIsLoading(false);
+        if (request === latestRequest.current) setIsLoading(false);
       }
     },
     [t],

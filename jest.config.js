@@ -304,11 +304,11 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    // #511 ratcheted this row from {64, 13, 29, 66}: the day-selection tests raised the actual to
-    // 86.66 / 49.16 / 58.33 / 85.36, and at the old floor the whole `#511` describe block could
-    // have been deleted with a green gate. Pinned at actual − 1pt per the recipe above; the
-    // remainder is the report's own markup, which the tests do not read.
-    './src/components/cashier/ZReportModal.tsx': { statements: 85, branches: 48, functions: 57, lines: 84 },
+    // #511 ratcheted this row from {64, 13, 29, 66}: the day-selection and out-of-order-answer
+    // tests raised the actual to 88.67 / 51.58 / 58.33 / 86.95, and at the old floor the whole
+    // `#511` describe block could have been deleted with a green gate. Pinned at actual − 1pt per
+    // the recipe above; the remainder is the report's own markup, which the tests do not read.
+    './src/components/cashier/ZReportModal.tsx': { statements: 87, branches: 50, functions: 57, lines: 85 },
     // #511 — the wire day has ONE reader (`zReportDay`) and the printed header goes through it.
     // `zReportExportUtils` is mostly the PDF's markup, which nothing asserts; the row guards the
     // date-reading head of the file, not its template.

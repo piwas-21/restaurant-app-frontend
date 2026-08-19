@@ -236,4 +236,94 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
     expect(dateInput().disabled).toBe(true);
     expect(dateInput().max).toBe('');
   });
+
+  it('lets only the newest request write, whatever order the answers come back in', async () => {
+    // Two days picked in quick succession over a venue's own wifi can answer out of order. The
+    // loser used to land its figures AND rewrite the date field — a day beside takings that are
+    // not its own, which is the one thing this component must never show.
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue(reportFor(tenantDay));
+    render(<ZReportModal isOpen onClose={jest.fn()} />);
+    await waitFor(() => expect(dateInput().value).toBe(tenantDay));
+
+    let settleFirst: (report: ZReportDto) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((resolve) => {
+        settleFirst = resolve;
+      }),
+    );
+    fireEvent.change(dateInput(), { target: { value: '2026-03-01' } });
+
+    mockGetZReport.mockResolvedValueOnce(reportFor('2026-04-02', 41));
+    fireEvent.change(dateInput(), { target: { value: '2026-04-02' } });
+    await screen.findByText('41');
+
+    // The abandoned day answers late.
+    await act(async () => {
+      settleFirst(reportFor('2026-03-01', 7));
+      await Promise.resolve();
+    });
+
+    expect(dateInput().value).toBe('2026-04-02');
+    expect(screen.getByText('41')).toBeInTheDocument();
+    expect(screen.queryByText('7')).not.toBeInTheDocument();
+  });
+
+  it('does not let a superseded failure erase the figures that did arrive', async () => {
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue(reportFor(tenantDay));
+    render(<ZReportModal isOpen onClose={jest.fn()} />);
+    await waitFor(() => expect(dateInput().value).toBe(tenantDay));
+
+    let failFirst: (reason: Error) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((_, reject) => {
+        failFirst = reject;
+      }),
+    );
+    fireEvent.change(dateInput(), { target: { value: '2026-03-01' } });
+
+    mockGetZReport.mockResolvedValueOnce(reportFor('2026-04-02', 41));
+    fireEvent.change(dateInput(), { target: { value: '2026-04-02' } });
+    await screen.findByText('41');
+
+    await act(async () => {
+      failFirst(new ApiError(500, 'The till gave up on the day you left'));
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByText('The till gave up on the day you left')).not.toBeInTheDocument();
+    expect(screen.getByText('41')).toBeInTheDocument();
+  });
+
+  it('keeps the spinner up when a superseded request finishes first', async () => {
+    // The date field moves the moment a day is picked, but the body renders only when loading
+    // stops — so a stale `finally` puts the PREVIOUS day's figures under the NEW day's date. The
+    // spinner belongs to the request that is still in flight.
+    const tenantDay = dayAfterTheDeviceDay();
+    mockGetZReport.mockResolvedValue(reportFor(tenantDay));
+    render(<ZReportModal isOpen onClose={jest.fn()} />);
+    await waitFor(() => expect(dateInput().value).toBe(tenantDay));
+
+    let settleFirst: (report: ZReportDto) => void = () => {};
+    mockGetZReport.mockReturnValueOnce(
+      new Promise<ZReportDto>((resolve) => {
+        settleFirst = resolve;
+      }),
+    );
+    fireEvent.change(dateInput(), { target: { value: '2026-03-01' } });
+
+    // Never settles: the newest request is still in flight for the rest of this test.
+    mockGetZReport.mockReturnValueOnce(new Promise<ZReportDto>(() => {}));
+    fireEvent.change(dateInput(), { target: { value: '2026-04-02' } });
+    expect(screen.getByText('cashier.zreport.loading')).toBeInTheDocument();
+
+    await act(async () => {
+      settleFirst(reportFor('2026-03-01', 7));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText('cashier.zreport.loading')).toBeInTheDocument();
+    expect(screen.queryByText('7')).not.toBeInTheDocument();
+  });
 });

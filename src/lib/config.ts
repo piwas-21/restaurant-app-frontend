@@ -45,3 +45,11 @@ export const BRANDING_ICON = '/branding/icon.svg';
 export const BRANDING_HERO = '/branding/hero.png';
 /** Fallback image for menu items with no photo — per-tenant like the rest of /branding/. */
 export const BRANDING_PLACEHOLDER = '/branding/placeholder.png';
+
+/**
+ * Tenant COPY pack baked at build time (Dockerfile ARG → build-image.yml for RUMI prod). Empty for
+ * every other tenant, which is the platform default: the cuisine-neutral strings in
+ * src/locales/*.json. See src/lib/tenantCopy.ts for why the tenant's own words are an overlay of
+ * ten locale files rather than one admin-editable field, and docs/TENANT-COPY.md for the recipe.
+ */
+export const TENANT_COPY_PACK: string = (process.env.NEXT_PUBLIC_TENANT_COPY_PACK ?? '').trim();

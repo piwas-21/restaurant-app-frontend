@@ -39,6 +39,10 @@ module.exports = {
     '^@/constants/(.*)$': '<rootDir>/src/constants/$1',
     '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
+    // Added with the tenant copy pack (tenant-1 copy leakage sweep): `src/locales/` had no
+    // mapping, so the first module to import a bundle through the `@/` alias — lib/staticCopy.ts,
+    // lib/tenantCopy.ts — failed to RESOLVE rather than failing an assertion.
+    '^@/locales/(.*)$': '<rootDir>/src/locales/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
     '^@/schemas/(.*)$': '<rootDir>/src/schemas/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -197,6 +201,12 @@ module.exports = {
     'src/services/server/tables.ts',
     'src/hooks/useTenantToday.ts',
     'src/hooks/reservations/useReservationAvailability.ts',
+    // Tenant-1 copy leakage sweep — `src/lib` and `src/utils` are not collected wholesale, so
+    // without these rows the three suites that pin the neutral bundle are deletable with a green
+    // gate. `src/locales/tenantNeutralCopy.test.ts` needs no row: it asserts on DATA, not code.
+    'src/lib/tenantCopy.ts',
+    'src/lib/firstPaintCopy.ts',
+    'src/utils/homePageTitle.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -1272,6 +1282,14 @@ module.exports = {
     // read's DAY, not the file — without it the suite that pins it is deletable with a green gate.
     // Measured with CI's own command (`npm test -- --ci --coverage`), pinned at actual − 1pt.
     './src/utils/calendarDay.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── Tenant-1 copy leakage: the shared bundle may not carry one restaurant's identity. ────────
+    // The pack resolver, the two-pass first-paint copy fn, and the <title> builder. Measured with
+    // CI's own command (`npm test -- --ci --coverage`), pinned at actual − 1pt; tenantCopy's
+    // branch row is lower because the error message's `|| 'none'` arm needs an EMPTY registry,
+    // which the shipped one is not.
+    './src/lib/tenantCopy.ts': { statements: 99, branches: 92, functions: 99, lines: 99 },
+    './src/lib/firstPaintCopy.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/utils/homePageTitle.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/services/tenantTimeService.ts': { statements: 99, branches: 93, functions: 99, lines: 99 },
     './src/hooks/useTenantToday.ts': { statements: 99, branches: 90, functions: 99, lines: 99 },
     './src/services/server/tables.ts': { statements: 11, branches: 20, functions: 9, lines: 11 },

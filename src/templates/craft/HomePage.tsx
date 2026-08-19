@@ -25,8 +25,8 @@ export default function HomePage() {
   const reservationsEnabled = useModuleEnabled('reservations');
   const {
     t,
+    copy,
     info,
-    isClient,
     isLoadingHours,
     groupedHours,
     backgroundImageUrl,
@@ -48,24 +48,20 @@ export default function HomePage() {
       >
         <div className={styles.heroOverlay} aria-hidden="true" />
         <div className={styles.heroContent}>
-          <span className={craft.tapeLabel}>
-            {isClient ? t('authentic_turkish_cuisine') : 'Authentic Turkish Cuisine'}
-          </span>
+          <span className={craft.tapeLabel}>{copy('home_hero_eyebrow')}</span>
           <h1 id="hero-heading" className={styles.heroTitle}>
-            {isClient ? t('home_hero_title') : 'Discover Authentic Turkish Flavors'}
+            {copy('home_hero_title')}
           </h1>
-          <p className={styles.heroSubtitle}>
-            {isClient ? heroSubtitle : 'Your journey into rich tastes and traditions begins here.'}
-          </p>
+          <p className={styles.heroSubtitle}>{heroSubtitle}</p>
           <div className={styles.ctaRow}>
             <Link href="/menu" className={styles.ctaPrimary} role="button">
               <UtensilsCrossed size={20} strokeWidth={2.5} />
-              <span>{isClient ? t('home_menu_cta') : 'View Menu'}</span>
+              <span>{copy('home_menu_cta')}</span>
             </Link>
             {reservationsEnabled && (
               <Link href="/reservations" className={styles.ctaSecondary} role="button">
                 <CalendarCheck size={20} strokeWidth={2.5} />
-                <span>{isClient ? t('home_reservations_cta') : 'Book a Table'}</span>
+                <span>{copy('home_reservations_cta')}</span>
               </Link>
             )}
           </div>
@@ -76,13 +72,9 @@ export default function HomePage() {
         <section aria-labelledby="story-heading">
           <div className={styles.storyCard}>
             <h2 id="story-heading" className={craft.tapeLabel}>
-              {isClient ? t('home_story_title') : 'Our Story'}
+              {copy('home_story_title')}
             </h2>
-            <p>
-              {isClient
-                ? t('home_story_content', { name: restaurantName, city: info?.city ?? '' })
-                : `${restaurantName} brings the heart of Turkish culinary traditions to your table. Each dish is crafted with the freshest ingredients and a deep respect for authentic recipes.`}
-            </p>
+            <p>{copy('home_story_content', { name: restaurantName, city: info?.city ?? '' })}</p>
           </div>
         </section>
 
@@ -90,7 +82,7 @@ export default function HomePage() {
 
         <section aria-labelledby="hours-heading">
           <h2 id="hours-heading" className={craft.tapeLabel}>
-            {isClient ? t('home_opening_hours_title') : 'Opening Hours'}
+            {copy('home_opening_hours_title')}
           </h2>
           <div className={styles.menuBoard}>
             {isLoadingHours ? (
@@ -105,12 +97,12 @@ export default function HomePage() {
             ) : (
               <>
                 <p className={craft.menuLeader}>
-                  <span>{isClient ? t('home_opening_hours_days_1') : 'Monday - Saturday'}</span>
-                  <span>{isClient ? t('home_opening_hours_time_1') : '11:00 AM - 10:00 PM'}</span>
+                  <span>{copy('home_opening_hours_days_1')}</span>
+                  <span>{copy('home_opening_hours_time_1')}</span>
                 </p>
                 <p className={craft.menuLeader}>
-                  <span>{isClient ? t('home_opening_hours_days_2') : 'Sunday'}</span>
-                  <span>{isClient ? t('home_opening_hours_time_2') : '12:00 PM - 9:00 PM'}</span>
+                  <span>{copy('home_opening_hours_days_2')}</span>
+                  <span>{copy('home_opening_hours_time_2')}</span>
                 </p>
               </>
             )}
@@ -120,7 +112,7 @@ export default function HomePage() {
         <section aria-labelledby="location-heading">
           <div className={styles.locationCard}>
             <h2 id="location-heading" className={craft.tapeLabel}>
-              {isClient ? t('home_location_title') : 'Visit Us'}
+              {copy('home_location_title')}
             </h2>
             <address>
               {addressStreet}
@@ -129,7 +121,7 @@ export default function HomePage() {
               <br />
               {phoneDisplay && (
                 <>
-                  {isClient ? t('phone_label') : 'Phone'}: <a href={`tel:${phoneTel}`}>{phoneDisplay}</a>
+                  {copy('phone_label')}: <a href={`tel:${phoneTel}`}>{phoneDisplay}</a>
                 </>
               )}
             </address>
@@ -143,12 +135,8 @@ export default function HomePage() {
                   allowFullScreen={true}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title={
-                    isClient ? t('google_maps_iframe_title', { name: restaurantName }) : `Location of ${restaurantName}`
-                  }
-                  aria-label={
-                    isClient ? t('google_maps_iframe_aria_label') : `Google Maps showing location of ${restaurantName}`
-                  }
+                  title={copy('google_maps_iframe_title', { name: restaurantName })}
+                  aria-label={copy('google_maps_iframe_aria_label')}
                 ></iframe>
               </div>
             )}
@@ -156,11 +144,7 @@ export default function HomePage() {
         </section>
 
         <footer className={styles.homeFooter}>
-          <p>
-            {isClient
-              ? t('home_footer_copyright', { year: new Date().getFullYear(), name: restaurantName })
-              : `© ${new Date().getFullYear()} ${restaurantName}. All rights reserved.`}
-          </p>
+          <p>{copy('home_footer_copyright', { year: new Date().getFullYear(), name: restaurantName })}</p>
           {info && (
             <p>
               {addressStreet}, {addressCityCountry}
@@ -168,10 +152,10 @@ export default function HomePage() {
           )}
           <div className={styles.footerLinks}>
             <Link href="/privacy-policy" className={styles.footerLink}>
-              {isClient ? t('footer_privacy_policy', 'Privacy Policy') : 'Privacy Policy'}
+              {copy('footer_privacy_policy')}
             </Link>
             <Link href="/terms-of-usage" className={styles.footerLink}>
-              {isClient ? t('footer_terms_of_usage', 'Terms of Usage') : 'Terms of Usage'}
+              {copy('footer_terms_of_usage')}
             </Link>
           </div>
           <FooterCookieLink />

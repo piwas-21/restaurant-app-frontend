@@ -1,0 +1,12 @@
+{
+  "home_hero_eyebrow": "正宗土耳其美食",
+  "home_hero_title": "探索正宗土耳其风味",
+  "home_hero_subtitle": "在{{city}}开启您的土耳其美食之旅",
+  "home_hero_subtitle_no_city": "开启您的土耳其美食之旅",
+  "home_page_title": "{{name}} - 瑞士{{city}}正宗土耳其美食",
+  "home_page_title_no_location": "{{name}} - 正宗土耳其美食",
+  "home_page_description": "在{{city}}的 {{name}}体验土耳其的丰富风味。从烤肉到前菜，应有尽有。提供清真选项。",
+  "home_story_content": "{{name}}将土耳其的饮食传统带到{{city}}。我们致力于分享土耳其美食丰富的风味、香气和热情好客。每道菜都使用最新鲜的食材，并遵循代代相传的正宗配方精心制作。欢迎加入我们，享受难忘的用餐体验。",
+  "menu_page_description": "探索{{city}} {{name}}的正宗土耳其菜单。从烤肉到传统甜点。提供清真选项。",
+  "reservations_form_intro": "在 {{name}} 预订您的餐桌，体验难忘的土耳其美食。"
+}

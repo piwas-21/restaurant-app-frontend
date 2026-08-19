@@ -1,0 +1,12 @@
+{
+  "home_hero_eyebrow": "Otantik Türk Mutfağı",
+  "home_hero_title": "Otantik Türk Lezzetlerini Keşfedin",
+  "home_hero_subtitle": "Türkiye'ye Mutfak Yolculuğunuz Burada, {{city}}'de Başlıyor",
+  "home_hero_subtitle_no_city": "Türkiye'ye Mutfak Yolculuğunuz Burada Başlıyor",
+  "home_page_title": "{{name}} - {{city}}, İsviçre'de Otantik Türk Mutfağı",
+  "home_page_title_no_location": "{{name}} - Otantik Türk Mutfağı",
+  "home_page_description": "{{city}}'deki {{name}}'ta Türkiye'nin zengin lezzetlerini deneyimleyin. Kebaplardan mezelere kadar geniş bir yelpazede otantik yemekler sunuyoruz, sıcak ve samimi bir atmosferde. Helal seçenekler mevcuttur.",
+  "home_story_content": "{{name}}, Türk mutfak geleneklerinin kalbini {{city}}'ye taşıyor. Tutkumuz, Türk mutfağının meşhur olduğu zengin lezzet, aroma ve misafirperverlik dokusunu paylaşmaktır. Her yemek, en taze malzemelerle ve nesiller boyu aktarılan otantik tariflere derin bir saygıyla hazırlanır. Unutulmaz bir yemek deneyimi için bize katılın.",
+  "menu_page_description": "{{city}}'deki {{name}}'ın lezzetli ve otantik Türk menüsünü keşfedin. Lezzetli kebaplardan enfes mezelere ve geleneksel tatlılara kadar. Helal seçenekler mevcuttur.",
+  "reservations_form_intro": "Unutulmaz bir Türk yemeği deneyimi için {{name}}'de masanızı ayırtın."
+}

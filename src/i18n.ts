@@ -14,19 +14,31 @@ import translationNL from './locales/nl.json';
 import translationES from './locales/es.json';
 import translationRU from './locales/ru.json';
 import translationZH from './locales/zh.json';
+import { applyTenantCopy, tenantCopyOverrides } from './lib/tenantCopy';
 
-const resources = {
-  en: { translation: translationEN },
-  de: { translation: translationDE },
-  tr: { translation: translationTR },
-  it: { translation: translationIT },
-  ar: { translation: translationAR },
-  fr: { translation: translationFR },
-  nl: { translation: translationNL },
-  es: { translation: translationES },
-  ru: { translation: translationRU },
-  zh: { translation: translationZH },
+// The PLATFORM bundles: cuisine-neutral copy every tenant image inherits.
+const baseBundles: Record<string, Record<string, unknown>> = {
+  en: translationEN,
+  de: translationDE,
+  tr: translationTR,
+  it: translationIT,
+  ar: translationAR,
+  fr: translationFR,
+  nl: translationNL,
+  es: translationES,
+  ru: translationRU,
+  zh: translationZH,
 };
+
+// A tenant with copy of its own (NEXT_PUBLIC_TENANT_COPY_PACK) lays its ten locale files over the
+// platform ones here, so `t()` needs no knowledge of packs and no callsite changes. Empty for every
+// tenant without one — see src/lib/tenantCopy.ts.
+const resources = Object.fromEntries(
+  Object.entries(baseBundles).map(([locale, bundle]) => [
+    locale,
+    { translation: applyTenantCopy(bundle, tenantCopyOverrides(locale)) },
+  ]),
+);
 
 // Check if we're in the browser
 const isBrowser = typeof window !== 'undefined';

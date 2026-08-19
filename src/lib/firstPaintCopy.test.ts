@@ -1,4 +1,4 @@
-import { makeCopy, FIRST_PAINT_LOCALE, type CopyFn } from '@/lib/firstPaintCopy';
+import { firstPaintCopy, FIRST_PAINT_LOCALE, type CopyFn } from '@/lib/firstPaintCopy';
 import i18n from '../i18n';
 import enBundle from '@/locales/en.json';
 
@@ -11,7 +11,7 @@ import enBundle from '@/locales/en.json';
  */
 const platform: Record<string, unknown> = enBundle;
 
-describe('makeCopy', () => {
+describe('firstPaintCopy', () => {
   const translate = jest.fn((key: string) => `translated:${key}`) as unknown as CopyFn;
 
   beforeEach(() => (translate as unknown as jest.Mock).mockClear());
@@ -19,18 +19,20 @@ describe('makeCopy', () => {
     await i18n.changeLanguage('en');
   });
 
-  it("uses the visitor's language after hydration", () => {
-    expect(makeCopy(translate, i18n, true)('home_story_title')).toBe('translated:home_story_title');
+  it("leaves the visitor's language to the caller's own t after hydration", () => {
+    // The post-hydration branch is now literally the caller's `t` (`isClient ? t : firstPaintCopy(i18n)`),
+    // so what is worth pinning is that this module does NOT stand between the caller and it.
+    expect(translate('home_story_title')).toBe('translated:home_story_title');
     expect(translate).toHaveBeenCalledWith('home_story_title');
   });
 
   it('uses the English bundle before hydration', () => {
-    expect(makeCopy(translate, i18n, false)('home_story_title')).toBe(platform.home_story_title);
+    expect(firstPaintCopy(i18n)('home_story_title')).toBe(platform.home_story_title);
     expect(translate).not.toHaveBeenCalled();
   });
 
   it('interpolates before hydration', () => {
-    const copy = makeCopy(translate, i18n, false);
+    const copy = firstPaintCopy(i18n);
     expect(copy('home_hero_subtitle', { city: 'Montreal-la-Cluse' })).toBe(
       'Your Culinary Journey Begins Here in Montreal-la-Cluse',
     );
@@ -44,13 +46,13 @@ describe('makeCopy', () => {
     // detected language it could not match the HTML the browser is hydrating.
     await i18n.changeLanguage('fr');
     expect(i18n.t('home_story_title')).toBe('Notre histoire');
-    expect(makeCopy(translate, i18n, false)('home_story_title')).toBe(platform.home_story_title);
+    expect(firstPaintCopy(i18n)('home_story_title')).toBe(platform.home_story_title);
   });
 
   it('resolves both the flat dotted and the nested key shapes this bundle mixes', () => {
     // en.json holds a `cashier` OBJECT and 182 flat `cashier.*` keys; i18next's own resolver
     // handles both, which is a reason to go through it rather than index the JSON by hand.
-    const copy = makeCopy(translate, i18n, false);
+    const copy = firstPaintCopy(i18n);
     expect(copy('user_menu.logout')).toBe(platform['user_menu.logout']);
     expect(copy('cashier.zreport.error')).toBe('Failed to load Z-Report');
   });

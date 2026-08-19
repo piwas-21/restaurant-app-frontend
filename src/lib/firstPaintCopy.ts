@@ -41,11 +41,18 @@ export interface FixedLanguageSource {
 export const FIRST_PAINT_LOCALE = 'en';
 
 /**
- * The copy function for a two-pass render: the bundle's English before hydration, the visitor's own
- * language after it. Callers keep ONE `copy('key')` callsite instead of a ternary carrying a
- * hand-typed English duplicate — and scripts/check-t-keys.mjs scans `copy(` alongside `t(`, so such
- * a key still cannot go missing from the bundles unnoticed.
+ * The copy function for the FIRST PAINT only: the bundle's English (plus this image's tenant copy
+ * pack), pinned so it matches what the server rendered. After hydration the caller uses its own
+ * `t` — which is why this takes no `isClient` flag and no `t`.
+ *
+ * Callers write `const copy = isClient ? t : firstPaintCopy(i18n)` and then ONE `copy('key')` per
+ * string, instead of a ternary per string carrying a hand-typed English duplicate. That duplicate
+ * was the actual defect (19 of them, several already drifted from the bundle); hiding the single
+ * remaining ternary behind a boolean selector bought nothing and cost a reader one indirection —
+ * `makeCopy(t, i18n, true)` says nothing at a callsite, and Sonar S2301 flags the shape for the
+ * same reason. scripts/check-t-keys.mjs scans `copy(` alongside `t(`, so a key routed through here
+ * still cannot go missing from the bundles unnoticed.
  */
-export function makeCopy(translate: CopyFn, i18n: FixedLanguageSource, isClient: boolean): CopyFn {
-  return isClient ? translate : i18n.getFixedT(FIRST_PAINT_LOCALE);
+export function firstPaintCopy(i18n: FixedLanguageSource): CopyFn {
+  return i18n.getFixedT(FIRST_PAINT_LOCALE);
 }

@@ -11,7 +11,7 @@ import { workingHoursService } from '@/services/workingHoursService';
 import { dayNameToNumber, type WorkingHoursDto } from '@/types/workingHours';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
-import { makeCopy } from '@/lib/firstPaintCopy';
+import { firstPaintCopy } from '@/lib/firstPaintCopy';
 import { homePageTitle } from '@/utils/homePageTitle';
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -37,7 +37,7 @@ export function useCraftHomeData() {
   const [isClient, setIsClient] = useState(false);
   // Before hydration this resolves against en.json + this image's tenant copy pack; after it,
   // against the visitor's own language. One callsite per string either way — see lib/firstPaintCopy.ts.
-  const copy = makeCopy(t, i18n, isClient);
+  const copy = isClient ? t : firstPaintCopy(i18n);
   const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>([]);
   const [isLoadingHours, setIsLoadingHours] = useState(true);
 

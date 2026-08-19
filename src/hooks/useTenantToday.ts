@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getTenantToday } from '@/services/tenantTimeService';
-import { todayOnDevice } from '@/utils/calendarDay';
+import { addCalendarDays, daysBetween, todayOnDevice } from '@/utils/calendarDay';
 
 /** How often an open page re-asks. A day is wrong for at most this long after the venue's midnight. */
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
@@ -30,10 +30,14 @@ export function useTenantToday(): string {
   // the loser landing last would restore yesterday for up to ten minutes — at the rollover this
   // hook exists to handle.
   const latestRequest = useRef(0);
-  // Whether the day on screen came from the restaurant. A transient failure must not DOWNGRADE a
-  // known-good day to this device's guess: that silently re-labels all 14 buttons and moves `min`
-  // under a guest who is mid-form, on nothing more than one 503.
-  const answeredByTenant = useRef(false);
+  // The last day the RESTAURANT named, and the device day it was named on. A transient failure must
+  // not DOWNGRADE a known-good day to this device's guess — that silently re-labels all 14 buttons
+  // and moves `min` under a guest who is mid-form, on nothing more than one 503 — but it must not
+  // FREEZE the day either: a backend that stays down across the venue's midnight would otherwise
+  // leave a floor tablet on yesterday forever, which is the very thing this hook exists to prevent.
+  // So a failure keeps the tenant's day and rolls it forward by however many days this device has
+  // seen pass, which preserves the venue's zone offset instead of falling back to the guest's.
+  const lastTenantDay = useRef<{ day: string; learnedOnDevice: string } | null>(null);
 
   const ask = useCallback(async () => {
     latestRequest.current += 1;
@@ -43,13 +47,18 @@ export function useTenantToday(): string {
     if (!alive.current || request !== latestRequest.current) return;
 
     if (answer) {
-      answeredByTenant.current = true;
+      lastTenantDay.current = { day: answer.date, learnedOnDevice: todayOnDevice() };
       setToday(answer.date);
       return;
     }
 
-    if (answeredByTenant.current) return;
-    setToday(todayOnDevice());
+    const known = lastTenantDay.current;
+    if (!known) {
+      setToday(todayOnDevice());
+      return;
+    }
+
+    setToday(addCalendarDays(known.day, daysBetween(known.learnedOnDevice, todayOnDevice())) ?? known.day);
   }, []);
 
   useEffect(() => {

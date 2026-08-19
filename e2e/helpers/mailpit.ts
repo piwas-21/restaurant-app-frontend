@@ -48,7 +48,10 @@ interface WaitOptions {
  * `EmailService.SendEmailVerificationAsync`:
  *   {EmailSettings.FrontendBaseUrl}/verify-email?token=...&email=...
  */
-export async function waitForVerificationLink(email: string, opts: WaitOptions = {}): Promise<string> {
+export async function waitForVerificationLink(
+  email: string,
+  opts: WaitOptions = {},
+): Promise<string> {
   const { timeoutMs = 15_000, intervalMs = 500, subjectIncludes } = opts;
   const deadline = Date.now() + timeoutMs;
 

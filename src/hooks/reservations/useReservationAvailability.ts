@@ -75,8 +75,10 @@ export function useReservationAvailability() {
 
   // A day that has fallen into the past must not stay selected. The strip re-anchors when the
   // venue's day rolls over (a floor tablet, or a guest who left the page open), and `min` does not
-  // constrain a value React state put there rather than the input — while `canSubmit` only checks
-  // that a date is SET. Without this the form posts yesterday and the server refuses it (#369).
+  // constrain a value React state put there rather than the input — nor one typed or pasted into it
+  // — while `canSubmit` only checks that a date is SET. Without this the form posts yesterday and
+  // the server refuses it (#369). Cleared silently and deliberately: saying so needs a sentence in
+  // ten locales, and the strip beside the field already shows what is on offer instead.
   useEffect(() => {
     if (today && selectedDate && selectedDate < today) {
       setSelectedDate('');

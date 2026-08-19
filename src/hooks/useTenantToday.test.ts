@@ -165,4 +165,44 @@ describe('useTenantToday — what a late or failed answer may NOT do', () => {
 
     expect(result.current).toBe('2026-08-19');
   });
+
+  it('rolls the last known day forward when the restaurant stays unreachable', async () => {
+    // The cure for "one 503 must not downgrade" must not become "the day never moves again": a
+    // backend that stays down across the venue's midnight would leave a floor tablet on yesterday
+    // forever, which is the failure this hook exists to prevent. The tenant's day rolls forward by
+    // however many days THIS DEVICE has seen pass, so the venue's zone offset survives the outage.
+    // Everything faked, including `setInterval`: `doNotFake`-ing it leaves the poll REAL, and
+    // `advanceTimersByTime` then advances a clock nothing is listening to.
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-08-19T09:00:00Z'));
+    mockGetTenantToday.mockResolvedValue(zurich('2026-08-19'));
+    const { result } = renderHook(() => useTenantToday());
+    await act(async () => {});
+    expect(result.current).toBe('2026-08-19');
+
+    mockGetTenantToday.mockResolvedValue(null);
+    jest.setSystemTime(new Date('2026-08-20T09:00:00Z'));
+    await act(async () => {
+      jest.advanceTimersByTime(10 * 60 * 1000);
+    });
+
+    expect(result.current).toBe('2026-08-20');
+  });
+
+  it('does not move the day on a failure within the same device day', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-08-19T09:00:00Z'));
+    // A venue an hour ahead of this device: its day is the 20th while the device is on the 19th.
+    mockGetTenantToday.mockResolvedValue(zurich('2026-08-20'));
+    const { result } = renderHook(() => useTenantToday());
+    await act(async () => {});
+
+    mockGetTenantToday.mockResolvedValue(null);
+    jest.setSystemTime(new Date('2026-08-19T21:00:00Z'));
+    await act(async () => {
+      jest.advanceTimersByTime(10 * 60 * 1000);
+    });
+
+    expect(result.current).toBe('2026-08-20');
+  });
 });

@@ -2,7 +2,7 @@
  * @jest-environment ./jest-environments/timezone.js
  * @jest-environment-options {"timezone": "America/Los_Angeles"}
  */
-import { addCalendarDays, dayOfMonth, isCalendarDay, todayOnDevice, weekdayLabel } from './calendarDay';
+import { addCalendarDays, dayOfMonth, daysBetween, isCalendarDay, todayOnDevice, weekdayLabel } from './calendarDay';
 
 describe('the device is deliberately WEST of UTC', () => {
   it('renders a UTC-anchored day as the day BEFORE on its own clock', () => {
@@ -83,11 +83,25 @@ describe('addCalendarDays — arithmetic that cannot drift into a neighbouring d
     expect(fortnight[13]).toBe('2026-03-14');
   });
 
-  it('stays a DAY past the year 9999, where ISO changes shape', () => {
+  it('answers nothing past the year 9999, where there is no four-digit day left', () => {
     // `toISOString()` produces the extended form `+010000-01-01` there, whose first ten characters
-    // are `+010000-01` — which every consumer would then treat as a day.
-    expect(addCalendarDays('9999-12-31', 1)).toBe('10000-01-01');
+    // are `+010000-01` — which every consumer would treat as a day. A `10000-01-01` string is no
+    // better: this module's own `isCalendarDay` rejects it, and the date strip would render it as
+    // a blank button.
+    expect(addCalendarDays('9999-12-31', 1)).toBeNull();
     expect(addCalendarDays('9999-12-30', 1)).toBe('9999-12-31');
+  });
+
+  it('counts the days between two days', () => {
+    expect(daysBetween('2026-08-19', '2026-08-20')).toBe(1);
+    expect(daysBetween('2026-08-19', '2026-08-19')).toBe(0);
+    expect(daysBetween('2026-08-20', '2026-08-19')).toBe(-1);
+    // Across the device's own spring-forward, where the interval is 23 hours of wall clock.
+    expect(daysBetween('2026-03-07', '2026-03-09')).toBe(2);
+    expect(daysBetween('2026-12-31', '2027-01-01')).toBe(1);
+    // Not a day in, no distance out — never an invented one.
+    expect(daysBetween('nonsense', '2026-08-19')).toBe(0);
+    expect(daysBetween('2026-08-19', '')).toBe(0);
   });
 
   it('refuses a day it cannot trust rather than inventing one', () => {

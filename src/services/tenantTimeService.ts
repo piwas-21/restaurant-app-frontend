@@ -41,13 +41,23 @@ let lastOutcome: 'answered' | 'unreachable' | 'unreadable' | null = null;
  * callers are polls.
  */
 export async function getTenantToday(): Promise<TenantToday | null> {
-  if (cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.value;
-  inFlight ??= ask();
+  // A NEGATIVE age is a device clock that moved backwards (an NTP correction, a user, a tablet
+  // waking up). `age < TTL` alone treats that as fresh, and pins the answer for the size of the
+  // jump — an hour of yesterday on the floor tablet this cache exists for.
+  const age = cached ? Date.now() - cached.at : Number.POSITIVE_INFINITY;
+  if (cached && age >= 0 && age < CACHE_TTL_MS) return cached.value;
+
+  // `.finally` here rather than inside `ask()`: a body that throws BEFORE its first `await` runs
+  // its own `finally` synchronously — i.e. before this assignment — and would leave a settled
+  // promise in `inFlight` that nothing ever clears, freezing the day for the life of the page.
+  inFlight ??= ask().finally(() => {
+    inFlight = null;
+  });
 
   return inFlight;
 }
 
-/** Drops the cache. For tests, and for a caller that knows the day must have moved. */
+/** Drops the cache and everything remembered with it. For tests; nothing in the app calls it. */
 export function resetTenantTodayCache(): void {
   cached = null;
   inFlight = null;
@@ -76,8 +86,6 @@ async function ask(): Promise<TenantToday | null> {
     console.warn("Could not read the restaurant's day; this device will use its own:", error);
 
     return remember(null, 'unreachable');
-  } finally {
-    inFlight = null;
   }
 }
 

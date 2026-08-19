@@ -55,7 +55,9 @@ export async function getUpcomingReservations(day?: string): Promise<Reservation
  *
  * That poll is why `getTenantToday()` caches rather than why the day is threaded in here: one
  * cached answer per minute serves every one of those refreshes, and it means the floor picks up
- * the venue's midnight within a minute with no extra plumbing through the polling hook.
+ * the venue's midnight within a minute with no extra plumbing through the polling hook. Within a
+ * minute rather than within five seconds is the one thing the cache made slightly worse, and it is
+ * the trade for not asking the server the same question twelve times a minute.
  */
 export async function getTablesWithStatus(): Promise<ServerTableDto[]> {
   const [tables, ordersResult, reservationsResult] = await Promise.all([

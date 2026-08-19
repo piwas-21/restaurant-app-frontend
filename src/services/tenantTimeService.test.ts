@@ -123,7 +123,47 @@ describe('getTenantToday — the callers are polls', () => {
     expect(mockGet).toHaveBeenCalledTimes(2);
   });
 
-  it('caches a failure too, and reports it once rather than once per poll', async () => {
+  it('caches a FAILURE for the same minute, so a dead endpoint is not hammered', async () => {
+    // The other half of the fix: on the failure path the 5-second floor poll would otherwise reach
+    // the network every time. No `expireCache()` between these — that is the point.
+    mockGet.mockRejectedValue(new ApiError(503, 'gone'));
+
+    await getTenantToday();
+    await getTenantToday();
+    await getTenantToday();
+
+    expect(mockGet).toHaveBeenCalledTimes(1);
+  });
+
+  it('recovers after a request that throws before it ever awaits', async () => {
+    // `ask()`'s own `finally` would run SYNCHRONOUSLY inside the call in that case — i.e. before
+    // the assignment to `inFlight` — leaving a settled promise nothing ever clears and freezing the
+    // day for the life of the page.
+    mockGet.mockImplementation(() => {
+      throw new Error('threw before any await');
+    });
+    await expect(getTenantToday()).resolves.toBeNull();
+
+    expireCache();
+    mockGet.mockReset();
+    mockGet.mockResolvedValue({ success: true, data: { date: '2026-08-19', timeZone: 'Europe/Zurich' } });
+
+    await expect(getTenantToday()).resolves.toEqual({ date: '2026-08-19', timeZone: 'Europe/Zurich' });
+  });
+
+  it('treats a device clock that moved BACKWARDS as an expired answer', async () => {
+    // An NTP correction or a waking tablet makes `now - cachedAt` negative, which `< TTL` reads as
+    // fresh — pinning yesterday for the size of the jump.
+    mockGet.mockResolvedValue({ success: true, data: { date: '2026-08-19', timeZone: 'Europe/Zurich' } });
+    await getTenantToday();
+
+    jest.setSystemTime(Date.now() - 60 * 60 * 1000);
+    mockGet.mockResolvedValue({ success: true, data: { date: '2026-08-20', timeZone: 'Europe/Zurich' } });
+
+    await expect(getTenantToday()).resolves.toEqual({ date: '2026-08-20', timeZone: 'Europe/Zurich' });
+  });
+
+  it('reports a failure once rather than once per poll', async () => {
     // `window.dataLayer` is a queue nothing drains, on a tablet that is never closed: an event per
     // failed poll is ~17k objects a day.
     mockGet.mockRejectedValue(new ApiError(503, 'gone'));

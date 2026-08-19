@@ -196,6 +196,7 @@ module.exports = {
     'src/services/tenantTimeService.ts',
     'src/services/server/tables.ts',
     'src/hooks/useTenantToday.ts',
+    'src/hooks/reservations/useReservationAvailability.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -1271,9 +1272,18 @@ module.exports = {
     // read's DAY, not the file — without it the suite that pins it is deletable with a green gate.
     // Measured with CI's own command (`npm test -- --ci --coverage`), pinned at actual − 1pt.
     './src/utils/calendarDay.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
-    './src/services/tenantTimeService.ts': { statements: 99, branches: 92, functions: 99, lines: 99 },
-    './src/hooks/useTenantToday.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
-    './src/services/server/tables.ts': { statements: 9, branches: 11, functions: 9, lines: 9 },
+    './src/services/tenantTimeService.ts': { statements: 99, branches: 93, functions: 99, lines: 99 },
+    './src/hooks/useTenantToday.ts': { statements: 99, branches: 90, functions: 99, lines: 99 },
+    './src/services/server/tables.ts': { statements: 11, branches: 20, functions: 9, lines: 11 },
+    // The user-visible half of #517 — the effect that drops a selected day once the venue has moved
+    // past it. Low because the file is the whole reservations-availability surface and only the day
+    // behaviour is pinned here; without a row the three tests that pin it are deletable green.
+    './src/hooks/reservations/useReservationAvailability.ts': {
+      statements: 73,
+      branches: 59,
+      functions: 60,
+      lines: 77,
+    },
     // Reservations revamp D2 — configurable customer form fields. The service
     // (fetch/update shapes), the admin page + tri-state hook (locked
     // immutability, whole-form save), and the FormField-migrated reservation

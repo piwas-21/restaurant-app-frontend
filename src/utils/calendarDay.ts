@@ -59,11 +59,31 @@ export function addCalendarDays(day: string, days: number): string | null {
   utc.setUTCDate(utc.getUTCDate() + days);
 
   // Formatted by hand rather than `toISOString().slice(0, 10)`: past year 9999 that produces the
-  // extended form `+010000-01-01`, whose first ten characters are `+010000-01` — not a day.
+  // extended form `+010000-01-01`, whose first ten characters are `+010000-01` — not a day. Past
+  // that year there is no four-digit day to return at all, so this answers `null` like every other
+  // input it cannot represent, rather than a string its own `isCalendarDay` would reject.
+  const year = utc.getUTCFullYear();
+  if (year > 9999 || year < 1) return null;
+
   const month = `${utc.getUTCMonth() + 1}`.padStart(2, '0');
   const date = `${utc.getUTCDate()}`.padStart(2, '0');
 
-  return `${utc.getUTCFullYear()}`.padStart(4, '0') + `-${month}-${date}`;
+  return `${year}`.padStart(4, '0') + `-${month}-${date}`;
+}
+
+/**
+ * How many whole days lie between two days — `to - from`, negative if `to` is earlier.
+ *
+ * Both are read at midnight UTC, so a DST transition in the device's zone cannot make the
+ * difference 23 or 25 hours and round to the wrong number. `0` for anything that is not a day: a
+ * caller that cannot trust its inputs must not be handed an invented distance.
+ */
+export function daysBetween(from: string, to: string): number {
+  if (!isCalendarDay(from) || !isCalendarDay(to)) return 0;
+
+  const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`);
+
+  return Math.round(ms / 86_400_000);
 }
 
 /** The day-of-month a day names, as the digits the day itself carries. */

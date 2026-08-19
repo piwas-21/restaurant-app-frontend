@@ -160,7 +160,7 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
               {/* If the FIRST load failed we never learned the day, so retry must re-ask for
                   today. (`buildQueryString` drops a falsy `date` anyway — this states the intent
                   rather than relying on that.) */}
-              <button className={styles.retryButton} onClick={() => fetchReport(reportDate || undefined)}>
+              <button type="button" className={styles.retryButton} onClick={() => fetchReport(reportDate || undefined)}>
                 {t('cashier.zreport.retry') || 'Retry'}
               </button>
             </div>

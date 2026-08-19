@@ -154,7 +154,7 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
     }
-    expect(mockGetZReport.mock.calls.length).toBe(callsAfterThePick);
+    expect(mockGetZReport.mock.calls).toHaveLength(callsAfterThePick);
     expect(dateInput().value).toBe('2026-03-01');
   });
 
@@ -221,7 +221,7 @@ describe('ZReportModal — whose calendar day the till closes on (#511)', () => 
 
     fireEvent.change(dateInput(), { target: { value: '' } });
 
-    expect(mockGetZReport.mock.calls.length).toBe(callsSoFar);
+    expect(mockGetZReport.mock.calls).toHaveLength(callsSoFar);
     expect(dateInput().value).toBe(tenantDay);
   });
 

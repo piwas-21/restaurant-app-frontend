@@ -35,6 +35,22 @@ export async function prepareForScreenshots(page: Page, theme: Theme): Promise<v
     localStorage.setItem('rumi_cookie_consent', JSON.stringify({ preferences: true }));
   }, theme);
 
+  // The reservation date strip is built from the day the RESTAURANT is on, which the browser asks
+  // the backend for (#517) — and that backend's clock is the real one, not this frozen page clock,
+  // so without this stub `/reservations` would capture today's real dates and the baseline would
+  // rot every midnight. Pinned to the same instant the page clock is frozen at, so the strip reads
+  // exactly as it did when the day came from `new Date()`.
+  await page.route('**/api/tenant/today', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { date: FIXED_TIME.toISOString().slice(0, 10), timeZone: 'Europe/Zurich' },
+      }),
+    }),
+  );
+
   // Google Maps embed (home page): answer with an empty document so the
   // iframe region renders as a consistent blank instead of live map tiles.
   await page.route('**://www.google.com/**', (route) =>

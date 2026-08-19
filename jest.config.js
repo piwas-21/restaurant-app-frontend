@@ -190,6 +190,12 @@ module.exports = {
     // without these two rows both new test files could be deleted with a fully green gate.
     'src/utils/zReportDay.ts',
     'src/utils/zReportExportUtils.ts',
+    // #517 — the same question one layer out: which day the RESTAURANT is on. `src/utils`,
+    // `src/services` and `src/hooks` are none of them collected wholesale.
+    'src/utils/calendarDay.ts',
+    'src/services/tenantTimeService.ts',
+    'src/services/server/tables.ts',
+    'src/hooks/useTenantToday.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -1250,12 +1256,24 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // #517 ratcheted this row from {78, 82, 53, 81}: the day-selection tests take it to 100 on
+    // every axis, and at the old floor the whole `#517` describe block could have been deleted
+    // with a green gate.
     './src/components/reservation/DateTimeSelector.tsx': {
-      statements: 78,
-      branches: 82,
-      functions: 53,
-      lines: 81,
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
     },
+    // ── #517 — which calendar day the RESTAURANT is on. ──────────────────────────────────────────
+    // The day arithmetic and the two readers of it. `tables.ts` sits low because the file holds the
+    // whole server-view surface and only its reservations read is tested here; the row guards that
+    // read's DAY, not the file — without it the suite that pins it is deletable with a green gate.
+    // Measured with CI's own command (`npm test -- --ci --coverage`), pinned at actual − 1pt.
+    './src/utils/calendarDay.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/services/tenantTimeService.ts': { statements: 99, branches: 82, functions: 99, lines: 99 },
+    './src/hooks/useTenantToday.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/services/server/tables.ts': { statements: 9, branches: 11, functions: 9, lines: 9 },
     // Reservations revamp D2 — configurable customer form fields. The service
     // (fetch/update shapes), the admin page + tri-state hook (locked
     // immutability, whole-form save), and the FormField-migrated reservation

@@ -40,6 +40,7 @@ interface ReservationsPageLayoutProps {
 export default function ReservationsPageLayout({ styles }: Readonly<ReservationsPageLayoutProps>) {
   const {
     t,
+    today,
     allTables,
     selectedTableIds,
     bookedTableIds,
@@ -122,6 +123,7 @@ export default function ReservationsPageLayout({ styles }: Readonly<Reservations
                 onDateChange={setSelectedDate}
                 onTimeChange={setSelectedTime}
                 loading={loading}
+                today={today}
                 timeSlotOptions={timeSlotOptions}
                 styles={styles.dateTime}
               />

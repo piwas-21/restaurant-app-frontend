@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { reservationService } from '@/services/reservationService';
 import { getErrorMessage } from '@/utils/apiClient';
+import { useTenantToday } from '@/hooks/useTenantToday';
 import { useAvailabilityNotices } from './useAvailabilityNotices';
 import { TableDto, TimeSlotDto } from '@/types/reservation';
 import {
@@ -22,6 +23,9 @@ import {
 export function useReservationAvailability() {
   const { t } = useTranslation();
   const notices = useAvailabilityNotices();
+  // Which day the RESTAURANT is on. The date picker is built from this rather than from the
+  // browser's clock, which knows nothing about the tenant's timezone (frontend #517).
+  const { today } = useTenantToday();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -162,6 +166,7 @@ export function useReservationAvailability() {
   const timeSlotOptions = getTimeSlotOptions(selectedTableIds, availableTimeSlots);
 
   return {
+    today,
     allTables,
     selectedTableIds,
     setSelectedTableIds,

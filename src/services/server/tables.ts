@@ -6,6 +6,8 @@
 import { apiClient } from '@/utils/apiClient';
 import { OrderDto } from '@/types/order';
 import { TableDto, ReservationDto, ApiResponse, PagedResult as ReservationPagedResult } from '@/types/reservation';
+import { getTenantToday } from '@/services/tenantTimeService';
+import { todayOnDevice } from '@/utils/calendarDay';
 import { getDineInOrders } from './orders';
 
 const RESERVATION_IMMINENT_WINDOW_MS = 30 * 60 * 1000;
@@ -25,9 +27,19 @@ export async function getTables(): Promise<TableDto[]> {
   return response.data || [];
 }
 
-/** Today's confirmed reservations (used internally by `getTablesWithStatus`). */
-export async function getUpcomingReservations(): Promise<ReservationPagedResult<ReservationDto>> {
-  const today = new Date().toISOString().split('T')[0];
+/**
+ * Today's confirmed reservations (used internally by `getTablesWithStatus`).
+ *
+ * "Today" is the RESTAURANT's day. It used to be `new Date().toISOString().split('T')[0]` — the
+ * device's UTC day — so a floor tablet showed YESTERDAY's bookings against the tables between
+ * local midnight and the UTC one, and all day on a device set to another zone (frontend #517).
+ * The device's LOCAL day is the fallback when the restaurant cannot be asked: still a guess, but
+ * the guess a human at the till would make, and never a day off from what they see on the wall.
+ *
+ * @param day The tenant's calendar day, when the caller already knows it.
+ */
+export async function getUpcomingReservations(day?: string): Promise<ReservationPagedResult<ReservationDto>> {
+  const today = day ?? (await getTenantToday())?.date ?? todayOnDevice();
   const response = await apiClient.get<ApiResponse<ReservationPagedResult<ReservationDto>>>(
     `/api/reservations?date=${today}&status=1&pageSize=50`, // status=1 is Confirmed
   );

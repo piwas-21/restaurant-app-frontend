@@ -1,0 +1,12 @@
+{
+  "home_hero_eyebrow": "Authentische türkische Küche",
+  "home_hero_title": "Entdecken Sie authentische türkische Aromen",
+  "home_hero_subtitle": "Ihre kulinarische Reise in die Türkei beginnt hier in {{city}}",
+  "home_hero_subtitle_no_city": "Ihre kulinarische Reise in die Türkei beginnt hier",
+  "home_page_title": "{{name}} - Authentische türkische Küche in {{city}}, Schweiz",
+  "home_page_title_no_location": "{{name}} - Authentische türkische Küche",
+  "home_page_description": "Erleben Sie die reichen Aromen der Türkei im {{name}} in {{city}}. Wir bieten eine große Auswahl an authentischen Gerichten, von Kebabs bis Mezes, in einer warmen und einladenden Atmosphäre. Halal-Optionen verfügbar.",
+  "home_story_content": "Das {{name}} bringt das Herz der türkischen kulinarischen Traditionen nach {{city}}. Unsere Leidenschaft ist es, den reichen Wandteppich an Aromen, Düften und Gastfreundschaft zu teilen, für den die türkische Küche bekannt ist. Jedes Gericht wird mit den frischesten Zutaten und tiefem Respekt vor authentischen Rezepten zubereitet, die über Generationen weitergegeben wurden. Besuchen Sie uns für ein unvergessliches Speiseerlebnis.",
+  "menu_page_description": "Entdecken Sie die köstliche und authentische türkische Speisekarte im {{name}} in {{city}}. Von herzhaften Kebabs bis zu köstlichen Mezes und traditionellen Desserts. Halal-Optionen verfügbar.",
+  "reservations_form_intro": "Reservieren Sie Ihren Tisch im {{name}} für ein unvergessliches türkisches Speiseerlebnis."
+}

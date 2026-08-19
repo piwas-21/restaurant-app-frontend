@@ -14,7 +14,7 @@ name: build-image
 
 on:
   push:
-    branches: [main, develop]   # develop builds are a dry-run; :latest is tagged on main only (see the meta step)
+    branches: [main, develop] # develop builds are a dry-run; :latest is tagged on main only (see the meta step)
     tags: ['v*']
 
 concurrency:
@@ -85,6 +85,13 @@ jobs:
             echo "RUMI branding applied: $f"
           done
 
+      # NEXT_PUBLIC_TENANT_COPY_PACK=rumi below is the branding step's argument applied to WORDS.
+      # "Authentic Turkish Cuisine" and "…in {{city}}, Switzerland" are true of RUMI and were being
+      # printed on every other tenant's home page and <title>, so they moved out of the shared
+      # locale bundle into src/locales/tenant/rumi/. This job is the ONLY place that names the pack
+      # — deliberately not the staging job below, for the same reason the branding step skips it:
+      # staging is a Sofra test tenant and must read like a freshly provisioned one.
+      # NOTE: no `#` comments inside build-args — the action parses every line as KEY=VALUE.
       - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           context: .
@@ -95,6 +102,7 @@ jobs:
             NEXT_PUBLIC_IMAGE_BASE_URL=https://www.rumirestaurant.ch
             NEXT_PUBLIC_RESTAURANT_NAME=RUMI Restaurant
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=102252528656-3quqh29v8b7psntuo04r7duambcs1i0t.apps.googleusercontent.com
+            NEXT_PUBLIC_TENANT_COPY_PACK=rumi
             GIT_SHA=${{ github.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}
           tags: ${{ steps.meta.outputs.tags }}

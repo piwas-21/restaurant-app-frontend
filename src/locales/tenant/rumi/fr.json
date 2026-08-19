@@ -1,0 +1,12 @@
+{
+  "home_hero_eyebrow": "Cuisine turque authentique",
+  "home_hero_title": "Découvrez les saveurs turques authentiques",
+  "home_hero_subtitle": "Votre voyage culinaire vers la Turquie commence ici à {{city}}",
+  "home_hero_subtitle_no_city": "Votre voyage culinaire vers la Turquie commence ici",
+  "home_page_title": "{{name}} - Cuisine turque authentique à {{city}}, Suisse",
+  "home_page_title_no_location": "{{name}} - Cuisine turque authentique",
+  "home_page_description": "Savourez les saveurs turques authentiques chez {{name}} à {{city}}. Kebab, meze, desserts. Ambiance chaleureuse. Options halal disponibles.",
+  "home_story_content": "{{name}} apporte le cœur de la tradition culinaire turque à {{city}}. Chaque plat est préparé avec passion, ingrédients frais et respect des recettes authentiques transmises de génération en génération.",
+  "menu_page_description": "Découvrez le menu turc authentique du {{name}} à {{city}}. Kebab, meze, desserts traditionnels. Options halal disponibles.",
+  "reservations_form_intro": "Réservez votre table chez {{name}} pour une expérience turque inoubliable."
+}

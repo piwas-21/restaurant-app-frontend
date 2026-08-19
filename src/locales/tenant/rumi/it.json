@@ -1,0 +1,12 @@
+{
+  "home_hero_eyebrow": "Autentica Cucina Turca",
+  "home_hero_title": "Scopri i Sapori Autentici della Turchia",
+  "home_hero_subtitle": "Il tuo Viaggio Culinario in Turchia Inizia Qui a {{city}}",
+  "home_hero_subtitle_no_city": "Il tuo Viaggio Culinario in Turchia Inizia Qui",
+  "home_page_title": "{{name}} - Autentica Cucina Turca a {{city}}, Svizzera",
+  "home_page_title_no_location": "{{name}} - Autentica Cucina Turca",
+  "home_page_description": "Scopri i ricchi sapori della Turchia al {{name}} di {{city}}. Offriamo una vasta gamma di piatti autentici in un'atmosfera calda e accogliente. Opzioni halal disponibili.",
+  "home_story_content": "Il {{name}} porta il cuore della tradizione culinaria turca a {{city}}. La nostra passione è condividere la ricca varietà di sapori, profumi e ospitalità per cui la cucina turca è rinomata. Ogni piatto è preparato con ingredienti freschissimi e rispetto per le ricette autentiche tramandate da generazioni. Unisciti a noi per un'esperienza gastronomica memorabile.",
+  "menu_page_description": "Scopri il delizioso e autentico menù turco del {{name}} a {{city}}. Dai kebab saporiti ai meze e dolci tradizionali. Opzioni halal disponibili.",
+  "reservations_form_intro": "Prenota il tuo tavolo da {{name}} per un'esperienza culinaria turca indimenticabile."
+}

@@ -11,6 +11,8 @@ import { workingHoursService } from '@/services/workingHoursService';
 import { dayNameToNumber, type WorkingHoursDto } from '@/types/workingHours';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
+import { firstPaintCopy } from '@/lib/firstPaintCopy';
+import { homePageTitle } from '@/utils/homePageTitle';
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
@@ -33,6 +35,9 @@ export function useCraftHomeData() {
   const { t, i18n } = useTranslation();
   const { info } = useRestaurantInfo();
   const [isClient, setIsClient] = useState(false);
+  // Before hydration this resolves against en.json + this image's tenant copy pack; after it,
+  // against the visitor's own language. One callsite per string either way — see lib/firstPaintCopy.ts.
+  const copy = isClient ? t : firstPaintCopy(i18n);
   const [workingHours, setWorkingHours] = useState<WorkingHoursDto[]>([]);
   const [isLoadingHours, setIsLoadingHours] = useState(true);
 
@@ -64,7 +69,11 @@ export function useCraftHomeData() {
 
   useEffect(() => {
     if (isClient) {
-      document.title = t('home_page_title', { name: info?.name ?? RESTAURANT_NAME, city: info?.city ?? '' });
+      document.title = homePageTitle(t, {
+        name: info?.name ?? RESTAURANT_NAME,
+        city: info?.city,
+        country: info?.country,
+      });
     }
   }, [isClient, t, i18n.language, info]);
 
@@ -131,15 +140,17 @@ export function useCraftHomeData() {
   // identity value above rather than baking one in (#125). Interpolating an empty city
   // would leave a dangling "…Begins Here in ." on the most visible copy on the site, so
   // the cityless variant covers the pre-load window instead.
-  const heroSubtitle = info?.city ? t('home_hero_subtitle', { city: info.city }) : t('home_hero_subtitle_no_city');
+  const heroSubtitle = info?.city
+    ? copy('home_hero_subtitle', { city: info.city })
+    : copy('home_hero_subtitle_no_city');
   const primaryPhone = info?.phoneNumbers?.find((p) => p.isActive) ?? info?.phoneNumbers?.[0] ?? null;
   const phoneDisplay = primaryPhone?.number ?? '';
   const phoneTel = phoneDisplay.replace(/\s/g, '');
 
   return {
     t,
+    copy,
     info,
-    isClient,
     isLoadingHours,
     groupedHours,
     backgroundImageUrl: BRANDING_HERO,

@@ -100,7 +100,12 @@ const blankComments = (source) =>
     token.startsWith('//') || token.startsWith('/*') ? token.replace(/[^\n]/g, ' ') : token,
   );
 
-const CALL = /\bt\(\s*(['"])([^'"]+)\1\s*(,)?/g;
+// `t(` is not the only way a key reaches a user. The home templates render a two-pass
+// `copy('key')` (src/lib/staticCopy.ts) whose pre-hydration half is `staticText('key')`, resolved
+// against en.json by hand rather than by i18next — same bundle, same missing-key tell (the key
+// itself), so the same gate has to see it. Without these two alternatives, moving a callsite from
+// `t(` to `copy(` would silently drop it out of this scan.
+const CALL = /\b(?:t|copy|staticText)\(\s*(['"])([^'"]+)\1\s*(,)?/g;
 const missing = new Map(); // key -> { hasDefault, sites:Set }
 
 for (const file of sourceFiles) {

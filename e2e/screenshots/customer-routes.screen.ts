@@ -40,7 +40,16 @@ const STATIC_ROUTES: ReadonlyArray<{
     },
   },
   { name: 'cart-empty', path: '/cart' },
-  { name: 'reservations', path: '/reservations' },
+  {
+    name: 'reservations',
+    path: '/reservations',
+    // The date strip renders nothing until the day the RESTAURANT is on has been established
+    // (#517), so an unstubbed or failing `/api/tenant/today` would commit a baseline with no dates
+    // in it — the same argument as `menu` above. 14 days, the fortnight the form offers.
+    assertReady: async (page) => {
+      await expect(page.locator('[class*="dateButton"]')).toHaveCount(14, { timeout: 15_000 });
+    },
+  },
   { name: 'login', path: '/auth/login' },
   { name: 'register', path: '/auth/register' },
 ];

@@ -82,6 +82,11 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
 
   // Re-fetch when date changes (user picks a different date)
   const handleDateChange = (newDate: string) => {
+    // A `date` input reports '' while a typed date is still incomplete, and on clear. Asking for
+    // an empty day means asking for TODAY (the parameter is dropped), which — now that the answer
+    // is written back into the field — would silently rewrite what the cashier is halfway through
+    // typing. Nothing is a day; wait for one.
+    if (!newDate) return;
     setReportDate(newDate);
     void fetchReport(newDate);
   };
@@ -107,10 +112,13 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
               className={styles.dateInput}
               value={reportDate}
               onChange={(e) => handleDateChange(e.target.value)}
-              // No ceiling until the server has told us what today is on the restaurant's clock.
-              // The device's own day is not that ceiling: east of UTC it is a day BEHIND the
-              // tenant's after local midnight, and would refuse the very day the till is closing.
+              // The ceiling is the restaurant's today, and the device's own day is not it: east
+              // of UTC that is a day BEHIND the tenant's after local midnight, and would refuse
+              // the very day the till is closing. Until the server has named today there is no
+              // honest ceiling, so the picker is closed rather than left open on a future date —
+              // for which the report renders a well-formed all-zero close that looks real.
               max={tenantToday || undefined}
+              disabled={!tenantToday}
             />
             {reportData && (
               <button className={styles.exportButton} onClick={handleExportPDF}>
@@ -136,8 +144,9 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
           {error && !isLoading && (
             <div className={styles.error}>
               <span>{error}</span>
-              {/* `|| undefined` matters: if the FIRST load failed we never learned the day, and
-                  retrying must re-ask the server for today rather than send an empty date. */}
+              {/* If the FIRST load failed we never learned the day, so retry must re-ask for
+                  today. (`buildQueryString` drops a falsy `date` anyway — this states the intent
+                  rather than relying on that.) */}
               <button className={styles.retryButton} onClick={() => fetchReport(reportDate || undefined)}>
                 {t('cashier.zreport.retry') || 'Retry'}
               </button>

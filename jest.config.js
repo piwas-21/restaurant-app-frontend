@@ -186,6 +186,10 @@ module.exports = {
     'src/hooks/admin/useImageBackfill.ts',
     'src/services/imageMaintenanceService.ts',
     'src/lib/imageBackfillProgress.ts',
+    // #511 — whose calendar day the till closes on. `src/utils` is not collected wholesale, so
+    // without these two rows both new test files could be deleted with a fully green gate.
+    'src/utils/zReportDay.ts',
+    'src/utils/zReportExportUtils.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -300,7 +304,16 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
-    './src/components/cashier/ZReportModal.tsx': { statements: 64, branches: 13, functions: 29, lines: 66 },
+    // #511 ratcheted this row from {64, 13, 29, 66}: the day-selection tests raised the actual to
+    // 86.66 / 49.16 / 58.33 / 85.36, and at the old floor the whole `#511` describe block could
+    // have been deleted with a green gate. Pinned at actual − 1pt per the recipe above; the
+    // remainder is the report's own markup, which the tests do not read.
+    './src/components/cashier/ZReportModal.tsx': { statements: 85, branches: 48, functions: 57, lines: 84 },
+    // #511 — the wire day has ONE reader (`zReportDay`) and the printed header goes through it.
+    // `zReportExportUtils` is mostly the PDF's markup, which nothing asserts; the row guards the
+    // date-reading head of the file, not its template.
+    './src/utils/zReportDay.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/utils/zReportExportUtils.ts': { statements: 70, branches: 59, functions: 41, lines: 68 },
     './src/components/cashier/diagnostics/ServerDiagnosticsSection.tsx': {
       statements: 71,
       branches: 65,

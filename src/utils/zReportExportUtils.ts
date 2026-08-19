@@ -1,14 +1,23 @@
 import { ZReportDto } from '@/types/order';
 import { printHtmlContent } from './pdfExportUtils';
 import { formatCurrency } from './currency';
+import { calendarDayFromReport } from './zReportDay';
 import { RESTAURANT_NAME } from '@/lib/config';
 
-// `reportDate` is a calendar DAY pinned at 00:00 UTC on the wire, not an instant
-// (`GetZReportQuery.cs`), so it is rendered in UTC. Without `timeZone`, the device's zone decides:
-// west of UTC this printed `Dienstag, 18. August 2026` on a report covering the 19th — the paper
-// naming a different day from the figures on it (frontend #511).
+// `reportDate` is a calendar DAY, not an instant, so the paper must name the day the FIGURES are
+// for: without `timeZone`, the device's zone decided, and west of UTC this printed
+// `Dienstag, 18. August 2026` on a report covering the 19th (frontend #511).
+//
+// It goes through the same reader as the screen does — `calendarDayFromReport` — rather than
+// converting the instant itself. Two readers of one field agree only while the server keeps
+// emitting `Z`: given `2026-08-19T00:00:00+02:00` an instant-converting formatter prints the 18th
+// while the picker beside it shows the 19th, which is this very defect one serialization change
+// away. An unreadable value prints as it arrived; inventing a day is what we are fixing.
 const formatDate = (dateStr: string): string => {
-  return new Date(dateStr).toLocaleDateString('de-CH', {
+  const day = calendarDayFromReport(dateStr);
+  if (!day) return dateStr;
+
+  return new Date(`${day}T00:00:00Z`).toLocaleDateString('de-CH', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

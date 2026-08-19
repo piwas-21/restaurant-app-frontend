@@ -5,6 +5,7 @@
 import { exportZReportToPDF } from './zReportExportUtils';
 import { printHtmlContent } from './pdfExportUtils';
 import { ZReportDto } from '@/types/order';
+import { calendarDayFromReport } from './zReportDay';
 
 jest.mock('./pdfExportUtils', () => ({ printHtmlContent: jest.fn() }));
 
@@ -55,5 +56,26 @@ describe('the printed Z-report names the day the figures are for (#511)', () => 
 
     const html = mockPrint.mock.calls[0][0] as string;
     expect(html).toContain(new Date('2026-08-19T04:30:00Z').toLocaleString('de-CH'));
+  });
+
+  it('names the same day the screen does, for any shape the wire can carry', () => {
+    // Two readers of one field agree only while the server keeps emitting `Z`. Given an offset
+    // instead, an instant-converting formatter printed the 18th while the picker beside it showed
+    // the 19th — this PR's own defect, one serialization change away.
+    const wire = '2026-08-19T00:00:00+02:00';
+    expect(calendarDayFromReport(wire)).toBe('2026-08-19');
+
+    exportZReportToPDF(report(wire));
+
+    const html = mockPrint.mock.calls[0][0] as string;
+    expect(html).toContain('19. August 2026');
+    expect(html).not.toContain('18. August 2026');
+  });
+
+  it('prints an unreadable day as it arrived rather than inventing one', () => {
+    exportZReportToPDF(report('not a date'));
+
+    const html = mockPrint.mock.calls[0][0] as string;
+    expect(html).toContain('not a date');
   });
 });

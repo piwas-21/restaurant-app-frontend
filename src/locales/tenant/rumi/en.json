@@ -1,0 +1,12 @@
+{
+  "home_hero_eyebrow": "Authentic Turkish Cuisine",
+  "home_hero_title": "Discover Authentic Turkish Flavors",
+  "home_hero_subtitle": "Your Culinary Journey to Turkey Begins Here in {{city}}",
+  "home_hero_subtitle_no_city": "Your Culinary Journey to Turkey Begins Here",
+  "home_page_title": "{{name}} - Authentic Turkish Cuisine in {{city}}, Switzerland",
+  "home_page_title_no_location": "{{name}} - Authentic Turkish Cuisine",
+  "home_page_description": "Experience the rich flavors of Turkey at {{name}} in {{city}}. We offer a wide range of authentic dishes, from kebabs to mezes, in a warm and welcoming atmosphere. Halal options available.",
+  "home_story_content": "{{name}} brings the heart of Turkish culinary traditions to {{city}}. Our passion is to share the rich tapestry of flavors, aromas, and hospitality that Turkish cuisine is renowned for. Each dish is crafted with the freshest ingredients and a deep respect for authentic recipes passed down through generations. Join us for a memorable dining experience.",
+  "menu_page_description": "Explore the delicious and authentic Turkish menu at {{name}} in {{city}}. From savory kebabs to delightful mezes and traditional desserts. Halal options available.",
+  "reservations_form_intro": "Reserve your table at {{name}} for an unforgettable Turkish dining experience."
+}

@@ -32,6 +32,11 @@ ARG NEXT_PUBLIC_TEMPLATE
 # build-tenant-image.yml `currency` input). Empty/unset/invalid falls back to
 # CHF in src/lib/config.ts, keeping the default (RUMI) build byte-identical.
 ARG NEXT_PUBLIC_TENANT_CURRENCY
+# Tenant COPY pack (src/locales/tenant/<pack>/): the tenant's own home-page + SEO wording laid over
+# the cuisine-neutral platform bundle. Empty/unset = the platform copy, which is what every tenant
+# but RUMI gets. Same seam as public/branding-rumi/ — see src/lib/tenantCopy.ts. An unknown name
+# FAILS the build (src/lib/tenantCopy.ts throws) rather than silently shipping default copy.
+ARG NEXT_PUBLIC_TENANT_COPY_PACK
 
 # Set environment variables for the build
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
@@ -40,6 +45,7 @@ ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 ENV NEXT_PUBLIC_RESTAURANT_NAME=${NEXT_PUBLIC_RESTAURANT_NAME}
 ENV NEXT_PUBLIC_TEMPLATE=${NEXT_PUBLIC_TEMPLATE}
 ENV NEXT_PUBLIC_TENANT_CURRENCY=${NEXT_PUBLIC_TENANT_CURRENCY}
+ENV NEXT_PUBLIC_TENANT_COPY_PACK=${NEXT_PUBLIC_TENANT_COPY_PACK}
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

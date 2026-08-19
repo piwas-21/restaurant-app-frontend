@@ -21,21 +21,21 @@
 
 ## §2 — Critical files to read
 
-| When | Read |
-|---|---|
-| Any task | This file |
-| Refactoring sprint task | [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) — find the task ID, read its acceptance criteria |
-| Design / component patterns | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) |
-| Tenant UI template work (`src/templates/`, `@active-template`) | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md) |
-| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md) (the *why* lives in the workspace [FLOOR-PLAN-REVAMP-PLAN.md](../docs/plans/FLOOR-PLAN-REVAMP-PLAN.md)) |
-| Coding conventions | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) |
-| Test work | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) |
-| Adding/changing a Playwright E2E | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules |
-| Quality / security gate work | §7 below (live gate list + what is planned-but-unbuilt) + workspace [DEV-PHASES-PLAN.md](../docs/plans/DEV-PHASES-PLAN.md) §2 |
-| Security review / threat model | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) |
-| Architectural decisions | [docs/adr/README.md](docs/adr/README.md) — index of ADRs |
-| Bug or UX item | [../docs/plans/BUGS-IMPROVEMENTS-PLAN.md](../docs/plans/BUGS-IMPROVEMENTS-PLAN.md) (workspace meta-repo) — Track A/B/C items |
-| Starting a session | Run `npm run lint && npm run build` to establish baseline |
+| When                                                                                                    | Read                                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Any task                                                                                                | This file                                                                                                                                        |
+| Refactoring sprint task                                                                                 | [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) — find the task ID, read its acceptance criteria                                                      |
+| Design / component patterns                                                                             | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)                                                                                                   |
+| Tenant UI template work (`src/templates/`, `@active-template`)                                          | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md)                                                      |
+| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md) (the _why_ lives in the workspace [FLOOR-PLAN-REVAMP-PLAN.md](../docs/plans/FLOOR-PLAN-REVAMP-PLAN.md)) |
+| Coding conventions                                                                                      | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md)                                                                                 |
+| Test work                                                                                               | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md)                                                                                         |
+| Adding/changing a Playwright E2E                                                                        | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules                                    |
+| Quality / security gate work                                                                            | §7 below (live gate list + what is planned-but-unbuilt) + workspace [DEV-PHASES-PLAN.md](../docs/plans/DEV-PHASES-PLAN.md) §2                    |
+| Security review / threat model                                                                          | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)                                                                                                 |
+| Architectural decisions                                                                                 | [docs/adr/README.md](docs/adr/README.md) — index of ADRs                                                                                         |
+| Bug or UX item                                                                                          | [../docs/plans/BUGS-IMPROVEMENTS-PLAN.md](../docs/plans/BUGS-IMPROVEMENTS-PLAN.md) (workspace meta-repo) — Track A/B/C items                     |
+| Starting a session                                                                                      | Run `npm run lint && npm run build` to establish baseline                                                                                        |
 
 ---
 
@@ -94,13 +94,13 @@ Schema-first: define a Zod schema, derive the type with `z.infer`, wire to `reac
 
 ### Design-system primitives (mandatory wrappers)
 
-| Component | Use for |
-|---|---|
-| `BaseModal` | every modal/dialog overlay (no raw `<dialog>`, no headlessui Dialog used directly) |
-| `FormField` | every label+input+error grouping |
-| `StatusBadge` | every status pill/badge |
+| Component       | Use for                                                                                                                                                                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BaseModal`     | every modal/dialog overlay (no raw `<dialog>`, no headlessui Dialog used directly)                                                                                                                                                                            |
+| `FormField`     | every label+input+error grouping                                                                                                                                                                                                                              |
+| `StatusBadge`   | every status pill/badge                                                                                                                                                                                                                                       |
 | `CheckboxField` | every **new** checkbox — `FormField` puts the label ABOVE the input, which is wrong for a box. The ~65 existing raw `type="checkbox"` inputs are baselined debt; the react-hook-form ones (`{...register(…)}`) cannot migrate until this takes a ref + `name` |
-| `ChannelPicker` | the order-type channel checkbox group (composes `CheckboxField`) — one consumer today, see ADR-005 |
+| `ChannelPicker` | the order-type channel checkbox group (composes `CheckboxField`) — one consumer today, see ADR-005                                                                                                                                                            |
 
 See [ADR-005](docs/adr/ADR-005-design-system-primitives.md).
 
@@ -128,6 +128,14 @@ Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warn
 12. **No hardcoded `process.env.NEXT_PUBLIC_*`** literals scattered across components — read once in `src/lib/config.ts`, export typed constants.
 13. **No hardcoded URLs** — backend URL via `NEXT_PUBLIC_API_URL`, image base via `NEXT_PUBLIC_IMAGE_BASE_URL`, etc.
 14. **Cross-feature imports** (`src/features/X/` reaching into `src/features/Y/`) are forbidden. Shared code goes in `src/components/` or `src/lib/`.
+15. **Which calendar day it is belongs to the RESTAURANT, not the device.** Never derive an operational day from the browser (`new Date().toISOString().split('T')[0]` is the device's _UTC_ day — not even its local one) and send it to the backend: only the server knows the tenant's zone (`Localization:TimeZone`, backend #372). Omit the date parameter and read the day back off the answer (`src/utils/zReportDay.ts`, frontend #511). A wire value that is a calendar DAY (midnight UTC) must also be _rendered_ with `timeZone: 'UTC'` — formatting it in the device zone prints the previous day west of UTC. Pin any such test with the timezone environment, never on the runner's ambient zone: on a UTC host (every CI runner and container here) a local-clock implementation and a correct one agree, so the test is a tautology —
+    ```
+    /**
+     * @jest-environment ./jest-environments/timezone.js
+     * @jest-environment-options {"timezone": "America/Los_Angeles"}
+     */
+    ```
+    **Both pragmas in ONE docblock** (jest-docblock parses only the first comment, so two blocks drop the options and hand you the ambient zone back — the environment throws rather than let that pass), **assert the premise** inside the suite, and pick the zone by the direction the defect lies in: west of UTC catches a midnight-UTC day formatted on the local clock, east of it catches a local midnight pushed through `toISOString()`. One zone cannot see both, so a value read in two directions needs two suites. The same rule covers the ambient **locale**: `formatBytes`/`toLocaleString` output is the runner's, so match `/^5[.,]6 MB$/`, not `'5.6 MB'`.
 
 ---
 
@@ -137,29 +145,37 @@ Enforced (blocking) by `scripts/check-file-length.sh` (pre-commit + CI) and warn
 > "Non-trivial" = anything beyond a one-line typo / comment fix.
 
 ### 1. Backend contract verification (any change consuming a backend API)
+
 For each backend endpoint or DTO referenced, name the source of truth:
+
 - **Backend file**: `backend/RestaurantSystem.Api/Features/<X>/Dtos/<Y>Dto.cs` (or controller signature)
 - **Frontend mirror**: `src/services/types/<Y>.ts` (or `src/types/<Y>.ts`)
 - Confirm field names + types match. Flag any mismatch as "needs backend MR" before writing frontend code.
 
 ### 2. Sibling conventions
+
 List 2–3 sibling files in the directory you're adding to. Note their structure (default export, hook usage, CSS Module naming). Confirm your new file matches.
 
 ### 3. Acceptance criteria audit
+
 Quote the relevant criteria from the sprint task / issue. Mark each:
+
 - **Covered fully** (this MR closes it)
 - **Partial** (note what's missing, link follow-up)
 - **Out of scope** (note where it'll land)
 
 ### 4. i18n key audit (any UI string change)
+
 - List every i18n key added or modified.
 - Confirm parity: `en.json` ↔ `de.json` ↔ `tr.json` ↔ `it.json` ↔ `ar.json` ↔ `fr.json` ↔ `es.json` ↔ `ru.json` ↔ `zh.json`.
 - For RTL locales (`ar`), confirm any layout changes still work (e.g. flex-direction in mirrored components).
 
 ### 5. Existing references
+
 Grep for the component / hook / type you're adding or modifying. List every callsite. Confirm each still works after your change OR mark for update in this MR.
 
 ### 6. Cross-cutting check
+
 - Does this affect the `backend` repo (DTO contract changes)?
 - Does this affect the `printer-app` repo (DTO contracts that may have to mirror backend changes)?
 - If yes, flag as "breaking" / "additive" in the MR description.
@@ -186,7 +202,7 @@ job). These are the items that were planned and are still **not** enforced anywh
   claimed "Trivy image scan"; that claim was wrong and is now corrected.)
 - **No bundle/CSP audit after `next build`.** Planned `scripts/check-csp.sh`: fail on source maps shipped
   in `.next/static/`, fail on `sk_live` / `pk_live` / JWT / SMTP-credential strings baked into the bundle.
-  The third planned check — a CSP header — *is* done (`next.config.ts` `headers()`), so only the
+  The third planned check — a CSP header — _is_ done (`next.config.ts` `headers()`), so only the
   build-output scan is missing.
 - **No SBOM artifact.** `cyclonedx-npm` CycloneDX SBOM per build was planned, never wired.
 - **No DAST.** OWASP ZAP full-scan against staging + `.zap/rules.tsv` — deferred when staging moved, still open.
@@ -239,6 +255,7 @@ Every PR uses [.github/pull_request_template.md](.github/pull_request_template.m
 Never auto-edit these files / take these actions without explicit user instruction:
 
 ### Hard refusals
+
 - **`next.config.ts` security headers** (CSP, frame-options, HSTS). Changing these can break the production deployment in subtle ways. Treat as a deploy event, not a code change.
 - **Major version bumps** of `next`, `react`, `react-dom` in `package.json`. Breaking-changes class — coordinated upgrade only.
 - **Playwright golden snapshots** (`e2e/screenshots/__screenshots__/`, or any `*-snapshots/` dir) — never hand-edit; only regenerate via the documented update command (`npm run test:screenshots:docker:update` — baselines are linux-only, see `e2e/README.md`).
@@ -246,16 +263,19 @@ Never auto-edit these files / take these actions without explicit user instructi
 - **Branch protection bypass**: never `git commit --no-verify`, `git push --force-with-lease` to `develop`/`main`, `git reset --hard` on `develop`/`main`.
 
 ### Cross-repo coordination required
+
 - **Backend DTO contract changes** — affects `src/services/types/` and any consumer. Before modifying a frontend type that mirrors a backend DTO, grep usages and flag the cross-repo coordination in the MR.
 
 ### Sensitive-file refusal (matches gitleaks/detect-secrets allowlist)
 
 Never commit:
+
 - `.env.local`, `.env.development.local`, `.env.test.local`, `.env.production.local` — gitignored; if missing, flag, don't fabricate
 - `*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.cer`
 - Any file matching `*secret*`, `*credentials*`
 
 **Intentionally-tracked env files (do NOT delete; do NOT add secrets to):**
+
 - `.env.example` — template that `scripts/dev-secrets.sh` copies into `.env.local`. `NEXT_PUBLIC_*` defaults + empty placeholders for per-developer credentials (`ADMIN` / `CASHIER` / `CUSTOMER`).
 - `.env.production` — public deploy-time defaults for the production build. Only `NEXT_PUBLIC_*` values, **never** secrets. Whitelisted in `.gitignore` via `!.env.production`. If you need to add a runtime secret to production, that's a K8s/ArgoCD config change, not a code change to this file.
 
@@ -266,6 +286,7 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 ## §10 — Session workflow
 
 ### Starting
+
 1. Read this file (auto-loaded).
 2. Read [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) if picking up a refactor task.
 3. Read the relevant ADR if working on a load-bearing pattern (state mgmt, styling, i18n, forms, design system).
@@ -273,6 +294,7 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 5. Check `git status` — start from a clean tree on `main`.
 
 ### During implementation
+
 1. Output the §6 verification block before writing code.
 2. After non-trivial changes, run `npm run lint` (catches type / hook / import errors fast).
 3. Use design-system primitives: `BaseModal`, `FormField`, `StatusBadge`.
@@ -280,6 +302,7 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 5. Read env vars via `src/lib/config.ts`, never `process.env.NEXT_PUBLIC_*` scattered.
 
 ### Before ending
+
 1. `npm run lint` → 0 errors.
 2. `npm run build` → succeeds.
 3. `npm test` → all passing.

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, FileBarChart, Printer, Loader2 } from 'lucide-react';
 import { ZReportDto } from '@/types/order';
@@ -8,6 +8,7 @@ import { getZReport } from '@/services/orderService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { exportZReportToPDF } from '@/utils/zReportExportUtils';
 import { formatCurrency } from '@/utils/currency';
+import { calendarDayFromReport } from '@/utils/zReportDay';
 import styles from './ZReportModal.module.css';
 
 interface ZReportModalProps {
@@ -15,25 +16,45 @@ interface ZReportModalProps {
   onClose: () => void;
 }
 
-const getTodayISO = (): string => {
-  const now = new Date();
-  return now.toISOString().split('T')[0];
-};
-
 export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
   const { t } = useTranslation();
-  const [reportDate, setReportDate] = useState<string>(getTodayISO());
+  // Empty until the SERVER names a day (see `zReportDay.ts`). This used to open on the device's
+  // UTC day and send it explicitly, so backend #372's corrected default never applied: a cashier
+  // closing at 00:30 in Geneva still read YESTERDAY's takings (frontend #511).
+  const [reportDate, setReportDate] = useState<string>('');
+  // The tenant's today, as the server last reported it — the picker's ceiling. Unknown until the
+  // first answer arrives, and a ceiling we are not sure of must not be imposed.
+  const [tenantToday, setTenantToday] = useState<string>('');
   const [reportData, setReportData] = useState<ZReportDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Only the newest request may write. Two days picked in quick succession can answer out of
+  // order — the till talks to the box over the venue's own wifi — and the loser would land its
+  // figures AND rewrite the date field, putting a day beside takings that are not its own. That
+  // mismatch is the whole subject of this component, so it is refused rather than raced.
+  const latestRequest = useRef(0);
+
+  // `date` omitted = "the day the restaurant is on" — the server decides it, from the tenant
+  // clock. A date passed in is a day the cashier NAMED, and the server reads that on the same
+  // wall clock, so both paths agree on whose calendar is in force.
   const fetchReport = useCallback(
-    async (date: string) => {
+    async (date?: string) => {
+      latestRequest.current += 1;
+      const request = latestRequest.current;
       setIsLoading(true);
       setError(null);
       try {
         const data = await getZReport(date);
+        if (request !== latestRequest.current) return;
         setReportData(data);
+        // Which day did we actually get? The answer carries it, so the picker shows the day the
+        // figures are for rather than the day this device guessed.
+        const servedDay = calendarDayFromReport(data.reportDate);
+        if (servedDay) {
+          setReportDate(servedDay);
+          if (!date) setTenantToday(servedDay);
+        }
       } catch (err) {
         // This modal HOLDS its error (rendered below), but it is a single sentence with no fields
         // to route onto, so `getErrorMessage` rather than `useApiError`. The reason matters here:
@@ -43,27 +64,42 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
         // with an empty message on purpose, so the fallback below still renders.)
         // `getZReport` also throws a plain `Error('Failed to fetch Z-Report')` for a 200 with no
         // body; `getErrorMessage` returns null for that, so the English literal never renders.
+        // A superseded request must not report either: its failure would clear figures the newer
+        // one has already delivered, and its `finally` would stop the spinner while that newer
+        // one is still in flight.
+        if (request !== latestRequest.current) return;
         setError(getErrorMessage(err) ?? (t('cashier.zreport.error') || 'Failed to load Z-Report'));
         setReportData(null);
       } finally {
-        setIsLoading(false);
+        if (request === latestRequest.current) setIsLoading(false);
       }
     },
     [t],
   );
 
-  // Reset date to today and fetch when modal opens
+  // Held in a ref so that OPENING is the only thing that re-asks for today. The effect used to
+  // depend on `fetchReport`, whose identity follows `t` — a new `t` (a language change; every
+  // render, for a stubbed `useTranslation`) re-ran it, which both refetched unboundedly and threw
+  // away the day the cashier had picked (measured: 9 requests in one second).
+  const fetchReportRef = useRef(fetchReport);
+  fetchReportRef.current = fetchReport;
+
+  // Opening always asks for the restaurant's current day, whatever was picked last time.
   useEffect(() => {
-    if (isOpen) {
-      const today = getTodayISO();
-      setReportDate(today);
-      // fetchReport has its own try/catch (sets error state); fire-and-forget.
-      void fetchReport(today);
-    }
-  }, [isOpen, fetchReport]);
+    if (!isOpen) return;
+    // Blank, not a device guess: which day this is has not been answered yet.
+    setReportDate('');
+    // fetchReport has its own try/catch (sets error state); fire-and-forget.
+    void fetchReportRef.current();
+  }, [isOpen]);
 
   // Re-fetch when date changes (user picks a different date)
   const handleDateChange = (newDate: string) => {
+    // A `date` input reports '' while a typed date is still incomplete, and on clear. Asking for
+    // an empty day means asking for TODAY (the parameter is dropped), which — now that the answer
+    // is written back into the field — would silently rewrite what the cashier is halfway through
+    // typing. Nothing is a day; wait for one.
+    if (!newDate) return;
     setReportDate(newDate);
     void fetchReport(newDate);
   };
@@ -89,7 +125,13 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
               className={styles.dateInput}
               value={reportDate}
               onChange={(e) => handleDateChange(e.target.value)}
-              max={getTodayISO()}
+              // The ceiling is the restaurant's today, and the device's own day is not it: east
+              // of UTC that is a day BEHIND the tenant's after local midnight, and would refuse
+              // the very day the till is closing. Until the server has named today there is no
+              // honest ceiling, so the picker is closed rather than left open on a future date —
+              // for which the report renders a well-formed all-zero close that looks real.
+              max={tenantToday || undefined}
+              disabled={!tenantToday}
             />
             {reportData && (
               <button className={styles.exportButton} onClick={handleExportPDF}>
@@ -115,7 +157,10 @@ export default function ZReportModal({ isOpen, onClose }: ZReportModalProps) {
           {error && !isLoading && (
             <div className={styles.error}>
               <span>{error}</span>
-              <button className={styles.retryButton} onClick={() => fetchReport(reportDate)}>
+              {/* If the FIRST load failed we never learned the day, so retry must re-ask for
+                  today. (`buildQueryString` drops a falsy `date` anyway — this states the intent
+                  rather than relying on that.) */}
+              <button type="button" className={styles.retryButton} onClick={() => fetchReport(reportDate || undefined)}>
                 {t('cashier.zreport.retry') || 'Retry'}
               </button>
             </div>

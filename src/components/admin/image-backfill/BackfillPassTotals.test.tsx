@@ -41,7 +41,13 @@ describe('BackfillPassTotals', () => {
     expect(screen.getByText('Across 2 batches so far')).toBeInTheDocument();
     expect(screen.getByText('620')).toBeInTheDocument();
     expect(screen.getByText('340')).toBeInTheDocument();
-    expect(screen.getByText('5.6 MB')).toBeInTheDocument();
+    // The decimal separator belongs to the RUNNER's locale, not to this test: `formatBytes`
+    // localises the number on purpose (`5.6 MB` in en, `5,6 MB` in de/fr/nl), so a hardcoded
+    // `5.6 MB` was asserting the ambient locale — green on a `C`/en CI runner and red on any
+    // developer machine defaulting to a comma. What is being pinned here is the summed value and
+    // its unit. (Found while adding the timezone environment in frontend #511: same family — an
+    // assertion that reads the environment rather than the code.)
+    expect(screen.getByText(/^5[.,]6 MB$/)).toBeInTheDocument();
   });
 
   // A pass mixes dry-run windows with applied ones, so the summary's two labels — "Would change"

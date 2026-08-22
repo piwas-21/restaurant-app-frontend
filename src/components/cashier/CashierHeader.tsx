@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { RefreshCw, QrCode, FileBarChart /*Printer, Settings*/ } from 'lucide-react';
 import { NotificationSoundType } from '@/hooks/useNotification';
 import SoundSelector from './SoundSelector';
+import CategoryChannelQuickToggle from '@/components/order-types/CategoryChannelQuickToggle';
 import styles from './CashierHeader.module.css';
 
 interface CashierHeaderProps {
@@ -63,6 +64,11 @@ export default function CashierHeader({
     <div className={styles.header}>
       <div className={styles.headerLeft}>
         <h1 className={styles.title}>{t('cashier.title') || 'Cashier'}</h1>
+        {/* BUGS-IMPROVEMENTS-PLAN F6, surface 2 of 3. Same component, same writer, same refresh
+            contract as the admin dashboard and the server screen — it renders only for a signed-in
+            Admin, because `PUT /api/Categories/{id}` is `[RequireAdmin]` and a Cashier token would
+            get a 403 from it. That gate lives inside the component, not here. */}
+        <CategoryChannelQuickToggle className={styles.quickToggle} />
       </div>
 
       <div className={styles.headerRight}>

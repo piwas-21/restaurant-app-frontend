@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import CategoryChannelQuickToggle from '@/components/order-types/CategoryChannelQuickToggle';
 import styles from './ServerHeader.module.css';
 
 interface ServerHeaderProps {
@@ -55,6 +56,10 @@ export default function ServerHeader({
       <div className={styles.leftSection}>
         <h1 className={styles.title}>🍽️ {t('server.title', 'Server Interface')}</h1>
         {error && <span className={styles.errorBadge}>{error}</span>}
+        {/* BUGS-IMPROVEMENTS-PLAN F6, surface 3 of 3 — the one the request was actually about: the
+            waiter who is told "no wraps at the table" while the floor is quiet. It renders only for
+            a signed-in Admin (the writer is `[RequireAdmin]`); the gate is inside the component. */}
+        <CategoryChannelQuickToggle className={styles.quickToggle} />
       </div>
 
       <div className={styles.centerSection}>

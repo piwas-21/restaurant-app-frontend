@@ -12,6 +12,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   control,
   imageFiles,
   setImageFiles,
+  showImagePicker = true,
 }) => {
   const { t } = useTranslation();
 
@@ -59,20 +60,24 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
         </div>
       </div>
 
-      <div className={modalStyles.formGroup}>
-        <label>
-          {t('product_images')} {t('optional')}
-        </label>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
-        />
-        {imageFiles.length > 0 && <p>{t('files_selected', { count: imageFiles.length })}</p>}
-        {/* Existing images are managed by the editor's ImageGallery (immediate, per-image
-            endpoints), not listed read-only here. This input only stages NEW uploads. */}
-      </div>
+      {/* CREATE only (Track F, F7-B). A new product has no id yet and both image endpoints are
+          sub-resources of /api/Products/{id}, so its images can only be STAGED and uploaded by
+          the Save that creates the row. On EDIT this input is gone and the ImageGallery above
+          the form owns upload as well as management — one image section, not two. */}
+      {showImagePicker && (
+        <div className={modalStyles.formGroup}>
+          <label>
+            {t('product_images')} {t('optional')}
+          </label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
+          />
+          {imageFiles.length > 0 && <p>{t('files_selected', { count: imageFiles.length })}</p>}
+        </div>
+      )}
 
       <div className={modalStyles.formGroup}>
         <h3>

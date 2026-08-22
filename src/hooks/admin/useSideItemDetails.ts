@@ -91,7 +91,7 @@ export function useSideItemDetails(selectedSideItemIds: string[]) {
       setDetailsError(
         failures.length === 0
           ? null
-          : (failures.find((message) => message) ??
+          : (failures.find(Boolean) ??
               tRef.current('side_items_load_failed', 'Could not load the selected side items')),
       );
     };

@@ -133,11 +133,10 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
             </div>
           )}
 
-          {status === 'searching' && (
-            <p className={modalStyles.emptyState} role="status">
-              {t('searching')}
-            </p>
-          )}
+          {/* `<output>`, not `<p role="status">` — it carries the status role implicitly, which is
+              what tells a screen reader an answer is still coming (Sonar S6819, the convention this
+              repo settled on). */}
+          {status === 'searching' && <output className={modalStyles.emptyState}>{t('searching')}</output>}
 
           {/* `searchError` first, and it SUPPRESSES the empty state rather than sitting beside it:
               "No side items found" is an answer about the menu, and a failed search has not

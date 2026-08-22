@@ -36,6 +36,21 @@ export default function OptionalIngredientsSection({
     return null;
   }
 
+  // The one deselect path, shared by the checkbox and by the stepper's minus at quantity 1.
+  //
+  // Deselection records an explicit quantity 0 (not 1) so the removal survives into the basket
+  // payload and the kitchen ticket can print "NO xxx" — the backend derives IsRemoved from
+  // quantity 0 (issue #150), and it lets an explicit client quantity win (verbatim for a regular
+  // line, over the backfill for a bundle child), so a 1 here silently re-added the ingredient to
+  // the ticket.
+  // Price and rendering are unaffected, because a deselected ingredient's quantity is never read:
+  // pricing only consults it on the selected branches (utils/linePrice.ts), and the quantity
+  // stepper renders only while `isSelected`.
+  const deselect = (ingredientId: string) => {
+    onSelectionChange(selectedIngredients.filter((id) => id !== ingredientId));
+    onQuantityChange(ingredientId, 0);
+  };
+
   const handleToggle = (ingredientId: string, isOptional: boolean) => {
     // Non-optional ingredients cannot be deselected
     if (!isOptional) {
@@ -43,16 +58,7 @@ export default function OptionalIngredientsSection({
     }
 
     if (selectedIngredients.includes(ingredientId)) {
-      onSelectionChange(selectedIngredients.filter((id) => id !== ingredientId));
-      // Deselection records an explicit quantity 0 (not 1) so the removal survives into the
-      // basket payload and the kitchen ticket can print "NO xxx" — the backend derives IsRemoved
-      // from quantity 0 (issue #150), and it lets an explicit client quantity win (verbatim for a
-      // regular line, over the backfill for a bundle child), so a 1 here silently re-added the
-      // ingredient to the ticket.
-      // Price and rendering are unaffected, because a deselected ingredient's quantity is never
-      // read: pricing only consults it on the selected branches (utils/linePrice.ts), and the
-      // quantity stepper renders only while `isSelected`.
-      onQuantityChange(ingredientId, 0);
+      deselect(ingredientId);
     } else {
       onSelectionChange([...selectedIngredients, ingredientId]);
       // Default quantity is 1 when selected
@@ -67,7 +73,15 @@ export default function OptionalIngredientsSection({
     const currentQty = ingredientQuantities[ingredientId] || 1;
     const newQty = currentQty + change;
 
-    if (newQty >= 1 && newQty <= max) {
+    // Minus at 1 removes the ingredient instead of dead-ending on a disabled button: it drops to 0
+    // AND unticks, through the very same deselect the checkbox uses, so the quantity-0 "NO xxx"
+    // convention still holds (F5).
+    if (newQty <= 0) {
+      deselect(ingredientId);
+      return;
+    }
+
+    if (newQty <= max) {
       onQuantityChange(ingredientId, newQty);
     }
   };
@@ -151,7 +165,6 @@ export default function OptionalIngredientsSection({
                         type="button"
                         className={styles.quantityBtn}
                         onClick={(e) => handleQuantityChange(e, ingredient.id, -1, maxQty)}
-                        disabled={currentQty <= 1}
                       >
                         -
                       </button>

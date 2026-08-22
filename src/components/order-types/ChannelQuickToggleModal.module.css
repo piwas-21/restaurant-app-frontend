@@ -1,0 +1,107 @@
+/* Dark mode uses [data-theme='dark'] per CLAUDE.md §5.7 — never prefers-color-scheme. */
+
+.intro,
+.hidden,
+.footer {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.footer {
+  margin: 0.75rem 0 0;
+}
+
+.error {
+  display: block;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--feedback-error);
+  border-radius: 6px;
+  color: var(--feedback-error);
+  font-size: 0.85rem;
+}
+
+.empty {
+  padding: 1.5rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.row {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.rowRestricted {
+  border-color: var(--feedback-warning-text);
+  background-color: var(--feedback-warning-xlight);
+}
+
+[data-theme='dark'] .rowRestricted {
+  background-color: var(--surface-card);
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.rowName {
+  font-weight: 600;
+}
+
+.rowSaving,
+.rowSince {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.rowState {
+  margin: 0.1rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* A fingertip target, not a 13px box: this is tapped mid-service on a till. */
+.chip {
+  padding: 0.45rem 0.9rem;
+  min-height: 2.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.chipOn {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

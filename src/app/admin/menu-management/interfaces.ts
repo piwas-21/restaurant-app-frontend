@@ -143,4 +143,10 @@ export interface Category {
   availableOrderTypes?: number | null;
   /** Server-decoded order types this category permits — never decode the mask on a customer surface. */
   allowedOrderTypes?: OrderType[];
+  /**
+   * ISO instant of the last write to the category row (`CategoryDto.UpdatedAt`), or absent when it
+   * has never been edited. ANY field of the row bumps it, so read it as "last changed", not as
+   * "channels last changed" — `categoryChannelStatus` documents what that costs.
+   */
+  updatedAt?: string | null;
 }

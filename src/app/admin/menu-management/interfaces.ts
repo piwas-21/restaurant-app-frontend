@@ -64,6 +64,8 @@ export interface ProductDetails {
   isActive: boolean;
   isAvailable: boolean;
   isSpecial?: boolean;
+  /** Mirrors backend `ProductDto.HideBaseProduct` (#399) — see `@/utils/baseProductVisibility`. */
+  hideBaseProduct?: boolean;
   preparationTimeMinutes: number;
   displayOrder?: number;
   type: string;

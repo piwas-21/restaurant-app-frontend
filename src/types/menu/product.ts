@@ -55,6 +55,13 @@ export interface DetailedProduct {
   isActive: boolean;
   isAvailable: boolean;
   isSpecial: boolean;
+  /**
+   * Whether the product's base row ("order it with no variation") is withheld, so the guest must
+   * pick a variation (Track F / F2, backend #399). Optional — a backend that predates it omits it,
+   * which reads as `false` and is today's behaviour. Never read it bare: `isBaseRowHidden` in
+   * `@/utils/baseProductVisibility` applies the degrade the server also applies.
+   */
+  hideBaseProduct?: boolean;
   preparationTimeMinutes?: number;
   type: ProductType;
   ingredients: string[]; // Simple ingredient strings for backward compatibility

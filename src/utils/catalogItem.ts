@@ -8,6 +8,7 @@ import type {
   PriceEditability,
 } from '@/types/menu';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
+import { isBaseRowHidden, startingPrice } from '@/utils/baseProductVisibility';
 
 /**
  * Normalise a plain product (`MenuItem`) and a combo (`MenuBundleItem`) into the one `CatalogItem`
@@ -16,6 +17,12 @@ import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
  * resolves the display name and the ingredient summary from `content`).
  */
 export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
+  // With the base row hidden, `item.price` (the bare base price) is a price nobody can buy — the
+  // cheapest orderable line is base + the smallest active modifier, and the card says "from"
+  // (Track F / F2). Degrades with the flag: no active variation ⇒ the base row is back ⇒ the
+  // ordinary price.
+  const baseHidden = isBaseRowHidden(item.hideBaseProduct, item.variations);
+
   return {
     kind: 'product',
     id: item.id,
@@ -25,7 +32,8 @@ export function toCatalogItemFromProduct(item: MenuItem): CatalogItem {
     imageUrl: item.image || item.images?.[0]?.url || FALLBACK_IMAGE,
     imageCount: item.images?.length,
     images: item.images,
-    price: item.price,
+    price: baseHidden ? startingPrice(item.price, item.variations) : item.price,
+    priceIsFrom: baseHidden,
     isBundle: false,
     // Inline price-edit is safe only when the card price IS the editable base price — i.e. no
     // variations (a variation product's displayed price is a derived "from" value). The reason

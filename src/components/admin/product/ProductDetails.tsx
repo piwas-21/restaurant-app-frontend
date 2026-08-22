@@ -57,6 +57,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             <input type="checkbox" id="product-special" {...register('isSpecial')} />
             <label htmlFor="product-special">{t('special_of_the_day_title')}</label>
           </div>
+          {/* Only meaningful for a product that HAS variations, but shown unconditionally: the
+              variations are edited further down the same form, so a chip that appeared and
+              disappeared as rows were added would be the more confusing control. The base price
+              above stays live either way — every variation price is derived from it. */}
+          <div className={modalStyles.chip}>
+            <input type="checkbox" id="product-hide-base" {...register('hideBaseProduct')} />
+            <label htmlFor="product-hide-base">{t('hide_base_product')}</label>
+          </div>
         </div>
       </div>
 

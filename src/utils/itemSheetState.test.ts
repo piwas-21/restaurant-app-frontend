@@ -94,4 +94,30 @@ describe('buildInitialSheetState', () => {
   it('selects no variation when the product has none', () => {
     expect(buildInitialSheetState(detail()).selectedVariationId).toBeNull();
   });
+
+  it('skips an inactive first variation and starts on the first one the guest can SEE', () => {
+    // `VariationsSection` renders active variations only, so `variations[0]` opened the sheet on a
+    // selection with no radio. Load-bearing since Track F / F2: a product that hides its base row
+    // has nothing else to start on, and a null start is an add the server refuses.
+    const seed = buildInitialSheetState(
+      detail({
+        variations: [
+          { id: 'sold-out', isActive: false, displayOrder: 0 },
+          { id: 'revani', isActive: true, displayOrder: 1 },
+        ],
+      } as Partial<DetailedProduct>),
+    );
+
+    expect(seed.selectedVariationId).toBe('revani');
+  });
+
+  it('falls back to the base row when every variation is inactive', () => {
+    // The degrade: no active variation means the base row is shown again (`isBaseRowHidden`), so
+    // starting on nothing is correct here rather than a hole.
+    const seed = buildInitialSheetState(
+      detail({ variations: [{ id: 'sold-out', isActive: false, displayOrder: 0 }] } as Partial<DetailedProduct>),
+    );
+
+    expect(seed.selectedVariationId).toBeNull();
+  });
 });

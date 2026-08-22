@@ -557,6 +557,8 @@
   "primary_category": "主分类",
   "select_primary_category": "选择主分类...",
   "select_variation": "选择规格",
+  "price_from": "{{price}} 起",
+  "hide_base_product": "隐藏基础商品",
   "standard": "标准",
   "ingredients": "配料",
   "allergens": "过敏原",

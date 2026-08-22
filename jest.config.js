@@ -115,6 +115,7 @@ module.exports = {
     'src/lib/orderStatus.ts',
     'src/lib/paymentStatus.ts',
     'src/utils/catalogItem.ts',
+    'src/utils/baseProductVisibility.ts',
     'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
     'src/utils/templates/receiptHtml.ts',
@@ -291,6 +292,11 @@ module.exports = {
     // dialogs read it and neither would fail loudly if it started answering false — the refund
     // would simply be offered again and refused later, which is the state S11 exists to end.
     './src/utils/tenderCustody.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+    // ── Track F / F2 — the client mirror of the server's "is the base row hidden?" rule. ─────────
+    // Pinned at 100 because the DEGRADE (all variations inactive ⇒ the base row comes back) is
+    // invisible to every other gate: dropping it type-checks, lints and renders — it just leaves a
+    // product with no orderable option and a guest facing a 400 they cannot act on.
+    './src/utils/baseProductVisibility.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
     './src/components/cashier/RefundPaymentPicker.tsx': { statements: 100, branches: 100, functions: 100, lines: 100 },
     // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
     // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and

@@ -35,6 +35,11 @@ const baseProductSchema = z.object({
   isActive: z.boolean().default(true),
   isAvailable: z.boolean().default(true),
   isSpecial: z.boolean().default(false),
+  // Withhold the base ("no variation") row on the guest sheet, so the product is ordered as one of
+  // its variations (Track F / F2). It must be IN the schema, not merely in the payload: zod strips
+  // unknown keys, and the product PUT assigns the column unconditionally — a form that carried the
+  // flag outside the schema would clear it on every unrelated save.
+  hideBaseProduct: z.boolean().default(false),
   type: z.enum(productTypes),
   kitchenType: z.enum(['None', 'FrontKitchen', 'BackKitchen']).default('None'),
   allergens: z.array(z.string()).optional(),

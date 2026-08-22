@@ -60,6 +60,7 @@ export default function ProductSheetBody({ controller }: Readonly<{ controller: 
           basePrice={product.basePrice}
           currentLanguage={currentLanguage}
           productName={title}
+          hideBaseProduct={product.hideBaseProduct}
         />
       )}
 

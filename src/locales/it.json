@@ -1573,6 +1573,8 @@
   "order_special_now": "Ordina questa specialità ora",
   "order_now": "Ordina Ora",
   "select_variation": "Seleziona Dimensione/Variazione",
+  "price_from": "da {{price}}",
+  "hide_base_product": "Nascondi prodotto base",
   "standard": "Standard",
   "yesterday": "Ieri",
   "orders": "Ordini",

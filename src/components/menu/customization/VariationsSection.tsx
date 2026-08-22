@@ -28,6 +28,13 @@ interface VariationsSectionProps {
   basePrice: number;
   currentLanguage: string;
   productName: string;
+  /**
+   * Withhold the base ("no variation") row, so the guest must pick a variation (Track F / F2).
+   * Only honoured while at least one variation is ACTIVE — the early return below means a product
+   * whose variations are all off renders no section at all and stays orderable as its base, which
+   * is the same degrade the server's guard applies.
+   */
+  hideBaseProduct?: boolean;
 }
 
 export default function VariationsSection({
@@ -37,6 +44,7 @@ export default function VariationsSection({
   basePrice,
   currentLanguage,
   productName,
+  hideBaseProduct = false,
 }: VariationsSectionProps) {
   const { t } = useTranslation();
 
@@ -59,24 +67,29 @@ export default function VariationsSection({
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>{t('select_variation')}</h3>
       <div className={styles.variationsList}>
-        {/* Default/No variation option */}
-        <label className={styles.variationOption}>
-          <input
-            type="radio"
-            name="variation"
-            checked={selectedVariationId === null}
-            onChange={() => onVariationChange(null)}
-            className={styles.variationRadio}
-          />
-          <div className={styles.variationContent}>
-            <div className={styles.variationInfo}>
-              <span dir="auto" className={styles.variationName}>
-                {productName}
-              </span>
-              {basePrice > 0 && <span className={styles.variationPrice}>{formatPlainCurrency(basePrice)}</span>}
+        {/* Default/No variation option. Withheld when the product is a folder of variations rather
+            than a dish of its own ("Günün tatlısı" offers Revani | Sütlaç, not itself). Hiding it
+            here is presentation only — the server refuses a variation-less add for the same
+            products, because this component is not on the request path. */}
+        {!hideBaseProduct && (
+          <label className={styles.variationOption}>
+            <input
+              type="radio"
+              name="variation"
+              checked={selectedVariationId === null}
+              onChange={() => onVariationChange(null)}
+              className={styles.variationRadio}
+            />
+            <div className={styles.variationContent}>
+              <div className={styles.variationInfo}>
+                <span dir="auto" className={styles.variationName}>
+                  {productName}
+                </span>
+                {basePrice > 0 && <span className={styles.variationPrice}>{formatPlainCurrency(basePrice)}</span>}
+              </div>
             </div>
-          </div>
-        </label>
+          </label>
+        )}
 
         {/* Variation options */}
         {activeVariations.map((variation) => {

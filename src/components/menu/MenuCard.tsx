@@ -1,6 +1,6 @@
 'use client';
 
-import { formatPlainCurrency } from '@/utils/currency';
+import { cardPriceText } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CatalogItem } from '@/types/menu';
@@ -99,6 +99,8 @@ export default function MenuCard({
   // A combo's default picks ("Pizza + Cola") — the one thing the retired MenuBundleCard rendered
   // that MenuItemDetails still does not.
   const bundleIncludes = item.isBundle ? (item.bundleItemNames ?? []).join(' + ') : '';
+  // "from CHF 6.00" when the card price is a starting price (a hidden base row — F2).
+  const priceText = cardPriceText(price, item.priceIsFrom, t);
 
   // Add to Order: a simple product adds straight to the cart. Details/title: always open the sheet
   // to view the item (never silently add it).
@@ -196,11 +198,8 @@ export default function MenuCard({
         )}
 
         <div className={footStyles.footRow}>
-          <span
-            className={footStyles.footPrice}
-            aria-label={`${t('checkout_total_label')} ${formatPlainCurrency(price)}`}
-          >
-            {formatPlainCurrency(price)}
+          <span className={footStyles.footPrice} aria-label={`${t('checkout_total_label')} ${priceText}`}>
+            {priceText}
             {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an
                 effect keyed on that boolean, and a useState setter is the referentially stable
                 identity the contract needs. An inline arrow would re-fire it on every render. */}

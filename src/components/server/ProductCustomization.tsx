@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getProductById } from '@/services/menuService';
 import { Product } from '@/services/serverService';
 import AllergenDisplay from '@/components/common/AllergenDisplay';
+import { isBaseRowHidden } from '@/utils/baseProductVisibility';
 import styles from './ProductCustomization.module.css';
 
 export interface DetailedIngredient {
@@ -53,6 +54,11 @@ export interface CustomizationResult {
   finalPrice: number;
 }
 
+/** The first variation in display order — this screen's stand-in for the guest sheet's first radio. */
+function firstActive(variations: ProductVariation[]): ProductVariation | null {
+  return [...variations].sort((a, b) => a.displayOrder - b.displayOrder)[0] ?? null;
+}
+
 interface ProductCustomizationProps {
   product: Product;
   isOpen: boolean;
@@ -86,9 +92,16 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
           // Reset selections
           setAddedOptionalIngredients(new Set());
           setSelectedSideItems(new Map());
-          setSelectedVariation(null);
           setSpecialInstructions('');
           setQuantity(1);
+
+          // The base ("no variation") line is not orderable for this product, and this screen has
+          // no base row to select — so open on the first active variation instead of on nothing,
+          // or the waiter's first tap would post a variation-less add the server refuses (F2).
+          const activeVariations = (response.data.variations ?? []).filter((v: ProductVariation) => v.isActive);
+          setSelectedVariation(
+            isBaseRowHidden(response.data.hideBaseProduct, activeVariations) ? firstActive(activeVariations) : null,
+          );
 
           // Initialize required side items
           if (response.data.suggestedSideItems) {
@@ -168,6 +181,19 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
   // Check if product has customizations
   const hasCustomizations =
     standardIngredients.length > 0 || optionalIngredients.length > 0 || variations.length > 0 || sideItems.length > 0;
+
+  // The base row is not an option on this screen — "no variation" is expressed by de-selecting the
+  // chosen one. When the product hides its base, that de-select would build an order line the
+  // server refuses, so it is withheld: tapping the selected variation keeps it (F2).
+  const selectVariation = (variation: ProductVariation) => {
+    if (selectedVariation?.id !== variation.id) {
+      setSelectedVariation(variation);
+      return;
+    }
+    if (!isBaseRowHidden(detailedProduct?.hideBaseProduct, variations)) {
+      setSelectedVariation(null);
+    }
+  };
 
   // Toggle optional ingredient
   const toggleOptional = (ingredientId: string) => {
@@ -252,7 +278,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                       <button
                         key={variation.id}
                         className={`${styles.variationButton} ${selectedVariation?.id === variation.id ? styles.selected : ''}`}
-                        onClick={() => setSelectedVariation(selectedVariation?.id === variation.id ? null : variation)}
+                        onClick={() => selectVariation(variation)}
                       >
                         <span className={styles.variationName}>{getLocalizedName(variation)}</span>
                         <span className={styles.variationPrice}>

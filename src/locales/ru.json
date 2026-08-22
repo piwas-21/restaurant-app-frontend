@@ -489,6 +489,8 @@
   "primary_category": "Основная категория",
   "select_primary_category": "Выберите основную категорию...",
   "select_variation": "Выберите размер/вариацию",
+  "price_from": "от {{price}}",
+  "hide_base_product": "Скрыть базовый товар",
   "standard": "Стандарт",
   "ingredients": "Ингредиенты",
   "allergens": "Аллергены",

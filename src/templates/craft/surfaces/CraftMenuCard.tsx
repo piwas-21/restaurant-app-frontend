@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatPlainCurrency } from '@/utils/currency';
+import { cardPriceText } from '@/utils/currency';
 import type { MenuCardProps } from '@/components/menu/MenuCard';
 import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import { Plus } from 'lucide-react';
@@ -163,7 +163,8 @@ export default function CraftMenuCard({ item, onOpen, onSwitchOrderType }: Reado
         {/* The dotted leader, in its new place: price ..... action. */}
         <div className={styles.foot}>
           <span className={styles.price}>
-            {formatPlainCurrency(price)}
+            {/* "from CHF 6.00" when the base row is hidden — same rule as the classic card (F2). */}
+            {cardPriceText(price, item.priceIsFrom, t)}
             <AdminPriceEditor item={item} onPriceChange={setPrice} />
           </span>
 

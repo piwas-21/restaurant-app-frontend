@@ -1,4 +1,4 @@
-import type { MenuSection } from '@/types/menu';
+import type { MenuDefinition, MenuSection } from '@/types/menu';
 
 /**
  * The bundle menu-section shapes carried in a create/update request — a persisted id is present
@@ -63,4 +63,22 @@ export function stripTemporaryMenuSectionIds(sections: readonly MenuSection[]): 
     }
     return cleaned;
   });
+}
+
+/**
+ * A bundle's draft menu definition in the shape the create/update endpoints accept: every
+ * `temp-…` section and item id stripped, and the definition's own temp id dropped so the backend
+ * assigns one. Both are 400s if sent — `MenuSectionItemDto.Id` and the definition id are `Guid?`,
+ * so STJ fails the conversion before any handler sees the request.
+ *
+ * Lifted out of `useProductEditorForm.onSubmit` unchanged, to sit beside the two helpers it is
+ * built from (that hook is at its 200-line limit, and the block was already pure).
+ */
+export function toSubmittableMenuDefinition(menuDefinition: MenuDefinition): Record<string, unknown> {
+  const definition: Record<string, unknown> = {
+    ...menuDefinition,
+    sections: stripTemporaryMenuSectionIds(menuDefinition.sections),
+  };
+  if (!isPersistedMenuId(menuDefinition.id)) delete definition.id;
+  return definition;
 }

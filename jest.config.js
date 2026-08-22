@@ -655,7 +655,8 @@ module.exports = {
       functions: 100,
       lines: 100,
     },
-    // The uncovered branch is `totalCount ?? items.length` on a payload that carries neither.
+    // The one uncovered branch is the `if (!enabled) return` early exit inside `refresh`, which is
+    // unreachable once the effect that calls it is itself gated on `enabled`.
     './src/hooks/orderTypes/useCategoryChannelQuickToggle.ts': {
       statements: 97,
       branches: 94,
@@ -671,10 +672,10 @@ module.exports = {
       lines: 99,
     },
     './src/components/order-types/ChannelQuickToggleModal.tsx': {
-      statements: 99,
-      branches: 89,
-      functions: 99,
-      lines: 99,
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
     './src/components/order-types/ChannelQuickToggleRow.tsx': {
       statements: 99,

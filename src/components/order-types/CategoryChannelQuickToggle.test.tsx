@@ -139,6 +139,27 @@ describe('CategoryChannelQuickToggle — what it says', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
+  it('says the list is still loading rather than showing an empty panel', async () => {
+    mockGetCategories.mockImplementation(() => new Promise(() => {}) as ReturnType<typeof getCategories>);
+    render(<CategoryChannelQuickToggle />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Order type availability/ }));
+    await screen.findByRole('dialog');
+    // "No categories found" here would read as "nothing is restricted", which is a guess, not a
+    // fact. Two nodes say it: the trigger's own summary and the panel body.
+    expect(screen.getAllByText('Loading...')).toHaveLength(2);
+    expect(screen.queryByText('No categories found')).not.toBeInTheDocument();
+  });
+
+  it('says so when the restaurant genuinely has no categories', async () => {
+    mockList([]);
+    render(<CategoryChannelQuickToggle />);
+    await screen.findByText('All categories: every order type');
+
+    fireEvent.click(screen.getByRole('button', { name: /Order type availability/ }));
+    expect(await screen.findByText('No categories found')).toBeInTheDocument();
+  });
+
   it('shows a read failure inside the panel instead of an empty list that reads as "all open"', async () => {
     mockGetCategories.mockRejectedValue(new Error('offline'));
     render(<CategoryChannelQuickToggle />);

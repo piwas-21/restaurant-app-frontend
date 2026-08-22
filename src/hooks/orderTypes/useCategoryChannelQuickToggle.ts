@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCategories, updateCategoryOrderTypes } from '@/services/categoryService';
 import type { Category } from '@/app/admin/menu-management/interfaces';
@@ -63,6 +63,23 @@ export function useCategoryChannelQuickToggle(enabled: boolean): CategoryChannel
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
 
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  /**
+   * Every state write goes through here. A poll or a save can still be in flight when the host
+   * unmounts — a cashier navigating away mid-write is the ordinary case, not the exotic one — and
+   * one guard in one place is the only shape in which a later branch cannot forget it.
+   */
+  const commit = useCallback((apply: () => void) => {
+    if (mounted.current) apply();
+  }, []);
+
   const read = useCallback(async () => {
     const response = await getCategories(1, QUICK_TOGGLE_PAGE_SIZE);
     const items: Category[] = response?.data?.items ?? [];
@@ -70,28 +87,30 @@ export function useCategoryChannelQuickToggle(enabled: boolean): CategoryChannel
     // reopen its Dine-In mid-service would be a lie. The count of what was left out is reported
     // rather than dropped, so nothing goes missing silently.
     const active = items.filter((category) => category.isActive !== false);
-    setSnapshot({
-      categories: active,
-      totalCount: response?.data?.totalCount ?? items.length,
-      fetchedAt: Date.now(),
-    });
-  }, []);
+    commit(() =>
+      setSnapshot({
+        categories: active,
+        totalCount: response?.data?.totalCount ?? items.length,
+        fetchedAt: Date.now(),
+      }),
+    );
+  }, [commit]);
 
   const refresh = useCallback(async () => {
     if (!enabled) return;
     try {
       await read();
-      setError(null);
+      commit(() => setError(null));
     } catch (err) {
-      setError(getErrorMessage(err) ?? t('failed_to_load_categories', 'Failed to load categories'));
+      commit(() => setError(getErrorMessage(err) ?? t('failed_to_load_categories', 'Failed to load categories')));
     } finally {
-      setLoading(false);
+      commit(() => setLoading(false));
     }
     // `t` is deliberately absent: react-i18next hands back a new identity on every language switch
     // (and on every render under a test double), which would turn this into a refetch loop wired
     // to an interval. The same trap `useCategoryChannelsAdmin` documents on its mount effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, read]);
+  }, [enabled, read, commit]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -142,14 +161,16 @@ export function useCategoryChannelQuickToggle(enabled: boolean): CategoryChannel
         // Re-read rather than patch state: the switch has to show SERVER truth, and a snapshot
         // written from the request body would hide a rejected or concurrently-overwritten save.
         await read();
-        setError(null);
+        commit(() => setError(null));
       } catch (err) {
-        setError(getErrorMessage(err) ?? t('failed_to_save_order_types', 'Failed to save order type availability'));
+        commit(() =>
+          setError(getErrorMessage(err) ?? t('failed_to_save_order_types', 'Failed to save order type availability')),
+        );
       } finally {
-        setSavingId(null);
+        commit(() => setSavingId(null));
       }
     },
-    [snapshot, read, t],
+    [snapshot, read, commit, t],
   );
 
   return {

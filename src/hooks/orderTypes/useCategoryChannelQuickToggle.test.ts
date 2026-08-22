@@ -188,6 +188,32 @@ describe('the refresh contract — three surfaces must agree within seconds', ()
     expect(mockGetCategories).toHaveBeenCalledTimes(2);
   });
 
+  it('writes no state from a read or a save that lands after unmount', async () => {
+    // A cashier navigating away mid-write is the ordinary case. `commit` is the one guard; this
+    // exercises its closed branch, which is otherwise only reachable in production.
+    type Resolve = (value: never) => void;
+    let resolveRead: Resolve = () => {};
+    mockGetCategories.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRead = resolve as Resolve;
+        }) as ReturnType<typeof getCategories>,
+    );
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, unmount } = renderHook(() => useCategoryChannelQuickToggle(true));
+
+    unmount();
+    await act(async () => {
+      resolveRead({ success: true, data: { items: [DURUM], totalCount: 1 } } as never);
+      await Promise.resolve();
+    });
+
+    expect(consoleError).not.toHaveBeenCalled();
+    expect(result.current.statuses).toEqual([]);
+    expect(result.current.loading).toBe(true);
+    consoleError.mockRestore();
+  });
+
   it('stops polling once unmounted', async () => {
     mockList([DURUM]);
     const { unmount } = await renderWithTimers();

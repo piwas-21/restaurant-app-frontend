@@ -3,6 +3,7 @@ import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { SuggestedSideItemsPickerProps } from './types';
 import { useSideItemSearch } from '@/hooks/admin/useSideItemSearch';
+import { useSideItemDetails } from '@/hooks/admin/useSideItemDetails';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
@@ -16,10 +17,10 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
   const { t } = useTranslation();
   const [showPicker, setShowPicker] = useState(false);
   const [tempSelectedIds, setTempSelectedIds] = useState<string[]>([]);
-  // Both product reads and their two error slots — see `useSideItemSearch` for what each of the
-  // two swallowed catches this replaces was costing.
-  const { search, setSearch, results, runSearch, resetSearch, searchError, detailsError, selectedItemsDetails } =
-    useSideItemSearch(selectedSideItemIds);
+  // Two independent product reads, each with its own error slot because they appear in different
+  // places on screen and one can be live while the other is not.
+  const { search, setSearch, results, status, resetSearch, searchError } = useSideItemSearch();
+  const { detailsError, selectedItemsDetails } = useSideItemDetails(selectedSideItemIds);
 
   const toggleSelect = (id: string, checked: boolean) => {
     setTempSelectedIds((prev) => (checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id)));
@@ -93,18 +94,13 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
         <div className={detailsStyles.formGrid}>
           <div className={modalStyles.formGroup}>
             <label>{t('search_side_items')}</label>
+            {/* Type-ahead: the hook debounces and searches on its own, so there is nothing left for
+                an Enter key or a Search button to trigger. */}
             <input
               type="text"
               placeholder={t('search_placeholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && search.trim()) {
-                  // runSearch has its own try/catch (resets results on
-                  // failure); fire-and-forget.
-                  void runSearch();
-                }
-              }}
             />
           </div>
 
@@ -137,21 +133,26 @@ export const SuggestedSideItemsPicker: React.FC<SuggestedSideItemsPickerProps> =
             </div>
           )}
 
+          {status === 'searching' && (
+            <p className={modalStyles.emptyState} role="status">
+              {t('searching')}
+            </p>
+          )}
+
           {/* `searchError` first, and it SUPPRESSES the empty state rather than sitting beside it:
               "No side items found" is an answer about the menu, and a failed search has not
-              obtained one. */}
+              obtained one. The empty state renders from `status`, never from `results.length`:
+              under type-ahead the latter would say "none found" after the first keystroke of every
+              word anyone types, and again while every request is in flight. */}
           {searchError ? (
             <p className={modalStyles.errorMessage} role="alert">
               {searchError}
             </p>
           ) : (
-            search && results.length === 0 && <p className={modalStyles.emptyState}>{t('no_side_items_found')}</p>
+            status === 'empty' && <p className={modalStyles.emptyState}>{t('no_side_items_found')}</p>
           )}
 
           <div className={detailsStyles.actionRow}>
-            <button type="button" className={`${styles.adminButton}`} onClick={runSearch} disabled={!search.trim()}>
-              {t('search')}
-            </button>
             <button
               type="button"
               className={styles.cancelButton}

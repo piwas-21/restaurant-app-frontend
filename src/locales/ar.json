@@ -1573,6 +1573,8 @@
   "order_special_now": "اطلب هذا الطبق الخاص الآن",
   "order_now": "اطلب الآن",
   "select_variation": "اختر الحجم/التنويع",
+  "price_from": "ابتداءً من {{price}}",
+  "hide_base_product": "إخفاء المنتج الأساسي",
   "standard": "قياسي",
   "no_side_items_found": "[AR] No side items found",
   "yesterday": "أمس",

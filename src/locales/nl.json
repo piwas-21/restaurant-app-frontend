@@ -557,6 +557,8 @@
   "primary_category": "Hoofdcategorie",
   "select_primary_category": "Selecteer een hoofdcategorie...",
   "select_variation": "Kies maat/variant",
+  "price_from": "vanaf {{price}}",
+  "hide_base_product": "Basisproduct verbergen",
   "standard": "Standaard",
   "ingredients": "Ingrediënten",
   "allergens": "Allergenen",

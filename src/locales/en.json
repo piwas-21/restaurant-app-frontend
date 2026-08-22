@@ -557,6 +557,8 @@
   "primary_category": "Primary Category",
   "select_primary_category": "Select a primary category...",
   "select_variation": "Select Size/Variation",
+  "price_from": "from {{price}}",
+  "hide_base_product": "Hide base product",
   "standard": "Standard",
   "ingredients": "Ingredients",
   "allergens": "Allergens",

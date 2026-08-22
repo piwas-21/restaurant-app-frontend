@@ -55,6 +55,8 @@ export interface ProductDto {
   isSpecial?: boolean;
   isActive?: boolean;
   isAvailable?: boolean;
+  /** Since backend #399. Absent on an older backend, which the mapper reads as "base row shown". */
+  hideBaseProduct?: boolean;
   availability?: ItemAvailabilityDto;
 }
 

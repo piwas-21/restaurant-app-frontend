@@ -563,6 +563,8 @@
   "primary_category": "Ana Kategori",
   "select_primary_category": "Bir ana kategori seçin...",
   "select_variation": "Boyut/Varyasyon Seç",
+  "price_from": "{{price}}'den itibaren",
+  "hide_base_product": "Ana ürünü gösterme",
   "standard": "Standart",
   "ingredients": "İçindekiler",
   "allergens": "Alerjenler",

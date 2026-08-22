@@ -54,6 +54,7 @@ describe('toCatalogItemFromProduct', () => {
       imageUrl: 'pizza.jpg',
       imageCount: undefined,
       price: 12.5,
+      priceIsFrom: false,
       isBundle: false,
       priceEditability: 'editable',
       allergens: ['gluten'],
@@ -62,6 +63,45 @@ describe('toCatalogItemFromProduct', () => {
       detailedIngredients: undefined,
       ingredients: undefined,
       dietaryTags: [],
+    });
+  });
+
+  // Track F / F2 — with the base row hidden, `basePrice` is a price nobody can buy.
+  describe('a product whose base row is hidden', () => {
+    const dessert: MenuItem = {
+      ...base,
+      price: 6,
+      hideBaseProduct: true,
+      variations: [
+        { name: 'Revani', isActive: true, priceModifier: 2, displayOrder: 1 },
+        { name: 'Sütlaç', isActive: true, priceModifier: 0.5, displayOrder: 2 },
+      ],
+    };
+
+    it('prices the card from the cheapest active variation and says so', () => {
+      const item = toCatalogItemFromProduct(dessert);
+
+      expect(item.price).toBe(6.5);
+      expect(item.priceIsFrom).toBe(true);
+    });
+
+    it('goes back to the plain base price when every variation is inactive', () => {
+      // The degrade: with nothing active the base row is offered again, so the base price is once
+      // more the price of the thing on sale — and a "from" prefix would then be a lie.
+      const item = toCatalogItemFromProduct({
+        ...dessert,
+        variations: dessert.variations?.map((v) => ({ ...v, isActive: false })),
+      });
+
+      expect(item.price).toBe(6);
+      expect(item.priceIsFrom).toBe(false);
+    });
+
+    it('leaves a product that did not ask for it untouched', () => {
+      const item = toCatalogItemFromProduct({ ...dessert, hideBaseProduct: false });
+
+      expect(item.price).toBe(6);
+      expect(item.priceIsFrom).toBe(false);
     });
   });
 

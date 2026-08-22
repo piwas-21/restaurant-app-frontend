@@ -1573,6 +1573,8 @@
   "cashier.scan_qr": "Scanner QR",
   "cashier.scan_qr_code": "Scanner QR Code",
   "select_variation": "Choisir Taille/Variation",
+  "price_from": "à partir de {{price}}",
+  "hide_base_product": "Masquer le produit de base",
   "standard": "Standard",
   "yesterday": "Hier",
   "orders": "Commandes",

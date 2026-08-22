@@ -92,6 +92,21 @@ describe('MenuCard — one card for both catalog kinds', () => {
     expect(screen.queryByText('Tomato, Basil')).not.toBeInTheDocument();
   });
 
+  it('prints a starting price as "from", so a hidden base row is never quoted at a price nobody can pay', () => {
+    // Track F / F2. The mocked `t` echoes `key(values)`, so the assertion is that the card asked
+    // for the `price_from` sentence with the formatted amount — not that it printed the bare number.
+    render(
+      <MenuCard
+        item={{ ...product, price: 6.5, priceIsFrom: true }}
+        onOpen={jest.fn()}
+        onFeedbackSuccess={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('price_from(CHF 6.50)')).toBeInTheDocument();
+    expect(screen.queryByText('CHF 6.50')).not.toBeInTheDocument();
+  });
+
   it('keeps a combo description and its default picks — the bundle card rendered both itself', () => {
     const { container } = render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
 

@@ -1567,6 +1567,8 @@
   "order_special_now": "Pedir este especial ahora",
   "order_now": "Pedir Ahora",
   "select_variation": "Seleccionar Tamaño/Variación",
+  "price_from": "desde {{price}}",
+  "hide_base_product": "Ocultar producto base",
   "standard": "Estándar",
   "yesterday": "Ayer",
   "orders": "Pedidos",

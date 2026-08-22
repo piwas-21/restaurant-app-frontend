@@ -245,6 +245,40 @@ describe('useItemCustomizationSheet', () => {
     expect(mockAddItem).not.toHaveBeenCalled();
   });
 
+  it("falls back to the product's plain description when no translation carries one (F3)", async () => {
+    // The browse card already renders this fallback, so without it the card showed a description
+    // the sheet then dropped.
+    mockGetProductById.mockResolvedValue({
+      data: { ...productWithOptions, content: { en: { name: 'Pizza' } }, description: 'Wood-fired, 48h dough' },
+    });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1');
+    });
+
+    await waitFor(() => expect(result.current.isOpen).toBe(true));
+    expect(result.current.description).toBe('Wood-fired, 48h dough');
+  });
+
+  it('prefers the translated description over the plain one (F3)', async () => {
+    mockGetProductById.mockResolvedValue({
+      data: {
+        ...productWithOptions,
+        content: { en: { name: 'Pizza', description: 'Translated copy' } },
+        description: 'Wood-fired, 48h dough',
+      },
+    });
+    const { result } = renderHook(() => useItemCustomizationSheet());
+
+    await act(async () => {
+      await result.current.openForProduct('p1');
+    });
+
+    await waitFor(() => expect(result.current.isOpen).toBe(true));
+    expect(result.current.description).toBe('Translated copy');
+  });
+
   it("shows the server's own reason when the sheet's add is rejected on the basket's order type", async () => {
     mockGetProductById.mockResolvedValue({ data: productWithOptions });
     mockAddItem.mockRejectedValueOnce(

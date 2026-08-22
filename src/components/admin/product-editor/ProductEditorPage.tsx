@@ -107,6 +107,20 @@ export default function ProductEditorPage({
         </div>
       </PageHeader>
 
+      {/*
+        Images FIRST on edit, and OUTSIDE the form (Track F, F7-B/C). Above the form because
+        that is where the admin looks for them — they used to be below the sticky Save bar,
+        after nine other sections. Outside it because `ConfirmationModal`'s buttons default to
+        type="submit", so nesting the gallery would make "delete this image → Yes" submit the
+        product. It owns upload as well as management now and self-manages its list (it does
+        NOT refetch the page product), so an image op cannot discard the form's unsaved edits.
+        Not on create — there is no product id to POST against, so that route keeps the staged
+        file input below. Not on a bundle either: pre-existing gap, frontend #524.
+      */}
+      {!isCreate && !isBundle && (
+        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
+      )}
+
       <form id={FORM_ID} onSubmit={editor.onSubmit} className={adminStyles.adminContent}>
         {errors.root && <p className={modalStyles.errorMessage}>{errors.root.message}</p>}
 
@@ -135,6 +149,7 @@ export default function ProductEditorPage({
                 control={form.control}
                 imageFiles={editor.imageFiles}
                 setImageFiles={editor.setImageFiles}
+                showImagePicker={isCreate}
               />
             </div>
 
@@ -215,18 +230,6 @@ export default function ProductEditorPage({
           </button>
         </div>
       </form>
-
-      {/*
-        Existing-image management lives OUTSIDE the form and only in edit mode: image
-        sub-resources have their own endpoints and apply immediately (owner call — "immediate,
-        no rival Save"). Outside the form because ConfirmationModal's buttons are type="submit"
-        and would otherwise submit the product form. It self-manages its list (does NOT refetch
-        the page product), so an image op cannot discard the form's unsaved edits. Bundles keep
-        the file-input-only path they always had; a brand-new product has no images to manage.
-      */}
-      {!isCreate && !isBundle && (
-        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
-      )}
 
       <ConfirmationModal
         isOpen={isDiscardOpen}

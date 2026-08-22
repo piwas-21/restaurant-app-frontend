@@ -7,6 +7,8 @@ import { ProductImage } from '@/app/admin/menu-management/interfaces';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import ImageActions from './ImageActions';
+import ImageUploadPanel from './ImageUploadPanel';
+import { useImageGalleryUpload } from './useImageGalleryUpload';
 import { updateProductImageDetails, deleteProductImage } from '@/services/productService';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 
@@ -28,6 +30,11 @@ const withSortOrder = (list: ProductImage[], id: string, sortOrder: number): Pro
 
 const withoutImage = (list: ProductImage[], id: string): ProductImage[] => list.filter((img) => img.id !== id);
 
+// Freshly uploaded images append: the bulk handler assigns each one `max(sortOrder) + 1` and
+// only makes one primary when the product had none, so nothing existing changes underneath us.
+const withUploaded = (list: ProductImage[], added: ProductImage[]): ProductImage[] =>
+  [...list.filter((img) => !added.some((a) => a.id === img.id)), ...added].sort((a, b) => a.sortOrder - b.sortOrder);
+
 /**
  * Existing-image management on the unified editor (menu-bundles #176, slice 7 PR2e).
  *
@@ -39,9 +46,13 @@ const withoutImage = (list: ProductImage[], id: string): ProductImage[] => list.
  * The gallery is DELIBERATELY decoupled from the page's product/form: it holds its own image
  * list and updates it optimistically after each successful op. It must NOT refetch the page's
  * product, because that route flips a full-page loader and re-runs the form's reset effect —
- * which would silently discard the admin's unsaved form edits. NEW uploads are not here; the
- * form's file input stages them onto the page Save, after which the refetched `images` prop
- * re-seeds this list.
+ * which would silently discard the admin's unsaved form edits.
+ *
+ * Upload lives here too since Track F, F7-A. It was dropped by the rewrite this comment used to
+ * describe (#215, `e4e487d`) — leaving the only way to add a photo a naked file input at the far
+ * top of the page — and comes back as the same kind of IMMEDIATE sub-resource write as the ops
+ * above, so it is still not a rival Save. The staged-then-page-Save input survives on the create
+ * route only, where there is no product id yet.
  */
 export default function ImageGallery({ productId, images, productName }: ImageGalleryProps) {
   const { t } = useTranslation();
@@ -51,6 +62,7 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const uploader = useImageGalleryUpload(productId, (added) => setImageList((list) => withUploaded(list, added)));
 
   // Re-seed when the parent hands down a fresh list (a form Save refetch); the immediate ops
   // below keep this list in sync in between, so a gallery op never needs the parent to refetch.
@@ -113,56 +125,62 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
     );
   };
 
-  if (imageList.length === 0) {
-    return (
-      <div className={detailsStyles.infoSection}>
-        <h3>{t('image_gallery')}</h3>
-        <p>{t('no_images_yet')}</p>
-      </div>
-    );
-  }
-
+  // One shape for both states rather than an early return: an empty gallery used to be a dead
+  // sentence with no way out of it, and it is exactly the product that most needs the upload.
   return (
     <div className={detailsStyles.infoSection}>
       <h3>{t('image_gallery')}</h3>
-      {error && <p className={modalStyles.errorMessage}>{error}</p>}
-      <div className={detailsStyles.imageGalleryContainer}>
-        <div className={detailsStyles.primaryImageContainer}>
-          {selectedImage?.url && (
-            <Image
-              src={selectedImage.url}
-              alt={selectedImage.altText || productName}
-              className={detailsStyles.primaryImage}
-              width={1200}
-              height={800}
+      {(error ?? uploader.error) && <p className={modalStyles.errorMessage}>{error ?? uploader.error}</p>}
+      {imageList.length === 0 ? (
+        <p>{t('no_images_yet')}</p>
+      ) : (
+        <div className={detailsStyles.imageGalleryContainer}>
+          <div className={detailsStyles.primaryImageContainer}>
+            {selectedImage?.url && (
+              <Image
+                src={selectedImage.url}
+                alt={selectedImage.altText || productName}
+                className={detailsStyles.primaryImage}
+                width={1200}
+                height={800}
+              />
+            )}
+          </div>
+          <div className={detailsStyles.thumbnailContainer}>
+            {imageList.map((img) => (
+              <Image
+                key={img.id}
+                src={img.url}
+                alt={img.altText}
+                className={`${detailsStyles.thumbnail} ${selectedImageId === img.id ? detailsStyles.active : ''}`}
+                width={160}
+                height={80}
+                onClick={() => setSelectedImageId(img.id)}
+              />
+            ))}
+          </div>
+          {selectedImage && (
+            <ImageActions
+              isPrimary={selectedImage.isPrimary}
+              sortOrder={sortValue}
+              disabled={isSaving}
+              onSetPrimary={handleSetPrimary}
+              onSortOrderChange={(e) => setSortValue(Number.parseInt(e.target.value, 10) || 0)}
+              onSortOrderCommit={handleSortCommit}
+              onDelete={() => setIsConfirmationOpen(true)}
             />
           )}
         </div>
-        <div className={detailsStyles.thumbnailContainer}>
-          {imageList.map((img) => (
-            <Image
-              key={img.id}
-              src={img.url}
-              alt={img.altText}
-              className={`${detailsStyles.thumbnail} ${selectedImageId === img.id ? detailsStyles.active : ''}`}
-              width={160}
-              height={80}
-              onClick={() => setSelectedImageId(img.id)}
-            />
-          ))}
-        </div>
-        {selectedImage && (
-          <ImageActions
-            isPrimary={selectedImage.isPrimary}
-            sortOrder={sortValue}
-            disabled={isSaving}
-            onSetPrimary={handleSetPrimary}
-            onSortOrderChange={(e) => setSortValue(Number.parseInt(e.target.value, 10) || 0)}
-            onSortOrderCommit={handleSortCommit}
-            onDelete={() => setIsConfirmationOpen(true)}
-          />
-        )}
-      </div>
+      )}
+      <ImageUploadPanel
+        stagedFiles={uploader.stagedFiles}
+        hasImages={imageList.length > 0}
+        isUploading={uploader.isUploading}
+        onStage={uploader.stage}
+        onUnstage={uploader.unstage}
+        onUpload={uploader.upload}
+        onCancel={uploader.cancel}
+      />
       <ConfirmationModal
         isOpen={isConfirmationOpen}
         onClose={() => setIsConfirmationOpen(false)}

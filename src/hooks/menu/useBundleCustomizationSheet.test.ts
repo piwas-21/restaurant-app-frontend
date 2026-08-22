@@ -108,6 +108,20 @@ beforeEach(() => {
 });
 
 describe('useBundleCustomizationSheet', () => {
+  it("falls back to the combo's plain description when no translation carries one (F3)", () => {
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+
+    act(() =>
+      result.current.openForBundle({
+        ...bundle,
+        content: { en: { name: 'Lunch Combo', description: '' } },
+        description: 'Burger and a drink',
+      }),
+    );
+
+    expect(result.current.description).toBe('Burger and a drink');
+  });
+
   it('opens seeded with each section default and the child base recipe, priced at the advertised total', () => {
     const { result } = renderHook(() => useBundleCustomizationSheet());
 

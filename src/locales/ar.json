@@ -675,6 +675,8 @@
   "image_gallery": "معرض الصور",
   "no_images_yet": "لا توجد صور بعد",
   "image_update_failed": "فشل تحديث الصورة",
+  "images_too_large": "لم تُضَف — أكبر من {{limit}}: {{files}}",
+  "images_wrong_type": "لم تُضَف — يتم قبول صور JPG وPNG وWebP فقط: {{files}}",
   "product_created_image_failed": "تم إنشاء المنتج، لكن فشل رفع الصور: {{reason}}",
   "product_updated_image_failed": "تم تحديث المنتج، لكن فشل رفع الصور: {{reason}}",
   "product_image_failed_generic": "تم رفض الصور",

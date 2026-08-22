@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { ProductImage } from '@/app/admin/menu-management/interfaces';
 import { uploadBulkProductImages } from '@/services/productService';
 import { serverMessage } from '@/utils/apiFormErrors';
+import { imageRejectionMessage, partitionAcceptableImages } from '@/utils/imageUploadRules';
 
 /** What `POST /api/Products/{id}/images/bulk` resolves to (it answers 200 even on refusal). */
 interface BulkUploadResponse {
@@ -42,15 +43,20 @@ export function useImageGalleryUpload(
   productId: string,
   onUploaded: (images: ProductImage[]) => void,
 ): ImageGalleryUpload {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Refuse what the server would refuse, before the round trip (Track F, F1c). `accept` narrows
+  // the dialog; this catches what it let through anyway — its "All files" escape, a drag-and-drop,
+  // and a 12 MB photo, whose type is perfectly fine.
   const stage = (files: File[]) => {
     if (files.length === 0) return;
-    setError(null);
-    setStagedFiles((current) => [...current, ...files]);
+    const selection = partitionAcceptableImages(files);
+    setError(imageRejectionMessage(t, selection, i18n.language));
+    if (selection.accepted.length === 0) return;
+    setStagedFiles((current) => [...current, ...selection.accepted]);
   };
 
   const unstage = (index: number) => setStagedFiles((current) => current.filter((_, i) => i !== index));

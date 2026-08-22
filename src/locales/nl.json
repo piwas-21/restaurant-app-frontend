@@ -673,6 +673,8 @@
   "image_gallery": "Afbeeldingengalerij",
   "no_images_yet": "Nog geen afbeeldingen",
   "image_update_failed": "Afbeelding bijwerken mislukt",
+  "images_too_large": "Niet toegevoegd — groter dan {{limit}}: {{files}}",
+  "images_wrong_type": "Niet toegevoegd — alleen JPG-, PNG- en WebP-afbeeldingen worden geaccepteerd: {{files}}",
   "product_created_image_failed": "Product aangemaakt, maar het uploaden van de afbeeldingen is mislukt: {{reason}}",
   "product_updated_image_failed": "Product bijgewerkt, maar het uploaden van de afbeeldingen is mislukt: {{reason}}",
   "product_image_failed_generic": "de afbeeldingen zijn geweigerd",

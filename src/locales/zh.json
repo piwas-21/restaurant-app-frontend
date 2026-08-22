@@ -673,6 +673,8 @@
   "image_gallery": "图片画廊",
   "no_images_yet": "暂无图片",
   "image_update_failed": "更新图片失败",
+  "images_too_large": "未添加 — 超过 {{limit}}：{{files}}",
+  "images_wrong_type": "未添加 — 仅接受 JPG、PNG 和 WebP 图片：{{files}}",
   "product_created_image_failed": "产品已创建，但图片上传失败：{{reason}}",
   "product_updated_image_failed": "产品已更新，但图片上传失败：{{reason}}",
   "product_image_failed_generic": "图片被拒绝",

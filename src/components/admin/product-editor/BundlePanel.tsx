@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEditor';
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
+import StagedImagePicker from '@/components/admin/product/StagedImagePicker';
 import type { MenuDefinition } from '@/types/menu';
 import styles from './ProductEditorPage.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
@@ -92,19 +93,12 @@ export default function BundlePanel({
             </div>
           </div>
 
-          <div className={modalStyles.formGroup}>
-            <label htmlFor="bundle-images">
-              {t('menu_image')} {t('optional')}
-            </label>
-            <input
-              id="bundle-images"
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
-            />
-            {imageFiles.length > 0 && <p>{t('files_selected', { count: imageFiles.length })}</p>}
-          </div>
+          <StagedImagePicker
+            inputId="bundle-images"
+            label={t('menu_image')}
+            files={imageFiles}
+            onChange={setImageFiles}
+          />
         </div>
       </div>
 

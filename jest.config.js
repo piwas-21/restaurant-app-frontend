@@ -184,6 +184,9 @@ module.exports = {
     // Track F, F7-A — a hook colocated with its component; `src/components/**/*.tsx` does not
     // reach a `.ts`, and a coverageThreshold row for an uncollected file silently no-ops.
     'src/components/admin/product-editor/useImageGalleryUpload.ts',
+    // Track F, F1c — the client half of the server's allowlist (`src/utils` is not collected
+    // wholesale either).
+    'src/utils/imageUploadRules.ts',
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
     'src/hooks/cart/cartFailureReporting.ts',
@@ -804,6 +807,21 @@ module.exports = {
     // Track F, F7-A — the upload path the slice-7 rewrite dropped, back as an immediate op.
     // The panel is fully exercised; the hook's uncovered branches are the guards that cannot
     // be reached through the UI (upload with nothing staged, a re-entrant upload).
+    // Track F, F1c — the picker may not offer what the server refuses. The rules mirror
+    // backend `appsettings.json`; drift there is what puts the tenant back on "the photo does
+    // not upload", so both the table and the two rejection paths are fully pinned.
+    './src/utils/imageUploadRules.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product/StagedImagePicker.tsx': {
+      statements: 99,
+      branches: 80,
+      functions: 99,
+      lines: 99,
+    },
     './src/components/admin/product-editor/ImageUploadPanel.tsx': {
       statements: 99,
       branches: 85,

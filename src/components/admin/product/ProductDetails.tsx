@@ -5,6 +5,7 @@ import { ProductDetailsProps, productTypes } from './types';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import { AVAILABLE_ALLERGENS } from '@/lib/allergens';
+import StagedImagePicker from './StagedImagePicker';
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({
   register,
@@ -73,18 +74,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           the Save that creates the row. On EDIT this input is gone and the ImageGallery above
           the form owns upload as well as management — one image section, not two. */}
       {showImagePicker && (
-        <div className={modalStyles.formGroup}>
-          <label>
-            {t('product_images')} {t('optional')}
-          </label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
-          />
-          {imageFiles.length > 0 && <p>{t('files_selected', { count: imageFiles.length })}</p>}
-        </div>
+        <StagedImagePicker
+          inputId="product-images"
+          label={t('product_images')}
+          files={imageFiles}
+          onChange={setImageFiles}
+        />
       )}
 
       <div className={modalStyles.formGroup}>

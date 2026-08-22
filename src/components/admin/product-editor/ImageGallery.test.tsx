@@ -4,7 +4,7 @@ import ImageGallery from './ImageGallery';
 import type { ProductImage } from '@/app/admin/menu-management/interfaces';
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
 }));
 
 jest.mock('@/services/productService', () => ({
@@ -192,5 +192,36 @@ describe('ImageGallery — upload, restored as an immediate op (Track F, F7-A)',
     fireEvent.click(screen.getByRole('button', { name: 'cancel' }));
     expect(screen.queryByText('pide.jpg')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'save_uploads' })).not.toBeInTheDocument();
+  });
+});
+
+describe('ImageGallery — what the picker may offer (Track F, F1c)', () => {
+  it('narrows accept to exactly what the server stores, so an iPhone cannot offer a HEIC', () => {
+    const { container } = renderGallery();
+
+    expect(container.querySelector('input[type="file"]')).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp');
+  });
+
+  it('refuses a file over 10 MB before the round trip, and names it', () => {
+    const { container } = renderGallery();
+
+    const huge = new File(['x'], 'holiday.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(huge, 'size', { value: 11 * 1024 * 1024 });
+    pick(container, [huge]);
+
+    expect(screen.getByText('images_too_large')).toBeInTheDocument();
+    expect(screen.queryByText('holiday.jpg')).not.toBeInTheDocument();
+    expect(uploadBulkProductImages).not.toHaveBeenCalled();
+  });
+
+  it('refuses a type the server cannot decode, and keeps the acceptable ones', () => {
+    const { container } = renderGallery();
+
+    pick(container, [new File(['x'], 'camera.heic', { type: 'image/heic' }), photo('pizza.jpg')]);
+
+    expect(screen.getByText('images_wrong_type')).toBeInTheDocument();
+    // The good file is still staged — a mixed pick is not all-or-nothing.
+    expect(screen.getByText('pizza.jpg')).toBeInTheDocument();
+    expect(screen.queryByText('camera.heic')).not.toBeInTheDocument();
   });
 });

@@ -6,12 +6,12 @@
 
 ## Summary
 
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 3 |
-| HIGH | 5 |
-| MEDIUM | 9 |
-| LOW | 2 |
+| Severity  | Count  |
+| --------- | ------ |
+| CRITICAL  | 3      |
+| HIGH      | 5      |
+| MEDIUM    | 9      |
+| LOW       | 2      |
 | **TOTAL** | **19** |
 
 ---
@@ -23,6 +23,7 @@
 **File:** `.env` (project root)
 
 Test credentials committed to repository:
+
 ```
 ADMIN='{email: admin@email.com, password: Rumi.123}'
 CASHIER='{email: CASHIER@TEST.COM, password: Rumi-123}'
@@ -68,6 +69,7 @@ Multiple concurrent 401 responses trigger simultaneous refresh calls with no mut
 ### H2. Vulnerable Dependencies
 
 **Critical/High packages:**
+
 - `jspdf` <=4.2.0: 9 vulnerabilities (PDF injection, XSS, DoS)
 - `dompurify` <=3.3.1: Mutation-XSS, prototype pollution
 - `lodash` <=4.17.23: Code injection, prototype pollution
@@ -86,13 +88,23 @@ Sensitive tokens in URL query params. Visible in browser history, logs, referrer
 
 ---
 
-### H4. File Upload Validation Missing
+### H4. File Upload Validation Missing — **product images DONE** (Track F, F1c)
 
-**File:** `components/admin/product-details/ImageGallery.tsx`
+**Files:** `utils/imageUploadRules.ts` (the rules), `components/admin/product/StagedImagePicker.tsx`
+(create route, product + bundle), `components/admin/product-editor/ImageUploadPanel.tsx` +
+`useImageGalleryUpload.ts` (edit route). The path this finding named,
+`components/admin/product-details/ImageGallery.tsx`, no longer exists — it was rewritten to
+`product-editor/` in #215.
 
-No client-side file type or size validation.
+Every product-image picker now sends `accept="image/jpeg,image/png,image/webp"` and re-checks type
+**and** size in code (a dialog's "All files" escape and drag-and-drop both bypass `accept`), naming
+the file it refused. The cap is **10 MB**, mirroring the server's own
+`FileStorage:MaxFileSizeBytes` — not the 5 MB this finding guessed; matching the server is the
+point, since the check exists to stop a round trip that answers HTTP 200 with
+_"Uploaded 0 images. 1 failed."_
 
-**Fix:** Validate type whitelist (jpeg/png/webp) + 5MB max before upload.
+**Remaining:** the other uploaders — category image (`CategoryModal`), tenant logo, image-backfill
+tooling — still take `image/*` with no size pre-check.
 
 ---
 
@@ -108,26 +120,26 @@ No client-side file type or size validation.
 
 ## MEDIUM Findings
 
-| # | Finding | File |
-|---|---------|------|
-| M1 | CSP uses `unsafe-inline` + `unsafe-eval` | `next.config.ts` |
-| M2 | Refresh token sent in request body (loggable) | `services/authService.ts` |
-| M3 | Incomplete logout cleanup (session ID not cleared) | `AuthContext.tsx` |
-| M4 | Client-only route protection (no server middleware) | `AdminAuthGuard.tsx` |
-| M5 | Console.log in production code | Multiple files |
-| M6 | Session expiry not server-enforced | `sessionService.ts` |
-| M7 | Cookie consent in localStorage, not httpOnly | `CookieConsentContext.tsx` |
-| M8 | Error messages may expose internal details | Various error handlers |
-| M9 | No Next.js middleware.ts for server-side route guards | Missing file |
+| #   | Finding                                               | File                       |
+| --- | ----------------------------------------------------- | -------------------------- |
+| M1  | CSP uses `unsafe-inline` + `unsafe-eval`              | `next.config.ts`           |
+| M2  | Refresh token sent in request body (loggable)         | `services/authService.ts`  |
+| M3  | Incomplete logout cleanup (session ID not cleared)    | `AuthContext.tsx`          |
+| M4  | Client-only route protection (no server middleware)   | `AdminAuthGuard.tsx`       |
+| M5  | Console.log in production code                        | Multiple files             |
+| M6  | Session expiry not server-enforced                    | `sessionService.ts`        |
+| M7  | Cookie consent in localStorage, not httpOnly          | `CookieConsentContext.tsx` |
+| M8  | Error messages may expose internal details            | Various error handlers     |
+| M9  | No Next.js middleware.ts for server-side route guards | Missing file               |
 
 ---
 
 ## LOW Findings
 
-| # | Finding |
-|---|---------|
-| L1 | QR code data displayed without validation |
-| L2 | Console debugging statements in production |
+| #   | Finding                                    |
+| --- | ------------------------------------------ |
+| L1  | QR code data displayed without validation  |
+| L2  | Console debugging statements in production |
 
 ---
 
@@ -146,17 +158,20 @@ No client-side file type or size validation.
 ## Remediation Priority
 
 ### Immediate (This Week)
+
 1. Delete hardcoded credentials from `.env`, rotate accounts (C1)
 2. Run `npm audit fix` (H2)
 3. Fix session ID generation (H5)
 
 ### Before Next Release
+
 4. Implement token refresh mutex (H1)
 5. Add file upload validation (H4)
 6. Move tokens to httpOnly cookies (C2) -- requires backend
 7. Implement CSRF protection (C3) -- requires backend
 
 ### Next Sprint
+
 8. Move tokens from URL params to POST body (H3)
 9. Add Next.js middleware for server-side route protection (M9)
 10. Fix remaining MEDIUM issues

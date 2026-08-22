@@ -102,6 +102,31 @@ describe('OptionalIngredientsSection', () => {
     expect(onQuantityChange).toHaveBeenCalledWith('Cheese', 2);
   });
 
+  // F5: minus at 1 must not dead-end. It drops to 0 AND unticks, through the same deselect path as
+  // the checkbox — the quantity 0 is what prints "NO xxx" on the kitchen ticket.
+  it('drops to 0 and unticks when minus is pressed at quantity 1', () => {
+    const onSelectionChange = jest.fn();
+    const onQuantityChange = jest.fn();
+    render(
+      <OptionalIngredientsSection
+        {...props({
+          selectedIngredients: ['Patty', 'Cheese'],
+          ingredientQuantities: { Cheese: 1 },
+          onSelectionChange,
+          onQuantityChange,
+        })}
+      />,
+    );
+
+    const decrease = screen.getByRole('button', { name: '-' });
+    expect(decrease).not.toBeDisabled();
+
+    fireEvent.click(decrease);
+
+    expect(onSelectionChange).toHaveBeenCalledWith(['Patty']);
+    expect(onQuantityChange).toHaveBeenCalledWith('Cheese', 0);
+  });
+
   it('marks an unselected included-in-base optional as a deduction', () => {
     render(<OptionalIngredientsSection {...props({ selectedIngredients: ['Patty'] })} />);
 

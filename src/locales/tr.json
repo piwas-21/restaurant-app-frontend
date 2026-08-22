@@ -679,6 +679,8 @@
   "image_gallery": "Görsel Galerisi",
   "no_images_yet": "Henüz görsel yok",
   "image_update_failed": "Görsel güncellenemedi",
+  "images_too_large": "Eklenmedi — {{limit}} sınırından büyük: {{files}}",
+  "images_wrong_type": "Eklenmedi — yalnızca JPG, PNG ve WebP görselleri kabul edilir: {{files}}",
   "product_created_image_failed": "Ürün oluşturuldu, ancak görseller yüklenemedi: {{reason}}",
   "product_updated_image_failed": "Ürün güncellendi, ancak görseller yüklenemedi: {{reason}}",
   "product_image_failed_generic": "görseller reddedildi",

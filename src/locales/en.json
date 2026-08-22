@@ -673,6 +673,8 @@
   "image_gallery": "Image Gallery",
   "no_images_yet": "No images yet",
   "image_update_failed": "Failed to update image",
+  "images_too_large": "Not added — larger than {{limit}}: {{files}}",
+  "images_wrong_type": "Not added — only JPG, PNG and WebP images are accepted: {{files}}",
   "product_created_image_failed": "Product created, but the image upload failed: {{reason}}",
   "product_updated_image_failed": "Product updated, but the image upload failed: {{reason}}",
   "product_image_failed_generic": "the images were rejected",

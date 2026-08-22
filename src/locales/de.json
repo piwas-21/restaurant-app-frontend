@@ -680,6 +680,8 @@
   "image_gallery": "Bildergalerie",
   "no_images_yet": "Noch keine Bilder",
   "image_update_failed": "Bild konnte nicht aktualisiert werden",
+  "images_too_large": "Nicht hinzugefügt – größer als {{limit}}: {{files}}",
+  "images_wrong_type": "Nicht hinzugefügt – nur JPG-, PNG- und WebP-Bilder werden akzeptiert: {{files}}",
   "product_created_image_failed": "Produkt erstellt, aber der Bild-Upload ist fehlgeschlagen: {{reason}}",
   "product_updated_image_failed": "Produkt aktualisiert, aber der Bild-Upload ist fehlgeschlagen: {{reason}}",
   "product_image_failed_generic": "die Bilder wurden abgelehnt",

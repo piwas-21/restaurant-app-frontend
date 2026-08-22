@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import adminStyles from '@/app/styles/AdminPage.module.css';
+import { ACCEPTED_IMAGE_TYPES_ATTR } from '@/utils/imageUploadRules';
 import styles from './ImageUploadPanel.module.css';
 
 interface ImageUploadPanelProps {
@@ -97,6 +98,8 @@ export default function ImageUploadPanel({
         ref={inputRef}
         type="file"
         multiple
+        // NOT image/*: that is what makes an iPhone offer the .HEIC the server cannot decode.
+        accept={ACCEPTED_IMAGE_TYPES_ATTR}
         data-testid="gallery-image-input"
         className={styles.hiddenInput}
         onChange={handleChange}

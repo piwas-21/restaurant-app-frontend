@@ -604,6 +604,8 @@
   "image_gallery": "Галерея изображений",
   "no_images_yet": "Пока нет изображений",
   "image_update_failed": "Не удалось обновить изображение",
+  "images_too_large": "Не добавлено — больше {{limit}}: {{files}}",
+  "images_wrong_type": "Не добавлено — принимаются только изображения JPG, PNG и WebP: {{files}}",
   "product_created_image_failed": "Товар создан, но загрузка изображений не удалась: {{reason}}",
   "product_updated_image_failed": "Товар обновлён, но загрузка изображений не удалась: {{reason}}",
   "product_image_failed_generic": "изображения отклонены",

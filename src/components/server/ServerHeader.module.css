@@ -15,6 +15,12 @@
   gap: 1rem;
 }
 
+/* F6 — the pinned order-type toggle sits beside the screen title. `margin-inline-start`, not
+   `margin-left`: the physical-CSS ratchet is at 8 and every one of them is a centring idiom. */
+.quickToggle {
+  margin-inline-start: 0.75rem;
+}
+
 .title {
   margin: 0;
   font-size: 1.5rem;

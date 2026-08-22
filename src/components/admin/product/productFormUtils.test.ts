@@ -20,7 +20,7 @@ jest.mock('@/services/globalIngredientService', () => ({
   searchGlobalIngredients: jest.fn(async () => ({ success: true, data: [] })),
 }));
 
-import { updateProduct } from '@/services/productService';
+import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { updateMenuBundle, createMenuBundle } from '@/services/menuBundleService';
 
@@ -66,6 +66,9 @@ const itemFormData = () => ({
 // error sink stayed silent and the success callback fired, which makes that impossible.
 const setError = jest.fn();
 const onProductUpdated = jest.fn();
+// The partial-success sink: the product was written, its photos were not. Required on both
+// functions, so every harness below passes it and the assertions can read what it was told.
+const onImageUploadFailed = jest.fn();
 
 const submit = async (data: Record<string, unknown>) => {
   await submitEditProductForm({
@@ -78,6 +81,7 @@ const submit = async (data: Record<string, unknown>) => {
     onProductUpdated,
     onClose: () => {},
     fallbackMessage: 'translated fallback',
+    onImageUploadFailed,
   });
 
   expect(setError).not.toHaveBeenCalled();
@@ -161,6 +165,7 @@ describe('submitProductForm — create endpoint dispatch', () => {
       fallbackMessage: 'translated fallback',
       reset: () => {},
       setImageFiles: () => {},
+      onImageUploadFailed,
     });
 
   it('sends a new bundle to the bundle endpoint', async () => {
@@ -231,6 +236,7 @@ describe('the failure paths surface the server’s reason, or the caller’s tra
       onProductUpdated,
       onClose: () => {},
       fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
     });
   };
 
@@ -254,6 +260,7 @@ describe('the failure paths surface the server’s reason, or the caller’s tra
       fallbackMessage: 'translated fallback',
       reset: () => {},
       setImageFiles: () => {},
+      onImageUploadFailed,
     });
   };
 
@@ -354,6 +361,7 @@ describe('untouched translation entries are dropped; entries carrying anything a
       fallbackMessage: 'translated fallback',
       reset: () => {},
       setImageFiles: () => {},
+      onImageUploadFailed,
     });
     expect(setError).not.toHaveBeenCalled();
     return (createProduct as jest.Mock).mock.calls[0][0];
@@ -370,6 +378,7 @@ describe('untouched translation entries are dropped; entries carrying anything a
       onProductUpdated,
       onClose: () => {},
       fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
     });
     expect(setError).not.toHaveBeenCalled();
     return (updateProduct as jest.Mock).mock.calls[0][1];
@@ -455,5 +464,156 @@ describe('untouched translation entries are dropped; entries carrying anything a
     );
 
     expect(payload.content).toEqual({ en: { name: 'Margherita', description: 'A pizza' } });
+  });
+});
+
+/**
+ * Track F / F1b — the half of the photo-upload bug that made it INVISIBLE.
+ *
+ * The bulk endpoint answers a total rejection with HTTP 200 and `success: false` (backend #398), so
+ * nothing throws. Create `console.error`ed that response and edit did not even bind it, so an admin
+ * whose photos were all refused — every compressed photo, until frontend #525 stopped sending them
+ * as `filename="blob"` — read a plain success and a product with no image.
+ */
+describe('a product that was written but whose photos were refused', () => {
+  const photo = () => new File([new Uint8Array(8)], 'Ali Nazik.jpg', { type: 'image/jpeg' });
+  const bulk = uploadBulkProductImages as jest.Mock;
+  const onProductCreated = jest.fn();
+
+  const createWithPhoto = () =>
+    submitProductForm({
+      data: itemFormData() as never,
+      imageFiles: [photo()],
+      currentLanguage: 'en',
+      detailedIngredients: [],
+      setSubmissionStatus: () => {},
+      setError,
+      onProductCreated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      reset: () => {},
+      setImageFiles: () => {},
+      onImageUploadFailed,
+    });
+
+  const editWithPhoto = () =>
+    submitEditProductForm({
+      data: itemFormData() as never,
+      product: { id: 'product-1' },
+      imageFiles: [photo()],
+      detailedIngredients: [],
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
+    });
+
+  // The exact envelope backend #398 sends when every file was rejected: 200, success:false, one
+  // `errors[]` entry per file, each naming the file. `message` is the summary, `errors` the cause.
+  const allRefused = {
+    success: false,
+    message: 'None of the 1 files could be uploaded.',
+    data: null,
+    errors: ["'blob' — File type not allowed. Allowed types: .jpg, .jpeg, .png, .webp"],
+  };
+
+  it.each([
+    ['create', () => createWithPhoto()],
+    ['edit', () => editWithPhoto()],
+  ])("%s: reports the server's per-file reason instead of swallowing it", async (_label, run) => {
+    bulk.mockResolvedValueOnce(allRefused);
+
+    await run();
+
+    expect(onImageUploadFailed).toHaveBeenCalledTimes(1);
+    expect(onImageUploadFailed).toHaveBeenCalledWith(
+      "'blob' — File type not allowed. Allowed types: .jpg, .jpeg, .png, .webp",
+    );
+  });
+
+  // A refused PHOTO is not a refused PRODUCT: the write already committed, so the run finishes
+  // (navigate/refresh) and the form-level error slot — which says "your save failed" — stays empty.
+  // On create that is load-bearing: leaving the form open invites a second Save and a duplicate.
+  it.each([
+    ['create', () => createWithPhoto(), onProductCreated],
+    ['edit', () => editWithPhoto(), onProductUpdated],
+  ])('%s: still finishes the run and does not set a form-level error', async (_label, run, done) => {
+    bulk.mockResolvedValueOnce(allRefused);
+
+    await run();
+
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(setError).not.toHaveBeenCalled();
+  });
+
+  // `success: true` WITH errors — "Uploaded 1 images. 1 failed.". Checking only `!success` would
+  // silently claim a photo that is not there, which is the same defect one size smaller.
+  it('reports a PARTIAL upload, which the server still calls a success', async () => {
+    bulk.mockResolvedValueOnce({
+      success: true,
+      message: 'Uploaded 1 images. 1 failed.',
+      data: [{ id: 'img-1' }],
+      errors: ["'menu.heic' — File type not allowed. Allowed types: .jpg, .jpeg, .png, .webp"],
+    });
+
+    await createWithPhoto();
+
+    expect(onImageUploadFailed).toHaveBeenCalledWith(
+      "'menu.heic' — File type not allowed. Allowed types: .jpg, .jpeg, .png, .webp",
+    );
+  });
+
+  it('says nothing when every photo was stored', async () => {
+    bulk.mockResolvedValueOnce({ success: true, message: 'Successfully uploaded 1 images', data: [{}], errors: null });
+
+    await createWithPhoto();
+
+    expect(onImageUploadFailed).not.toHaveBeenCalled();
+    expect(onProductCreated).toHaveBeenCalledTimes(1);
+  });
+
+  // A 413/401/502 or a dead network THROWS rather than resolving. It must not fall through to the
+  // caller's catch: that sets a form-level error for a product the server actually saved.
+  it.each([
+    ['create', () => createWithPhoto(), onProductCreated],
+    ['edit', () => editWithPhoto(), onProductUpdated],
+  ])('%s: reports a THROWN upload failure the same way', async (_label, run, done) => {
+    bulk.mockRejectedValueOnce(new ApiError(413, 'Request body too large'));
+
+    await run();
+
+    expect(onImageUploadFailed).toHaveBeenCalledWith('Request body too large');
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(setError).not.toHaveBeenCalled();
+  });
+
+  // `null` and not a client-authored sentence: the caller owns the translated generic, so the two
+  // cases stay distinguishable — a reason the server gave, and no reason at all.
+  it('passes null when the server described nothing', async () => {
+    bulk.mockResolvedValueOnce({ success: false, message: '   ', errors: [] });
+
+    await createWithPhoto();
+
+    expect(onImageUploadFailed).toHaveBeenCalledWith(null);
+  });
+
+  it('does not call the upload endpoint at all when no photo is staged', async () => {
+    await submitEditProductForm({
+      data: itemFormData() as never,
+      product: { id: 'product-1' },
+      imageFiles: [],
+      detailedIngredients: [],
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
+    });
+
+    expect(bulk).not.toHaveBeenCalled();
+    expect(onImageUploadFailed).not.toHaveBeenCalled();
   });
 });

@@ -15,7 +15,8 @@ import { submitEditProductForm, submitProductForm } from '@/components/admin/pro
 import type { Category } from '@/components/admin/product/types';
 import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
-import { isPersistedMenuId, stripTemporaryMenuSectionIds } from '@/utils/menuSectionDraft';
+import { toSubmittableMenuDefinition } from '@/utils/menuSectionDraft';
+import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
 import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
 
 interface UseProductEditorFormOptions {
@@ -116,18 +117,8 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const onSubmit = form.handleSubmit(async (data) => {
     const payload: Record<string, unknown> = { ...(data as Record<string, unknown>) };
 
-    if (isBundle) {
-      // Item ids must be stripped too, not just section ids: MenuSectionItemDto.Id is Guid?,
-      // so a `temp-…` id fails STJ conversion and the request 400s. The write path's inline
-      // mapping only handles the section id — see toMenuDefinitionPayload's docstring.
-      const definition: Record<string, unknown> = {
-        ...menuDefinition,
-        sections: stripTemporaryMenuSectionIds(menuDefinition.sections),
-      };
-      // A temp definition id would 400 the same way; the backend assigns one.
-      if (!isPersistedMenuId(menuDefinition.id)) delete definition.id;
-      payload.menuDefinition = definition;
-    }
+    // Section AND item AND definition ids: every `temp-…` one 400s (Guid? on the wire).
+    if (isBundle) payload.menuDefinition = toSubmittableMenuDefinition(menuDefinition);
 
     // UpdateMenuBundleCommand / CreateMenuBundleCommand have no DetailedIngredients, so
     // anything sent here for a bundle is silently dropped — but the reconciliation still runs
@@ -140,9 +131,12 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
         imageFiles,
         currentLanguage: i18n.language || 'en',
         detailedIngredients: ingredientsForKind,
-        // submitProductForm reports 'creating' | 'uploading' | 'idle'; the page only needs a
-        // boolean. On success it navigates away via onSaved, so no dirty flags to clear here.
+        // 'creating' | 'uploading' | 'idle' collapses to a boolean here; on success the page
+        // navigates away via onSaved, so there are no dirty flags to clear.
         setSubmissionStatus: (status) => setIsSubmitting(status !== 'idle'),
+        // The product is created before its photos are; a refusal there must be SAID, and said on
+        // a surface that outlives the redirect to the list. See utils/productImageFailure.
+        onImageUploadFailed: (reason) => reportProductImageUploadFailure(t, 'create', reason),
         setError,
         onProductCreated: onSaved,
         onClose: () => {},
@@ -171,6 +165,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
       },
       onClose: () => {},
       fallbackMessage: t('unexpected_error', 'An unexpected error occurred.'),
+      onImageUploadFailed: (reason) => reportProductImageUploadFailure(t, 'edit', reason),
     });
   });
 

@@ -1,5 +1,6 @@
 import { apiClient } from '@/utils/apiClient';
 import { compressImageForUpload, compressImagesForUpload } from '@/utils/imageCompression';
+import type { Product } from '@/app/admin/menu-management/interfaces';
 
 const PRODUCTS_API_URL = '/api/Products';
 
@@ -79,8 +80,36 @@ export const unsetFeaturedSpecial = async () => {
 };
 
 // Product Search
-export const searchProducts = async (query: string) => {
-  return await apiClient.get(`${PRODUCTS_API_URL}?search=${encodeURIComponent(query)}&pageSize=20`);
+
+/**
+ * The `GET /api/Products` envelope as the SEARCH callers read it.
+ *
+ * Every field is optional below `success` on purpose: a refusal arrives as **200 + `success: false`**
+ * with `data: null` (`ProductsController` wraps `ApiResponse.Failure`), so a non-optional `data`
+ * would type-check a read that crashes at runtime on the one path that matters.
+ */
+export interface ProductSearchResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    items?: Product[];
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
+  };
+  errors?: unknown;
+}
+
+/**
+ * Server-side product search. `search` is implemented by `GetProductsQuery` and matches the
+ * LOCALISED names too (`p.Descriptions.Any(c => c.Name...)`), which is why no caller may re-filter
+ * the answer in the browser: a row the server matched on its Turkish name has no matching `name`.
+ */
+export const searchProducts = async (query: string): Promise<ProductSearchResponse> => {
+  return (await apiClient.get(
+    `${PRODUCTS_API_URL}?search=${encodeURIComponent(query)}&pageSize=20`,
+  )) as ProductSearchResponse;
 };
 
 // Menu Definition Management

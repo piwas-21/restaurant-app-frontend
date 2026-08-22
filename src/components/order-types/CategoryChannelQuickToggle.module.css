@@ -1,0 +1,52 @@
+/* Dark mode uses [data-theme='dark'] per CLAUDE.md §5.7 — never prefers-color-scheme. */
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 22rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: start;
+}
+
+.trigger:hover {
+  border-color: var(--brand-primary);
+}
+
+/* Something IS closed right now — the one state the floor must be able to see without opening
+   anything. Warning TEXT token, not the amber fill (§9.9: it reads 1.97:1 on white). */
+.triggerRestricted {
+  border-color: var(--feedback-warning-text);
+  background-color: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+}
+
+[data-theme='dark'] .triggerRestricted {
+  background-color: var(--surface-card);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.caption {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.summary {
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

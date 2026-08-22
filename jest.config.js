@@ -211,6 +211,12 @@ module.exports = {
     'src/lib/tenantCopy.ts',
     'src/lib/firstPaintCopy.ts',
     'src/utils/homePageTitle.ts',
+    // F6 — the pinned order-type quick toggle. `src/utils` and `src/hooks` are not collected
+    // wholesale, so without these two rows both suites are deletable with a fully green gate.
+    // The three components under `src/components/order-types/` need no row: the wildcard at the
+    // top of this list already collects them.
+    'src/utils/categoryChannelStatus.ts',
+    'src/hooks/orderTypes/useCategoryChannelQuickToggle.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -638,6 +644,44 @@ module.exports = {
       branches: 100,
       functions: 100,
       lines: 100,
+    },
+    // F6 — the third write surface, and the only one a waiter or cashier ever sees. Pinned high
+    // for the same reason as the matrix above (every way it can be wrong is silent) plus one this
+    // one owns alone: the ROLE GATE. `PUT /api/Categories/{id}` is `[RequireAdmin]`, so a gate
+    // that regresses does not throw — it renders a control that 403s mid-service.
+    './src/utils/categoryChannelStatus.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The one uncovered branch is the `if (!enabled) return` early exit inside `refresh`, which is
+    // unreachable once the effect that calls it is itself gated on `enabled`.
+    './src/hooks/orderTypes/useCategoryChannelQuickToggle.ts': {
+      statements: 97,
+      branches: 94,
+      functions: 99,
+      lines: 99,
+    },
+    // The uncovered branches on all three are the `i18n.language || 'en'` fallback already
+    // accepted on `useItemAvailabilityNotice` and `OrderTypeConflictModal`.
+    './src/components/order-types/CategoryChannelQuickToggle.tsx': {
+      statements: 99,
+      branches: 86,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/order-types/ChannelQuickToggleModal.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/order-types/ChannelQuickToggleRow.tsx': {
+      statements: 99,
+      branches: 92,
+      functions: 99,
+      lines: 99,
     },
     // E1 — the one place a status becomes something a user sees, and the one place a staff surface
     // learns what it may become NEXT. Pinned at 100 because every way this file can be wrong is

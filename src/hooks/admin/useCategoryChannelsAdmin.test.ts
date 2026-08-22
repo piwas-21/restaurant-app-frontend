@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { OrderType } from '@/types/order';
 import { useCategoryChannelsAdmin, CATEGORY_PAGE_SIZE } from './useCategoryChannelsAdmin';
-import { getCategories, updateCategory } from '@/services/categoryService';
+import { getCategories, updateCategoryOrderTypes } from '@/services/categoryService';
 
 jest.mock('@/services/categoryService');
 jest.mock('notistack', () => ({ enqueueSnackbar: jest.fn() }));
@@ -10,7 +10,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 const mockGetCategories = getCategories as jest.MockedFunction<typeof getCategories>;
-const mockUpdateCategory = updateCategory as jest.MockedFunction<typeof updateCategory>;
+const mockUpdate = updateCategoryOrderTypes as jest.MockedFunction<typeof updateCategoryOrderTypes>;
 
 const DURUM = { id: 'c1', name: 'Dürüm Wraps', isActive: true, displayOrder: 0, availableOrderTypes: null };
 const GRILLS = { id: 'c2', name: 'Grills', isActive: true, displayOrder: 1, availableOrderTypes: 6 };
@@ -27,7 +27,7 @@ async function renderLoaded() {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockUpdateCategory.mockResolvedValue({ success: true } as never);
+  mockUpdate.mockResolvedValue({ success: true } as never);
 });
 
 describe('useCategoryChannelsAdmin', () => {
@@ -98,7 +98,9 @@ describe('useCategoryChannelsAdmin', () => {
     expect(result.current.isDirty('c2')).toBe(true);
   });
 
-  it('save echoes name/isActive so the update cannot blank them, then clears dirty', async () => {
+  it('saves through the shared writer, handing it the whole row, then clears dirty', async () => {
+    // The §9.1 echo itself is pinned on `updateCategoryOrderTypes` in `categoryService.test.ts` —
+    // there is one writer now, so the payload is asserted once, where it is built.
     mockList([GRILLS]);
     const { result } = await renderLoaded();
 
@@ -107,19 +109,16 @@ describe('useCategoryChannelsAdmin', () => {
       await result.current.save('c2');
     });
 
-    expect(mockUpdateCategory).toHaveBeenCalledWith('c2', {
-      id: 'c2',
-      name: 'Grills',
-      description: undefined,
-      isActive: true,
-      availableOrderTypes: null,
-    });
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'c2', name: 'Grills', isActive: true }),
+      null,
+    );
     expect(result.current.isDirty('c2')).toBe(false);
   });
 
   it('a failed save leaves the row dirty so the edit is not silently lost', async () => {
     mockList([DURUM]);
-    mockUpdateCategory.mockRejectedValue(new Error('boom'));
+    mockUpdate.mockRejectedValue(new Error('boom'));
     const { result } = await renderLoaded();
 
     act(() => result.current.toggle('c1', OrderType.DineIn));

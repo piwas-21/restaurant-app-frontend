@@ -7,6 +7,7 @@ import { useCartFeedback } from '@/hooks/cart/useCartFeedback';
 import { getProductById } from '@/services/menuService';
 import { buildInitialSheetState, hasCustomizationOptions } from '@/utils/itemSheetState';
 import { toBundleItemFromDetail } from '@/utils/catalogItem';
+import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import type { SelectedSide } from '@/utils/linePrice';
@@ -46,20 +47,14 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
   const [selectedSideItems, setSelectedSideItems] = useState<SelectedSide[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState('');
 
-  const resolveName = useCallback(
-    (p: Pick<DetailedProduct, 'content' | 'name'>) =>
-      p.content?.[currentLanguage]?.name || p.content?.en?.name || p.name,
-    [currentLanguage],
-  );
-
   // One add-success path for both the direct-add and the sheet's Add button — they had drifted
   // into two copies of the same snackbar, and each would now need its own `onAdded` call.
   const notifyAdded = useCallback(
     (added: Pick<DetailedProduct, 'content' | 'name'>) => {
-      notifyItemAdded(resolveName(added));
+      notifyItemAdded(localizedName(added, currentLanguage));
       onAdded?.();
     },
-    [notifyItemAdded, onAdded, resolveName],
+    [notifyItemAdded, onAdded, currentLanguage],
   );
 
   const close = useCallback(() => {
@@ -119,8 +114,10 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
     [addItem, notifyAdded, notifyAddFailed, onBundleDetected],
   );
 
-  const title = product ? resolveName(product) : '';
-  const description = product?.content?.[currentLanguage]?.description || product?.content?.en?.description;
+  const title = product ? localizedName(product, currentLanguage) : '';
+  // The same chain the browse card uses, so the sheet can no longer omit a description the card
+  // just showed (Track F/F3) — including the fall back to the plain `Product.Description`.
+  const description = product ? localizedDescription(product, currentLanguage) : undefined;
 
   const linePrice = useLinePrice({
     kind: 'product',

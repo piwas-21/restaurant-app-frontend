@@ -194,12 +194,14 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   });
 
   // frontend #223: staged uploads live outside RHF, so picking an image and changing nothing
-  // else left Save disabled and the upload unreachable.
+  // else left Save disabled and the upload unreachable. Asserted on a BUNDLE since Track F
+  // F7-B: an item's edit route no longer stages anything (its gallery uploads immediately),
+  // and the bundle picker is the staged path that survives on edit.
   it('enables Save after an image-only change', async () => {
-    const { container } = await renderEditor(item, false);
+    const { container } = await renderEditor(bundle, true);
 
     expect(screen.getByTestId('editor-save')).toBeDisabled();
-    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = container.querySelector('#bundle-images') as HTMLInputElement;
     fireEvent.change(fileInput, {
       target: { files: [new File(['x'], 'pizza.png', { type: 'image/png' })] },
     });
@@ -403,5 +405,33 @@ describe('ProductEditorPage — existing-image management', () => {
 
     await renderEditor(bundle, true);
     expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
+  });
+
+  // Track F, F7-C. The tenant's complaint was positional: images sat below the sticky Save bar
+  // after nine other sections. They now lead the page — and stay OUTSIDE the form, because
+  // ConfirmationModal's buttons default to type="submit" and "delete this image → Yes" would
+  // otherwise submit the product.
+  it('renders the gallery above the form, and not inside it', async () => {
+    const { container } = await renderEditor(item, false);
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    const gallery = screen.getByRole('heading', { name: 'image_gallery' });
+    expect(form.contains(gallery)).toBe(false);
+    expect(form.compareDocumentPosition(gallery) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+  });
+
+  // Track F, F7-B. Two upload entry points with different semantics (staged at the top,
+  // immediate at the bottom) was the confusion itself, so edit keeps only the gallery.
+  it('offers no staged file input on an item edit, and keeps one on create', async () => {
+    // Container-scoped, not `screen`: both renders share one document body here.
+    const editRender = await renderEditor(item, false);
+    expect(editRender.container.textContent).not.toContain('product_images');
+    // The only file input left on the edit route is the gallery's own (immediate) one.
+    expect(editRender.container.querySelectorAll('input[type="file"]')).toHaveLength(1);
+    expect(editRender.container.querySelector('[data-testid="gallery-image-input"]')).not.toBeNull();
+
+    const createRender = await renderEditor(emptyProductDetails(false), false, 'create');
+    expect(createRender.container.textContent).toContain('product_images');
+    expect(createRender.container.querySelector('input[type="file"]')).not.toBeNull();
   });
 });

@@ -180,6 +180,9 @@ module.exports = {
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
+    // Track F, F7-A — a hook colocated with its component; `src/components/**/*.tsx` does not
+    // reach a `.ts`, and a coverageThreshold row for an uncollected file silently no-ops.
+    'src/components/admin/product-editor/useImageGalleryUpload.ts',
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
     'src/hooks/cart/cartFailureReporting.ts',
@@ -747,6 +750,21 @@ module.exports = {
       branches: 82,
       functions: 95,
       lines: 97,
+    },
+    // Track F, F7-A — the upload path the slice-7 rewrite dropped, back as an immediate op.
+    // The panel is fully exercised; the hook's uncovered branches are the guards that cannot
+    // be reached through the UI (upload with nothing staged, a re-entrant upload).
+    './src/components/admin/product-editor/ImageUploadPanel.tsx': {
+      statements: 99,
+      branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/useImageGalleryUpload.ts': {
+      statements: 95,
+      branches: 78,
+      functions: 99,
+      lines: 99,
     },
     './src/components/admin/product-editor/ImageActions.tsx': {
       statements: 99,

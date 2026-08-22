@@ -100,6 +100,12 @@ export interface ProductDetailsProps {
   control: any;
   imageFiles: File[];
   setImageFiles: (files: File[]) => void;
+  /**
+   * Render the staged-upload file input? True on CREATE only (Track F, F7-B): there is no
+   * product id before the POST, so a new product's images must ride the page Save. On edit the
+   * gallery owns images end to end and a second, staged picker is the split the tenant reported.
+   */
+  showImagePicker?: boolean;
 }
 
 export interface MultilingualContentProps {

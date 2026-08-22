@@ -1,0 +1,46 @@
+/* The gallery's upload affordance (Track F, F7-A). */
+.uploadSection {
+  margin-top: 1rem;
+}
+
+.stagedFilesList {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style-type: none;
+}
+
+.stagedFileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+.removeStagedFileBtn {
+  padding: 0 0.5rem;
+  background: none;
+  border: none;
+  color: var(--feedback-danger);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.stagedActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/*
+  The input is driven by the button above it (a raw file input is unstylable and reads as a
+  second, rival control). `display: none` rather than a visually-hidden clip: it is never the
+  labelled control — the button is — so keeping it in the a11y tree would announce a duplicate.
+*/
+.hiddenInput {
+  display: none;
+}

@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { dismissToastsOverCartButton } from '../../helpers/menuBasket';
 
 /**
- * HIGH-tier — mobile cart bottom-sheet (BUGS-IMPROVEMENTS-PLAN §C1.5.f).
+ * HIGH-tier — mobile cart bottom-sheet (the C1.5 order-flow redesign, sub-task f).
  *
  * Mobile users (< 1024px, sidebar hidden) interact with the cart through
  * the FloatingCartButton on /menu, which now opens a bottom-sheet
@@ -60,6 +61,12 @@ test('mobile FAB opens cart bottom-sheet with the same controls as the desktop s
   await expect(page.getByRole('dialog', { name: /shopping basket/i })).toBeHidden();
   const fab = page.getByRole('button', { name: /view cart/i });
   await expect(fab).toBeVisible({ timeout: 5_000 });
+
+  // The add above raises a toast, and a bottom-trailing one lands ON this button — the same
+  // interception that flakes `checkout-guest` (#541). Clear it here too, rather than only inside
+  // `openMenuBasket`, because this test deliberately clicks the FAB itself to prove it is the
+  // sheet's own entry point.
+  await dismissToastsOverCartButton(page);
 
   // Tapping it opens the sheet (a BaseModal-driven dialog whose
   // accessible name is the same "Shopping Basket" the sidebar uses).

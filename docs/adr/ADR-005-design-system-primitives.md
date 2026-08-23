@@ -67,7 +67,7 @@ Without primitives, each implementation drifts: focus traps go missing, escape-t
 - Document the "extend, don't bypass" rule in the design system doc.
 - New design-system primitives need a sponsoring use case (3+ existing or near-term consumers); don't add prematurely.
 
-## Amendment 2026-08-02 — `CheckboxField` and `ChannelPicker` (BUGS-IMPROVEMENTS-PLAN E2)
+## Amendment 2026-08-02 — `CheckboxField` and `ChannelPicker` (order-type availability, E2)
 
 `FormField` renders the label ABOVE the input, which is the wrong shape for a checkbox — so it was
 never used for one, and every checkbox in the app was a raw `<input>`. The two order-type

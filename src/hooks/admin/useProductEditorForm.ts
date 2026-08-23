@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useFieldArray, useForm, type FieldValues, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { getCategories } from '@/services/categoryService';
 import {
   createMenuBundleSchema,
   createProductSchema,
@@ -12,12 +11,12 @@ import {
   editProductSchema,
 } from '@/components/admin/product/schemas';
 import { submitEditProductForm, submitProductForm } from '@/components/admin/product/productFormUtils';
-import type { Category } from '@/components/admin/product/types';
 import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
 import { toSubmittableMenuDefinition } from '@/utils/menuSectionDraft';
 import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
 import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
+import { useEditorCategories } from './useEditorCategories';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -39,7 +38,9 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const { t, i18n } = useTranslation();
   const editorDefaults = isBundle ? toBundleDefaults(product) : toItemDefaults(product);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  // The list AND the reason it is missing. A failed category fetch used to be a console.error and
+  // an empty control — see useEditorCategories.
+  const { categories, categoriesError } = useEditorCategories(isBundle);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [selectedSideItemIds, setSelectedSideItemIds] = useState<string[]>([]);
   const [detailedIngredients, setDetailedIngredients] = useState<ProductIngredient[]>([]);
@@ -68,16 +69,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
 
   const variations = useFieldArray({ control, name: 'variations' });
   const content = useFieldArray({ control, name: 'content' });
-
-  useEffect(() => {
-    const load = async () => {
-      const response = await getCategories();
-      if (response.success) setCategories(response.data?.items ?? []);
-    };
-    // Bundles have no category control (MenuBundleDto carries none), so don't fetch for them.
-    if (isBundle) return;
-    load().catch((err) => console.error('useProductEditorForm: failed to load categories', err));
-  }, [isBundle]);
 
   useEffect(() => {
     reset(isBundle ? toBundleDefaults(product) : toItemDefaults(product));
@@ -172,6 +163,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   return {
     form,
     categories,
+    categoriesError,
     currentLanguage: i18n.language || 'en',
     selectedCategoryIds: (watch('categoryIds') as string[] | undefined) ?? [],
     primaryCategoryId: (watch('primaryCategoryId') as string | undefined) ?? '',

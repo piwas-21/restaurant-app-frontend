@@ -140,6 +140,7 @@ export default function ProductEditorPage({
                 register={form.register}
                 errors={errors}
                 categories={editor.categories}
+                categoriesError={editor.categoriesError}
                 selectedCategoryIds={editor.selectedCategoryIds}
                 control={form.control}
               />

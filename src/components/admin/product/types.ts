@@ -90,6 +90,8 @@ export interface ProductBasicInfoProps {
   register: any;
   errors: any;
   categories: Category[];
+  /** Why `categories` is empty, when the fetch failed rather than the tenant having none. */
+  categoriesError?: string | null;
   selectedCategoryIds: string[];
   control: any;
 }

@@ -10,6 +10,7 @@ export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
   register,
   errors,
   categories,
+  categoriesError,
   selectedCategoryIds,
   control,
 }) => {
@@ -55,6 +56,14 @@ export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             </div>
           )}
         />
+        {/* An empty chip group means one of two things — this tenant has no categories, or the
+            fetch failed — and the admin cannot tell them apart from the chips. Saying which is the
+            difference between "create a category first" and "the list is stale, do not save yet". */}
+        {categoriesError && (
+          <p role="alert" data-testid="categories-load-error" className={modalStyles.errorMessage}>
+            {categoriesError}
+          </p>
+        )}
         {errors.categoryIds && <p className={modalStyles.errorMessage}>{errors.categoryIds.message}</p>}
       </div>
 

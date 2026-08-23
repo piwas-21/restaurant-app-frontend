@@ -51,7 +51,7 @@ Each context lives in `src/contexts/<Name>Context.tsx`, exports `<Name>Provider`
 ### Mitigation for the negatives
 - Document the re-render hazard in the design system doc.
 - If a context grows to >5 fields with independent consumers, split it before reaching for a library.
-- Re-evaluate when the order-flow redesign (see [BUGS-IMPROVEMENTS-PLAN](../../docs/plans/BUGS-IMPROVEMENTS-PLAN.md) Track C) ships — it introduces `OrderTypeContext` and may surface scaling pain.
+- ~~Re-evaluate when the order-flow redesign ships~~ — **it shipped** (2026-08; the retired workspace bugs/improvements plan's Track C). It introduced `OrderTypeContext`, and the scaling pain this ADR predicted has not appeared: the context holds one channel plus its follow-up state, persisted with a TTL. Re-evaluate instead if a THIRD order-flow context is proposed.
 
 ## Alternatives considered
 

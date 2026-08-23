@@ -226,6 +226,9 @@ module.exports = {
     'src/hooks/admin/useEditorCategories.ts',
     'src/components/server/useProductCustomizationDetails.ts',
     'src/components/server/useProductCustomizationSheet.ts',
+    // The smart-skip checkout decision. `src/lib` is not collected wholesale, so without this row
+    // the suite that pins the per-order-type profile floor is deletable with a fully green gate.
+    'src/lib/checkout/profileCompleteness.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -289,6 +292,14 @@ module.exports = {
     './src/hooks/checkout/useOnlineCheckout.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/hooks/checkout/useOnlinePaymentAvailability.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/lib/checkout/unpaidOnlineOrder.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── The smart-skip profile floor. ───────────────────────────────────────────────────────────
+    // `getProfileCompleteness` decides whether a diner is sent straight to /checkout/review with
+    // their profile copied in, and NOTHING downstream re-checks it: the review page's guard only
+    // asks whether `customerInfo` exists, and the backend order validator looks at items and tip.
+    // Its branch matrix is therefore the only thing between a blank profile and a nameless order —
+    // and it had no test at all until this suite landed. Measured with CI's own command
+    // (`npx jest --ci --coverage`), pinned at actual − 1pt; the file is at 100 on every axis.
+    './src/lib/checkout/profileCompleteness.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     './src/config/paymentMethods.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
     // ── S9 — the return trip (SOFRA-PAYMENTS-PLAN §5). ───────────────────────────────────────────
     // `useCheckoutReturn` decides whether a diner is told their payment succeeded, and its rule is

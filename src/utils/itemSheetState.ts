@@ -1,4 +1,5 @@
 import type { DetailedProduct } from '@/types/menu';
+import { firstActiveVariationId } from './baseProductVisibility';
 import { buildBaseIngredientSelection } from './ingredientSelection';
 import type { SelectedSide } from './linePrice';
 
@@ -37,6 +38,10 @@ export function buildInitialSheetState(detail: DetailedProduct): InitialSheetSta
     selectedSideItems: (detail.suggestedSideItems ?? [])
       .filter((side) => side.isRequired)
       .map((side) => ({ id: side.id, quantity: 1 })),
-    selectedVariationId: detail.variations?.[0]?.id ?? null,
+    // The first radio the guest can SEE, not `variations[0]`: that took the first variation whether
+    // or not it was active, so a product whose first variation was off opened on a selection with
+    // no visible radio. Load-bearing since Track F / F2 — with the base row hidden, a null start
+    // is an add the server refuses.
+    selectedVariationId: firstActiveVariationId(detail.variations),
   };
 }

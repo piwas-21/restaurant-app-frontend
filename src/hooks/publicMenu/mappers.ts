@@ -119,6 +119,7 @@ export function mapProductDtoToMenuItem(p: ProductDto, categoryKey?: string): Me
     suggestedSideItems: Array.isArray(p.suggestedSideItems) ? p.suggestedSideItems : [],
     categoryKey,
     isSpecial: p.isSpecial,
+    hideBaseProduct: p.hideBaseProduct === true,
     isActive: p.isActive,
     isAvailable: p.isAvailable,
     images: mapImages(p.images, fallbackName),

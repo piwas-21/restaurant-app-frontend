@@ -29,6 +29,37 @@ export const updateCategory = async (categoryId: string, categoryData: UpdateCat
   return await apiClient.put(`${CATEGORIES_API_URL}/${categoryId}`, categoryData);
 };
 
+/** The subset of a category a channel write has to echo back. */
+export interface CategoryChannelEcho {
+  id: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+}
+
+/**
+ * THE writer for a category's order-type mask. Every surface that changes what a category can be
+ * ordered through goes through this one function — the admin matrix under restaurant settings and
+ * the pinned quick toggle on the admin/cashier/server screens.
+ *
+ * It exists because of §9.1: `UpdateCategoryCommand` is a FULL-REPLACE PUT that assigns
+ * name/description/isActive/availableOrderTypes unconditionally, so a caller that omits any of them
+ * blanks it. Echoing them is not optional, and a second hand-rolled copy of that payload is exactly
+ * how the field got wiped the first time. `displayOrder` is deliberately NOT sent: the handler never
+ * assigns it (`ReorderCategoriesCommand` owns ordering), so omitting that one is safe.
+ *
+ * ⚠️ `[RequireAdmin]` on `PUT /api/Categories/{id}` — a Cashier or Server token gets a 403 here.
+ */
+export const updateCategoryOrderTypes = async (category: CategoryChannelEcho, availableOrderTypes: number | null) => {
+  return await updateCategory(category.id, {
+    id: category.id,
+    name: category.name,
+    description: category.description ?? undefined,
+    isActive: category.isActive,
+    availableOrderTypes,
+  });
+};
+
 export const reorderCategory = async (categoryId: string, displayOrder: number) => {
   const payload = {
     categoryOrders: [

@@ -5,6 +5,7 @@ import { ProductDetailsProps, productTypes } from './types';
 import styles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import { AVAILABLE_ALLERGENS } from '@/lib/allergens';
+import StagedImagePicker from './StagedImagePicker';
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({
   register,
@@ -12,6 +13,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   control,
   imageFiles,
   setImageFiles,
+  showImagePicker = true,
 }) => {
   const { t } = useTranslation();
 
@@ -56,23 +58,29 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             <input type="checkbox" id="product-special" {...register('isSpecial')} />
             <label htmlFor="product-special">{t('special_of_the_day_title')}</label>
           </div>
+          {/* Only meaningful for a product that HAS variations, but shown unconditionally: the
+              variations are edited further down the same form, so a chip that appeared and
+              disappeared as rows were added would be the more confusing control. The base price
+              above stays live either way — every variation price is derived from it. */}
+          <div className={modalStyles.chip}>
+            <input type="checkbox" id="product-hide-base" {...register('hideBaseProduct')} />
+            <label htmlFor="product-hide-base">{t('hide_base_product')}</label>
+          </div>
         </div>
       </div>
 
-      <div className={modalStyles.formGroup}>
-        <label>
-          {t('product_images')} {t('optional')}
-        </label>
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
+      {/* CREATE only (Track F, F7-B). A new product has no id yet and both image endpoints are
+          sub-resources of /api/Products/{id}, so its images can only be STAGED and uploaded by
+          the Save that creates the row. On EDIT this input is gone and the ImageGallery above
+          the form owns upload as well as management — one image section, not two. */}
+      {showImagePicker && (
+        <StagedImagePicker
+          inputId="product-images"
+          label={t('product_images')}
+          files={imageFiles}
+          onChange={setImageFiles}
         />
-        {imageFiles.length > 0 && <p>{t('files_selected', { count: imageFiles.length })}</p>}
-        {/* Existing images are managed by the editor's ImageGallery (immediate, per-image
-            endpoints), not listed read-only here. This input only stages NEW uploads. */}
-      </div>
+      )}
 
       <div className={modalStyles.formGroup}>
         <h3>

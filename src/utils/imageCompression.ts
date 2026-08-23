@@ -23,6 +23,9 @@ const SKIP_TYPES = new Set(['image/gif', 'image/svg+xml']);
  * Best-effort client-side downscale/compress of a single image before upload. Returns the original
  * file unchanged for non-images / skipped types, or on any failure (the backend still resizes), and
  * keeps the compressed result only when it is actually smaller.
+ *
+ * ALWAYS resolves with a real `File` whose `.name` is the original filename — upload call sites
+ * append it to a `FormData`, and the browser only sends a filename for a genuine `File`.
  */
 export async function compressImageForUpload(file: File): Promise<File> {
   if (!file.type.startsWith('image/') || SKIP_TYPES.has(file.type)) {
@@ -33,8 +36,16 @@ export async function compressImageForUpload(file: File): Promise<File> {
     // uploads) and never ships in the customer bundle that pulls in productService.
     const { default: imageCompression } = await import('browser-image-compression');
     const compressed = await imageCompression(file, COMPRESSION_OPTIONS);
+    // browser-image-compression returns a BLOB (its `.name` is a plain expando the FormData spec
+    // ignores), so appending it sends filename="blob" and the backend's extension allowlist rejects
+    // every compressed photo. Re-wrap in a real File carrying the ORIGINAL name before anything else
+    // looks at the result — this is the invariant every upload call site rests on.
+    const named = new File([compressed], file.name, {
+      type: compressed.type || file.type,
+      lastModified: file.lastModified,
+    });
     // Keep the result only if it actually helped and isn't empty/truncated.
-    return compressed.size > 0 && compressed.size < file.size ? compressed : file;
+    return named.size > 0 && named.size < file.size ? named : file;
   } catch {
     // IGNORED ON PURPOSE: compression is an optimisation, not a requirement. A failed dynamic
     // import or an unsupported codec must not block the admin's upload — the original file is

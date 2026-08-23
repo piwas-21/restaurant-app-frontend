@@ -12,6 +12,7 @@ import {
   toggleBundleOption,
   updateBundleOption,
 } from '@/utils/bundleSelection';
+import { localizedDescription, localizedName } from '@/utils/localizedContent';
 import type { MenuBundleItem, MenuSection, SelectedMenuOption } from '@/types/menu';
 
 interface UseBundleCustomizationSheetArgs {
@@ -45,8 +46,10 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
 
   const sections = useMemo(() => bundle?.menuDefinition?.sections ?? [], [bundle]);
 
-  const title = bundle ? bundle.content?.[currentLanguage]?.name || bundle.content?.en?.name || bundle.name : '';
-  const description = bundle?.content?.[currentLanguage]?.description || bundle?.content?.en?.description;
+  const title = bundle ? localizedName(bundle, currentLanguage) : '';
+  // The shared display chain, so a combo whose description was never translated shows the plain one
+  // instead of nothing — the product sheet's F3 gap, which this hook had a copy of.
+  const description = bundle ? localizedDescription(bundle, currentLanguage) : undefined;
 
   const close = useCallback(() => {
     setIsOpen(false);

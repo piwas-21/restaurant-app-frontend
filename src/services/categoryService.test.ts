@@ -1,5 +1,5 @@
 import { ApiError, apiClient } from '@/utils/apiClient';
-import { getCategories } from './categoryService';
+import { getCategories, updateCategoryOrderTypes } from './categoryService';
 
 /**
  * `getCategories` used to answer a failed fetch with `mockApiClient`'s localStorage fixture — six
@@ -46,5 +46,47 @@ describe('getCategories — a failed fetch reaches the caller', () => {
       status: 403,
       errors: ['Tenant module not enabled'],
     });
+  });
+});
+
+describe('updateCategoryOrderTypes — the ONE writer for a category channel mask', () => {
+  const mockedPut = apiClient.put as jest.Mock;
+
+  beforeEach(() => mockedPut.mockResolvedValue({ success: true }));
+
+  /**
+   * §9.1 is why this function exists rather than four callers building the same body:
+   * `UpdateCategoryCommand` is a full-replace PUT that assigns name/description/isActive
+   * unconditionally, so an omitted field is a BLANKED field — and that is exactly how the
+   * order-type mask itself got wiped by an unrelated edit the first time round.
+   */
+  it('echoes name, description and isActive back, so the update cannot blank them', async () => {
+    await updateCategoryOrderTypes({ id: 'c1', name: 'Dürüm Wraps', description: 'Wraps', isActive: true }, 6);
+
+    expect(mockedPut).toHaveBeenCalledWith('/api/Categories/c1', {
+      id: 'c1',
+      name: 'Dürüm Wraps',
+      description: 'Wraps',
+      isActive: true,
+      availableOrderTypes: 6,
+    });
+  });
+
+  it('sends an absent description as undefined rather than a null the handler would store', async () => {
+    await updateCategoryOrderTypes({ id: 'c1', name: 'Grills', description: null, isActive: false }, null);
+
+    expect(mockedPut).toHaveBeenCalledWith('/api/Categories/c1', {
+      id: 'c1',
+      name: 'Grills',
+      description: undefined,
+      isActive: false,
+      availableOrderTypes: null,
+    });
+  });
+
+  it('never sends displayOrder — the handler never assigns it, ReorderCategories owns ordering', async () => {
+    await updateCategoryOrderTypes({ id: 'c1', name: 'Grills', isActive: true }, 2);
+
+    expect(mockedPut.mock.calls[0][1]).not.toHaveProperty('displayOrder');
   });
 });

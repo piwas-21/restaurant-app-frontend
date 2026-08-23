@@ -36,6 +36,13 @@ export interface CatalogItem {
   images?: MenuItemImage[];
   /** Starting price — a bundle displays this as a "from" price. */
   price: number;
+  /**
+   * Whether `price` is a STARTING price rather than the item's price, so the card prints
+   * "from 6.00 CHF". Set for a product whose base row is hidden (Track F / F2): its bare
+   * `basePrice` is then a number no guest can pay, and the honest figure is base + the cheapest
+   * active variation. Not set for bundles — their card price is unchanged by this.
+   */
+  priceIsFrom?: boolean;
   isBundle: boolean;
   /**
    * Whether the card's inline price quick-edit applies, and when it does NOT, why.

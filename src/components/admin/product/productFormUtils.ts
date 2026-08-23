@@ -6,6 +6,18 @@ import { updateProduct, uploadBulkProductImages } from '@/services/productServic
 import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
 import { serverMessage } from '@/utils/apiFormErrors';
 
+/**
+ * Told when the product itself was written but its staged photos were NOT stored. It receives the
+ * SERVER's reason (`null` when the server authored none), never a sentence — this module has no
+ * `t`, and the sentence is the caller's to translate (`utils/productImageFailure.ts`).
+ *
+ * REQUIRED, like the categories' `onPartialSuccess` and for the same reason: an optional reporter
+ * is one a future caller drops silently, and a dropped one is exactly the defect this closes —
+ * RUMI's compressed photos were refused by the backend for weeks while the editor said nothing
+ * (Track F / F1b; the reason was `console.error`ed on create and discarded outright on edit).
+ */
+type ImageUploadFailureReporter = (reason: string | null) => void;
+
 interface SubmitProductFormParams {
   data: FormData;
   imageFiles: File[];
@@ -24,6 +36,8 @@ interface SubmitProductFormParams {
    * product' — were the English a non-English admin actually read.
    */
   fallbackMessage: string;
+  /** The product was written, its photos were not — see `uploadStagedImages`. */
+  onImageUploadFailed: ImageUploadFailureReporter;
 }
 
 interface SubmitEditProductFormParams {
@@ -42,6 +56,8 @@ interface SubmitEditProductFormParams {
    * product' — were the English a non-English admin actually read.
    */
   fallbackMessage: string;
+  /** The product was written, its photos were not — see `uploadStagedImages`. */
+  onImageUploadFailed: ImageUploadFailureReporter;
 }
 
 type MenuDefinitionInput = NonNullable<FormData['menuDefinition']>;
@@ -152,6 +168,58 @@ const withCleanedItemTranslations = <T extends { content?: unknown }>(items: T[]
       : item,
   );
 
+/**
+ * Upload the staged photos for a product that is ALREADY WRITTEN, reporting a failure as a partial
+ * success rather than as a failed save.
+ *
+ * Every branch here used to be silent. The bulk endpoint answers a total rejection with HTTP 200
+ * and `success: false` — it is not a throw — and the create path `console.error`ed that while the
+ * edit path did not even bind the response, so an admin whose photo was refused (`File 'blob' has
+ * invalid extension`, every compressed photo until frontend #525) read a plain success.
+ *
+ * Three shapes are treated as one failure, deliberately:
+ *   - `success: false` — the whole batch was refused;
+ *   - `success: true` WITH a non-empty `errors[]` — a partial batch, where saying nothing would
+ *     claim photos that are not there. This is also why the check is not `!success` alone: the
+ *     handler reports "Uploaded 1 images. 1 failed." as a success;
+ *   - a THROW — a 401/413/502 or a dead network never reaches the resolved branch at all. It must
+ *     not fall through to the caller's catch either: that sets a form-level error for a product
+ *     that WAS saved, and on create leaves the admin on a form whose next Save makes a duplicate.
+ *
+ * The failure never rolls the product back and never blocks the flow — the write succeeded, and the
+ * photos are re-uploadable from the editor's gallery.
+ */
+const uploadStagedImages = async (
+  productId: string,
+  imageFiles: File[],
+  onImageUploadFailed: ImageUploadFailureReporter,
+): Promise<void> => {
+  try {
+    const response = (await uploadBulkProductImages(productId, imageFiles)) as {
+      success: boolean;
+      message?: string;
+      // Where the per-file cause lives — `serverMessage` prefers it over the `"Operation failed"`
+      // default that `message` carries.
+      errors?: unknown;
+    };
+    const reasons = Array.isArray(response.errors)
+      ? response.errors.filter((reason): reason is string => typeof reason === 'string' && reason.trim().length > 0)
+      : [];
+    if (!response.success) {
+      onImageUploadFailed(serverMessage(response));
+    } else if (reasons.length > 0) {
+      // A PARTIAL upload arrives as `success: true`, and `serverMessage` reads `errors[]` only on a
+      // DECLARED failure (`asResolvedFailure` requires `success === false`) — so it answers null
+      // here and the per-file reason has to be taken directly. `'; '` is its own separator, so the
+      // two paths render one server's `errors[]` the same way.
+      onImageUploadFailed(reasons.join('; '));
+    }
+  } catch (error: unknown) {
+    console.error('Image upload failed:', error);
+    onImageUploadFailed(serverMessage(error));
+  }
+};
+
 export const submitProductForm = async ({
   data,
   imageFiles,
@@ -164,6 +232,7 @@ export const submitProductForm = async ({
   reset,
   setImageFiles,
   fallbackMessage,
+  onImageUploadFailed,
 }: SubmitProductFormParams) => {
   setSubmissionStatus('creating');
   try {
@@ -291,13 +360,7 @@ export const submitProductForm = async ({
     if (productResponse.success && productResponse.data?.id) {
       if (imageFiles.length > 0) {
         setSubmissionStatus('uploading');
-        const imageResponse = (await uploadBulkProductImages(productResponse.data.id, imageFiles)) as {
-          success: boolean;
-          message?: string;
-        };
-        if (!imageResponse.success) {
-          console.error('Image upload failed:', imageResponse.message);
-        }
+        await uploadStagedImages(productResponse.data.id, imageFiles, onImageUploadFailed);
       }
       onProductCreated();
       onClose();
@@ -329,6 +392,7 @@ export const submitEditProductForm = async ({
   onProductUpdated,
   onClose,
   fallbackMessage,
+  onImageUploadFailed,
 }: SubmitEditProductFormParams) => {
   setIsSubmitting(true);
   try {
@@ -477,7 +541,7 @@ export const submitEditProductForm = async ({
     };
     if (response.success) {
       if (imageFiles.length > 0) {
-        await uploadBulkProductImages(product.id, imageFiles);
+        await uploadStagedImages(product.id, imageFiles, onImageUploadFailed);
       }
       onProductUpdated();
       onClose();

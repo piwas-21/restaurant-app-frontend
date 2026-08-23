@@ -63,3 +63,20 @@ export function formatCurrency(
 export function formatPlainCurrency(amount: number | null | undefined, decimals: number = 2): string {
   return `${TENANT_CURRENCY} ${amount == null ? '' : amount.toFixed(decimals)}`;
 }
+
+/**
+ * What a catalog card prints for its price: the amount, or `from <amount>` when the card carries a
+ * STARTING price rather than the price (Track F / F2 — a product whose base row is hidden is bought
+ * at base + its cheapest active variation, so the bare figure is one no guest can pay).
+ *
+ * Takes `t` rather than calling `useTranslation` so it stays a pure function usable from both the
+ * classic and the craft card, whose price rows share nothing else.
+ */
+export function cardPriceText(
+  amount: number | null | undefined,
+  isFrom: boolean | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  const money = formatPlainCurrency(amount);
+  return isFrom === true ? t('price_from', { price: money }) : money;
+}

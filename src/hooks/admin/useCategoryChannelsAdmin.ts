@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { enqueueSnackbar } from 'notistack';
-import { getCategories, updateCategory } from '@/services/categoryService';
+import { getCategories, updateCategoryOrderTypes } from '@/services/categoryService';
 import type { Category } from '@/app/admin/menu-management/interfaces';
 import { OrderType } from '@/types/order';
 import { isStorableMask, maskFromOrderTypes, orderTypesFromMask } from '@/utils/orderChannels';
@@ -142,17 +142,10 @@ export function useCategoryChannelsAdmin() {
 
       setSavingId(categoryId);
       try {
-        // The update command reassigns name/description/isActive unconditionally, so they must be
-        // echoed back or the save would blank them. displayOrder is deliberately NOT sent: the
-        // handler never assigns it (ReorderCategoriesCommand owns ordering), so omitting it is
-        // safe here in a way that omitting the three above — or availableOrderTypes — is not.
-        await updateCategory(categoryId, {
-          id: categoryId,
-          name: category.name,
-          description: category.description ?? undefined,
-          isActive: category.isActive,
-          availableOrderTypes: category.availableOrderTypes ?? null,
-        });
+        // One writer for the whole feature (`updateCategoryOrderTypes`): it owns the §9.1
+        // full-replace echo, so the matrix and the pinned quick toggle cannot drift into two
+        // payloads, one of which blanks a field.
+        await updateCategoryOrderTypes(category, category.availableOrderTypes ?? null);
 
         setSaved((prev) => prev.map((c) => (c.id === categoryId ? { ...category } : c)));
         enqueueSnackbar(t('order_types_saved', 'Order type availability saved'), { variant: 'success' });

@@ -115,6 +115,7 @@ module.exports = {
     'src/lib/orderStatus.ts',
     'src/lib/paymentStatus.ts',
     'src/utils/catalogItem.ts',
+    'src/utils/baseProductVisibility.ts',
     'src/hooks/useFeaturedSpecial.ts',
     'src/components/order/lineSummary.ts',
     'src/utils/templates/receiptHtml.ts',
@@ -180,6 +181,12 @@ module.exports = {
     'src/components/floor-plan/guest/hoverCardPosition.ts',
     'src/services/floorPlanService.ts',
     'src/components/admin/product/productFormUtils.ts',
+    // Track F, F7-A — a hook colocated with its component; `src/components/**/*.tsx` does not
+    // reach a `.ts`, and a coverageThreshold row for an uncollected file silently no-ops.
+    'src/components/admin/product-editor/useImageGalleryUpload.ts',
+    // Track F, F1c — the client half of the server's allowlist (`src/utils` is not collected
+    // wholesale either).
+    'src/utils/imageUploadRules.ts',
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
     'src/hooks/cart/cartFailureReporting.ts',
@@ -207,6 +214,12 @@ module.exports = {
     'src/lib/tenantCopy.ts',
     'src/lib/firstPaintCopy.ts',
     'src/utils/homePageTitle.ts',
+    // F6 — the pinned order-type quick toggle. `src/utils` and `src/hooks` are not collected
+    // wholesale, so without these two rows both suites are deletable with a fully green gate.
+    // The three components under `src/components/order-types/` need no row: the wildcard at the
+    // top of this list already collects them.
+    'src/utils/categoryChannelStatus.ts',
+    'src/hooks/orderTypes/useCategoryChannelQuickToggle.ts',
     '!src/**/*.test.tsx',
     '!src/**/*.test.ts',
     '!src/**/*.spec.tsx',
@@ -288,6 +301,11 @@ module.exports = {
     // dialogs read it and neither would fail loudly if it started answering false — the refund
     // would simply be offered again and refused later, which is the state S11 exists to end.
     './src/utils/tenderCustody.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+    // ── Track F / F2 — the client mirror of the server's "is the base row hidden?" rule. ─────────
+    // Pinned at 100 because the DEGRADE (all variations inactive ⇒ the base row comes back) is
+    // invisible to every other gate: dropping it type-checks, lints and renders — it just leaves a
+    // product with no orderable option and a guest facing a 400 they cannot act on.
+    './src/utils/baseProductVisibility.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
     './src/components/cashier/RefundPaymentPicker.tsx': { statements: 100, branches: 100, functions: 100, lines: 100 },
     // ── #416 — a deliberate ignore justified per CALLSITE but applied per THROW. ─────────────────
     // Both files had NO test before this: the branch that tells a guest 401 apart from a 500, and
@@ -630,6 +648,44 @@ module.exports = {
       functions: 100,
       lines: 100,
     },
+    // F6 — the third write surface, and the only one a waiter or cashier ever sees. Pinned high
+    // for the same reason as the matrix above (every way it can be wrong is silent) plus one this
+    // one owns alone: the ROLE GATE. `PUT /api/Categories/{id}` is `[RequireAdmin]`, so a gate
+    // that regresses does not throw — it renders a control that 403s mid-service.
+    './src/utils/categoryChannelStatus.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // The one uncovered branch is the `if (!enabled) return` early exit inside `refresh`, which is
+    // unreachable once the effect that calls it is itself gated on `enabled`.
+    './src/hooks/orderTypes/useCategoryChannelQuickToggle.ts': {
+      statements: 97,
+      branches: 94,
+      functions: 99,
+      lines: 99,
+    },
+    // The uncovered branches on all three are the `i18n.language || 'en'` fallback already
+    // accepted on `useItemAvailabilityNotice` and `OrderTypeConflictModal`.
+    './src/components/order-types/CategoryChannelQuickToggle.tsx': {
+      statements: 99,
+      branches: 86,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/order-types/ChannelQuickToggleModal.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/order-types/ChannelQuickToggleRow.tsx': {
+      statements: 99,
+      branches: 92,
+      functions: 99,
+      lines: 99,
+    },
     // E1 — the one place a status becomes something a user sees, and the one place a staff surface
     // learns what it may become NEXT. Pinned at 100 because every way this file can be wrong is
     // silent: the ladders it replaced ended in a `default`, which is how two statuses came to render
@@ -747,6 +803,36 @@ module.exports = {
       branches: 82,
       functions: 95,
       lines: 97,
+    },
+    // Track F, F7-A — the upload path the slice-7 rewrite dropped, back as an immediate op.
+    // The panel is fully exercised; the hook's uncovered branches are the guards that cannot
+    // be reached through the UI (upload with nothing staged, a re-entrant upload).
+    // Track F, F1c — the picker may not offer what the server refuses. The rules mirror
+    // backend `appsettings.json`; drift there is what puts the tenant back on "the photo does
+    // not upload", so both the table and the two rejection paths are fully pinned.
+    './src/utils/imageUploadRules.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product/StagedImagePicker.tsx': {
+      statements: 99,
+      branches: 80,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/ImageUploadPanel.tsx': {
+      statements: 99,
+      branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/useImageGalleryUpload.ts': {
+      statements: 95,
+      branches: 78,
+      functions: 99,
+      lines: 99,
     },
     './src/components/admin/product-editor/ImageActions.tsx': {
       statements: 99,

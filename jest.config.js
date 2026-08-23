@@ -220,6 +220,12 @@ module.exports = {
     // top of this list already collects them.
     'src/utils/categoryChannelStatus.ts',
     'src/hooks/orderTypes/useCategoryChannelQuickToggle.ts',
+    // E9 residuals — the two swallowed load failures. `src/hooks` is not collected wholesale and
+    // `src/components/**/*.tsx` does not reach a colocated `.ts`, so all three need naming or their
+    // suites would be deletable with a green gate.
+    'src/hooks/admin/useEditorCategories.ts',
+    'src/components/server/useProductCustomizationDetails.ts',
+    'src/components/server/useProductCustomizationSheet.ts',
     // The smart-skip checkout decision. `src/lib` is not collected wholesale, so without this row
     // the suite that pins the per-order-type profile floor is deletable with a fully green gate.
     'src/lib/checkout/profileCompleteness.ts',
@@ -1578,5 +1584,28 @@ module.exports = {
     // the last default-arg branch is now exercised. Re-measured at 100/100/100/100 with CI's own
     // command and pinned at actual − 1, per this block's house rule.
     './src/components/common/AllergenDisplay.tsx': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    // ── E9 residuals — the two load failures that were `console.error` and nothing else. ─────────
+    // Both rows guard a branch no other gate can see: reverting either fix type-checks, lints, and
+    // renders a screen that looks fine — an admin editor with an empty category control, a waiter's
+    // sheet with no options — which is exactly how they survived the E9 sweep. Each hook captures
+    // BOTH failure shapes (a thrown `ApiError` and a refusal resolved inside a 200), so the branch
+    // count is the point of the pin.
+    // Measured with CI's own command (`npx jest --ci --coverage`), pinned at actual − 1pt.
+    './src/hooks/admin/useEditorCategories.ts': { statements: 95, branches: 69, functions: 99, lines: 99 },
+    './src/components/server/useProductCustomizationDetails.ts': {
+      statements: 87,
+      branches: 67,
+      functions: 99,
+      lines: 99,
+    },
+    // Lower on purpose: this file is the WHOLE sheet (price, extras, side items, confirm) and this
+    // change's tests drive the load path and the variation rules. The row guards the seed-selection
+    // effect — the one that re-applies F2's pre-selection after a retry — not the file.
+    './src/components/server/useProductCustomizationSheet.ts': {
+      statements: 61,
+      branches: 49,
+      functions: 51,
+      lines: 70,
+    },
   },
 };

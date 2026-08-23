@@ -73,7 +73,6 @@ src/components/admin/KeyboardShortcutsModal.module.css
 src/components/reservation/ReservationSuccessModal.module.css
 src/components/reservation/MyReservations.module.css
 src/components/reservation/DateTimeSelector.module.css
-src/components/server/ProductCustomization.tsx
 src/components/server/CustomerInfoPanel.module.css
 src/components/server/ProductCustomization.module.css
 src/components/server/TableDetailsModal.tsx

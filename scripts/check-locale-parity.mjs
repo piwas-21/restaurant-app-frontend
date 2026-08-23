@@ -1,10 +1,20 @@
 #!/usr/bin/env node
-// Locale-parity gate (ADR-003, DEV-PHASES-PLAN W1): every key present in
-// en.json must exist in all other locales, and no locale may carry keys that
-// en.json lacks. Replaces the manual 10-locale checklist with a CI job.
+// Locale gate (ADR-003, DEV-PHASES-PLAN W1) — three checks over src/locales/*.json, in this order:
+//
+//   1. KEY parity      — every key in en.json exists in all other locales and nowhere else; nested
+//                        groups are flattened to dotted paths, so `cashier.zreport.title` counts
+//                        whether a bundle spells it nested or flat.
+//   2. PLACEHOLDER parity — every `{{interpolation}}` en.json carries survives in every locale
+//                        (baseline `locale-placeholder-baseline.json`, currently EMPTY = zero
+//                        tolerance).
+//   3. UNTRANSLATED values — no locale value is byte-identical to the English one. Walks TOP-LEVEL
+//                        *and* NESTED keys (baseline `locale-untranslated-baseline.json`).
+//
+// Replaces the manual 10-locale checklist with a CI job (`.github/workflows/ci.yml` → `i18n_parity`).
 //
 // Usage: node scripts/check-locale-parity.mjs
-// Exit 0 = parity holds; exit 1 = report printed, parity broken.
+//        node scripts/check-locale-parity.mjs --regen-baseline   # rewrites BOTH baselines
+// Exit 0 = all three hold; exit 1 = report printed.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -166,6 +176,22 @@ if (REGEN_BASELINES) {
 // pre-existing matches are recorded and ignored, and only NEW ones fail. It stops the next
 // untranslated string without demanding a translation sweep today.
 //
+// COVERAGE — top-level AND nested keys. The first version of this check walked
+// `Object.entries(bundle)` only, so it saw the 2515 flat keys and none of the 85 living inside the
+// `cashier` / `privacy_policy` / `terms_of_usage` OBJECTS. That left the gate blind in exactly the
+// shape of the defect it was written for: a nested key could ship the English string in all ten
+// locales, green, because key parity counts keys and this check never looked inside a group. It now
+// flattens to dotted paths (`cashier.zreport.total_tips`) and reports in that same shape, which is
+// also the shape the baseline stores — so widening it added 9 entries (proper nouns and short words
+// that really are identical: "Type", "Txns", "Product", "Transactions", "1. Introduction") and
+// removed none.
+//
+// Values are resolved through `readValue` — NESTED path first, then the literal flat key, exactly as
+// i18next does and for the same reason the placeholder gate does it (see its note above): en.json
+// holds a `cashier` object *and* 182 flat `cashier.*` keys, and `es`/`tr` nest five keys that en
+// keeps flat. Comparing the value i18next would actually render is the only way that data reads
+// correctly from both sides.
+//
 // Regenerate after deliberately adding one (or after translating some away):
 //   node scripts/check-locale-parity.mjs --regen-baseline
 const BASELINE_PATH = new URL('./locale-untranslated-baseline.json', import.meta.url).pathname;
@@ -173,15 +199,22 @@ const REGEN = process.argv.includes('--regen-baseline');
 
 const englishValues = JSON.parse(readFileSync(join(LOCALES_DIR, REFERENCE), 'utf8'));
 
-/** Keys whose value is byte-identical to en.json. Blank values are absence, not a match. */
+/**
+ * Keys whose value is byte-identical to en.json, at any depth. Blank values are absence, not a match.
+ *
+ * `flatten` yields one dotted path per LEAF, so a nested group contributes `cashier.zreport.amount`
+ * and a flat key contributes itself unchanged — top-level entries keep the exact key shape the
+ * baseline has always stored. Deduped because a bundle is free to spell the same path both ways.
+ */
 function untranslatedKeys(file) {
-  const parsed = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
+  const bundle = JSON.parse(readFileSync(join(LOCALES_DIR, file), 'utf8'));
   return (
-    Object.entries(parsed)
-      .filter(
-        ([k, v]) => typeof v === 'string' && typeof englishValues[k] === 'string' && v === englishValues[k] && v.trim(),
-      )
-      .map(([k]) => k)
+    [...new Set(flatten(bundle).map(([path]) => path))]
+      .filter((path) => {
+        const value = readValue(bundle, path);
+        const english = readValue(englishValues, path);
+        return typeof value === 'string' && typeof english === 'string' && value === english && value.trim();
+      })
       // Explicit comparator, and pinned to 'en': the result is written to a baseline file that gets
       // diffed and reviewed, so the order has to be identical on every machine and in CI. A bare
       // `.sort()` sorts by UTF-16 code unit and `localeCompare` without a locale follows the host's,
@@ -212,7 +245,9 @@ for (const [file, keys] of Object.entries(current)) {
   if (added.length) {
     newUntranslated = true;
     console.error(`✗ ${file}: ${added.length} key(s) carry the English value verbatim`);
-    for (const k of added) console.error(`    untranslated: ${k} = ${JSON.stringify(englishValues[k])}`);
+    // readValue, not `englishValues[k]`: a nested key has no flat entry, so indexing printed
+    // `undefined` for every one of them — a report that names the key but hides the string.
+    for (const k of added) console.error(`    untranslated: ${k} = ${JSON.stringify(readValue(englishValues, k))}`);
   }
 }
 

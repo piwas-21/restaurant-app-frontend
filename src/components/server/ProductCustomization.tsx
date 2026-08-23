@@ -52,7 +52,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
             <h2 className={styles.productName}>{product.name}</h2>
             <span className={styles.basePrice}>{formatPlainCurrency(product.basePrice)}</span>
           </div>
-          <button className={styles.closeButton} onClick={onClose}>
+          <button type="button" className={styles.closeButton} onClick={onClose}>
             ✕
           </button>
         </div>
@@ -93,6 +93,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                   <div className={styles.variationList}>
                     {sheet.variations.map((variation: ProductVariation) => (
                       <button
+                        type="button"
                         key={variation.id}
                         className={`${styles.variationButton} ${sheet.selectedVariation?.id === variation.id ? styles.selected : ''}`}
                         onClick={() => sheet.selectVariation(variation)}
@@ -147,6 +148,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                   <div className={styles.ingredientList}>
                     {sheet.optionalIngredients.map((ing: DetailedIngredient) => (
                       <button
+                        type="button"
                         key={ing.id}
                         className={`${styles.ingredientButton} ${styles.optional} ${sheet.addedOptionalIngredients.has(ing.id) ? styles.added : ''}`}
                         onClick={() => sheet.toggleOptional(ing.id)}
@@ -167,6 +169,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                   <div className={styles.sideItemList}>
                     {sheet.sideItems.map((side: SuggestedSideItem) => (
                       <button
+                        type="button"
                         key={side.id}
                         className={`${styles.sideItemButton} ${sheet.selectedSideItems.has(side.id) ? styles.selected : ''}`}
                         onClick={() => !side.isRequired && sheet.toggleSideItem(side.id)}
@@ -200,15 +203,19 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
 
         <div className={styles.footer}>
           <div className={styles.quantityControl}>
-            <button className={styles.qtyButton} onClick={() => sheet.setQuantity(Math.max(1, sheet.quantity - 1))}>
+            <button
+              type="button"
+              className={styles.qtyButton}
+              onClick={() => sheet.setQuantity(Math.max(1, sheet.quantity - 1))}
+            >
               −
             </button>
             <span className={styles.qtyValue}>{sheet.quantity}</span>
-            <button className={styles.qtyButton} onClick={() => sheet.setQuantity(sheet.quantity + 1)}>
+            <button type="button" className={styles.qtyButton} onClick={() => sheet.setQuantity(sheet.quantity + 1)}>
               +
             </button>
           </div>
-          <button className={styles.confirmButton} onClick={sheet.handleConfirm}>
+          <button type="button" className={styles.confirmButton} onClick={sheet.handleConfirm}>
             {t('server.add_to_order', 'Add to Order')} · {formatPlainCurrency(sheet.totalPrice)}
           </button>
         </div>

@@ -75,6 +75,7 @@ module.exports = {
     'src/hooks/admin/useProductEditorFetch.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
+    'src/hooks/reservations/useEditReservation.ts',
     'src/hooks/useCustomerFormFields.ts',
     'src/hooks/admin/useCustomerFormsAdmin.ts',
     'src/hooks/order/registrationOutcome.ts',
@@ -122,6 +123,10 @@ module.exports = {
     'src/utils/templates/simpleReceipt.ts',
     'src/utils/templates/kitchenReceipt.ts',
     'src/utils/reservationForm.ts',
+    // #557 — the one number that governs the guest picker, and the parser for the second failure
+    // shape it exists because of. Neither directory is collected wholesale.
+    'src/lib/reservationLimits.ts',
+    'src/utils/problemDetails.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
     'src/lib/floorPlan/geometry.ts',
@@ -922,6 +927,25 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // ── #557 — the guest-picker cap and the second failure shape. ────────────────────────────────
+    // Both at 100% on every axis, pinned at 99. They earn a row because each is a SILENT failure
+    // otherwise: `reservationLimits` is the only thing standing between a picker and a party size
+    // the backend refuses (the bug was a `max="50"` beside a `[Range(1, 20)]`, and nothing but a
+    // guest reaching the 400 could see it), and `problemDetails` is the only reader of the shape
+    // that 400 arrives in — a regression there does not throw, it just puts a C# property name or
+    // a .NET type name in front of a guest again.
+    './src/lib/reservationLimits.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/utils/problemDetails.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
     // Reservations floor-plan core (B1) — the shared canvas-geometry contract
     // (600x500, centre-anchored marker maths) at 100% → 99; the customer map's
     // FLOOR-PLAN-REVAMP S4 foundation — geometry/walls/service all at 100% → 99.
@@ -1529,6 +1553,22 @@ module.exports = {
     './src/hooks/reservations/useMyReservations.ts': {
       statements: 99,
       branches: 82,
+      functions: 99,
+      lines: 99,
+    },
+    // The guest changing their OWN booking (`PUT /api/reservations/{id}/mine`). Both files
+    // measure 100% → 99 per the recipe above. The hook needs its row in `collectCoverageFrom`
+    // too (`src/hooks` is not collected wholesale); the modal is reached by the
+    // `src/components/**/*.tsx` wildcard.
+    './src/components/reservation/EditReservationModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/reservations/useEditReservation.ts': {
+      statements: 99,
+      branches: 99,
       functions: 99,
       lines: 99,
     },

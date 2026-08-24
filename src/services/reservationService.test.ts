@@ -10,6 +10,7 @@
 
 import { apiClient, ApiError } from '@/utils/apiClient';
 import { reservationService } from './reservationService';
+import { ReservationStatus } from '@/types/reservation';
 
 // Stub the HTTP surface, keep everything else real — `throwServerRefusal` constructs an `ApiError`
 // and the callers' `serverMessages` reads it back through `instanceof`.
@@ -21,6 +22,7 @@ jest.mock('@/utils/apiClient', () => ({
 const mockPost = apiClient.post as jest.Mock;
 const mockDelete = apiClient.delete as jest.Mock;
 const mockGet = apiClient.get as jest.Mock;
+const mockPut = apiClient.put as jest.Mock;
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -165,5 +167,73 @@ describe('getAvailableTimeSlots reports a refusal without throwing', () => {
 
     expect(result.data).toEqual({ timeSlots: [{ time: '19:00' }] });
     expect(result.error).toBeUndefined();
+  });
+});
+
+/**
+ * `updateMyReservation` — the customer-safe self-update (`PUT /api/reservations/{id}/mine`).
+ *
+ * What is worth pinning here is the SHAPE on the wire, not that a mock was called: the endpoint is
+ * the `/mine` one and not the admin `PUT /api/reservations/{id}`, the body carries neither
+ * `status` nor `tableId` (a guest must not confirm their own booking or seat themselves), and the
+ * status comes back as the numeric enum the list renders.
+ */
+describe('updateMyReservation', () => {
+  const body = {
+    customerName: 'Ada',
+    customerEmail: 'ada@example.com',
+    customerPhone: '',
+    reservationDate: '2026-10-24T00:00:00.000Z',
+    startTime: '19:30:00',
+    endTime: '21:30:00',
+    numberOfGuests: 4,
+    specialRequests: null,
+  };
+
+  it('PUTs the ownership-scoped path with the body verbatim', async () => {
+    mockPut.mockResolvedValue({ success: true, data: { id: 'r1', status: 'Pending' } });
+
+    await reservationService.updateMyReservation('r1', body);
+
+    expect(mockPut).toHaveBeenCalledWith('/api/reservations/r1/mine', body);
+    // Not the admin route, whose DTO requires a status the customer must not choose.
+    expect(mockPut).not.toHaveBeenCalledWith('/api/reservations/r1', expect.anything());
+  });
+
+  it('maps the returned status name onto the enum the list renders', async () => {
+    mockPut.mockResolvedValue({ success: true, data: { id: 'r1', status: 'Confirmed', numberOfGuests: 4 } });
+
+    const updated = await reservationService.updateMyReservation('r1', body);
+
+    expect(updated.status).toBe(ReservationStatus.Confirmed);
+    expect(updated.numberOfGuests).toBe(4);
+  });
+
+  it("keeps the server's own reason when the refusal is resolved inside a 200", async () => {
+    mockPut.mockResolvedValue({
+      success: false,
+      message: 'Operation failed',
+      errors: ['This time slot is no longer available'],
+    });
+
+    const error = await captureFailure(() => reservationService.updateMyReservation('r1', body));
+
+    expect(error.errors).toEqual(['This time slot is no longer available']);
+    expect(error.message).toBe('Operation failed');
+  });
+
+  it('refuses a `success: true` with no reservation in it rather than returning undefined', async () => {
+    mockPut.mockResolvedValue({ success: true });
+    await expect(reservationService.updateMyReservation('r1', body)).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('lets a non-2xx through untouched — 403 on a booking that is not yours', async () => {
+    const thrown = new ApiError(403, 'Forbidden', ['This reservation belongs to another customer']);
+    mockPut.mockRejectedValue(thrown);
+
+    const error = await captureFailure(() => reservationService.updateMyReservation('r1', body));
+
+    expect(error).toBe(thrown);
+    expect(error.status).toBe(403);
   });
 });

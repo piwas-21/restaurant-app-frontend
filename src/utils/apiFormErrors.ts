@@ -1,4 +1,5 @@
 import { ApiError } from '@/utils/apiClient';
+import type { ProblemFieldErrors } from '@/utils/problemDetails';
 
 /**
  * Route one failed API call onto a form's fields.
@@ -204,6 +205,20 @@ export function serverMessages(error: unknown): string[] {
 export function serverMessage(error: unknown): string | null {
   const messages = serverMessages(error);
   return messages.length > 0 ? messages.join('; ') : null;
+}
+
+/**
+ * The FIELD-KEYED errors of an RFC 7807 refusal, or `null` when the failure was not one.
+ *
+ * The parsing itself happens once, in `apiClient` (see `utils/problemDetails.ts`); this is the
+ * reader. Reach for it when a form can say something BETTER than the server's own sentence for a
+ * particular field — a `DataAnnotation` message names a C# property to a guest ("The field
+ * NumberOfGuests must be between 1 and 20."), and the `"$"` deserializer message quotes a .NET
+ * type name. Everything else should keep using {@link serverMessage}: server prose is specific and
+ * worth showing, these two shapes are the exception.
+ */
+export function problemFieldErrors(error: unknown): ProblemFieldErrors | null {
+  return error instanceof ApiError ? (error.fieldErrors ?? null) : null;
 }
 
 /**

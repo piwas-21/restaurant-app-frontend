@@ -14,6 +14,7 @@ import {
 } from '@/utils/reservationForm';
 import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
 import { FORM_KEYS } from '@/types/formFieldConfig';
+import { maxGuestsForBooking } from '@/lib/reservationLimits';
 import { useReservationAvailability } from './useReservationAvailability';
 
 /**
@@ -39,6 +40,13 @@ export function useReservationsPage() {
 
   // Admin-configured field visibility/requiredness (safe fallback = today's behaviour).
   const { rules: fieldRules } = useCustomerFormFields(FORM_KEYS.reservation);
+
+  /**
+   * The largest party the picker may offer, DERIVED from the table list this page has already
+   * loaded for the floor plan — no second request — and never above the backend's own
+   * `[Range(1, 20)]` (frontend #557). The picker used to offer a flat 50.
+   */
+  const maxGuests = maxGuestsForBooking(allTables);
 
   const [customerName, setCustomerName] = useState<string>('');
   const [customerEmail, setCustomerEmail] = useState<string>('');
@@ -135,6 +143,7 @@ export function useReservationsPage() {
   return {
     t,
     ...availability,
+    maxGuests,
     customerName,
     setCustomerName,
     customerEmail,

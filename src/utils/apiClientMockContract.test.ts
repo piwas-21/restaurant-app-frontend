@@ -45,6 +45,16 @@ describe('apiClient test double', () => {
     expect(new real.ApiError(0, '', undefined, undefined, { cause: original }).cause).toBe(original);
   });
 
+  it('carries the problem+json field keys the same way', () => {
+    // Same reasoning as `cause` above: `fieldErrors` is what tells a caller WHICH DTO member the
+    // model binder refused (frontend #557). A mock that dropped the parameter would make every
+    // suite building that shape through the alias read `undefined` and pass anyway.
+    const fields = { NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'] };
+
+    expect(new mock.ApiError(400, 'x', undefined, undefined, undefined, fields).fieldErrors).toBe(fields);
+    expect(new real.ApiError(400, 'x', undefined, undefined, undefined, fields).fieldErrors).toBe(fields);
+  });
+
   it('agrees with the real getErrorMessage, including its errors-before-message precedence', () => {
     const cases: unknown[][] = [
       [new mock.ApiError(400, 'Message', ['First', 'Second']), new real.ApiError(400, 'Message', ['First', 'Second'])],

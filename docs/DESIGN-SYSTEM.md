@@ -359,7 +359,7 @@ interface StatusBadgeProps {
 
 ### CheckboxField
 
-Shipped 2026-08-02 (BUGS-IMPROVEMENTS-PLAN E2). `FormField` renders the label ABOVE the input, which
+Shipped 2026-08-02 (the order-type availability work, E2). `FormField` renders the label ABOVE the input, which
 is wrong for a checkbox — so before this, every checkbox in the app was a raw `<input>`.
 
 ```tsx
@@ -456,11 +456,11 @@ interface LoadingSpinnerProps {
 
 ## 8. RTL Support (Arabic)
 
-**Status: partial.** `dir` is wired; the sweep to logical properties is in progress (BUGS-IMPROVEMENTS-PLAN E8). What is true today:
+**Status: the sweep is COMPLETE; what is left is enumerated and permanent.** `dir` is wired and the conversion to logical properties ran to its end point: `scripts/check-physical-css.mjs` holds at **8** physical declarations, and all 8 are centring idioms that must never be converted (they are listed in the script's own header — read it before "fixing" one). The sweep started at 365. What is true today:
 
 - `<html lang>` and `dir` are synced from `i18n.language` by `DocumentLanguage`; the locale set lives in `RTL_LANGUAGES` (`src/lib/textDirection.ts`) — `ar` is the only one of the ten shipped locales that is RTL. **That set is also the revert lever**: drop `ar` from it and the whole app returns to LTR without a rollback.
 - New CSS **must** use logical properties — `margin-inline-start`, `padding-inline-end`, `border-inline-start`, `inset-inline-start`/`-end`, `text-align: start | end`. The `physical-CSS ratchet (E8)` check (`scripts/check-physical-css.mjs`) holds the count of remaining physical declarations and only ever lets it fall.
-- Directional **icons** mostly do not flip yet. Four `[dir='rtl']` rules exist; **copy `ImageGalleryModal`**, which is the only one showing the FULL coupling rather than a glyph on its own — `.prev`/`.next` on `inset-inline-start`/`-end`, the chevrons mirrored with `[dir='rtl'] … svg { transform: scaleX(-1) }`, _and_ `ImageGalleryModal.tsx`'s ArrowLeft/ArrowRight handlers remapped to reading order. Convert any one of those three alone and `ar` gets a "previous" control on the trailing edge pointing at the leading one, driven by the opposite key. The other three are the category-nav chevrons (`CategoryNav.module.css`, `CraftCategoryNav.module.css`) and `ContactIcons.module.css`'s reveal offset. The remaining directional icons and the craft `--craft-tape-clip` polygon are E8 slice 3.
+- Directional **icons** flip. **24 `[dir='rtl']` rules** across 15 stylesheets do it; **copy `ImageGalleryModal`**, which is the only one showing the FULL coupling rather than a glyph on its own — `.prev`/`.next` on `inset-inline-start`/`-end`, the chevrons mirrored with `[dir='rtl'] … svg { transform: scaleX(-1) }`, _and_ `ImageGalleryModal.tsx`'s ArrowLeft/ArrowRight handlers remapped to reading order. Convert any one of those three alone and `ar` gets a "previous" control on the trailing edge pointing at the leading one, driven by the opposite key. The category-nav chevrons (`CategoryNav.module.css`, `CraftCategoryNav.module.css`) and `ContactIcons.module.css`'s reveal offset are the same pattern at smaller scale. The last tranche — drawers, toggle knobs, toast stacks, the sort-dropdown gutter, `rtl` on `<Calendar>`, notistack's own anchors and `dir="auto"` on product-authored text — shipped 2026-08-03/04 (#420, #423, #425, #426, #433); the craft `--craft-tape-clip` polygon was measured and **confirmed as not-to-mirror** — decorative asymmetry with no reading direction, like the floor plan (§8.2 carries the `dir="auto"` half of that tranche).
 - **A gallery mirrors; a floor plan does not.** Reading order is what flips, so lists, carousels and navigation follow the language. The floor plan is a physical room and must stay put — verified on `demo.sofrapiwas.com` in `ar`.
 - **Scroll arithmetic is directional too, and no CSS gate can see it.** A scroller reports `scrollLeft === 0` at its inline START in both directions, growing positive toward the end in LTR and NEGATIVE in RTL (measured in Chromium, not assumed). Reason in `Math.abs(scrollLeft)`, and take the sign for `scrollBy` from `getComputedStyle(el).direction` — `scrollBy` itself is not direction-aware. `useCategoryNavScroll` is the worked example.
 

@@ -31,6 +31,8 @@ export async function openMenuBasket(page: Page): Promise<Locator> {
   const panel = menuBasketPanel(page);
   if (!(await panel.isVisible().catch(() => false))) {
     await dismissCookieBanner(page);
+    // The banner is not the only thing that parks over this button — see below.
+    await dismissToastsOverCartButton(page);
     // The FLOATING cart button is /menu's only cart entry point. A second copy briefly lived in the
     // sticky category bar doing the same job from the other corner; it is gone, and the FAB now
     // renders at EVERY count including zero — which is what makes it a replacement for the rail
@@ -86,6 +88,47 @@ export async function dismissCookieBanner(page: Page): Promise<void> {
   await accept.waitFor({ state: 'visible', timeout: 15_000 });
   await accept.click();
   await expect(accept).toBeHidden({ timeout: 5_000 });
+}
+
+/**
+ * Clear anything parked over the floating cart button before clicking it.
+ *
+ * The button is `position: fixed` in the bottom-trailing corner (`FloatingCartButton.module.css`),
+ * and so is notistack's bottom-right container — which this app renames
+ * `.notistack-anchor-bottom-trailing` (`client-providers.tsx`). 64 of the 89 `enqueueSnackbar` call
+ * sites land there by inheriting the provider default, including `useCartFeedback`'s add-FAILURE
+ * toast; only the add-SUCCESS one is top-center. A toast in that corner sits ON `/menu`'s only
+ * route to the cart for its 4-second life, and Playwright's call log names it exactly:
+ * *"`<div id="notistack-snackbar">` … subtree intercepts pointer events"*, retried until the test
+ * times out. It failed a docs-only PR, which is how it was finally pinned as environmental rather
+ * than caused by a change (frontend #541).
+ *
+ * Dismissed rather than waited out: a second toast can enqueue while the first is expiring, so
+ * "wait 4s" is a race with the app, and every snack carries the provider's own close action, which
+ * makes dismissal deterministic. The wait afterwards is the honest assertion — if a toast is still
+ * there, the click genuinely cannot land.
+ *
+ * **This is a real UX overlap, not only a test problem** — a guest whose add just failed gets the
+ * explanation printed over the button they would use to fix it. Left as-is deliberately (moving a
+ * shared toast anchor is a design decision, not a test fix) and recorded on #541.
+ */
+export async function dismissToastsOverCartButton(page: Page): Promise<void> {
+  const container = page.locator('.notistack-anchor-bottom-trailing');
+  const snacks = container.locator('#notistack-snackbar');
+
+  // maxSnack is 3; a couple of extra passes cover one enqueued while we dismiss.
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    if ((await snacks.count()) === 0) return;
+    await container
+      .getByRole('button')
+      .first()
+      .click({ timeout: 2_000 })
+      .catch(() => {
+        /* it auto-hid between the count and the click — the next pass re-checks. */
+      });
+  }
+
+  await expect(snacks, 'a toast is still covering the floating cart button').toHaveCount(0, { timeout: 10_000 });
 }
 
 /** Close it again, so the grid behind it is clickable. */

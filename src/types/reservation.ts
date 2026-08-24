@@ -60,6 +60,27 @@ export interface CreateReservationDto {
   specialRequests?: string | null;
 }
 
+/**
+ * The customer-safe self-update body — `PUT /api/reservations/{id}/mine`.
+ *
+ * Deliberately NOT `CreateReservationDto` and NOT the admin `UpdateReservationDto`: it carries
+ * neither `status` (a guest must not confirm their own booking, nor mark it NoShow) nor `tableId`
+ * (the server re-seats the party). Ownership is read from the bearer token, not from the body.
+ * `startTime`/`endTime` are `"HH:mm:ss"` LOCAL wall-clock strings — the backend binds them to
+ * `TimeSpan`, which an ISO datetime does not parse into, and converting to UTC first moves the
+ * booking by the offset (the defect the mobile client hit).
+ */
+export interface UpdateMyReservationDto {
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  reservationDate: string;
+  startTime: string;
+  endTime: string;
+  numberOfGuests: number;
+  specialRequests?: string | null;
+}
+
 export interface TimeSlotDto {
   startTime: string;
   endTime: string;

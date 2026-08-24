@@ -92,6 +92,7 @@
 }
 
 .loading,
+.loadFailure,
 .noCustomizations {
   display: flex;
   flex-direction: column;
@@ -101,6 +102,26 @@
   color: var(--text-secondary);
   gap: 0.75rem;
   min-height: 150px;
+}
+
+/* The options could not be loaded — said where the options would have been, in the failure
+   colour, with the one action that can still help. */
+.loadFailure {
+  color: var(--error-color);
+  text-align: center;
+}
+
+.retryButton {
+  padding: 0.5rem 1.25rem;
+  background-color: var(--background-color);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  border-color: var(--primary-color);
 }
 
 .spinner {

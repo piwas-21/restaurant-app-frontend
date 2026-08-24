@@ -29,6 +29,8 @@ jest.mock('@/services/categoryService', () => ({
   getCategories: jest.fn(async () => ({ success: true, data: { items: [{ id: 'cat-a', name: 'Pizza' }] } })),
 }));
 
+import { getCategories } from '@/services/categoryService';
+import { ApiError } from '@/utils/apiClient';
 import { updateProduct } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
@@ -433,5 +435,47 @@ describe('ProductEditorPage — existing-image management', () => {
     const createRender = await renderEditor(emptyProductDetails(false), false, 'create');
     expect(createRender.container.textContent).toContain('product_images');
     expect(createRender.container.querySelector('input[type="file"]')).not.toBeNull();
+  });
+});
+
+describe('ProductEditorPage — a category list that did not arrive says so', () => {
+  // The defect this pins: the fetch was `load().catch((err) => console.error(...))`, so a refused
+  // or unreachable `/api/Categories` produced an editor whose chip group and primary-category
+  // select were EMPTY and silent — the same screen a tenant with no categories yet sees, on a page
+  // whose next action is Save. `scripts/check-bare-catch.mjs` cannot see it: a `.catch()` callback
+  // is not a `catch` block.
+  //
+  // Both assertions are on the SERVER's own sentence rather than on the fallback key, because a
+  // test that accepts the generic passes just as well against a swallowed failure that happens to
+  // render some other error line.
+  it("surfaces the server's reason when the category fetch throws", async () => {
+    (getCategories as jest.Mock).mockRejectedValueOnce(new ApiError(503, 'Category service is warming up'));
+
+    await renderEditor(item, false);
+
+    expect(await screen.findByTestId('categories-load-error')).toHaveTextContent('Category service is warming up');
+  });
+
+  // The half the old code did not have at all: a handler refusal comes back INSIDE a 200
+  // (`Ok(ApiResponse.Failure(...))`), so it never reached the `.catch` — the old `if
+  // (response.success)` simply fell out of the function and left every state untouched.
+  it("surfaces the server's reason when the refusal arrives inside a 200", async () => {
+    (getCategories as jest.Mock).mockResolvedValueOnce({
+      success: false,
+      message: 'Operation failed',
+      errors: ['Categories are unavailable for this tenant'],
+    });
+
+    await renderEditor(item, false);
+
+    expect(await screen.findByTestId('categories-load-error')).toHaveTextContent(
+      'Categories are unavailable for this tenant',
+    );
+  });
+
+  it('says nothing when the categories load', async () => {
+    await renderEditor(item, false);
+
+    expect(screen.queryByTestId('categories-load-error')).not.toBeInTheDocument();
   });
 });

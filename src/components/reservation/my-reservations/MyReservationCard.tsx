@@ -13,6 +13,13 @@ interface MyReservationCardProps {
   expanded: boolean;
   onToggleExpanded: (id: string) => void;
   onRequestCancel: (id: string) => void;
+  /**
+   * May the guest still change this booking themselves? Decided by the layout with
+   * `isCustomerEditableReservation` (future + a status the customer may touch, measured against
+   * the RESTAURANT's day) — a past or cancelled booking is offered no edit action at all.
+   */
+  editable: boolean;
+  onRequestEdit: (id: string) => void;
   cancelling: boolean;
   /** The host template's card CSS module (the CartItemCard pattern). */
   styles: CssModule;
@@ -47,6 +54,8 @@ export default function MyReservationCard({
   expanded,
   onToggleExpanded,
   onRequestCancel,
+  editable,
+  onRequestEdit,
   cancelling,
   styles,
 }: Readonly<MyReservationCardProps>) {
@@ -135,16 +144,28 @@ export default function MyReservationCard({
             </div>
           )}
 
-          {canCancel && (
+          {(editable || canCancel) && (
             <div className={styles.actions}>
-              <button
-                type="button"
-                className={styles.cancelButton}
-                onClick={() => onRequestCancel(reservation.id)}
-                disabled={cancelling}
-              >
-                {t('cancel_reservation', 'Cancel Reservation')}
-              </button>
+              {editable && (
+                <button
+                  type="button"
+                  className={styles.editButton}
+                  onClick={() => onRequestEdit(reservation.id)}
+                  disabled={cancelling}
+                >
+                  {t('my_reservations_edit', 'Change booking')}
+                </button>
+              )}
+              {canCancel && (
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => onRequestCancel(reservation.id)}
+                  disabled={cancelling}
+                >
+                  {t('cancel_reservation', 'Cancel Reservation')}
+                </button>
+              )}
             </div>
           )}
         </div>

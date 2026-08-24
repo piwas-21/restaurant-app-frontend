@@ -260,6 +260,30 @@
   border-top: 1px solid var(--border-color-light);
 }
 
+/* The ordinary action beside the loud one: a quiet outline in the brand colour, so "Change
+   booking" does not read as destructive next to the red "Cancel Reservation". */
+.editButton {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--primary-color);
+  background-color: transparent;
+  color: var(--primary-color);
+}
+
+.editButton:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+}
+
+.editButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .cancelButton {
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -365,6 +389,7 @@
     font-size: 0.85rem;
   }
 
+  .editButton,
   .cancelButton {
     padding: 0.5rem 0.875rem;
     font-size: 0.8rem;

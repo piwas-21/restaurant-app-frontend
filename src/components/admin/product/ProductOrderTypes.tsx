@@ -88,7 +88,7 @@ export default function ProductOrderTypes({
       </label>
 
       {/* A bundle shows its notice UNCONDITIONALLY. `categoriesLoaded` exists to suppress a false
-          warning during the category fetch — but `useProductEditorForm` deliberately never fetches
+          warning during the category fetch — but `useEditorCategories` deliberately never fetches
           categories for a bundle, so for a combo that guard is not "wait and see", it is "never",
           and the one notice written to explain the empty Inherit option would never appear. */}
       {isBundle && (

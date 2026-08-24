@@ -1,10 +1,20 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import MyReservationCard from './MyReservationCard';
 import CancelReservationModal from '@/components/reservation/CancelReservationModal';
 import CancelSuccessModal from '@/components/reservation/CancelSuccessModal';
 import { useMyReservations } from '@/hooks/reservations/useMyReservations';
+import { isCustomerEditableReservation } from '@/utils/reservationForm';
+
+/**
+ * Loaded on demand: the dialog drags in the whole booking form (party size, date/time picker,
+ * customer details) and the availability query behind it. Imported statically it added 17 kB of
+ * First Load JS to a page whose job is to LIST bookings — a 13% growth `check-bundle-size.mjs`
+ * refused, for a feature most visits never open.
+ */
+const EditReservationModal = dynamic(() => import('@/components/reservation/EditReservationModal'), { ssr: false });
 
 type CssModule = Readonly<Record<string, string>>;
 
@@ -20,6 +30,10 @@ interface MyReservationsLayoutProps {
   styles: {
     page: CssModule;
     card: CssModule;
+    /** Party-size skin for the edit dialog — the template's booking-page module. */
+    guests: CssModule;
+    /** Date/time skin for the edit dialog — the template's booking-page module. */
+    dateTime: CssModule;
   };
 }
 
@@ -32,6 +46,7 @@ interface MyReservationsLayoutProps {
 export default function MyReservationsLayout({ styles }: Readonly<MyReservationsLayoutProps>) {
   const {
     t,
+    today,
     reservations,
     loading,
     error,
@@ -46,6 +61,10 @@ export default function MyReservationsLayout({ styles }: Readonly<MyReservations
     closeCancelSuccess,
     cancelError,
     dismissCancelError,
+    editTarget,
+    openEditModal,
+    closeEditModal,
+    reloadReservations,
   } = useMyReservations();
 
   const s = styles.page;
@@ -94,6 +113,8 @@ export default function MyReservationsLayout({ styles }: Readonly<MyReservations
             expanded={expandedId === reservation.id}
             onToggleExpanded={toggleExpanded}
             onRequestCancel={openCancelModal}
+            editable={isCustomerEditableReservation(reservation, today)}
+            onRequestEdit={openEditModal}
             cancelling={cancellingId === reservation.id}
             styles={styles.card}
           />
@@ -122,6 +143,17 @@ export default function MyReservationsLayout({ styles }: Readonly<MyReservations
       />
 
       <CancelSuccessModal isOpen={showCancelSuccess} onClose={closeCancelSuccess} />
+
+      {/* Mounted only on an edit target: the dialog prefills from the booking and drives the
+          available-slots query, neither of which should happen on every visit to the page. */}
+      {editTarget && (
+        <EditReservationModal
+          reservation={editTarget}
+          onClose={closeEditModal}
+          onSaved={reloadReservations}
+          styles={{ guests: styles.guests, dateTime: styles.dateTime }}
+        />
+      )}
 
       {cancelError && (
         <div className={s.errorAlert}>

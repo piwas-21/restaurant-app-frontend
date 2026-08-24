@@ -1,0 +1,111 @@
+/*
+ * Component-local styles for EditReservationModal. The overlay, dialog shell, header and title
+ * are the design-system BaseModal primitive's; the party-size and date/time controls wear the
+ * host template's own skins (passed in as CSS modules, the ReservationsPageLayout pattern). What
+ * is left here is the form column, the intro line, the server-error alert, the saved note and the
+ * footer buttons. The `var(--modal-body-*, <classic literal>)` hooks let craft re-skin the
+ * buttons while classic keeps its exact look via the fallbacks (the Prompts 10-13 mechanism).
+ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.intro {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--feedback-error-border);
+  border-radius: 8px;
+  background-color: var(--feedback-error-bg);
+  color: var(--feedback-error-text);
+}
+
+.error p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.error button {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.success {
+  /* `<output>` is inline by default; the success block stacks two paragraphs. */
+  display: block;
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  box-shadow: var(--modal-body-btn-shadow, none);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 500);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--border-color-light);
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.confirmButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  border: none;
+  border-radius: var(--modal-body-btn-radius, 8px);
+  box-shadow: var(--modal-body-btn-shadow, none);
+  font-family: var(--modal-body-btn-font, inherit);
+  font-size: var(--modal-body-btn-size, 1rem);
+  font-weight: var(--modal-body-btn-weight, 600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmButton:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.confirmButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .cancelButton,
+  .confirmButton {
+    padding: 0.65rem 1.1rem;
+    font-size: var(--modal-body-btn-size, 0.9rem);
+  }
+}

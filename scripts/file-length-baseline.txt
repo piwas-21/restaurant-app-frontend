@@ -33,7 +33,6 @@ src/app/styles/AdminOrdersPage.module.css
 src/app/styles/DetailsPage.module.css
 src/app/styles/OrderTypePage.module.css
 src/app/styles/AdminPage.module.css
-src/app/account/page.tsx
 src/app/(auth)/delete-account/DeleteAccount.module.css
 src/app/(auth)/verify-email/VerifyEmail.module.css
 src/styles/orderStatus.module.css

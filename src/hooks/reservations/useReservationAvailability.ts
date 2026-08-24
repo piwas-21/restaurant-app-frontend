@@ -180,6 +180,8 @@ export function useReservationAvailability() {
   return {
     today,
     allTables,
+    /** The day's raw slots — the edit modal derives its own (table-less) options from these. */
+    availableTimeSlots,
     selectedTableIds,
     setSelectedTableIds,
     bookedTableIds,

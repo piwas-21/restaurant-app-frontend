@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { reservationService } from '@/services/reservationService';
+import { useTenantToday } from '@/hooks/useTenantToday';
 import type { ReservationDto } from '@/types/reservation';
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -18,6 +19,9 @@ function errorMessage(err: unknown, fallback: string): string {
  */
 export function useMyReservations() {
   const { t } = useTranslation();
+  // Which day the RESTAURANT is on — what "a past booking" is measured against, so the edit
+  // action does not disappear for a guest whose own device has already rolled over (§5.15).
+  const today = useTenantToday();
   const [reservations, setReservations] = useState<ReservationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +30,7 @@ export function useMyReservations() {
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [editTargetId, setEditTargetId] = useState<string | null>(null);
 
   const loadReservations = async () => {
     setLoading(true);
@@ -74,8 +79,13 @@ export function useMyReservations() {
     setCancelTargetId(null);
   }, []);
 
+  // Resolved from the CURRENT list rather than snapshotted on open, so the refetch a save
+  // triggers flows into the open dialog instead of leaving it holding the pre-save booking.
+  const editTarget = reservations.find((reservation) => reservation.id === editTargetId) ?? null;
+
   return {
     t,
+    today,
     reservations,
     loading,
     error,
@@ -90,5 +100,10 @@ export function useMyReservations() {
     closeCancelSuccess,
     cancelError,
     dismissCancelError: useCallback(() => setCancelError(null), []),
+    editTarget,
+    openEditModal: setEditTargetId,
+    closeEditModal: useCallback(() => setEditTargetId(null), []),
+    /** Called imperatively after a save — never from a dependency array, so it need not be memoised. */
+    reloadReservations: () => void loadReservations(),
   };
 }

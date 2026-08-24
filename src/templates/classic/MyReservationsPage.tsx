@@ -4,12 +4,15 @@
 // RUMI /my-reservations look, relocated from the former MyReservations
 // component behind the `@active-template/MyReservationsPage` re-export. The
 // whole orchestration is the shared MyReservationsLayout (also used by craft);
-// this file only supplies the classic CSS module — the component's existing
+// this file only supplies the classic CSS modules — the component's existing
 // colocated module serves both the page chrome and the cards (its keys are
-// disjoint per area), so the rendered page keeps the classic look.
+// disjoint per area), and the edit dialog wears the classic booking-page
+// party-size and date/time skins — so the rendered page keeps the classic look.
 import MyReservationsLayout from '@/components/reservation/my-reservations/MyReservationsLayout';
 import styles from '@/components/reservation/MyReservations.module.css';
+import guests from '@/components/reservation/GuestSelector.module.css';
+import dateTime from '@/components/reservation/DateTimeSelector.module.css';
 
 export default function MyReservationsPage() {
-  return <MyReservationsLayout styles={{ page: styles, card: styles }} />;
+  return <MyReservationsLayout styles={{ page: styles, card: styles, guests, dateTime }} />;
 }

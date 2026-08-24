@@ -1,6 +1,13 @@
 import type { TFunction } from 'i18next';
 import type { VariantType } from 'notistack';
-import type { TableDto, TimeSlotDto, CreateReservationDto } from '@/types/reservation';
+import {
+  ReservationStatus,
+  type TableDto,
+  type TimeSlotDto,
+  type CreateReservationDto,
+  type ReservationDto,
+  type UpdateMyReservationDto,
+} from '@/types/reservation';
 import { DEFAULT_FORM_FIELD_RULES, FORM_KEYS, type FormFieldRules } from '@/types/formFieldConfig';
 import { serverMessages } from '@/utils/apiFormErrors';
 
@@ -231,6 +238,123 @@ export function buildReservationPayload(
 }
 
 /**
+ * May the GUEST still change this booking themselves?
+ *
+ * Two conditions, both of which the server enforces again on
+ * `PUT /api/reservations/{id}/mine` — this only decides whether to OFFER the action:
+ *  - the status is one the customer may still touch (pending or confirmed; a cancelled,
+ *    completed or no-show booking is closed), and
+ *  - the booking is not in the past.
+ *
+ * "Past" is measured against the day the RESTAURANT is on, never the device's (CLAUDE.md §5.15):
+ * a guest sitting in Sydney must not lose the action on a Geneva booking because their own
+ * calendar has already rolled over. `tenantToday` is `''` until that day is known, and while it is
+ * unknown the answer is `false` — offering an edit and having the server refuse it is worse than
+ * an action that appears a moment later.
+ */
+export function isCustomerEditableReservation(
+  reservation: Pick<ReservationDto, 'status' | 'reservationDate'>,
+  tenantToday: string,
+): boolean {
+  if (!tenantToday) return false;
+  if (reservation.status !== ReservationStatus.Pending && reservation.status !== ReservationStatus.Confirmed) {
+    return false;
+  }
+  // Both sides are `YYYY-MM-DD` day strings, compared as text: no `Date`, so no zone can shift the
+  // comparison. The wire value may carry a time part (`2026-10-24T00:00:00Z`) — slice it off.
+  return reservation.reservationDate.slice(0, 10) >= tenantToday;
+}
+
+/**
+ * The times to offer a guest who is MOVING an existing booking.
+ *
+ * Keyed on the booking's OWN table, which is the whole difference from {@link getTimeSlotOptions}:
+ * that one asks whether the tables the guest just picked are free, and this surface has no table
+ * picker — `PUT /api/reservations/{id}/mine` carries no `tableId` and the backend **never re-seats
+ * the party** (contract §2.2). It refuses a slot overlapping another booking on that one table, so
+ * the only slot worth offering is one where that same table is free.
+ *
+ * `keepTime` is the booking's own current start, and it is load-bearing: the table is occupied at
+ * that time BY THIS RESERVATION, so the slot the guest is already in comes back without it and
+ * would otherwise render disabled — locking them out of changing only the party size or the note.
+ */
+export function getSelfServiceTimeSlotOptions(
+  availableTimeSlots: TimeSlotDto[],
+  tableId: string,
+  keepTime?: string,
+): TimeSlotOption[] {
+  return availableTimeSlots.map((slot) => {
+    const time = slot.startTime.substring(0, 5);
+    return {
+      time,
+      available: time === keepTime || slot.availableTables.some((tbl) => tbl.id === tableId),
+    };
+  });
+}
+
+/** `HH:mm` or `HH:mm:ss` → `HH:mm:ss`, the only shape a .NET `TimeSpan` binds. */
+function toWireTime(time: string): string {
+  // No default for `hours`: `split` always yields a first element, so one would be a branch
+  // nothing can take. The other two are real — the fallback below builds an `HH:mm`.
+  const [hours, minutes = '00', seconds = '00'] = time.split(':');
+  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+}
+
+/**
+ * When the moved booking ends: the chosen slot's own end, or — if the slot list does not contain
+ * it — the same two-hour sitting `buildReservationPayload` assumes when booking.
+ */
+export function resolveSlotEndTime(startTime: string, availableTimeSlots: TimeSlotDto[]): string {
+  const slot = availableTimeSlots.find((candidate) => candidate.startTime.startsWith(startTime));
+  if (slot) return toWireTime(slot.endTime);
+
+  const [hours, minutes = '00'] = startTime.split(':');
+  return toWireTime(`${String((Number(hours) + 2) % 24).padStart(2, '0')}:${minutes}`);
+}
+
+/** What the guest typed into the self-update form, before it is put on the wire. */
+export interface MyReservationUpdateInput {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  specialRequests: string;
+  /** `YYYY-MM-DD`, straight from the date strip — never a day a `Date` decided. */
+  reservationDate: string;
+  /** `HH:mm` as picked. */
+  startTime: string;
+  /** `HH:mm:ss`, from {@link resolveSlotEndTime}. */
+  endTime: string;
+  numberOfGuests: number;
+}
+
+/**
+ * The `PUT /api/reservations/{id}/mine` body.
+ *
+ * The times go out as LOCAL `"HH:mm:ss"` wall-clock strings and are never run through
+ * `toISOString()`: the backend binds them to `TimeSpan`, which refuses an ISO datetime outright,
+ * and UTC-converting them first moves the booking by the client's offset — the mobile client
+ * shipped exactly that and every edit landed an hour or two out.
+ *
+ * `reservationDate` is the day string widened to UTC midnight — `YYYY-MM-DDT00:00:00Z`, the exact
+ * shape the contract documents. The endpoint REFUSES any other time-of-day with a 400 rather than
+ * risk a silent one-day shift, so a local midnight carrying an offset (`…T00:00:00+02:00`) is not
+ * merely discouraged, it is rejected. Built by concatenation so no `Date` — and therefore no device
+ * timezone — can pick a different day than the one on the button the guest pressed.
+ */
+export function buildMyReservationUpdatePayload(input: MyReservationUpdateInput): UpdateMyReservationDto {
+  return {
+    customerName: input.customerName.trim(),
+    customerEmail: input.customerEmail.trim(),
+    customerPhone: input.customerPhone.trim() || '',
+    reservationDate: `${input.reservationDate}T00:00:00Z`,
+    startTime: toWireTime(input.startTime),
+    endTime: toWireTime(input.endTime),
+    numberOfGuests: input.numberOfGuests,
+    specialRequests: input.specialRequests.trim() || null,
+  };
+}
+
+/**
  * Extracts the most specific API error message from a failed reservation create.
  *
  * **Its first two branches read an envelope the app has never produced.** It unwrapped
@@ -257,9 +381,22 @@ export function buildReservationPayload(
  * than the translated sentence it would replace.
  */
 export function extractReservationErrorMessage(err: unknown, t: TFunction): string {
-  // `filter` where this used to `find`: since backend #291 a validator failure arrives as one entry
-  // PER BROKEN RULE, so taking the first non-generic one showed the guest one reason and dropped
-  // the rest. Joined with the backend's own `'; '`.
+  return serverReservationMessage(err) ?? t('reservation_failed', 'Failed to create reservation');
+}
+
+/**
+ * What the SERVER said about a refused reservation call, or `null` when it said nothing worth
+ * showing — so the caller supplies its own translated sentence instead.
+ *
+ * `filter` where the create path used to `find`: since backend #291 a validator failure arrives as
+ * one entry PER BROKEN RULE, so taking the first non-generic one showed the guest one reason and
+ * dropped the rest. Joined with the backend's own `'; '`.
+ *
+ * `'Operation failed'` is dropped: it is `ApiResponse.Failure(reason)`'s default `Message` — the
+ * generic wrapper around the real reason, which is in `errors[0]` — and it is less informative
+ * than the translated sentence it would otherwise displace.
+ */
+export function serverReservationMessage(err: unknown): string | null {
   const specific = serverMessages(err).filter((m) => m !== 'Operation failed');
-  return specific.length > 0 ? specific.join('; ') : t('reservation_failed', 'Failed to create reservation');
+  return specific.length > 0 ? specific.join('; ') : null;
 }

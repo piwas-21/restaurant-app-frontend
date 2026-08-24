@@ -286,6 +286,42 @@ export async function changePassword(formData: ChangePasswordCommand) {
 }
 
 /**
+ * Does the signed-in account have a password at all?
+ *
+ * A Google/Apple sign-up has none, and `change-password` verifies `currentPassword` — so for that
+ * account the change form can never succeed. This is the probe that tells the two apart; the
+ * caller resolves the user from the bearer token, never from a body field.
+ *
+ * `signOutOn401: false` deliberately. This is a BACKGROUND probe nobody asked for: the account
+ * page fires it on mount, and a dead session found by it would otherwise clear storage and
+ * navigate away from inside `apiClient`, where the caller's own catch cannot stop it. The reads
+ * the user DID ask for (their profile, their addresses) keep the default and end the session
+ * themselves. The caller still gets the `ApiError(401)` and treats it as "assume a password".
+ */
+export async function hasPassword(): Promise<ApiResponse<boolean>> {
+  return apiClient.get<ApiResponse<boolean>>('/api/Auth/has-password', {
+    requireAuth: true,
+    signOutOn401: false,
+  });
+}
+
+/**
+ * Set the FIRST password on an account that has none.
+ *
+ * The server rejects this when a password already exists — otherwise a stolen token could
+ * overwrite a password without knowing it. That path is `change-password`, which proves the
+ * current one.
+ */
+export interface SetPasswordCommand {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export async function setPassword(formData: SetPasswordCommand): Promise<ApiResponse<string>> {
+  return apiClient.post<ApiResponse<string>>('/api/Auth/set-password', formData, { requireAuth: true });
+}
+
+/**
  * Send Email Verification
  */
 export interface SendEmailVerificationCommand {

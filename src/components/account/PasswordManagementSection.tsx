@@ -5,6 +5,14 @@ import { useTranslation } from 'react-i18next';
 import styles from './PasswordManagementSection.module.css';
 
 interface PasswordManagementSectionProps {
+  /**
+   * Does this account HAVE a password? False turns the section into a set-a-password form: no
+   * current-password field (there is nothing to prove), and a heading and button that say so.
+   *
+   * A Google/Apple sign-up has no password, so the change form could never succeed for it — see
+   * `useAccountPassword`, which also explains why an unanswered probe renders `true`.
+   */
+  hasExistingPassword: boolean;
   currentPassword: string;
   newPassword: string;
   confirmNewPassword: string;
@@ -20,6 +28,7 @@ interface PasswordManagementSectionProps {
 }
 
 export default function PasswordManagementSection({
+  hasExistingPassword,
   currentPassword,
   newPassword,
   confirmNewPassword,
@@ -36,22 +45,36 @@ export default function PasswordManagementSection({
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{t('password_management_title', 'Password Management')}</h2>
+      <h2 className={styles.sectionTitle}>
+        {hasExistingPassword
+          ? t('password_management_title', 'Password Management')
+          : t('set_password_title', 'Set a Password')}
+      </h2>
+      {!hasExistingPassword && (
+        <p className={styles.sectionHint}>
+          {t(
+            'set_password_hint',
+            'You signed in with Google or Apple, so your account has no password yet. Set one to also sign in with your email address.',
+          )}
+        </p>
+      )}
       {passwordSuccess && <p className={styles.successMessage}>{passwordSuccess}</p>}
       {passwordErrors.form && <p className={styles.errorMessage}>{passwordErrors.form}</p>}
       <form onSubmit={handlePasswordChangeSubmit} noValidate>
-        <div className={styles.formGroup}>
-          <label htmlFor="currentPassword">{t('current_password_label', 'Current Password')}</label>
-          <input
-            type="password"
-            id="currentPassword"
-            name="currentPassword"
-            value={currentPassword}
-            onChange={handleCurrentPasswordChange}
-            className={styles.formInput}
-          />
-          {passwordErrors.currentPassword && <p className={styles.errorMessage}>{passwordErrors.currentPassword}</p>}
-        </div>
+        {hasExistingPassword && (
+          <div className={styles.formGroup}>
+            <label htmlFor="currentPassword">{t('current_password_label', 'Current Password')}</label>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              value={currentPassword}
+              onChange={handleCurrentPasswordChange}
+              className={styles.formInput}
+            />
+            {passwordErrors.currentPassword && <p className={styles.errorMessage}>{passwordErrors.currentPassword}</p>}
+          </div>
+        )}
 
         <div className={styles.formGroup}>
           <label htmlFor="newPassword">{t('new_password_label', 'New Password')}</label>
@@ -91,7 +114,9 @@ export default function PasswordManagementSection({
         </div>
         <div className={styles.formActions}>
           <button type="submit" className={styles.changePasswordButton}>
-            {t('change_password_button', 'Change Password')}
+            {hasExistingPassword
+              ? t('change_password_button', 'Change Password')
+              : t('set_password_button', 'Set Password')}
           </button>
         </div>
       </form>

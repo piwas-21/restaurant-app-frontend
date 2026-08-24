@@ -78,7 +78,10 @@ export default function EditReservationModal({
       footer={footer}
     >
       {edit.saved ? (
-        <div className={styles.success} role="status">
+        // `<output>`, not a `role="status"` div — it carries the status role implicitly, which is
+        // the house convention here (CartContents, FidelityPointsCheckout, SuggestedSideItemsPicker)
+        // and what SonarCloud S6819 asks for. `.success` is display:block so the paragraphs stack.
+        <output className={styles.success}>
           <p>{t('edit_reservation_success', 'Your booking has been updated.')}</p>
           {edit.needsApproval && (
             <p>
@@ -88,7 +91,7 @@ export default function EditReservationModal({
               )}
             </p>
           )}
-        </div>
+        </output>
       ) : (
         <div className={styles.form}>
           <p className={styles.intro}>

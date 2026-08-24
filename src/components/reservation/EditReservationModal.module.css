@@ -48,6 +48,8 @@
 }
 
 .success {
+  /* `<output>` is inline by default; the success block stacks two paragraphs. */
+  display: block;
   margin: 0;
   color: var(--text-color);
   font-size: 1rem;

@@ -85,3 +85,11 @@
   outline: none;
   border-color: var(--brand-primary);
 }
+
+/* Cap notice — the same handwritten voice as the custom-input label. */
+.capNotice {
+  margin-top: 0.4rem;
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}

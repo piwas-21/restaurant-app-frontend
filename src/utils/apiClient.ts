@@ -7,6 +7,7 @@
  */
 
 import { refreshToken } from '@/services/authService';
+import { parseProblemFieldErrors, problemFieldMessages, type ProblemFieldErrors } from '@/utils/problemDetails';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5221';
 
@@ -43,6 +44,16 @@ export class ApiError extends Error {
      * from users' screens in the first place.
      */
     options?: ErrorOptions,
+    /**
+     * The FIELD KEYS of an RFC 7807 `ValidationProblemDetails` refusal, present only on that shape
+     * (`utils/problemDetails.ts`). `errors` keeps the same messages flattened, so nothing that read
+     * it before sees a change; this is the half that used to be thrown away — `Object.values().flat()`
+     * knew which member the backend refused and dropped it on the floor, leaving every caller to
+     * show a raw DataAnnotation sentence naming a C# property, or the `"$"` deserializer's
+     * stringified type name. A caller can now answer "the party is over the cap" in the guest's own
+     * language instead of relaying either.
+     */
+    public fieldErrors?: ProblemFieldErrors,
   ) {
     super(message, options);
     this.name = 'ApiError';
@@ -261,18 +272,29 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
       // Extract error message and details. `''` when the server said nothing usable — the status
       // is already on the error, so a `Request failed with status 500` string added no information
       // and cost every caller its translated fallback.
+      //
+      // `data.title` is the problem+json half of that: an `ApiResponse` failure has `message`, a
+      // `ValidationProblemDetails` has `title` ("One or more validation errors occurred.").
       const message: string = data.message || data.title || '';
-      const errors = data.errors
-        ? Array.isArray(data.errors)
-          ? data.errors
-          : Object.values(data.errors).flat()
-        : undefined;
+      // The two shapes of `errors`, kept apart: an ARRAY is the `ApiResponse` envelope, an OBJECT
+      // is problem+json keyed by field (or by `"$"` when the body itself did not bind). Both end up
+      // in `errors` as flat messages — as before — but the field keys now survive on the error too,
+      // so a caller can recognise WHICH rule was broken instead of matching English prose.
+      const fieldErrors = parseProblemFieldErrors(data);
+      let errors: string[] | undefined;
+      if (Array.isArray(data.errors)) {
+        errors = data.errors as string[];
+      } else if (fieldErrors) {
+        errors = problemFieldMessages(fieldErrors);
+      }
 
       throw new ApiError(
         response.status,
         message,
-        errors as string[] | undefined,
+        errors,
         typeof data.errorCode === 'string' ? data.errorCode : undefined,
+        undefined,
+        fieldErrors ?? undefined,
       );
     }
 

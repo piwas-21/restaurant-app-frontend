@@ -7,6 +7,7 @@ import {
   STAFF_REGISTRATION_MATCHERS,
   formLevelMessage,
   routeApiError,
+  problemFieldErrors,
   serverMessage,
   serverMessages,
   throwServerRefusal,
@@ -388,5 +389,28 @@ describe('formLevelMessage', () => {
     expect(formLevelMessage(routed('Also, the email is taken', [{ field: 'password', message: 'x' }]), 'f')).toBe(
       'Also, the email is taken',
     );
+  });
+});
+
+/**
+ * The reader for the SECOND failure shape (frontend #557). `apiClient` parses it once, on the way
+ * in (`utils/problemDetails.ts`); this is how a form gets at the FIELD KEYS, which the flattening
+ * into `errors[]` throws away.
+ */
+describe('problemFieldErrors', () => {
+  it('returns the field map of a problem+json refusal', () => {
+    const fields = { NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'] };
+
+    expect(problemFieldErrors(new ApiError(400, 'x', undefined, undefined, undefined, fields))).toBe(fields);
+  });
+
+  it('returns null for an envelope failure, which has no field keys', () => {
+    expect(problemFieldErrors(new ApiError(400, 'Operation failed', ['Table 5 is gone']))).toBeNull();
+  });
+
+  it('returns null for anything that is not an ApiError at all', () => {
+    expect(problemFieldErrors({ success: false, errors: ['nope'] })).toBeNull();
+    expect(problemFieldErrors(new TypeError('Failed to fetch'))).toBeNull();
+    expect(problemFieldErrors(null)).toBeNull();
   });
 });

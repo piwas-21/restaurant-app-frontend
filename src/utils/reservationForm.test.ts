@@ -535,11 +535,95 @@ describe('buildMyReservationUpdatePayload', () => {
 describe('serverReservationMessage', () => {
   it("returns the server's per-rule reasons, joined", () => {
     const error = new ApiError(400, 'Operation failed', ['The slot is no longer free', 'Party too large']);
-    expect(serverReservationMessage(error)).toBe('The slot is no longer free; Party too large');
+    expect(serverReservationMessage(error, t)).toBe('The slot is no longer free; Party too large');
   });
 
   it("returns null when all the server said was its generic wrapper, so the caller's own sentence wins", () => {
-    expect(serverReservationMessage(new ApiError(400, 'Operation failed'))).toBeNull();
-    expect(serverReservationMessage(new Error('Failed to fetch'))).toBeNull();
+    expect(serverReservationMessage(new ApiError(400, 'Operation failed'), t)).toBeNull();
+    expect(serverReservationMessage(new Error('Failed to fetch'), t)).toBeNull();
+  });
+});
+
+/**
+ * The OTHER failure shape (frontend #557, contract §0.2). A `[Range]`, `[Required]` or
+ * `[EmailAddress]` rule is enforced by MVC model validation BEFORE the handler runs, so the
+ * refusal is `application/problem+json` and never the `ApiResponse` envelope every other case here
+ * uses. `apiClient` now keeps its field keys (`fieldErrors`) beside the flattened messages, and
+ * these are the errors it emits — `apiClientRequest.test.ts` pins that they are what `request()`
+ * really produces, so building them here is mirroring, not inventing.
+ */
+describe('serverReservationMessage — problem+json refusals', () => {
+  const problem = (fields: Record<string, string[]>) =>
+    new ApiError(
+      400,
+      'One or more validation errors occurred.',
+      Object.values(fields).flat(),
+      undefined,
+      undefined,
+      fields,
+    );
+
+  it('answers an over-cap party in the guest`s own words, not with a C# property name', () => {
+    // What the guest used to read: "The field NumberOfGuests must be between 1 and 20."
+    expect(
+      serverReservationMessage(problem({ NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'] }), t),
+    ).toBe('Please choose between 1 and 20 guests.');
+  });
+
+  it('answers a `"$"`-keyed refusal without leaking the .NET type name', () => {
+    const blob =
+      "JSON deserialization for type 'RestaurantSystem.Api.Features.Reservations.Dtos.UpdateMyReservationDto' was missing required properties including: 'endTime'.";
+
+    expect(serverReservationMessage(problem({ $: [blob] }), t)).toBe(
+      'Some booking details were missing. Please reload the page and try again.',
+    );
+  });
+
+  it('translates a refused email address', () => {
+    expect(
+      serverReservationMessage(
+        problem({ CustomerEmail: ['The CustomerEmail field is not a valid e-mail address.'] }),
+        t,
+      ),
+    ).toBe('Please enter a valid email');
+  });
+
+  it('keeps the server`s own sentence for a field it has nothing better to say about', () => {
+    // `CustomerName` carries [Required] AND [MaxLength(100)]: "Name is required" would be a lie
+    // for the second, and telling them apart means matching English the contract calls unstable.
+    expect(serverReservationMessage(problem({ CustomerName: ['The CustomerName field is required.'] }), t)).toBe(
+      'The CustomerName field is required.',
+    );
+  });
+
+  it('reports every refused field, not just the first', () => {
+    expect(
+      serverReservationMessage(
+        problem({
+          CustomerName: ['The CustomerName field is required.'],
+          NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'],
+        }),
+        t,
+      ),
+    ).toBe('The CustomerName field is required.; Please choose between 1 and 20 guests.');
+  });
+
+  it('reads a JSON-path key as the member it points at', () => {
+    // A TYPE mismatch keys the failure `$.numberOfGuests`, not `NumberOfGuests`.
+    expect(
+      serverReservationMessage(
+        problem({ '$.numberOfGuests': ['The JSON value could not be converted to System.Int32.'] }),
+        t,
+      ),
+    ).toBe('Please choose between 1 and 20 guests.');
+  });
+
+  it('is what the create path shows too — one parser, both forms', () => {
+    expect(
+      extractReservationErrorMessage(
+        problem({ NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'] }),
+        t,
+      ),
+    ).toBe('Please choose between 1 and 20 guests.');
   });
 });

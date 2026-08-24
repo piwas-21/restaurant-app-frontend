@@ -7,6 +7,7 @@
 //
 // Deliberately NOT `jest.requireActual`: pulling the real module in from here re-enters this mock
 // through its own import graph and leaves the re-exports unassigned.
+import type { ProblemFieldErrors } from '@/utils/problemDetails';
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -14,6 +15,13 @@ export class ApiError extends Error {
     public errors?: string[],
     public errorCode?: string,
     options?: ErrorOptions,
+    /**
+     * The RFC 7807 field keys (`utils/problemDetails.ts`). Omitting it here would make
+     * `apiFormErrors.problemFieldErrors` read `undefined` for every suite that builds an error
+     * through the alias — the shape a `[Range]`/`[Required]` refusal arrives in would then be
+     * untestable anywhere except the real module's own suite.
+     */
+    public fieldErrors?: ProblemFieldErrors,
   ) {
     super(message, options);
     this.name = 'ApiError';

@@ -123,6 +123,10 @@ module.exports = {
     'src/utils/templates/simpleReceipt.ts',
     'src/utils/templates/kitchenReceipt.ts',
     'src/utils/reservationForm.ts',
+    // #557 — the one number that governs the guest picker, and the parser for the second failure
+    // shape it exists because of. Neither directory is collected wholesale.
+    'src/lib/reservationLimits.ts',
+    'src/utils/problemDetails.ts',
     'src/utils/productTypeFilter.ts',
     'src/utils/productEditorDefaults.ts',
     'src/lib/floorPlan/geometry.ts',
@@ -918,6 +922,25 @@ module.exports = {
     // reservationForm helpers ship at 100% (see reservationForm.test.ts); pinned
     // at 99 per the "at 100% → 99" rule above.
     './src/utils/reservationForm.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    // ── #557 — the guest-picker cap and the second failure shape. ────────────────────────────────
+    // Both at 100% on every axis, pinned at 99. They earn a row because each is a SILENT failure
+    // otherwise: `reservationLimits` is the only thing standing between a picker and a party size
+    // the backend refuses (the bug was a `max="50"` beside a `[Range(1, 20)]`, and nothing but a
+    // guest reaching the 400 could see it), and `problemDetails` is the only reader of the shape
+    // that 400 arrives in — a regression there does not throw, it just puts a C# property name or
+    // a .NET type name in front of a guest again.
+    './src/lib/reservationLimits.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/utils/problemDetails.ts': {
       statements: 99,
       branches: 99,
       functions: 99,

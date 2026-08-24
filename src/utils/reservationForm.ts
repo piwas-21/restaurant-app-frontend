@@ -9,7 +9,9 @@ import {
   type UpdateMyReservationDto,
 } from '@/types/reservation';
 import { DEFAULT_FORM_FIELD_RULES, FORM_KEYS, type FormFieldRules } from '@/types/formFieldConfig';
-import { serverMessages } from '@/utils/apiFormErrors';
+import { problemFieldErrors, serverMessages } from '@/utils/apiFormErrors';
+import { PROBLEM_BODY_KEY, problemFieldName } from '@/utils/problemDetails';
+import { RESERVATION_GUEST_CAP, RESERVATION_GUEST_MIN } from '@/lib/reservationLimits';
 
 const DEFAULT_RESERVATION_RULES = DEFAULT_FORM_FIELD_RULES[FORM_KEYS.reservation];
 
@@ -381,7 +383,58 @@ export function buildMyReservationUpdatePayload(input: MyReservationUpdateInput)
  * than the translated sentence it would replace.
  */
 export function extractReservationErrorMessage(err: unknown, t: TFunction): string {
-  return serverReservationMessage(err) ?? t('reservation_failed', 'Failed to create reservation');
+  return serverReservationMessage(err, t) ?? t('reservation_failed', 'Failed to create reservation');
+}
+
+/**
+ * A sentence a GUEST can act on for the `ValidationProblemDetails` half of a refusal, or `null`
+ * when this failure is not one (see `utils/problemDetails.ts` for the two shapes).
+ *
+ * Only the fields whose own message is unfit to show are translated here; everything else keeps
+ * the server's prose, which is specific and therefore worth more than a translated generic:
+ *
+ *  - **`NumberOfGuests`** — its only rule is `[Range(1, 20)]`, so one sentence is always true, and
+ *    the server's own ("The field NumberOfGuests must be between 1 and 20.") names a C# property.
+ *  - **`"$"`** — the JSON deserializer's message quotes a .NET type name and the missing member in
+ *    developer English. It must never reach a guest.
+ *  - **`CustomerEmail`** — `[Required]`, `[EmailAddress]` and `[MaxLength(255)]` all mean the same
+ *    thing to a guest: the address as typed cannot be used.
+ *
+ * `CustomerName` is deliberately NOT mapped even though it looks like the same case: it carries
+ * `[Required]` AND `[MaxLength(100)]`, so "Name is required" would be a lie for the second, and
+ * telling the two apart means substring-matching English the contract says is not stable
+ * (`mobile-client-contracts.md` §0.1). Its server sentence names the field plainly enough.
+ */
+function reservationProblemMessage(err: unknown, t: TFunction): string | null {
+  const fields = problemFieldErrors(err);
+  if (!fields) return null;
+
+  // No emptiness guard on the join: `parseProblemFieldErrors` returns `null` — never `{}` — for a
+  // body with nothing usable in it, so the only way here is with at least one message. A `''` from
+  // a hand-built error is falsy anyway and the caller falls through to the envelope path.
+  return Object.entries(fields)
+    .map(([key, messages]) => translateProblemField(problemFieldName(key), t) ?? messages.join('; '))
+    .join('; ');
+}
+
+/** The guest-facing sentence for one refused DTO member, or `null` to keep the server's own. */
+function translateProblemField(field: string, t: TFunction): string | null {
+  switch (field) {
+    case 'numberofguests':
+      return t('reservation_error_guest_range', 'Please choose between {{min}} and {{max}} guests.', {
+        min: RESERVATION_GUEST_MIN,
+        max: RESERVATION_GUEST_CAP,
+      });
+    case 'customeremail':
+      return t('reservation_validation_email_invalid', 'Please enter a valid email');
+    case PROBLEM_BODY_KEY:
+      return t(
+        'reservation_error_incomplete_request',
+        'Some booking details were missing. Please reload the page and try again.',
+      );
+    default:
+      return null;
+  }
 }
 
 /**
@@ -396,7 +449,14 @@ export function extractReservationErrorMessage(err: unknown, t: TFunction): stri
  * generic wrapper around the real reason, which is in `errors[0]` — and it is less informative
  * than the translated sentence it would otherwise displace.
  */
-export function serverReservationMessage(err: unknown): string | null {
+export function serverReservationMessage(err: unknown, t: TFunction): string | null {
+  // problem+json FIRST: on a `[Range]`/`[Required]`/`[EmailAddress]` failure the model binder
+  // answers before the handler runs, so this shape is the only one that arrives — and until #557
+  // its messages reached the guest as raw DataAnnotation prose naming a C# property, or as the
+  // deserializer's stringified type name. `t` is threaded through for exactly these.
+  const problem = reservationProblemMessage(err, t);
+  if (problem) return problem;
+
   const specific = serverMessages(err).filter((m) => m !== 'Operation failed');
   return specific.length > 0 ? specific.join('; ') : null;
 }

@@ -80,6 +80,7 @@ const baseState = {
   setSelectedTime: jest.fn(),
   numberOfGuests: 2,
   setNumberOfGuests: jest.fn(),
+  maxGuests: 6,
   loading: false,
   customerName: '',
   setCustomerName: jest.fn(),
@@ -118,6 +119,14 @@ describe('ReservationsPageLayout', () => {
     mockUseReservationsPage.mockReturnValue({ ...baseState, canSubmit: false });
     render(<ReservationsPageLayout styles={styles} />);
     expect(screen.getByRole('button', { name: 'Book Now' })).toBeDisabled();
+  });
+
+  it("gives the guest picker the hook's derived cap, not a number of its own (#557)", () => {
+    render(<ReservationsPageLayout styles={styles} />);
+
+    // The hook derives it from the table list; the layout must forward it. It used to render a
+    // picker hardcoded to 50 while every reservation DTO refuses more than 20.
+    expect(screen.getByLabelText('Or custom:')).toHaveAttribute('max', '6');
   });
 
   it('shows the capacity notice only when the hook flags it', () => {

@@ -55,34 +55,21 @@ describe('GuestSelector — the party-size cap', () => {
     expect(screen.queryByRole('button', { name: '8' })).not.toBeInTheDocument();
   });
 
-  it('clamps a typed party down to the cap instead of letting the server refuse it', () => {
-    // `max` on a number input is advisory — it marks the field invalid and accepts the value
-    // anyway, and this form does not submit through native validation. 50 is what the picker
-    // itself used to offer, and what #557 was reported for.
+  // `min`/`max` on a number input are ADVISORY — they mark the field invalid and accept the value
+  // anyway, and this form does not submit through native validation. Clamping is what actually
+  // keeps an impossible party off the wire. `50` is what the picker itself used to offer, and what
+  // #557 was reported for; `''` is a cleared field, which used to fall to `|| 1` and now clamps.
+  it.each([
+    ['a party over the cap', '50', 6],
+    ['a cleared field', '', 1],
+    ['a negative party', '-3', 1],
+  ])('clamps %s into the allowed range', (_case, typed, expected) => {
     const onGuestsChange = jest.fn();
     render(<GuestSelector numberOfGuests={2} onGuestsChange={onGuestsChange} maxGuests={6} styles={styles} />);
 
-    fireEvent.change(screen.getByLabelText('Or custom:'), { target: { value: '50' } });
+    fireEvent.change(screen.getByLabelText('Or custom:'), { target: { value: typed } });
 
-    expect(onGuestsChange).toHaveBeenLastCalledWith(6);
-  });
-
-  it('clamps a cleared input up to one guest, not to zero', () => {
-    const onGuestsChange = jest.fn();
-    render(<GuestSelector numberOfGuests={2} onGuestsChange={onGuestsChange} maxGuests={6} styles={styles} />);
-
-    fireEvent.change(screen.getByLabelText('Or custom:'), { target: { value: '' } });
-
-    expect(onGuestsChange).toHaveBeenLastCalledWith(1);
-  });
-
-  it('clamps a party typed BELOW one, which the browser`s own `min` does not stop either', () => {
-    const onGuestsChange = jest.fn();
-    render(<GuestSelector numberOfGuests={2} onGuestsChange={onGuestsChange} maxGuests={6} styles={styles} />);
-
-    fireEvent.change(screen.getByLabelText('Or custom:'), { target: { value: '-3' } });
-
-    expect(onGuestsChange).toHaveBeenLastCalledWith(1);
+    expect(onGuestsChange).toHaveBeenLastCalledWith(expected);
   });
 
   it('says so, with the number, once the cap is reached — before anything is submitted', () => {

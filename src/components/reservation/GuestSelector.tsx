@@ -65,7 +65,7 @@ export default function GuestSelector({
           min={RESERVATION_GUEST_MIN}
           max={maxGuests}
           value={numberOfGuests}
-          onChange={(e) => onGuestsChange(clamp(parseInt(e.target.value, 10) || RESERVATION_GUEST_MIN))}
+          onChange={(e) => onGuestsChange(clamp(Number.parseInt(e.target.value, 10) || RESERVATION_GUEST_MIN))}
           className={styles.customInput}
           placeholder={t('enter_guests', 'Enter number')}
         />

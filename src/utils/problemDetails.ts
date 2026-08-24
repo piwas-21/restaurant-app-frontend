@@ -72,8 +72,9 @@ export function problemFieldMessages(fields: ProblemFieldErrors): string[] {
  */
 export function problemFieldName(key: string): string {
   if (key === PROBLEM_BODY_KEY) return PROBLEM_BODY_KEY;
-  // Indexed, not `.pop() ?? key`: `split` always yields at least one element, so the fallback
-  // would be a branch nothing can take (the same reasoning as `reservationForm.toWireTime`).
-  const segments = key.split('.');
-  return segments[segments.length - 1].toLowerCase();
+  // A replace, not `split(…).pop() ?? key` or `.at(-1) ?? key`: both of those need a fallback for
+  // an `undefined` that cannot occur (`split` always yields at least one element), and that
+  // fallback is a branch no test can take. Greedy `.*`, so a nested path reduces to its LAST
+  // segment, which is the member the message is about.
+  return key.replace(/^.*\./, '').toLowerCase();
 }

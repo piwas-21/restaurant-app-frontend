@@ -32,7 +32,7 @@ export interface PasswordStrength {
 }
 
 /** The four character classes the meter counts, on top of the length rule. */
-const STRENGTH_CLASSES = [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/];
+const STRENGTH_CLASSES = [/[A-Z]/, /[a-z]/, /\d/, /[^A-Za-z0-9]/];
 
 /**
  * Same verdicts as the cascade this replaces, expressed once instead of five times.
@@ -89,7 +89,7 @@ export function validatePasswordForm(
     newPassword.length < 8 ||
     !/[A-Z]/.test(newPassword) ||
     !/[a-z]/.test(newPassword) ||
-    !/[0-9]/.test(newPassword) ||
+    !/\d/.test(newPassword) ||
     !/[^A-Za-z0-9]/.test(newPassword)
   ) {
     errors.newPassword = t(

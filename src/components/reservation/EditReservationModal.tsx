@@ -113,6 +113,7 @@ export default function EditReservationModal({
           <GuestSelector
             numberOfGuests={edit.numberOfGuests}
             onGuestsChange={edit.setNumberOfGuests}
+            maxGuests={edit.maxGuests}
             styles={templateStyles.guests}
           />
 

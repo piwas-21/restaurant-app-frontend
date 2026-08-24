@@ -54,6 +54,7 @@ export default function ReservationsPageLayout({ styles }: Readonly<Reservations
     setSelectedTime,
     numberOfGuests,
     setNumberOfGuests,
+    maxGuests,
     loading,
     customerName,
     setCustomerName,
@@ -114,6 +115,7 @@ export default function ReservationsPageLayout({ styles }: Readonly<Reservations
               <GuestSelector
                 numberOfGuests={numberOfGuests}
                 onGuestsChange={setNumberOfGuests}
+                maxGuests={maxGuests}
                 styles={styles.guests}
               />
 

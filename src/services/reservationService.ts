@@ -5,6 +5,7 @@ import {
   TableDto,
   ReservationDto,
   CreateReservationDto,
+  UpdateMyReservationDto,
   CreateTableDto,
   UpdateTableDto,
   AvailableTimeSlotsDto,
@@ -190,6 +191,27 @@ export const reservationService = {
       ...response.data,
       status: mapStatusToEnum(response.data.status),
     };
+  },
+
+  /**
+   * The guest changes their OWN booking — `PUT /api/reservations/{id}/mine`.
+   *
+   * Separate from `updateReservation`-by-admin on purpose (backend self-update endpoint, mobile
+   * feedback item 1): ownership is enforced from the bearer token, and the body carries no
+   * `status` and no `tableId`. Same failure handling as its neighbours — a non-2xx is already an
+   * `ApiError` carrying the server's own account and is left alone; a `{ success: false }`
+   * resolved inside a 200 is rethrown as the same shape by `throwServerRefusal`, so the caller
+   * can show what the server said rather than an invented English sentence.
+   */
+  async updateMyReservation(id: string, data: UpdateMyReservationDto): Promise<ReservationDto> {
+    const response = await apiClient.put<ApiResponse<ReservationDto>>(`/api/reservations/${id}/mine`, data);
+
+    if (!response.success || !response.data) {
+      throwServerRefusal(response);
+    }
+
+    // The list renders `status` as the numeric enum; the API sends it as a name.
+    return { ...response.data, status: mapStatusToEnum(response.data.status) };
   },
 
   async cancelReservation(id: string): Promise<void> {

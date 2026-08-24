@@ -34,6 +34,8 @@ const baseProps = {
   expanded: false,
   onToggleExpanded: jest.fn(),
   onRequestCancel: jest.fn(),
+  editable: false,
+  onRequestEdit: jest.fn(),
   cancelling: false,
   styles,
 };
@@ -105,6 +107,31 @@ describe('MyReservationCard', () => {
     );
     expect(screen.queryByRole('button', { name: 'Cancel Reservation' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Modify' })).not.toBeInTheDocument();
+  });
+
+  it('offers "Change booking" only when the layout says the booking is still editable', () => {
+    // `editable` is the whole gate: a past or cancelled booking arrives here already false
+    // (isCustomerEditableReservation), so the card never has to re-derive it.
+    const { rerender } = render(<MyReservationCard {...baseProps} expanded />);
+    expect(screen.queryByRole('button', { name: 'Change booking' })).not.toBeInTheDocument();
+
+    rerender(<MyReservationCard {...baseProps} expanded editable />);
+    fireEvent.click(screen.getByRole('button', { name: 'Change booking' }));
+    expect(baseProps.onRequestEdit).toHaveBeenCalledWith('r1');
+  });
+
+  it('keeps the edit action for a booking that can no longer be cancelled', () => {
+    // The two actions are gated independently; nothing may collapse them into one flag.
+    render(
+      <MyReservationCard
+        {...baseProps}
+        expanded
+        editable
+        reservation={{ ...reservation, status: ReservationStatus.Completed }}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Change booking' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel Reservation' })).not.toBeInTheDocument();
   });
 
   it('disables the cancel action while a cancellation is in flight', () => {

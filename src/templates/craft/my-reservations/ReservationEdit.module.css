@@ -1,0 +1,22 @@
+/*
+ * craft — the "Change booking" action on a reservation docket. Its own module rather than more
+ * lines in ReservationDocket.module.css, which is at the 200-LOC limit: the keys here are disjoint
+ * from the docket's, and MyReservationsPage spreads the two into one card module (the classic
+ * ReservationsPage chrome+panel pattern). A quiet kraft pill beside the terracotta outline
+ * "Cancel" — changing a booking is the ordinary action, cancelling is the loud one.
+ */
+
+.editButton {
+  composes: btnKraft from '../primitives.module.css';
+  /* The docket's `.actions` row has no gap of its own, and logical margin keeps the space on the
+     correct side under `ar`. Not doubled below: `btnKraft` declares no margin, so there is no tie. */
+  margin-inline-end: 0.6rem;
+}
+
+/* Doubled selector (#447): these two properties ALSO come from `btnKraft`, and one class beating
+   another on source order alone is a coin flip decided by chunk order. `.editButton.editButton`
+   wins on specificity instead. The size is the outline-Sm one, so the two actions in the row match. */
+.editButton.editButton {
+  font-size: 1.15rem;
+  padding: 0.3rem 0.85rem;
+}

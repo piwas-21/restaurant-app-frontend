@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import type { TableDto, TimeSlotDto } from '@/types/reservation';
+import { ReservationStatus, type TableDto, type TimeSlotDto } from '@/types/reservation';
 // Through the ALIAS: `serverMessages` resolves `ApiError` the same way, and an instance built
 // from anywhere else would make its `instanceof` false and every assertion below vacuous.
 import { ApiError } from '@/utils/apiClient';
@@ -13,6 +13,11 @@ import {
   buildSpecialRequests,
   buildReservationPayload,
   extractReservationErrorMessage,
+  isCustomerEditableReservation,
+  getSelfServiceTimeSlotOptions,
+  resolveSlotEndTime,
+  buildMyReservationUpdatePayload,
+  serverReservationMessage,
 } from '@/utils/reservationForm';
 
 // Minimal i18next stand-in: returns the developer fallback with {{vars}} filled
@@ -377,5 +382,164 @@ describe('partyExceedsEveryTable', () => {
     // biggest table happens to be last.
     expect(partyExceedsEveryTable([tbl('a', 10), tbl('b', 4)], 8)).toBe(false);
     expect(partyExceedsEveryTable([tbl('a', 4), tbl('b', 10), tbl('c', 4)], 8)).toBe(false);
+  });
+});
+
+describe('isCustomerEditableReservation', () => {
+  const booking = (status: ReservationStatus, reservationDate: string) => ({ status, reservationDate });
+
+  it.each([
+    [ReservationStatus.Pending, true],
+    [ReservationStatus.Confirmed, true],
+    [ReservationStatus.Cancelled, false],
+    [ReservationStatus.Completed, false],
+    [ReservationStatus.NoShow, false],
+  ])('status %s → %s', (status, expected) => {
+    expect(isCustomerEditableReservation(booking(status, '2026-10-24'), '2026-10-01')).toBe(expected);
+  });
+
+  it("refuses a booking whose day is behind the RESTAURANT's day", () => {
+    expect(isCustomerEditableReservation(booking(ReservationStatus.Confirmed, '2026-09-30'), '2026-10-01')).toBe(false);
+  });
+
+  it('allows TODAY — the server, not the client, decides whether it is too late in the day', () => {
+    expect(isCustomerEditableReservation(booking(ReservationStatus.Confirmed, '2026-10-01'), '2026-10-01')).toBe(true);
+  });
+
+  it('reads a wire value that carries a time part as the same day', () => {
+    expect(
+      isCustomerEditableReservation(booking(ReservationStatus.Confirmed, '2026-10-01T00:00:00Z'), '2026-10-01'),
+    ).toBe(true);
+  });
+
+  it("answers false while the restaurant's day is still unknown, rather than guessing", () => {
+    // `''` is `useTenantToday` before its first answer. A plain `>=` against it is TRUE for every
+    // date string, so without the guard every past booking would offer an edit the server refuses.
+    expect(isCustomerEditableReservation(booking(ReservationStatus.Confirmed, '2020-01-01'), '')).toBe(false);
+  });
+});
+
+describe('getSelfServiceTimeSlotOptions', () => {
+  it("offers a slot only while the booking's OWN table is free at it", () => {
+    // The endpoint carries no tableId and never re-seats the party (contract §2.2), so another
+    // free table at 13:00 is no use to a guest sitting at table `a`.
+    const slots = [slot('12:00:00', [t1, t2]), slot('13:00:00', [t2, t3])];
+    expect(getSelfServiceTimeSlotOptions(slots, 'a')).toEqual([
+      { time: '12:00', available: true },
+      { time: '13:00', available: false },
+    ]);
+  });
+
+  it("keeps the booking's own current time offerable — its table is taken BY the booking", () => {
+    const slots = [slot('19:30:00', [])];
+    expect(getSelfServiceTimeSlotOptions(slots, 'a', '19:30')).toEqual([{ time: '19:30', available: true }]);
+    // …and only for that time, not as a blanket pass.
+    expect(getSelfServiceTimeSlotOptions(slots, 'a', '18:00')).toEqual([{ time: '19:30', available: false }]);
+  });
+
+  it('does not ask whether a PICKED table is free — this surface has no table picker', () => {
+    // getTimeSlotOptions answers `true` for every slot when nothing is selected, even a fully
+    // booked one; the self-service picker must not offer that.
+    const slots = [slot('12:00:00', [])];
+    expect(getTimeSlotOptions([], slots)).toEqual([{ time: '12:00', available: true }]);
+    expect(getSelfServiceTimeSlotOptions(slots, 'a')).toEqual([{ time: '12:00', available: false }]);
+  });
+});
+
+describe('resolveSlotEndTime', () => {
+  it("takes the chosen slot's own end, normalised to HH:mm:ss", () => {
+    expect(resolveSlotEndTime('19:30', [{ startTime: '19:30:00', endTime: '21:30:00', availableTables: [] }])).toBe(
+      '21:30:00',
+    );
+  });
+
+  it('falls back to the same two-hour sitting the booking page assumes', () => {
+    expect(resolveSlotEndTime('19:30', [])).toBe('21:30:00');
+  });
+
+  it('pads and wraps rather than emitting an hour a TimeSpan cannot bind', () => {
+    expect(resolveSlotEndTime('07:00', [])).toBe('09:00:00');
+    expect(resolveSlotEndTime('23:00', [])).toBe('01:00:00');
+  });
+
+  it('tolerates a bare hour, rather than putting the string "undefined" on the wire', () => {
+    expect(resolveSlotEndTime('20', [])).toBe('22:00:00');
+  });
+});
+
+describe('buildMyReservationUpdatePayload', () => {
+  const input = {
+    customerName: '  Ada Lovelace ',
+    customerEmail: ' ada@example.com ',
+    customerPhone: '  ',
+    specialRequests: '   ',
+    reservationDate: '2026-10-24',
+    startTime: '19:30',
+    endTime: '21:30:00',
+    numberOfGuests: 4,
+  };
+
+  it('is the exact self-update contract body — no status, no tableId', () => {
+    expect(buildMyReservationUpdatePayload({ ...input, customerPhone: '+41 79 000 00 00' })).toEqual({
+      customerName: 'Ada Lovelace',
+      customerEmail: 'ada@example.com',
+      customerPhone: '+41 79 000 00 00',
+      reservationDate: '2026-10-24T00:00:00Z',
+      startTime: '19:30:00',
+      endTime: '21:30:00',
+      numberOfGuests: 4,
+      specialRequests: null,
+    });
+  });
+
+  it('sends LOCAL wall-clock times, never a UTC-converted instant', () => {
+    // The mobile client sent `toISOString()` here: an ISO datetime does not bind to a TimeSpan at
+    // all, and the UTC conversion moved the booking by the client's offset. Asserted from a zone
+    // that is NOT UTC, where a `toISOString()` implementation would visibly disagree.
+    const payload = buildMyReservationUpdatePayload(input);
+    expect(payload.startTime).toBe('19:30:00');
+    expect(payload.endTime).toBe('21:30:00');
+    expect(payload.startTime).not.toContain('T');
+    expect(payload.startTime).not.toContain('Z');
+    expect(new Date(`${input.reservationDate}T${payload.startTime}Z`).toISOString()).not.toBe(payload.startTime);
+  });
+
+  it('trims, and sends a blank note as null / a blank phone as an empty string', () => {
+    const payload = buildMyReservationUpdatePayload(input);
+    expect(payload.customerName).toBe('Ada Lovelace');
+    expect(payload.customerPhone).toBe('');
+    expect(payload.specialRequests).toBeNull();
+    expect(buildMyReservationUpdatePayload({ ...input, specialRequests: ' Birthday ' }).specialRequests).toBe(
+      'Birthday',
+    );
+  });
+
+  it('normalises a bare hour rather than shipping a half-formed TimeSpan', () => {
+    const payload = buildMyReservationUpdatePayload({ ...input, startTime: '20', endTime: '22' });
+    expect(payload.startTime).toBe('20:00:00');
+    expect(payload.endTime).toBe('22:00:00');
+  });
+
+  it('sends UTC midnight in the exact shape the endpoint accepts — no milliseconds, no offset', () => {
+    // The endpoint refuses any other time-of-day with a 400 rather than risk a silent day shift.
+    expect(buildMyReservationUpdatePayload(input).reservationDate).toMatch(/^\d{4}-\d{2}-\d{2}T00:00:00Z$/);
+  });
+
+  it('carries the day the guest pressed, not one a Date in the device zone re-derived', () => {
+    expect(buildMyReservationUpdatePayload({ ...input, reservationDate: '2026-01-01' }).reservationDate).toBe(
+      '2026-01-01T00:00:00Z',
+    );
+  });
+});
+
+describe('serverReservationMessage', () => {
+  it("returns the server's per-rule reasons, joined", () => {
+    const error = new ApiError(400, 'Operation failed', ['The slot is no longer free', 'Party too large']);
+    expect(serverReservationMessage(error)).toBe('The slot is no longer free; Party too large');
+  });
+
+  it("returns null when all the server said was its generic wrapper, so the caller's own sentence wins", () => {
+    expect(serverReservationMessage(new ApiError(400, 'Operation failed'))).toBeNull();
+    expect(serverReservationMessage(new Error('Failed to fetch'))).toBeNull();
   });
 });

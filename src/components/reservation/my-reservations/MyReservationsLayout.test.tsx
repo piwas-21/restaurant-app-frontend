@@ -4,6 +4,8 @@ import { type ReservationDto, ReservationStatus } from '@/types/reservation';
 import MyReservationsLayout from './MyReservationsLayout';
 import { reservationService } from '@/services/reservationService';
 import cardStyles from '@/components/reservation/MyReservations.module.css';
+import guests from '@/components/reservation/GuestSelector.module.css';
+import dateTime from '@/components/reservation/DateTimeSelector.module.css';
 
 // Stub react-i18next so t() returns the English fallback without a provider.
 jest.mock('react-i18next', () => ({
@@ -21,6 +23,35 @@ jest.mock('@/services/reservationService', () => ({
     cancelReservation: jest.fn(),
   },
 }));
+
+// The day the RESTAURANT is on — what "a past booking" is measured against. Pinned rather than
+// left to the tenant-time service so the edit-gating assertions below cannot drift with the clock.
+jest.mock('@/hooks/useTenantToday', () => ({
+  useTenantToday: jest.fn(() => '2026-10-01'),
+}));
+
+// The edit dialog has its own test (real hook, real contract body). Here it is stubbed so this
+// suite stays about the page: WHICH bookings offer the action, and that a save refreshes the list.
+jest.mock('@/components/reservation/EditReservationModal', () => ({
+  __esModule: true,
+  default: ({ reservation, onClose, onSaved }: MockEditModalProps) => (
+    <div role="dialog" aria-label="Change your booking">
+      <span>editing:{reservation.id}</span>
+      <button type="button" onClick={onSaved}>
+        stub save
+      </button>
+      <button type="button" onClick={onClose}>
+        stub close
+      </button>
+    </div>
+  ),
+}));
+
+interface MockEditModalProps {
+  reservation: ReservationDto;
+  onClose: () => void;
+  onSaved: () => void;
+}
 
 const mockGetReservations = reservationService.getReservations as jest.Mock;
 const mockCancelReservation = reservationService.cancelReservation as jest.Mock;
@@ -72,7 +103,7 @@ const classicPage: Readonly<Record<string, string>> = {
 const craftPage: Readonly<Record<string, string>> = { ...classicPage, tapeLabel: 'tapeLabel' };
 
 const renderLayout = (page: Readonly<Record<string, string>> = classicPage) =>
-  render(<MyReservationsLayout styles={{ page, card: cardStyles }} />);
+  render(<MyReservationsLayout styles={{ page, card: cardStyles, guests, dateTime }} />);
 
 afterEach(() => jest.clearAllMocks());
 
@@ -180,5 +211,69 @@ describe('MyReservationsLayout', () => {
     const alertBox = message.parentElement as HTMLElement;
     fireEvent.click(within(alertBox).getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(screen.queryByText('cancel failed')).not.toBeInTheDocument());
+  });
+});
+
+/**
+ * Who is offered the self-service edit, and what pressing it does.
+ *
+ * The gate is `isCustomerEditableReservation`, measured against the RESTAURANT's day (mocked
+ * above) rather than the device's — a guest in another timezone must not lose the action on a
+ * booking the restaurant still considers upcoming.
+ */
+describe('MyReservationsLayout — changing a booking', () => {
+  const expand = async () => {
+    const toggles = await screen.findAllByRole('button', { name: 'Toggle details' });
+    fireEvent.click(toggles[0]);
+  };
+
+  it('offers the edit action on an upcoming pending booking', async () => {
+    mockGetReservations.mockResolvedValue(paged([pending]));
+    renderLayout();
+    await expand();
+    expect(screen.getByRole('button', { name: 'Change booking' })).toBeInTheDocument();
+  });
+
+  it('offers NO edit action on a cancelled booking', async () => {
+    mockGetReservations.mockResolvedValue(paged([cancelled]));
+    renderLayout();
+    await expand();
+    expect(screen.queryByRole('button', { name: 'Change booking' })).not.toBeInTheDocument();
+  });
+
+  it('offers NO edit action on a booking whose day is already past', async () => {
+    // Yesterday for the restaurant (mocked today = 2026-10-01), status still Confirmed.
+    mockGetReservations.mockResolvedValue(
+      paged([{ ...pending, reservationDate: '2026-09-30', status: ReservationStatus.Confirmed }]),
+    );
+    renderLayout();
+    await expand();
+    expect(screen.queryByRole('button', { name: 'Change booking' })).not.toBeInTheDocument();
+    // …while the cancel action, which has no date rule, is unaffected.
+    expect(screen.getByRole('button', { name: 'Cancel Reservation' })).toBeInTheDocument();
+  });
+
+  it('opens the dialog on the booking that was pressed, and refetches the list after a save', async () => {
+    mockGetReservations.mockResolvedValue(paged([pending]));
+    renderLayout();
+    await expand();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change booking' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Change your booking' });
+    expect(within(dialog).getByText('editing:r1')).toBeInTheDocument();
+    expect(mockGetReservations).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'stub save' }));
+    await waitFor(() => expect(mockGetReservations).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'stub close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Change your booking' })).not.toBeInTheDocument());
+  });
+
+  it('mounts the dialog only on demand — never on a plain visit to the page', async () => {
+    mockGetReservations.mockResolvedValue(paged([pending]));
+    renderLayout();
+    await screen.findAllByRole('button', { name: 'Toggle details' });
+    expect(screen.queryByRole('dialog', { name: 'Change your booking' })).not.toBeInTheDocument();
   });
 });

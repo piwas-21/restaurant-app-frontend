@@ -75,6 +75,7 @@ module.exports = {
     'src/hooks/admin/useProductEditorFetch.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
+    'src/hooks/reservations/useEditReservation.ts',
     'src/hooks/useCustomerFormFields.ts',
     'src/hooks/admin/useCustomerFormsAdmin.ts',
     'src/hooks/order/registrationOutcome.ts',
@@ -1529,6 +1530,22 @@ module.exports = {
     './src/hooks/reservations/useMyReservations.ts': {
       statements: 99,
       branches: 82,
+      functions: 99,
+      lines: 99,
+    },
+    // The guest changing their OWN booking (`PUT /api/reservations/{id}/mine`). Both files
+    // measure 100% → 99 per the recipe above. The hook needs its row in `collectCoverageFrom`
+    // too (`src/hooks` is not collected wholesale); the modal is reached by the
+    // `src/components/**/*.tsx` wildcard.
+    './src/components/reservation/EditReservationModal.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/reservations/useEditReservation.ts': {
+      statements: 99,
+      branches: 99,
       functions: 99,
       lines: 99,
     },

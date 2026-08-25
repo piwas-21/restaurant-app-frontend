@@ -115,8 +115,9 @@ jobs:
   # (staging tracks develop; prod's :latest is built by build-push above, unaffected).
   # Publishes :staging (moving) + :staging-<sha> (immutable, for rollback). The
   # staging URL is a repo variable (STAGING_PUBLIC_URL) so it can be swapped for a
-  # brand domain later without editing this file; it falls back to the box's own
-  # Netcup hostname. These are public build-time values, not secrets (same as prod).
+  # brand domain later without editing this file. It has NO default: an unset
+  # variable fails the job (see the resolve step below, #559). These are public
+  # build-time values, not secrets (same as prod).
   build-staging:
     name: build & push staging (GHCR)
     if: github.ref == 'refs/heads/develop'
@@ -126,6 +127,45 @@ jobs:
       contents: read
       packages: write
     steps:
+      # The bundle BAKES NEXT_PUBLIC_* at build time, so a wrong base URL cannot be
+      # repaired by redeploying the image — only by rebuilding it. This job therefore
+      # refuses to guess: no variable, no image. #559 — the value here used to fall
+      # back to the box's own Netcup reverse-DNS name (`*.megasrv.de`). That zone
+      # belongs to the provider, so ACME can never issue a certificate for it and
+      # every HTTPS call the bundle makes dies in the TLS handshake: an image that
+      # looks deployed and is completely dead, with no CI signal (deploy #146/#147).
+      - id: stagingurl
+        name: resolve staging public URL (no fallback)
+        env:
+          STAGING_PUBLIC_URL: ${{ vars.STAGING_PUBLIC_URL }}
+          # Via env, not inline in `run:` — no expression is interpolated into the shell.
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          url="${STAGING_PUBLIC_URL:-}"
+          where="the repo (or org) Actions variables: Settings > Secrets and variables > Actions > Variables, or: gh variable set STAGING_PUBLIC_URL --repo $REPO --body https://staging.fooderist.com"
+          want="the public https:// origin the staging box actually serves (today https://staging.fooderist.com)"
+          if [ -z "$url" ]; then
+            echo "::error title=STAGING_PUBLIC_URL is not set::The staging image bakes NEXT_PUBLIC_API_URL / NEXT_PUBLIC_IMAGE_BASE_URL at build time and there is no default, so this build stops. Set the variable STAGING_PUBLIC_URL in $where. Value: $want."
+            exit 1
+          fi
+          case "$url" in
+            https://*) ;;
+            *)
+              echo "::error title=STAGING_PUBLIC_URL is not an https origin::Got '$url'. Set the variable STAGING_PUBLIC_URL in $where. Value: $want."
+              exit 1
+              ;;
+          esac
+          case "$url" in
+            *.megasrv.de | *.megasrv.de/* | *.happysrv.de | *.happysrv.de/*)
+              echo "::error title=STAGING_PUBLIC_URL is a provider hostname::'$url' is a Netcup reverse-DNS name. Its zone is not ours, no certificate can ever be issued for it, and the baked bundle would fail every TLS handshake (deploy #146). Set the variable STAGING_PUBLIC_URL in $where. Value: $want."
+              exit 1
+              ;;
+          esac
+          url="${url%/}"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "staging build args will use $url"
+
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
@@ -153,8 +193,8 @@ jobs:
           file: ./Dockerfile
           push: true
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ vars.STAGING_PUBLIC_URL || 'https://v2202607374190477434.megasrv.de' }}
-            NEXT_PUBLIC_IMAGE_BASE_URL=${{ vars.STAGING_PUBLIC_URL || 'https://v2202607374190477434.megasrv.de' }}
+            NEXT_PUBLIC_API_URL=${{ steps.stagingurl.outputs.url }}
+            NEXT_PUBLIC_IMAGE_BASE_URL=${{ steps.stagingurl.outputs.url }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=102252528656-3quqh29v8b7psntuo04r7duambcs1i0t.apps.googleusercontent.com
             GIT_SHA=${{ github.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}

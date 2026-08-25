@@ -246,4 +246,67 @@ describe('EditReservationModal', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled());
     expect(mockUpdate).not.toHaveBeenCalled();
   });
+
+  /**
+   * The party-size cap (#557). This dialog offered up to 50 guests while the endpoint refuses
+   * anything over the assigned table's capacity — and over `[Range(1, 20)]` before that — so the
+   * guest learned the number was impossible only from a 400 they could not read.
+   */
+  describe('the party-size cap', () => {
+    it("is the booking's OWN table, which the endpoint never re-seats", async () => {
+      renderModal();
+      await waitFor(() => expect(dateInput()).toHaveValue('2026-10-24'));
+
+      // `table.maxGuests` is 6 — derived from the table list the availability hook already loads,
+      // not from a second request and not from a second hardcoded number.
+      expect(screen.getByLabelText('Or custom:')).toHaveAttribute('max', '6');
+      expect(screen.queryByRole('button', { name: '7' })).not.toBeInTheDocument();
+    });
+
+    it('says so, and blocks the save, for a booking already over that capacity', async () => {
+      renderModal({ ...reservation, numberOfGuests: 8 });
+      await waitFor(() => expect(dateInput()).toHaveValue('2026-10-24'));
+
+      expect(screen.getByRole('status')).toHaveTextContent('We can seat at most 6 guests in one booking');
+      expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+      expect(mockUpdate).not.toHaveBeenCalled();
+    });
+
+    it('reads a problem+json refusal — the shape model validation answers in', async () => {
+      // Not the ApiResponse envelope: `[Range(1, 20)]` is a DataAnnotation, so the refusal is
+      // `application/problem+json` keyed by the C# property name (contract §0.2). This is exactly
+      // what `apiClient.request()` turns that body into.
+      const detail = 'The field NumberOfGuests must be between 1 and 20.';
+      mockUpdate.mockRejectedValue(
+        new ApiError(400, 'One or more validation errors occurred.', [detail], undefined, undefined, {
+          NumberOfGuests: [detail],
+        }),
+      );
+      renderModal();
+      await waitFor(() => expect(dateInput()).toHaveValue('2026-10-24'));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Please choose between 1 and 20 guests.');
+      // The guest never reads a C# property name, nor the ProblemDetails title.
+      expect(screen.queryByText(detail)).not.toBeInTheDocument();
+    });
+
+    it('reads the `"$"`-keyed refusal too, without leaking the DTO type name', async () => {
+      const blob =
+        "JSON deserialization for type 'UpdateMyReservationDto' was missing required properties including: 'endTime'.";
+      mockUpdate.mockRejectedValue(
+        new ApiError(400, 'One or more validation errors occurred.', [blob], undefined, undefined, { $: [blob] }),
+      );
+      renderModal();
+      await waitFor(() => expect(dateInput()).toHaveValue('2026-10-24'));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Some booking details were missing. Please reload the page and try again.',
+      );
+      expect(screen.queryByText(/UpdateMyReservationDto/)).not.toBeInTheDocument();
+    });
+  });
 });

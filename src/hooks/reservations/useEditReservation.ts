@@ -13,6 +13,7 @@ import {
 } from '@/utils/reservationForm';
 import { useCustomerFormFields } from '@/hooks/useCustomerFormFields';
 import { FORM_KEYS } from '@/types/formFieldConfig';
+import { maxGuestsForTable } from '@/lib/reservationLimits';
 import { ReservationStatus, type ReservationDto } from '@/types/reservation';
 
 /**
@@ -33,6 +34,7 @@ export function useEditReservation(reservation: ReservationDto, onSaved: () => v
   const { rules: fieldRules } = useCustomerFormFields(FORM_KEYS.reservation);
   const {
     today,
+    allTables,
     availableTimeSlots,
     selectedDate,
     setSelectedDate,
@@ -75,10 +77,22 @@ export function useEditReservation(reservation: ReservationDto, onSaved: () => v
     selectedDate === originalDate ? originalTime : undefined,
   );
 
+  /**
+   * The largest party THIS booking may hold: its own table's capacity, because the endpoint
+   * carries no `tableId` and never re-seats anyone — the server refuses more with
+   * `ReservationTableCapacityExceeded` (frontend #557). Read off the table list the availability
+   * hook already loads, so nothing extra is fetched; an unknown table falls back to the DTO cap.
+   */
+  const maxGuests = maxGuestsForTable(allTables.find((table) => table.id === reservation.tableId));
+
   const canSave =
     Boolean(selectedDate) &&
     Boolean(selectedTime) &&
     numberOfGuests > 0 &&
+    // A booking made before the table shrank (or by staff, who are not capped by this picker) can
+    // arrive already over its table's capacity. Saving it unchanged is refused by the server, so
+    // the guest has to lower the party first — the picker says so rather than the 400.
+    numberOfGuests <= maxGuests &&
     areRequiredReservationDetailsFilled({ customerName, customerEmail, customerPhone, specialRequests }, fieldRules);
 
   const save = async () => {
@@ -110,7 +124,7 @@ export function useEditReservation(reservation: ReservationDto, onSaved: () => v
     } catch (err: unknown) {
       // The server's own sentence wins — it names the reason (slot gone, too late to change,
       // party too large). Only when it authored none do we say something of our own.
-      setError(serverReservationMessage(err) ?? t('edit_reservation_error', 'Failed to update the reservation'));
+      setError(serverReservationMessage(err, t) ?? t('edit_reservation_error', 'Failed to update the reservation'));
     } finally {
       setSaving(false);
     }
@@ -125,6 +139,7 @@ export function useEditReservation(reservation: ReservationDto, onSaved: () => v
     setSelectedTime,
     numberOfGuests,
     setNumberOfGuests,
+    maxGuests,
     timeSlotOptions,
     loadingSlots: loading,
     customerName,

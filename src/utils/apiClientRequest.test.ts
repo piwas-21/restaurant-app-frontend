@@ -365,6 +365,63 @@ describe('request() passes the SERVER’s account through unchanged', () => {
 
     expect(error.errors).toEqual(['Already in use', 'Too short']);
   });
+
+  /**
+   * …and KEEPS the keys it used to flatten away (#557). Flattening alone left every caller with a
+   * raw DataAnnotation sentence naming a C# property; the keys are what let a form answer
+   * "the party is over the cap" in the guest's own language instead of relaying it.
+   */
+  it('keeps the field keys of a problem+json refusal', async () => {
+    global.fetch = jest.fn().mockResolvedValue(
+      jsonResponse(400, {
+        type: 'https://tools.ietf.org/html/rfc9110#section-15.5.1',
+        title: 'One or more validation errors occurred.',
+        status: 400,
+        errors: { NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'] },
+      }),
+    );
+
+    const error = await captureFailure(() => apiClient.post('/api/Reservations', {}));
+
+    expect(error.fieldErrors).toEqual({ NumberOfGuests: ['The field NumberOfGuests must be between 1 and 20.'] });
+    expect(error.errors).toEqual(['The field NumberOfGuests must be between 1 and 20.']);
+  });
+
+  it('keeps the `"$"` key of a JsonRequired refusal, which names no field at all', async () => {
+    // The deserializer runs BEFORE model validation, so this is what an omitted `[JsonRequired]`
+    // member answers — a client reading `errors.endTime` finds nothing (contract §0.2).
+    const blob =
+      "JSON deserialization for type 'UpdateMyReservationDto' was missing required properties including: 'endTime'.";
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse(400, { title: 'One or more validation errors occurred.', errors: { $: [blob] } }),
+      );
+
+    const error = await captureFailure(() => apiClient.put('/api/Reservations/1/mine', {}));
+
+    expect(error.fieldErrors).toEqual({ $: [blob] });
+  });
+
+  it('leaves `fieldErrors` unset for the ApiResponse envelope, whose `errors` is an ARRAY', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse(400, { message: 'Operation failed', errors: ['Table 5 is gone'] }));
+
+    const error = await captureFailure(() => apiClient.post('/api/Reservations', {}));
+
+    expect(error.fieldErrors).toBeUndefined();
+    expect(error.errors).toEqual(['Table 5 is gone']);
+  });
+
+  it('leaves both unset when the body carries no errors member at all', async () => {
+    global.fetch = jest.fn().mockResolvedValue(jsonResponse(500, { message: 'Boom' }));
+
+    const error = await captureFailure(() => apiClient.get('/api/Reservations'));
+
+    expect(error.fieldErrors).toBeUndefined();
+    expect(error.errors).toBeUndefined();
+  });
 });
 
 /**

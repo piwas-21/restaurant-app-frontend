@@ -50,10 +50,20 @@ import { createGlobalIngredient } from '@/services/globalIngredientService';
  * Fields with NO control on the page today are named individually at the end. They are the ones a
  * future slice can silently drop, and the reason this file exists.
  */
+const PRODUCT_ID = 'item-1';
+const NAME = 'Margherita';
+const DESCRIPTION = 'Tomato, mozzarella, basil';
+const PRIMARY_CATEGORY_ID = 'cat-pizza';
+const VARIATION_ID = 'var-1';
+const INGREDIENT_ID = 'ing-1';
+const GLOBAL_INGREDIENT_ID = 'glob-1';
+const SIDE_ITEM_ID = 'side-1';
+const ITEM_TYPE = 'mainItem';
+
 const fullyPopulated: ProductDetails = {
-  id: 'item-1',
-  name: 'Margherita',
-  description: 'Tomato, mozzarella, basil',
+  id: PRODUCT_ID,
+  name: NAME,
+  description: DESCRIPTION,
   basePrice: 18.5,
   isActive: true,
   isAvailable: false,
@@ -61,18 +71,18 @@ const fullyPopulated: ProductDetails = {
   hideBaseProduct: true,
   preparationTimeMinutes: 14,
   displayOrder: 7,
-  type: 'mainItem',
+  type: ITEM_TYPE,
   kitchenType: 'BackKitchen',
   ingredients: [],
   allergens: ['gluten', 'milk'],
   categories: [
     { categoryId: 'cat-lunch', categoryName: 'Lunch', isPrimary: false },
-    { categoryId: 'cat-pizza', categoryName: 'Pizzas', isPrimary: true },
+    { categoryId: PRIMARY_CATEGORY_ID, categoryName: 'Pizzas', isPrimary: true },
   ],
-  primaryCategory: { id: 'cat-pizza', name: 'Pizzas' },
+  primaryCategory: { id: PRIMARY_CATEGORY_ID, name: 'Pizzas' },
   variations: [
     {
-      id: 'var-1',
+      id: VARIATION_ID,
       name: 'Large',
       description: '32cm',
       priceModifier: 4,
@@ -83,7 +93,7 @@ const fullyPopulated: ProductDetails = {
   ],
   detailedIngredients: [
     {
-      id: 'ing-1',
+      id: INGREDIENT_ID,
       name: 'Mozzarella',
       isOptional: true,
       price: 2.5,
@@ -92,13 +102,13 @@ const fullyPopulated: ProductDetails = {
       content: { fr: { name: 'Mozzarella de bufflonne' } },
       // Present so the save does not go looking the ingredient up in the global library — that
       // path is the shared-modifiers plan's, not this one's.
-      globalIngredientId: 'glob-1',
+      globalIngredientId: GLOBAL_INGREDIENT_ID,
     },
   ],
-  images: [{ id: 'img-1', url: '/uploads/margherita.jpg', altText: 'Margherita', isPrimary: true, sortOrder: 0 }],
-  suggestedSideItems: [{ id: 'side-1', name: 'Garlic bread', description: '', price: 4 }],
+  images: [{ id: 'img-1', url: '/uploads/margherita.jpg', altText: NAME, isPrimary: true, sortOrder: 0 }],
+  suggestedSideItems: [{ id: SIDE_ITEM_ID, name: 'Garlic bread', description: '', price: 4 }],
   availableOrderTypes: 3,
-  content: { en: { name: 'Margherita', description: 'Tomato, mozzarella, basil' } },
+  content: { en: { name: NAME, description: DESCRIPTION } },
 } as unknown as ProductDetails;
 
 const renderAndSaveUntouched = async (product: ProductDetails) => {
@@ -123,20 +133,20 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     const payload = await renderAndSaveUntouched(fullyPopulated);
 
     expect(payload).toMatchObject({
-      id: 'item-1',
-      name: 'Margherita',
-      description: 'Tomato, mozzarella, basil',
+      id: PRODUCT_ID,
+      name: NAME,
+      description: DESCRIPTION,
       basePrice: 18.5,
       isActive: true,
       isAvailable: false,
       isSpecial: true,
       preparationTimeMinutes: 14,
-      type: 'mainItem',
+      type: ITEM_TYPE,
       allergens: ['gluten', 'milk'],
-      primaryCategoryId: 'cat-pizza',
+      primaryCategoryId: PRIMARY_CATEGORY_ID,
     });
-    expect(payload.categoryIds).toEqual(['cat-lunch', 'cat-pizza']);
-    expect(payload.content).toEqual({ en: { name: 'Margherita', description: 'Tomato, mozzarella, basil' } });
+    expect(payload.categoryIds).toEqual(['cat-lunch', PRIMARY_CATEGORY_ID]);
+    expect(payload.content).toEqual({ en: { name: NAME, description: DESCRIPTION } });
   });
 
   it('keeps the variation rows, ids and per-locale names intact', async () => {
@@ -144,7 +154,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
 
     expect(payload.variations).toEqual([
       {
-        id: 'var-1',
+        id: VARIATION_ID,
         name: 'Large',
         description: '32cm',
         priceModifier: 4,
@@ -165,7 +175,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     const payload = await renderAndSaveUntouched(fullyPopulated);
 
     expect(payload.detailedIngredients).toMatchObject([
-      { id: 'ing-1', name: 'Mozzarella', isOptional: true, price: 2.5, globalIngredientId: 'glob-1' },
+      { id: INGREDIENT_ID, name: 'Mozzarella', isOptional: true, price: 2.5, globalIngredientId: GLOBAL_INGREDIENT_ID },
     ]);
     expect(createGlobalIngredient).not.toHaveBeenCalled();
   });
@@ -187,7 +197,7 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     // null means "inherit"; 3 is an explicit override that must never collapse back to null.
     expect(payload.availableOrderTypes).toBe(3);
     // Set through a picker in its own section — the payload key is not the section's name.
-    expect(payload.suggestedSideItemIds).toEqual(['side-1']);
+    expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID]);
   });
 
   it('never invents a menu definition for a plain item', async () => {

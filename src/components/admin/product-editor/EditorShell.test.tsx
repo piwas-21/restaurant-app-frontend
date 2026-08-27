@@ -51,36 +51,48 @@ beforeEach(() => {
   (Element.prototype.scrollIntoView as jest.Mock).mockClear();
 });
 
+const TAB_ITEM = 'item';
+const TAB_TRANSLATIONS = 'translations';
+const FORM_ID = 'editor-form';
+const SAVE = 'editor-save';
+const MEDIA = 'Media';
+const BASICS = 'Basics';
+const PRICING = 'Pricing';
+const ITEM_PANEL = '#editor-form-panel-item';
+const TRANSLATIONS_PANEL = '#editor-form-panel-translations';
+const BASICS_SELECTOR = '#sec-basics';
+const PRICING_SELECTOR = '#sec-pricing';
+
 const sections: EditorSection[] = [
-  { id: 'sec-media', label: 'Media', outsideForm: true, node: <p>gallery body</p> },
-  { id: 'sec-basics', label: 'Basics', showHeading: true, node: <input aria-label="Name" /> },
-  { id: 'sec-pricing', label: 'Pricing', node: <input aria-label="Price" /> },
+  { id: 'sec-media', label: MEDIA, outsideForm: true, node: <p>gallery body</p> },
+  { id: 'sec-basics', label: BASICS, showHeading: true, node: <input aria-label="Name" /> },
+  { id: 'sec-pricing', label: PRICING, node: <input aria-label="Price" /> },
 ];
 
 const onSubmit = jest.fn((event: React.FormEvent) => event.preventDefault());
 
-const renderShell = (activeTabId = 'item') => {
+const renderShell = (activeTabId = TAB_ITEM) => {
   const onTabChange = jest.fn();
   const view = render(
     <EditorShell
       title="Margherita Pizza"
       headerActions={<span>badge</span>}
       tabs={[
-        { id: 'item', label: 'Item' },
-        { id: 'translations', label: 'Translations' },
+        { id: TAB_ITEM, label: 'Item' },
+        { id: TAB_TRANSLATIONS, label: 'Translations' },
       ]}
       tabsLabel="Item editor"
       activeTabId={activeTabId}
       onTabChange={onTabChange}
       sections={sections}
       sectionsLabel="Sections"
-      formId="editor-form"
+      formId={FORM_ID}
       onSubmit={onSubmit}
       formError={<p>root error</p>}
       translations={<input aria-label="French name" />}
       rail={<p>at a glance</p>}
       saveBar={
-        <button type="submit" form="editor-form" data-testid="editor-save">
+        <button type="submit" form={FORM_ID} data-testid={SAVE}>
           Save
         </button>
       }
@@ -106,10 +118,10 @@ describe('EditorShell — the two tabs (decision D2)', () => {
     const { onTabChange, rerender } = renderShell();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Translations' }));
-    expect(onTabChange).toHaveBeenCalledWith('translations');
+    expect(onTabChange).toHaveBeenCalledWith(TAB_TRANSLATIONS);
 
     rerender(<div />);
-    renderShell('translations');
+    renderShell(TAB_TRANSLATIONS);
     expect(screen.getByLabelText('French name')).toBeVisible();
   });
 
@@ -117,11 +129,11 @@ describe('EditorShell — the two tabs (decision D2)', () => {
     const { onTabChange } = renderShell();
 
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Item' }), { key: 'ArrowRight' });
-    expect(onTabChange).toHaveBeenCalledWith('translations');
+    expect(onTabChange).toHaveBeenCalledWith(TAB_TRANSLATIONS);
 
     onTabChange.mockClear();
     fireEvent.keyDown(screen.getByRole('tab', { name: 'Item' }), { key: 'ArrowLeft' });
-    expect(onTabChange).toHaveBeenCalledWith('translations');
+    expect(onTabChange).toHaveBeenCalledWith(TAB_TRANSLATIONS);
   });
 
   /**
@@ -131,15 +143,15 @@ describe('EditorShell — the two tabs (decision D2)', () => {
    * scroll-to-first-error can still reach a field the admin cannot currently see.
    */
   it('keeps the inactive panel mounted rather than unmounting it', () => {
-    const { container } = renderShell('translations');
+    const { container } = renderShell(TAB_TRANSLATIONS);
 
-    const itemPanel = container.querySelector('#editor-form-panel-item') as HTMLElement;
+    const itemPanel = container.querySelector(ITEM_PANEL) as HTMLElement;
     expect(itemPanel).toHaveAttribute('hidden');
     expect(itemPanel.querySelector('input[aria-label="Price"]')).not.toBeNull();
   });
 
   it('drops the section nav and the side rail on the translations tab', () => {
-    renderShell('translations');
+    renderShell(TAB_TRANSLATIONS);
 
     expect(screen.queryByRole('navigation', { name: 'Sections' })).not.toBeInTheDocument();
     expect(screen.queryByText('at a glance')).not.toBeInTheDocument();
@@ -155,7 +167,7 @@ describe('EditorShell — the sticky section nav (decision D1)', () => {
       within(nav)
         .getAllByRole('button')
         .map((button) => button.textContent),
-    ).toEqual(['Media', 'Basics', 'Pricing']);
+    ).toEqual([MEDIA, BASICS, PRICING]);
     // A nav of buttons, never a second tablist — every section stays rendered and scrollable.
     expect(within(nav).queryAllByRole('tab')).toHaveLength(0);
   });
@@ -163,13 +175,13 @@ describe('EditorShell — the sticky section nav (decision D1)', () => {
   it('scrolls to the clicked section, marks it current, and moves focus into it', () => {
     const { container } = renderShell();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Pricing' }));
+    fireEvent.click(screen.getByRole('button', { name: PRICING }));
 
-    const pricing = container.querySelector('#sec-pricing') as HTMLElement;
+    const pricing = container.querySelector(PRICING_SELECTOR) as HTMLElement;
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
     expect((Element.prototype.scrollIntoView as jest.Mock).mock.instances[0]).toBe(pricing);
-    expect(screen.getByRole('button', { name: 'Pricing' })).toHaveAttribute('aria-current', 'true');
-    expect(screen.getByRole('button', { name: 'Media' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: PRICING })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('button', { name: MEDIA })).not.toHaveAttribute('aria-current');
     // tabIndex={-1} on the section is what makes this possible without adding a tab stop.
     expect(document.activeElement).toBe(pricing);
   });
@@ -181,18 +193,18 @@ describe('EditorShell — the sticky section nav (decision D1)', () => {
 
     act(() =>
       fireIntersections([
-        { target: container.querySelector('#sec-basics') as Element, isIntersecting: true },
-        { target: container.querySelector('#sec-pricing') as Element, isIntersecting: true },
+        { target: container.querySelector(BASICS_SELECTOR) as Element, isIntersecting: true },
+        { target: container.querySelector(PRICING_SELECTOR) as Element, isIntersecting: true },
       ]),
     );
 
     // Both are on screen; the nav follows section ORDER, so the first one wins.
-    expect(screen.getByRole('button', { name: 'Basics' })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('button', { name: BASICS })).toHaveAttribute('aria-current', 'true');
 
     act(() =>
-      fireIntersections([{ target: container.querySelector('#sec-basics') as Element, isIntersecting: false }]),
+      fireIntersections([{ target: container.querySelector(BASICS_SELECTOR) as Element, isIntersecting: false }]),
     );
-    expect(screen.getByRole('button', { name: 'Pricing' })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('button', { name: PRICING })).toHaveAttribute('aria-current', 'true');
   });
 });
 
@@ -204,17 +216,17 @@ describe('EditorShell — one Save, and the form it commits (decision D4)', () =
     expect(submits).toHaveLength(1);
 
     const form = container.querySelector('form') as HTMLFormElement;
-    const save = screen.getByTestId('editor-save');
+    const save = screen.getByTestId(SAVE);
     expect(form.contains(save)).toBe(false);
     expect(save.getAttribute('form')).toBe(form.id);
   });
 
   it('keeps the save bar outside both tab panels, so it never hides with one', () => {
-    const { container } = renderShell('translations');
+    const { container } = renderShell(TAB_TRANSLATIONS);
 
-    const save = screen.getByTestId('editor-save');
-    expect(container.querySelector('#editor-form-panel-item')?.contains(save)).toBe(false);
-    expect(container.querySelector('#editor-form-panel-translations')?.contains(save)).toBe(false);
+    const save = screen.getByTestId(SAVE);
+    expect(container.querySelector(ITEM_PANEL)?.contains(save)).toBe(false);
+    expect(container.querySelector(TRANSLATIONS_PANEL)?.contains(save)).toBe(false);
     expect(save).toBeVisible();
   });
 
@@ -225,7 +237,7 @@ describe('EditorShell — one Save, and the form it commits (decision D4)', () =
     const media = container.querySelector('#sec-media') as HTMLElement;
     expect(form.contains(media)).toBe(false);
     expect(form.compareDocumentPosition(media) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
-    expect(form.contains(container.querySelector('#sec-basics'))).toBe(true);
+    expect(form.contains(container.querySelector(BASICS_SELECTOR))).toBe(true);
     expect(form.textContent).toContain('root error');
   });
 });

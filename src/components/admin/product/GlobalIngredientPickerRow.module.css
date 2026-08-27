@@ -1,0 +1,126 @@
+/* One row of the ingredient picker, laid out as the approved screen's two columns:
+   INGREDIENT (left) and USAGE (right). Tokens only — no hex. */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border-extra-light);
+}
+
+.row > .identity {
+  flex: 1 1 auto;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowDisabled {
+  background: var(--surface-secondary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* Left column. The name line holds the tick box and the languages badge side by side; the
+   translation preview sits under it, indented past the box so it reads as the name's second line
+   rather than as another control. */
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.archivedName {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.preview {
+  margin: 0;
+  padding-inline-start: 1.6rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 22rem;
+}
+
+/* Right column. */
+.usage {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  text-align: end;
+}
+
+.usageCount {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.alreadyAdded {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.rowAction {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rowAction:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.rowActionDanger {
+  border-color: var(--feedback-error-text);
+  color: var(--feedback-error-text);
+}
+
+/* The inline confirm: it replaces the action in place, inside the row. A second BaseModal over the
+   picker would be a dialog over a dialog for a reversible change. */
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.confirmQuestion {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}

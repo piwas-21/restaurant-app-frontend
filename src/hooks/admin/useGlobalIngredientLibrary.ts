@@ -20,8 +20,8 @@ export type LibraryStatus = 'loading' | 'ready' | 'error';
 /**
  * The three filters the DATA can answer, and no more. The approved screen also draws category
  * chips (Vegetables / Cheese / Meat / …) and a "Recently used" one: `GlobalIngredientDto` carries
- * no category and nothing records a use, so those chips could only ever lie. Same for its
- * "used on N items" column — that is a reverse link, and it is slice S3.
+ * no category and nothing records a use, so those chips could only ever lie. Its "used on N items"
+ * column is no longer in that group — the DTO carries `usedOnProductCount` since plan S3.
  */
 export type LibraryFilter = 'all' | 'notAdded' | 'translated';
 
@@ -87,6 +87,11 @@ export function useGlobalIngredientLibrary({ isOpen, attached, languageCode }: U
 
   const matching = useMemo(() => {
     const filtered = catalog.filter((ingredient) => {
+      // Never offer an archived row (plan D4). `GET /api/global-ingredients` promises to exclude
+      // them, but this list is held in memory for the whole time the modal is open, so a row
+      // archived from the picker itself must stop being attachable the moment it is archived —
+      // not one refetch later. The guard costs one comparison and makes that unconditional.
+      if (ingredient.isArchived) return false;
       if (!matchesQuery(ingredient, query)) return false;
       if (filter === 'notAdded') return !isAlreadyAttached(ingredient, attachedKeys);
       if (filter === 'translated') return hasTranslationFor(ingredient, languageCode);
@@ -97,6 +102,17 @@ export function useGlobalIngredientLibrary({ isOpen, attached, languageCode }: U
 
   const reload = useCallback(() => setReloadToken((token) => token + 1), []);
 
+  /**
+   * Mark a row archived in the list that is already on screen.
+   *
+   * Archiving refetches the catalog, but that is one ~650-row response away and the row must stop
+   * being offerable immediately — otherwise the admin can tick a row they have just retired. This
+   * only pre-empts the refetch; the refetch is still what reconciles the list with the server.
+   */
+  const markArchived = useCallback((id: string) => {
+    setCatalog((rows) => rows.map((row) => (row.id === id ? { ...row, isArchived: true } : row)));
+  }, []);
+
   const reset = useCallback(() => {
     setQuery('');
     setFilter('all');
@@ -106,6 +122,7 @@ export function useGlobalIngredientLibrary({ isOpen, attached, languageCode }: U
     status,
     loadError,
     reload,
+    markArchived,
     reset,
     query,
     setQuery,

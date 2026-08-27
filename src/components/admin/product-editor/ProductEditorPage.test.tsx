@@ -31,7 +31,7 @@ jest.mock('@/services/categoryService', () => ({
 
 import { getCategories } from '@/services/categoryService';
 import { ApiError } from '@/utils/apiClient';
-import { updateProduct } from '@/services/productService';
+import { updateProduct, deleteProductImage } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { createMenuBundle, updateMenuBundle } from '@/services/menuBundleService';
 import { emptyProductDetails } from '@/utils/productEditorDefaults';
@@ -420,17 +420,35 @@ describe('ProductEditorPage — existing-image management', () => {
     expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
   });
 
-  // Track F, F7-C. The tenant's complaint was positional: images sat below the sticky Save bar
-  // after nine other sections. They now lead the page — and stay OUTSIDE the form, because
-  // ConfirmationModal's buttons default to type="submit" and "delete this image → Yes" would
-  // otherwise submit the product.
-  it('renders the gallery above the form, and not inside it', async () => {
+  // Track F, F7-C was positional: images sat below the sticky Save bar after nine other sections.
+  // S2 gives them §4's own answer — `Media` is section 2, INSIDE the form like every other section.
+  // What used to keep the gallery out of the form was ConfirmationModal's untyped buttons ("delete
+  // this image → Yes" submitted the product); those are `type="button"` now, and the test below is
+  // the proof, so the exception can go.
+  it('renders the gallery as section 2, inside the form', async () => {
     const { container } = await renderEditor(item, false);
 
     const form = container.querySelector('form') as HTMLFormElement;
     const gallery = screen.getByRole('heading', { name: 'image_gallery' });
-    expect(form.contains(gallery)).toBe(false);
-    expect(form.compareDocumentPosition(gallery) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+    expect(form.contains(gallery)).toBe(true);
+    expect(container.querySelector('#editor-section-media')?.contains(gallery)).toBe(true);
+  });
+
+  // The reason the gallery may live in the form at all. Confirming an image delete must delete the
+  // image and NOTHING else: a confirm button that still defaulted to type="submit" would file a
+  // full product PUT behind the admin's back, on a page whose Save is deliberately gated.
+  it('does not save the product when an image delete is confirmed', async () => {
+    const withImage = {
+      ...item,
+      images: [{ id: 'img-1', url: '/uploads/m.jpg', altText: 'm', isPrimary: true, sortOrder: 0 }],
+    } as ProductDetails;
+    await renderEditor(withImage, false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+    fireEvent.click(screen.getByRole('button', { name: 'yes' }));
+
+    await waitFor(() => expect(deleteProductImage).toHaveBeenCalledTimes(1));
+    expect(updateProduct).not.toHaveBeenCalled();
   });
 
   // Track F, F7-B. Two upload entry points with different semantics (staged at the top,
@@ -520,17 +538,20 @@ describe('ProductEditorPage — the S1 editor shell', () => {
     ).not.toBeNull();
   });
 
+  // S2 re-grouped the nine flat groups into §4's seven. `ProductEditorSections.test.tsx` owns the
+  // detail of that; this one keeps the shell's own contract — the nav names the sections, in order.
   it('names every section of an item in the nav, in page order', async () => {
     const { container } = await renderEditor(item, false);
 
     const nav = container.querySelector('nav[aria-label="editor_sections"]') as HTMLElement;
     expect(Array.from(nav.querySelectorAll('button')).map((button) => button.textContent)).toEqual([
-      'image_gallery',
       'editor_section_basics',
-      'variations',
-      'suggested_side_items',
-      'product_ingredients',
-      'product_order_types',
+      'editor_section_media',
+      'editor_section_pricing',
+      'editor_section_options',
+      'editor_section_recipe',
+      'editor_section_service',
+      'editor_section_advanced',
     ]);
   });
 

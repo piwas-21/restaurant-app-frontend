@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "翻译",
   "editor_sections": "分区",
   "editor_section_basics": "基本信息",
+  "editor_section_media": "媒体",
+  "editor_section_pricing": "价格与规格",
+  "editor_section_options": "选项与配菜",
+  "editor_section_recipe": "配方与饮食",
+  "editor_section_service": "服务与可用性",
+  "editor_section_advanced": "高级",
   "editor_at_a_glance": "概览"
 }

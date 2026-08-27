@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import PageHeader from '@/components/admin/PageHeader';
 import EditorSectionNav from './EditorSectionNav';
 import { useEditorSectionNav } from '@/hooks/admin/useEditorSectionNav';
+import { useEditorSectionCollapse } from '@/hooks/admin/useEditorSectionCollapse';
 import styles from './EditorShell.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
 
@@ -15,11 +16,13 @@ export interface EditorSection {
   /** Render a visible `<h2>`. Omitted where the dropped-in content already brings its own. */
   readonly showHeading?: boolean;
   /**
-   * Render OUTSIDE the `<form>`. Only the image gallery uses it: its delete confirmation is a
-   * `ConfirmationModal`, whose buttons default to `type="submit"`, so nesting it would make
-   * "delete this image → Yes" save the product.
+   * Give the section a heading BUTTON that folds its body away. `Advanced` is the only one (D1):
+   * every other section stays open, because a collapsed accordion is the exact complaint the
+   * redesign is answering. The choice is remembered per user by {@link useEditorSectionCollapse}.
    */
-  readonly outsideForm?: boolean;
+  readonly collapsible?: boolean;
+  /** Collapsed on a first visit, before any remembered choice exists. */
+  readonly defaultCollapsed?: boolean;
   readonly node: React.ReactNode;
 }
 
@@ -52,8 +55,9 @@ interface EditorShellProps {
  * The redesigned admin item editor's shell (MENU-ITEM-EDITOR-REDESIGN-PLAN §4, slice S1).
  *
  * Layout only: header + `Item | Translations` tabs + sticky section nav + main column + side rail
- * + one sticky save bar. S1 drops today's sections in unchanged — re-grouping them into §4's seven
- * is S2 — so this file must stay a frame and know nothing about product fields.
+ * + one sticky save bar, plus (since S2) the fold on the one section §4 collapses. This file must
+ * stay a frame and know nothing about product fields — what the seven sections CONTAIN is
+ * `itemEditorSections.tsx`'s business.
  *
  * Three shapes here are load-bearing and easy to "simplify" wrongly:
  *
@@ -63,8 +67,7 @@ interface EditorShellProps {
  *    the answer to it. The error stays in the DOM, scroll-to-first-error (S7) can reach it, and no
  *    react-hook-form field unmounts when the admin switches tab.
  * 2. **The save bar sits outside the `<form>`** and submits it through the `form` attribute. That
- *    is what lets the bar be a sibling of the whole grid — sticky across nav, main and rail —
- *    while the gallery stays outside the form for the reason in {@link EditorSection.outsideForm}.
+ *    is what lets the bar be a sibling of the whole grid — sticky across nav, main and rail.
  * 3. **The translations panel is outside the form element too**, because a form cannot be in two
  *    tab panels at once. That is safe and not sloppy: react-hook-form reads its own store, not the
  *    DOM, so `register`ed inputs there are submitted exactly as before. Only native Enter-to-submit
@@ -91,6 +94,7 @@ export default function EditorShell({
   const isFirstTab = activeTabId === tabs[0].id;
   const showAside = isFirstTab && sections.length > 0;
   const { activeId, goTo } = useEditorSectionNav(sectionIds, isFirstTab);
+  const { isCollapsed, toggle } = useEditorSectionCollapse(sections);
 
   // APG tab pattern: the tablist is ONE tab stop, arrows move between tabs.
   const onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -103,19 +107,45 @@ export default function EditorShell({
     tabRefs.current[next.id]?.focus();
   };
 
-  const renderSection = (section: EditorSection) => (
-    <section
-      key={section.id}
-      id={section.id}
-      // -1 so `goTo` can move focus into the section it just scrolled to, without adding a tab stop.
-      tabIndex={-1}
-      aria-label={section.label}
-      className={styles.section}
-    >
-      {section.showHeading && <h2 className={styles.sectionHeading}>{section.label}</h2>}
-      {section.node}
-    </section>
-  );
+  const renderSection = (section: EditorSection) => {
+    const collapsed = Boolean(section.collapsible) && isCollapsed(section.id);
+    const bodyId = `${section.id}-body`;
+
+    return (
+      <section
+        key={section.id}
+        id={section.id}
+        // -1 so `goTo` can move focus into the section it just scrolled to, without adding a tab stop.
+        tabIndex={-1}
+        aria-label={section.label}
+        className={styles.section}
+      >
+        {section.collapsible ? (
+          <h2 className={styles.sectionHeading}>
+            <button
+              type="button"
+              className={styles.collapseToggle}
+              aria-expanded={!collapsed}
+              aria-controls={bodyId}
+              onClick={() => toggle(section.id)}
+            >
+              {section.label}
+              <span aria-hidden="true" className={collapsed ? styles.chevron : styles.chevronOpen}>
+                ⌄
+              </span>
+            </button>
+          </h2>
+        ) : (
+          section.showHeading && <h2 className={styles.sectionHeading}>{section.label}</h2>
+        )}
+        {/* HIDDEN, never unmounted — the same rule as the inactive tab panel, and for a harder
+            reason: a registered field that leaves the DOM is a value the PUT can clear (plan §6). */}
+        <div id={bodyId} hidden={collapsed} className={styles.sectionBody}>
+          {section.node}
+        </div>
+      </section>
+    );
+  };
 
   const panelId = (id: string) => `${formId}-panel-${id}`;
   const tabDomId = (id: string) => `${formId}-tab-${id}`;
@@ -164,10 +194,13 @@ export default function EditorShell({
             hidden={!isFirstTab}
             className={styles.panel}
           >
-            {sections.filter((section) => section.outsideForm).map(renderSection)}
+            {/* Every section is inside the form, in §4's order (S2). S1 had to keep the image
+                gallery out of it because `ConfirmationModal`'s buttons defaulted to
+                `type="submit"` — "delete this image → Yes" would have saved the product. Those
+                buttons are typed now, so ordering the page no longer costs an exception. */}
             <form id={formId} onSubmit={onSubmit} className={adminStyles.adminContent}>
               {formError}
-              {sections.filter((section) => !section.outsideForm).map(renderSection)}
+              {sections.map(renderSection)}
             </form>
           </div>
 
@@ -182,7 +215,13 @@ export default function EditorShell({
           </div>
         </div>
 
-        {showAside && rail && <aside className={styles.rail}>{rail}</aside>}
+        {/* HIDDEN on the translations tab rather than dropped: since S2 the rail carries the item's
+            three status flags, and an unmounted registered field is one the PUT can clear (§6). */}
+        {rail && (
+          <aside className={styles.rail} hidden={!showAside}>
+            {rail}
+          </aside>
+        )}
       </div>
 
       {saveBar}

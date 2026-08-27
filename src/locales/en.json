@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "Translations",
   "editor_sections": "Sections",
   "editor_section_basics": "Basics",
+  "editor_section_media": "Media",
+  "editor_section_pricing": "Pricing & variations",
+  "editor_section_options": "Options & sides",
+  "editor_section_recipe": "Recipe & dietary",
+  "editor_section_service": "Service & availability",
+  "editor_section_advanced": "Advanced",
   "editor_at_a_glance": "At a glance"
 }

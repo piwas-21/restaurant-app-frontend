@@ -100,6 +100,48 @@
   min-width: 0;
 }
 
+/* The `Advanced` fold (D1). A heading that is a button, so the section keeps its landmark name. */
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.collapseToggle:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.chevron,
+.chevronOpen {
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* Same rule as `.panel[hidden]`: a collapsed body is hidden, never unmounted, so a layout
+   `display` must not beat the attribute. */
+.sectionBody[hidden] {
+  display: none;
+}
+
+/* The rail hides with the item tab; it holds registered fields, so it may not unmount. */
+.rail[hidden] {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);

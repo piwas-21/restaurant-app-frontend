@@ -86,29 +86,11 @@ export interface BaseProductFormData {
 }
 
 // Component prop interfaces that work with both create and edit
-export interface ProductBasicInfoProps {
-  register: any;
-  errors: any;
-  categories: Category[];
-  /** Why `categories` is empty, when the fetch failed rather than the tenant having none. */
-  categoriesError?: string | null;
-  selectedCategoryIds: string[];
-  control: any;
-}
-
-export interface ProductDetailsProps {
-  register: any;
-  errors: any;
-  control: any;
-  imageFiles: File[];
-  setImageFiles: (files: File[]) => void;
-  /**
-   * Render the staged-upload file input? True on CREATE only (Track F, F7-B): there is no
-   * product id before the POST, so a new product's images must ride the page Save. On edit the
-   * gallery owns images end to end and a second, staged picker is the split the tenant reported.
-   */
-  showImagePicker?: boolean;
-}
+//
+// `ProductBasicInfoProps` and `ProductDetailsProps` are gone with slice S2: the two components they
+// typed were the "Basic info" and "Details" COLUMNS, and §4 has no such thing — their controls now
+// sit in the section that owns each of them (`components/admin/product/fields/`, one small file per
+// group, each typed against react-hook-form directly rather than through `any`).
 
 export interface MultilingualContentProps {
   register: any;

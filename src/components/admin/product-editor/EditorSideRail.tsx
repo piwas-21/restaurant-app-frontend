@@ -7,6 +7,8 @@ import styles from './EditorSideRail.module.css';
 
 interface EditorSideRailProps {
   // readonly: S6759 — component props are never mutated.
+  /** The item's status flags (S2). A bundle passes none — its own three stay in `BundlePanel`. */
+  readonly status?: React.ReactNode;
   readonly basePrice: number;
   /** The primary category's name, or empty when the item has none yet. */
   readonly categoryName?: string;
@@ -21,16 +23,20 @@ interface EditorSideRailProps {
 const EMPTY = '—';
 
 /**
- * The editor's side rail (plan §4). S1 ships the "At a glance" summary only.
+ * The editor's side rail (plan §4): the item's Status card, then the read-only "At a glance" rows.
  *
- * Every row is READ-ONLY and derived from the form's own values, so this slice moves no field and
- * renames none — the Status toggles §4 draws here still live in the Details section until S2, and
- * the completeness meter is S10.
+ * S1 shipped the summary alone because its contract was that no field moves. S2 brings §4's Status
+ * toggles up here — `isActive` / `isAvailable` / `isSpecial` used to open the `Details` column, so
+ * "is this item live?" was answered in the middle of a 150-control scroll, while the rail is the
+ * one surface visible from every section. The completeness meter is still S10.
+ *
+ * Every "At a glance" row stays READ-ONLY and derived from the form's own values.
  *
  * The price is rendered through `formatCurrency`, never a hardcoded symbol: the approved screens
  * show `$ 12.00`, but the currency is the tenant's (`NEXT_PUBLIC_TENANT_CURRENCY`, CHF for RUMI).
  */
 export default function EditorSideRail({
+  status,
   basePrice,
   categoryName,
   inheritsOrderTypes,
@@ -41,34 +47,37 @@ export default function EditorSideRail({
   const { t } = useTranslation();
 
   return (
-    <section className={styles.card} aria-labelledby="editor-rail-heading">
-      <h2 id="editor-rail-heading" className={styles.heading}>
-        {t('editor_at_a_glance')}
-      </h2>
-      <dl className={styles.list}>
-        <div className={styles.row}>
-          <dt className={styles.term}>{t('price')}</dt>
-          <dd className={styles.value}>{formatCurrency(basePrice)}</dd>
-        </div>
-        {showCategory && (
+    <div className={styles.stack}>
+      {status}
+      <section className={styles.card} aria-labelledby="editor-rail-heading">
+        <h2 id="editor-rail-heading" className={styles.heading}>
+          {t('editor_at_a_glance')}
+        </h2>
+        <dl className={styles.list}>
           <div className={styles.row}>
-            <dt className={styles.term}>{t('category')}</dt>
-            <dd className={styles.value}>{categoryName || EMPTY}</dd>
+            <dt className={styles.term}>{t('price')}</dt>
+            <dd className={styles.value}>{formatCurrency(basePrice)}</dd>
           </div>
-        )}
-        <div className={styles.row}>
-          <dt className={styles.term}>{t('order_types')}</dt>
-          <dd className={styles.value}>
-            {inheritsOrderTypes ? t('product_order_types_inherit') : t('product_order_types_custom')}
-          </dd>
-        </div>
-        {showPhotos && (
+          {showCategory && (
+            <div className={styles.row}>
+              <dt className={styles.term}>{t('category')}</dt>
+              <dd className={styles.value}>{categoryName || EMPTY}</dd>
+            </div>
+          )}
           <div className={styles.row}>
-            <dt className={styles.term}>{t('product_images')}</dt>
-            <dd className={styles.value}>{photoCount}</dd>
+            <dt className={styles.term}>{t('order_types')}</dt>
+            <dd className={styles.value}>
+              {inheritsOrderTypes ? t('product_order_types_inherit') : t('product_order_types_custom')}
+            </dd>
           </div>
-        )}
-      </dl>
-    </section>
+          {showPhotos && (
+            <div className={styles.row}>
+              <dt className={styles.term}>{t('product_images')}</dt>
+              <dd className={styles.value}>{photoCount}</dd>
+            </div>
+          )}
+        </dl>
+      </section>
+    </div>
   );
 }

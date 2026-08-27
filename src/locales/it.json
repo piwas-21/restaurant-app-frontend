@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "Traduzioni",
   "editor_sections": "Sezioni",
   "editor_section_basics": "Informazioni di base",
+  "editor_section_media": "Multimedia",
+  "editor_section_pricing": "Prezzi e variazioni",
+  "editor_section_options": "Opzioni e contorni",
+  "editor_section_recipe": "Ricetta e dieta",
+  "editor_section_service": "Servizio e disponibilità",
+  "editor_section_advanced": "Avanzate",
   "editor_at_a_glance": "In sintesi"
 }

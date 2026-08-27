@@ -1,0 +1,145 @@
+'use client';
+
+import React from 'react';
+import ProductBasicsFields from '@/components/admin/product/fields/ProductBasicsFields';
+import ProductPricingFields from '@/components/admin/product/fields/ProductPricingFields';
+import ProductAllergenFields from '@/components/admin/product/fields/ProductAllergenFields';
+import ProductServiceFields from '@/components/admin/product/fields/ProductServiceFields';
+import ProductAdvancedFields from '@/components/admin/product/fields/ProductAdvancedFields';
+import StagedImagePicker from '@/components/admin/product/StagedImagePicker';
+import { ProductVariations } from '@/components/admin/product/ProductVariations';
+import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
+import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
+import ImageGallery from './ImageGallery';
+import EditorOrderTypesField from './EditorOrderTypesField';
+import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
+import type { EditorSection } from './EditorShell';
+
+/**
+ * The seven sections of an ITEM (MENU-ITEM-EDITOR-REDESIGN-PLAN §4, slice S2).
+ *
+ * S1 shipped the shell with today's NINE flat groups dropped in unchanged. S2 is the re-group, and
+ * it is a move and nothing else: not one field is added, renamed, removed or re-registered, so the
+ * payload is byte-identical and `ProductEditorRoundTrip.test.tsx` is the proof.
+ *
+ * What actually moved, and why (§4):
+ * - kitchen type left `Basic info` and prep time left `Details` — both answer "how does the kitchen
+ *   serve this?", so they join the order-type mask in **Service & availability**;
+ * - base price left `Details` to sit with the variations whose `priceModifier` is relative to it;
+ * - the 16 allergen chips left `Details` to sit under the ingredients they describe;
+ * - the three status flags left `Details` for the side rail, which is visible from every section;
+ * - the product type and `hideBaseProduct` are the once-a-lifetime controls, so they are the whole
+ *   of **Advanced** — the ONLY collapsed section (D1).
+ *
+ * `Advanced` collapses by HIDING its body, never by unmounting it: a registered field that leaves
+ * the DOM is a value the PUT clears (plan §6). The same rule governs the rail.
+ */
+export function buildItemSections(context: EditorSectionsContext): EditorSection[] {
+  const { editor, t, product, isCreate } = context;
+  const { form } = editor;
+  const { errors } = form.formState;
+
+  return [
+    {
+      id: SECTION_IDS.basics,
+      label: t('editor_section_basics'),
+      showHeading: true,
+      node: (
+        <ProductBasicsFields
+          register={form.register}
+          errors={errors}
+          control={form.control}
+          categories={editor.categories}
+          categoriesError={editor.categoriesError}
+          selectedCategoryIds={editor.selectedCategoryIds}
+        />
+      ),
+    },
+    {
+      id: SECTION_IDS.media,
+      label: t('editor_section_media'),
+      showHeading: true,
+      /*
+       * Two different controls behind one section name, because the API leaves no choice: images
+       * are sub-resources of a SAVED product, so a create route can only stage files for the POST
+       * to upload, while an edit route gets the real gallery (which writes immediately — D5's
+       * notice that says so is S6). Since S2 the gallery lives INSIDE the form like every other
+       * section: what used to keep it out was `ConfirmationModal`'s untyped buttons, and those are
+       * now `type="button"`, which is a fix and not a workaround.
+       */
+      node: isCreate ? (
+        <StagedImagePicker
+          inputId="product-images"
+          label={t('product_images')}
+          files={editor.imageFiles}
+          onChange={editor.setImageFiles}
+        />
+      ) : (
+        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
+      ),
+    },
+    {
+      id: SECTION_IDS.pricing,
+      label: t('editor_section_pricing'),
+      showHeading: true,
+      node: (
+        <>
+          <ProductPricingFields register={form.register} errors={errors} />
+          <ProductVariations
+            register={form.register}
+            errors={errors}
+            variationFields={editor.variations.fields}
+            appendVariation={editor.variations.append}
+            removeVariation={editor.variations.remove}
+          />
+        </>
+      ),
+    },
+    {
+      id: SECTION_IDS.options,
+      label: t('editor_section_options'),
+      showHeading: true,
+      node: (
+        <SuggestedSideItemsPicker
+          control={form.control}
+          errors={errors}
+          selectedSideItemIds={editor.selectedSideItemIds}
+          onChange={editor.changeSideItemIds}
+        />
+      ),
+    },
+    {
+      id: SECTION_IDS.recipe,
+      label: t('editor_section_recipe'),
+      showHeading: true,
+      node: (
+        <>
+          <ProductIngredientsManager
+            ingredients={editor.detailedIngredients}
+            onChange={editor.changeIngredients}
+            productBasePrice={editor.basePrice}
+          />
+          <ProductAllergenFields control={form.control} />
+        </>
+      ),
+    },
+    {
+      id: SECTION_IDS.service,
+      label: t('editor_section_service'),
+      showHeading: true,
+      node: (
+        <>
+          <ProductServiceFields register={form.register} errors={errors} control={form.control} />
+          <EditorOrderTypesField context={context} />
+        </>
+      ),
+    },
+    {
+      id: SECTION_IDS.advanced,
+      label: t('editor_section_advanced'),
+      collapsible: true,
+      defaultCollapsed: true,
+      node: <ProductAdvancedFields register={form.register} />,
+    },
+  ];
+}

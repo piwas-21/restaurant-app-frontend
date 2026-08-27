@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Done, close",
   "api_tokens_copy": "Copy",
   "api_tokens_copied": "Copied",
-  "api_tokens_copy_failed": "Copy failed. Select the value and copy it by hand."
+  "api_tokens_copy_failed": "Copy failed. Select the value and copy it by hand.",
+  "editor_tabs": "Item editor",
+  "editor_tab_translations": "Translations",
+  "editor_sections": "Sections",
+  "editor_section_basics": "Basics",
+  "editor_at_a_glance": "At a glance"
 }

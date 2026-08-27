@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Fertig, schließen",
   "api_tokens_copy": "Kopieren",
   "api_tokens_copied": "Kopiert",
-  "api_tokens_copy_failed": "Kopieren fehlgeschlagen. Markieren Sie den Wert und kopieren Sie ihn von Hand."
+  "api_tokens_copy_failed": "Kopieren fehlgeschlagen. Markieren Sie den Wert und kopieren Sie ihn von Hand.",
+  "editor_tabs": "Artikel-Editor",
+  "editor_tab_translations": "Übersetzungen",
+  "editor_sections": "Abschnitte",
+  "editor_section_basics": "Grunddaten",
+  "editor_at_a_glance": "Auf einen Blick"
 }

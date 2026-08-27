@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Готово, закрыть",
   "api_tokens_copy": "Копировать",
   "api_tokens_copied": "Скопировано",
-  "api_tokens_copy_failed": "Скопировать не удалось. Выделите значение и скопируйте вручную."
+  "api_tokens_copy_failed": "Скопировать не удалось. Выделите значение и скопируйте вручную.",
+  "editor_tabs": "Редактор товара",
+  "editor_tab_translations": "Переводы",
+  "editor_sections": "Разделы",
+  "editor_section_basics": "Основное",
+  "editor_at_a_glance": "Кратко"
 }

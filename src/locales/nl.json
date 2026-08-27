@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Klaar, sluiten",
   "api_tokens_copy": "Kopiëren",
   "api_tokens_copied": "Gekopieerd",
-  "api_tokens_copy_failed": "Kopiëren is mislukt. Selecteer de waarde en kopieer die handmatig."
+  "api_tokens_copy_failed": "Kopiëren is mislukt. Selecteer de waarde en kopieer die handmatig.",
+  "editor_tabs": "Itembewerker",
+  "editor_tab_translations": "Vertalingen",
+  "editor_sections": "Secties",
+  "editor_section_basics": "Basisgegevens",
+  "editor_at_a_glance": "In één oogopslag"
 }

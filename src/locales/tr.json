@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Tamam, kapat",
   "api_tokens_copy": "Kopyala",
   "api_tokens_copied": "Kopyalandı",
-  "api_tokens_copy_failed": "Kopyalama başarısız oldu. Değeri seçip elle kopyalayın."
+  "api_tokens_copy_failed": "Kopyalama başarısız oldu. Değeri seçip elle kopyalayın.",
+  "editor_tabs": "Ürün düzenleyici",
+  "editor_tab_translations": "Çeviriler",
+  "editor_sections": "Bölümler",
+  "editor_section_basics": "Temel bilgiler",
+  "editor_at_a_glance": "Özet"
 }

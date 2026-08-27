@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "تم، إغلاق",
   "api_tokens_copy": "نسخ",
   "api_tokens_copied": "تم النسخ",
-  "api_tokens_copy_failed": "تعذّر النسخ. حدّد القيمة وانسخها يدويًا."
+  "api_tokens_copy_failed": "تعذّر النسخ. حدّد القيمة وانسخها يدويًا.",
+  "editor_tabs": "محرر العنصر",
+  "editor_tab_translations": "الترجمات",
+  "editor_sections": "الأقسام",
+  "editor_section_basics": "الأساسيات",
+  "editor_at_a_glance": "لمحة سريعة"
 }

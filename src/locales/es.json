@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Listo, cerrar",
   "api_tokens_copy": "Copiar",
   "api_tokens_copied": "Copiado",
-  "api_tokens_copy_failed": "No se pudo copiar. Seleccione el valor y cópielo a mano."
+  "api_tokens_copy_failed": "No se pudo copiar. Seleccione el valor y cópielo a mano.",
+  "editor_tabs": "Editor de artículo",
+  "editor_tab_translations": "Traducciones",
+  "editor_sections": "Secciones",
+  "editor_section_basics": "Información básica",
+  "editor_at_a_glance": "De un vistazo"
 }

@@ -166,20 +166,31 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     expect(screen.getByTestId('editor-save')).toBeDisabled();
   });
 
-  it('offers a header Save that mirrors the sticky one', async () => {
-    await renderEditor(item, false);
+  // Decision D4 (MENU-ITEM-EDITOR-REDESIGN-PLAN §3). The duplicate header Save existed only
+  // because the page was too long to scroll; the sticky section nav plus the sticky bar solve that
+  // properly, so exactly ONE Save may exist in the DOM. Three commit models on one screen was the
+  // measured reason the admin could not answer "is my work saved?".
+  it('renders exactly one Save button — the header duplicate is gone', async () => {
+    const { container } = await renderEditor(item, false);
 
-    const headerSave = screen.getByTestId('editor-save-top');
-    expect(headerSave).toBeDisabled(); // clean: gated like the bottom Save
-    fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
-    expect(headerSave).toBeEnabled(); // dirty: both Saves light up
+    expect(container.querySelectorAll('[data-testid="editor-save-top"]')).toHaveLength(0);
+    expect(container.querySelectorAll('button[type="submit"]')).toHaveLength(1);
+    expect(screen.getByTestId('editor-save')).toBeInTheDocument();
   });
 
-  it('submits from the header Save button', async () => {
-    const { nameInput } = await renderEditor(item, false);
+  // The one Save is a SIBLING of the form (the bar spans nav, main and rail), so it submits
+  // through the HTML `form` attribute. If that association is ever dropped the button goes inert
+  // and nothing else in the suite notices.
+  it('submits from the sticky Save, which sits outside the form element', async () => {
+    const { nameInput, container } = await renderEditor(item, false);
+
+    const save = screen.getByTestId('editor-save');
+    const form = container.querySelector('form') as HTMLFormElement;
+    expect(form.contains(save)).toBe(false);
+    expect(save.getAttribute('form')).toBe(form.id);
 
     fireEvent.change(nameInput, { target: { value: 'Margherita Verde' } });
-    fireEvent.click(screen.getByTestId('editor-save-top'));
+    fireEvent.click(save);
 
     await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
   });
@@ -427,13 +438,15 @@ describe('ProductEditorPage — existing-image management', () => {
   it('offers no staged file input on an item edit, and keeps one on create', async () => {
     // Container-scoped, not `screen`: both renders share one document body here.
     const editRender = await renderEditor(item, false);
-    expect(editRender.container.textContent).not.toContain('product_images');
+    // By the input's own id, not by its label text: since the S1 shell the side rail also shows a
+    // `product_images` row (a read-only photo count), so a text match no longer isolates the picker.
+    expect(editRender.container.querySelector('#product-images')).toBeNull();
     // The only file input left on the edit route is the gallery's own (immediate) one.
     expect(editRender.container.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(editRender.container.querySelector('[data-testid="gallery-image-input"]')).not.toBeNull();
 
     const createRender = await renderEditor(emptyProductDetails(false), false, 'create');
-    expect(createRender.container.textContent).toContain('product_images');
+    expect(createRender.container.querySelector('#product-images')).not.toBeNull();
     expect(createRender.container.querySelector('input[type="file"]')).not.toBeNull();
   });
 });
@@ -477,5 +490,67 @@ describe('ProductEditorPage — a category list that did not arrive says so', ()
     await renderEditor(item, false);
 
     expect(screen.queryByTestId('categories-load-error')).not.toBeInTheDocument();
+  });
+});
+
+describe('ProductEditorPage — the S1 editor shell', () => {
+  // MENU-ITEM-EDITOR-REDESIGN-PLAN §4 + D2. Exactly two tabs, and the sections are a NAV, so a
+  // second tablist appearing here means someone turned the sections into tabs after all.
+  it('offers Item and Translations, and no other tabs', async () => {
+    const { container } = await renderEditor(item, false);
+
+    const tabs = Array.from(container.querySelectorAll('[role="tab"]'));
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['item', 'editor_tab_translations']);
+  });
+
+  // S1 relocates the multilingual list into the tab that owns translation (D2) and changes nothing
+  // about it — same component, same `content` field array, same payload. S4 replaces it.
+  it('moves the multilingual content into the Translations tab without unmounting it', async () => {
+    const { container } = await renderEditor(item, false);
+
+    const translationsPanel = container.querySelector('#product-editor-form-panel-translations') as HTMLElement;
+    expect(translationsPanel.textContent).toContain('multilingual_content');
+    expect(translationsPanel).toHaveAttribute('hidden');
+
+    fireEvent.click(container.querySelector('[role="tab"][aria-controls$="panel-translations"]') as HTMLElement);
+    expect(translationsPanel).not.toHaveAttribute('hidden');
+    // The item panel does not go away, so a submit-time error can never hide behind the tab.
+    expect(
+      container.querySelector('#product-editor-form-panel-item')?.querySelector('input[name="name"]'),
+    ).not.toBeNull();
+  });
+
+  it('names every section of an item in the nav, in page order', async () => {
+    const { container } = await renderEditor(item, false);
+
+    const nav = container.querySelector('nav[aria-label="editor_sections"]') as HTMLElement;
+    expect(Array.from(nav.querySelectorAll('button')).map((button) => button.textContent)).toEqual([
+      'image_gallery',
+      'editor_section_basics',
+      'variations',
+      'suggested_side_items',
+      'product_ingredients',
+      'product_order_types',
+    ]);
+  });
+
+  // The approved screens render `$ 12.00`. The currency is the tenant's and comes from config
+  // (NEXT_PUBLIC_TENANT_CURRENCY, CHF for RUMI) — the plan and the data win over a screen.
+  it('summarises the item in the side rail, in the tenant currency', async () => {
+    const { container } = await renderEditor(item, false);
+
+    const rail = container.querySelector('aside') as HTMLElement;
+    // A regex, not a substring: Intl separates the code from the amount with a NO-BREAK SPACE.
+    expect(rail.textContent).toMatch(/CHF\s12\.00/);
+    expect(rail.textContent).not.toContain('$');
+    expect(rail.textContent).toContain('Pizza');
+  });
+
+  it('gives a bundle no category row in the rail, because a bundle has no categories', async () => {
+    const { container } = await renderEditor(bundle, true);
+
+    const rail = container.querySelector('aside') as HTMLElement;
+    expect(rail.textContent).toMatch(/CHF\s20\.00/);
+    expect(rail.textContent).not.toContain('category');
   });
 });

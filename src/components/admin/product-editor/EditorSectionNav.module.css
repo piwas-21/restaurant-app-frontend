@@ -1,0 +1,67 @@
+.nav {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.itemActive {
+  background: var(--surface-secondary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/*
+  Tablet (D10: desktop-first, tablet-usable, phone not a target). The nav stops being a column and
+  becomes a scrollable strip above the form, so the main column keeps its width.
+*/
+@media (max-width: 1024px) {
+  .nav {
+    position: static;
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .list {
+    flex-direction: row;
+    gap: 0.25rem;
+  }
+
+  .item {
+    width: auto;
+    white-space: nowrap;
+  }
+}

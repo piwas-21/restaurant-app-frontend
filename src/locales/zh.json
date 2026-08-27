@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "完成并关闭",
   "api_tokens_copy": "复制",
   "api_tokens_copied": "已复制",
-  "api_tokens_copy_failed": "复制失败。请选中该值并手动复制。"
+  "api_tokens_copy_failed": "复制失败。请选中该值并手动复制。",
+  "editor_tabs": "商品编辑器",
+  "editor_tab_translations": "翻译",
+  "editor_sections": "分区",
+  "editor_section_basics": "基本信息",
+  "editor_at_a_glance": "概览"
 }

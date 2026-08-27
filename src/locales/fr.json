@@ -2676,5 +2676,10 @@
   "api_tokens_reveal_confirm": "Terminé, fermer",
   "api_tokens_copy": "Copier",
   "api_tokens_copied": "Copié",
-  "api_tokens_copy_failed": "La copie a échoué. Sélectionnez la valeur et copiez-la à la main."
+  "api_tokens_copy_failed": "La copie a échoué. Sélectionnez la valeur et copiez-la à la main.",
+  "editor_tabs": "Éditeur d’article",
+  "editor_tab_translations": "Traductions",
+  "editor_sections": "Rubriques",
+  "editor_section_basics": "Informations de base",
+  "editor_at_a_glance": "En un coup d’œil"
 }

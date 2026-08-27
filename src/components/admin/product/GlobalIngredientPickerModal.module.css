@@ -1,0 +1,194 @@
+/* Global ingredient library picker (plan S2). Tokens only — no hex, per CLAUDE.md §5 rule 5. */
+
+.searchRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.searchIcon {
+  position: absolute;
+  inset-inline-start: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6rem 0.75rem 0.6rem 2.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.chip {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.chipActive {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--surface-secondary);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 22rem;
+  overflow-y: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border-extra-light);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowDisabled {
+  background: var(--surface-secondary);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.preview {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 18rem;
+}
+
+.notice {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+  color: var(--feedback-error-text);
+  font-size: 0.875rem;
+}
+
+.retryButton {
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-inline-start: auto;
+}
+
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: none;
+  color: var(--brand-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.4rem 0;
+}
+
+.createButton:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.confirmButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  cursor: pointer;
+}
+
+.confirmButton:disabled {
+  background: var(--action-neutral);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}

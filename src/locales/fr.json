@@ -2687,5 +2687,20 @@
   "editor_section_recipe": "Recette et diététique",
   "editor_section_service": "Service et disponibilité",
   "editor_section_advanced": "Avancé",
-  "editor_at_a_glance": "En un coup d’œil"
+  "editor_at_a_glance": "En un coup d’œil",
+  "add_from_library": "Ajouter depuis la bibliothèque",
+  "ingredient_library_search_label": "Rechercher dans la bibliothèque d'ingrédients",
+  "ingredient_library_search_placeholder": "Rechercher par nom dans toutes les langues",
+  "ingredient_library_filter_label": "Filtrer la bibliothèque",
+  "ingredient_library_filter_all": "Tous",
+  "ingredient_library_filter_not_added": "Absent de cet article",
+  "ingredient_library_filter_translated": "Traduits",
+  "ingredient_library_empty": "Aucun ingrédient de la bibliothèque ne correspond à votre recherche.",
+  "ingredient_library_load_failed": "Impossible de charger la bibliothèque d'ingrédients",
+  "ingredient_library_retry": "Réessayer",
+  "ingredient_library_showing": "{{shown}} résultats sur {{total}} affichés. Affinez votre recherche pour en voir plus.",
+  "ingredient_library_languages": "Traductions : {{count}}",
+  "ingredient_library_create": "Créer un nouvel ingrédient",
+  "ingredient_library_create_named": "Créer « {{name}} »",
+  "ingredient_library_create_failed": "Impossible de créer l'ingrédient"
 }

@@ -2687,5 +2687,20 @@
   "editor_section_recipe": "Recipe & dietary",
   "editor_section_service": "Service & availability",
   "editor_section_advanced": "Advanced",
-  "editor_at_a_glance": "At a glance"
+  "editor_at_a_glance": "At a glance",
+  "add_from_library": "Add from library",
+  "ingredient_library_search_label": "Search the ingredient library",
+  "ingredient_library_search_placeholder": "Search by name in any language",
+  "ingredient_library_filter_label": "Filter the library",
+  "ingredient_library_filter_all": "All",
+  "ingredient_library_filter_not_added": "Not on this item",
+  "ingredient_library_filter_translated": "Translated",
+  "ingredient_library_empty": "No ingredient in the library matches your search.",
+  "ingredient_library_load_failed": "Could not load the ingredient library",
+  "ingredient_library_retry": "Try again",
+  "ingredient_library_showing": "Showing {{shown}} of {{total}} matches. Refine your search to see more.",
+  "ingredient_library_languages": "Translations: {{count}}",
+  "ingredient_library_create": "Create a new ingredient",
+  "ingredient_library_create_named": "Create \"{{name}}\"",
+  "ingredient_library_create_failed": "Could not create the ingredient"
 }

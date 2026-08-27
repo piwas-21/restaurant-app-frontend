@@ -2687,5 +2687,20 @@
   "editor_section_recipe": "Рецепт и питание",
   "editor_section_service": "Обслуживание и доступность",
   "editor_section_advanced": "Дополнительно",
-  "editor_at_a_glance": "Кратко"
+  "editor_at_a_glance": "Кратко",
+  "add_from_library": "Добавить из библиотеки",
+  "ingredient_library_search_label": "Поиск в библиотеке ингредиентов",
+  "ingredient_library_search_placeholder": "Поиск по названию на любом языке",
+  "ingredient_library_filter_label": "Фильтр библиотеки",
+  "ingredient_library_filter_all": "Все",
+  "ingredient_library_filter_not_added": "Нет в этой позиции",
+  "ingredient_library_filter_translated": "С переводом",
+  "ingredient_library_empty": "В библиотеке нет ингредиентов по вашему запросу.",
+  "ingredient_library_load_failed": "Не удалось загрузить библиотеку ингредиентов",
+  "ingredient_library_retry": "Повторить",
+  "ingredient_library_showing": "Показано {{shown}} из {{total}} совпадений. Уточните запрос, чтобы увидеть больше.",
+  "ingredient_library_languages": "Переводов: {{count}}",
+  "ingredient_library_create": "Создать новый ингредиент",
+  "ingredient_library_create_named": "Создать «{{name}}»",
+  "ingredient_library_create_failed": "Не удалось создать ингредиент"
 }

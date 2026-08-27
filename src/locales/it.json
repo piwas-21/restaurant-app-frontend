@@ -2687,5 +2687,20 @@
   "editor_section_recipe": "Ricetta e dieta",
   "editor_section_service": "Servizio e disponibilità",
   "editor_section_advanced": "Avanzate",
-  "editor_at_a_glance": "In sintesi"
+  "editor_at_a_glance": "In sintesi",
+  "add_from_library": "Aggiungi dalla libreria",
+  "ingredient_library_search_label": "Cerca nella libreria degli ingredienti",
+  "ingredient_library_search_placeholder": "Cerca per nome in qualsiasi lingua",
+  "ingredient_library_filter_label": "Filtra la libreria",
+  "ingredient_library_filter_all": "Tutti",
+  "ingredient_library_filter_not_added": "Non in questo articolo",
+  "ingredient_library_filter_translated": "Tradotti",
+  "ingredient_library_empty": "Nessun ingrediente della libreria corrisponde alla ricerca.",
+  "ingredient_library_load_failed": "Impossibile caricare la libreria degli ingredienti",
+  "ingredient_library_retry": "Riprova",
+  "ingredient_library_showing": "Mostrati {{shown}} di {{total}} risultati. Affina la ricerca per vederne altri.",
+  "ingredient_library_languages": "Traduzioni: {{count}}",
+  "ingredient_library_create": "Crea un nuovo ingrediente",
+  "ingredient_library_create_named": "Crea \"{{name}}\"",
+  "ingredient_library_create_failed": "Impossibile creare l'ingrediente"
 }

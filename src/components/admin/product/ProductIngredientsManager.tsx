@@ -1,18 +1,16 @@
 'use client';
 
 import { TENANT_CURRENCY, formatPlainCurrency } from '@/utils/currency';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Library, Plus, Trash2, GripVertical } from 'lucide-react';
 import type { ProductIngredient } from '@/types/menu';
+import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
+import { useGlobalIngredientSuggestions } from '@/hooks/admin/useGlobalIngredientSuggestions';
+import { withLibraryProvenance } from './globalIngredientLibrary';
+import GlobalIngredientPickerModal from './GlobalIngredientPickerModal';
 import styles from './ProductIngredientsManager.module.css';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
-
-interface GlobalIngredientSuggestion {
-  id: string;
-  defaultName: string;
-  translations: { languageCode: string; name: string }[];
-}
 
 interface ProductIngredientsManagerProps {
   ingredients: ProductIngredient[];
@@ -24,10 +22,8 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
   const { t } = useTranslation();
   // Local state to preserve string value during typing
   const [priceInputs, setPriceInputs] = useState<Record<number, string>>({});
-  const [suggestions, setSuggestions] = useState<Record<number, GlobalIngredientSuggestion[]>>({});
-  const [showSuggestions, setShowSuggestions] = useState<Record<number, boolean>>({});
-  const [loadingSuggestions, setLoadingSuggestions] = useState<Record<number, boolean>>({});
-  const searchTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const typeahead = useGlobalIngredientSuggestions();
 
   // Initialize price inputs when ingredients change (e.g., loading existing product)
   useEffect(() => {
@@ -91,88 +87,40 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
     onChange(updated);
   };
 
-  const searchGlobalIngredients = useCallback(async (query: string, index: number) => {
-    if (!query || query.length < 2) {
-      setSuggestions((prev) => ({ ...prev, [index]: [] }));
-      setShowSuggestions((prev) => ({ ...prev, [index]: false }));
-      return;
-    }
-
-    setLoadingSuggestions((prev) => ({ ...prev, [index]: true }));
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5113';
-      const response = await fetch(
-        `${apiUrl}/api/global-ingredients/search?query=${encodeURIComponent(query)}&limit=5`,
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        const items = result.data || [];
-        setSuggestions((prev) => ({ ...prev, [index]: items }));
-        setShowSuggestions((prev) => ({ ...prev, [index]: true }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch ingredient suggestions:', error);
-    } finally {
-      setLoadingSuggestions((prev) => ({ ...prev, [index]: false }));
-    }
-  }, []);
-
   const handleIngredientNameChange = (index: number, value: string) => {
-    // Update ingredient name immediately
     handleIngredientChange(index, 'name', value);
-
-    // Clear existing timeout
-    if (searchTimeouts.current[index]) {
-      clearTimeout(searchTimeouts.current[index]);
-    }
-
-    // Debounce search
-    searchTimeouts.current[index] = setTimeout(() => {
-      // searchGlobalIngredients has its own try/catch (logs and resets
-      // loading state); fire-and-forget inside the timeout.
-      void searchGlobalIngredients(value, index);
-    }, 300);
+    typeahead.search(index, value);
   };
 
-  const selectGlobalIngredient = (index: number, suggestion: GlobalIngredientSuggestion) => {
+  const selectGlobalIngredient = (index: number, suggestion: GlobalIngredientSummary) => {
     const updated = [...ingredients];
-
-    // Set the ingredient name
-    updated[index].name = suggestion.defaultName;
-
-    // Store the global ingredient ID (add this field if it doesn't exist)
-    (updated[index] as any).globalIngredientId = suggestion.id;
-
-    // Prefill all translation fields
-    if (!updated[index].content) {
-      updated[index].content = {};
-    }
-
-    suggestion.translations.forEach((translation) => {
-      const lang = translation.languageCode;
-      if (!updated[index].content![lang]) {
-        updated[index].content![lang] = { name: '', description: '' };
-      }
-      updated[index].content![lang].name = translation.name;
-    });
-
+    updated[index] = withLibraryProvenance(updated[index], suggestion);
     onChange(updated);
-
-    // Hide suggestions
-    setShowSuggestions((prev) => ({ ...prev, [index]: false }));
+    typeahead.setVisibleFor(index, false);
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.title}>{t('product_ingredients')}</h3>
-        <button type="button" onClick={handleAddIngredient} className={styles.addButton}>
-          <Plus size={16} />
-          {t('add_ingredient')}
-        </button>
+        <div className={styles.headerActions}>
+          <button type="button" onClick={() => setIsPickerOpen(true)} className={styles.libraryButton}>
+            <Library size={16} />
+            {t('add_from_library')}
+          </button>
+          <button type="button" onClick={handleAddIngredient} className={styles.addButton}>
+            <Plus size={16} />
+            {t('add_ingredient')}
+          </button>
+        </div>
       </div>
+
+      <GlobalIngredientPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        attached={ingredients}
+        onAdd={(picked) => onChange([...ingredients, ...picked])}
+      />
 
       <p className={styles.description}>{t('ingredients_manager_description')}</p>
 
@@ -193,32 +141,21 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
                     value={ingredient.name}
                     onChange={(e) => handleIngredientNameChange(index, e.target.value)}
                     onFocus={() => {
-                      if (suggestions[index]?.length > 0) {
-                        setShowSuggestions((prev) => ({ ...prev, [index]: true }));
+                      if (typeahead.suggestions[index]?.length > 0) {
+                        typeahead.setVisibleFor(index, true);
                       }
                     }}
                     onBlur={() => {
                       // Delay to allow click on suggestion
-                      setTimeout(() => setShowSuggestions((prev) => ({ ...prev, [index]: false })), 200);
+                      setTimeout(() => typeahead.setVisibleFor(index, false), 200);
                     }}
                     placeholder={t('ingredient_name_placeholder')}
                     className={styles.ingredientNameInput}
                   />
-                  {loadingSuggestions[index] && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        insetInlineEnd: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                      }}
-                    >
-                      <span style={{ color: '#666', fontSize: '12px' }}>...</span>
-                    </div>
-                  )}
-                  {showSuggestions[index] && suggestions[index]?.length > 0 && (
+                  {typeahead.loading[index] && <output className={styles.suggestionSpinner}>…</output>}
+                  {typeahead.visible[index] && typeahead.suggestions[index]?.length > 0 && (
                     <div className={styles.suggestions}>
-                      {suggestions[index].map((suggestion) => (
+                      {typeahead.suggestions[index].map((suggestion) => (
                         <div
                           key={suggestion.id}
                           className={styles.suggestionItem}

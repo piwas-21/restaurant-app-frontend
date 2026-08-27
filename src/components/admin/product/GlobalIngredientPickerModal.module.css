@@ -29,11 +29,17 @@
   outline-offset: 1px;
 }
 
+/* A <fieldset>, so the grouping is the element rather than a role (S6819). Its UA border,
+   padding and margin are reset; the <legend> is `sr-only`, so it names the group for a screen
+   reader without drawing a caption above the chips. */
 .filters {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
 }
 
 .chip {

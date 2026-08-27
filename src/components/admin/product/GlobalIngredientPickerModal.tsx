@@ -46,7 +46,7 @@ export default function GlobalIngredientPickerModal({
   onClose,
   attached,
   onAdd,
-}: GlobalIngredientPickerModalProps) {
+}: Readonly<GlobalIngredientPickerModalProps>) {
   const { t, i18n } = useTranslation();
   const library = useGlobalIngredientLibrary({ isOpen, attached, languageCode: i18n.language });
   const [selected, setSelected] = useState<GlobalIngredientSummary[]>([]);
@@ -136,7 +136,11 @@ export default function GlobalIngredientPickerModal({
         />
       </div>
 
-      <div className={styles.filters} role="group" aria-label={t('ingredient_library_filter_label')}>
+      {/* fieldset+legend IS the grouping semantic — no role="group" needed (S6819), and the same
+          shape `menu-management` uses for its type filter. The legend names what is filtered;
+          "All" would name it after one of its own options. */}
+      <fieldset className={styles.filters}>
+        <legend className="sr-only">{t('ingredient_library_filter_label')}</legend>
         {FILTERS.map((entry) => (
           <button
             key={entry}
@@ -148,7 +152,7 @@ export default function GlobalIngredientPickerModal({
             {t(FILTER_LABELS[entry])}
           </button>
         ))}
-      </div>
+      </fieldset>
 
       {createError && (
         <p className={styles.error} role="alert">

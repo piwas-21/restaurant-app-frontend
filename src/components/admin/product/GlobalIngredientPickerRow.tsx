@@ -28,7 +28,7 @@ export default function GlobalIngredientPickerRow({
   checked,
   alreadyAdded,
   onToggle,
-}: GlobalIngredientPickerRowProps) {
+}: Readonly<GlobalIngredientPickerRowProps>) {
   const { t } = useTranslation();
   const preview = ingredient.translations
     .slice(0, 3)

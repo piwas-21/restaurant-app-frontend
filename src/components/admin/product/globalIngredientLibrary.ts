@@ -12,6 +12,26 @@ import type { ProductIngredient } from '@/types/menu';
 /** How many rows the picker renders at once. The seeded catalog is 654 entries. */
 export const MAX_VISIBLE_LIBRARY_ROWS = 50;
 
+let temporaryIngredientCounter = 0;
+
+/**
+ * The client-side id for an ingredient row the server has never issued one for.
+ *
+ * `temp-` is a CONTRACT: `withoutTemporaryIds` strips it before the payload leaves, because a
+ * supplied id means "update the row I already own" to `ProductIngredientSynchronizer` and an id it
+ * does not own is skipped with a warning.
+ *
+ * A counter, not `Math.random()`. Two reasons, and neither is cryptography: the old
+ * `Date.now()`-plus-random pair could still collide for two rows added inside one millisecond, and
+ * a PRNG in an id is what Sonar S2245 flags — correctly, in the sense that a reader cannot tell
+ * from the call site whether the value is load-bearing. A monotonic counter is collision-free
+ * within the page, and the id never outlives the page.
+ */
+export function nextTemporaryIngredientId(): string {
+  temporaryIngredientCounter += 1;
+  return `temp-${temporaryIngredientCounter}`;
+}
+
 /**
  * Case- and accent-insensitive. The catalog is multilingual, so "creme" must find "Crème" —
  * Postgres' `ToLower().Contains()` behind `/search` does not do that, which is one more reason the
@@ -101,9 +121,7 @@ export function toProductIngredient(ingredient: GlobalIngredientSummary, display
   });
 
   return {
-    // `temp-` is the contract productFormUtils strips before the payload leaves: an id the server
-    // has never issued must not reach it.
-    id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+    id: nextTemporaryIngredientId(),
     name: ingredient.defaultName,
     isOptional: false,
     maxQuantity: 1,
@@ -128,7 +146,8 @@ export function withLibraryProvenance(
   ingredient: ProductIngredient,
   library: GlobalIngredientSummary,
 ): ProductIngredient {
-  const content: NonNullable<ProductIngredient['content']> = { ...(ingredient.content ?? {}) };
+  // Not `?? {}`: spreading `undefined` already yields an empty object (Sonar S7744).
+  const content: NonNullable<ProductIngredient['content']> = { ...ingredient.content };
   library.translations.forEach((translation) => {
     const existing = content[translation.languageCode];
     content[translation.languageCode] = { name: translation.name, description: existing?.description ?? '' };

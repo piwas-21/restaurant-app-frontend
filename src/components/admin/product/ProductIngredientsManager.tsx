@@ -2,13 +2,24 @@
 
 import { TENANT_CURRENCY, formatPlainCurrency } from '@/utils/currency';
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import { Library, Plus, Trash2, GripVertical } from 'lucide-react';
 import type { ProductIngredient } from '@/types/menu';
 import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
 import { useGlobalIngredientSuggestions } from '@/hooks/admin/useGlobalIngredientSuggestions';
-import { withLibraryProvenance } from './globalIngredientLibrary';
-import GlobalIngredientPickerModal from './GlobalIngredientPickerModal';
+import { nextTemporaryIngredientId, withLibraryProvenance } from './globalIngredientLibrary';
+
+/**
+ * Code-split, and mounted only while it is open.
+ *
+ * Statically imported, the picker (plus its row, its hook and the library helpers) put the two
+ * menu-item editor routes 11% over their First Load JS baseline — the budget gate refused it, and
+ * rightly: an admin who never opens the library was paying for it on every editor page load.
+ * `next/dynamic` starts the fetch when the component first RENDERS, so the `isPickerOpen &&` guard
+ * below is load-bearing, not cosmetic: rendering it closed would download the chunk anyway.
+ */
+const GlobalIngredientPickerModal = dynamic(() => import('./GlobalIngredientPickerModal'), { ssr: false });
 import styles from './ProductIngredientsManager.module.css';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 
@@ -41,10 +52,9 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
   }, [ingredients.length]);
 
   const handleAddIngredient = () => {
-    // Generate a temporary unique ID for new ingredients (will be replaced by server)
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newIngredient: ProductIngredient = {
-      id: tempId,
+      // Stripped before the payload leaves; shared with the picker so the two cannot collide.
+      id: nextTemporaryIngredientId(),
       name: '',
       isOptional: false,
       maxQuantity: 1,
@@ -115,12 +125,14 @@ export function ProductIngredientsManager({ ingredients, onChange, productBasePr
         </div>
       </div>
 
-      <GlobalIngredientPickerModal
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        attached={ingredients}
-        onAdd={(picked) => onChange([...ingredients, ...picked])}
-      />
+      {isPickerOpen && (
+        <GlobalIngredientPickerModal
+          isOpen
+          onClose={() => setIsPickerOpen(false)}
+          attached={ingredients}
+          onAdd={(picked) => onChange([...ingredients, ...picked])}
+        />
+      )}
 
       <p className={styles.description}>{t('ingredients_manager_description')}</p>
 

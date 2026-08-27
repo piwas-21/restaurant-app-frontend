@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import GlobalIngredientPickerModal from './GlobalIngredientPickerModal';
 import {
   createGlobalIngredient,
@@ -57,10 +57,18 @@ beforeEach(() => {
   mockGetLibrary.mockResolvedValue({ success: true, data: CATALOG } as never);
 });
 
+/**
+ * Render the picker and wait for the CATALOG, not for the search box.
+ *
+ * The search box is painted while the fetch is still in flight, so waiting on it resolves before
+ * the list exists — which passed locally and failed under `--ci --coverage`, where the extra
+ * instrumentation cost one more tick than a bare `await act()` flushed. Waiting for the `list`
+ * role is a wait for the state the assertions are actually about. Every caller here seeds a
+ * non-empty catalog; the empty and error paths render themselves and do not use this helper.
+ */
 const open = async (attached: ProductIngredient[] = []) => {
   render(<GlobalIngredientPickerModal isOpen onClose={onClose} attached={attached} onAdd={onAdd} />);
-  await waitFor(() => expect(screen.getByLabelText('ingredient_library_search_label')).toBeInTheDocument());
-  await act(async () => {});
+  await screen.findByRole('list');
 };
 
 const type = (term: string) =>
@@ -126,7 +134,7 @@ describe('browsing the library', () => {
 
     render(<GlobalIngredientPickerModal isOpen onClose={onClose} attached={[]} onAdd={onAdd} />);
 
-    await waitFor(() => expect(screen.getByRole('button', { name: 'ingredient_library_retry' })).toBeInTheDocument());
+    expect(await screen.findByRole('button', { name: 'ingredient_library_retry' })).toBeInTheDocument();
   });
 });
 
@@ -262,7 +270,7 @@ describe('creating a row the library does not have', () => {
     type('Truffle Oil');
     fireEvent.click(screen.getByRole('button', { name: /ingredient_library_create/ }));
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('nope'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('nope');
     expect(onAdd).not.toHaveBeenCalled();
   });
 });

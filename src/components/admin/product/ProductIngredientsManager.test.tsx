@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ProductIngredientsManager } from './ProductIngredientsManager';
 import { getGlobalIngredients, searchGlobalIngredients } from '@/services/globalIngredientService';
 import { INGREDIENT_SUGGESTION_DEBOUNCE_MS } from '@/hooks/admin/useGlobalIngredientSuggestions';
@@ -55,7 +55,7 @@ describe('the library picker is reachable from the ingredients section', () => {
     mount();
 
     fireEvent.click(screen.getByRole('button', { name: 'add_from_library' }));
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: /Mozzarella/ })).toBeInTheDocument());
+    await screen.findByRole('checkbox', { name: /Mozzarella/ });
 
     fireEvent.click(screen.getByRole('checkbox', { name: /Mozzarella/ }));
     fireEvent.click(screen.getByRole('button', { name: /add_selected/ }));
@@ -72,7 +72,7 @@ describe('the library picker is reachable from the ingredients section', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'add_from_library' }));
 
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: /Mozzarella/ })).toBeDisabled());
+    expect(await screen.findByRole('checkbox', { name: /Mozzarella/ })).toBeDisabled();
   });
 });
 

@@ -1,7 +1,6 @@
 .nav {
   position: sticky;
   top: 1rem;
-  align-self: start;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
 }

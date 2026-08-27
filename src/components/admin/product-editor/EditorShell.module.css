@@ -40,7 +40,15 @@
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr) 264px;
   gap: 1.5rem;
-  align-items: start;
+}
+
+/*
+  Deliberately NOT `align-items: start`, and the nav/rail are WRAPPED rather than being the grid
+  items themselves: a sticky element is positioned inside its parent's box, so a column sized to
+  its own content gives the sticky child nothing to travel over and it never appears to stick.
+*/
+.navColumn {
+  min-width: 0;
 }
 
 /* No nav and no rail — the translations tab, where the main column takes the whole width. */

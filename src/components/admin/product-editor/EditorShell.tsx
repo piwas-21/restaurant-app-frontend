@@ -147,7 +147,14 @@ export default function EditorShell({
       </div>
 
       <div className={`${styles.layout} ${showAside ? '' : styles.layoutPlain}`}>
-        {showAside && <EditorSectionNav entries={sections} activeId={activeId} onSelect={goTo} label={sectionsLabel} />}
+        {/* The nav and the rail are wrapped in STRETCHED grid items on purpose: a `position: sticky`
+            element is positioned inside its PARENT's box, so making the nav itself the grid item
+            would size that box to the nav's own height and leave the sticky nothing to travel over. */}
+        {showAside && (
+          <div className={styles.navColumn}>
+            <EditorSectionNav entries={sections} activeId={activeId} onSelect={goTo} label={sectionsLabel} />
+          </div>
+        )}
 
         <div className={styles.main}>
           <div

@@ -22,7 +22,7 @@ interface ApiTokenRevealModalProps {
  * Deliberately NOT dismissable by ESC or a backdrop click: a stray key press here costs
  * the admin the token. The only way out is the explicit confirmation.
  */
-export default function ApiTokenRevealModal({ createdToken, onConfirm }: ApiTokenRevealModalProps) {
+export default function ApiTokenRevealModal({ createdToken, onConfirm }: Readonly<ApiTokenRevealModalProps>) {
   const { t } = useTranslation();
   const [stored, setStored] = useState(false);
   const [copied, setCopied] = useState(false);

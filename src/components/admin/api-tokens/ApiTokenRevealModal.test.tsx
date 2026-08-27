@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import ApiTokenRevealModal from './ApiTokenRevealModal';
 import type { CreatedApiToken } from '@/types/apiToken';
 
@@ -36,11 +36,12 @@ describe('ApiTokenRevealModal', () => {
     Object.assign(navigator, { clipboard: { writeText } });
     render(<ApiTokenRevealModal createdToken={created} onConfirm={jest.fn()} />);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'api_tokens_copy' }));
-    });
+    fireEvent.click(screen.getByRole('button', { name: 'api_tokens_copy' }));
 
     expect(writeText).toHaveBeenCalledWith('sk_live_abcdef');
+    // `findBy` also flushes the state update the awaited clipboard promise schedules — without
+    // it React reports an un-acted update AFTER the test has already passed.
+    expect(await screen.findByText('api_tokens_copied')).toBeInTheDocument();
   });
 
   it('points at the manual path when the browser refuses the clipboard', async () => {
@@ -49,12 +50,10 @@ describe('ApiTokenRevealModal', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     render(<ApiTokenRevealModal createdToken={created} onConfirm={jest.fn()} />);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'api_tokens_copy' }));
-    });
+    fireEvent.click(screen.getByRole('button', { name: 'api_tokens_copy' }));
 
     // The value is on screen and selectable — a silent no-op would look like a successful copy.
-    expect(screen.getByText('api_tokens_copy_failed')).toBeInTheDocument();
+    expect(await screen.findByText('api_tokens_copy_failed')).toBeInTheDocument();
     expect(screen.queryByText('api_tokens_copied')).not.toBeInTheDocument();
     warn.mockRestore();
   });

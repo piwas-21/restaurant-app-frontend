@@ -24,7 +24,7 @@ const STATUS_TONE: Record<ApiTokenStatus, StatusBadgeTone> = {
  * These timestamps are instants, not calendar days, so they render in the reader's own
  * zone deliberately (CLAUDE.md §5 rule 15 covers the midnight-UTC day case, not this one).
  */
-export default function ApiTokenTable({ tokens, onRevoke }: ApiTokenTableProps) {
+export default function ApiTokenTable({ tokens, onRevoke }: Readonly<ApiTokenTableProps>) {
   const { t, i18n } = useTranslation();
 
   const formatInstant = (value?: string | null) =>

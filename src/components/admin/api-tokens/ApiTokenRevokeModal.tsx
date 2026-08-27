@@ -17,7 +17,12 @@ interface ApiTokenRevokeModalProps {
  * request (plan §6), so it takes effect immediately — the consequence is spelled out
  * rather than left to "are you sure?".
  */
-export default function ApiTokenRevokeModal({ token, revoking, onCancel, onConfirm }: ApiTokenRevokeModalProps) {
+export default function ApiTokenRevokeModal({
+  token,
+  revoking,
+  onCancel,
+  onConfirm,
+}: Readonly<ApiTokenRevokeModalProps>) {
   const { t } = useTranslation();
 
   return (

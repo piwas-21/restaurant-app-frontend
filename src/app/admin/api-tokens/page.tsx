@@ -37,6 +37,29 @@ export default function ApiTokensPage() {
     confirmRevoke,
   } = useApiTokens();
 
+  const renderList = () => {
+    if (loading) {
+      return (
+        <div className={styles.loadingContainer}>
+          <Loader2 size={48} className={styles.spinner} />
+          <p>{t('loading')}</p>
+        </div>
+      );
+    }
+    if (tokens.length === 0) {
+      return (
+        <div className={styles.emptyState}>
+          <p>{t('api_tokens_empty')}</p>
+          <button type="button" onClick={openCreate} className={styles.createButtonSecondary}>
+            <Plus size={20} />
+            {t('api_tokens_create_first')}
+          </button>
+        </div>
+      );
+    }
+    return <ApiTokenTable tokens={tokens} onRevoke={requestRevoke} />;
+  };
+
   return (
     <AdminAuthGuard requiredRoles={['Admin']}>
       <main className={styles.container}>
@@ -54,22 +77,7 @@ export default function ApiTokensPage() {
           </button>
         </div>
 
-        {loading ? (
-          <div className={styles.loadingContainer}>
-            <Loader2 size={48} className={styles.spinner} />
-            <p>{t('loading')}</p>
-          </div>
-        ) : tokens.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p>{t('api_tokens_empty')}</p>
-            <button type="button" onClick={openCreate} className={styles.createButtonSecondary}>
-              <Plus size={20} />
-              {t('api_tokens_create_first')}
-            </button>
-          </div>
-        ) : (
-          <ApiTokenTable tokens={tokens} onRevoke={requestRevoke} />
-        )}
+        {renderList()}
 
         <ApiTokenCreateModal
           isOpen={createOpen}

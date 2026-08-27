@@ -38,7 +38,7 @@ export default function ApiTokenCreateModal({
   error,
   onClose,
   onSubmit,
-}: ApiTokenCreateModalProps) {
+}: Readonly<ApiTokenCreateModalProps>) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [scopes, setScopes] = useState<ApiTokenScope[]>([]);

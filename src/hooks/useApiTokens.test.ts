@@ -70,6 +70,28 @@ describe('useApiTokens', () => {
     expect(result.current.createOpen).toBe(true);
   });
 
+  it('renders the JSON-binding refusal too, not just the friendly validator message', async () => {
+    // Backend #414 made `expiresInDays` `[JsonRequired]`, so a body missing it is refused by the
+    // DESERIALIZER — `application/problem+json` keyed on `$`, not the `ApiResponse` envelope.
+    // This UI always sends the field (and `canSubmit` blocks a non-integer), so the shape should
+    // never arrive; if it ever does, the admin must still get a sentence rather than silence.
+    const binding =
+      "JSON deserialization for type 'CreateApiTokenCommand' was missing required properties, including: expiresInDays.";
+    mockCreate.mockRejectedValue(
+      new ApiError(400, 'One or more validation errors occurred.', [binding], undefined, undefined, {
+        $: [binding],
+      }),
+    );
+    const { result } = renderHook(() => useApiTokens());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.createToken(request);
+    });
+
+    expect(result.current.createError).toBe(binding);
+  });
+
   it('revokes the confirmed token and reloads the list', async () => {
     mockRevoke.mockResolvedValue(undefined);
     const token = { id: 'abc', name: 'seeder', status: 'active' as const };

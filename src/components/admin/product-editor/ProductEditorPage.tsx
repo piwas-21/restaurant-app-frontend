@@ -1,29 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import PageHeader from '@/components/admin/PageHeader';
-import { ProductBasicInfo } from '@/components/admin/product/ProductBasicInfo';
-import { ProductDetails as ProductDetailsFields } from '@/components/admin/product/ProductDetails';
-import { MultilingualContent } from '@/components/admin/product/MultilingualContent';
-import { ProductVariations } from '@/components/admin/product/ProductVariations';
-import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
-import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
-import ProductOrderTypes from '@/components/admin/product/ProductOrderTypes';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
-import BundlePanel from './BundlePanel';
-import ImageGallery from './ImageGallery';
+import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
+import EditorShell from './EditorShell';
+import EditorSideRail from './EditorSideRail';
+import { buildEditorSections, buildTranslationsPanel } from './editorSections';
 import styles from './ProductEditorPage.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
-// Shared by the sticky bottom Save bar and the header Save button so the latter,
-// which lives outside the <form>, still submits it (HTML form-attribute association).
+// The one Save lives in the sticky bar, which is a SIBLING of the form (it spans nav, main and
+// rail). HTML form-attribute association is what still submits the form from there.
 const FORM_ID = 'product-editor-form';
+
+const TAB_ITEM = 'item';
+const TAB_TRANSLATIONS = 'translations';
 
 interface ProductEditorPageProps {
   // readonly: S6759 — component props are never mutated.
@@ -37,14 +33,20 @@ interface ProductEditorPageProps {
 }
 
 /**
- * The unified admin product editor (menu-bundles redesign #176, slice 7).
+ * The unified admin product editor (menu-bundles redesign #176 slice 7; re-shelled by
+ * MENU-ITEM-EDITOR-REDESIGN-PLAN slice S1).
  *
- * One page-level Save over one write path (owner call, plan §7) — this is what retires the
- * modals' forms AND the self-saving detail tables' second write path. Type is a derived
- * BADGE, never a chooser on an existing product: the backend has no item↔bundle migration
- * (a bundle needs a MenuDefinition), so offering the control would promise a failure. On the
- * create route the type is fixed by the entry choice; the same page just loads the kind's
- * fields and posts instead of putting.
+ * One page-level Save over one write path (owner call, plan §7) — this is what retired the modals'
+ * forms AND the self-saving detail tables' second write path. S1 makes that literally true: the
+ * duplicate header Save is GONE (decision D4). It existed only because the page was too long to
+ * scroll, and the sticky section nav plus the sticky bar solve that properly.
+ *
+ * Type is a derived BADGE, never a chooser on an existing product: the backend has no item↔bundle
+ * migration (a bundle needs a MenuDefinition), so offering the control would promise a failure.
+ *
+ * The sections live in `editorSections.tsx`, re-grouped into §4's seven by S2 — Basics · Media ·
+ * Pricing & variations · Options & sides · Recipe & dietary · Service & availability · Advanced,
+ * the last being the only one that collapses (D1).
  */
 export default function ProductEditorPage({
   product,
@@ -59,6 +61,7 @@ export default function ProductEditorPage({
   const { form } = editor;
   const { errors } = form.formState;
   const [isDiscardOpen, setIsDiscardOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(TAB_ITEM);
 
   const isCreate = mode === 'create';
   const typeLabel = isBundle ? t('product_type_menu') : t(`product_type_${product.type || 'mainItem'}`);
@@ -81,156 +84,78 @@ export default function ProductEditorPage({
     }
   };
 
+  const context = { editor, t, product, isCreate, isBundle };
+  const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
+
   return (
-    <div className={adminStyles.adminContainer}>
-      <PageHeader title={pageTitle}>
-        <div className={adminStyles.pageActions}>
-          <span data-testid="product-type-badge">
-            <StatusBadge tone={isBundle ? 'info' : 'neutral'}>{typeLabel}</StatusBadge>
-          </span>
-          {!isCreate && onDelete && (
-            <button type="button" className={`${adminStyles.adminButton} ${adminStyles.delete}`} onClick={onDelete}>
-              {isBundle ? t('delete_menu_bundle') : t('delete_product')}
-            </button>
-          )}
-          {/* A second Save at the top so it is reachable without scrolling the long editor.
-              Submits the same form via the form attribute; gated identically to the bottom Save. */}
-          <button
-            type="submit"
-            form={FORM_ID}
-            data-testid="editor-save-top"
-            className={modalStyles.submitButton}
-            disabled={saveDisabled}
-          >
-            {editor.isSubmitting ? t('saving') : saveLabel}
-          </button>
-        </div>
-      </PageHeader>
-
-      {/*
-        Images FIRST on edit, and OUTSIDE the form (Track F, F7-B/C). Above the form because
-        that is where the admin looks for them — they used to be below the sticky Save bar,
-        after nine other sections. Outside it because `ConfirmationModal`'s buttons default to
-        type="submit", so nesting the gallery would make "delete this image → Yes" submit the
-        product. It owns upload as well as management now and self-manages its list (it does
-        NOT refetch the page product), so an image op cannot discard the form's unsaved edits.
-        Not on create — there is no product id to POST against, so that route keeps the staged
-        file input below. Not on a bundle either: pre-existing gap, frontend #524.
-      */}
-      {!isCreate && !isBundle && (
-        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
-      )}
-
-      <form id={FORM_ID} onSubmit={editor.onSubmit} className={adminStyles.adminContent}>
-        {errors.root && <p className={modalStyles.errorMessage}>{errors.root.message}</p>}
-
-        {isBundle ? (
-          <BundlePanel
-            register={form.register}
-            errors={errors}
-            menuDefinition={editor.menuDefinition}
-            onChange={editor.changeMenuDefinition}
-            imageFiles={editor.imageFiles}
-            setImageFiles={editor.setImageFiles}
-          />
-        ) : (
-          <>
-            <div className={modalStyles.formGrid}>
-              <ProductBasicInfo
-                register={form.register}
-                errors={errors}
-                categories={editor.categories}
-                categoriesError={editor.categoriesError}
-                selectedCategoryIds={editor.selectedCategoryIds}
-                control={form.control}
-              />
-              <ProductDetailsFields
-                register={form.register}
-                errors={errors}
-                control={form.control}
-                imageFiles={editor.imageFiles}
-                setImageFiles={editor.setImageFiles}
-                showImagePicker={isCreate}
-              />
-            </div>
-
-            <ProductVariations
-              register={form.register}
-              errors={errors}
-              variationFields={editor.variations.fields}
-              appendVariation={editor.variations.append}
-              removeVariation={editor.variations.remove}
-            />
-
-            <SuggestedSideItemsPicker
-              control={form.control}
-              errors={errors}
-              selectedSideItemIds={editor.selectedSideItemIds}
-              onChange={editor.changeSideItemIds}
-            />
-
-            <ProductIngredientsManager
-              ingredients={editor.detailedIngredients}
-              onChange={editor.changeIngredients}
-              productBasePrice={editor.basePrice}
-            />
-          </>
-        )}
-
-        {/* Shared by both kinds since §9.2 — bundle commands now accept and store a mask, so the
-            control no longer promises a save that silently does nothing. A bundle inherits nothing
-            in practice (this editor has no category control, so a UI-created bundle has no primary
-            category), which is why the field is the ONLY way to restrict a combo — `ProductOrderTypes`
-            says so itself via its no-primary-category notice. */}
-        <section className={styles.panel}>
-          <Controller
-            name="availableOrderTypes"
-            control={form.control}
-            render={({ field }) => (
-              <ProductOrderTypes
-                value={(field.value as number | null | undefined) ?? null}
-                onChange={field.onChange}
-                categories={editor.categories}
-                primaryCategoryId={editor.primaryCategoryId}
-                isBundle={isBundle}
-                error={errors.availableOrderTypes?.message as string | undefined}
-              />
+    <>
+      <EditorShell
+        title={pageTitle}
+        headerActions={
+          <div className={adminStyles.pageActions}>
+            <span data-testid="product-type-badge">
+              <StatusBadge tone={isBundle ? 'info' : 'neutral'}>{typeLabel}</StatusBadge>
+            </span>
+            {!isCreate && onDelete && (
+              <button type="button" className={`${adminStyles.adminButton} ${adminStyles.delete}`} onClick={onDelete}>
+                {isBundle ? t('delete_menu_bundle') : t('delete_product')}
+              </button>
             )}
+          </div>
+        }
+        tabs={[
+          { id: TAB_ITEM, label: t('item') },
+          { id: TAB_TRANSLATIONS, label: t('editor_tab_translations') },
+        ]}
+        tabsLabel={t('editor_tabs')}
+        activeTabId={activeTab}
+        onTabChange={setActiveTab}
+        sections={buildEditorSections(context)}
+        sectionsLabel={t('editor_sections')}
+        formId={FORM_ID}
+        onSubmit={editor.onSubmit}
+        formError={errors.root && <p className={modalStyles.errorMessage}>{errors.root.message}</p>}
+        translations={buildTranslationsPanel(context)}
+        rail={
+          <EditorSideRail
+            // The three status flags left the old `Details` column for the rail (§4, S2). A bundle
+            // keeps its own inside `BundlePanel`: `MenuBundleDto` is a different shape and S2 does
+            // not restructure it.
+            status={!isBundle && <ProductStatusFields register={form.register} />}
+            basePrice={editor.basePrice}
+            categoryName={primaryCategoryName}
+            inheritsOrderTypes={(form.watch('availableOrderTypes') ?? null) === null}
+            photoCount={product.images?.length ?? 0}
+            showCategory={!isBundle}
+            showPhotos={!isBundle && !isCreate}
           />
-        </section>
-
-        {/* Shared by both kinds — a bundle has translations too. */}
-        <section className={styles.panel}>
-          <MultilingualContent
-            register={form.register}
-            errors={errors}
-            control={form.control}
-            contentFields={editor.content.fields}
-            appendContent={editor.content.append}
-            removeContent={editor.content.remove}
-            watch={form.watch}
-            currentLanguage={editor.currentLanguage}
-          />
-        </section>
-
-        {/* The primary commit point for the product's own fields. Accented when dirty. */}
-        <div className={`${styles.saveBar} ${editor.isDirty ? styles.saveBarDirty : ''}`}>
-          <span className={`${styles.saveHint} ${editor.isDirty ? styles.saveHintDirty : ''}`} aria-live="polite">
-            {editor.isDirty ? t('unsaved_changes') : ''}
-          </span>
-          <button
-            type="button"
-            className={modalStyles.cancelButton}
-            onClick={handleBack}
-            disabled={editor.isSubmitting}
-          >
-            {t('back')}
-          </button>
-          <button type="submit" data-testid="editor-save" className={modalStyles.submitButton} disabled={saveDisabled}>
-            {editor.isSubmitting ? t('saving') : saveLabel}
-          </button>
-        </div>
-      </form>
+        }
+        saveBar={
+          /* The one and only commit point (D4). Accented when dirty. */
+          <div className={`${styles.saveBar} ${editor.isDirty ? styles.saveBarDirty : ''}`}>
+            <span className={`${styles.saveHint} ${editor.isDirty ? styles.saveHintDirty : ''}`} aria-live="polite">
+              {editor.isDirty ? t('unsaved_changes') : ''}
+            </span>
+            <button
+              type="button"
+              className={modalStyles.cancelButton}
+              onClick={handleBack}
+              disabled={editor.isSubmitting}
+            >
+              {t('back')}
+            </button>
+            <button
+              type="submit"
+              form={FORM_ID}
+              data-testid="editor-save"
+              className={modalStyles.submitButton}
+              disabled={saveDisabled}
+            >
+              {editor.isSubmitting ? t('saving') : saveLabel}
+            </button>
+          </div>
+        }
+      />
 
       <ConfirmationModal
         isOpen={isDiscardOpen}
@@ -241,6 +166,6 @@ export default function ProductEditorPage({
         }}
         message={t('discard_unsaved_changes_message')}
       />
-    </div>
+    </>
   );
 }

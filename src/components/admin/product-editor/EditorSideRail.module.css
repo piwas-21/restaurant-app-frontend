@@ -1,0 +1,55 @@
+/* The whole rail travels as ONE sticky block since S2: two independently sticky cards would slide
+   over each other the moment the Status card stopped being the taller one. */
+.stack {
+  position: sticky;
+  top: 1rem;
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--surface-card);
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.term {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.value {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: end;
+}
+
+@media (max-width: 1024px) {
+  .stack {
+    position: static;
+  }
+}

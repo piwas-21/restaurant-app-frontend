@@ -1,19 +1,37 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { ProductBasicInfoProps } from './types';
-import KitchenTypeSelector from './KitchenTypeSelector';
-import { KitchenType } from '@/types/menu';
+import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
+import type { Category } from '../types';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
-export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
+interface ProductBasicsFieldsProps {
+  // readonly: S6759 — component props are never mutated.
+  readonly register: UseFormRegister<FieldValues>;
+  readonly errors: FieldErrors<FieldValues>;
+  readonly control: Control<FieldValues>;
+  readonly categories: Category[];
+  /** Why `categories` is empty, when the fetch failed rather than the tenant having none. */
+  readonly categoriesError?: string | null;
+  readonly selectedCategoryIds: string[];
+}
+
+/**
+ * Section 1 of the redesigned editor — **Basics**: what the item IS (plan §4, slice S2).
+ *
+ * Split out of `ProductBasicInfo`, whose fourth control was the kitchen-type selector. That one is
+ * an *operational* setting and now lives in `Service & availability`, which is the whole point of
+ * S2: this slice moves controls between sections and changes none of them. Every field below is
+ * registered exactly as it was, so the payload is byte-identical.
+ */
+export default function ProductBasicsFields({
   register,
   errors,
+  control,
   categories,
   categoriesError,
   selectedCategoryIds,
-  control,
-}) => {
+}: ProductBasicsFieldsProps) {
   const { t } = useTranslation();
 
   return (
@@ -21,7 +39,7 @@ export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
       <div className={modalStyles.formGroup}>
         <label>{t('product_name')}</label>
         <input {...register('name')} />
-        {errors.name && <p className={modalStyles.errorMessage}>{errors.name.message}</p>}
+        {errors.name && <p className={modalStyles.errorMessage}>{errors.name.message as string}</p>}
       </div>
 
       <div className={modalStyles.formGroup}>
@@ -64,7 +82,7 @@ export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
             {categoriesError}
           </p>
         )}
-        {errors.categoryIds && <p className={modalStyles.errorMessage}>{errors.categoryIds.message}</p>}
+        {errors.categoryIds && <p className={modalStyles.errorMessage}>{errors.categoryIds.message as string}</p>}
       </div>
 
       <div className={modalStyles.formGroup}>
@@ -79,22 +97,10 @@ export const ProductBasicInfo: React.FC<ProductBasicInfoProps> = ({
               </option>
             ))}
         </select>
-        {errors.primaryCategoryId && <p className={modalStyles.errorMessage}>{errors.primaryCategoryId.message}</p>}
-      </div>
-
-      <div className={modalStyles.formGroup}>
-        <Controller
-          name="kitchenType"
-          control={control}
-          render={({ field }) => (
-            <KitchenTypeSelector
-              value={field.value as KitchenType | undefined}
-              onChange={field.onChange}
-              error={errors.kitchenType?.message}
-            />
-          )}
-        />
+        {errors.primaryCategoryId && (
+          <p className={modalStyles.errorMessage}>{errors.primaryCategoryId.message as string}</p>
+        )}
       </div>
     </div>
   );
-};
+}

@@ -117,10 +117,9 @@ const renderAndSaveUntouched = async (product: ProductDetails) => {
   );
   await act(async () => {});
 
-  const form = container.querySelector('form') as HTMLFormElement;
-  await act(async () => {
-    fireEvent.submit(form);
-  });
+  // `fireEvent` already wraps its dispatch in act(); the flush that matters is the async submit
+  // handler, and `waitFor` is what awaits that.
+  fireEvent.submit(container.querySelector('form') as HTMLFormElement);
   await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
 
   return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;

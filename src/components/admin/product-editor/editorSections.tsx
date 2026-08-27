@@ -45,93 +45,92 @@ export const SECTION_IDS = {
   service: 'editor-section-service',
 } as const;
 
-function itemSections({ editor, t, product, isCreate }: EditorSectionsContext): EditorSection[] {
+/**
+ * Images stay FIRST on edit and OUTSIDE the form (Track F, F7-B/C) — see
+ * `EditorSection.outsideForm` for why nesting them would turn "delete this image → Yes" into a
+ * product save. Not on create: there is no product id to POST against, so that route keeps the
+ * staged file input in Details. Not on a bundle either: pre-existing gap, frontend #524.
+ */
+function mediaSection({ t, product }: EditorSectionsContext): EditorSection {
+  return {
+    id: SECTION_IDS.media,
+    label: t('image_gallery'),
+    outsideForm: true,
+    node: <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />,
+  };
+}
+
+function itemSections(context: EditorSectionsContext): EditorSection[] {
+  const { editor, t, isCreate } = context;
   const { form } = editor;
   const { errors } = form.formState;
 
-  const sections: EditorSection[] = [];
-
-  // Images stay FIRST on edit and OUTSIDE the form (Track F, F7-B/C) — see EditorSection.outsideForm
-  // for why nesting them would turn "delete this image → Yes" into a product save. Not on create:
-  // there is no product id to POST against, so that route keeps the staged file input in Details.
-  // Not on a bundle either: pre-existing gap, frontend #524.
-  if (!isCreate) {
-    sections.push({
-      id: SECTION_IDS.media,
-      label: t('image_gallery'),
-      outsideForm: true,
-      node: <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />,
-    });
-  }
-
-  sections.push({
-    id: SECTION_IDS.basics,
-    label: t('editor_section_basics'),
-    // The only item section whose content brings no heading of its own: it is two columns of bare
-    // fields. Every other one renders an <h3> or a <legend>, so a shell heading would double it.
-    showHeading: true,
-    node: (
-      <div className={modalStyles.formGrid}>
-        <ProductBasicInfo
+  return [
+    ...(isCreate ? [] : [mediaSection(context)]),
+    {
+      id: SECTION_IDS.basics,
+      label: t('editor_section_basics'),
+      // The only item section whose content brings no heading of its own: it is two columns of bare
+      // fields. Every other one renders an <h3> or a <legend>, so a shell heading would double it.
+      showHeading: true,
+      node: (
+        <div className={modalStyles.formGrid}>
+          <ProductBasicInfo
+            register={form.register}
+            errors={errors}
+            categories={editor.categories}
+            categoriesError={editor.categoriesError}
+            selectedCategoryIds={editor.selectedCategoryIds}
+            control={form.control}
+          />
+          <ProductDetailsFields
+            register={form.register}
+            errors={errors}
+            control={form.control}
+            imageFiles={editor.imageFiles}
+            setImageFiles={editor.setImageFiles}
+            showImagePicker={isCreate}
+          />
+        </div>
+      ),
+    },
+    {
+      id: SECTION_IDS.variations,
+      label: t('variations'),
+      node: (
+        <ProductVariations
           register={form.register}
           errors={errors}
-          categories={editor.categories}
-          categoriesError={editor.categoriesError}
-          selectedCategoryIds={editor.selectedCategoryIds}
-          control={form.control}
+          variationFields={editor.variations.fields}
+          appendVariation={editor.variations.append}
+          removeVariation={editor.variations.remove}
         />
-        <ProductDetailsFields
-          register={form.register}
+      ),
+    },
+    {
+      id: SECTION_IDS.sides,
+      label: t('suggested_side_items'),
+      node: (
+        <SuggestedSideItemsPicker
+          control={form.control}
           errors={errors}
-          control={form.control}
-          imageFiles={editor.imageFiles}
-          setImageFiles={editor.setImageFiles}
-          showImagePicker={isCreate}
+          selectedSideItemIds={editor.selectedSideItemIds}
+          onChange={editor.changeSideItemIds}
         />
-      </div>
-    ),
-  });
-
-  sections.push({
-    id: SECTION_IDS.variations,
-    label: t('variations'),
-    node: (
-      <ProductVariations
-        register={form.register}
-        errors={errors}
-        variationFields={editor.variations.fields}
-        appendVariation={editor.variations.append}
-        removeVariation={editor.variations.remove}
-      />
-    ),
-  });
-
-  sections.push({
-    id: SECTION_IDS.sides,
-    label: t('suggested_side_items'),
-    node: (
-      <SuggestedSideItemsPicker
-        control={form.control}
-        errors={errors}
-        selectedSideItemIds={editor.selectedSideItemIds}
-        onChange={editor.changeSideItemIds}
-      />
-    ),
-  });
-
-  sections.push({
-    id: SECTION_IDS.ingredients,
-    label: t('product_ingredients'),
-    node: (
-      <ProductIngredientsManager
-        ingredients={editor.detailedIngredients}
-        onChange={editor.changeIngredients}
-        productBasePrice={editor.basePrice}
-      />
-    ),
-  });
-
-  return sections;
+      ),
+    },
+    {
+      id: SECTION_IDS.ingredients,
+      label: t('product_ingredients'),
+      node: (
+        <ProductIngredientsManager
+          ingredients={editor.detailedIngredients}
+          onChange={editor.changeIngredients}
+          productBasePrice={editor.basePrice}
+        />
+      ),
+    },
+  ];
 }
 
 function bundleSections({ editor, t }: EditorSectionsContext): EditorSection[] {

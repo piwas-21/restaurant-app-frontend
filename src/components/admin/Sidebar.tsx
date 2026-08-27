@@ -21,10 +21,22 @@ import {
   UserCog,
   LayoutDashboard,
   ImageDown,
+  KeyRound,
+  type LucideIcon,
 } from 'lucide-react';
 import styles from '@/app/styles/AdminPage.module.css';
 import { moduleForPath } from '@/lib/modules';
 import { useModules } from '@/contexts/ModulesContext';
+import { useAuth } from '@/components/AuthContext';
+
+interface NavItem {
+  href: string;
+  key: string;
+  fallback: string;
+  icon: LucideIcon;
+  /** Hidden from Staff sessions — the surface behind it is Admin-only server-side. */
+  adminOnly?: boolean;
+}
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -35,6 +47,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const modules = useModules();
+  const { user } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   // Ensure we're on client side and language is loaded
@@ -42,7 +55,7 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
     setIsClient(true);
   }, []);
 
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       href: '/admin/dashboard',
       key: 'admin_dashboard_title',
@@ -142,12 +155,24 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
       fallback: 'Image Backfill',
       icon: ImageDown,
     },
+    {
+      // Admin-ONLY, unlike every other entry above: the three `/api/ApiTokens` endpoints refuse a
+      // Staff JWT (API-TOKENS-PLAN §8), so a Staff member following this link would meet three
+      // 403s and an empty page. Not module-gated — a token is a platform credential, not a
+      // purchasable feature.
+      href: '/admin/api-tokens',
+      key: 'admin_api_tokens_title',
+      fallback: 'API Tokens',
+      icon: KeyRound,
+      adminOnly: true,
+    },
   ];
 
   // Drop the entries whose module this tenant did not buy (sofra ADR-010 / S11). Derived
   // from the SAME route map ModuleRouteGuard uses, so the nav and the guard cannot disagree
   // — an item that survives here always leads somewhere that renders.
   const visibleItems = navItems.filter((item) => {
+    if (item.adminOnly && user?.role !== 'Admin') return false;
     const moduleId = moduleForPath(item.href);
     return moduleId === null || modules.has(moduleId);
   });

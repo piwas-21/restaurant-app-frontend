@@ -1,0 +1,46 @@
+.question {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-primary);
+}
+
+.consequence {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--feedback-error-border);
+  background-color: var(--feedback-error-bg);
+  color: var(--feedback-error-text);
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancelButton {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.revokeButton {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--feedback-danger);
+  color: var(--text-on-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.revokeButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

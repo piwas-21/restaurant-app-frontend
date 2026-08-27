@@ -20,6 +20,7 @@ jest.mock('@/services/globalIngredientService', () => ({
   searchGlobalIngredients: jest.fn(async () => ({ success: true, data: [] })),
 }));
 
+import { createGlobalIngredient, searchGlobalIngredients } from '@/services/globalIngredientService';
 import { updateProduct, uploadBulkProductImages } from '@/services/productService';
 import { createProduct } from '@/services/menuService';
 import { updateMenuBundle, createMenuBundle } from '@/services/menuBundleService';
@@ -615,5 +616,88 @@ describe('a product that was written but whose photos were refused', () => {
 
     expect(bulk).not.toHaveBeenCalled();
     expect(onImageUploadFailed).not.toHaveBeenCalled();
+  });
+});
+
+// The round trip the S2 slice has to prove: what the LIBRARY PICKER put on an ingredient is still
+// on the ingredient that reaches the write endpoint. Everything between the two is the payload
+// builder, and it rebuilds the ingredient list twice (provenance, then the temp-id strip, then a
+// translation clean) — three chances to drop a field the form never renders.
+describe('a picked library row survives the save', () => {
+  const pickedIngredient = {
+    // What `toProductIngredient` mints for a row the server has never seen.
+    id: 'temp-1735000000000-abc123',
+    name: 'Mozzarella',
+    isOptional: false,
+    maxQuantity: 1,
+    price: 0,
+    isActive: true,
+    displayOrder: 0,
+    globalIngredientId: 'g-mozza',
+    content: { en: { name: 'Mozzarella' }, fr: { name: 'Mozzarelle' } },
+  };
+
+  const saveWith = async (detailedIngredients: unknown[]) => {
+    await submitEditProductForm({
+      data: itemFormData() as never,
+      product: { id: 'product-1' },
+      imageFiles: [],
+      detailedIngredients: detailedIngredients as never,
+      setIsSubmitting: () => {},
+      setError,
+      onProductUpdated,
+      onClose: () => {},
+      fallbackMessage: 'translated fallback',
+      onImageUploadFailed,
+    });
+
+    expect(setError).not.toHaveBeenCalled();
+    const [, payload] = (updateProduct as jest.Mock).mock.calls[0];
+    return payload.detailedIngredients as Record<string, unknown>[];
+  };
+
+  it('reaches PUT /api/Products still carrying its globalIngredientId', async () => {
+    const sent = await saveWith([pickedIngredient]);
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0].globalIngredientId).toBe('g-mozza');
+    expect(sent[0].name).toBe('Mozzarella');
+  });
+
+  // A supplied id means "update the row I already own" to ProductIngredientSynchronizer, and an id
+  // it does not own is skipped with a warning — so the temp id must be gone while the provenance,
+  // which the backend DOES accept on a create, must not be.
+  it('arrives without the temp id the editor minted for it', async () => {
+    const sent = await saveWith([pickedIngredient]);
+
+    expect(sent[0].id).toBeUndefined();
+    expect(sent[0].globalIngredientId).toBe('g-mozza');
+  });
+
+  it('keeps the translations the catalog handed over', async () => {
+    const sent = await saveWith([pickedIngredient]);
+
+    expect(sent[0].content).toEqual({ en: { name: 'Mozzarella' }, fr: { name: 'Mozzarelle' } });
+  });
+
+  // The saving that makes the picker worth building: a row that already knows where it came from
+  // costs ZERO round trips per save. A typed-by-hand ingredient used to cost one search — and,
+  // before this slice, one search on every save for the rest of the product's life.
+  it('is not searched for or re-created, because it already knows its origin', async () => {
+    await saveWith([pickedIngredient]);
+
+    expect(searchGlobalIngredients).not.toHaveBeenCalled();
+    expect(createGlobalIngredient).not.toHaveBeenCalled();
+  });
+
+  // The defect this slice fixes, seen from the payload rather than from the unit: an ingredient
+  // typed by hand with no translations used to come back with no id, forever.
+  it('links a translation-less ingredient typed by hand, instead of leaving it anonymous', async () => {
+    (createGlobalIngredient as jest.Mock).mockResolvedValueOnce({ success: true, data: { id: 'g-new' } });
+
+    const sent = await saveWith([{ id: 'temp-9', name: 'Truffle Oil', price: 0, isActive: true, displayOrder: 1 }]);
+
+    expect(createGlobalIngredient).toHaveBeenCalledWith({ defaultName: 'Truffle Oil', translations: [] });
+    expect(sent[0].globalIngredientId).toBe('g-new');
   });
 });

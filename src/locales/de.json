@@ -2687,5 +2687,20 @@
   "editor_section_recipe": "Rezept & Ernährung",
   "editor_section_service": "Service & Verfügbarkeit",
   "editor_section_advanced": "Erweitert",
-  "editor_at_a_glance": "Auf einen Blick"
+  "editor_at_a_glance": "Auf einen Blick",
+  "add_from_library": "Aus Bibliothek hinzufügen",
+  "ingredient_library_search_label": "Zutatenbibliothek durchsuchen",
+  "ingredient_library_search_placeholder": "Nach Namen in jeder Sprache suchen",
+  "ingredient_library_filter_label": "Bibliothek filtern",
+  "ingredient_library_filter_all": "Alle",
+  "ingredient_library_filter_not_added": "Nicht in diesem Artikel",
+  "ingredient_library_filter_translated": "Übersetzt",
+  "ingredient_library_empty": "Keine Zutat in der Bibliothek passt zu Ihrer Suche.",
+  "ingredient_library_load_failed": "Zutatenbibliothek konnte nicht geladen werden",
+  "ingredient_library_retry": "Erneut versuchen",
+  "ingredient_library_showing": "{{shown}} von {{total}} Treffern werden angezeigt. Suche verfeinern, um mehr zu sehen.",
+  "ingredient_library_languages": "Übersetzungen: {{count}}",
+  "ingredient_library_create": "Neue Zutat erstellen",
+  "ingredient_library_create_named": "\"{{name}}\" erstellen",
+  "ingredient_library_create_failed": "Zutat konnte nicht erstellt werden"
 }

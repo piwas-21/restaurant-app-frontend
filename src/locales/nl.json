@@ -2687,5 +2687,20 @@
   "editor_section_recipe": "Recept en dieet",
   "editor_section_service": "Service en beschikbaarheid",
   "editor_section_advanced": "Geavanceerd",
-  "editor_at_a_glance": "In één oogopslag"
+  "editor_at_a_glance": "In één oogopslag",
+  "add_from_library": "Toevoegen uit bibliotheek",
+  "ingredient_library_search_label": "Zoek in de ingrediëntenbibliotheek",
+  "ingredient_library_search_placeholder": "Zoek op naam in elke taal",
+  "ingredient_library_filter_label": "Bibliotheek filteren",
+  "ingredient_library_filter_all": "Alle",
+  "ingredient_library_filter_not_added": "Niet op dit item",
+  "ingredient_library_filter_translated": "Vertaald",
+  "ingredient_library_empty": "Geen ingrediënt in de bibliotheek komt overeen met uw zoekopdracht.",
+  "ingredient_library_load_failed": "Kan de ingrediëntenbibliotheek niet laden",
+  "ingredient_library_retry": "Opnieuw proberen",
+  "ingredient_library_showing": "{{shown}} van {{total}} resultaten getoond. Verfijn uw zoekopdracht voor meer.",
+  "ingredient_library_languages": "Vertalingen: {{count}}",
+  "ingredient_library_create": "Nieuw ingrediënt maken",
+  "ingredient_library_create_named": "\"{{name}}\" maken",
+  "ingredient_library_create_failed": "Kan het ingrediënt niet maken"
 }

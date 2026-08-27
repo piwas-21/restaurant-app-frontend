@@ -51,6 +51,44 @@
   background: var(--primary-dark, #3a7bc8);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The library entry point. Secondary next to "Add ingredient": picking from the catalog is the
+   cheaper path, but typing a name by hand stays the one an admin already knows. */
+.libraryButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface-card);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.libraryButton:hover {
+  background: var(--surface-secondary);
+}
+
+/* Replaces an inline-styled div with a hardcoded hex; `output` carries role=status implicitly,
+   so the type-ahead announces that an answer is still coming (Sonar S6819). */
+.suggestionSpinner {
+  position: absolute;
+  inset-inline-end: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
 .emptyState {
   text-align: center;
   padding: 3rem 1rem;

@@ -21,11 +21,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
       <div className={styles.modalContent}>
         <h2>{t('confirmation')}</h2>
         <p>{message}</p>
+        {/* `type="button"` on BOTH, and it is load-bearing rather than tidy: a bare <button>
+            defaults to type="submit", so every one of this modal's confirmations ALSO submitted
+            whatever form it happened to be rendered inside. That is why the item editor's image
+            gallery had to live outside the product form ("delete this image → Yes" saved the
+            product), and it is a live hazard for the bundle editor's section-delete confirm, which
+            sits inside that form today. */}
         <div className={styles.buttonGroup}>
-          <button onClick={onConfirm} className={styles.submitButton}>
+          <button type="button" onClick={onConfirm} className={styles.submitButton}>
             {t('yes')}
           </button>
-          <button onClick={onClose} className={styles.cancelButton}>
+          <button type="button" onClick={onClose} className={styles.cancelButton}>
             {t('cancel')}
           </button>
         </div>

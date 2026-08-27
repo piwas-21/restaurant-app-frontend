@@ -189,7 +189,8 @@ describe('product editor — a save that changes nothing changes nothing', () =>
 
     // No control anywhere on the page — carried purely by the form defaults.
     expect(payload.displayOrder).toBe(7);
-    // A three-button group inside Details; invisible from the section nav.
+    // A three-button group. It left `Details` for `Service & availability` in S2 (§4) — the move
+    // this assertion exists to survive.
     expect(payload.kitchenType).toBe('BackKitchen');
     // Meaningful only with variations, and D7 makes it conditional in S8.
     expect(payload.hideBaseProduct).toBe(true);
@@ -197,6 +198,64 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     expect(payload.availableOrderTypes).toBe(3);
     // Set through a picker in its own section — the payload key is not the section's name.
     expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID]);
+  });
+
+  /**
+   * S2 moved ~150 controls between sections, and two of those moves put a registered field somewhere
+   * a naive implementation would have unmounted it — inside the collapsed `Advanced` card, and in
+   * the side rail, which is a SIBLING of the form. Both still have to reach the PUT, because the
+   * command assigns every column it is given: an item whose type quietly became the default, or
+   * whose `isActive` came back `false`, is off the menu.
+   */
+  it('sends the Advanced fields while the Advanced section is collapsed', async () => {
+    const { container } = render(
+      <ProductEditorPage
+        product={fullyPopulated}
+        isBundle={false}
+        mode="edit"
+        onSaved={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    );
+    await act(async () => {});
+
+    // The premise: this is the only collapsed section, and it IS collapsed on a first visit (D1).
+    expect(container.querySelector('#editor-section-advanced-body')).toHaveAttribute('hidden');
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+
+    const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+    expect(payload.type).toBe(ITEM_TYPE);
+    expect(payload.hideBaseProduct).toBe(true);
+  });
+
+  it('sends a status flag toggled in the side rail, which sits outside the form element', async () => {
+    const { container } = render(
+      <ProductEditorPage
+        product={fullyPopulated}
+        isBundle={false}
+        mode="edit"
+        onSaved={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    );
+    await act(async () => {});
+
+    const rail = container.querySelector('aside') as HTMLElement;
+    const special = rail.querySelector('#product-special') as HTMLInputElement;
+    expect(special.checked).toBe(true);
+    fireEvent.click(special);
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+    await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+
+    const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+    // react-hook-form submits its own store, not the DOM under the <form> — the same property §8.2
+    // relies on for the translations panel. If that ever stopped being true, this flips silently.
+    expect(payload.isSpecial).toBe(false);
+    expect(payload.isActive).toBe(true);
+    expect(payload.isAvailable).toBe(false);
   });
 
   it('never invents a menu definition for a plain item', async () => {

@@ -1,6 +1,11 @@
-.card {
+/* The whole rail travels as ONE sticky block since S2: two independently sticky cards would slide
+   over each other the moment the Status card stopped being the taller one. */
+.stack {
   position: sticky;
   top: 1rem;
+}
+
+.card {
   padding: 1rem;
   border: 1px solid var(--border-light);
   border-radius: 8px;
@@ -44,7 +49,7 @@
 }
 
 @media (max-width: 1024px) {
-  .card {
+  .stack {
     position: static;
   }
 }

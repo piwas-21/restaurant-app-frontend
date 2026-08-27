@@ -6,6 +6,7 @@ import StatusBadge from '@/components/design-system/StatusBadge';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
+import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import EditorShell from './EditorShell';
 import EditorSideRail from './EditorSideRail';
 import { buildEditorSections, buildTranslationsPanel } from './editorSections';
@@ -43,8 +44,9 @@ interface ProductEditorPageProps {
  * Type is a derived BADGE, never a chooser on an existing product: the backend has no item↔bundle
  * migration (a bundle needs a MenuDefinition), so offering the control would promise a failure.
  *
- * The sections themselves are unchanged and live in `editorSections.tsx`; re-grouping them into the
- * plan's seven is S2.
+ * The sections live in `editorSections.tsx`, re-grouped into §4's seven by S2 — Basics · Media ·
+ * Pricing & variations · Options & sides · Recipe & dietary · Service & availability · Advanced,
+ * the last being the only one that collapses (D1).
  */
 export default function ProductEditorPage({
   product,
@@ -116,6 +118,10 @@ export default function ProductEditorPage({
         translations={buildTranslationsPanel(context)}
         rail={
           <EditorSideRail
+            // The three status flags left the old `Details` column for the rail (§4, S2). A bundle
+            // keeps its own inside `BundlePanel`: `MenuBundleDto` is a different shape and S2 does
+            // not restructure it.
+            status={!isBundle && <ProductStatusFields register={form.register} />}
             basePrice={editor.basePrice}
             categoryName={primaryCategoryName}
             inheritsOrderTypes={(form.watch('availableOrderTypes') ?? null) === null}

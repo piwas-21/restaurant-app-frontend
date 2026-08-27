@@ -1,0 +1,24 @@
+/* The Status card of the editor's side rail (plan §4). Mirrors `EditorSideRail.module.css` —
+   same card, same uppercase micro-heading — because the two stack as one rail. */
+.card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--surface-card);
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

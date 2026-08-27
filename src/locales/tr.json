@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "Çeviriler",
   "editor_sections": "Bölümler",
   "editor_section_basics": "Temel bilgiler",
+  "editor_section_media": "Medya",
+  "editor_section_pricing": "Fiyat ve varyasyonlar",
+  "editor_section_options": "Seçenekler ve yan ürünler",
+  "editor_section_recipe": "Tarif ve beslenme",
+  "editor_section_service": "Servis ve uygunluk",
+  "editor_section_advanced": "Gelişmiş",
   "editor_at_a_glance": "Özet"
 }

@@ -63,10 +63,19 @@ const TRANSLATIONS_PANEL = '#editor-form-panel-translations';
 const BASICS_SELECTOR = '#sec-basics';
 const PRICING_SELECTOR = '#sec-pricing';
 
+const ADVANCED = 'Advanced';
+
 const sections: EditorSection[] = [
-  { id: 'sec-media', label: MEDIA, outsideForm: true, node: <p>gallery body</p> },
+  { id: 'sec-media', label: MEDIA, node: <p>gallery body</p> },
   { id: 'sec-basics', label: BASICS, showHeading: true, node: <input aria-label="Name" /> },
   { id: 'sec-pricing', label: PRICING, node: <input aria-label="Price" /> },
+  {
+    id: 'sec-advanced',
+    label: ADVANCED,
+    collapsible: true,
+    defaultCollapsed: true,
+    node: <input aria-label="Display order" />,
+  },
 ];
 
 const onSubmit = jest.fn((event: React.FormEvent) => event.preventDefault());
@@ -150,11 +159,15 @@ describe('EditorShell — the two tabs (decision D2)', () => {
     expect(itemPanel.querySelector('input[aria-label="Price"]')).not.toBeNull();
   });
 
-  it('drops the section nav and the side rail on the translations tab', () => {
-    renderShell(TAB_TRANSLATIONS);
+  // The nav goes (there are no sections to navigate on that tab); the rail only HIDES. Since S2 it
+  // carries the item's status flags, and a registered field that unmounts is one the PUT can clear.
+  it('drops the section nav on the translations tab, and hides the rail without unmounting it', () => {
+    const { container } = renderShell(TAB_TRANSLATIONS);
 
     expect(screen.queryByRole('navigation', { name: 'Sections' })).not.toBeInTheDocument();
-    expect(screen.queryByText('at a glance')).not.toBeInTheDocument();
+    const rail = container.querySelector('aside') as HTMLElement;
+    expect(rail).toHaveAttribute('hidden');
+    expect(rail.textContent).toContain('at a glance');
   });
 });
 
@@ -167,7 +180,8 @@ describe('EditorShell — the sticky section nav (decision D1)', () => {
       within(nav)
         .getAllByRole('button')
         .map((button) => button.textContent),
-    ).toEqual([MEDIA, BASICS, PRICING]);
+      // A collapsed section is still LISTED: folding it is not hiding it, and the nav is the map.
+    ).toEqual([MEDIA, BASICS, PRICING, ADVANCED]);
     // A nav of buttons, never a second tablist — every section stays rendered and scrollable.
     expect(within(nav).queryAllByRole('tab')).toHaveLength(0);
   });
@@ -189,7 +203,7 @@ describe('EditorShell — the sticky section nav (decision D1)', () => {
   it('observes every section and follows the topmost one on screen', () => {
     const { container } = renderShell();
 
-    expect(observed.map((node) => node.id)).toEqual(['sec-media', 'sec-basics', 'sec-pricing']);
+    expect(observed.map((node) => node.id)).toEqual(['sec-media', 'sec-basics', 'sec-pricing', 'sec-advanced']);
 
     act(() =>
       fireIntersections([
@@ -230,14 +244,56 @@ describe('EditorShell — one Save, and the form it commits (decision D4)', () =
     expect(save).toBeVisible();
   });
 
-  it('renders an outsideForm section before the form, and the rest inside it', () => {
+  // S1 kept the image gallery OUT of the form because `ConfirmationModal`'s buttons defaulted to
+  // `type="submit"`. S2 typed those buttons, so the exception is gone and every section can sit in
+  // the form in §4's own order — which is the only way Media can be section 2 rather than the
+  // first thing on the page.
+  it('renders every section inside the form, in the order it was given them', () => {
     const { container } = renderShell();
 
     const form = container.querySelector('form') as HTMLFormElement;
-    const media = container.querySelector('#sec-media') as HTMLElement;
-    expect(form.contains(media)).toBe(false);
-    expect(form.compareDocumentPosition(media) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
-    expect(form.contains(container.querySelector(BASICS_SELECTOR))).toBe(true);
+    expect(Array.from(form.querySelectorAll('section')).map((node) => node.id)).toEqual([
+      'sec-media',
+      'sec-basics',
+      'sec-pricing',
+      'sec-advanced',
+    ]);
     expect(form.textContent).toContain('root error');
+  });
+});
+
+describe('EditorShell — the one section that folds (decision D1)', () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it('gives a collapsible section a heading button wired to its own body', () => {
+    const { container } = renderShell();
+
+    // Scoped to the section: the nav lists an entry by the same name, and that is the point of the
+    // nav — the fold is a control ON the section, not a second way to navigate to it.
+    const toggle = within(container.querySelector('#sec-advanced') as HTMLElement).getByRole('button');
+    const body = container.querySelector('#sec-advanced-body') as HTMLElement;
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle.getAttribute('aria-controls')).toBe(body.id);
+    expect(body).toHaveAttribute('hidden');
+    // Hidden, never unmounted: the field is still registered and still submitted (plan §6).
+    expect(body.querySelector('input[aria-label="Display order"]')).not.toBeNull();
+  });
+
+  it('leaves every other section open, and without a toggle', () => {
+    const { container } = renderShell();
+
+    expect(container.querySelector('#sec-basics-body')).not.toHaveAttribute('hidden');
+    expect(container.querySelector('#sec-basics h2 button')).toBeNull();
+  });
+
+  it('folds and unfolds on click', () => {
+    const { container } = renderShell();
+    const toggle = within(container.querySelector('#sec-advanced') as HTMLElement).getByRole('button');
+
+    fireEvent.click(toggle);
+    expect(container.querySelector('#sec-advanced-body')).not.toHaveAttribute('hidden');
+
+    fireEvent.click(toggle);
+    expect(container.querySelector('#sec-advanced-body')).toHaveAttribute('hidden');
   });
 });

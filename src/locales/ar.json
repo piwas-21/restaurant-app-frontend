@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "الترجمات",
   "editor_sections": "الأقسام",
   "editor_section_basics": "الأساسيات",
+  "editor_section_media": "الوسائط",
+  "editor_section_pricing": "الأسعار والتنويعات",
+  "editor_section_options": "الخيارات والأطباق الجانبية",
+  "editor_section_recipe": "الوصفة والتغذية",
+  "editor_section_service": "الخدمة والتوفر",
+  "editor_section_advanced": "إعدادات متقدمة",
   "editor_at_a_glance": "لمحة سريعة"
 }

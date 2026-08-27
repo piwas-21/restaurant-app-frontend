@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "Переводы",
   "editor_sections": "Разделы",
   "editor_section_basics": "Основное",
+  "editor_section_media": "Медиа",
+  "editor_section_pricing": "Цены и вариации",
+  "editor_section_options": "Опции и гарниры",
+  "editor_section_recipe": "Рецепт и питание",
+  "editor_section_service": "Обслуживание и доступность",
+  "editor_section_advanced": "Дополнительно",
   "editor_at_a_glance": "Кратко"
 }

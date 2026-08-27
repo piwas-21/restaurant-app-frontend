@@ -2681,5 +2681,11 @@
   "editor_tab_translations": "Vertalingen",
   "editor_sections": "Secties",
   "editor_section_basics": "Basisgegevens",
+  "editor_section_media": "Media",
+  "editor_section_pricing": "Prijzen en varianten",
+  "editor_section_options": "Opties en bijgerechten",
+  "editor_section_recipe": "Recept en dieet",
+  "editor_section_service": "Service en beschikbaarheid",
+  "editor_section_advanced": "Geavanceerd",
   "editor_at_a_glance": "In één oogopslag"
 }

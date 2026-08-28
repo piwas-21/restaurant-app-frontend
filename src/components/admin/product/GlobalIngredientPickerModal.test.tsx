@@ -1,9 +1,12 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import GlobalIngredientPickerModal from './GlobalIngredientPickerModal';
 import {
+  archiveGlobalIngredient,
   createGlobalIngredient,
+  getArchivedGlobalIngredients,
   getGlobalIngredients,
+  restoreGlobalIngredient,
   type GlobalIngredientSummary,
 } from '@/services/globalIngredientService';
 import type { ProductIngredient } from '@/types/menu';
@@ -17,25 +20,46 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/services/globalIngredientService', () => ({
   getGlobalIngredients: jest.fn(),
+  getArchivedGlobalIngredients: jest.fn(),
   createGlobalIngredient: jest.fn(),
+  archiveGlobalIngredient: jest.fn(),
+  restoreGlobalIngredient: jest.fn(),
 }));
 
 const mockGetLibrary = getGlobalIngredients as jest.MockedFunction<typeof getGlobalIngredients>;
+const mockGetArchived = getArchivedGlobalIngredients as jest.MockedFunction<typeof getArchivedGlobalIngredients>;
 const mockCreate = createGlobalIngredient as jest.MockedFunction<typeof createGlobalIngredient>;
+const mockArchive = archiveGlobalIngredient as jest.MockedFunction<typeof archiveGlobalIngredient>;
+const mockRestore = restoreGlobalIngredient as jest.MockedFunction<typeof restoreGlobalIngredient>;
 
 const libraryRow = (
   id: string,
   defaultName: string,
   translations: { languageCode: string; name: string }[] = [],
-): GlobalIngredientSummary => ({ id, defaultName, isActive: true, translations });
+  usedOnProductCount = 0,
+  isArchived = false,
+): GlobalIngredientSummary => ({
+  id,
+  defaultName,
+  isActive: true,
+  translations,
+  usedOnProductCount,
+  isArchived,
+});
 
 const CATALOG = [
-  libraryRow('g-mozza', 'Mozzarella', [
-    { languageCode: 'fr', name: 'Mozzarelle' },
-    { languageCode: 'de', name: 'Mozzarella' },
-  ]),
-  libraryRow('g-basil', 'Basil', [{ languageCode: 'fr', name: 'Basilic' }]),
-  // No translation at all — the row the `translated` filter must exclude.
+  libraryRow(
+    'g-mozza',
+    'Mozzarella',
+    [
+      { languageCode: 'fr', name: 'Mozzarelle' },
+      { languageCode: 'de', name: 'Mozzarella' },
+    ],
+    41,
+  ),
+  libraryRow('g-basil', 'Basil', [{ languageCode: 'fr', name: 'Basilic' }], 1),
+  // No translation at all — the row the `translated` filter must exclude. Nothing uses it either,
+  // which is what makes its destructive action say Delete rather than Archive.
   libraryRow('g-caper', 'Câpres'),
 ];
 
@@ -55,6 +79,7 @@ const onClose = jest.fn();
 beforeEach(() => {
   jest.clearAllMocks();
   mockGetLibrary.mockResolvedValue({ success: true, data: CATALOG } as never);
+  mockGetArchived.mockResolvedValue({ success: true, data: [] } as never);
 });
 
 /**
@@ -75,6 +100,16 @@ const type = (term: string) =>
   fireEvent.change(screen.getByLabelText('ingredient_library_search_label'), { target: { value: term } });
 
 const tick = (name: string) => fireEvent.click(screen.getByRole('checkbox', { name: new RegExp(name) }));
+
+/** The `<li>` a name is on, so two rows' identical action labels and figures stay distinguishable. */
+const rowFor = (name: string) => {
+  const row = screen.getByText(name).closest('li');
+  if (!row) throw new Error(`no library row for ${name}`);
+  return within(row);
+};
+
+const showArchived = () => fireEvent.click(screen.getByRole('button', { name: 'ingredient_library_view_archived' }));
+const showLibrary = () => fireEvent.click(screen.getByRole('button', { name: 'ingredient_library_view_active' }));
 
 describe('browsing the library', () => {
   // The complaint this slice answers: the catalog has been seeded with 654 entries since the
@@ -272,5 +307,152 @@ describe('creating a row the library does not have', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('nope');
     expect(onAdd).not.toHaveBeenCalled();
+  });
+});
+
+describe('what a row costs to change (plan S3)', () => {
+  // The count is the whole point of the reverse link: it is the number of products that would be
+  // affected by an edit, and it is what the backend branches on when the row is retired.
+  it('renders the usage count off the DTO — many, one and none', async () => {
+    await open();
+
+    expect(rowFor('Mozzarella').getByLabelText('ingredient_library_used_on')).toHaveTextContent('41');
+    expect(rowFor('Basil').getByLabelText('ingredient_library_used_on')).toHaveTextContent('1');
+    expect(rowFor('Câpres').getByLabelText('ingredient_library_used_on')).toHaveTextContent('0');
+  });
+
+  // The approved screen puts "already added" in the USAGE cell, in place of the figure.
+  it('replaces the figure with "already added" on a row the product already has', async () => {
+    await open([attachedIngredient({ name: 'Basil' })]);
+
+    expect(rowFor('Basil').getByText('already_added')).toBeInTheDocument();
+    expect(rowFor('Basil').queryByLabelText('ingredient_library_used_on')).toBeNull();
+  });
+});
+
+describe('retiring a library row (plan D4)', () => {
+  // The label must be what the server will DO: `DELETE` archives a row in use and soft-deletes one
+  // that is not, branching on this very count.
+  it('offers Archive for a row in use and Delete for one nothing uses', async () => {
+    await open();
+
+    expect(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_archive' })).toBeInTheDocument();
+    expect(rowFor('Câpres').getByRole('button', { name: 'ingredient_library_delete' })).toBeInTheDocument();
+    expect(rowFor('Câpres').queryByRole('button', { name: 'ingredient_library_archive' })).toBeNull();
+  });
+
+  it('asks first, inside the row, and writes nothing when the admin backs out', async () => {
+    await open();
+
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_archive' }));
+    expect(rowFor('Mozzarella').getByText('ingredient_library_archive_confirm')).toBeInTheDocument();
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'cancel' }));
+
+    expect(mockArchive).not.toHaveBeenCalled();
+    expect(screen.getByRole('checkbox', { name: /Mozzarella/ })).toBeInTheDocument();
+  });
+
+  it('reports a refusal and leaves the row exactly where it was', async () => {
+    mockArchive.mockResolvedValue({ success: false, errors: ['still referenced'] } as never);
+    await open();
+
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_archive' }));
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'confirm' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('still referenced');
+    expect(screen.getByRole('checkbox', { name: /Mozzarella/ })).toBeInTheDocument();
+  });
+});
+
+describe('the archived view', () => {
+  it('says so when nothing has been archived', async () => {
+    await open();
+
+    showArchived();
+
+    expect(await screen.findByText('ingredient_library_archived_empty')).toBeInTheDocument();
+  });
+
+  // The list endpoint promises to exclude archived rows. The picker must not depend on that
+  // promise: an archived row can never be attached, so it is neither listed nor findable.
+  it('never offers an archived row, even when the list endpoint returns one', async () => {
+    mockGetLibrary.mockResolvedValue({
+      success: true,
+      data: [...CATALOG, libraryRow('g-old', 'Fondue', [{ languageCode: 'fr', name: 'Fondue' }], 3, true)],
+    } as never);
+    await open();
+
+    expect(screen.queryByRole('checkbox', { name: /Fondue/ })).not.toBeInTheDocument();
+
+    type('fondue');
+
+    expect(screen.getByText('ingredient_library_empty')).toBeInTheDocument();
+  });
+
+  /**
+   * A stateful pair of endpoints, because the behaviour under test is that the row LEAVES one list
+   * and JOINS the other — a fixed mock can show neither half of that.
+   */
+  const withMovingRows = () => {
+    let active = [...CATALOG];
+    let archived: GlobalIngredientSummary[] = [];
+    mockGetLibrary.mockImplementation(async () => ({ success: true, data: active }) as never);
+    mockGetArchived.mockImplementation(async () => ({ success: true, data: archived }) as never);
+    mockArchive.mockImplementation(async (id: string) => {
+      const moved = active.filter((entry) => entry.id === id).map((entry) => ({ ...entry, isArchived: true }));
+      active = active.filter((entry) => entry.id !== id);
+      archived = [...archived, ...moved];
+      return { success: true, data: 'archived' } as never;
+    });
+    mockRestore.mockImplementation(async (id: string) => {
+      const moved = archived.filter((entry) => entry.id === id).map((entry) => ({ ...entry, isArchived: false }));
+      archived = archived.filter((entry) => entry.id !== id);
+      active = [...active, ...moved];
+      return { success: true, data: moved[0] } as never;
+    });
+  };
+
+  it('moves a row out of the library and into the archive, and back again on restore', async () => {
+    withMovingRows();
+    await open();
+
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_archive' }));
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'confirm' }));
+
+    await waitFor(() => expect(mockArchive).toHaveBeenCalledWith('g-mozza'));
+    await waitFor(() => expect(screen.queryByRole('checkbox', { name: /Mozzarella/ })).not.toBeInTheDocument());
+
+    showArchived();
+
+    expect(await screen.findByText('Mozzarella')).toBeInTheDocument();
+    // Archived rows are never selectable — there is no tick box at all, not a disabled one.
+    expect(screen.queryByRole('checkbox', { name: /Mozzarella/ })).not.toBeInTheDocument();
+
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_restore' }));
+
+    await waitFor(() => expect(mockRestore).toHaveBeenCalledWith('g-mozza'));
+    expect(await screen.findByText('ingredient_library_archived_empty')).toBeInTheDocument();
+
+    showLibrary();
+
+    expect(await screen.findByRole('checkbox', { name: /Mozzarella/ })).toBeInTheDocument();
+  });
+
+  it('takes an archived row out of the pending selection', async () => {
+    withMovingRows();
+    await open();
+
+    tick('Mozzarella');
+    tick('Basil');
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_archive' }));
+    fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'confirm' }));
+    // Wait for the catalog REFETCH the archive triggers, not just for the write: leaving it in
+    // flight lands a `setState` after the test has finished, which is what React reports as an
+    // update outside `act()`.
+    await waitFor(() => expect(mockGetLibrary).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(screen.getByRole('button', { name: /add_selected/ }));
+
+    expect((onAdd.mock.calls[0][0] as ProductIngredient[]).map((row) => row.name)).toEqual(['Basil']);
   });
 });

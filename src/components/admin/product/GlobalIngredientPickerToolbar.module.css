@@ -1,0 +1,117 @@
+/* Everything above the list in the ingredient picker: the archive switch, the search box, the
+   filter chips and the two column headers. Tokens only — no hex. */
+
+.searchRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.searchIcon {
+  position: absolute;
+  inset-inline-start: 0.75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6rem 0.75rem 0.6rem 2.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
+}
+
+/* A <fieldset>, so the grouping is the element rather than a role (S6819). Its UA border,
+   padding and margin are reset; the <legend> is `sr-only`, so it names the group for a screen
+   reader without drawing a caption above the chips. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.chip {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.chipActive {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--surface-secondary);
+}
+
+/* The archived switch. A <fieldset> for the same reason the filters are one (S6819), reset the
+   same way, but rendered as a segmented control: two mutually exclusive VIEWS, not two of many
+   filters, so they sit in one bordered strip instead of as separate pills. */
+.views {
+  display: inline-flex;
+  gap: 0;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
+  min-inline-size: 0;
+}
+
+.viewTab {
+  padding: 0.35rem 0.9rem;
+  border: 0;
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.viewTab + .viewTab {
+  border-inline-start: 1px solid var(--border-light);
+}
+
+.viewTabActive {
+  background: var(--surface-secondary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/* The column strip the approved screen draws. It carries the meaning of the right-hand column,
+   which is a bare number on purpose (see GlobalIngredientPickerRow). */
+.columns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-light);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: var(--surface-secondary);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}

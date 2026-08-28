@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import FieldError from './FieldError';
 import { fieldAria, fieldDomId, fieldMessage } from './fieldAria';
+import { MONEY_INPUT_PROPS } from '../numberInputProps';
 import { TENANT_CURRENCY } from '@/utils/currency';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './editorFields.module.css';
@@ -40,10 +41,9 @@ export default function ProductPricingFields({ register, errors }: ProductPricin
       <label htmlFor={fieldDomId('basePrice')}>{t('base_price')}</label>
       <span className={styles.affixBox}>
         <input
-          type="number"
-          step="0.01"
           className={styles.affixInput}
           {...register('basePrice')}
+          {...MONEY_INPUT_PROPS}
           {...aria}
           aria-describedby={describedBy}
         />

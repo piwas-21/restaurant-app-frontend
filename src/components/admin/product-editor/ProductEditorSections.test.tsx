@@ -259,9 +259,17 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     const { container } = await renderEditor();
     const service = sectionOf(container, 'editor-section-service');
 
-    expect(within(service).getByRole('button', { name: 'kitchen_type_backkitchen' })).toBeInTheDocument();
+    // A RADIO since S8, not a button: kitchen type is one choice out of three, and the row of
+    // buttons it replaced announced no selected state and no group name. The role is the assertion
+    // that matters — a regression back to buttons is exactly what this line now catches.
+    expect(within(service).getByRole('radio', { name: 'kitchen_type_backkitchen' })).toBeInTheDocument();
     expect(service.querySelector('input[name="preparationTimeMinutes"]')).not.toBeNull();
-    expect(service.querySelectorAll('input[type="radio"]')).toHaveLength(2);
+    // The order-type mask's inherit/custom pair, counted BY NAME rather than as "every radio in the
+    // section". A bare `input[type="radio"]` count silently measured two different controls at once
+    // and broke the moment S8 made the kitchen type a radio group — which is a test asserting the
+    // markup it happened to find, not the thing it names.
+    expect(service.querySelectorAll('input[type="radio"][name$="-mode"]')).toHaveLength(2);
+    expect(service.querySelectorAll('input[type="radio"][name="product-kitchen-type"]')).toHaveLength(3);
   });
 
   it('Advanced keeps the product type and hideBaseProduct', async () => {

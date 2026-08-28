@@ -3,6 +3,23 @@ import type { FieldErrors, FieldValues } from 'react-hook-form';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
+
+/**
+ * The types the ITEM editor offers (slice S8, D7).
+ *
+ * `menu` is missing on purpose and the omission is load-bearing. A `menu` product is a BUNDLE: it
+ * is created through `menuBundleService`, edited by `BundlePanel` against `bundleSchema`, deleted
+ * by `deleteMenuBundle`, and `isMenuBundle` routes the whole editor on it. Offering it in the item
+ * editor's type select advertised a conversion that does not exist — picking it saved an item whose
+ * discriminator claimed to be a bundle while it carried no `menuDefinition`, so the next open sent
+ * the editor down the bundle branch for a product with nothing to show. That is the definition of a
+ * dead control.
+ *
+ * `productTypes` above KEEPS `menu`, and that is not an oversight either: it is the zod enum, and a
+ * schema that rejects a value the server can legitimately send turns a data state into a save the
+ * admin cannot complete and cannot explain. The vocabulary and the offer are two different lists.
+ */
+export const itemProductTypes = productTypes.filter((type) => type !== 'menu');
 export const supportedLanguages = LANGUAGE_CODES;
 
 export type ProductType = (typeof productTypes)[number];

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
 import GlobalIngredientPickerRow from './GlobalIngredientPickerRow';
 import GlobalIngredientArchivedList from './GlobalIngredientArchivedList';
-import GlobalIngredientPickerResults from './GlobalIngredientPickerResults';
+import LibraryPickerResults from './LibraryPickerResults';
 import GlobalIngredientPickerFooter from './GlobalIngredientPickerFooter';
 import GlobalIngredientPickerToolbar, { type LibraryView } from './GlobalIngredientPickerToolbar';
 import { useGlobalIngredientLibrary } from '@/hooks/admin/useGlobalIngredientLibrary';
@@ -152,12 +152,13 @@ export default function GlobalIngredientPickerModal({
       )}
 
       {view === 'active' ? (
-        <GlobalIngredientPickerResults
+        <LibraryPickerResults
           status={library.status}
           loadError={library.loadError}
           onRetry={library.reload}
           isEmpty={library.matchCount === 0}
           emptyKey="ingredient_library_empty"
+          retryKey="ingredient_library_retry"
           hiddenNote={
             library.matchCount > library.visible.length ? (
               <p className={styles.notice}>
@@ -177,7 +178,7 @@ export default function GlobalIngredientPickerModal({
               isPending={archive.pendingId === ingredient.id}
             />
           ))}
-        </GlobalIngredientPickerResults>
+        </LibraryPickerResults>
       ) : (
         <GlobalIngredientArchivedList archive={archive} />
       )}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import GlobalIngredientPickerRow from './GlobalIngredientPickerRow';
-import GlobalIngredientPickerResults from './GlobalIngredientPickerResults';
+import LibraryPickerResults from './LibraryPickerResults';
 import type { useGlobalIngredientArchive } from '@/hooks/admin/useGlobalIngredientArchive';
 
 interface GlobalIngredientArchivedListProps {
@@ -19,12 +19,13 @@ interface GlobalIngredientArchivedListProps {
  */
 export default function GlobalIngredientArchivedList({ archive }: Readonly<GlobalIngredientArchivedListProps>) {
   return (
-    <GlobalIngredientPickerResults
+    <LibraryPickerResults
       status={archive.status}
       loadError={archive.loadError}
       onRetry={archive.reload}
       isEmpty={archive.rows.length === 0}
       emptyKey="ingredient_library_archived_empty"
+      retryKey="ingredient_library_retry"
     >
       {archive.rows.map((ingredient) => (
         <GlobalIngredientPickerRow
@@ -35,6 +36,6 @@ export default function GlobalIngredientArchivedList({ archive }: Readonly<Globa
           isPending={archive.pendingId === ingredient.id}
         />
       ))}
-    </GlobalIngredientPickerResults>
+    </LibraryPickerResults>
   );
 }

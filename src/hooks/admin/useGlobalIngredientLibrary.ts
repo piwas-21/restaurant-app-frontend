@@ -5,6 +5,7 @@ import { getGlobalIngredients, type GlobalIngredientSummary } from '@/services/g
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
 import { useStableT } from '@/hooks/useStableT';
+import type { LibraryStatus } from './useLibraryArchive';
 import {
   attachedLibraryKeys,
   hasTranslationFor,
@@ -15,7 +16,11 @@ import {
 } from '@/components/admin/product/globalIngredientLibrary';
 import type { ProductIngredient } from '@/types/menu';
 
-export type LibraryStatus = 'loading' | 'ready' | 'error';
+/**
+ * Moved to `useLibraryArchive` with the archive drawer it is also the status of, and re-exported
+ * here so every existing importer keeps its import.
+ */
+export type { LibraryStatus };
 
 /**
  * The three filters the DATA can answer, and no more. The approved screen also draws category

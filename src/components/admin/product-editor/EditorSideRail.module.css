@@ -48,8 +48,32 @@
   text-align: end;
 }
 
+/*
+  TABLET — the rail is a full-width STRIP above the form (frontend #572, and `EditorShell.module.css`
+  is what puts it there). Sticky is dropped because a strip at the top of the grid has nothing to
+  travel over, and the cards lay out side by side so the strip stays one or two rows tall instead of
+  pushing the form off the screen.
+*/
 @media (max-width: 1024px) {
   .stack {
     position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .card {
+    flex: 1 1 16rem;
+  }
+
+  .list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 1.5rem;
+  }
+
+  .row {
+    gap: 0.5rem;
   }
 }

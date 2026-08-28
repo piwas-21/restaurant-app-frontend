@@ -22,3 +22,18 @@
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* Part of the tablet status STRIP (frontend #572): the three flags sit in a row so the whole rail
+   costs one band above the form, which is what `responsive_reflow_admin_editor_1024px_820px` draws.
+   The card's own `margin-bottom` goes with it — the strip's flex `gap` owns the spacing there. */
+@media (max-width: 1024px) {
+  .card {
+    margin-bottom: 0;
+  }
+
+  .rows {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 1.5rem;
+  }
+}

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import React from 'react';
 import { act, render, screen, fireEvent, within } from '@testing-library/react';
 import EditorShell, { type EditorSection } from './EditorShell';
@@ -295,5 +297,67 @@ describe('EditorShell — the one section that folds (decision D1)', () => {
 
     fireEvent.click(toggle);
     expect(container.querySelector('#sec-advanced-body')).toHaveAttribute('hidden');
+  });
+});
+
+/*
+  The tablet reflow (frontend #572, gap G7 of the conformance review).
+
+  Two halves, because the regression had two halves. The DOM order is asserted against the rendered
+  tree; the breakpoints themselves are asserted against the stylesheet, since jsdom computes no
+  layout and identity-obj-proxy means a class name is all a render can ever show. A CSS-contract
+  assertion is the house pattern for exactly this (`design-system/modalChrome.test.ts`).
+*/
+describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
+  const SHELL_CSS = readFileSync(join(__dirname, 'EditorShell.module.css'), 'utf8');
+  const NAV_CSS = readFileSync(join(__dirname, 'EditorSectionNav.module.css'), 'utf8');
+
+  /** The declaration block of `selector` inside the `max-width: <px>` media query, or null. */
+  const ruleIn = (css: string, px: number, selector: string): string | null => {
+    const query = new RegExp(`@media\\s*\\(max-width:\\s*${px}px\\)\\s*\\{`, 'g');
+    const opened = query.exec(css);
+    if (!opened) return null;
+    // Walk braces from the media query's own `{` to find where the block ends.
+    let depth = 1;
+    let end = query.lastIndex;
+    while (end < css.length && depth > 0) {
+      if (css[end] === '{') depth += 1;
+      if (css[end] === '}') depth -= 1;
+      end += 1;
+    }
+    const block = css.slice(query.lastIndex, end - 1);
+    const rule = new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`).exec(block);
+    return rule ? rule[1] : null;
+  };
+
+  it('renders the rail BEFORE the main column, so no breakpoint can bury the status flags', () => {
+    const { container } = renderShell();
+
+    const rail = container.querySelector('aside') as HTMLElement;
+    const main = container.querySelector('form') as HTMLElement;
+    expect(rail).not.toBeNull();
+    // DOCUMENT_POSITION_FOLLOWING: `main` comes after `rail`. The regression was the reverse — the
+    // rail (which holds Active / Available today / Special of the day since S2) landed after ~150
+    // controls the moment the grid collapsed.
+    expect(rail.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(main.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeFalsy();
+  });
+
+  it('keeps two columns at 1024px and puts the rail on the row ABOVE the form', () => {
+    expect(ruleIn(SHELL_CSS, 1024, '.layout')).toMatch(/grid-template-columns:\s*200px\s+minmax\(0,\s*1fr\)/);
+    expect(ruleIn(SHELL_CSS, 1024, '.rail')).toMatch(/grid-row:\s*1/);
+    expect(ruleIn(SHELL_CSS, 1024, '.main')).toMatch(/grid-row:\s*2/);
+    expect(ruleIn(SHELL_CSS, 1024, '.navColumn')).toMatch(/grid-row:\s*2/);
+  });
+
+  it('leaves the section nav a vertical column at 1024px and only strips it at 820px', () => {
+    expect(ruleIn(NAV_CSS, 1024, '.list')).toBeNull();
+    expect(ruleIn(NAV_CSS, 820, '.list')).toMatch(/flex-direction:\s*row/);
+  });
+
+  it('collapses to one column only at 820px, still with the rail first', () => {
+    expect(ruleIn(SHELL_CSS, 820, '.layout')).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    expect(ruleIn(SHELL_CSS, 820, '.rail')).toMatch(/grid-row:\s*1/);
+    expect(ruleIn(SHELL_CSS, 820, '.main')).toMatch(/grid-row:\s*3/);
   });
 });

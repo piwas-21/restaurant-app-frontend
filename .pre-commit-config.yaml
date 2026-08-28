@@ -182,6 +182,21 @@ repos:
         pass_filenames: false
         always_run: true
 
+  # The gate above asks whether every USED binding exists. An ORPHANED stylesheet has no uses, so
+  # there is nothing for it to resolve and nothing to report — which is how a 379-line, 28-class
+  # file survived in the tree with no importer at all (#615). The physical-CSS ratchet could not see
+  # it either, because a file nobody imports is never built, and the file-length baseline EXCUSED
+  # it, so its only mention anywhere in the repo made it look like owned debt. No baseline here: the
+  # first run found five real orphans and they are deleted in the same commit.
+  - repo: local
+    hooks:
+      - id: css-module-orphans
+        name: no orphaned CSS modules (#615)
+        entry: node scripts/check-css-module-orphans.mjs
+        language: system
+        pass_filenames: false
+        always_run: true
+
   # A `var(--x)` written with NO fallback, naming a property nothing defines. The whole
   # declaration is then invalid at computed-value time, so the element paints its inherited or
   # initial value — `background: var(--card-bg)` on an admin panel is transparent, not "slightly

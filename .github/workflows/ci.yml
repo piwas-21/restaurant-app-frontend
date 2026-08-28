@@ -249,6 +249,11 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - run: node scripts/check-css-module-bindings.mjs
+      # Same job, deliberately: both passes walk the same two file lists, and the orphan check has
+      # nothing to say that the bindings check's runner cannot say a second later. A separate job
+      # would cost a fresh checkout to answer a question about the same bytes — and it would add a
+      # new required-check name, which is a repo-settings change nobody would remember to make.
+      - run: node scripts/check-css-module-orphans.mjs
 
   undefined_css_vars:
     name: custom properties resolve (#489)

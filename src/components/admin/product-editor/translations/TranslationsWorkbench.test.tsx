@@ -217,6 +217,14 @@ describe('completeness reflects the strings that are really missing', () => {
       },
     );
     expect(view.getByText('editor_translations_missing[count=3]')).toBeInTheDocument();
+    // The RAIL at the same intermediate moment, and this is the control rather than a repeat: the
+    // badge and the rail read one `progress` object, so "they agree" is satisfied by two counters
+    // that are identically wrong — and at the two ENDS (nothing done, everything done) they are
+    // saturated and agree trivially. A rail frozen until completion passes every other assertion
+    // in this test. Only a mid-flight number can tell a live counter from a static one.
+    expect(view.getByRole('button', { name: /^Français/ })).toHaveAccessibleName(
+      /editor_translations_progress\[done=2,total=5\]/,
+    );
 
     fireEvent.change(targetField(view, 'variation_name', 'Français', 'Large'), { target: { value: 'Grande' } });
     fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Français', 'Mozzarella'), {
@@ -227,7 +235,7 @@ describe('completeness reflects the strings that are really missing', () => {
       target: { value: "Mayonnaise à l'ail" },
     });
 
-    // The badge AND the rail entry, which is the point: the two counters cannot disagree.
+    // Both saturate together. Meaningful only BECAUSE of the mid-flight check above.
     expect(view.getAllByText('editor_translations_all_translated')).toHaveLength(2);
     expect(view.getByRole('button', { name: /^Français/ })).toHaveAccessibleName(/editor_translations_all_translated/);
   });

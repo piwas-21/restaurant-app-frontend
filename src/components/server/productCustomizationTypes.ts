@@ -7,6 +7,8 @@
  * `take-order/useTakeOrder.ts`, `take-order/orderItems.ts` — keep their import path.
  */
 
+import type { PriceableIngredientKind } from '@/utils/priceableIngredient';
+
 /** A per-language name/description block, as `ProductDto.Content` sends it. */
 export type LocalizedContent = Record<string, { name?: string; description?: string } | undefined>;
 
@@ -27,6 +29,14 @@ export interface DetailedIngredient {
    */
   isIncludedInBasePrice?: boolean;
   maxQuantity?: number;
+  /**
+   * The typed option group (backend #426) and the row's position in it. Nothing on this screen
+   * reads them yet; they are carried so the sauce free-allowance rule (#596) sees an intact set
+   * when it arrives — see the note in `utils/priceableIngredient.ts` for why omitting them fails
+   * silently rather than loudly.
+   */
+  kind?: PriceableIngredientKind;
+  displayOrder?: number;
   content?: LocalizedContent;
 }
 

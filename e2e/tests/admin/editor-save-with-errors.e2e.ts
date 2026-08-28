@@ -137,7 +137,12 @@ test('an invalid item cannot be saved, and the editor says which field and where
     // 2. The message is REACHABLE from the input, not merely drawn beside it.
     const describedBy = await name.getAttribute('aria-describedby');
     expect(describedBy, 'an invalid input must point at its own message').toBeTruthy();
-    await expect(page.locator(`#${CSS.escape(describedBy as string)}`)).toBeVisible();
+    // `CSS.escape` is a BROWSER global and this line runs in Playwright's NODE process, where it is
+    // undefined — the assertion threw instead of failing, which is why it survived a jsdom-only
+    // check. An attribute selector needs no escaping, and `aria-describedby` may list several ids
+    // (the base price already lists two), so the first token is the message id.
+    const messageId = (describedBy ?? '').split(/\s+/).filter(Boolean)[0];
+    await expect(page.locator(`[id="${messageId}"]`)).toBeVisible();
 
     // 3. The summary counts it and the nav marks the section holding it.
     const summary = page.getByTestId('editor-error-summary');

@@ -129,7 +129,7 @@ describe('editor base price — the currency is heard, not only seen (G10)', () 
     const price = container.querySelector('input[name="basePrice"]') as HTMLInputElement;
 
     const described = (price.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
-    expect(described.length).toBe(1);
+    expect(described).toHaveLength(1);
     expect(document.getElementById(described[0])).toHaveTextContent('CHF');
 
     // And when the field ALSO has an error, the two ids coexist — a plain `aria-describedby`
@@ -139,7 +139,7 @@ describe('editor base price — the currency is heard, not only seen (G10)', () 
     await waitFor(() => expect(price).toHaveAttribute('aria-invalid', 'true'));
 
     const both = (price.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
-    expect(both.length).toBe(2);
+    expect(both).toHaveLength(2);
     expect(document.getElementById(both[0])).toHaveTextContent(/Number must be greater than|greater than/);
     expect(document.getElementById(both[1])).toHaveTextContent('CHF');
     expect(nameInput).toBeInTheDocument();

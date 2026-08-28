@@ -152,9 +152,10 @@ describe('ProductEditorPage — the live badge and the ⋯', () => {
     // The switch that changes this lives in the rail, two columns from the badge. A badge read
     // from `product.isActive` would keep saying "active" until the next save — i.e. contradict the
     // control the admin just used.
-    await act(async () => {
-      fireEvent.click(container.querySelector('#product-active') as HTMLInputElement);
-    });
+    // No `act()` wrapper: `fireEvent` already flushes its own updates, and a second one is Sonar
+    // S8980. The badge re-render it drives is synchronous — `form.watch` is a subscription, not a
+    // fetch — so the assertion below reads the settled value.
+    fireEvent.click(container.querySelector('#product-active') as HTMLInputElement);
     expect(screen.getByTestId('product-active-badge')).toHaveTextContent('inactive');
   });
 

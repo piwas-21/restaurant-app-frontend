@@ -59,6 +59,18 @@ export function rankByQuery<T extends LibraryRow>(rows: T[], query: string): T[]
   });
 }
 
+/**
+ * Whether a catalog row is already on the product.
+ *
+ * The two keys are built by each catalog's own `attached…Keys`, which is where the provenance field
+ * differs (`globalIngredientId` / `globalVariationId`); the LOOKUP is identical, and was written
+ * twice until the variation picker made that a duplicated block. Both keys are needed because
+ * provenance is new: every row typed before the pickers shipped carries only a name.
+ */
+export function isAlreadyAttached(row: { id: string; defaultName: string }, attachedKeys: Set<string>): boolean {
+  return attachedKeys.has(`id:${row.id}`) || attachedKeys.has(`name:${fold(row.defaultName)}`);
+}
+
 /** Whether the row carries a name in the language the admin is reading the UI in. */
 export function hasTranslationFor(row: { translations: { languageCode: string }[] }, languageCode: string): boolean {
   const primary = languageCode.split('-')[0];

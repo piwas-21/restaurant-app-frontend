@@ -16,7 +16,13 @@ import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
  * `libraryMatching` when the variation library (plan S4) needed the identical folding, and are
  * re-exported here so every existing caller keeps its import.
  */
-export { MAX_VISIBLE_LIBRARY_ROWS, matchesQuery, rankByQuery, hasTranslationFor } from './libraryMatching';
+export {
+  MAX_VISIBLE_LIBRARY_ROWS,
+  matchesQuery,
+  rankByQuery,
+  hasTranslationFor,
+  isAlreadyAttached,
+} from './libraryMatching';
 
 let temporaryIngredientCounter = 0;
 
@@ -54,10 +60,6 @@ export function attachedLibraryKeys(ingredients: ProductIngredient[]): Set<strin
     if (name.length > 0) keys.add(`name:${name}`);
   });
   return keys;
-}
-
-export function isAlreadyAttached(ingredient: GlobalIngredientSummary, attachedKeys: Set<string>): boolean {
-  return attachedKeys.has(`id:${ingredient.id}`) || attachedKeys.has(`name:${fold(ingredient.defaultName)}`);
 }
 
 /**

@@ -3,12 +3,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import type { VariationLibraryView } from './GlobalVariationPickerToolbar';
-// Shares the ingredient picker's stylesheet — see `GlobalVariationPickerToolbar`.
+import type { LibraryPickerCopy } from './libraryPickerCopy';
+import type { LibraryPickerView } from './LibraryPickerToolbar';
 import styles from './GlobalIngredientPickerModal.module.css';
 
-interface GlobalVariationPickerFooterProps {
-  view: VariationLibraryView;
+interface LibraryPickerFooterProps {
+  /** Which catalog's words to render. */
+  copy: LibraryPickerCopy;
+  view: LibraryPickerView;
   /** The trimmed search term — what "+ Create new" would create. */
   newName: string;
   isCreating: boolean;
@@ -19,13 +21,15 @@ interface GlobalVariationPickerFooterProps {
 }
 
 /**
- * The picker's footer: create-and-attach on the left, cancel and confirm on the right.
+ * The picker's footer: create-and-attach on the left, cancel and confirm on the right. One footer
+ * for both catalogs.
  *
  * Both writing actions are hidden in the archived view. Nothing there can be attached (plan D4) and
- * nothing there is a search result, so both would be offering something the view cannot do; only
- * the way out stays.
+ * nothing there is a search result, so "+ Create new <term>" and "Add selected" would both be
+ * offering something the view cannot do; only the way out stays.
  */
-export default function GlobalVariationPickerFooter({
+export default function LibraryPickerFooter({
+  copy,
   view,
   newName,
   isCreating,
@@ -33,7 +37,7 @@ export default function GlobalVariationPickerFooter({
   onCancel,
   selectedCount,
   onAdd,
-}: Readonly<GlobalVariationPickerFooterProps>) {
+}: Readonly<LibraryPickerFooterProps>) {
   const { t } = useTranslation();
 
   return (
@@ -41,7 +45,7 @@ export default function GlobalVariationPickerFooter({
       {view === 'active' && (
         <button type="button" className={styles.createButton} onClick={onCreate} disabled={isCreating}>
           <Plus size={16} aria-hidden="true" />
-          {newName.length > 0 ? t('variation_library_create_named', { name: newName }) : t('variation_library_create')}
+          {newName.length > 0 ? t(copy.createNamed, { name: newName }) : t(copy.create)}
         </button>
       )}
       <div className={styles.footerActions}>

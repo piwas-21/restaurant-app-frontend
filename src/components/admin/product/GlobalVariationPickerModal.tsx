@@ -2,21 +2,14 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import BaseModal from '@/components/design-system/BaseModal';
-import GlobalVariationPickerRow from './GlobalVariationPickerRow';
-import GlobalVariationArchivedList from './GlobalVariationArchivedList';
-import GlobalVariationPickerFooter from './GlobalVariationPickerFooter';
-import GlobalVariationPickerToolbar, { type VariationLibraryView } from './GlobalVariationPickerToolbar';
-import LibraryPickerResults from './LibraryPickerResults';
+import LibraryPickerShell from './LibraryPickerShell';
+import { type LibraryPickerView } from './LibraryPickerToolbar';
+import { VARIATION_LIBRARY_COPY } from './libraryPickerCopy';
 import { useGlobalVariationLibrary } from '@/hooks/admin/useGlobalVariationLibrary';
 import { useGlobalVariationArchive } from '@/hooks/admin/useGlobalVariationArchive';
-import { createGlobalVariation, type GlobalVariationSummary } from '@/services/globalVariationService';
-import { getErrorMessage } from '@/utils/apiClient';
-import { serverMessage } from '@/utils/apiFormErrors';
+import { createGlobalVariation } from '@/services/globalVariationService';
 import { toProductVariation } from './globalVariationLibrary';
 import type { Variation } from './types';
-// Shares the ingredient picker's stylesheet — see `GlobalVariationPickerToolbar`.
-import styles from './GlobalIngredientPickerModal.module.css';
 
 interface GlobalVariationPickerModalProps {
   isOpen: boolean;
@@ -51,6 +44,10 @@ interface GlobalVariationPickerModalProps {
  * modifier of 0, which is neutral rather than wrong, and the admin types the one fact the library
  * could never have known.
  *
+ * The picker itself is `LibraryPickerShell`, shared with the ingredient library. What is left here
+ * is what makes it the VARIATION picker: two hooks over two endpoints, and the mapping onto a
+ * product row.
+ *
  * **How it differs from the ingredient picker, and why.** That one calls `changeIngredients` with a
  * whole new array, because `ProductIngredientsManager` owns its rows as component state. Variations
  * are a react-hook-form field array, so this modal hands the mapped rows back and the caller
@@ -65,135 +62,26 @@ export default function GlobalVariationPickerModal({
   nextDisplayOrder,
   onAdd,
 }: Readonly<GlobalVariationPickerModalProps>) {
-  const { t, i18n } = useTranslation();
-  const [view, setView] = useState<VariationLibraryView>('active');
+  const { i18n } = useTranslation();
+  const [view, setView] = useState<LibraryPickerView>('active');
   const library = useGlobalVariationLibrary({ isOpen, attached, languageCode: i18n.language });
   const archive = useGlobalVariationArchive({
     isOpen,
     isViewingArchive: view === 'archived',
     onCatalogChanged: library.reload,
   });
-  const [selected, setSelected] = useState<GlobalVariationSummary[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-
-  const close = () => {
-    setSelected([]);
-    setCreateError(null);
-    setView('active');
-    library.reset();
-    onClose();
-  };
-
-  const toggle = (variation: GlobalVariationSummary, checked: boolean) => {
-    setSelected((previous) =>
-      checked
-        ? [...previous.filter((entry) => entry.id !== variation.id), variation]
-        : previous.filter((entry) => entry.id !== variation.id),
-    );
-  };
-
-  const add = (rows: GlobalVariationSummary[]) => {
-    onAdd(rows.map((row, index) => toProductVariation(row, nextDisplayOrder + index)));
-    close();
-  };
-
-  const newName = library.query.trim();
-
-  /**
-   * Create the row the search did not find, then attach it with everything already ticked.
-   * `translations: []` is deliberate and legal: the backend builds its translation list from
-   * whatever arrives, and a name typed into a search box has no translations yet.
-   */
-  const createAndAdd = async () => {
-    if (newName.length === 0 || isCreating) return;
-    setIsCreating(true);
-    setCreateError(null);
-    try {
-      const response = await createGlobalVariation({ defaultName: newName, translations: [] });
-      if (!response?.success || !response.data?.id) {
-        setCreateError(serverMessage(response) ?? t('variation_library_create_failed'));
-        return;
-      }
-      add([...selected, response.data]);
-    } catch (error) {
-      setCreateError(getErrorMessage(error) ?? t('variation_library_create_failed'));
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  /**
-   * Retire a row, then take it out of the list on screen — in that order. Marking it first would
-   * hide a row that is still there whenever the write fails.
-   */
-  const retire = async (variation: GlobalVariationSummary) => {
-    const done = await archive.archive(variation.id);
-    if (!done) return;
-    library.markArchived(variation.id);
-    setSelected((previous) => previous.filter((entry) => entry.id !== variation.id));
-  };
-
-  const footer = (
-    <GlobalVariationPickerFooter
-      view={view}
-      newName={newName}
-      isCreating={isCreating}
-      onCreate={() => void createAndAdd()}
-      onCancel={close}
-      selectedCount={selected.length}
-      onAdd={() => add(selected)}
-    />
-  );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={close} title={t('variation_library_title')} size="lg" footer={footer}>
-      <GlobalVariationPickerToolbar
-        view={view}
-        onViewChange={setView}
-        query={library.query}
-        onQueryChange={library.setQuery}
-        filter={library.filter}
-        onFilterChange={library.setFilter}
-      />
-
-      {(createError ?? archive.actionError) && (
-        <p className={styles.error} role="alert">
-          {createError ?? archive.actionError}
-        </p>
-      )}
-
-      {view === 'active' ? (
-        <LibraryPickerResults
-          status={library.status}
-          loadError={library.loadError}
-          onRetry={library.reload}
-          isEmpty={library.matchCount === 0}
-          emptyKey="variation_library_empty"
-          retryKey="variation_library_retry"
-          hiddenNote={
-            library.matchCount > library.visible.length ? (
-              <p className={styles.notice}>
-                {t('variation_library_showing', { shown: library.visible.length, total: library.matchCount })}
-              </p>
-            ) : null
-          }
-        >
-          {library.visible.map((variation) => (
-            <GlobalVariationPickerRow
-              key={variation.id}
-              variation={variation}
-              checked={selected.some((entry) => entry.id === variation.id)}
-              alreadyAdded={library.isAttached(variation)}
-              onToggle={(checked) => toggle(variation, checked)}
-              onArchive={() => void retire(variation)}
-              isPending={archive.pendingId === variation.id}
-            />
-          ))}
-        </LibraryPickerResults>
-      ) : (
-        <GlobalVariationArchivedList archive={archive} />
-      )}
-    </BaseModal>
+    <LibraryPickerShell
+      isOpen={isOpen}
+      onClose={onClose}
+      copy={VARIATION_LIBRARY_COPY}
+      library={library}
+      archive={archive}
+      view={view}
+      onViewChange={setView}
+      createRow={(defaultName) => createGlobalVariation({ defaultName, translations: [] })}
+      onAdd={(picked) => onAdd(picked.map((row, index) => toProductVariation(row, nextDisplayOrder + index)))}
+    />
   );
 }

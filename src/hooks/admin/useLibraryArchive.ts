@@ -9,7 +9,7 @@ import { useStableT } from '@/hooks/useStableT';
 export type LibraryStatus = 'loading' | 'ready' | 'error';
 
 /** The envelope shape both catalog services answer with; only these three fields are read here. */
-interface LibraryResponse<T> {
+export interface LibraryResponse<T> {
   data?: T;
   success: boolean;
   message?: string;
@@ -17,8 +17,20 @@ interface LibraryResponse<T> {
 }
 
 /** A row the archive drawer can render: it needs an identity and nothing else. */
-interface ArchivableRow {
+export interface ArchivableRow {
   id: string;
+}
+
+/** What a picker reads off the archived half of a library. */
+export interface LibraryArchive<TRow extends ArchivableRow> {
+  rows: TRow[];
+  status: LibraryStatus;
+  loadError: string | null;
+  actionError: string | null;
+  pendingId: string | null;
+  reload: () => void;
+  archive: (id: string) => Promise<boolean>;
+  restore: (id: string) => Promise<boolean>;
 }
 
 interface UseLibraryArchiveArgs<TRow extends ArchivableRow> {
@@ -66,7 +78,7 @@ export function useLibraryArchive<TRow extends ArchivableRow>({
   archiveRow,
   restoreRow,
   messages,
-}: UseLibraryArchiveArgs<TRow>) {
+}: UseLibraryArchiveArgs<TRow>): LibraryArchive<TRow> {
   const tRef = useStableT();
   const [rows, setRows] = useState<TRow[]>([]);
   const [status, setStatus] = useState<LibraryStatus>('loading');

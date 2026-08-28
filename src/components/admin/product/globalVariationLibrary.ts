@@ -80,9 +80,11 @@ export function nextVariationDisplayOrder(rows: StoredVariationRow[] | undefined
   return orders.length === 0 ? 0 : Math.max(...orders) + 1;
 }
 
-export function isAlreadyAttached(variation: GlobalVariationSummary, attachedKeys: Set<string>): boolean {
-  return attachedKeys.has(`id:${variation.id}`) || attachedKeys.has(`name:${fold(variation.defaultName)}`);
-}
+/**
+ * Moved to `libraryMatching` when the picker components became shared — the lookup never differed
+ * between the two catalogs — and re-exported here so every existing importer keeps its import.
+ */
+export { isAlreadyAttached } from './libraryMatching';
 
 /**
  * A catalog row as a product variation.

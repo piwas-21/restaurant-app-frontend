@@ -6,10 +6,9 @@ import ProductPricingFields from '@/components/admin/product/fields/ProductPrici
 import ProductAllergenFields from '@/components/admin/product/fields/ProductAllergenFields';
 import ProductServiceFields from '@/components/admin/product/fields/ProductServiceFields';
 import ProductAdvancedFields from '@/components/admin/product/fields/ProductAdvancedFields';
-import StagedImagePicker from '@/components/admin/product/StagedImagePicker';
 import { ProductVariations } from '@/components/admin/product/ProductVariations';
 import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
-import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
+import ProductRecipeGroups from '@/components/admin/product/ProductRecipeGroups';
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
@@ -33,17 +32,21 @@ import type { EditorSection } from './EditorShell';
  *
  * `Advanced` collapses by HIDING its body, never by unmounting it: a registered field that leaves
  * the DOM is a value the PUT clears (plan §6). The same rule governs the rail.
+ *
+ * Every section carries the one-line `description` the approved screens draw under its title
+ * (#573) — that line is what makes a card a card rather than a heading with a border.
  */
 export function buildItemSections(context: EditorSectionsContext): EditorSection[] {
-  const { editor, t, product, isCreate } = context;
+  const { editor, t, product } = context;
   const { form } = editor;
   const { errors } = form.formState;
 
-  return [
+  const sections: EditorSection[] = [
     {
       id: SECTION_IDS.basics,
       label: t('editor_section_basics'),
       showHeading: true,
+      description: t('editor_section_basics_description'),
       node: (
         <ProductBasicsFields
           register={form.register}
@@ -59,29 +62,25 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.media,
       label: t('editor_section_media'),
       showHeading: true,
+      description: t('editor_section_media_description'),
       /*
-       * Two different controls behind one section name, because the API leaves no choice: images
-       * are sub-resources of a SAVED product, so a create route can only stage files for the POST
-       * to upload, while an edit route gets the real gallery (which writes immediately — D5's
-       * notice that says so is S6). Since S2 the gallery lives INSIDE the form like every other
-       * section: what used to keep it out was `ConfirmationModal`'s untyped buttons, and those are
-       * now `type="button"`, which is a fix and not a workaround.
+       * The real gallery, and only the real gallery, since S3. Images are sub-resources of a SAVED
+       * product, which is why this section used to fork: a create route could merely stage files
+       * for the POST to upload. An item has no create route any more — D3 replaced it with a
+       * three-field quick-add modal that lands on THIS page — so the staged-file input is gone
+       * from the item path and the fork with it. That is the create/edit divergence being deleted
+       * rather than designed around. (The gallery writes immediately; D5's notice saying so is S6.)
+       *
+       * Since S2 it lives INSIDE the form like every other section: what used to keep it out was
+       * `ConfirmationModal`'s untyped buttons, and those are now `type="button"`.
        */
-      node: isCreate ? (
-        <StagedImagePicker
-          inputId="product-images"
-          label={t('product_images')}
-          files={editor.imageFiles}
-          onChange={editor.setImageFiles}
-        />
-      ) : (
-        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
-      ),
+      node: <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />,
     },
     {
       id: SECTION_IDS.pricing,
       label: t('editor_section_pricing'),
       showHeading: true,
+      description: t('editor_section_pricing_description'),
       node: (
         <>
           <ProductPricingFields register={form.register} errors={errors} />
@@ -91,6 +90,8 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             variationFields={editor.variations.fields}
             appendVariation={editor.variations.append}
             removeVariation={editor.variations.remove}
+            moveVariation={editor.moveVariation}
+            getValues={form.getValues}
           />
         </>
       ),
@@ -99,12 +100,17 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.options,
       label: t('editor_section_options'),
       showHeading: true,
+      description: t('editor_section_options_description'),
       node: (
+        // An item may not suggest ITSELF (S9 / D12), and nothing on the server refuses it, so the
+        // picker needs to know which product it is editing. `product.id` is empty on the create
+        // route, where there is nothing to exclude yet.
         <SuggestedSideItemsPicker
           control={form.control}
           errors={errors}
           selectedSideItemIds={editor.selectedSideItemIds}
           onChange={editor.changeSideItemIds}
+          productId={product.id}
         />
       ),
     },
@@ -112,12 +118,21 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.recipe,
       label: t('editor_section_recipe'),
       showHeading: true,
+      description: t('editor_section_recipe_description'),
       node: (
         <>
-          <ProductIngredientsManager
+          {/*
+           * Two labelled groups over ONE ingredient array (SHARED-MODIFIERS-AND-SAUCES-PLAN D8):
+           * `Recipe & dietary` keeps its name and its place in §4's order, and gains the Sauces
+           * group plus the three product-level sauce rules.
+           */}
+          <ProductRecipeGroups
             ingredients={editor.detailedIngredients}
             onChange={editor.changeIngredients}
             productBasePrice={editor.basePrice}
+            register={form.register}
+            control={form.control}
+            errors={errors}
           />
           <ProductAllergenFields control={form.control} />
         </>
@@ -127,6 +142,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.service,
       label: t('editor_section_service'),
       showHeading: true,
+      description: t('editor_section_service_description'),
       node: (
         <>
           <ProductServiceFields register={form.register} errors={errors} control={form.control} />
@@ -138,8 +154,27 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.advanced,
       label: t('editor_section_advanced'),
       collapsible: true,
+      description: t('editor_section_advanced_description'),
       defaultCollapsed: true,
-      node: <ProductAdvancedFields register={form.register} />,
+      // `hasVariations` reads the LIVE field array, not `product.variations`: adding the first
+      // variation must reveal `hideBaseProduct` in the same session, before any save.
+      node: <ProductAdvancedFields register={form.register} hasVariations={editor.variations.fields.length > 0} />,
     },
   ];
+
+  /*
+   * An UNSAVED item has no Media section at all. Images are sub-resources of a saved product, so
+   * there is nothing here to manage and nothing to stage since S3 removed the staged input — an
+   * empty card named "Media" would be a promise the API cannot keep. In practice an item is always
+   * saved by the time it reaches this page (D3's quick-add POSTs first), so this is the guard for
+   * a state the routes no longer produce, not a second layout.
+   *
+   * ⚠️ This filter is legitimate ONLY because the state is unreachable. **Do not reach for it on a
+   * path a user can actually take** — D11 says a section that has nothing to show is rendered
+   * EMPTY WITH A REASON, not removed: a section that vanishes takes its entry out of the sticky
+   * nav too, so the admin reads a shorter page and cannot tell "no photos yet" from "photos are
+   * not a thing here". S6 owns Media's real empty state (the bundle case is exactly it) and must
+   * render the card and say why, not extend this line.
+   */
+  return product.id ? sections : sections.filter((section) => section.id !== SECTION_IDS.media);
 }

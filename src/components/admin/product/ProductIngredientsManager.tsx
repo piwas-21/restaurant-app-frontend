@@ -1,14 +1,17 @@
 'use client';
 
-import { TENANT_CURRENCY, formatPlainCurrency } from '@/utils/currency';
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
-import { Library, Plus, Trash2, GripVertical } from 'lucide-react';
-import type { ProductIngredient } from '@/types/menu';
+import { Library, Plus } from 'lucide-react';
+import type { IngredientKind, ProductIngredient } from '@/types/menu';
 import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
 import { useGlobalIngredientSuggestions } from '@/hooks/admin/useGlobalIngredientSuggestions';
+import { DEFAULT_INGREDIENT_KIND, ingredientsOfKind, mergeIngredientGroup } from '@/utils/ingredientKind';
+import { moveIngredientInGroup } from '@/utils/ingredientOrder';
 import { nextTemporaryIngredientId, withLibraryProvenance } from './globalIngredientLibrary';
+import ProductIngredientRow from './ProductIngredientRow';
+import styles from './IngredientGroup.module.css';
 
 /**
  * Code-split, and mounted only while it is open.
@@ -20,308 +23,151 @@ import { nextTemporaryIngredientId, withLibraryProvenance } from './globalIngred
  * below is load-bearing, not cosmetic: rendering it closed would download the chunk anyway.
  */
 const GlobalIngredientPickerModal = dynamic(() => import('./GlobalIngredientPickerModal'), { ssr: false });
-import styles from './ProductIngredientsManager.module.css';
-import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 interface ProductIngredientsManagerProps {
+  /** EVERY row the product holds — both kinds. See the merge note below. */
   ingredients: ProductIngredient[];
+  /** Receives every row the product holds, this group's edits merged back in place. */
   onChange: (ingredients: ProductIngredient[]) => void;
   productBasePrice: number;
+  /** Which group this instance IS. Defaults to `'ingredient'` (plan D8). */
+  kind?: IngredientKind;
+  /** Rendered above the table — the sauce group's three rules live here. */
+  children?: React.ReactNode;
 }
 
-export function ProductIngredientsManager({ ingredients, onChange, productBasePrice }: ProductIngredientsManagerProps) {
+/**
+ * ONE labelled recipe group — Ingredients or Sauces (plan D8, §4; Stitch:
+ * `recipe_dietary_details_split_view`).
+ *
+ * **It is a view, not a state.** The product has ONE `detailedIngredients` array: that is what the
+ * payload carries, and the ids inside it are what `OrderItem.IngredientQuantitiesJson` references.
+ * So this component receives every row, renders the ones of its own kind, and merges its slice back
+ * through `mergeIngredientGroup` — rows of the other kind keep their position and every field,
+ * including the ones no control on this screen renders. Splitting the state instead would mean
+ * re-deriving one array from two on every save, which is the version that loses a row.
+ *
+ * It used to be the whole ingredients UI at 327 LOC; the row moved to `ProductIngredientRow` so
+ * that the split could be a second instance of this component rather than a second implementation.
+ */
+export function ProductIngredientsManager({
+  ingredients,
+  onChange,
+  productBasePrice,
+  kind = DEFAULT_INGREDIENT_KIND,
+  children,
+}: Readonly<ProductIngredientsManagerProps>) {
   const { t } = useTranslation();
-  // Local state to preserve string value during typing
-  const [priceInputs, setPriceInputs] = useState<Record<number, string>>({});
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const typeahead = useGlobalIngredientSuggestions();
 
-  // Initialize price inputs when ingredients change (e.g., loading existing product)
-  useEffect(() => {
-    const newInputs: Record<number, string> = {};
-    ingredients.forEach((ing, idx) => {
-      if (priceInputs[idx] === undefined) {
-        newInputs[idx] = ing.price === 0 ? '' : String(ing.price).replace('.', ',');
-      }
-    });
-    if (Object.keys(newInputs).length > 0) {
-      setPriceInputs((prev) => ({ ...prev, ...newInputs }));
-    }
-    // Only run when ingredients array length changes (new ingredients added/removed)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ingredients.length]);
+  const isSauceGroup = kind === 'sauce';
+  const titleId = `recipe-group-${kind}`;
+  const rows = useMemo(() => ingredientsOfKind(ingredients, kind), [ingredients, kind]);
 
-  const handleAddIngredient = () => {
-    const newIngredient: ProductIngredient = {
-      // Stripped before the payload leaves; shared with the picker so the two cannot collide.
-      id: nextTemporaryIngredientId(),
-      name: '',
-      isOptional: false,
-      maxQuantity: 1,
-      price: 0,
-      isActive: true,
-      displayOrder: ingredients.length,
-      content: {
-        en: { name: '', description: '' },
-        tr: { name: '', description: '' },
-        de: { name: '', description: '' },
-        fr: { name: '', description: '' },
-        it: { name: '', description: '' },
-        ar: { name: '', description: '' },
-        es: { name: '', description: '' },
+  /** This group's slice, put back into the product's one array. */
+  const commit = (nextGroup: ProductIngredient[]) => onChange(mergeIngredientGroup(ingredients, kind, nextGroup));
+
+  const addRow = () => {
+    commit([
+      ...rows,
+      {
+        // Stripped before the payload leaves; shared with the picker so the two cannot collide.
+        id: nextTemporaryIngredientId(),
+        name: '',
+        kind,
+        isOptional: false,
+        maxQuantity: 1,
+        price: 0,
+        isActive: true,
+        // Across BOTH groups: two rows of different kinds must not claim one position.
+        displayOrder: ingredients.length,
+        content: {},
       },
-    };
-    onChange([...ingredients, newIngredient]);
+    ]);
   };
 
-  const handleRemoveIngredient = (index: number) => {
-    const updated = ingredients.filter((_, i) => i !== index);
-    onChange(updated);
-  };
+  const patchRow = (index: number, patch: Partial<ProductIngredient>) =>
+    commit(rows.map((row, position) => (position === index ? { ...row, ...patch } : row)));
 
-  const handleIngredientChange = (index: number, field: keyof ProductIngredient, value: any) => {
-    const updated = [...ingredients];
-    updated[index] = { ...updated[index], [field]: value };
-    onChange(updated);
-  };
+  /**
+   * Reordering (#593). It goes through the WHOLE array rather than through `commit`, because the
+   * move renumbers `displayOrder` across both kinds — see `ingredientOrder.ts`. An impossible move
+   * returns the same array reference, so committing unconditionally cannot invent a dirty state.
+   */
+  const moveRow = (index: number, delta: -1 | 1) => onChange(moveIngredientInGroup(ingredients, kind, index, delta));
 
-  const handleContentChange = (index: number, language: string, field: 'name' | 'description', value: string) => {
-    const updated = [...ingredients];
-    if (!updated[index].content) {
-      updated[index].content = {};
-    }
-    if (!updated[index].content![language]) {
-      updated[index].content![language] = { name: '', description: '' };
-    }
-    updated[index].content![language][field] = value;
-    onChange(updated);
-  };
-
-  const handleIngredientNameChange = (index: number, value: string) => {
-    handleIngredientChange(index, 'name', value);
-    typeahead.search(index, value);
-  };
-
-  const selectGlobalIngredient = (index: number, suggestion: GlobalIngredientSummary) => {
-    const updated = [...ingredients];
-    updated[index] = withLibraryProvenance(updated[index], suggestion);
-    onChange(updated);
+  const pickSuggestion = (index: number, suggestion: GlobalIngredientSummary) => {
+    commit(rows.map((row, position) => (position === index ? withLibraryProvenance(row, suggestion) : row)));
     typeahead.setVisibleFor(index, false);
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>{t('product_ingredients')}</h3>
-        <div className={styles.headerActions}>
-          <button type="button" onClick={() => setIsPickerOpen(true)} className={styles.libraryButton}>
-            <Library size={16} />
-            {t('add_from_library')}
-          </button>
-          <button type="button" onClick={handleAddIngredient} className={styles.addButton}>
-            <Plus size={16} />
-            {t('add_ingredient')}
-          </button>
-        </div>
-      </div>
+    <section className={styles.group} aria-labelledby={titleId}>
+      <h3 className={styles.title} id={titleId}>
+        {t(isSauceGroup ? 'sauces' : 'ingredients')}
+      </h3>
+
+      {children}
 
       {isPickerOpen && (
         <GlobalIngredientPickerModal
           isOpen
           onClose={() => setIsPickerOpen(false)}
+          // Every row, so a name already used as an ingredient is not offered again as a sauce.
           attached={ingredients}
+          kind={kind}
           onAdd={(picked) => onChange([...ingredients, ...picked])}
         />
       )}
 
-      <p className={styles.description}>{t('ingredients_manager_description')}</p>
-
-      {ingredients.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>{t('no_ingredients_added')}</p>
-        </div>
+      {rows.length === 0 ? (
+        <p className={styles.emptyState}>{t(isSauceGroup ? 'no_sauces_added' : 'no_ingredients_added')}</p>
       ) : (
-        <div className={styles.ingredientsList}>
-          {ingredients.map((ingredient, index) => (
-            <div key={ingredient.id} className={styles.ingredientCard}>
-              <div className={styles.ingredientHeader}>
-                <GripVertical size={20} className={styles.dragHandle} />
-                <div className={styles.ingredientMeta} style={{ position: 'relative', flex: 1 }}>
-                  <span className={styles.ingredientNumber}>{index + 1}</span>
-                  <input
-                    type="text"
-                    value={ingredient.name}
-                    onChange={(e) => handleIngredientNameChange(index, e.target.value)}
-                    onFocus={() => {
-                      if (typeahead.suggestions[index]?.length > 0) {
-                        typeahead.setVisibleFor(index, true);
-                      }
-                    }}
-                    onBlur={() => {
-                      // Delay to allow click on suggestion
-                      setTimeout(() => typeahead.setVisibleFor(index, false), 200);
-                    }}
-                    placeholder={t('ingredient_name_placeholder')}
-                    className={styles.ingredientNameInput}
-                  />
-                  {typeahead.loading[index] && <output className={styles.suggestionSpinner}>…</output>}
-                  {typeahead.visible[index] && typeahead.suggestions[index]?.length > 0 && (
-                    <div className={styles.suggestions}>
-                      {typeahead.suggestions[index].map((suggestion) => (
-                        <div
-                          key={suggestion.id}
-                          className={styles.suggestionItem}
-                          onClick={() => selectGlobalIngredient(index, suggestion)}
-                          onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                        >
-                          <span>{suggestion.defaultName}</span>
-                          <span className={styles.suggestionHint}>({suggestion.translations.length} languages)</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveIngredient(index)}
-                  className={styles.removeButton}
-                  aria-label={t('remove_ingredient')}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-
-              <div className={styles.ingredientFields}>
-                <div className={styles.fieldRow}>
-                  <label className={styles.checkbox}>
-                    <input
-                      type="checkbox"
-                      checked={ingredient.isOptional}
-                      onChange={(e) => handleIngredientChange(index, 'isOptional', e.target.checked)}
-                    />
-                    <span>{t('ingredient_is_optional')}</span>
-                  </label>
-
-                  {ingredient.isOptional && (
-                    <label className={styles.numberInputLabel}>
-                      <span>{t('max_quantity')}</span>
-                      <input
-                        type="number"
-                        min="1"
-                        value={ingredient.maxQuantity || 1}
-                        onChange={(e) => handleIngredientChange(index, 'maxQuantity', parseInt(e.target.value) || 1)}
-                        className={styles.numberInput}
-                      />
-                    </label>
-                  )}
-
-                  <label className={styles.checkbox}>
-                    <input
-                      type="checkbox"
-                      checked={ingredient.isActive}
-                      onChange={(e) => handleIngredientChange(index, 'isActive', e.target.checked)}
-                    />
-                    <span>{t('ingredient_is_active')}</span>
-                  </label>
-                </div>
-
-                {ingredient.isOptional && (
-                  <div className={styles.priceField}>
-                    <label>
-                      {t('additional_price')}
-                      <input
-                        type="text"
-                        value={
-                          priceInputs[index] ??
-                          (ingredient.price === 0 ? '' : String(ingredient.price).replace('.', ','))
-                        }
-                        onChange={(e) => {
-                          const value = e.target.value;
-
-                          // Update local input state immediately to preserve typing
-                          setPriceInputs((prev) => ({ ...prev, [index]: value }));
-
-                          // Allow empty string
-                          if (value === '') {
-                            handleIngredientChange(index, 'price', 0);
-                            return;
-                          }
-
-                          // Replace dot with comma for decimal separator
-                          const normalizedValue = value.replace('.', ',');
-
-                          // Validate format: digits, optional comma, optional digits
-                          if (/^-?\d*,?\d*$/.test(normalizedValue)) {
-                            // Parse to number
-                            const numValue = parseFloat(normalizedValue.replace(',', '.'));
-                            if (!isNaN(numValue)) {
-                              handleIngredientChange(index, 'price', numValue);
-                            }
-                          }
-                        }}
-                        onBlur={(e) => {
-                          // On blur, ensure we have a valid number and clean up display
-                          const value = e.target.value.replace(',', '.');
-                          const numValue = parseFloat(value);
-                          if (isNaN(numValue) || numValue < 0) {
-                            handleIngredientChange(index, 'price', 0);
-                            setPriceInputs((prev) => ({ ...prev, [index]: '' }));
-                          } else {
-                            handleIngredientChange(index, 'price', numValue);
-                            setPriceInputs((prev) => ({ ...prev, [index]: String(numValue).replace('.', ',') }));
-                          }
-                        }}
-                        placeholder="0,00"
-                        className={styles.priceInput}
-                      />
-                      <span className={styles.currency}>{TENANT_CURRENCY}</span>
-                    </label>
-                    <span className={styles.priceHint}>{t('use_comma_for_decimals')}</span>
-                    {ingredient.price > 0 && (
-                      <span className={styles.pricePreview}>
-                        {t('customer_pays')}:{' '}
-                        {formatPlainCurrency(Number(productBasePrice || 0) + (Number(ingredient.price) || 0))}
-                      </span>
-                    )}
-
-                    <label className={styles.checkbox} style={{ marginTop: '12px' }}>
-                      <input
-                        type="checkbox"
-                        checked={ingredient.isIncludedInBasePrice || false}
-                        onChange={(e) => handleIngredientChange(index, 'isIncludedInBasePrice', e.target.checked)}
-                      />
-                      <span>{t('ingredient_included_in_base_price')}</span>
-                    </label>
-                    <span className={styles.priceHint}>{t('ingredient_included_in_base_price_hint')}</span>
-                  </div>
-                )}
-
-                <details className={styles.translations}>
-                  <summary className={styles.translationsSummary}>{t('multilingual_names')}</summary>
-                  <div className={styles.translationsGrid}>
-                    {LANGUAGE_CODES.map((lang) => (
-                      <div key={lang} className={styles.translationField}>
-                        <label>
-                          {t(`language_${lang}`)}
-                          <input
-                            type="text"
-                            value={ingredient.content?.[lang]?.name || ''}
-                            onChange={(e) => handleContentChange(index, lang, 'name', e.target.value)}
-                            placeholder={t('ingredient_name_in_language', {
-                              language: t(`language_${lang}`),
-                            })}
-                            className={styles.translationInput}
-                          />
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              </div>
-            </div>
-          ))}
-        </div>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              {/* The reorder column's header is empty by design: `Move up`/`Move down` are on the
+                  buttons themselves, and a visible column title for two chevrons is noise. */}
+              <th />
+              <th scope="col">{t('name')}</th>
+              <th scope="col">{t('ingredient_optional')}</th>
+              <th scope="col">{t('max_quantity')}</th>
+              <th scope="col">{t('additional_price')}</th>
+              <th scope="col">{t('ingredient_included')}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((ingredient, index) => (
+              <ProductIngredientRow
+                key={ingredient.id}
+                ingredient={ingredient}
+                index={index}
+                productBasePrice={productBasePrice}
+                onPatch={patchRow}
+                onRemove={(position) => commit(rows.filter((_, other) => other !== position))}
+                onMove={moveRow}
+                canMoveUp={index > 0}
+                canMoveDown={index < rows.length - 1}
+                typeahead={typeahead}
+                onPickSuggestion={pickSuggestion}
+              />
+            ))}
+          </tbody>
+        </table>
       )}
-    </div>
+
+      <div className={styles.actions}>
+        <button type="button" onClick={() => setIsPickerOpen(true)} className={styles.libraryButton}>
+          <Library size={16} aria-hidden="true" />
+          {t('add_from_library')}
+        </button>
+        <button type="button" onClick={addRow} className={styles.addButton}>
+          <Plus size={16} aria-hidden="true" />
+          {t('add_manually')}
+        </button>
+      </div>
+    </section>
   );
 }

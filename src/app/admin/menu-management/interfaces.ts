@@ -1,7 +1,7 @@
 import { OrderType } from '@/types/order';
 // src/interfaces/Product.ts
 
-import { KitchenType, MenuDefinition } from '@/types/menu';
+import { IngredientKind, KitchenType, MenuDefinition } from '@/types/menu';
 
 export interface ProductImage {
   id: string;
@@ -44,6 +44,8 @@ export interface ProductCategory {
 export interface ProductIngredient {
   id: string;
   name: string;
+  /** Absent === `'ingredient'` (plan D8) — resolve it with `@/utils/ingredientKind`. */
+  kind?: IngredientKind;
   isOptional: boolean;
   price: number;
   isActive: boolean;
@@ -93,6 +95,16 @@ export interface ProductDetails {
    * `exactMaskFromOrderTypes`). Customer surfaces read the decoded `availability` instead.
    */
   availableOrderTypes?: number | null;
+  /**
+   * The sauce GROUP rules, product-level (plan D9, owner-answered §7 Q3 on 2026-08-27).
+   *
+   * Three plain numbers, not a min/max-select engine — that stays a separate project. There is no
+   * tenant default anywhere in this code: an admin who wants "one free sauce" types it. `sauceMax`
+   * is `null` for "no cap", which is NOT `0` — `0` would mean the guest may pick none at all.
+   */
+  sauceMin?: number;
+  sauceMax?: number | null;
+  sauceIncludedFree?: number;
   content?: any; // To match the full product object for the edit modal
 }
 

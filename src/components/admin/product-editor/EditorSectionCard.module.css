@@ -1,0 +1,82 @@
+/*
+  The section CARD (frontend #573). Every approved section screen draws a bordered surface with a
+  title and a one-line description; S1/S2 shipped a `border-top` hairline and no description, which
+  reads as one continuous form. Same card tokens as the side rail, so the two surfaces agree.
+*/
+.card {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--surface-card);
+  scroll-margin-top: 1.5rem;
+}
+
+/* The nav moves focus here after a jump; the outline would otherwise frame the whole page. */
+.card:focus {
+  outline: none;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 4px;
+}
+
+.head {
+  margin-bottom: 1.25rem;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* The line that was missing. --text-secondary, not --text-muted: it is explanatory copy a reader is
+   meant to read, and --text-secondary is the lightest tier documented to clear AA on --surface-card. */
+.description {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+/* The `Advanced` fold (D1): a heading that is a button, so the section keeps its landmark name. */
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.collapseToggle:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.chevron,
+.chevronOpen {
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* A collapsed head keeps no bottom margin — the card is then just its own title row. */
+.card:has(.body[hidden]) .head {
+  margin-bottom: 0;
+}
+
+/* Hidden, never unmounted, so a layout `display` must not beat the attribute. */
+.body[hidden] {
+  display: none;
+}

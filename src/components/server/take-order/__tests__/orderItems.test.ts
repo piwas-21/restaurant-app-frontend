@@ -24,6 +24,9 @@ function makeResult(overrides: Partial<CustomizationResult> = {}): Customization
     variationId: undefined,
     variationName: undefined,
     addedIngredients: [],
+    removedIngredients: [],
+    selectedIngredientIds: [],
+    ingredientQuantities: {},
     sideItems: [],
     specialInstructions: undefined,
     finalPrice: 12,
@@ -73,7 +76,7 @@ describe('addCustomizedItem', () => {
     const result = makeResult({
       variationId: 'v1',
       variationName: 'Large',
-      addedIngredients: [{ id: 'a1', name: 'Cheese', price: 1 }],
+      addedIngredients: [{ id: 'a1', name: 'Cheese', price: 1, quantity: 1 }],
       sideItems: [{ id: 's1', name: 'Fries', quantity: 1, price: 2 }],
       specialInstructions: 'Extra hot',
       finalPrice: 18,
@@ -115,9 +118,67 @@ describe('addCustomizedItem', () => {
     const second = addCustomizedItem(
       first,
       baseProduct,
-      makeResult({ addedIngredients: [{ id: 'a1', name: 'Cheese', price: 1 }] }),
+      makeResult({ addedIngredients: [{ id: 'a1', name: 'Cheese', price: 1, quantity: 1 }] }),
     );
 
     expect(second).toHaveLength(2);
+  });
+
+  /**
+   * S7 — the two states the sheet could not reach before it opened on the base recipe. Both are
+   * ADDITIVE to the note format: a line a waiter could have entered before S7 (every addition at
+   * quantity 1, nothing removed) still produces the byte-identical string asserted above.
+   */
+  describe('S7 — quantities and removals', () => {
+    it('prefixes a multiple with its count, and leaves a single alone', () => {
+      const next = addCustomizedItem(
+        [],
+        baseProduct,
+        makeResult({
+          addedIngredients: [
+            { id: 'a1', name: 'Bacon', price: 1.5, quantity: 2 },
+            { id: 'a2', name: 'Basil', price: 0.5, quantity: 1 },
+          ],
+        }),
+      );
+
+      expect(next[0].notes).toBe('Add: 2× Bacon, Basil');
+    });
+
+    it("says what came OFF the dish, in the kitchen ticket's own vocabulary", () => {
+      const next = addCustomizedItem(
+        [],
+        baseProduct,
+        makeResult({ removedIngredients: [{ id: 'r1', name: 'Onion', price: 0.5, quantity: 1 }] }),
+      );
+
+      expect(next[0].notes).toBe('No: Onion');
+    });
+
+    it('keeps a removal out of an otherwise identical line — they are different dishes', () => {
+      const withOnion = addCustomizedItem([], baseProduct, makeResult());
+      const withoutOnion = addCustomizedItem(
+        withOnion,
+        baseProduct,
+        makeResult({ removedIngredients: [{ id: 'r1', name: 'Onion', price: 0.5, quantity: 1 }] }),
+      );
+
+      expect(withoutOnion).toHaveLength(2);
+    });
+
+    it('keeps two quantities of the same extra apart — they cost different amounts', () => {
+      const one = addCustomizedItem(
+        [],
+        baseProduct,
+        makeResult({ addedIngredients: [{ id: 'a1', name: 'Bacon', price: 1.5, quantity: 1 }] }),
+      );
+      const two = addCustomizedItem(
+        one,
+        baseProduct,
+        makeResult({ addedIngredients: [{ id: 'a1', name: 'Bacon', price: 1.5, quantity: 2 }] }),
+      );
+
+      expect(two).toHaveLength(2);
+    });
   });
 });

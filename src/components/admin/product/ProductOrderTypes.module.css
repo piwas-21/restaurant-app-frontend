@@ -20,12 +20,10 @@
   padding: 0 0.35rem;
 }
 
-.choice {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  cursor: pointer;
+.inherited {
+  margin: 0;
   font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 /* Handed to `ChannelPicker` as its `group` class — the shared component owns the boxes, this screen

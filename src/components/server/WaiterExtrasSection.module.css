@@ -1,0 +1,130 @@
+/*
+ * The waiter sheet's optional-ingredient chips (S7).
+ *
+ * The chip rules moved here VERBATIM from `ProductCustomization.module.css`, which is over the
+ * §4 200-line limit and baselined — so it may only shrink. `.excluded` was already there and
+ * already unused: it is what a base ingredient the waiter took OFF looks like, a state the sheet
+ * could not reach until S7.
+ */
+
+.section {
+  margin-block-end: 1.25rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.ingredientList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Chip + its stepper travel together so a wrap never separates them. */
+.ingredientItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ingredientButton {
+  padding: 0.5rem 0.875rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  /* A waiter taps this mid-service: the guidance for this control is 44px, and the sheet's own
+     quantity buttons are 36. 44 is the bar here because nothing else competes for the row. */
+  min-height: 44px;
+}
+
+.ingredientButton:hover {
+  border-color: var(--text-secondary);
+}
+
+/*
+ * Taken off the base recipe — the kitchen ticket's "NO xxx", said in the UI's own vocabulary.
+ *
+ * The rules this file inherited from `ProductCustomization.module.css` carried literal hex
+ * (a raw red and a raw green) and raw rgba tints. They are on design tokens here rather than moved
+ * verbatim: a new file may not carry that debt, and the tokens are the half that follows the
+ * `data-theme="dark"` switch, which the hex never did.
+ */
+.ingredientButton.excluded {
+  background-color: var(--feedback-error-bg);
+  border-color: var(--feedback-error-border);
+  color: var(--feedback-error-text);
+  text-decoration: line-through;
+}
+
+/* A paid extra that has not been added. */
+.ingredientButton.optional {
+  border-style: dashed;
+}
+
+/* On the line. */
+.ingredientButton.added {
+  background-color: var(--feedback-success-xlight);
+  border-color: var(--feedback-success);
+  border-style: solid;
+  color: var(--feedback-success-text);
+}
+
+.addIcon {
+  font-weight: bold;
+}
+
+.ingredientPrice {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-inline-start: 0.25rem;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.quantityButton {
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quantityButton:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  /* `--button-text-color` is always defined (globals.css); the fallback is `--text-on-primary`,
+     which is what it resolves to, rather than a literal white a dark theme cannot move. */
+  color: var(--button-text-color, var(--text-on-primary));
+}
+
+.quantityButton[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quantityValue {
+  min-inline-size: 24px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-color);
+}

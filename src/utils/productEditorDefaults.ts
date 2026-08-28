@@ -161,6 +161,13 @@ export function toItemDefaults(product: ProductDetails) {
     // `undefined` on a fetched product must seed the same "inherit" state as an explicit null,
     // and an uncontrolled→controlled flip in the editor would otherwise reset the radio.
     availableOrderTypes: product.availableOrderTypes ?? null,
+    // Sauce group rules (plan D9). Echoed for the same reason as the mask above — the PUT assigns
+    // all three columns unconditionally, so a default that dropped the stored rule would erase it
+    // on the next unrelated save. `?? 0` and `?? null` because 0 is meaningful on all three:
+    // "require none", "allow none", "none free".
+    sauceMin: product.sauceMin ?? 0,
+    sauceMax: product.sauceMax ?? null,
+    sauceIncludedFree: product.sauceIncludedFree ?? 0,
   };
 }
 

@@ -73,6 +73,22 @@ module.exports = {
     'src/hooks/cashier/useCashierManualRefresh.ts',
     'src/contexts/TableContext.tsx',
     'src/hooks/admin/useProductEditorFetch.ts',
+    // S3 (quick-add create): the hook holds the write, the util holds the payload contract.
+    'src/hooks/admin/useQuickAddItem.ts',
+    'src/utils/quickAddItemPayload.ts',
+    // S7 (validation UX, D13): the two `.ts` files behind the error summary and the field a11y
+    // wiring. `.ts` is not collected wholesale — only `.tsx` under components is.
+    'src/components/admin/product-editor/editorValidation.ts',
+    // S9 (side-item picker, D12): the add-AND-remove rules, colocated with the components that
+    // render them. Same reason as the row above — a `.ts` beside a `.tsx` is not collected.
+    'src/components/admin/product/sideItemPicker.ts',
+    'src/components/admin/product/fields/fieldAria.ts',
+    'src/hooks/admin/useEditorErrors.ts',
+    // S4 (Translations workbench): the slot model and the two writes are pure and are where the
+    // completeness arithmetic lives; the hook is the only place the three stores are reconciled.
+    'src/components/admin/product-editor/translations/translationSlots.ts',
+    'src/components/admin/product-editor/translations/translationWrites.ts',
+    'src/hooks/admin/useTranslationsWorkbench.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/reservations/useEditReservation.ts',
@@ -192,6 +208,9 @@ module.exports = {
     // Track F, F1c — the client half of the server's allowlist (`src/utils` is not collected
     // wholesale either).
     'src/utils/imageUploadRules.ts',
+    // S6 — the free-sauce allocation. `src/utils` is not collected wholesale, and a
+    // coverageThreshold row for an uncollected file silently no-ops.
+    'src/utils/sauceGroup.ts',
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
     'src/hooks/cart/cartFailureReporting.ts',
@@ -231,6 +250,12 @@ module.exports = {
     'src/hooks/admin/useEditorCategories.ts',
     'src/components/server/useProductCustomizationDetails.ts',
     'src/components/server/useProductCustomizationSheet.ts',
+    // S7 — the waiter sheet's half of the ONE price math. Neither `src/utils` nor a `.ts`
+    // colocated under `src/components` is collected wholesale, so without these three rows the
+    // cross-sheet property test could be deleted with a fully green gate.
+    'src/utils/priceableIngredient.ts',
+    'src/components/server/waiterSelection.ts',
+    'src/components/server/useWaiterIngredientSelection.ts',
     // The smart-skip checkout decision. `src/lib` is not collected wholesale, so without this row
     // the suite that pins the per-order-type profile floor is deletable with a fully green gate.
     'src/lib/checkout/profileCompleteness.ts',
@@ -862,12 +887,113 @@ module.exports = {
       functions: 99,
       lines: 99,
     },
+    // MENU-ITEM-EDITOR-REDESIGN-PLAN S4 — the Translations workbench (D2). The two pure modules
+    // carry the completeness arithmetic and the row create/prune rule, so they are pinned at full
+    // branch coverage; the hook sits lower because its three write paths each have an arm reached
+    // only from a state the integration test does not stage (a locale row that already exists on a
+    // variation, and the ingredient batch inside the copy).
+    './src/components/admin/product-editor/translations/translationSlots.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/admin/product-editor/translations/translationWrites.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/admin/product-editor/translations/TranslationsWorkbench.tsx': {
+      statements: 95,
+      branches: 85,
+      functions: 95,
+      lines: 95,
+    },
+    './src/components/admin/product-editor/translations/TranslationSlotRows.tsx': {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95,
+    },
+    './src/components/admin/product-editor/translations/TranslationLocaleRail.tsx': {
+      statements: 95,
+      branches: 85,
+      functions: 95,
+      lines: 95,
+    },
+    './src/hooks/admin/useTranslationsWorkbench.ts': {
+      statements: 95,
+      branches: 70,
+      functions: 95,
+      lines: 95,
+    },
     // Slice 7 PR2e — the "New product" type chooser (create entry). Fully covered.
     './src/components/admin/menu-management/NewProductTypeModal.tsx': {
       statements: 99,
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    // MENU-ITEM-EDITOR-REDESIGN S3 — quick-add create (D3). `quickAddItemPayload` is the
+    // strict-subset contract and is pinned at 100: it is the file that decides which fields a
+    // create POST carries, and an untested branch there is a silently cleared column.
+    './src/utils/quickAddItemPayload.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/menu-management/QuickAddItemModal.tsx': {
+      statements: 99,
+      branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    // MENU-ITEM-EDITOR-REDESIGN S7 — validation UX (D13). `editorValidation` decides what the save
+    // bar counts and which nav entry is marked, so its branches are the slice's contract.
+    './src/components/admin/product-editor/editorValidation.ts': {
+      statements: 94,
+      branches: 87,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/admin/useEditorErrors.ts': {
+      statements: 95,
+      branches: 85,
+      functions: 95,
+      lines: 95,
+    },
+    './src/components/admin/product/fields/fieldAria.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product/fields/FieldError.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/EditorErrorSummary.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/menu-management/MenuCreateFlow.tsx': {
+      statements: 90,
+      branches: 85,
+      functions: 80,
+      lines: 90,
+    },
+    // The remainder is the image-failure reporter, unreachable while quick-add stages no photo.
+    './src/hooks/admin/useQuickAddItem.ts': {
+      statements: 95,
+      branches: 75,
+      functions: 90,
+      lines: 95,
     },
     // Slice 7 — the admin write path. These tests pin the create/update endpoint
     // dispatch on both halves (a bundle must go to /api/Menus, an item to
@@ -1641,11 +1767,63 @@ module.exports = {
     // Lower on purpose: this file is the WHOLE sheet (price, extras, side items, confirm) and this
     // change's tests drive the load path and the variation rules. The row guards the seed-selection
     // effect — the one that re-applies F2's pre-selection after a retry — not the file.
+    // S7 ratcheted this row from {61, 49, 51, 70}. The sheet's own price arithmetic is gone, and
+    // what replaced it — the base-recipe seed, the stepper, the removal — is driven end to end by
+    // `__tests__/ProductCustomization.pricing.test.tsx` and by the cross-sheet property test. At
+    // the old floor every one of those suites could have been deleted with a green gate.
+    // Measured with CI's own command (`npx jest --ci --coverage`), pinned at actual − ~1pt.
     './src/components/server/useProductCustomizationSheet.ts': {
-      statements: 61,
-      branches: 49,
-      functions: 51,
-      lines: 70,
+      statements: 99,
+      branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    // ── S7 — the waiter sheet's half of the ONE price math. ─────────────────────────────────────
+    // These four are pinned high because every way they can be wrong is a WRONG PRICE that throws
+    // nothing and logs nothing: the sheet simply charges a different amount from the guest sheet,
+    // which is the defect the slice exists to end. `priceableIngredient` in particular is the
+    // input contract — dropping a field there is exactly how the divergence happened.
+    './src/utils/priceableIngredient.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/components/server/waiterSelection.ts': { statements: 99, branches: 88, functions: 99, lines: 99 },
+    './src/components/server/useWaiterIngredientSelection.ts': {
+      statements: 99,
+      branches: 79,
+      functions: 99,
+      lines: 99,
+    },
+    // The remaining branch is the `ingredientQuantities[id] ?? 1` fallback, unreachable through the
+    // UI: a selected ingredient always carries a recorded quantity.
+    './src/components/server/WaiterExtrasSection.tsx': { statements: 99, branches: 95, functions: 99, lines: 99 },
+    // The render. Lower because the file is the whole sheet and the tests drive its money and its
+    // dialog, not its allergen block; the row guards those, not the file.
+    './src/components/server/ProductCustomization.tsx': {
+      statements: 85,
+      branches: 90,
+      functions: 79,
+      lines: 85,
+    },
+    // ── S9 — the side-item picker's add-AND-remove rules (plan D12). ────────────────────────────
+    // Pinned at 100%: every branch here is a way for a suggestion to be silently kept or silently
+    // dropped, and the surface this replaces shipped exactly that defect for a year — its merge
+    // made unticking a no-op with nothing on screen to say so. An uncovered branch is another one.
+    './src/components/admin/product/sideItemPicker.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    // ── S6 — the guest sauces group. ─────────────────────────────────────────────────────────────
+    // Pinned at 100% on both, and both rows are load-bearing rather than ceremonial: `sauceGroup.ts`
+    // decides which chosen sauces a product's free allowance pays for, so an uncovered branch there
+    // is money nobody checked, and the component is the only place that turns that allocation into
+    // what the guest reads ("Included" / "+CHF x" / "Max n reached"). A branch that goes uncovered
+    // in either is a way for the badge and the total to disagree.
+    './src/utils/sauceGroup.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+    './src/components/menu/customization/SauceGroupSection.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
   },
 };

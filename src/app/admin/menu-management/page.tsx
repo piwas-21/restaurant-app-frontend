@@ -7,14 +7,13 @@ import { useMenuManagement } from '@/hooks/useMenuManagement';
 import { deleteMenuBundle } from '@/services/menuBundleService';
 import { deleteProduct } from '@/services/productService';
 import {
-  MENU_BUNDLE_TYPE,
   MENU_TYPE_FILTERS,
   MENU_TYPE_FILTER_LABEL_KEYS,
   MenuTypeFilter,
   isMenuBundle,
 } from '@/utils/productTypeFilter';
 import styles from '@/app/styles/AdminPage.module.css';
-import NewProductTypeModal from '@/components/admin/menu-management/NewProductTypeModal';
+import MenuCreateFlow from '@/components/admin/menu-management/MenuCreateFlow';
 import PageHeader from '@/components/admin/PageHeader';
 import ProductsTable from '@/components/admin/menu-management/ProductsTable';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
@@ -45,7 +44,6 @@ const MenuManagementContent = () => {
     fetchProducts,
   } = useMenuManagement(typeFilter);
 
-  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<PendingDelete | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
@@ -55,12 +53,6 @@ const MenuManagementContent = () => {
   // Edit NAVIGATES to the editor page; no `?type=` hint (PR2e) — the route derives the kind itself.
   const handleEdit = (product: Product) => {
     router.push(`/admin/menu-management/${product.id}`);
-  };
-
-  // Type is chosen once (item vs bundle load different fields; the backend can't migrate between them).
-  const handleCreateSelect = (isBundle: boolean) => {
-    setIsTypeModalOpen(false);
-    router.push(isBundle ? `/admin/menu-management/new?type=${MENU_BUNDLE_TYPE}` : '/admin/menu-management/new');
   };
 
   // Kind captured at CLICK time: the confirm modal has no focus trap, so the chips stay
@@ -122,15 +114,9 @@ const MenuManagementContent = () => {
                 </option>
               ))}
             </select>
-            {/* One "New product" entry → a type choice (owner call, slice 7 PR2e). The filter
-                is a VIEW, not a mode, so create is a single action regardless of the active chip. */}
-            <button
-              type="button"
-              className={`${styles.adminButton} ${styles.add}`}
-              onClick={() => setIsTypeModalOpen(true)}
-            >
-              {t('create_new_product')}
-            </button>
+            {/* Create is its own component since S3: an item is a quick-add modal (D3) and a
+                bundle is still a page, and the page has no room for either flow's state. */}
+            <MenuCreateFlow autoOpenQuickAdd={searchParams.get('new') === 'item'} onCreated={fetchProducts} />
           </div>
         </PageHeader>
         <div className={styles.adminContent}>
@@ -168,11 +154,6 @@ const MenuManagementContent = () => {
           )}
         </div>
       </div>
-      <NewProductTypeModal
-        isOpen={isTypeModalOpen}
-        onClose={() => setIsTypeModalOpen(false)}
-        onSelect={handleCreateSelect}
-      />
       <ConfirmationModal
         isOpen={isConfirmationOpen}
         onClose={() => setIsConfirmationOpen(false)}

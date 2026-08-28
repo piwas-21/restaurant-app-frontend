@@ -1,9 +1,16 @@
 import React from 'react';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { CircleAlert } from 'lucide-react';
 import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import type { Category } from '../types';
+import FieldError from './FieldError';
+import { fieldAria, fieldDomId, fieldErrorId, fieldMessage } from './fieldAria';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import styles from './editorFields.module.css';
+
+/** The consequence notice's DOM id — shared by the `<p>` and the select's `aria-describedby`. */
+const PRIMARY_CONSEQUENCE_ID = 'primary-category-consequence';
 
 interface ProductBasicsFieldsProps {
   // readonly: S6759 — component props are never mutated.
@@ -21,8 +28,13 @@ interface ProductBasicsFieldsProps {
  *
  * Split out of `ProductBasicInfo`, whose fourth control was the kitchen-type selector. That one is
  * an *operational* setting and now lives in `Service & availability`, which is the whole point of
- * S2: this slice moves controls between sections and changes none of them. Every field below is
- * registered exactly as it was, so the payload is byte-identical.
+ * S2: this slice moves controls between sections and changes none of them.
+ *
+ * S7 wires the accessibility half of every control here: a label that points at its input, an
+ * `aria-invalid` the assistive tree can read, and an `aria-describedby` from the input to the
+ * sentence explaining it. The category CHIPS become a real `fieldset`/`legend` — a group of
+ * checkboxes needs a group name and a group-level invalid state, which a `<h3>` above a `<div>`
+ * cannot give. No field is added, renamed or re-registered.
  */
 export default function ProductBasicsFields({
   register,
@@ -33,22 +45,60 @@ export default function ProductBasicsFields({
   selectedCategoryIds,
 }: ProductBasicsFieldsProps) {
   const { t } = useTranslation();
+  const categoriesMessage = fieldMessage(errors, 'categoryIds');
+  /*
+   * D8 (S10): the consequence of leaving Primary category empty, shown AT THE CAUSE.
+   *
+   * The sentence itself is not new — `ProductOrderTypes.tsx:103-110` has said it since the
+   * order-type work. What was wrong is WHERE: it renders in `Service & availability`, five sections
+   * below the empty select that causes it, so an admin who never scrolls there never learns why
+   * their item is orderable on every channel. This is the notice the approved screen draws under
+   * this control (conformance gap G14's notice half); the one downstream stays exactly as it is,
+   * because that is where the effect actually lands.
+   */
+  const primaryCategoryId = useWatch({ control, name: 'primaryCategoryId' });
+  const hasCategories = (selectedCategoryIds?.length ?? 0) > 0;
+  // Only once a category has been TICKED. Before that the select is disabled and empty by
+  // construction, so the notice would be scolding the admin for not having reached the field yet.
+  const showNoPrimaryConsequence = hasCategories && !primaryCategoryId;
+
+  /*
+   * The notice explains this control, so it has to DESCRIBE it — otherwise a screen-reader user
+   * hears the label and the options and never the consequence of leaving it empty.
+   *
+   * Merged rather than passed as a second `aria-describedby` prop: a later JSX attribute WINS over
+   * a spread one, so `aria-describedby={undefined}` written after `{...fieldAria(...)}` would have
+   * silently wiped the ERROR describedby whenever there was an error and no notice. The two ids are
+   * joined instead, which is also the correct answer if they ever do coexist.
+   */
+  const primaryCategoryAria = (() => {
+    const base = fieldAria(errors, 'primaryCategoryId');
+    if (!showNoPrimaryConsequence) return base;
+    return {
+      ...base,
+      'aria-describedby': [base['aria-describedby'], PRIMARY_CONSEQUENCE_ID].filter(Boolean).join(' '),
+    };
+  })();
 
   return (
     <div className={modalStyles.formColumn}>
-      <div className={modalStyles.formGroup}>
-        <label>{t('product_name')}</label>
-        <input {...register('name')} />
-        {errors.name && <p className={modalStyles.errorMessage}>{errors.name.message as string}</p>}
+      <div className={`${modalStyles.formGroup} ${styles.group}`}>
+        <label htmlFor={fieldDomId('name')}>{t('product_name')}</label>
+        <input {...register('name')} {...fieldAria(errors, 'name')} />
+        <FieldError name="name" message={fieldMessage(errors, 'name')} />
       </div>
 
       <div className={modalStyles.formGroup}>
-        <label>{t('description')}</label>
-        <textarea {...register('description')} rows={4} />
+        <label htmlFor={fieldDomId('description')}>{t('description')}</label>
+        <textarea {...register('description')} {...fieldAria(errors, 'description')} rows={4} />
       </div>
 
-      <div className={modalStyles.formGroup}>
-        <h3>{t('categories')}</h3>
+      <fieldset
+        className={`${modalStyles.formGroup} ${styles.group} ${styles.fieldset}`}
+        aria-invalid={categoriesMessage ? 'true' : undefined}
+        aria-describedby={categoriesMessage ? fieldErrorId('categoryIds') : undefined}
+      >
+        <legend className={styles.legend}>{t('categories')}</legend>
         <Controller
           name="categoryIds"
           control={control}
@@ -67,6 +117,7 @@ export default function ProductBasicsFields({
                         e.target.checked ? [...selectedIds, cat.id] : selectedIds.filter((id: string) => id !== cat.id),
                       );
                     }}
+                    onBlur={field.onBlur}
                   />
                   <label htmlFor={`category-chip-${cat.id}`}>{cat.name}</label>
                 </div>
@@ -82,12 +133,16 @@ export default function ProductBasicsFields({
             {categoriesError}
           </p>
         )}
-        {errors.categoryIds && <p className={modalStyles.errorMessage}>{errors.categoryIds.message as string}</p>}
-      </div>
+        <FieldError name="categoryIds" message={categoriesMessage} />
+      </fieldset>
 
-      <div className={modalStyles.formGroup}>
-        <label>{t('primary_category')}</label>
-        <select {...register('primaryCategoryId')} disabled={!selectedCategoryIds || selectedCategoryIds.length === 0}>
+      <div className={`${modalStyles.formGroup} ${styles.group}`}>
+        <label htmlFor={fieldDomId('primaryCategoryId')}>{t('primary_category')}</label>
+        <select
+          {...register('primaryCategoryId')}
+          {...primaryCategoryAria}
+          disabled={!selectedCategoryIds || selectedCategoryIds.length === 0}
+        >
           <option value="">{t('select_primary_category')}</option>
           {categories
             .filter((cat) => selectedCategoryIds?.includes(cat.id))
@@ -97,8 +152,12 @@ export default function ProductBasicsFields({
               </option>
             ))}
         </select>
-        {errors.primaryCategoryId && (
-          <p className={modalStyles.errorMessage}>{errors.primaryCategoryId.message as string}</p>
+        <FieldError name="primaryCategoryId" message={fieldMessage(errors, 'primaryCategoryId')} />
+        {showNoPrimaryConsequence && (
+          <p id={PRIMARY_CONSEQUENCE_ID} className={styles.consequence}>
+            <CircleAlert size={16} className={styles.consequenceIcon} aria-hidden="true" />
+            {t('editor_no_primary_category_consequence')}
+          </p>
         )}
       </div>
     </div>

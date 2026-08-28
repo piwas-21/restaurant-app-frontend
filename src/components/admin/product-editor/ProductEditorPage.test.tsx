@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { EMPTY_MENU_DEFINITION } from '@/utils/productEditorDefaults';
@@ -138,6 +138,55 @@ describe('ProductEditorPage — type is a derived badge, not a chooser', () => {
   });
 });
 
+/*
+  Header chrome (frontend #574, gap G1). The approved screens draw `← Menu`, TWO badges
+  (`[Item] [Active]`) and a `⋯` holding Delete; the shipped header had the type badge and an
+  exposed red Delete beside Save.
+*/
+describe('ProductEditorPage — the live badge and the ⋯', () => {
+  it('shows the item as Active, and FOLLOWS the rail switch rather than the loaded product', async () => {
+    const { container } = await renderEditor(item, false);
+
+    expect(screen.getByTestId('product-active-badge')).toHaveTextContent('active');
+
+    // The switch that changes this lives in the rail, two columns from the badge. A badge read
+    // from `product.isActive` would keep saying "active" until the next save — i.e. contradict the
+    // control the admin just used.
+    // No `act()` wrapper: `fireEvent` already flushes its own updates, and a second one is Sonar
+    // S8980. The badge re-render it drives is synchronous — `form.watch` is a subscription, not a
+    // fetch — so the assertion below reads the settled value.
+    fireEvent.click(container.querySelector('#product-active') as HTMLInputElement);
+    expect(screen.getByTestId('product-active-badge')).toHaveTextContent('inactive');
+  });
+
+  it('shows no live badge on the create route, where nothing is live yet', async () => {
+    await renderEditor(emptyProductDetails(false), false, 'create');
+
+    expect(screen.queryByTestId('product-active-badge')).not.toBeInTheDocument();
+  });
+
+  it('puts Delete in the ⋯ menu instead of beside Save, and guards the back link', async () => {
+    await renderEditor(item, false);
+
+    // Not merely renamed — the destructive control is not in the document until the menu opens.
+    expect(screen.queryByRole('button', { name: 'delete_product' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'editor_more_actions' }));
+    expect(screen.getByRole('menuitem', { name: 'delete_product' })).toBeInTheDocument();
+  });
+
+  it('routes the back link through the unsaved-changes guard', async () => {
+    const { nameInput } = await renderEditor(item, false);
+    fireEvent.change(nameInput, { target: { value: 'Margherita Bianca' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor_back_to_menu_label' }));
+
+    // The guard, not the navigation: leaving with pending edits has to be confirmed. `onBack` is
+    // asserted un-called by the discard-modal suite; here the point is that the NEW link is gated
+    // by the same handler the save bar's Back already used.
+    expect(screen.getByText('discard_unsaved_changes_message')).toBeInTheDocument();
+  });
+});
+
 describe('ProductEditorPage — the panels each kind can actually support', () => {
   // Not cosmetic: MenuBundleDto returns no categories/variations/ingredients, so these
   // controls would have nothing to seed from and their values would be invented.
@@ -202,7 +251,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     await renderEditor(item, false);
 
     expect(screen.getByTestId('editor-save')).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'add_manually' })[0]);
     expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
 
@@ -306,7 +355,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   it('confirms before discarding on Back when there are unsaved changes', async () => {
     const { onBack } = await renderEditor(item, false);
 
-    fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'add_manually' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'back' }));
 
     // Not left yet — the confirm modal stands between the click and the discard.
@@ -404,20 +453,42 @@ describe('ProductEditorPage — the create route drives the same page', () => {
 });
 
 describe('ProductEditorPage — existing-image management', () => {
-  // The gallery re-added in PR2e: edit-mode items only. Bundles keep the file-input-only
-  // path they always had; a brand-new product has no images yet.
+  /*
+   * S6 removed the gallery's own `<h3>Image Gallery</h3>` (conformance gap G16 — the section card
+   * already draws `<h2>Media</h2>` over it), so the heading is no longer the thing to look for.
+   * D5's autosave notice is: it is unique to the gallery and renders in BOTH its states.
+   */
+  const galleryNotice = () => screen.queryByText('editor_media_autosave_notice');
+
+  // The gallery re-added in PR2e: edit-mode items only. Bundles get Media as an empty card with a
+  // reason (S6/D11); a brand-new product has no Media section at all.
   it('mounts the image gallery when editing an item', async () => {
     await renderEditor(item, false);
 
-    expect(screen.getByRole('heading', { name: 'image_gallery' })).toBeInTheDocument();
+    expect(galleryNotice()).toBeInTheDocument();
   });
 
-  it('does not mount the gallery on create, nor for a bundle', async () => {
-    await renderEditor(emptyProductDetails(false), false, 'create');
-    expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
+  // G16: exactly ONE heading inside Media. The card's `<h2>` and nothing under it.
+  it('gives the Media section a single heading', async () => {
+    const { container } = await renderEditor(item, false);
 
-    await renderEditor(bundle, true);
-    expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
+    const media = container.querySelector('#editor-section-media') as HTMLElement;
+    expect(within(media).getAllByRole('heading')).toHaveLength(1);
+    expect(within(media).getByRole('heading', { name: 'editor_section_media' })).toBeInTheDocument();
+  });
+
+  it('does not mount the gallery on an unsaved item, nor for a bundle', async () => {
+    await renderEditor(emptyProductDetails(false), false, 'create');
+    expect(galleryNotice()).not.toBeInTheDocument();
+    expect(document.querySelector('#editor-section-media')).toBeNull();
+
+    // A bundle DOES get the section — empty, with the reason in it (S6/D11). What it does not get
+    // is the gallery, so the autosave notice must not follow it there: nothing here autosaves.
+    const { container } = await renderEditor(bundle, true);
+    expect(galleryNotice()).not.toBeInTheDocument();
+    const media = container.querySelector('#editor-section-media') as HTMLElement;
+    expect(media).not.toBeNull();
+    expect(within(media).getByText('editor_media_bundle_unavailable')).toBeInTheDocument();
   });
 
   // Track F, F7-C was positional: images sat below the sticky Save bar after nine other sections.
@@ -429,7 +500,7 @@ describe('ProductEditorPage — existing-image management', () => {
     const { container } = await renderEditor(item, false);
 
     const form = container.querySelector('form') as HTMLFormElement;
-    const gallery = screen.getByRole('heading', { name: 'image_gallery' });
+    const gallery = screen.getByText('editor_media_autosave_notice');
     expect(form.contains(gallery)).toBe(true);
     expect(container.querySelector('#editor-section-media')?.contains(gallery)).toBe(true);
   });
@@ -451,21 +522,26 @@ describe('ProductEditorPage — existing-image management', () => {
     expect(updateProduct).not.toHaveBeenCalled();
   });
 
-  // Track F, F7-B. Two upload entry points with different semantics (staged at the top,
-  // immediate at the bottom) was the confusion itself, so edit keeps only the gallery.
-  it('offers no staged file input on an item edit, and keeps one on create', async () => {
-    // Container-scoped, not `screen`: both renders share one document body here.
+  // Track F, F7-B kept a staged input on the item CREATE route and none on edit. S3 deletes the
+  // route: an item is created by the three-field quick-add modal (D3), so `#product-images` is
+  // gone from the item path entirely and the Media section no longer forks on mode. A BUNDLE
+  // still creates through a page, so `BundlePanel` keeps its own staged input — that asymmetry is
+  // the point, and is what this pins.
+  it('offers no staged file input on an item, in either mode, and keeps the bundle one', async () => {
+    // Container-scoped, not `screen`: the renders share one document body here.
     const editRender = await renderEditor(item, false);
     // By the input's own id, not by its label text: since the S1 shell the side rail also shows a
     // `product_images` row (a read-only photo count), so a text match no longer isolates the picker.
     expect(editRender.container.querySelector('#product-images')).toBeNull();
-    // The only file input left on the edit route is the gallery's own (immediate) one.
+    // The only file input left on the item route is the gallery's own (immediate) one.
     expect(editRender.container.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(editRender.container.querySelector('[data-testid="gallery-image-input"]')).not.toBeNull();
 
     const createRender = await renderEditor(emptyProductDetails(false), false, 'create');
-    expect(createRender.container.querySelector('#product-images')).not.toBeNull();
-    expect(createRender.container.querySelector('input[type="file"]')).not.toBeNull();
+    expect(createRender.container.querySelector('#product-images')).toBeNull();
+
+    const bundleRender = await renderEditor(emptyProductDetails(true), true, 'create');
+    expect(bundleRender.container.querySelector('#bundle-images')).not.toBeNull();
   });
 });
 
@@ -521,13 +597,15 @@ describe('ProductEditorPage — the S1 editor shell', () => {
     expect(tabs.map((tab) => tab.textContent)).toEqual(['item', 'editor_tab_translations']);
   });
 
-  // S1 relocates the multilingual list into the tab that owns translation (D2) and changes nothing
-  // about it — same component, same `content` field array, same payload. S4 replaces it.
-  it('moves the multilingual content into the Translations tab without unmounting it', async () => {
+  // The Translations tab owns translation, and since S4 it owns ALL of it — one locale switcher
+  // over the product's, the variations' and the ingredients' strings. The panel behind it never
+  // unmounts, which is what keeps a submit-time error reachable (§8.1). The workbench's own
+  // behaviour is `translations/TranslationsWorkbench.test.tsx`.
+  it('keeps the Translations panel mounted behind the tab', async () => {
     const { container } = await renderEditor(item, false);
 
     const translationsPanel = container.querySelector('#product-editor-form-panel-translations') as HTMLElement;
-    expect(translationsPanel.textContent).toContain('multilingual_content');
+    expect(translationsPanel.textContent).toContain('editor_translations_target_languages');
     expect(translationsPanel).toHaveAttribute('hidden');
 
     fireEvent.click(container.querySelector('[role="tab"][aria-controls$="panel-translations"]') as HTMLElement);

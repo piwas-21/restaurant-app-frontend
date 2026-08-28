@@ -25,7 +25,8 @@ interface SubmitProductFormParams {
   detailedIngredients?: any[];
   setSubmissionStatus: (status: 'idle' | 'creating' | 'uploading') => void;
   setError: UseFormSetError<FormData>;
-  onProductCreated: () => void;
+  /** Receives the NEW id: quick-add (D3) lands the admin on the item's own edit page. */
+  onProductCreated: (productId: string) => void;
   onClose: () => void;
   reset: UseFormReset<FormData>;
   setImageFiles: (files: File[]) => void;
@@ -49,12 +50,7 @@ interface SubmitEditProductFormParams {
   setError: UseFormSetError<EditFormData>;
   onProductUpdated: () => void;
   onClose: () => void;
-  /**
-   * Already-translated sentence for a failure the server did not describe. Threaded in rather
-   * than resolved here (the CartContext pattern): this module is a plain util with no `t`, and
-   * the two literals it used to hold — 'An unexpected error occurred.' and 'Failed to create
-   * product' — were the English a non-English admin actually read.
-   */
+  /** @see SubmitProductFormParams.fallbackMessage — same contract, same reason. */
   fallbackMessage: string;
   /** The product was written, its photos were not — see `uploadStagedImages`. */
   onImageUploadFailed: ImageUploadFailureReporter;
@@ -298,7 +294,7 @@ export const submitProductForm = async ({
         setSubmissionStatus('uploading');
         await uploadStagedImages(productResponse.data.id, imageFiles, onImageUploadFailed);
       }
-      onProductCreated();
+      onProductCreated(productResponse.data.id);
       onClose();
       reset();
       setImageFiles([]);
@@ -367,6 +363,12 @@ export const submitEditProductForm = async ({
       .filter((v) => (v?.name || '').trim().length > 0)
       .map((v) => ({
         id: v.id,
+        // Carried through deliberately. This map is a WHITELIST, so anything it does not name is
+        // dropped on the way to the wire — and `globalVariationId` is a value the API SENDS
+        // (`ProductVariationDto`, backend #431) and `productEditorDefaults` seeds straight into the
+        // form. Omitting it here is #428's shape on a different field: a PUT that omits a field
+        // must not write that field, and this one wrote null on every save of a linked product.
+        globalVariationId: v.globalVariationId,
         name: (v.name || '').trim(),
         description: v.description ?? '',
         priceModifier: parseNum(v.priceModifier, 0),

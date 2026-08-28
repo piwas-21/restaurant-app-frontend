@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { FALLBACK_IMAGE } from '@/utils/imageHelpers';
 import ImageGallery from './ImageGallery';
 import type { ProductImage } from '@/app/admin/menu-management/interfaces';
 
@@ -31,6 +34,28 @@ const pick = (container: HTMLElement, files: File[]) =>
 const photo = (name: string) => new File(['x'], name, { type: 'image/jpeg' });
 
 describe('ImageGallery — immediate, no rival Save (slice 7 PR2e)', () => {
+  /*
+   * D5 (slice S6). The gallery writes on click while the rest of the page waits for Save, and the
+   * API offers no batch image write, so the notice is the only thing that makes the difference
+   * visible. It must therefore be PERSISTENT — present before anything is clicked, and present in
+   * both states — which is what these two assertions are: no action is taken in either.
+   */
+  it('always says that photo changes save immediately — with photos and without', () => {
+    const { unmount } = renderGallery();
+    expect(screen.getByText('editor_media_autosave_notice')).toBeInTheDocument();
+
+    unmount();
+    renderGallery([]);
+    expect(screen.getByText('editor_media_autosave_notice')).toBeInTheDocument();
+  });
+
+  // G16: the section card draws `<h2>Media</h2>`, so the gallery's own `<h3>Image Gallery</h3>` was
+  // a second title for one box. It brings no heading of its own any more.
+  it('brings no heading of its own', () => {
+    const { container } = renderGallery();
+    expect(container.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
+  });
+
   it('empty gallery shows a placeholder, no per-image controls, and a way out of it', () => {
     renderGallery([]);
     expect(screen.getByText('no_images_yet')).toBeInTheDocument();
@@ -223,5 +248,47 @@ describe('ImageGallery — what the picker may offer (Track F, F1c)', () => {
     // The good file is still staged — a mixed pick is not all-or-nothing.
     expect(screen.getByText('pizza.jpg')).toBeInTheDocument();
     expect(screen.queryByText('camera.heic')).not.toBeInTheDocument();
+  });
+});
+
+/*
+ * D8 (slice S10) — the consequence of an empty gallery.
+ *
+ * The copy assertion below is the load-bearing one, and it is a TRUTH oracle, not a snapshot. The
+ * plan's D8 said an item with no photo "renders as a text-only card"; it does not. `MenuCard.tsx`
+ * and `CraftMenuCard.tsx` both fall back to `FALLBACK_IMAGE` (`/branding/placeholder.png`), and
+ * that fallback is pinned deliberately by a test named "falls back to the placeholder when the
+ * special has no image, rather than omitting the photo". So the notice must describe the
+ * placeholder, and must never claim the text-only behaviour the codebase rejected.
+ */
+describe('ImageGallery — the empty-gallery consequence (D8, slice S10)', () => {
+  it('warns only while the gallery is empty', () => {
+    const { unmount } = renderGallery([]);
+    expect(screen.getByText('editor_no_photo_consequence')).toBeInTheDocument();
+
+    unmount();
+    renderGallery();
+    // With photos there is no consequence to explain — a permanent warning is just noise.
+    expect(screen.queryByText('editor_no_photo_consequence')).not.toBeInTheDocument();
+  });
+
+  it('hides its glyph from the accessible name and does not shout as an alert', () => {
+    const { container } = renderGallery([]);
+
+    const notice = screen.getByText('editor_no_photo_consequence');
+    expect(notice.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    // Nothing has gone wrong: the item is valid without a photo.
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it('the shipped English copy describes the placeholder the menu actually renders', () => {
+    const copy = JSON.parse(readFileSync(join(process.cwd(), 'src/locales/en.json'), 'utf8')) as Record<string, string>;
+    const sentence = copy.editor_no_photo_consequence;
+
+    expect(sentence).toMatch(/placeholder/i);
+    // The behaviour D8 originally described, and the one the menu templates do NOT have.
+    expect(sentence).not.toMatch(/text[- ]only/i);
+    // And the fallback the sentence promises is the one the menu really uses.
+    expect(FALLBACK_IMAGE).toBe('/branding/placeholder.png');
   });
 });

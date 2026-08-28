@@ -1,11 +1,26 @@
 // Product-related types and interfaces
-import { LANGUAGE_CODES } from '@/config/languageConfig';
+import type { FieldErrors, UseFormGetValues, FieldValues } from 'react-hook-form';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
-export const supportedLanguages = LANGUAGE_CODES;
+
+/**
+ * The types the ITEM editor offers (slice S8, D7).
+ *
+ * `menu` is missing on purpose and the omission is load-bearing. A `menu` product is a BUNDLE: it
+ * is created through `menuBundleService`, edited by `BundlePanel` against `bundleSchema`, deleted
+ * by `deleteMenuBundle`, and `isMenuBundle` routes the whole editor on it. Offering it in the item
+ * editor's type select advertised a conversion that does not exist — picking it saved an item whose
+ * discriminator claimed to be a bundle while it carried no `menuDefinition`, so the next open sent
+ * the editor down the bundle branch for a product with nothing to show. That is the definition of a
+ * dead control.
+ *
+ * `productTypes` above KEEPS `menu`, and that is not an oversight either: it is the zod enum, and a
+ * schema that rejects a value the server can legitimately send turns a data state into a save the
+ * admin cannot complete and cannot explain. The vocabulary and the offer are two different lists.
+ */
+export const itemProductTypes = productTypes.filter((type) => type !== 'menu');
 
 export type ProductType = (typeof productTypes)[number];
-export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 export interface Category {
   id: string;
@@ -20,6 +35,12 @@ export interface Category {
 
 export interface Variation {
   id?: string; // Optional for create, required for edit
+  /**
+   * Which global variation row this one was copied from (plan S4, backend #431's
+   * `ProductVariationDto.GlobalVariationId`). Provenance only: the name and translations beside it
+   * are the product's OWN copies, and editing the library row later does not change them.
+   */
+  globalVariationId?: string;
   name: string;
   description?: string;
   priceModifier: number;
@@ -92,23 +113,30 @@ export interface BaseProductFormData {
 // sit in the section that owns each of them (`components/admin/product/fields/`, one small file per
 // group, each typed against react-hook-form directly rather than through `any`).
 
-export interface MultilingualContentProps {
-  register: any;
-  errors: any;
-  control: any;
-  contentFields: any[];
-  appendContent: (content: ContentItem) => void;
-  removeContent: (index: number) => void;
-  watch: any;
-  currentLanguage: string;
-}
+// `MultilingualContentProps` is gone with slice S4. The component it typed was one of THREE
+// translation UIs for one concept; the Translations tab now carries a single locale switcher
+// (`product-editor/translations/`) that retargets product, variation and ingredient strings at once.
 
 export interface ProductVariationsProps {
   register: any;
-  errors: any;
+  // Typed properly because S7 reads it: `fieldMessage`/`fieldAria` take react-hook-form's own
+  // shape, and the surrounding `any`s are pre-existing debt this slice does not widen.
+  errors: FieldErrors<FieldValues>;
   variationFields: any[];
   appendVariation: (variation: Variation) => void;
   removeVariation: (index: number) => void;
+  /**
+   * Move a row and renumber `displayOrder` (#593). It comes from the FORM hook, not from
+   * `useFieldArray.move`, because `move` alone carries each row's stored `displayOrder` with it —
+   * see `useProductEditorForm.moveVariation` for why that would silently undo the reorder.
+   */
+  moveVariation: (index: number, delta: -1 | 1) => void;
+  /**
+   * Read the form STORE. The library picker uses it to see the product's current rows at the moment
+   * it opens — `variationFields` is a snapshot that `moveVariation`'s `setValue` renumbering does
+   * not refresh, so its `displayOrder` values go stale after any reorder.
+   */
+  getValues: UseFormGetValues<FieldValues>;
 }
 
 // Interface for the new suggested side items component
@@ -117,6 +145,12 @@ export interface SuggestedSideItemsPickerProps {
   control: any;
   selectedSideItemIds: string[];
   onChange: (selectedIds: string[]) => void;
+  /**
+   * The product being edited, on the edit route. It may never suggest ITSELF (plan S9 / D12) —
+   * nothing on the server refuses that, so the guard lives in the picker. Optional because the
+   * create route has no id yet.
+   */
+  productId?: string;
 }
 
 // Product search result interface

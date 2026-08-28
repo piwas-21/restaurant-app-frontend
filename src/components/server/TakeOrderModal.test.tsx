@@ -59,6 +59,9 @@ jest.mock('./ProductCustomization', () => ({
               variationId: undefined,
               variationName: undefined,
               addedIngredients: [],
+              removedIngredients: [],
+              selectedIngredientIds: [],
+              ingredientQuantities: {},
               sideItems: [],
               specialInstructions: undefined,
               finalPrice: product.basePrice,
@@ -196,7 +199,22 @@ describe('TakeOrderModal', () => {
     await waitFor(() => expect(onOrderCreated).toHaveBeenCalledTimes(1));
     expect(mockCreateServerOrder).toHaveBeenCalledWith(
       5,
-      [{ productId: 'p1', productVariationId: undefined, quantity: 1, unitPrice: 12, specialInstructions: undefined }],
+      [
+        {
+          productId: 'p1',
+          productVariationId: undefined,
+          quantity: 1,
+          unitPrice: 12,
+          specialInstructions: undefined,
+          // #595 — the line now says what it is made of. The stub above confirms an EMPTY
+          // selection, and empty is a real answer the server prices: it is sent, not omitted.
+          selectedIngredientIds: [],
+          ingredientQuantities: {},
+          // No side was chosen, so the key is absent-as-undefined — a plain line posts what it
+          // always did.
+          childItems: undefined,
+        },
+      ],
       undefined,
       undefined,
       undefined,

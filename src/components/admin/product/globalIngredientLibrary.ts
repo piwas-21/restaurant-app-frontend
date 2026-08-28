@@ -1,6 +1,8 @@
 import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { fold } from './libraryMatching';
 import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
-import type { ProductIngredient } from '@/types/menu';
+import type { IngredientKind, ProductIngredient } from '@/types/menu';
+import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
 
 /**
  * Pure library logic behind `GlobalIngredientPickerModal` — matching, ordering, "already added",
@@ -9,8 +11,18 @@ import type { ProductIngredient } from '@/types/menu';
  * may only shrink.
  */
 
-/** How many rows the picker renders at once. The seeded catalog is 654 entries. */
-export const MAX_VISIBLE_LIBRARY_ROWS = 50;
+/**
+ * How many rows the picker renders at once, and the matching rules it filters with. Both moved to
+ * `libraryMatching` when the variation library (plan S4) needed the identical folding, and are
+ * re-exported here so every existing caller keeps its import.
+ */
+export {
+  MAX_VISIBLE_LIBRARY_ROWS,
+  matchesQuery,
+  rankByQuery,
+  hasTranslationFor,
+  isAlreadyAttached,
+} from './libraryMatching';
 
 let temporaryIngredientCounter = 0;
 
@@ -33,45 +45,6 @@ export function nextTemporaryIngredientId(): string {
 }
 
 /**
- * Case- and accent-insensitive. The catalog is multilingual, so "creme" must find "Crème" —
- * Postgres' `ToLower().Contains()` behind `/search` does not do that, which is one more reason the
- * picker filters the browsed list itself.
- */
-const fold = (value: string): string =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-
-/** Every name a row answers to: its default name plus all of its translations. */
-const searchableNames = (ingredient: GlobalIngredientSummary): string[] => [
-  ingredient.defaultName,
-  ...ingredient.translations.map((translation) => translation.name),
-];
-
-export function matchesQuery(ingredient: GlobalIngredientSummary, query: string): boolean {
-  const needle = fold(query);
-  if (needle.length === 0) return true;
-  return searchableNames(ingredient).some((name) => fold(name).includes(needle));
-}
-
-/**
- * Starts-with first, then alphabetical — the same order `SearchGlobalIngredientsQuery` applies
- * server-side, so browsing and searching do not disagree about what is most relevant.
- */
-export function rankByQuery(ingredients: GlobalIngredientSummary[], query: string): GlobalIngredientSummary[] {
-  const needle = fold(query);
-  const startsWith = (ingredient: GlobalIngredientSummary) =>
-    needle.length > 0 && searchableNames(ingredient).some((name) => fold(name).startsWith(needle));
-
-  return [...ingredients].sort((a, b) => {
-    const byPrefix = Number(startsWith(b)) - Number(startsWith(a));
-    return byPrefix !== 0 ? byPrefix : a.defaultName.localeCompare(b.defaultName);
-  });
-}
-
-/**
  * The keys that say "this product already has that ingredient".
  *
  * Two of them, because provenance is new: a row picked from the library carries
@@ -89,16 +62,6 @@ export function attachedLibraryKeys(ingredients: ProductIngredient[]): Set<strin
   return keys;
 }
 
-export function isAlreadyAttached(ingredient: GlobalIngredientSummary, attachedKeys: Set<string>): boolean {
-  return attachedKeys.has(`id:${ingredient.id}`) || attachedKeys.has(`name:${fold(ingredient.defaultName)}`);
-}
-
-/** Whether the row carries a name in the language the admin is reading the UI in. */
-export function hasTranslationFor(ingredient: GlobalIngredientSummary, languageCode: string): boolean {
-  const primary = languageCode.split('-')[0];
-  return ingredient.translations.some((translation) => translation.languageCode.split('-')[0] === primary);
-}
-
 /**
  * A catalog row as a product ingredient.
  *
@@ -109,8 +72,16 @@ export function hasTranslationFor(ingredient: GlobalIngredientSummary, languageC
  *
  * COPY semantics (plan D3): the values are now the product's own. Editing the library row later
  * does not change them.
+ *
+ * `kind` is the GROUP the admin picked into, not the catalog row's own kind (plan D8): the picker
+ * is opened from either Ingredients or Sauces, and where a row lands is where the admin put it. A
+ * catalog row typed `sauce` may legitimately be a plain ingredient on one product.
  */
-export function toProductIngredient(ingredient: GlobalIngredientSummary, displayOrder: number): ProductIngredient {
+export function toProductIngredient(
+  ingredient: GlobalIngredientSummary,
+  displayOrder: number,
+  kind: IngredientKind = DEFAULT_INGREDIENT_KIND,
+): ProductIngredient {
   const content: NonNullable<ProductIngredient['content']> = {};
   LANGUAGE_CODES.forEach((language) => {
     content[language] = { name: '', description: '' };
@@ -123,6 +94,7 @@ export function toProductIngredient(ingredient: GlobalIngredientSummary, display
   return {
     id: nextTemporaryIngredientId(),
     name: ingredient.defaultName,
+    kind,
     isOptional: false,
     maxQuantity: 1,
     price: 0,

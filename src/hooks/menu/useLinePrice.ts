@@ -20,6 +20,8 @@ interface ProductLineArgs {
   ingredients?: readonly PriceableIngredient[];
   selectedIngredientIds: Iterable<string>;
   ingredientQuantities?: Record<string, number>;
+  /** The product's free-sauce allowance (S6) — 0, or absent, is pre-S6 pricing. */
+  sauceIncludedFree?: number;
   sides?: readonly PriceableSide[];
   selectedSides?: readonly SelectedSide[];
 }
@@ -55,6 +57,7 @@ export function useLinePrice(args: UseLinePriceArgs): LinePrice {
   const ingredients = args.kind === 'product' ? args.ingredients : undefined;
   const selectedIngredientIds = args.kind === 'product' ? args.selectedIngredientIds : undefined;
   const ingredientQuantities = args.kind === 'product' ? args.ingredientQuantities : undefined;
+  const sauceIncludedFree = args.kind === 'product' ? args.sauceIncludedFree : undefined;
   const sides = args.kind === 'product' ? args.sides : undefined;
   const selectedSides = args.kind === 'product' ? args.selectedSides : undefined;
   const sections = args.kind === 'bundle' ? args.sections : undefined;
@@ -71,6 +74,7 @@ export function useLinePrice(args: UseLinePriceArgs): LinePrice {
             ingredients,
             selectedIngredientIds: selectedIngredientIds ?? [],
             ingredientQuantities,
+            sauceIncludedFree,
             sides,
             selectedSides,
           });
@@ -85,6 +89,7 @@ export function useLinePrice(args: UseLinePriceArgs): LinePrice {
     ingredients,
     selectedIngredientIds,
     ingredientQuantities,
+    sauceIncludedFree,
     sides,
     selectedSides,
     sections,

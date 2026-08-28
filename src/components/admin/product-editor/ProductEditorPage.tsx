@@ -2,16 +2,17 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import StatusBadge from '@/components/design-system/StatusBadge';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import EditorShell from './EditorShell';
+import EditorErrorSummary from './EditorErrorSummary';
 import EditorSideRail from './EditorSideRail';
 import { buildEditorSections, buildTranslationsPanel } from './editorSections';
+import { productHeaderBadges, productHeaderMenuActions } from './productEditorHeader';
+import { useEditorErrors } from '@/hooks/admin/useEditorErrors';
 import styles from './ProductEditorPage.module.css';
-import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 // The one Save lives in the sticky bar, which is a SIBLING of the form (it spans nav, main and
@@ -62,6 +63,14 @@ export default function ProductEditorPage({
   const { errors } = form.formState;
   const [isDiscardOpen, setIsDiscardOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(TAB_ITEM);
+  // D13's error surface: how many fields are wrong, which sections hold them, where the first is.
+  const validation = useEditorErrors({
+    errors,
+    t,
+    setActiveTab,
+    itemTabId: TAB_ITEM,
+    translationsTabId: TAB_TRANSLATIONS,
+  });
 
   const isCreate = mode === 'create';
   const typeLabel = isBundle ? t('product_type_menu') : t(`product_type_${product.type || 'mainItem'}`);
@@ -86,23 +95,20 @@ export default function ProductEditorPage({
 
   const context = { editor, t, product, isCreate, isBundle };
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
+  // `watch` so the header badge follows the rail's switch live. A bundle's flag is registered by
+  // `BundlePanel` under the same name, so one read serves both.
+  const isLive = Boolean(form.watch('isActive'));
 
   return (
     <>
       <EditorShell
         title={pageTitle}
-        headerActions={
-          <div className={adminStyles.pageActions}>
-            <span data-testid="product-type-badge">
-              <StatusBadge tone={isBundle ? 'info' : 'neutral'}>{typeLabel}</StatusBadge>
-            </span>
-            {!isCreate && onDelete && (
-              <button type="button" className={`${adminStyles.adminButton} ${adminStyles.delete}`} onClick={onDelete}>
-                {isBundle ? t('delete_menu_bundle') : t('delete_product')}
-              </button>
-            )}
-          </div>
-        }
+        backLabel={t('editor_back_to_menu')}
+        backAriaLabel={t('editor_back_to_menu_label')}
+        onBack={handleBack}
+        headerBadges={productHeaderBadges({ t, isBundle, isCreate, typeLabel, isLive })}
+        headerMenuActions={productHeaderMenuActions({ t, isBundle, isCreate, onDelete })}
+        headerMenuLabel={t('editor_more_actions')}
         tabs={[
           { id: TAB_ITEM, label: t('item') },
           { id: TAB_TRANSLATIONS, label: t('editor_tab_translations') },
@@ -110,7 +116,7 @@ export default function ProductEditorPage({
         tabsLabel={t('editor_tabs')}
         activeTabId={activeTab}
         onTabChange={setActiveTab}
-        sections={buildEditorSections(context)}
+        sections={validation.decorate(buildEditorSections(context))}
         sectionsLabel={t('editor_sections')}
         formId={FORM_ID}
         onSubmit={editor.onSubmit}
@@ -133,6 +139,9 @@ export default function ProductEditorPage({
         saveBar={
           /* The one and only commit point (D4). Accented when dirty. */
           <div className={`${styles.saveBar} ${editor.isDirty ? styles.saveBarDirty : ''}`}>
+            {/* D13's summary. It sits on the leading edge of the bar, where the approved screen
+                draws it, and is the only control that knows where the first problem is. */}
+            <EditorErrorSummary count={validation.count} label={validation.label} onJump={validation.jumpToFirst} />
             <span className={`${styles.saveHint} ${editor.isDirty ? styles.saveHintDirty : ''}`} aria-live="polite">
               {editor.isDirty ? t('unsaved_changes') : ''}
             </span>

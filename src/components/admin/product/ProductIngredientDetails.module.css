@@ -1,0 +1,10 @@
+/* The row's expandable detail panel. Since S4 it holds `isActive` alone: the per-locale names it
+   used to carry moved to the Translations tab, which is now the item's only translation surface. */
+.detailCell {
+  padding-block: 0.75rem 1rem;
+  padding-inline: 2rem;
+  background: var(--surface-secondary);
+}
+.activeToggle {
+  max-inline-size: 22rem;
+}

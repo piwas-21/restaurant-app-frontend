@@ -1,13 +1,19 @@
 import '@testing-library/jest-dom';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { useForm } from 'react-hook-form';
 import { SuggestedSideItemsPicker } from './SuggestedSideItemsPicker';
-import { searchProducts, type ProductSearchResponse } from '@/services/productService';
 import { getProductById } from '@/services/menuService';
 import { ApiError } from '@/utils/apiClient';
-import { SIDE_ITEM_SEARCH_DEBOUNCE_MS } from '@/hooks/admin/useSideItemSearch';
 
 /**
+ * The `Options & sides` SECTION: the chips that say what a dish suggests today, and the way in to
+ * the picker (plan S9 / D12).
+ *
+ * What used to be here and is not any more: the search, the result rows and every state they can be
+ * in. They moved with the inline expander into `SideItemPickerModal.test.tsx`, ported rather than
+ * rewritten. What stays is what the section still owns — the chips, the failed detail read that
+ * explains them, and the fact that the picker is a `BaseModal` that opens and closes.
+ *
  * Two DISTINCT `t` functions behind a mutable holder, not one hoisted arrow.
  *
  * react-i18next memoises `t`, so its identity is stable across ordinary re-renders and changes only
@@ -25,10 +31,11 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: mockCurrentT }),
 }));
 
-jest.mock('@/services/productService', () => ({ searchProducts: jest.fn() }));
+jest.mock('@/services/productService', () => ({
+  searchProducts: jest.fn(async () => ({ success: true, data: { items: [] } })),
+}));
 jest.mock('@/services/menuService', () => ({ getProductById: jest.fn() }));
 
-const mockSearchProducts = searchProducts as jest.MockedFunction<typeof searchProducts>;
 const mockGetProductById = getProductById as jest.MockedFunction<typeof getProductById>;
 
 beforeEach(() => {
@@ -36,13 +43,16 @@ beforeEach(() => {
   mockCurrentT = mockTEn;
   jest.spyOn(console, 'error').mockImplementation(() => {});
 });
-afterEach(() => {
-  jest.useRealTimers();
-  jest.restoreAllMocks();
-});
+afterEach(() => jest.restoreAllMocks());
 
 /** `<Controller>` needs a real `control`, so the picker is mounted inside a throwaway form. */
-function Harness({ selectedSideItemIds = [] as string[] }) {
+function Harness({
+  selectedSideItemIds = [] as string[],
+  onChange = () => {},
+}: {
+  selectedSideItemIds?: string[];
+  onChange?: (ids: string[]) => void;
+}) {
   const { control, formState } = useForm({ defaultValues: { suggestedSideItemIds: '' } });
   // `SuggestedSideItemsPickerProps` types both `errors` and `control` as `any` (pre-existing debt
   // in `product/types.ts`), so no cast is needed here.
@@ -51,194 +61,67 @@ function Harness({ selectedSideItemIds = [] as string[] }) {
       errors={formState.errors}
       control={control}
       selectedSideItemIds={selectedSideItemIds}
-      onChange={() => {}}
+      onChange={onChange}
+      productId="the-dish-being-edited"
     />
   );
 }
 
-const row = (id: string, name: string) => ({ id, name, description: '', basePrice: 4, type: 'mainItem' });
+const openPicker = () => fireEvent.click(screen.getByRole('button', { name: 'side_items_picker_open' }));
 
-const ok = (items: ReturnType<typeof row>[]) =>
-  ({
-    success: true,
-    message: '',
-    data: { items, totalCount: items.length, page: 1, pageSize: 20, totalPages: 1 },
-  }) as unknown as ProductSearchResponse;
+describe('SuggestedSideItemsPicker — the way in to the picker', () => {
+  it('opens the picker as a BaseModal dialog, and closes it again', async () => {
+    // `BaseModal` is the house rule for every overlay (CLAUDE.md §5 rule 2); the expander this
+    // replaces was a bare `<div>` in the page, with no dialog role, no ESC and no backdrop.
+    mockGetProductById.mockResolvedValue({ success: true, data: { id: 'abc', name: 'Fries' } });
+    render(<Harness selectedSideItemIds={['abc']} />);
 
-/** A promise the test resolves by hand — the only way to have two searches genuinely in flight. */
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((r) => {
-    resolve = r;
-  });
-  return { promise, resolve };
-}
-
-// These call sites pass no `t()` fallback, so the mock yields the raw key as the label.
-const openPicker = () => fireEvent.click(screen.getByRole('button', { name: 'add_side_items' }));
-const type = (term: string) =>
-  fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: term } });
-
-/** Walk past the debounce window and let the request's `.then` run. */
-const settle = async () => {
-  await act(async () => {
-    jest.advanceTimersByTime(SIDE_ITEM_SEARCH_DEBOUNCE_MS);
-  });
-};
-
-const search = async (term: string) => {
-  openPicker();
-  type(term);
-  await settle();
-};
-
-describe('SuggestedSideItemsPicker — the term reaches the server', () => {
-  beforeEach(() => jest.useFakeTimers());
-
-  it('calls searchProducts WITH what was typed', async () => {
-    // THE assertion whose absence let this ship: the old code called `getProducts(1, 20)` with no
-    // term at all and filtered the first page in the browser, so "searched and found nothing" and
-    // "never searched" rendered identically and CI stayed green.
-    mockSearchProducts.mockResolvedValue(ok([row('1', 'Fried Potatoes')]));
-
-    render(<Harness />);
-    await search('fried potatoes');
-
-    expect(mockSearchProducts).toHaveBeenCalledWith('fried potatoes');
-    expect(screen.getByText('Fried Potatoes')).toBeInTheDocument();
-  });
-
-  it('says nothing below the minimum length and asks once for a word typed in one burst', async () => {
-    mockSearchProducts.mockResolvedValue(ok([row('1', 'Fries')]));
-
-    render(<Harness />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     openPicker();
-    type('f');
-    await settle();
-    expect(mockSearchProducts).not.toHaveBeenCalled();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
-    await act(async () => {
-      for (const term of ['fr', 'fri', 'frie', 'fries']) {
-        type(term);
-        jest.advanceTimersByTime(50);
-      }
-    });
-    await settle();
-
-    expect(mockSearchProducts).toHaveBeenCalledTimes(1);
-    expect(mockSearchProducts).toHaveBeenCalledWith('fries');
+    fireEvent.click(screen.getByRole('button', { name: 'cancel' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('keeps a row the server matched on its LOCALISED name', async () => {
-    // `GetProductsQuery` also matches `p.Descriptions.Any(c => c.Name...)`, so a Turkish search can
-    // return a row whose `name` does not contain the term. The client-side `.filter(p =>
-    // p.name.includes(needle))` this replaces threw exactly those rows away — the fix would have
-    // gone on failing for the tenant who needed it.
-    mockSearchProducts.mockResolvedValue(ok([row('1', 'Fried Potatoes')]));
-
+  it('names the button for BOTH directions, because the picker now does both', () => {
     render(<Harness />);
-    await search('patates');
 
-    expect(screen.getByText('Fried Potatoes')).toBeInTheDocument();
-    expect(screen.queryByText('no_side_items_found')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'side_items_picker_open' })).toBeInTheDocument();
+    // The shipped `add_side_items` key is deliberately no longer this button's label: it named a
+    // surface that could only add.
+    expect(screen.queryByRole('button', { name: 'add_side_items' })).not.toBeInTheDocument();
   });
 
-  it('discards a response that a newer keystroke has already superseded', async () => {
-    // Under a button this was a rare edge case; under type-ahead it is the normal one, because the
-    // short query is slower to answer than the long query that replaced it.
-    const slow = deferred<ProductSearchResponse>();
-    const fast = deferred<ProductSearchResponse>();
-    mockSearchProducts.mockReturnValueOnce(slow.promise).mockReturnValueOnce(fast.promise);
+  it('writes the picker’s answer straight through, unmerged', async () => {
+    mockGetProductById.mockResolvedValue({ success: true, data: { id: 'abc', name: 'Fries' } });
+    const onChange = jest.fn();
+    render(<Harness selectedSideItemIds={['abc']} onChange={onChange} />);
 
-    render(<Harness />);
     openPicker();
-    type('fri');
-    await settle();
-    type('fried');
-    await settle();
-    expect(mockSearchProducts).toHaveBeenCalledTimes(2);
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Fries' }));
+    fireEvent.click(screen.getByRole('button', { name: 'apply' }));
 
-    await act(async () => fast.resolve(ok([row('2', 'Fried Potatoes')])));
-    expect(screen.getByText('Fried Potatoes')).toBeInTheDocument();
-
-    await act(async () => slow.resolve(ok([row('1', 'Fricassee')])));
-    expect(screen.getByText('Fried Potatoes')).toBeInTheDocument();
-    expect(screen.queryByText('Fricassee')).not.toBeInTheDocument();
-  });
-});
-
-describe('SuggestedSideItemsPicker — "no side items found" is an answer, not a default', () => {
-  beforeEach(() => jest.useFakeTimers());
-
-  it('does not claim an empty menu below the minimum length or while a request is in flight', async () => {
-    const pending = deferred<ProductSearchResponse>();
-    mockSearchProducts.mockReturnValue(pending.promise);
-
-    render(<Harness />);
-    openPicker();
-    type('f');
-    await settle();
-    expect(screen.queryByText('no_side_items_found')).not.toBeInTheDocument();
-
-    type('fries');
-    await settle();
-    expect(screen.getByRole('status')).toHaveTextContent('searching');
-    expect(screen.queryByText('no_side_items_found')).not.toBeInTheDocument();
+    expect(onChange).toHaveBeenCalledWith([]);
   });
 
-  it('still reports genuinely empty results', async () => {
-    mockSearchProducts.mockResolvedValue(ok([]));
+  it('keeps the chip’s own remove, which is the one-click path for the common case', async () => {
+    mockGetProductById.mockImplementation(async (id: string) => ({
+      success: true,
+      data: { id, name: id === 'abc' ? 'Fries' : 'Salad' },
+    }));
+    const onChange = jest.fn();
+    render(<Harness selectedSideItemIds={['abc', 'zzz']} onChange={onChange} />);
 
-    render(<Harness />);
-    await search('fries');
+    expect(await screen.findByText('Fries')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]);
 
-    expect(screen.getByText('no_side_items_found')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
-  });
-});
-
-describe('SuggestedSideItemsPicker — a failed search must not answer "none found"', () => {
-  beforeEach(() => jest.useFakeTimers());
-
-  it('shows the server’s reason and suppresses the empty state', async () => {
-    mockSearchProducts.mockRejectedValue(new ApiError(503, 'Menu service is unavailable'));
-
-    render(<Harness />);
-    await search('fries');
-
-    expect(screen.getByRole('alert')).toHaveTextContent('Menu service is unavailable');
-    expect(screen.queryByText('no_side_items_found')).not.toBeInTheDocument();
+    expect(onChange).toHaveBeenCalledWith(['zzz']);
   });
 
-  it('treats a 200-wrapped refusal as a failure and shows the reason from errors[]', async () => {
-    // `searchProducts` returns the envelope rather than throwing, so without an explicit
-    // `!resp.success` branch this read exactly like a product list with nothing in it.
-    //
-    // The fixture carries BOTH slots, which is the point: an earlier version supplied only
-    // `message: 'Operation failed'`, so it passed whether the code read `errors[0]` or fell
-    // straight to the client generic — it pinned nothing about which one wins.
-    mockSearchProducts.mockResolvedValue({
-      success: false,
-      message: 'Operation failed',
-      errors: ['Menu is being reindexed'],
-    } as ProductSearchResponse);
-
+  it('says so when nothing is suggested', () => {
     render(<Harness />);
-    await search('fries');
-
-    const alert = screen.getByRole('alert');
-    expect(alert).toHaveTextContent('Menu is being reindexed');
-    expect(alert).not.toHaveTextContent('Operation failed');
-  });
-
-  it('falls back to the translated sentence when the refusal carries no reason', async () => {
-    mockSearchProducts.mockResolvedValue({ success: false } as ProductSearchResponse);
-
-    render(<Harness />);
-    await search('fries');
-
-    expect(screen.getByRole('alert')).toHaveTextContent('Could not search side items');
+    expect(screen.getByText('no_side_items_selected')).toBeInTheDocument();
   });
 });
 

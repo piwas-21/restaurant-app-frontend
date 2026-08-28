@@ -20,11 +20,16 @@ export interface MenuItemImage {
 }
 
 /**
- * Detailed ingredient with optional/pricing information
- */
+ * A sauce is an ingredient row carrying a discriminator, not a second entity (plan D7/D8) — the one
+ * shape with zero impact on the `Guid` keys frozen in `OrderItem.IngredientQuantitiesJson`. Absent
+ * means `'ingredient'`: resolve it with `resolveIngredientKind` (`@/utils/ingredientKind`). */
+export type IngredientKind = 'ingredient' | 'sauce';
+
+/** Detailed ingredient with optional/pricing information */
 export interface ProductIngredient {
   id: string;
   name: string;
+  kind?: IngredientKind;
   isOptional: boolean;
   maxQuantity?: number; // Maximum quantity allowed for this ingredient (default 1)
   price: number;
@@ -51,6 +56,7 @@ export interface DetailedIngredient {
   isActive: boolean;
   displayOrder: number;
   maxQuantity: number;
+  kind?: IngredientKind; // Ingredient or sauce (S5), `MenuBundleIngredientDto.kind`; absent = ingredient
   content?: Record<string, { name: string; description?: string }>;
 }
 
@@ -58,17 +64,13 @@ export interface DetailedProductVariation {
   id: string;
   name: string;
   description?: string;
+  /** Which global variation row this was copied from — provenance only (plan S4, backend #431). */
+  globalVariationId?: string;
   priceModifier: number;
   finalPrice: number;
   isActive: boolean;
   displayOrder: number;
-  content?: Record<
-    string,
-    {
-      name: string;
-      description?: string;
-    }
-  >;
+  content?: Record<string, { name: string; description?: string }>;
 }
 
 /**

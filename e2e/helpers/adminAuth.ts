@@ -72,27 +72,15 @@ export function credKeyForBaseUrl(baseUrl: string): string {
 }
 
 /**
- * Read a credential out of `.env.local`.
+ * Parse one `{email: …, password: …}` object literal.
  *
  * ⚠️ Parse with the regex, never `split(':')`. The value is an object literal —
  * `ADMIN_DEMO_CRAFT={email: someone@example.com, password: …}` — so it contains THREE colons and a
  * naive split yields an email of `" …@…, password"`. The API then answers a perfectly honest 401,
  * which reads exactly like a stale credential. That cost a real detour.
  */
-export function readCreds(key: string): AdminCreds | null {
-  const envPath = path.resolve(process.cwd(), '.env.local');
-  if (!fs.existsSync(envPath)) return null;
-
-  const line = fs
-    .readFileSync(envPath, 'utf8')
-    .split('\n')
-    .find((l) => l.startsWith(`${key}=`));
-  if (!line) return null;
-
-  const raw = line
-    .slice(line.indexOf('=') + 1)
-    .trim()
-    .replace(/^["']|["']$/g, '');
+function parseCredValue(value: string): AdminCreds | null {
+  const raw = value.trim().replace(/^["']|["']$/g, '');
   // Two simple patterns rather than one combined expression, and neither puts `\s*` NEXT TO a
   // greedy class that can also match whitespace — `\s*(.+)` is ambiguous (`.` matches spaces too),
   // so the engine can split the boundary many ways and backtracks super-linearly when the match
@@ -102,6 +90,84 @@ export function readCreds(key: string): AdminCreds | null {
   const email = /email\s*:([^,]*)/.exec(body)?.[1]?.trim();
   const password = /password\s*:(.*)$/.exec(body)?.[1]?.trim();
   return email && password ? { email, password } : null;
+}
+
+/** The `.env.local` half — a developer's own credential, on disk, gitignored. */
+function credsFromEnvFile(key: string): AdminCreds | null {
+  const envPath = path.resolve(process.cwd(), '.env.local');
+  if (!fs.existsSync(envPath)) return null;
+
+  const line = fs
+    .readFileSync(envPath, 'utf8')
+    .split('\n')
+    .find((l) => l.startsWith(`${key}=`));
+  if (!line) return null;
+
+  return parseCredValue(line.slice(line.indexOf('=') + 1));
+}
+
+/**
+ * The environment half (issue #585).
+ *
+ * CI has no `.env.local` and must not grow one — writing a dotfile with a credential into the
+ * workspace is exactly the thing gitleaks exists to stop. Two accepted shapes:
+ *
+ *   ADMIN='{email: …, password: …}'   the same literal `.env.local` uses, for symmetry
+ *   ADMIN_EMAIL=… ADMIN_PASSWORD=…    a plain pair, which is what a workflow `env:` block wants
+ *
+ * The pair wins when both are set: it is the unambiguous one, and a half-filled object literal
+ * parses to `null` rather than to something wrong.
+ */
+function credsFromProcessEnv(key: string): AdminCreds | null {
+  const email = process.env[`${key}_EMAIL`]?.trim();
+  const password = process.env[`${key}_PASSWORD`]?.trim();
+  if (email && password) return { email, password };
+
+  const literal = process.env[key];
+  return literal ? parseCredValue(literal) : null;
+}
+
+/**
+ * A credential for `key`, from `.env.local` first and the environment second.
+ *
+ * File first so a developer who has both keeps the value they can see and edit; CI only ever has
+ * the environment, so the order never matters there.
+ */
+export function readCreds(key: string): AdminCreds | null {
+  return credsFromEnvFile(key) ?? credsFromProcessEnv(key);
+}
+
+/**
+ * Is the run pointed at the ephemeral local/CI stack rather than a deployed tenant?
+ *
+ * Anything that is not an explicit remote host counts as local, including an unset `E2E_BASE_URL`
+ * — Playwright's own default baseURL is `http://localhost:3000`.
+ */
+export function isLocalStack(baseUrl: string): boolean {
+  const url = baseUrl || process.env.E2E_BASE_URL || 'http://localhost:3000';
+  return /localhost|127\.0\.0\.1|\[::1\]/.test(url);
+}
+
+/**
+ * The hole issue #585 closed, wired shut.
+ *
+ * Before this, a missing credential made every admin suite `test.skip()` — and a skipped test is a
+ * passing check, so CI reported green on a stack where the admin journey was never attempted. On
+ * the CI stack the credential is seeded by the workflow and is therefore NOT optional: its absence
+ * is a broken gate, not an environmental fact, so it THROWS and the job goes red.
+ *
+ * Deliberately scoped to `CI` + a local base URL. A developer running the public suite without a
+ * credential still gets an honest skip, and every deployed-host reason (rate limit, remote-only)
+ * stays a skip everywhere — those are environmental and always were.
+ */
+function assertCredentialConfigured(key: string, baseUrl: string): void {
+  if (!process.env.CI || !isLocalStack(baseUrl)) return;
+  throw new Error(
+    `No ${key} credential on the CI stack. The Playwright job seeds an admin through the backend ` +
+      `(SeedSettings__AdminEmail/__AdminPassword) and passes it here as ${key}_EMAIL/${key}_PASSWORD. ` +
+      'Both halves must be present or every admin spec skips and CI reports green on nothing — ' +
+      'see issue #585. This is a FAILURE on purpose; do not turn it back into a skip.',
+  );
 }
 
 /** Seconds-since-epoch expiry from a JWT, or null when it cannot be read. */
@@ -150,7 +216,11 @@ export async function adminToken(request: APIRequestContext, apiBase: string, cr
   if (cached) return { token: cached };
 
   const creds = readCreds(credKey);
-  if (!creds) return { token: null, reason: `no ${credKey} credential in .env.local for this environment` };
+  if (!creds) {
+    // Red, not skipped, on the CI stack — see assertCredentialConfigured (#585).
+    assertCredentialConfigured(credKey, apiBase);
+    return { token: null, reason: `no ${credKey} credential in .env.local or the environment` };
+  }
 
   const res = await request.post(`${apiBase}/api/Auth/login`, { data: creds });
 
@@ -212,7 +282,11 @@ export async function adminSession(
   credKey: string,
 ): Promise<SessionResult> {
   const creds = readCreds(credKey);
-  if (!creds) return { session: null, reason: `no ${credKey} credential in .env.local for this environment` };
+  if (!creds) {
+    // Red, not skipped, on the CI stack — see assertCredentialConfigured (#585).
+    assertCredentialConfigured(credKey, apiBase);
+    return { session: null, reason: `no ${credKey} credential in .env.local or the environment` };
+  }
 
   const res = await request.post(`${apiBase}/api/Auth/login`, { data: creds });
   if (res.status() === 429) {

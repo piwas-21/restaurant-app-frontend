@@ -1,7 +1,5 @@
-/*
-  The `Item | Translations` tabs — the ONLY tabs in the editor (decision D2). Sections are a nav,
-  not tabs, so nothing else in this file may grow a tablist.
-*/
+/* The `Item | Translations` tabs — the ONLY tabs in the editor (D2). Sections are a nav, not tabs,
+   so nothing else in this file may grow a tablist. */
 .tabs {
   display: flex;
   gap: 0.25rem;
@@ -35,106 +33,51 @@
   font-weight: 600;
 }
 
-/* Desktop-first (D10). 1024px and below reflows to one column; a phone is not a target. */
+/* Desktop-first (D10), reflowed in TWO steps to match `responsive_reflow_admin_editor_1024px_820px`.
+   Items are placed EXPLICITLY: the DOM order is nav → rail → main (`EditorShell.tsx`) while the
+   desktop left-to-right order is nav → main → rail. */
 .layout {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr) 264px;
   gap: 1.5rem;
 }
 
-/*
-  Deliberately NOT `align-items: start`, and the nav/rail are WRAPPED rather than being the grid
-  items themselves: a sticky element is positioned inside its parent's box, so a column sized to
-  its own content gives the sticky child nothing to travel over and it never appears to stick.
-*/
+/* Deliberately NOT `align-items: start`, and the nav/rail are WRAPPED rather than being the grid
+   items themselves: a sticky element is positioned inside its parent's box, so a column sized to
+   its own content gives the sticky child nothing to travel over and never appears to stick. */
 .navColumn {
+  grid-column: 1;
+  grid-row: 1;
   min-width: 0;
 }
 
-/* No nav and no rail — the translations tab, where the main column takes the whole width. */
+.main {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+/* No nav and no rail — the translations tab. Two classes deep so it outranks the single-class
+   `.main` placements in every media query below. */
 .layoutPlain {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.main {
-  min-width: 0;
+.layoutPlain .main {
+  grid-column: 1;
+  grid-row: 1;
 }
 
-/*
-  `hidden` on the inactive tab panel must win: both panels stay mounted so a validation error can
-  never hide behind an inactive tab, and a layout `display` would defeat the attribute.
-*/
+/* `hidden` on the inactive tab panel must win: both panels stay mounted so a validation error can
+   never hide behind an inactive tab, and a layout `display` would defeat the attribute. */
 .panel[hidden] {
   display: none;
 }
 
-.section {
-  margin-bottom: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-light);
-  scroll-margin-top: 1.5rem;
-}
-
-.section:first-of-type {
-  border-top: none;
-  padding-top: 0;
-}
-
-/* The nav moves focus here after a jump; the outline would otherwise frame the whole page. */
-.section:focus {
-  outline: none;
-}
-
-.section:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 4px;
-}
-
-.sectionHeading {
-  margin: 0 0 1rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
 .rail {
+  grid-column: 3;
+  grid-row: 1;
   min-width: 0;
-}
-
-/* The `Advanced` fold (D1). A heading that is a button, so the section keeps its landmark name. */
-.collapseToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-
-.collapseToggle:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
-}
-
-.chevron,
-.chevronOpen {
-  color: var(--text-secondary);
-  transition: transform 0.15s ease;
-}
-
-.chevronOpen {
-  transform: rotate(180deg);
-}
-
-/* Same rule as `.panel[hidden]`: a collapsed body is hidden, never unmounted, so a layout
-   `display` must not beat the attribute. */
-.sectionBody[hidden] {
-  display: none;
 }
 
 /* The rail hides with the item tab; it holds registered fields, so it may not unmount. */
@@ -142,8 +85,52 @@
   display: none;
 }
 
+/* TABLET — 1024px (frontend #572). The one rule that used to live here collapsed the whole grid to
+   one column, dropping the rail — and, since S2, the three status flags — BELOW ~150 controls. The
+   approved screen keeps the nav a column here and lifts status into a strip. */
 @media (max-width: 1024px) {
   .layout {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .layoutPlain {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .navColumn {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .main {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+/* SMALL TABLET — 820px: one column, and only now is the nav a chip strip. No phone target (D10). */
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .navColumn {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .main {
+    grid-column: 1;
+    grid-row: 3;
   }
 }

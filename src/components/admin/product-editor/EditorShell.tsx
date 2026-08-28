@@ -1,30 +1,18 @@
 'use client';
 
 import React, { useRef } from 'react';
-import PageHeader from '@/components/admin/PageHeader';
+import EditorHeader from './EditorHeader';
+import EditorSectionCard, { type EditorSection } from './EditorSectionCard';
 import EditorSectionNav from './EditorSectionNav';
+import type { EditorOverflowAction } from './EditorOverflowMenu';
 import { useEditorSectionNav } from '@/hooks/admin/useEditorSectionNav';
 import { useEditorSectionCollapse } from '@/hooks/admin/useEditorSectionCollapse';
 import styles from './EditorShell.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
 
-export interface EditorSection {
-  /** DOM id — the nav scrolls to it, so it must be unique on the page. */
-  readonly id: string;
-  /** Nav entry text, and the section's accessible name. */
-  readonly label: string;
-  /** Render a visible `<h2>`. Omitted where the dropped-in content already brings its own. */
-  readonly showHeading?: boolean;
-  /**
-   * Give the section a heading BUTTON that folds its body away. `Advanced` is the only one (D1):
-   * every other section stays open, because a collapsed accordion is the exact complaint the
-   * redesign is answering. The choice is remembered per user by {@link useEditorSectionCollapse}.
-   */
-  readonly collapsible?: boolean;
-  /** Collapsed on a first visit, before any remembered choice exists. */
-  readonly defaultCollapsed?: boolean;
-  readonly node: React.ReactNode;
-}
+/* The section shape lives with the component that draws it (#573); re-exported because every
+   `*EditorSections.tsx` builder imports it from here. */
+export type { EditorSection };
 
 export interface EditorTab {
   readonly id: string;
@@ -34,7 +22,15 @@ export interface EditorTab {
 interface EditorShellProps {
   // readonly: S6759 — component props are never mutated.
   readonly title: string;
-  readonly headerActions?: React.ReactNode;
+  /** Badges beside the title — the type badge, then the live/`Active` one (#574). */
+  readonly headerBadges?: React.ReactNode;
+  /** Contents of the header's `⋯` overflow. `Delete` lives here, never beside `Save` (#574). */
+  readonly headerMenuActions: readonly EditorOverflowAction[];
+  readonly headerMenuLabel: string;
+  /** `← Menu`. The host owns the unsaved-changes guard, so this is a callback, not an href. */
+  readonly backLabel: string;
+  readonly backAriaLabel: string;
+  readonly onBack: () => void;
   /** Exactly two (D2): the first owns {@link sections}, the second {@link translations}. */
   readonly tabs: readonly [EditorTab, EditorTab];
   readonly tabsLabel: string;
@@ -75,7 +71,12 @@ interface EditorShellProps {
  */
 export default function EditorShell({
   title,
-  headerActions,
+  headerBadges,
+  headerMenuActions,
+  headerMenuLabel,
+  backLabel,
+  backAriaLabel,
+  onBack,
   tabs,
   tabsLabel,
   activeTabId,
@@ -107,52 +108,20 @@ export default function EditorShell({
     tabRefs.current[next.id]?.focus();
   };
 
-  const renderSection = (section: EditorSection) => {
-    const collapsed = Boolean(section.collapsible) && isCollapsed(section.id);
-    const bodyId = `${section.id}-body`;
-
-    return (
-      <section
-        key={section.id}
-        id={section.id}
-        // -1 so `goTo` can move focus into the section it just scrolled to, without adding a tab stop.
-        tabIndex={-1}
-        aria-label={section.label}
-        className={styles.section}
-      >
-        {section.collapsible ? (
-          <h2 className={styles.sectionHeading}>
-            <button
-              type="button"
-              className={styles.collapseToggle}
-              aria-expanded={!collapsed}
-              aria-controls={bodyId}
-              onClick={() => toggle(section.id)}
-            >
-              {section.label}
-              <span aria-hidden="true" className={collapsed ? styles.chevron : styles.chevronOpen}>
-                ⌄
-              </span>
-            </button>
-          </h2>
-        ) : (
-          section.showHeading && <h2 className={styles.sectionHeading}>{section.label}</h2>
-        )}
-        {/* HIDDEN, never unmounted — the same rule as the inactive tab panel, and for a harder
-            reason: a registered field that leaves the DOM is a value the PUT can clear (plan §6). */}
-        <div id={bodyId} hidden={collapsed} className={styles.sectionBody}>
-          {section.node}
-        </div>
-      </section>
-    );
-  };
-
   const panelId = (id: string) => `${formId}-panel-${id}`;
   const tabDomId = (id: string) => `${formId}-tab-${id}`;
 
   return (
     <div className={adminStyles.adminContainer}>
-      <PageHeader title={title}>{headerActions}</PageHeader>
+      <EditorHeader
+        title={title}
+        backLabel={backLabel}
+        backAriaLabel={backAriaLabel}
+        onBack={onBack}
+        badges={headerBadges}
+        menuActions={headerMenuActions}
+        menuLabel={headerMenuLabel}
+      />
 
       <div className={styles.tabs} role="tablist" aria-label={tabsLabel}>
         {tabs.map((tab) => (
@@ -186,6 +155,20 @@ export default function EditorShell({
           </div>
         )}
 
+        {/* BEFORE the main column in the DOM since #572, and that order is the fix, not a detail.
+            At ≤1024px the approved reflow draws the rail as a STRIP above the form (a header
+            strip for the three status flags), and CSS `grid-row` alone would have moved it there
+            visually while leaving it ~150 controls away in the reading and tab order — the exact
+            "is this item live?" regression S2 introduced, merely made invisible to a sighted mouse
+            user. Placing it first in the DOM makes every breakpoint agree with the reflow screen;
+            the price is a short backwards jump on the desktop three-column layout, where the rail
+            is a 4-row summary plus 3 toggles rather than a form. */}
+        {rail && (
+          <aside className={styles.rail} hidden={!showAside}>
+            {rail}
+          </aside>
+        )}
+
         <div className={styles.main}>
           <div
             role="tabpanel"
@@ -200,7 +183,17 @@ export default function EditorShell({
                 buttons are typed now, so ordering the page no longer costs an exception. */}
             <form id={formId} onSubmit={onSubmit} className={adminStyles.adminContent}>
               {formError}
-              {sections.map(renderSection)}
+              {/* Each section is the bordered CARD the approved screens draw, title + description
+                  line and all (#573). `EditorSectionCard` owns that skin; the shell owns the fold
+                  state, because it is remembered per user across sections. */}
+              {sections.map((section) => (
+                <EditorSectionCard
+                  key={section.id}
+                  section={section}
+                  collapsed={Boolean(section.collapsible) && isCollapsed(section.id)}
+                  onToggle={() => toggle(section.id)}
+                />
+              ))}
             </form>
           </div>
 
@@ -214,14 +207,6 @@ export default function EditorShell({
             {translations}
           </div>
         </div>
-
-        {/* HIDDEN on the translations tab rather than dropped: since S2 the rail carries the item's
-            three status flags, and an unmounted registered field is one the PUT can clear (§6). */}
-        {rail && (
-          <aside className={styles.rail} hidden={!showAside}>
-            {rail}
-          </aside>
-        )}
       </div>
 
       {saveBar}

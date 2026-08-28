@@ -1,0 +1,135 @@
+/* Design-system switch (frontend #575). Tokens only — no raw hex (CLAUDE.md §5 rule 5). */
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 1.5rem;
+}
+
+.labelBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.text {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.description {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+/* 44x24: the track. The INPUT is what has to clear WCAG 2.2 2.5.8 (24x24 CSS px), and it covers
+   this box exactly, so the box is the target size. */
+.control {
+  position: relative;
+  flex: none;
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+/* Transparent, not hidden: `display: none` / `width: 0` would take the control out of the hit test
+   and shrink the target back to the label, which is the defect the chip it replaces had. */
+.input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+/*
+  The OFF track is a light fill with a border, and the border is the part that matters: a bare
+  --surface-secondary fill is 1.07:1 against the page and would fail WCAG 2.2 1.4.11 (3:1 for a
+  control boundary). --text-muted is 4.8:1 on --surface-primary, so the boundary carries the state.
+*/
+.track {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--text-muted);
+  border-radius: 0.75rem;
+  background: var(--surface-secondary);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.knob {
+  position: absolute;
+  inset-block-start: 0.1875rem;
+  inset-inline-start: 0.1875rem;
+  width: 1.0625rem;
+  height: 1.0625rem;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition:
+    inset-inline-start 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* ON is the brand — 9.1:1 on white in light, and --brand-primary carries its own dark override. */
+.input:checked + .track {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+}
+
+/* `inset-inline-start`, not `transform: translateX` — the knob then travels the correct way in an
+   RTL locale (ar) with no direction-aware override to keep in step. */
+.input:checked + .track .knob {
+  inset-inline-start: 1.375rem;
+  background: var(--text-on-primary);
+}
+
+.input:focus-visible + .track {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.input:disabled + .track {
+  opacity: 0.55;
+}
+
+/* Disabled still has to be LEGIBLE — --text-secondary is the lightest tier that clears AA on both
+   --surface-primary and --surface-card (the reasoning `CheckboxField.module.css` measured). */
+.disabled .text {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/*
+  Dark mode by `html[data-theme='dark']`, never `prefers-color-scheme` (CLAUDE.md §5 rule 8).
+  --brand-primary, --text-*, --text-on-primary and --surface-secondary all carry their own dark
+  values, so only the two OFF neutrals are restated: the track needs a lighter fill than
+  --surface-secondary to stay visible on --surface-card, and its knob has to be lighter than the
+  track rather than darker.
+*/
+html[data-theme='dark'] .track {
+  border-color: var(--text-muted);
+  background: var(--surface-secondary-light);
+}
+
+html[data-theme='dark'] .knob {
+  background: var(--text-secondary);
+}
+
+/* A user who asked for less motion gets the state, not the slide. */
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .knob {
+    transition: none;
+  }
+}

@@ -1,0 +1,79 @@
+/* The header's `⋯` overflow (frontend #574). Tokens only — no raw hex (CLAUDE.md §5 rule 5). */
+.root {
+  position: relative;
+}
+
+/* 2.25rem square: a comfortable target for a control whose whole label is three dots. */
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.trigger:hover {
+  border-color: var(--border-light);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.menu {
+  position: absolute;
+  inset-block-start: calc(100% + 0.25rem);
+  inset-inline-end: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--surface-card);
+  /* The `--modal-shadow` token is deliberately NOT read here: it is reserved for `BaseModal`'s
+     shell, and `modalChrome.test.ts` fails any second consumer of it — including one that only
+     names it in a comment, which is how this line got written twice. Same idiom as `UserMenu`. */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.item {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--surface-secondary);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+.destructive {
+  color: var(--feedback-danger);
+}
+
+.destructive:hover {
+  background: var(--feedback-danger-xlight);
+  color: var(--feedback-danger-dark);
+}

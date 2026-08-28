@@ -4,7 +4,11 @@ import { useTranslation } from 'react-i18next';
 import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import KitchenTypeSelector from '../KitchenTypeSelector';
 import { KitchenType } from '@/types/menu';
+import FieldError from './FieldError';
+import { fieldAria, fieldDomId, fieldMessage } from './fieldAria';
+import { INTEGER_INPUT_PROPS } from '../numberInputProps';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import styles from './editorFields.module.css';
 
 interface ProductServiceFieldsProps {
   // readonly: S6759 — component props are never mutated.
@@ -20,8 +24,10 @@ interface ProductServiceFieldsProps {
  *
  * Both controls used to live two sections apart — the kitchen type at the foot of `Basic info`, the
  * prep time in the middle of `Details` — even though they answer the same question: how the kitchen
- * serves this item. Rewriting `KitchenTypeSelector` in CSS Modules (it still carries inline hex) is
- * S8, and the inherited-value shape the approved screen draws is S5. S2 only moves them.
+ * serves this item. `KitchenTypeSelector` was rewritten in CSS Modules with tokens by S8 — it is a
+ * radio group now, not a row of inline-styled buttons — and the inherited-value shape the approved
+ * screen draws is S5. S2 only moved them; S7 gives the prep-time input its label relationship and
+ * its invalid state, and S8 gives it the editor's one number convention.
  */
 export default function ProductServiceFields({ register, errors, control }: ProductServiceFieldsProps) {
   const { t } = useTranslation();
@@ -36,18 +42,21 @@ export default function ProductServiceFields({ register, errors, control }: Prod
             <KitchenTypeSelector
               value={field.value as KitchenType | undefined}
               onChange={field.onChange}
-              error={errors.kitchenType?.message as string | undefined}
+              error={fieldMessage(errors, 'kitchenType')}
             />
           )}
         />
       </div>
 
-      <div className={modalStyles.formGroup}>
-        <label>{t('preparation_time_minutes')}</label>
-        <input type="number" min="0" step="1" {...register('preparationTimeMinutes')} placeholder="0" />
-        {errors.preparationTimeMinutes && (
-          <p className={modalStyles.errorMessage}>{errors.preparationTimeMinutes.message as string}</p>
-        )}
+      <div className={`${modalStyles.formGroup} ${styles.group}`}>
+        <label htmlFor={fieldDomId('preparationTimeMinutes')}>{t('preparation_time_minutes')}</label>
+        <input
+          placeholder="0"
+          {...register('preparationTimeMinutes')}
+          {...INTEGER_INPUT_PROPS}
+          {...fieldAria(errors, 'preparationTimeMinutes')}
+        />
+        <FieldError name="preparationTimeMinutes" message={fieldMessage(errors, 'preparationTimeMinutes')} />
       </div>
     </>
   );

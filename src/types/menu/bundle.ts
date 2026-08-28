@@ -4,6 +4,7 @@
  */
 
 import { DetailedIngredient, MenuSectionSuggestedSideItem, MenuItemImage } from './shared';
+import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
 
 /**
@@ -39,9 +40,14 @@ export interface MenuSection {
 }
 
 /**
- * Individual item choice within a menu section
+ * Individual item choice within a menu section.
+ *
+ * It carries the sauce group rule (S6) because a bundle option follows the OPTION PRODUCT's own
+ * rule — the option IS that product, and the parent bundle owns no sauce rows for a per-product
+ * allowance to apply to. The server prices the child with `childProduct.SauceIncludedFree`, so
+ * these three fields are what stops the live "Add • CHF X" disagreeing with it.
  */
-export interface MenuSectionItem {
+export interface MenuSectionItem extends SauceGroupCarrier {
   id: string;
   productId: string;
   productName?: string;

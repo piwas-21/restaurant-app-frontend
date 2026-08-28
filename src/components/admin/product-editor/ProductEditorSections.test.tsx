@@ -205,15 +205,24 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     expect(basics.querySelector('select[name="primaryCategoryId"]')).not.toBeNull();
   });
 
-  it('Media keeps the gallery on edit and the staged picker on create', async () => {
+  // S3 deleted the fork this used to pin. An item has no create page any more (D3), so Media is
+  // the gallery and only the gallery — and an unsaved item has no Media section at all, because
+  // images are sub-resources of a SAVED product and an empty card would promise otherwise.
+  //
+  // S6 changed the anchor: the gallery's own `<h3>` is gone (G16), so the thing that identifies it
+  // is D5's autosave notice — which is also the assertion that the notice is PERSISTENT rather
+  // than a toast, since nothing has been clicked here.
+  it('Media is the gallery, and is absent entirely on an unsaved item', async () => {
     const { container, unmount } = await renderEditor();
     expect(
-      within(sectionOf(container, 'editor-section-media')).getByRole('heading', { name: 'image_gallery' }),
+      within(sectionOf(container, 'editor-section-media')).getByText('editor_media_autosave_notice'),
     ).toBeInTheDocument();
+    expect(container.querySelector('#product-images')).toBeNull();
 
     unmount();
     const created = await renderEditor({ ...item, id: '', images: [] } as ProductDetails, 'create');
-    expect(sectionOf(created.container, 'editor-section-media').querySelector('#product-images')).not.toBeNull();
+    expect(created.container.querySelector('#editor-section-media')).toBeNull();
+    expect(created.container.querySelector('#product-images')).toBeNull();
   });
 
   it('Pricing keeps the base price and the variation rows together', async () => {
@@ -236,7 +245,11 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     const { container } = await renderEditor();
     const recipe = sectionOf(container, 'editor-section-recipe');
 
-    expect(within(recipe).getByRole('button', { name: 'add_ingredient' })).toBeInTheDocument();
+    // TWO groups now (SHARED-MODIFIERS-AND-SAUCES-PLAN D8) — Ingredients and Sauces — each with its
+    // own manual-add. The section keeps its id, its name and its place in §4's order.
+    expect(within(recipe).getAllByRole('button', { name: 'add_manually' })).toHaveLength(2);
+    expect(within(recipe).getByRole('heading', { name: 'ingredients' })).toBeInTheDocument();
+    expect(within(recipe).getByRole('heading', { name: 'sauces' })).toBeInTheDocument();
     expect(recipe.querySelectorAll('input[id^="allergen-chip-"]')).toHaveLength(16);
     // Seeded from the product, so the chips are the same control and not a fresh empty one.
     expect(recipe.querySelector('#allergen-chip-contains_gluten')).toBeChecked();
@@ -246,9 +259,18 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     const { container } = await renderEditor();
     const service = sectionOf(container, 'editor-section-service');
 
-    expect(within(service).getByRole('button', { name: 'kitchen_type_backkitchen' })).toBeInTheDocument();
+    // A RADIO since S8, not a button: kitchen type is one choice out of three, and the row of
+    // buttons it replaced announced no selected state and no group name. The role is the assertion
+    // that matters — a regression back to buttons is exactly what this line now catches.
+    expect(within(service).getByRole('radio', { name: 'kitchen_type_backkitchen' })).toBeInTheDocument();
     expect(service.querySelector('input[name="preparationTimeMinutes"]')).not.toBeNull();
-    expect(service.querySelectorAll('input[type="radio"]')).toHaveLength(2);
+    // The order-type mask's override, asserted BY ROLE. It was an inherit/custom radio pair until
+    // S5 (D6) made it one switch: inherit is the DEFAULT and an override is a departure from it,
+    // which is what `role="switch"` says and two peer radios did not. Counting `input[type="radio"]`
+    // in the section would silently measure the kitchen type instead, which is why this line names
+    // the role it means rather than the markup it happens to find.
+    expect(within(service).getAllByRole('switch')).toHaveLength(1);
+    expect(service.querySelectorAll('input[type="radio"][name="product-kitchen-type"]')).toHaveLength(3);
   });
 
   it('Advanced keeps the product type and hideBaseProduct', async () => {
@@ -268,6 +290,22 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     expect(rail.querySelector('#product-special')).not.toBeChecked();
     // They left `Details`, they did not multiply: exactly one control per flag on the page.
     expect(container.querySelectorAll('#product-active')).toHaveLength(1);
+  });
+
+  // The CONSUMPTION half of #575. `Switch.test.tsx` proves the component is a switch; without this
+  // the component could be perfect and the rail could still ship the checkbox chips it replaces.
+  it('renders each flag as the design system Switch, not as a checkbox chip', async () => {
+    const { container } = await renderEditor();
+    const rail = container.querySelector('aside') as HTMLElement;
+
+    expect(
+      within(rail)
+        .getAllByRole('switch')
+        .map((node) => node.id),
+    ).toEqual(['product-active', 'product-available', 'product-special']);
+    // `register()` still owns them, so the PUT is unchanged — the round-trip test is the other half.
+    expect(rail.querySelector('#product-active')).toHaveAttribute('name', 'isActive');
+    expect(within(rail).queryAllByRole('checkbox')).toHaveLength(0);
   });
 
   /**

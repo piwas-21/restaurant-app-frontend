@@ -13,6 +13,7 @@ import {
   KitchenType,
 } from './shared';
 import { MenuDefinition } from './bundle';
+import type { SauceGroupCarrier } from './sauce';
 import type { ItemAvailability } from './availability';
 
 export interface CreateProductData {
@@ -46,7 +47,7 @@ export interface ProductResponse {
   };
 }
 
-export interface DetailedProduct {
+export interface DetailedProduct extends SauceGroupCarrier {
   id: string;
   name: string;
   description?: string;

@@ -1,4 +1,5 @@
 import { generateKitchenReceiptHtml } from './kitchenReceipt';
+import { formatCurrency } from '../currency';
 import {
   makeOrder,
   makeOrderItem,
@@ -92,5 +93,77 @@ describe('generateKitchenReceiptHtml — nesting depth', () => {
     expect(occurrences(html!, 'Sharing Platter')).toBe(1);
     expect(occurrences(html!, 'Chicken Wrap')).toBe(1);
     expect(occurrences(html!, 'Garlic Sauce')).toBe(1);
+  });
+});
+
+/**
+ * The `'All'` ticket is the one that prints prices — `generateKitchenReceiptHtml` sets
+ * `showPrices = kitchenType === 'All'` and its own comment calls that ticket customer-facing. A
+ * CHILD row carries `itemTotal = 0` by convention (the parent's total already holds the rolled-up
+ * price, backend `OrderItemFactory`), so every combo component and every add-on side printed a bare
+ * `CHF 0.00` next to its name — on paper, in front of a guest.
+ *
+ * Pre-existing and only ever reachable through a guest order until frontend #595 gave the waiter's
+ * POS its own child rows, which is what put it on the restaurant's own tickets. The SCREEN has
+ * always been right about this: `OrderLineSummary.tsx` prints a side's price only when `> 0`. The
+ * receipt was the copy that disagreed.
+ */
+describe('generateKitchenReceiptHtml — a child row with no total of its own', () => {
+  const orderWithSide = () => {
+    const order = makeOrder([
+      makeOrderItem({
+        id: 'pizza',
+        productName: 'Margherita',
+        kitchenType: 'FrontKitchen',
+        quantity: 2,
+        unitPrice: 20.5,
+        itemTotal: 41,
+        sideItems: [
+          makeOrderItem({
+            id: 'coke',
+            productName: 'Coke',
+            kitchenType: 'FrontKitchen',
+            quantity: 2, // already scaled by the server: 1 per unit x a line of 2
+            unitPrice: 2.5,
+            itemTotal: 0, // pinned by OrderItemFactory — the parent carries the money
+            kind: 'SideItem',
+          }),
+        ],
+      }),
+    ]);
+    order.subTotal = 41;
+    order.total = 41;
+    return order;
+  };
+
+  // The child fragment, not a loose `not.toContain('0.00')`: the ticket's own totals block prints
+  // "CHF 41.00", so a bare "0.00" search matches money that is supposed to be there.
+  const cokeRow = (html: string) =>
+    html.split('<div style="margin-left: 24px; font-size: 11pt;">')[1]?.split('</div>')[0];
+
+  it('prints the side without a price rather than with a zero one', () => {
+    const html = generateKitchenReceiptHtml(orderWithSide(), 'All');
+
+    expect(html).not.toBeNull();
+    // The defect, named: the child used to render as `+ Coke x2 (CHF 0.00)`.
+    expect(cokeRow(html!)).toBe('+ Coke x2');
+  });
+
+  it('still prints the PARENT total, so suppressing the zero costs no real price', () => {
+    const html = generateKitchenReceiptHtml(orderWithSide(), 'All');
+
+    // The control. An assertion that the zero is gone is also satisfied by a ticket that prints no
+    // money at all, which would be a worse bug than the one being fixed.
+    // Through `formatCurrency`, because it separates the code from the amount with a NON-BREAKING
+    // space — a hand-typed 'CHF 41.00' does not match and says nothing useful when it fails.
+    expect(html).toContain(formatCurrency(41));
+    expect(html).toContain(`2 @ ${formatCurrency(20.5)}`);
+  });
+
+  it('prints a child total that is genuinely non-zero — the suppression is a zero rule, not a child rule', () => {
+    const order = orderWithSide();
+    order.items[0].sideItems![0].itemTotal = 5;
+
+    expect(cokeRow(generateKitchenReceiptHtml(order, 'All')!)).toBe(`+ Coke x2 (${formatCurrency(5)})`);
   });
 });

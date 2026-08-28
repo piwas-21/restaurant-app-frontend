@@ -1,0 +1,191 @@
+/* One recipe row, table shape (Stitch: recipe_dietary_details_split_view). */
+
+.row {
+  border-block-end: 1px solid var(--border-color);
+}
+.nameCell,
+.centerCell,
+.priceCell {
+  padding-block: 0.5rem;
+  padding-inline: 0.5rem;
+  vertical-align: middle;
+}
+.centerCell {
+  text-align: center;
+}
+.detailToggle,
+.spinner,
+.removeButton {
+  color: var(--text-muted);
+}
+.nameField {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.nameInput {
+  flex: 1;
+  min-inline-size: 0;
+  padding-block: 0.4rem;
+  padding-inline: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: transparent;
+}
+.nameInput:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  background: var(--surface-card);
+}
+/* The globe the screen draws beside a translated name is a CONTROL here — see the component. */
+.detailToggle,
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+.detailToggle[aria-expanded='true'],
+.detailToggle:hover {
+  color: var(--brand-primary);
+}
+.spinner {
+  position: absolute;
+  inset-inline-end: 2rem;
+  font-size: 0.75rem;
+}
+.suggestions {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline: 0;
+  z-index: 1000;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-block-size: 200px;
+  overflow-y: auto;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+.suggestionItem {
+  display: flex;
+  inline-size: 100%;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 0.75rem;
+  border: none;
+  background: transparent;
+  text-align: start;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.suggestionHint,
+.currency,
+.pricePreview {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+/* The design-system Switch sits centred in its cell; the column header is its label. */
+.rowSwitch {
+  justify-content: center;
+}
+.stepper,
+.priceField {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+.stepper {
+  overflow: hidden;
+}
+.stepper button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.stepper button:hover,
+.suggestionItem:hover {
+  background: var(--surface-secondary);
+}
+.stepper input,
+.priceField input {
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+.stepper input {
+  inline-size: 36px;
+  text-align: center;
+}
+.priceField {
+  gap: 0.25rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+}
+.priceField input {
+  inline-size: 64px;
+  text-align: end;
+}
+.pricePreview {
+  display: block;
+  margin-block-start: 0.25rem;
+}
+.includedBox {
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: var(--brand-primary);
+}
+.removeButton:hover {
+  color: var(--error-color);
+}
+
+/* Reorder cell (#593, slice S8). Two stacked chevrons in the leading cell, where the approved
+   screens draw a drag handle — see the component's doc comment for why buttons and not drag.
+   Used by BOTH row tables: `ProductVariations` already imports this stylesheet, on purpose, because
+   the two tables sit in adjacent sections and the screens draw them identically.
+   Tokens only; every one used here carries a [data-theme='dark'] override in colors.css. */
+.moveCell {
+  padding: 0.25rem 0.25rem 0.25rem 0;
+  vertical-align: middle;
+  width: 1.75rem;
+}
+
+.moveButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.moveButton:hover:not(:disabled) {
+  color: var(--brand-primary);
+}
+
+/* Dimmed, NOT hidden. A control that vanishes at the ends of a list makes the row jump and leaves
+   the admin unsure whether reordering exists at all; `disabled` says "not from here". */
+.moveButton:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

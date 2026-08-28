@@ -4,6 +4,15 @@ import { productTypes } from './types';
 // Zod Schemas for validation
 export const variationSchema = z.object({
   id: z.string().optional(), // For edit operations
+  /**
+   * Provenance for a row picked from the variation library (plan S4).
+   *
+   * It MUST be declared here even though no input writes it. `z.object()` strips keys it does not
+   * know, and `zodResolver` hands `handleSubmit` the PARSED value — so a field that lives only in
+   * react-hook-form's store (as `displayOrder` and `id` do, having never had an input either)
+   * would be silently dropped between the form and the payload builder.
+   */
+  globalVariationId: z.string().optional(),
   name: z.string().min(1, 'Variation name is required'),
   description: z.string().optional(),
   priceModifier: z.coerce.number(),
@@ -63,7 +72,44 @@ const baseProductSchema = z.object({
   // per-item override. The bounds mirror the server's `ValidOrderChannelMask` — 0 is rejected
   // there because "orderable on no channel" renders as a blocked item with no stateable reason.
   availableOrderTypes: z.number().int().min(1, 'Choose at least one order type').max(7).nullable().default(null),
+  // The sauce GROUP rules (SHARED-MODIFIERS-AND-SAUCES-PLAN D9). Product-level, admin-editable, and
+  // with NO tenant default: the owner's answer to §7 Q3 is that "one free sauce" is something a
+  // restaurant types, never something this code assumes. They must be IN the schema and not merely
+  // in the payload — zod strips unknown keys, and `UpdateProductCommand` assigns every column it
+  // receives, so a value carried outside the schema is a stored rule cleared by the next save.
+  //
+  // `sauceMax` is nullable and `null` means NO CAP. `0` is a different, legal statement ("no sauce
+  // may be picked"), which is why the empty input must resolve to null rather than fall through
+  // `z.coerce.number()` — `Number('')` is 0. `.nullable()` short-circuits before the coercion, so
+  // the null arrives intact; the input's `setValueAs` is what produces it (see `SauceGroupRules`).
+  sauceMin: z.coerce.number().int().min(0).default(0),
+  sauceMax: z.coerce.number().int().min(0).nullable().default(null),
+  sauceIncludedFree: z.coerce.number().int().min(0).default(0),
 });
+
+/**
+ * The two cross-field rules the server also enforces, stated client-side so the admin reads them on
+ * the field instead of as a 400 with no field name. Applied per derived schema rather than on
+ * `baseProductSchema`: a `superRefine` turns a ZodObject into a ZodEffects, which `.extend()`
+ * refuses.
+ */
+const sauceGroupRules = (
+  data: { sauceMin?: number; sauceMax?: number | null; sauceIncludedFree?: number },
+  ctx: z.RefinementCtx,
+) => {
+  const max = data.sauceMax;
+  if (max === null || max === undefined) return;
+  if ((data.sauceMin ?? 0) > max) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sauceMax'], message: 'Maximum cannot be below the minimum' });
+  }
+  if ((data.sauceIncludedFree ?? 0) > max) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['sauceIncludedFree'],
+      message: 'More free sauces than the maximum allows',
+    });
+  }
+};
 
 // Menu Definition Schemas
 const menuSectionItemSchema = z.object({
@@ -102,6 +148,40 @@ const menuDefinitionSchema = z.object({
 export const createProductSchema = baseProductSchema.extend({
   menuDefinition: menuDefinitionSchema.optional(),
 });
+
+/**
+ * What the create RESOLVER runs: the object above plus the two cross-field sauce rules.
+ *
+ * They are a separate export because `.superRefine` returns a `ZodEffects`, which has neither
+ * `.shape` nor `.pick` — and `quickAddItemSchema` picks from the object while
+ * `schemas.quickAdd.test.ts` reads its shape to prove the two cannot drift. The form gets the
+ * rules; the subset machinery gets the columns.
+ */
+export const createProductFormSchema = createProductSchema.superRefine(sauceGroupRules);
+
+/**
+ * The three things the quick-add modal asks for (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
+ *
+ * Declared as a PICK MASK rather than as a list of field names, so the modal's schema can be
+ * derived from the create schema instead of restated beside it. `categoryIds` rides along because
+ * one select drives both: the chosen category is the item's only category AND its primary one,
+ * which is the same pair the full editor's chip group + primary select produce.
+ */
+export const QUICK_ADD_ITEM_FIELDS = {
+  name: true,
+  basePrice: true,
+  categoryIds: true,
+  primaryCategoryId: true,
+} as const;
+
+/**
+ * The quick-add modal's schema. `.pick()` and not a fresh `z.object`: it reuses the very same
+ * validator instances the full create form runs, so the two cannot drift apart in bounds, in
+ * coercion or in message. D3's guard rail ("the quick-add is a strict subset of the full editor")
+ * is therefore a property of the code, not a review promise — `schemas.quickAdd.test.ts` asserts
+ * the identity, and `quickAddItemPayload.ts` supplies every field this mask leaves out.
+ */
+export const quickAddItemSchema = createProductSchema.pick(QUICK_ADD_ITEM_FIELDS);
 
 // Dedicated schema for Menu Bundles (cleaner, no redundant fields).
 //
@@ -151,13 +231,32 @@ export const editProductSchema = baseProductSchema
   .refine((d) => !d.categoryIds || d.categoryIds.length === 0 || !!d.primaryCategoryId, {
     path: ['primaryCategoryId'],
     message: 'Primary category is required when categories are selected',
-  });
+  })
+  .superRefine(sauceGroupRules);
 
 export const editMenuBundleSchema = baseMenuBundleSchema.extend({
   id: z.string().optional(),
 });
 
 export type FormData = z.infer<typeof createProductSchema>;
+export type QuickAddItemFormData = z.infer<typeof quickAddItemSchema>;
 export type EditFormData = z.infer<typeof editProductSchema>;
 export type MenuBundleFormData = z.infer<typeof createMenuBundleSchema>;
 export type EditMenuBundleFormData = z.infer<typeof editMenuBundleSchema>;
+
+/**
+ * The ONE resolver the unified editor uses, chosen by kind + mode and never swapped.
+ *
+ * The item schema requires `categoryIds.min(1)` + `primaryCategoryId` (a bundle has neither —
+ * `MenuBundleDto` returns no categories); the bundle schema requires a `menuDefinition`; the create
+ * schemas add the stricter server bounds a fresh row must meet.
+ *
+ * It lives beside the four schemas rather than in the hook because the CHOICE is schema knowledge,
+ * and because four structurally-different schemas mean the ternary widens past `zodResolver`'s
+ * overloads with no single shape for `useForm` to infer — so the caller casts once, here documented
+ * once, instead of spreading `as never` across four branches.
+ */
+export function pickEditorSchema(isBundle: boolean, mode: 'create' | 'edit') {
+  if (isBundle) return mode === 'create' ? createMenuBundleSchema : editMenuBundleSchema;
+  return mode === 'create' ? createProductFormSchema : editProductSchema;
+}

@@ -519,7 +519,28 @@ jobs:
       EmailSettings__FrontendBaseUrl: http://localhost:3000
       EmailSettings__BackendBaseUrl: http://localhost:5221
       CorsSettings__AllowedOrigins__0: http://localhost:3000
+      # The admin account the whole admin half of the suite runs as (#585).
+      #
+      # Seeded BY THE BACKEND, not by e2e/seed/seed.sql: `Users` is ASP.NET Identity, so a
+      # hand-written INSERT would have to reproduce the PBKDF2 hash format, the normalised
+      # columns and the AspNetUserRoles row — and break silently on an Identity upgrade.
+      # `UserSeeder` already does all of it on startup, creation-only, from these two vars.
+      #
+      # The password is a literal, not a repository secret, ON PURPOSE. It must satisfy
+      # Identity's policy (>=8, upper, lower, digit, symbol, >=4 unique) or `CreateAsync`
+      # LOGS and returns instead of throwing — a green job with no admin, which is the exact
+      # failure #585 was. A missing/empty GitHub secret would reintroduce that silence; a
+      # literal cannot. The account exists only inside this job: a throw-away postgres
+      # service container, created at job start and destroyed with the runner. It reaches no
+      # deployed host and grants nothing outside these ~4 minutes.
+      SeedSettings__AdminEmail: e2e-admin@test.local
+      SeedSettings__AdminPassword: E2e-Only!Pass9 # pragma: allowlist secret
       # Frontend / Playwright config
+      # The same credential for `e2e/helpers/adminAuth.ts`, which reads `.env.local` first and
+      # then the environment. CI must NOT get a dotfile: writing a credential into the
+      # workspace is what gitleaks exists to stop.
+      ADMIN_EMAIL: e2e-admin@test.local
+      ADMIN_PASSWORD: E2e-Only!Pass9 # pragma: allowlist secret
       E2E_API_BASE_URL: http://localhost:5221
       E2E_BASE_URL: http://localhost:3000
       E2E_MAILPIT_URL: http://localhost:8025
@@ -580,7 +601,7 @@ jobs:
       # by prefix — the same variables `dotnet run` used to inherit.
       - name: Start backend (published image)
         run: |
-          env | grep -E '^(ASPNETCORE_|ConnectionStrings__|JwtSettings__|EmailSettings__|CorsSettings__)' > /tmp/backend.env
+          env | grep -E '^(ASPNETCORE_|ConnectionStrings__|JwtSettings__|EmailSettings__|CorsSettings__|SeedSettings__)' > /tmp/backend.env
           docker run -d --name rumi-backend --network host --env-file /tmp/backend.env "$BACKEND_IMAGE"
 
       - name: Wait for backend health
@@ -595,6 +616,34 @@ jobs:
           echo "::error::Backend never came up. Last 200 log lines:"
           docker logs --tail 200 rumi-backend || true
           exit 1
+
+      # THE ASSERTION THAT KEEPS THIS FIXED (#585).
+      #
+      # `UserSeeder` calls `UserManager.CreateAsync`, which on a rejected password LOGS
+      # ("Failed to create admin user: …") and returns — it does not throw. So a typo'd or
+      # policy-failing password leaves the backend healthy, the job green, and every admin
+      # spec skipping: precisely the state this PR removes. One real login proves the account
+      # exists AND that its password is the one the suite will use, before a single test runs.
+      # Without this step the fix can rot back into a skip exactly the way it arose.
+      #
+      # Curl prints only the HTTP status and a boolean — never the token, never the body.
+      - name: Assert the seeded admin can log in
+        env:
+          LOGIN_EMAIL: ${{ env.SeedSettings__AdminEmail }}
+          LOGIN_PASSWORD: ${{ env.SeedSettings__AdminPassword }}
+        run: |
+          BODY=$(mktemp)
+          CODE=$(jq -nc --arg e "$LOGIN_EMAIL" --arg p "$LOGIN_PASSWORD" '{email:$e,password:$p}' \
+            | curl -sS -o "$BODY" -w '%{http_code}' -X POST http://localhost:5221/api/Auth/login \
+                   -H 'Content-Type: application/json' --data-binary @-)
+          HAS_TOKEN=$(jq -r 'if (.data.accessToken // "") == "" then "no" else "yes" end' < "$BODY" 2>/dev/null || echo no)
+          rm -f "$BODY"
+          echo "login status=$CODE accessToken=$HAS_TOKEN"
+          if [ "$CODE" != "200" ] || [ "$HAS_TOKEN" != "yes" ]; then
+            echo "::error::The seeded admin ($LOGIN_EMAIL) cannot log in (HTTP $CODE, accessToken=$HAS_TOKEN). UserSeeder LOGS rather than throws on a rejected password, so look for 'Failed to create admin user' or 'Admin seeding skipped' below. Every admin E2E would otherwise SKIP and this job would be green on nothing — see issue #585."
+            docker logs --tail 200 rumi-backend | grep -iE 'admin|seed' || docker logs --tail 200 rumi-backend || true
+            exit 1
+          fi
 
       # AFTER the backend is up, because the schema now arrives with the app's
       # startup migration rather than a build-time `dotnet ef` step. Safe in

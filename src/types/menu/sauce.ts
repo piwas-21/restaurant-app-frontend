@@ -6,19 +6,13 @@
  */
 
 /**
- * What an ingredient row IS — the mirror of the backend `IngredientKind` enum (S5, backend #426),
- * which serialises through `StringEnumConverter` as its `EnumMember` value (`"ingredient"` /
- * `"sauce"`), never as a number.
+ * `IngredientKind` is NOT declared here. S5 (#588) landed it in `./shared.ts` beside
+ * `ProductIngredient`, and `@/types/menu` re-exports both modules with `export *` — so a second
+ * declaration of the same name would be an ambiguous re-export, and two unions that can drift.
  *
- * A sauce is a TYPED ingredient, not a second entity (plan D7/D8): same id, same row, same money,
- * grouped apart for the admin and — since S6 — for the guest. That is the only shape with zero
- * impact on the `IngredientQuantitiesJson` maps a basket and an immutable order already carry.
- *
- * Absent on a backend that predates the field, and absent reads as `'ingredient'` — which is what
- * every row meant before it existed. Never test it bare: `isSauce()` in `@/utils/sauceGroup` applies
- * that degrade in one place.
+ * Absent still reads as `'ingredient'`, and that degrade has exactly one owner:
+ * `resolveIngredientKind` in `@/utils/ingredientKind`. Never test `kind` bare.
  */
-export type IngredientKind = 'ingredient' | 'sauce';
 
 /**
  * The product-level sauce group rule (plan D9, backend `Product.SauceMin` / `SauceMax` /

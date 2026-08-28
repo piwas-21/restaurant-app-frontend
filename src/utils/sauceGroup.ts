@@ -1,4 +1,6 @@
-import type { IngredientKind, SauceGroupCarrier, SauceGroupRule } from '@/types/menu/sauce';
+import type { IngredientKind } from '@/types/menu';
+import type { SauceGroupCarrier, SauceGroupRule } from '@/types/menu/sauce';
+import { resolveIngredientKind } from './ingredientKind';
 
 /**
  * The sauce group, as one place (SHARED-MODIFIERS-AND-SAUCES-PLAN S6, D9–D12).
@@ -26,11 +28,12 @@ export interface SauceCandidate {
 }
 
 /**
- * Is this row a sauce? The one place the absent-means-ingredient degrade is applied: `kind` is
- * additive (backend #426) and every row written before it carries nothing.
+ * Is this row a sauce? The absent-means-ingredient degrade is NOT re-implemented here: S5 (#588)
+ * already owns it in `resolveIngredientKind`, and a second copy is how the two come to disagree
+ * about a legacy row. This is the guest sheet's reading of that one answer.
  */
 export function isSauce(ingredient: { kind?: IngredientKind }): boolean {
-  return ingredient.kind === 'sauce';
+  return resolveIngredientKind(ingredient) === 'sauce';
 }
 
 /**

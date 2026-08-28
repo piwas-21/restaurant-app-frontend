@@ -11,7 +11,7 @@
  */
 
 import { sauceWaiverAmount } from './sauceGroup';
-import type { IngredientKind } from '@/types/menu/sauce';
+import type { IngredientKind } from '@/types/menu';
 
 /** The minimal ingredient shape pricing needs — satisfied by both `ProductIngredient` (optional
  *  `isIncludedInBasePrice`/`maxQuantity`) and `DetailedIngredient` (required). */

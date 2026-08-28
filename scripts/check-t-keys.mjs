@@ -108,8 +108,86 @@ const blankComments = (source) =>
 const CALL = /\b(?:t|copy|staticText)\(\s*(['"])([^'"]+)\1\s*(,)?/g;
 const missing = new Map(); // key -> { hasDefault, sites:Set }
 
+/**
+ * The SECOND source of keys (issue #611): a literal copy table.
+ *
+ * The callsite scan above reads a quoted literal INSIDE the call, so it goes blind the moment a
+ * component renders `t(copy.title)` instead of `t('add_from_library')`. #608's shared library picker
+ * did exactly that and took ~26 keys out of this gate's sight — with every gate green, because a key
+ * that no scan can see is indistinguishable from a key that is fine.
+ *
+ * Those keys are still LITERALS; only the call site moved. They live in a table
+ * (`src/components/admin/product/libraryPickerCopy.ts`) shaped
+ * `title: { ingredient: 'add_from_library', variation: 'variation_library_title' }`, which is
+ * statically readable. So this is not a new class of check — it is the same resolve-against-en.json
+ * check, reading the keys from where they now are.
+ *
+ * OPT-IN BY MARKER, not by filename — and the filename heuristic was BUILT, MEASURED AND REJECTED
+ * rather than merely disliked. A `*Copy.ts` tripwire (error if such a module carries no marker) fired
+ * on `src/lib/firstPaintCopy.ts` and `src/lib/tenantCopy.ts`, neither of which is a key table: one is
+ * the two-pass render helper, the other a tenant OVERRIDE pack keyed BY i18n key. Two of the three
+ * matches were false, so in this repo the name carries no signal and the tripwire would have taught
+ * people to silence a gate. The marker also travels with the file, where a name does not: rename
+ * `fooCopy.ts` and a name-based scan loses it silently — the exact failure #611 is about.
+ *
+ * RESIDUAL, stated rather than hidden: a NEW literal copy table gets no coverage until someone adds
+ * the marker. There is no mechanism here that can find an unmarked table, because a table of i18n
+ * keys and a table of any other strings are the same shape. For the one table that exists,
+ * `libraryPickerCopy.test.ts` asserts the marker is present, so deleting it fails a test rather than
+ * quietly shrinking this gate.
+ *
+ * A table key can carry no inline default, so a key here that does not resolve is always the ERROR
+ * class: i18next renders the key itself and an admin reads `variation_library_title` off the screen.
+ */
+const TABLE_MARKER = '@t-keys-table';
+
+/** String literals in VALUE position — `slot: 'key'`. Property NAMES are not keys and must not match. */
+const TABLE_VALUE = /:\s*(['"])([^'"\n]+)\1/g;
+
+/**
+ * The braces of the object that follows the marker, on the comment-blanked source.
+ *
+ * `blankComments` replaces a comment with SPACES of equal length and keeps its newlines, so offsets
+ * are identical in both strings: the marker is located in the RAW text (it lives in a comment, which
+ * the blanked copy has erased) and the braces are matched in the BLANKED text (so a `{` inside a
+ * string or a comment cannot be mistaken for the opener).
+ */
+const objectAfter = (blanked, from) => {
+  const start = blanked.indexOf('{', from);
+  if (start === -1) return '';
+  let depth = 0;
+  for (let i = start; i < blanked.length; i += 1) {
+    if (blanked[i] === '{') depth += 1;
+    else if (blanked[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return blanked.slice(start, i + 1);
+    }
+  }
+  return ''; // Unbalanced source — the compiler will say so far more clearly than this gate can.
+};
+
 for (const file of sourceFiles) {
-  const src = blankComments(readFileSync(file, 'utf8'));
+  // `text` rather than `raw`: `raw` is the module-scope list of undefaulted keys further down, and a
+  // shadow that reads correctly here and means something else 40 lines later is a trap for the next
+  // editor of this file.
+  const text = readFileSync(file, 'utf8');
+  const src = blankComments(text);
+
+  if (text.includes(TABLE_MARKER)) {
+    for (let at = text.indexOf(TABLE_MARKER); at !== -1; at = text.indexOf(TABLE_MARKER, at + 1)) {
+      const table = objectAfter(src, at);
+      let v;
+      while ((v = TABLE_VALUE.exec(table))) {
+        const key = v[2];
+        if (resolve(en, key) !== undefined) continue;
+        const entry = missing.get(key) ?? { hasDefault: false, sites: new Set() };
+        entry.hasDefault = false; // A table entry is a bare key: there is nowhere to put a default.
+        entry.sites.add(relative(root, file));
+        missing.set(key, entry);
+      }
+    }
+  }
+
   let m;
   while ((m = CALL.exec(src))) {
     const key = m[2];

@@ -9,6 +9,9 @@ import ru from '@/locales/ru.json';
 import tr from '@/locales/tr.json';
 import zh from '@/locales/zh.json';
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { INGREDIENT_LIBRARY_COPY, VARIATION_LIBRARY_COPY } from './libraryPickerCopy';
 
 /**
@@ -22,10 +25,16 @@ import { INGREDIENT_LIBRARY_COPY, VARIATION_LIBRARY_COPY } from './libraryPicker
  * deletion from `en.json` would put `variation_library_title` on an admin's screen with every gate
  * green.
  *
- * This test is the interim guard for exactly that: it asserts the copy table against the bundles
- * instead of against the callsites. The real fix — teaching the gate to read a literal
- * `satisfies Record<..., string>` table — is a follow-up issue; until it lands, deleting one of
- * these keys turns this file red.
+ * THE GATE NOW READS THIS TABLE (#611): `check-t-keys.mjs` collects the value literals of any object
+ * marked `@t-keys-table`, so deleting one of these keys from `en.json` fails CI on its own.
+ *
+ * This file is deliberately KEPT rather than reduced, because it checks something the gate does not
+ * and cannot: the gate resolves against `en.json` ONLY — that is all a missing-key gate needs, since
+ * i18next falls back to English — while this asserts every key in ALL TEN bundles. The two answer
+ * different questions and the cheap one is not the strict one.
+ *
+ * It also pins the MARKER itself. The marker is the whole of the gate's opt-in, so deleting that one
+ * comment would silently shrink the gate back to where #611 found it; here that is a red test.
  */
 // `it` is jest's test function here, so the Italian bundle is imported under another name.
 const BUNDLES = { ar, de, en, es, fr, it: itIT, nl, ru, tr, zh } as const;
@@ -53,6 +62,24 @@ describe('libraryPickerCopy', () => {
     for (const slot of Object.keys(INGREDIENT_LIBRARY_COPY) as (keyof typeof INGREDIENT_LIBRARY_COPY)[]) {
       expect(INGREDIENT_LIBRARY_COPY[slot]).not.toBe(VARIATION_LIBRARY_COPY[slot]);
     }
+  });
+
+  /*
+   * The gate's opt-in, pinned (#611). `check-t-keys.mjs` only reads a table that carries this marker,
+   * so the comment is not documentation — it is the whole of the coupling between this file and the
+   * gate. Deleting it takes ~26 keys back out of CI's sight with every check still green, which is
+   * the state #611 was filed to end.
+   *
+   * Asserted on the module SOURCE rather than on anything importable, because a marker in a comment
+   * is invisible at runtime: there is nothing else to read it from.
+   */
+  it('carries the @t-keys-table marker that check-t-keys.mjs opts in on', () => {
+    const source = readFileSync(join(__dirname, 'libraryPickerCopy.ts'), 'utf8');
+
+    expect(source).toContain('@t-keys-table');
+    // Above the table, not merely somewhere in the file: the scanner reads the first object literal
+    // AFTER the marker, so a marker that trails the table would opt in and collect nothing.
+    expect(source.indexOf('@t-keys-table')).toBeLessThan(source.indexOf('const COPY = {'));
   });
 
   it.each(KEYS)('%s renders a translation, not its own key, in every one of the ten bundles', (_slot, key) => {

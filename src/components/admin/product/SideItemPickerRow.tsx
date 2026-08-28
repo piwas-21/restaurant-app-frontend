@@ -45,7 +45,12 @@ export default function SideItemPickerRow({
 }: Readonly<SideItemPickerRowProps>) {
   const { t } = useTranslation();
   const noteId = `side-item-note-${id}`;
-  const note = isSelf ? t('side_items_picker_self') : alreadyAdded ? t('already_added') : null;
+  let note: string | null = null;
+  if (isSelf) {
+    note = t('side_items_picker_self');
+  } else if (alreadyAdded) {
+    note = t('already_added');
+  }
 
   return (
     <li className={`${styles.row} ${alreadyAdded || isSelf ? styles.rowMuted : ''}`}>

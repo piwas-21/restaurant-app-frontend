@@ -163,12 +163,12 @@ describe('editor validation — the save bar says how many and where (D13, gap G
     await emptyTheName(nameInput);
     (document.activeElement as HTMLElement)?.blur();
 
-    await act(async () => {
-      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
-    });
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
+    // `waitFor`, not an `act()` wrapper (Sonar S8980 — `fireEvent` already flushes): the resolver
+    // is async, so the refusal and the focus move land a microtask after the submit.
+    await waitFor(() => expect(document.activeElement).toBe(nameInput));
     expect(updateProduct).not.toHaveBeenCalled();
-    expect(document.activeElement).toBe(nameInput);
   });
 
   // A translation row is in the OTHER tab, which is `hidden` — and a hidden panel cannot take
@@ -184,11 +184,11 @@ describe('editor validation — the save bar says how many and where (D13, gap G
     const chip = await screen.findByTestId('editor-error-summary');
     expect(chip).toHaveTextContent('editor_error_summary:1');
 
-    await act(async () => {
-      fireEvent.click(chip);
-    });
+    fireEvent.click(chip);
 
-    expect(screen.getByRole('tab', { name: 'editor_tab_translations' })).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'editor_tab_translations' })).toHaveAttribute('aria-selected', 'true'),
+    );
   });
 
   // `variationSchema.name` is `min(1)` and this file rendered no message at all before S7, so the

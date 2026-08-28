@@ -17,16 +17,25 @@ import { writeAuthStorageState } from '../../helpers/storageState';
  * directly by re-reading the product afterwards. That is why it is safe on any environment,
  * including a shared deployed tenant, and why it needs no `afterAll` restore.
  *
- * WHERE IT RUNS: anywhere an admin credential is available. Today that is a developer's
- * `.env.local` and a deployed host; **in CI it SKIPS**, because `ci.yml`'s Playwright job seeds no
- * admin user and sets no credential — filed as
- * [#585](https://github.com/piwas-21/restaurant-app-frontend/issues/585), in flight. When that
- * lands this suite starts running on every PR with no change here.
+ * WHERE IT RUNS: everywhere an admin credential is available, **including CI** since #591 seeded
+ * one (`SeedSettings__*` + `ADMIN_EMAIL`/`ADMIN_PASSWORD`, closing #585). Note that
+ * `assertCredentialConfigured` now THROWS rather than skipping when `CI` is set and the base URL
+ * is local, so a credential-shaped skip is a red job by design. The one skip left here is "this
+ * environment has no menu item", which CI's seed rules out.
  *
  * SERIAL: `beforeAll` runs once per WORKER, and a deployed environment allows five logins per
  * fifteen minutes per IP. One worker, one login.
+ *
+ * TIMEOUT, measured rather than guessed (#591): `webServer` is `next dev`, which compiles a route
+ * on its FIRST request, and the editor is the heaviest admin route in the tree. The first spec to
+ * touch it in a shard pays a one-off compile that overran a 30s default and passed on retry in
+ * 3.2s. A retry-only pass is not a pass, so the budget is explicit here instead.
  */
 test.describe.configure({ mode: 'serial' });
+test.setTimeout(180_000);
+
+/** Enough for a cold `next dev` compile of the editor route; every later wait is web-first. */
+const FIRST_PAINT_MS = 120_000;
 
 let ready = false;
 let skipReason = '';
@@ -99,6 +108,12 @@ test('an invalid item cannot be saved, and the editor says which field and where
   baseURL,
   request,
 }) => {
+  /*
+   * A runtime GUARD, not an ignored test (Sonar S1607, accepted on #591 with the same rationale).
+   * `ready` is false only when this environment cannot host the scenario at all — no admin
+   * credential off-CI, or no menu item to open — and the reason is printed. On CI neither holds:
+   * #591 seeds the admin and `assertCredentialConfigured` throws rather than skipping there.
+   */
   test.skip(!ready, skipReason);
 
   const context = await browser.newContext({ storageState: storageStatePath });
@@ -109,7 +124,9 @@ test('an invalid item cannot be saved, and the editor says which field and where
     await page.goto(`${baseURL}/admin/menu-management/${productId}`, { waitUntil: 'domcontentloaded' });
 
     const name = page.locator('input[name="name"]');
-    await expect(name, 'the editor should render the item it was asked for').toBeVisible({ timeout: 20_000 });
+    await expect(name, 'the editor should render the item it was asked for').toBeVisible({
+      timeout: FIRST_PAINT_MS,
+    });
 
     // 1. onTouched: silent while the field is being edited, and speaking once it is left.
     await name.fill('');

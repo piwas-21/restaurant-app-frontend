@@ -3,7 +3,9 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ProductIngredient } from '@/types/menu';
+import SauceGroupSection from './SauceGroupSection';
+import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
+import type { ProductIngredient, SauceGroupCarrier } from '@/types/menu';
 import styles from './OptionalIngredientsSection.module.css';
 
 interface OptionalIngredientsSectionProps {
@@ -13,6 +15,12 @@ interface OptionalIngredientsSectionProps {
   onSelectionChange: (selected: string[]) => void;
   onQuantityChange: (ingredientId: string, quantity: number) => void;
   currentLanguage: string;
+  /**
+   * The owning product's sauce group rule, straight off the wire (S6). Absent — a bundle option
+   * served by a backend that predates the field, or a product with no rule — degrades to "no
+   * minimum, no cap, nothing free", which is exactly how sauces priced before S6.
+   */
+  sauceGroup?: SauceGroupCarrier;
 }
 
 export default function OptionalIngredientsSection({
@@ -22,17 +30,20 @@ export default function OptionalIngredientsSection({
   onSelectionChange,
   onQuantityChange,
   currentLanguage,
+  sauceGroup,
 }: OptionalIngredientsSectionProps) {
   const { t } = useTranslation();
 
-  // Filter active ingredients
-  const activeIngredients = ingredients.filter((ing) => ing.isActive);
+  // Filter active ingredients. Sauces are ingredients too (S5's `kind` discriminator), but they are
+  // rendered by their own group below and must not appear twice.
+  const activeIngredients = ingredients.filter((ing) => ing.isActive && !isSauce(ing));
 
   // Separate optional and default ingredients
   const defaultIngredients = activeIngredients.filter((ing) => !ing.isOptional);
   const optionalIngredients = activeIngredients.filter((ing) => ing.isOptional);
+  const hasSauces = ingredients.some((ing) => ing.isActive && isSauce(ing));
 
-  if (activeIngredients.length === 0) {
+  if (activeIngredients.length === 0 && !hasSauces) {
     return null;
   }
 
@@ -185,6 +196,19 @@ export default function OptionalIngredientsSection({
           </div>
         </div>
       )}
+
+      {/* Inside this section, deliberately, and not beside it in `ProductSheetBody`: a bundle option
+          mounts THIS component directly (`BundleOptionRow`), so a sauces group placed here reaches
+          the bundle body for free and can never drift from the product one. */}
+      <SauceGroupSection
+        ingredients={ingredients}
+        rule={toSauceGroupRule(sauceGroup)}
+        selectedIngredients={selectedIngredients}
+        ingredientQuantities={ingredientQuantities}
+        onSelectionChange={onSelectionChange}
+        onQuantityChange={onQuantityChange}
+        currentLanguage={currentLanguage}
+      />
     </div>
   );
 }

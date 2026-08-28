@@ -74,6 +74,7 @@ export default function ProductSheetBody({ controller }: Readonly<{ controller: 
             setIngredientQuantities((prev) => ({ ...prev, [ingredientId]: qty }))
           }
           currentLanguage={currentLanguage}
+          sauceGroup={product}
         />
       )}
 

@@ -56,6 +56,7 @@ export interface DetailedIngredient {
   isActive: boolean;
   displayOrder: number;
   maxQuantity: number;
+  kind?: IngredientKind; // Ingredient or sauce (S5), `MenuBundleIngredientDto.kind`; absent = ingredient
   content?: Record<string, { name: string; description?: string }>;
 }
 

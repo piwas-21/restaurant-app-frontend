@@ -1,0 +1,141 @@
+/* The guest sauces group (S6).
+   Every skinnable property is `var(--modal-body-*, <classic literal>)`: this component renders in
+   BOTH templates from one file — craft re-skins the shared sheet only through those custom
+   properties (templates/craft/tokens.css), and a literal here would render an unskinned classic
+   block inside craft's torn-paper sheet. Structure is identical in both, by construction. */
+.group {
+  /* A fieldset carries a UA border, padding and min-inline-size — reset before styling. */
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 10px);
+  box-shadow: var(--modal-body-option-shadow, none);
+  margin: 0 0 1.5rem 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+/* A `legend` is laid out by the UA as a notch in the border; `float` + full width makes it an
+   ordinary block row, which is what the design draws and what keeps the group semantics. */
+.legend {
+  float: inline-start;
+  inline-size: 100%;
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  inline-size: 100%;
+  /* ≥44px, above the 24px floor — the sheet's other controls are the 24px this one is not. */
+  min-block-size: 44px;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: start;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.title {
+  font-family: var(--modal-body-title-font, inherit);
+  font-size: var(--modal-body-title-size, 1.125rem);
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* The collapsed one-liner, and the group hint below it: the same accent voice the ingredient
+   section gives its group titles and prices. */
+.summary,
+.hint {
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.875rem);
+  color: var(--text-secondary);
+}
+
+.hint {
+  margin: 0;
+  padding: 0 1rem 0.75rem 1rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  /* Same 44px floor as the header: the whole row is the target, not the 20px box inside it. */
+  min-block-size: 44px;
+  padding: 0.875rem 1rem;
+  border-block-start: var(--modal-body-rule, 1px solid var(--border-default));
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Max reached. The row keeps its place, its tab stop and its badge — it is `aria-disabled`, not
+   `disabled`, so it can still say why it cannot be ticked. */
+.rowBlocked {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* The exclusive "no sauce" answer sorts last, behind a rule of its own (GOV.UK). */
+.rowExclusive {
+  border-block-start: var(--modal-body-option-border, 1px solid var(--border-default));
+}
+
+.input {
+  inline-size: 24px;
+  block-size: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+  /* The accent token, never a literal — the approved screen draws a stock blue box (§5.5). */
+  accent-color: var(--brand-primary);
+}
+
+.rowBlocked .input {
+  cursor: default;
+}
+
+/* Sauce names wrap rather than truncate: the ingredient list's `text-overflow: ellipsis` hides a
+   long name with no `title` to recover it, and this group is new enough not to inherit that. */
+.name {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-color);
+  overflow-wrap: anywhere;
+}
+
+/* Ink, not a success green — a surcharge is financial information, and the green measured 2.55:1
+   against AA's 4.5:1 on this very surface (OptionalIngredientsSection.module.css). */
+.price {
+  font-family: var(--modal-body-accent-font, inherit);
+  font-size: var(--modal-body-accent-size, 0.875rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .row {
+    padding: 0.625rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .name {
+    font-size: 0.8125rem;
+  }
+}

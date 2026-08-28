@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Languages, Plus, Trash2 } from 'lucide-react';
 import { ProductVariationsProps } from './types';
+import FieldError from './fields/FieldError';
+import { fieldAria, fieldMessage } from './fields/fieldAria';
 import Switch from '@/components/design-system/Switch';
 import { TENANT_CURRENCY } from '@/utils/currency';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
@@ -34,6 +36,7 @@ import detailStyles from './ProductIngredientDetails.module.css';
  */
 export const ProductVariations: React.FC<ProductVariationsProps> = ({
   register,
+  errors,
   variationFields,
   appendVariation,
   removeVariation,
@@ -76,6 +79,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                         aria-label={t('variation_name')}
                         placeholder={t('variation_name')}
                         {...register(`variations.${index}.name`)}
+                        {...fieldAria(errors, `variations.${index}.name`)}
                       />
                       <button
                         type="button"
@@ -88,6 +92,15 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                         <Languages size={16} aria-hidden="true" />
                       </button>
                     </div>
+                    {/* S7/D13. `variationSchema.name` is `min(1)`, so a blank one refuses the
+                        WHOLE save — and until S7 this file rendered no message at all, which is
+                        why the editor could refuse with nothing on screen anywhere (plan §12.1).
+                        The `aria-label` above stays: it is the accessible NAME, and `fieldAria`
+                        only adds the invalid state and the pointer to this sentence. */}
+                    <FieldError
+                      name={`variations.${index}.name`}
+                      message={fieldMessage(errors, `variations.${index}.name`)}
+                    />
                   </td>
                   <td className={rowStyles.nameCell}>
                     <input
@@ -95,6 +108,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                       aria-label={t('variation_description')}
                       placeholder={t('variation_description')}
                       {...register(`variations.${index}.description`)}
+                      {...fieldAria(errors, `variations.${index}.description`)}
                     />
                     <span className={rowStyles.pricePreview}>
                       {t('translated_in_languages', {
@@ -114,9 +128,14 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                         step="0.01"
                         aria-label={t('price_modifier')}
                         {...register(`variations.${index}.priceModifier`)}
+                        {...fieldAria(errors, `variations.${index}.priceModifier`)}
                       />
                       <span className={rowStyles.currency}>{TENANT_CURRENCY}</span>
                     </span>
+                    <FieldError
+                      name={`variations.${index}.priceModifier`}
+                      message={fieldMessage(errors, `variations.${index}.priceModifier`)}
+                    />
                   </td>
                   <td className={rowStyles.centerCell}>
                     <Switch

@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Les clients choisissent jusqu’à {{max}} sauces.",
   "sauce_rules_hint_min": "Au moins {{min}} doivent être choisies.",
   "sauce_rules_hint_free": "Les {{free}} premières sont offertes ; chaque sauce en plus est facturée.",
-  "sauce_rules_hint_paid": "Chaque sauce est facturée."
+  "sauce_rules_hint_paid": "Chaque sauce est facturée.",
+  "editor_error_summary": "Champs à corriger : {{count}} – aller au premier",
+  "editor_section_has_errors": "Cette section contient des erreurs"
 }

@@ -6,6 +6,10 @@ import styles from './EditorSectionNav.module.css';
 export interface EditorNavEntry {
   readonly id: string;
   readonly label: string;
+  /** Mark this entry as holding at least one validation error (G3's red `!`, slice S7). */
+  readonly hasError?: boolean;
+  /** Translated sentence a screen reader hears in place of the marker glyph. */
+  readonly errorLabel?: string;
 }
 
 interface EditorSectionNavProps {
@@ -24,6 +28,13 @@ interface EditorSectionNavProps {
  * `tablist`: every section stays rendered and reachable by scrolling, which is the whole point of
  * D1 (tabs would hide a validation error behind an inactive tab). `aria-current` marks the section
  * in view — not `aria-selected`, which would claim a tab relationship that does not exist.
+ *
+ * Since S7 an entry can also carry an ERROR marker (conformance gap G3, issue #579): a nav that
+ * cannot answer "where is the problem?" is doing half its job on a form this long. The glyph is
+ * `aria-hidden` and paired with a visually-hidden sentence, because a screen reader announcing
+ * "exclamation mark" says nothing. The amber INCOMPLETE dot the same screen draws is S10's, and
+ * this component is deliberately agnostic about which one it is showing: it renders what it is
+ * told, and `editorValidation.ts` decides.
  */
 export default function EditorSectionNav({ entries, activeId, onSelect, label }: EditorSectionNavProps) {
   return (
@@ -38,6 +49,14 @@ export default function EditorSectionNav({ entries, activeId, onSelect, label }:
               onClick={() => onSelect(entry.id)}
             >
               {entry.label}
+              {entry.hasError && (
+                <>
+                  <span aria-hidden="true" className={styles.errorMarker}>
+                    !
+                  </span>
+                  <span className={styles.srOnly}>{entry.errorLabel}</span>
+                </>
+              )}
             </button>
           </li>
         ))}

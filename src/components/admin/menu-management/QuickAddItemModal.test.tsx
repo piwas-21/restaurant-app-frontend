@@ -95,6 +95,18 @@ describe('QuickAddItemModal — create is three fields and a redirect (D3)', () 
     expect(screen.getByRole('dialog').textContent).not.toContain('$');
   });
 
+  // The design review's cosmetic note on #584, which was not cosmetic: an `aria-hidden` affix
+  // leaves a screen reader announcing a bare "Price" for a field whose unit is the whole point.
+  it('lets a screen reader hear the currency, not just see it', async () => {
+    await renderModal();
+
+    const price = screen.getByLabelText(/price/);
+    const describedBy = price.getAttribute('aria-describedby') as string;
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy)).toHaveTextContent('CHF');
+    expect(document.getElementById(describedBy)).not.toHaveAttribute('aria-hidden');
+  });
+
   it('refuses an empty form with the full editor’s own messages, and posts nothing', async () => {
     await renderModal();
 

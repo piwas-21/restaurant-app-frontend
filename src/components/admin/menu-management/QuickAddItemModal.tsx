@@ -20,6 +20,7 @@ interface QuickAddItemModalProps {
 }
 
 const FORM_ID = 'quick-add-item-form';
+const CURRENCY_ID = 'quick-add-price-currency';
 
 /**
  * Quick-add a menu item (MENU-ITEM-EDITOR-REDESIGN-PLAN, slice S3 / decision D3).
@@ -88,7 +89,13 @@ export default function QuickAddItemModal({ isOpen, onClose, onCreated, onAddedA
           <FormField label={t('price')} error={errors.basePrice?.message as string | undefined}>
             {/* The currency is the tenant's, read from config — the screen's `$` is wrong here
                 (handover §3). It is a suffix and not part of the value: the control stays the
-                plain number input the full editor's base price is. */}
+                plain number input the full editor's base price is.
+
+                It is `aria-describedby`, NOT `aria-hidden`. The design review's cosmetic note on
+                #584 was right and it was not cosmetic: a currency drawn for sighted users and
+                hidden from everyone else leaves a screen reader announcing a bare "Price". The
+                field is now heard as "Price … CHF", the same wording the full editor's base price
+                got in S7. */}
             <span className={styles.priceBox}>
               <input
                 className={`${styles.input} ${styles.priceInput}`}
@@ -96,9 +103,10 @@ export default function QuickAddItemModal({ isOpen, onClose, onCreated, onAddedA
                 step="0.01"
                 min="0"
                 placeholder="0.00"
+                aria-describedby={CURRENCY_ID}
                 {...form.register('basePrice')}
               />
-              <span className={styles.currency} aria-hidden="true">
+              <span id={CURRENCY_ID} className={styles.currency}>
                 {TENANT_CURRENCY}
               </span>
             </span>

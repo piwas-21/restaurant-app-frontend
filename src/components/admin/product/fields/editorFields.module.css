@@ -1,0 +1,78 @@
+/* Editor field states (MENU-ITEM-EDITOR-REDESIGN-PLAN, D13 / slice S7).
+   The approved reference sheet (`admin_component_reference_sheet_dark_mode`, "1. Text Fields")
+   draws four: default grey border, focused red border, ERROR red border + a circled-alert
+   message, and disabled dimmed. S7 owns the error one. */
+
+/*
+  Scoped to `input`/`select`/`textarea` so it OUT-SPECIFIES the shared `.formGroup input` rule in
+  `RegisterStaffModal.module.css` (0,1,1) that supplies the default border. Relying on source
+  order between two CSS modules would decide this by bundling order, which is not a contract.
+*/
+.group input[aria-invalid='true'],
+.group select[aria-invalid='true'],
+.group textarea[aria-invalid='true'] {
+  border-color: var(--feedback-error);
+}
+
+.group input[aria-invalid='true']:focus-visible,
+.group select[aria-invalid='true']:focus-visible,
+.group textarea[aria-invalid='true']:focus-visible {
+  outline: 2px solid var(--feedback-error);
+  outline-offset: 1px;
+}
+
+/* The chip group is a fieldset, so the invalid state marks the group, not one box. */
+.group[aria-invalid='true'] {
+  border-inline-start: 2px solid var(--feedback-error);
+  padding-inline-start: 0.5rem;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  color: var(--feedback-error-text);
+  font-size: 0.875rem;
+}
+
+.errorIcon {
+  flex: none;
+}
+
+/* A fieldset carrying the category chips: no browser chrome, so it looks like the div it replaced
+   while giving the group a real name and a real invalid state. */
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Currency affix inside the box (conformance gap G10; the reference sheet's "Currency field").
+   The value stays a plain number input — the affix is a sibling, reserved space and all, so a
+   long amount cannot slide under the code. `inset-inline-end` so it mirrors in RTL. */
+.affixBox {
+  position: relative;
+  display: block;
+}
+
+.affixInput {
+  padding-inline-end: 3.25rem;
+}
+
+.affix {
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  pointer-events: none;
+}

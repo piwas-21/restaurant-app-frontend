@@ -80,7 +80,10 @@ export default function AdminPriceEditor({ item, onPriceChange, onEditingChange 
   // unbound, so the server's reason was discarded exactly as in BUGS-IMPROVEMENTS-PLAN E9.
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const errorId = `admin-price-error-${useId()}`;
+  const reactId = useId();
+  const errorId = `admin-price-error-${reactId}`;
+  // The currency is DESCRIBED, not decorative. See the note beside the marker below.
+  const currencyId = `admin-price-currency-${reactId}`;
 
   useEffect(() => {
     if (editing) inputRef.current?.focus();
@@ -163,8 +166,20 @@ export default function AdminPriceEditor({ item, onPriceChange, onEditingChange 
         <span className={styles.editingLegend}>{t('admin_edit_price_editing', 'Editing price')}</span>
         <span className={styles.inputRow}>
           {/* The currency marker lives beside the field rather than inside the value, so the input
-              stays a real `type="number"` and the admin is not typing around a symbol. */}
-          <span className={styles.currency} aria-hidden="true">
+              stays a real `type="number"` and the admin is not typing around a symbol.
+
+              It is now an `aria-describedby` TARGET. What was wrong was not the `aria-hidden` by
+              itself — it was that NOTHING REFERENCED this span, so the field was announced as a
+              bare "Edit price" with no unit: a sighted admin sees CHF and a screen-reader user is
+              told to type a number into nothing in particular.
+
+              Measured while proving the test: re-adding `aria-hidden` to a span that IS referenced
+              does NOT change the accessible description — accname includes an explicitly
+              referenced node even when it is hidden — so `aria-hidden` is not the tell here and a
+              test that mutates it proves nothing. The reference is the whole fix. The full editor's
+              base price (`ProductPricingFields`) and the quick-add modal already describe their
+              affix; this was the last of the three that did not. */}
+          <span id={currencyId} className={styles.currency}>
             {TENANT_CURRENCY}
           </span>
           <input
@@ -184,7 +199,9 @@ export default function AdminPriceEditor({ item, onPriceChange, onEditingChange 
             className={`${styles.priceInput} ${error ? styles.priceInputError : ''}`}
             aria-label={label}
             aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
+            // APPENDED, never replaced: the error id must not evict the currency, and a bare
+            // `aria-describedby={errorId}` would do exactly that the moment a save fails.
+            aria-describedby={error ? `${currencyId} ${errorId}` : currencyId}
             disabled={saving}
             data-testid="admin-price-input"
           />

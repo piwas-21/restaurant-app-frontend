@@ -328,6 +328,27 @@ describe('what a row costs to change (plan S3)', () => {
     expect(rowFor('Basil').getByText('already_added')).toBeInTheDocument();
     expect(rowFor('Basil').queryByLabelText('ingredient_library_used_on')).toBeNull();
   });
+
+  // Review gap G23 (frontend #581). Unticked-and-disabled reads "not selected", which is the
+  // OPPOSITE of what is true, and left the italic caption to overturn the tick box next to it.
+  it('draws an already-added row TICKED and disabled, not unticked', async () => {
+    await open([attachedIngredient({ name: 'Basil' })]);
+
+    const box = rowFor('Basil').getByRole('checkbox', { name: 'Basil' });
+    expect(box).toBeChecked();
+    expect(box).toBeDisabled();
+    // A row the product does NOT have is still offered unticked, so the tick means one thing only.
+    expect(rowFor('Mozzarella').getByRole('checkbox', { name: 'Mozzarella' })).not.toBeChecked();
+  });
+
+  // The tick is presentational; it must not become a selection. Otherwise the Add button would
+  // count rows the product already has and the PUT would carry duplicates.
+  it('does not count an already-added row as selected', async () => {
+    await open([attachedIngredient({ name: 'Basil' })]);
+
+    // Nothing has been picked, so the confirm button stays in its empty state.
+    expect(screen.getByRole('button', { name: /add_selected/ })).toBeDisabled();
+  });
 });
 
 describe('retiring a library row (plan D4)', () => {

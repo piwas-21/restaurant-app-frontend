@@ -567,6 +567,8 @@
   "standard": "Standaard",
   "ingredients": "Ingrediënten",
   "allergens": "Allergenen",
+  "allergens_none": "Geen",
+  "allergens_clear_all": "Alles wissen",
   "allergens_more_title": "+{{count}} andere allergenen: {{list}}",
   "variations": "Varianten",
   "preparation_time": "Bereidingstijd",

@@ -375,6 +375,20 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
     expect(ruleIn(NAV_CSS, 820, '.list')).toMatch(/flex-direction:\s*row/);
   });
 
+  // frontend #581 item (b). `.card { flex: 1 1 16rem }` lived in EditorSideRail.module.css, but the
+  // Status card's `.card` comes from ProductStatusFields.module.css and never received it — so the
+  // strip came out asymmetric, one flexible card beside one sized to its content.
+  it('sizes EVERY card in the tablet strip, whichever stylesheet drew it', () => {
+    expect(ruleIn(SHELL_CSS, 1024, '.rail')).toMatch(/grid-column:\s*1 \/ -1/);
+
+    const railCss = readFileSync(join(__dirname, 'EditorSideRail.module.css'), 'utf8');
+    const strip = ruleIn(railCss, 1024, '.stack > section');
+    expect(strip).toMatch(/flex:\s*1 1 16rem/);
+    // The old module-local rule must be GONE, not merely joined: leaving it would size this
+    // module's card twice and still miss the other one.
+    expect(ruleIn(railCss, 1024, '.card')).toBeNull();
+  });
+
   it('collapses to one column only at 820px, still with the rail first', () => {
     expect(ruleIn(SHELL_CSS, 820, '.layout')).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
     expect(ruleIn(SHELL_CSS, 820, '.rail')).toMatch(/grid-row:\s*1/);

@@ -569,6 +569,8 @@
   "select_primary_category": "اختر فئة أساسية...",
   "ingredients": "المكونات",
   "allergens": "المواد المسببة للحساسية",
+  "allergens_none": "لا يوجد",
+  "allergens_clear_all": "مسح الكل",
   "allergens_more_title": "+{{count}} مسببات حساسية أخرى: {{list}}",
   "variations": "الخيارات",
   "preparation_time": "وقت التحضير",

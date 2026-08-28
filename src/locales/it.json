@@ -569,6 +569,8 @@
   "select_primary_category": "Seleziona una categoria principale...",
   "ingredients": "Ingredienti",
   "allergens": "Allergeni",
+  "allergens_none": "Nessuno",
+  "allergens_clear_all": "Cancella tutto",
   "allergens_more_title": "+{{count}} altri allergeni: {{list}}",
   "variations": "Variazioni",
   "preparation_time": "Tempo di preparazione",

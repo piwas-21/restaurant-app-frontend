@@ -567,6 +567,8 @@
   "standard": "Standard",
   "ingredients": "Ingredients",
   "allergens": "Allergens",
+  "allergens_none": "None",
+  "allergens_clear_all": "Clear all",
   "allergens_more_title": "+{{count}} more allergens: {{list}}",
   "variations": "Variations",
   "preparation_time": "Preparation Time",

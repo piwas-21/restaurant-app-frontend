@@ -573,6 +573,8 @@
   "standard": "Standart",
   "ingredients": "İçindekiler",
   "allergens": "Alerjenler",
+  "allergens_none": "Yok",
+  "allergens_clear_all": "Tümünü temizle",
   "allergens_more_title": "+{{count}} alerjen daha: {{list}}",
   "variations": "Varyasyonlar",
   "preparation_time": "Hazırlık Süresi",

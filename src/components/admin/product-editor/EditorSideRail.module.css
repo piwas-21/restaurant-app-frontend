@@ -63,7 +63,12 @@
     align-items: flex-start;
   }
 
-  .card {
+  /* Every card in the strip, not just this module's own (frontend #581, item b). The Status card
+     is styled by `ProductStatusFields.module.css`, so a `.card` rule here never reached it and the
+     strip came out asymmetric — one flexible card beside one that sized to its content. The strip
+     is ONE layout, so the strip sizes its children; `> section` because both cards are sections and
+     the rule must not depend on which stylesheet drew them. */
+  .stack > section {
     flex: 1 1 16rem;
   }
 

@@ -131,6 +131,20 @@ export default function TranslationsWorkbench({ editor }: TranslationsWorkbenchP
   const complete = slots.length > 0 && missing === 0;
 
   /**
+   * What the live region says about the last copy, or nothing before the first one.
+   *
+   * A function rather than the ternary chain it replaces (Sonar S3358): "has a copy run at all" and
+   * "did it fill anything" are two different questions, and zero filled is a stateable outcome
+   * rather than a missing one.
+   */
+  const copyAnnouncement = (): string => {
+    if (lastCopy === null) return '';
+    return lastCopy.filled > 0
+      ? t('editor_translations_copied', { count: lastCopy.filled })
+      : t('editor_translations_nothing_to_copy');
+  };
+
+  /**
    * The source column's heading names what is IN it. The item's own text declares no language, so
    * on `base` it borrows the picker's own label rather than asserting one — the alternative was to
    * leave `{{language}}` uninterpolated, which renders the braces to the admin.
@@ -184,11 +198,7 @@ export default function TranslationsWorkbench({ editor }: TranslationsWorkbenchP
         {/* Mounted at all times, empty. A live region inserted together with its text is not
             reliably announced — the same rule the editor's error summary follows. */}
         <p className="sr-only" aria-live="polite">
-          {lastCopy === null
-            ? ''
-            : lastCopy.filled > 0
-              ? t('editor_translations_copied', { count: lastCopy.filled })
-              : t('editor_translations_nothing_to_copy')}
+          {copyAnnouncement()}
         </p>
 
         {slots.length === 0 ? (

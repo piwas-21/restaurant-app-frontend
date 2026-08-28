@@ -17,6 +17,19 @@ import styles from './TranslationsWorkbench.module.css';
 export const UNTRANSLATED_HINT_ID = 'editor-translations-untranslated-hint';
 
 /**
+ * What describes a target cell, in priority order: its own error if it has one, otherwise the one
+ * shared "not translated yet" hint, otherwise nothing.
+ *
+ * A function rather than the ternary chain it replaces (Sonar S3358): the two conditions are not
+ * alternatives of one question — the first is a refusal and the second is a state — so nesting them
+ * read as if a blank cell were a kind of error.
+ */
+const describedBy = (error: string | undefined, errorId: string, isEmpty: boolean): string | undefined => {
+  if (error) return errorId;
+  return isEmpty ? UNTRANSLATED_HINT_ID : undefined;
+};
+
+/**
  * The three group headings are the bundles' OWN nouns, not new ones. `item` is already the label of
  * the tab beside this one, so the workbench and the shell cannot drift apart in any locale.
  */
@@ -127,7 +140,7 @@ export default function TranslationSlotRows({
             value={value}
             rows={slot.multiline ? 3 : undefined}
             placeholder={isBlank(source) ? undefined : t('editor_translations_placeholder', { text: source })}
-            aria-describedby={error ? errorId : isBlank(value) ? UNTRANSLATED_HINT_ID : undefined}
+            aria-describedby={describedBy(error, errorId, isBlank(value))}
             aria-invalid={error ? true : undefined}
             onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
               onChange(slot.ref, event.target.value)

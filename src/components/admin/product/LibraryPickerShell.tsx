@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
-import LibraryApplyModal, { type LibraryApplyEndpoints } from './LibraryApplyModal';
+import dynamic from 'next/dynamic';
+import type { LibraryApplyEndpoints } from './LibraryApplyModal';
 import LibraryArchivedList from './LibraryArchivedList';
 import LibraryPickerFooter from './LibraryPickerFooter';
 import LibraryPickerResults from './LibraryPickerResults';
@@ -15,6 +16,20 @@ import { serverMessage } from '@/utils/apiFormErrors';
 import type { CatalogRow, LibraryCatalog } from '@/hooks/admin/useLibraryCatalog';
 import type { LibraryArchive, LibraryResponse } from '@/hooks/admin/useLibraryArchive';
 import styles from './GlobalIngredientPickerModal.module.css';
+
+/**
+ * Code-split, and mounted only while the apply step is on screen.
+ *
+ * Statically imported it put the two menu-item editor routes 10% over their First Load JS baseline
+ * and the budget gate refused it — rightly: the whole step is behind a click, and the variation
+ * picker reaches this shell through a STATIC import (`VariationLibraryButton`), so everything below
+ * it was being paid for on every editor page load by an admin who never opens a library.
+ *
+ * `next/dynamic` starts the fetch when the component first RENDERS, so the `applying &&` guard below
+ * is load-bearing rather than cosmetic — the same lesson `ProductIngredientsManager` records for the
+ * picker itself.
+ */
+const LibraryApplyModal = dynamic(() => import('./LibraryApplyModal'), { ssr: false });
 
 interface LibraryPickerShellProps<TRow extends CatalogRow> {
   isOpen: boolean;

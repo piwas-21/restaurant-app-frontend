@@ -1,4 +1,5 @@
 import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { resolveIngredientKind } from '@/utils/ingredientKind';
 
 /**
  * What there is to translate on a menu item, as one flat list — the model behind the Translations
@@ -22,7 +23,18 @@ export type TranslationSlotRef =
   | { readonly target: 'variation'; readonly index: number; readonly field: 'name' | 'description' }
   | { readonly target: 'ingredient'; readonly index: number };
 
-export type TranslationGroupId = 'item' | 'variations' | 'ingredients';
+/**
+ * The four headings the grid groups rows under — the SAME four the Item tab names.
+ *
+ * `sauces` is separate from `ingredients` although both live in one `detailedIngredients` array,
+ * and that is not cosmetic. #588 split that array into two named sections on the Item tab while
+ * keeping one store behind them; a workbench that flattened them back into one heading would file
+ * every sauce under "Ingredients" and send the admin to a section it is not in. The rebase that
+ * merged #588 produced NO conflict here and a green build — a slot's `ref` still addresses the one
+ * array by index, so nothing failed to compile and nothing wrote to the wrong row. Only the LABEL
+ * was wrong, which no type can catch.
+ */
+export type TranslationGroupId = 'item' | 'variations' | 'ingredients' | 'sauces';
 
 /**
  * Which i18n key names the field, so a row can state what it is to a screen reader.
@@ -76,6 +88,8 @@ export interface TranslatableVariation {
 
 export interface TranslatableIngredient {
   readonly name?: string | null;
+  /** Absent means `'ingredient'` — `resolveIngredientKind` owns that default, not this module. */
+  readonly kind?: string | null;
   readonly content?: NestedContent | null;
 }
 
@@ -160,10 +174,15 @@ export function buildTranslationSlots(item: TranslatableItem): TranslationSlot[]
     }),
   ]);
 
+  /**
+   * `index` is the row's position in the WHOLE `detailedIngredients` array, never within its group.
+   * That is what the writer dispatches on, so the two must not diverge: grouping is a rendering
+   * concern here and an addressing concern nowhere.
+   */
   const ingredientSlots = (item.ingredients ?? []).flatMap((ingredient, index) =>
     slotOrNothing({
       key: `ingredient-${index}-name`,
-      group: 'ingredients',
+      group: resolveIngredientKind(ingredient) === 'sauce' ? 'sauces' : 'ingredients',
       ref: { target: 'ingredient', index },
       fieldLabel: 'editor_translations_field_ingredient_name',
       multiline: false,

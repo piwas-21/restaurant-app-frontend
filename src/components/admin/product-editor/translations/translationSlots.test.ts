@@ -146,3 +146,50 @@ describe('completeness — the number the rail shows', () => {
     expect(Object.keys(progress).sort()).toEqual(['ar', 'de', 'en', 'es', 'fr', 'it', 'nl', 'ru', 'tr', 'zh']);
   });
 });
+
+describe('a sauce is filed under Sauces, not Ingredients (#588 split one array into two sections)', () => {
+  /**
+   * `detailedIngredients` is ONE array holding both kinds; #588 gave it two named sections on the
+   * Item tab and kept one store behind them. The workbench must group the same way or it sends the
+   * admin to a section the row is not in.
+   *
+   * This is the assertion a conflict-free rebase could not have produced. Nothing failed to compile
+   * when #588 landed, the build was green, and every write still went to the right row — the slot's
+   * `ref` addresses the whole array by index and was never wrong. Only the LABEL was.
+   */
+  const withSauce = {
+    name: 'Margherita Pizza',
+    ingredients: [
+      { name: 'Mozzarella', content: {} },
+      { name: 'Garlic mayo', kind: 'sauce', content: {} },
+      { name: 'Basil', content: {} },
+    ],
+  };
+
+  it('groups by kind while still addressing the ONE array by absolute index', () => {
+    const slots = buildTranslationSlots(withSauce);
+
+    expect(slots.map((slot) => [slot.source, slot.group])).toEqual([
+      ['Margherita Pizza', 'item'],
+      ['Mozzarella', 'ingredients'],
+      ['Garlic mayo', 'sauces'],
+      ['Basil', 'ingredients'],
+    ]);
+    // The sauce is row 1 of the product's array, not row 0 of a "sauces" array. Writing to a
+    // group-relative index would silently rename Mozzarella.
+    expect(slots[2].ref).toEqual({ target: 'ingredient', index: 1 });
+    expect(slots[3].ref).toEqual({ target: 'ingredient', index: 2 });
+  });
+
+  // `kind` is additive and absent on every row that predates it (D8), so the default is load-bearing.
+  it('files a row with no kind under Ingredients rather than dropping it', () => {
+    const slots = buildTranslationSlots({ ingredients: [{ name: 'Olives' }] });
+
+    expect(slots.map((slot) => slot.group)).toEqual(['ingredients']);
+  });
+
+  // Completeness counts every translatable string on the item, both kinds together.
+  it('counts a sauce toward the item denominator like any other row', () => {
+    expect(localeProgress(buildTranslationSlots(withSauce), 'fr').total).toBe(4);
+  });
+});

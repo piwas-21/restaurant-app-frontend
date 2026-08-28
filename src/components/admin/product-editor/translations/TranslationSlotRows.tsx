@@ -24,9 +24,11 @@ const GROUP_LABELS: Record<TranslationGroupId, string> = {
   item: 'item',
   variations: 'variations',
   ingredients: 'ingredients',
+  sauces: 'sauces',
 };
 
-const GROUP_ORDER: readonly TranslationGroupId[] = ['item', 'variations', 'ingredients'];
+/** The Item tab's own order, so the two tabs read as one item rather than two inventories. */
+const GROUP_ORDER: readonly TranslationGroupId[] = ['item', 'variations', 'ingredients', 'sauces'];
 
 interface TranslationSlotRowsProps {
   // readonly: S6759 — component props are never mutated.

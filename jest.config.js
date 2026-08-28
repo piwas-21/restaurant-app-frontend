@@ -79,6 +79,9 @@ module.exports = {
     // S7 (validation UX, D13): the two `.ts` files behind the error summary and the field a11y
     // wiring. `.ts` is not collected wholesale — only `.tsx` under components is.
     'src/components/admin/product-editor/editorValidation.ts',
+    // S9 (side-item picker, D12): the add-AND-remove rules, colocated with the components that
+    // render them. Same reason as the row above — a `.ts` beside a `.tsx` is not collected.
+    'src/components/admin/product/sideItemPicker.ts',
     'src/components/admin/product/fields/fieldAria.ts',
     'src/hooks/admin/useEditorErrors.ts',
     // S4 (Translations workbench): the slot model and the two writes are pure and are where the
@@ -1798,6 +1801,16 @@ module.exports = {
       branches: 90,
       functions: 79,
       lines: 85,
+    },
+    // ── S9 — the side-item picker's add-AND-remove rules (plan D12). ────────────────────────────
+    // Pinned at 100%: every branch here is a way for a suggestion to be silently kept or silently
+    // dropped, and the surface this replaces shipped exactly that defect for a year — its merge
+    // made unticking a no-op with nothing on screen to say so. An uncovered branch is another one.
+    './src/components/admin/product/sideItemPicker.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
     // ── S6 — the guest sauces group. ─────────────────────────────────────────────────────────────
     // Pinned at 100% on both, and both rows are load-bearing rather than ceremonial: `sauceGroup.ts`

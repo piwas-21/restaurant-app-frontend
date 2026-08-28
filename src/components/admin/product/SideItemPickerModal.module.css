@@ -1,0 +1,97 @@
+/* Side-item picker — the modal body and its footer (plan S9 / D12). Tokens only, no hex
+   (CLAUDE.md §5 rule 5); every rule logical rather than physical, so the dialog mirrors in `ar`
+   with nothing to keep in step. A row lives in `SideItemPickerRow.module.css`: one file per
+   component, and neither near the 200-line cap. */
+
+.hint {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.searchRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.searchLabel {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.searchInput {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+/* Two group headings in one dialog, so they have to be quieter than the modal title without
+   becoming invisible: they are the only thing separating "what this item suggests today" from
+   "what your search found". */
+.groupHeading {
+  margin: 1rem 0 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+}
+
+.notice {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--feedback-error-text);
+  font-size: 0.875rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.confirmButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  cursor: pointer;
+}
+
+.confirmButton:disabled {
+  background: var(--action-neutral);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}

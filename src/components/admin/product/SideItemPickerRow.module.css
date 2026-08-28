@@ -1,0 +1,51 @@
+/* One row of the side-item picker. Tokens only — no hex, per CLAUDE.md §5 rule 5 — and every rule
+   is logical rather than physical, so the row mirrors correctly in `ar` with nothing to keep in
+   step. Modelled on `GlobalIngredientPickerRow.module.css`: the two pickers are the same object in
+   two sections and must not read as two different components. */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border-extra-light);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+/* Already suggested, or the item being edited. Dimmed so the two states read apart at a glance —
+   but only the self row is actually disabled; an already-added row is live, because unticking it
+   IS the removal this picker exists to add. */
+.rowMuted {
+  background: var(--surface-secondary);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.description {
+  margin: 0;
+  padding-inline-start: 1.6rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 22rem;
+}
+
+.note {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  text-align: end;
+  white-space: nowrap;
+}

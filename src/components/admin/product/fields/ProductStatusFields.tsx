@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FieldValues, UseFormRegister } from 'react-hook-form';
-import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import Switch from '@/components/design-system/Switch';
 import styles from './ProductStatusFields.module.css';
 
 interface ProductStatusFieldsProps {
@@ -25,6 +25,11 @@ interface ProductStatusFieldsProps {
  *
  * A bundle keeps its own three flags inside `BundlePanel` — `MenuBundleDto` is a different shape
  * and S2 does not restructure it.
+ *
+ * Since #575 each flag is a `design-system/Switch` rather than a `RegisterStaffModal` checkbox chip:
+ * three approved screens draw switches here, and a flag that takes effect on its own is a switch and
+ * not a checkbox. `register()` spreads straight onto it — the component forwards its ref to a real
+ * `<input type="checkbox" role="switch">`, so the ids, the values and the PUT are unchanged.
  */
 export default function ProductStatusFields({ register }: ProductStatusFieldsProps) {
   const { t } = useTranslation();
@@ -35,18 +40,9 @@ export default function ProductStatusFields({ register }: ProductStatusFieldsPro
         {t('status')}
       </h2>
       <div className={styles.rows}>
-        <div className={modalStyles.chip}>
-          <input type="checkbox" id="product-active" {...register('isActive')} />
-          <label htmlFor="product-active">{t('active')}</label>
-        </div>
-        <div className={modalStyles.chip}>
-          <input type="checkbox" id="product-available" {...register('isAvailable')} />
-          <label htmlFor="product-available">{t('available')}</label>
-        </div>
-        <div className={modalStyles.chip}>
-          <input type="checkbox" id="product-special" {...register('isSpecial')} />
-          <label htmlFor="product-special">{t('special_of_the_day_title')}</label>
-        </div>
+        <Switch id="product-active" label={t('active')} {...register('isActive')} />
+        <Switch id="product-available" label={t('available')} {...register('isAvailable')} />
+        <Switch id="product-special" label={t('special_of_the_day_title')} {...register('isSpecial')} />
       </div>
     </section>
   );

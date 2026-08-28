@@ -264,11 +264,12 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     // that matters — a regression back to buttons is exactly what this line now catches.
     expect(within(service).getByRole('radio', { name: 'kitchen_type_backkitchen' })).toBeInTheDocument();
     expect(service.querySelector('input[name="preparationTimeMinutes"]')).not.toBeNull();
-    // The order-type mask's inherit/custom pair, counted BY NAME rather than as "every radio in the
-    // section". A bare `input[type="radio"]` count silently measured two different controls at once
-    // and broke the moment S8 made the kitchen type a radio group — which is a test asserting the
-    // markup it happened to find, not the thing it names.
-    expect(service.querySelectorAll('input[type="radio"][name$="-mode"]')).toHaveLength(2);
+    // The order-type mask's override, asserted BY ROLE. It was an inherit/custom radio pair until
+    // S5 (D6) made it one switch: inherit is the DEFAULT and an override is a departure from it,
+    // which is what `role="switch"` says and two peer radios did not. Counting `input[type="radio"]`
+    // in the section would silently measure the kitchen type instead, which is why this line names
+    // the role it means rather than the markup it happens to find.
+    expect(within(service).getAllByRole('switch')).toHaveLength(1);
     expect(service.querySelectorAll('input[type="radio"][name="product-kitchen-type"]')).toHaveLength(3);
   });
 

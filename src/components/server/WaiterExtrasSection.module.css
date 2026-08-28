@@ -52,11 +52,18 @@
   border-color: var(--text-secondary);
 }
 
-/* Taken off the base recipe — the kitchen ticket's "NO xxx", said in the UI's own vocabulary. */
+/*
+ * Taken off the base recipe — the kitchen ticket's "NO xxx", said in the UI's own vocabulary.
+ *
+ * The rules this file inherited from `ProductCustomization.module.css` carried literal hex
+ * (a raw red and a raw green) and raw rgba tints. They are on design tokens here rather than moved
+ * verbatim: a new file may not carry that debt, and the tokens are the half that follows the
+ * `data-theme="dark"` switch, which the hex never did.
+ */
 .ingredientButton.excluded {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-  color: #ef4444;
+  background-color: var(--feedback-error-bg);
+  border-color: var(--feedback-error-border);
+  color: var(--feedback-error-text);
   text-decoration: line-through;
 }
 
@@ -67,10 +74,10 @@
 
 /* On the line. */
 .ingredientButton.added {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
+  background-color: var(--feedback-success-xlight);
+  border-color: var(--feedback-success);
   border-style: solid;
-  color: #10b981;
+  color: var(--feedback-success-text);
 }
 
 .addIcon {
@@ -104,7 +111,9 @@
 .quantityButton:hover {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
-  color: var(--button-text-color, #fff);
+  /* `--button-text-color` is always defined (globals.css); the fallback is `--text-on-primary`,
+     which is what it resolves to, rather than a literal white a dark theme cannot move. */
+  color: var(--button-text-color, var(--text-on-primary));
 }
 
 .quantityButton[aria-disabled='true'] {

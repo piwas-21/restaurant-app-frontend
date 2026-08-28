@@ -13,6 +13,16 @@
  */
 export type LibraryKind = 'ingredient' | 'variation';
 
+/**
+ * @t-keys-table
+ *
+ * The marker `scripts/check-t-keys.mjs` looks for (issue #611). Every string below is a translation
+ * key, and no callsite quotes it — the pickers render `t(copy.title)` — so without this comment the
+ * gate that exists to stop a raw key reaching a user cannot see any of them.
+ *
+ * It is deliberately a MARKER and not the filename: rename this module and the keys would leave the
+ * gate silently, which is the exact failure #611 was filed about.
+ */
 const COPY = {
   /** The modal title. The ingredient picker predates the `<catalog>_library_*` convention. */
   title: { ingredient: 'add_from_library', variation: 'variation_library_title' },

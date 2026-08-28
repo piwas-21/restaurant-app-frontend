@@ -2738,7 +2738,7 @@
   "no_sauces_added": "Nessuna salsa aggiunta finora.",
   "no_variations_added": "Nessuna variante aggiunta finora.",
   "ingredient_row_details": "Traduzioni e visibilità",
-  "translated_in_languages": "Tradotto in {{count}} lingue su {{total}}",
+  "translated_in_languages": "Tradotto in {{done}} lingue su {{total}}",
   "sauce_rules_title": "Regole delle salse",
   "sauce_min_label": "Salse min.",
   "sauce_max_label": "Salse max.",
@@ -2747,6 +2747,6 @@
   "sauce_rules_hint_any": "Gli ospiti possono scegliere quante salse vogliono.",
   "sauce_rules_hint_limit": "Gli ospiti scelgono fino a {{max}} salse.",
   "sauce_rules_hint_min": "Se ne devono scegliere almeno {{min}}.",
-  "sauce_rules_hint_free": "Le prime {{count}} sono gratuite; ogni salsa in più è a pagamento.",
+  "sauce_rules_hint_free": "Le prime {{free}} sono gratuite; ogni salsa in più è a pagamento.",
   "sauce_rules_hint_paid": "Ogni salsa è a pagamento."
 }

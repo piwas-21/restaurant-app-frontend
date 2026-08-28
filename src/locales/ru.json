@@ -2738,7 +2738,7 @@
   "no_sauces_added": "Соусы пока не добавлены.",
   "no_variations_added": "Варианты пока не добавлены.",
   "ingredient_row_details": "Переводы и видимость",
-  "translated_in_languages": "Переведено на {{count}} из {{total}} языков",
+  "translated_in_languages": "Переведено на {{done}} из {{total}} языков",
   "sauce_rules_title": "Правила для соусов",
   "sauce_min_label": "Мин. соусов",
   "sauce_max_label": "Макс. соусов",
@@ -2747,6 +2747,6 @@
   "sauce_rules_hint_any": "Гости могут выбрать любое количество соусов.",
   "sauce_rules_hint_limit": "Гости выбирают не более {{max}} соусов.",
   "sauce_rules_hint_min": "Нужно выбрать хотя бы {{min}}.",
-  "sauce_rules_hint_free": "Первые {{count}} бесплатно, каждый следующий платный.",
+  "sauce_rules_hint_free": "Первые {{free}} бесплатно, каждый следующий платный.",
   "sauce_rules_hint_paid": "Каждый соус платный."
 }

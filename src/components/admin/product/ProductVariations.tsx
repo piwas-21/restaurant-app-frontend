@@ -98,7 +98,11 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                     />
                     <span className={rowStyles.pricePreview}>
                       {t('translated_in_languages', {
-                        count: translatedCount(field as Record<string, unknown>),
+                        // `done`, not `count`: a variable literally named `count` switches i18next
+                        // into plural resolution and looks for `*_one` / `*_other` keys the
+                        // locale-parity gate cannot carry (#590). Nothing here is a counted noun —
+                        // "languages" is bound to `total`, which is always 10.
+                        done: translatedCount(field as Record<string, unknown>),
                         total: LANGUAGE_CODES.length,
                       })}
                     </span>

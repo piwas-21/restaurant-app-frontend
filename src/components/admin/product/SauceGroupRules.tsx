@@ -51,7 +51,7 @@ export default function SauceGroupRules({ register, control, errors }: SauceGrou
   const hint = [
     cap === null ? t('sauce_rules_hint_any') : t('sauce_rules_hint_limit', { max: cap }),
     Number(min) > 0 ? t('sauce_rules_hint_min', { min: Number(min) }) : '',
-    Number(includedFree) > 0 ? t('sauce_rules_hint_free', { count: Number(includedFree) }) : t('sauce_rules_hint_paid'),
+    Number(includedFree) > 0 ? t('sauce_rules_hint_free', { free: Number(includedFree) }) : t('sauce_rules_hint_paid'),
   ]
     .filter(Boolean)
     .join(' ');

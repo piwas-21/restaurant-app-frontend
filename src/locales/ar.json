@@ -2738,7 +2738,7 @@
   "no_sauces_added": "لم تتم إضافة أي صلصة بعد.",
   "no_variations_added": "لم تتم إضافة أي خيار بعد.",
   "ingredient_row_details": "الترجمات والظهور",
-  "translated_in_languages": "مترجم إلى {{count}} من أصل {{total}} لغة",
+  "translated_in_languages": "مترجم إلى {{done}} من أصل {{total}} لغة",
   "sauce_rules_title": "قواعد الصلصات",
   "sauce_min_label": "أقل عدد صلصات",
   "sauce_max_label": "أقصى عدد صلصات",
@@ -2747,6 +2747,6 @@
   "sauce_rules_hint_any": "يمكن للضيوف اختيار أي عدد من الصلصات.",
   "sauce_rules_hint_limit": "يختار الضيوف حتى {{max}} صلصات.",
   "sauce_rules_hint_min": "يجب اختيار {{min}} على الأقل.",
-  "sauce_rules_hint_free": "أول {{count}} مجانية، وكل صلصة إضافية محسوبة.",
+  "sauce_rules_hint_free": "أول {{free}} مجانية، وكل صلصة إضافية محسوبة.",
   "sauce_rules_hint_paid": "تُحتسب كل صلصة."
 }

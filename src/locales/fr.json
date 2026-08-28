@@ -2738,7 +2738,7 @@
   "no_sauces_added": "Aucune sauce ajoutée pour le moment.",
   "no_variations_added": "Aucune variante ajoutée pour le moment.",
   "ingredient_row_details": "Traductions et visibilité",
-  "translated_in_languages": "Traduit dans {{count}} langues sur {{total}}",
+  "translated_in_languages": "Traduit dans {{done}} langues sur {{total}}",
   "sauce_rules_title": "Règles des sauces",
   "sauce_min_label": "Sauces min.",
   "sauce_max_label": "Sauces max.",
@@ -2747,6 +2747,6 @@
   "sauce_rules_hint_any": "Les clients peuvent choisir autant de sauces qu’ils veulent.",
   "sauce_rules_hint_limit": "Les clients choisissent jusqu’à {{max}} sauces.",
   "sauce_rules_hint_min": "Au moins {{min}} doivent être choisies.",
-  "sauce_rules_hint_free": "Les {{count}} premières sont offertes ; chaque sauce en plus est facturée.",
+  "sauce_rules_hint_free": "Les {{free}} premières sont offertes ; chaque sauce en plus est facturée.",
   "sauce_rules_hint_paid": "Chaque sauce est facturée."
 }

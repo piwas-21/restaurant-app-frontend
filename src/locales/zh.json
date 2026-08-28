@@ -2738,7 +2738,7 @@
   "no_sauces_added": "尚未添加酱料。",
   "no_variations_added": "尚未添加规格。",
   "ingredient_row_details": "翻译与可见性",
-  "translated_in_languages": "已翻译 {{total}} 种语言中的 {{count}} 种",
+  "translated_in_languages": "已翻译 {{total}} 种语言中的 {{done}} 种",
   "sauce_rules_title": "酱料规则",
   "sauce_min_label": "最少酱料",
   "sauce_max_label": "最多酱料",
@@ -2747,6 +2747,6 @@
   "sauce_rules_hint_any": "顾客可以选择任意数量的酱料。",
   "sauce_rules_hint_limit": "顾客最多可选 {{max}} 份酱料。",
   "sauce_rules_hint_min": "至少需要选择 {{min}} 份。",
-  "sauce_rules_hint_free": "前 {{count}} 份免费，超出部分按份收费。",
+  "sauce_rules_hint_free": "前 {{free}} 份免费，超出部分按份收费。",
   "sauce_rules_hint_paid": "每份酱料均收费。"
 }

@@ -2738,7 +2738,7 @@
   "no_sauces_added": "Noch keine Soßen hinzugefügt.",
   "no_variations_added": "Noch keine Varianten hinzugefügt.",
   "ingredient_row_details": "Übersetzungen und Sichtbarkeit",
-  "translated_in_languages": "In {{count}} von {{total}} Sprachen übersetzt",
+  "translated_in_languages": "In {{done}} von {{total}} Sprachen übersetzt",
   "sauce_rules_title": "Soßenregeln",
   "sauce_min_label": "Min. Soßen",
   "sauce_max_label": "Max. Soßen",
@@ -2747,6 +2747,6 @@
   "sauce_rules_hint_any": "Gäste können beliebig viele Soßen wählen.",
   "sauce_rules_hint_limit": "Gäste wählen bis zu {{max}} Soßen.",
   "sauce_rules_hint_min": "Mindestens {{min}} müssen gewählt werden.",
-  "sauce_rules_hint_free": "Die ersten {{count}} sind gratis, jede weitere kostet extra.",
+  "sauce_rules_hint_free": "Die ersten {{free}} sind gratis, jede weitere kostet extra.",
   "sauce_rules_hint_paid": "Jede Soße wird berechnet."
 }

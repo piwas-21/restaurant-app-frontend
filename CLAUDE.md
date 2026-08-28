@@ -249,6 +249,35 @@ Format: `type(scope): description`. Same convention as backend (see backend `CLA
 
 Every PR uses [.github/pull_request_template.md](.github/pull_request_template.md). Required sections: summary, sprint-task link, acceptance-criteria coverage, backend-contract verification + i18n parity (where applicable), standard checklist, test plan, deploy notes.
 
+### Traps in THIS clone (each has already cost an agent an hour — read before your first commit)
+
+These are properties of the working copy, not of the code. All four are **silent**: the failing command exits `0`, or the tree looks right and only the history is wrong.
+
+- **`detect-secrets` never converges by re-committing.** pre-commit hands the hook its files in **batches**, and each invocation rewrites the whole `.secrets.baseline` from its own partial view, clobbering the last batch's line numbers. A commit touching many files therefore fails with *"files were modified by this hook"*, you stage the baseline, and it fails again on a **different** slice — each round paying for a full `tsc` + `eslint` + `jest-affected` run. Do **not** loop. Run the hook's own binary once over the whole repo, confirm it is idempotent, then stage and commit:
+  ```bash
+  DS=$(ls ~/.cache/pre-commit/*/py_env-*/bin/detect-secrets | head -1)   # there is no project-level detect-secrets
+  "$DS" scan --baseline .secrets.baseline
+  cp .secrets.baseline /tmp/sb1 && "$DS" scan --baseline .secrets.baseline   # second run must be a no-op
+  # `generated_at` always changes — compare with that key removed before believing it settled
+  git add .secrets.baseline
+  ```
+
+- **Sparse-checkout is PER-WORKTREE here and can eat your inputs.** `extensions.worktreeConfig=true` is set, so `core.sparseCheckout` lives in `.git/worktrees/<name>/config.worktree` and is **invisible from the shared clone's config**. When it is on with a stray pattern, two things happen and neither reports an error: `git add -A` stages **nothing** while exiting `0` (tell: `git status` still shows ` M`), and whole directories are **absent from disk** — a sibling found `Persistence/Migrations/` missing in a backend worktree, so any `dotnet ef` command there would have run against an invisible folder. That second mode is the dangerous one, because it silently changes what you *conclude*: a review against a partial file set, or a "this file does not exist" finding that is merely hidden. Check both, and check the second whenever your work **read files** rather than only running git:
+  ```bash
+  git config core.sparseCheckout && git sparse-checkout list        # want: false / "not sparse"
+  comm -23 <(git ls-files | sort) <(find . -type f | sed 's|^\./||' | sort)   # want: empty
+  ```
+  Fix in **your** worktree (not the shared clone): `git sparse-checkout disable`. Declare it if you run it.
+
+- **`core.fsmonitor=false` is deliberate — leave it off.** It is set on the shared clone to stop watchman cookie races from failing `git add`. Turning it on to speed up `git status` reintroduces intermittent, unreproducible staging failures.
+
+- **Never `git commit --amend` during a CONFLICTED rebase.** While a rebase is stopped on a conflict, `HEAD` is the **new base** — your commit does not exist yet — so the amend rewrites the **upstream tip**, replacing an already-merged PR's commit with your tree and message. `git rebase --continue` then prints *"Successfully rebased"* and exits `0`. The resulting tree is correct and `git log` looks plausible; only the history is wrong. Verify after **every** conflicted rebase, and fix without losing work:
+  ```bash
+  git merge-base --is-ancestor origin/develop HEAD && echo OK || echo CLOBBERED
+  git reset --soft <upstream-sha> && git commit -F <msg>   # the index already holds the right tree
+  ```
+  When you check *which* commit is yours, discriminate by **commit message and file list — never by author**. The whole fleet commits under one identity (`mahmutkaya <mahmutkaya.nl@gmail.com>`), so `git log --author` returns every agent's work; a sibling nearly claimed another agent's commit by trusting it.
+
 ---
 
 ## §9 — AI guardrails (refusal list)

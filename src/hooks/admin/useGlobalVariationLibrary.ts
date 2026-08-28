@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { getGlobalVariations, type GlobalVariationSummary } from '@/services/globalVariationService';
 import { attachedVariationKeys } from '@/components/admin/product/globalVariationLibrary';
 import { useLibraryCatalog, type LibraryCatalog, type LibraryFilter } from './useLibraryCatalog';
-import type { LibraryStatus } from './useLibraryArchive';
 import type { Variation } from '@/components/admin/product/types';
 
 /**
@@ -13,7 +12,7 @@ import type { Variation } from '@/components/admin/product/types';
  * import.
  */
 export type VariationLibraryFilter = LibraryFilter;
-export type { LibraryStatus };
+export type { LibraryStatus } from './useLibraryArchive';
 
 interface UseGlobalVariationLibraryArgs {
   /** The picker is open. The catalog is fetched on the first open, not on mount. */

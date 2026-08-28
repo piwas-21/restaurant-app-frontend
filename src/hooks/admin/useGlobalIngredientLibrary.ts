@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import { getGlobalIngredients, type GlobalIngredientSummary } from '@/services/globalIngredientService';
 import { attachedLibraryKeys } from '@/components/admin/product/globalIngredientLibrary';
-import { useLibraryCatalog, type LibraryCatalog, type LibraryFilter } from './useLibraryCatalog';
-import type { LibraryStatus } from './useLibraryArchive';
+import { useLibraryCatalog, type LibraryCatalog } from './useLibraryCatalog';
 import type { ProductIngredient } from '@/types/menu';
 
 /**
@@ -12,8 +11,8 @@ import type { ProductIngredient } from '@/types/menu';
  * the archive drawer it is also the status of, the filter set to `useLibraryCatalog` — and
  * re-exported here so every existing importer keeps its import.
  */
-export type { LibraryStatus };
-export type { LibraryFilter };
+export type { LibraryStatus } from './useLibraryArchive';
+export type { LibraryFilter } from './useLibraryCatalog';
 
 interface UseGlobalIngredientLibraryArgs {
   /** The picker is open. The catalog is fetched on the first open, not on mount. */

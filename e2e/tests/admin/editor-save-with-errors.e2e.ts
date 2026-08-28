@@ -147,7 +147,12 @@ test('an invalid item cannot be saved, and the editor says which field and where
     // 3. The summary counts it and the nav marks the section holding it.
     const summary = page.getByTestId('editor-error-summary');
     await expect(summary).toBeVisible();
-    await expect(page.getByRole('navigation').getByRole('button').first()).toContainText('!');
+    // The section nav is NOT the only `navigation` landmark on an admin page — the header's user
+    // menu is one as well, and it comes first in the DOM, so `.first()` was asserting on the wrong
+    // button. Ask for the marker itself: the `!` is rendered only by a nav entry that owns an
+    // error, which scopes the assertion without depending on the nav's translated label.
+    const markedEntries = page.getByRole('navigation').getByRole('button').filter({ hasText: '!' });
+    await expect(markedEntries.first(), 'the nav must mark the section holding the error').toBeVisible();
 
     // 4. Save is refused. The strongest available assertion is the SERVER's: no PUT can have
     //    landed, so the stored name is untouched. A status-code check would only prove that no

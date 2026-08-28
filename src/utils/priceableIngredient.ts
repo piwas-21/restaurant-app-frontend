@@ -1,3 +1,4 @@
+import type { IngredientKind } from '@/types/menu';
 import type { PriceableIngredient } from './linePrice';
 
 /**
@@ -16,11 +17,11 @@ import type { PriceableIngredient } from './linePrice';
 
 /**
  * The typed option group a row belongs to (backend #426). Lowercase on the wire, and ABSENT means
- * an ordinary ingredient — declared structurally here rather than imported, because the shared
- * `IngredientKind` alias arrives with the guest sauces slice (#596) and this file must compile
- * before it. The two are the same union, so the alias drops in without a change here.
+ * an ordinary ingredient. It was declared structurally while the shared alias was still unlanded;
+ * #588 shipped it, so this is now the shared `IngredientKind` under the name this module exports —
+ * one union, not two that can drift.
  */
-export type PriceableIngredientKind = 'ingredient' | 'sauce';
+export type PriceableIngredientKind = IngredientKind;
 
 /** What a sheet must be able to say about an ingredient for it to be priced. */
 export interface IngredientPricingFields {

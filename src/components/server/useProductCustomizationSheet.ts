@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isBaseRowHidden } from '@/utils/baseProductVisibility';
+import { toPriceableIngredients } from '@/utils/priceableIngredient';
+import { useLinePrice } from '@/hooks/menu/useLinePrice';
 import type { Product } from '@/services/serverService';
 import { useProductCustomizationDetails } from './useProductCustomizationDetails';
+import { useWaiterIngredientSelection } from './useWaiterIngredientSelection';
+import { buildCustomizationResult } from './waiterSelection';
 import type {
   CustomizationResult,
   DetailedIngredient,
@@ -35,9 +39,12 @@ interface UseProductCustomizationSheetOptions {
  * what it costs, and — since the load failure stopped being a `console.error` — why the options are
  * missing when they are.
  *
- * Extracted from `ProductCustomization.tsx` so that component is a render again: it was 401 LOC
- * against §4's 250 and had been baselined, and adding the error surface to it would have widened a
- * violation instead of paying it down. Behaviour is unchanged apart from the failure path.
+ * Since S7 it costs what the GUEST sheet costs. The `totalPrice` memo that used to live here summed
+ * `variation.finalPrice + Σ selected optional price + Σ side price × quantity`: a second price
+ * policy, blind to `isIncludedInBasePrice` and to `maxQuantity`, which charged CHF 2 for cheese the
+ * base price had already bought. It is gone. The sheet seeds from the base recipe
+ * (`useWaiterIngredientSelection`) and prices through `useLinePrice` — the shared port of
+ * `BasketPricingService.CalculateIngredientCustomizationPrice` the guest sheet already used.
  */
 export function useProductCustomizationSheet({
   product,
@@ -49,27 +56,31 @@ export function useProductCustomizationSheet({
   const currentLanguage = i18n.language.split('-')[0] || 'en';
 
   const { detail, isLoading, error, reload } = useProductCustomizationDetails(product?.id, isOpen);
+  const ingredientSelection = useWaiterIngredientSelection();
+  const { seedFromBaseRecipe } = ingredientSelection;
 
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
-  const [addedOptionalIngredients, setAddedOptionalIngredients] = useState<Set<string>>(new Set());
   const [selectedSideItems, setSelectedSideItems] = useState<Map<string, number>>(new Map());
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [quantity, setQuantity] = useState(1);
 
   const variations: ProductVariation[] = useMemo(() => (detail?.variations ?? []).filter((v) => v.isActive), [detail]);
-  const standardIngredients: DetailedIngredient[] = useMemo(
-    () => (detail?.detailedIngredients ?? []).filter((ing) => ing.isActive && !ing.isOptional),
-    [detail],
+  const allIngredients: DetailedIngredient[] = useMemo(() => detail?.detailedIngredients ?? [], [detail]);
+  const standardIngredients = useMemo(
+    () => allIngredients.filter((ing) => ing.isActive && !ing.isOptional),
+    [allIngredients],
   );
-  const optionalIngredients: DetailedIngredient[] = useMemo(
-    () => (detail?.detailedIngredients ?? []).filter((ing) => ing.isActive && ing.isOptional),
-    [detail],
+  const optionalIngredients = useMemo(
+    () => allIngredients.filter((ing) => ing.isActive && ing.isOptional),
+    [allIngredients],
   );
   const sideItems: SuggestedSideItem[] = useMemo(() => detail?.suggestedSideItems ?? [], [detail]);
+  // ONE input contract for the ONE price math — see utils/priceableIngredient.ts.
+  const priceableIngredients = useMemo(() => toPriceableIngredients(allIngredients), [allIngredients]);
 
   // Seed the selections from whatever just arrived (and clear them when nothing did).
   useEffect(() => {
-    setAddedOptionalIngredients(new Set());
+    seedFromBaseRecipe(allIngredients);
     setSpecialInstructions('');
     setQuantity(1);
     // Required side items are pre-ticked: the guest is getting them either way.
@@ -78,7 +89,7 @@ export function useProductCustomizationSheet({
     // row to select — so open on the first active variation instead of on nothing, or the waiter's
     // first tap would post a variation-less add the server refuses (F2).
     setSelectedVariation(isBaseRowHidden(detail?.hideBaseProduct, variations) ? firstActive(variations) : null);
-  }, [detail, variations, sideItems]);
+  }, [detail, variations, sideItems, allIngredients, seedFromBaseRecipe]);
 
   const getLocalizedName = useCallback(
     (item: Localizable | undefined): string =>
@@ -86,26 +97,25 @@ export function useProductCustomizationSheet({
     [currentLanguage],
   );
 
-  const totalPrice = useMemo(() => {
-    let unitPrice = selectedVariation?.finalPrice ?? product.basePrice;
+  const selectedSides = useMemo(
+    () => Array.from(selectedSideItems.entries()).map(([id, qty]) => ({ id, quantity: qty })),
+    [selectedSideItems],
+  );
 
-    for (const ing of optionalIngredients) {
-      if (addedOptionalIngredients.has(ing.id) && ing.price) unitPrice += ing.price;
-    }
-    for (const side of sideItems) {
-      unitPrice += side.price * (selectedSideItems.get(side.id) || 0);
-    }
-
-    return unitPrice * quantity;
-  }, [
-    product.basePrice,
-    selectedVariation,
-    optionalIngredients,
-    addedOptionalIngredients,
-    sideItems,
-    selectedSideItems,
+  // The shared, backend-faithful price. `detail.basePrice` in preference to the list product's: the
+  // same number, but read from the payload the rest of this line is priced from.
+  const linePrice = useLinePrice({
+    kind: 'product',
+    basePrice: detail?.basePrice ?? product.basePrice,
     quantity,
-  ]);
+    variations,
+    selectedVariationId: selectedVariation?.id ?? null,
+    ingredients: priceableIngredients,
+    selectedIngredientIds: ingredientSelection.selectedIngredients,
+    ingredientQuantities: ingredientSelection.ingredientQuantities,
+    sides: sideItems,
+    selectedSides,
+  });
 
   const hasCustomizations =
     standardIngredients.length > 0 || optionalIngredients.length > 0 || variations.length > 0 || sideItems.length > 0;
@@ -121,12 +131,6 @@ export function useProductCustomizationSheet({
     if (!isBaseRowHidden(detail?.hideBaseProduct, variations)) setSelectedVariation(null);
   };
 
-  const toggleOptional = (ingredientId: string) => {
-    const next = new Set(addedOptionalIngredients);
-    if (!next.delete(ingredientId)) next.add(ingredientId);
-    setAddedOptionalIngredients(next);
-  };
-
   const toggleSideItem = (sideItemId: string) => {
     const next = new Map(selectedSideItems);
     if (!next.delete(sideItemId)) next.set(sideItemId, 1);
@@ -134,21 +138,23 @@ export function useProductCustomizationSheet({
   };
 
   const handleConfirm = () => {
-    const result: CustomizationResult = {
+    const result = buildCustomizationResult({
       productId: product.id,
       variationId: selectedVariation?.id,
       variationName: selectedVariation ? getLocalizedName(selectedVariation) : undefined,
-      addedIngredients: Array.from(addedOptionalIngredients).map((id) => {
-        const ing = optionalIngredients.find((i) => i.id === id);
-        return { id, name: getLocalizedName(ing), price: ing?.price || 0 };
-      }),
-      sideItems: Array.from(selectedSideItems.entries()).map(([id, qty]) => {
-        const side = sideItems.find((s) => s.id === id);
-        return { id, name: side?.name || '', quantity: qty, price: side?.price || 0 };
-      }),
-      specialInstructions: specialInstructions || undefined,
-      finalPrice: totalPrice / quantity, // Price per unit
-    };
+      ingredients: allIngredients,
+      selection: {
+        selectedIngredientIds: ingredientSelection.selectedIngredients,
+        ingredientQuantities: ingredientSelection.ingredientQuantities,
+      },
+      sideItems,
+      selectedSideItems,
+      specialInstructions,
+      // Straight from the shared math — this function does not re-derive a unit price, or there
+      // would be two writers again.
+      unitPrice: linePrice.unitPrice,
+      nameOf: getLocalizedName,
+    });
 
     for (let i = 0; i < quantity; i++) onConfirm(result);
     onClose();
@@ -166,15 +172,18 @@ export function useProductCustomizationSheet({
     hasCustomizations,
     selectedVariation,
     selectVariation,
-    addedOptionalIngredients,
-    toggleOptional,
+    selectedIngredients: ingredientSelection.selectedIngredients,
+    ingredientQuantities: ingredientSelection.ingredientQuantities,
+    toggleIngredient: ingredientSelection.toggleIngredient,
+    stepIngredient: ingredientSelection.stepIngredient,
     selectedSideItems,
     toggleSideItem,
     specialInstructions,
     setSpecialInstructions,
     quantity,
     setQuantity,
-    totalPrice,
+    totalPrice: linePrice.total,
+    unitPrice: linePrice.unitPrice,
     getLocalizedName,
     handleConfirm,
   };

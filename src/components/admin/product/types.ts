@@ -1,6 +1,5 @@
 // Product-related types and interfaces
 import type { FieldErrors, FieldValues } from 'react-hook-form';
-import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
 
@@ -20,10 +19,8 @@ export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn'
  * admin cannot complete and cannot explain. The vocabulary and the offer are two different lists.
  */
 export const itemProductTypes = productTypes.filter((type) => type !== 'menu');
-export const supportedLanguages = LANGUAGE_CODES;
 
 export type ProductType = (typeof productTypes)[number];
-export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 export interface Category {
   id: string;
@@ -110,16 +107,9 @@ export interface BaseProductFormData {
 // sit in the section that owns each of them (`components/admin/product/fields/`, one small file per
 // group, each typed against react-hook-form directly rather than through `any`).
 
-export interface MultilingualContentProps {
-  register: any;
-  errors: any;
-  control: any;
-  contentFields: any[];
-  appendContent: (content: ContentItem) => void;
-  removeContent: (index: number) => void;
-  watch: any;
-  currentLanguage: string;
-}
+// `MultilingualContentProps` is gone with slice S4. The component it typed was one of THREE
+// translation UIs for one concept; the Translations tab now carries a single locale switcher
+// (`product-editor/translations/`) that retargets product, variation and ingredient strings at once.
 
 export interface ProductVariationsProps {
   register: any;

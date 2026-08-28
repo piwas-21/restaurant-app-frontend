@@ -597,13 +597,15 @@ describe('ProductEditorPage — the S1 editor shell', () => {
     expect(tabs.map((tab) => tab.textContent)).toEqual(['item', 'editor_tab_translations']);
   });
 
-  // S1 relocates the multilingual list into the tab that owns translation (D2) and changes nothing
-  // about it — same component, same `content` field array, same payload. S4 replaces it.
-  it('moves the multilingual content into the Translations tab without unmounting it', async () => {
+  // The Translations tab owns translation, and since S4 it owns ALL of it — one locale switcher
+  // over the product's, the variations' and the ingredients' strings. The panel behind it never
+  // unmounts, which is what keeps a submit-time error reachable (§8.1). The workbench's own
+  // behaviour is `translations/TranslationsWorkbench.test.tsx`.
+  it('keeps the Translations panel mounted behind the tab', async () => {
     const { container } = await renderEditor(item, false);
 
     const translationsPanel = container.querySelector('#product-editor-form-panel-translations') as HTMLElement;
-    expect(translationsPanel.textContent).toContain('multilingual_content');
+    expect(translationsPanel.textContent).toContain('editor_translations_target_languages');
     expect(translationsPanel).toHaveAttribute('hidden');
 
     fireEvent.click(container.querySelector('[role="tab"][aria-controls$="panel-translations"]') as HTMLElement);

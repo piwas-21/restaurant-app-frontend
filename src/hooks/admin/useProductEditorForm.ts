@@ -63,7 +63,8 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const { control, getValues, reset, setError, watch, setValue } = form;
 
   const variations = useFieldArray({ control, name: 'variations' });
-  const content = useFieldArray({ control, name: 'content' });
+  // No `useFieldArray` for `content` since S4: the workbench addresses a locale by CODE, not by row
+  // index, so a field array would be a rival owner whose `fields` go stale on every pruned row.
 
   useEffect(() => {
     reset(isBundle ? toBundleDefaults(product) : toItemDefaults(product));
@@ -175,7 +176,6 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     primaryCategoryId: (watch('primaryCategoryId') as string | undefined) ?? '',
     basePrice: (watch('basePrice') as number | undefined) ?? 0,
     variations,
-    content,
     imageFiles,
     setImageFiles,
     selectedSideItemIds,

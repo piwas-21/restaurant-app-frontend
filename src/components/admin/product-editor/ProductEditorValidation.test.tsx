@@ -196,15 +196,35 @@ describe('editor validation — the save bar says how many and where (D13, gap G
     expect(updateProduct).not.toHaveBeenCalled();
   });
 
-  // A translation row is in the OTHER tab, which is `hidden` — and a hidden panel cannot take
-  // focus. The jump therefore has to switch tab first, which is the one case `focusField` cannot
-  // handle on its own (it refuses to write to a React-controlled `hidden`, §12.3).
+  /**
+   * A translation row is in the OTHER tab, which is `hidden` — and a hidden panel cannot take
+   * focus. The jump therefore has to switch tab first, which is the one case `focusField` cannot
+   * handle on its own (it refuses to write to a React-controlled `hidden`, §12.3).
+   *
+   * S4 replaced the per-language row list this used to drive with the Translations workbench, so
+   * the field is now reached through the locale rail. The BEHAVIOUR under test is unchanged and is
+   * the reason the test was ported rather than deleted: a translation error must still name itself
+   * on the save bar and still be reachable in one click.
+   */
   it('switches to the Translations tab before jumping to a translation error', async () => {
     const { container } = await renderEditor();
 
+    // Open the tab and pick the language: the rail starts on the first one that still needs work,
+    // and this product's only translation is English. Both are inside the panel, which is `hidden`
+    // while the Item tab is selected — so they are not reachable until the tab is open, which is
+    // itself the thing this test is about.
+    fireEvent.click(screen.getByRole('tab', { name: 'editor_tab_translations' }));
+    fireEvent.click(screen.getByRole('button', { name: /^English/ }));
+
+    // The workbench names its cells with the form path, which is what `focusField` resolves.
     const translationName = container.querySelector('input[name="content.0.name"]') as HTMLInputElement;
+    expect(translationName).not.toBeNull();
     fireEvent.change(translationName, { target: { value: '' } });
     fireEvent.blur(translationName);
+
+    // Go back to the Item tab, so the jump has a tab to switch AWAY from. This is also what proves
+    // the panel stays mounted: the error has to survive being hidden.
+    fireEvent.click(screen.getByRole('tab', { name: 'item' }));
 
     const chip = await screen.findByTestId('editor-error-summary');
     expect(chip).toHaveTextContent('editor_error_summary:1');

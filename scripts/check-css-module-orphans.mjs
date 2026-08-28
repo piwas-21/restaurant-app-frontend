@@ -85,7 +85,15 @@ function importedStylesheets(source, fromDir) {
   // preserved by the shared stripper, which is what lets the specifier itself survive.
   const live = stripComments(source);
 
-  for (const [, spec] of live.matchAll(/import\s+(?:[\w*{}\s,]+\s+from\s+)?['"]([^'"]*\.module\.css)['"]/g)) {
+  // ONE greedy class whose next token it cannot itself match, so the engine never backtracks:
+  // `[^'"]*` stops dead at the first quote, which is also what stops a match starting at an
+  // `import` line from reaching a string several lines below — a quote is a hard barrier, so
+  // `readFileSync(join(__dirname, '../X.module.css'))` is NOT read as an import. An earlier version
+  // spelled the two import forms out as `(?:[\w*{}\s,]+\s+from\s+)?`, where a class containing
+  // `\s` is followed by `\s+`: ambiguous, super-linear on backtracking, and SonarCloud rule S8786
+  // was right to refuse it. This form covers both shapes — `import './x.module.css'` with no
+  // binding at all, and `import styles from './x.module.css'` — without the alternation.
+  for (const [, spec] of live.matchAll(/\bimport\s[^'"]*['"]([^'"]*\.module\.css)['"]/g)) {
     if (spec.startsWith('.')) {
       out.push(path.resolve(fromDir, spec));
       continue;

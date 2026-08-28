@@ -152,4 +152,21 @@ describe('check-css-module-orphans', () => {
     expect(status).toBe(1);
     expect(output).toMatch(/scanner is broken/);
   });
+
+  it('does not read a runtime file path as an import (S8786 rewrite control)', () => {
+    // The regex became `\bimport\s[^'"]*['"]…['"]` to remove super-linear backtracking (Sonar
+    // S8786). That form has no `from` in it, so this case is what proves it did not become a
+    // "any string ending in .module.css" match: a QUOTE is a hard barrier the class cannot cross,
+    // which is why the `import` on line 1 cannot reach the path on line 2.
+    const { status, output } = runGate({
+      'components/reader.ts': [
+        "import { readFileSync } from 'node:fs';",
+        "export const css = readFileSync('./Card.module.css', 'utf8');",
+      ].join('\n'),
+      'components/Card.module.css': '.card { color: red; }\n',
+    });
+
+    expect(status).toBe(1);
+    expect(output).toContain('src/components/Card.module.css');
+  });
 });

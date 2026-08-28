@@ -113,6 +113,11 @@ export function useProductCustomizationSheet({
     ingredients: priceableIngredients,
     selectedIngredientIds: ingredientSelection.selectedIngredients,
     ingredientQuantities: ingredientSelection.ingredientQuantities,
+    // #605. Omitted, `useLinePrice` reads it as 0 — "no sauces are included" — and this sheet charges
+    // for sauces the admin marked free. Display-only where the server reprices, but a real overcharge
+    // on a line with `childItems`: that shape is the one the server refuses to reprice, so the
+    // DECLARED price stands and the declared number comes from here.
+    sauceIncludedFree: detail?.sauceIncludedFree ?? 0,
     sides: sideItems,
     selectedSides,
   });

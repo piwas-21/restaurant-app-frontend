@@ -100,6 +100,18 @@ export interface ProductCustomizationDetail {
   name: string;
   basePrice: number;
   hideBaseProduct?: boolean;
+  /**
+   * How many sauce rows the product includes at no charge (S6, backend #429).
+   *
+   * Carried here for the same reason `isIncludedInBasePrice` and `maxQuantity` are: this type is a
+   * BOUNDARY, and a field it omits is dropped from a payload that already contains it. Dropping this
+   * one is not cosmetic — `useLinePrice` reads a missing value as `0`, which is the assertion "this
+   * product includes NO free sauces", so the sheet charges for sauces the admin marked included.
+   *
+   * Absent or `0` is pre-S6 pricing and subtracts nothing, which is why the defect is dormant rather
+   * than visible: no production product has an allowance yet.
+   */
+  sauceIncludedFree?: number;
   variations?: ProductVariation[];
   detailedIngredients?: DetailedIngredient[];
   suggestedSideItems?: SuggestedSideItem[];

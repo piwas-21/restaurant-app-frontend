@@ -3,7 +3,10 @@ import { Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import type { Category } from '../types';
+import FieldError from './FieldError';
+import { fieldAria, fieldDomId, fieldErrorId, fieldMessage } from './fieldAria';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import styles from './editorFields.module.css';
 
 interface ProductBasicsFieldsProps {
   // readonly: S6759 — component props are never mutated.
@@ -21,8 +24,13 @@ interface ProductBasicsFieldsProps {
  *
  * Split out of `ProductBasicInfo`, whose fourth control was the kitchen-type selector. That one is
  * an *operational* setting and now lives in `Service & availability`, which is the whole point of
- * S2: this slice moves controls between sections and changes none of them. Every field below is
- * registered exactly as it was, so the payload is byte-identical.
+ * S2: this slice moves controls between sections and changes none of them.
+ *
+ * S7 wires the accessibility half of every control here: a label that points at its input, an
+ * `aria-invalid` the assistive tree can read, and an `aria-describedby` from the input to the
+ * sentence explaining it. The category CHIPS become a real `fieldset`/`legend` — a group of
+ * checkboxes needs a group name and a group-level invalid state, which a `<h3>` above a `<div>`
+ * cannot give. No field is added, renamed or re-registered.
  */
 export default function ProductBasicsFields({
   register,
@@ -33,22 +41,27 @@ export default function ProductBasicsFields({
   selectedCategoryIds,
 }: ProductBasicsFieldsProps) {
   const { t } = useTranslation();
+  const categoriesMessage = fieldMessage(errors, 'categoryIds');
 
   return (
     <div className={modalStyles.formColumn}>
-      <div className={modalStyles.formGroup}>
-        <label>{t('product_name')}</label>
-        <input {...register('name')} />
-        {errors.name && <p className={modalStyles.errorMessage}>{errors.name.message as string}</p>}
+      <div className={`${modalStyles.formGroup} ${styles.group}`}>
+        <label htmlFor={fieldDomId('name')}>{t('product_name')}</label>
+        <input {...register('name')} {...fieldAria(errors, 'name')} />
+        <FieldError name="name" message={fieldMessage(errors, 'name')} />
       </div>
 
       <div className={modalStyles.formGroup}>
-        <label>{t('description')}</label>
-        <textarea {...register('description')} rows={4} />
+        <label htmlFor={fieldDomId('description')}>{t('description')}</label>
+        <textarea {...register('description')} {...fieldAria(errors, 'description')} rows={4} />
       </div>
 
-      <div className={modalStyles.formGroup}>
-        <h3>{t('categories')}</h3>
+      <fieldset
+        className={`${modalStyles.formGroup} ${styles.group} ${styles.fieldset}`}
+        aria-invalid={categoriesMessage ? 'true' : undefined}
+        aria-describedby={categoriesMessage ? fieldErrorId('categoryIds') : undefined}
+      >
+        <legend className={styles.legend}>{t('categories')}</legend>
         <Controller
           name="categoryIds"
           control={control}
@@ -67,6 +80,7 @@ export default function ProductBasicsFields({
                         e.target.checked ? [...selectedIds, cat.id] : selectedIds.filter((id: string) => id !== cat.id),
                       );
                     }}
+                    onBlur={field.onBlur}
                   />
                   <label htmlFor={`category-chip-${cat.id}`}>{cat.name}</label>
                 </div>
@@ -82,12 +96,16 @@ export default function ProductBasicsFields({
             {categoriesError}
           </p>
         )}
-        {errors.categoryIds && <p className={modalStyles.errorMessage}>{errors.categoryIds.message as string}</p>}
-      </div>
+        <FieldError name="categoryIds" message={categoriesMessage} />
+      </fieldset>
 
-      <div className={modalStyles.formGroup}>
-        <label>{t('primary_category')}</label>
-        <select {...register('primaryCategoryId')} disabled={!selectedCategoryIds || selectedCategoryIds.length === 0}>
+      <div className={`${modalStyles.formGroup} ${styles.group}`}>
+        <label htmlFor={fieldDomId('primaryCategoryId')}>{t('primary_category')}</label>
+        <select
+          {...register('primaryCategoryId')}
+          {...fieldAria(errors, 'primaryCategoryId')}
+          disabled={!selectedCategoryIds || selectedCategoryIds.length === 0}
+        >
           <option value="">{t('select_primary_category')}</option>
           {categories
             .filter((cat) => selectedCategoryIds?.includes(cat.id))
@@ -97,9 +115,7 @@ export default function ProductBasicsFields({
               </option>
             ))}
         </select>
-        {errors.primaryCategoryId && (
-          <p className={modalStyles.errorMessage}>{errors.primaryCategoryId.message as string}</p>
-        )}
+        <FieldError name="primaryCategoryId" message={fieldMessage(errors, 'primaryCategoryId')} />
       </div>
     </div>
   );

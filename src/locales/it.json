@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Gli ospiti scelgono fino a {{max}} salse.",
   "sauce_rules_hint_min": "Se ne devono scegliere almeno {{min}}.",
   "sauce_rules_hint_free": "Le prime {{free}} sono gratuite; ogni salsa in più è a pagamento.",
-  "sauce_rules_hint_paid": "Ogni salsa è a pagamento."
+  "sauce_rules_hint_paid": "Ogni salsa è a pagamento.",
+  "editor_error_summary": "Campi da correggere: {{count}} – vai al primo",
+  "editor_section_has_errors": "Questa sezione contiene errori"
 }

@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "يختار الضيوف حتى {{max}} صلصات.",
   "sauce_rules_hint_min": "يجب اختيار {{min}} على الأقل.",
   "sauce_rules_hint_free": "أول {{free}} مجانية، وكل صلصة إضافية محسوبة.",
-  "sauce_rules_hint_paid": "تُحتسب كل صلصة."
+  "sauce_rules_hint_paid": "تُحتسب كل صلصة.",
+  "editor_error_summary": "حقول بحاجة إلى تصحيح: {{count}} — الانتقال إلى الأول",
+  "editor_section_has_errors": "يحتوي هذا القسم على أخطاء"
 }

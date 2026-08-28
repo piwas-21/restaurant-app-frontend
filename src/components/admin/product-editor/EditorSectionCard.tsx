@@ -24,6 +24,13 @@ export interface EditorSection {
   readonly collapsible?: boolean;
   /** Collapsed on a first visit, before any remembered choice exists. */
   readonly defaultCollapsed?: boolean;
+  /**
+   * Nav-only markers (S7 / conformance gap G3). The card itself draws nothing for them: the
+   * approved screen puts the `!` in the NAV, beside the section name, and `EditorSectionNav`
+   * renders what it is told. `editorValidation.ts` decides which section earns one.
+   */
+  readonly hasError?: boolean;
+  readonly errorLabel?: string;
   readonly node: React.ReactNode;
 }
 

@@ -7,9 +7,11 @@ import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import EditorShell from './EditorShell';
+import EditorErrorSummary from './EditorErrorSummary';
 import EditorSideRail from './EditorSideRail';
 import { buildEditorSections, buildTranslationsPanel } from './editorSections';
 import { productHeaderBadges, productHeaderMenuActions } from './productEditorHeader';
+import { useEditorErrors } from '@/hooks/admin/useEditorErrors';
 import styles from './ProductEditorPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
@@ -61,6 +63,14 @@ export default function ProductEditorPage({
   const { errors } = form.formState;
   const [isDiscardOpen, setIsDiscardOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(TAB_ITEM);
+  // D13's error surface: how many fields are wrong, which sections hold them, where the first is.
+  const validation = useEditorErrors({
+    errors,
+    t,
+    setActiveTab,
+    itemTabId: TAB_ITEM,
+    translationsTabId: TAB_TRANSLATIONS,
+  });
 
   const isCreate = mode === 'create';
   const typeLabel = isBundle ? t('product_type_menu') : t(`product_type_${product.type || 'mainItem'}`);
@@ -106,7 +116,7 @@ export default function ProductEditorPage({
         tabsLabel={t('editor_tabs')}
         activeTabId={activeTab}
         onTabChange={setActiveTab}
-        sections={buildEditorSections(context)}
+        sections={validation.decorate(buildEditorSections(context))}
         sectionsLabel={t('editor_sections')}
         formId={FORM_ID}
         onSubmit={editor.onSubmit}
@@ -129,6 +139,9 @@ export default function ProductEditorPage({
         saveBar={
           /* The one and only commit point (D4). Accented when dirty. */
           <div className={`${styles.saveBar} ${editor.isDirty ? styles.saveBarDirty : ''}`}>
+            {/* D13's summary. It sits on the leading edge of the bar, where the approved screen
+                draws it, and is the only control that knows where the first problem is. */}
+            <EditorErrorSummary count={validation.count} label={validation.label} onJump={validation.jumpToFirst} />
             <span className={`${styles.saveHint} ${editor.isDirty ? styles.saveHintDirty : ''}`} aria-live="polite">
               {editor.isDirty ? t('unsaved_changes') : ''}
             </span>

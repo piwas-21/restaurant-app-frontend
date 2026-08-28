@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Misafirler en fazla {{max}} sos seçer.",
   "sauce_rules_hint_min": "En az {{min}} tanesi seçilmelidir.",
   "sauce_rules_hint_free": "İlk {{free}} tanesi ücretsiz; her ek sos ücretlendirilir.",
-  "sauce_rules_hint_paid": "Her sos ücretlendirilir."
+  "sauce_rules_hint_paid": "Her sos ücretlendirilir.",
+  "editor_error_summary": "Düzeltilecek alanlar: {{count}} – ilkine git",
+  "editor_section_has_errors": "Bu bölümde hatalar var"
 }

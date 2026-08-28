@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Gäste wählen bis zu {{max}} Soßen.",
   "sauce_rules_hint_min": "Mindestens {{min}} müssen gewählt werden.",
   "sauce_rules_hint_free": "Die ersten {{free}} sind gratis, jede weitere kostet extra.",
-  "sauce_rules_hint_paid": "Jede Soße wird berechnet."
+  "sauce_rules_hint_paid": "Jede Soße wird berechnet.",
+  "editor_error_summary": "Zu korrigierende Felder: {{count}} – zum ersten springen",
+  "editor_section_has_errors": "Dieser Abschnitt enthält Fehler"
 }

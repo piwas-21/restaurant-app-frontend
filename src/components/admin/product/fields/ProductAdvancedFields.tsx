@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FieldValues, UseFormRegister } from 'react-hook-form';
 import { productTypes } from '../types';
+import { fieldDomId } from './fieldAria';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 interface ProductAdvancedFieldsProps {
@@ -18,7 +19,10 @@ interface ProductAdvancedFieldsProps {
  * field the form stops rendering is a field the PUT clears (plan §6).
  *
  * Neither control changes here. Dropping the `menu` option from the type select and making
- * `hideBaseProduct` conditional on there being a variation is D7, i.e. slice S8.
+ * `hideBaseProduct` conditional on there being a variation is D7, i.e. slice S8. S7 only gives the
+ * type select the `htmlFor`/`id` pair its label was missing; it carries no `aria-invalid` because
+ * an enum with a default cannot fail, which is also why `editorValidation.focusField` does not
+ * force this collapsed body open.
  */
 export default function ProductAdvancedFields({ register }: ProductAdvancedFieldsProps) {
   const { t } = useTranslation();
@@ -26,8 +30,8 @@ export default function ProductAdvancedFields({ register }: ProductAdvancedField
   return (
     <div className={modalStyles.formColumn}>
       <div className={modalStyles.formGroup}>
-        <label>{t('product_type')}</label>
-        <select {...register('type')}>
+        <label htmlFor={fieldDomId('type')}>{t('product_type')}</label>
+        <select id={fieldDomId('type')} {...register('type')}>
           {productTypes.map((type) => (
             <option key={type} value={type}>
               {t(`product_type_${type}`)}

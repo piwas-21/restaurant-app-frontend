@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Los clientes eligen hasta {{max}} salsas.",
   "sauce_rules_hint_min": "Hay que elegir al menos {{min}}.",
   "sauce_rules_hint_free": "Las primeras {{free}} son gratuitas; cada salsa extra se cobra.",
-  "sauce_rules_hint_paid": "Cada salsa se cobra."
+  "sauce_rules_hint_paid": "Cada salsa se cobra.",
+  "editor_error_summary": "Campos por corregir: {{count}} – ir al primero",
+  "editor_section_has_errors": "Esta sección contiene errores"
 }

@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "顾客最多可选 {{max}} 份酱料。",
   "sauce_rules_hint_min": "至少需要选择 {{min}} 份。",
   "sauce_rules_hint_free": "前 {{free}} 份免费，超出部分按份收费。",
-  "sauce_rules_hint_paid": "每份酱料均收费。"
+  "sauce_rules_hint_paid": "每份酱料均收费。",
+  "editor_error_summary": "待修正字段：{{count}} — 跳转到第一个",
+  "editor_section_has_errors": "此部分存在错误"
 }

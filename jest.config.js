@@ -76,6 +76,11 @@ module.exports = {
     // S3 (quick-add create): the hook holds the write, the util holds the payload contract.
     'src/hooks/admin/useQuickAddItem.ts',
     'src/utils/quickAddItemPayload.ts',
+    // S7 (validation UX, D13): the two `.ts` files behind the error summary and the field a11y
+    // wiring. `.ts` is not collected wholesale — only `.tsx` under components is.
+    'src/components/admin/product-editor/editorValidation.ts',
+    'src/components/admin/product/fields/fieldAria.ts',
+    'src/hooks/admin/useEditorErrors.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/reservations/useEditReservation.ts',
@@ -884,6 +889,38 @@ module.exports = {
     './src/components/admin/menu-management/QuickAddItemModal.tsx': {
       statements: 99,
       branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    // MENU-ITEM-EDITOR-REDESIGN S7 — validation UX (D13). `editorValidation` decides what the save
+    // bar counts and which nav entry is marked, so its branches are the slice's contract.
+    './src/components/admin/product-editor/editorValidation.ts': {
+      statements: 94,
+      branches: 87,
+      functions: 99,
+      lines: 99,
+    },
+    './src/hooks/admin/useEditorErrors.ts': {
+      statements: 95,
+      branches: 85,
+      functions: 95,
+      lines: 95,
+    },
+    './src/components/admin/product/fields/fieldAria.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product/fields/FieldError.tsx': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/product-editor/EditorErrorSummary.tsx': {
+      statements: 99,
+      branches: 99,
       functions: 99,
       lines: 99,
     },

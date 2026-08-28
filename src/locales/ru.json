@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Гости выбирают не более {{max}} соусов.",
   "sauce_rules_hint_min": "Нужно выбрать хотя бы {{min}}.",
   "sauce_rules_hint_free": "Первые {{free}} бесплатно, каждый следующий платный.",
-  "sauce_rules_hint_paid": "Каждый соус платный."
+  "sauce_rules_hint_paid": "Каждый соус платный.",
+  "editor_error_summary": "Поля с ошибками: {{count}} — перейти к первому",
+  "editor_section_has_errors": "В этом разделе есть ошибки"
 }

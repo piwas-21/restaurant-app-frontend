@@ -1,0 +1,37 @@
+/* Save-bar error chip (MENU-ITEM-EDITOR-REDESIGN-PLAN, D13 / slice S7; conformance gap G4).
+   The approved editor screen draws a soft amber pill on the LEADING edge of the save bar,
+   opposite Discard/Save. */
+
+/*
+  Always rendered, even at zero, so the live region exists BEFORE the first error appears —
+  a region inserted at the same moment as its content is not reliably announced. It claims no
+  space of its own; the save bar's existing `.saveHint` still owns the `auto` margin that pushes
+  Discard/Save to the trailing edge.
+*/
+.wrapper {
+  display: inline-flex;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--feedback-warning-light);
+  border-radius: 999px;
+  background: var(--feedback-warning-xlight);
+  color: var(--feedback-warning-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--feedback-warning);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--feedback-warning);
+  outline-offset: 2px;
+}

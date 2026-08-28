@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Guests pick up to {{max}} sauces.",
   "sauce_rules_hint_min": "At least {{min}} must be picked.",
   "sauce_rules_hint_free": "The first {{free}} are free; each extra is charged.",
-  "sauce_rules_hint_paid": "Every sauce is charged."
+  "sauce_rules_hint_paid": "Every sauce is charged.",
+  "editor_error_summary": "Fields to fix: {{count}} — jump to first",
+  "editor_section_has_errors": "This section has errors"
 }

@@ -2750,5 +2750,7 @@
   "sauce_rules_hint_limit": "Gasten kiezen maximaal {{max}} sauzen.",
   "sauce_rules_hint_min": "Er moeten er minstens {{min}} gekozen worden.",
   "sauce_rules_hint_free": "De eerste {{free}} zijn gratis; elke extra saus wordt berekend.",
-  "sauce_rules_hint_paid": "Elke saus wordt berekend."
+  "sauce_rules_hint_paid": "Elke saus wordt berekend.",
+  "editor_error_summary": "Te corrigeren velden: {{count}} – ga naar het eerste",
+  "editor_section_has_errors": "Deze sectie bevat fouten"
 }

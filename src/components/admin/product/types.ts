@@ -1,4 +1,5 @@
 // Product-related types and interfaces
+import type { FieldErrors, FieldValues } from 'react-hook-form';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
@@ -105,7 +106,9 @@ export interface MultilingualContentProps {
 
 export interface ProductVariationsProps {
   register: any;
-  errors: any;
+  // Typed properly because S7 reads it: `fieldMessage`/`fieldAria` take react-hook-form's own
+  // shape, and the surrounding `any`s are pre-existing debt this slice does not widen.
+  errors: FieldErrors<FieldValues>;
   variationFields: any[];
   appendVariation: (variation: Variation) => void;
   removeVariation: (index: number) => void;

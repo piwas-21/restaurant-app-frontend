@@ -77,8 +77,17 @@ export default function TranslationSlotRows({
   const targetName = getLanguageNativeName(targetLocale);
 
   const renderSlot = (slot: TranslationSlot) => {
-    const fieldName = t(slot.fieldLabel);
     const source = sourceTextFor(slot);
+    /**
+     * The row's own name, and the source text is what makes it UNIQUE.
+     *
+     * `Ingredient name in Français` is the same string on every ingredient, so an item with two of
+     * them gave a screen-reader translator two identically named fields and no way to tell which
+     * row they were in — the one thing a sighted user reads straight off the source column beside
+     * it. A middot rather than a word: it needs no translation, and the browser's bidi algorithm
+     * places it correctly when the source is Arabic and the page is not.
+     */
+    const fieldName = isBlank(source) ? t(slot.fieldLabel) : `${source} · ${t(slot.fieldLabel)}`;
     const value = translationIn(slot, targetLocale);
     const error = errorFor(slot);
     const sourceId = `translation-${slot.key}-source`;

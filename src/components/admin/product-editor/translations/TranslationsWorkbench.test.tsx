@@ -58,6 +58,9 @@ const margherita = {
   variations: [{ id: 'var-1', name: 'Large', description: '', priceModifier: 4, isActive: true, displayOrder: 0 }],
   detailedIngredients: [
     { id: 'ing-1', name: 'Mozzarella', isOptional: false, price: 0, isActive: true, displayOrder: 0 },
+    // A SAUCE, because #588 made `detailedIngredients` hold two kinds behind one array. Without a
+    // second kind in the fixture nothing here exercises the grouping or proves `kind` round-trips.
+    { id: 'ing-2', name: 'Garlic mayo', kind: 'sauce', isOptional: true, price: 1, isActive: true, displayOrder: 1 },
   ],
   images: [],
   suggestedSideItems: [],
@@ -80,8 +83,14 @@ const openWorkbench = async (product: ProductDetails = margherita) => {
 const selectLocale = (view: ReturnType<typeof within>, nativeName: string) =>
   fireEvent.click(view.getByRole('button', { name: new RegExp(`^${nativeName}`) }));
 
-const targetField = (view: ReturnType<typeof within>, field: string, language: string) =>
-  view.getByLabelText(`editor_translations_target_field[field=${field},language=${language}]`) as HTMLInputElement;
+/**
+ * A row's target input. `source` is part of the name because the label is `"<source> · <field>"` —
+ * two ingredients would otherwise be two identically named fields (see `TranslationSlotRows`).
+ */
+const targetField = (view: ReturnType<typeof within>, field: string, language: string, source?: string) =>
+  view.getByLabelText(
+    `editor_translations_target_field[field=${source ? `${source} · ${field}` : field},language=${language}]`,
+  ) as HTMLInputElement;
 
 const save = async (container: HTMLElement) => {
   fireEvent.submit(container.querySelector('form') as HTMLFormElement);
@@ -101,9 +110,11 @@ describe('one surface for every translatable string (D2 / S4)', () => {
     const { container, view } = await openWorkbench();
     selectLocale(view, 'Nederlands');
 
-    fireEvent.change(targetField(view, 'item_name', 'Nederlands'), { target: { value: 'Margherita pizza' } });
-    fireEvent.change(targetField(view, 'variation_name', 'Nederlands'), { target: { value: 'Groot' } });
-    fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Nederlands'), {
+    fireEvent.change(targetField(view, 'item_name', 'Nederlands', 'Margherita Pizza'), {
+      target: { value: 'Margherita pizza' },
+    });
+    fireEvent.change(targetField(view, 'variation_name', 'Nederlands', 'Large'), { target: { value: 'Groot' } });
+    fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Nederlands', 'Mozzarella'), {
       target: { value: 'Mozzarella kaas' },
     });
 
@@ -130,7 +141,7 @@ describe('one surface for every translatable string (D2 / S4)', () => {
       ['中文', 'zh', '罗勒'],
     ] as const) {
       selectLocale(view, nativeName);
-      fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', nativeName), {
+      fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', nativeName, 'Mozzarella'), {
         target: { value },
       });
       expect(locale).toBeTruthy();
@@ -150,13 +161,15 @@ describe('one surface for every translatable string (D2 / S4)', () => {
     const { view } = await openWorkbench();
 
     selectLocale(view, 'Deutsch');
-    fireEvent.change(targetField(view, 'item_name', 'Deutsch'), { target: { value: 'Margherita-Pizza' } });
+    fireEvent.change(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza'), {
+      target: { value: 'Margherita-Pizza' },
+    });
 
     selectLocale(view, 'Italiano');
-    expect(targetField(view, 'item_name', 'Italiano').value).toBe('');
+    expect(targetField(view, 'item_name', 'Italiano', 'Margherita Pizza').value).toBe('');
 
     selectLocale(view, 'Deutsch');
-    expect(targetField(view, 'item_name', 'Deutsch').value).toBe('Margherita-Pizza');
+    expect(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza').value).toBe('Margherita-Pizza');
   });
 
   it('unlocks the one Save, which is gated on the form being dirty', async () => {
@@ -165,7 +178,9 @@ describe('one surface for every translatable string (D2 / S4)', () => {
     expect(saveButton).toBeDisabled();
 
     selectLocale(view, 'Deutsch');
-    fireEvent.change(targetField(view, 'item_name', 'Deutsch'), { target: { value: 'Margherita-Pizza' } });
+    fireEvent.change(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza'), {
+      target: { value: 'Margherita-Pizza' },
+    });
 
     expect(saveButton).not.toBeDisabled();
   });
@@ -182,10 +197,10 @@ describe('completeness reflects the strings that are really missing', () => {
     const { view } = await openWorkbench();
 
     expect(view.getByRole('button', { name: /^Français/ })).toHaveAccessibleName(
-      /editor_translations_progress\[done=1,total=4\]/,
+      /editor_translations_progress\[done=1,total=5\]/,
     );
     expect(view.getByRole('button', { name: /^Deutsch/ })).toHaveAccessibleName(
-      /editor_translations_progress\[done=0,total=4\]/,
+      /editor_translations_progress\[done=0,total=5\]/,
     );
   });
 
@@ -193,16 +208,23 @@ describe('completeness reflects the strings that are really missing', () => {
     const { view } = await openWorkbench();
     selectLocale(view, 'Français');
 
+    expect(view.getByText('editor_translations_missing[count=4]')).toBeInTheDocument();
+
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      {
+        target: { value: 'Tomate et mozzarella' },
+      },
+    );
     expect(view.getByText('editor_translations_missing[count=3]')).toBeInTheDocument();
 
-    fireEvent.change(targetField(view, 'editor_translations_field_item_description', 'Français'), {
-      target: { value: 'Tomate et mozzarella' },
-    });
-    expect(view.getByText('editor_translations_missing[count=2]')).toBeInTheDocument();
-
-    fireEvent.change(targetField(view, 'variation_name', 'Français'), { target: { value: 'Grande' } });
-    fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Français'), {
+    fireEvent.change(targetField(view, 'variation_name', 'Français', 'Large'), { target: { value: 'Grande' } });
+    fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Français', 'Mozzarella'), {
       target: { value: 'Mozzarelle' },
+    });
+    // The SAUCE counts toward the same total as the ingredient — one item, one denominator.
+    fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Français', 'Garlic mayo'), {
+      target: { value: "Mayonnaise à l'ail" },
     });
 
     // The badge AND the rail entry, which is the point: the two counters cannot disagree.
@@ -216,8 +238,8 @@ describe('completeness reflects the strings that are really missing', () => {
 
     fireEvent.click(view.getByRole('button', { name: 'editor_translations_copy_source' }));
 
-    expect(targetField(view, 'item_name', 'Deutsch').value).toBe('Margherita Pizza');
-    expect(view.getByText('editor_translations_copied[count=4]')).toBeInTheDocument();
+    expect(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza').value).toBe('Margherita Pizza');
+    expect(view.getByText('editor_translations_copied[count=5]')).toBeInTheDocument();
 
     const payload = await save(container);
     expect((payload.content as Record<string, { name: string }>).de.name).toBe('Margherita Pizza');
@@ -255,9 +277,12 @@ describe('ten locales, one of which reads right to left', () => {
     const { view } = await openWorkbench();
     selectLocale(view, 'العربية');
 
-    expect(targetField(view, 'item_name', 'العربية')).toHaveAttribute('dir', 'rtl');
+    expect(targetField(view, 'item_name', 'العربية', 'Margherita Pizza')).toHaveAttribute('dir', 'rtl');
     // The source column shows the item's own text, which declares no language at all.
-    expect(view.getByLabelText('editor_translations_source_field[field=item_name]')).toHaveAttribute('dir', 'auto');
+    expect(view.getByLabelText('editor_translations_source_field[field=Margherita Pizza · item_name]')).toHaveAttribute(
+      'dir',
+      'auto',
+    );
   });
 
   it('follows the chosen source language when it is one of the ten', async () => {
@@ -265,6 +290,9 @@ describe('ten locales, one of which reads right to left', () => {
 
     fireEvent.change(view.getByLabelText('editor_translations_source_language'), { target: { value: 'ar' } });
 
+    // No `<source> ·` prefix here, and that is the rule working: the item has no Arabic text, so the
+    // source cell is EMPTY and there is nothing to name the row by. The label falls back to the
+    // field's own name rather than inventing one.
     expect(view.getByLabelText('editor_translations_source_field[field=item_name]')).toHaveAttribute('dir', 'rtl');
   });
 });
@@ -279,14 +307,17 @@ describe('the refusal this panel can produce, said where it happened', () => {
     const { container, view } = await openWorkbench();
     selectLocale(view, 'Deutsch');
 
-    fireEvent.change(targetField(view, 'editor_translations_field_item_description', 'Deutsch'), {
-      target: { value: 'Tomate und Mozzarella' },
-    });
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Deutsch', 'Classic tomato and mozzarella'),
+      {
+        target: { value: 'Tomate und Mozzarella' },
+      },
+    );
     fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
     const message = await view.findByRole('alert');
     expect(message).toHaveTextContent('Name is required for this language');
-    expect(targetField(view, 'item_name', 'Deutsch')).toHaveAttribute('aria-invalid', 'true');
+    expect(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza')).toHaveAttribute('aria-invalid', 'true');
     expect(updateProduct).not.toHaveBeenCalled();
   });
 
@@ -321,5 +352,41 @@ describe('an item with nothing to translate', () => {
 
     expect(view.getByText('editor_translations_empty[tab=item]')).toBeInTheDocument();
     expect(view.queryByLabelText(/editor_translations_target_field/)).toBeNull();
+  });
+});
+
+describe('the two ingredient kinds #588 introduced (S5) survive this tab', () => {
+  /**
+   * `detailedIngredients` is ONE array holding ingredients AND sauces. The workbench must group
+   * them the way the Item tab names them, or it files a sauce in a section it is not in.
+   */
+  it('files the sauce under Sauces and the ingredient under Ingredients', async () => {
+    const { view } = await openWorkbench();
+
+    expect(view.getByRole('region', { name: 'ingredients' })).toContainElement(view.getByDisplayValue('Mozzarella'));
+    expect(view.getByRole('region', { name: 'sauces' })).toContainElement(view.getByDisplayValue('Garlic mayo'));
+  });
+
+  /**
+   * §6's trap in its newest form. `kind` has NO control anywhere in this tab, and the tab rewrites
+   * the whole ingredient array to store a translation — so if the writer rebuilt a row instead of
+   * spreading it, every sauce on the product would silently become an ingredient on the next save.
+   * That is a data loss no type checks and no conflict would have shown.
+   */
+  it('sends `kind` back untouched after translating the sauce it belongs to', async () => {
+    const { container, view } = await openWorkbench();
+
+    selectLocale(view, 'Français');
+    fireEvent.change(targetField(view, 'editor_translations_field_ingredient_name', 'Français', 'Garlic mayo'), {
+      target: { value: "Mayonnaise à l'ail" },
+    });
+
+    const payload = await save(container);
+    const sent = payload.detailedIngredients as Array<Record<string, unknown>>;
+
+    expect(sent.map((row) => row.kind)).toEqual([undefined, 'sauce']);
+    expect(sent[1].content).toMatchObject({ fr: { name: "Mayonnaise à l'ail" } });
+    // And the row the admin did NOT touch keeps its own identity.
+    expect(sent[0].name).toBe('Mozzarella');
   });
 });

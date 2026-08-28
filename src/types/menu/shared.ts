@@ -64,17 +64,13 @@ export interface DetailedProductVariation {
   id: string;
   name: string;
   description?: string;
+  /** Which global variation row this was copied from — provenance only (plan S4, backend #431). */
+  globalVariationId?: string;
   priceModifier: number;
   finalPrice: number;
   isActive: boolean;
   displayOrder: number;
-  content?: Record<
-    string,
-    {
-      name: string;
-      description?: string;
-    }
-  >;
+  content?: Record<string, { name: string; description?: string }>;
 }
 
 /**

@@ -1,4 +1,5 @@
 import { LANGUAGE_CODES } from '@/config/languageConfig';
+import { fold } from './libraryMatching';
 import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
 import type { IngredientKind, ProductIngredient } from '@/types/menu';
 import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
@@ -10,8 +11,18 @@ import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
  * may only shrink.
  */
 
-/** How many rows the picker renders at once. The seeded catalog is 654 entries. */
-export const MAX_VISIBLE_LIBRARY_ROWS = 50;
+/**
+ * How many rows the picker renders at once, and the matching rules it filters with. Both moved to
+ * `libraryMatching` when the variation library (plan S4) needed the identical folding, and are
+ * re-exported here so every existing caller keeps its import.
+ */
+export {
+  MAX_VISIBLE_LIBRARY_ROWS,
+  matchesQuery,
+  rankByQuery,
+  hasTranslationFor,
+  isAlreadyAttached,
+} from './libraryMatching';
 
 let temporaryIngredientCounter = 0;
 
@@ -34,45 +45,6 @@ export function nextTemporaryIngredientId(): string {
 }
 
 /**
- * Case- and accent-insensitive. The catalog is multilingual, so "creme" must find "Crème" —
- * Postgres' `ToLower().Contains()` behind `/search` does not do that, which is one more reason the
- * picker filters the browsed list itself.
- */
-const fold = (value: string): string =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-
-/** Every name a row answers to: its default name plus all of its translations. */
-const searchableNames = (ingredient: GlobalIngredientSummary): string[] => [
-  ingredient.defaultName,
-  ...ingredient.translations.map((translation) => translation.name),
-];
-
-export function matchesQuery(ingredient: GlobalIngredientSummary, query: string): boolean {
-  const needle = fold(query);
-  if (needle.length === 0) return true;
-  return searchableNames(ingredient).some((name) => fold(name).includes(needle));
-}
-
-/**
- * Starts-with first, then alphabetical — the same order `SearchGlobalIngredientsQuery` applies
- * server-side, so browsing and searching do not disagree about what is most relevant.
- */
-export function rankByQuery(ingredients: GlobalIngredientSummary[], query: string): GlobalIngredientSummary[] {
-  const needle = fold(query);
-  const startsWith = (ingredient: GlobalIngredientSummary) =>
-    needle.length > 0 && searchableNames(ingredient).some((name) => fold(name).startsWith(needle));
-
-  return [...ingredients].sort((a, b) => {
-    const byPrefix = Number(startsWith(b)) - Number(startsWith(a));
-    return byPrefix !== 0 ? byPrefix : a.defaultName.localeCompare(b.defaultName);
-  });
-}
-
-/**
  * The keys that say "this product already has that ingredient".
  *
  * Two of them, because provenance is new: a row picked from the library carries
@@ -88,16 +60,6 @@ export function attachedLibraryKeys(ingredients: ProductIngredient[]): Set<strin
     if (name.length > 0) keys.add(`name:${name}`);
   });
   return keys;
-}
-
-export function isAlreadyAttached(ingredient: GlobalIngredientSummary, attachedKeys: Set<string>): boolean {
-  return attachedKeys.has(`id:${ingredient.id}`) || attachedKeys.has(`name:${fold(ingredient.defaultName)}`);
-}
-
-/** Whether the row carries a name in the language the admin is reading the UI in. */
-export function hasTranslationFor(ingredient: GlobalIngredientSummary, languageCode: string): boolean {
-  const primary = languageCode.split('-')[0];
-  return ingredient.translations.some((translation) => translation.languageCode.split('-')[0] === primary);
 }
 
 /**

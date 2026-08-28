@@ -3,6 +3,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
+import VariationLibraryButton from './VariationLibraryButton';
+import { nextVariationDisplayOrder } from './globalVariationLibrary';
 import { ProductVariationsProps } from './types';
 import FieldError from './fields/FieldError';
 import { fieldAria, fieldMessage } from './fields/fieldAria';
@@ -50,6 +52,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
   appendVariation,
   removeVariation,
   moveVariation,
+  getValues,
 }) => {
   const { t } = useTranslation();
 
@@ -163,7 +166,13 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
               name: '',
               description: '',
               priceModifier: 0,
-              displayOrder: variationFields.length,
+              // NOT `variationFields.length`, which is what this said before and what my own
+              // picker said until #593 landed underneath it. `useVariationReorder` documents that
+              // live `displayOrder` holds gaps and duplicates, so the row COUNT can name an order
+              // another row already occupies — and `getValues` is read rather than
+              // `variationFields` because a reorder renumbers through `setValue`, which never
+              // refreshes the field-array snapshot. Both buttons now agree where a new row lands.
+              displayOrder: nextVariationDisplayOrder(getValues('variations')),
               isActive: true,
               content: {},
             })
@@ -172,6 +181,9 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
           <Plus size={16} aria-hidden="true" />
           {t('add_variation')}
         </button>
+        {/* Plan S4, beside the blank-row button rather than instead of it: a size the library does
+            not carry still has to be typeable. */}
+        <VariationLibraryButton getValues={getValues} appendVariation={appendVariation} />
       </div>
     </section>
   );

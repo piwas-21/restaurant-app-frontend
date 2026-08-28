@@ -4,11 +4,22 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
 import CheckboxField from '@/components/design-system/CheckboxField';
-import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
+import type { LibraryPickerCopy } from './libraryPickerCopy';
 import styles from './GlobalIngredientPickerRow.module.css';
 
-interface GlobalIngredientPickerRowProps {
-  ingredient: GlobalIngredientSummary;
+/** What a row needs to draw itself. Both catalog summary DTOs satisfy it. */
+export interface LibraryPickerRowData {
+  id: string;
+  defaultName: string;
+  translations: { name: string }[];
+  /** "used on N items" — distinct live products linking to this row. */
+  usedOnProductCount?: number;
+}
+
+interface LibraryPickerRowProps {
+  row: LibraryPickerRowData;
+  /** Which catalog's words to render. */
+  copy: LibraryPickerCopy;
   checked?: boolean;
   /** Already on the product: shown, but not offerable a second time. */
   alreadyAdded?: boolean;
@@ -28,23 +39,31 @@ interface GlobalIngredientPickerRowProps {
 }
 
 /**
- * One library row, laid out as the approved screen's two columns: INGREDIENT on the left (tick box,
+ * One library row, laid out as the approved screen's two columns: the ENTITY on the left (tick box,
  * name, how many translations it carries, a preview of them) and USAGE on the right.
+ *
+ * One row for both catalogs (plan S2/S3 for ingredients, S4 for variations) — the shape never
+ * differed, only the words, which arrive in `copy`.
  *
  * Two numbers, rendered the same way and for the same reason. The translation count is the row's
  * selling point — how many free-text inputs picking it saves — and the usage count is its blast
  * radius. Both are a number plus a translated `aria-label`, NOT an interpolated "N items" string:
  * that sentence needs per-locale plural forms in ten bundles (three categories in ru, six in ar) to
- * avoid reading "1 items". The approved screen writes the sentence out; this is the same deviation
- * S2 already shipped for the languages badge, and the column header carries the words instead.
+ * avoid reading "1 items". The column header carries the words instead.
+ *
+ * **There is no price here, and on the variation side its absence is a feature.** That catalog
+ * carries none (backend #431) because a variation's money is per product — "Large" is +2.00 on a
+ * pizza and +0.50 on a coffee — so what a pick saves is the translations, and the admin still types
+ * the one number the library could never have known.
  *
  * The destructive action says what the server will actually do — Archive while anything uses the
- * row, Delete only at zero — because `DELETE /api/global-ingredients/{id}` branches on exactly that
- * count. A button that promised "Delete" and archived instead would be lying about the one thing
- * the admin is trying to decide.
+ * row, Delete only at zero — because `DELETE /api/global-…/{id}` branches on exactly that count. A
+ * button that promised "Delete" and archived instead would be lying about the one thing the admin
+ * is trying to decide.
  */
-export default function GlobalIngredientPickerRow({
-  ingredient,
+export default function LibraryPickerRow({
+  row,
+  copy,
   checked = false,
   alreadyAdded = false,
   onToggle,
@@ -52,17 +71,17 @@ export default function GlobalIngredientPickerRow({
   onArchive,
   onRestore,
   isPending = false,
-}: Readonly<GlobalIngredientPickerRowProps>) {
+}: Readonly<LibraryPickerRowProps>) {
   const { t } = useTranslation();
   const [isConfirming, setIsConfirming] = useState(false);
-  const preview = ingredient.translations
+  const preview = row.translations
     .slice(0, 3)
     .map((translation) => translation.name)
     .join(' · ');
 
-  const usageCount = ingredient.usedOnProductCount ?? 0;
+  const usageCount = row.usedOnProductCount ?? 0;
   const isInUse = usageCount > 0;
-  const destructiveLabel = isInUse ? t('ingredient_library_archive') : t('ingredient_library_delete');
+  const destructiveLabel = isInUse ? t(copy.archiveAction) : t(copy.deleteAction);
 
   const confirmDestructive = () => {
     setIsConfirming(false);
@@ -74,7 +93,7 @@ export default function GlobalIngredientPickerRow({
       <div className={styles.identity}>
         <div className={styles.nameLine}>
           {archived ? (
-            <span className={styles.archivedName}>{ingredient.defaultName}</span>
+            <span className={styles.archivedName}>{row.defaultName}</span>
           ) : (
             /* An already-added row is drawn TICKED and dimmed, not unticked and disabled (review
                gap G23, frontend #581). Unticked read as "not selected" — the opposite of what is
@@ -83,18 +102,15 @@ export default function GlobalIngredientPickerRow({
                checked, dimmed. It carries no selection: `alreadyAdded` rows are excluded from the
                modal's own state, which is what the Add button counts. */
             <CheckboxField
-              label={ingredient.defaultName}
+              label={row.defaultName}
               checked={alreadyAdded || checked}
               disabled={alreadyAdded}
               onChange={onToggle ?? (() => {})}
             />
           )}
-          <span
-            className={styles.badge}
-            aria-label={t('ingredient_library_languages', { count: ingredient.translations.length })}
-          >
+          <span className={styles.badge} aria-label={t(copy.languages, { count: row.translations.length })}>
             <Globe size={12} aria-hidden="true" />
-            {ingredient.translations.length}
+            {row.translations.length}
           </span>
         </div>
         {preview.length > 0 && <p className={styles.preview}>{preview}</p>}
@@ -106,14 +122,14 @@ export default function GlobalIngredientPickerRow({
           // figure — the row is already accounted for, so its blast radius is not the question.
           <span className={styles.alreadyAdded}>{t('already_added')}</span>
         ) : (
-          <span className={styles.usageCount} aria-label={t('ingredient_library_used_on', { count: usageCount })}>
+          <span className={styles.usageCount} aria-label={t(copy.usedOn, { count: usageCount })}>
             {usageCount}
           </span>
         )}
 
         {archived && onRestore && (
           <button type="button" className={styles.rowAction} onClick={onRestore} disabled={isPending}>
-            {t('ingredient_library_restore')}
+            {t(copy.restore)}
           </button>
         )}
 
@@ -132,9 +148,7 @@ export default function GlobalIngredientPickerRow({
         )}
         {!archived && onArchive && isConfirming && (
           <span className={styles.confirm}>
-            <span className={styles.confirmQuestion}>
-              {isInUse ? t('ingredient_library_archive_confirm') : t('ingredient_library_delete_confirm')}
-            </span>
+            <span className={styles.confirmQuestion}>{isInUse ? t(copy.archiveConfirm) : t(copy.deleteConfirm)}</span>
             <button
               type="button"
               className={`${styles.rowAction} ${styles.rowActionDanger}`}

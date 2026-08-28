@@ -363,6 +363,12 @@ export const submitEditProductForm = async ({
       .filter((v) => (v?.name || '').trim().length > 0)
       .map((v) => ({
         id: v.id,
+        // Carried through deliberately. This map is a WHITELIST, so anything it does not name is
+        // dropped on the way to the wire — and `globalVariationId` is a value the API SENDS
+        // (`ProductVariationDto`, backend #431) and `productEditorDefaults` seeds straight into the
+        // form. Omitting it here is #428's shape on a different field: a PUT that omits a field
+        // must not write that field, and this one wrote null on every save of a linked product.
+        globalVariationId: v.globalVariationId,
         name: (v.name || '').trim(),
         description: v.description ?? '',
         priceModifier: parseNum(v.priceModifier, 0),

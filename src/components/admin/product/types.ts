@@ -1,5 +1,5 @@
 // Product-related types and interfaces
-import type { FieldErrors, FieldValues } from 'react-hook-form';
+import type { FieldErrors, UseFormGetValues, FieldValues } from 'react-hook-form';
 
 export const productTypes = ['mainItem', 'beverage', 'dessert', 'sauce', 'addOn', 'menu'] as const;
 
@@ -35,6 +35,12 @@ export interface Category {
 
 export interface Variation {
   id?: string; // Optional for create, required for edit
+  /**
+   * Which global variation row this one was copied from (plan S4, backend #431's
+   * `ProductVariationDto.GlobalVariationId`). Provenance only: the name and translations beside it
+   * are the product's OWN copies, and editing the library row later does not change them.
+   */
+  globalVariationId?: string;
   name: string;
   description?: string;
   priceModifier: number;
@@ -125,6 +131,12 @@ export interface ProductVariationsProps {
    * see `useProductEditorForm.moveVariation` for why that would silently undo the reorder.
    */
   moveVariation: (index: number, delta: -1 | 1) => void;
+  /**
+   * Read the form STORE. The library picker uses it to see the product's current rows at the moment
+   * it opens — `variationFields` is a snapshot that `moveVariation`'s `setValue` renumbering does
+   * not refresh, so its `displayOrder` values go stale after any reorder.
+   */
+  getValues: UseFormGetValues<FieldValues>;
 }
 
 // Interface for the new suggested side items component

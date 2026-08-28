@@ -3,11 +3,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import type { LibraryView } from './GlobalIngredientPickerToolbar';
+import type { LibraryPickerCopy } from './libraryPickerCopy';
+import type { LibraryPickerView } from './LibraryPickerToolbar';
 import styles from './GlobalIngredientPickerModal.module.css';
 
-interface GlobalIngredientPickerFooterProps {
-  view: LibraryView;
+interface LibraryPickerFooterProps {
+  /** Which catalog's words to render. */
+  copy: LibraryPickerCopy;
+  view: LibraryPickerView;
   /** The trimmed search term — what "+ Create new" would create. */
   newName: string;
   isCreating: boolean;
@@ -18,13 +21,15 @@ interface GlobalIngredientPickerFooterProps {
 }
 
 /**
- * The picker's footer: create-and-attach on the left, cancel and confirm on the right.
+ * The picker's footer: create-and-attach on the left, cancel and confirm on the right. One footer
+ * for both catalogs.
  *
  * Both writing actions are hidden in the archived view. Nothing there can be attached (plan D4) and
  * nothing there is a search result, so "+ Create new <term>" and "Add selected" would both be
  * offering something the view cannot do; only the way out stays.
  */
-export default function GlobalIngredientPickerFooter({
+export default function LibraryPickerFooter({
+  copy,
   view,
   newName,
   isCreating,
@@ -32,7 +37,7 @@ export default function GlobalIngredientPickerFooter({
   onCancel,
   selectedCount,
   onAdd,
-}: Readonly<GlobalIngredientPickerFooterProps>) {
+}: Readonly<LibraryPickerFooterProps>) {
   const { t } = useTranslation();
 
   return (
@@ -40,9 +45,7 @@ export default function GlobalIngredientPickerFooter({
       {view === 'active' && (
         <button type="button" className={styles.createButton} onClick={onCreate} disabled={isCreating}>
           <Plus size={16} aria-hidden="true" />
-          {newName.length > 0
-            ? t('ingredient_library_create_named', { name: newName })
-            : t('ingredient_library_create')}
+          {newName.length > 0 ? t(copy.createNamed, { name: newName }) : t(copy.create)}
         </button>
       )}
       <div className={styles.footerActions}>

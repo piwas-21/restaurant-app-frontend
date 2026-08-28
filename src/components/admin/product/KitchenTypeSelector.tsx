@@ -47,6 +47,24 @@ interface KitchenTypeSelectorProps {
 
 const ERROR_ID = 'product-field-kitchenType-error';
 
+/**
+ * Whether this item will reach a kitchen station at all.
+ *
+ * `'None'` is not "unset" — it is a stored value whose label reads *"Not Assigned"* and whose
+ * consequence is invisible from that label. Kitchen tickets are built by
+ * `orderItemTree.selectItemsForKitchen`, which matches on `item.kitchenType === kitchenType`, so a
+ * `None` item matches NEITHER `'FrontKitchen'` NOR `'BackKitchen'` and is printed by no station.
+ * It survives only on the `'All'` ticket, which `generateKitchenReceiptHtml`'s own comment calls
+ * customer-facing. So the dish is sold and nobody is told to cook it.
+ *
+ * `undefined` is folded in DELIBERATELY rather than treated as "not known yet": it has exactly the
+ * same consequence. `KitchenType` is non-nullable on the entity with `= KitchenType.None`, so a
+ * product saved without a choice is stored as `None` either way. Warning on one and not the other
+ * would make the notice depend on how the form loaded rather than on what the restaurant gets.
+ */
+const reachesNoKitchen = (value: KitchenType | undefined): boolean =>
+  value !== 'FrontKitchen' && value !== 'BackKitchen';
+
 export default function KitchenTypeSelector({ value, onChange, disabled = false, error }: KitchenTypeSelectorProps) {
   const { t } = useTranslation();
 
@@ -86,6 +104,19 @@ export default function KitchenTypeSelector({ value, onChange, disabled = false,
           );
         })}
       </div>
+
+      {/* D8 — a field whose "empty" state silently changes what the restaurant does gets its warning
+          AT THE FIELD, not in a support article. Not `role="alert"`: it is a standing property of
+          the current selection, announced on focus like any other field description, and an alert
+          would interrupt a screen reader on every render that lands here. */}
+      {reachesNoKitchen(value) && (
+        <p className={styles.warning}>
+          {t(
+            'kitchen_type_none_warning',
+            'Not assigned to a kitchen, so this item appears on no kitchen ticket — only on the full order printout.',
+          )}
+        </p>
+      )}
 
       {error && (
         <p id={ERROR_ID} className={styles.error} role="alert">

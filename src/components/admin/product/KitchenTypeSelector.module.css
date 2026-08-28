@@ -90,3 +90,11 @@
   color: var(--feedback-error-text);
   font-size: 0.875rem;
 }
+
+/* `--feedback-warning-text`, NOT `--feedback-warning`: the latter is the fill colour and fails
+   contrast as body copy on a light surface. Same pairing as `ProductOrderTypes.module.css`. */
+.warning {
+  margin: 0.25rem 0 0;
+  color: var(--feedback-warning-text);
+  font-size: 0.875rem;
+}

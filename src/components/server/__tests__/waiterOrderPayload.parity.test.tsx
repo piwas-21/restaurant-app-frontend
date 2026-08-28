@@ -37,16 +37,21 @@ import type { CustomizationResult, DetailedIngredient, ProductVariation } from '
 
 // ── Fixture ──────────────────────────────────────────────────────────────────────────────────────
 // Names and figures mirror the backend's `WaiterAndGuestPricingParityTests` so the two files can be
-// read side by side. No sauce rows: `sauceIncludedFree` is 0 for every product on production today,
-// so the allowance branch of the server's rule is not transcribed below — see the note there.
+// read side by side. #605 ADDS a real sauce row and a non-zero allowance, which this header used to
+// say were absent: `sauceIncludedFree` is 0 for every product on production today, which is a fact
+// about DATA and stops being true the first time an admin types a number into the field.
 
 const BASE_PRICE = 18;
 const SAUCE_PRICE = 1.5; // optional, INCLUDED in base -> taking it off DEDUCTS
 const BACON_PRICE = 2.5; // paid add-on -> selecting it ADDS
 const COKE_PRICE = 2.5; // an optional side item -> a CHILD ROW on the order
 const LARGE_MODIFIER = 3.5;
+const GARLIC_PRICE = 3; // a PAID sauce row -> the allowance is what takes it back off
+/** How many sauce UNITS the product includes at no charge (#605). */
+const SAUCE_INCLUDED_FREE = 2;
 
 const CHEESE = 'cheese';
+const GARLIC = 'sauce_garlic';
 const SAUCE = 'sauce';
 const BACON = 'bacon';
 const TRUFFLE = 'truffle';
@@ -74,6 +79,22 @@ const INGREDIENTS: DetailedIngredient[] = [
   },
   // Inactive, and expensive: it must never reach a payload or a price on either path.
   { id: TRUFFLE, name: 'Truffle', isActive: false, isOptional: true, price: 9, maxQuantity: 4 },
+  /*
+   * A REAL sauce row (#605) — `kind: 'sauce'`, paid, and takeable twice, so one row can spend an
+   * allowance of 2 by itself. Unselected it charges nothing, which is why adding it leaves every
+   * pre-existing case in this file byte-identical.
+   */
+  {
+    id: GARLIC,
+    name: 'Garlic sauce',
+    isActive: true,
+    isOptional: true,
+    price: GARLIC_PRICE,
+    isIncludedInBasePrice: false,
+    maxQuantity: 2,
+    kind: 'sauce',
+    displayOrder: 1,
+  },
 ];
 
 const VARIATIONS: ProductVariation[] = [
@@ -97,6 +118,13 @@ const DETAIL = {
   id: 'p1',
   name: 'Margherita',
   basePrice: BASE_PRICE,
+  /*
+   * The product's free-sauce allowance (#605). Non-zero, because `0` is the value that makes the
+   * defect invisible: the waiter sheet dropped this field at the type boundary and `useLinePrice`
+   * read the absence as `0`, which is byte-identical to correct behaviour on every product that
+   * exists on production today. A fixture that also said 0 would agree with the bug.
+   */
+  sauceIncludedFree: SAUCE_INCLUDED_FREE,
   hideBaseProduct: false,
   variations: VARIATIONS,
   detailedIngredients: INGREDIENTS,
@@ -112,8 +140,17 @@ const OPTIONALS = INGREDIENTS.filter((i) => i.isOptional && i.isActive);
  * oracles below because the SERVER shares it — it is the single writer of ingredient money on both
  * paths, so giving each oracle its own copy would model something the backend does not do.
  *
- * The sauce-allowance branch (`sauceIncludedFree > 0`, S6/#429) is omitted: the fixture has no rows
- * of `kind: 'Sauce'`, so the branch cannot fire. It would land here as one more clause.
+ * The sauce-allowance branch (`sauceIncludedFree > 0`, S6/#429) is transcribed too, as #605
+ * predicted it would be — one more clause, not a second price policy:
+ *
+ *   if (chargeableSauceUnits != null && i.Kind == IngredientKind.Sauce && i.Price > 0)
+ *   { chargeableUnits = isSelected ? (i.IsIncludedInBasePrice ? Math.Max(0, q - 1) : q) : 0;
+ *     add that many UNITS of (i.Price, i.DisplayOrder, i.Id); }
+ *   customizationPrice -= units.OrderByDescending(Price).ThenBy(DisplayOrder).ThenBy(Id)
+ *                              .Take(sauceIncludedFree).Sum(Price);
+ *
+ * A list of UNITS, not of rows: two of one sauce spend the allowance as surely as one of each. It
+ * can only remove a charge this same loop added, so it can never invent a refund.
  *
  *   foreach (var i in detailedIngredients.Where(i => i.IsOptional && i.IsActive))
  *   { quantity = ingredientQuantities?[i.Id] ?? 1; clamp to [0, MaxQuantity];
@@ -121,31 +158,70 @@ const OPTIONALS = INGREDIENTS.filter((i) => i.isOptional && i.isActive);
  *                                    else if (quantity > 1) price += i.Price * (quantity - 1); }
  *     else if (isSelected) price += i.Price * quantity; }
  */
+interface SauceUnit {
+  price: number;
+  displayOrder: number;
+  id: string;
+}
+
+/** The server's clamp to [0, MaxQuantity]. */
+function clampQuantity(ingredient: DetailedIngredient, requested: number | undefined): number {
+  const quantity = requested ?? 1;
+  if (quantity < 0) return 0;
+  return Math.min(quantity, ingredient.maxQuantity ?? 1);
+}
+
+/** `chargeableUnits` from the C#: what the loop is about to bill for THIS row, or 0 if unselected. */
+function chargedUnitCount(ingredient: DetailedIngredient, isSelected: boolean, quantity: number): number {
+  if (!isSelected) return 0;
+  return ingredient.isIncludedInBasePrice ? Math.max(0, quantity - 1) : quantity;
+}
+
+/** The per-row money, before any allowance: the two branches of the server's rule, unchanged. */
+function rowCustomizationPrice(ingredient: DetailedIngredient, isSelected: boolean, quantity: number): number {
+  const price = ingredient.price ?? 0;
+  if (ingredient.isIncludedInBasePrice) {
+    if (!isSelected) return -price;
+    return quantity > 1 ? price * (quantity - 1) : 0;
+  }
+  return isSelected ? price * quantity : 0;
+}
+
+/** `OrderByDescending(Price).ThenBy(DisplayOrder).ThenBy(Id).Take(N).Sum(Price)`. */
+function waiveMostExpensive(units: readonly SauceUnit[], allowance: number): number {
+  return [...units]
+    .sort((a, b) => b.price - a.price || a.displayOrder - b.displayOrder || a.id.localeCompare(b.id))
+    .slice(0, allowance)
+    .reduce((sum, unit) => sum + unit.price, 0);
+}
+
 function ingredientCustomizationPrice(
   selectedIngredientIds: readonly string[] | undefined,
   ingredientQuantities: Readonly<Record<string, number>> | undefined,
 ): number {
   const selected = new Set(selectedIngredientIds ?? []);
   let customizationPrice = 0;
+  /** One entry per CHARGED sauce unit, in the server's own shape — see the waiver clause below. */
+  const sauceUnits: SauceUnit[] = [];
 
   for (const ingredient of INGREDIENTS) {
     if (!ingredient.isOptional || !ingredient.isActive) continue;
 
     const isSelected = selected.has(ingredient.id);
-    let quantity = ingredientQuantities?.[ingredient.id] ?? 1;
-    if (quantity < 0) quantity = 0;
-    else if (quantity > (ingredient.maxQuantity ?? 1)) quantity = ingredient.maxQuantity ?? 1;
-
+    const quantity = clampQuantity(ingredient, ingredientQuantities?.[ingredient.id]);
     const price = ingredient.price ?? 0;
-    if (ingredient.isIncludedInBasePrice) {
-      if (!isSelected) customizationPrice -= price;
-      else if (quantity > 1) customizationPrice += price * (quantity - 1);
-    } else if (isSelected) {
-      customizationPrice += price * quantity;
+
+    if (ingredient.kind === 'sauce' && price > 0) {
+      const charged = chargedUnitCount(ingredient, isSelected, quantity);
+      for (let unit = 0; unit < charged; unit += 1) {
+        sauceUnits.push({ price, displayOrder: ingredient.displayOrder ?? 0, id: ingredient.id });
+      }
     }
+
+    customizationPrice += rowCustomizationPrice(ingredient, isSelected, quantity);
   }
 
-  return customizationPrice;
+  return customizationPrice - waiveMostExpensive(sauceUnits, SAUCE_INCLUDED_FREE);
 }
 
 const variationModifier = (variationId?: string | null): number =>
@@ -370,6 +446,48 @@ describe('#595 — the waiter POSTs a line the server prices exactly like the gu
         withSide: false,
         quantity,
       });
+      expect(waiter).toBe(guest);
+    });
+
+    /*
+     * #605 — THE MONEY CASE, and the reason this file gained a sauce row.
+     *
+     * A line WITH a side item is the one shape the server deliberately refuses to reprice: a side's
+     * money lives in the rolled-up child total, not in `Product.BasePrice`, so `serverCanPrice` is
+     * false and the DECLARED unit price stands. The declared number is whatever the waiter sheet
+     * computed — which, before this fix, was computed with `sauceIncludedFree` defaulted to `0`.
+     *
+     * So on this shape the guest is charged for sauces the menu says are included, and no server
+     * recomputation saves it. Without the fix this assertion fails by exactly the waived amount
+     * times the line quantity.
+     */
+    it('spends the free-sauce allowance identically, on the line the server will NOT reprice', async () => {
+      const { guest, waiter, posted } = await bothPaths({
+        quantities: { [SAUCE]: 1, [GARLIC]: 2 },
+        variationId: null,
+        withSide: true,
+        quantity,
+      });
+
+      // The precondition, asserted rather than assumed: this really is the declared-price shape.
+      expect(posted[0].childItems).toHaveLength(1);
+      expect(posted[0].selectedIngredientIds).toContain(GARLIC);
+
+      expect(waiter).toBe(guest);
+    });
+
+    it('spends the allowance identically when the server DOES reprice, so the sheet agrees on display too', async () => {
+      // The same selection with no side item. Here the server recomputes from
+      // `selectedIngredientIds` and applies the allowance itself, so a wrong sheet number is a
+      // display defect rather than a loss — and this is the case that pins the display half.
+      const { guest, waiter, posted } = await bothPaths({
+        quantities: { [SAUCE]: 1, [GARLIC]: 2 },
+        variationId: null,
+        withSide: false,
+        quantity,
+      });
+
+      expect(posted[0].childItems).toBeUndefined();
       expect(waiter).toBe(guest);
     });
 

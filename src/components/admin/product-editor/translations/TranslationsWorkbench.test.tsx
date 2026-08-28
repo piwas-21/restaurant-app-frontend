@@ -341,6 +341,84 @@ describe('the refusal this panel can produce, said where it happened', () => {
   });
 });
 
+describe('the jump follows the language, not just the tab', () => {
+  /**
+   * S7/D13's save-bar jump focuses `[name="content.N.name"]`, and this panel renders one row per
+   * string for the SELECTED language only. So a French refusal while the rail sits on German gave a
+   * tab switch, a correct field name, and nothing on screen to focus — the admin arrived at the
+   * right tab and saw no error at all.
+   *
+   * The rail moves only when the CURRENT language is clean, which is why the test walks away from
+   * French first: it must not pull an admin off a language they are still fixing.
+   */
+  it('sends the rail back to the language that is refusing', async () => {
+    const { container, view } = await openWorkbench();
+    selectLocale(view, 'Français');
+
+    // The one refusal this panel can produce: a locale given a description and no name.
+    fireEvent.change(
+      targetField(view, 'editor_translations_field_item_description', 'Français', 'Classic tomato and mozzarella'),
+      { target: { value: 'Tomate et mozzarella' } },
+    );
+    fireEvent.change(targetField(view, 'item_name', 'Français', 'Margherita Pizza'), { target: { value: '' } });
+
+    selectLocale(view, 'Deutsch');
+    expect(targetField(view, 'item_name', 'Deutsch', 'Margherita Pizza').value).toBe('');
+
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+
+    const message = await view.findByRole('alert');
+    expect(message).toHaveTextContent('Name is required for this language');
+    expect(targetField(view, 'item_name', 'Français', 'Margherita Pizza')).toHaveAttribute('aria-invalid', 'true');
+    expect(updateProduct).not.toHaveBeenCalled();
+  });
+});
+
+describe('leaving a cell validates it, although nothing here is registered', () => {
+  /**
+   * The panel writes through `setValue`, so react-hook-form's `onTouched` mode — which only ever
+   * validates fields it REGISTERED — never fires for a single cell in this grid. Without the
+   * explicit trigger the resolver's refusal appeared for the first time on Save, which is the
+   * defect S7 exists to end.
+   *
+   * A blank variation name that still carries a French translation: the slot exists because a
+   * locale holds text for it, and `variationSchema.name` is `min(1)`, so leaving the cell is enough
+   * to refuse.
+   */
+  const blankVariationName = {
+    ...margherita,
+    variations: [
+      {
+        id: 'var-1',
+        name: '',
+        description: '',
+        priceModifier: 4,
+        isActive: true,
+        displayOrder: 0,
+        content: { fr: { name: 'Grande' } },
+      },
+    ],
+  } as unknown as ProductDetails;
+
+  it('triggers the variation the admin just left, and leaves the ingredient alone', async () => {
+    const { container, view } = await openWorkbench(blankVariationName);
+    selectLocale(view, 'Français');
+
+    // An ingredient is plain `useState`: it has no resolver rule, so leaving one must not
+    // manufacture a refusal out of a store the resolver does not read.
+    fireEvent.blur(targetField(view, 'editor_translations_field_ingredient_name', 'Français', 'Mozzarella'));
+    expect(container.querySelector('[data-testid="editor-error-summary"]')).toBeNull();
+
+    fireEvent.blur(targetField(view, 'variation_name', 'Français'));
+
+    await waitFor(() =>
+      expect(container.querySelector('[data-testid="editor-error-summary"]')).toHaveTextContent(
+        'editor_error_summary[count=1]',
+      ),
+    );
+  });
+});
+
 describe('an item with nothing to translate', () => {
   /**
    * D11's rule, applied here: a surface with nothing to show says WHY. An empty grid with ten

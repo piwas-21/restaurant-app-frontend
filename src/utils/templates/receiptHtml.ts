@@ -21,9 +21,16 @@ export const escapeHtml = (text: string): string => text.replace(/[&<>"']/g, (ch
 
 export interface ChildItemsOptions {
   /**
-   * Print each child's own total. Off for the customer bill: a child row carries `itemTotal = 0`
-   * by convention (the parent's total already includes the rolled-up combo price — backend
-   * `OrderItemFactory.cs:108-131`), so printing it would put a bare 0.00 next to every component.
+   * Print each child's own total WHEN IT HAS ONE. A child row carries `itemTotal = 0` by convention
+   * (the parent's total already includes the rolled-up combo price — backend
+   * `OrderItemFactory.cs:108-131`), and a zero is suppressed below rather than printed as a bare
+   * `CHF 0.00` beside every component.
+   *
+   * The customer bill turns this off outright. The kitchen ticket turns it ON for `kitchenType`
+   * `'All'` — its own comment calls that ticket customer-facing — which is how the 0.00 reached
+   * paper: every combo and every add-on side printed one. The screen has always been right about
+   * this (`OrderLineSummary.tsx` prints a side's price only when `> 0`); the receipt was the copy
+   * that disagreed.
    */
   showPrices: boolean;
   /** Heading printed above the children, e.g. the kitchen ticket's "Additionals:". Omitted ⇒ none. */
@@ -40,7 +47,8 @@ export const buildChildItemsHtml = (children: OrderItemDto[], options: ChildItem
     : '';
 
   children.forEach((child) => {
-    const childPrice = options.showPrices ? ` (${formatCurrency(child.itemTotal)})` : '';
+    // `> 0`, not just `showPrices` — see ChildItemsOptions. Same rule as OrderLineSummary.tsx.
+    const childPrice = options.showPrices && child.itemTotal > 0 ? ` (${formatCurrency(child.itemTotal)})` : '';
     const childQuantity = child.quantity > 1 ? ` x${child.quantity}` : '';
     html += `<div style="margin-left: ${indent + 8}px; font-size: 11pt;">+ ${escapeHtml(child.productName || 'Item')}${childQuantity}${childPrice}</div>`;
     html += buildChildItemsHtml(child.sideItems ?? [], options, depth + 1);

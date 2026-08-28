@@ -2702,5 +2702,11 @@
   "ingredient_library_languages": "Çeviri sayısı: {{count}}",
   "ingredient_library_create": "Yeni malzeme oluştur",
   "ingredient_library_create_named": "\"{{name}}\" oluştur",
-  "ingredient_library_create_failed": "Malzeme oluşturulamadı"
+  "ingredient_library_create_failed": "Malzeme oluşturulamadı",
+  "quick_add_item_title": "Yeni menü öğesi",
+  "quick_add_item_hint": "Fotoğrafları, malzemeleri ve çevirileri sonraki ekranda ekleyebilirsiniz.",
+  "quick_add_save_and_open": "Kaydet ve aç",
+  "quick_add_save_and_another": "Kaydet ve yenisini ekle",
+  "keyboard_key_enter": "Enter",
+  "select_category": "Bir kategori seçin..."
 }

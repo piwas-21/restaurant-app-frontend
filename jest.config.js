@@ -73,6 +73,9 @@ module.exports = {
     'src/hooks/cashier/useCashierManualRefresh.ts',
     'src/contexts/TableContext.tsx',
     'src/hooks/admin/useProductEditorFetch.ts',
+    // S3 (quick-add create): the hook holds the write, the util holds the payload contract.
+    'src/hooks/admin/useQuickAddItem.ts',
+    'src/utils/quickAddItemPayload.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/reservations/useEditReservation.ts',
@@ -868,6 +871,34 @@ module.exports = {
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    // MENU-ITEM-EDITOR-REDESIGN S3 — quick-add create (D3). `quickAddItemPayload` is the
+    // strict-subset contract and is pinned at 100: it is the file that decides which fields a
+    // create POST carries, and an untested branch there is a silently cleared column.
+    './src/utils/quickAddItemPayload.ts': {
+      statements: 99,
+      branches: 99,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/menu-management/QuickAddItemModal.tsx': {
+      statements: 99,
+      branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    './src/components/admin/menu-management/MenuCreateFlow.tsx': {
+      statements: 90,
+      branches: 85,
+      functions: 80,
+      lines: 90,
+    },
+    // The remainder is the image-failure reporter, unreachable while quick-add stages no photo.
+    './src/hooks/admin/useQuickAddItem.ts': {
+      statements: 95,
+      branches: 75,
+      functions: 90,
+      lines: 95,
     },
     // Slice 7 — the admin write path. These tests pin the create/update endpoint
     // dispatch on both halves (a bundle must go to /api/Menus, an item to

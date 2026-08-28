@@ -103,6 +103,30 @@ export const createProductSchema = baseProductSchema.extend({
   menuDefinition: menuDefinitionSchema.optional(),
 });
 
+/**
+ * The three things the quick-add modal asks for (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
+ *
+ * Declared as a PICK MASK rather than as a list of field names, so the modal's schema can be
+ * derived from the create schema instead of restated beside it. `categoryIds` rides along because
+ * one select drives both: the chosen category is the item's only category AND its primary one,
+ * which is the same pair the full editor's chip group + primary select produce.
+ */
+export const QUICK_ADD_ITEM_FIELDS = {
+  name: true,
+  basePrice: true,
+  categoryIds: true,
+  primaryCategoryId: true,
+} as const;
+
+/**
+ * The quick-add modal's schema. `.pick()` and not a fresh `z.object`: it reuses the very same
+ * validator instances the full create form runs, so the two cannot drift apart in bounds, in
+ * coercion or in message. D3's guard rail ("the quick-add is a strict subset of the full editor")
+ * is therefore a property of the code, not a review promise — `schemas.quickAdd.test.ts` asserts
+ * the identity, and `quickAddItemPayload.ts` supplies every field this mask leaves out.
+ */
+export const quickAddItemSchema = createProductSchema.pick(QUICK_ADD_ITEM_FIELDS);
+
 // Dedicated schema for Menu Bundles (cleaner, no redundant fields).
 //
 // The bounds below mirror MenuBundleCommandValidatorBase, which is STRICTER than the product
@@ -158,6 +182,7 @@ export const editMenuBundleSchema = baseMenuBundleSchema.extend({
 });
 
 export type FormData = z.infer<typeof createProductSchema>;
+export type QuickAddItemFormData = z.infer<typeof quickAddItemSchema>;
 export type EditFormData = z.infer<typeof editProductSchema>;
 export type MenuBundleFormData = z.infer<typeof createMenuBundleSchema>;
 export type EditMenuBundleFormData = z.infer<typeof editMenuBundleSchema>;

@@ -2702,5 +2702,11 @@
   "ingredient_library_languages": "Переводов: {{count}}",
   "ingredient_library_create": "Создать новый ингредиент",
   "ingredient_library_create_named": "Создать «{{name}}»",
-  "ingredient_library_create_failed": "Не удалось создать ингредиент"
+  "ingredient_library_create_failed": "Не удалось создать ингредиент",
+  "quick_add_item_title": "Новая позиция меню",
+  "quick_add_item_hint": "Фото, ингредиенты и переводы можно добавить на следующем экране.",
+  "quick_add_save_and_open": "Сохранить и открыть",
+  "quick_add_save_and_another": "Сохранить и добавить ещё",
+  "keyboard_key_enter": "Ввод",
+  "select_category": "Выберите категорию..."
 }

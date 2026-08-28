@@ -2702,5 +2702,11 @@
   "ingredient_library_languages": "الترجمات: {{count}}",
   "ingredient_library_create": "إنشاء مكوّن جديد",
   "ingredient_library_create_named": "إنشاء \"{{name}}\"",
-  "ingredient_library_create_failed": "تعذّر إنشاء المكوّن"
+  "ingredient_library_create_failed": "تعذّر إنشاء المكوّن",
+  "quick_add_item_title": "عنصر قائمة جديد",
+  "quick_add_item_hint": "يمكنك إضافة الصور والمكوّنات والترجمات في الشاشة التالية.",
+  "quick_add_save_and_open": "حفظ وفتح",
+  "quick_add_save_and_another": "حفظ وإضافة عنصر آخر",
+  "keyboard_key_enter": "إدخال",
+  "select_category": "اختر فئة..."
 }

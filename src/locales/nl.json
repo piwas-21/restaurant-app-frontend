@@ -2702,5 +2702,11 @@
   "ingredient_library_languages": "Vertalingen: {{count}}",
   "ingredient_library_create": "Nieuw ingrediënt maken",
   "ingredient_library_create_named": "\"{{name}}\" maken",
-  "ingredient_library_create_failed": "Kan het ingrediënt niet maken"
+  "ingredient_library_create_failed": "Kan het ingrediënt niet maken",
+  "quick_add_item_title": "Nieuw menu-item",
+  "quick_add_item_hint": "Foto’s, ingrediënten en vertalingen voegt u op het volgende scherm toe.",
+  "quick_add_save_and_open": "Opslaan en openen",
+  "quick_add_save_and_another": "Opslaan en nog een toevoegen",
+  "keyboard_key_enter": "Enter",
+  "select_category": "Selecteer een categorie..."
 }

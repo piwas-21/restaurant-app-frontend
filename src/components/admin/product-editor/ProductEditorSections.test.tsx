@@ -205,15 +205,20 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     expect(basics.querySelector('select[name="primaryCategoryId"]')).not.toBeNull();
   });
 
-  it('Media keeps the gallery on edit and the staged picker on create', async () => {
+  // S3 deleted the fork this used to pin. An item has no create page any more (D3), so Media is
+  // the gallery and only the gallery — and an unsaved item has no Media section at all, because
+  // images are sub-resources of a SAVED product and an empty card would promise otherwise.
+  it('Media is the gallery, and is absent entirely on an unsaved item', async () => {
     const { container, unmount } = await renderEditor();
     expect(
       within(sectionOf(container, 'editor-section-media')).getByRole('heading', { name: 'image_gallery' }),
     ).toBeInTheDocument();
+    expect(container.querySelector('#product-images')).toBeNull();
 
     unmount();
     const created = await renderEditor({ ...item, id: '', images: [] } as ProductDetails, 'create');
-    expect(sectionOf(created.container, 'editor-section-media').querySelector('#product-images')).not.toBeNull();
+    expect(created.container.querySelector('#editor-section-media')).toBeNull();
+    expect(created.container.querySelector('#product-images')).toBeNull();
   });
 
   it('Pricing keeps the base price and the variation rows together', async () => {

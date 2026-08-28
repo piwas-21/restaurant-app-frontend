@@ -412,7 +412,7 @@ describe('ProductEditorPage — existing-image management', () => {
     expect(screen.getByRole('heading', { name: 'image_gallery' })).toBeInTheDocument();
   });
 
-  it('does not mount the gallery on create, nor for a bundle', async () => {
+  it('does not mount the gallery on an unsaved item, nor for a bundle', async () => {
     await renderEditor(emptyProductDetails(false), false, 'create');
     expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
 
@@ -451,21 +451,26 @@ describe('ProductEditorPage — existing-image management', () => {
     expect(updateProduct).not.toHaveBeenCalled();
   });
 
-  // Track F, F7-B. Two upload entry points with different semantics (staged at the top,
-  // immediate at the bottom) was the confusion itself, so edit keeps only the gallery.
-  it('offers no staged file input on an item edit, and keeps one on create', async () => {
-    // Container-scoped, not `screen`: both renders share one document body here.
+  // Track F, F7-B kept a staged input on the item CREATE route and none on edit. S3 deletes the
+  // route: an item is created by the three-field quick-add modal (D3), so `#product-images` is
+  // gone from the item path entirely and the Media section no longer forks on mode. A BUNDLE
+  // still creates through a page, so `BundlePanel` keeps its own staged input — that asymmetry is
+  // the point, and is what this pins.
+  it('offers no staged file input on an item, in either mode, and keeps the bundle one', async () => {
+    // Container-scoped, not `screen`: the renders share one document body here.
     const editRender = await renderEditor(item, false);
     // By the input's own id, not by its label text: since the S1 shell the side rail also shows a
     // `product_images` row (a read-only photo count), so a text match no longer isolates the picker.
     expect(editRender.container.querySelector('#product-images')).toBeNull();
-    // The only file input left on the edit route is the gallery's own (immediate) one.
+    // The only file input left on the item route is the gallery's own (immediate) one.
     expect(editRender.container.querySelectorAll('input[type="file"]')).toHaveLength(1);
     expect(editRender.container.querySelector('[data-testid="gallery-image-input"]')).not.toBeNull();
 
     const createRender = await renderEditor(emptyProductDetails(false), false, 'create');
-    expect(createRender.container.querySelector('#product-images')).not.toBeNull();
-    expect(createRender.container.querySelector('input[type="file"]')).not.toBeNull();
+    expect(createRender.container.querySelector('#product-images')).toBeNull();
+
+    const bundleRender = await renderEditor(emptyProductDetails(true), true, 'create');
+    expect(bundleRender.container.querySelector('#bundle-images')).not.toBeNull();
   });
 });
 

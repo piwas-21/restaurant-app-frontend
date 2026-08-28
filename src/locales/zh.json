@@ -2702,5 +2702,11 @@
   "ingredient_library_languages": "翻译数量：{{count}}",
   "ingredient_library_create": "新建配料",
   "ingredient_library_create_named": "新建“{{name}}”",
-  "ingredient_library_create_failed": "无法创建配料"
+  "ingredient_library_create_failed": "无法创建配料",
+  "quick_add_item_title": "新建菜品",
+  "quick_add_item_hint": "照片、配料和翻译可在下一个页面添加。",
+  "quick_add_save_and_open": "保存并打开",
+  "quick_add_save_and_another": "保存并继续添加",
+  "keyboard_key_enter": "回车",
+  "select_category": "选择分类..."
 }

@@ -6,7 +6,6 @@ import ProductPricingFields from '@/components/admin/product/fields/ProductPrici
 import ProductAllergenFields from '@/components/admin/product/fields/ProductAllergenFields';
 import ProductServiceFields from '@/components/admin/product/fields/ProductServiceFields';
 import ProductAdvancedFields from '@/components/admin/product/fields/ProductAdvancedFields';
-import StagedImagePicker from '@/components/admin/product/StagedImagePicker';
 import { ProductVariations } from '@/components/admin/product/ProductVariations';
 import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
 import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
@@ -35,11 +34,11 @@ import type { EditorSection } from './EditorShell';
  * the DOM is a value the PUT clears (plan §6). The same rule governs the rail.
  */
 export function buildItemSections(context: EditorSectionsContext): EditorSection[] {
-  const { editor, t, product, isCreate } = context;
+  const { editor, t, product } = context;
   const { form } = editor;
   const { errors } = form.formState;
 
-  return [
+  const sections: EditorSection[] = [
     {
       id: SECTION_IDS.basics,
       label: t('editor_section_basics'),
@@ -60,23 +59,17 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       label: t('editor_section_media'),
       showHeading: true,
       /*
-       * Two different controls behind one section name, because the API leaves no choice: images
-       * are sub-resources of a SAVED product, so a create route can only stage files for the POST
-       * to upload, while an edit route gets the real gallery (which writes immediately — D5's
-       * notice that says so is S6). Since S2 the gallery lives INSIDE the form like every other
-       * section: what used to keep it out was `ConfirmationModal`'s untyped buttons, and those are
-       * now `type="button"`, which is a fix and not a workaround.
+       * The real gallery, and only the real gallery, since S3. Images are sub-resources of a SAVED
+       * product, which is why this section used to fork: a create route could merely stage files
+       * for the POST to upload. An item has no create route any more — D3 replaced it with a
+       * three-field quick-add modal that lands on THIS page — so the staged-file input is gone
+       * from the item path and the fork with it. That is the create/edit divergence being deleted
+       * rather than designed around. (The gallery writes immediately; D5's notice saying so is S6.)
+       *
+       * Since S2 it lives INSIDE the form like every other section: what used to keep it out was
+       * `ConfirmationModal`'s untyped buttons, and those are now `type="button"`.
        */
-      node: isCreate ? (
-        <StagedImagePicker
-          inputId="product-images"
-          label={t('product_images')}
-          files={editor.imageFiles}
-          onChange={editor.setImageFiles}
-        />
-      ) : (
-        <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />
-      ),
+      node: <ImageGallery productId={product.id} images={product.images || []} productName={product.name} />,
     },
     {
       id: SECTION_IDS.pricing,
@@ -142,4 +135,20 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       node: <ProductAdvancedFields register={form.register} />,
     },
   ];
+
+  /*
+   * An UNSAVED item has no Media section at all. Images are sub-resources of a saved product, so
+   * there is nothing here to manage and nothing to stage since S3 removed the staged input — an
+   * empty card named "Media" would be a promise the API cannot keep. In practice an item is always
+   * saved by the time it reaches this page (D3's quick-add POSTs first), so this is the guard for
+   * a state the routes no longer produce, not a second layout.
+   *
+   * ⚠️ This filter is legitimate ONLY because the state is unreachable. **Do not reach for it on a
+   * path a user can actually take** — D11 says a section that has nothing to show is rendered
+   * EMPTY WITH A REASON, not removed: a section that vanishes takes its entry out of the sticky
+   * nav too, so the admin reads a shorter page and cannot tell "no photos yet" from "photos are
+   * not a thing here". S6 owns Media's real empty state (the bundle case is exactly it) and must
+   * render the card and say why, not extend this line.
+   */
+  return product.id ? sections : sections.filter((section) => section.id !== SECTION_IDS.media);
 }

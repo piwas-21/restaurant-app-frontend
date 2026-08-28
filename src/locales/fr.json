@@ -2702,5 +2702,11 @@
   "ingredient_library_languages": "Traductions : {{count}}",
   "ingredient_library_create": "Créer un nouvel ingrédient",
   "ingredient_library_create_named": "Créer « {{name}} »",
-  "ingredient_library_create_failed": "Impossible de créer l'ingrédient"
+  "ingredient_library_create_failed": "Impossible de créer l'ingrédient",
+  "quick_add_item_title": "Nouvel article",
+  "quick_add_item_hint": "Vous pourrez ajouter photos, ingrédients et traductions à l’écran suivant.",
+  "quick_add_save_and_open": "Enregistrer et ouvrir",
+  "quick_add_save_and_another": "Enregistrer et en ajouter un autre",
+  "keyboard_key_enter": "Entrée",
+  "select_category": "Sélectionnez une catégorie..."
 }

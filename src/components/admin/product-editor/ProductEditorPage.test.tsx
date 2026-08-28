@@ -251,7 +251,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
     await renderEditor(item, false);
 
     expect(screen.getByTestId('editor-save')).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'add_manually' })[0]);
     expect(screen.getByTestId('editor-save')).toBeEnabled();
   });
 
@@ -355,7 +355,7 @@ describe('ProductEditorPage — one Save, over the right write path', () => {
   it('confirms before discarding on Back when there are unsaved changes', async () => {
     const { onBack } = await renderEditor(item, false);
 
-    fireEvent.click(screen.getByRole('button', { name: 'add_ingredient' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'add_manually' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'back' }));
 
     // Not left yet — the confirm modal stands between the click and the discard.

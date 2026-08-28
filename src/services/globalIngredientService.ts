@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import type { IngredientKind } from '@/types/menu';
 
 const GLOBAL_INGREDIENTS_API_URL = '/api/global-ingredients';
 
@@ -38,6 +39,12 @@ export interface GlobalIngredientSummary {
    * the list endpoint sends.
    */
   isArchived: boolean;
+  /**
+   * `'ingredient'` | `'sauce'` (plan D8). ADDITIVE and optional: every seeded row predates the
+   * discriminator and arrives without it, which is why nothing here defaults it — read it through
+   * `resolveIngredientKind` (`@/utils/ingredientKind`).
+   */
+  kind?: IngredientKind;
 }
 
 export interface CreateGlobalIngredientData {
@@ -49,6 +56,8 @@ export interface CreateGlobalIngredientData {
    * field the search endpoint matches on.
    */
   translations: GlobalIngredientTranslation[];
+  /** Omitted === `'ingredient'` server-side, so the create path only ever has to send a sauce. */
+  kind?: IngredientKind;
 }
 
 export const createGlobalIngredient = async (data: CreateGlobalIngredientData) => {

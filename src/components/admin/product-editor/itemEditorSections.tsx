@@ -8,7 +8,7 @@ import ProductServiceFields from '@/components/admin/product/fields/ProductServi
 import ProductAdvancedFields from '@/components/admin/product/fields/ProductAdvancedFields';
 import { ProductVariations } from '@/components/admin/product/ProductVariations';
 import { SuggestedSideItemsPicker } from '@/components/admin/product/SuggestedSideItemsPicker';
-import { ProductIngredientsManager } from '@/components/admin/product/ProductIngredientsManager';
+import ProductRecipeGroups from '@/components/admin/product/ProductRecipeGroups';
 import ImageGallery from './ImageGallery';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import { SECTION_IDS, type EditorSectionsContext } from './editorSectionTypes';
@@ -115,10 +115,18 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       description: t('editor_section_recipe_description'),
       node: (
         <>
-          <ProductIngredientsManager
+          {/*
+           * Two labelled groups over ONE ingredient array (SHARED-MODIFIERS-AND-SAUCES-PLAN D8):
+           * `Recipe & dietary` keeps its name and its place in §4's order, and gains the Sauces
+           * group plus the three product-level sauce rules.
+           */}
+          <ProductRecipeGroups
             ingredients={editor.detailedIngredients}
             onChange={editor.changeIngredients}
             productBasePrice={editor.basePrice}
+            register={form.register}
+            control={form.control}
+            errors={errors}
           />
           <ProductAllergenFields control={form.control} />
         </>

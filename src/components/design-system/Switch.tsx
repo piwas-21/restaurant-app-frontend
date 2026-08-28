@@ -11,6 +11,15 @@ export interface SwitchProps extends Omit<
   readonly label: string;
   /** Extra line under the label, e.g. what the flag actually does. */
   readonly description?: string;
+  /**
+   * Keep the label in the accessibility tree but off the screen.
+   *
+   * For a switch that already carries its name in a COLUMN HEADER — the recipe and variation tables
+   * of SHARED-MODIFIERS-AND-SAUCES-PLAN §4 draw one per row under `OPTIONAL` / `ACTIVE` — repeating
+   * the word on every row is visual noise the approved screen does not have. It is the same escape
+   * hatch `FormField` already ships, and it hides the TEXT, never the accessible name.
+   */
+  readonly srOnlyLabel?: boolean;
   /** Host stylesheet, for a surface that needs a different skin. See {@link SwitchProps.styles}. */
   readonly className?: string;
 }
@@ -46,7 +55,7 @@ export interface SwitchProps extends Omit<
  * reason for `forwardRef` here.
  */
 const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { label, description, className, id, disabled, ...inputProps },
+  { label, description, className, id, disabled, srOnlyLabel, ...inputProps },
   ref,
 ) {
   const uid = useId();
@@ -63,7 +72,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
           guest menu" — announced once as the name and again as the description. Measured here, not
           assumed: the first draft of this file did nest it, and `Switch.test.tsx` caught it. Same
           trap, same boundary as `CheckboxField`. */}
-      <span className={styles.labelBlock}>
+      <span className={srOnlyLabel ? 'sr-only' : styles.labelBlock}>
         <label htmlFor={inputId} className={styles.text}>
           {label}
         </label>

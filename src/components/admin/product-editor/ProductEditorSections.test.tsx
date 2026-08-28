@@ -241,7 +241,11 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     const { container } = await renderEditor();
     const recipe = sectionOf(container, 'editor-section-recipe');
 
-    expect(within(recipe).getByRole('button', { name: 'add_ingredient' })).toBeInTheDocument();
+    // TWO groups now (SHARED-MODIFIERS-AND-SAUCES-PLAN D8) — Ingredients and Sauces — each with its
+    // own manual-add. The section keeps its id, its name and its place in §4's order.
+    expect(within(recipe).getAllByRole('button', { name: 'add_manually' })).toHaveLength(2);
+    expect(within(recipe).getByRole('heading', { name: 'ingredients' })).toBeInTheDocument();
+    expect(within(recipe).getByRole('heading', { name: 'sauces' })).toBeInTheDocument();
     expect(recipe.querySelectorAll('input[id^="allergen-chip-"]')).toHaveLength(16);
     // Seeded from the product, so the chips are the same control and not a fresh empty one.
     expect(recipe.querySelector('#allergen-chip-contains_gluten')).toBeChecked();

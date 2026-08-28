@@ -1,6 +1,7 @@
 import { LANGUAGE_CODES } from '@/config/languageConfig';
 import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
-import type { ProductIngredient } from '@/types/menu';
+import type { IngredientKind, ProductIngredient } from '@/types/menu';
+import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
 
 /**
  * Pure library logic behind `GlobalIngredientPickerModal` — matching, ordering, "already added",
@@ -109,8 +110,16 @@ export function hasTranslationFor(ingredient: GlobalIngredientSummary, languageC
  *
  * COPY semantics (plan D3): the values are now the product's own. Editing the library row later
  * does not change them.
+ *
+ * `kind` is the GROUP the admin picked into, not the catalog row's own kind (plan D8): the picker
+ * is opened from either Ingredients or Sauces, and where a row lands is where the admin put it. A
+ * catalog row typed `sauce` may legitimately be a plain ingredient on one product.
  */
-export function toProductIngredient(ingredient: GlobalIngredientSummary, displayOrder: number): ProductIngredient {
+export function toProductIngredient(
+  ingredient: GlobalIngredientSummary,
+  displayOrder: number,
+  kind: IngredientKind = DEFAULT_INGREDIENT_KIND,
+): ProductIngredient {
   const content: NonNullable<ProductIngredient['content']> = {};
   LANGUAGE_CODES.forEach((language) => {
     content[language] = { name: '', description: '' };
@@ -123,6 +132,7 @@ export function toProductIngredient(ingredient: GlobalIngredientSummary, display
   return {
     id: nextTemporaryIngredientId(),
     name: ingredient.defaultName,
+    kind,
     isOptional: false,
     maxQuantity: 1,
     price: 0,

@@ -2733,5 +2733,20 @@
   "quick_add_save_and_open": "Opslaan en openen",
   "quick_add_save_and_another": "Opslaan en nog een toevoegen",
   "keyboard_key_enter": "Enter",
-  "select_category": "Selecteer een categorie..."
+  "select_category": "Selecteer een categorie...",
+  "add_manually": "Handmatig toevoegen",
+  "no_sauces_added": "Nog geen sauzen toegevoegd.",
+  "no_variations_added": "Nog geen varianten toegevoegd.",
+  "ingredient_row_details": "Vertalingen en zichtbaarheid",
+  "translated_in_languages": "Vertaald in {{done}} van {{total}} talen",
+  "sauce_rules_title": "Sausregels",
+  "sauce_min_label": "Min. sauzen",
+  "sauce_max_label": "Max. sauzen",
+  "sauce_max_placeholder": "Geen limiet",
+  "sauce_included_free_label": "Gratis sauzen",
+  "sauce_rules_hint_any": "Gasten mogen zoveel sauzen kiezen als ze willen.",
+  "sauce_rules_hint_limit": "Gasten kiezen maximaal {{max}} sauzen.",
+  "sauce_rules_hint_min": "Er moeten er minstens {{min}} gekozen worden.",
+  "sauce_rules_hint_free": "De eerste {{free}} zijn gratis; elke extra saus wordt berekend.",
+  "sauce_rules_hint_paid": "Elke saus wordt berekend."
 }

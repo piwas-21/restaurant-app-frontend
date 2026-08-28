@@ -33,6 +33,30 @@ export EmailSettings__UseAuthentication=false
 # then restart the backend
 ```
 
+**An admin account** is what the `e2e/tests/admin/` suites need, and `e2e/seed/seed.sql`
+deliberately does not create one — `Users` is ASP.NET Identity, so a hand-written INSERT would have
+to reproduce its PBKDF2 hash and normalised columns. Let the backend seed it instead, with the same
+two variables CI uses (creation-only: an existing admin is never modified):
+
+```bash
+export SeedSettings__AdminEmail=e2e-admin@test.local
+export SeedSettings__AdminPassword='<your own value — >=8 chars, upper, lower, digit, symbol>'
+# then restart the backend against a database where that user does not exist yet
+```
+
+and give Playwright the same credential, either as `ADMIN='{email: …, password: …}'` in
+`.env.local` or as a plain pair in the shell (`adminAuth.readCreds` reads the file first, the
+environment second):
+
+```bash
+export ADMIN_EMAIL=e2e-admin@test.local
+export ADMIN_PASSWORD='<the same value>'
+```
+
+Without it the admin suites SKIP with a stated reason. On CI they do not: a missing credential
+there is a broken gate, not an environmental fact, so `adminAuth` throws and the job goes red
+(issue #585 — every admin spec used to skip on every CI run, and a skipped test is a passing check).
+
 Then:
 
 ```bash

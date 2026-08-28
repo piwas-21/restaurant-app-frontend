@@ -2733,5 +2733,20 @@
   "quick_add_save_and_open": "Kaydet ve aç",
   "quick_add_save_and_another": "Kaydet ve yenisini ekle",
   "keyboard_key_enter": "Enter",
-  "select_category": "Bir kategori seçin..."
+  "select_category": "Bir kategori seçin...",
+  "add_manually": "Elle ekle",
+  "no_sauces_added": "Henüz sos eklenmedi.",
+  "no_variations_added": "Henüz varyasyon eklenmedi.",
+  "ingredient_row_details": "Çeviriler ve görünürlük",
+  "translated_in_languages": "{{total}} dilin {{count}} tanesinde çevrildi",
+  "sauce_rules_title": "Sos kuralları",
+  "sauce_min_label": "En az sos",
+  "sauce_max_label": "En fazla sos",
+  "sauce_max_placeholder": "Sınırsız",
+  "sauce_included_free_label": "Ücretsiz sos",
+  "sauce_rules_hint_any": "Misafirler istedikleri kadar sos seçebilir.",
+  "sauce_rules_hint_limit": "Misafirler en fazla {{max}} sos seçer.",
+  "sauce_rules_hint_min": "En az {{min}} tanesi seçilmelidir.",
+  "sauce_rules_hint_free": "İlk {{count}} tanesi ücretsiz; her ek sos ücretlendirilir.",
+  "sauce_rules_hint_paid": "Her sos ücretlendirilir."
 }

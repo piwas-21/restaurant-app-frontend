@@ -14,16 +14,19 @@ import { createGlobalIngredient, type GlobalIngredientSummary } from '@/services
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
 import { toProductIngredient } from './globalIngredientLibrary';
-import type { ProductIngredient } from '@/types/menu';
+import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
+import type { IngredientKind, ProductIngredient } from '@/types/menu';
 import styles from './GlobalIngredientPickerModal.module.css';
 
 interface GlobalIngredientPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** The product's current ingredients — what "already added" is measured against. */
+  /** The product's current rows — what "already added" is measured against. */
   attached: ProductIngredient[];
   /** Receives the picked rows, already mapped to product ingredients. */
   onAdd: (ingredients: ProductIngredient[]) => void;
+  /** The GROUP the picker was opened from (plan D8) — every picked row is stamped with it. */
+  kind?: IngredientKind;
 }
 
 /**
@@ -48,6 +51,7 @@ export default function GlobalIngredientPickerModal({
   onClose,
   attached,
   onAdd,
+  kind = DEFAULT_INGREDIENT_KIND,
 }: Readonly<GlobalIngredientPickerModalProps>) {
   const { t, i18n } = useTranslation();
   const [view, setView] = useState<LibraryView>('active');
@@ -78,7 +82,7 @@ export default function GlobalIngredientPickerModal({
   };
 
   const add = (rows: GlobalIngredientSummary[]) => {
-    onAdd(rows.map((row, index) => toProductIngredient(row, attached.length + index)));
+    onAdd(rows.map((row, index) => toProductIngredient(row, attached.length + index, kind)));
     close();
   };
 
@@ -86,9 +90,8 @@ export default function GlobalIngredientPickerModal({
 
   /**
    * Create the row the search did not find, then attach it with everything already ticked.
-   * `translations: []` is deliberate and legal — `defaultName` is the only field `/search` matches
-   * on anyway — and it is what stops the reconciliation in `productFormUtils` from re-searching a
-   * translation-less ingredient on every single save.
+   * `translations: []` is deliberate and legal (`defaultName` is the only field `/search` matches on)
+   * and stops `productFormUtils` re-searching a translation-less ingredient on every save.
    */
   const createAndAdd = async () => {
     if (newName.length === 0 || isCreating) return;

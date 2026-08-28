@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import {
   createMenuBundleSchema,
-  createProductSchema,
+  createProductFormSchema,
   editMenuBundleSchema,
   editProductSchema,
 } from '@/components/admin/product/schemas';
@@ -58,7 +58,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   // ternary widens past zodResolver's overloads with no single shape for useForm to infer —
   // hence FieldValues + a `never` cast (the modals used `as any`; `never` keeps §5.8's rule).
   const bundleSchema = mode === 'create' ? createMenuBundleSchema : editMenuBundleSchema;
-  const itemSchema = mode === 'create' ? createProductSchema : editProductSchema;
+  const itemSchema = mode === 'create' ? createProductFormSchema : editProductSchema;
   const schema = isBundle ? bundleSchema : itemSchema;
   const form = useForm<FieldValues>({
     resolver: zodResolver(schema as never) as Resolver<FieldValues>,

@@ -2733,5 +2733,20 @@
   "quick_add_save_and_open": "Salva e apri",
   "quick_add_save_and_another": "Salva e aggiungine un’altra",
   "keyboard_key_enter": "Invio",
-  "select_category": "Seleziona una categoria..."
+  "select_category": "Seleziona una categoria...",
+  "add_manually": "Aggiungi manualmente",
+  "no_sauces_added": "Nessuna salsa aggiunta finora.",
+  "no_variations_added": "Nessuna variante aggiunta finora.",
+  "ingredient_row_details": "Traduzioni e visibilità",
+  "translated_in_languages": "Tradotto in {{count}} lingue su {{total}}",
+  "sauce_rules_title": "Regole delle salse",
+  "sauce_min_label": "Salse min.",
+  "sauce_max_label": "Salse max.",
+  "sauce_max_placeholder": "Nessun limite",
+  "sauce_included_free_label": "Salse gratuite",
+  "sauce_rules_hint_any": "Gli ospiti possono scegliere quante salse vogliono.",
+  "sauce_rules_hint_limit": "Gli ospiti scelgono fino a {{max}} salse.",
+  "sauce_rules_hint_min": "Se ne devono scegliere almeno {{min}}.",
+  "sauce_rules_hint_free": "Le prime {{count}} sono gratuite; ogni salsa in più è a pagamento.",
+  "sauce_rules_hint_paid": "Ogni salsa è a pagamento."
 }

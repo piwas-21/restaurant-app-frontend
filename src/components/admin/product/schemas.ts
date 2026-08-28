@@ -63,7 +63,44 @@ const baseProductSchema = z.object({
   // per-item override. The bounds mirror the server's `ValidOrderChannelMask` — 0 is rejected
   // there because "orderable on no channel" renders as a blocked item with no stateable reason.
   availableOrderTypes: z.number().int().min(1, 'Choose at least one order type').max(7).nullable().default(null),
+  // The sauce GROUP rules (SHARED-MODIFIERS-AND-SAUCES-PLAN D9). Product-level, admin-editable, and
+  // with NO tenant default: the owner's answer to §7 Q3 is that "one free sauce" is something a
+  // restaurant types, never something this code assumes. They must be IN the schema and not merely
+  // in the payload — zod strips unknown keys, and `UpdateProductCommand` assigns every column it
+  // receives, so a value carried outside the schema is a stored rule cleared by the next save.
+  //
+  // `sauceMax` is nullable and `null` means NO CAP. `0` is a different, legal statement ("no sauce
+  // may be picked"), which is why the empty input must resolve to null rather than fall through
+  // `z.coerce.number()` — `Number('')` is 0. `.nullable()` short-circuits before the coercion, so
+  // the null arrives intact; the input's `setValueAs` is what produces it (see `SauceGroupRules`).
+  sauceMin: z.coerce.number().int().min(0).default(0),
+  sauceMax: z.coerce.number().int().min(0).nullable().default(null),
+  sauceIncludedFree: z.coerce.number().int().min(0).default(0),
 });
+
+/**
+ * The two cross-field rules the server also enforces, stated client-side so the admin reads them on
+ * the field instead of as a 400 with no field name. Applied per derived schema rather than on
+ * `baseProductSchema`: a `superRefine` turns a ZodObject into a ZodEffects, which `.extend()`
+ * refuses.
+ */
+const sauceGroupRules = (
+  data: { sauceMin?: number; sauceMax?: number | null; sauceIncludedFree?: number },
+  ctx: z.RefinementCtx,
+) => {
+  const max = data.sauceMax;
+  if (max === null || max === undefined) return;
+  if ((data.sauceMin ?? 0) > max) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sauceMax'], message: 'Maximum cannot be below the minimum' });
+  }
+  if ((data.sauceIncludedFree ?? 0) > max) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['sauceIncludedFree'],
+      message: 'More free sauces than the maximum allows',
+    });
+  }
+};
 
 // Menu Definition Schemas
 const menuSectionItemSchema = z.object({
@@ -102,6 +139,16 @@ const menuDefinitionSchema = z.object({
 export const createProductSchema = baseProductSchema.extend({
   menuDefinition: menuDefinitionSchema.optional(),
 });
+
+/**
+ * What the create RESOLVER runs: the object above plus the two cross-field sauce rules.
+ *
+ * They are a separate export because `.superRefine` returns a `ZodEffects`, which has neither
+ * `.shape` nor `.pick` — and `quickAddItemSchema` picks from the object while
+ * `schemas.quickAdd.test.ts` reads its shape to prove the two cannot drift. The form gets the
+ * rules; the subset machinery gets the columns.
+ */
+export const createProductFormSchema = createProductSchema.superRefine(sauceGroupRules);
 
 /**
  * The three things the quick-add modal asks for (MENU-ITEM-EDITOR-REDESIGN-PLAN, D3).
@@ -175,7 +222,8 @@ export const editProductSchema = baseProductSchema
   .refine((d) => !d.categoryIds || d.categoryIds.length === 0 || !!d.primaryCategoryId, {
     path: ['primaryCategoryId'],
     message: 'Primary category is required when categories are selected',
-  });
+  })
+  .superRefine(sauceGroupRules);
 
 export const editMenuBundleSchema = baseMenuBundleSchema.extend({
   id: z.string().optional(),

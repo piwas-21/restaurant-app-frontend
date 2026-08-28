@@ -56,6 +56,7 @@ const DESCRIPTION = 'Tomato, mozzarella, basil';
 const PRIMARY_CATEGORY_ID = 'cat-pizza';
 const VARIATION_ID = 'var-1';
 const INGREDIENT_ID = 'ing-1';
+const SAUCE_ID = 'sauce-1';
 const GLOBAL_INGREDIENT_ID = 'glob-1';
 const SIDE_ITEM_ID = 'side-1';
 const ITEM_TYPE = 'mainItem';
@@ -104,10 +105,25 @@ const fullyPopulated: ProductDetails = {
       // path is the shared-modifiers plan's, not this one's.
       globalIngredientId: GLOBAL_INGREDIENT_ID,
     },
+    // A SAUCE (SHARED-MODIFIERS-AND-SAUCES-PLAN D8). It is rendered by the other of the two groups,
+    // which is exactly why it belongs here: the split is where a row goes missing from the payload.
+    {
+      id: SAUCE_ID,
+      name: 'Chilli oil',
+      kind: 'sauce',
+      isOptional: true,
+      price: 1,
+      isActive: true,
+      displayOrder: 2,
+      globalIngredientId: 'glob-2',
+    },
   ],
   images: [{ id: 'img-1', url: '/uploads/margherita.jpg', altText: NAME, isPrimary: true, sortOrder: 0 }],
   suggestedSideItems: [{ id: SIDE_ITEM_ID, name: 'Garlic bread', description: '', price: 4 }],
   availableOrderTypes: 3,
+  sauceMin: 1,
+  sauceMax: 3,
+  sauceIncludedFree: 1,
   content: { en: { name: NAME, description: DESCRIPTION } },
 } as unknown as ProductDetails;
 
@@ -175,8 +191,75 @@ describe('product editor — a save that changes nothing changes nothing', () =>
 
     expect(payload.detailedIngredients).toMatchObject([
       { id: INGREDIENT_ID, name: 'Mozzarella', isOptional: true, price: 2.5, globalIngredientId: GLOBAL_INGREDIENT_ID },
+      { id: SAUCE_ID, name: 'Chilli oil', kind: 'sauce', price: 1 },
     ]);
     expect(createGlobalIngredient).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The sauces split (SHARED-MODIFIERS-AND-SAUCES-PLAN D8/D9) is the newest way to lose a field on
+   * a save that changed nothing: the rows are drawn by TWO components over ONE array, and the three
+   * group numbers are product columns the PUT assigns unconditionally.
+   */
+  describe('the sauce group', () => {
+    it('sends both kinds back in one array, in the order it loaded them', async () => {
+      const payload = await renderAndSaveUntouched(fullyPopulated);
+      const rows = payload.detailedIngredients as Array<{ id: string; kind?: string }>;
+
+      expect(rows.map((row) => row.id)).toEqual([INGREDIENT_ID, SAUCE_ID]);
+      // The ingredient predates the discriminator and must not gain one it never had.
+      expect(rows[0].kind).toBeUndefined();
+      expect(rows[1].kind).toBe('sauce');
+    });
+
+    it('round-trips the three group numbers through the form', async () => {
+      const payload = await renderAndSaveUntouched(fullyPopulated);
+
+      expect(payload.sauceMin).toBe(1);
+      expect(payload.sauceMax).toBe(3);
+      expect(payload.sauceIncludedFree).toBe(1);
+    });
+
+    /**
+     * `null` is NO CAP and `0` is "no sauce may be picked" — two different rules. `Number('')` is 0,
+     * so an emptied input that fell through `z.coerce.number()` would silently forbid every sauce
+     * on a product whose admin meant to remove the limit.
+     */
+    it('sends null, never 0, when the maximum is cleared', async () => {
+      const { container } = render(
+        <ProductEditorPage
+          product={fullyPopulated}
+          isBundle={false}
+          mode="edit"
+          onSaved={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+      await act(async () => {});
+
+      fireEvent.change(container.querySelector('input[name="sauceMax"]') as HTMLInputElement, {
+        target: { value: '' },
+      });
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+
+      const payload = (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+      expect(payload.sauceMax).toBeNull();
+      expect(payload.sauceMin).toBe(1);
+    });
+
+    it('never seeds a tenant default for a product that carries no rule', async () => {
+      const payload = await renderAndSaveUntouched({
+        ...fullyPopulated,
+        sauceMin: undefined,
+        sauceMax: undefined,
+        sauceIncludedFree: undefined,
+      } as unknown as ProductDetails);
+
+      expect(payload.sauceMin).toBe(0);
+      expect(payload.sauceMax).toBeNull();
+      expect(payload.sauceIncludedFree).toBe(0);
+    });
   });
 
   /**

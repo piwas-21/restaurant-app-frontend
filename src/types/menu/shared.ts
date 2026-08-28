@@ -20,11 +20,16 @@ export interface MenuItemImage {
 }
 
 /**
- * Detailed ingredient with optional/pricing information
- */
+ * A sauce is an ingredient row carrying a discriminator, not a second entity (plan D7/D8) — the one
+ * shape with zero impact on the `Guid` keys frozen in `OrderItem.IngredientQuantitiesJson`. Absent
+ * means `'ingredient'`: resolve it with `resolveIngredientKind` (`@/utils/ingredientKind`). */
+export type IngredientKind = 'ingredient' | 'sauce';
+
+/** Detailed ingredient with optional/pricing information */
 export interface ProductIngredient {
   id: string;
   name: string;
+  kind?: IngredientKind;
   isOptional: boolean;
   maxQuantity?: number; // Maximum quantity allowed for this ingredient (default 1)
   price: number;

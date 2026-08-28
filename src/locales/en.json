@@ -2733,5 +2733,20 @@
   "quick_add_save_and_open": "Save and open",
   "quick_add_save_and_another": "Save and add another",
   "keyboard_key_enter": "Enter",
-  "select_category": "Select a category..."
+  "select_category": "Select a category...",
+  "add_manually": "Add manually",
+  "no_sauces_added": "No sauces added yet.",
+  "no_variations_added": "No variations added yet.",
+  "ingredient_row_details": "Translations and visibility",
+  "translated_in_languages": "Translated in {{count}} of {{total}} languages",
+  "sauce_rules_title": "Sauce rules",
+  "sauce_min_label": "Min. sauces",
+  "sauce_max_label": "Max. sauces",
+  "sauce_max_placeholder": "No limit",
+  "sauce_included_free_label": "Free sauces",
+  "sauce_rules_hint_any": "Guests can pick any number of sauces.",
+  "sauce_rules_hint_limit": "Guests pick up to {{max}} sauces.",
+  "sauce_rules_hint_min": "At least {{min}} must be picked.",
+  "sauce_rules_hint_free": "The first {{count}} are free; each extra is charged.",
+  "sauce_rules_hint_paid": "Every sauce is charged."
 }

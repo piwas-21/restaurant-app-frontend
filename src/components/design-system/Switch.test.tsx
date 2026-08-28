@@ -55,6 +55,19 @@ describe('Switch — semantics (frontend #575)', () => {
     expect(control).toHaveAccessibleDescription('Shown first on the guest menu');
   });
 
+  /**
+   * A switch in a table row is named by its COLUMN HEADER, so repeating the word on every row is
+   * noise the approved screen does not draw. The label may leave the SCREEN; it may never leave the
+   * accessibility tree — that is the whole difference between `srOnlyLabel` and no label at all.
+   */
+  it('keeps the accessible name when the label is visually hidden', () => {
+    render(<Switch label="Optional" srOnlyLabel checked={false} onChange={() => {}} />);
+
+    expect(screen.getByRole('switch', { name: 'Optional' })).toBeInTheDocument();
+    expect(screen.getByText('Optional')).toHaveClass('text');
+    expect(screen.getByText('Optional').parentElement).toHaveClass('sr-only');
+  });
+
   it('forwards its ref to the input, which is what react-hook-form register() needs', () => {
     const ref = React.createRef<HTMLInputElement>();
     render(<Switch label="Active" ref={ref} checked={false} onChange={() => {}} />);

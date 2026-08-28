@@ -424,14 +424,27 @@
   color: white;
 }
 
+/* #592. White ink on `--success-color` (#4caf50) is 2.78:1 — axe fails it on the editor's
+   `Upload Images` and `Add or remove side items` buttons. `--success-color-darker` is the token the
+   design system defines for a CTA background (5.13:1 light, and dark ink on light green in dark
+   mode, so both themes pass).
+
+   `.save` is changed with `.add` although axe reported only `.add`: the pairing is IDENTICAL, and
+   which of the two a scan happens to catch is a fact about what was on screen, not about which is
+   broken.
+
+   The `#28a745` hex FALLBACKS are DELETED rather than darkened. They were 3.13:1 under white, so a
+   browser that fell back took the failure with it — but a corrected fallback would still be a
+   literal hex in a module, which is the rule that let this defect exist in the first place. A token
+   that fails to resolve should break loudly, not quietly render an inaccessible green. */
 .adminButton.add {
-  background-color: var(--success-color, #28a745);
+  background-color: var(--success-color-darker);
   color: white;
   /* margin-bottom: 1rem; */
 }
 
 .adminButton.save {
-  background-color: var(--success-color, #28a745);
+  background-color: var(--success-color-darker);
   color: white;
 }
 

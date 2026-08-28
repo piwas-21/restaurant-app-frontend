@@ -290,67 +290,6 @@
   background: var(--background-secondary, #333);
 }
 
-.translations {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--border-color, #e0e0e0);
-  padding-top: 1rem;
-}
-
-[data-theme='dark'] .translations {
-  border-color: var(--border-color, #444);
-}
-
-.translationsSummary {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-weight: 500;
-  padding: 0.5rem 0;
-  user-select: none;
-}
-
-.translationsSummary:hover {
-  color: var(--primary-color, #4a90e2);
-}
-
-.translationsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.translationField label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.translationInput {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid var(--border-color, #e0e0e0);
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  background: var(--background-primary, white);
-}
-
-.translationInput:focus {
-  outline: none;
-  border-color: var(--primary-color, #4a90e2);
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-}
-
-[data-theme='dark'] .translationInput {
-  background: var(--background-secondary, #2a2a2a);
-  border-color: var(--border-color, #444);
-  color: var(--text-primary);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .container {
@@ -365,10 +304,6 @@
 
   .ingredientHeader {
     flex-wrap: wrap;
-  }
-
-  .translationsGrid {
-    grid-template-columns: 1fr;
   }
 
   .fieldRow {

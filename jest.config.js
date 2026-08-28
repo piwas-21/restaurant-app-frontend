@@ -81,6 +81,11 @@ module.exports = {
     'src/components/admin/product-editor/editorValidation.ts',
     'src/components/admin/product/fields/fieldAria.ts',
     'src/hooks/admin/useEditorErrors.ts',
+    // S4 (Translations workbench): the slot model and the two writes are pure and are where the
+    // completeness arithmetic lives; the hook is the only place the three stores are reconciled.
+    'src/components/admin/product-editor/translations/translationSlots.ts',
+    'src/components/admin/product-editor/translations/translationWrites.ts',
+    'src/hooks/admin/useTranslationsWorkbench.ts',
     'src/services/formFieldConfigService.ts',
     'src/hooks/reservations/useMyReservations.ts',
     'src/hooks/reservations/useEditReservation.ts',
@@ -878,6 +883,47 @@ module.exports = {
       branches: 99,
       functions: 99,
       lines: 99,
+    },
+    // MENU-ITEM-EDITOR-REDESIGN-PLAN S4 — the Translations workbench (D2). The two pure modules
+    // carry the completeness arithmetic and the row create/prune rule, so they are pinned at full
+    // branch coverage; the hook sits lower because its three write paths each have an arm reached
+    // only from a state the integration test does not stage (a locale row that already exists on a
+    // variation, and the ingredient batch inside the copy).
+    './src/components/admin/product-editor/translations/translationSlots.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/admin/product-editor/translations/translationWrites.ts': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
+    },
+    './src/components/admin/product-editor/translations/TranslationsWorkbench.tsx': {
+      statements: 95,
+      branches: 85,
+      functions: 95,
+      lines: 95,
+    },
+    './src/components/admin/product-editor/translations/TranslationSlotRows.tsx': {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95,
+    },
+    './src/components/admin/product-editor/translations/TranslationLocaleRail.tsx': {
+      statements: 95,
+      branches: 85,
+      functions: 95,
+      lines: 95,
+    },
+    './src/hooks/admin/useTranslationsWorkbench.ts': {
+      statements: 95,
+      branches: 70,
+      functions: 95,
+      lines: 95,
     },
     // Slice 7 PR2e — the "New product" type chooser (create entry). Fully covered.
     './src/components/admin/menu-management/NewProductTypeModal.tsx': {

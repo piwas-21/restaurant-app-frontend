@@ -1,4 +1,5 @@
-/* The row's expandable detail panel: `isActive` plus the per-locale names. */
+/* The row's expandable detail panel. Since S4 it holds `isActive` alone: the per-locale names it
+   used to carry moved to the Translations tab, which is now the item's only translation surface. */
 .detailCell {
   padding-block: 0.75rem 1rem;
   padding-inline: 2rem;
@@ -6,33 +7,4 @@
 }
 .activeToggle {
   max-inline-size: 22rem;
-}
-.detailHint {
-  margin-block: 0.75rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-.translationsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem;
-}
-.translationField {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-.translationField input {
-  padding-block: 0.4rem;
-  padding-inline: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  background: var(--surface-card);
 }

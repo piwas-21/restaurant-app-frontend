@@ -1,0 +1,87 @@
+/*
+ * The workbench's target-language rail — approved screen `translations_workbench_margherita_pizza`.
+ * The active marker is `border-inline-start`, so it stays on the reading edge in `ar`.
+ */
+
+.rail {
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: var(--surface-card);
+  overflow: hidden;
+}
+
+.heading {
+  margin: 0;
+  padding: 12px 16px;
+  border-block-end: 1px solid var(--border-light);
+  background: var(--surface-secondary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.list {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 16px;
+  border: 0;
+  border-inline-start: 3px solid transparent;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.entry:hover {
+  background: var(--surface-secondary);
+}
+
+.entry:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+.entryActive {
+  border-inline-start-color: var(--brand-primary);
+  background: var(--feedback-danger-xlight);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.native {
+  margin-inline-end: auto;
+}
+
+.code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-secondary);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.count {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.entryActive .count {
+  color: var(--brand-primary);
+}
+
+.done {
+  color: var(--feedback-success);
+}

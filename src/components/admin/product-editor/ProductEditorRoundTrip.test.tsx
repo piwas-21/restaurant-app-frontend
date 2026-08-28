@@ -348,3 +348,44 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     expect(payload.menuDefinition).toBeUndefined();
   });
 });
+
+/**
+ * §6's PUT-clears trap, applied to the surface S4 rebuilt.
+ *
+ * The Translations tab now owns three DIFFERENT stores at once — the product's `content` array, a
+ * variation's keyed map and the ingredients, which are not in react-hook-form at all — and it
+ * shows exactly one locale at a time. So the failure mode is specific and silent: open the tab on
+ * French, save, and every other language is gone. Nothing else in the suite would notice.
+ */
+describe('translations survive a save that did not touch them', () => {
+  const manyLocales = {
+    ...fullyPopulated,
+    content: {
+      en: { name: NAME, description: DESCRIPTION },
+      fr: { name: 'Margherita', description: 'Tomate, mozzarella, basilic' },
+      // The three the old ingredient seed omitted — present here so a re-introduced literal list
+      // could not quietly pass this file.
+      nl: { name: 'Margherita', description: 'Tomaat, mozzarella, basilicum' },
+      ru: { name: 'Маргарита', description: 'Томат, моцарелла, базилик' },
+      zh: { name: '玛格丽特', description: '番茄、马苏里拉、罗勒' },
+    },
+  } as unknown as ProductDetails;
+
+  it('sends back every locale of the product, not just the one the tab was showing', async () => {
+    const payload = await renderAndSaveUntouched(manyLocales);
+
+    expect(Object.keys(payload.content as Record<string, unknown>).sort()).toEqual(['en', 'fr', 'nl', 'ru', 'zh']);
+    expect((payload.content as Record<string, { description: string }>).zh.description).toBe('番茄、马苏里拉、罗勒');
+  });
+
+  it("keeps a variation's and an ingredient's own translations", async () => {
+    const payload = await renderAndSaveUntouched(manyLocales);
+
+    expect((payload.variations as { content: Record<string, unknown> }[])[0].content).toEqual({
+      fr: { name: 'Grande', description: 'trente-deux cm' },
+    });
+    expect((payload.detailedIngredients as { content: Record<string, unknown> }[])[0].content).toEqual({
+      fr: { name: 'Mozzarella de bufflonne' },
+    });
+  });
+});

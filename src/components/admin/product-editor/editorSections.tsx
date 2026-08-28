@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { MultilingualContent } from '@/components/admin/product/MultilingualContent';
+import TranslationsWorkbench from './translations/TranslationsWorkbench';
 import BundlePanel from './BundlePanel';
 import EditorOrderTypesField from './EditorOrderTypesField';
 import { buildItemSections } from './itemEditorSections';
@@ -99,25 +99,13 @@ export function buildEditorSections(context: EditorSectionsContext): EditorSecti
 }
 
 /**
- * The `Translations` tab's body (D2). S1 relocated today's multilingual list here unchanged — same
- * component, same `content` field array, byte-identical payload — and S2 does not touch it. The one
- * locale switcher that also retargets variation and ingredient names, and the deletion of the two
- * per-row `<details>` blocks, is S4.
+ * The `Translations` tab's body (D2), and since S4 the ONLY translation surface in the editor.
+ *
+ * S1 relocated today's multilingual row list here unchanged, because an empty tab is not shippable;
+ * S4 replaces it. One locale switcher now retargets the product's, every variation's and every
+ * ingredient's strings at once, and the two per-row `<details>` grids are deleted — three UIs for
+ * one concept was the mess the owner complained about, not merely three stylesheets.
  */
-export function buildTranslationsPanel({ editor, t }: EditorSectionsContext): React.ReactNode {
-  const { form } = editor;
-  return (
-    <section aria-label={t('multilingual_content')}>
-      <MultilingualContent
-        register={form.register}
-        errors={form.formState.errors}
-        control={form.control}
-        contentFields={editor.content.fields}
-        appendContent={editor.content.append}
-        removeContent={editor.content.remove}
-        watch={form.watch}
-        currentLanguage={editor.currentLanguage}
-      />
-    </section>
-  );
+export function buildTranslationsPanel({ editor }: EditorSectionsContext): React.ReactNode {
+  return <TranslationsWorkbench editor={editor} />;
 }

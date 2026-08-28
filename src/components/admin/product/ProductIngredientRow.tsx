@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Languages, Minus, Plus, Trash2 } from 'lucide-react';
+import { Eye, Minus, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { TENANT_CURRENCY, formatPlainCurrency } from '@/utils/currency';
 import type { ProductIngredient } from '@/types/menu';
@@ -48,7 +48,6 @@ interface ProductIngredientRowProps {
   /** Is there a row above / below this one in this group? Drives the buttons' `disabled`. */
   canMoveUp: boolean;
   canMoveDown: boolean;
-  onContentChange: (index: number, language: string, value: string) => void;
   typeahead: ReturnType<typeof useGlobalIngredientSuggestions>;
   onPickSuggestion: (index: number, suggestion: GlobalIngredientSummary) => void;
 }
@@ -64,7 +63,6 @@ export default function ProductIngredientRow({
   onMove,
   canMoveUp,
   canMoveDown,
-  onContentChange,
   typeahead,
   onPickSuggestion,
 }: Readonly<ProductIngredientRowProps>) {
@@ -113,7 +111,7 @@ export default function ProductIngredientRow({
               aria-label={t('ingredient_row_details')}
               onClick={() => setIsDetailOpen((open) => !open)}
             >
-              <Languages size={16} aria-hidden="true" />
+              <Eye size={16} aria-hidden="true" />
             </button>
             {typeahead.loading[index] && <output className={styles.spinner}>…</output>}
             {typeahead.visible[index] && typeahead.suggestions[index]?.length > 0 && (
@@ -228,12 +226,7 @@ export default function ProductIngredientRow({
         </td>
       </tr>
       {isDetailOpen && (
-        <ProductIngredientDetails
-          id={detailId}
-          ingredient={ingredient}
-          onPatch={(patch) => onPatch(index, patch)}
-          onContentChange={(language, value) => onContentChange(index, language, value)}
-        />
+        <ProductIngredientDetails id={detailId} ingredient={ingredient} onPatch={(patch) => onPatch(index, patch)} />
       )}
     </>
   );

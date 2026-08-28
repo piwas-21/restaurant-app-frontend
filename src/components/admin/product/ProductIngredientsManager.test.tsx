@@ -118,3 +118,69 @@ describe('the per-row type-ahead', () => {
     expect(next[0].displayOrder).toBe(0);
   });
 });
+
+describe('a new ingredient still arrives with no seeded locales', () => {
+  /**
+   * A REGRESSION GUARD, not this slice's fix. The audit (§4.5) recorded that `handleAddIngredient`
+   * seeded a blank `content` entry for SEVEN of the ten locales — `nl`, `ru` and `zh` were missing
+   * from a hand-written literal that never consulted `LANGUAGE_CODES`, so the list drifted the day
+   * a locale was added and stayed drifted. Looking for that literal to delete it, S4 found #588 had
+   * already deleted it while splitting this component into groups. Nothing here changed; the
+   * assertion is written down so the eleventh locale cannot re-arm the trap silently.
+   *
+   * It fails in both directions: the old code produced seven keys where this expects none, and a
+   * "fix" that merely re-typed the literal as ten would fail it too.
+   */
+  it('carries no seeded translations at all, rather than seven of ten', () => {
+    mount([]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'add_manually' }));
+
+    const next = onChange.mock.calls[0][0] as ProductIngredient[];
+    expect(next).toHaveLength(1);
+    expect(next[0].content).toEqual({});
+  });
+
+  it('still mints a temporary id and the next display order', () => {
+    mount();
+
+    fireEvent.click(screen.getByRole('button', { name: 'add_manually' }));
+
+    const next = onChange.mock.calls[0][0] as ProductIngredient[];
+    expect(next[1].id).toMatch(/^temp-/);
+    expect(next[1].displayOrder).toBe(1);
+  });
+});
+
+describe('the per-row translation grid is gone (D2 / S4)', () => {
+  const openRowDetail = () => {
+    mount([{ ...existing, content: { fr: { name: 'Olives noires' } } }]);
+    fireEvent.click(screen.getByRole('button', { name: 'ingredient_row_details' }));
+  };
+
+  /**
+   * The last of the three rival translation UIs the workbench replaces. Assert the ABSENCE of the
+   * inputs with the panel OPEN — a grid that is merely collapsed is still a second place to edit
+   * the same string, and asserting on the closed row would pass against the old code.
+   */
+  it('opens the row detail on a text no locale input renders', () => {
+    openRowDetail();
+
+    // The panel really IS open — without this the three absence checks below pass on a closed row.
+    expect(screen.getByRole('switch', { name: 'ingredient_is_active' })).toBeVisible();
+    expect(screen.queryByDisplayValue('Olives noires')).toBeNull();
+    expect(screen.queryByLabelText('language_fr')).toBeNull();
+    expect(screen.queryByText('multilingual_names')).toBeNull();
+  });
+
+  /**
+   * And the half of that panel that must SURVIVE. `isActive` has no control anywhere else on the
+   * screen, so removing the panel wholesale would have made it unsettable — the editor's standing
+   * trap, a shipped field the next save cannot change.
+   */
+  it('keeps the visibility switch the panel exists for', () => {
+    openRowDetail();
+
+    expect(screen.getByRole('switch', { name: 'ingredient_is_active' })).toBeChecked();
+  });
+});

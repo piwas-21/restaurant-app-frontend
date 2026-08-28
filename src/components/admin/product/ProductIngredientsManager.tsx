@@ -90,18 +90,6 @@ export function ProductIngredientsManager({
   const patchRow = (index: number, patch: Partial<ProductIngredient>) =>
     commit(rows.map((row, position) => (position === index ? { ...row, ...patch } : row)));
 
-  const changeContent = (index: number, language: string, value: string) =>
-    commit(
-      rows.map((row, position) => {
-        if (position !== index) return row;
-        const previous = row.content?.[language];
-        return {
-          ...row,
-          content: { ...row.content, [language]: { ...previous, name: value } },
-        };
-      }),
-    );
-
   /**
    * Reordering (#593). It goes through the WHOLE array rather than through `commit`, because the
    * move renumbers `displayOrder` across both kinds — see `ingredientOrder.ts`. An impossible move
@@ -162,7 +150,6 @@ export function ProductIngredientsManager({
                 onMove={moveRow}
                 canMoveUp={index > 0}
                 canMoveDown={index < rows.length - 1}
-                onContentChange={changeContent}
                 typeahead={typeahead}
                 onPickSuggestion={pickSuggestion}
               />

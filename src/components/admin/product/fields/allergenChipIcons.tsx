@@ -1,7 +1,6 @@
 import {
   Bean,
   CandyOff,
-  CircleOff,
   Egg,
   Flame,
   Gauge,
@@ -63,4 +62,4 @@ export const ALLERGEN_CHIP_ICONS: Readonly<Record<string, LucideIcon>> = {
 };
 
 /** The `None` chip's own glyph — a negation, because it is the absence of every chip above. */
-export const ALLERGEN_NONE_ICON = CircleOff;
+export { CircleOff as ALLERGEN_NONE_ICON } from 'lucide-react';

@@ -8,6 +8,7 @@
  * string without a product decision.
  */
 import { Product } from '@/services/serverService';
+import { CreateOrderItemDto } from '@/types/order';
 import { CustomizationResult } from '../ProductCustomization';
 
 export interface OrderItem {
@@ -19,6 +20,12 @@ export interface OrderItem {
   addedIngredients?: Array<{ id: string; name: string; price: number; quantity: number }>;
   /** What the waiter took OFF the base recipe. New with S7 — see `waiterSelection.ts`. */
   removedIngredients?: Array<{ id: string; name: string; price: number; quantity: number }>;
+  /**
+   * The WHOLE selection, as the guest sheet sends it to the basket. The two arrays above are a
+   * DIFF, kept for the note string; these are what the server prices the line from (#595).
+   */
+  selectedIngredientIds?: string[];
+  ingredientQuantities?: Record<string, number>;
   sideItems?: Array<{ id: string; name: string; quantity: number; price: number }>;
   unitPrice: number;
 }
@@ -144,8 +151,58 @@ export function addCustomizedItem(prev: OrderItem[], product: Product, result: C
       notes: noteParts.join(' | ') || undefined,
       addedIngredients: result.addedIngredients,
       removedIngredients: result.removedIngredients,
+      selectedIngredientIds: result.selectedIngredientIds,
+      ingredientQuantities: result.ingredientQuantities,
       sideItems: result.sideItems,
       unitPrice: result.finalPrice,
     },
   ];
+}
+
+/**
+ * The `POST /api/Orders` line items for a finished waiter order.
+ *
+ * Until #595 this was five fields inlined in `useTakeOrder`, under a comment reading "addedIngredients
+ * and sideItems would need backend support". The line therefore said WHAT was ordered and never WHAT
+ * WAS CHOSEN, with three consequences: the order's frozen ingredient snapshot (S1) was empty for the
+ * entire POS, a paid-for side item was charged inside `unitPrice` but recorded nowhere, and the money
+ * was whatever the till declared — the one line in the system outside
+ * `BasketPricingService.CalculateIngredientCustomizationPrice`.
+ *
+ * Two fields do the work, and each changes what the SERVER does with the line:
+ *
+ * - `selectedIngredientIds` — the ids that ARE on the dish. Its presence (backend #430) makes the
+ *   server recompute the line from the catalogue plus its own ingredient math and DROP the declared
+ *   `unitPrice`, so the till stops being an authority on price. It is always sent, including empty:
+ *   an empty selection is a real answer, and omitting it would silently restore the old behaviour.
+ *
+ * - `childItems` — the side items, in the shape `BasketToOrderTranslator` already produces for the
+ *   guest checkout: one child row per side, `quantity` PER UNIT of the parent, `kind: 'SideItem'` so
+ *   the renderer never has to derive the kind from the parent's mutable `Product.Type` (#318).
+ *
+ * `unitPrice` is still sent and is still load-bearing for exactly one shape — a line WITH child
+ * items, which the server refuses to reprice because a side's money lives in the rolled-up child
+ * total rather than in `Product.BasePrice`. There the declared number stands, which is why #594
+ * (one price math for both sheets) had to land first: `unitPrice` comes from the shared
+ * `linePrice.ts` port of the server's own rule, not from a second POS arithmetic.
+ */
+export function buildOrderItems(items: readonly OrderItem[]): CreateOrderItemDto[] {
+  return items.map((item) => ({
+    productId: item.product.id,
+    productVariationId: item.variationId,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    specialInstructions: item.notes,
+    selectedIngredientIds: item.selectedIngredientIds ?? [],
+    ingredientQuantities: item.ingredientQuantities,
+    // Omitted, not sent as `[]`, so a line with no sides posts exactly the body it always did.
+    childItems: item.sideItems?.length
+      ? item.sideItems.map((side) => ({
+          productId: side.id,
+          quantity: side.quantity,
+          unitPrice: side.price,
+          kind: 'SideItem' as const,
+        }))
+      : undefined,
+  }));
 }

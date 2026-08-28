@@ -75,6 +75,15 @@ export interface CustomizationResult {
    * history to be compatible with.
    */
   removedIngredients: Array<{ id: string; name: string; price: number; quantity: number }>;
+  /**
+   * The WHOLE selection — every ingredient id that is ON the dish — and how many of each, exactly
+   * as the guest sheet sends them to `/api/basket/items`. New in S595, and NOT derivable from the
+   * two arrays above: an included-in-base ingredient kept at quantity 1 is neither an addition nor
+   * a removal, yet leaving its id out tells the server it was taken off and DEDUCTS its price.
+   * The diff describes the change for a human; this describes the dish for the server.
+   */
+  selectedIngredientIds: string[];
+  ingredientQuantities: Record<string, number>;
   sideItems: Array<{ id: string; name: string; quantity: number; price: number }>;
   specialInstructions?: string;
   finalPrice: number;

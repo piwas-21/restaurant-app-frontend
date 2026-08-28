@@ -51,9 +51,7 @@ export interface OrderItemIngredientDto {
   isRemoved: boolean; // true if customer deselected/removed this ingredient
 }
 
-/**
- * Order item details
- */
+/** Order item details — the shape POSTed to `/api/Orders`, and the base of what it returns. */
 export interface CreateOrderItemDto {
   productId: string;
   productVariationId?: string;
@@ -62,8 +60,15 @@ export interface CreateOrderItemDto {
   unitPrice: number;
   customizationPrice?: number;
   specialInstructions?: string;
+  // The ids that ARE on the dish, as `AddToBasketDto.selectedIngredients` means it. Its PRESENCE
+  // makes the server price the line and IGNORE the declared prices (backend #430); an empty array
+  // is a real answer ("all optional off"), so OMITTING it is what keeps the declared price.
+  selectedIngredientIds?: string[];
   ingredientQuantities?: Record<string, number>; // Ingredient quantities for kitchen print
   childItems?: CreateOrderItemDto[]; // Child items (e.g. side items, additionals)
+  // Child rows only (backend #318): bundle component vs true side. On the CREATE shape because a
+  // child row is WRITTEN, not just read — the waiter sheet posts its side items with it.
+  kind?: 'BundleChild' | 'SideItem';
 }
 
 export interface OrderItemDto extends CreateOrderItemDto {
@@ -77,7 +82,6 @@ export interface OrderItemDto extends CreateOrderItemDto {
   kitchenType?: string; // FrontKitchen, BackKitchen, or None
   ingredientCustomizations?: OrderItemIngredientDto[]; // Selected/removed ingredients
   sideItems?: OrderItemDto[]; // Child order items: bundle components + true add-on sides (see kind)
-  kind?: 'BundleChild' | 'SideItem'; // Set on child items only (backend #158): bundle component vs true side
 }
 
 /**

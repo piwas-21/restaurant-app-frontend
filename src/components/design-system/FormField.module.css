@@ -4,6 +4,16 @@
   gap: 0.25rem;
 }
 
+/* The <label> is now an inner node rather than the wrapper (#598 moved the error OUT of it, so it
+   stops polluting the input's accessible name). It carries the label-above-control stacking the
+   wrapper used to own; `.field` keeps the same gap, so the error sits where it always did and the
+   rendered spacing is unchanged. */
+.labelWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 /* craft modal-body hooks (Prompts 10–13): var fallback = exact classic literal */
 .label {
   font-family: var(--modal-body-accent-font, inherit);

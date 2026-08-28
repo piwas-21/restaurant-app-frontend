@@ -1,12 +1,16 @@
 import React from 'react';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { CircleAlert } from 'lucide-react';
 import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import type { Category } from '../types';
 import FieldError from './FieldError';
 import { fieldAria, fieldDomId, fieldErrorId, fieldMessage } from './fieldAria';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import styles from './editorFields.module.css';
+
+/** The consequence notice's DOM id — shared by the `<p>` and the select's `aria-describedby`. */
+const PRIMARY_CONSEQUENCE_ID = 'primary-category-consequence';
 
 interface ProductBasicsFieldsProps {
   // readonly: S6759 — component props are never mutated.
@@ -42,6 +46,39 @@ export default function ProductBasicsFields({
 }: ProductBasicsFieldsProps) {
   const { t } = useTranslation();
   const categoriesMessage = fieldMessage(errors, 'categoryIds');
+  /*
+   * D8 (S10): the consequence of leaving Primary category empty, shown AT THE CAUSE.
+   *
+   * The sentence itself is not new — `ProductOrderTypes.tsx:103-110` has said it since the
+   * order-type work. What was wrong is WHERE: it renders in `Service & availability`, five sections
+   * below the empty select that causes it, so an admin who never scrolls there never learns why
+   * their item is orderable on every channel. This is the notice the approved screen draws under
+   * this control (conformance gap G14's notice half); the one downstream stays exactly as it is,
+   * because that is where the effect actually lands.
+   */
+  const primaryCategoryId = useWatch({ control, name: 'primaryCategoryId' });
+  const hasCategories = (selectedCategoryIds?.length ?? 0) > 0;
+  // Only once a category has been TICKED. Before that the select is disabled and empty by
+  // construction, so the notice would be scolding the admin for not having reached the field yet.
+  const showNoPrimaryConsequence = hasCategories && !primaryCategoryId;
+
+  /*
+   * The notice explains this control, so it has to DESCRIBE it — otherwise a screen-reader user
+   * hears the label and the options and never the consequence of leaving it empty.
+   *
+   * Merged rather than passed as a second `aria-describedby` prop: a later JSX attribute WINS over
+   * a spread one, so `aria-describedby={undefined}` written after `{...fieldAria(...)}` would have
+   * silently wiped the ERROR describedby whenever there was an error and no notice. The two ids are
+   * joined instead, which is also the correct answer if they ever do coexist.
+   */
+  const primaryCategoryAria = (() => {
+    const base = fieldAria(errors, 'primaryCategoryId');
+    if (!showNoPrimaryConsequence) return base;
+    return {
+      ...base,
+      'aria-describedby': [base['aria-describedby'], PRIMARY_CONSEQUENCE_ID].filter(Boolean).join(' '),
+    };
+  })();
 
   return (
     <div className={modalStyles.formColumn}>
@@ -103,7 +140,7 @@ export default function ProductBasicsFields({
         <label htmlFor={fieldDomId('primaryCategoryId')}>{t('primary_category')}</label>
         <select
           {...register('primaryCategoryId')}
-          {...fieldAria(errors, 'primaryCategoryId')}
+          {...primaryCategoryAria}
           disabled={!selectedCategoryIds || selectedCategoryIds.length === 0}
         >
           <option value="">{t('select_primary_category')}</option>
@@ -116,6 +153,12 @@ export default function ProductBasicsFields({
             ))}
         </select>
         <FieldError name="primaryCategoryId" message={fieldMessage(errors, 'primaryCategoryId')} />
+        {showNoPrimaryConsequence && (
+          <p id={PRIMARY_CONSEQUENCE_ID} className={styles.consequence}>
+            <CircleAlert size={16} className={styles.consequenceIcon} aria-hidden="true" />
+            {t('editor_no_primary_category_consequence')}
+          </p>
+        )}
       </div>
     </div>
   );

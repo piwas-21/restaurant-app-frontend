@@ -2736,6 +2736,8 @@
   "editor_section_media_description": "照片与图库资源",
   "editor_media_autosave_notice": "图片的更改会立即保存。",
   "editor_media_bundle_unavailable": "菜单套餐暂不支持图片管理。套餐图片请在上方的「菜单图片」字段中添加，保存时会一并上传。",
+  "editor_no_primary_category_consequence": "没有主分类，此商品不会继承任何设置 — 请在「服务与供应」中手动设置订单类型。",
+  "editor_no_photo_consequence": "没有照片时，此商品在菜单上会显示占位图片。",
   "editor_section_pricing": "价格与规格",
   "editor_section_pricing_description": "设置基础价格以及各种版本或规格",
   "editor_section_options": "选项与配菜",

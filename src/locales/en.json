@@ -2736,6 +2736,8 @@
   "editor_section_media_description": "Photos and gallery assets",
   "editor_media_autosave_notice": "Photo changes are saved immediately.",
   "editor_media_bundle_unavailable": "Photo management is not available for menu bundles yet. A bundle photo is added with the Menu image field above, and it uploads when you save.",
+  "editor_no_primary_category_consequence": "Without a primary category this item inherits nothing — set its order types manually in Service & availability.",
+  "editor_no_photo_consequence": "Without a photo this item shows a placeholder image on the menu.",
   "editor_section_pricing": "Pricing & variations",
   "editor_section_pricing_description": "Set the base price and any versions or sizes",
   "editor_section_options": "Options & sides",

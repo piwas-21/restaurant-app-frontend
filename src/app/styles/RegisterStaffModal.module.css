@@ -100,10 +100,14 @@
   background-color: var(--background-color-hover, #f0f0f0);
 }
 
+/* #592. Was a literal `#28a745` — 3.13:1 under white ink, and an inline hex, which the workspace
+   rules forbid precisely because it cannot participate in a token fix like this one. A checked
+   category chip in the editor is one axe node PER CHECKED CHIP, so this single rule is however many
+   nodes the tenant has categories: the reported count is data, the defect is one line. */
 .chip input[type='checkbox']:checked + label {
-  background-color: #28a745; /* Green color for selected */
-  color: white;
-  border-color: #28a745;
+  background-color: var(--success-color-darker);
+  color: var(--button-text-color);
+  border-color: var(--success-color-darker);
 }
 
 /* Dynamic Section Styling */

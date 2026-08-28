@@ -355,11 +355,15 @@
   background-color: var(--hover-background);
 }
 
+/* #592. The SAME literal and the same 3.13:1 failure as `RegisterStaffModal.module.css`'s chip, in
+   a second file. Not on the product editor route, so axe did not report it — included because it is
+   one identical defect copied twice, and fixing only the reported copy would leave the other to be
+   re-found by the next scan of a different page. */
 .chip input[type='checkbox']:checked + label,
 .chip input[type='radio']:checked + label {
-  background-color: #28a745;
-  color: white;
-  border-color: #28a745;
+  background-color: var(--success-color-darker);
+  color: var(--button-text-color);
+  border-color: var(--success-color-darker);
 }
 
 @media (max-width: 768px) {

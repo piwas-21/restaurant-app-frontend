@@ -8,8 +8,14 @@
   white-space: nowrap;
 }
 
+/* #592. `--success-color` (#4caf50 light) under white ink is 2.78:1 — a serious axe finding on the
+   product editor's `Active` badge. `--success-color-darker` is the token the design system already
+   defines FOR THIS: 5.13:1 in light. Dark mode is unaffected in kind — `--text-on-primary` flips to
+   #1a1a1a there, so the pairing is dark ink on light green (7.36:1) either way.
+   The TOKEN itself is deliberately not changed: `--feedback-success` is also a dot, a border and a
+   tint base, and darkening it would repaint every one of those to fix a text pairing. */
 .success {
-  background: var(--success-color);
+  background: var(--success-color-darker);
   color: var(--button-text-color);
 }
 
@@ -29,7 +35,14 @@
   color: var(--button-text-color);
 }
 
+/* #592. Two defects in one rule. The measured one: #666 on #ddd is 4.23:1, a near miss that axe
+   fails. The one axe could NOT see, because it scans light mode only: `--border-color` in dark is
+   `rgba(255,255,255,0.4)`, which over `--surface-card` renders #7c7c7c and puts the dark
+   `--text-secondary` (#cdcbcb) at 2.58:1 — a WORSE failure than the one that was reported.
+   Both come from the same mistake, which is why the fix is one line: `--border-color` is a HAIRLINE
+   token being used as a FILL. `--surface-secondary` is the fill token, and it reads 5.04:1 light and
+   8.65:1 dark with the same text colour. */
 .neutral {
-  background: var(--border-color);
+  background: var(--surface-secondary);
   color: var(--text-secondary-color);
 }

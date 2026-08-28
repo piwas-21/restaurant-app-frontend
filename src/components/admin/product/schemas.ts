@@ -4,6 +4,15 @@ import { productTypes } from './types';
 // Zod Schemas for validation
 export const variationSchema = z.object({
   id: z.string().optional(), // For edit operations
+  /**
+   * Provenance for a row picked from the variation library (plan S4).
+   *
+   * It MUST be declared here even though no input writes it. `z.object()` strips keys it does not
+   * know, and `zodResolver` hands `handleSubmit` the PARSED value — so a field that lives only in
+   * react-hook-form's store (as `displayOrder` and `id` do, having never had an input either)
+   * would be silently dropped between the form and the payload builder.
+   */
+  globalVariationId: z.string().optional(),
   name: z.string().min(1, 'Variation name is required'),
   description: z.string().optional(),
   priceModifier: z.coerce.number(),

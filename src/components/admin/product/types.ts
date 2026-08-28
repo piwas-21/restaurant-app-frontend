@@ -35,6 +35,12 @@ export interface Category {
 
 export interface Variation {
   id?: string; // Optional for create, required for edit
+  /**
+   * Which global variation row this one was copied from (plan S4, backend #431's
+   * `ProductVariationDto.GlobalVariationId`). Provenance only: the name and translations beside it
+   * are the product's OWN copies, and editing the library row later does not change them.
+   */
+  globalVariationId?: string;
   name: string;
   description?: string;
   priceModifier: number;

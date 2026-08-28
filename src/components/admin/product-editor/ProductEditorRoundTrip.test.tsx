@@ -68,6 +68,7 @@ const NAME = 'Margherita';
 const DESCRIPTION = 'Tomato, mozzarella, basil';
 const PRIMARY_CATEGORY_ID = 'cat-pizza';
 const VARIATION_ID = 'var-1';
+const GLOBAL_VARIATION_ID = 'glob-var-1';
 const INGREDIENT_ID = 'ing-1';
 const SAUCE_ID = 'sauce-1';
 const GLOBAL_INGREDIENT_ID = 'glob-1';
@@ -97,6 +98,9 @@ const fullyPopulated: ProductDetails = {
   variations: [
     {
       id: VARIATION_ID,
+      // Provenance from the variation library (plan S4). It has NO input on the page and never
+      // will: it is a record of where the name came from, not a thing to edit.
+      globalVariationId: GLOBAL_VARIATION_ID,
       name: 'Large',
       description: '32cm',
       priceModifier: 4,
@@ -183,6 +187,11 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     expect(payload.variations).toEqual([
       {
         id: VARIATION_ID,
+        // The one field here with TWO independent ways of being dropped, which is why it is worth
+        // naming: `variationSchema` must declare it or `zodResolver` strips it before the payload
+        // builder is even called, and `cleanedVariations` must list it or the builder's whitelist
+        // drops it after. Fixing either alone still writes null on every save of a linked product.
+        globalVariationId: GLOBAL_VARIATION_ID,
         name: 'Large',
         description: '32cm',
         priceModifier: 4,

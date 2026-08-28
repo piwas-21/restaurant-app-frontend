@@ -52,9 +52,11 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   const uid = useId();
   const inputId = id ?? `${uid}-switch`;
   const descriptionId = `${uid}-description`;
+  // Joined, not a nested template literal: S4624 flags `${cond ? ` ${x}` : ''}` twice over.
+  const fieldClass = [styles.field, disabled ? styles.disabled : '', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <div className={`${styles.field}${disabled ? ` ${styles.disabled}` : ''}${className ? ` ${className}` : ''}`}>
+    <div className={fieldClass}>
       {/* The <label> holds the visible label text and NOTHING else. HTML-AAM's label-content rule
           makes every text node inside it part of the accessible NAME, so a `description` rendered in
           there turns the name from "Special of the day" into "Special of the day Shown first on the

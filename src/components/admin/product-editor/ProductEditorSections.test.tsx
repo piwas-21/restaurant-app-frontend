@@ -275,6 +275,22 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
     expect(container.querySelectorAll('#product-active')).toHaveLength(1);
   });
 
+  // The CONSUMPTION half of #575. `Switch.test.tsx` proves the component is a switch; without this
+  // the component could be perfect and the rail could still ship the checkbox chips it replaces.
+  it('renders each flag as the design system Switch, not as a checkbox chip', async () => {
+    const { container } = await renderEditor();
+    const rail = container.querySelector('aside') as HTMLElement;
+
+    expect(
+      within(rail)
+        .getAllByRole('switch')
+        .map((node) => node.id),
+    ).toEqual(['product-active', 'product-available', 'product-special']);
+    // `register()` still owns them, so the PUT is unchanged — the round-trip test is the other half.
+    expect(rail.querySelector('#product-active')).toHaveAttribute('name', 'isActive');
+    expect(within(rail).queryAllByRole('checkbox')).toHaveLength(0);
+  });
+
   /**
    * The rail is now a form surface, so it may not unmount with the tab — the same rule as the
    * inactive panel, for the harder reason that these three are registered fields.

@@ -127,11 +127,24 @@ describe('AdminPriceEditor', () => {
     fireEvent.click(screen.getByTestId('admin-price-save'));
 
     expect(await screen.findByTestId('admin-price-error')).toHaveTextContent('Price must be below 1000');
-    // The message is wired to the input, so it is announced rather than merely painted.
-    expect(screen.getByTestId('admin-price-input')).toHaveAttribute(
-      'aria-describedby',
-      screen.getByTestId('admin-price-error').id,
-    );
+    // The message is wired to the input, so it is announced rather than merely painted — and it is
+    // APPENDED to the currency rather than replacing it, so a failed save does not cost the unit.
+    const describedBy = screen.getByTestId('admin-price-input').getAttribute('aria-describedby') ?? '';
+    expect(describedBy.split(' ')).toContain(screen.getByTestId('admin-price-error').id);
+    expect(screen.getByTestId('admin-price-input')).toHaveAccessibleDescription(/CHF/);
+    expect(screen.getByTestId('admin-price-input')).toHaveAccessibleDescription(/Price must be below 1000/);
+  });
+
+  it('announces the currency, so the field is not heard as a bare number', () => {
+    asAdmin();
+
+    render(<AdminPriceEditor item={product()} onPriceChange={jest.fn()} />);
+    fireEvent.click(screen.getByTestId('admin-edit-price'));
+
+    // The oracle is the ACCESSIBLE DESCRIPTION, not the presence of an attribute: an id that points
+    // at a span marked `aria-hidden` — which is what this component shipped — satisfies the
+    // attribute check and is still announced as nothing.
+    expect(screen.getByTestId('admin-price-input')).toHaveAccessibleDescription('CHF');
   });
 
   it('names the rule when the typed value is not a price', async () => {

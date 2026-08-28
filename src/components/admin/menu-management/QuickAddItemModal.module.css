@@ -37,27 +37,15 @@
   outline-offset: 1px;
 }
 
-/* The currency sits INSIDE the box, as the screen draws it, without joining the value: the
-   input is still a plain number field. Padding is reserved for it so a long amount cannot
-   slide under the code. */
-.priceBox {
-  position: relative;
-  display: block;
-}
+/* The currency affix is NOT defined here. It is `.affixBox` / `.affixInput` / `.affix` in
+   `../product/fields/editorFields.module.css`, and quick-add imports that module rather than
+   keeping a second copy of the same six declarations (conformance batch: currency-affix
+   de-duplication).
 
-.priceInput {
-  padding-inline-end: 3.25rem;
-}
-
-.currency {
-  position: absolute;
-  inset-inline-end: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  pointer-events: none;
-}
+   Two boxes that draw one thing drift. This pair already had: the full editor's affix is an
+   `aria-describedby` target, and quick-add's started life `aria-hidden`, so the same field was
+   heard as "Price … CHF" in one screen and as a bare number in the other. The markup half of that
+   was fixed in #584; sharing the stylesheet is what stops the visual half repeating it. */
 
 .error {
   margin: 0;

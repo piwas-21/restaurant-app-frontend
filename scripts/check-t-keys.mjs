@@ -167,7 +167,26 @@ if (added.length) {
   console.error('\n  Add them to src/locales/*.json rather than growing this backlog.');
 }
 
+// The other direction, and the half that turns 106 from a ceiling into a burn-down (#599).
+//
+// A baselined key that has since been TRANSLATED stays listed until someone re-runs `--regen`, so
+// the number could only ever say "it did not get worse" — progress was invisible and the file drifted
+// out of step with the code that produced it. Every entry here must still be a real one, which makes
+// this list shrink-only: it may not grow (above) and it may not go stale (here).
+//
+// A key leaves `defaulted` for exactly two reasons and both mean the same thing for this file —
+// it is no longer a backlog item: it now RESOLVES in en.json (the good case, someone translated it),
+// or its call site is gone. `--regen` is the fix for both; there is nothing to decide.
+const stillMissing = new Set(defaulted);
+const stale = [...known].filter((k) => !stillMissing.has(k));
+if (stale.length) {
+  failed = true;
+  console.error(`\n✗ ${stale.length} baselined key(s) are no longer missing — the backlog list is stale:`);
+  for (const k of stale) console.error(`    ${k}`);
+  console.error('\n  Each now resolves in en.json, or its callsite is gone. Bank the progress:');
+  console.error('      node scripts/check-t-keys.mjs --regen');
+}
+
 if (failed) process.exit(1);
 
-const shrunk = defaulted.length < known.size ? ' — some were added to the bundles; --regen to bank it' : '';
-console.log(`✓ no t() key renders raw; ${defaulted.length} defaulted-but-missing (baseline ${known.size})${shrunk}`);
+console.log(`✓ no t() key renders raw; ${defaulted.length} defaulted-but-missing (baseline ${known.size})`);

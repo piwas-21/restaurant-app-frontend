@@ -1011,6 +1011,8 @@
   "product_special_requests_placeholder": "Any special instructions? (e.g., extra spicy, no onions)",
   "add_ingredient": "Add",
   "remove_ingredient": "Remove",
+  "move_row_up": "Move row {{position}} up",
+  "move_row_down": "Move row {{position}} down",
   "ingredient_included": "Included",
   "ingredient_optional": "Optional",
   "customization_cost": "Customizations",

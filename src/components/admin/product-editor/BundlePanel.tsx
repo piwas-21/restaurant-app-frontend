@@ -6,6 +6,7 @@ import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form'
 import MenuScheduleEditor from '@/components/admin/menu-editor/MenuScheduleEditor';
 import MenuSectionEditor from '@/components/admin/menu-editor/MenuSectionEditor';
 import StagedImagePicker from '@/components/admin/product/StagedImagePicker';
+import { INTEGER_INPUT_PROPS, MONEY_INPUT_PROPS } from '@/components/admin/product/numberInputProps';
 import type { MenuDefinition } from '@/types/menu';
 import styles from './ProductEditorPage.module.css';
 import adminStyles from '@/app/styles/AdminPage.module.css';
@@ -61,7 +62,10 @@ export default function BundlePanel({
           <div className={adminStyles.grid}>
             <div className={modalStyles.formGroup}>
               <label htmlFor="bundle-base-price">{t('base_price')}</label>
-              <input id="bundle-base-price" type="number" step="0.01" {...register('basePrice')} />
+              {/* The same two constants the item panel uses (S8). A bundle's price is a price and
+                  its prep time is a count; two panels of one editor spelling that differently is
+                  exactly the drift `numberInputProps.ts` exists to end. */}
+              <input id="bundle-base-price" {...register('basePrice')} {...MONEY_INPUT_PROPS} />
               {errors.basePrice && <p className={modalStyles.errorMessage}>{String(errors.basePrice.message)}</p>}
             </div>
 
@@ -69,10 +73,8 @@ export default function BundlePanel({
               <label htmlFor="bundle-prep-time">{t('preparation_time_minutes')}</label>
               <input
                 id="bundle-prep-time"
-                type="number"
-                min="0"
-                step="1"
                 {...register('preparationTimeMinutes')}
+                {...INTEGER_INPUT_PROPS}
                 placeholder="0"
               />
             </div>

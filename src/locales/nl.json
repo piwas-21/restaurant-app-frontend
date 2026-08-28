@@ -1011,6 +1011,8 @@
   "product_special_requests_placeholder": "Speciale instructies? (bijv. extra pittig, geen ui)",
   "add_ingredient": "Toevoegen",
   "remove_ingredient": "Verwijderen",
+  "move_row_up": "Rij {{position}} omhoog verplaatsen",
+  "move_row_down": "Rij {{position}} omlaag verplaatsen",
   "ingredient_included": "Inbegrepen",
   "ingredient_optional": "Optioneel",
   "customization_cost": "Aanpassingen",

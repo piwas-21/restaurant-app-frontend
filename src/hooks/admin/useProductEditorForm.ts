@@ -4,12 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useFieldArray, useForm, type FieldErrors, type FieldValues, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import {
-  createMenuBundleSchema,
-  createProductFormSchema,
-  editMenuBundleSchema,
-  editProductSchema,
-} from '@/components/admin/product/schemas';
+import { pickEditorSchema } from '@/components/admin/product/schemas';
 import { submitEditProductForm, submitProductForm } from '@/components/admin/product/productFormUtils';
 import type { ProductDetails, ProductIngredient } from '@/app/admin/menu-management/interfaces';
 import type { MenuDefinition } from '@/types/menu';
@@ -18,6 +13,7 @@ import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
 import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
 import { collectErrorFields, focusField } from '@/components/admin/product-editor/editorValidation';
 import { useEditorCategories } from './useEditorCategories';
+import { useVariationReorder } from './useVariationReorder';
 
 interface UseProductEditorFormOptions {
   product: ProductDetails;
@@ -52,15 +48,9 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   const [isMenuDefinitionDirty, setIsMenuDefinitionDirty] = useState(false);
   const [isIngredientsDirty, setIsIngredientsDirty] = useState(false);
 
-  // The resolver is chosen by kind + mode and never swapped. The item schema requires
-  // categoryIds.min(1) + primaryCategoryId (a bundle has neither — MenuBundleDto returns no
-  // categories); the bundle schema requires a menuDefinition; the create schemas add the
-  // stricter server bounds a fresh row must meet. Four structurally-different schemas mean the
-  // ternary widens past zodResolver's overloads with no single shape for useForm to infer —
-  // hence FieldValues + a `never` cast (the modals used `as any`; `never` keeps §5.8's rule).
-  const bundleSchema = mode === 'create' ? createMenuBundleSchema : editMenuBundleSchema;
-  const itemSchema = mode === 'create' ? createProductFormSchema : editProductSchema;
-  const schema = isBundle ? bundleSchema : itemSchema;
+  // `FieldValues` + a `never` cast, because the four schemas have no single shape for `useForm` to
+  // infer — see `pickEditorSchema`, which owns that choice. (The modals used `as any`.)
+  const schema = pickEditorSchema(isBundle, mode);
   const form = useForm<FieldValues>({
     // D13/S7. Not `onChange` (a message while the admin types the first character is noise) and
     // no longer `onSubmit` (which refused to save for a reason three screens away). A field that
@@ -70,7 +60,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     defaultValues: editorDefaults,
   });
 
-  const { control, reset, setError, watch, setValue } = form;
+  const { control, getValues, reset, setError, watch, setValue } = form;
 
   const variations = useFieldArray({ control, name: 'variations' });
   const content = useFieldArray({ control, name: 'content' });
@@ -109,6 +99,9 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     setDetailedIngredients(next);
     setIsIngredientsDirty(true);
   }, []);
+
+  /** #593: reorder AND renumber. `useVariationReorder` states why `move` alone is not enough. */
+  const moveVariation = useVariationReorder({ getValues, setValue, variations });
 
   // A refused submit jumps to the first failing field (D13). Without it the only signal is a Save
   // that appears to do nothing, which on a seven-section form reads as a broken button. The save
@@ -189,6 +182,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
     changeSideItemIds,
     detailedIngredients,
     changeIngredients,
+    moveVariation,
     menuDefinition,
     changeMenuDefinition,
     isSubmitting,

@@ -1004,6 +1004,8 @@
   "product_special_requests_placeholder": "Besondere Anweisungen? (z.B. extra scharf, ohne Zwiebeln)",
   "add_ingredient": "Hinzufügen",
   "remove_ingredient": "Entfernen",
+  "move_row_up": "Zeile {{position}} nach oben verschieben",
+  "move_row_down": "Zeile {{position}} nach unten verschieben",
   "ingredient_included": "Enthalten",
   "ingredient_optional": "Optional",
   "customization_cost": "Anpassungen",

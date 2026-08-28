@@ -993,6 +993,8 @@
   "product_special_requests_placeholder": "¿Instrucciones especiales? (ej., extra picante, sin cebollas)",
   "add_ingredient": "Agregar",
   "remove_ingredient": "Quitar",
+  "move_row_up": "Mover la fila {{position}} hacia arriba",
+  "move_row_down": "Mover la fila {{position}} hacia abajo",
   "ingredient_included": "Incluido",
   "ingredient_optional": "Opcional",
   "customization_cost": "Personalizaciones",

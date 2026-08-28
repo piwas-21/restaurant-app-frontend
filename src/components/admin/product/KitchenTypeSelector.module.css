@@ -1,0 +1,92 @@
+/* Kitchen-type segmented radio group (slice S8, D7).
+
+   Tokens only — no raw hex, per CLAUDE.md §5.5. Every custom property used here carries a
+   [data-theme='dark'] override in `design-system/tokens/colors.css`, so this module needs no dark
+   block of its own; the control simply works in both themes, which the inline-styled version it
+   replaces never did.
+
+   The selected fill is --brand-primary with --text-on-primary written on it, the pairing every
+   solid brand button in the app already uses — and the one that is measured in BOTH themes
+   (#ffffff on #c00000 light, #1a1a1a on #e06666 dark). It is the pairing the
+   approved screen draws for the selected segment of `Kitchen printer`
+   (docs/stitch-screens/admin-menu/service_availability_detail_margherita_pizza). There is no
+   per-kitchen hue: the screen colours by selection. */
+
+.fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1rem;
+  min-inline-size: 0; /* a fieldset defaults to min-content, which stops the segments wrapping */
+}
+
+.legend {
+  padding: 0;
+  margin-block-end: 0.5rem;
+  font-weight: 500;
+}
+
+.segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.segment {
+  display: flex;
+}
+
+/* Visually hidden, still focusable and still in the accessibility tree. `display: none` or
+   `visibility: hidden` would drop the radio out of the tab order and take the group's semantics
+   with it. */
+.input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.375rem;
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.input:checked + .label {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+  font-weight: 600;
+}
+
+/* The ring the hidden input can no longer draw for itself. `:focus-visible`, not `:focus`, so a
+   pointer click does not leave a ring behind. */
+.input:focus-visible + .label {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.input:disabled + .label {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.error {
+  margin: 0.25rem 0 0;
+  color: var(--feedback-error-text);
+  font-size: 0.875rem;
+}

@@ -90,6 +90,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             variationFields={editor.variations.fields}
             appendVariation={editor.variations.append}
             removeVariation={editor.variations.remove}
+            moveVariation={editor.moveVariation}
           />
         </>
       ),
@@ -150,7 +151,9 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       collapsible: true,
       description: t('editor_section_advanced_description'),
       defaultCollapsed: true,
-      node: <ProductAdvancedFields register={form.register} />,
+      // `hasVariations` reads the LIVE field array, not `product.variations`: adding the first
+      // variation must reveal `hideBaseProduct` in the same session, before any save.
+      node: <ProductAdvancedFields register={form.register} hasVariations={editor.variations.fields.length > 0} />,
     },
   ];
 

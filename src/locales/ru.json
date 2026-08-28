@@ -940,6 +940,8 @@
   "product_special_requests_placeholder": "Любые особые инструкции? (например, очень острое, без лука)",
   "add_ingredient": "Добавить",
   "remove_ingredient": "Убрать",
+  "move_row_up": "Переместить строку {{position}} вверх",
+  "move_row_down": "Переместить строку {{position}} вниз",
   "ingredient_included": "Включено",
   "ingredient_optional": "Опционально",
   "customization_cost": "Настройки",

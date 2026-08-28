@@ -6,6 +6,8 @@ import { Languages, Plus, Trash2 } from 'lucide-react';
 import { ProductVariationsProps } from './types';
 import FieldError from './fields/FieldError';
 import { fieldAria, fieldMessage } from './fields/fieldAria';
+import RowMoveButtons from './RowMoveButtons';
+import { SIGNED_MONEY_INPUT_PROPS } from './numberInputProps';
 import Switch from '@/components/design-system/Switch';
 import { TENANT_CURRENCY } from '@/utils/currency';
 import { LANGUAGE_CODES } from '@/config/languageConfig';
@@ -30,9 +32,10 @@ import detailStyles from './ProductIngredientDetails.module.css';
  * whether or not an input is mounted — exactly how `variations[].id` has always round-tripped,
  * having never had an input at all. The round-trip test asserts both.
  *
- * DEVIATION: the screen draws a drag handle on every row. Reordering is not wired (it never was —
- * the old handle was decorative), and a control that does nothing is worse than none, so the handle
- * is not drawn. `displayOrder` still decides the order; a real drag is its own slice.
+ * DEVIATION, the same one the recipe table makes: the screen draws a DRAG handle on every row and
+ * this draws two buttons (`RowMoveButtons`, shared between the two tables, states why). Reordering
+ * is real as of #593 — `moveVariation` swaps the rows and RENUMBERS `displayOrder`, which is what
+ * every consumer sorts by and what no input on this screen exposes.
  */
 export const ProductVariations: React.FC<ProductVariationsProps> = ({
   register,
@@ -40,6 +43,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
   variationFields,
   appendVariation,
   removeVariation,
+  moveVariation,
 }) => {
   const { t } = useTranslation();
   const [openRow, setOpenRow] = useState<number | null>(null);
@@ -61,6 +65,9 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
         <table className={groupStyles.table}>
           <thead>
             <tr>
+              {/* Empty on purpose: the reorder column's names are on its two buttons, and a title
+                  for a pair of chevrons is noise in a table this narrow. */}
+              <th />
               <th scope="col">{t('variation_name')}</th>
               <th scope="col">{t('variation_description')}</th>
               <th scope="col">{t('price_modifier')}</th>
@@ -72,6 +79,12 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
             {variationFields.map((field, index) => (
               <React.Fragment key={field.id}>
                 <tr className={rowStyles.row}>
+                  <RowMoveButtons
+                    index={index}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < variationFields.length - 1}
+                    onMove={moveVariation}
+                  />
                   <td className={rowStyles.nameCell}>
                     <div className={rowStyles.nameField}>
                       <input
@@ -123,9 +136,11 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                   </td>
                   <td className={rowStyles.centerCell}>
                     <span className={rowStyles.priceField}>
+                      {/* SIGNED, not `MONEY_INPUT_PROPS`: a *Small* is priced below the base item,
+                          so this is legitimately negative and a `min="0"` would have the browser
+                          refuse a value the schema, the API and the menu all accept. */}
                       <input
-                        type="number"
-                        step="0.01"
+                        {...SIGNED_MONEY_INPUT_PROPS}
                         aria-label={t('price_modifier')}
                         {...register(`variations.${index}.priceModifier`)}
                         {...fieldAria(errors, `variations.${index}.priceModifier`)}
@@ -159,7 +174,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                 </tr>
                 {openRow === index && (
                   <tr>
-                    <td colSpan={5} className={detailStyles.detailCell} id={`variation-detail-${field.id}`}>
+                    <td colSpan={6} className={detailStyles.detailCell} id={`variation-detail-${field.id}`}>
                       <div className={detailStyles.translationsGrid}>
                         {LANGUAGE_CODES.map((language) => {
                           const languageName = t(`language_${language}`);

@@ -156,3 +156,36 @@
 .removeButton:hover {
   color: var(--error-color);
 }
+
+/* Reorder cell (#593, slice S8). Two stacked chevrons in the leading cell, where the approved
+   screens draw a drag handle — see the component's doc comment for why buttons and not drag.
+   Used by BOTH row tables: `ProductVariations` already imports this stylesheet, on purpose, because
+   the two tables sit in adjacent sections and the screens draw them identically.
+   Tokens only; every one used here carries a [data-theme='dark'] override in colors.css. */
+.moveCell {
+  padding: 0.25rem 0.25rem 0.25rem 0;
+  vertical-align: middle;
+  width: 1.75rem;
+}
+
+.moveButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.moveButton:hover:not(:disabled) {
+  color: var(--brand-primary);
+}
+
+/* Dimmed, NOT hidden. A control that vanishes at the ends of a list makes the row jump and leaves
+   the admin unsure whether reordering exists at all; `disabled` says "not from here". */
+.moveButton:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

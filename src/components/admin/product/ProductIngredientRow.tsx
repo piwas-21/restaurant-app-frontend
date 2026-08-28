@@ -9,6 +9,8 @@ import type { GlobalIngredientSummary } from '@/services/globalIngredientService
 import type { useGlobalIngredientSuggestions } from '@/hooks/admin/useGlobalIngredientSuggestions';
 import Switch from '@/components/design-system/Switch';
 import ProductIngredientDetails from './ProductIngredientDetails';
+import RowMoveButtons from './RowMoveButtons';
+import { INTEGER_INPUT_PROPS } from './numberInputProps';
 import styles from './ProductIngredientRow.module.css';
 
 /**
@@ -30,9 +32,9 @@ import styles from './ProductIngredientRow.module.css';
  *  - the screen has no control for `isActive`, which is a shipped field the admin can still set
  *    today. Deleting the only control for it would strand the value, so it moves into that same
  *    detail panel rather than disappearing;
- *  - the screen draws a drag handle. Reordering is not wired and never was — the old handle was
- *    `GripVertical` with no drag behind it — so it is not drawn. A control that does nothing is a
- *    promise the page cannot keep; real reordering is its own slice.
+ *  - the screen draws a drag handle. Reordering is REAL as of #593 (slice S8) and the leading cell
+ *    holds `Move up` / `Move down` instead — `RowMoveButtons`, shared with the variation table,
+ *    states why buttons and not drag.
  */
 interface ProductIngredientRowProps {
   ingredient: ProductIngredient;
@@ -41,6 +43,11 @@ interface ProductIngredientRowProps {
   productBasePrice: number;
   onPatch: (index: number, patch: Partial<ProductIngredient>) => void;
   onRemove: (index: number) => void;
+  /** Swap this row with its neighbour inside the group. -1 up, +1 down. */
+  onMove: (index: number, delta: -1 | 1) => void;
+  /** Is there a row above / below this one in this group? Drives the buttons' `disabled`. */
+  canMoveUp: boolean;
+  canMoveDown: boolean;
   onContentChange: (index: number, language: string, value: string) => void;
   typeahead: ReturnType<typeof useGlobalIngredientSuggestions>;
   onPickSuggestion: (index: number, suggestion: GlobalIngredientSummary) => void;
@@ -54,6 +61,9 @@ export default function ProductIngredientRow({
   productBasePrice,
   onPatch,
   onRemove,
+  onMove,
+  canMoveUp,
+  canMoveDown,
   onContentChange,
   typeahead,
   onPickSuggestion,
@@ -76,6 +86,7 @@ export default function ProductIngredientRow({
   return (
     <>
       <tr className={styles.row}>
+        <RowMoveButtons index={index} canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMove={onMove} />
         <td className={styles.nameCell}>
           <div className={styles.nameField}>
             <input
@@ -144,8 +155,11 @@ export default function ProductIngredientRow({
             <button type="button" aria-label={t('decrease_quantity')} onClick={() => setQuantity(quantity - 1)}>
               <Minus size={14} aria-hidden="true" />
             </button>
+            {/* The shared count convention (S8), with the floor raised: `INTEGER_INPUT_PROPS` says
+                `min="0"` and a max quantity of zero is not a row anyone can order, so `min` is
+                overridden AFTER the spread — the same ordering rule the convention file states. */}
             <input
-              type="number"
+              {...INTEGER_INPUT_PROPS}
               min="1"
               value={quantity}
               aria-label={t('max_quantity')}
@@ -159,6 +173,11 @@ export default function ProductIngredientRow({
         <td className={styles.priceCell}>
           <div className={styles.priceField}>
             <span className={styles.currency}>{TENANT_CURRENCY}</span>
+            {/* Deliberately NOT `MONEY_INPUT_PROPS`. This field accepts a comma as the decimal
+                separator — every locale this admin ships in writes 1,50 — and `type="number"`
+                would have the browser reject that keystroke before React ever sees it. It keeps
+                `inputMode="decimal"`, which is the half of the convention a phone actually reads;
+                the range the constant would add is enforced in `commitPrice` instead. */}
             <input
               type="text"
               inputMode="decimal"

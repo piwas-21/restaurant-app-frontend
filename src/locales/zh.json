@@ -1009,6 +1009,8 @@
   "product_special_requests_placeholder": "例如：加辣、不加洋葱等",
   "add_ingredient": "添加",
   "remove_ingredient": "移除",
+  "move_row_up": "将第 {{position}} 行上移",
+  "move_row_down": "将第 {{position}} 行下移",
   "ingredient_included": "已包含",
   "ingredient_optional": "可选",
   "customization_cost": "自定义费用",

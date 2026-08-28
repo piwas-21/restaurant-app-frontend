@@ -1004,6 +1004,8 @@
   "product_special_requests_placeholder": "Instructions spéciales? (par ex., extra épicé, sans oignons)",
   "add_ingredient": "Ajouter",
   "remove_ingredient": "Retirer",
+  "move_row_up": "Déplacer la ligne {{position}} vers le haut",
+  "move_row_down": "Déplacer la ligne {{position}} vers le bas",
   "ingredient_included": "Inclus",
   "ingredient_optional": "Optionnel",
   "customization_cost": "Personnalisations",

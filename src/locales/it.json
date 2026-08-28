@@ -999,6 +999,8 @@
   "product_special_requests_placeholder": "Istruzioni speciali? (es. extra piccante, senza cipolle)",
   "add_ingredient": "Aggiungi",
   "remove_ingredient": "Rimuovi",
+  "move_row_up": "Sposta la riga {{position}} in alto",
+  "move_row_down": "Sposta la riga {{position}} in basso",
   "ingredient_included": "Incluso",
   "ingredient_optional": "Opzionale",
   "customization_cost": "Personalizzazioni",

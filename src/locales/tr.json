@@ -1005,6 +1005,8 @@
   "product_special_requests_placeholder": "Özel talimatlarınız var mı? (örn., ekstra acı, soğansız)",
   "add_ingredient": "Ekle",
   "remove_ingredient": "Çıkar",
+  "move_row_up": "{{position}}. satırı yukarı taşı",
+  "move_row_down": "{{position}}. satırı aşağı taşı",
   "ingredient_included": "Dahil",
   "ingredient_optional": "İsteğe Bağlı",
   "customization_cost": "Özelleştirmeler",

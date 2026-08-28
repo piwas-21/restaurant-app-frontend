@@ -90,6 +90,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
             variationFields={editor.variations.fields}
             appendVariation={editor.variations.append}
             removeVariation={editor.variations.remove}
+            moveVariation={editor.moveVariation}
           />
         </>
       ),

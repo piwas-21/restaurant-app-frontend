@@ -129,6 +129,12 @@ export interface ProductVariationsProps {
   variationFields: any[];
   appendVariation: (variation: Variation) => void;
   removeVariation: (index: number) => void;
+  /**
+   * Move a row and renumber `displayOrder` (#593). It comes from the FORM hook, not from
+   * `useFieldArray.move`, because `move` alone carries each row's stored `displayOrder` with it —
+   * see `useProductEditorForm.moveVariation` for why that would silently undo the reorder.
+   */
+  moveVariation: (index: number, delta: -1 | 1) => void;
 }
 
 // Interface for the new suggested side items component

@@ -8,6 +8,7 @@ import type { IngredientKind, ProductIngredient } from '@/types/menu';
 import type { GlobalIngredientSummary } from '@/services/globalIngredientService';
 import { useGlobalIngredientSuggestions } from '@/hooks/admin/useGlobalIngredientSuggestions';
 import { DEFAULT_INGREDIENT_KIND, ingredientsOfKind, mergeIngredientGroup } from '@/utils/ingredientKind';
+import { moveIngredientInGroup } from '@/utils/ingredientOrder';
 import { nextTemporaryIngredientId, withLibraryProvenance } from './globalIngredientLibrary';
 import ProductIngredientRow from './ProductIngredientRow';
 import styles from './IngredientGroup.module.css';
@@ -101,6 +102,13 @@ export function ProductIngredientsManager({
       }),
     );
 
+  /**
+   * Reordering (#593). It goes through the WHOLE array rather than through `commit`, because the
+   * move renumbers `displayOrder` across both kinds — see `ingredientOrder.ts`. An impossible move
+   * returns the same array reference, so committing unconditionally cannot invent a dirty state.
+   */
+  const moveRow = (index: number, delta: -1 | 1) => onChange(moveIngredientInGroup(ingredients, kind, index, delta));
+
   const pickSuggestion = (index: number, suggestion: GlobalIngredientSummary) => {
     commit(rows.map((row, position) => (position === index ? withLibraryProvenance(row, suggestion) : row)));
     typeahead.setVisibleFor(index, false);
@@ -131,6 +139,9 @@ export function ProductIngredientsManager({
         <table className={styles.table}>
           <thead>
             <tr>
+              {/* The reorder column's header is empty by design: `Move up`/`Move down` are on the
+                  buttons themselves, and a visible column title for two chevrons is noise. */}
+              <th />
               <th scope="col">{t('name')}</th>
               <th scope="col">{t('ingredient_optional')}</th>
               <th scope="col">{t('max_quantity')}</th>
@@ -148,6 +159,9 @@ export function ProductIngredientsManager({
                 productBasePrice={productBasePrice}
                 onPatch={patchRow}
                 onRemove={(position) => commit(rows.filter((_, other) => other !== position))}
+                onMove={moveRow}
+                canMoveUp={index > 0}
+                canMoveDown={index < rows.length - 1}
                 onContentChange={changeContent}
                 typeahead={typeahead}
                 onPickSuggestion={pickSuggestion}

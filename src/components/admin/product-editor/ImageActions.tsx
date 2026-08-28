@@ -4,6 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '@/app/styles/AdminPage.module.css';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
+import { INTEGER_INPUT_PROPS } from '@/components/admin/product/numberInputProps';
 
 interface ImageActionsProps {
   // readonly: S6759 — component props are never mutated.
@@ -48,9 +49,11 @@ export default function ImageActions({
         </button>
         <div className={`${styles.formGroup} ${detailsStyles.imageActionGroup}`}>
           <label htmlFor="sortOrderInput">{t('sort_order')}</label>
+          {/* The shared count convention (S8): a sort order is a whole number that cannot be
+              negative, and a bare `type="number"` offered a phone the wrong keyboard. */}
           <input
             id="sortOrderInput"
-            type="number"
+            {...INTEGER_INPUT_PROPS}
             value={sortOrder}
             disabled={disabled}
             onChange={onSortOrderChange}

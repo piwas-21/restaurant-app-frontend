@@ -998,6 +998,8 @@
   "product_special_requests_placeholder": "هل لديك تعليمات خاصة؟ (مثلاً، حار جداً، بدون بصل)",
   "add_ingredient": "إضافة",
   "remove_ingredient": "إزالة",
+  "move_row_up": "نقل الصف {{position}} لأعلى",
+  "move_row_down": "نقل الصف {{position}} لأسفل",
   "ingredient_included": "مشمول",
   "ingredient_optional": "اختياري",
   "customization_cost": "التخصيصات",

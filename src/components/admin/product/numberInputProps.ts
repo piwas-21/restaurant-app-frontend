@@ -20,6 +20,17 @@
  *
  * `inputMode` is the half that is easy to forget and the half a phone actually reads: `decimal`
  * puts a decimal separator on the keypad, `numeric` does not offer one at all.
+ *
+ * The spread goes AFTER `register()` wherever the two could disagree, and a field that needs a
+ * different bound overrides it after the spread — `ProductIngredientRow`'s quantity does exactly
+ * that, because a max quantity of 0 is not a row anyone can order.
+ *
+ * Every number input in the editor now takes one of the three, across both panels: the item's
+ * price and prep time, the bundle panel's copies of the same two, a variation's `priceModifier`,
+ * an ingredient's max quantity, the three sauce-group counts and the image gallery's sort order.
+ * ONE input is deliberately outside it — the ingredient's extra price, which stays `type="text"`
+ * with `inputMode="decimal"` because it accepts a comma as the decimal separator and `type="number"`
+ * would have the browser swallow that keystroke. Its reason is stated at the input itself.
  */
 
 /** Money that cannot be negative — a price. */

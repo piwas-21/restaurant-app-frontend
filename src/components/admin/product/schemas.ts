@@ -234,3 +234,20 @@ export type QuickAddItemFormData = z.infer<typeof quickAddItemSchema>;
 export type EditFormData = z.infer<typeof editProductSchema>;
 export type MenuBundleFormData = z.infer<typeof createMenuBundleSchema>;
 export type EditMenuBundleFormData = z.infer<typeof editMenuBundleSchema>;
+
+/**
+ * The ONE resolver the unified editor uses, chosen by kind + mode and never swapped.
+ *
+ * The item schema requires `categoryIds.min(1)` + `primaryCategoryId` (a bundle has neither —
+ * `MenuBundleDto` returns no categories); the bundle schema requires a `menuDefinition`; the create
+ * schemas add the stricter server bounds a fresh row must meet.
+ *
+ * It lives beside the four schemas rather than in the hook because the CHOICE is schema knowledge,
+ * and because four structurally-different schemas mean the ternary widens past `zodResolver`'s
+ * overloads with no single shape for `useForm` to infer — so the caller casts once, here documented
+ * once, instead of spreading `as never` across four branches.
+ */
+export function pickEditorSchema(isBundle: boolean, mode: 'create' | 'edit') {
+  if (isBundle) return mode === 'create' ? createMenuBundleSchema : editMenuBundleSchema;
+  return mode === 'create' ? createProductFormSchema : editProductSchema;
+}

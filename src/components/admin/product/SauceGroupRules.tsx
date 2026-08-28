@@ -5,6 +5,7 @@ import { useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import type { Control, FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import FormField from '@/components/design-system/FormField';
+import { INTEGER_INPUT_PROPS } from './numberInputProps';
 import styles from './SauceGroupRules.module.css';
 
 /**
@@ -64,19 +65,20 @@ export default function SauceGroupRules({ register, control, errors }: SauceGrou
       <legend className={styles.legend}>{t('sauce_rules_title')}</legend>
       <div className={styles.fields}>
         <FormField label={t('sauce_min_label')} error={errorOf('sauceMin')} className={styles.field}>
-          <input type="number" min="0" step="1" {...register('sauceMin', { valueAsNumber: true })} />
+          {/* The shared count convention (S8). It is spread BEFORE `register` here only because
+              `register` contributes no input attributes these three name; the convention's rule is
+              that whichever wins must be the deliberate one, and there is no overlap. */}
+          <input {...INTEGER_INPUT_PROPS} {...register('sauceMin', { valueAsNumber: true })} />
         </FormField>
         <FormField label={t('sauce_max_label')} error={errorOf('sauceMax')} className={styles.field}>
           <input
-            type="number"
-            min="0"
-            step="1"
+            {...INTEGER_INPUT_PROPS}
             placeholder={t('sauce_max_placeholder')}
             {...register('sauceMax', { setValueAs: asOptionalCount })}
           />
         </FormField>
         <FormField label={t('sauce_included_free_label')} error={errorOf('sauceIncludedFree')} className={styles.field}>
-          <input type="number" min="0" step="1" {...register('sauceIncludedFree', { valueAsNumber: true })} />
+          <input {...INTEGER_INPUT_PROPS} {...register('sauceIncludedFree', { valueAsNumber: true })} />
         </FormField>
       </div>
       <p className={styles.hint}>{hint}</p>

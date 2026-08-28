@@ -142,6 +142,13 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
    * empty card named "Media" would be a promise the API cannot keep. In practice an item is always
    * saved by the time it reaches this page (D3's quick-add POSTs first), so this is the guard for
    * a state the routes no longer produce, not a second layout.
+   *
+   * ⚠️ This filter is legitimate ONLY because the state is unreachable. **Do not reach for it on a
+   * path a user can actually take** — D11 says a section that has nothing to show is rendered
+   * EMPTY WITH A REASON, not removed: a section that vanishes takes its entry out of the sticky
+   * nav too, so the admin reads a shorter page and cannot tell "no photos yet" from "photos are
+   * not a thing here". S6 owns Media's real empty state (the bundle case is exactly it) and must
+   * render the card and say why, not extend this line.
    */
   return product.id ? sections : sections.filter((section) => section.id !== SECTION_IDS.media);
 }

@@ -567,6 +567,8 @@
   "standard": "标准",
   "ingredients": "配料",
   "allergens": "过敏原",
+  "allergens_none": "无",
+  "allergens_clear_all": "全部清除",
   "allergens_more_title": "另有 {{count}} 种过敏原：{{list}}",
   "variations": "规格",
   "preparation_time": "准备时间",

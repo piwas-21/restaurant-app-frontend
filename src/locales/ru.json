@@ -499,6 +499,8 @@
   "standard": "Стандарт",
   "ingredients": "Ингредиенты",
   "allergens": "Аллергены",
+  "allergens_none": "Нет",
+  "allergens_clear_all": "Очистить все",
   "allergens_more_title": "+{{count}} других аллергенов: {{list}}",
   "variations": "Вариации",
   "preparation_time": "Время приготовления",

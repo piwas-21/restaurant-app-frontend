@@ -76,9 +76,15 @@ export default function GlobalIngredientPickerRow({
           {archived ? (
             <span className={styles.archivedName}>{ingredient.defaultName}</span>
           ) : (
+            /* An already-added row is drawn TICKED and dimmed, not unticked and disabled (review
+               gap G23, frontend #581). Unticked read as "not selected" — the opposite of what is
+               true — and the italic `already added` in the USAGE cell had to overturn it. Ticked
+               says "this one is on the item", which is also what a screen reader then announces:
+               checked, dimmed. It carries no selection: `alreadyAdded` rows are excluded from the
+               modal's own state, which is what the Add button counts. */
             <CheckboxField
               label={ingredient.defaultName}
-              checked={checked}
+              checked={alreadyAdded || checked}
               disabled={alreadyAdded}
               onChange={onToggle ?? (() => {})}
             />

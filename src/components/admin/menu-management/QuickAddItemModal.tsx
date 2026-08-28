@@ -7,6 +7,9 @@ import FormField from '@/components/design-system/FormField';
 import { useQuickAddItem } from '@/hooks/admin/useQuickAddItem';
 import { TENANT_CURRENCY } from '@/utils/currency';
 import styles from './QuickAddItemModal.module.css';
+// The currency affix is the full editor's, not a second copy of it — see the note in
+// QuickAddItemModal.module.css where the three classes used to live.
+import fieldStyles from '@/components/admin/product/fields/editorFields.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 interface QuickAddItemModalProps {
@@ -96,9 +99,9 @@ export default function QuickAddItemModal({ isOpen, onClose, onCreated, onAddedA
                 hidden from everyone else leaves a screen reader announcing a bare "Price". The
                 field is now heard as "Price … CHF", the same wording the full editor's base price
                 got in S7. */}
-            <span className={styles.priceBox}>
+            <span className={fieldStyles.affixBox}>
               <input
-                className={`${styles.input} ${styles.priceInput}`}
+                className={`${styles.input} ${fieldStyles.affixInput}`}
                 type="number"
                 step="0.01"
                 min="0"
@@ -106,7 +109,7 @@ export default function QuickAddItemModal({ isOpen, onClose, onCreated, onAddedA
                 aria-describedby={CURRENCY_ID}
                 {...form.register('basePrice')}
               />
-              <span id={CURRENCY_ID} className={styles.currency}>
+              <span id={CURRENCY_ID} className={fieldStyles.affix}>
                 {TENANT_CURRENCY}
               </span>
             </span>

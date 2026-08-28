@@ -25,6 +25,8 @@ function makeResult(overrides: Partial<CustomizationResult> = {}): Customization
     variationName: undefined,
     addedIngredients: [],
     removedIngredients: [],
+    selectedIngredientIds: [],
+    ingredientQuantities: {},
     sideItems: [],
     specialInstructions: undefined,
     finalPrice: 12,

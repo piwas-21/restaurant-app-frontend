@@ -11,7 +11,7 @@ import { getProducts } from '@/services/menuService';
 import { CreateOrderItemDto } from '@/types/order';
 import { getErrorMessage } from '@/utils/apiClient';
 import { CustomizationResult } from '../ProductCustomization';
-import { OrderItem, mapMenuProducts, addCustomizedItem } from './orderItems';
+import { OrderItem, mapMenuProducts, addCustomizedItem, buildOrderItems } from './orderItems';
 
 interface UseTakeOrderParams {
   tableNumber: string;
@@ -136,14 +136,8 @@ export function useTakeOrder({ tableNumber, onClose, onOrderCreated }: UseTakeOr
       setIsSubmitting(true);
       setError(null);
 
-      const items: CreateOrderItemDto[] = orderItems.map((item) => ({
-        productId: item.product.id,
-        productVariationId: item.variationId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        specialInstructions: item.notes,
-        // Note: addedIngredients and sideItems would need backend support
-      }));
+      // What the waiter CHOSE, not just what they rang up — see `buildOrderItems` (#595).
+      const items: CreateOrderItemDto[] = buildOrderItems(orderItems);
 
       await createServerOrder(
         Number.parseInt(tableNumber, 10),

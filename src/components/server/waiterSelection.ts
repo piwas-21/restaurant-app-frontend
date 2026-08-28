@@ -116,6 +116,11 @@ export function buildCustomizationResult(args: BuildResultArgs): CustomizationRe
     variationName: args.variationName,
     addedIngredients: added,
     removedIngredients: removed,
+    // COPIED out of the live sheet state, not aliased: the hook holds one `Set`/object pair and
+    // mutates it on every stepper press, so a shared reference would let a later press rewrite an
+    // order line the waiter already confirmed.
+    selectedIngredientIds: [...args.selection.selectedIngredientIds],
+    ingredientQuantities: { ...args.selection.ingredientQuantities },
     sideItems: Array.from(args.selectedSideItems.entries()).map(([id, quantity]) => {
       const side = args.sideItems.find((s) => s.id === id);
       return { id, name: side?.name || '', quantity, price: side?.price || 0 };

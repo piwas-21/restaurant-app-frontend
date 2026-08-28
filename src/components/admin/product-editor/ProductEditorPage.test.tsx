@@ -138,6 +138,55 @@ describe('ProductEditorPage — type is a derived badge, not a chooser', () => {
   });
 });
 
+/*
+  Header chrome (frontend #574, gap G1). The approved screens draw `← Menu`, TWO badges
+  (`[Item] [Active]`) and a `⋯` holding Delete; the shipped header had the type badge and an
+  exposed red Delete beside Save.
+*/
+describe('ProductEditorPage — the live badge and the ⋯', () => {
+  it('shows the item as Active, and FOLLOWS the rail switch rather than the loaded product', async () => {
+    const { container } = await renderEditor(item, false);
+
+    expect(screen.getByTestId('product-active-badge')).toHaveTextContent('active');
+
+    // The switch that changes this lives in the rail, two columns from the badge. A badge read
+    // from `product.isActive` would keep saying "active" until the next save — i.e. contradict the
+    // control the admin just used.
+    // No `act()` wrapper: `fireEvent` already flushes its own updates, and a second one is Sonar
+    // S8980. The badge re-render it drives is synchronous — `form.watch` is a subscription, not a
+    // fetch — so the assertion below reads the settled value.
+    fireEvent.click(container.querySelector('#product-active') as HTMLInputElement);
+    expect(screen.getByTestId('product-active-badge')).toHaveTextContent('inactive');
+  });
+
+  it('shows no live badge on the create route, where nothing is live yet', async () => {
+    await renderEditor(emptyProductDetails(false), false, 'create');
+
+    expect(screen.queryByTestId('product-active-badge')).not.toBeInTheDocument();
+  });
+
+  it('puts Delete in the ⋯ menu instead of beside Save, and guards the back link', async () => {
+    await renderEditor(item, false);
+
+    // Not merely renamed — the destructive control is not in the document until the menu opens.
+    expect(screen.queryByRole('button', { name: 'delete_product' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'editor_more_actions' }));
+    expect(screen.getByRole('menuitem', { name: 'delete_product' })).toBeInTheDocument();
+  });
+
+  it('routes the back link through the unsaved-changes guard', async () => {
+    const { nameInput } = await renderEditor(item, false);
+    fireEvent.change(nameInput, { target: { value: 'Margherita Bianca' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'editor_back_to_menu_label' }));
+
+    // The guard, not the navigation: leaving with pending edits has to be confirmed. `onBack` is
+    // asserted un-called by the discard-modal suite; here the point is that the NEW link is gated
+    // by the same handler the save bar's Back already used.
+    expect(screen.getByText('discard_unsaved_changes_message')).toBeInTheDocument();
+  });
+});
+
 describe('ProductEditorPage — the panels each kind can actually support', () => {
   // Not cosmetic: MenuBundleDto returns no categories/variations/ingredients, so these
   // controls would have nothing to seed from and their values would be invented.

@@ -35,6 +35,8 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
   return [
     {
       id: SECTION_IDS.basics,
+      // No heading and no description: `BundlePanel` brings its own `<h2>`, and a description under
+      // a title that is not there would float. The bundle's five-section nav is #580, not #573.
       label: t('details'),
       node: (
         <BundlePanel
@@ -51,6 +53,7 @@ function bundleSections(context: EditorSectionsContext): EditorSection[] {
       id: SECTION_IDS.service,
       label: t('editor_section_service'),
       showHeading: true,
+      description: t('editor_section_service_description'),
       node: <EditorOrderTypesField context={context} />,
     },
   ];

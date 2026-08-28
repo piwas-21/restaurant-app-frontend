@@ -74,74 +74,10 @@
   display: none;
 }
 
-.section {
-  margin-bottom: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border-light);
-  scroll-margin-top: 1.5rem;
-}
-
-.section:first-of-type {
-  border-top: none;
-  padding-top: 0;
-}
-
-/* The nav moves focus here after a jump; the outline would otherwise frame the whole page. */
-.section:focus {
-  outline: none;
-}
-
-.section:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 4px;
-}
-
-.sectionHeading {
-  margin: 0 0 1rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
 .rail {
   grid-column: 3;
   grid-row: 1;
   min-width: 0;
-}
-
-/* The `Advanced` fold (D1): a heading that is a button, so the section keeps its landmark name. */
-.collapseToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-
-.collapseToggle:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
-}
-
-.chevron,
-.chevronOpen {
-  color: var(--text-secondary);
-  transition: transform 0.15s ease;
-}
-
-.chevronOpen {
-  transform: rotate(180deg);
-}
-
-/* Same rule as `.panel[hidden]`: hidden, never unmounted, so `display` must not beat it. */
-.sectionBody[hidden] {
-  display: none;
 }
 
 /* The rail hides with the item tab; it holds registered fields, so it may not unmount. */

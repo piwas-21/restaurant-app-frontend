@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import StatusBadge from '@/components/design-system/StatusBadge';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
@@ -10,8 +9,8 @@ import ProductStatusFields from '@/components/admin/product/fields/ProductStatus
 import EditorShell from './EditorShell';
 import EditorSideRail from './EditorSideRail';
 import { buildEditorSections, buildTranslationsPanel } from './editorSections';
+import { productHeaderBadges, productHeaderMenuActions } from './productEditorHeader';
 import styles from './ProductEditorPage.module.css';
-import adminStyles from '@/app/styles/AdminPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 
 // The one Save lives in the sticky bar, which is a SIBLING of the form (it spans nav, main and
@@ -86,23 +85,20 @@ export default function ProductEditorPage({
 
   const context = { editor, t, product, isCreate, isBundle };
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
+  // `watch` so the header badge follows the rail's switch live. A bundle's flag is registered by
+  // `BundlePanel` under the same name, so one read serves both.
+  const isLive = Boolean(form.watch('isActive'));
 
   return (
     <>
       <EditorShell
         title={pageTitle}
-        headerActions={
-          <div className={adminStyles.pageActions}>
-            <span data-testid="product-type-badge">
-              <StatusBadge tone={isBundle ? 'info' : 'neutral'}>{typeLabel}</StatusBadge>
-            </span>
-            {!isCreate && onDelete && (
-              <button type="button" className={`${adminStyles.adminButton} ${adminStyles.delete}`} onClick={onDelete}>
-                {isBundle ? t('delete_menu_bundle') : t('delete_product')}
-              </button>
-            )}
-          </div>
-        }
+        backLabel={t('editor_back_to_menu')}
+        backAriaLabel={t('editor_back_to_menu_label')}
+        onBack={handleBack}
+        headerBadges={productHeaderBadges({ t, isBundle, isCreate, typeLabel, isLive })}
+        headerMenuActions={productHeaderMenuActions({ t, isBundle, isCreate, onDelete })}
+        headerMenuLabel={t('editor_more_actions')}
         tabs={[
           { id: TAB_ITEM, label: t('item') },
           { id: TAB_TRANSLATIONS, label: t('editor_tab_translations') },

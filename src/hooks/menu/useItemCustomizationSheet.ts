@@ -128,6 +128,7 @@ export function useItemCustomizationSheet({ onBundleDetected, onAdded }: UseItem
     ingredients: product?.detailedIngredients,
     selectedIngredientIds: selectedIngredients,
     ingredientQuantities,
+    sauceIncludedFree: product?.sauceIncludedFree ?? 0,
     sides: product?.suggestedSideItems,
     selectedSides: selectedSideItems,
   });

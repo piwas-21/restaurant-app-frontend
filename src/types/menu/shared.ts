@@ -5,6 +5,7 @@
  */
 
 import type { OrderType } from '@/types/order';
+import type { IngredientKind } from './sauce';
 
 export interface MenuItemContent {
   name: string;
@@ -36,6 +37,8 @@ export interface ProductIngredient {
   isIncludedInBasePrice?: boolean; // If true, price is included in base and deducted when deselected
   isActive: boolean;
   displayOrder: number;
+  /** Ingredient or sauce (S5). See `IngredientKind` — absent means `'ingredient'`. */
+  kind?: IngredientKind;
   // Multilingual support
   content?: Record<
     string,
@@ -56,6 +59,8 @@ export interface DetailedIngredient {
   isActive: boolean;
   displayOrder: number;
   maxQuantity: number;
+  /** Ingredient or sauce (S5) — `MenuBundleIngredientDto.kind`. Absent means `'ingredient'`. */
+  kind?: IngredientKind;
   content?: Record<string, { name: string; description?: string }>;
 }
 

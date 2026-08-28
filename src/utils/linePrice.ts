@@ -10,6 +10,9 @@
  * live "Add • CHF X" the customer sees matches what the basket will charge.
  */
 
+import { sauceWaiverAmount } from './sauceGroup';
+import type { IngredientKind } from '@/types/menu/sauce';
+
 /** The minimal ingredient shape pricing needs — satisfied by both `ProductIngredient` (optional
  *  `isIncludedInBasePrice`/`maxQuantity`) and `DetailedIngredient` (required). */
 export interface PriceableIngredient {
@@ -19,6 +22,10 @@ export interface PriceableIngredient {
   isActive: boolean;
   isIncludedInBasePrice?: boolean;
   maxQuantity?: number;
+  /** Sauce rows are priced by the same per-row rule and THEN get the group allowance (S6). */
+  kind?: IngredientKind;
+  /** Only read to tie-break the free-sauce allowance deterministically (S6). */
+  displayOrder?: number;
 }
 
 export interface PriceableVariation {
@@ -46,11 +53,17 @@ const toIdSet = (ids: Iterable<string>): Set<string> => (ids instanceof Set ? id
  *  - not-included: selected → +price·qty;
  *  - quantity is clamped to [0, maxQuantity] (a missing `maxQuantity` defaults to 1) — the lower
  *    bound guards against a tampered negative quantity reducing the price.
+ *
+ * Then, and only then, the product's free-sauce allowance is taken off (S6 / D10): the per-row rule
+ * above runs UNCHANGED for sauce rows too, and `sauceWaiverAmount` removes the `sauceIncludedFree`
+ * most expensive charges it produced. `sauceIncludedFree: 0` — every product until an admin sets
+ * one — subtracts nothing, so this function's answer is byte-identical to what it was before S6.
  */
 export function ingredientCustomizationPrice(
   ingredients: readonly PriceableIngredient[] | undefined,
   selectedIngredientIds: Iterable<string>,
   ingredientQuantities?: Record<string, number>,
+  sauceIncludedFree = 0,
 ): number {
   if (!ingredients) return 0;
 
@@ -76,7 +89,7 @@ export function ingredientCustomizationPrice(
     }
   }
 
-  return delta;
+  return delta - sauceWaiverAmount(ingredients, selected, ingredientQuantities, sauceIncludedFree);
 }
 
 /** Unit price (before the line quantity multiplier) of a single product: base + additive variation
@@ -88,6 +101,8 @@ export function productLineUnitPrice(params: {
   ingredients?: readonly PriceableIngredient[];
   selectedIngredientIds: Iterable<string>;
   ingredientQuantities?: Record<string, number>;
+  /** The product's free-sauce allowance (`ProductDto.sauceIncludedFree`); 0 = today's pricing. */
+  sauceIncludedFree?: number;
   sides?: readonly PriceableSide[];
   selectedSides?: readonly SelectedSide[];
 }): number {
@@ -101,6 +116,7 @@ export function productLineUnitPrice(params: {
     params.ingredients,
     params.selectedIngredientIds,
     params.ingredientQuantities,
+    params.sauceIncludedFree ?? 0,
   );
 
   const sidesCost = (params.selectedSides ?? []).reduce((sum, selected) => {
@@ -124,6 +140,12 @@ export interface PriceableBundleSectionItem {
   productId: string;
   additionalPrice: number;
   detailedIngredients?: readonly PriceableIngredient[];
+  /**
+   * The OPTION PRODUCT's own free-sauce allowance (S6 decision, mirrored by the server, which
+   * prices a bundle child with `childProduct.SauceIncludedFree`): the option IS that product, and
+   * the parent bundle owns no sauce rows for an allowance of its own to apply to.
+   */
+  sauceIncludedFree?: number;
 }
 
 export interface PriceableBundleSection {
@@ -152,6 +174,7 @@ export function bundleLineUnitPrice(params: {
         item.detailedIngredients,
         option.selectedIngredients ?? [],
         option.ingredientQuantities,
+        item.sauceIncludedFree ?? 0,
       ) * option.quantity;
   }
 

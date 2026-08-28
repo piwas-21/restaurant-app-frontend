@@ -200,6 +200,9 @@ module.exports = {
     // Track F, F1c — the client half of the server's allowlist (`src/utils` is not collected
     // wholesale either).
     'src/utils/imageUploadRules.ts',
+    // S6 — the free-sauce allocation. `src/utils` is not collected wholesale, and a
+    // coverageThreshold row for an uncollected file silently no-ops.
+    'src/utils/sauceGroup.ts',
     'src/utils/basketMutationError.ts',
     'src/hooks/cart/useCartItemMutations.ts',
     'src/hooks/cart/cartFailureReporting.ts',
@@ -1749,6 +1752,19 @@ module.exports = {
       branches: 90,
       functions: 79,
       lines: 85,
+    },
+    // ── S6 — the guest sauces group. ─────────────────────────────────────────────────────────────
+    // Pinned at 100% on both, and both rows are load-bearing rather than ceremonial: `sauceGroup.ts`
+    // decides which chosen sauces a product's free allowance pays for, so an uncovered branch there
+    // is money nobody checked, and the component is the only place that turns that allocation into
+    // what the guest reads ("Included" / "+CHF x" / "Max n reached"). A branch that goes uncovered
+    // in either is a way for the badge and the total to disagree.
+    './src/utils/sauceGroup.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+    './src/components/menu/customization/SauceGroupSection.tsx': {
+      statements: 100,
+      branches: 100,
+      functions: 100,
+      lines: 100,
     },
   },
 };

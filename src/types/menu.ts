@@ -6,6 +6,7 @@
  */
 
 export * from './menu/availability';
+export * from './menu/sauce';
 export * from './menu/shared';
 export * from './menu/bundle';
 export * from './menu/menuItem';

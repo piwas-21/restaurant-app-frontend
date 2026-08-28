@@ -105,7 +105,13 @@ export default function ItemCustomizationSheet({
         </button>
       </div>
       <button type="button" className={styles.addButton} onClick={addToCart} disabled={isSubmitting}>
-        {t('add_to_order')} • {formatPlainCurrency(linePrice.total)}
+        {/* The running total is ANNOUNCED (S6): ticking a paid sauce used to change this number in
+            silence, which is the one piece of the customization a screen-reader guest cannot see
+            coming. `aria-atomic` so the amount is read with its label, not as a bare number. */}
+        {t('add_to_order')} •{' '}
+        <span aria-live="polite" aria-atomic="true">
+          {formatPlainCurrency(linePrice.total)}
+        </span>
       </button>
     </div>
   );

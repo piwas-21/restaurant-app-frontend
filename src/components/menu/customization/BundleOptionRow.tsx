@@ -106,6 +106,7 @@ export default function BundleOptionRow({
               })
             }
             currentLanguage={currentLanguage}
+            sauceGroup={item}
           />
           <SpecialRequestSection
             specialInstructions={option?.specialInstructions ?? ''}

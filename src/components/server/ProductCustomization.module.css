@@ -1,94 +1,18 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-  padding: 1rem;
-  animation: fadeIn 0.2s ease;
-}
+/*
+ * The waiter customization sheet's own styles.
+ *
+ * S7 moved the modal CHROME out of here: the overlay, the dialog box, the header, the close button
+ * and the scrolling body all belong to `BaseModal` now (CLAUDE.md §5 rule 2), and the chip rules
+ * moved to `WaiterExtrasSection.module.css`. This file is over the §4 200-line limit and baselined,
+ * so it may only shrink — which is what those two moves are for.
+ */
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modal {
-  background-color: var(--card-background);
-  border-radius: 16px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  animation: slideUp 0.3s ease;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.25rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark, #b8860b) 100%);
-  color: var(--button-text-color, #fff);
-}
-
-.productInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.productName {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
+/* The base price, now a line at the top of the body rather than a subtitle in the header. */
 .basePrice {
+  display: block;
+  margin: 0 0 1rem 0;
   font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-.closeButton {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: var(--button-text-color, #fff);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.closeButton:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem 1.25rem;
+  color: var(--text-secondary);
 }
 
 .loading,
@@ -208,42 +132,6 @@
   gap: 0.5rem;
 }
 
-.ingredientButton {
-  padding: 0.5rem 0.875rem;
-  background-color: var(--background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: var(--text-color);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.ingredientButton:hover {
-  border-color: var(--text-secondary);
-}
-
-.ingredientButton.excluded {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-  color: #ef4444;
-  text-decoration: line-through;
-}
-
-.ingredientButton.optional {
-  border-style: dashed;
-}
-
-.ingredientButton.added {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
-  border-style: solid;
-  color: #10b981;
-}
-
 .ingredientTag {
   padding: 0.4rem 0.75rem;
   background-color: var(--background-color);
@@ -255,16 +143,6 @@
 
 .excludeIcon {
   font-weight: bold;
-}
-
-.addIcon {
-  font-weight: bold;
-}
-
-.ingredientPrice {
-  font-size: 0.7rem;
-  opacity: 0.8;
-  margin-inline-start: 0.25rem;
 }
 
 /* Side Items */
@@ -332,14 +210,12 @@
   border-color: var(--primary-color);
 }
 
-/* Footer */
-.footer {
+/* Footer. BaseModal owns the padding, the border and the background; this is only the row. */
+.footerRow {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--card-background);
+  inline-size: 100%;
 }
 
 .quantityControl {

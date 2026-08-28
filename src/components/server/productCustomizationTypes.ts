@@ -16,6 +16,17 @@ export interface DetailedIngredient {
   isActive: boolean;
   isOptional: boolean;
   price?: number;
+  /**
+   * The two fields the price math reads and this shape used to drop (S7).
+   *
+   * `ProductIngredientDto` has always sent both, and `GET /api/Products/{id}` is the very same
+   * request the guest sheet makes — so the waiter sheet was not missing DATA, it was throwing it
+   * away at the type boundary and then charging for an ingredient the base price had already
+   * bought. Optional here rather than required because a pre-S7 fixture may omit them, and the
+   * defaults (`isIncludedInBasePrice` false, `maxQuantity` 1) are the price math's own.
+   */
+  isIncludedInBasePrice?: boolean;
+  maxQuantity?: number;
   content?: LocalizedContent;
 }
 
@@ -43,7 +54,17 @@ export interface CustomizationResult {
   productId: string;
   variationId?: string;
   variationName?: string;
-  addedIngredients: Array<{ id: string; name: string; price: number }>;
+  /**
+   * What the waiter ADDED on top of the base recipe, with how many of it. `quantity` arrived with
+   * S7's stepper; before it the field could only ever have meant 1.
+   */
+  addedIngredients: Array<{ id: string; name: string; price: number; quantity: number }>;
+  /**
+   * What the waiter took OFF the base recipe. New in S7 — until the sheet opened on the base
+   * recipe there was no way to express "no onion" here at all, which is why this state has no
+   * history to be compatible with.
+   */
+  removedIngredients: Array<{ id: string; name: string; price: number; quantity: number }>;
   sideItems: Array<{ id: string; name: string; quantity: number; price: number }>;
   specialInstructions?: string;
   finalPrice: number;

@@ -239,6 +239,12 @@ module.exports = {
     'src/hooks/admin/useEditorCategories.ts',
     'src/components/server/useProductCustomizationDetails.ts',
     'src/components/server/useProductCustomizationSheet.ts',
+    // S7 — the waiter sheet's half of the ONE price math. Neither `src/utils` nor a `.ts`
+    // colocated under `src/components` is collected wholesale, so without these three rows the
+    // cross-sheet property test could be deleted with a fully green gate.
+    'src/utils/priceableIngredient.ts',
+    'src/components/server/waiterSelection.ts',
+    'src/components/server/useWaiterIngredientSelection.ts',
     // The smart-skip checkout decision. `src/lib` is not collected wholesale, so without this row
     // the suite that pins the per-order-type profile floor is deletable with a fully green gate.
     'src/lib/checkout/profileCompleteness.ts',
@@ -1709,11 +1715,40 @@ module.exports = {
     // Lower on purpose: this file is the WHOLE sheet (price, extras, side items, confirm) and this
     // change's tests drive the load path and the variation rules. The row guards the seed-selection
     // effect — the one that re-applies F2's pre-selection after a retry — not the file.
+    // S7 ratcheted this row from {61, 49, 51, 70}. The sheet's own price arithmetic is gone, and
+    // what replaced it — the base-recipe seed, the stepper, the removal — is driven end to end by
+    // `__tests__/ProductCustomization.pricing.test.tsx` and by the cross-sheet property test. At
+    // the old floor every one of those suites could have been deleted with a green gate.
+    // Measured with CI's own command (`npx jest --ci --coverage`), pinned at actual − ~1pt.
     './src/components/server/useProductCustomizationSheet.ts': {
-      statements: 61,
-      branches: 49,
-      functions: 51,
-      lines: 70,
+      statements: 99,
+      branches: 85,
+      functions: 99,
+      lines: 99,
+    },
+    // ── S7 — the waiter sheet's half of the ONE price math. ─────────────────────────────────────
+    // These four are pinned high because every way they can be wrong is a WRONG PRICE that throws
+    // nothing and logs nothing: the sheet simply charges a different amount from the guest sheet,
+    // which is the defect the slice exists to end. `priceableIngredient` in particular is the
+    // input contract — dropping a field there is exactly how the divergence happened.
+    './src/utils/priceableIngredient.ts': { statements: 99, branches: 99, functions: 99, lines: 99 },
+    './src/components/server/waiterSelection.ts': { statements: 99, branches: 88, functions: 99, lines: 99 },
+    './src/components/server/useWaiterIngredientSelection.ts': {
+      statements: 99,
+      branches: 79,
+      functions: 99,
+      lines: 99,
+    },
+    // The remaining branch is the `ingredientQuantities[id] ?? 1` fallback, unreachable through the
+    // UI: a selected ingredient always carries a recorded quantity.
+    './src/components/server/WaiterExtrasSection.tsx': { statements: 99, branches: 95, functions: 99, lines: 99 },
+    // The render. Lower because the file is the whole sheet and the tests drive its money and its
+    // dialog, not its allergen block; the row guards those, not the file.
+    './src/components/server/ProductCustomization.tsx': {
+      statements: 85,
+      branches: 90,
+      functions: 79,
+      lines: 85,
     },
   },
 };

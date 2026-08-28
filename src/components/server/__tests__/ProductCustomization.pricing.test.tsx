@@ -123,31 +123,19 @@ describe('S7 — waiter sheet totals', () => {
     await waitFor(() => expect(totalText()).toContain('CHF 14.00'));
   });
 
-  it('charges a plain optional extra at its price', async () => {
+  // Three prices, one shape: tap a single chip and read the footer. Parameterized rather than
+  // written three times (Sonar S5976) — the only thing that differs is which chip and which total.
+  it.each([
+    ['a plain optional extra at its price', 'Bacon', 'CHF 15.50'],
+    ['the chosen variation', 'Large', 'CHF 17.00'],
+    ['an optional side item', 'Coke', 'CHF 16.50'],
+  ])('charges %s', async (_case, chipLabel, expectedTotal) => {
     openSheet();
     await waitFor(() => expect(totalText()).toContain('CHF 14.00'));
 
-    tap('Bacon');
+    tap(chipLabel);
 
-    expect(totalText()).toContain('CHF 15.50');
-  });
-
-  it('adds the chosen variation', async () => {
-    openSheet();
-    await waitFor(() => expect(totalText()).toContain('CHF 14.00'));
-
-    tap('Large');
-
-    expect(totalText()).toContain('CHF 17.00');
-  });
-
-  it('adds an optional side item', async () => {
-    openSheet();
-    await waitFor(() => expect(totalText()).toContain('CHF 14.00'));
-
-    tap('Coke');
-
-    expect(totalText()).toContain('CHF 16.50');
+    expect(totalText()).toContain(expectedTotal);
   });
 
   it('multiplies the whole line by the quantity', async () => {

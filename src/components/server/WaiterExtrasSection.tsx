@@ -6,6 +6,18 @@ import { maxIngredientQuantity } from '@/utils/priceableIngredient';
 import type { DetailedIngredient } from './productCustomizationTypes';
 import styles from './WaiterExtrasSection.module.css';
 
+/**
+ * Which of the three chip states a row is in.
+ *
+ * `excluded` — struck through and red — is the one that only became reachable with S7: the base
+ * recipe had this ingredient and this line does not, which is the same thing the kitchen ticket
+ * already says as "NO xxx".
+ */
+function chipState(isSelected: boolean, isIncludedInBase: boolean): string {
+  if (isSelected) return styles.added;
+  return isIncludedInBase ? styles.excluded : styles.optional;
+}
+
 interface WaiterExtrasSectionProps {
   ingredients: DetailedIngredient[];
   selectedIngredients: ReadonlySet<string>;
@@ -37,7 +49,7 @@ export default function WaiterExtrasSection({
   onToggle,
   onStep,
   nameOf,
-}: WaiterExtrasSectionProps) {
+}: Readonly<WaiterExtrasSectionProps>) {
   const { t } = useTranslation();
 
   if (ingredients.length === 0) return null;
@@ -53,9 +65,7 @@ export default function WaiterExtrasSection({
           const max = maxIngredientQuantity(ingredient);
           const currentQuantity = ingredientQuantities[ingredient.id] ?? 1;
           const showStepper = isSelected && max > 1;
-          // Removed = the base recipe had it and this line does not. Struck through and red, which
-          // is the vocabulary the kitchen ticket's "NO xxx" already uses.
-          const state = isSelected ? styles.added : isIncluded ? styles.excluded : styles.optional;
+          const state = chipState(isSelected, isIncluded);
 
           return (
             <div key={ingredient.id} className={styles.ingredientItem}>

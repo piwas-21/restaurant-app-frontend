@@ -2697,6 +2697,8 @@
   "editor_section_basics_description": "هوية الصنف الأساسية وأوصافه",
   "editor_section_media": "الوسائط",
   "editor_section_media_description": "الصور وملفات المعرض",
+  "editor_media_autosave_notice": "يتم حفظ تغييرات الصور فورًا.",
+  "editor_media_bundle_unavailable": "إدارة الصور غير متاحة بعد لحزم القائمة. تُضاف صورة الحزمة من حقل «صورة القائمة» أعلاه، ويتم رفعها عند الحفظ.",
   "editor_section_pricing": "الأسعار والتنويعات",
   "editor_section_pricing_description": "حدّد السعر الأساسي وأي إصدارات أو أحجام",
   "editor_section_options": "الخيارات والأطباق الجانبية",

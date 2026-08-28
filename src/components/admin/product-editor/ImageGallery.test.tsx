@@ -31,6 +31,28 @@ const pick = (container: HTMLElement, files: File[]) =>
 const photo = (name: string) => new File(['x'], name, { type: 'image/jpeg' });
 
 describe('ImageGallery — immediate, no rival Save (slice 7 PR2e)', () => {
+  /*
+   * D5 (slice S6). The gallery writes on click while the rest of the page waits for Save, and the
+   * API offers no batch image write, so the notice is the only thing that makes the difference
+   * visible. It must therefore be PERSISTENT — present before anything is clicked, and present in
+   * both states — which is what these two assertions are: no action is taken in either.
+   */
+  it('always says that photo changes save immediately — with photos and without', () => {
+    const { unmount } = renderGallery();
+    expect(screen.getByText('editor_media_autosave_notice')).toBeInTheDocument();
+
+    unmount();
+    renderGallery([]);
+    expect(screen.getByText('editor_media_autosave_notice')).toBeInTheDocument();
+  });
+
+  // G16: the section card draws `<h2>Media</h2>`, so the gallery's own `<h3>Image Gallery</h3>` was
+  // a second title for one box. It brings no heading of its own any more.
+  it('brings no heading of its own', () => {
+    const { container } = renderGallery();
+    expect(container.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
+  });
+
   it('empty gallery shows a placeholder, no per-image controls, and a way out of it', () => {
     renderGallery([]);
     expect(screen.getByText('no_images_yet')).toBeInTheDocument();

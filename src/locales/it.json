@@ -2697,6 +2697,8 @@
   "editor_section_basics_description": "Identità e descrizioni dell'articolo",
   "editor_section_media": "Multimedia",
   "editor_section_media_description": "Foto e contenuti della galleria",
+  "editor_media_autosave_notice": "Le modifiche alle foto vengono salvate immediatamente.",
+  "editor_media_bundle_unavailable": "La gestione delle foto non è ancora disponibile per i pacchetti menu. La foto di un pacchetto si aggiunge nel campo Immagine Menu qui sopra e viene caricata al salvataggio.",
   "editor_section_pricing": "Prezzi e variazioni",
   "editor_section_pricing_description": "Imposta il prezzo base e le eventuali versioni o dimensioni",
   "editor_section_options": "Opzioni e contorni",

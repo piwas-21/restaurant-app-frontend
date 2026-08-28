@@ -2697,6 +2697,8 @@
   "editor_section_basics_description": "Ürünün temel bilgileri ve açıklamaları",
   "editor_section_media": "Medya",
   "editor_section_media_description": "Fotoğraflar ve galeri dosyaları",
+  "editor_media_autosave_notice": "Fotoğraf değişiklikleri anında kaydedilir.",
+  "editor_media_bundle_unavailable": "Menü paketleri için fotoğraf yönetimi henüz kullanılamıyor. Paket fotoğrafı yukarıdaki Menü Görseli alanından eklenir ve kaydettiğinizde yüklenir.",
   "editor_section_pricing": "Fiyat ve varyasyonlar",
   "editor_section_pricing_description": "Temel fiyatı ve varsa sürümleri veya boyutları belirleyin",
   "editor_section_options": "Seçenekler ve yan ürünler",

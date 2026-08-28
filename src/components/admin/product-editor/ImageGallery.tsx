@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { CloudUpload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ProductImage } from '@/app/admin/menu-management/interfaces';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import mediaStyles from './EditorMedia.module.css';
 import ImageActions from './ImageActions';
 import ImageUploadPanel from './ImageUploadPanel';
 import { useImageGalleryUpload } from './useImageGalleryUpload';
@@ -129,7 +131,11 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
   // sentence with no way out of it, and it is exactly the product that most needs the upload.
   return (
     <div className={detailsStyles.infoSection}>
-      <h3>{t('image_gallery')}</h3>
+      {/*
+       * No heading here (conformance gap G16). The section CARD already draws `<h2>Media</h2>`
+       * with "Photos and gallery assets" under it, so the old `<h3>Image Gallery</h3>` was a
+       * second title for the same box — two headings, one thing. The approved screen shows one.
+       */}
       {(error ?? uploader.error) && <p className={modalStyles.errorMessage}>{error ?? uploader.error}</p>}
       {imageList.length === 0 ? (
         <p>{t('no_images_yet')}</p>
@@ -187,6 +193,20 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
         onConfirm={handleConfirmDelete}
         message={t('delete_image_confirmation_message')}
       />
+      {/*
+       * D5's notice, and the point of the whole section: every control above writes to an image
+       * sub-resource endpoint the moment it is clicked, while everything else on this page waits
+       * for Save. The API gives no choice about that — there is no batch image write — so the
+       * only honest thing left is to say it, and to say it ALWAYS rather than as a toast that has
+       * already gone by the time the admin wonders.
+       *
+       * Static text, NOT a live region: its content never changes, so `role="status"` would
+       * announce nothing and merely claim otherwise. It is read in place, with the gallery.
+       */}
+      <p className={mediaStyles.autosaveNotice}>
+        <CloudUpload size={16} className={mediaStyles.autosaveIcon} aria-hidden="true" />
+        {t('editor_media_autosave_notice')}
+      </p>
     </div>
   );
 }

@@ -2697,6 +2697,8 @@
   "editor_section_basics_description": "Основные сведения и описания позиции",
   "editor_section_media": "Медиа",
   "editor_section_media_description": "Фотографии и файлы галереи",
+  "editor_media_autosave_notice": "Изменения фотографий сохраняются сразу.",
+  "editor_media_bundle_unavailable": "Управление фотографиями пока недоступно для наборов меню. Фотография набора добавляется в поле «Изображение меню» выше и загружается при сохранении.",
   "editor_section_pricing": "Цены и вариации",
   "editor_section_pricing_description": "Задайте базовую цену, а также варианты и размеры",
   "editor_section_options": "Опции и гарниры",

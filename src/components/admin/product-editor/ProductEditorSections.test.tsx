@@ -208,10 +208,14 @@ describe('nothing was dropped on the way — the audit inventory, by section', (
   // S3 deleted the fork this used to pin. An item has no create page any more (D3), so Media is
   // the gallery and only the gallery — and an unsaved item has no Media section at all, because
   // images are sub-resources of a SAVED product and an empty card would promise otherwise.
+  //
+  // S6 changed the anchor: the gallery's own `<h3>` is gone (G16), so the thing that identifies it
+  // is D5's autosave notice — which is also the assertion that the notice is PERSISTENT rather
+  // than a toast, since nothing has been clicked here.
   it('Media is the gallery, and is absent entirely on an unsaved item', async () => {
     const { container, unmount } = await renderEditor();
     expect(
-      within(sectionOf(container, 'editor-section-media')).getByRole('heading', { name: 'image_gallery' }),
+      within(sectionOf(container, 'editor-section-media')).getByText('editor_media_autosave_notice'),
     ).toBeInTheDocument();
     expect(container.querySelector('#product-images')).toBeNull();
 

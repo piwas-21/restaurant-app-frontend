@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import { EMPTY_MENU_DEFINITION } from '@/utils/productEditorDefaults';
@@ -453,20 +453,42 @@ describe('ProductEditorPage — the create route drives the same page', () => {
 });
 
 describe('ProductEditorPage — existing-image management', () => {
-  // The gallery re-added in PR2e: edit-mode items only. Bundles keep the file-input-only
-  // path they always had; a brand-new product has no images yet.
+  /*
+   * S6 removed the gallery's own `<h3>Image Gallery</h3>` (conformance gap G16 — the section card
+   * already draws `<h2>Media</h2>` over it), so the heading is no longer the thing to look for.
+   * D5's autosave notice is: it is unique to the gallery and renders in BOTH its states.
+   */
+  const galleryNotice = () => screen.queryByText('editor_media_autosave_notice');
+
+  // The gallery re-added in PR2e: edit-mode items only. Bundles get Media as an empty card with a
+  // reason (S6/D11); a brand-new product has no Media section at all.
   it('mounts the image gallery when editing an item', async () => {
     await renderEditor(item, false);
 
-    expect(screen.getByRole('heading', { name: 'image_gallery' })).toBeInTheDocument();
+    expect(galleryNotice()).toBeInTheDocument();
+  });
+
+  // G16: exactly ONE heading inside Media. The card's `<h2>` and nothing under it.
+  it('gives the Media section a single heading', async () => {
+    const { container } = await renderEditor(item, false);
+
+    const media = container.querySelector('#editor-section-media') as HTMLElement;
+    expect(within(media).getAllByRole('heading')).toHaveLength(1);
+    expect(within(media).getByRole('heading', { name: 'editor_section_media' })).toBeInTheDocument();
   });
 
   it('does not mount the gallery on an unsaved item, nor for a bundle', async () => {
     await renderEditor(emptyProductDetails(false), false, 'create');
-    expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
+    expect(galleryNotice()).not.toBeInTheDocument();
+    expect(document.querySelector('#editor-section-media')).toBeNull();
 
-    await renderEditor(bundle, true);
-    expect(screen.queryByRole('heading', { name: 'image_gallery' })).not.toBeInTheDocument();
+    // A bundle DOES get the section — empty, with the reason in it (S6/D11). What it does not get
+    // is the gallery, so the autosave notice must not follow it there: nothing here autosaves.
+    const { container } = await renderEditor(bundle, true);
+    expect(galleryNotice()).not.toBeInTheDocument();
+    const media = container.querySelector('#editor-section-media') as HTMLElement;
+    expect(media).not.toBeNull();
+    expect(within(media).getByText('editor_media_bundle_unavailable')).toBeInTheDocument();
   });
 
   // Track F, F7-C was positional: images sat below the sticky Save bar after nine other sections.
@@ -478,7 +500,7 @@ describe('ProductEditorPage — existing-image management', () => {
     const { container } = await renderEditor(item, false);
 
     const form = container.querySelector('form') as HTMLFormElement;
-    const gallery = screen.getByRole('heading', { name: 'image_gallery' });
+    const gallery = screen.getByText('editor_media_autosave_notice');
     expect(form.contains(gallery)).toBe(true);
     expect(container.querySelector('#editor-section-media')?.contains(gallery)).toBe(true);
   });

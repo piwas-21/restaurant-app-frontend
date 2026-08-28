@@ -8,6 +8,7 @@ import { INGREDIENT_LIBRARY_COPY } from './libraryPickerCopy';
 import { useGlobalIngredientLibrary } from '@/hooks/admin/useGlobalIngredientLibrary';
 import { useGlobalIngredientArchive } from '@/hooks/admin/useGlobalIngredientArchive';
 import { createGlobalIngredient } from '@/services/globalIngredientService';
+import { attachGlobalIngredient, getGlobalIngredientProducts } from '@/services/libraryAttachService';
 import { toProductIngredient } from './globalIngredientLibrary';
 import { DEFAULT_INGREDIENT_KIND } from '@/utils/ingredientKind';
 import type { IngredientKind, ProductIngredient } from '@/types/menu';
@@ -71,6 +72,22 @@ export default function GlobalIngredientPickerModal({
       onViewChange={setView}
       createRow={(defaultName) => createGlobalIngredient({ defaultName, translations: [] })}
       onAdd={(picked) => onAdd(picked.map((row, index) => toProductIngredient(row, attached.length + index, kind)))}
+      apply={{
+        fetchUsage: getGlobalIngredientProducts,
+        attach: (id, productIds) =>
+          attachGlobalIngredient(id, {
+            productIds,
+            // The per-product facts the bulk body carries (plan D1). `isOptional` is `true` because
+            // the backend refuses anything else on this path — a required ingredient is rendered as
+            // REMOVED on every order placed before it existed — and the price is 0 because the
+            // catalog knows none: this attaches the WORDS to forty products, and the money stays a
+            // per-product edit rather than one number guessed for all of them.
+            isOptional: true,
+            price: 0,
+            maxQuantity: 1,
+            isIncludedInBasePrice: false,
+          }),
+      }}
     />
   );
 }

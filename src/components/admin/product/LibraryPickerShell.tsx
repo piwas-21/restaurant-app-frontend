@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BaseModal from '@/components/design-system/BaseModal';
+import LibraryApplyModal, { type LibraryApplyEndpoints } from './LibraryApplyModal';
 import LibraryArchivedList from './LibraryArchivedList';
 import LibraryPickerFooter from './LibraryPickerFooter';
 import LibraryPickerResults from './LibraryPickerResults';
@@ -33,6 +34,13 @@ interface LibraryPickerShellProps<TRow extends CatalogRow> {
   createRow: (defaultName: string) => Promise<LibraryResponse<TRow> | undefined>;
   /** Receives the picked catalog rows. The caller maps them onto the product. */
   onAdd: (rows: TRow[]) => void;
+  /**
+   * The catalog-wide attach (plan S8), supplied by the two modals because it is their endpoints.
+   *
+   * Optional: a picker without it is exactly the picker that shipped in S2/S4, and the row draws no
+   * "Apply to items" action at all.
+   */
+  apply?: LibraryApplyEndpoints;
 }
 
 /**
@@ -56,15 +64,25 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
   onViewChange,
   createRow,
   onAdd,
+  apply,
 }: Readonly<LibraryPickerShellProps<TRow>>) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<TRow[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  /**
+   * The row whose catalog-wide attach is on screen (plan S8).
+   *
+   * It replaces this modal's BODY rather than opening a second one. The picker is already a
+   * `BaseModal`; a dialog over a dialog traps focus twice and leaves the admin with two Escape keys
+   * that mean different things, for what is one task in two steps.
+   */
+  const [applying, setApplying] = useState<TRow | null>(null);
 
   const close = () => {
     setSelected([]);
     setCreateError(null);
+    setApplying(null);
     onViewChange('active');
     library.reset();
     onClose();
@@ -132,6 +150,24 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
     />
   );
 
+  // The apply step owns the whole dialog while it is on screen — its own title, its own body and
+  // its own footer — so nothing behind it can be ticked while a catalog-wide write is being decided.
+  // The apply step OWNS the dialog while it is on screen, replacing this one rather than stacking
+  // over it: two BaseModals means focus trapped twice and two Escape keys with different meanings.
+  if (applying && apply) {
+    return (
+      <LibraryApplyModal
+        isOpen={isOpen}
+        row={applying}
+        copy={copy}
+        endpoints={apply}
+        onBack={() => setApplying(null)}
+        onClose={close}
+        onAttached={library.reload}
+      />
+    );
+  }
+
   return (
     <BaseModal isOpen={isOpen} onClose={close} title={t(copy.title)} size="lg" footer={footer}>
       <LibraryPickerToolbar
@@ -176,6 +212,7 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
               onToggle={(checked) => toggle(row, checked)}
               onArchive={() => void retire(row)}
               isPending={archive.pendingId === row.id}
+              onApplyToItems={apply ? () => setApplying(row) : undefined}
             />
           ))}
         </LibraryPickerResults>

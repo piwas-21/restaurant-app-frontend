@@ -63,6 +63,32 @@ const COPY = {
   createNamed: { ingredient: 'ingredient_library_create_named', variation: 'variation_library_create_named' },
   createFailed: { ingredient: 'ingredient_library_create_failed', variation: 'variation_library_create_failed' },
   loadFailed: { ingredient: 'ingredient_library_load_failed', variation: 'variation_library_load_failed' },
+  /* "Apply to items" — plan S8. Every value is still a LITERAL: the two catalogs' keys differ only
+     by their prefix, and building them as `${prefix}_library_apply` would take all twenty-six out of
+     this gate's sight, which is the exact failure #611 was filed about. */
+  applyAction: { ingredient: 'ingredient_library_apply', variation: 'variation_library_apply' },
+  applyTitle: { ingredient: 'ingredient_library_apply_title', variation: 'variation_library_apply_title' },
+  applyLead: { ingredient: 'ingredient_library_apply_lead', variation: 'variation_library_apply_lead' },
+  applyLoading: { ingredient: 'ingredient_library_apply_loading', variation: 'variation_library_apply_loading' },
+  applyEmpty: { ingredient: 'ingredient_library_apply_empty', variation: 'variation_library_apply_empty' },
+  applyUncategorised: {
+    ingredient: 'ingredient_library_apply_uncategorised',
+    variation: 'variation_library_apply_uncategorised',
+  },
+  /** The blast radius (D6): how many items the confirm is about to change. */
+  applyConfirm: { ingredient: 'ingredient_library_apply_confirm', variation: 'variation_library_apply_confirm' },
+  applyAlreadyHave: {
+    ingredient: 'ingredient_library_apply_already_have',
+    variation: 'variation_library_apply_already_have',
+  },
+  applyDone: { ingredient: 'ingredient_library_apply_done', variation: 'variation_library_apply_done' },
+  applySkipped: { ingredient: 'ingredient_library_apply_skipped', variation: 'variation_library_apply_skipped' },
+  applyFailed: { ingredient: 'ingredient_library_apply_failed', variation: 'variation_library_apply_failed' },
+  applyLoadFailed: {
+    ingredient: 'ingredient_library_apply_load_failed',
+    variation: 'variation_library_apply_load_failed',
+  },
+  applyBack: { ingredient: 'ingredient_library_apply_back', variation: 'variation_library_apply_back' },
 } as const satisfies Record<string, Record<LibraryKind, string>>;
 
 /** One catalog's column of the table: a translation key per slot. */

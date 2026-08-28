@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import defaultStyles from './CheckboxField.module.css';
 
 export interface CheckboxFieldProps {
@@ -46,6 +46,19 @@ export interface CheckboxFieldProps {
    * two surfaces can look nothing alike without a second DOM to keep in step.
    */
   styles?: Readonly<Record<string, string>>;
+  /**
+   * The THIRD state: some but not all of what this box governs is selected.
+   *
+   * It is a DOM property and not an attribute — there is no `indeterminate=""` in HTML — so React
+   * cannot set it declaratively and it is applied through a ref. `aria-checked="mixed"` is set
+   * beside it because the visual dash and the announced state are two different channels, and a
+   * screen reader reads the ARIA one.
+   *
+   * `checked` still means what it says. An indeterminate box whose `checked` is false is what a
+   * partly-picked group looks like, and clicking it fires `onChange(true)` — select the rest —
+   * which is what the dash affords.
+   */
+  indeterminate?: boolean;
   /** Test hook, forwarded to the input. */
   'data-testid'?: string;
 }
@@ -77,10 +90,21 @@ export default function CheckboxField({
   invalid,
   description,
   describedBy,
+  indeterminate,
   styles = defaultStyles,
   'data-testid': testId,
 }: Readonly<CheckboxFieldProps>) {
   const uid = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // `indeterminate` exists only as a DOM property, so it is written after every render rather than
+  // passed as a prop. Unconditionally, including the `false` branch: writing it only when true
+  // would leave a box that had once been mixed showing a dash for the rest of its life.
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.indeterminate = indeterminate === true;
+    }
+  }, [indeterminate]);
   const errorId = `${uid}-error`;
   const descriptionId = `${uid}-description`;
   // Ordered so a screen reader hears the host's context, then this box's explanation, then its
@@ -93,11 +117,13 @@ export default function CheckboxField({
     <div className={disabled ? `${styles.field} ${styles.disabled}` : styles.field}>
       <label className={styles.control}>
         <input
+          ref={inputRef}
           type="checkbox"
           className={styles.input}
           checked={checked}
           disabled={disabled}
           onChange={(event) => onChange(event.target.checked)}
+          aria-checked={indeterminate ? 'mixed' : undefined}
           aria-invalid={error || invalid ? true : undefined}
           aria-describedby={allDescribedBy || undefined}
           data-testid={testId}

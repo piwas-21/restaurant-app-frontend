@@ -94,6 +94,14 @@ test.beforeAll(async ({ request, baseURL }) => {
 test('a signed-in admin opens a product and gets all seven editor sections', async ({ browser, baseURL }) => {
   test.skip(!storageStatePath, skipReason);
 
+  // A generous budget, spent only ONCE and only on CI. `webServer` is `next dev`, which compiles a
+  // route on its FIRST request — and this route pulls the whole editor, so the cold compile is the
+  // slowest thing in the run. Measured on CI run 33139713880: the first attempt spent 30s waiting
+  // for an input that had not been rendered yet and failed, and the retry passed the same
+  // assertion in 3.2s against the now-warm server. Retries hid it; a flake that only passes on
+  // retry is still a broken test, so the budget is raised rather than left to `retries: 2`.
+  test.setTimeout(180_000);
+
   const context = await browser.newContext({ storageState: storageStatePath });
   const page = await context.newPage();
   try {
@@ -108,7 +116,8 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
     const nameInput = page.locator('input[name="name"]');
     await expect(nameInput, 'the editor must load the seeded product for a signed-in admin').toHaveValue(
       SEEDED_PRODUCT_NAME,
-      { timeout: 30_000 },
+      // Covers the cold `next dev` compile of this route; ~3s once warm.
+      { timeout: 120_000 },
     );
 
     // All seven, and no eighth.

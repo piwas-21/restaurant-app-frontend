@@ -54,3 +54,25 @@
   font-size: 1.2rem;
   font-weight: 600;
 }
+
+/* Currency affix inside the box (conformance gap G10; the reference sheet's "Currency field").
+   The value stays a plain number input — the affix is a sibling, reserved space and all, so a
+   long amount cannot slide under the code. `inset-inline-end` so it mirrors in RTL. */
+.affixBox {
+  position: relative;
+  display: block;
+}
+
+.affixInput {
+  padding-inline-end: 3.25rem;
+}
+
+.affix {
+  position: absolute;
+  inset-inline-end: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  pointer-events: none;
+}

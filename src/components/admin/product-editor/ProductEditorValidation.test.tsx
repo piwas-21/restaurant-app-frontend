@@ -121,6 +121,31 @@ describe('editor validation — onTouched, and a message the assistive tree can 
   });
 });
 
+// Conformance gap G10, taken inline because S7 already owns this file. The affix is described-by
+// rather than hidden, so the currency reaches the accessibility tree as well as the eye.
+describe('editor base price — the currency is heard, not only seen (G10)', () => {
+  it('describes the price input with the tenant currency, alongside any error', async () => {
+    const { nameInput, container } = await renderEditor();
+    const price = container.querySelector('input[name="basePrice"]') as HTMLInputElement;
+
+    const described = (price.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
+    expect(described.length).toBe(1);
+    expect(document.getElementById(described[0])).toHaveTextContent('CHF');
+
+    // And when the field ALSO has an error, the two ids coexist — a plain `aria-describedby`
+    // after the spread would have dropped whichever came first.
+    fireEvent.change(price, { target: { value: '-1' } });
+    fireEvent.blur(price);
+    await waitFor(() => expect(price).toHaveAttribute('aria-invalid', 'true'));
+
+    const both = (price.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
+    expect(both.length).toBe(2);
+    expect(document.getElementById(both[0])).toHaveTextContent(/Number must be greater than|greater than/);
+    expect(document.getElementById(both[1])).toHaveTextContent('CHF');
+    expect(nameInput).toBeInTheDocument();
+  });
+});
+
 describe('editor validation — the save bar says how many and where (D13, gap G4)', () => {
   it('shows no chip while the form is clean', async () => {
     await renderEditor();

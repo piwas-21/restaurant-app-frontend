@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { CloudUpload } from 'lucide-react';
+import { CircleAlert, CloudUpload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ProductImage } from '@/app/admin/menu-management/interfaces';
 import detailsStyles from '@/app/styles/DetailsPage.module.css';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
 import mediaStyles from './EditorMedia.module.css';
+import fieldStyles from '@/components/admin/product/fields/editorFields.module.css';
 import ImageActions from './ImageActions';
 import ImageUploadPanel from './ImageUploadPanel';
 import { useImageGalleryUpload } from './useImageGalleryUpload';
@@ -138,7 +139,26 @@ export default function ImageGallery({ productId, images, productName }: ImageGa
        */}
       {(error ?? uploader.error) && <p className={modalStyles.errorMessage}>{error ?? uploader.error}</p>}
       {imageList.length === 0 ? (
-        <p>{t('no_images_yet')}</p>
+        <>
+          <p>{t('no_images_yet')}</p>
+          {/*
+           * D8 (S10): what silently happens to a guest if this stays empty.
+           *
+           * ⚠️ The copy says PLACEHOLDER, not "text-only card", and the difference is the whole
+           * point of measuring before writing. The plan's D8 said an item with no photo "renders as
+           * a text-only card". It does not: `MenuCard.tsx:137` and `CraftMenuCard.tsx:94` both fall
+           * back to `FALLBACK_IMAGE` (`/branding/placeholder.png`), and there is no text-only path
+           * in either template. That fallback is DELIBERATE and pinned —
+           * `CraftFeaturedSpecial.test.tsx:167` is named "falls back to the placeholder when the
+           * special has no image, rather than omitting the photo". A warning describing behaviour
+           * the codebase explicitly rejected is worse than no warning: it teaches the admin to
+           * distrust the one surface whose job is to tell them the truth.
+           */}
+          <p className={fieldStyles.consequence}>
+            <CircleAlert size={16} className={fieldStyles.consequenceIcon} aria-hidden="true" />
+            {t('editor_no_photo_consequence')}
+          </p>
+        </>
       ) : (
         <div className={detailsStyles.imageGalleryContainer}>
           <div className={detailsStyles.primaryImageContainer}>

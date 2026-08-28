@@ -83,9 +83,9 @@ export function useLibraryApplyToItems({
         setProducts((list?.data?.items ?? []) as ApplyTargetProduct[]);
         setAlreadyAttachedIds(new Set((usage?.data ?? []).map((entry) => entry.productId)));
         setStatus('ready');
-      } catch (caught) {
+      } catch (err) {
         if (cancelled) return;
-        setError(getErrorMessage(caught) ?? null);
+        setError(getErrorMessage(err) ?? null);
         setStatus('error');
       }
     };
@@ -120,8 +120,8 @@ export function useLibraryApplyToItems({
       }
       setResult(response.data);
       onAttached?.(response.data);
-    } catch (caught) {
-      setError(getErrorMessage(caught) ?? null);
+    } catch (err) {
+      setError(getErrorMessage(err) ?? null);
     } finally {
       setIsSaving(false);
     }

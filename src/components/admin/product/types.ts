@@ -133,6 +133,12 @@ export interface SuggestedSideItemsPickerProps {
   control: any;
   selectedSideItemIds: string[];
   onChange: (selectedIds: string[]) => void;
+  /**
+   * The product being edited, on the edit route. It may never suggest ITSELF (plan S9 / D12) —
+   * nothing on the server refuses that, so the guard lives in the picker. Optional because the
+   * create route has no id yet.
+   */
+  productId?: string;
 }
 
 // Product search result interface

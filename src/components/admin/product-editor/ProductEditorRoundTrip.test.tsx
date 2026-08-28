@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, fireEvent, screen, waitFor } from '@testing-library/react';
 import ProductEditorPage from './ProductEditorPage';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 
@@ -12,8 +12,21 @@ jest.mock('@/services/productService', () => ({
   uploadBulkProductImages: jest.fn(async () => ({ success: true })),
   updateProductImageDetails: jest.fn(async () => ({ success: true })),
   deleteProductImage: jest.fn(async () => ({ success: true })),
+  // S9: the side-item picker searches the menu server-side. One extra row, so the picker has
+  // something to ADD that the product does not already suggest.
+  searchProducts: jest.fn(async () => ({
+    success: true,
+    data: { items: [{ id: 'side-2', name: 'Coleslaw', description: '', basePrice: 3, type: 'sideItem' }] },
+  })),
 }));
-jest.mock('@/services/menuService', () => ({ createProduct: jest.fn() }));
+// S9: `useSideItemDetails` names each suggested id, one read per id.
+jest.mock('@/services/menuService', () => ({
+  createProduct: jest.fn(),
+  getProductById: jest.fn(async (id: string) => ({
+    success: true,
+    data: { id, name: id === 'side-1' ? 'Garlic bread' : id, description: '' },
+  })),
+}));
 jest.mock('@/services/menuBundleService', () => ({ createMenuBundle: jest.fn(), updateMenuBundle: jest.fn() }));
 jest.mock('@/services/globalIngredientService', () => ({
   createGlobalIngredient: jest.fn(),
@@ -281,6 +294,83 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     expect(payload.availableOrderTypes).toBe(3);
     // Set through a picker in its own section — the payload key is not the section's name.
     expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID]);
+  });
+
+  /**
+   * S9 / D12 — the picker that can ADD and REMOVE.
+   *
+   * `suggestedSideItemIds` was already named in the assertion above as a field the page shows only
+   * through a picker. It is now a field the page can CHANGE in two directions, and both of them run
+   * through `setValue` on a value nothing registers as an input — the same shape §13.9 found in the
+   * translations panel. So the payload is the only place either direction can be proven.
+   *
+   * The removal assertion is the one that fails against the code this replaces: `saveSelected`
+   * merged (`[...selectedSideItemIds, ...tempSelectedIds]`), so an untick reached neither the form
+   * nor the PUT.
+   */
+  describe('the side-item picker', () => {
+    const openPicker = async (container: HTMLElement) => {
+      const open = await screen.findByRole('button', { name: 'side_items_picker_open' });
+      fireEvent.click(open);
+      return container;
+    };
+
+    const submitAndRead = async (container: HTMLElement) => {
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+      return (updateProduct as jest.Mock).mock.calls[0][1] as Record<string, unknown>;
+    };
+
+    const renderEditor = async () => {
+      const view = render(
+        <ProductEditorPage
+          product={fullyPopulated}
+          isBundle={false}
+          mode="edit"
+          onSaved={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+      await act(async () => {});
+      return view.container;
+    };
+
+    it('a side item added in the picker reaches the PUT, alongside the one already there', async () => {
+      const container = await renderEditor();
+      await openPicker(container);
+
+      // Real timers, and `findBy…` rather than `advanceTimersByTime`: the search debounce is 300ms
+      // and the poll outlasts it. Fake timers here would have to be faked for the whole file, which
+      // every other test in it is written without.
+      fireEvent.change(screen.getByPlaceholderText('search_placeholder'), { target: { value: 'coleslaw' } });
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Coleslaw' }));
+      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+
+      const payload = await submitAndRead(container);
+
+      // The oracle is the FIXTURE: `fullyPopulated.suggestedSideItems` is what the server sent, and
+      // the added id is the one the mocked search returned. Neither number is computed here.
+      expect(payload.suggestedSideItemIds).toEqual([SIDE_ITEM_ID, 'side-2']);
+    });
+
+    it('a side item removed in the picker is absent from the PUT', async () => {
+      const container = await renderEditor();
+      await openPicker(container);
+
+      // The control that makes this non-trivial: the row is TICKED when the picker opens, so the
+      // click is genuinely an untick and not a first selection.
+      const garlic = await screen.findByRole('checkbox', { name: 'Garlic bread' });
+      expect(garlic).toBeChecked();
+      fireEvent.click(garlic);
+      fireEvent.click(screen.getByRole('button', { name: 'apply' }));
+
+      const payload = await submitAndRead(container);
+
+      expect(payload.suggestedSideItemIds).toEqual([]);
+      // …and the save is otherwise untouched, so the removal is the only thing that moved.
+      expect(payload.displayOrder).toBe(7);
+      expect(payload.availableOrderTypes).toBe(3);
+    });
   });
 
   /**

@@ -12,8 +12,6 @@
     "src/components/admin/menu-management/ProductsTable.tsx :: styles.error",
     "src/components/admin/product-editor/BundlePanel.tsx :: adminStyles.grid",
     "src/components/admin/product-editor/ImageActions.tsx :: styles.disabled",
-    "src/components/admin/product/SuggestedSideItemsPicker.tsx :: modalStyles.chipDisabled",
-    "src/components/admin/product/SuggestedSideItemsPicker.tsx :: modalStyles.chipNote",
     "src/components/admin/product/SuggestedSideItemsPicker.tsx :: modalStyles.chipRemove",
     "src/components/admin/product/SuggestedSideItemsPicker.tsx :: modalStyles.emptyState",
     "src/components/admin/reservations/ReservationsActions.tsx :: styles.bulkDeleteButton",

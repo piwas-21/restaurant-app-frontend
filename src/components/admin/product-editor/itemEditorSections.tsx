@@ -101,11 +101,15 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       showHeading: true,
       description: t('editor_section_options_description'),
       node: (
+        // An item may not suggest ITSELF (S9 / D12), and nothing on the server refuses it, so the
+        // picker needs to know which product it is editing. `product.id` is empty on the create
+        // route, where there is nothing to exclude yet.
         <SuggestedSideItemsPicker
           control={form.control}
           errors={errors}
           selectedSideItemIds={editor.selectedSideItemIds}
           onChange={editor.changeSideItemIds}
+          productId={product.id}
         />
       ),
     },

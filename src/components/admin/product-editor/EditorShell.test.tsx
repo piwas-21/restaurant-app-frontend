@@ -69,7 +69,13 @@ const ADVANCED = 'Advanced';
 
 const sections: EditorSection[] = [
   { id: 'sec-media', label: MEDIA, node: <p>gallery body</p> },
-  { id: 'sec-basics', label: BASICS, showHeading: true, node: <input aria-label="Name" /> },
+  {
+    id: 'sec-basics',
+    label: BASICS,
+    showHeading: true,
+    description: 'Core item identity and descriptions',
+    node: <input aria-label="Name" />,
+  },
   { id: 'sec-pricing', label: PRICING, node: <input aria-label="Price" /> },
   {
     id: 'sec-advanced',
@@ -82,12 +88,21 @@ const sections: EditorSection[] = [
 
 const onSubmit = jest.fn((event: React.FormEvent) => event.preventDefault());
 
+const onDelete = jest.fn();
+const onBack = jest.fn();
+const menuActions = [{ id: 'delete', label: 'Delete product', onSelect: onDelete, destructive: true }];
+
 const renderShell = (activeTabId = TAB_ITEM) => {
   const onTabChange = jest.fn();
   const view = render(
     <EditorShell
       title="Margherita Pizza"
-      headerActions={<span>badge</span>}
+      headerBadges={<span>badge</span>}
+      headerMenuActions={menuActions}
+      headerMenuLabel="More actions"
+      backLabel="Menu"
+      backAriaLabel="Back to the menu list"
+      onBack={onBack}
       tabs={[
         { id: TAB_ITEM, label: 'Item' },
         { id: TAB_TRANSLATIONS, label: 'Translations' },
@@ -111,6 +126,11 @@ const renderShell = (activeTabId = TAB_ITEM) => {
   );
   return { ...view, onTabChange };
 };
+
+beforeEach(() => {
+  onDelete.mockClear();
+  onBack.mockClear();
+});
 
 describe('EditorShell — the two tabs (decision D2)', () => {
   it('exposes exactly two tabs and marks the active one', () => {
@@ -359,5 +379,124 @@ describe('EditorShell — the 1024/820 reflow (frontend #572)', () => {
     expect(ruleIn(SHELL_CSS, 820, '.layout')).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
     expect(ruleIn(SHELL_CSS, 820, '.rail')).toMatch(/grid-row:\s*1/);
     expect(ruleIn(SHELL_CSS, 820, '.main')).toMatch(/grid-row:\s*3/);
+  });
+});
+
+/*
+  The section CARD (frontend #573, gap G2). Every approved section screen draws a bordered surface
+  with a title AND a one-line description; S1/S2 shipped a hairline and no description at all.
+*/
+describe('EditorShell — sections are cards with a description line (frontend #573)', () => {
+  const CARD_CSS = readFileSync(join(__dirname, 'EditorSectionCard.module.css'), 'utf8');
+
+  it('renders the description under the section title', () => {
+    const { container } = renderShell();
+    const basics = container.querySelector(BASICS_SELECTOR) as HTMLElement;
+
+    const heading = within(basics).getByRole('heading', { name: BASICS });
+    const description = within(basics).getByText('Core item identity and descriptions');
+    expect(description.tagName).toBe('P');
+    // Under the title, not before it, and not inside it — a description inside the heading would
+    // join the heading's text and read as one long title.
+    expect(heading.contains(description)).toBe(false);
+    expect(heading.compareDocumentPosition(description) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('omits the line — and the whole head — for a section that has neither', () => {
+    const { container } = renderShell();
+    const media = container.querySelector('#sec-media') as HTMLElement;
+
+    // `Media` passes no `showHeading` and no `description`: the dropped-in content brings its own
+    // heading, so an empty head block would be a stray gap above it.
+    expect(within(media).queryByRole('heading')).toBeNull();
+    expect(media.querySelectorAll('p')).toHaveLength(1); // the body's own <p>, not a description
+  });
+
+  it('describes the fold toggle with the collapsed section own description', () => {
+    const { container } = render(
+      <EditorShell
+        title="t"
+        headerBadges={null}
+        headerMenuActions={[]}
+        headerMenuLabel="More actions"
+        backLabel="Menu"
+        backAriaLabel="Back to the menu list"
+        onBack={onBack}
+        tabs={[
+          { id: TAB_ITEM, label: 'Item' },
+          { id: TAB_TRANSLATIONS, label: 'Translations' },
+        ]}
+        tabsLabel="Item editor"
+        activeTabId={TAB_ITEM}
+        onTabChange={jest.fn()}
+        sections={[
+          {
+            id: 'sec-advanced',
+            label: ADVANCED,
+            collapsible: true,
+            defaultCollapsed: true,
+            description: 'Settings you rarely need to change',
+            node: <input aria-label="Display order" />,
+          },
+        ]}
+        sectionsLabel="Sections"
+        formId={FORM_ID}
+        onSubmit={onSubmit}
+        translations={null}
+        saveBar={null}
+      />,
+    );
+
+    const toggle = within(container.querySelector('#sec-advanced') as HTMLElement).getByRole('button');
+    expect(toggle).toHaveAccessibleDescription('Settings you rarely need to change');
+  });
+
+  // CSS contract, for the reason the reflow test gives: jsdom computes no layout and
+  // identity-obj-proxy leaves a render nothing but class names.
+  it('draws the section as a bordered card on the card surface, not as a hairline rule', () => {
+    expect(CARD_CSS).toMatch(/\.card\s*\{[^}]*border:\s*1px solid var\(--border-light\)/);
+    expect(CARD_CSS).toMatch(/\.card\s*\{[^}]*background:\s*var\(--surface-card\)/);
+    expect(CARD_CSS).toMatch(/\.card\s*\{[^}]*border-radius:/);
+    // The shipped skin was a `border-top` hairline between plain blocks. It must be gone.
+    expect(CARD_CSS).not.toMatch(/border-top:/);
+    expect(readFileSync(join(__dirname, 'EditorShell.module.css'), 'utf8')).not.toContain('.section');
+  });
+});
+
+/*
+  Header chrome (frontend #574, gap G1): `← Menu`, the live badge, and `Delete` behind the `⋯`
+  instead of exposed beside `Save`.
+*/
+describe('EditorShell — header chrome (frontend #574)', () => {
+  it('offers a back link above the title, with a name that says what it does', () => {
+    const { container } = renderShell();
+
+    const back = screen.getByRole('button', { name: 'Back to the menu list' });
+    const title = screen.getByRole('heading', { level: 1, name: 'Margherita Pizza' });
+    expect(back.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.textContent).toContain('Menu');
+
+    fireEvent.click(back);
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the badges beside the title', () => {
+    renderShell();
+
+    expect(screen.getByText('badge')).toBeInTheDocument();
+  });
+
+  it('keeps Delete OUT of the header row and inside the overflow menu', () => {
+    renderShell();
+
+    // Closed: the destructive action is not on the page at all, so it cannot be mis-clicked.
+    expect(screen.queryByRole('button', { name: 'Delete product' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }));
+    const item = screen.getByRole('menuitem', { name: 'Delete product' });
+    expect(item).toBeInTheDocument();
+
+    fireEvent.click(item);
+    expect(onDelete).toHaveBeenCalledTimes(1);
   });
 });

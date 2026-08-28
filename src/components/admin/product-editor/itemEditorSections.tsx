@@ -32,6 +32,9 @@ import type { EditorSection } from './EditorShell';
  *
  * `Advanced` collapses by HIDING its body, never by unmounting it: a registered field that leaves
  * the DOM is a value the PUT clears (plan §6). The same rule governs the rail.
+ *
+ * Every section carries the one-line `description` the approved screens draw under its title
+ * (#573) — that line is what makes a card a card rather than a heading with a border.
  */
 export function buildItemSections(context: EditorSectionsContext): EditorSection[] {
   const { editor, t, product } = context;
@@ -43,6 +46,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.basics,
       label: t('editor_section_basics'),
       showHeading: true,
+      description: t('editor_section_basics_description'),
       node: (
         <ProductBasicsFields
           register={form.register}
@@ -58,6 +62,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.media,
       label: t('editor_section_media'),
       showHeading: true,
+      description: t('editor_section_media_description'),
       /*
        * The real gallery, and only the real gallery, since S3. Images are sub-resources of a SAVED
        * product, which is why this section used to fork: a create route could merely stage files
@@ -75,6 +80,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.pricing,
       label: t('editor_section_pricing'),
       showHeading: true,
+      description: t('editor_section_pricing_description'),
       node: (
         <>
           <ProductPricingFields register={form.register} errors={errors} />
@@ -92,6 +98,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.options,
       label: t('editor_section_options'),
       showHeading: true,
+      description: t('editor_section_options_description'),
       node: (
         <SuggestedSideItemsPicker
           control={form.control}
@@ -105,6 +112,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.recipe,
       label: t('editor_section_recipe'),
       showHeading: true,
+      description: t('editor_section_recipe_description'),
       node: (
         <>
           <ProductIngredientsManager
@@ -120,6 +128,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.service,
       label: t('editor_section_service'),
       showHeading: true,
+      description: t('editor_section_service_description'),
       node: (
         <>
           <ProductServiceFields register={form.register} errors={errors} control={form.control} />
@@ -131,6 +140,7 @@ export function buildItemSections(context: EditorSectionsContext): EditorSection
       id: SECTION_IDS.advanced,
       label: t('editor_section_advanced'),
       collapsible: true,
+      description: t('editor_section_advanced_description'),
       defaultCollapsed: true,
       node: <ProductAdvancedFields register={form.register} />,
     },

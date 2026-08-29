@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useProductEditorForm } from '@/hooks/admin/useProductEditorForm';
+import { getProductCompleteness } from '@/lib/productCompleteness';
 import type { ProductDetails } from '@/app/admin/menu-management/interfaces';
 import ProductStatusFields from '@/components/admin/product/fields/ProductStatusFields';
 import EditorShell from './EditorShell';
@@ -95,6 +96,18 @@ export default function ProductEditorPage({
 
   const context = { editor, t, product, isCreate, isBundle };
   const primaryCategoryName = editor.categories.find((category) => category.id === editor.primaryCategoryId)?.name;
+
+  // S10's meter. Only a SAVED ITEM gets one — see `EditorSideRail`'s prop for why a bundle and the
+  // create route get none. The description is WATCHED, not read off `product`, so typing one ticks
+  // the row immediately; the photo count is the same `product.images` the "At a glance" row shows,
+  // so the two can never disagree about the same item on the same screen.
+  const isSavedItem = !isBundle && !isCreate;
+  const completeness = isSavedItem
+    ? getProductCompleteness({
+        photoCount: product.images?.length ?? 0,
+        description: form.watch('description'),
+      })
+    : undefined;
   // `watch` so the header badge follows the rail's switch live. A bundle's flag is registered by
   // `BundlePanel` under the same name, so one read serves both.
   const isLive = Boolean(form.watch('isActive'));
@@ -133,7 +146,8 @@ export default function ProductEditorPage({
             inheritsOrderTypes={(form.watch('availableOrderTypes') ?? null) === null}
             photoCount={product.images?.length ?? 0}
             showCategory={!isBundle}
-            showPhotos={!isBundle && !isCreate}
+            showPhotos={isSavedItem}
+            completeness={completeness}
           />
         }
         saveBar={

@@ -653,3 +653,51 @@ describe('ProductEditorPage — the S1 editor shell', () => {
     expect(rail.textContent).not.toContain('category');
   });
 });
+
+/**
+ * Who gets a completeness meter (MENU-ITEM-EDITOR-REDESIGN-PLAN, S10).
+ *
+ * The rail draws whatever score it is handed; this page decides whether there IS one. Both refusals
+ * below are decisions the plan states, so both need an assertion — an absence carries no reason and
+ * is exactly what a later refactor deletes by accident.
+ */
+describe('ProductEditorPage — the completeness meter', () => {
+  const meterHeading = () => screen.queryByRole('heading', { name: 'editor_completeness' });
+
+  it('gives a saved item a meter', async () => {
+    await renderEditor(item, false);
+    expect(meterHeading()).toBeInTheDocument();
+    expect(screen.getByText('editor_completeness_allergens_note')).toBeInTheDocument();
+  });
+
+  it('gives the CREATE route none, because nothing has been typed yet', async () => {
+    // "0 of 2" on a form the admin has just opened scolds them for not having finished it, and the
+    // gallery does not exist on this route at all, so one of the two rows could never be satisfied.
+    await renderEditor(emptyProductDetails(false), false, 'create');
+    expect(meterHeading()).not.toBeInTheDocument();
+  });
+
+  it('gives a BUNDLE none, because it has no gallery to manage', async () => {
+    // Plan §15.4: a bundle CAN carry a photo but cannot manage one, so a "needs photo" row would
+    // name a control the page does not have.
+    await renderEditor(bundle, true);
+    expect(meterHeading()).not.toBeInTheDocument();
+  });
+
+  it('follows the form, not the loaded product — typing a description ticks its row unsaved', async () => {
+    // The meter WATCHES `description`. Read it off `product` instead and the row stays stuck at
+    // "not added yet" until a save-and-reload, which is the moment the admin stops believing it.
+    // The fixture has neither a photo nor a description, so BOTH rows start missing — and only the
+    // description row may move, which is what makes 2 → 1 the assertion rather than 2 → 0.
+    const blank = { ...item, description: '' } as ProductDetails;
+    const { container } = await renderEditor(blank, false);
+    expect(screen.getAllByText('editor_completeness_field_missing')).toHaveLength(2);
+
+    const descriptionInput = container.querySelector('textarea[name="description"], input[name="description"]');
+    await act(async () => {
+      fireEvent.change(descriptionInput as HTMLElement, { target: { value: 'Tomato, mozzarella, basil' } });
+    });
+    expect(screen.getAllByText('editor_completeness_field_missing')).toHaveLength(1);
+    expect(screen.getByText('editor_completeness_field_done')).toBeInTheDocument();
+  });
+});

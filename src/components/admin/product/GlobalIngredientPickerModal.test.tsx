@@ -9,7 +9,9 @@ import {
   restoreGlobalIngredient,
   type GlobalIngredientSummary,
 } from '@/services/globalIngredientService';
-import type { ProductIngredient } from '@/types/menu';
+import { attachGlobalIngredient, getGlobalIngredientProducts } from '@/services/libraryAttachService';
+import { getProducts } from '@/services/menuService';
+import type { IngredientKind, ProductIngredient } from '@/types/menu';
 
 // `t` returns the KEY, and never the second argument: every call site here passes an interpolation
 // OBJECT there, and a mock that echoed it would render `[object Object]` into the DOM instead of a
@@ -26,18 +28,36 @@ jest.mock('@/services/globalIngredientService', () => ({
   restoreGlobalIngredient: jest.fn(),
 }));
 
+// The catalog-wide attach (plan S8) and the product list its confirm step reads. Only the G3 block
+// below drives them; every other test here never reaches the apply step.
+jest.mock('@/services/libraryAttachService', () => ({
+  attachGlobalIngredient: jest.fn(),
+  getGlobalIngredientProducts: jest.fn(),
+}));
+
+jest.mock('@/services/menuService', () => ({ getProducts: jest.fn() }));
+
 const mockGetLibrary = getGlobalIngredients as jest.MockedFunction<typeof getGlobalIngredients>;
 const mockGetArchived = getArchivedGlobalIngredients as jest.MockedFunction<typeof getArchivedGlobalIngredients>;
 const mockCreate = createGlobalIngredient as jest.MockedFunction<typeof createGlobalIngredient>;
 const mockArchive = archiveGlobalIngredient as jest.MockedFunction<typeof archiveGlobalIngredient>;
 const mockRestore = restoreGlobalIngredient as jest.MockedFunction<typeof restoreGlobalIngredient>;
+const mockAttach = attachGlobalIngredient as jest.MockedFunction<typeof attachGlobalIngredient>;
+const mockUsage = getGlobalIngredientProducts as jest.MockedFunction<typeof getGlobalIngredientProducts>;
+const mockGetProducts = getProducts as jest.MockedFunction<typeof getProducts>;
 
+/**
+ * `kind` is left UNSET by default, deliberately: every row seeded on production predates the
+ * discriminator and arrives without it, so this is the shape the picker actually meets. The kind
+ * tests below opt in per row.
+ */
 const libraryRow = (
   id: string,
   defaultName: string,
   translations: { languageCode: string; name: string }[] = [],
   usedOnProductCount = 0,
   isArchived = false,
+  kind?: IngredientKind,
 ): GlobalIngredientSummary => ({
   id,
   defaultName,
@@ -45,6 +65,7 @@ const libraryRow = (
   translations,
   usedOnProductCount,
   isArchived,
+  kind,
 });
 
 const CATALOG = [
@@ -270,7 +291,8 @@ describe('creating a row the library does not have', () => {
     fireEvent.click(screen.getByRole('button', { name: /ingredient_library_create/ }));
 
     await waitFor(() => expect(onAdd).toHaveBeenCalled());
-    expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Truffle Oil', translations: [] });
+    // `kind` is the GROUP the picker was opened from — here the default Ingredients one (slice G1).
+    expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Truffle Oil', translations: [], kind: 'ingredient' });
     const added = onAdd.mock.calls[0][0] as ProductIngredient[];
     expect(added).toHaveLength(1);
     expect(added[0].globalIngredientId).toBe('g-new');
@@ -475,5 +497,187 @@ describe('the archived view', () => {
     fireEvent.click(screen.getByRole('button', { name: /add_selected/ }));
 
     expect((onAdd.mock.calls[0][0] as ProductIngredient[]).map((row) => row.name)).toEqual(['Basil']);
+  });
+});
+
+/**
+ * Slices **G1**, **G2** and **G3** — the sauce library the owner asked for.
+ *
+ * The defect, measured on a live tenant before any of this shipped: `GET /api/global-ingredients`
+ * answered **654 rows, `ingredient` on 654 of them and `sauce` on none**, because no write path in
+ * the admin UI had ever sent a `kind` and the backend defaults an absent one to `ingredient`. So a
+ * sauce typed into the Sauces group of a product WAS stored in the shared library — as an ordinary
+ * ingredient — and the next product was offered it as one.
+ */
+describe('the sauce library (G1/G2/G3)', () => {
+  const SAUCE = libraryRow('g-harissa', 'Harissa', [], 3, false, 'sauce');
+  const MIXED = [...CATALOG, SAUCE];
+
+  const openAs = async (kind: IngredientKind, attached: ProductIngredient[] = []) => {
+    render(<GlobalIngredientPickerModal isOpen onClose={onClose} attached={attached} onAdd={onAdd} kind={kind} />);
+    // The list, not the search box: the box is painted while the fetch is still in flight.
+    await screen.findByRole('list');
+  };
+
+  const offers = (name: string) => screen.queryByRole('checkbox', { name: new RegExp(name) }) !== null;
+
+  describe('G1 — a name typed into a group is filed in the library AS that kind', () => {
+    /**
+     * The load-bearing test of the whole slice. It asserts the PAYLOAD, which is the boundary this
+     * component owns; that the payload is then persisted as a sauce is pinned server-side by
+     * `AttachGlobalIngredientTests` and the create command's own round trip.
+     */
+    it('creates a SAUCE when the picker was opened from the Sauces group', async () => {
+      mockGetLibrary.mockResolvedValue({ success: true, data: MIXED } as never);
+      mockCreate.mockResolvedValue({ success: true, data: libraryRow('g-new', 'Sauce samouraï') } as never);
+      await openAs('sauce');
+
+      type('Sauce samouraï');
+      fireEvent.click(screen.getByRole('button', { name: /ingredient_library_create/ }));
+
+      await waitFor(() => expect(mockCreate).toHaveBeenCalled());
+      expect(mockCreate).toHaveBeenCalledWith({
+        defaultName: 'Sauce samouraï',
+        translations: [],
+        kind: 'sauce',
+      });
+    });
+
+    // The other direction, so the first case cannot pass against a component that hardcodes
+    // `'sauce'` — which is exactly the shape of the bug being replaced, with the constant changed.
+    it('creates an INGREDIENT when it was opened from the Ingredients group', async () => {
+      mockCreate.mockResolvedValue({ success: true, data: libraryRow('g-new', 'Truffle Oil') } as never);
+      await openAs('ingredient');
+
+      type('Truffle Oil');
+      fireEvent.click(screen.getByRole('button', { name: /ingredient_library_create/ }));
+
+      await waitFor(() => expect(mockCreate).toHaveBeenCalled());
+      expect(mockCreate.mock.calls[0][0].kind).toBe('ingredient');
+    });
+  });
+
+  describe('G2 — the picker is narrowed to the group it was opened from', () => {
+    it('offers the sauces and not the 654 ingredients', async () => {
+      mockGetLibrary.mockResolvedValue({ success: true, data: MIXED } as never);
+      await openAs('sauce');
+
+      expect(offers('Harissa')).toBe(true);
+      expect(offers('Mozzarella')).toBe(false);
+      expect(offers('Basil')).toBe(false);
+    });
+
+    /**
+     * The narrowing is never SILENT. Without the notice a sauce picker on this tenant opens with an
+     * empty list and no explanation, and the admin cannot tell "no sauces yet" from "broken" — nor
+     * reach the row they know is in the library.
+     */
+    it('says how many rows it is holding back, and the button reveals them', async () => {
+      mockGetLibrary.mockResolvedValue({ success: true, data: MIXED } as never);
+      await openAs('sauce');
+
+      expect(screen.getByText('ingredient_library_scope_sauces_only')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'ingredient_library_scope_show_all' }));
+
+      expect(offers('Mozzarella')).toBe(true);
+      expect(offers('Harissa')).toBe(true);
+      expect(screen.getByText('ingredient_library_scope_all')).toBeInTheDocument();
+    });
+
+    it('puts the narrowing back', async () => {
+      mockGetLibrary.mockResolvedValue({ success: true, data: MIXED } as never);
+      await openAs('sauce');
+
+      fireEvent.click(screen.getByRole('button', { name: 'ingredient_library_scope_show_all' }));
+      fireEvent.click(screen.getByRole('button', { name: 'ingredient_library_scope_show_sauces' }));
+
+      expect(offers('Mozzarella')).toBe(false);
+      expect(offers('Harissa')).toBe(true);
+    });
+
+    // The tenant's real state: a shelf of 654 ingredients and no sauce. The list IS empty, and the
+    // notice is the only thing that explains it — so it must render when there is no list at all.
+    it('explains an empty list rather than leaving the admin with a blank modal', async () => {
+      render(<GlobalIngredientPickerModal isOpen onClose={onClose} attached={[]} onAdd={onAdd} kind="sauce" />);
+
+      expect(await screen.findByText('ingredient_library_scope_sauces_only')).toBeInTheDocument();
+      expect(screen.getByText('ingredient_library_empty')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'ingredient_library_scope_show_all' })).toBeInTheDocument();
+    });
+
+    /**
+     * The legacy rows are the whole catalogue on every tenant that exists, and they carry NO `kind`
+     * at all. Reading `row.kind === 'ingredient'` instead of resolving it would drop all 654 of them
+     * out of BOTH groups and leave every picker empty.
+     */
+    it('a row that predates the discriminator is an ingredient, not a hidden third kind', async () => {
+      mockGetLibrary.mockResolvedValue({ success: true, data: MIXED } as never);
+      await openAs('ingredient');
+
+      expect(offers('Mozzarella')).toBe(true);
+      expect(offers('Harissa')).toBe(false);
+      expect(screen.getByText('ingredient_library_scope_ingredients_only')).toBeInTheDocument();
+    });
+
+    // Nothing hidden, nothing to say — and no control offering to reveal rows that are all on screen.
+    it('says nothing when the narrowing is hiding nothing', async () => {
+      await openAs('ingredient');
+
+      expect(screen.queryByText('ingredient_library_scope_ingredients_only')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'ingredient_library_scope_show_all' })).toBeNull();
+    });
+  });
+
+  describe('G3 — applying one row to many products states the group too', () => {
+    beforeEach(() => {
+      mockGetLibrary.mockResolvedValue({ success: true, data: MIXED } as never);
+      mockUsage.mockResolvedValue({ success: true, data: [] } as never);
+      mockAttach.mockResolvedValue({
+        success: true,
+        data: { attachedProductIds: ['p-1'], skipped: [] },
+      } as never);
+      mockGetProducts.mockResolvedValue({
+        success: true,
+        message: '',
+        errors: null,
+        data: {
+          items: [{ id: 'p-1', name: 'Kebab', categories: [{ categoryId: 'c-1', categoryName: 'Sandwichs' }] }],
+          totalCount: 1,
+          page: 1,
+          pageSize: 500,
+          totalPages: 1,
+        },
+      } as never);
+    });
+
+    /**
+     * The two attach paths used to apply OPPOSITE rules to one decision: this modal's own "add to
+     * the product" stamped the GROUP, while the bulk endpoint stamped the LIBRARY ROW's kind. On a
+     * catalogue where every row is typed `ingredient`, "apply this sauce to 21 products" therefore
+     * put 21 rows in the INGREDIENTS group of 21 products.
+     */
+    it('sends the group the picker was opened from', async () => {
+      await openAs('sauce');
+
+      fireEvent.click(rowFor('Harissa').getByRole('button', { name: 'ingredient_library_apply' }));
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Kebab' }));
+      fireEvent.click(screen.getByRole('button', { name: /ingredient_library_apply_confirm/ }));
+
+      await waitFor(() => expect(mockAttach).toHaveBeenCalled());
+      expect(mockAttach.mock.calls[0][1]).toEqual(expect.objectContaining({ productIds: ['p-1'], kind: 'sauce' }));
+    });
+
+    // The control, for the same reason G1 has one: a hardcoded `'sauce'` would pass the case above.
+    it('sends the Ingredients group when that is where the admin is', async () => {
+      await openAs('ingredient');
+
+      fireEvent.click(rowFor('Mozzarella').getByRole('button', { name: 'ingredient_library_apply' }));
+      fireEvent.click(await screen.findByRole('checkbox', { name: 'Kebab' }));
+      fireEvent.click(screen.getByRole('button', { name: /ingredient_library_apply_confirm/ }));
+
+      await waitFor(() => expect(mockAttach).toHaveBeenCalled());
+      expect(mockAttach.mock.calls[0][1].kind).toBe('ingredient');
+    });
   });
 });

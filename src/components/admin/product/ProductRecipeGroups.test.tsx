@@ -97,10 +97,17 @@ describe('Recipe & dietary splits into Ingredients and Sauces', () => {
     expect(afterIngredient[2].kind).toBe('ingredient');
   });
 
+  /**
+   * BBQ is a catalogue row with NO `kind`, so it reads as an INGREDIENT and the Sauces picker holds
+   * it back by default (slice G2) — which is why this test has to reach for "show all" first, and
+   * why that button exists at all. Placing it in Sauces anyway is plan D8 working as intended: the
+   * catalogue row is a word, and the GROUP the admin dropped it into is what the product row means.
+   */
   it('a row picked from the library in Sauces lands in Sauces', async () => {
     mount();
 
     fireEvent.click(within(groupOf('sauces')).getByRole('button', { name: 'add_from_library' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'ingredient_library_scope_show_all' }));
     fireEvent.click(await screen.findByRole('checkbox', { name: /BBQ/ }));
     fireEvent.click(screen.getByRole('button', { name: /add_selected/ }));
 

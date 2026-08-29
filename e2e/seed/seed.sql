@@ -252,16 +252,26 @@ SET open_time = INTERVAL '00:00:00',
 -- instant of the CI day. Replace, do not diff: a shift row carries nothing but
 -- two times and no other table points at one (the same argument
 -- `WorkingHoursService.UpdateAsync` makes).
-DELETE FROM working_hours_shifts;
+--
+-- The WHERE names the scope instead of leaving it implicit. Every window of
+-- every day IS what this replaces, but a bare `DELETE FROM <table>` says that
+-- by omission — and a reader cannot tell an intended whole-table replace from a
+-- forgotten predicate (SonarCloud plsql:DeleteOrUpdateWithoutWhereCheck, and it
+-- is right to ask).
+DELETE FROM working_hours_shifts
+WHERE working_hours_id IN (SELECT id FROM working_hours);
 
+-- `'…'::interval`, not `INTERVAL '…'`: in a SELECT list the second form reads as
+-- a column named INTERVAL carrying a quoted alias, which is also how SonarCloud's
+-- parser sees it. The cast is unambiguous to both.
 INSERT INTO working_hours_shifts (
     id, working_hours_id, open_time, close_time, created_by
 )
 SELECT
     gen_random_uuid(),
     wh.id,
-    INTERVAL '00:00:00',
-    INTERVAL '23:59:59',
+    '00:00:00'::interval,
+    '23:59:59'::interval,
     'e2e-seed'
 FROM working_hours wh;
 
@@ -381,7 +391,7 @@ SELECT wh.day_of_week, wh.open_time, wh.close_time, wh.is_closed,
        s.open_time AS shift_open, s.close_time AS shift_close
 FROM working_hours wh
 LEFT JOIN working_hours_shifts s ON s.working_hours_id = wh.id
-ORDER BY wh.day_of_week, s.open_time;
+ORDER BY wh.day_of_week ASC, s.open_time ASC;
 -- The mixed-kitchen bundle: 1 root + 2 children, one per kitchen.
 SELECT oi.product_name, p.kitchen_type, oi.parent_order_item_id IS NULL AS is_root
 FROM "OrderItems" oi

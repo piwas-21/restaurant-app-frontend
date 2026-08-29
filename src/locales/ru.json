@@ -2895,5 +2895,14 @@
   "variation_library_apply_skipped": "Пропущено позиций: {{count}}",
   "variation_library_apply_failed": "Не удалось применить к выбранным позициям.",
   "variation_library_apply_load_failed": "Не удалось загрузить позиции.",
-  "variation_library_apply_back": "Назад"
+  "variation_library_apply_back": "Назад",
+  "opening_windows": "Часы работы",
+  "add_opening_window": "Добавить интервал",
+  "add_opening_window_for_day": "Добавить интервал работы в {{day}}",
+  "remove_opening_window": "Удалить интервал {{number}}, {{day}}",
+  "open_time_for_window": "Время открытия, интервал {{number}}, {{day}}",
+  "close_time_for_window": "Время закрытия, интервал {{number}}, {{day}}",
+  "opening_windows_overlap": "Интервалы работы в {{day}} пересекаются",
+  "at_least_one_opening_window": "{{day}} — рабочий день, нужен хотя бы один интервал",
+  "too_many_opening_windows": "Не более {{max}} интервалов работы в {{day}}"
 }

@@ -7,13 +7,26 @@ import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto, UpdateWorkingHoursDto, dayNameToNumber } from '@/types/workingHours';
 import { getErrorMessage } from '@/utils/apiClient';
 import { enqueueSnackbar } from 'notistack';
-import { getDayName, parseTime } from './workingHoursDay';
+import {
+  getDayName,
+  findShiftProblem,
+  asEditableShift,
+  shiftProblemMessage,
+  type EditableShift,
+} from './workingHoursDay';
+import { shiftsOf } from '@/lib/workingHoursDisplay';
+import WorkingHoursDayShifts from './WorkingHoursDayShifts';
 import styles from './WorkingHoursManager.module.css';
 
 const DAYS_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday to Sunday
 
-// Normalized type with dayOfWeek as number
-type NormalizedWorkingHours = Omit<WorkingHoursDto, 'dayOfWeek'> & { dayOfWeek: number };
+// Normalized type: dayOfWeek as a number, and `shifts` always present. A backend that predates
+// serving windows answers without the array, and `shiftsOf` turns that day into its single legacy
+// window — so the editor works against one shape no matter which API it is talking to.
+type NormalizedWorkingHours = Omit<WorkingHoursDto, 'dayOfWeek' | 'shifts'> & {
+  dayOfWeek: number;
+  shifts: EditableShift[];
+};
 
 export default function WorkingHoursManager() {
   const { t } = useTranslation();
@@ -38,6 +51,7 @@ export default function WorkingHoursManager() {
       const normalized: NormalizedWorkingHours[] = hours.map((wh) => ({
         ...wh,
         dayOfWeek: dayNameToNumber(wh.dayOfWeek),
+        shifts: shiftsOf(wh).map(asEditableShift),
       }));
 
       const sorted = normalized.sort((a, b) => {
@@ -73,8 +87,8 @@ export default function WorkingHoursManager() {
     }
   };
 
-  const handleTimeChange = (id: string, field: 'openTime' | 'closeTime', value: string) => {
-    setWorkingHours((prev) => prev.map((wh) => (wh.id === id ? { ...wh, [field]: value } : wh)));
+  const handleShiftsChange = (id: string, shifts: EditableShift[]) => {
+    setWorkingHours((prev) => prev.map((wh) => (wh.id === id ? { ...wh, shifts } : wh)));
   };
 
   const handleToggleClosed = (id: string) => {
@@ -87,19 +101,13 @@ export default function WorkingHoursManager() {
 
   const validateTimes = (): boolean => {
     for (const wh of workingHours) {
-      if (!wh.isClosed) {
-        const open = parseTime(wh.openTime);
-        const close = parseTime(wh.closeTime);
-        if (close <= open) {
-          enqueueSnackbar(
-            t('close_time_must_be_after_open', 'Close time must be after open time for {{day}}', {
-              day: getDayName(wh.dayOfWeek, t),
-            }),
-            { variant: 'error' },
-          );
-          return false;
-        }
-      }
+      if (wh.isClosed) continue;
+
+      const problem = findShiftProblem(wh.shifts);
+      if (problem === null) continue;
+
+      enqueueSnackbar(shiftProblemMessage(problem, getDayName(wh.dayOfWeek, t), t), { variant: 'error' });
+      return false;
     }
     return true;
   };
@@ -112,10 +120,14 @@ export default function WorkingHoursManager() {
 
       // Update all days
       const updatePromises = workingHours.map((wh) => {
+        // `shifts` is authoritative; openTime/closeTime are sent as the API's own mirror of the
+        // FIRST window so an older backend, which reads only the pair, still stores a usable day.
+        const ordered = [...wh.shifts].sort((a, b) => a.openTime.localeCompare(b.openTime));
         const dto: UpdateWorkingHoursDto = {
           dayOfWeek: wh.dayOfWeek,
-          openTime: wh.openTime,
-          closeTime: wh.closeTime,
+          openTime: ordered[0]?.openTime ?? wh.openTime,
+          closeTime: ordered[0]?.closeTime ?? wh.closeTime,
+          shifts: ordered,
           isActive: wh.isActive,
           isClosed: wh.isClosed,
           notes: wh.notes || null,
@@ -177,8 +189,7 @@ export default function WorkingHoursManager() {
             <tr>
               <th>{t('day', 'Day')}</th>
               <th>{t('status', 'Status')}</th>
-              <th>{t('open_time', 'Open Time')}</th>
-              <th>{t('close_time', 'Close Time')}</th>
+              <th>{t('opening_windows', 'Opening hours')}</th>
               <th>{t('notes', 'Notes')}</th>
             </tr>
           </thead>
@@ -198,21 +209,11 @@ export default function WorkingHoursManager() {
                   </button>
                 </td>
                 <td>
-                  <input
-                    type="time"
-                    value={wh.openTime.substring(0, 5)} // HH:mm
-                    onChange={(e) => handleTimeChange(wh.id, 'openTime', e.target.value + ':00')}
+                  <WorkingHoursDayShifts
+                    shifts={wh.shifts}
+                    dayName={getDayName(wh.dayOfWeek, t)}
                     disabled={wh.isClosed}
-                    className={styles.timeInput}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="time"
-                    value={wh.closeTime.substring(0, 5)} // HH:mm
-                    onChange={(e) => handleTimeChange(wh.id, 'closeTime', e.target.value + ':00')}
-                    disabled={wh.isClosed}
-                    className={styles.timeInput}
+                    onChange={(shifts) => handleShiftsChange(wh.id, shifts)}
                   />
                 </td>
                 <td>

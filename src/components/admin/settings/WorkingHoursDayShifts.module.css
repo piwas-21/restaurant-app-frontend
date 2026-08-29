@@ -1,0 +1,97 @@
+/*
+  The opening-hours cell: N serving windows for one day (G11).
+
+  Semantic design tokens only, with no hex fallbacks — unlike the sibling
+  WorkingHoursManager.module.css, whose `var(--border-color, #e5e7eb)` pattern is grandfathered and
+  must not be copied into new files. The tokens already carry their own dark values, which is why
+  this file needs no [data-theme='dark'] block at all.
+*/
+
+.shifts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 15rem;
+}
+
+.shiftRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.separator {
+  color: var(--text-secondary);
+}
+
+.timeInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.timeInput:focus-visible,
+.removeButton:focus-visible,
+.addButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.timeInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface-secondary);
+}
+
+.removeButton,
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.removeButton {
+  padding: 0.375rem;
+}
+
+.addButton {
+  align-self: flex-start;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.removeButton:hover:not(:disabled),
+.addButton:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.removeButton:disabled,
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .shifts {
+    min-width: 12rem;
+  }
+
+  .timeInput {
+    font-size: 0.8125rem;
+  }
+}

@@ -48,13 +48,21 @@ export default function LogoTab() {
     );
   }
 
+  // Declared as values rather than as a default parameter on `run`: an object literal in a
+  // default position is rebuilt on every call and is flagged by sonar typescript:S7737.
+  const logoCopy = {
+    success: t('logo_save_success', 'Logo saved'),
+    failure: t('logo_save_failed', 'Failed to save the logo'),
+  };
+  const photoCopy = {
+    success: t('interior_photo_save_success', 'Photo saved'),
+    failure: t('interior_photo_save_failed', 'Failed to save the photo'),
+  };
+
   const run = async (
     variant: LogoVariant | 'interior',
     action: () => Promise<{ success: boolean; message?: string; errors?: unknown }>,
-    copy: { success: string; failure: string } = {
-      success: t('logo_save_success', 'Logo saved'),
-      failure: t('logo_save_failed', 'Failed to save the logo'),
-    },
+    copy: { success: string; failure: string },
   ) => {
     setBusy(variant);
     try {
@@ -95,11 +103,6 @@ export default function LogoTab() {
     }
   };
 
-  const photoCopy = {
-    success: t('interior_photo_save_success', 'Photo saved'),
-    failure: t('interior_photo_save_failed', 'Failed to save the photo'),
-  };
-
   return (
     <div className={styles.wrap}>
       <p className={styles.hint}>
@@ -117,8 +120,8 @@ export default function LogoTab() {
           currentUrl={info.logoUrl}
           restaurantName={info.name}
           isBusy={busy === 'light'}
-          onUpload={(file) => run('light', () => uploadRestaurantLogo('light', file))}
-          onRemove={() => run('light', () => deleteRestaurantLogo('light'))}
+          onUpload={(file) => run('light', () => uploadRestaurantLogo('light', file), logoCopy)}
+          onRemove={() => run('light', () => deleteRestaurantLogo('light'), logoCopy)}
         />
         <LogoSlot
           variant="dark"
@@ -127,8 +130,8 @@ export default function LogoTab() {
           currentUrl={info.logoDarkUrl}
           restaurantName={info.name}
           isBusy={busy === 'dark'}
-          onUpload={(file) => run('dark', () => uploadRestaurantLogo('dark', file))}
-          onRemove={() => run('dark', () => deleteRestaurantLogo('dark'))}
+          onUpload={(file) => run('dark', () => uploadRestaurantLogo('dark', file), logoCopy)}
+          onRemove={() => run('dark', () => deleteRestaurantLogo('dark'), logoCopy)}
         />
         <InteriorImageSlot
           currentUrl={info.interiorImageUrl}

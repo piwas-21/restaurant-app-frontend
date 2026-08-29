@@ -697,7 +697,13 @@ describe('a picked library row survives the save', () => {
 
     const sent = await saveWith([{ id: 'temp-9', name: 'Truffle Oil', price: 0, isActive: true, displayOrder: 1 }]);
 
-    expect(createGlobalIngredient).toHaveBeenCalledWith({ defaultName: 'Truffle Oil', translations: [] });
+    // A row typed with no group of its own resolves to `ingredient` (slice G1) — `undefined` must
+    // not reach the wire, where the API has no meaning for a third state.
+    expect(createGlobalIngredient).toHaveBeenCalledWith({
+      defaultName: 'Truffle Oil',
+      translations: [],
+      kind: 'ingredient',
+    });
     expect(sent[0].globalIngredientId).toBe('g-new');
   });
 });

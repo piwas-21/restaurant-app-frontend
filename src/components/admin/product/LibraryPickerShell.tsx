@@ -50,6 +50,12 @@ interface LibraryPickerShellProps<TRow extends CatalogRow> {
   /** Receives the picked catalog rows. The caller maps them onto the product. */
   onAdd: (rows: TRow[]) => void;
   /**
+   * What the catalog's own narrowing is doing and how to undo it (slice G2), drawn above the
+   * results. A node rather than a flag, because only the caller knows what its rows can be narrowed
+   * BY: the ingredient picker passes `LibraryKindScopeNotice`, the variation picker passes nothing.
+   */
+  scopeNotice?: React.ReactNode;
+  /**
    * The catalog-wide attach (plan S8), supplied by the two modals because it is their endpoints.
    *
    * Optional: a picker without it is exactly the picker that shipped in S2/S4, and the row draws no
@@ -79,6 +85,7 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
   onViewChange,
   createRow,
   onAdd,
+  scopeNotice,
   apply,
 }: Readonly<LibraryPickerShellProps<TRow>>) {
   const { t } = useTranslation();
@@ -200,6 +207,10 @@ export default function LibraryPickerShell<TRow extends CatalogRow>({
           {createError ?? archive.actionError}
         </p>
       )}
+
+      {/* OUTSIDE the results on purpose: `LibraryPickerResults` renders only the empty message when
+          nothing matched, and an empty list is the state this notice exists to explain. */}
+      {view === 'active' && scopeNotice}
 
       {view === 'active' ? (
         <LibraryPickerResults

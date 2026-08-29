@@ -2895,5 +2895,13 @@
   "variation_library_apply_skipped": "Atlanan ürün: {{count}}",
   "variation_library_apply_failed": "Seçilen ürünlere uygulanamadı.",
   "variation_library_apply_load_failed": "Ürünler yüklenemedi.",
-  "variation_library_apply_back": "Geri"
+  "variation_library_apply_back": "Geri",
+  "opening_windows": "Çalışma saatleri",
+  "add_opening_window": "Saat aralığı ekle",
+  "add_opening_window_for_day": "{{day}} günü için açılış aralığı ekle",
+  "remove_opening_window": "{{number}}. aralığı kaldır, {{day}}",
+  "open_time_for_window": "Açılış saati, {{number}}. aralık, {{day}}",
+  "close_time_for_window": "Kapanış saati, {{number}}. aralık, {{day}}",
+  "opening_windows_overlap": "{{day}} günündeki açılış aralıkları çakışıyor",
+  "at_least_one_opening_window": "{{day}} açık, bu yüzden en az bir aralık gerekir"
 }

@@ -1,0 +1,100 @@
+.shifts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 15rem;
+}
+
+.shiftRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.separator {
+  color: var(--text-secondary);
+}
+
+.timeInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: var(--background-color, white);
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .timeInput {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+
+.timeInput:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.timeInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--disabled-bg, #f3f4f6);
+}
+
+[data-theme='dark'] .timeInput:disabled {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.removeButton,
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeButton {
+  padding: 0.375rem;
+}
+
+.addButton {
+  align-self: flex-start;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.removeButton:hover:not(:disabled),
+.addButton:hover:not(:disabled) {
+  border-color: var(--primary-color, #007bff);
+  color: var(--primary-color, #007bff);
+}
+
+.removeButton:disabled,
+.addButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-theme='dark'] .removeButton,
+[data-theme='dark'] .addButton {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .shifts {
+    min-width: 12rem;
+  }
+
+  .timeInput {
+    font-size: 0.8125rem;
+  }
+}

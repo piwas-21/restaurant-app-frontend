@@ -2895,5 +2895,13 @@
   "variation_library_apply_skipped": "Articles ignorés : {{count}}",
   "variation_library_apply_failed": "Impossible d’appliquer aux articles sélectionnés.",
   "variation_library_apply_load_failed": "Impossible de charger les articles.",
-  "variation_library_apply_back": "Retour"
+  "variation_library_apply_back": "Retour",
+  "opening_windows": "Horaires d'ouverture",
+  "add_opening_window": "Ajouter un créneau",
+  "add_opening_window_for_day": "Ajouter un créneau d'ouverture le {{day}}",
+  "remove_opening_window": "Supprimer le créneau {{number}}, {{day}}",
+  "open_time_for_window": "Heure d'ouverture, créneau {{number}}, {{day}}",
+  "close_time_for_window": "Heure de fermeture, créneau {{number}}, {{day}}",
+  "opening_windows_overlap": "Les créneaux d'ouverture se chevauchent le {{day}}",
+  "at_least_one_opening_window": "{{day}} est ouvert, il faut donc au moins un créneau"
 }

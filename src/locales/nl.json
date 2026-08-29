@@ -2895,5 +2895,13 @@
   "variation_library_apply_skipped": "Overgeslagen items: {{count}}",
   "variation_library_apply_failed": "Kon dit niet toepassen op de geselecteerde items.",
   "variation_library_apply_load_failed": "Kon de items niet laden.",
-  "variation_library_apply_back": "Terug"
+  "variation_library_apply_back": "Terug",
+  "opening_windows": "Openingstijden",
+  "add_opening_window": "Tijdvak toevoegen",
+  "add_opening_window_for_day": "Een openingstijdvak op {{day}} toevoegen",
+  "remove_opening_window": "Tijdvak {{number}} verwijderen, {{day}}",
+  "open_time_for_window": "Openingstijd, tijdvak {{number}}, {{day}}",
+  "close_time_for_window": "Sluitingstijd, tijdvak {{number}}, {{day}}",
+  "opening_windows_overlap": "De openingstijdvakken op {{day}} overlappen elkaar",
+  "at_least_one_opening_window": "{{day}} is open en heeft dus minstens één tijdvak nodig"
 }

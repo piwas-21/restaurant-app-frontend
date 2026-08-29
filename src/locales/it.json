@@ -2895,5 +2895,13 @@
   "variation_library_apply_skipped": "Articoli saltati: {{count}}",
   "variation_library_apply_failed": "Impossibile applicare agli articoli selezionati.",
   "variation_library_apply_load_failed": "Impossibile caricare gli articoli.",
-  "variation_library_apply_back": "Indietro"
+  "variation_library_apply_back": "Indietro",
+  "opening_windows": "Orari di apertura",
+  "add_opening_window": "Aggiungi fascia",
+  "add_opening_window_for_day": "Aggiungi una fascia di apertura di {{day}}",
+  "remove_opening_window": "Rimuovi la fascia {{number}}, {{day}}",
+  "open_time_for_window": "Ora di apertura, fascia {{number}}, {{day}}",
+  "close_time_for_window": "Ora di chiusura, fascia {{number}}, {{day}}",
+  "opening_windows_overlap": "Le fasce di apertura di {{day}} si sovrappongono",
+  "at_least_one_opening_window": "{{day}} è aperto, quindi serve almeno una fascia"
 }

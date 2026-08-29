@@ -2895,5 +2895,13 @@
   "variation_library_apply_skipped": "已跳过的商品数：{{count}}",
   "variation_library_apply_failed": "无法应用到所选商品。",
   "variation_library_apply_load_failed": "无法加载商品。",
-  "variation_library_apply_back": "返回"
+  "variation_library_apply_back": "返回",
+  "opening_windows": "营业时间",
+  "add_opening_window": "添加时段",
+  "add_opening_window_for_day": "为{{day}}添加一个营业时段",
+  "remove_opening_window": "删除第 {{number}} 个时段，{{day}}",
+  "open_time_for_window": "开始营业时间，第 {{number}} 个时段，{{day}}",
+  "close_time_for_window": "结束营业时间，第 {{number}} 个时段，{{day}}",
+  "opening_windows_overlap": "{{day}}的营业时段互相重叠",
+  "at_least_one_opening_window": "{{day}}营业，因此至少需要一个时段"
 }

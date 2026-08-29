@@ -239,6 +239,25 @@ describe('SideItemPickerModal — the search states, ported from the inline expa
     expect(screen.getByText('side_items_picker_found')).toBeInTheDocument();
   });
 
+  /**
+   * The NEGATIVE control for the option-only opt-in (frontend #631).
+   *
+   * A side item is something a guest orders alongside a dish, so it must be orderable — and an
+   * option-only item is exactly the thing that is not: it exists to be chosen inside a bundle. The
+   * bundle option picker passes `{ includeComponents: true }` to this same service function, so
+   * this assertion is what stops that spreading here by copy-paste. The assertion above is already
+   * strict about the argument list; this one says WHY, so nobody relaxes it.
+   */
+  it('never opts into option-only items — they are not orderable beside a dish', async () => {
+    mockSearchProducts.mockResolvedValue(ok([row(FRIES, 'Fried Potatoes')]));
+    renderPicker();
+
+    await search('fried potatoes');
+
+    expect(mockSearchProducts).toHaveBeenCalledTimes(1);
+    expect(mockSearchProducts.mock.calls[0][1]).toBeUndefined();
+  });
+
   it('does not claim an empty menu while a request is in flight', async () => {
     let resolve!: (value: ProductSearchResponse) => void;
     mockSearchProducts.mockReturnValue(new Promise<ProductSearchResponse>((r) => (resolve = r)));

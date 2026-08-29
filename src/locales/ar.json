@@ -1589,6 +1589,8 @@
   "select_variation": "اختر الحجم/التنويع",
   "price_from": "ابتداءً من {{price}}",
   "hide_base_product": "إخفاء المنتج الأساسي",
+  "option_only_item": "عنصر للاختيار فقط",
+  "option_only_item_help": "مخفي من القائمة، ولا يمكن اختياره إلا داخل وجبة مركبة",
   "standard": "قياسي",
   "no_side_items_found": "لم يتم العثور على أطباق جانبية",
   "side_items_picker_open": "إضافة أطباق جانبية أو إزالتها",

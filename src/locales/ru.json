@@ -496,6 +496,8 @@
   "select_variation": "Выберите размер/вариацию",
   "price_from": "от {{price}}",
   "hide_base_product": "Скрыть базовый товар",
+  "option_only_item": "Только как вариант выбора",
+  "option_only_item_help": "Скрыт из меню, его можно выбрать только внутри комбо-меню",
   "standard": "Стандарт",
   "ingredients": "Ингредиенты",
   "allergens": "Аллергены",

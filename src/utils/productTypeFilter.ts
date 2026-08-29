@@ -8,6 +8,17 @@ export interface ProductTypeQuery {
   type?: 'Menu';
   /** Opt into a mixed list of items AND Menu bundles. Ignored when `type` is set. */
   includeMenus?: boolean;
+  /**
+   * Opt into the OPTION-ONLY items (`Product.IsComponent`) that `GET /api/Products` excludes by
+   * default, mirroring `includeMenus`. Orthogonal to `type` — an option-only item is never a Menu
+   * bundle — so it is sent alongside `type` rather than instead of it.
+   *
+   * ONLY two callers may set it: the admin catalog (which has to show what it lets you edit) and
+   * the bundle option picker (which has to let you pick one). The guest menu, the waiter's
+   * take-order screen and the side-item picker must leave it unset — an option-only item is one a
+   * guest cannot order on its own, which is the whole point of the flag.
+   */
+  includeComponents?: boolean;
 }
 
 /**

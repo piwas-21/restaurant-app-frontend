@@ -46,6 +46,53 @@ describe('getProducts — RequestedOrderType', () => {
 });
 
 /**
+ * The OPTION-ONLY opt-in (frontend #631).
+ *
+ * `GET /api/Products` excludes `IsComponent` rows by default — that default is what keeps a
+ * bundle's six meats off the guest menu. Two admin surfaces have to see past it, and every other
+ * caller must not, so what is pinned here is the PARAMETER, in both directions: the request the
+ * guest menu and the waiter screen send has to stay byte-identical to the one they sent before.
+ */
+describe('getProducts — IncludeComponents', () => {
+  it('sends the opt-in under the name the backend binds when a caller asks for it', async () => {
+    await getProducts(1, 20, null, { includeComponents: true });
+
+    expect(requestedUrl()).toContain('IncludeComponents=true');
+  });
+
+  it('sends nothing at all for a caller that does not ask — the guest and waiter shape', async () => {
+    await getProducts(1, 100, 'cat-1');
+
+    expect(requestedUrl()).toBe('/api/Products?Page=1&PageSize=100&CategoryId=cat-1');
+  });
+
+  it('sends nothing when the flag is explicitly false', async () => {
+    await getProducts(1, 20, null, { includeComponents: false });
+
+    expect(requestedUrl()).not.toContain('IncludeComponents');
+  });
+
+  /**
+   * The opt-in is ORTHOGONAL to the type filter, and this is the assertion that says so. It is not
+   * a third arm of the `Type` / `IncludeMenus` chain: an option-only item is a plain item, so an
+   * admin who narrows the catalog to bundles or to items must still be shown the same rows the
+   * unnarrowed list showed. Folding it into that chain would silently drop the opt-in on two of
+   * the three chips.
+   */
+  it('rides alongside the type filter rather than replacing it', async () => {
+    await getProducts(1, 10, null, { type: 'Menu', includeComponents: true });
+
+    expect(requestedUrl()).toBe('/api/Products?Page=1&PageSize=10&Type=Menu&IncludeComponents=true');
+  });
+
+  it('rides alongside IncludeMenus too — the admin catalog sends both', async () => {
+    await getProducts(1, 20, null, { includeMenus: true, includeComponents: true });
+
+    expect(requestedUrl()).toBe('/api/Products?Page=1&PageSize=20&IncludeMenus=true&IncludeComponents=true');
+  });
+});
+
+/**
  * G7 — the banner is an entry point, so the same parameter has to reach the same binder here. Its
  * failure mode is the quiet one: without the channel the server resolves against "no channel
  * chosen", which is orderable BY DESIGN, so the hero would silently offer an item the catalog card

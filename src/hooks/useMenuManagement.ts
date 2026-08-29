@@ -47,7 +47,15 @@ export const useMenuManagement = (typeFilter: MenuTypeFilter = 'all') => {
         // One endpoint for all three chips, so paging + the category filter behave
         // identically across them (the old tabs hit two endpoints with independent
         // pagination, which is why "All" was not expressible — backend #189).
-        const response = await getProducts(page, pageSize, selectedCategoryId, toProductTypeQuery(typeFilter));
+        // `includeComponents` is the ADMIN's opt-in (frontend #631). Option-only items are hidden
+        // from `GET /api/Products` by default because a guest cannot order one on its own — but the
+        // admin who ticks that box has to keep seeing the item afterwards, or it disappears from
+        // the only screen that can untick it. It rides ALONGSIDE the type chip, never instead of
+        // it: an option-only item is a plain item, so every chip must still be able to show one.
+        const response = await getProducts(page, pageSize, selectedCategoryId, {
+          ...toProductTypeQuery(typeFilter),
+          includeComponents: true,
+        });
 
         // Only update state if we're still on the same filter (check against ref)
         if (requestFilter === typeFilterRef.current) {

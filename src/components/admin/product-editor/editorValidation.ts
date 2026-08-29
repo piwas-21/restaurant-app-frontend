@@ -40,6 +40,7 @@ export const SECTION_FIELDS: Readonly<Record<string, string>> = {
   availableOrderTypes: SECTION_IDS.service,
   type: SECTION_IDS.advanced,
   hideBaseProduct: SECTION_IDS.advanced,
+  isComponent: SECTION_IDS.advanced,
 };
 
 /** `root` is react-hook-form's FORM-level error. It has no input, so nothing can jump to it. */

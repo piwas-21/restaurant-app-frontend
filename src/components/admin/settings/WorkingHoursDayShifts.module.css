@@ -1,3 +1,12 @@
+/*
+  The opening-hours cell: N serving windows for one day (G11).
+
+  Semantic design tokens only, with no hex fallbacks — unlike the sibling
+  WorkingHoursManager.module.css, whose `var(--border-color, #e5e7eb)` pattern is grandfathered and
+  must not be copied into new files. The tokens already carry their own dark values, which is why
+  this file needs no [data-theme='dark'] block at all.
+*/
+
 .shifts {
   display: flex;
   flex-direction: column;
@@ -18,34 +27,25 @@
 .timeInput {
   flex: 1;
   padding: 0.5rem;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   font-size: 0.875rem;
-  transition: all 0.2s ease;
-  background: var(--background-color, white);
-  color: var(--text-color);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
 }
 
-[data-theme='dark'] .timeInput {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-color);
-}
-
-.timeInput:focus {
-  outline: none;
-  border-color: var(--primary-color, #007bff);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+.timeInput:focus-visible,
+.removeButton:focus-visible,
+.addButton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 .timeInput:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: var(--disabled-bg, #f3f4f6);
-}
-
-[data-theme='dark'] .timeInput:disabled {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-secondary);
 }
 
 .removeButton,
@@ -53,12 +53,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  border: 1px solid var(--border-color, #e5e7eb);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .removeButton {
@@ -74,19 +76,14 @@
 
 .removeButton:hover:not(:disabled),
 .addButton:hover:not(:disabled) {
-  border-color: var(--primary-color, #007bff);
-  color: var(--primary-color, #007bff);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
 }
 
 .removeButton:disabled,
 .addButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-[data-theme='dark'] .removeButton,
-[data-theme='dark'] .addButton {
-  border-color: rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 768px) {

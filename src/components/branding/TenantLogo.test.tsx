@@ -17,6 +17,7 @@ const info = (overrides: Partial<RestaurantInfoDto> = {}): RestaurantInfoDto => 
   themePaletteKey: null,
   logoUrl: null,
   logoDarkUrl: null,
+  interiorImageUrl: null,
   phoneNumbers: [],
   ...overrides,
 });

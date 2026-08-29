@@ -46,6 +46,17 @@ export interface RestaurantInfoDto {
   logoUrl: string | null;
   /** Dark-theme variant; null falls back to {@link logoUrl}. */
   logoDarkUrl: string | null;
+  /**
+   * One photo of the restaurant itself, shown as a section on the landing page. Null when
+   * the tenant has not uploaded one, and the section is then NOT rendered — there is no
+   * stand-in. `/branding/hero.png` is a neutral platform graphic that belongs to no
+   * restaurant, so using it under a heading like "our restaurant" would say something
+   * untrue about this tenant.
+   *
+   * Deliberately absent from `UpdateRestaurantInfoCommand` below, for the same reason the
+   * logos are: that PUT is a FULL replace, so a General Settings save would wipe it.
+   */
+  interiorImageUrl: string | null;
   phoneNumbers: RestaurantPhoneNumberDto[];
 }
 

@@ -269,6 +269,18 @@ These are properties of the working copy, not of the code. All four are **silent
   ```
   Fix in **your** worktree (not the shared clone): `git sparse-checkout disable`. Declare it if you run it.
 
+  **Two further modes, measured 2026-08-29 (backend#447 / frontend#630).** (a) **A `git rebase` RE-APPLIES the
+  pattern and deletes the excluded tree from disk** — `src/` vanished mid-PR — and the commits are untouched, so
+  `git status` is clean and `git log` is right. What follows is the worst failure mode on this list: **every gate
+  then passes VACUOUSLY.** `jest` reported *"13 files checked … 0 matches"* and exited `1`; `tsc`, `eslint`,
+  `prettier --check` and the locale gate all exited `0` because there was nothing left to check. A green that means
+  "I found nothing" is indistinguishable from a green that means "I found it and it is fine" — so after ANY rebase
+  in a worktree, read the test COUNT, not the exit code (`Tests: 4403 passed` vs `13 files checked`), and re-run the
+  gates once the tree is restored. (b) For a file that is **already tracked**, `git add` does not silently stage
+  nothing — it **refuses out loud** (*"paths … outside of your sparse-checkout definition"*) and points at
+  `--sparse`. `git add --sparse <path>` is the one-file workaround; the silent-`git add -A` mode above is the
+  UNTRACKED case. Both come from the same setting, and the loud one is the lucky one.
+
 - **`core.fsmonitor=false` is deliberate — leave it off.** It is set on the shared clone to stop watchman cookie races from failing `git add`. Turning it on to speed up `git status` reintroduces intermittent, unreproducible staging failures.
 
 - **Never `git commit --amend` during a CONFLICTED rebase.** While a rebase is stopped on a conflict, `HEAD` is the **new base** — your commit does not exist yet — so the amend rewrites the **upstream tip**, replacing an already-merged PR's commit with your tree and message. `git rebase --continue` then prints *"Successfully rebased"* and exits `0`. The resulting tree is correct and `git log` looks plausible; only the history is wrong. Verify after **every** conflicted rebase, and fix without losing work:

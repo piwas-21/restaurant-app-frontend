@@ -2895,5 +2895,14 @@
   "variation_library_apply_skipped": "عناصر متخطاة: {{count}}",
   "variation_library_apply_failed": "تعذّر التطبيق على العناصر المحددة.",
   "variation_library_apply_load_failed": "تعذّر تحميل العناصر.",
-  "variation_library_apply_back": "رجوع"
+  "variation_library_apply_back": "رجوع",
+  "opening_windows": "ساعات العمل",
+  "add_opening_window": "إضافة فترة",
+  "add_opening_window_for_day": "إضافة فترة عمل يوم {{day}}",
+  "remove_opening_window": "إزالة الفترة {{number}}، {{day}}",
+  "open_time_for_window": "وقت الفتح، الفترة {{number}}، {{day}}",
+  "close_time_for_window": "وقت الإغلاق، الفترة {{number}}، {{day}}",
+  "opening_windows_overlap": "فترات العمل يوم {{day}} متداخلة",
+  "at_least_one_opening_window": "{{day}} يوم عمل، لذا يلزم فترة واحدة على الأقل",
+  "too_many_opening_windows": "بحد أقصى {{max}} فترات عمل يوم {{day}}"
 }

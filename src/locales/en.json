@@ -2895,5 +2895,14 @@
   "variation_library_apply_skipped": "Skipped items: {{count}}",
   "variation_library_apply_failed": "Could not apply this to the selected items.",
   "variation_library_apply_load_failed": "Could not load the items.",
-  "variation_library_apply_back": "Back"
+  "variation_library_apply_back": "Back",
+  "opening_windows": "Opening hours",
+  "add_opening_window": "Add window",
+  "add_opening_window_for_day": "Add an opening window on {{day}}",
+  "remove_opening_window": "Remove window {{number}}, {{day}}",
+  "open_time_for_window": "Open time, window {{number}}, {{day}}",
+  "close_time_for_window": "Close time, window {{number}}, {{day}}",
+  "opening_windows_overlap": "Opening windows overlap on {{day}}",
+  "at_least_one_opening_window": "{{day}} is open, so it needs at least one window",
+  "too_many_opening_windows": "At most {{max}} opening windows on {{day}}"
 }

@@ -9,22 +9,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { workingHoursService } from '@/services/workingHoursService';
 import { dayNameToNumber, type WorkingHoursDto } from '@/types/workingHours';
+import { formatDayHours } from '@/lib/workingHoursDisplay';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
 import { firstPaintCopy } from '@/lib/firstPaintCopy';
 import { homePageTitle } from '@/utils/homePageTitle';
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-const formatTime = (time: string): string => {
-  if (!time || !time.includes(':')) return time || '';
-  const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours, 10);
-  if (Number.isNaN(hour)) return time;
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-};
 
 export interface WorkingHoursGroup {
   days: string;
@@ -101,7 +92,9 @@ export function useCraftHomeData() {
 
     workingHours.forEach((wh, index) => {
       const dayNum = dayNameToNumber(wh.dayOfWeek);
-      const hours = wh.isClosed ? t('closed', 'Closed') : `${formatTime(wh.openTime)} - ${formatTime(wh.closeTime)}`;
+      // EVERY window of the day (G11) — see lib/workingHoursDisplay. Consecutive days sharing the
+      // resulting string still group, so a 7/7 split shift renders as one line.
+      const hours = formatDayHours(wh, t('closed', 'Closed'));
 
       if (currentHours === hours) {
         currentGroup.push(dayNum);

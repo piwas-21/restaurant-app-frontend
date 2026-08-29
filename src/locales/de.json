@@ -2895,5 +2895,14 @@
   "variation_library_apply_skipped": "Übersprungene Artikel: {{count}}",
   "variation_library_apply_failed": "Konnte nicht auf die ausgewählten Artikel angewendet werden.",
   "variation_library_apply_load_failed": "Artikel konnten nicht geladen werden.",
-  "variation_library_apply_back": "Zurück"
+  "variation_library_apply_back": "Zurück",
+  "opening_windows": "Öffnungszeiten",
+  "add_opening_window": "Zeitfenster hinzufügen",
+  "add_opening_window_for_day": "Ein Öffnungsfenster am {{day}} hinzufügen",
+  "remove_opening_window": "Zeitfenster {{number}} entfernen, {{day}}",
+  "open_time_for_window": "Öffnungszeit, Zeitfenster {{number}}, {{day}}",
+  "close_time_for_window": "Schliesszeit, Zeitfenster {{number}}, {{day}}",
+  "opening_windows_overlap": "Die Öffnungsfenster am {{day}} überschneiden sich",
+  "at_least_one_opening_window": "{{day}} ist geöffnet und braucht daher mindestens ein Zeitfenster",
+  "too_many_opening_windows": "Höchstens {{max}} Öffnungsfenster am {{day}}"
 }

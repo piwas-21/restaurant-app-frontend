@@ -2895,5 +2895,14 @@
   "variation_library_apply_skipped": "Artículos omitidos: {{count}}",
   "variation_library_apply_failed": "No se pudo aplicar a los artículos seleccionados.",
   "variation_library_apply_load_failed": "No se pudieron cargar los artículos.",
-  "variation_library_apply_back": "Atrás"
+  "variation_library_apply_back": "Atrás",
+  "opening_windows": "Horario de apertura",
+  "add_opening_window": "Añadir franja",
+  "add_opening_window_for_day": "Añadir una franja de apertura el {{day}}",
+  "remove_opening_window": "Eliminar la franja {{number}}, {{day}}",
+  "open_time_for_window": "Hora de apertura, franja {{number}}, {{day}}",
+  "close_time_for_window": "Hora de cierre, franja {{number}}, {{day}}",
+  "opening_windows_overlap": "Las franjas de apertura del {{day}} se solapan",
+  "at_least_one_opening_window": "{{day}} está abierto, así que necesita al menos una franja",
+  "too_many_opening_windows": "Como máximo {{max}} franjas de apertura el {{day}}"
 }

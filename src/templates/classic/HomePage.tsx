@@ -9,6 +9,7 @@ import FooterCookieLink from '@/components/FooterCookieLink';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
 import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto } from '@/types/workingHours';
+import { formatDayHours } from '@/lib/workingHoursDisplay';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import ContactIcons from '@/components/home/ContactIcons';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
@@ -102,14 +103,6 @@ export default function HomePage() {
     return t(days[dayNum]);
   };
 
-  const formatTime = (time: string): string => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
-
   const groupWorkingHours = () => {
     if (workingHours.length === 0) return [];
 
@@ -119,7 +112,10 @@ export default function HomePage() {
 
     workingHours.forEach((wh, index) => {
       const dayNum = getDayNumber(wh.dayOfWeek);
-      const hours = wh.isClosed ? t('closed', 'Closed') : `${formatTime(wh.openTime)} - ${formatTime(wh.closeTime)}`;
+      // EVERY window of the day, not just the first: a restaurant serving 11:00-15:00 and
+      // 18:00-23:00 reads as "11:00 AM - 3:00 PM, 6:00 PM - 11:00 PM" here (G11). Days that share
+      // the resulting string still group, exactly as before.
+      const hours = formatDayHours(wh, t('closed', 'Closed'));
 
       if (currentHours === hours) {
         currentGroup.push(dayNum);

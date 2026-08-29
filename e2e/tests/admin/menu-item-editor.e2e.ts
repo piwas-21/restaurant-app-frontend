@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { expectNoA11yViolations } from '../../helpers/a11y';
 import { adminSession, credKeyForBaseUrl, isLocalStack } from '../../helpers/adminAuth';
 import { apiBaseUrl } from '../../helpers/config';
 import { writeAuthStorageState } from '../../helpers/storageState';
@@ -25,14 +26,15 @@ import { writeAuthStorageState } from '../../helpers/storageState';
  *
  * SERIAL — `beforeAll` runs per worker, and one login per run is the budget.
  *
- * NO a11y SCAN, and that is a stated exception to E2E-STRATEGY §Accessibility rather than an
- * omission. `expectNoA11yViolations` was run against this exact page while writing the spec and
- * reports THREE blocking rules on code this PR does not touch: `label` (critical — the editor's
- * fields use a bare `<label>` with no `htmlFor` and no wrapping, e.g. ProductBasicsFields.tsx:40),
- * `select-name` (critical) and `color-contrast` (serious). Adding the scan here would make a CI
- * gate that exists to prove the admin suite RUNS fail for an unrelated reason on its first day, and
- * would land that failure on whoever is editing the editor. The findings are filed instead; the
- * scan belongs in this spec the day they are fixed.
+ * IT NOW RUNS THE a11y SCAN (#592). The exception that used to stand here — three blocking rules
+ * on pre-existing debt — is gone because the debt is: `label` and `select-name` were closed by S7's
+ * `htmlFor`/`fieldAria` work (#589) and re-measured absent, and #592 fixed the contrast pairings.
+ * Re-measured on a live stack against `develop` immediately before the fix: `color-contrast` was
+ * the ONLY violation, 5 nodes, all of them one of three colour pairs.
+ *
+ * The scan is the LAST thing the test does, deliberately. It asserts on the page the assertions
+ * above have already proved is the right one — a scan of a page that never loaded is the vacuous
+ * green this suite exists to end.
  */
 test.describe.configure({ mode: 'serial' });
 
@@ -136,6 +138,20 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
     // A raw i18n key here means a missing translation, and every section label is a t() call.
     const text = await page.locator('form').first().innerText();
     expect(text, 'a raw i18n key means a missing translation').not.toMatch(/editor_section_/);
+
+    /*
+     * #592 — the scan, and no exclusions.
+     *
+     * `expectNoA11yViolations` fails on critical + serious. It runs LAST so that everything it
+     * scans has already been proved to be the loaded editor for a signed-in admin; run first, it
+     * would have happily reported a clean bill of health for a redirect page.
+     *
+     * One honest limit, stated because it will decide where the next finding comes from: axe scans
+     * the page AS RENDERED, so it sees light mode and it sees `Advanced` COLLAPSED. A dark-mode
+     * pairing is invisible to it — #592 found one that way, a neutral badge at 2.58:1 that this
+     * scan could not have reported — and so is any control inside a collapsed section.
+     */
+    await expectNoA11yViolations(page);
   } finally {
     await context.close();
   }

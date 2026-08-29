@@ -118,6 +118,39 @@ describe('CheckboxField', () => {
     expect(screen.queryByRole('checkbox', { name: /Inherited from the category/ })).not.toBeInTheDocument();
   });
 
+  /**
+   * `indeterminate` is TWO channels, and they have to be asserted separately.
+   *
+   * `aria-checked="mixed"` is what a screen reader announces and is a plain attribute; the DASH is
+   * the DOM property `input.indeterminate`, which has no HTML attribute at all and so cannot be set
+   * declaratively by React. A test that checked only the ARIA one passes while the box renders as
+   * an ordinary empty checkbox — measured: removing the ref write left every assertion in the
+   * apply-to-items suite green, because all of them read the attribute.
+   */
+  it('sets the indeterminate DOM property, which no attribute can express', () => {
+    render(<CheckboxField label="Pizzas" checked={false} onChange={jest.fn()} indeterminate />);
+
+    const box = screen.getByRole('checkbox', { name: 'Pizzas' }) as HTMLInputElement;
+    expect(box.indeterminate).toBe(true);
+    expect(box).toHaveAttribute('aria-checked', 'mixed');
+    expect(box).not.toBeChecked();
+  });
+
+  it('CLEARS the dash when the group stops being mixed', () => {
+    // The half a "write it only when true" implementation gets wrong: a box that had once been
+    // mixed would keep its dash for the rest of its life, which is why the effect writes both
+    // branches. The control is that the first render really did set it.
+    const { rerender } = render(<CheckboxField label="Pizzas" checked={false} onChange={jest.fn()} indeterminate />);
+    const box = screen.getByRole('checkbox', { name: 'Pizzas' }) as HTMLInputElement;
+    expect(box.indeterminate).toBe(true);
+
+    rerender(<CheckboxField label="Pizzas" checked onChange={jest.fn()} indeterminate={false} />);
+
+    expect(box.indeterminate).toBe(false);
+    expect(box).not.toHaveAttribute('aria-checked');
+    expect(box).toBeChecked();
+  });
+
   it('merges a host-supplied describedBy ahead of its own ids', () => {
     // A group-level error lives outside this component; it still has to reach the INPUT, because a
     // wrapper div is role="generic" and is not exposed at all.

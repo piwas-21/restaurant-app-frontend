@@ -694,9 +694,9 @@ describe('ProductEditorPage — the completeness meter', () => {
     expect(screen.getAllByText('editor_completeness_field_missing')).toHaveLength(2);
 
     const descriptionInput = container.querySelector('textarea[name="description"], input[name="description"]');
-    await act(async () => {
-      fireEvent.change(descriptionInput as HTMLElement, { target: { value: 'Tomato, mozzarella, basil' } });
-    });
+    // `fireEvent` already wraps its dispatch in act(); the meter is derived synchronously from the
+    // watched value, so there is no async flush to await here.
+    fireEvent.change(descriptionInput as HTMLElement, { target: { value: 'Tomato, mozzarella, basil' } });
     expect(screen.getAllByText('editor_completeness_field_missing')).toHaveLength(1);
     expect(screen.getByText('editor_completeness_field_done')).toBeInTheDocument();
   });

@@ -488,3 +488,43 @@ describe('translations survive a save that did not touch them', () => {
     });
   });
 });
+
+/**
+ * S10's meter is DERIVED, and this is the proof it stays that way.
+ *
+ * The rail reads `description` and `allergens` to decide what to say about them. Both are fields the
+ * PUT assigns unconditionally, so a read that accidentally became a write — a `setValue` to
+ * normalise a blank description, a default `[]` seeded to make a rule easier to express — would
+ * clear stored data on a save nobody asked for. The fixture is chosen to be the WORST case for that:
+ * it is the item the meter reports as least complete.
+ */
+describe('the completeness meter reads the form and never writes to it', () => {
+  const incomplete = {
+    ...fullyPopulated,
+    description: '',
+    images: [],
+    allergens: [],
+  } as unknown as ProductDetails;
+
+  it('sends an empty description back as an empty description', async () => {
+    const payload = await renderAndSaveUntouched(incomplete);
+    expect(payload.description).toBe('');
+    // …and the per-locale copy is untouched, which is the field a "helpful" backfill would reach for.
+    expect(payload.content).toEqual({ en: { name: NAME, description: DESCRIPTION } });
+  });
+
+  it('sends the UNSCORED allergen list back exactly as it was, empty', async () => {
+    // The §14 decision has a payload consequence: the meter has no opinion about allergens, so it
+    // must also leave no trace of them. An empty array must arrive as an empty array — neither
+    // dropped (which would clear a list on a product that HAS one) nor filled with a token.
+    const payload = await renderAndSaveUntouched(incomplete);
+    expect(payload.allergens).toEqual([]);
+  });
+
+  it('leaves a POPULATED allergen list alone on the same code path', async () => {
+    // The control: the assertion above passes vacuously if the payload builder simply never sends
+    // allergens. This one fails if it does not send them.
+    const payload = await renderAndSaveUntouched(fullyPopulated);
+    expect(payload.allergens).toEqual(['gluten', 'milk']);
+  });
+});

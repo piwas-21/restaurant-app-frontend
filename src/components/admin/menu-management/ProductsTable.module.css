@@ -1,0 +1,28 @@
+/*
+  The "still to fill in" chips beside a menu row's name (MENU-ITEM-EDITOR-REDESIGN-PLAN, S10).
+
+  Toned, never red or amber: nothing is broken and nothing was rejected — an item with no photo is a
+  live, sellable item that renders the branded placeholder. A warning colour here would compete with
+  the table's real status columns and would teach the admin to ignore it.
+*/
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 0.125rem 0.5rem;
+  /* `--border-default`, NOT `--border-light`: the latter is declared once (#e0e0e0) and is NEVER
+     re-declared in the dark block, so it paints a near-white hairline on a dark chip. Measured, not
+     assumed — the a11y scan cannot see dark mode (§16.6), so a token has to be READ. */
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}

@@ -48,6 +48,39 @@
   text-align: end;
 }
 
+/* --- Completeness meter (S10) --- */
+
+.progress {
+  margin: 0 0 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* The tick/ring in front of a row label. Decoration — the state is also spelled out in the value. */
+.glyph {
+  margin-inline-end: 0.375rem;
+}
+
+/*
+  A missing row is toned, never coloured red: nothing is wrong and nothing was rejected, so it must
+  not compete with a real validation error in the same viewport (the same reasoning that keeps the
+  D8 notices off `role="alert"`). `--text-secondary` is the page's own body-secondary ink and
+  already clears contrast in both themes, which a bespoke amber would have had to prove twice
+  (§16.6: the a11y scan cannot see dark mode).
+*/
+.missing {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.note {
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
 /*
   TABLET — the rail is a full-width STRIP above the form (frontend #572, and `EditorShell.module.css`
   is what puts it there). Sticky is dropped because a strip at the top of the grid has nothing to

@@ -115,8 +115,10 @@ export default function FormField({ label, error, srOnlyLabel, children, htmlFor
       } as AriaProps)
     : children;
 
+  const fieldClassName = className ? `${styles.field} ${className}` : styles.field;
+
   return (
-    <div className={`${styles.field}${className ? ` ${className}` : ''}`}>
+    <div className={fieldClassName}>
       {/* The label holds the visible text and the control, and NOTHING else — see the accessible-name
           note above. `htmlFor` is set even though the control is nested, so the association survives
           a caller that renders the field through a portal or a fragment. */}

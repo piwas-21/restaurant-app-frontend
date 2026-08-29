@@ -20,6 +20,19 @@
   font-size: 0.875rem;
 }
 
+/* The kind-scope notice (slice G2): a sentence and the button that undoes it, on one line. It is
+   `.notice` plus a flex row — the button has to sit BESIDE the sentence rather than wrap under it,
+   because the sentence explains why the list is short and the button is the answer to it. */
+.scopeNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
 .error {
   display: flex;
   align-items: center;

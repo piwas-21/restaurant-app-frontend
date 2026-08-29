@@ -3,7 +3,8 @@ import {
   searchGlobalIngredients,
   type GlobalIngredientTranslation,
 } from '@/services/globalIngredientService';
-import type { ProductIngredient } from '@/types/menu';
+import { resolveIngredientKind } from '@/utils/ingredientKind';
+import type { IngredientKind, ProductIngredient } from '@/types/menu';
 
 /**
  * Give every ingredient a `globalIngredientId` before the product payload leaves.
@@ -23,6 +24,15 @@ import type { ProductIngredient } from '@/types/menu';
  * is nothing to guard against: `CreateGlobalIngredientCommand` maps whatever list arrives, and
  * `defaultName` is the only field `/search` matches on, so a row with no translations is a valid
  * and findable library entry.
+ *
+ * **A known limit of the search branch, stated rather than hidden (slice G1).** The library is
+ * searched BY NAME only, and the row it finds is adopted whatever its kind. So typing "Sauce
+ * blanche" into the Sauces group, on a library that already holds that name as an ingredient,
+ * reuses the existing row: the PRODUCT row is a sauce and the LIBRARY row stays an ingredient.
+ * That is deliberate. Promoting it would let one product's edit rewrite a row every other product
+ * shares — the propagation plan D3 refuses, and the reason "reuse" here means COPY. Correcting an
+ * existing row's kind belongs to the library screen (G4); `PUT /api/global-ingredients/{id}`
+ * already accepts a nullable `Kind` for exactly that.
  */
 
 /**
@@ -49,9 +59,23 @@ const findExistingId = async (name: string): Promise<string | null> => {
   }
 };
 
-const createLibraryRow = async (name: string, translations: GlobalIngredientTranslation[]): Promise<string | null> => {
+/**
+ * `kind` is the row's OWN — which is the group the admin typed it into, because
+ * `ProductIngredientsManager` stamps every row it creates with the group it is.
+ *
+ * Sending it is the whole of slice G1. Without it the backend defaults an absent kind to
+ * `ingredient` (`CreateGlobalIngredientCommand`), so a sauce typed into the Sauces group was stored
+ * in the shared library AS AN INGREDIENT and its sauce-ness was lost the moment it left the product
+ * — measured on a live tenant as 654 library rows, `ingredient` on 654 of them and `sauce` on none.
+ * The product row was always right; only the library copy was wrong.
+ */
+const createLibraryRow = async (
+  name: string,
+  translations: GlobalIngredientTranslation[],
+  kind: IngredientKind,
+): Promise<string | null> => {
   try {
-    const response = await createGlobalIngredient({ defaultName: name, translations });
+    const response = await createGlobalIngredient({ defaultName: name, translations, kind });
     return response?.success ? (response.data?.id ?? null) : null;
   } catch (error) {
     // Continue without an id: the ingredient still saves, it just carries no provenance.
@@ -69,7 +93,7 @@ export async function withGlobalIngredientProvenance<T extends IngredientDraft>(
       const existingId = await findExistingId(name);
       if (existingId) return { ...ingredient, globalIngredientId: existingId };
 
-      const createdId = await createLibraryRow(name, translationsOf(ingredient));
+      const createdId = await createLibraryRow(name, translationsOf(ingredient), resolveIngredientKind(ingredient));
       return createdId ? { ...ingredient, globalIngredientId: createdId } : ingredient;
     }),
   );

@@ -1,4 +1,5 @@
 import { apiClient } from '@/utils/apiClient';
+import type { IngredientKind } from '@/types/menu';
 
 /**
  * The two catalog-wide writes of plan slice S8 — "reuse at scale" — and the query their confirm
@@ -63,6 +64,14 @@ export interface AttachResult {
  */
 export interface AttachGlobalIngredientBody {
   productIds: string[];
+  /**
+   * WHICH GROUP the copied rows land in (slice G3). Optional on the wire, and omitting it is not
+   * the same as sending `'ingredient'`: the server falls back to the library row's own kind, so a
+   * caller that has no group to state keeps the behaviour it had before this field existed. The
+   * picker always has a group and always sends one, which is what stopped the two attach paths
+   * applying opposite rules to the same decision.
+   */
+  kind?: IngredientKind;
   isOptional: boolean;
   price: number;
   maxQuantity: number;

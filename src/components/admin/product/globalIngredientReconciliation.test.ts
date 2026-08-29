@@ -38,7 +38,7 @@ describe('the ingredient that could never be linked', () => {
   it('creates a library row for an ingredient with NO translations at all', async () => {
     const [result] = await withGlobalIngredientProvenance([ingredient({ content: undefined })]);
 
-    expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Mozzarella', translations: [] });
+    expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Mozzarella', translations: [], kind: 'ingredient' });
     expect(result.globalIngredientId).toBe('created-1');
   });
 
@@ -47,7 +47,7 @@ describe('the ingredient that could never be linked', () => {
 
     const [result] = await withGlobalIngredientProvenance([blank]);
 
-    expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Mozzarella', translations: [] });
+    expect(mockCreate).toHaveBeenCalledWith({ defaultName: 'Mozzarella', translations: [], kind: 'ingredient' });
     expect(result.globalIngredientId).toBe('created-1');
   });
 
@@ -62,6 +62,7 @@ describe('the ingredient that could never be linked', () => {
         { languageCode: 'en', name: 'Mozzarella' },
         { languageCode: 'fr', name: 'Mozzarelle' },
       ],
+      kind: 'ingredient',
     });
   });
 });
@@ -130,5 +131,62 @@ describe('temporary ids', () => {
     const result = withoutTemporaryIds([ingredient({ id: 'temp-123', globalIngredientId: 'global-3' })]);
 
     expect(result[0].globalIngredientId).toBe('global-3');
+  });
+});
+
+/**
+ * Slice **G1** — the save-time half. `ProductIngredientsManager` stamps every row it creates with
+ * the group it is, so a row's own `kind` IS the group the admin typed it into; this function has
+ * only to send it.
+ *
+ * Measured before the fix: `GET /api/global-ingredients` on a live tenant answered 654 rows,
+ * `ingredient` on 654 and `sauce` on 0 — because this call omitted `kind` and the backend defaults
+ * an absent one to `ingredient`. The product row was right all along; the LIBRARY copy was not.
+ */
+describe('the kind a new library row is filed under (G1)', () => {
+  it('files a row typed into the Sauces group AS A SAUCE', async () => {
+    await withGlobalIngredientProvenance([ingredient({ name: 'Sauce samouraï', kind: 'sauce' })]);
+
+    expect(mockCreate).toHaveBeenCalledWith({
+      defaultName: 'Sauce samouraï',
+      translations: [],
+      kind: 'sauce',
+    });
+  });
+
+  // The control: without it the case above also passes against a hardcoded `'sauce'`, which is the
+  // shape of the defect being replaced with one constant swapped for another.
+  it('files a row typed into the Ingredients group as an ingredient', async () => {
+    await withGlobalIngredientProvenance([ingredient({ kind: 'ingredient' })]);
+
+    expect(mockCreate.mock.calls[0][0].kind).toBe('ingredient');
+  });
+
+  /**
+   * Every row on production predates the discriminator and carries no `kind` at all. It resolves to
+   * `ingredient` here exactly as it does on every read — `undefined` must not reach the wire, where
+   * it would be a third state the API has no meaning for.
+   */
+  it('resolves a row with no kind at all to an ingredient', async () => {
+    await withGlobalIngredientProvenance([ingredient({ kind: undefined })]);
+
+    expect(mockCreate.mock.calls[0][0].kind).toBe('ingredient');
+  });
+
+  /**
+   * The honest limit, pinned so it cannot change by accident. The library is searched BY NAME only,
+   * so a sauce whose name already exists as an ingredient ADOPTS that row: the product row stays a
+   * sauce, the library row stays an ingredient, and nothing is created. Promoting it would let one
+   * product's save rewrite a row every other product shares — the propagation plan D3 refuses.
+   * Correcting a library row's kind is the library screen's job (G4).
+   */
+  it('adopts an existing row of the OTHER kind rather than rewriting a shared row', async () => {
+    mockSearch.mockResolvedValue(found([{ id: 'global-9', defaultName: 'Harissa' }]));
+
+    const [result] = await withGlobalIngredientProvenance([ingredient({ name: 'Harissa', kind: 'sauce' })]);
+
+    expect(result.globalIngredientId).toBe('global-9');
+    expect(result.kind).toBe('sauce');
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });

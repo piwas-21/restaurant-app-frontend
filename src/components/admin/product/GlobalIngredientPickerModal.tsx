@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import LibraryKindScopeNotice from './LibraryKindScopeNotice';
 import LibraryPickerShell from './LibraryPickerShell';
 import { type LibraryPickerView } from './LibraryPickerToolbar';
 import { INGREDIENT_LIBRARY_COPY } from './libraryPickerCopy';
@@ -54,7 +55,7 @@ export default function GlobalIngredientPickerModal({
 }: Readonly<GlobalIngredientPickerModalProps>) {
   const { i18n } = useTranslation();
   const [view, setView] = useState<LibraryPickerView>('active');
-  const library = useGlobalIngredientLibrary({ isOpen, attached, languageCode: i18n.language });
+  const library = useGlobalIngredientLibrary({ isOpen, attached, languageCode: i18n.language, kind });
   const archive = useGlobalIngredientArchive({
     isOpen,
     isViewingArchive: view === 'archived',
@@ -70,13 +71,31 @@ export default function GlobalIngredientPickerModal({
       archive={archive}
       view={view}
       onViewChange={setView}
-      createRow={(defaultName) => createGlobalIngredient({ defaultName, translations: [] })}
+      // The GROUP the picker was opened from, so a name typed into Sauces is filed in the library
+      // AS A SAUCE. Omitting it is what made the shelf 654 ingredients and 0 sauces on a live
+      // tenant: the backend defaults an absent kind to `ingredient`, so the sauce-ness was lost the
+      // moment the row left the product it was typed on.
+      createRow={(defaultName) => createGlobalIngredient({ defaultName, translations: [], kind })}
       onAdd={(picked) => onAdd(picked.map((row, index) => toProductIngredient(row, attached.length + index, kind)))}
+      scopeNotice={
+        <LibraryKindScopeNotice
+          kind={kind}
+          isScoped={library.isScoped}
+          hiddenCount={library.scopeHiddenCount}
+          onChange={library.setScoped}
+        />
+      }
       apply={{
         fetchUsage: getGlobalIngredientProducts,
         attach: (id, productIds) =>
           attachGlobalIngredient(id, {
             productIds,
+            // The GROUP the picker was opened from, so applying one sauce to twenty-one products
+            // lands twenty-one SAUCES (slice G3). The endpoint used to stamp the library row's own
+            // kind while this modal's other write stamped the group — two shipped paths, opposite
+            // rules. Both now read "the action states the kind"; the catalog row is only the
+            // fallback for a caller that has no group to state.
+            kind,
             // The per-product facts the bulk body carries (plan D1). `isOptional` is `true` because
             // the backend refuses anything else on this path — a required ingredient is rendered as
             // REMOVED on every order placed before it existed — and the price is 0 because the

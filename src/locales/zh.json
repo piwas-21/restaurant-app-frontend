@@ -564,6 +564,8 @@
   "select_variation": "选择规格",
   "price_from": "{{price}} 起",
   "hide_base_product": "隐藏基础商品",
+  "option_only_item": "仅作为可选项的商品",
+  "option_only_item_help": "不在菜单中显示，只能在套餐中选择",
   "standard": "标准",
   "ingredients": "配料",
   "allergens": "过敏原",

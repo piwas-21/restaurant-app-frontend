@@ -138,3 +138,39 @@ describe('fetchMenuBundles always reports something the caller can show', () => 
     expect(result.current.error).toBe('Failed to fetch menu bundles');
   });
 });
+
+/**
+ * The GUEST menu and the option-only opt-in (frontend #631).
+ *
+ * `GET /api/Products` excludes `isComponent` rows unless the caller asks for them, so the guest
+ * menu is protected by a DEFAULT — by the absence of a parameter. An absence is exactly the kind of
+ * thing that gets added by accident when a sibling caller needs it, and nothing on this screen would
+ * look wrong afterwards: the six meats of "Tacos Double Viandes" would simply appear as six
+ * orderable dishes at their component prices.
+ *
+ * The fourth argument is the product-type query, which is where `includeComponents` lives.
+ */
+describe('the guest menu never asks for option-only items', () => {
+  it('passes no product-type query at all on a plain browse', async () => {
+    mockGetProducts.mockResolvedValueOnce({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
+    const { result } = renderHook(() => usePublicMenuData());
+
+    await act(async () => {
+      await result.current.fetchProducts(1, null);
+    });
+
+    expect(mockGetProducts).toHaveBeenCalledTimes(1);
+    expect(mockGetProducts.mock.calls[0][3]).toBeUndefined();
+  });
+
+  it('still asks for nothing when a category is chosen', async () => {
+    mockGetProducts.mockResolvedValueOnce({ success: true, data: { items: [], totalPages: 1, totalCount: 0 } });
+    const { result } = renderHook(() => usePublicMenuData());
+
+    await act(async () => {
+      await result.current.fetchProducts(1, 'cat-1');
+    });
+
+    expect(mockGetProducts.mock.calls[0][3]).toBeUndefined();
+  });
+});

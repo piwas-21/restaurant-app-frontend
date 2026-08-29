@@ -13,8 +13,10 @@ jest.mock('react-i18next', () => ({
 /**
  * Slice **S8** (D7) — the two dead controls in the Advanced section.
  */
-function Host({ hasVariations }: Readonly<{ hasVariations: boolean }>) {
-  const { register } = useForm<FieldValues>({ defaultValues: { type: 'mainItem', hideBaseProduct: true } });
+function Host({ hasVariations, isComponent = false }: Readonly<{ hasVariations: boolean; isComponent?: boolean }>) {
+  const { register } = useForm<FieldValues>({
+    defaultValues: { type: 'mainItem', hideBaseProduct: true, isComponent },
+  });
   return <ProductAdvancedFields register={register} hasVariations={hasVariations} />;
 }
 
@@ -59,5 +61,42 @@ describe('ProductAdvancedFields — hideBaseProduct', () => {
     const checkbox = screen.getByLabelText('hide_base_product') as HTMLInputElement;
     expect(checkbox).toBeInTheDocument();
     expect(checkbox.checked).toBe(true);
+  });
+});
+
+/**
+ * The OPTION-ONLY flag (frontend #631) — the box that keeps one of a bundle's six meats off the
+ * guest menu.
+ *
+ * Its two properties are the opposite of `hideBaseProduct`'s above, which is why they are worth
+ * pinning separately: it is ALWAYS offered (there is no precondition to wait for, and it is the
+ * only control that can turn itself back off), and it carries a sentence, because the consequence
+ * — the item disappears from the menu — cannot be read off the label.
+ */
+describe('ProductAdvancedFields — the option-only flag', () => {
+  it('is offered even for an item with no variation, unlike hideBaseProduct', () => {
+    render(<Host hasVariations={false} />);
+
+    expect(screen.getByLabelText('option_only_item').closest('[hidden]')).toBeNull();
+  });
+
+  it('says what ticking it does, as the checkbox’s own description', () => {
+    render(<Host hasVariations />);
+
+    // The ACCESSIBLE description, not a `<p>` that merely sits nearby: a sentence with no
+    // programmatic link to the control exists on screen and nowhere in the accessibility tree.
+    expect(screen.getByLabelText('option_only_item')).toHaveAccessibleDescription('option_only_item_help');
+  });
+
+  it('shows a stored option-only item as ticked', () => {
+    render(<Host hasVariations={false} isComponent />);
+
+    expect(screen.getByLabelText('option_only_item')).toBeChecked();
+  });
+
+  it('is unticked for an ordinary item', () => {
+    render(<Host hasVariations={false} />);
+
+    expect(screen.getByLabelText('option_only_item')).not.toBeChecked();
   });
 });

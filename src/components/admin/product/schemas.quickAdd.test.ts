@@ -73,6 +73,9 @@ describe('quick-add is a strict subset of the full create form (D3)', () => {
       isAvailable: true,
       isSpecial: false,
       hideBaseProduct: false,
+      // A quick-added item is a NORMAL item (#631). If this ever seeded `true`, every item created
+      // from the modal would be invisible on the guest menu with nothing on the modal to say so.
+      isComponent: false,
       allergens: [],
       variations: [],
       content: [],

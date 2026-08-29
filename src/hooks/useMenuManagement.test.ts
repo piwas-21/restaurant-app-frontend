@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { useMenuManagement } from './useMenuManagement';
 import { getProducts } from '@/services/menuService';
 import { getCategories } from '@/services/categoryService';
@@ -97,5 +97,62 @@ describe('useMenuManagement — what the admin actually reads', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(mockGetProducts).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * The OPTION-ONLY opt-in (frontend #631).
+ *
+ * `GET /api/Products` hides `isComponent` rows from every caller that does not ask, which is what
+ * keeps a bundle's six meats off the guest menu. The admin catalog is one of exactly two callers
+ * that must ask: without the opt-in, the moment an admin ticks "Option-only item" the row vanishes
+ * from the only screen that could untick it.
+ *
+ * The channel asserted is the QUERY OBJECT handed to `getProducts` — the fourth argument, which is
+ * where the service reads the flag. `menuService.test.ts` owns the other half, that the flag
+ * becomes a query-string parameter.
+ */
+describe('useMenuManagement — the option-only opt-in', () => {
+  const queryArg = (call: number) => mockGetProducts.mock.calls[call][3];
+
+  // jsdom implements no scrolling, and `handlePageChange` smooth-scrolls to the top.
+  beforeEach(() => {
+    window.scrollTo = jest.fn();
+  });
+
+  it('asks for option-only items so a hidden item stays editable', async () => {
+    renderHook(() => useMenuManagement('all'));
+
+    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    expect(queryArg(0)).toEqual(expect.objectContaining({ includeComponents: true }));
+  });
+
+  /**
+   * The opt-in must not displace the chip's own filter — they answer different questions, and the
+   * bundles chip is where a conflated implementation would silently drop one of them.
+   */
+  it('keeps the type chip alongside it', async () => {
+    renderHook(() => useMenuManagement('bundles'));
+
+    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    expect(queryArg(0)).toEqual({ type: 'Menu', includeComponents: true });
+  });
+
+  it('asks on the items chip too, where the query is otherwise empty', async () => {
+    renderHook(() => useMenuManagement('items'));
+
+    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+    expect(queryArg(0)).toEqual({ includeComponents: true });
+  });
+
+  it('keeps asking on a page change, not only on the first load', async () => {
+    const { result } = renderHook(() => useMenuManagement('all'));
+    await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
+
+    await act(async () => result.current.handlePageChange(2));
+
+    const lastCall = mockGetProducts.mock.calls.length - 1;
+    expect(mockGetProducts.mock.calls[lastCall][0]).toBe(2);
+    expect(queryArg(lastCall)).toEqual(expect.objectContaining({ includeComponents: true }));
   });
 });

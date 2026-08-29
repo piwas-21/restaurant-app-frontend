@@ -24,6 +24,7 @@ export function emptyProductDetails(isBundle: boolean): ProductDetails {
     isAvailable: true,
     isSpecial: false,
     hideBaseProduct: false,
+    isComponent: false,
     preparationTimeMinutes: 0,
     type: isBundle ? 'menu' : 'mainItem',
     ingredients: [],
@@ -147,6 +148,10 @@ export function toItemDefaults(product: ProductDetails) {
     // Echoed for the same reason as the order-type mask below: the PUT assigns the column
     // unconditionally, so a default that dropped the stored flag would clear it on the next save.
     hideBaseProduct: product.hideBaseProduct ?? false,
+    // Echoed for exactly the same reason as the flag above (frontend #631): the PUT assigns the
+    // column unconditionally, so a default that dropped the stored flag would put an option-only
+    // item back on the guest menu on the next unrelated save.
+    isComponent: product.isComponent ?? false,
     type: product.type || 'mainItem',
     kitchenType: product.kitchenType || 'None',
     allergens: Array.isArray(product.allergens) ? product.allergens : [],

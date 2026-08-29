@@ -68,6 +68,12 @@ export interface ProductDetails {
   isSpecial?: boolean;
   /** Mirrors backend `ProductDto.HideBaseProduct` (#399) — see `@/utils/baseProductVisibility`. */
   hideBaseProduct?: boolean;
+  /**
+   * Mirrors backend `ProductDto.IsComponent` (#631). An OPTION-ONLY item: it may be referenced by a
+   * bundle section and is excluded from `GET /api/Products` unless the caller opts in, so it never
+   * reaches the guest menu and cannot be ordered alone. Absent === false.
+   */
+  isComponent?: boolean;
   preparationTimeMinutes: number;
   displayOrder?: number;
   type: string;

@@ -38,9 +38,17 @@ const MenuItemSelector: React.FC<MenuItemSelectorProps> = ({ items, onChange, ma
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const response: any = await searchProducts(searchQuery);
+        // The one search that MUST see option-only items (frontend #631): they exist precisely to
+        // be chosen inside a bundle section, so a picker that could not find them would make the
+        // flag unusable. Every other `searchProducts` caller — notably the side-item picker —
+        // leaves the opt-in off, which is what keeps such an item unorderable on its own.
+        //
+        // Typed, where it used to be `any`. The old read had a `|| response.data` fallback for an
+        // envelope that has never existed: `data` is the PAGINATED object, so that arm could only
+        // ever put a non-array into the results state and crash the `.map` below it.
+        const response = await searchProducts(searchQuery, { includeComponents: true });
         if (response.success && response.data) {
-          setSearchResults(response.data.items || response.data || []);
+          setSearchResults(response.data.items ?? []);
           setShowResults(true);
         }
       } catch (error) {

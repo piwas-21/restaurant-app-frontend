@@ -101,14 +101,29 @@ export interface ProductSearchResponse {
   errors?: unknown;
 }
 
+export interface ProductSearchOptions {
+  /**
+   * Opt into the OPTION-ONLY items (`Product.IsComponent`) the endpoint excludes by default, the
+   * same param `getProducts` sends for the admin catalog. Only the BUNDLE option picker sets it:
+   * an option-only item exists to be chosen inside a bundle, so it must be findable there and
+   * nowhere else. The side-item picker deliberately leaves it unset.
+   */
+  includeComponents?: boolean;
+}
+
 /**
  * Server-side product search. `search` is implemented by `GetProductsQuery` and matches the
  * LOCALISED names too (`p.Descriptions.Any(c => c.Name...)`), which is why no caller may re-filter
  * the answer in the browser: a row the server matched on its Turkish name has no matching `name`.
  */
-export const searchProducts = async (query: string): Promise<ProductSearchResponse> => {
+export const searchProducts = async (query: string, options?: ProductSearchOptions): Promise<ProductSearchResponse> => {
+  // Appended only when asked, so every existing caller's request stays byte-identical. The casing
+  // differs from `menuService`'s `IncludeComponents` for the same reason `search`/`pageSize` here
+  // differ from its `Page`/`PageSize`: each call matches its own neighbours, and ASP.NET query
+  // binding is case-insensitive — which is what already makes both spellings work on one endpoint.
+  const componentsParam = options?.includeComponents ? '&includeComponents=true' : '';
   return (await apiClient.get(
-    `${PRODUCTS_API_URL}?search=${encodeURIComponent(query)}&pageSize=20`,
+    `${PRODUCTS_API_URL}?search=${encodeURIComponent(query)}&pageSize=20${componentsParam}`,
   )) as ProductSearchResponse;
 };
 

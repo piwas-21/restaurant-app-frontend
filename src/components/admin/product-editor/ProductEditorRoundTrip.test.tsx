@@ -84,6 +84,11 @@ const fullyPopulated: ProductDetails = {
   isAvailable: false,
   isSpecial: true,
   hideBaseProduct: true,
+  // An OPTION-ONLY item (frontend #631): the six meats of "Tacos Double Viandes" are products that
+  // exist only to be referenced by a bundle section. The column is assigned unconditionally by the
+  // PUT, so a save that changed nothing must send it back — dropping it would put the meat back on
+  // the guest menu at its component price.
+  isComponent: true,
   preparationTimeMinutes: 14,
   displayOrder: 7,
   type: ITEM_TYPE,
@@ -285,6 +290,62 @@ describe('product editor — a save that changes nothing changes nothing', () =>
   });
 
   /**
+   * The OPTION-ONLY flag (frontend #631). The box lives in the COLLAPSED Advanced section, so the
+   * payload is the only honest channel: the form store can hold a value the request never carries,
+   * and a hidden-but-registered field is exactly the shape §6 warns about.
+   */
+  describe('the option-only flag', () => {
+    it('sends true when the admin ticks the box on an ordinary item', async () => {
+      const { container } = render(
+        <ProductEditorPage
+          product={{ ...fullyPopulated, isComponent: false } as unknown as ProductDetails}
+          isBundle={false}
+          mode="edit"
+          onSaved={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+      await act(async () => {});
+
+      fireEvent.click(container.querySelector('#product-is-component') as HTMLInputElement);
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+
+      expect((updateProduct as jest.Mock).mock.calls[0][1].isComponent).toBe(true);
+    });
+
+    it('sends false — never undefined — for an item that has never carried the flag', async () => {
+      // `undefined` is not the same statement as `false` on a command that assigns every column it
+      // receives, and a product loaded from a backend that predates the field carries neither.
+      const payload = await renderAndSaveUntouched({
+        ...fullyPopulated,
+        isComponent: undefined,
+      } as unknown as ProductDetails);
+
+      expect(payload.isComponent).toBe(false);
+    });
+
+    it('puts an option-only item back on the menu when the box is unticked', async () => {
+      const { container } = render(
+        <ProductEditorPage
+          product={fullyPopulated}
+          isBundle={false}
+          mode="edit"
+          onSaved={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+      await act(async () => {});
+
+      fireEvent.click(container.querySelector('#product-is-component') as HTMLInputElement);
+      fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+      await waitFor(() => expect(updateProduct).toHaveBeenCalledTimes(1));
+
+      expect((updateProduct as jest.Mock).mock.calls[0][1].isComponent).toBe(false);
+    });
+  });
+
+  /**
    * The list this file is really about: values the PUT assigns unconditionally and the page shows
    * either nowhere at all (`displayOrder`) or only through a control a later slice may move.
    * Deleting an assertion here is only correct together with a backend change.
@@ -299,6 +360,9 @@ describe('product editor — a save that changes nothing changes nothing', () =>
     expect(payload.kitchenType).toBe('BackKitchen');
     // Meaningful only with variations, and D7 makes it conditional in S8.
     expect(payload.hideBaseProduct).toBe(true);
+    // A checkbox in the same collapsed section (#631). Losing it un-hides the item on the guest
+    // menu, which is the failure this whole file exists to catch.
+    expect(payload.isComponent).toBe(true);
     // null means "inherit"; 3 is an explicit override that must never collapse back to null.
     expect(payload.availableOrderTypes).toBe(3);
     // Set through a picker in its own section — the payload key is not the section's name.

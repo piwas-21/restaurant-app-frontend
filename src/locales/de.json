@@ -1592,6 +1592,8 @@
   "select_variation": "Größe/Variation wählen",
   "price_from": "ab {{price}}",
   "hide_base_product": "Basisprodukt ausblenden",
+  "option_only_item": "Nur als Auswahl-Artikel",
+  "option_only_item_help": "Wird nicht im Menü angezeigt und kann nur innerhalb eines Menüpakets gewählt werden",
   "standard": "Standard",
   "yesterday": "Gestern",
   "orders": "Bestellungen",

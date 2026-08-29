@@ -49,6 +49,12 @@ const baseProductSchema = z.object({
   // unknown keys, and the product PUT assigns the column unconditionally — a form that carried the
   // flag outside the schema would clear it on every unrelated save.
   hideBaseProduct: z.boolean().default(false),
+  // An OPTION-ONLY item (frontend #631): it exists to be referenced by a bundle section — "choose 2
+  // meats out of 6" — and must never appear on the guest menu or be orderable on its own. Same rule
+  // as the flag above: it must be IN the schema, not merely in the payload, because zod strips
+  // unknown keys and the product PUT assigns the column unconditionally, so a form that carried it
+  // outside the schema would clear it on every unrelated save.
+  isComponent: z.boolean().default(false),
   type: z.enum(productTypes),
   kitchenType: z.enum(['None', 'FrontKitchen', 'BackKitchen']).default('None'),
   allergens: z.array(z.string()).optional(),

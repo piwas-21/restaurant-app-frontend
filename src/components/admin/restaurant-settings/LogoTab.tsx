@@ -4,11 +4,17 @@ import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
-import { uploadRestaurantLogo, deleteRestaurantLogo } from '@/services/restaurantInfoService';
+import {
+  uploadRestaurantLogo,
+  deleteRestaurantLogo,
+  uploadInteriorImage,
+  deleteInteriorImage,
+} from '@/services/restaurantInfoService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
 import type { LogoVariant } from '@/types/restaurantInfo';
 import LogoSlot from './LogoSlot';
+import InteriorImageSlot from './InteriorImageSlot';
 import styles from './LogoTab.module.css';
 
 /**
@@ -24,7 +30,9 @@ export default function LogoTab() {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const { info, isLoading, refetch } = useRestaurantInfo();
-  const [busy, setBusy] = useState<LogoVariant | null>(null);
+  // 'interior' rides the same busy state as the two logo slots: one tab, one in-flight
+  // upload at a time, so the widened union is all this needed.
+  const [busy, setBusy] = useState<LogoVariant | 'interior' | null>(null);
 
   if (isLoading && !info) {
     return <p>{t('loading', 'Loading...')}</p>;
@@ -40,9 +48,21 @@ export default function LogoTab() {
     );
   }
 
+  // Declared as values rather than as a default parameter on `run`: an object literal in a
+  // default position is rebuilt on every call and is flagged by sonar typescript:S7737.
+  const logoCopy = {
+    success: t('logo_save_success', 'Logo saved'),
+    failure: t('logo_save_failed', 'Failed to save the logo'),
+  };
+  const photoCopy = {
+    success: t('interior_photo_save_success', 'Photo saved'),
+    failure: t('interior_photo_save_failed', 'Failed to save the photo'),
+  };
+
   const run = async (
-    variant: LogoVariant,
+    variant: LogoVariant | 'interior',
     action: () => Promise<{ success: boolean; message?: string; errors?: unknown }>,
+    copy: { success: string; failure: string },
   ) => {
     setBusy(variant);
     try {
@@ -50,7 +70,7 @@ export default function LogoTab() {
       if (response.success) {
         invalidateRestaurantInfoCache();
         await refetch();
-        enqueueSnackbar(t('logo_save_success', 'Logo saved'), { variant: 'success' });
+        enqueueSnackbar(copy.success, { variant: 'success' });
       } else {
         // Reachable on the UPLOAD leg only. `run` wraps both `uploadRestaurantLogo` and
         // `deleteRestaurantLogo`, and `DeleteRestaurantLogoCommand` builds no `Failure` at all —
@@ -68,7 +88,7 @@ export default function LogoTab() {
         // `errors[0]`: "File size exceeds maximum allowed size of 10MB", the limit interpolated
         // from `FileStorageSettings.MaxFileSizeBytes` (bound to 10485760 in `appsettings.json`,
         // NOT the 5MB C# default). `serverMessage` reads `errors[]` first for exactly this reason.
-        enqueueSnackbar(serverMessage(response) ?? t('logo_save_failed', 'Failed to save the logo'), {
+        enqueueSnackbar(serverMessage(response) ?? copy.failure, {
           variant: 'error',
         });
       }
@@ -77,7 +97,7 @@ export default function LogoTab() {
       // fire-and-forget toast has nowhere to put. This arm is the transport failures (a dead
       // network, a 401, the `NotFoundException` when restaurant info was never initialised);
       // the file rejections resolve and land in the `else` above.
-      enqueueSnackbar(getErrorMessage(err) ?? t('logo_save_failed', 'Failed to save the logo'), { variant: 'error' });
+      enqueueSnackbar(getErrorMessage(err) ?? copy.failure, { variant: 'error' });
     } finally {
       setBusy(null);
     }
@@ -100,8 +120,8 @@ export default function LogoTab() {
           currentUrl={info.logoUrl}
           restaurantName={info.name}
           isBusy={busy === 'light'}
-          onUpload={(file) => run('light', () => uploadRestaurantLogo('light', file))}
-          onRemove={() => run('light', () => deleteRestaurantLogo('light'))}
+          onUpload={(file) => run('light', () => uploadRestaurantLogo('light', file), logoCopy)}
+          onRemove={() => run('light', () => deleteRestaurantLogo('light'), logoCopy)}
         />
         <LogoSlot
           variant="dark"
@@ -110,8 +130,15 @@ export default function LogoTab() {
           currentUrl={info.logoDarkUrl}
           restaurantName={info.name}
           isBusy={busy === 'dark'}
-          onUpload={(file) => run('dark', () => uploadRestaurantLogo('dark', file))}
-          onRemove={() => run('dark', () => deleteRestaurantLogo('dark'))}
+          onUpload={(file) => run('dark', () => uploadRestaurantLogo('dark', file), logoCopy)}
+          onRemove={() => run('dark', () => deleteRestaurantLogo('dark'), logoCopy)}
+        />
+        <InteriorImageSlot
+          currentUrl={info.interiorImageUrl}
+          restaurantName={info.name}
+          isBusy={busy === 'interior'}
+          onUpload={(file) => run('interior', () => uploadInteriorImage(file), photoCopy)}
+          onRemove={() => run('interior', () => deleteInteriorImage(), photoCopy)}
         />
       </div>
     </div>

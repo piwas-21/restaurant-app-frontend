@@ -64,3 +64,29 @@ export const deleteRestaurantLogo = async (variant: LogoVariant) => {
     requireAuth: true,
   });
 };
+
+/**
+ * Admin only — replace the restaurant's interior photo.
+ *
+ * The form part MUST be named `image`, to match the backend's
+ * `UpdateRestaurantInteriorImageRequest.Image` — note it is NOT `logo`, so this cannot be
+ * folded into {@link uploadRestaurantLogo}. The two failure shapes are the same as the
+ * logo's and the caller has to handle both: a rejected FILE (wrong type, too large) comes
+ * back as `success: false` inside a **200**, with the reason in `errors[0]`; a missing part
+ * fails the command validator's `NotNull` in the mediator pipeline and comes back as a
+ * **400**, which `apiClient` throws.
+ */
+export const uploadInteriorImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  return apiClient.putFormData<ApiResponse<RestaurantInfoDto>>(`${BASE}/interior-image`, formData, {
+    requireAuth: true,
+  });
+};
+
+/** Admin only — clear the interior photo. Not an error state: the section disappears. */
+export const deleteInteriorImage = async () => {
+  return apiClient.delete<ApiResponse<RestaurantInfoDto>>(`${BASE}/interior-image`, {
+    requireAuth: true,
+  });
+};

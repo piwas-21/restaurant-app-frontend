@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './HomePage.module.css';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import FooterCookieLink from '@/components/FooterCookieLink';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
@@ -208,6 +209,25 @@ export default function HomePage() {
           <h2 id="story-heading">{copy('home_story_title')}</h2>
           <p>{copy('home_story_content', { name: restaurantName, city: info?.city ?? '' })}</p>
         </section>
+
+        {info?.interiorImageUrl && (
+          // Rendered only when the restaurant uploaded a photo. There is deliberately no
+          // fallback: BRANDING_HERO is a neutral platform graphic that belongs to no
+          // restaurant, so showing it under this heading would say something untrue about
+          // this tenant. The backend normalises an absent value to null (never ''), which
+          // is what lets this guard work.
+          <section className={styles.interiorSection} aria-labelledby="interior-heading">
+            <h2 id="interior-heading">{copy('home_interior_title')}</h2>
+            <Image
+              src={info.interiorImageUrl}
+              alt={t('home_interior_alt', 'Inside {{name}}', { name: restaurantName })}
+              width={1200}
+              height={800}
+              className={styles.interiorImage}
+              sizes="(max-width: 768px) 100vw, 900px"
+            />
+          </section>
+        )}
 
         {info && info.phoneNumbers.some((p) => p.isActive) && <ContactIcons phones={info.phoneNumbers} />}
 

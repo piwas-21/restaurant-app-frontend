@@ -16,6 +16,7 @@ const info: RestaurantInfoDto = {
   themePaletteKey: 'olive-grove',
   logoUrl: 'https://rumirestaurant.ch/uploads/branding/logo.png',
   logoDarkUrl: null,
+  interiorImageUrl: null,
   phoneNumbers: [],
 };
 

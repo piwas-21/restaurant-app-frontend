@@ -57,6 +57,16 @@ Without it the admin suites SKIP with a stated reason. On CI they do not: a miss
 there is a broken gate, not an environmental fact, so `adminAuth` throws and the job goes red
 (issue #585 — every admin spec used to skip on every CI run, and a skipped test is a passing check).
 
+**The seed keeps the restaurant open around the clock, and it takes TWO writes to do it.**
+`IsOpenNowAsync` decides from the day's `working_hours_shifts` rows and falls back to the legacy
+`working_hours.open_time/close_time` pair only when a day has none, so §6 of the seed writes the
+pair and §6b replaces the shift rows — both, or the shop shuts at 23:00 on the tenant clock
+(Europe/Zurich by default) and `GetEnabledOrderTypesAsync` strips `DineIn`. The tell when this
+breaks is not obviously a clock problem: `order-flow-analytics` times out waiting for a **Dine In**
+button that never renders, and the `/menu` baseline comes back ~50px SHORT because the
+"Takeaway and Delivery only" availability notice has nothing left to warn about. If you see either,
+read the seed's hours log lines before you touch a test or a baseline.
+
 Then:
 
 ```bash

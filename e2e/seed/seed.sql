@@ -211,9 +211,12 @@ INSERT INTO "Tables" (
 -- stays for the DineIn order-type test; it is unlinked, so it never shows on
 -- the reservations map, which filters by FloorPlanId.)
 
--- 6) Working hours — override the migration's 10:00–23:00 default to
+-- 6) Working hours — override the seeder's 11:00–23:00 default to
 -- 00:00–23:59 (effectively 24h) so the DineIn order type stays enabled
--- regardless of the CI wall-clock time. The migration's window is
+-- regardless of the CI wall-clock time. THIS PAIR IS NO LONGER WHAT IS READ:
+-- since backend #447 the day's SERVING WINDOWS decide, and the pair is only
+-- their fallback — 6b below is the half that does the work, and this UPDATE
+-- keeps the legacy mirror consistent with it. The seeder's window is
 -- Europe/Zurich local time (CET = UTC+1 winter, CEST = UTC+2 summer),
 -- so CI runs after 22:00 UTC in winter / 21:00 UTC in summer get DineIn
 -- filtered out by OrderTypeConfigurationService.GetEnabledOrderTypesAsync,
@@ -226,6 +229,41 @@ SET open_time = INTERVAL '00:00:00',
     is_active = TRUE,
     is_closed = FALSE,
     updated_by = 'e2e-seed';
+
+-- 6b) The SERVING WINDOWS, which are what actually answers "are we open" since
+-- backend #447 (`a day is N serving windows`, G11).
+--
+-- THE UPDATE ABOVE STOPPED WORKING AND SAID NOTHING. `WorkingHoursSeeder` now
+-- writes a `working_hours_shifts` child row (11:00-23:00) beside the legacy
+-- open_time/close_time pair, and `WorkingHoursWindows.Of()` prefers the shift
+-- rows whenever the day has any:
+--
+--     if (day.Shifts.Count == 0) return [(day.OpenTime, day.CloseTime)];
+--
+-- So the legacy pair is a FALLBACK for a day with no windows, and the 24h
+-- override above became a no-op the moment the shift rows existed — leaving CI
+-- open only 11:00-23:00 on the tenant clock (Europe/Zurich by default;
+-- TenantClock.DefaultTimeZoneId, and CI sets no `Localization__TimeZone`).
+--
+-- WRITE the window rather than deleting the rows. Deleting them would route
+-- around the shipped shape and silently exercise the legacy fallback path,
+-- which no tenant is on; writing one 00:00-23:59:59 window per day exercises
+-- exactly what a real install runs and still keeps the shop open at every
+-- instant of the CI day. Replace, do not diff: a shift row carries nothing but
+-- two times and no other table points at one (the same argument
+-- `WorkingHoursService.UpdateAsync` makes).
+DELETE FROM working_hours_shifts;
+
+INSERT INTO working_hours_shifts (
+    id, working_hours_id, open_time, close_time, created_by
+)
+SELECT
+    gen_random_uuid(),
+    wh.id,
+    INTERVAL '00:00:00',
+    INTERVAL '23:59:59',
+    'e2e-seed'
+FROM working_hours wh;
 
 -- psql variables so the order's id and the bundle-parent line's id are written ONCE. They are
 -- foreign keys repeated across the child rows and the verification query, and a UUID typo there
@@ -336,8 +374,14 @@ COMMIT;
 -- Verification lines (visible in CI logs)
 SELECT count(*) AS products_total FROM "Products";
 SELECT count(*) AS tables_total FROM "Tables";
-SELECT day_of_week, open_time, close_time, is_closed
-FROM working_hours ORDER BY day_of_week;
+-- Both halves of the hours, because only the SHIFT rows decide whether the shop
+-- is open (backend #447) — a log line showing the legacy pair alone is what let
+-- this break unnoticed.
+SELECT wh.day_of_week, wh.open_time, wh.close_time, wh.is_closed,
+       s.open_time AS shift_open, s.close_time AS shift_close
+FROM working_hours wh
+LEFT JOIN working_hours_shifts s ON s.working_hours_id = wh.id
+ORDER BY wh.day_of_week, s.open_time;
 -- The mixed-kitchen bundle: 1 root + 2 children, one per kitchen.
 SELECT oi.product_name, p.kitchen_type, oi.parent_order_item_id IS NULL AS is_root
 FROM "OrderItems" oi

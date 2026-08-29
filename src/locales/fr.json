@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Heure d'ouverture, créneau {{number}}, {{day}}",
   "close_time_for_window": "Heure de fermeture, créneau {{number}}, {{day}}",
   "opening_windows_overlap": "Les créneaux d'ouverture se chevauchent le {{day}}",
-  "at_least_one_opening_window": "{{day}} est ouvert, il faut donc au moins un créneau"
+  "at_least_one_opening_window": "{{day}} est ouvert, il faut donc au moins un créneau",
+  "too_many_opening_windows": "Au maximum {{max}} créneaux d'ouverture le {{day}}"
 }

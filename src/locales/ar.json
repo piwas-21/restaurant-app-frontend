@@ -2903,5 +2903,6 @@
   "open_time_for_window": "وقت الفتح، الفترة {{number}}، {{day}}",
   "close_time_for_window": "وقت الإغلاق، الفترة {{number}}، {{day}}",
   "opening_windows_overlap": "فترات العمل يوم {{day}} متداخلة",
-  "at_least_one_opening_window": "{{day}} يوم عمل، لذا يلزم فترة واحدة على الأقل"
+  "at_least_one_opening_window": "{{day}} يوم عمل، لذا يلزم فترة واحدة على الأقل",
+  "too_many_opening_windows": "بحد أقصى {{max}} فترات عمل يوم {{day}}"
 }

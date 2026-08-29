@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Açılış saati, {{number}}. aralık, {{day}}",
   "close_time_for_window": "Kapanış saati, {{number}}. aralık, {{day}}",
   "opening_windows_overlap": "{{day}} günündeki açılış aralıkları çakışıyor",
-  "at_least_one_opening_window": "{{day}} açık, bu yüzden en az bir aralık gerekir"
+  "at_least_one_opening_window": "{{day}} açık, bu yüzden en az bir aralık gerekir",
+  "too_many_opening_windows": "{{day}} günü için en fazla {{max}} açılış aralığı"
 }

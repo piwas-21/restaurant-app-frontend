@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import WorkingHoursDayShifts from './WorkingHoursDayShifts';
-import { MAX_SHIFTS_PER_DAY } from './workingHoursDay';
+import { MAX_SHIFTS_PER_DAY, asEditableShift } from './workingHoursDay';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -15,8 +15,8 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-const lunch = { openTime: '11:00:00', closeTime: '15:00:00' };
-const dinner = { openTime: '18:00:00', closeTime: '23:00:00' };
+const lunch = asEditableShift({ openTime: '11:00:00', closeTime: '15:00:00' });
+const dinner = asEditableShift({ openTime: '18:00:00', closeTime: '23:00:00' });
 
 const renderCell = (shifts = [lunch], disabled = false) => {
   const onChange = jest.fn();
@@ -46,7 +46,10 @@ describe('WorkingHoursDayShifts', () => {
 
     // Seeded from the previous window's CLOSING time, not 00:00: a default that started before the
     // existing window ended would be refused by the overlap rule the moment it was saved.
-    expect(onChange).toHaveBeenCalledWith([lunch, { openTime: '15:00:00', closeTime: '23:00:00' }]);
+    expect(onChange).toHaveBeenCalledWith([
+      lunch,
+      expect.objectContaining({ openTime: '15:00:00', closeTime: '23:00:00' }),
+    ]);
   });
 
   it('removes a window', () => {
@@ -66,10 +69,12 @@ describe('WorkingHoursDayShifts', () => {
   });
 
   it('stops offering to add at the limit the API enforces', () => {
-    const many = Array.from({ length: MAX_SHIFTS_PER_DAY }, (_, i) => ({
-      openTime: `${String(8 + i * 2).padStart(2, '0')}:00:00`,
-      closeTime: `${String(9 + i * 2).padStart(2, '0')}:00:00`,
-    }));
+    const many = Array.from({ length: MAX_SHIFTS_PER_DAY }, (_, i) =>
+      asEditableShift({
+        openTime: `${String(8 + i * 2).padStart(2, '0')}:00:00`,
+        closeTime: `${String(9 + i * 2).padStart(2, '0')}:00:00`,
+      }),
+    );
 
     renderCell(many);
 
@@ -81,7 +86,21 @@ describe('WorkingHoursDayShifts', () => {
 
     fireEvent.change(screen.getByLabelText('Open time, window 2, Friday'), { target: { value: '19:30' } });
 
-    expect(onChange).toHaveBeenCalledWith([lunch, { openTime: '19:30:00', closeTime: '23:00:00' }]);
+    expect(onChange).toHaveBeenCalledWith([lunch, { ...dinner, openTime: '19:30:00' }]);
+  });
+
+  /**
+   * The reason a window carries a client-only `uid` at all. Keyed by array INDEX, removing the
+   * first of two windows makes React reuse the removed row's DOM node for the survivor, so a
+   * focused input and its caret jump to a window the admin was not editing.
+   */
+  it('gives every window a stable identity that survives a removal', () => {
+    const onChange = renderCell([lunch, dinner]);
+
+    fireEvent.click(screen.getByLabelText('Remove window 1, Friday'));
+
+    expect(onChange).toHaveBeenCalledWith([dinner]);
+    expect(dinner.uid).not.toBe(lunch.uid);
   });
 
   it('disables every control on a closed day', () => {

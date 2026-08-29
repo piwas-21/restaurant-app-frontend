@@ -4,10 +4,16 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { workingHoursService } from '@/services/workingHoursService';
-import { WorkingHoursDto, UpdateWorkingHoursDto, WorkingHoursShiftDto, dayNameToNumber } from '@/types/workingHours';
+import { WorkingHoursDto, UpdateWorkingHoursDto, dayNameToNumber } from '@/types/workingHours';
 import { getErrorMessage } from '@/utils/apiClient';
 import { enqueueSnackbar } from 'notistack';
-import { getDayName, findShiftProblem } from './workingHoursDay';
+import {
+  getDayName,
+  findShiftProblem,
+  asEditableShift,
+  shiftProblemMessage,
+  type EditableShift,
+} from './workingHoursDay';
 import { shiftsOf } from '@/lib/workingHoursDisplay';
 import WorkingHoursDayShifts from './WorkingHoursDayShifts';
 import styles from './WorkingHoursManager.module.css';
@@ -19,7 +25,7 @@ const DAYS_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday to Sunday
 // window — so the editor works against one shape no matter which API it is talking to.
 type NormalizedWorkingHours = Omit<WorkingHoursDto, 'dayOfWeek' | 'shifts'> & {
   dayOfWeek: number;
-  shifts: WorkingHoursShiftDto[];
+  shifts: EditableShift[];
 };
 
 export default function WorkingHoursManager() {
@@ -45,7 +51,7 @@ export default function WorkingHoursManager() {
       const normalized: NormalizedWorkingHours[] = hours.map((wh) => ({
         ...wh,
         dayOfWeek: dayNameToNumber(wh.dayOfWeek),
-        shifts: shiftsOf(wh),
+        shifts: shiftsOf(wh).map(asEditableShift),
       }));
 
       const sorted = normalized.sort((a, b) => {
@@ -81,7 +87,7 @@ export default function WorkingHoursManager() {
     }
   };
 
-  const handleShiftsChange = (id: string, shifts: WorkingHoursShiftDto[]) => {
+  const handleShiftsChange = (id: string, shifts: EditableShift[]) => {
     setWorkingHours((prev) => prev.map((wh) => (wh.id === id ? { ...wh, shifts } : wh)));
   };
 
@@ -100,15 +106,7 @@ export default function WorkingHoursManager() {
       const problem = findShiftProblem(wh.shifts);
       if (problem === null) continue;
 
-      const day = getDayName(wh.dayOfWeek, t);
-      const message =
-        problem.kind === 'overlap'
-          ? t('opening_windows_overlap', 'Opening windows overlap on {{day}}', { day })
-          : problem.kind === 'empty'
-            ? t('at_least_one_opening_window', '{{day}} is open, so it needs at least one window', { day })
-            : t('close_time_must_be_after_open', 'Close time must be after open time for {{day}}', { day });
-
-      enqueueSnackbar(message, { variant: 'error' });
+      enqueueSnackbar(shiftProblemMessage(problem, getDayName(wh.dayOfWeek, t), t), { variant: 'error' });
       return false;
     }
     return true;

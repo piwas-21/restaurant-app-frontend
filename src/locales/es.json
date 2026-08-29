@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Hora de apertura, franja {{number}}, {{day}}",
   "close_time_for_window": "Hora de cierre, franja {{number}}, {{day}}",
   "opening_windows_overlap": "Las franjas de apertura del {{day}} se solapan",
-  "at_least_one_opening_window": "{{day}} está abierto, así que necesita al menos una franja"
+  "at_least_one_opening_window": "{{day}} está abierto, así que necesita al menos una franja",
+  "too_many_opening_windows": "Como máximo {{max}} franjas de apertura el {{day}}"
 }

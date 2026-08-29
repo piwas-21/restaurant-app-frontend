@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Время открытия, интервал {{number}}, {{day}}",
   "close_time_for_window": "Время закрытия, интервал {{number}}, {{day}}",
   "opening_windows_overlap": "Интервалы работы в {{day}} пересекаются",
-  "at_least_one_opening_window": "{{day}} — рабочий день, нужен хотя бы один интервал"
+  "at_least_one_opening_window": "{{day}} — рабочий день, нужен хотя бы один интервал",
+  "too_many_opening_windows": "Не более {{max}} интервалов работы в {{day}}"
 }

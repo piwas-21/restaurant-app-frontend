@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Ora di apertura, fascia {{number}}, {{day}}",
   "close_time_for_window": "Ora di chiusura, fascia {{number}}, {{day}}",
   "opening_windows_overlap": "Le fasce di apertura di {{day}} si sovrappongono",
-  "at_least_one_opening_window": "{{day}} è aperto, quindi serve almeno una fascia"
+  "at_least_one_opening_window": "{{day}} è aperto, quindi serve almeno una fascia",
+  "too_many_opening_windows": "Al massimo {{max}} fasce di apertura di {{day}}"
 }

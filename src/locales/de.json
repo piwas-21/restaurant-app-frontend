@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Öffnungszeit, Zeitfenster {{number}}, {{day}}",
   "close_time_for_window": "Schliesszeit, Zeitfenster {{number}}, {{day}}",
   "opening_windows_overlap": "Die Öffnungsfenster am {{day}} überschneiden sich",
-  "at_least_one_opening_window": "{{day}} ist geöffnet und braucht daher mindestens ein Zeitfenster"
+  "at_least_one_opening_window": "{{day}} ist geöffnet und braucht daher mindestens ein Zeitfenster",
+  "too_many_opening_windows": "Höchstens {{max}} Öffnungsfenster am {{day}}"
 }

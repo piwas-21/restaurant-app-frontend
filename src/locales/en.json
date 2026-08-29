@@ -2903,5 +2903,6 @@
   "open_time_for_window": "Open time, window {{number}}, {{day}}",
   "close_time_for_window": "Close time, window {{number}}, {{day}}",
   "opening_windows_overlap": "Opening windows overlap on {{day}}",
-  "at_least_one_opening_window": "{{day}} is open, so it needs at least one window"
+  "at_least_one_opening_window": "{{day}} is open, so it needs at least one window",
+  "too_many_opening_windows": "At most {{max}} opening windows on {{day}}"
 }

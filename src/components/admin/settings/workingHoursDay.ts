@@ -75,3 +75,44 @@ export const findShiftProblem = (shifts: WorkingHoursShiftDto[]): ShiftProblem |
 
   return null;
 };
+
+/**
+ * A window as the EDITOR holds it: the API's two times plus a client-only identity.
+ *
+ * The identity exists because a window has no id of its own and React needs a stable key. Keying by
+ * array index makes the row that stays behind inherit the removed row's DOM node (so focus and the
+ * caret jump to the wrong window), and keying by the times themselves breaks the moment two windows
+ * of one day briefly hold the same value mid-edit — which is legal while typing. `uid` is stripped
+ * before the day is sent.
+ */
+export interface EditableShift extends WorkingHoursShiftDto {
+  uid: string;
+}
+
+let nextShiftUid = 0;
+
+/** Gives a window a client-only identity. A counter, not a UUID: it only has to be unique in a tab. */
+export const asEditableShift = (shift: WorkingHoursShiftDto): EditableShift => {
+  nextShiftUid += 1;
+  return { ...shift, uid: `shift-${nextShiftUid}` };
+};
+
+/**
+ * The admin-facing sentence for a window problem. A lookup rather than a chain of ternaries, so a
+ * new problem kind is a compile error here instead of silently falling into the last branch.
+ */
+export const shiftProblemMessage = (problem: ShiftProblem, day: string, t: TFunction): string => {
+  switch (problem.kind) {
+    case 'overlap':
+      return t('opening_windows_overlap', 'Opening windows overlap on {{day}}', { day });
+    case 'empty':
+      return t('at_least_one_opening_window', '{{day}} is open, so it needs at least one window', { day });
+    case 'tooMany':
+      return t('too_many_opening_windows', 'At most {{max}} opening windows on {{day}}', {
+        max: MAX_SHIFTS_PER_DAY,
+        day,
+      });
+    default:
+      return t('close_time_must_be_after_open', 'Close time must be after open time for {{day}}', { day });
+  }
+};

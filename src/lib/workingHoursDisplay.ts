@@ -18,9 +18,9 @@ import type { WorkingHoursDto, WorkingHoursShiftDto } from '@/types/workingHours
  * regression to whichever page had the guard.
  */
 export const formatTime = (time: string): string => {
-  if (!time || !time.includes(':')) return time || '';
+  if (!time?.includes(':')) return time || '';
   const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours, 10);
+  const hour = Number.parseInt(hours, 10);
   if (Number.isNaN(hour)) return time;
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour % 12 || 12;

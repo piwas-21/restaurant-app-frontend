@@ -269,7 +269,7 @@ These are properties of the working copy, not of the code. All four are **silent
   ```
   Fix in **your** worktree (not the shared clone): `git sparse-checkout disable`. Declare it if you run it.
 
-  **Two further modes, measured 2026-08-29 (backend#447 / frontend#630).** (a) **A `git rebase` RE-APPLIES the
+  **Three further modes, measured 2026-08-29 (backend#447 / frontend#630 / frontend#631).** (a) **A `git rebase` RE-APPLIES the
   pattern and deletes the excluded tree from disk** — `src/` vanished mid-PR — and the commits are untouched, so
   `git status` is clean and `git log` is right. What follows is the worst failure mode on this list: **every gate
   then passes VACUOUSLY.** `jest` reported *"13 files checked … 0 matches"* and exited `1`; `tsc`, `eslint`,
@@ -279,7 +279,20 @@ These are properties of the working copy, not of the code. All four are **silent
   gates once the tree is restored. (b) For a file that is **already tracked**, `git add` does not silently stage
   nothing — it **refuses out loud** (*"paths … outside of your sparse-checkout definition"*) and points at
   `--sparse`. `git add --sparse <path>` is the one-file workaround; the silent-`git add -A` mode above is the
-  UNTRACKED case. Both come from the same setting, and the loud one is the lucky one.
+  UNTRACKED case. Both come from the same setting, and the loud one is the lucky one. (c) **It can be turned back
+  ON mid-session by ANOTHER agent, so disabling it once at session start is NOT sufficient** — the setting lives on
+  a resource other processes write (frontend#631: disabled and verified at session start, true again hours later in
+  the shared `.git/config` AND in `config.worktree`, with a cone nobody working here had asked for; the next
+  `git checkout` then stripped `src/` and `scripts/`). Same family as the shared-index trap in the workspace
+  CLAUDE.md §2b-i, and it hides the same way: **`git status` is EMPTY and the tree reads CLEAN**, because sparse
+  paths are skip-worktree, not deleted. It surfaces as **a lie from an UNRELATED tool** — `node scripts/x.mjs` →
+  *"Cannot find module …"*, `next build` → *"ENOENT: scandir 'src/templates'"* — and **nothing anywhere prints the
+  word `sparse`**. The tell is that **`ls src` fails while `git log` and `git show --stat HEAD` are intact**. So the
+  assertion belongs beside every gate, not at the top of the session: **assert the tree before trusting ANY green** —
+  `test -d src/templates` here, `test -d RestaurantSystem.Api` in the backend — because a gate that passes because
+  it found NOTHING is worse than a gate that fails. Measuring a base ref in a SEPARATE worktree is stronger than
+  `git checkout --detach HEAD~1` in your own: every checkout is a chance for someone else's config to be applied to
+  your tree.
 
 - **`core.fsmonitor=false` is deliberate — leave it off.** It is set on the shared clone to stop watchman cookie races from failing `git add`. Turning it on to speed up `git status` reintroduces intermittent, unreproducible staging failures.
 

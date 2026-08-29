@@ -1594,6 +1594,8 @@
   "select_variation": "Seleziona Dimensione/Variazione",
   "price_from": "da {{price}}",
   "hide_base_product": "Nascondi prodotto base",
+  "option_only_item": "Articolo solo come opzione",
+  "option_only_item_help": "Nascosto dal menu, può essere scelto solo all’interno di un menu combinato",
   "standard": "Standard",
   "yesterday": "Ieri",
   "orders": "Ordini",

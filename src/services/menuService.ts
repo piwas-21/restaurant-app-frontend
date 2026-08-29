@@ -73,6 +73,12 @@ export const getProducts = async (
   } else if (typeQuery?.includeMenus) {
     url += `&IncludeMenus=true`;
   }
+  // A SEPARATE `if`, not another arm of the chain above: components are never Menu bundles, so the
+  // opt-in has to survive whichever type filter the admin catalog is showing. Sent only when asked,
+  // which keeps every other caller's request byte-identical.
+  if (typeQuery?.includeComponents) {
+    url += `&IncludeComponents=true`;
+  }
   return (await apiClient.get(url)) as { success: boolean; message: string; data: PaginatedProducts; errors: unknown };
 };
 

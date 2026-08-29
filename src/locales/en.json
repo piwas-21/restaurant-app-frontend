@@ -564,6 +564,8 @@
   "select_variation": "Select Size/Variation",
   "price_from": "from {{price}}",
   "hide_base_product": "Hide base product",
+  "option_only_item": "Option-only item",
+  "option_only_item_help": "Hidden from the menu, can only be chosen inside a bundle",
   "standard": "Standard",
   "ingredients": "Ingredients",
   "allergens": "Allergens",

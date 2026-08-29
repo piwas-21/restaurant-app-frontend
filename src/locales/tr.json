@@ -570,6 +570,8 @@
   "select_variation": "Boyut/Varyasyon Seç",
   "price_from": "{{price}}'den itibaren",
   "hide_base_product": "Ana ürünü gösterme",
+  "option_only_item": "Sadece seçenek ürünü",
+  "option_only_item_help": "Menüde gösterilmez, yalnızca bir menü paketi içinde seçilebilir",
   "standard": "Standart",
   "ingredients": "İçindekiler",
   "allergens": "Alerjenler",

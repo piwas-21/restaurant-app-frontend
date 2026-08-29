@@ -564,6 +564,8 @@
   "select_variation": "Kies maat/variant",
   "price_from": "vanaf {{price}}",
   "hide_base_product": "Basisproduct verbergen",
+  "option_only_item": "Alleen als keuze-item",
+  "option_only_item_help": "Verborgen op de menukaart, alleen te kiezen binnen een menu",
   "standard": "Standaard",
   "ingredients": "Ingrediënten",
   "allergens": "Allergenen",

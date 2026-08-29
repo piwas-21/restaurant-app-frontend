@@ -4,6 +4,10 @@ import type { FieldValues, UseFormRegister } from 'react-hook-form';
 import { itemProductTypes } from '../types';
 import { fieldDomId } from './fieldAria';
 import modalStyles from '@/app/styles/RegisterStaffModal.module.css';
+import styles from './ProductAdvancedFields.module.css';
+
+/** The `aria-describedby` target for the option-only checkbox — see the section header. */
+const IS_COMPONENT_HELP_ID = 'product-is-component-help';
 
 interface ProductAdvancedFieldsProps {
   // readonly: S6759 — component props are never mutated.
@@ -18,10 +22,11 @@ interface ProductAdvancedFieldsProps {
 /**
  * Section 7 — **Advanced**, the only section that is COLLAPSED by default (plan §4, D1).
  *
- * It holds the two item controls a restaurant touches once and then never again: the product type,
- * and `hideBaseProduct`. Both are still SENT on every save whether or not the card is open — the
- * shell hides a collapsed body with the `hidden` attribute rather than unmounting it, because a
- * field the form stops rendering is a field the PUT clears (plan §6).
+ * It holds the item controls a restaurant touches once and then never again: the product type,
+ * `hideBaseProduct`, and `isComponent` (frontend #631 — the OPTION-ONLY flag that keeps one of a
+ * bundle's six meats off the guest menu). All are still SENT on every save whether or not the card
+ * is open — the shell hides a collapsed body with the `hidden` attribute rather than unmounting it,
+ * because a field the form stops rendering is a field the PUT clears (plan §6).
  *
  * **Slice S8 (D7) made both controls honest:**
  *
@@ -64,6 +69,28 @@ export default function ProductAdvancedFields({ register, hasVariations }: Produ
           <input type="checkbox" id="product-hide-base" {...register('hideBaseProduct')} />
           <label htmlFor="product-hide-base">{t('hide_base_product')}</label>
         </div>
+      </div>
+
+      {/*
+        NEVER conditional, unlike `hideBaseProduct` above: an option-only item is a plain item with
+        no precondition to hide behind, and the box is the only place the flag can be turned back
+        OFF — a control that appeared only for items that already carry the flag would be a one-way
+        door. The sentence is `aria-describedby`, not a bare `<p>`, because the consequence is
+        invisible from the label: the item leaves the guest menu.
+      */}
+      <div className={modalStyles.chipGroup}>
+        <div className={modalStyles.chip}>
+          <input
+            type="checkbox"
+            id="product-is-component"
+            aria-describedby={IS_COMPONENT_HELP_ID}
+            {...register('isComponent')}
+          />
+          <label htmlFor="product-is-component">{t('option_only_item')}</label>
+        </div>
+        <p id={IS_COMPONENT_HELP_ID} className={styles.help}>
+          {t('option_only_item_help')}
+        </p>
       </div>
     </div>
   );

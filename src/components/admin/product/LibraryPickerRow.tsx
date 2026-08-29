@@ -36,6 +36,15 @@ interface LibraryPickerRowProps {
   onRestore?: () => void;
   /** A write for this row is in flight; both actions are held. */
   isPending?: boolean;
+  /**
+   * Open the "apply this row to many items" panel (plan S8).
+   *
+   * Absent on an archived row and on an already-added one — the first is off the shelf and the
+   * second is a question about THIS product, while this action is about the catalog. Omitting the
+   * prop removes the control rather than disabling it: a disabled button here would suggest the
+   * row could be applied by some other means.
+   */
+  onApplyToItems?: () => void;
 }
 
 /**
@@ -71,6 +80,7 @@ export default function LibraryPickerRow({
   onArchive,
   onRestore,
   isPending = false,
+  onApplyToItems,
 }: Readonly<LibraryPickerRowProps>) {
   const { t } = useTranslation();
   const [isConfirming, setIsConfirming] = useState(false);
@@ -125,6 +135,15 @@ export default function LibraryPickerRow({
           <span className={styles.usageCount} aria-label={t(copy.usedOn, { count: usageCount })}>
             {usageCount}
           </span>
+        )}
+
+        {/* The catalog-wide action, beside the row's own destructive one (plan S8). It sits here
+            rather than in the footer because it is about THIS row: the footer's Add applies the
+            ticked rows to the product being edited, and the two would be indistinguishable. */}
+        {!archived && !alreadyAdded && onApplyToItems && (
+          <button type="button" className={styles.rowAction} onClick={onApplyToItems} disabled={isPending}>
+            {t(copy.applyAction)}
+          </button>
         )}
 
         {archived && onRestore && (

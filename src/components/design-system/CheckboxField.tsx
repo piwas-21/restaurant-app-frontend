@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useCallback, useId } from 'react';
 import defaultStyles from './CheckboxField.module.css';
 
 export interface CheckboxFieldProps {
@@ -46,6 +46,19 @@ export interface CheckboxFieldProps {
    * two surfaces can look nothing alike without a second DOM to keep in step.
    */
   styles?: Readonly<Record<string, string>>;
+  /**
+   * The THIRD state: some but not all of what this box governs is selected.
+   *
+   * It is a DOM property and not an attribute — there is no `indeterminate=""` in HTML — so React
+   * cannot set it declaratively and it is applied through a ref. `aria-checked="mixed"` is set
+   * beside it because the visual dash and the announced state are two different channels, and a
+   * screen reader reads the ARIA one.
+   *
+   * `checked` still means what it says. An indeterminate box whose `checked` is false is what a
+   * partly-picked group looks like, and clicking it fires `onChange(true)` — select the rest —
+   * which is what the dash affords.
+   */
+  indeterminate?: boolean;
   /** Test hook, forwarded to the input. */
   'data-testid'?: string;
 }
@@ -77,10 +90,32 @@ export default function CheckboxField({
   invalid,
   description,
   describedBy,
+  indeterminate,
   styles = defaultStyles,
   'data-testid': testId,
 }: Readonly<CheckboxFieldProps>) {
   const uid = useId();
+
+  /**
+   * `indeterminate` exists ONLY as a DOM property — there is no `indeterminate=""` in HTML — so it
+   * cannot be passed as a prop and has to be written to the node.
+   *
+   * A CALLBACK REF rather than `useRef` + `useEffect`, for two reasons. It writes the property in
+   * the same commit that creates the node, so there is no frame in which a mixed box renders empty;
+   * and React invokes it with `null` on unmount, so the null branch is REAL and reachable rather
+   * than a guard that can never be false — which is what a 100% branch threshold is asking about.
+   *
+   * The value is written on both branches, including `false`: setting it only when true would leave
+   * a box that had once been mixed showing a dash for the rest of its life.
+   */
+  const applyIndeterminate = useCallback(
+    (node: HTMLInputElement | null) => {
+      if (node) {
+        node.indeterminate = indeterminate === true;
+      }
+    },
+    [indeterminate],
+  );
   const errorId = `${uid}-error`;
   const descriptionId = `${uid}-description`;
   // Ordered so a screen reader hears the host's context, then this box's explanation, then its
@@ -93,11 +128,13 @@ export default function CheckboxField({
     <div className={disabled ? `${styles.field} ${styles.disabled}` : styles.field}>
       <label className={styles.control}>
         <input
+          ref={applyIndeterminate}
           type="checkbox"
           className={styles.input}
           checked={checked}
           disabled={disabled}
           onChange={(event) => onChange(event.target.checked)}
+          aria-checked={indeterminate ? 'mixed' : undefined}
           aria-invalid={error || invalid ? true : undefined}
           aria-describedby={allDescribedBy || undefined}
           data-testid={testId}

@@ -8,6 +8,7 @@ import { VARIATION_LIBRARY_COPY } from './libraryPickerCopy';
 import { useGlobalVariationLibrary } from '@/hooks/admin/useGlobalVariationLibrary';
 import { useGlobalVariationArchive } from '@/hooks/admin/useGlobalVariationArchive';
 import { createGlobalVariation } from '@/services/globalVariationService';
+import { attachGlobalVariation, getGlobalVariationProducts } from '@/services/libraryAttachService';
 import { toProductVariation } from './globalVariationLibrary';
 import type { Variation } from './types';
 
@@ -82,6 +83,16 @@ export default function GlobalVariationPickerModal({
       onViewChange={setView}
       createRow={(defaultName) => createGlobalVariation({ defaultName, translations: [] })}
       onAdd={(picked) => onAdd(picked.map((row, index) => toProductVariation(row, nextDisplayOrder + index)))}
+      apply={{
+        fetchUsage: getGlobalVariationProducts,
+        // `priceModifier: 0` is the NEUTRAL modifier and is deliberate, not a placeholder. The
+        // catalog carries no money (backend #431) because a variation's price is more
+        // product-specific than an ingredient's — "Large" is +2.00 on a pizza and +0.50 on a coffee
+        // — so a bulk attach gives forty products the WORDS at the base price, and the admin prices
+        // each one where the price actually belongs. Guessing one number for forty is the only
+        // thing a catalog-wide write here could get expensively wrong.
+        attach: (id, productIds) => attachGlobalVariation(id, { productIds, priceModifier: 0 }),
+      }}
     />
   );
 }

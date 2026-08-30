@@ -32,20 +32,55 @@ whatever the tenant uploaded. Don't.
 
 ## How a tenant overrides these
 
-`.github/workflows/build-tenant-image.yml` copies `icon.svg`, `hero.png` and
-`placeholder.png` over these before the Docker build, from either:
+`.github/workflows/build-tenant-image.yml` copies **six** filenames over these before the
+Docker build, through one script (`scripts/apply-tenant-branding.sh`) shared by both sources:
 
-- `branding_url` — an `https://` `.tar.gz` with those filenames at the archive root, or
+| Filename | Notes |
+|---|---|
+| `icon.svg` | favicon + manifest vector icon |
+| `icon-192.png` | manifest install icon, `purpose: "any"` |
+| `icon-512.png` | manifest install icon, `purpose: "any"` |
+| `icon-maskable-512.png` | manifest install icon, `purpose: "maskable"` |
+| `hero.png` | home hero background |
+| `placeholder.png` | menu item with no photo |
+
+- `branding_url` — an `https://` `.tar.gz` with those filenames at the archive **root**, or
 - `branding_dir` — a path already committed in this repo.
 
-A file absent from the archive/dir keeps the default below it.
+A file absent from the archive/dir keeps the default below it, **with one exception**.
 
-⚠️ **The three PNG install icons are NOT in that copy list yet.** They were added with the web app
-manifest (`src/app/manifest.ts`); until `build-tenant-image.yml` copies `icon-192.png`,
-`icon-512.png` and `icon-maskable-512.png` too, a tenant that overrides `icon.svg` gets its own
-favicon and the **platform** onion on the phone home screen. Regenerate them from a tenant's
-`icon.svg` by rendering it at 192/512 px on the plate colour (the originals were produced with
-headless Chromium via the repo's Playwright install).
+### The icon set travels together, or the build fails
+
+A source that supplies `icon.svg` **must** supply all three PNGs. If it does not, the build
+**fails loudly** with the missing filenames.
+
+Why fail instead of falling back: the PNGs are what a phone puts on the **home screen**. Keeping
+the platform default under a tenant's own `icon.svg` means the tenant's favicon in the tab and
+the **SofraPiwas onion** on their customers' phones — another brand's mark on a paying tenant's
+device, and nothing in the build says so. Rendering the PNGs here instead would have to guess the
+design decisions the platform set encodes (the `#FCF6E6` plate, the 20% maskable inset) and would
+ship a wrong-looking icon just as silently. A build that stops and names three files is the cheap
+failure. Supplying **no** icon at all is still fine and still supported: the tenant inherits the
+whole platform icon set consistently.
+
+Produce them from the tenant's `icon.svg` at 192/512 px on the plate colour, the maskable one
+inset 20% per side (the originals were rendered with headless Chromium via the repo's Playwright
+install; `sharp` is also already a dependency of this repo).
+
+### PWA colours are build args, and their default is RUMI's red
+
+The installed app's chrome and splash colours come from **two build args, not from the branding
+directory**:
+
+| Build arg / workflow input | Default when empty | Used for |
+|---|---|---|
+| `pwa_theme_color` → `NEXT_PUBLIC_PWA_THEME_COLOR` | **`#c00000` — RUMI red** | manifest `theme_color`, the browser/OS chrome around the installed app |
+| `pwa_background_color` → `NEXT_PUBLIC_PWA_BACKGROUND_COLOR` | `#ffffff` | manifest `background_color`, the splash screen while the app boots |
+
+The defaults are the classic template's `--brand-primary` / `--surface-primary`
+(`src/lib/config.ts`). **A tenant whose palette is not red must pass BOTH inputs** when the image
+is built, or their own icon sits on a RUMI-red splash. The values are validated as `#rrggbb`;
+empty means "use the default".
 
 ## Regenerating `hero.png`
 

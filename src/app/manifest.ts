@@ -42,9 +42,10 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/branding/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
       // Raster fallbacks. These exist because Chromium's installability check wants a raster icon
       // of at least 144px and we did not want the install prompt to depend on an unverified claim
-      // about SVG support. NOTE for whoever extends the tenant branding contract: today
-      // build-tenant-image.yml copies only icon.svg / hero.png / placeholder.png, so a tenant that
-      // overrides its branding keeps the PLATFORM onion in these three files until that list grows.
+      // about SVG support. These three ARE part of the tenant branding contract: a branding source
+      // that supplies icon.svg without them fails the build rather than shipping a tenant's own
+      // favicon beside the PLATFORM onion on their customers' home screens — see
+      // scripts/apply-tenant-branding.sh and public/branding/README.md.
       { src: '/branding/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/branding/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
       { src: '/branding/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },

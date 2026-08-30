@@ -39,8 +39,9 @@ export interface ExclusiveRow {
  * making unrelated ingredients exclude each other.
  */
 export function exclusionGroupKey(row: ExclusiveRow | undefined): string | null {
-  const trimmed = row?.exclusionGroup?.trim();
-  return trimmed ? trimmed : null;
+  // `|| null` rather than a ternary (Sonar S6644): `''` and `undefined` are both falsy and both
+  // mean NO GROUP here, so the coalescing form says exactly that and the ternary only restated it.
+  return row?.exclusionGroup?.trim() || null;
 }
 
 /**

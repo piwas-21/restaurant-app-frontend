@@ -2912,5 +2912,16 @@
   "close_time_for_window": "Sluitingstijd, tijdvak {{number}}, {{day}}",
   "opening_windows_overlap": "De openingstijdvakken op {{day}} overlappen elkaar",
   "at_least_one_opening_window": "{{day}} is open en heeft dus minstens één tijdvak nodig",
-  "too_many_opening_windows": "Hoogstens {{max}} openingstijdvakken op {{day}}"
+  "too_many_opening_windows": "Hoogstens {{max}} openingstijdvakken op {{day}}",
+  "pwa_install_title": "Toevoegen aan beginscherm",
+  "pwa_install_body": "Installeer onze app om sneller te bestellen. Geen appstore nodig.",
+  "pwa_install_action": "Installeren",
+  "pwa_install_ios_action": "Laat zien hoe",
+  "pwa_install_dismiss": "Niet nu",
+  "pwa_install_close_aria": "Installatiebanner sluiten",
+  "pwa_install_ios_title": "Toevoegen aan beginscherm",
+  "pwa_install_ios_step_share": "Tik op de deelknop in de Safari-balk.",
+  "pwa_install_ios_step_add": "Kies ‘Zet op beginscherm’.",
+  "pwa_install_ios_step_confirm": "Tik op ‘Voeg toe’ om te bevestigen.",
+  "pwa_install_ios_done": "Begrepen"
 }

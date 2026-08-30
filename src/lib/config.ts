@@ -53,3 +53,15 @@ export const BRANDING_PLACEHOLDER = '/branding/placeholder.png';
  * ten locale files rather than one admin-editable field, and docs/TENANT-COPY.md for the recipe.
  */
 export const TENANT_COPY_PACK: string = (process.env.NEXT_PUBLIC_TENANT_COPY_PACK ?? '').trim();
+
+/**
+ * Colours for the installed-app chrome (web app manifest, src/app/manifest.ts).
+ *
+ * They live here, as build-time env with a default, for two reasons: a manifest is JSON, so it
+ * cannot read a CSS custom property from src/design-system/tokens, and every tenant image already
+ * bakes its own branding at build time. Defaults are the classic template's `--brand-primary`
+ * (#c00000) and `--surface-primary` (#ffffff) — the same values the app paints with today.
+ * A tenant that overrides its palette should pass these two build args as well.
+ */
+export const PWA_THEME_COLOR = (process.env.NEXT_PUBLIC_PWA_THEME_COLOR ?? '').trim() || '#c00000';
+export const PWA_BACKGROUND_COLOR = (process.env.NEXT_PUBLIC_PWA_BACKGROUND_COLOR ?? '').trim() || '#ffffff';

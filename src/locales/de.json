@@ -2912,5 +2912,16 @@
   "close_time_for_window": "Schliesszeit, Zeitfenster {{number}}, {{day}}",
   "opening_windows_overlap": "Die Öffnungsfenster am {{day}} überschneiden sich",
   "at_least_one_opening_window": "{{day}} ist geöffnet und braucht daher mindestens ein Zeitfenster",
-  "too_many_opening_windows": "Höchstens {{max}} Öffnungsfenster am {{day}}"
+  "too_many_opening_windows": "Höchstens {{max}} Öffnungsfenster am {{day}}",
+  "pwa_install_title": "Zum Startbildschirm hinzufügen",
+  "pwa_install_body": "Installieren Sie unsere App für schnelleres Bestellen. Ohne App Store.",
+  "pwa_install_action": "Installieren",
+  "pwa_install_ios_action": "So geht's",
+  "pwa_install_dismiss": "Jetzt nicht",
+  "pwa_install_close_aria": "Installationshinweis schließen",
+  "pwa_install_ios_title": "Zum Startbildschirm hinzufügen",
+  "pwa_install_ios_step_share": "Tippen Sie in der Safari-Leiste auf „Teilen“.",
+  "pwa_install_ios_step_add": "Wählen Sie „Zum Home-Bildschirm“.",
+  "pwa_install_ios_step_confirm": "Tippen Sie zur Bestätigung auf „Hinzufügen“.",
+  "pwa_install_ios_done": "Verstanden"
 }

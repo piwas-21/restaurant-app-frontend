@@ -98,6 +98,14 @@ export async function prepareForScreenshots(page: Page, theme: Theme): Promise<v
 export async function waitForStablePage(page: Page, theme: Theme): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
   await page.waitForLoadState('networkidle');
+  // Fonts FIRST, before the scroll-through below, and that order is load-bearing.
+  //
+  // The scroll-through is what brings viewport-triggered components into view, and the floor plan
+  // on `/reservations` draws its table numbers and room labels ONCE when it gets there. Waiting for
+  // `document.fonts.ready` only afterwards let that draw happen while the craft display face was
+  // still loading, so the scene came out in a fallback font while every label OUTSIDE the scene was
+  // correct — a 0.01 diff that looks like anti-aliasing noise and is not.
+  await page.evaluate(() => document.fonts.ready);
   // Scroll through the document in viewport steps, then back to the top.
   // globals.css makes `html, body { height: 100% }`, so depending on the
   // page the effective scroller can be the window OR the body element —

@@ -16,7 +16,7 @@ interface PwaIosInstallModalProps {
  * recipe. Opened from the banner's button — never on its own, so nothing full-screen ever appears
  * unasked.
  */
-export default function PwaIosInstallModal({ isOpen, onClose }: PwaIosInstallModalProps) {
+export default function PwaIosInstallModal({ isOpen, onClose }: Readonly<PwaIosInstallModalProps>) {
   const { t } = useTranslation();
 
   return (

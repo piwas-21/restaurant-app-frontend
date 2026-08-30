@@ -34,7 +34,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (!event.data || event.data.type !== 'UNREGISTER') return;
+  // Only OUR OWN pages may pull the killswitch (Sonar S2819): a worker's message channel is
+  // reachable by any client it controls, and `origin` is the only thing that identifies the sender.
+  if (event.origin && event.origin !== self.location.origin) return;
+  if (event.data?.type !== 'UNREGISTER') return;
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();

@@ -24,7 +24,7 @@ export default function PwaInstallPrompt() {
 
   return (
     <>
-      <div className={styles.banner} role="region" aria-label={t('pwa_install_title')}>
+      <section className={styles.banner} aria-label={t('pwa_install_title')}>
         <div className={styles.content}>
           <div className={styles.text}>
             <p className={styles.title}>{t('pwa_install_title')}</p>
@@ -53,7 +53,7 @@ export default function PwaInstallPrompt() {
         <button type="button" className={styles.close} onClick={dismiss} aria-label={t('pwa_install_close_aria')}>
           <X size={18} aria-hidden="true" />
         </button>
-      </div>
+      </section>
       <PwaIosInstallModal isOpen={isIosSheetOpen} onClose={() => setIosSheetOpen(false)} />
     </>
   );

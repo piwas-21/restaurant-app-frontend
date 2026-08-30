@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { productTypes } from './types';
 
 /**
- * An optional string as the API really sends it: **absent, or `null`** (frontend #—, the phantom
+ * An optional string as the API really sends it: **absent, or `null`** (frontend #638, the phantom
  * "Fields to fix: 1" defect).
  *
  * `z.string().optional()` accepts `undefined` and REFUSES `null`, and every optional text column on

@@ -83,6 +83,37 @@ jobs:
       prod_tags: ${{ steps.plan.outputs.prod_tags }}
       refused: ${{ steps.plan.outputs.refused }}
     steps:
+      - name: Verify the trigger was OUR OWN release build
+        # `workflow_run` is the classic confused-deputy trigger: it runs with this repo's
+        # secrets against a ref chosen by whatever caused the upstream run. Here that
+        # cannot be a fork — `build-image` triggers only on `push` and on tags, neither of
+        # which a fork can cause — but "cannot" is an assumption about another file, so it
+        # is ASSERTED rather than trusted. If build-image ever grows a `pull_request`
+        # trigger, this fails closed instead of planning a fleet-wide rebuild from it.
+        # Same guard, same reasoning, as the deploy repo's provision-on-registry-merge.yml.
+        #
+        # Note what this job does NOT do, which is the substantive protection: it never
+        # checks out `github.event.workflow_run.head_sha`, and it never checks out THIS
+        # repo at all. The only source it reads is a FIXED repository at a FIXED ref
+        # (piwas-21/restaurant-app-deploy@develop), so no code chosen by the trigger is
+        # executed here. The build job below runs `./.github/workflows/build-tenant-image.yml`
+        # from the ref this workflow itself is defined on, which for a `workflow_run` is
+        # always the default branch — not the triggering ref either.
+        if: ${{ github.event_name == 'workflow_run' }}
+        env:
+          UPSTREAM_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          UPSTREAM_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          UPSTREAM_EVENT: ${{ github.event.workflow_run.event }}
+          THIS_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$UPSTREAM_REPO" != "$THIS_REPO" ] || [ "$UPSTREAM_BRANCH" != "main" ] \
+             || [ "$UPSTREAM_EVENT" != "push" ]; then
+            echo "::error title=Refused: the triggering run was not this repo's own release build::Saw '$UPSTREAM_REPO@$UPSTREAM_BRANCH' from a '$UPSTREAM_EVENT' event. This chain rebuilds every live tenant's bundle and holds box SSH keys two jobs later, so it will not act on a run it cannot attribute to '$THIS_REPO@main' via push."
+            exit 1
+          fi
+          echo "trigger attributed to $THIS_REPO@$UPSTREAM_BRANCH ($UPSTREAM_EVENT)"
+
       - name: Check out the deploy repo (registry + selection script)
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:

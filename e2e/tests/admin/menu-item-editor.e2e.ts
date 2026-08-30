@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext } from '@playwright/test';
 import { expectNoA11yViolations } from '../../helpers/a11y';
 import { adminSession, credKeyForBaseUrl, isLocalStack } from '../../helpers/adminAuth';
 import { apiBaseUrl } from '../../helpers/config';
@@ -64,21 +64,33 @@ const SECTION_IDS = [
 let storageStatePath = '';
 let skipReason = '';
 
-test.beforeAll(async ({ request, baseURL }) => {
-  if (process.env.E2E_REMOTE || !isLocalStack(baseURL ?? '')) {
-    skipReason = 'local/CI stack only — a login on a deployed tenant rotates its admin refresh token';
-    return;
-  }
-
+/**
+ * One login, written to a storage-state file the browser can start from.
+ *
+ * ⚠️ THE RETURNED FILE IS A ONE-SHOT CREDENTIAL, and that is the whole reason this is a function
+ * rather than a single `beforeAll` constant. `AuthContext.validateSession` bootstraps by calling
+ * `refreshToken()`, and `RefreshTokenCommand` ROTATES — it replaces the stored hash on every use —
+ * so the FIRST page load in the FIRST context SPENDS the refresh token in the file. A second
+ * context started from the same file replays a spent token, gets an honest "Invalid token",
+ * AuthContext clears all three keys and the admin route redirects to the tenant's PUBLIC home
+ * page. `helpers/adminAuth.ts` documents exactly this and it is what CI measured on run
+ * 33318536690: three attempts, `input[name="name"]` never found, the home page in every snapshot.
+ *
+ * So: one call per BROWSER CONTEXT, not one per file. The extra login is affordable here because
+ * the spec runs on the local/CI stack only, where the Development profile allows 1000 logins per
+ * window rather than a deployed host's 5.
+ */
+async function mintAdminStorageState(
+  request: APIRequestContext,
+  baseURL: string,
+  slug: string,
+): Promise<{ path: string; reason?: string }> {
   // Throws rather than returns a reason when CI has no credential — that is the #585 guard.
-  const { session, reason } = await adminSession(request, apiBaseUrl(), credKeyForBaseUrl(baseURL ?? ''));
-  if (!session) {
-    skipReason = reason ?? 'no admin session';
-    return;
-  }
+  const { session, reason } = await adminSession(request, apiBaseUrl(), credKeyForBaseUrl(baseURL));
+  if (!session) return { path: '', reason: reason ?? 'no admin session' };
 
-  storageStatePath = await writeAuthStorageState({
-    frontendOrigin: baseURL ?? '',
+  const file = await writeAuthStorageState({
+    frontendOrigin: baseURL,
     accessToken: session.accessToken,
     refreshToken: session.refreshToken,
     user: {
@@ -89,8 +101,23 @@ test.beforeAll(async ({ request, baseURL }) => {
       accessToken: session.accessToken,
     },
     role: 'admin',
-    slug: 'menu-item-editor',
+    slug,
   });
+  return { path: file };
+}
+
+test.beforeAll(async ({ request, baseURL }) => {
+  if (process.env.E2E_REMOTE || !isLocalStack(baseURL ?? '')) {
+    skipReason = 'local/CI stack only — a login on a deployed tenant rotates its admin refresh token';
+    return;
+  }
+
+  const { path: file, reason } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor');
+  if (!file) {
+    skipReason = reason ?? 'no admin session';
+    return;
+  }
+  storageStatePath = file;
 });
 
 test('a signed-in admin opens a product and gets all seven editor sections', async ({ browser, baseURL }) => {
@@ -171,12 +198,22 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
  * The `scrollY` assertion is the CONTROL, not decoration: if the page did not move, "the nav is
  * still near the top" is true of a broken build too.
  */
-test('the section nav and the admin sidebar stay pinned while the editor scrolls', async ({ browser, baseURL }) => {
+test('the section nav and the admin sidebar stay pinned while the editor scrolls', async ({
+  browser,
+  request,
+  baseURL,
+}) => {
   test.skip(!storageStatePath, skipReason);
   test.setTimeout(180_000);
 
+  // A SECOND context needs a SECOND session — see `mintAdminStorageState`. The test above has
+  // already loaded a page with `storageStatePath`, which SPENT the refresh token in it, so
+  // reusing that file here signs this context OUT and lands it on the public home page.
+  const { path: stickyStatePath } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor-sticky');
+  expect(stickyStatePath, 'the sticky test needs its own unspent admin session').not.toBe('');
+
   // Desktop width: below 820px the nav is a chip strip by design (D10) and is not sticky at all.
-  const context = await browser.newContext({ storageState: storageStatePath, viewport: { width: 1440, height: 800 } });
+  const context = await browser.newContext({ storageState: stickyStatePath, viewport: { width: 1440, height: 800 } });
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });

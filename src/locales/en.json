@@ -1039,6 +1039,8 @@
   "ingredient_name_placeholder": "Enter ingredient name",
   "ingredient_is_optional": "Optional (customer can add/remove)",
   "ingredient_is_active": "Active (visible to customers)",
+  "ingredient_choice_group": "Choice group",
+  "ingredient_choice_group_hint": "Ingredients that share a group name exclude each other: choosing one unchooses the others",
   "additional_price": "Additional Price",
   "customer_pays": "Customer pays",
   "language_en": "English",

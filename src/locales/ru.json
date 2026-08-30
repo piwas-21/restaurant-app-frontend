@@ -968,6 +968,8 @@
   "ingredient_name_placeholder": "Введите название ингредиента",
   "ingredient_is_optional": "Опционально (клиент может добавить/убрать)",
   "ingredient_is_active": "Активно (видно клиентам)",
+  "ingredient_choice_group": "Группа выбора",
+  "ingredient_choice_group_hint": "Ингредиенты с одинаковым названием группы исключают друг друга: выбор одного снимает выбор с остальных",
   "additional_price": "Дополнительная цена",
   "customer_pays": "Клиент платит",
   "language_en": "Английский",

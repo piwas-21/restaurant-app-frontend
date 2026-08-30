@@ -1,5 +1,6 @@
-/* The row's expandable detail panel. Since S4 it holds `isActive` alone: the per-locale names it
-   used to carry moved to the Translations tab, which is now the item's only translation surface. */
+/* The row's expandable detail panel: `isActive` plus the choice group (plan §9). The per-locale
+   names it used to carry moved to the Translations tab, which is the item's only translation
+   surface since S4. */
 .detailCell {
   padding-block: 0.75rem 1rem;
   padding-inline: 2rem;
@@ -7,4 +8,31 @@
 }
 .activeToggle {
   max-inline-size: 22rem;
+}
+
+/* Stacked, not inline with the toggle: the hint is a full sentence in ten locales — one of them RTL
+   — so a fixed two-column row would truncate it in half of them. */
+.groupField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-inline-size: 22rem;
+  margin-block-start: 0.75rem;
+}
+.groupLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.groupInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+.groupHint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }

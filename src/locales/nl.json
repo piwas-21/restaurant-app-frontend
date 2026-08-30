@@ -1039,6 +1039,8 @@
   "ingredient_name_placeholder": "Vul de ingrediëntnaam in",
   "ingredient_is_optional": "Optioneel (klant kan toevoegen/verwijderen)",
   "ingredient_is_active": "Actief (zichtbaar voor klanten)",
+  "ingredient_choice_group": "Keuzegroep",
+  "ingredient_choice_group_hint": "Ingrediënten met dezelfde groepsnaam sluiten elkaar uit: één kiezen deselecteert de andere",
   "additional_price": "Meerprijs",
   "customer_pays": "Klant betaalt",
   "language_en": "Engels",

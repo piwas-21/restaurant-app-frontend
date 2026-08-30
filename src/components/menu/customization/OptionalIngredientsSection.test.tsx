@@ -133,3 +133,106 @@ describe('OptionalIngredientsSection', () => {
     expect(screen.getByText(/-CHF 2\.00/)).toBeInTheDocument();
   });
 });
+
+// §9 — mutual exclusion (D13–D15). The rows here are the owner's own example shape: two answers to
+// one question ("how done?"), which before this field could both be ticked at once.
+describe('OptionalIngredientsSection — exclusion groups', () => {
+  const doneness = () =>
+    props({
+      ingredients: [
+        ingredient({ id: 'Rare', price: 0, exclusionGroup: 'doneness' }),
+        ingredient({ id: 'WellDone', price: 0, exclusionGroup: 'doneness' }),
+        ingredient({ id: 'Bacon', price: 3 }),
+      ],
+      selectedIngredients: [],
+      ingredientQuantities: {},
+    });
+
+  it('deselects the sibling when the other member of the group is chosen', () => {
+    const onSelectionChange = jest.fn();
+    const onQuantityChange = jest.fn();
+    render(
+      <OptionalIngredientsSection
+        {...doneness()}
+        selectedIngredients={['Rare']}
+        ingredientQuantities={{ Rare: 1 }}
+        onSelectionChange={onSelectionChange}
+        onQuantityChange={onQuantityChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /WellDone/ }));
+
+    // ONE selection update carrying the whole next state — not a deselect followed by a select,
+    // which would compute the second call from the stale prop and lose the first.
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledWith(['WellDone']);
+    // The dropped sibling records an explicit 0, the convention that makes the kitchen ticket able
+    // to print "NO xxx" (issue #150) — a 1 there would silently re-add it.
+    expect(onQuantityChange).toHaveBeenCalledWith('Rare', 0);
+    expect(onQuantityChange).toHaveBeenCalledWith('WellDone', 1);
+  });
+
+  it('stays a CHECKBOX, so the guest can still end with nothing chosen', () => {
+    const onSelectionChange = jest.fn();
+    render(
+      <OptionalIngredientsSection
+        {...doneness()}
+        selectedIngredients={['Rare']}
+        ingredientQuantities={{ Rare: 1 }}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    const rare = screen.getByRole('checkbox', { name: /Rare/ });
+    expect(rare).toBeChecked();
+
+    // A radio group cannot express this at all: a checked radio fires no change event when it is
+    // clicked again. An exclusion group has no minimum, so this way out has to exist (D15a).
+    fireEvent.click(rare);
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
+  });
+
+  it('leaves an ungrouped ingredient alone — every row on prod today is in that state', () => {
+    const onSelectionChange = jest.fn();
+    const onQuantityChange = jest.fn();
+    render(
+      <OptionalIngredientsSection
+        {...doneness()}
+        selectedIngredients={['Rare']}
+        ingredientQuantities={{ Rare: 1 }}
+        onSelectionChange={onSelectionChange}
+        onQuantityChange={onQuantityChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /Bacon/ }));
+
+    expect(onSelectionChange).toHaveBeenCalledWith(['Rare', 'Bacon']);
+    // Nothing was dropped, so no quantity 0 was recorded for anything.
+    expect(onQuantityChange).toHaveBeenCalledTimes(1);
+    expect(onQuantityChange).toHaveBeenCalledWith('Bacon', 1);
+  });
+
+  it('does not disturb a DIFFERENT group', () => {
+    const onSelectionChange = jest.fn();
+    render(
+      <OptionalIngredientsSection
+        {...props({
+          ingredients: [
+            ingredient({ id: 'Rare', price: 0, exclusionGroup: 'doneness' }),
+            ingredient({ id: 'White', price: 0, exclusionGroup: 'bread' }),
+            ingredient({ id: 'Brown', price: 0, exclusionGroup: 'bread' }),
+          ],
+          selectedIngredients: ['Rare', 'White'],
+          ingredientQuantities: { Rare: 1, White: 1 },
+          onSelectionChange,
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /Brown/ }));
+
+    expect(onSelectionChange).toHaveBeenCalledWith(['Rare', 'Brown']);
+  });
+});

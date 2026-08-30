@@ -45,6 +45,8 @@ export interface ProductIngredient {
     }
   >;
   globalIngredientId?: string;
+  /** Mutual-exclusion group (§9); absent/blank = no group. Read via `@/utils/exclusionGroup`. */
+  exclusionGroup?: string | null;
 }
 
 export interface DetailedIngredient {
@@ -57,6 +59,7 @@ export interface DetailedIngredient {
   displayOrder: number;
   maxQuantity: number;
   kind?: IngredientKind; // Ingredient or sauce (S5), `MenuBundleIngredientDto.kind`; absent = ingredient
+  exclusionGroup?: string | null; // Mutual-exclusion group (§9); absent = no group. See @/utils/exclusionGroup
   content?: Record<string, { name: string; description?: string }>;
 }
 

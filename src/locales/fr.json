@@ -1025,6 +1025,8 @@
   "ingredient_name_placeholder": "Entrez le nom de l'ingrédient",
   "ingredient_is_optional": "Optionnel (le client peut ajouter/retirer)",
   "ingredient_is_active": "Actif (visible pour les clients)",
+  "ingredient_choice_group": "Groupe de choix",
+  "ingredient_choice_group_hint": "Les ingrédients qui partagent un nom de groupe s'excluent : en choisir un désélectionne les autres",
   "additional_price": "Prix Supplémentaire",
   "customer_pays": "Le client paie",
   "language_en": "Anglais",

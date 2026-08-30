@@ -1849,6 +1849,7 @@
   "order_status_pending_approval": "Onay Bekliyor",
   "footer_privacy_policy": "Gizlilik Politikası",
   "footer_terms_of_usage": "Kullanım Koşulları",
+  "footer_site_by": "Siteyi hazırlayan: {{name}}",
   "privacy_policy": {
     "title": "Gizlilik Politikası",
     "last_updated": "Son güncelleme: {{date}}",

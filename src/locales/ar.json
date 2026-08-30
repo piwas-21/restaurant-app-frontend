@@ -1789,6 +1789,7 @@
   "order_status_pending_approval": "قيد الانتظار",
   "footer_privacy_policy": "سياسة الخصوصية",
   "footer_terms_of_usage": "شروط الاستخدام",
+  "footer_site_by": "تم إنشاء الموقع بواسطة {{name}}",
   "privacy_policy": {
     "title": "سياسة الخصوصية",
     "last_updated": "آخر تحديث: {{date}}",

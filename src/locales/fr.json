@@ -1790,6 +1790,7 @@
   "order_status_pending_approval": "En attente d'approbation",
   "footer_privacy_policy": "Politique de confidentialité",
   "footer_terms_of_usage": "Conditions d'utilisation",
+  "footer_site_by": "Site réalisé par {{name}}",
   "privacy_policy": {
     "title": "Politique de confidentialité",
     "last_updated": "Dernière mise à jour : {{date}}",

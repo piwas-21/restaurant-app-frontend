@@ -1721,6 +1721,7 @@
   "order_status_pending_approval": "Ожидает подтверждения",
   "footer_privacy_policy": "Политика конфиденциальности",
   "footer_terms_of_usage": "Условия использования",
+  "footer_site_by": "Сайт создан {{name}}",
   "privacy_policy": {
     "title": "Политика конфиденциальности",
     "last_updated": "Последнее обновление: {{date}}",

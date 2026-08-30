@@ -1,0 +1,16 @@
+/*
+ * Deliberately colour-less: the credit inherits its footer's colour so one component can sit
+ * in the classic band and the craft kraft band without either template importing the other's
+ * tokens. Sites 1 and 2 style their footer links with inline styles; the credit uses a CSS
+ * Module in all four, per §5.6, rather than spreading that idiom further.
+ */
+.credit {
+  margin-block-start: 0.5rem;
+  font-size: 0.85rem;
+  color: inherit;
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+}

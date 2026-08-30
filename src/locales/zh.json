@@ -1790,6 +1790,7 @@
   "order_status_pending_approval": "等待批准",
   "footer_privacy_policy": "隐私政策",
   "footer_terms_of_usage": "使用条款",
+  "footer_site_by": "网站由 {{name}} 制作",
   "privacy_policy": {
     "title": "隐私政策",
     "last_updated": "最后更新：{{date}}",

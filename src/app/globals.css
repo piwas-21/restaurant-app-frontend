@@ -54,6 +54,12 @@
     'Segoe UI Emoji', 'Segoe UI Symbol';
   --font-family-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
 
+  /* Height of the shared app header (`app-internal-layout.tsx`, `position: sticky; top: 0`).
+     It was written as a bare `80px` in four places — the layout's own inline style plus three
+     rules in Header.module.css — and every sticky element that has to sit UNDER the header
+     needs the same number. One source, so a header resize cannot leave a nav half-covered. */
+  --app-header-height: 80px;
+
   --nav-link-color: var(--text-color);
   --nav-link-hover-bg: rgba(0, 0, 0, 0.1);
   /* --brand-primary-elevated, not --primary-color: the active pill (.nav-link.active
@@ -130,14 +136,39 @@ html[data-theme='dark'] {
 html,
 body {
   width: 100%;
-  height: 100%;
-  overflow-x: hidden;
   font-family: var(--font-family-sans);
   background-color: var(--background-color);
   color: var(--text-color);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+}
+
+/*
+  THE PAGE SCROLLS ON THE VIEWPORT, and these two declarations are what decides that.
+
+  `overflow-x: hidden` is set on `html` ONLY. The root element's overflow PROPAGATES to the
+  viewport, so it clips sideways overflow exactly as before while `html` itself computes to
+  `visible` — no scroll container is created. Put the same declaration on `body` and the opposite
+  happens: `body` keeps it, per CSS Overflow 3 its `visible` overflow-y computes to `auto`, and
+  `body` becomes THE scroll container of the whole document.
+
+  `height: 100%` therefore may not sit on `body` either. With both, `body` was exactly one viewport
+  tall with 3986px of content inside it, so `window.scrollY` stayed 0 forever, `document.body`
+  owned the scroll, and every `position: sticky` descendant was measured against a box that never
+  moved. Measured on /admin/menu-management/<id> at 1440x800 before this change:
+  html scrollHeight 800 / body scrollHeight 3986, `window.scrollTo(0, 1200)` -> scrollY 0,
+  `document.body.scrollTop = 1200` -> 1200.
+
+  `min-height` keeps the full-height background a short page needs without capping the tall one.
+*/
+html {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
 }
 
 body {

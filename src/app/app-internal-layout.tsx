@@ -48,7 +48,9 @@ export default function AppInternalLayout({ children }: { children: React.ReactN
   const { info: restaurantInfo } = useRestaurantInfo();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adminSidebarOpen, setAdminSidebarOpen] = useState(false);
-  const headerHeight = '80px';
+  // Single source: `--app-header-height` in globals.css, which every sticky that must sit
+  // under this header also reads (admin section nav, side rail, mobile drawers).
+  const headerHeight = 'var(--app-header-height)';
   const _sidebarWidth = '250px';
 
   // Calculate total cart items

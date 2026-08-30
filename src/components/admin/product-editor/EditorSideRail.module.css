@@ -2,7 +2,11 @@
    over each other the moment the Status card stopped being the taller one. */
 .stack {
   position: sticky;
-  top: 1rem;
+  /* Same header offset as the section nav: the shared app header is `sticky; top: 0` and 80px
+     tall, so a bare `top: 1rem` pins the rail underneath it. */
+  top: calc(var(--app-header-height) + 1rem);
+  max-height: calc(100vh - var(--app-header-height) - 2rem);
+  overflow-y: auto;
 }
 
 .card {

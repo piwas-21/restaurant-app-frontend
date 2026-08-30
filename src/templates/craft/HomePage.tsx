@@ -14,6 +14,7 @@ import React from 'react';
 import Link from 'next/link';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
 import FooterCookieLink from '@/components/FooterCookieLink';
+import PartnerCredit from '@/components/PartnerCredit';
 import ContactIcons from '@/components/home/ContactIcons';
 import styles from './HomePage.module.css';
 import craft from './craft.module.css';
@@ -159,6 +160,7 @@ export default function HomePage() {
             </Link>
           </div>
           <FooterCookieLink />
+          <PartnerCredit />
         </footer>
       </div>
     </div>

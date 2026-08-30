@@ -1788,6 +1788,7 @@
   "order_status_pending_approval": "Genehmigung ausstehend",
   "footer_privacy_policy": "Datenschutzrichtlinie",
   "footer_terms_of_usage": "Nutzungsbedingungen",
+  "footer_site_by": "Website von {{name}}",
   "privacy_policy": {
     "title": "Datenschutzrichtlinie",
     "last_updated": "Zuletzt aktualisiert: {{date}}",

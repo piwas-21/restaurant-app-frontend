@@ -21,6 +21,7 @@ import navStyles from '@/app/styles/Header.module.css';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import CookieSettingsModal from '@/components/CookieSettingsModal';
 import FooterCookieLink from '@/components/FooterCookieLink';
+import PartnerCredit from '@/components/PartnerCredit';
 import UserMenu from '@/components/UserMenu';
 import { useAuth } from '@/components/AuthContext';
 import RoleNavLinks from '@/components/RoleNavLinks';
@@ -190,6 +191,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
               </Link>
             </div>
             <FooterCookieLink />
+            <PartnerCredit />
           </footer>
         )}
       </div>

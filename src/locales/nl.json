@@ -1851,6 +1851,7 @@
   "order_status_pending_approval": "Wacht op goedkeuring",
   "footer_privacy_policy": "Privacybeleid",
   "footer_terms_of_usage": "Gebruiksvoorwaarden",
+  "footer_site_by": "Website door {{name}}",
   "privacy_policy": {
     "title": "Privacybeleid",
     "last_updated": "Laatst bijgewerkt: {{date}}",

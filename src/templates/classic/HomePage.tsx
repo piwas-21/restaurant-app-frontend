@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import FooterCookieLink from '@/components/FooterCookieLink';
+import PartnerCredit from '@/components/PartnerCredit';
 import { UtensilsCrossed, CalendarCheck } from 'lucide-react';
 import { workingHoursService } from '@/services/workingHoursService';
 import { WorkingHoursDto } from '@/types/workingHours';
@@ -300,6 +301,7 @@ export default function HomePage() {
             </Link>
           </div>
           <FooterCookieLink />
+          <PartnerCredit />
         </footer>
       </div>
     </div>

@@ -1851,6 +1851,7 @@
   "order_status_pending_approval": "Pending Approval",
   "footer_privacy_policy": "Privacy Policy",
   "footer_terms_of_usage": "Terms of Usage",
+  "footer_site_by": "Site by {{name}}",
   "privacy_policy": {
     "title": "Privacy Policy",
     "last_updated": "Last updated: {{date}}",

@@ -22,10 +22,10 @@ export const PWA_INSTALLED = 'installed';
  * ACCEPTED install (or an `appinstalled` event) is permanent, not 30 days.
  */
 export const REASK_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
-/** Visits before the banner may appear at all — never on a first visit (task A: non-annoying). */
-export const MIN_VISITS = 2;
-/** Quiet period after mount, so the banner never competes with the first paint. */
-export const SHOW_DELAY_MS = 5000;
+/** Offer install on the first eligible mobile visit; this is a user-requested discovery affordance. */
+export const MIN_VISITS = 1;
+/** Let the page paint first without making the invitation easy to miss. */
+export const SHOW_DELAY_MS = 1000;
 
 export type InstallPromptVariant = 'none' | 'android' | 'ios';
 

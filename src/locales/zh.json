@@ -1037,6 +1037,8 @@
   "ingredient_name_placeholder": "输入配料名称",
   "ingredient_is_optional": "可选（客户可添加/移除）",
   "ingredient_is_active": "启用（客户可见）",
+  "ingredient_choice_group": "选择组",
+  "ingredient_choice_group_hint": "同一组名的配料互相排斥：选择其中一个会取消其他配料的选择",
   "additional_price": "额外价格",
   "customer_pays": "客户支付",
   "language_en": "英语",

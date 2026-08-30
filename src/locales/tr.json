@@ -1029,6 +1029,8 @@
   "ingredient_name_placeholder": "Malzeme adını girin",
   "ingredient_is_optional": "İsteğe Bağlı (müşteri ekleyebilir/çıkarabilir)",
   "ingredient_is_active": "Aktif (müşterilere görünür)",
+  "ingredient_choice_group": "Seçim grubu",
+  "ingredient_choice_group_hint": "Aynı grup adını paylaşan malzemeler birbirini dışlar: birini seçmek diğerlerinin seçimini kaldırır",
   "additional_price": "Ek Fiyat",
   "customer_pays": "Müşteri öder",
   "language_en": "İngilizce",

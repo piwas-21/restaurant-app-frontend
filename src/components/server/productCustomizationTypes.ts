@@ -37,6 +37,13 @@ export interface DetailedIngredient {
    */
   kind?: PriceableIngredientKind;
   displayOrder?: number;
+  /**
+   * Mutual-exclusion group key (plan §9). Carried here and ACTED ON, unlike `kind` above: the
+   * waiter sheet enforces the same at-most-one rule as the guest sheet, because a till that lets
+   * both members of a doneness group onto one line prints a contradictory kitchen ticket and
+   * charges for both. Absent/blank means no group — the degrade lives in `@/utils/exclusionGroup`.
+   */
+  exclusionGroup?: string | null;
   content?: LocalizedContent;
 }
 

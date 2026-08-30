@@ -1014,6 +1014,8 @@
   "ingredient_name_placeholder": "أدخل اسم المكون",
   "ingredient_is_optional": "اختياري (يمكن للعميل الإضافة/الإزالة)",
   "ingredient_is_active": "نشط (مرئي للعملاء)",
+  "ingredient_choice_group": "مجموعة الاختيار",
+  "ingredient_choice_group_hint": "المكوّنات التي تحمل اسم المجموعة نفسه تستبعد بعضها: اختيار واحد يلغي اختيار الباقي",
   "additional_price": "السعر الإضافي",
   "customer_pays": "العميل يدفع",
   "language_en": "الإنجليزية",

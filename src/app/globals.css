@@ -54,6 +54,12 @@
     'Segoe UI Emoji', 'Segoe UI Symbol';
   --font-family-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
 
+  /* Height of the shared app header (`app-internal-layout.tsx`, `position: sticky; top: 0`).
+     It was written as a bare `80px` in four places — the layout's own inline style plus three
+     rules in Header.module.css — and every sticky element that has to sit UNDER the header
+     needs the same number. One source, so a header resize cannot leave a nav half-covered. */
+  --app-header-height: 80px;
+
   --nav-link-color: var(--text-color);
   --nav-link-hover-bg: rgba(0, 0, 0, 0.1);
   /* --brand-primary-elevated, not --primary-color: the active pill (.nav-link.active

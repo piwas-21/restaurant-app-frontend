@@ -156,3 +156,64 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
     await context.close();
   }
 });
+
+/**
+ * The FIX for frontend admin layout: the editor's section nav and the admin sidebar must stay on
+ * screen while the long form scrolls.
+ *
+ * This is an E2E and not a component test on purpose: `position: sticky` is decided by LAYOUT, and
+ * jsdom has none. The defect it guards was invisible to every other gate in this repo — the nav
+ * already said `position: sticky`, and it still scrolled away, because `.adminContainer` carried
+ * `overflow-x: hidden`, which per CSS Overflow 3 makes an element a SCROLL CONTAINER on both axes.
+ * A sticky descendant is positioned against its nearest scroll container, and that one never
+ * scrolls, so the offsets had nothing to travel over. Only a real engine can report that.
+ *
+ * The `scrollY` assertion is the CONTROL, not decoration: if the page did not move, "the nav is
+ * still near the top" is true of a broken build too.
+ */
+test('the section nav and the admin sidebar stay pinned while the editor scrolls', async ({ browser, baseURL }) => {
+  test.skip(!storageStatePath, skipReason);
+  test.setTimeout(180_000);
+
+  // Desktop width: below 820px the nav is a chip strip by design (D10) and is not sticky at all.
+  const context = await browser.newContext({ storageState: storageStatePath, viewport: { width: 1440, height: 800 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('input[name="name"]'), 'the editor must load the seeded product').toHaveValue(
+      SEEDED_PRODUCT_NAME,
+      { timeout: 120_000 },
+    );
+
+    // Semantic, not class-based: `EditorSectionNav` marks the section in view with `aria-current`.
+    const sectionNav = page.locator('nav').filter({ has: page.locator('button[aria-current="true"]') });
+    const sidebarLink = page.locator('aside a[href="/admin/dashboard"]');
+    await expect(sectionNav).toBeVisible();
+    await expect(sidebarLink).toBeVisible();
+
+    const navBefore = await sectionNav.boundingBox();
+    const sidebarBefore = await sidebarLink.boundingBox();
+    expect(navBefore, 'the section nav must have a box before scrolling').not.toBeNull();
+    expect(sidebarBefore, 'the sidebar link must have a box before scrolling').not.toBeNull();
+
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    // The control. A page that did not scroll makes every assertion below vacuously true.
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { message: 'the editor page must actually scroll' })
+      .toBeGreaterThan(600);
+
+    const navAfter = await sectionNav.boundingBox();
+    const sidebarAfter = await sidebarLink.boundingBox();
+
+    // Still on screen, and still BELOW the 80px sticky app header rather than under it.
+    expect(navAfter!.y, 'the section nav must stay pinned below the app header').toBeGreaterThanOrEqual(79);
+    expect(navAfter!.y, 'the section nav must not be pushed down the viewport').toBeLessThan(400);
+    // It moved with the viewport, not with the document: without the fix it would be ~1200px up.
+    expect(navAfter!.y, 'the section nav must not scroll away with the form').toBeGreaterThan(navBefore!.y - 200);
+
+    expect(sidebarAfter!.y, 'the admin sidebar must stay on screen').toBeGreaterThanOrEqual(0);
+    expect(sidebarAfter!.y, 'the admin sidebar must not scroll away').toBeGreaterThan(sidebarBefore!.y - 200);
+  } finally {
+    await context.close();
+  }
+});

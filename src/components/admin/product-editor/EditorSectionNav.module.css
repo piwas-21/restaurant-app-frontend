@@ -1,7 +1,10 @@
 .nav {
   position: sticky;
-  top: 1rem;
-  max-height: calc(100vh - 2rem);
+  /* Offset by the shared app header, which is itself `position: sticky; top: 0` and 80px tall —
+     `top: 1rem` alone pinned the nav UNDER it, hiding the first entries. The nav only began to
+     stick at all once `.adminContainer` stopped being a scroll container (AdminPage.module.css). */
+  top: calc(var(--app-header-height) + 1rem);
+  max-height: calc(100vh - var(--app-header-height) - 2rem);
   overflow-y: auto;
 }
 

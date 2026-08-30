@@ -36,14 +36,14 @@ set -euo pipefail
 src="${1:?usage: apply-tenant-branding.sh <source-dir>}"
 label="${2:-$src}"
 
-[ -d "$src" ] || { echo "branding source not found: $src" >&2; exit 1; }
+[[ -d "$src" ]] || { echo "branding source not found: $src" >&2; exit 1; }
 
 ICONS_PNG="icon-192.png icon-512.png icon-maskable-512.png"
 ALL="icon.svg $ICONS_PNG hero.png placeholder.png"
 
 applied=0
 for f in $ALL; do
-  if [ -f "$src/$f" ]; then
+  if [[ -f "$src/$f" ]]; then
     cp "$src/$f" "public/branding/$f"
     echo "branding override applied: $f"
     applied=1
@@ -52,23 +52,23 @@ done
 
 # Say so rather than dropping it silently: archives built to the pre-O6 spec still carry a logo.
 for f in logo.png logo-dark.png; do
-  if [ -f "$src/$f" ]; then
+  if [[ -f "$src/$f" ]]; then
     echo "IGNORING $f - the logo is uploaded in tenant admin since O6, not baked"
   fi
 done
 
-if [ "$applied" -eq 0 ]; then
+if [[ "$applied" -eq 0 ]]; then
   echo "branding source $label contained none of: $ALL" >&2
   exit 1
 fi
 
 # The icon set travels together or not at all (see THE ICON-SET RULE above).
-if [ -f "$src/icon.svg" ]; then
+if [[ -f "$src/icon.svg" ]]; then
   missing=""
   for f in $ICONS_PNG; do
-    [ -f "$src/$f" ] || missing="$missing $f"
+    [[ -f "$src/$f" ]] || missing="$missing $f"
   done
-  if [ -n "$missing" ]; then
+  if [[ -n "$missing" ]]; then
     echo "branding source $label supplies icon.svg but is MISSING:$missing" >&2
     echo "The web app manifest (src/app/manifest.ts) installs those three PNGs on the home" >&2
     echo "screen. Shipping without them would put the SofraPiwas onion on this tenant's" >&2

@@ -11,7 +11,7 @@ import type { MenuDefinition } from '@/types/menu';
 import { toSubmittableMenuDefinition } from '@/utils/menuSectionDraft';
 import { reportProductImageUploadFailure } from '@/utils/productImageFailure';
 import { toBundleDefaults, toItemDefaults, toMenuDefinitionState } from '@/utils/productEditorDefaults';
-import { collectErrorFields, focusField } from '@/components/admin/product-editor/editorValidation';
+import { collectErrorFields, jumpToField } from '@/components/admin/product-editor/editorValidation';
 import { useEditorCategories } from './useEditorCategories';
 import { useVariationReorder } from './useVariationReorder';
 
@@ -109,7 +109,7 @@ export function useProductEditorForm({ product, isBundle, mode = 'edit', onSaved
   // bar's chip then says how many remain; this is that same jump, fired automatically.
   const onInvalidSubmit = (submitErrors: FieldErrors<FieldValues>) => {
     const first = collectErrorFields(submitErrors)[0];
-    if (first) focusField(first.name);
+    if (first) jumpToField(first.name);
   };
 
   const onSubmit = form.handleSubmit(async (data) => {

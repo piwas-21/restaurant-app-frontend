@@ -268,8 +268,18 @@ export const submitProductForm = async ({
     const productData = {
       ...data,
       content,
+      // `?? ''` because the schema now accepts the `null` the API sends for an absent optional text
+      // (`optionalText`, schemas.ts) — the CREATE contract takes `string | undefined`, and the edit
+      // path below already coalesces the same field the same way.
+      description: data.description ?? '',
       primaryCategoryId: data.primaryCategoryId || null,
-      variations: withCleanedItemTranslations(data.variations || []),
+      // Same coalesce as the product description above, per row: the create contract's
+      // `VariationData.description` is `string | undefined`, and the schema now lets the API's
+      // `null` through untouched.
+      variations: withCleanedItemTranslations(data.variations || []).map((variation) => ({
+        ...variation,
+        description: variation.description ?? '',
+      })),
       detailedIngredients: withCleanedItemTranslations(cleanedIngredients),
       menuDefinition: toMenuDefinitionPayload(data.menuDefinition),
     };

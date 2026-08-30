@@ -136,10 +136,63 @@ export function isTranslationsField(name: string): boolean {
 export function focusField(name: string): boolean {
   if (typeof document === 'undefined') return false;
 
-  const node = document.querySelector<HTMLElement>(`[name="${CSS.escape(name)}"]`);
+  const node = document.querySelector<HTMLElement>(`[name="${CSS.escape(name)}"]`) ?? nearestAnchor(name);
   if (!node) return false;
 
+  reveal(node);
+  return true;
+}
+
+/** Scroll a node into view and put the caret in it. */
+function reveal(node: HTMLElement): void {
   if (typeof node.scrollIntoView === 'function') node.scrollIntoView({ behavior: 'smooth', block: 'center' });
   node.focus({ preventScroll: true });
+}
+
+/**
+ * The nearest input BELONGING TO THE SAME ROW as a failing path that renders no input of its own.
+ *
+ * Measured defect (the owner's "clicking it goes nowhere"): a variation's stored translation is
+ * addressed as `variations.0.content.fr.description`, and since S4 that path has NO input on the
+ * Item tab and one on the Translations tab only while `fr` is the SELECTED locale. `focusField`
+ * then found nothing, returned false, and the jump silently did nothing — on the one control whose
+ * entire job is to say where the problem is.
+ *
+ * So the path is walked UP a segment at a time and the first input under the surviving prefix wins:
+ * `variations.0.content.fr` → `variations.0.content` → `variations.0` → matches
+ * `variations.0.name`, which is the right ROW even though it is not the right field. Landing on the
+ * row is a truthful approximation; landing nowhere is a broken control.
+ *
+ * `variations.` is never used as a prefix on its own — the loop stops before the root, so a jump
+ * can never mean "the first variation on the page" when the error is in the fourth.
+ */
+function nearestAnchor(name: string): HTMLElement | null {
+  const segments = name.split('.');
+  // Stop at 2 segments: a root alone (`variations`) names a whole array, not a row.
+  while (segments.length > 2) {
+    segments.pop();
+    const prefix = `${segments.join('.')}.`;
+    const node = document.querySelector<HTMLElement>(`[name^="${CSS.escape(prefix)}"]`);
+    if (node) return node;
+  }
+  return null;
+}
+
+/**
+ * Take the admin to a failing field, falling back to the SECTION that owns it.
+ *
+ * `focusField` answers "is there an input for this path"; this answers the question the save bar's
+ * chip actually asks — *"show me the problem"* — which must always move the page somewhere. The
+ * section card carries `tabIndex={-1}` for exactly this, and is what the sticky nav scrolls to.
+ */
+export function jumpToField(name: string): boolean {
+  if (focusField(name)) return true;
+  if (typeof document === 'undefined') return false;
+
+  const sectionId = sectionForField(name);
+  const section = sectionId ? document.getElementById(sectionId) : null;
+  if (!section) return false;
+
+  reveal(section);
   return true;
 }

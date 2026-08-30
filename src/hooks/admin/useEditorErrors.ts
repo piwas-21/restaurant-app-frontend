@@ -4,8 +4,8 @@ import type { TFunction } from 'i18next';
 import type { FieldErrors, FieldValues } from 'react-hook-form';
 import {
   collectErrorFields,
-  focusField,
   isTranslationsField,
+  jumpToField,
   sectionIdsWithErrors,
 } from '@/components/admin/product-editor/editorValidation';
 import type { EditorSection } from '@/components/admin/product-editor/EditorShell';
@@ -53,11 +53,11 @@ export function useEditorErrors({ errors, t, setActiveTab, itemTabId, translatio
     if (!first) return;
     if (isTranslationsField(first.name)) {
       setActiveTab(translationsTabId);
-      setTimeout(() => focusField(first.name), 0);
+      setTimeout(() => jumpToField(first.name), 0);
       return;
     }
     setActiveTab(itemTabId);
-    focusField(first.name);
+    jumpToField(first.name);
   };
 
   return {

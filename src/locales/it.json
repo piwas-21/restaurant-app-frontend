@@ -2912,5 +2912,16 @@
   "close_time_for_window": "Ora di chiusura, fascia {{number}}, {{day}}",
   "opening_windows_overlap": "Le fasce di apertura di {{day}} si sovrappongono",
   "at_least_one_opening_window": "{{day}} è aperto, quindi serve almeno una fascia",
-  "too_many_opening_windows": "Al massimo {{max}} fasce di apertura di {{day}}"
+  "too_many_opening_windows": "Al massimo {{max}} fasce di apertura di {{day}}",
+  "pwa_install_title": "Aggiungi alla schermata Home",
+  "pwa_install_body": "Installa la nostra app per ordinare più in fretta. Nessuno store richiesto.",
+  "pwa_install_action": "Installa",
+  "pwa_install_ios_action": "Mostrami come",
+  "pwa_install_dismiss": "Non ora",
+  "pwa_install_close_aria": "Chiudi il banner di installazione",
+  "pwa_install_ios_title": "Aggiungi alla schermata Home",
+  "pwa_install_ios_step_share": "Tocca il pulsante Condividi nella barra di Safari.",
+  "pwa_install_ios_step_add": "Scegli «Aggiungi a Home».",
+  "pwa_install_ios_step_confirm": "Tocca «Aggiungi» per confermare.",
+  "pwa_install_ios_done": "Ho capito"
 }

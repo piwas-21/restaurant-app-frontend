@@ -17,6 +17,8 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ModulesProvider } from '@/contexts/ModulesContext';
 import type { ModuleId } from '@/lib/modules';
 import DocumentLanguage from '@/components/DocumentLanguage';
+import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
+import PwaInstallPrompt from '@/components/pwa/PwaInstallPrompt';
 
 /**
  * @param modules Product modules this tenant runs, read server-side in the root layout
@@ -37,6 +39,11 @@ export default function ClientProviders({
                 {/* Inside the i18n provider (it reads the active language) and outside everything
                     else (it renders nothing and must run whatever the rest of the tree does). */}
                 <DocumentLanguage />
+                {/* PWA (task A): the registrar renders nothing and only runs in a production
+                    build; the install banner is mobile-only and self-suppressing. Both live
+                    inside the i18n provider because the banner is translated. */}
+                <ServiceWorkerRegistrar />
+                <PwaInstallPrompt />
                 <CookieConsentProvider>
                   <TableContextProvider>
                     <CartProvider>

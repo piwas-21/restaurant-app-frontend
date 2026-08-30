@@ -2912,5 +2912,16 @@
   "close_time_for_window": "结束营业时间，第 {{number}} 个时段，{{day}}",
   "opening_windows_overlap": "{{day}}的营业时段互相重叠",
   "at_least_one_opening_window": "{{day}}营业，因此至少需要一个时段",
-  "too_many_opening_windows": "{{day}}最多 {{max}} 个营业时段"
+  "too_many_opening_windows": "{{day}}最多 {{max}} 个营业时段",
+  "pwa_install_title": "添加到主屏幕",
+  "pwa_install_body": "安装我们的应用，点单更快捷，无需应用商店。",
+  "pwa_install_action": "安装",
+  "pwa_install_ios_action": "查看方法",
+  "pwa_install_dismiss": "暂不",
+  "pwa_install_close_aria": "关闭安装提示",
+  "pwa_install_ios_title": "添加到主屏幕",
+  "pwa_install_ios_step_share": "点按 Safari 工具栏中的“分享”按钮。",
+  "pwa_install_ios_step_add": "选择“添加到主屏幕”。",
+  "pwa_install_ios_step_confirm": "点按“添加”确认。",
+  "pwa_install_ios_done": "知道了"
 }

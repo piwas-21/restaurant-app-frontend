@@ -2912,5 +2912,16 @@
   "close_time_for_window": "وقت الإغلاق، الفترة {{number}}، {{day}}",
   "opening_windows_overlap": "فترات العمل يوم {{day}} متداخلة",
   "at_least_one_opening_window": "{{day}} يوم عمل، لذا يلزم فترة واحدة على الأقل",
-  "too_many_opening_windows": "بحد أقصى {{max}} فترات عمل يوم {{day}}"
+  "too_many_opening_windows": "بحد أقصى {{max}} فترات عمل يوم {{day}}",
+  "pwa_install_title": "أضف التطبيق إلى الشاشة الرئيسية",
+  "pwa_install_body": "ثبّت تطبيقنا لطلب أسرع. لا حاجة إلى متجر التطبيقات.",
+  "pwa_install_action": "تثبيت",
+  "pwa_install_ios_action": "اعرض لي الطريقة",
+  "pwa_install_dismiss": "ليس الآن",
+  "pwa_install_close_aria": "إغلاق شريط التثبيت",
+  "pwa_install_ios_title": "أضف التطبيق إلى الشاشة الرئيسية",
+  "pwa_install_ios_step_share": "اضغط على زر المشاركة في شريط Safari.",
+  "pwa_install_ios_step_add": "اختر «إضافة إلى الشاشة الرئيسية».",
+  "pwa_install_ios_step_confirm": "اضغط «إضافة» للتأكيد.",
+  "pwa_install_ios_done": "فهمت"
 }

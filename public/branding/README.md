@@ -5,7 +5,9 @@ overrides them. They are deliberately **not** any one restaurant's assets.
 
 | File | Used by | Notes |
 |---|---|---|
-| `icon.svg` | favicon (`BRANDING_ICON`) | the onion mark, simplified for small sizes |
+| `icon.svg` | favicon (`BRANDING_ICON`) + web app manifest (`sizes: "any"`) | the onion mark, simplified for small sizes |
+| `icon-192.png` / `icon-512.png` | web app manifest, `purpose: "any"` | raster install icons, rendered from `icon.svg` on a `#FCF6E6` plate |
+| `icon-maskable-512.png` | web app manifest, `purpose: "maskable"` | same mark inset by 20% per side, so a circular OS mask cannot clip it |
 | `hero.png` | home hero + craft auth pages (`BRANDING_HERO`) | 2000×800, brand gradient + onion watermark; mid-dark so classic's white hero type reads through its `rgba(0,0,0,.3)` overlay |
 | `placeholder.png` / `.svg` | menu item with no photo (`BRANDING_PLACEHOLDER`) | onion + wordmark lockup on cream |
 
@@ -37,6 +39,13 @@ whatever the tenant uploaded. Don't.
 - `branding_dir` — a path already committed in this repo.
 
 A file absent from the archive/dir keeps the default below it.
+
+⚠️ **The three PNG install icons are NOT in that copy list yet.** They were added with the web app
+manifest (`src/app/manifest.ts`); until `build-tenant-image.yml` copies `icon-192.png`,
+`icon-512.png` and `icon-maskable-512.png` too, a tenant that overrides `icon.svg` gets its own
+favicon and the **platform** onion on the phone home screen. Regenerate them from a tenant's
+`icon.svg` by rendering it at 192/512 px on the plate colour (the originals were produced with
+headless Chromium via the repo's Playwright install).
 
 ## Regenerating `hero.png`
 

@@ -120,7 +120,11 @@ test.beforeAll(async ({ request, baseURL }) => {
   storageStatePath = file;
 });
 
-test('a signed-in admin opens a product and gets all seven editor sections', async ({ browser, baseURL }) => {
+test('a signed-in admin opens a product and gets all seven editor sections', async ({
+  browser,
+  request,
+  baseURL,
+}) => {
   test.skip(!storageStatePath, skipReason);
 
   // A generous budget, spent only ONCE and only on CI. `webServer` is `next dev`, which compiles a
@@ -131,7 +135,17 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
   // retry is still a broken test, so the budget is raised rather than left to `retries: 2`.
   test.setTimeout(180_000);
 
-  const context = await browser.newContext({ storageState: storageStatePath });
+  // A FRESH session for THIS context, for the same reason the sticky test below mints one — with
+  // one extra: in `serial` mode a failure retries the WHOLE group, and the file the `beforeAll`
+  // wrote was already SPENT by the first attempt (and overwritten again by the sibling test's
+  // login, since `LoginCommand.cs:77` keeps ONE refresh-token hash per user). That is what CI run
+  // 33319573832 measured: this test passed on attempt 1 and then failed on both retries, signed
+  // out on the public home page with `input[name="name"]` never found. `beforeAll` stays as the
+  // #585 credential preflight; it is no longer the source of a session any browser uses.
+  const { path: sectionsStatePath } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor-sections');
+  expect(sectionsStatePath, 'this test needs its own unspent admin session').not.toBe('');
+
+  const context = await browser.newContext({ storageState: sectionsStatePath });
   const page = await context.newPage();
   try {
     // `domcontentloaded` rather than `networkidle`: the web-first waits below give the same
@@ -222,8 +236,11 @@ test('the section nav and the admin sidebar stay pinned while the editor scrolls
       { timeout: 120_000 },
     );
 
-    // Semantic, not class-based: `EditorSectionNav` marks the section in view with `aria-current`.
-    const sectionNav = page.locator('nav').filter({ has: page.locator('button[aria-current="true"]') });
+    // A stable hook, not a class and not a translated name: the editor renders TWO navs that both
+    // mark their current entry with `aria-current` (the section nav and the translation locale
+    // rail), so filtering on `aria-current` alone is a strict-mode violation, and matching the
+    // accessible name would tie the test to the English bundle.
+    const sectionNav = page.getByTestId('editor-section-nav');
     const sidebarLink = page.locator('aside a[href="/admin/dashboard"]');
     await expect(sectionNav).toBeVisible();
     await expect(sidebarLink).toBeVisible();

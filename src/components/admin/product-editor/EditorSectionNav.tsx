@@ -38,7 +38,7 @@ interface EditorSectionNavProps {
  */
 export default function EditorSectionNav({ entries, activeId, onSelect, label }: EditorSectionNavProps) {
   return (
-    <nav className={styles.nav} aria-label={label}>
+    <nav className={styles.nav} aria-label={label} data-testid="editor-section-nav">
       <ul className={styles.list}>
         {entries.map((entry) => (
           <li key={entry.id}>

@@ -4,6 +4,7 @@ import {
   collectErrorFields,
   focusField,
   isTranslationsField,
+  jumpToField,
   sectionForField,
   sectionIdsWithErrors,
 } from './editorValidation';
@@ -113,5 +114,48 @@ describe('editorValidation — focusField', () => {
     document.body.innerHTML = '<input name="content.0.name" />';
 
     expect(focusField('content.0.name')).toBe(true);
+  });
+});
+
+/**
+ * The jump that could not land — the owner-reported *"it says Fields to fix: 1 and clicking it goes
+ * nowhere"* (2026-08-28).
+ *
+ * Two paths in this editor have no input of their own: a variation's stored translation
+ * (`variations.0.content.fr.description`, whose only input exists while `fr` is the SELECTED locale
+ * on the other tab) and any future path a section renders no control for. `focusField` answered
+ * `false` for those and the chip did nothing at all, which is the one behaviour a control whose
+ * whole job is "show me the problem" must not have.
+ */
+describe('editorValidation — a jump always lands somewhere', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('falls back to the same ROW when the exact path renders no input', () => {
+    document.body.innerHTML = '<input name="variations.0.name" /><input name="variations.1.name" />';
+
+    expect(focusField('variations.1.content.fr.description')).toBe(true);
+    // The SECOND row, not the first: the prefix is walked up one segment at a time, so a jump can
+    // never silently mean "the first variation" when the error is in the second.
+    expect((document.activeElement as HTMLInputElement).name).toBe('variations.1.name');
+  });
+
+  // A root alone names a whole array. Landing on "some row" would be a lie, not an approximation.
+  it('never falls back to the array root', () => {
+    document.body.innerHTML = '<input name="variations.0.name" />';
+
+    expect(focusField('allergens')).toBe(false);
+  });
+
+  it('takes the owning SECTION when neither the field nor its row is on the page', () => {
+    document.body.innerHTML = `<section id="${SECTION_IDS.recipe}" tabindex="-1"></section>`;
+
+    expect(jumpToField('sauceIncludedFree')).toBe(true);
+    expect(document.activeElement).toBe(document.getElementById(SECTION_IDS.recipe));
+  });
+
+  it('still says so when there is nothing at all to jump to', () => {
+    expect(jumpToField('content.0.name')).toBe(false);
   });
 });

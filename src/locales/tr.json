@@ -1029,6 +1029,8 @@
   "ingredient_name_placeholder": "Malzeme adını girin",
   "ingredient_is_optional": "İsteğe Bağlı (müşteri ekleyebilir/çıkarabilir)",
   "ingredient_is_active": "Aktif (müşterilere görünür)",
+  "ingredient_choice_group": "Seçim grubu",
+  "ingredient_choice_group_hint": "Aynı grup adını paylaşan malzemeler birbirini dışlar: birini seçmek diğerlerinin seçimini kaldırır",
   "additional_price": "Ek Fiyat",
   "customer_pays": "Müşteri öder",
   "language_en": "İngilizce",
@@ -1847,6 +1849,7 @@
   "order_status_pending_approval": "Onay Bekliyor",
   "footer_privacy_policy": "Gizlilik Politikası",
   "footer_terms_of_usage": "Kullanım Koşulları",
+  "footer_site_by": "Siteyi hazırlayan: {{name}}",
   "privacy_policy": {
     "title": "Gizlilik Politikası",
     "last_updated": "Son güncelleme: {{date}}",
@@ -2912,5 +2915,16 @@
   "close_time_for_window": "Kapanış saati, {{number}}. aralık, {{day}}",
   "opening_windows_overlap": "{{day}} günündeki açılış aralıkları çakışıyor",
   "at_least_one_opening_window": "{{day}} açık, bu yüzden en az bir aralık gerekir",
-  "too_many_opening_windows": "{{day}} günü için en fazla {{max}} açılış aralığı"
+  "too_many_opening_windows": "{{day}} günü için en fazla {{max}} açılış aralığı",
+  "pwa_install_title": "Ana ekrana ekleyin",
+  "pwa_install_body": "Daha hızlı sipariş için uygulamamızı yükleyin. Uygulama mağazası gerekmez.",
+  "pwa_install_action": "Yükle",
+  "pwa_install_ios_action": "Nasıl yapılır",
+  "pwa_install_dismiss": "Şimdi değil",
+  "pwa_install_close_aria": "Yükleme bildirimini kapat",
+  "pwa_install_ios_title": "Ana ekrana ekleyin",
+  "pwa_install_ios_step_share": "Safari araç çubuğundaki Paylaş düğmesine dokunun.",
+  "pwa_install_ios_step_add": "„Ana Ekrana Ekle“ seçeneğini seçin.",
+  "pwa_install_ios_step_confirm": "Onaylamak için „Ekle“ düğmesine dokunun.",
+  "pwa_install_ios_done": "Anladım"
 }

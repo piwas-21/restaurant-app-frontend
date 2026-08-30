@@ -171,7 +171,22 @@
   padding: 2rem;
   flex-grow: 1;
   max-width: 100%;
-  overflow-x: hidden;
+  /*
+    `clip`, NOT `hidden` — and that one word is the whole reason the product editor's sticky
+    section nav, side rail and save bar never stuck.
+
+    Per CSS Overflow 3, `overflow-x: hidden` forces the *other* axis to compute from `visible`
+    to `auto`, which makes this element a SCROLL CONTAINER. A `position: sticky` descendant is
+    positioned against its nearest scroll container, and this one never scrolls (its height is
+    auto, so it just grows) — so the sticky offsets had no travel to engage over and every
+    sticky child scrolled away with the page. `clip` clips exactly the same overflow but does
+    NOT create a scroll container, and is explicitly allowed to pair with `visible` on the
+    other axis, so the page keeps scrolling on the viewport and sticky works again.
+
+    globals.css already carries the same lesson ("Removed overflow-x: hidden - it breaks
+    position: sticky") for `main`/`section`/`div[role=main]`; this container was missed.
+  */
+  overflow-x: clip;
 }
 
 /*
@@ -1195,6 +1210,40 @@
        `.sidebar` rule, or the winner depends on source order rather than on specificity
        (DESIGN-SYSTEM.md §8.1). */
     inset-inline-start: auto;
+    /*
+      Two resets that make `.sidebarSticky` below possible.
+
+      `overflow: visible` — the base rule sets `overflow-y: auto` for the mobile drawer, which
+      would make THIS element the sticky child's scroll container. It never scrolls on desktop
+      (its height is `auto` and it is stretched by the flex parent), so the sticky would have no
+      travel — the same trap `.adminContainer` was in. The scrolling moves onto the sticky
+      wrapper, which is the element that actually needs it.
+
+      `padding-top: 0` — the 2rem top inset moves onto the wrapper so it TRAVELS with the pinned
+      nav instead of staying behind at the top of the page.
+    */
+    overflow: visible;
+    padding-top: 0;
+  }
+
+  /*
+    The nav rides along instead of scrolling out of reach (18 entries on a long admin page).
+
+    The aside itself is deliberately left STRETCHED — it is a flex item of the `display: flex`
+    wrapper in `app-internal-layout.tsx`, and its dark column has to reach the foot of the page.
+    Making the aside itself sticky would size it to one viewport and leave a light strip below it
+    on any page taller than the screen. So the box stays full height and its CONTENT is the
+    sticky element.
+
+    `top: 0`, not the header height: the header is a sibling of this aside (it lives inside the
+    right-hand column), so the sidebar column starts level with it, not underneath it.
+  */
+  .sidebarSticky {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding-top: 2rem;
   }
 }
 

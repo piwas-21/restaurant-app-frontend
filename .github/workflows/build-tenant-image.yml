@@ -50,11 +50,11 @@ on:
         required: false
         default: ""
       branding_url:
-        description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: icon.svg, hero.png, placeholder.png). NO logo — since O6 the logo is runtime data uploaded in tenant admin. Empty = SofraPiwas default assets"
+        description: "HTTPS URL of a .tar.gz branding archive extracted into public/branding/ before the build (files at archive root: icon.svg, icon-192.png, icon-512.png, icon-maskable-512.png, hero.png, placeholder.png). An archive with icon.svg but not all three PNGs FAILS the build — the PNGs are the installed app's home-screen icon. NO logo — since O6 the logo is runtime data uploaded in tenant admin. Empty = SofraPiwas default assets"
         required: false
         default: ""
       branding_dir:
-        description: "Repo-relative dir of committed branding assets (icon.svg, hero.png, placeholder.png) copied into public/branding/ before the build. Alternative to branding_url (no download); empty = none"
+        description: "Repo-relative dir of committed branding assets (same filenames and same icon-set rule as branding_url) copied into public/branding/ before the build. Alternative to branding_url (no download); empty = none"
         required: false
         default: ""
       template:
@@ -65,6 +65,14 @@ on:
         description: "ISO 4217 currency code baked into price formatting (registry `currency:` field, deploy repo; pairs with backend LocalizationSettings.Currency), e.g. CHF, EUR"
         required: false
         default: "CHF"
+      pwa_theme_color:
+        description: "Web app manifest theme_color, #rrggbb (browser/OS chrome around the installed app). EMPTY DEFAULTS TO RUMI RED #c00000 — pass it for any tenant with another palette"
+        required: false
+        default: ""
+      pwa_background_color:
+        description: "Web app manifest background_color, #rrggbb (splash screen while the installed app boots). EMPTY DEFAULTS TO #ffffff"
+        required: false
+        default: ""
   # Reusable entry point (same inputs, typed) so an automated caller can rebuild a
   # tenant image from the caller's ref without duplicating the build logic — used by
   # build-demo-tenant.yml to rebuild tenant-demo from develop-tip on every develop push
@@ -96,7 +104,7 @@ on:
         default: ""
         type: string
       branding_dir:
-        description: "Repo-relative dir of committed branding assets — icon.svg, hero.png, placeholder.png (alternative to branding_url; empty = none)"
+        description: "Repo-relative dir of committed branding assets — icon.svg, the three manifest PNGs, hero.png, placeholder.png (alternative to branding_url; empty = none)"
         required: false
         default: ""
         type: string
@@ -109,6 +117,16 @@ on:
         description: "ISO 4217 currency code, e.g. CHF, EUR"
         required: false
         default: "CHF"
+        type: string
+      pwa_theme_color:
+        description: "Manifest theme_color #rrggbb; empty defaults to RUMI red #c00000"
+        required: false
+        default: ""
+        type: string
+      pwa_background_color:
+        description: "Manifest background_color #rrggbb; empty defaults to #ffffff"
+        required: false
+        default: ""
         type: string
 
 concurrency:
@@ -156,14 +174,41 @@ jobs:
             exit 1
           fi
 
+      - name: Validate PWA colour inputs
+        # These two land verbatim in the web app manifest, so a malformed value
+        # would ship a broken/ignored colour rather than fail. Empty is legal and
+        # means "keep the src/lib/config.ts default" — which is RUMI RED
+        # (#c00000) / white, the classic template's palette. That default is the
+        # reason this input exists at all: a tenant with another palette that
+        # never passes these gets RUMI's red around their installed app.
+        env:
+          PWA_THEME: ${{ inputs.pwa_theme_color }}
+          PWA_BG: ${{ inputs.pwa_background_color }}
+        run: |
+          for v in "$PWA_THEME" "$PWA_BG"; do
+            if [ -n "$v" ] && ! printf '%s\n' "$v" | grep -Eq '^#[0-9a-fA-F]{6}$'; then
+              echo "pwa colours must be #rrggbb, got: '$v'" >&2
+              exit 1
+            fi
+          done
+
       - name: Apply tenant branding overrides
         # Replaces the repo-default branding assets in public/branding/ with
         # the tenant's own set BEFORE the Docker build, so a tenant image
-        # carries its own logo/hero/favicon without a repo change (#125).
+        # carries its own icons/hero/favicon without a repo change (#125).
         # Expected archive layout (.tar.gz, files at the archive ROOT):
-        #   icon.svg        — favicon
-        #   hero.png        — home-page hero background
-        #   placeholder.png — menu-item "no photo" fallback
+        #   icon.svg               — favicon + manifest vector icon
+        #   icon-192.png           — manifest install icon (purpose "any")
+        #   icon-512.png           — manifest install icon (purpose "any")
+        #   icon-maskable-512.png  — manifest install icon (purpose "maskable")
+        #   hero.png               — home-page hero background
+        #   placeholder.png        — menu-item "no photo" fallback
+        # The three PNGs are what a phone puts on the HOME SCREEN
+        # (src/app/manifest.ts). They were missing from this list until now, so a
+        # tenant that shipped its own icon.svg got its own favicon and the
+        # SofraPiwas onion on the installed app. An archive that carries icon.svg
+        # without all three now FAILS the build rather than shipping that mix —
+        # rationale in scripts/apply-tenant-branding.sh.
         # Only these filenames are copied (no arbitrary extraction into the
         # workspace); a file missing from the archive keeps the repo default.
         # The repo defaults are the SofraPiwas platform set (they used to be
@@ -188,34 +233,15 @@ jobs:
           curl --fail --silent --show-error --location --max-time 60 \
             --output "$tmp/branding.tar.gz" "$BRANDING_URL"
           tar -xzf "$tmp/branding.tar.gz" -C "$tmp"
-          applied=0
-          for f in icon.svg hero.png placeholder.png; do
-            if [ -f "$tmp/$f" ]; then
-              cp "$tmp/$f" "public/branding/$f"
-              echo "branding override applied: $f"
-              applied=1
-            fi
-          done
-          # Say so rather than dropping it silently: archives built to the pre-O6 spec
-          # still carry a logo, and it is now runtime data (RestaurantInfo.logoUrl).
-          # `if`, not `[ ... ] && echo`: set -e exempts AND-OR lists, so the && form is
-          # safe *here* only because a statement follows it. Move this loop to the end of
-          # the script and the step exits 1 whenever the archive has no logo — the normal
-          # case — with nothing in the log to explain it.
-          for f in logo.png logo-dark.png; do
-            if [ -f "$tmp/$f" ]; then
-              echo "IGNORING $f — the logo is uploaded in tenant admin since O6, not baked"
-            fi
-          done
-          if [ "$applied" -eq 0 ]; then
-            echo "branding archive contained none of icon.svg/hero.png/placeholder.png" >&2
-            exit 1
-          fi
+          ./scripts/apply-tenant-branding.sh "$tmp" "branding archive"
 
       - name: Apply committed branding dir
         # Alternative to branding_url for assets ALREADY committed in this repo
         # (e.g. a tenant set committed to this repo) — copies the same
         # filenames into public/branding/ before the Docker build, no download.
+        # Same contract, same icon-set rule: both paths call one script so the
+        # two can never drift again (they had, and that is how the install-icon
+        # gap would have been fixed on one path only).
         # Security: the path is operator/caller-supplied → passed via env, quoted,
         # and rejected if absolute or containing '..' (no escape from the repo).
         if: inputs.branding_dir != ''
@@ -226,24 +252,7 @@ jobs:
           case "$BRANDING_DIR" in
             /* | *..*) echo "branding_dir must be a repo-relative path without '..'" >&2; exit 1 ;;
           esac
-          [ -d "$BRANDING_DIR" ] || { echo "branding_dir not found: $BRANDING_DIR" >&2; exit 1; }
-          applied=0
-          for f in icon.svg hero.png placeholder.png; do
-            if [ -f "$BRANDING_DIR/$f" ]; then
-              cp "$BRANDING_DIR/$f" "public/branding/$f"
-              echo "branding override applied: $f"
-              applied=1
-            fi
-          done
-          for f in logo.png logo-dark.png; do
-            if [ -f "$BRANDING_DIR/$f" ]; then
-              echo "IGNORING $f — the logo is uploaded in tenant admin since O6, not baked"
-            fi
-          done
-          if [ "$applied" -eq 0 ]; then
-            echo "branding_dir $BRANDING_DIR contained none of the expected filenames" >&2
-            exit 1
-          fi
+          ./scripts/apply-tenant-branding.sh "$BRANDING_DIR" "branding_dir $BRANDING_DIR"
 
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
@@ -278,6 +287,8 @@ jobs:
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ inputs.google_client_id }}
             NEXT_PUBLIC_TEMPLATE=${{ inputs.template }}
             NEXT_PUBLIC_TENANT_CURRENCY=${{ inputs.currency }}
+            NEXT_PUBLIC_PWA_THEME_COLOR=${{ inputs.pwa_theme_color }}
+            NEXT_PUBLIC_PWA_BACKGROUND_COLOR=${{ inputs.pwa_background_color }}
             GIT_SHA=${{ github.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}
           tags: ${{ steps.meta.outputs.tags }}

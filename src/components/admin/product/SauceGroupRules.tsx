@@ -62,7 +62,12 @@ export default function SauceGroupRules({ register, control, errors }: SauceGrou
 
   return (
     <fieldset className={styles.rules}>
-      <legend className={styles.legend}>{t('sauce_rules_title')}</legend>
+      {/* Says so out loud (owner report, 2026-08-28): the group is OPTIONAL — 0 / no cap / 0 is a
+          complete answer and nothing here can block a save on its own. `optional` is the bundle's
+          existing word, already used by the variations group two sections up. */}
+      <legend className={styles.legend}>
+        {t('sauce_rules_title')} {t('optional')}
+      </legend>
       <div className={styles.fields}>
         <FormField label={t('sauce_min_label')} error={errorOf('sauceMin')} className={styles.field}>
           {/* The shared count convention (S8). It is spread BEFORE `register` here only because

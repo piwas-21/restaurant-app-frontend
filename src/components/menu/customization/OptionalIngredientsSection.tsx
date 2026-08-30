@@ -5,6 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import SauceGroupSection from './SauceGroupSection';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
+import { siblingsToDeselect } from '@/utils/exclusionGroup';
 import type { ProductIngredient, SauceGroupCarrier } from '@/types/menu';
 import styles from './OptionalIngredientsSection.module.css';
 
@@ -70,11 +71,24 @@ export default function OptionalIngredientsSection({
 
     if (selectedIngredients.includes(ingredientId)) {
       deselect(ingredientId);
-    } else {
-      onSelectionChange([...selectedIngredients, ingredientId]);
-      // Default quantity is 1 when selected
-      onQuantityChange(ingredientId, 1);
+      return;
     }
+
+    // §9. Selecting a member of an exclusion group switches its siblings OFF — the whole of
+    // "if one is selected, the other is deactivated". The widget stays a checkbox on purpose
+    // (D15a): a radio cannot be un-picked, and an exclusion group has no minimum, so the guest
+    // must keep the way back to nothing selected. Empty for every ungrouped row, which is every
+    // row on prod today, so this path is byte-identical for them.
+    const dropped = siblingsToDeselect(ingredients, ingredientId, selectedIngredients);
+
+    // ONE selection update, never a deselect followed by a select: `selectedIngredients` is a prop,
+    // so a second call would compute its next value from the stale array and lose the first.
+    onSelectionChange([...selectedIngredients.filter((id) => !dropped.includes(id)), ingredientId]);
+    // Each dropped sibling records an explicit 0, exactly as `deselect` does, so the removal
+    // survives into the payload and the kitchen ticket can still print "NO xxx" (issue #150).
+    dropped.forEach((id) => onQuantityChange(id, 0));
+    // Default quantity is 1 when selected
+    onQuantityChange(ingredientId, 1);
   };
 
   const handleQuantityChange = (e: React.MouseEvent, ingredientId: string, change: number, max: number) => {

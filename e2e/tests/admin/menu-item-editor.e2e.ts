@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext } from '@playwright/test';
 import { expectNoA11yViolations } from '../../helpers/a11y';
 import { adminSession, credKeyForBaseUrl, isLocalStack } from '../../helpers/adminAuth';
 import { apiBaseUrl } from '../../helpers/config';
@@ -64,21 +64,33 @@ const SECTION_IDS = [
 let storageStatePath = '';
 let skipReason = '';
 
-test.beforeAll(async ({ request, baseURL }) => {
-  if (process.env.E2E_REMOTE || !isLocalStack(baseURL ?? '')) {
-    skipReason = 'local/CI stack only — a login on a deployed tenant rotates its admin refresh token';
-    return;
-  }
-
+/**
+ * One login, written to a storage-state file the browser can start from.
+ *
+ * ⚠️ THE RETURNED FILE IS A ONE-SHOT CREDENTIAL, and that is the whole reason this is a function
+ * rather than a single `beforeAll` constant. `AuthContext.validateSession` bootstraps by calling
+ * `refreshToken()`, and `RefreshTokenCommand` ROTATES — it replaces the stored hash on every use —
+ * so the FIRST page load in the FIRST context SPENDS the refresh token in the file. A second
+ * context started from the same file replays a spent token, gets an honest "Invalid token",
+ * AuthContext clears all three keys and the admin route redirects to the tenant's PUBLIC home
+ * page. `helpers/adminAuth.ts` documents exactly this and it is what CI measured on run
+ * 33318536690: three attempts, `input[name="name"]` never found, the home page in every snapshot.
+ *
+ * So: one call per BROWSER CONTEXT, not one per file. The extra login is affordable here because
+ * the spec runs on the local/CI stack only, where the Development profile allows 1000 logins per
+ * window rather than a deployed host's 5.
+ */
+async function mintAdminStorageState(
+  request: APIRequestContext,
+  baseURL: string,
+  slug: string,
+): Promise<{ path: string; reason?: string }> {
   // Throws rather than returns a reason when CI has no credential — that is the #585 guard.
-  const { session, reason } = await adminSession(request, apiBaseUrl(), credKeyForBaseUrl(baseURL ?? ''));
-  if (!session) {
-    skipReason = reason ?? 'no admin session';
-    return;
-  }
+  const { session, reason } = await adminSession(request, apiBaseUrl(), credKeyForBaseUrl(baseURL));
+  if (!session) return { path: '', reason: reason ?? 'no admin session' };
 
-  storageStatePath = await writeAuthStorageState({
-    frontendOrigin: baseURL ?? '',
+  const file = await writeAuthStorageState({
+    frontendOrigin: baseURL,
     accessToken: session.accessToken,
     refreshToken: session.refreshToken,
     user: {
@@ -89,11 +101,30 @@ test.beforeAll(async ({ request, baseURL }) => {
       accessToken: session.accessToken,
     },
     role: 'admin',
-    slug: 'menu-item-editor',
+    slug,
   });
+  return { path: file };
+}
+
+test.beforeAll(async ({ request, baseURL }) => {
+  if (process.env.E2E_REMOTE || !isLocalStack(baseURL ?? '')) {
+    skipReason = 'local/CI stack only — a login on a deployed tenant rotates its admin refresh token';
+    return;
+  }
+
+  const { path: file, reason } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor');
+  if (!file) {
+    skipReason = reason ?? 'no admin session';
+    return;
+  }
+  storageStatePath = file;
 });
 
-test('a signed-in admin opens a product and gets all seven editor sections', async ({ browser, baseURL }) => {
+test('a signed-in admin opens a product and gets all seven editor sections', async ({
+  browser,
+  request,
+  baseURL,
+}) => {
   test.skip(!storageStatePath, skipReason);
 
   // A generous budget, spent only ONCE and only on CI. `webServer` is `next dev`, which compiles a
@@ -104,7 +135,17 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
   // retry is still a broken test, so the budget is raised rather than left to `retries: 2`.
   test.setTimeout(180_000);
 
-  const context = await browser.newContext({ storageState: storageStatePath });
+  // A FRESH session for THIS context, for the same reason the sticky test below mints one — with
+  // one extra: in `serial` mode a failure retries the WHOLE group, and the file the `beforeAll`
+  // wrote was already SPENT by the first attempt (and overwritten again by the sibling test's
+  // login, since `LoginCommand.cs:77` keeps ONE refresh-token hash per user). That is what CI run
+  // 33319573832 measured: this test passed on attempt 1 and then failed on both retries, signed
+  // out on the public home page with `input[name="name"]` never found. `beforeAll` stays as the
+  // #585 credential preflight; it is no longer the source of a session any browser uses.
+  const { path: sectionsStatePath } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor-sections');
+  expect(sectionsStatePath, 'this test needs its own unspent admin session').not.toBe('');
+
+  const context = await browser.newContext({ storageState: sectionsStatePath });
   const page = await context.newPage();
   try {
     // `domcontentloaded` rather than `networkidle`: the web-first waits below give the same
@@ -152,6 +193,80 @@ test('a signed-in admin opens a product and gets all seven editor sections', asy
      * scan could not have reported — and so is any control inside a collapsed section.
      */
     await expectNoA11yViolations(page);
+  } finally {
+    await context.close();
+  }
+});
+
+/**
+ * The FIX for frontend admin layout: the editor's section nav and the admin sidebar must stay on
+ * screen while the long form scrolls.
+ *
+ * This is an E2E and not a component test on purpose: `position: sticky` is decided by LAYOUT, and
+ * jsdom has none. The defect it guards was invisible to every other gate in this repo — the nav
+ * already said `position: sticky`, and it still scrolled away, because `.adminContainer` carried
+ * `overflow-x: hidden`, which per CSS Overflow 3 makes an element a SCROLL CONTAINER on both axes.
+ * A sticky descendant is positioned against its nearest scroll container, and that one never
+ * scrolls, so the offsets had nothing to travel over. Only a real engine can report that.
+ *
+ * The `scrollY` assertion is the CONTROL, not decoration: if the page did not move, "the nav is
+ * still near the top" is true of a broken build too.
+ */
+test('the section nav and the admin sidebar stay pinned while the editor scrolls', async ({
+  browser,
+  request,
+  baseURL,
+}) => {
+  test.skip(!storageStatePath, skipReason);
+  test.setTimeout(180_000);
+
+  // A SECOND context needs a SECOND session — see `mintAdminStorageState`. The test above has
+  // already loaded a page with `storageStatePath`, which SPENT the refresh token in it, so
+  // reusing that file here signs this context OUT and lands it on the public home page.
+  const { path: stickyStatePath } = await mintAdminStorageState(request, baseURL ?? '', 'menu-item-editor-sticky');
+  expect(stickyStatePath, 'the sticky test needs its own unspent admin session').not.toBe('');
+
+  // Desktop width: below 820px the nav is a chip strip by design (D10) and is not sticky at all.
+  const context = await browser.newContext({ storageState: stickyStatePath, viewport: { width: 1440, height: 800 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/admin/menu-management/${SEEDED_PRODUCT_ID}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('input[name="name"]'), 'the editor must load the seeded product').toHaveValue(
+      SEEDED_PRODUCT_NAME,
+      { timeout: 120_000 },
+    );
+
+    // A stable hook, not a class and not a translated name: the editor renders TWO navs that both
+    // mark their current entry with `aria-current` (the section nav and the translation locale
+    // rail), so filtering on `aria-current` alone is a strict-mode violation, and matching the
+    // accessible name would tie the test to the English bundle.
+    const sectionNav = page.getByTestId('editor-section-nav');
+    const sidebarLink = page.locator('aside a[href="/admin/dashboard"]');
+    await expect(sectionNav).toBeVisible();
+    await expect(sidebarLink).toBeVisible();
+
+    const navBefore = await sectionNav.boundingBox();
+    const sidebarBefore = await sidebarLink.boundingBox();
+    expect(navBefore, 'the section nav must have a box before scrolling').not.toBeNull();
+    expect(sidebarBefore, 'the sidebar link must have a box before scrolling').not.toBeNull();
+
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    // The control. A page that did not scroll makes every assertion below vacuously true.
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { message: 'the editor page must actually scroll' })
+      .toBeGreaterThan(600);
+
+    const navAfter = await sectionNav.boundingBox();
+    const sidebarAfter = await sidebarLink.boundingBox();
+
+    // Still on screen, and still BELOW the 80px sticky app header rather than under it.
+    expect(navAfter!.y, 'the section nav must stay pinned below the app header').toBeGreaterThanOrEqual(79);
+    expect(navAfter!.y, 'the section nav must not be pushed down the viewport').toBeLessThan(400);
+    // It moved with the viewport, not with the document: without the fix it would be ~1200px up.
+    expect(navAfter!.y, 'the section nav must not scroll away with the form').toBeGreaterThan(navBefore!.y - 200);
+
+    expect(sidebarAfter!.y, 'the admin sidebar must stay on screen').toBeGreaterThanOrEqual(0);
+    expect(sidebarAfter!.y, 'the admin sidebar must not scroll away').toBeGreaterThan(sidebarBefore!.y - 200);
   } finally {
     await context.close();
   }

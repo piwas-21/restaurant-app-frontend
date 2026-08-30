@@ -1014,6 +1014,8 @@
   "ingredient_name_placeholder": "Ingresa el nombre del ingrediente",
   "ingredient_is_optional": "Opcional (el cliente puede agregar/quitar)",
   "ingredient_is_active": "Activo (visible para los clientes)",
+  "ingredient_choice_group": "Grupo de elección",
+  "ingredient_choice_group_hint": "Los ingredientes que comparten un nombre de grupo se excluyen: elegir uno deselecciona los demás",
   "additional_price": "Precio Adicional",
   "customer_pays": "El cliente paga",
   "language_en": "Inglés",
@@ -1787,6 +1789,7 @@
   "order_status_pending_approval": "En espera de aprobación",
   "footer_privacy_policy": "Política de Privacidad",
   "footer_terms_of_usage": "Términos de Uso",
+  "footer_site_by": "Sitio creado por {{name}}",
   "privacy_policy": {
     "title": "Política de Privacidad",
     "last_updated": "Última actualización: {{date}}",
@@ -2912,5 +2915,16 @@
   "close_time_for_window": "Hora de cierre, franja {{number}}, {{day}}",
   "opening_windows_overlap": "Las franjas de apertura del {{day}} se solapan",
   "at_least_one_opening_window": "{{day}} está abierto, así que necesita al menos una franja",
-  "too_many_opening_windows": "Como máximo {{max}} franjas de apertura el {{day}}"
+  "too_many_opening_windows": "Como máximo {{max}} franjas de apertura el {{day}}",
+  "pwa_install_title": "Añadir a la pantalla de inicio",
+  "pwa_install_body": "Instala nuestra app para pedir más rápido. Sin tienda de aplicaciones.",
+  "pwa_install_action": "Instalar",
+  "pwa_install_ios_action": "Ver cómo",
+  "pwa_install_dismiss": "Ahora no",
+  "pwa_install_close_aria": "Cerrar el aviso de instalación",
+  "pwa_install_ios_title": "Añadir a la pantalla de inicio",
+  "pwa_install_ios_step_share": "Toca el botón Compartir en la barra de Safari.",
+  "pwa_install_ios_step_add": "Elige «Añadir a inicio».",
+  "pwa_install_ios_step_confirm": "Toca «Añadir» para confirmar.",
+  "pwa_install_ios_done": "Entendido"
 }

@@ -1039,6 +1039,8 @@
   "ingredient_name_placeholder": "Enter ingredient name",
   "ingredient_is_optional": "Optional (customer can add/remove)",
   "ingredient_is_active": "Active (visible to customers)",
+  "ingredient_choice_group": "Choice group",
+  "ingredient_choice_group_hint": "Ingredients that share a group name exclude each other: choosing one unchooses the others",
   "additional_price": "Additional Price",
   "customer_pays": "Customer pays",
   "language_en": "English",
@@ -1849,6 +1851,7 @@
   "order_status_pending_approval": "Pending Approval",
   "footer_privacy_policy": "Privacy Policy",
   "footer_terms_of_usage": "Terms of Usage",
+  "footer_site_by": "Site by {{name}}",
   "privacy_policy": {
     "title": "Privacy Policy",
     "last_updated": "Last updated: {{date}}",
@@ -2912,5 +2915,16 @@
   "close_time_for_window": "Close time, window {{number}}, {{day}}",
   "opening_windows_overlap": "Opening windows overlap on {{day}}",
   "at_least_one_opening_window": "{{day}} is open, so it needs at least one window",
-  "too_many_opening_windows": "At most {{max}} opening windows on {{day}}"
+  "too_many_opening_windows": "At most {{max}} opening windows on {{day}}",
+  "pwa_install_title": "Add to your home screen",
+  "pwa_install_body": "Install our app for faster ordering. No app store needed.",
+  "pwa_install_action": "Install",
+  "pwa_install_ios_action": "Show me how",
+  "pwa_install_dismiss": "Not now",
+  "pwa_install_close_aria": "Dismiss the install banner",
+  "pwa_install_ios_title": "Add to your home screen",
+  "pwa_install_ios_step_share": "Tap the Share button in the Safari toolbar.",
+  "pwa_install_ios_step_add": "Choose “Add to Home Screen”.",
+  "pwa_install_ios_step_confirm": "Tap “Add” to confirm.",
+  "pwa_install_ios_done": "Got it"
 }

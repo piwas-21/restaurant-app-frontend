@@ -186,31 +186,36 @@ const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
         transform: isOpen ? 'translateX(0)' : undefined,
       }}
     >
-      <div className={styles.sidebarTitle} suppressHydrationWarning>
-        {isClient ? t('admin_dashboard_title') : 'Admin Dashboard'}
-      </div>
-      <hr className={styles.sidebarDivider} />
-      <nav>
-        <ul>
-          {visibleItems.map((item) => {
-            const Icon = item.icon;
-            const label = isClient ? t(item.key, item.fallback || item.key) : item.fallback || item.key;
+      {/* The wrapper is what STICKS on desktop (AdminPage.module.css `.sidebarSticky`). The aside
+          around it stays stretched so its dark column reaches the foot of the page; a sticky aside
+          would be one viewport tall and leave a light strip below itself on any longer page. */}
+      <div className={styles.sidebarSticky}>
+        <div className={styles.sidebarTitle} suppressHydrationWarning>
+          {isClient ? t('admin_dashboard_title') : 'Admin Dashboard'}
+        </div>
+        <hr className={styles.sidebarDivider} />
+        <nav>
+          <ul>
+            {visibleItems.map((item) => {
+              const Icon = item.icon;
+              const label = isClient ? t(item.key, item.fallback || item.key) : item.fallback || item.key;
 
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={pathname.startsWith(item.href) ? styles.activeLink : ''}
-                  onClick={onClose}
-                >
-                  <Icon size={20} strokeWidth={2} />
-                  <span suppressHydrationWarning>{label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={pathname.startsWith(item.href) ? styles.activeLink : ''}
+                    onClick={onClose}
+                  >
+                    <Icon size={20} strokeWidth={2} />
+                    <span suppressHydrationWarning>{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
     </aside>
   );
 };

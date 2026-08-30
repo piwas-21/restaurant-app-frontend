@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { formatPlainCurrency } from '@/utils/currency';
 import StatusBadge from '@/components/design-system/StatusBadge';
 import { chargeableSauceUnits, isSauce, isSauceGroupFull, sauceWidget, waivedSauceUnits } from '@/utils/sauceGroup';
+import { siblingsToDeselect } from '@/utils/exclusionGroup';
 import type { ProductIngredient, SauceGroupRule } from '@/types/menu';
 import styles from './SauceGroupSection.module.css';
 
@@ -117,9 +118,17 @@ export default function SauceGroupSection({
     }
     if (isFull && widget === 'checkbox') return;
 
+    // The ids this selection switches off: every other choosable sauce in a single-choice group,
+    // plus — whatever the widget — the row's own exclusion-group siblings (§9). A sauce may carry a
+    // group key too (a group may not MIX kinds, plan Q9, but an all-sauce group is legal), and a key
+    // that the sauces section ignored would be stored, shown in the editor and silently inert here.
     const others = widget === 'radio' ? choosable.map((other) => other.id) : [];
-    onSelectionChange([...selectedIngredients.filter((id) => !others.includes(id)), sauce.id]);
-    others.filter((id) => id !== sauce.id && selectedIngredients.includes(id)).forEach((id) => onQuantityChange(id, 0));
+    const excluded = siblingsToDeselect(sauces, sauce.id, selectedIngredients);
+    const cleared = [...new Set([...others, ...excluded])];
+    onSelectionChange([...selectedIngredients.filter((id) => !cleared.includes(id)), sauce.id]);
+    cleared
+      .filter((id) => id !== sauce.id && selectedIngredients.includes(id))
+      .forEach((id) => onQuantityChange(id, 0));
     onQuantityChange(sauce.id, 1);
   };
 

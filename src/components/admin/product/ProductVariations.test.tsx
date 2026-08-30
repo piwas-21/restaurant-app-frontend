@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { FieldErrors, FieldValues } from 'react-hook-form';
 import { ProductVariations } from './ProductVariations';
 
 jest.mock('react-i18next', () => ({
@@ -25,11 +26,11 @@ const ROWS = [
   { id: 'rhf-2', name: 'Large', displayOrder: 7 },
 ];
 
-const renderTable = () =>
+const renderTable = (errors: FieldErrors<FieldValues> = {}) =>
   render(
     <ProductVariations
       register={() => ({})}
-      errors={{}}
+      errors={errors}
       variationFields={ROWS}
       appendVariation={appendVariation}
       removeVariation={jest.fn()}
@@ -70,5 +71,27 @@ describe('Add variation — where a blank row lands', () => {
       isActive: true,
       content: {},
     });
+  });
+});
+
+/**
+ * Every cell in this table says what is wrong with it — the rule the editor's phantom
+ * `Fields to fix: 1` broke (owner report 2026-08-28).
+ *
+ * The description cell used to render no message at ALL. That is what turned a wrong schema into an
+ * unexplainable one: a variation loaded with `description: null` failed the resolver, the save was
+ * refused before any request was built, and the page showed nothing anywhere. The schema now
+ * accepts the null (`optionalText` in `schemas.ts`), so this is the second lock — a message must
+ * appear on whichever cell fails, whatever makes it fail next.
+ */
+describe('Variation cells — no field fails silently', () => {
+  it.each([
+    ['name', 'Variation name is required'],
+    ['description', 'Something refused this description'],
+    ['priceModifier', 'Expected number'],
+  ])('renders the message for a failing %s', (field, message) => {
+    renderTable({ variations: [{ [field]: { type: 'custom', message } }] } as unknown as FieldErrors<FieldValues>);
+
+    expect(screen.getByText(message)).toBeInTheDocument();
   });
 });

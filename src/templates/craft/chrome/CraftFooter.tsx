@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import FooterCookieLink from '@/components/FooterCookieLink';
+import PartnerCredit from '@/components/PartnerCredit';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { RESTAURANT_NAME } from '@/lib/config';
 import styles from './CraftFooter.module.css';
@@ -47,6 +48,7 @@ export default function CraftFooter() {
           </Link>
         </div>
         <FooterCookieLink />
+        <PartnerCredit />
       </div>
     </footer>
   );

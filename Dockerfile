@@ -37,6 +37,11 @@ ARG NEXT_PUBLIC_TENANT_CURRENCY
 # but RUMI gets. Same seam as public/branding-rumi/ — see src/lib/tenantCopy.ts. An unknown name
 # FAILS the build (src/lib/tenantCopy.ts throws) rather than silently shipping default copy.
 ARG NEXT_PUBLIC_TENANT_COPY_PACK
+# Web app manifest colours (src/app/manifest.ts via src/lib/config.ts). Empty/unset falls back to
+# the CLASSIC TEMPLATE's palette — #c00000 (RUMI red) and #ffffff — so a tenant with another brand
+# colour must pass BOTH of these, or their installed app is framed in RUMI's red.
+ARG NEXT_PUBLIC_PWA_THEME_COLOR
+ARG NEXT_PUBLIC_PWA_BACKGROUND_COLOR
 
 # Set environment variables for the build
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
@@ -46,6 +51,8 @@ ENV NEXT_PUBLIC_RESTAURANT_NAME=${NEXT_PUBLIC_RESTAURANT_NAME}
 ENV NEXT_PUBLIC_TEMPLATE=${NEXT_PUBLIC_TEMPLATE}
 ENV NEXT_PUBLIC_TENANT_CURRENCY=${NEXT_PUBLIC_TENANT_CURRENCY}
 ENV NEXT_PUBLIC_TENANT_COPY_PACK=${NEXT_PUBLIC_TENANT_COPY_PACK}
+ENV NEXT_PUBLIC_PWA_THEME_COLOR=${NEXT_PUBLIC_PWA_THEME_COLOR}
+ENV NEXT_PUBLIC_PWA_BACKGROUND_COLOR=${NEXT_PUBLIC_PWA_BACKGROUND_COLOR}
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry

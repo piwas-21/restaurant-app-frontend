@@ -1020,6 +1020,8 @@
   "ingredient_name_placeholder": "Inserisci il nome dell'ingrediente",
   "ingredient_is_optional": "Opzionale (il cliente può aggiungere/rimuovere)",
   "ingredient_is_active": "Attivo (visibile ai clienti)",
+  "ingredient_choice_group": "Gruppo di scelta",
+  "ingredient_choice_group_hint": "Gli ingredienti che condividono un nome di gruppo si escludono: sceglierne uno deseleziona gli altri",
   "additional_price": "Prezzo Aggiuntivo",
   "customer_pays": "Il cliente paga",
   "language_en": "Inglese",
@@ -1788,6 +1790,7 @@
   "order_status_pending_approval": "In Attesa di Approvazione",
   "footer_privacy_policy": "Informativa sulla Privacy",
   "footer_terms_of_usage": "Termini di Utilizzo",
+  "footer_site_by": "Sito realizzato da {{name}}",
   "privacy_policy": {
     "title": "Informativa sulla Privacy",
     "last_updated": "Ultimo aggiornamento: {{date}}",
@@ -2912,5 +2915,16 @@
   "close_time_for_window": "Ora di chiusura, fascia {{number}}, {{day}}",
   "opening_windows_overlap": "Le fasce di apertura di {{day}} si sovrappongono",
   "at_least_one_opening_window": "{{day}} è aperto, quindi serve almeno una fascia",
-  "too_many_opening_windows": "Al massimo {{max}} fasce di apertura di {{day}}"
+  "too_many_opening_windows": "Al massimo {{max}} fasce di apertura di {{day}}",
+  "pwa_install_title": "Aggiungi alla schermata Home",
+  "pwa_install_body": "Installa la nostra app per ordinare più in fretta. Nessuno store richiesto.",
+  "pwa_install_action": "Installa",
+  "pwa_install_ios_action": "Mostrami come",
+  "pwa_install_dismiss": "Non ora",
+  "pwa_install_close_aria": "Chiudi il banner di installazione",
+  "pwa_install_ios_title": "Aggiungi alla schermata Home",
+  "pwa_install_ios_step_share": "Tocca il pulsante Condividi nella barra di Safari.",
+  "pwa_install_ios_step_add": "Scegli «Aggiungi a Home».",
+  "pwa_install_ios_step_confirm": "Tocca «Aggiungi» per confermare.",
+  "pwa_install_ios_done": "Ho capito"
 }

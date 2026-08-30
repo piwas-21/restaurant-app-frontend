@@ -1,6 +1,23 @@
 import { z } from 'zod';
 import { productTypes } from './types';
 
+/**
+ * An optional string as the API really sends it: **absent, or `null`** (frontend #638, the phantom
+ * "Fields to fix: 1" defect).
+ *
+ * `z.string().optional()` accepts `undefined` and REFUSES `null`, and every optional text column on
+ * the wire is `string?` in C# — `ProductVariationDto.Description`, `ProductVariationContentDto`'s
+ * two fields, `ProductDescriptionDto.Description`. System.Text.Json serialises those as an explicit
+ * `null`, and `toItemDefaults` seeds the form from the fetched product verbatim. So a variation with
+ * no description made the WHOLE form invalid — `Expected string, received null` — on a field that
+ * renders no message, which refused every save with nothing on screen to explain it: the delete of
+ * another variation was never sent, and the next fetch brought the deleted row back.
+ *
+ * `.nullish()` and not a transform to `''`: the payload builders already coalesce (`v.description ??
+ * ''`, `isBlank`), so normalising here would be a second, competing answer to the same question.
+ */
+const optionalText = () => z.string().nullish();
+
 // Zod Schemas for validation
 export const variationSchema = z.object({
   id: z.string().optional(), // For edit operations
@@ -12,34 +29,42 @@ export const variationSchema = z.object({
    * react-hook-form's store (as `displayOrder` and `id` do, having never had an input either)
    * would be silently dropped between the form and the payload builder.
    */
-  globalVariationId: z.string().optional(),
+  // `.nullish()`, not `.optional()`: `ProductVariationDto.GlobalVariationId` is `Guid?` and the API
+  // sets no `DefaultIgnoreCondition` (stated at `ApiResponse.cs:26`), so EVERY hand-typed variation
+  // — one not taken from the library — arrives as an explicit `null`. `toItemDefaults` seeds the
+  // form from that response verbatim, so this was the same save-blocking refusal #638 fixed on
+  // `description`, on a field with no input at all.
+  globalVariationId: z.string().nullish(),
   name: z.string().min(1, 'Variation name is required'),
-  description: z.string().optional(),
+  description: optionalText(),
   priceModifier: z.coerce.number(),
   isActive: z.boolean().default(true),
   displayOrder: z.coerce.number().int().default(0),
+  // `.nullish()` on the map as well as on its two fields: the map is `Dictionary<…>?` on the wire,
+  // and a variation translated to a locale that carries only a name sends `description: null`
+  // there — a path with NO input at all since S4, so its refusal could not even be jumped to.
   content: z
     .record(
       z.string(),
       z.object({
-        name: z.string().optional(),
-        description: z.string().optional(),
+        name: optionalText(),
+        description: optionalText(),
       }),
     )
-    .optional()
-    .default({}),
+    .nullish()
+    .transform((value) => value ?? {}),
 });
 
 export const contentSchema = z.object({
   language: z.string().min(1, 'Language is required'),
   name: z.string().min(1, 'Name is required for this language'),
-  description: z.string().optional(),
+  description: optionalText(),
 });
 
 // Base product schema shared by both create and edit
 const baseProductSchema = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
+  description: optionalText(),
   basePrice: z.coerce.number().min(0),
   isActive: z.boolean().default(true),
   isAvailable: z.boolean().default(true),
@@ -126,9 +151,12 @@ const menuSectionItemSchema = z.object({
 });
 
 const menuSectionSchema = z.object({
-  id: z.string().optional(),
+  // Both `Guid?` and `string?` on the wire (`MenuSectionDto`), and `toMenuDefinitionState` hands the
+  // fetched sections to the form verbatim — so a bundle section saved without a description refused
+  // every save of that bundle, exactly as a variation without one did (#638).
+  id: z.string().nullish(),
   name: z.string().min(1, 'Section name is required'),
-  description: z.string().optional(),
+  description: optionalText(),
   displayOrder: z.coerce.number().int().default(0),
   isRequired: z.boolean().default(true),
   minSelection: z.coerce.number().int().min(0).default(1),
@@ -137,7 +165,7 @@ const menuSectionSchema = z.object({
 });
 
 const menuDefinitionSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().nullish(),
   isAlwaysAvailable: z.boolean().default(true),
   startTime: z.string().nullable().optional(),
   endTime: z.string().nullable().optional(),
@@ -198,7 +226,7 @@ export const quickAddItemSchema = createProductSchema.pick(QUICK_ADD_ITEM_FIELDS
 // error surfaced, so the client has to state the same contract.
 const baseMenuBundleSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
-  description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
+  description: z.string().max(500, 'Description cannot exceed 500 characters').nullish(),
   basePrice: z.coerce.number().gt(0, 'Base price must be greater than 0'),
   isActive: z.boolean().default(true),
   isAvailable: z.boolean().default(true),

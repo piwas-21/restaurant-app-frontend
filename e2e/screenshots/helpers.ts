@@ -51,6 +51,26 @@ export async function prepareForScreenshots(page: Page, theme: Theme): Promise<v
     }),
   );
 
+  // Online-payment availability, pinned for the same reason as `/api/tenant/today`.
+  //
+  // `useOnlinePaymentAvailability` starts at `false` and flips to `true` only when
+  // `GET /api/payments/availability` resolves, so whether the checkout page shows the
+  // "Online Payment" tile is a RACE against the capture. The two committed baselines already
+  // recorded opposite answers for the same page and theme — desktop with the tile (6 tiles),
+  // mobile without it (5) — which is the proof that this was never deterministic and that a
+  // green run only meant the race had been won that time.
+  //
+  // Stubbed `true`, not `false`: it renders MORE UI, and a baseline that omits a payment tile
+  // can never regress on it. It is also the state a tenant that bought the payments module is
+  // actually in.
+  await page.route('**/api/payments/availability', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: { available: true } }),
+    }),
+  );
+
   // Google Maps embed (home page): answer with an empty document so the
   // iframe region renders as a consistent blank instead of live map tiles.
   await page.route('**://www.google.com/**', (route) =>

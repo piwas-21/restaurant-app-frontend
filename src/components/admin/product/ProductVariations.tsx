@@ -113,6 +113,16 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                     {...register(`variations.${index}.description`)}
                     {...fieldAria(errors, `variations.${index}.description`)}
                   />
+                  {/* The other half of the same defect the name input's message closed, and the one
+                      that actually bit production: a variation loaded with `description: null`
+                      failed the resolver here, this cell drew nothing, and the whole form refused
+                      to save with no sentence anywhere on the page. The schema now accepts null
+                      (`optionalText` in schemas.ts), so this is defence in depth — no field in this
+                      table may fail silently again. */}
+                  <FieldError
+                    name={`variations.${index}.description`}
+                    message={fieldMessage(errors, `variations.${index}.description`)}
+                  />
                 </td>
                 <td className={rowStyles.centerCell}>
                   <span className={rowStyles.priceField}>

@@ -1,0 +1,324 @@
+name: release-tenant-images
+
+# Rebuild EVERY active Sofra tenant's frontend image from the release that just
+# published, then roll its container. Chained off `build-image` on `main`.
+#
+# ── Why this file exists, in one paragraph ────────────────────────────────────────
+# The backend already had this: backend `build-image` on main -> backend
+# `refresh-tenants.yml` -> `refresh-tenant-images.sh backend latest` on the box. The
+# frontend could not copy it, because a frontend tenant image is NOT re-pullable —
+# NEXT_PUBLIC_* are baked into the bundle at BUILD time, so a tenant needs its own
+# REBUILD of the released source before there is anything new to pull. The only thing
+# that ever dispatched `build-tenant-image.yml` was the deploy repo's
+# `provision-on-registry-merge.yml`, which does FIRST PROVISIONING ONLY by its own
+# header. So a self-serve tenant was built on the day it was created and never again.
+#
+# Measured 2026-08-30 with each host's own `GET /api/frontend/version`, against `main`
+# = fa978f99: www.rumirestaurant.ch served fa978f9 (the prod stack, rolled by deploy.yml)
+# and demo.sofrapiwas.com served develop tip (rebuilt by build-demo-tenant.yml) — while
+# kebabdilhan.sofrapiwas.com served 9de1f87, a whole release behind, and obresse served
+# cd395d7, ELEVEN DAYS behind. The two real reseller tenants were the only two with no
+# builder at all. Their registry entries were correct throughout. The trigger was absent.
+#
+# ── The one thing to know before changing anything here ───────────────────────────
+# A frontend refresh is NOT a safe no-op. It re-BAKES the registry's `domain` as the
+# bundle's origin, so pointing it at a hostname that does not resolve does not leave the
+# tenant where it was — it replaces a working bundle with one whose every API call, image
+# and fetch dies, on a host ACME can never certify either. `list-release-tenants.sh`
+# therefore REFUSES a tenant whose domain does not resolve, and this workflow turns an
+# unacknowledged refusal into a red run. See that script's header for the obresse case
+# that is the reason it is written that way.
+#
+# ── Shape ─────────────────────────────────────────────────────────────────────────
+#   plan   read the deploy repo's registry -> who to rebuild, with what. No secrets.
+#   build  one matrix leg per tenant, fail-fast: false — a broken tenant must not take
+#          the others down, and must not pass unnoticed either.
+#   roll   SSH the box(es) and run the deploy repo's own refresh-tenant-images.sh.
+#   report always; this is the job that goes red, so nothing here is ever silent.
+#
+# Safe to re-run: the build is idempotent (same ref, same inputs, same tag) and the roll
+# is a `pull` + `up -d`, a no-op for a service whose digest did not move.
+#
+# RELEASE PATH ONLY, by construction — `build-image` is push-triggered and this filters
+# to `main`. A rollback is a `deploy.yml` dispatch that re-points prod's container without
+# rebuilding, so it correctly does not reach here; the same consequence
+# `refresh-tenants.yml` documents applies, and the remedy is a forward release.
+
+on:
+  workflow_run:
+    workflows: ["build-image"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what WOULD be rebuilt and rolled (default true — a manual run is a rehearsal)"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  # Not shared with `prod-deploy`: this touches tenant compose projects on another box,
+  # and holding the prod group would queue an emergency rollback dispatch behind it —
+  # the reason backend refresh-tenants.yml chains off build-image rather than off deploy.
+  group: release-tenant-images
+  cancel-in-progress: false
+
+# Declared per JOB, never at workflow level (Sonar githubactions:S8264).
+
+jobs:
+  plan:
+    name: who rides this release
+    # Only when the release image actually published. A failed build leaves :latest where
+    # it was, so rebuilding tenants from `main` would ship code prod is not running.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+      staging_tags: ${{ steps.plan.outputs.staging_tags }}
+      prod_tags: ${{ steps.plan.outputs.prod_tags }}
+      refused: ${{ steps.plan.outputs.refused }}
+    steps:
+      - name: Check out the deploy repo (registry + selection script)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: piwas-21/restaurant-app-deploy
+          # `develop`, not `main`, and that is not a slip: the registry is synced to the
+          # box from develop (deploy sync-registry-to-staging.yml triggers on push to
+          # develop, paths: tenants/registry.yml), so develop's copy is the one the box
+          # has. Selecting from any other ref would let this chain and the box disagree
+          # about which tenants exist.
+          ref: develop
+          persist-credentials: false
+          path: deploy
+
+      - name: Read the plan from the registry
+        id: plan
+        # This job holds NO secrets on purpose. It runs another repo's script, and the
+        # only thing it may do is read YAML and print JSON — so there is nothing here for
+        # a compromised registry entry to reach. The box credentials appear two jobs
+        # later, and only around a fixed command.
+        run: |
+          set -euo pipefail
+          cd deploy
+          if [ ! -x ./list-release-tenants.sh ]; then
+            echo "::error title=list-release-tenants.sh is missing::The deploy repo's develop branch has no executable list-release-tenants.sh, so this chain cannot know which tenants to rebuild. It is NOT safe to guess — the selection carries a DNS guard without which a refresh can kill a live tenant. Merge the deploy-repo half of this change first."
+            exit 1
+          fi
+          ./list-release-tenants.sh > "$RUNNER_TEMP/plan.json" 2> "$RUNNER_TEMP/notes.txt"
+          cat "$RUNNER_TEMP/notes.txt"
+
+          count="$(jq '.eligible | length' "$RUNNER_TEMP/plan.json")"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          # `include:` shape, so a matrix leg carries every build input already resolved.
+          echo "matrix=$(jq -c '{include: .eligible}' "$RUNNER_TEMP/plan.json")" >> "$GITHUB_OUTPUT"
+          for box in staging prod; do
+            echo "${box}_tags=$(jq -r --arg b "$box" '[.eligible[] | select(.box == $b) | .image_tag] | join(" ")' "$RUNNER_TEMP/plan.json")" >> "$GITHUB_OUTPUT"
+          done
+          echo "refused=$(jq -c '.refused_unacknowledged' "$RUNNER_TEMP/plan.json")" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Tenants riding this frontend release"
+            echo
+            echo "| tenant | domain | box | image tag |"
+            echo "|---|---|---|---|"
+            jq -r '.eligible[] | "| `\(.slug)` | \(.domain) | \(.box) | `\(.image_tag)` |"' "$RUNNER_TEMP/plan.json"
+            echo
+            echo "<details><summary>not eligible, and why</summary>"
+            echo
+            jq -r '.excluded[] | "- `\(.slug)` — \(.reason)"' "$RUNNER_TEMP/plan.json"
+            echo
+            echo "</details>"
+            jq -r '.refused_acknowledged[] | "\n⚠ **`\(.slug)` is blocked and acknowledged** — \(.reason)\n\n  > `frontend_refresh_blocked:` \(.acknowledged)"' "$RUNNER_TEMP/plan.json"
+            jq -r '.refused_unacknowledged[] | "\n🔴 **REFUSED: `\(.slug)`** — \(.reason)"' "$RUNNER_TEMP/plan.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: rebuild ${{ matrix.slug }}
+    needs: plan
+    if: ${{ needs.plan.outputs.count != '0' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      # One tenant's build must never cancel another's — a fleet where the first failure
+      # hides the rest is how this went unnoticed for a release in the first place. Each
+      # leg is named after its slug, so the failing tenant is legible in the run list.
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    # Same reusable build the provisioning chain and the demo builder use, from THIS ref
+    # (main, since this is chained off a release build).
+    uses: ./.github/workflows/build-tenant-image.yml
+    with:
+      tenant_domain: ${{ matrix.domain }}
+      image_tag: ${{ matrix.image_tag }}
+      restaurant_name: ${{ matrix.name }}
+      template: ${{ matrix.template }}
+      currency: ${{ matrix.currency }}
+      pwa_theme_color: ${{ matrix.pwa_theme_color }}
+      pwa_background_color: ${{ matrix.pwa_background_color }}
+
+  roll:
+    name: roll the rebuilt tenants
+    needs: [plan, build]
+    # `always()` so a partial batch still rolls what DID build: each tenant has its own
+    # image tag, so a tenant whose build failed simply has no new digest and its `pull`
+    # is a no-op — it is not left half-rolled. `cancelled` is excluded because a cancelled
+    # build may have pushed nothing while a later leg pushed something.
+    if: ${{ always() && needs.plan.outputs.count != '0' && needs.build.result != 'cancelled' && needs.build.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: SSH → roll the staging-box tenants
+        if: ${{ needs.plan.outputs.staging_tags != '' }}
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.STAGING_DEPLOY_HOST }}
+          username: ${{ secrets.STAGING_DEPLOY_USER }}
+          key: ${{ secrets.STAGING_DEPLOY_SSH_KEY }}
+          fingerprint: ${{ secrets.STAGING_DEPLOY_SSH_FINGERPRINT }}
+          command_timeout: 22m
+          # The tag list is registry-derived and grammar-gated by list-release-tenants.sh
+          # (`[A-Za-z0-9][A-Za-z0-9._-]{0,62}`), and it travels as an ENV VAR rather than
+          # being interpolated into the command string.
+          envs: FRONTEND_TAGS
+          script: |
+            rc=0
+            flock -w 300 -E 99 /tmp/rumi-deploy.lock -c '
+              cd /opt/rumi/deploy || exit 1
+              if [ ! -x ./refresh-tenant-images.sh ]; then
+                echo "refresh-tenant-images.sh not on this box"; exit 1
+              fi
+              bad=""
+              for t in $FRONTEND_TAGS; do
+                echo "==> refresh-tenant-images.sh frontend $t"
+                ./refresh-tenant-images.sh frontend "$t" || bad="$bad $t"
+              done
+              if [ -n "$bad" ]; then echo "FAILED TAGS:$bad" >&2; exit 1; fi
+            ' || rc=$?
+            if [ "$rc" -eq 99 ]; then
+              echo "::error::timed out after 5m waiting for the RUMI deploy lock — NO tenant was rolled; re-run this job"
+              exit 1
+            elif [ "$rc" -ne 0 ]; then
+              echo "::error::refresh-tenant-images.sh failed (exit $rc) — one or more tenants are STILL ON THE PREVIOUS frontend image. Re-running will not help; read the log above for the failing tag and fix it on the box"
+              exit "$rc"
+            fi
+        env:
+          FRONTEND_TAGS: ${{ needs.plan.outputs.staging_tags }}
+
+      - name: SSH → roll the prod-box tenants
+        # No `managed: scripts` tenant lives on prod today (RUMI is legacy and rides
+        # deploy.yml), so this step is normally skipped by its own `if:`. It is here so
+        # that the day one is registered on prod it is rolled, rather than silently
+        # rebuilt and never deployed — which is precisely the shape of the bug this whole
+        # workflow closes.
+        if: ${{ needs.plan.outputs.prod_tags != '' }}
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_SSH_FINGERPRINT }}
+          command_timeout: 22m
+          envs: FRONTEND_TAGS
+          script: |
+            rc=0
+            flock -w 300 -E 99 /tmp/rumi-deploy.lock -c '
+              cd /opt/rumi/deploy || exit 1
+              if [ ! -x ./refresh-tenant-images.sh ]; then
+                echo "refresh-tenant-images.sh not on this box"; exit 1
+              fi
+              bad=""
+              for t in $FRONTEND_TAGS; do
+                echo "==> refresh-tenant-images.sh frontend $t"
+                ./refresh-tenant-images.sh frontend "$t" || bad="$bad $t"
+              done
+              if [ -n "$bad" ]; then echo "FAILED TAGS:$bad" >&2; exit 1; fi
+            ' || rc=$?
+            if [ "$rc" -eq 99 ]; then
+              echo "::error::timed out after 5m waiting for the deploy lock — NO tenant was rolled; re-run this job"
+              exit 1
+            elif [ "$rc" -ne 0 ]; then
+              echo "::error::refresh-tenant-images.sh failed (exit $rc) — one or more tenants are STILL ON THE PREVIOUS frontend image"
+              exit "$rc"
+            fi
+        env:
+          FRONTEND_TAGS: ${{ needs.plan.outputs.prod_tags }}
+
+  report:
+    name: say what happened
+    needs: [plan, build, roll]
+    # ALWAYS. This job is the one that goes red, and it is the reason nothing above can
+    # end in a quiet green: a chain nobody watches has to say what it did, including
+    # "nothing, and here is why".
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Verdict
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          ROLL_RESULT: ${{ needs.roll.result }}
+          COUNT: ${{ needs.plan.outputs.count }}
+          REFUSED: ${{ needs.plan.outputs.refused }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          fail=0
+          {
+            echo "### release-tenant-images"
+            echo
+            echo "| stage | result |"
+            echo "|---|---|"
+            echo "| plan | \`$PLAN_RESULT\` (${COUNT:-?} eligible) |"
+            echo "| build | \`$BUILD_RESULT\` |"
+            echo "| roll | \`$ROLL_RESULT\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$PLAN_RESULT" != "success" ]; then
+            echo "::error::the plan step failed — NO tenant was rebuilt. Nothing is worse off, but this release has not reached any tenant."
+            fail=1
+          fi
+
+          # An unacknowledged refusal is a tenant this release was SUPPOSED to reach and
+          # did not. It must not be a footnote in a green run — that silence is the whole
+          # bug. `frontend_refresh_blocked:` on the registry entry is how a known,
+          # owner-accepted block is made loud instead of fatal.
+          if [ -n "${REFUSED:-}" ] && [ "$REFUSED" != "[]" ]; then
+            echo "::error title=A tenant was REFUSED::$(printf '%s' "$REFUSED" | jq -r '[.[] | "\(.slug): \(.reason)"] | join(" | ")')"
+            {
+              echo
+              echo "🔴 **Refused, and therefore NOT on this release:**"
+              printf '%s' "$REFUSED" | jq -r '.[] | "- `\(.slug)` — \(.reason)"'
+              echo
+              echo "Fix the registry entry, or — if this is a known block that only a third party can clear —"
+              echo "add \`frontend_refresh_blocked: \"<date> — why, and what unblocks it\"\` to that entry, which"
+              echo "makes it a listed warning instead of a failure. Deleting the key re-arms the alarm."
+            } >> "$GITHUB_STEP_SUMMARY"
+            fail=1
+          fi
+
+          case "$BUILD_RESULT" in
+            success|skipped) ;;
+            *) echo "::error::at least one tenant image FAILED to rebuild — those tenants are still on the previous release. Look for the red \`rebuild <slug>\` leg."; fail=1 ;;
+          esac
+          case "$ROLL_RESULT" in
+            success|skipped) ;;
+            *) echo "::error::at least one tenant failed to ROLL — its image was rebuilt and published but its container is still running the old one."; fail=1 ;;
+          esac
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "dry run — nothing was built or rolled"
+            echo >> "$GITHUB_STEP_SUMMARY"
+            echo "_Dry run: nothing was built or rolled._" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$fail"

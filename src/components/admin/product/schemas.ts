@@ -29,7 +29,12 @@ export const variationSchema = z.object({
    * react-hook-form's store (as `displayOrder` and `id` do, having never had an input either)
    * would be silently dropped between the form and the payload builder.
    */
-  globalVariationId: z.string().optional(),
+  // `.nullish()`, not `.optional()`: `ProductVariationDto.GlobalVariationId` is `Guid?` and the API
+  // sets no `DefaultIgnoreCondition` (stated at `ApiResponse.cs:26`), so EVERY hand-typed variation
+  // — one not taken from the library — arrives as an explicit `null`. `toItemDefaults` seeds the
+  // form from that response verbatim, so this was the same save-blocking refusal #638 fixed on
+  // `description`, on a field with no input at all.
+  globalVariationId: z.string().nullish(),
   name: z.string().min(1, 'Variation name is required'),
   description: optionalText(),
   priceModifier: z.coerce.number(),
@@ -146,9 +151,12 @@ const menuSectionItemSchema = z.object({
 });
 
 const menuSectionSchema = z.object({
-  id: z.string().optional(),
+  // Both `Guid?` and `string?` on the wire (`MenuSectionDto`), and `toMenuDefinitionState` hands the
+  // fetched sections to the form verbatim — so a bundle section saved without a description refused
+  // every save of that bundle, exactly as a variation without one did (#638).
+  id: z.string().nullish(),
   name: z.string().min(1, 'Section name is required'),
-  description: z.string().optional(),
+  description: optionalText(),
   displayOrder: z.coerce.number().int().default(0),
   isRequired: z.boolean().default(true),
   minSelection: z.coerce.number().int().min(0).default(1),
@@ -157,7 +165,7 @@ const menuSectionSchema = z.object({
 });
 
 const menuDefinitionSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().nullish(),
   isAlwaysAvailable: z.boolean().default(true),
   startTime: z.string().nullable().optional(),
   endTime: z.string().nullable().optional(),
@@ -218,7 +226,7 @@ export const quickAddItemSchema = createProductSchema.pick(QUICK_ADD_ITEM_FIELDS
 // error surfaced, so the client has to state the same contract.
 const baseMenuBundleSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
-  description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
+  description: z.string().max(500, 'Description cannot exceed 500 characters').nullish(),
   basePrice: z.coerce.number().gt(0, 'Base price must be greater than 0'),
   isActive: z.boolean().default(true),
   isAvailable: z.boolean().default(true),

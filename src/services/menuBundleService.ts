@@ -26,7 +26,14 @@ export interface MenuSectionItemData {
 
 export interface MenuSectionData {
   name: string;
-  description?: string;
+  /**
+   * `string | null` because that is what `MenuSectionDto.Description` is on the wire, in BOTH
+   * directions: the response sends an explicit `null` for a section saved without one, the form now
+   * accepts it (`menuSectionSchema`), and the command takes it back unchanged. Narrowing it to
+   * `string | undefined` here is what forced a coalesce somewhere, and every coalesce on this field
+   * turns "no description" into an empty string on the next save.
+   */
+  description?: string | null;
   displayOrder: number;
   isRequired: boolean;
   minSelection: number;

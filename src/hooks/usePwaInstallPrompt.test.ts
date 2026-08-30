@@ -73,13 +73,13 @@ describe('usePwaInstallPrompt', () => {
     expect(result.current.variant).toBe('android');
   });
 
-  it('stays hidden on a first visit even when the event fires', () => {
+  it('shows on the first eligible mobile visit when the event fires', () => {
     const { result } = renderHook(() => usePwaInstallPrompt());
     fireBeforeInstallPrompt();
     act(() => {
-      jest.advanceTimersByTime(SHOW_DELAY_MS * 4);
+      jest.advanceTimersByTime(SHOW_DELAY_MS);
     });
-    expect(result.current.variant).toBe('none');
+    expect(result.current.variant).toBe('android');
     expect(window.localStorage.getItem(PWA_VISITS_KEY)).toBe('1');
   });
 

@@ -181,10 +181,22 @@ jobs:
       # leg is named after its slug, so the failing tenant is legible in the run list.
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
-    # Same reusable build the provisioning chain and the demo builder use, from THIS ref
-    # (main, since this is chained off a release build).
     uses: ./.github/workflows/build-tenant-image.yml
     with:
+      # THE RELEASED COMMIT, passed explicitly. An earlier version of this file said the
+      # build came "from THIS ref (main, since this is chained off a release build)". That
+      # was wrong, and the chain's own first live run proved it: a `workflow_run` workflow
+      # — and every reusable workflow it `uses:` — is loaded and checked out from the
+      # repository's DEFAULT BRANCH, `develop`. Run 33333231945 stamped the tenant image
+      # `4133311` (develop tip) while prod's image was `9ea3749` (the main merge commit).
+      # It was harmless only because the two trees were byte-identical at that instant;
+      # one merge to develop inside that window and this workflow would have shipped
+      # UNRELEASED code to every live tenant, which is the exact opposite of its purpose.
+      #
+      # `workflow_run.head_sha` is the commit the upstream `build-image` actually built,
+      # i.e. the released one. The `|| 'main'` branch covers a manual dispatch, where
+      # there is no upstream run and `main` is by definition the released tip.
+      source_ref: ${{ github.event.workflow_run.head_sha || 'main' }}
       tenant_domain: ${{ matrix.domain }}
       image_tag: ${{ matrix.image_tag }}
       restaurant_name: ${{ matrix.name }}

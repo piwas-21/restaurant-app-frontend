@@ -73,6 +73,10 @@ on:
         description: "Web app manifest background_color, #rrggbb (splash screen while the installed app boots). EMPTY DEFAULTS TO #ffffff"
         required: false
         default: ""
+      source_ref:
+        description: "Commit SHA / branch / tag to BUILD FROM. Empty = the ref this run was dispatched on. Pass the released SHA from a workflow_run caller, which would otherwise get the default branch"
+        required: false
+        default: ""
   # Reusable entry point (same inputs, typed) so an automated caller can rebuild a
   # tenant image from the caller's ref without duplicating the build logic — used by
   # build-demo-tenant.yml to rebuild tenant-demo from develop-tip on every develop push
@@ -128,6 +132,11 @@ on:
         required: false
         default: ""
         type: string
+      source_ref:
+        description: "Commit SHA / branch / tag to BUILD FROM. Empty = the ref this run is on — which for a workflow_run caller is the DEFAULT BRANCH, not what the upstream run built"
+        required: false
+        default: ""
+        type: string
 
 concurrency:
   group: build-tenant-${{ inputs.image_tag }}
@@ -144,6 +153,27 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # EMPTY = the ref this workflow is running on, which is the historical
+          # behaviour and what a `gh workflow run --ref X` dispatch already gives you.
+          #
+          # It is NOT good enough for a `workflow_run` CALLER, which is why this input
+          # exists. A `workflow_run`-triggered workflow — and every reusable workflow it
+          # `uses:` — is loaded and checked out from the repository's DEFAULT BRANCH,
+          # `develop` under GitFlow, regardless of what the upstream run built. So
+          # release-tenant-images.yml, chained off a `build-image` on `main`, would build
+          # every tenant's bundle from DEVELOP TIP. Measured on the chain's first live run
+          # (2026-08-30, run 33333231945): the tenant image was stamped `4133311` (develop)
+          # while prod's own image was `9ea3749` (the main merge commit). Harmless that
+          # day only because the two trees were byte-identical
+          # (`git rev-parse 4133311a^{tree} == 9ea3749a^{tree}`, both ddb6ddd) — i.e. the
+          # release had just landed and develop had not moved. One merge to develop in that
+          # window and every tenant would have been shipped UNRELEASED code, silently, by
+          # the workflow whose whole purpose is to ship RELEASED code.
+          #
+          # Same family as the `schedule:` trap: it is not the trigger's ref that decides,
+          # it is the default branch.
+          ref: ${{ inputs.source_ref }}
 
       - name: Validate template input
         # Allowlist mirrors the registry contract (deploy repo registry.yml
@@ -263,17 +293,37 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: buildmeta
-        # ISO-8601 UTC build timestamp, baked into the image alongside the commit
-        # SHA. No workflow inputs are referenced here (see security note above).
-        run: echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+        # ISO-8601 UTC build timestamp, and the commit that was ACTUALLY CHECKED OUT.
+        #
+        # `git rev-parse HEAD`, not `github.sha`, and the difference is the whole point of
+        # this file's change: `github.sha` is the ref the RUN is on, which for a
+        # `workflow_run` caller is the default branch and not the commit that was built.
+        # Reading it off the working tree cannot drift from what the Docker build sees,
+        # whatever `source_ref` was given — a SHA, a branch, a tag, or nothing at all.
+        # /api/frontend/version is the instrument used to decide whether a tenant is on
+        # the release, so a GIT_SHA that names a different commit than the bundle does not
+        # merely mislabel the image, it disarms the only cheap way to check the fleet.
+        # No workflow inputs are referenced here (see security note above).
+        run: |
+          set -euo pipefail
+          {
+            echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
+          echo "building $(git rev-parse HEAD)"
 
       - id: meta
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ghcr.io/${{ github.repository }}
+          # The immutable rollback tag must name the BUILT commit for the same reason
+          # GIT_SHA must: `type=sha` reads github.sha, so a workflow_run build would file
+          # a main image under a develop SHA and the tag an operator picks for a rollback
+          # would point at a commit that was never released. Same `<tag>-sha-<40hex>`
+          # shape as before, derived from the checkout instead.
           tags: |
             type=raw,value=${{ inputs.image_tag }}
-            type=sha,format=long,prefix=${{ inputs.image_tag }}-
+            type=raw,value=${{ inputs.image_tag }}-sha-${{ steps.buildmeta.outputs.sha }}
 
       - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
@@ -289,7 +339,7 @@ jobs:
             NEXT_PUBLIC_TENANT_CURRENCY=${{ inputs.currency }}
             NEXT_PUBLIC_PWA_THEME_COLOR=${{ inputs.pwa_theme_color }}
             NEXT_PUBLIC_PWA_BACKGROUND_COLOR=${{ inputs.pwa_background_color }}
-            GIT_SHA=${{ github.sha }}
+            GIT_SHA=${{ steps.buildmeta.outputs.sha }}
             BUILD_TIME=${{ steps.buildmeta.outputs.time }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { loginSchema } from '../schemas/auth.schema';
-import { apiClient, getRequestLanguage } from '@/utils/apiClient';
+import { ApiError, apiClient, getRequestLanguage } from '@/utils/apiClient';
 import type { ApiResponse } from '@/types/user';
 
 /**
@@ -123,13 +123,40 @@ interface RefreshPayload {
   message?: string;
 }
 
-// Single-flight guard. Many requests can 401 at once (a dashboard fires several
-// calls in parallel) and AuthContext also validates on mount. Without this each
-// caller would POST its own /refresh-token — a stampede that (a) raced the
-// backend's refresh-token rotation, invalidating each other and logging the user
-// out, and (b) drained the auth rate-limit bucket, 429-ing the re-login.
-// Collapsing concurrent callers onto one in-flight promise removes both.
+// Same-tab callers share this promise. A dashboard can make several requests at once, and without
+// this guard each 401 would rotate the refresh token independently.
 let inFlightRefresh: Promise<RefreshResult> | null = null;
+
+interface TokenSnapshot {
+  accessToken: string | null;
+  refreshToken: string | null;
+}
+
+interface RefreshLockManager {
+  request<T>(name: string, options: { mode: 'exclusive' }, callback: () => Promise<T>): Promise<T>;
+}
+
+function readTokenSnapshot(): TokenSnapshot {
+  return {
+    accessToken: readStoredValue('auth_token'),
+    refreshToken: readStoredValue('refresh_token'),
+  };
+}
+
+function hasRotatedSince(snapshot: TokenSnapshot, current = readTokenSnapshot()): boolean {
+  // A complete, different pair is another tab's successful rotation. Do not mistake a logout or a
+  // half-written/unavailable storage value for one: retrying with no bearer would hide a real end.
+  return (
+    Boolean(current.accessToken && current.refreshToken) &&
+    (current.accessToken !== snapshot.accessToken || current.refreshToken !== snapshot.refreshToken)
+  );
+}
+
+function getRefreshLocks(): RefreshLockManager | null {
+  if (typeof navigator === 'undefined') return null;
+  const locks = (navigator as Navigator & { locks?: RefreshLockManager }).locks;
+  return typeof locks?.request === 'function' ? locks : null;
+}
 
 export function refreshToken(): Promise<RefreshResult> {
   inFlightRefresh ??= performRefresh().finally(() => {
@@ -139,19 +166,30 @@ export function refreshToken(): Promise<RefreshResult> {
 }
 
 async function performRefresh(): Promise<RefreshResult> {
-  // SSR guard: localStorage is client-only. Callers are already client-side, but
-  // match the other storage helpers defensively.
-  if (typeof window === 'undefined') {
-    return { success: false };
+  // SSR guard: localStorage is client-only. Callers are already client-side, but match the other
+  // storage helpers defensively.
+  if (typeof window === 'undefined') return { success: false };
+
+  const snapshot = readTokenSnapshot();
+  if (!snapshot.accessToken || !snapshot.refreshToken) {
+    return { success: false, message: 'No session to refresh' };
   }
 
-  const accessToken = readStoredValue('auth_token');
-  const storedRefreshToken = readStoredValue('refresh_token');
+  const refresh = () => refreshSerialized(snapshot);
+  const locks = getRefreshLocks();
+  // Web Locks coordinate across tabs. Browsers without it still get snapshot checks before and
+  // after the request: a loser of a token-rotation race observes the winner's new pair and reports
+  // success rather than letting apiClient clear that newer session.
+  return locks ? locks.request('rumi-auth-refresh', { mode: 'exclusive' }, refresh) : refresh();
+}
 
-  // Nothing to refresh — a definitive (non-transient) miss. A browser that refuses storage lands
-  // here too, which is the right answer: there is no session it could read, so there is nothing to
-  // refresh, and saying so beats rejecting into whichever request happened to 401.
-  if (!accessToken || !storedRefreshToken) {
+async function refreshSerialized(snapshot: TokenSnapshot): Promise<RefreshResult> {
+  // A tab may have waited for the lock while another tab refreshed. Re-read only AFTER serialization;
+  // the pair captured before waiting is deliberately stale at this point.
+  if (hasRotatedSince(snapshot)) return { success: true };
+
+  const current = readTokenSnapshot();
+  if (!current.accessToken || !current.refreshToken) {
     return { success: false, message: 'No session to refresh' };
   }
 
@@ -159,10 +197,8 @@ async function performRefresh(): Promise<RefreshResult> {
   try {
     response = await fetch(`${AUTH_API_URL}/refresh-token`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ accessToken, refreshToken: storedRefreshToken }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: current.accessToken, refreshToken: current.refreshToken }),
     });
   } catch {
     // Offline / DNS / CORS — transient. Keep the session; the next request retries.
@@ -176,15 +212,15 @@ async function performRefresh(): Promise<RefreshResult> {
 
   const data = (await response.json().catch(() => null)) as RefreshPayload | null;
   if (response.ok && data?.success && data.data) {
-    // Barely reachable on a storage-refusing browser: the reads above return null there, so this
-    // function has already returned `'No session to refresh'`. Routed through the helper anyway —
-    // leaving one raw `setItem` in the same file is how the next reader concludes the bare form is
-    // safe somewhere it is not.
     persistSession(data.data);
     return { success: true };
   }
 
-  // Anything else (invalid or rotated-away refresh token) is a genuine session end.
+  // A non-transient rejection may be an old request that lost a fallback race. The second snapshot
+  // is what prevents that old request from clearing the successful tab's newly rotated session.
+  if (hasRotatedSince(snapshot)) return { success: true };
+
+  // Anything else (invalid or expired refresh token) is a genuine session end.
   return { success: false, message: data?.message ?? 'Session expired' };
 }
 
@@ -264,25 +300,22 @@ export interface ChangePasswordCommand {
   confirmPassword: string;
 }
 
-export async function changePassword(formData: ChangePasswordCommand) {
-  const token = readStoredValue('auth_token');
-
-  const response = await fetch(`${AUTH_API_URL}/change-password`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(formData),
+export async function changePassword(formData: ChangePasswordCommand): Promise<ApiResponse<string>> {
+  const response = await apiClient.post<ApiResponse<string>>('/api/Auth/change-password', formData, {
+    requireAuth: true,
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Failed to change password');
+  // The controller intentionally wraps handler refusals in HTTP 200 ApiResponse.Failure. Match the
+  // other password write: turn that resolved refusal into ApiError so the form reads errors[] and
+  // server message through its normal error path instead of announcing a false success.
+  // Constructed INLINE rather than via `throwServerRefusal` (apiFormErrors): importing that module
+  // here adds a third edge to the apiClient ↔ authService cycle, and under a jest mock factory the
+  // extra hop captures the mock's half-built exports — `ApiError` arrives undefined (frontend
+  // order/payment tests caught it). Same shape as `throwServerRefusal`, same reasoning as the NOTE
+  // above: only function bodies may read the other module's bindings.
+  if (!response.success) {
+    throw new ApiError(200, response.message ?? '', Array.isArray(response.errors) ? response.errors : undefined);
   }
-
-  return data;
+  return response;
 }
 
 /**

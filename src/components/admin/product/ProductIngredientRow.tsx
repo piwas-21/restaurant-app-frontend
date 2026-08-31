@@ -85,7 +85,7 @@ export default function ProductIngredientRow({
     <>
       <tr className={styles.row}>
         <RowMoveButtons index={index} canMoveUp={canMoveUp} canMoveDown={canMoveDown} onMove={onMove} />
-        <td className={styles.nameCell}>
+        <td className={styles.nameCell} data-label={t('name')}>
           <div className={styles.nameField}>
             <input
               type="text"
@@ -136,7 +136,7 @@ export default function ProductIngredientRow({
             )}
           </div>
         </td>
-        <td className={styles.centerCell}>
+        <td className={styles.centerCell} data-label={t('ingredient_optional')}>
           {/* The design system's Switch (#586/#575), not a hand-painted one. `srOnlyLabel` because
               the OPTIONAL column header already names it — repeating the word on every row is noise
               the approved screen does not draw, and the name stays in the a11y tree. */}
@@ -145,10 +145,17 @@ export default function ProductIngredientRow({
             label={t('ingredient_is_optional')}
             srOnlyLabel
             checked={ingredient.isOptional}
-            onChange={(event) => onPatch(index, { isOptional: event.target.checked })}
+            // A choice-group member must be removable. Turning Optional off also clears the group,
+            // so the row cannot remain in a state the server must refuse at save time.
+            onChange={(event) =>
+              onPatch(index, {
+                isOptional: event.target.checked,
+                ...(!event.target.checked ? { exclusionGroup: null } : {}),
+              })
+            }
           />
         </td>
-        <td className={styles.centerCell}>
+        <td className={styles.centerCell} data-label={t('max_quantity')}>
           <div className={styles.stepper}>
             <button type="button" aria-label={t('decrease_quantity')} onClick={() => setQuantity(quantity - 1)}>
               <Minus size={14} aria-hidden="true" />
@@ -168,7 +175,7 @@ export default function ProductIngredientRow({
             </button>
           </div>
         </td>
-        <td className={styles.priceCell}>
+        <td className={styles.priceCell} data-label={t('additional_price')}>
           <div className={styles.priceField}>
             <span className={styles.currency}>{TENANT_CURRENCY}</span>
             {/* Deliberately NOT `MONEY_INPUT_PROPS`. This field accepts a comma as the decimal
@@ -205,7 +212,7 @@ export default function ProductIngredientRow({
             </span>
           )}
         </td>
-        <td className={styles.centerCell}>
+        <td className={styles.centerCell} data-label={t('ingredient_included')}>
           <input
             type="checkbox"
             className={styles.includedBox}
@@ -214,7 +221,7 @@ export default function ProductIngredientRow({
             onChange={(event) => onPatch(index, { isIncludedInBasePrice: event.target.checked })}
           />
         </td>
-        <td className={styles.centerCell}>
+        <td className={styles.centerCell} data-label={t('actions')}>
           <button
             type="button"
             onClick={() => onRemove(index)}

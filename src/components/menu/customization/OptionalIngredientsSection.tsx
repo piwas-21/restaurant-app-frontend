@@ -4,8 +4,9 @@ import { formatPlainCurrency } from '@/utils/currency';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import SauceGroupSection from './SauceGroupSection';
+import ChoiceGroupIndicator from './ChoiceGroupIndicator';
 import { isSauce, toSauceGroupRule } from '@/utils/sauceGroup';
-import { siblingsToDeselect } from '@/utils/exclusionGroup';
+import { exclusiveSiblingIds, siblingsToDeselect } from '@/utils/exclusionGroup';
 import type { ProductIngredient, SauceGroupCarrier } from '@/types/menu';
 import styles from './OptionalIngredientsSection.module.css';
 
@@ -42,6 +43,15 @@ export default function OptionalIngredientsSection({
   // Separate optional and default ingredients
   const defaultIngredients = activeIngredients.filter((ing) => !ing.isOptional);
   const optionalIngredients = activeIngredients.filter((ing) => ing.isOptional);
+  // A group key is an implementation detail. What the guest needs to see is which rows will replace
+  // one another and WHY. A one-member group behaves like an ordinary checkbox, so it gets no marker
+  // or explanation until it has a real sibling.
+  const choiceIngredientIds = new Set(
+    optionalIngredients
+      .filter((ingredient) => exclusiveSiblingIds(optionalIngredients, ingredient.id).length > 0)
+      .map((ingredient) => ingredient.id),
+  );
+  const hasChoiceIngredients = choiceIngredientIds.size > 0;
   const hasSauces = ingredients.some((ing) => ing.isActive && isSauce(ing));
 
   if (activeIngredients.length === 0 && !hasSauces) {
@@ -151,6 +161,7 @@ export default function OptionalIngredientsSection({
       {optionalIngredients.length > 0 && (
         <div className={styles.ingredientGroup}>
           <h4 className={styles.groupTitle}>{t('ingredient_optional')}</h4>
+          {hasChoiceIngredients && <ChoiceGroupIndicator kind="note" />}
           <div className={styles.ingredientList}>
             {optionalIngredients.map((ingredient) => {
               const isSelected = selectedIngredients.includes(ingredient.id);
@@ -171,6 +182,7 @@ export default function OptionalIngredientsSection({
                       <span dir="auto" className={styles.ingredientName}>
                         {getIngredientName(ingredient)}
                       </span>
+                      {choiceIngredientIds.has(ingredient.id) && <ChoiceGroupIndicator kind="badge" />}
                       {ingredient.price > 0 && (
                         <span className={styles.ingredientPrice}>
                           {ingredient.isIncludedInBasePrice

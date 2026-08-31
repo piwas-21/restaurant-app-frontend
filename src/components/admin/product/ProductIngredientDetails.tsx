@@ -36,7 +36,10 @@ export default function ProductIngredientDetails({ id, ingredient, onPatch }: Re
   const { t } = useTranslation();
 
   return (
-    <tr>
+    // The mobile card layout keys off `data-detail-row` in IngredientGroup.module.css — this
+    // sheet has no class of its own for the row, and a dead `styles.detailRow` here would be
+    // invisible to jest (identity-obj-proxy) and tsc alike.
+    <tr data-detail-row>
       <td colSpan={6} className={styles.detailCell} id={id}>
         <Switch
           className={styles.activeToggle}
@@ -44,20 +47,27 @@ export default function ProductIngredientDetails({ id, ingredient, onPatch }: Re
           checked={ingredient.isActive}
           onChange={(event) => onPatch({ isActive: event.target.checked })}
         />
-        <label className={styles.groupField}>
-          <span className={styles.groupLabel}>{t('ingredient_choice_group')}</span>
+        <div className={styles.groupField}>
+          <label className={styles.groupLabel} htmlFor={`${id}-choice-group`}>
+            {t('ingredient_choice_group')}
+          </label>
           <input
+            id={`${id}-choice-group`}
             type="text"
             className={styles.groupInput}
             maxLength={EXCLUSION_GROUP_MAX_LENGTH}
             value={ingredient.exclusionGroup ?? ''}
+            disabled={!ingredient.isOptional}
+            aria-describedby={`${id}-choice-hint`}
             // Sent verbatim; the server trims it and stores a blank as NO GROUP, so clearing the
             // box is how a row leaves its group. Normalising here as well would put a second
             // opinion about the key in the client.
             onChange={(event) => onPatch({ exclusionGroup: event.target.value })}
           />
-          <span className={styles.groupHint}>{t('ingredient_choice_group_hint')}</span>
-        </label>
+          <span className={styles.groupHint} id={`${id}-choice-hint`}>
+            {ingredient.isOptional ? t('ingredient_choice_group_hint') : t('ingredient_choice_group_optional_required')}
+          </span>
+        </div>
       </td>
     </tr>
   );

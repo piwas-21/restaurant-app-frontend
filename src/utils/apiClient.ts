@@ -224,10 +224,13 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
     // Handle 401 Unauthorized - try to refresh the token and retry once.
     if (response.status === 401 && token) {
       const refreshResponse = await refreshToken();
+      // Capture once after refresh settles. A second read could turn a logout between the condition
+      // and header construction into `Bearer null`.
+      const currentToken = getAuthToken();
 
       if (refreshResponse.success) {
         // Retry the original request with the freshly-stored token.
-        token = getAuthToken();
+        token = currentToken;
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
           response = await fetch(url, {
@@ -246,6 +249,12 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
         // 429 body is empty). The one branch that can carry the server's own words, `data?.message`,
         // is the NON-transient one, and it ends at the sign-out below.
         throw new ApiError(429, '');
+      } else if (currentToken && currentToken !== token) {
+        // A different tab rotated the pair after this request received its 401. Never clear that
+        // newer session because this request used an old bearer; retry once with the current token.
+        token = currentToken;
+        headers['Authorization'] = `Bearer ${token}`;
+        response = await fetch(url, { ...fetchConfig, headers });
       } else if (signOutOn401) {
         // Genuine invalid/expired session — sign out and send to login.
         clearAuthAndRedirect();

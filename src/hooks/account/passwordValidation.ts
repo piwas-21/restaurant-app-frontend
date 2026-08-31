@@ -125,9 +125,9 @@ export function isPasswordAlreadySet(error: unknown): boolean {
  *
  * The server's own sentence wins: "Password must contain at least one uppercase letter" and
  * "Incorrect current password" tell someone what to do, and the translated generic does not. The
- * middle arm is for `changePassword`, still a raw `fetch` that throws a plain `Error` carrying the
- * body's message — a shape `serverMessage` deliberately does not read. Only when both are silent
- * (a dead network, an HTML 502) does the translated fallback appear.
+ * middle arm supports ordinary `Error` values from other callers. `changePassword` now routes through
+ * `apiClient`, so its thrown `ApiError` is read by `serverMessage` along with the set-password path.
+ * Only when both are silent (a dead network, an HTML 502) does the translated fallback appear.
  */
 export function passwordFailureMessage(t: TFunction, error: unknown, hasExistingPassword: boolean): string {
   const fallback = hasExistingPassword

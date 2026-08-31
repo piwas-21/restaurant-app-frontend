@@ -68,6 +68,17 @@
   --text-on-primary: #ffffff;
   --text-on-accent: #ffffff; /* accent backgrounds are deliberately dark in both themes */
 
+  /* Admin navigation is product chrome, not tenant branding. Runtime palettes deliberately do not
+     override this set: a restaurant can repaint its guest site without repainting the staff rail
+     into an unreadable brand-on-brand combination. Theme-invariant because the rail is always dark. */
+  --admin-nav-bg: #343a40;
+  --admin-nav-hover-bg: #3e444a;
+  --admin-nav-active-bg: #484e53;
+  --admin-nav-text: #ffffff;
+  --admin-nav-text-muted: #c4c8cb;
+  --admin-nav-divider: #5d6267;
+  --admin-nav-accent: #ffc107;
+
   /* Links */
   --link-default: #c00000;
   --link-hover: #a00000;

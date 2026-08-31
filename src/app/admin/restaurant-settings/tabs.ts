@@ -9,7 +9,7 @@
 
 import type { ModuleId } from '@/lib/modules';
 
-export const TAB_IDS = ['hours', 'order-types', 'tax', 'general', 'appearance', 'logo', 'payments'] as const;
+export const TAB_IDS = ['hours', 'order-types', 'tax', 'general', 'appearance', 'logo', 'landing', 'payments'] as const;
 
 export type TabType = (typeof TAB_IDS)[number];
 

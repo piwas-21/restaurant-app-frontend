@@ -130,3 +130,20 @@ html[data-theme='dark'] .banner {
   background-color: var(--surface-card);
   border-color: var(--border-default);
 }
+
+/* The opt-in 30-day quiet. A label, not a bare input: the checkbox is small and the
+   sentence is the contract. Sits under the copy, above the buttons. */
+.dontAsk {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dontAsk input {
+  accent-color: var(--brand-primary);
+  margin: 0;
+}

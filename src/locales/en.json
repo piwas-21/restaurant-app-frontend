@@ -2948,5 +2948,6 @@
   "landing_story_title": "Our-story heading",
   "landing_story_body": "Our-story text",
   "landing_save_success": "Landing page saved",
-  "landing_save_failed": "Failed to save the landing page"
+  "landing_save_failed": "Failed to save the landing page",
+  "pwa_install_dont_ask": "Don't show again"
 }

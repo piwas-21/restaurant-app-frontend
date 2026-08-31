@@ -2948,5 +2948,6 @@
   "landing_story_title": "Geschichten-Überschrift",
   "landing_story_body": "Geschichtentext",
   "landing_save_success": "Startseite gespeichert",
-  "landing_save_failed": "Startseite konnte nicht gespeichert werden"
+  "landing_save_failed": "Startseite konnte nicht gespeichert werden",
+  "pwa_install_dont_ask": "Nicht wieder anzeigen"
 }

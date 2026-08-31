@@ -2948,5 +2948,6 @@
   "landing_story_title": "Titre de notre histoire",
   "landing_story_body": "Texte de notre histoire",
   "landing_save_success": "Page d'accueil enregistrée",
-  "landing_save_failed": "Échec de l'enregistrement de la page d'accueil"
+  "landing_save_failed": "Échec de l'enregistrement de la page d'accueil",
+  "pwa_install_dont_ask": "Ne plus afficher"
 }

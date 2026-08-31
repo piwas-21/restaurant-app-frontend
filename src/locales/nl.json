@@ -2948,5 +2948,6 @@
   "landing_story_title": "Kop van ons verhaal",
   "landing_story_body": "Tekst van ons verhaal",
   "landing_save_success": "Startpagina opgeslagen",
-  "landing_save_failed": "Opslaan van de startpagina is mislukt"
+  "landing_save_failed": "Opslaan van de startpagina is mislukt",
+  "pwa_install_dont_ask": "Niet meer tonen"
 }

@@ -44,10 +44,16 @@ describe('PwaInstallPrompt', () => {
     expect(mockHook.install).toHaveBeenCalledTimes(1);
   });
 
-  it('remembers a dismissal through the hook', () => {
+  it('passes the checkbox through: a plain dismiss asks again, a ticked one does not', () => {
     render(<PwaInstallPrompt />);
+    const checkbox = screen.getByRole('checkbox', { name: mockStrings.pwa_install_dont_ask });
+
     fireEvent.click(screen.getByRole('button', { name: mockStrings.pwa_install_dismiss }));
-    expect(mockHook.dismiss).toHaveBeenCalledTimes(1);
+    expect(mockHook.dismiss).toHaveBeenLastCalledWith(false);
+
+    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByRole('button', { name: mockStrings.pwa_install_dismiss }));
+    expect(mockHook.dismiss).toHaveBeenLastCalledWith(true);
   });
 
   it('opens the NATIVE share sheet from the iOS button — the closest iOS gets to one tap', async () => {

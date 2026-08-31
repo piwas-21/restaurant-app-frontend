@@ -2948,5 +2948,6 @@
   "landing_story_title": "عنوان قصتنا",
   "landing_story_body": "نص قصتنا",
   "landing_save_success": "تم حفظ الصفحة الرئيسية",
-  "landing_save_failed": "فشل حفظ الصفحة الرئيسية"
+  "landing_save_failed": "فشل حفظ الصفحة الرئيسية",
+  "pwa_install_dont_ask": "لا تظهر مرة أخرى"
 }

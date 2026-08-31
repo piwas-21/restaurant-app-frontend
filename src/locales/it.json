@@ -2948,5 +2948,6 @@
   "landing_story_title": "Titolo della nostra storia",
   "landing_story_body": "Testo della nostra storia",
   "landing_save_success": "Pagina iniziale salvata",
-  "landing_save_failed": "Salvataggio della pagina iniziale non riuscito"
+  "landing_save_failed": "Salvataggio della pagina iniziale non riuscito",
+  "pwa_install_dont_ask": "Non mostrare più"
 }

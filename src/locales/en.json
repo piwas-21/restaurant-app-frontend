@@ -2926,7 +2926,7 @@
   "pwa_install_dismiss": "Not now",
   "pwa_install_close_aria": "Dismiss the install banner",
   "pwa_install_ios_title": "Add to your home screen",
-  "pwa_install_ios_step_share": "Tap the Share button in the Safari toolbar.",
+  "pwa_install_ios_step_share": "Tap the Share button in your browser's toolbar.",
   "pwa_install_ios_step_add": "Choose “Add to Home Screen”.",
   "pwa_install_ios_step_confirm": "Tap “Add” to confirm.",
   "pwa_install_ios_done": "Got it",

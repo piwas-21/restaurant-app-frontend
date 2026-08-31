@@ -2926,7 +2926,7 @@
   "pwa_install_dismiss": "Şimdi değil",
   "pwa_install_close_aria": "Yükleme bildirimini kapat",
   "pwa_install_ios_title": "Ana ekrana ekleyin",
-  "pwa_install_ios_step_share": "Safari araç çubuğundaki Paylaş düğmesine dokunun.",
+  "pwa_install_ios_step_share": "Tarayıcınızın araç çubuğundaki Paylaş düğmesine dokunun.",
   "pwa_install_ios_step_add": "„Ana Ekrana Ekle“ seçeneğini seçin.",
   "pwa_install_ios_step_confirm": "Onaylamak için „Ekle“ düğmesine dokunun.",
   "pwa_install_ios_done": "Anladım",

@@ -29,22 +29,26 @@ export function isMobileViewport(): boolean {
 }
 
 /**
- * iOS Safari, where `beforeinstallprompt` DOES NOT EXIST — no event ever fires, so the only
- * possible UI is an instruction sheet ("Share → Add to Home Screen").
+ * iOS, where `beforeinstallprompt` DOES NOT EXIST — no event ever fires, so the only possible UI
+ * is an instruction sheet ("Share → Add to Home Screen").
  *
- * The UA test is deliberately narrow on both axes:
+ * The UA test is deliberate on three axes:
  *  - iPadOS 13+ reports a MacIntel desktop UA, so an iPad is recognised by touch points instead.
- *  - Chrome/Firefox/Edge on iOS are all WebKit but carry their own tokens (CriOS/FxiOS/EdgiOS) and
- *    CANNOT add to the home screen at all — showing them Safari's Share-sheet recipe would be a
- *    lie, so they are excluded and get nothing.
+ *  - Since iOS 16.4 (2023-03) EVERY real browser on the phone — Safari, Chrome, Firefox, Edge,
+ *    Opera — can install a home-screen web app through its OWN share sheet, so the third-party
+ *    tokens (CriOS/FxiOS/EdgiOS/OPiOS) are no longer exclusions. Excluding them left iPhone
+ *    Chrome users with no install offer at all, which is the report this fixes.
+ *  - In-app webviews (Instagram/Facebook and tokenless ones) still get nothing: their share
+ *    sheet has no "Add to Home Screen".
  */
-export function isIosSafari(): boolean {
+export function isIosInstallable(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent;
   const isIpadOs =
     ua.includes('Macintosh') && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 1;
   const isIos = /iPhone|iPad|iPod/.test(ua) || isIpadOs;
   if (!isIos) return false;
-  const isOtherBrowser = /CriOS|FxiOS|EdgiOS|OPiOS|Chrome/.test(ua);
-  return !isOtherBrowser && /Safari/.test(ua);
+  const isRealBrowser = /Safari|CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  const isKnownWebview = /FBAN|FBAV|Instagram|Line\//.test(ua);
+  return isRealBrowser && !isKnownWebview;
 }

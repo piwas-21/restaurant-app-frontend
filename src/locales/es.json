@@ -2926,7 +2926,7 @@
   "pwa_install_dismiss": "Ahora no",
   "pwa_install_close_aria": "Cerrar el aviso de instalación",
   "pwa_install_ios_title": "Añadir a la pantalla de inicio",
-  "pwa_install_ios_step_share": "Toca el botón Compartir en la barra de Safari.",
+  "pwa_install_ios_step_share": "Toca el botón Compartir en la barra de tu navegador.",
   "pwa_install_ios_step_add": "Elige «Añadir a inicio».",
   "pwa_install_ios_step_confirm": "Toca «Añadir» para confirmar.",
   "pwa_install_ios_done": "Entendido",

@@ -2948,5 +2948,6 @@
   "landing_story_title": "Заголовок истории",
   "landing_story_body": "Текст истории",
   "landing_save_success": "Главная страница сохранена",
-  "landing_save_failed": "Не удалось сохранить главную страницу"
+  "landing_save_failed": "Не удалось сохранить главную страницу",
+  "pwa_install_dont_ask": "Больше не показывать"
 }

@@ -37,9 +37,12 @@ export const PWA_VISITS_KEY = 'pwa_visit_count';
 export const PWA_INSTALLED = 'installed';
 
 /**
- * How long a dismissal is honoured. 30 days: long enough that "no" means no for a whole ordering
- * cycle, short enough that a guest who declined once in a hurry can still install later. An
- * ACCEPTED install (or an `appinstalled` event) is permanent, not 30 days.
+ * How long an EXPLICIT "don't show again" (the banner's checkbox) is honoured. 30 days: long
+ * enough that "no" means no for a whole ordering cycle, short enough that a guest who changed
+ * their mind can still install later. A plain dismissal (Not now, ✕, closing the share sheet)
+ * hides the banner for THIS page visit only — the owner's call: the offer returns on the next
+ * visit unless the guest asked to stop it. An ACCEPTED install (or an `appinstalled` event) is
+ * permanent, not 30 days.
  */
 export const REASK_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 /** Offer install on the first eligible mobile visit; this is a user-requested discovery affordance. */
@@ -104,10 +107,18 @@ export function usePwaInstallPrompt() {
     delete window.__pwaDeferredInstall;
   }, []);
 
-  const dismiss = useCallback(() => {
-    writeStorage(PWA_DISMISSED_KEY, String(Date.now()));
-    hide();
-  }, [hide]);
+  const dismiss = useCallback(
+    (dontAskAgain = false) => {
+      // Only the guest's explicit "don't show again" buys the 30-day quiet. A plain
+      // dismissal hides THIS page's banner and nothing else — the offer returns on the
+      // next visit, which is what the owner asked for.
+      if (dontAskAgain) {
+        writeStorage(PWA_DISMISSED_KEY, String(Date.now()));
+      }
+      hide();
+    },
+    [hide],
+  );
 
   const install = useCallback(async () => {
     const event = deferredRef.current;
@@ -116,9 +127,11 @@ export function usePwaInstallPrompt() {
     setVariant('none');
     await event.prompt();
     const choice = await event.userChoice;
-    // A declined native dialog is still a "no" — honour it for the same 30 days rather than
-    // re-offering on the next page view.
-    writeStorage(PWA_DISMISSED_KEY, choice.outcome === 'accepted' ? PWA_INSTALLED : String(Date.now()));
+    // An accepted install is permanent. A declined native dialog is a plain no: hide this
+    // page's banner and let the next visit decide again (same rule as every dismissal).
+    if (choice.outcome === 'accepted') {
+      writeStorage(PWA_DISMISSED_KEY, PWA_INSTALLED);
+    }
   }, []);
 
   useEffect(() => {

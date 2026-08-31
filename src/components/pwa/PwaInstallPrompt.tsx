@@ -25,6 +25,9 @@ export default function PwaInstallPrompt() {
   const { t } = useTranslation();
   const { variant, install, dismiss } = usePwaInstallPrompt();
   const [isIosSheetOpen, setIosSheetOpen] = useState(false);
+  // The 30-day quiet is OPT-IN: only a dismissal with this box ticked suppresses future
+  // visits. A plain dismiss hides this page's banner; the next visit asks again (owner call).
+  const [dontAskAgain, setDontAskAgain] = useState(false);
 
   const openNativeShareSheet = async () => {
     try {
@@ -32,13 +35,14 @@ export default function PwaInstallPrompt() {
       // native share sheet over our page, and the guest only taps "Add to Home Screen".
       await navigator.share({ title: document.title, url: window.location.href });
       // Resolving means the guest finished with the sheet — the closest iOS gets to a
-      // decision. Honour it for the same 30 days as every other "no"/"done" (we cannot
-      // distinguish "added" from "copied the link", so permanent would overclaim).
-      dismiss();
+      // decision. Whether they added the app or copied the link, this page's banner goes;
+      // the next visit asks again unless the checkbox was ticked (we cannot distinguish
+      // the two outcomes, so suppressing here would overclaim).
+      dismiss(dontAskAgain);
     } catch (error) {
-      const aborted = error instanceof DOMException && error.name === 'AbortError';
-      if (aborted) {
-        dismiss();
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        // Closed the sheet without acting: same "see you next visit" treatment.
+        dismiss(dontAskAgain);
       } else {
         // No Web Share API, or the platform refused: fall back to the manual steps.
         setIosSheetOpen(true);
@@ -56,6 +60,10 @@ export default function PwaInstallPrompt() {
             <p className={styles.title}>{t('pwa_install_title')}</p>
             <p className={styles.body}>{t('pwa_install_body')}</p>
           </div>
+          <label className={styles.dontAsk}>
+            <input type="checkbox" checked={dontAskAgain} onChange={(event) => setDontAskAgain(event.target.checked)} />
+            {t('pwa_install_dont_ask')}
+          </label>
           <div className={styles.actions}>
             {variant === 'android' ? (
               <button type="button" className={`${styles.button} ${styles.primary}`} onClick={() => void install()}>
@@ -71,12 +79,21 @@ export default function PwaInstallPrompt() {
                 {t('pwa_install_ios_action')}
               </button>
             )}
-            <button type="button" className={`${styles.button} ${styles.secondary}`} onClick={dismiss}>
+            <button
+              type="button"
+              className={`${styles.button} ${styles.secondary}`}
+              onClick={() => dismiss(dontAskAgain)}
+            >
               {t('pwa_install_dismiss')}
             </button>
           </div>
         </div>
-        <button type="button" className={styles.close} onClick={dismiss} aria-label={t('pwa_install_close_aria')}>
+        <button
+          type="button"
+          className={styles.close}
+          onClick={() => dismiss(dontAskAgain)}
+          aria-label={t('pwa_install_close_aria')}
+        >
           <X size={18} aria-hidden="true" />
         </button>
       </section>

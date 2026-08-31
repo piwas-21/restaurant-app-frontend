@@ -2948,5 +2948,6 @@
   "landing_story_title": "Título de nuestra historia",
   "landing_story_body": "Texto de nuestra historia",
   "landing_save_success": "Página de inicio guardada",
-  "landing_save_failed": "No se pudo guardar la página de inicio"
+  "landing_save_failed": "No se pudo guardar la página de inicio",
+  "pwa_install_dont_ask": "No mostrar de nuevo"
 }

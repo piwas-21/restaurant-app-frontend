@@ -2948,5 +2948,6 @@
   "landing_story_title": "Hikâye başlığı",
   "landing_story_body": "Hikâye metni",
   "landing_save_success": "Açılış sayfası kaydedildi",
-  "landing_save_failed": "Açılış sayfası kaydedilemedi"
+  "landing_save_failed": "Açılış sayfası kaydedilemedi",
+  "pwa_install_dont_ask": "Tekrar gösterme"
 }

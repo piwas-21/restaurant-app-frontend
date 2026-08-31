@@ -2922,7 +2922,7 @@
   "pwa_install_title": "Add to your home screen",
   "pwa_install_body": "Install our app for faster ordering. No app store needed.",
   "pwa_install_action": "Install",
-  "pwa_install_ios_action": "Show me how",
+  "pwa_install_ios_action": "Add to Home Screen",
   "pwa_install_dismiss": "Not now",
   "pwa_install_close_aria": "Dismiss the install banner",
   "pwa_install_ios_title": "Add to your home screen",

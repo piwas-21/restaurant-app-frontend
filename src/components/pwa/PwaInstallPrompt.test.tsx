@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import en from '@/locales/en.json';
 import PwaInstallPrompt from './PwaInstallPrompt';
 import type { InstallPromptVariant } from '@/hooks/usePwaInstallPrompt';
@@ -50,13 +50,43 @@ describe('PwaInstallPrompt', () => {
     expect(mockHook.dismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('shows instructions instead of an install button on iOS', () => {
+  it('opens the NATIVE share sheet from the iOS button — the closest iOS gets to one tap', async () => {
+    // Apple exposes no install API on iOS; the Web Share API opening the system sheet is
+    // the whole reduction: our button, then "Add to Home Screen" in Apple's own menu.
+    const share = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(window.navigator, 'share', { value: share, configurable: true });
     mockHook.variant = 'ios';
     render(<PwaInstallPrompt />);
-    // There is no programmatic install on iOS — offering an "Install" button would be a lie.
+    // A real programmatic-install button would be a lie on iOS; the label is the action.
     expect(screen.queryByRole('button', { name: mockStrings.pwa_install_action })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: mockStrings.pwa_install_ios_action }));
+    await act(async () => {});
+    expect(share).toHaveBeenCalledTimes(1);
+    expect(share.mock.calls[0][0]).toMatchObject({ url: window.location.href });
+    // Finishing with Apple's sheet counts as a decision — honoured for 30 days.
+    expect(mockHook.dismiss).toHaveBeenCalledTimes(1);
+    delete (window.navigator as { share?: unknown }).share;
+  });
+
+  it('treats a cancelled share sheet as a no', async () => {
+    const share = jest.fn().mockRejectedValue(new DOMException('aborted', 'AbortError'));
+    Object.defineProperty(window.navigator, 'share', { value: share, configurable: true });
+    mockHook.variant = 'ios';
+    render(<PwaInstallPrompt />);
+    fireEvent.click(screen.getByRole('button', { name: mockStrings.pwa_install_ios_action }));
+    await act(async () => {});
+    expect(mockHook.dismiss).toHaveBeenCalledTimes(1);
+    delete (window.navigator as { share?: unknown }).share;
+  });
+
+  it('falls back to the manual-step sheet when the Web Share API is missing', async () => {
+    // A browser without navigator.share cannot open the sheet — the honest fallback is
+    // the walk-through, exactly as before.
+    mockHook.variant = 'ios';
+    render(<PwaInstallPrompt />);
+    fireEvent.click(screen.getByRole('button', { name: mockStrings.pwa_install_ios_action }));
+    await act(async () => {});
     expect(screen.getByText(mockStrings.pwa_install_ios_step_share)).toBeInTheDocument();
     expect(screen.getByText(mockStrings.pwa_install_ios_step_add)).toBeInTheDocument();
   });

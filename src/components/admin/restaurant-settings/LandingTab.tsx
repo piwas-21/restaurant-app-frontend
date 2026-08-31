@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
-import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
+import { invalidateRestaurantInfoCache, useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { invalidateLandingPageCache, useLandingPage } from '@/hooks/useLandingPage';
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
@@ -11,6 +11,7 @@ import { deleteInteriorImage, updateLandingPage, uploadInteriorImage } from '@/s
 import type { LandingBackgroundMode, LandingPageContentDto } from '@/types/landingPage';
 import InteriorImageSlot from './InteriorImageSlot';
 import styles from './LandingTab.module.css';
+import { buildModes } from './landingModes';
 
 /**
  * Everything the landing screen shows, in one tab: the background image (upload, remove, or
@@ -47,7 +48,7 @@ const draftFromContent = (content: LandingPageContentDto | undefined): Draft =>
 export default function LandingTab() {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
-  const { info } = useRestaurantInfo();
+  const { info, refetch } = useRestaurantInfo();
   const { landing } = useLandingPage();
 
   const [mode, setMode] = useState<LandingBackgroundMode>('default');
@@ -67,7 +68,6 @@ export default function LandingTab() {
 
   const patch = (language: string, field: keyof Draft, value: string) =>
     setDrafts((current) => ({ ...current, [language]: { ...current[language], ...{ [field]: value } } }));
-
   const hasUpload = Boolean(info?.interiorImageUrl);
 
   const save = async () => {
@@ -113,6 +113,10 @@ export default function LandingTab() {
     try {
       const response = await action();
       if (response.success) {
+        // hasUpload (the "My own photo" radio's gate) reads the CACHED profile: without
+        // this the radio stays disabled after a successful upload until a refetch.
+        invalidateRestaurantInfoCache();
+        await refetch();
         enqueueSnackbar(t('interior_photo_save_success', 'Background saved'), { variant: 'success' });
       } else {
         enqueueSnackbar(serverMessage(response) ?? t('interior_photo_save_failed', 'Failed to save the background'), {
@@ -127,27 +131,6 @@ export default function LandingTab() {
       setBusy(null);
     }
   };
-
-  const MODES: Array<{ value: LandingBackgroundMode; label: string; hint: string; disabled?: boolean }> = [
-    {
-      value: 'default',
-      label: t('landing_mode_default', 'Platform background'),
-      hint: t('landing_mode_default_hint', 'The neutral RUMI artwork the site ships with.'),
-    },
-    {
-      value: 'custom',
-      label: t('landing_mode_custom', 'My own photo'),
-      hint: hasUpload
-        ? t('landing_mode_custom_hint', 'Your upload, full-width behind the welcome text.')
-        : t('landing_mode_custom_needs_upload', 'Upload a photo below to unlock this option.'),
-      disabled: !hasUpload,
-    },
-    {
-      value: 'none',
-      label: t('landing_mode_none', 'No background image'),
-      hint: t('landing_mode_none_hint', 'A plain colour block behind the welcome text.'),
-    },
-  ];
 
   const draft = drafts[selectedLanguage] ?? EMPTY_DRAFT;
   const field = (key: keyof Draft, label: string, multiline = false) => (
@@ -187,7 +170,7 @@ export default function LandingTab() {
           {t('landing_mode_title', 'Background image')}
         </h3>
         <div className={styles.modeGrid} role="radiogroup" aria-label={t('landing_mode_title', 'Background image')}>
-          {MODES.map((option) => (
+          {buildModes(t, hasUpload).map((option) => (
             <button
               key={option.value}
               type="button"

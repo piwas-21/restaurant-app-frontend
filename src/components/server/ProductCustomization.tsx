@@ -12,6 +12,7 @@ import type {
   SuggestedSideItem,
 } from './productCustomizationTypes';
 import styles from './ProductCustomization.module.css';
+import { groupSuggestedSideItems } from '@/utils/suggestedSideItems';
 
 // Re-exported so the existing importers (`take-order/useTakeOrder.ts`, `take-order/orderItems.ts`)
 // keep their path while the shapes live in one place.
@@ -174,12 +175,12 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
             nameOf={sheet.getLocalizedName}
           />
 
-          {/* Side Items */}
-          {sheet.sideItems.length > 0 && (
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>{t('server.side_items', 'Side Items')}</h3>
+          {/* Side items keep their established selections and payload; P2 only partitions their presentation. */}
+          {groupSuggestedSideItems(sheet.sideItems).map((group) => (
+            <div key={group.id} className={styles.section}>
+              <h3 className={styles.sectionTitle}>{t(group.translationKey)}</h3>
               <div className={styles.sideItemList}>
-                {sheet.sideItems.map((side: SuggestedSideItem) => (
+                {group.items.map((side: SuggestedSideItem) => (
                   <button
                     type="button"
                     key={side.id}
@@ -196,7 +197,7 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
                 ))}
               </div>
             </div>
-          )}
+          ))}
 
           {/* Special Instructions */}
           <div className={styles.section}>

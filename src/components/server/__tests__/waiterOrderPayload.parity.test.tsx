@@ -112,7 +112,9 @@ const VARIATIONS: ProductVariation[] = [
 // Deliberately NOT required. A required side would put a child row on EVERY line, and a line with
 // child items is the one shape the server refuses to reprice — so the whole server-priced branch
 // would go untested while every assertion stayed green.
-const SIDES = [{ id: COKE, name: 'Coke', price: COKE_PRICE, isRequired: false, displayOrder: 1 }];
+const SIDES = [
+  { id: COKE, name: 'Coke', price: COKE_PRICE, type: 'beverage' as const, isRequired: false, displayOrder: 1 },
+];
 
 const DETAIL = {
   id: 'p1',

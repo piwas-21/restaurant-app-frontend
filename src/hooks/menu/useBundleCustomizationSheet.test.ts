@@ -350,4 +350,33 @@ describe('useBundleCustomizationSheet', () => {
       { variant: 'error' },
     );
   });
+
+  it('selects a fixed Plat deterministically even before its tenant-data default is written', () => {
+    const fixedPlatBundle: MenuBundleItem = {
+      ...bundle,
+      menuDefinition: {
+        ...bundle.menuDefinition,
+        sections: [
+          {
+            ...bundle.menuDefinition.sections[0],
+            name: 'Plat',
+            items: [{ ...bundle.menuDefinition.sections[0].items[0], isDefault: false }],
+          },
+        ],
+      },
+    };
+    const { result } = renderHook(() => useBundleCustomizationSheet());
+
+    act(() => result.current.openForBundle(fixedPlatBundle));
+
+    expect(result.current.selectedOptions).toEqual([
+      {
+        sectionId: 'main',
+        itemId: 'burger',
+        quantity: 1,
+        selectedIngredients: ['cheese'],
+        ingredientQuantities: { cheese: 1 },
+      },
+    ]);
+  });
 });

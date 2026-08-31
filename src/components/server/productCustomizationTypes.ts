@@ -8,6 +8,7 @@
  */
 
 import type { PriceableIngredientKind } from '@/utils/priceableIngredient';
+import type { ProductType } from '@/types/menu';
 
 /** A per-language name/description block, as `ProductDto.Content` sends it. */
 export type LocalizedContent = Record<string, { name?: string; description?: string } | undefined>;
@@ -63,6 +64,8 @@ export interface SuggestedSideItem {
   name: string;
   description?: string;
   price: number;
+  /** Additive P1 field. Missing values remain visible as Accompagnements. */
+  type?: ProductType;
   isRequired: boolean;
   displayOrder: number;
 }

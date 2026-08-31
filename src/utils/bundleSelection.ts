@@ -1,5 +1,6 @@
 import type { MenuSection, MenuSectionItem, SelectedMenuOption } from '@/types/menu';
 import { buildBaseIngredientSelection } from './ingredientSelection';
+import { isFixedPlatSection } from './fixedPlatSection';
 
 /**
  * Pure section-selection rules for the bundle body of the customization sheet (menu-bundles
@@ -39,14 +40,20 @@ export function buildBundleOption(sectionId: string, item: MenuSectionItem): Sel
   };
 }
 
-/** The sections' `isDefault` items, capped at each section's `maxSelection`. */
+/**
+ * The sections' `isDefault` items, capped at each section's `maxSelection`.
+ *
+ * A Kebab d'Ilhan fixed `Plat` is the one explicit exception: it has exactly one legal choice, so
+ * the sheet selects that child even before the tenant-data write marks it default. The selected child
+ * is still present in `selectedMenuOptions`; P3 removes only the redundant picker, never the payload.
+ */
 export function buildDefaultBundleSelection(sections: readonly MenuSection[]): SelectedMenuOption[] {
-  return sections.flatMap((section) =>
-    section.items
-      .filter((item) => item.isDefault)
-      .slice(0, section.maxSelection)
-      .map((item) => buildBundleOption(section.id, item)),
-  );
+  return sections.flatMap((section) => {
+    const items = isFixedPlatSection(section)
+      ? section.items.slice(0, 1)
+      : section.items.filter((item) => item.isDefault).slice(0, section.maxSelection);
+    return items.map((item) => buildBundleOption(section.id, item));
+  });
 }
 
 export function findBundleOption(

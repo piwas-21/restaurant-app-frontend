@@ -5,6 +5,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Minus } from 'lucide-react';
 import type { SuggestedSideItem } from '@/types/menu';
+import { groupSuggestedSideItems } from '@/utils/suggestedSideItems';
 import styles from './SuggestedSideItemsSection.module.css';
 
 interface SuggestedSideItemsSectionProps {
@@ -59,71 +60,69 @@ export default function SuggestedSideItemsSection({
   };
 
   return (
-    <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>{t('product_suggested_sides')}</h3>
-      <p className={styles.sectionDescription}>{t('select_options')}</p>
+    <>
+      {groupSuggestedSideItems(sideItems).map((group) => (
+        <div key={group.id} className={styles.section}>
+          <h3 className={styles.sectionTitle}>{t(group.translationKey)}</h3>
+          <p className={styles.sectionDescription}>{t('select_options')}</p>
 
-      <div className={styles.sideItemsList}>
-        {sideItems.map((sideItem) => {
-          const quantity = getQuantity(sideItem.id);
-          const isSelected = quantity > 0;
+          <div className={styles.sideItemsList}>
+            {group.items.map((sideItem) => {
+              const quantity = getQuantity(sideItem.id);
+              const isSelected = quantity > 0;
 
-          return (
-            <div key={sideItem.id} className={styles.sideItem}>
-              <div className={styles.sideItemInfo}>
-                <h4 className={styles.sideItemName}>
-                  <span dir="auto">{sideItem.name}</span>
-                  {/* The retired ProductDetailsModal marked required sides and the sheet did not,
-                      so absorbing its details view would otherwise have lost the marker. The side
-                      is preselected but still removable — gating it is a product decision. */}
-                  {sideItem.isRequired && (
-                    <span className={styles.requiredMarker} aria-label={t('required')}>
-                      *
-                    </span>
-                  )}
-                </h4>
-                {/* tenant-authored: dir="auto" (DESIGN-SYSTEM.md §8.2). The name above is NOT a
-                    leaf — it wraps the required-marker span — so the attribute goes on an inner
-                    span there rather than the <h4>. */}
-                {sideItem.description && (
-                  <p dir="auto" className={styles.sideItemDescription}>
-                    {sideItem.description}
-                  </p>
-                )}
-                <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
-              </div>
-
-              <div className={styles.sideItemActions}>
-                {isSelected ? (
-                  <div className={styles.quantityControl}>
-                    <button
-                      onClick={() => handleRemove(sideItem.id)}
-                      className={styles.quantityButton}
-                      aria-label={t('decrease_quantity')}
-                      type="button"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className={styles.quantity}>{quantity}</span>
-                    <button
-                      onClick={() => handleAdd(sideItem.id)}
-                      className={styles.quantityButton}
-                      aria-label={t('increase_quantity')}
-                      type="button"
-                    >
-                      <Plus size={16} />
-                    </button>
+              return (
+                <div key={sideItem.id} className={styles.sideItem}>
+                  <div className={styles.sideItemInfo}>
+                    <h4 className={styles.sideItemName}>
+                      <span dir="auto">{sideItem.name}</span>
+                      {sideItem.isRequired && (
+                        <span className={styles.requiredMarker} aria-label={t('required')}>
+                          *
+                        </span>
+                      )}
+                    </h4>
+                    {sideItem.description && (
+                      <p dir="auto" className={styles.sideItemDescription}>
+                        {sideItem.description}
+                      </p>
+                    )}
+                    <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
                   </div>
-                ) : (
-                  <button onClick={() => handleAdd(sideItem.id)} className={styles.addButton} type="button">
-                    {t('add_ingredient')}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+
+                  <div className={styles.sideItemActions}>
+                    {isSelected ? (
+                      <div className={styles.quantityControl}>
+                        <button
+                          onClick={() => handleRemove(sideItem.id)}
+                          className={styles.quantityButton}
+                          aria-label={t('decrease_quantity')}
+                          type="button"
+                        >
+                          <Minus size={16} />
+                        </button>
+                        <span className={styles.quantity}>{quantity}</span>
+                        <button
+                          onClick={() => handleAdd(sideItem.id)}
+                          className={styles.quantityButton}
+                          aria-label={t('increase_quantity')}
+                          type="button"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => handleAdd(sideItem.id)} className={styles.addButton} type="button">
+                        {t('add_ingredient')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </>
   );
 }

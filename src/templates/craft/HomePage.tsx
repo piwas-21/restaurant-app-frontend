@@ -31,6 +31,7 @@ export default function HomePage() {
     isLoadingHours,
     groupedHours,
     backgroundImageUrl,
+    overrides,
     googleMapsEmbedUrl,
     restaurantName,
     heroSubtitle,
@@ -44,16 +45,16 @@ export default function HomePage() {
     <div className={styles.homeContainer}>
       <section
         className={styles.hero}
-        style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+        style={backgroundImageUrl ? { backgroundImage: `url(${backgroundImageUrl})` } : undefined}
         aria-labelledby="hero-heading"
       >
         <div className={styles.heroOverlay} aria-hidden="true" />
         <div className={styles.heroContent}>
-          <span className={craft.tapeLabel}>{copy('home_hero_eyebrow')}</span>
+          <span className={craft.tapeLabel}>{overrides?.heroEyebrow ?? copy('home_hero_eyebrow')}</span>
           <h1 id="hero-heading" className={styles.heroTitle}>
-            {copy('home_hero_title')}
+            {overrides?.welcomeTitle ?? copy('home_hero_title')}
           </h1>
-          <p className={styles.heroSubtitle}>{heroSubtitle}</p>
+          <p className={styles.heroSubtitle}>{overrides?.welcomeBody ?? heroSubtitle}</p>
           <div className={styles.ctaRow}>
             <Link href="/menu" className={styles.ctaPrimary} role="button">
               <UtensilsCrossed size={20} strokeWidth={2.5} />
@@ -73,9 +74,11 @@ export default function HomePage() {
         <section aria-labelledby="story-heading">
           <div className={styles.storyCard}>
             <h2 id="story-heading" className={craft.tapeLabel}>
-              {copy('home_story_title')}
+              {overrides?.storyTitle ?? copy('home_story_title')}
             </h2>
-            <p>{copy('home_story_content', { name: restaurantName, city: info?.city ?? '' })}</p>
+            <p>
+              {overrides?.storyBody ?? copy('home_story_content', { name: restaurantName, city: info?.city ?? '' })}
+            </p>
           </div>
         </section>
 

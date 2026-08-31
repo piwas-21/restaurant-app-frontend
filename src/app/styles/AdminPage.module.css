@@ -19,8 +19,8 @@
     `Header.module.css .adminMainContent`).
   */
   flex-shrink: 0;
-  background-color: var(--primary-color-dark, #343a40);
-  color: var(--button-text-color, white);
+  background-color: var(--admin-nav-bg);
+  color: var(--admin-nav-text);
   position: fixed;
   /* Inset and transform move together (E8 slice 3b): the drawer is parked with
      `translateX(calc(var(--dir) * -100%))` in BOTH `max-width: 768px` bands below (one sets the
@@ -53,7 +53,7 @@
 
 .sidebar nav ul li a {
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--admin-nav-text-muted);
   font-weight: 500;
   padding: 0.85rem 1.5rem;
   transition:
@@ -73,8 +73,8 @@
 }
 
 .sidebar nav ul li a:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: white;
+  background-color: var(--admin-nav-hover-bg);
+  color: var(--admin-nav-text);
 }
 
 .sidebar nav ul li a:hover svg {
@@ -82,27 +82,27 @@
 }
 
 .sidebar nav ul li a.activeLink {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-inline-start-color: var(--accent-color, #ffc107);
+  background-color: var(--admin-nav-active-bg);
+  color: var(--admin-nav-text);
+  border-inline-start-color: var(--admin-nav-accent);
 }
 
 .sidebar nav ul li a.activeLink svg {
   opacity: 1;
-  color: var(--accent-color, #ffc107);
+  color: var(--admin-nav-accent);
 }
 
 .sidebarTitle {
   font-size: 1.5rem;
   font-weight: bold;
   padding: 0 1.5rem 1rem;
-  color: white;
+  color: var(--admin-nav-text);
 }
 
 .sidebarDivider {
   border: 0;
   height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--admin-nav-divider);
   margin: 0 1.5rem 1rem;
 }
 
@@ -260,24 +260,9 @@
   }
 }
 
-[data-theme='dark'] .sidebar {
-  background-color: var(--primary-color-dark, #1f1f1f);
-}
-
-[data-theme='dark'] .sidebar nav ul li a {
-  color: #a0a0a0;
-}
-
-[data-theme='dark'] .sidebar nav ul li a:hover {
-  color: #ffffff;
-  background-color: #222222;
-}
-
-[data-theme='dark'] .sidebar nav ul li a.activeLink {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  border-inline-start-color: #ffc107;
-}
+/* The sidebar intentionally has no dark-theme override. Its dedicated admin-nav tokens are
+   theme-invariant and outside the tenant palette contract, so staff contrast cannot change when a
+   restaurant changes the public site's palette or the browser changes theme. */
 
 .adminHeader {
   background-color: var(--primary-color-dark, #343a40);

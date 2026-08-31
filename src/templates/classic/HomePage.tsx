@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './HomePage.module.css';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import FooterCookieLink from '@/components/FooterCookieLink';
 import PartnerCredit from '@/components/PartnerCredit';
@@ -17,6 +16,8 @@ import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
 import { firstPaintCopy } from '@/lib/firstPaintCopy';
 import { homePageTitle } from '@/utils/homePageTitle';
 import { useModuleEnabled } from '@/contexts/ModulesContext';
+import { landingBackgroundUrl, landingOverridesFor } from '@/lib/landingBackground';
+import { useLandingPage } from '@/hooks/useLandingPage';
 
 export default function HomePage() {
   // A CTA into a module this tenant did not buy leads only to the blocked page (O5).
@@ -81,7 +82,11 @@ export default function HomePage() {
   const googleMapsEmbedUrl = mapAddressQuery
     ? `https://www.google.com/maps?q=${encodeURIComponent(mapAddressQuery)}&output=embed`
     : null;
-  const backgroundImageUrl = BRANDING_HERO;
+  // The admin-configured landing (background mode + per-language copy). Null while it loads or
+  // when the tenant never configured anything — every fallback below is the pre-config state.
+  const { landing } = useLandingPage();
+  const overrides = landingOverridesFor(landing, i18n.language);
+  const backgroundImageUrl = landingBackgroundUrl(landing, BRANDING_HERO);
 
   // Helper functions for working hours
   const getDayNumber = (day: string | number): number => {
@@ -177,15 +182,16 @@ export default function HomePage() {
     <div className={styles.homeContainer}>
       <section
         className={styles.heroHeaderSection}
-        style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+        style={backgroundImageUrl ? { backgroundImage: `url(${backgroundImageUrl})` } : undefined}
         aria-labelledby="hero-heading"
       >
         <div className={styles.glassOverlay}></div>
         <div className={styles.heroContent}>
           <h1 id="hero-heading" className={styles.heroTitle}>
-            {copy('home_hero_title')}
+            {/* The admin's welcome title wins over the bundled copy; null members fall through. */}
+            {overrides?.welcomeTitle ?? copy('home_hero_title')}
           </h1>
-          <p className={styles.heroSubtitle}>{heroSubtitle}</p>
+          <p className={styles.heroSubtitle}>{overrides?.welcomeBody ?? heroSubtitle}</p>
           <div className={styles.ctaButtons}>
             <Link href="/menu" className={styles.ctaButtonPrimary} role="button">
               <UtensilsCrossed size={24} strokeWidth={2.5} />
@@ -203,28 +209,9 @@ export default function HomePage() {
 
       <div className={styles.pageContentWrapper}>
         <section className={styles.storySection} aria-labelledby="story-heading">
-          <h2 id="story-heading">{copy('home_story_title')}</h2>
-          <p>{copy('home_story_content', { name: restaurantName, city: info?.city ?? '' })}</p>
+          <h2 id="story-heading">{overrides?.storyTitle ?? copy('home_story_title')}</h2>
+          <p>{overrides?.storyBody ?? copy('home_story_content', { name: restaurantName, city: info?.city ?? '' })}</p>
         </section>
-
-        {info?.interiorImageUrl && (
-          // Rendered only when the restaurant uploaded a photo. There is deliberately no
-          // fallback: BRANDING_HERO is a neutral platform graphic that belongs to no
-          // restaurant, so showing it under this heading would say something untrue about
-          // this tenant. The backend normalises an absent value to null (never ''), which
-          // is what lets this guard work.
-          <section className={styles.interiorSection} aria-labelledby="interior-heading">
-            <h2 id="interior-heading">{copy('home_interior_title')}</h2>
-            <Image
-              src={info.interiorImageUrl}
-              alt={t('home_interior_alt', 'Inside {{name}}', { name: restaurantName })}
-              width={1200}
-              height={800}
-              className={styles.interiorImage}
-              sizes="(max-width: 768px) 100vw, 900px"
-            />
-          </section>
-        )}
 
         {info && info.phoneNumbers.some((p) => p.isActive) && <ContactIcons phones={info.phoneNumbers} />}
 

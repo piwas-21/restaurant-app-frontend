@@ -41,6 +41,17 @@ const renderTable = (errors: FieldErrors<FieldValues> = {}) =>
 
 beforeEach(() => jest.clearAllMocks());
 
+describe('narrow-screen table labels', () => {
+  it('puts a translated label on every mobile card field', () => {
+    const { container } = renderTable();
+    const firstRow = container.querySelector('tbody tr');
+
+    expect(
+      Array.from(firstRow?.querySelectorAll('td[data-label]') ?? [], (cell) => cell.getAttribute('data-label')),
+    ).toEqual(['reorder', 'variation_name', 'variation_description', 'price_modifier', 'active', 'actions']);
+  });
+});
+
 describe('Add variation — where a blank row lands', () => {
   /**
    * This button appended at `variationFields.length` until the variation-library slice, which is

@@ -8,6 +8,7 @@ import type {
   AddPhoneNumberCommand,
   UpdatePhoneNumberCommand,
 } from '@/types/restaurantInfo';
+import type { LandingPageDto, UpdateLandingPageCommand } from '@/types/landingPage';
 
 const BASE = '/api/restaurant-info';
 
@@ -66,7 +67,7 @@ export const deleteRestaurantLogo = async (variant: LogoVariant) => {
 };
 
 /**
- * Admin only — replace the restaurant's interior photo.
+ * Admin only — replace the restaurant's full-width landing background.
  *
  * The form part MUST be named `image`, to match the backend's
  * `UpdateRestaurantInteriorImageRequest.Image` — note it is NOT `logo`, so this cannot be
@@ -84,9 +85,23 @@ export const uploadInteriorImage = async (file: File) => {
   });
 };
 
-/** Admin only — clear the interior photo. Not an error state: the section disappears. */
+/** Admin only — clear the restaurant upload. The landing page returns to the platform background. */
 export const deleteInteriorImage = async () => {
   return apiClient.delete<ApiResponse<RestaurantInfoDto>>(`${BASE}/interior-image`, {
     requireAuth: true,
   });
+};
+
+/** Public read — the landing page's background mode and per-language copy overrides. */
+export const getLandingPage = async () => {
+  return apiClient.get<ApiResponse<LandingPageDto>>(`${BASE}/landing`);
+};
+
+/**
+ * Admin only — fully replaces the landing configuration. It is a FULL replace, exactly like
+ * the profile PUT: a locale row the payload omits is removed, and a blank field is stored as
+ * null so the guest site falls back to its bundled translation.
+ */
+export const updateLandingPage = async (data: UpdateLandingPageCommand) => {
+  return apiClient.put<ApiResponse<LandingPageDto>>(`${BASE}/landing`, data, { requireAuth: true });
 };

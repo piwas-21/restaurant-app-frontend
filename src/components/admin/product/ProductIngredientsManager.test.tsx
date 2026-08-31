@@ -76,6 +76,16 @@ describe('the library picker is reachable from the ingredients section', () => {
   });
 });
 
+describe('narrow-screen table labels', () => {
+  it('puts a translated label on every mobile card field', () => {
+    const { container } = mount();
+
+    expect(Array.from(container.querySelectorAll('td[data-label]'), (cell) => cell.getAttribute('data-label'))).toEqual(
+      ['reorder', 'name', 'ingredient_optional', 'max_quantity', 'additional_price', 'ingredient_included', 'actions'],
+    );
+  });
+});
+
 describe('the per-row type-ahead', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
@@ -182,5 +192,35 @@ describe('the per-row translation grid is gone (D2 / S4)', () => {
     openRowDetail();
 
     expect(screen.getByRole('switch', { name: 'ingredient_is_active' })).toBeChecked();
+  });
+});
+
+describe('choice-group guard', () => {
+  const openDetails = () => fireEvent.click(screen.getByRole('button', { name: 'ingredient_row_details' }));
+
+  it('explains why a required ingredient cannot receive a choice group', () => {
+    mount();
+    openDetails();
+
+    expect(screen.getByRole('textbox', { name: 'ingredient_choice_group' })).toBeDisabled();
+    expect(screen.getByText('ingredient_choice_group_optional_required')).toBeInTheDocument();
+  });
+
+  it('enables the group field after Optional is turned on', () => {
+    mount([{ ...existing, isOptional: true }]);
+    openDetails();
+
+    expect(screen.getByRole('textbox', { name: 'ingredient_choice_group' })).toBeEnabled();
+    expect(screen.getByText('ingredient_choice_group_hint')).toBeInTheDocument();
+  });
+
+  it('clears a choice group when Optional is turned off, before save can reach the server', () => {
+    mount([{ ...existing, isOptional: true, exclusionGroup: 'doneness' }]);
+
+    fireEvent.click(screen.getByRole('switch', { name: 'ingredient_is_optional' }));
+
+    expect(onChange).toHaveBeenCalledWith([
+      expect.objectContaining({ id: 'ing-1', isOptional: false, exclusionGroup: null }),
+    ]);
   });
 });

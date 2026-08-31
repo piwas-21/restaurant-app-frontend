@@ -2948,5 +2948,6 @@
   "landing_story_title": "故事标题",
   "landing_story_body": "故事文字",
   "landing_save_success": "首页已保存",
-  "landing_save_failed": "首页保存失败"
+  "landing_save_failed": "首页保存失败",
+  "pwa_install_dont_ask": "不再显示"
 }

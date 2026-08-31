@@ -38,10 +38,10 @@ function seedReturningVisitor() {
   window.localStorage.setItem(PWA_VISITS_KEY, String(MIN_VISITS));
 }
 
-function fireBeforeInstallPrompt() {
+function fireBeforeInstallPrompt(outcome: 'accepted' | 'dismissed' = 'accepted') {
   const event = new Event('beforeinstallprompt') as BeforeInstallPromptEvent;
   event.prompt = jest.fn().mockResolvedValue(undefined);
-  Object.defineProperty(event, 'userChoice', { value: Promise.resolve({ outcome: 'accepted' as const }) });
+  Object.defineProperty(event, 'userChoice', { value: Promise.resolve({ outcome }) });
   act(() => {
     window.dispatchEvent(event);
   });
@@ -155,7 +155,29 @@ describe('usePwaInstallPrompt', () => {
     expect(window.__pwaDeferredInstall).toBeUndefined();
   });
 
-  it('stays hidden while a dismissal is inside the re-ask window, and returns after it', () => {
+  it('a plain dismissal hides this page only — the next visit asks again', () => {
+    seedReturningVisitor();
+    const first = renderHook(() => usePwaInstallPrompt());
+    fireBeforeInstallPrompt();
+    act(() => {
+      jest.advanceTimersByTime(SHOW_DELAY_MS);
+    });
+    act(() => {
+      first.result.current.dismiss();
+    });
+    expect(first.result.current.variant).toBe('none');
+    expect(window.localStorage.getItem(PWA_DISMISSED_KEY)).toBeNull();
+
+    // A fresh mount (the next visit) offers again: no suppression was recorded.
+    const second = renderHook(() => usePwaInstallPrompt());
+    fireBeforeInstallPrompt();
+    act(() => {
+      jest.advanceTimersByTime(SHOW_DELAY_MS);
+    });
+    expect(second.result.current.variant).toBe('android');
+  });
+
+  it('only the explicit dont-ask-again buys the 30-day quiet, and it expires', () => {
     seedReturningVisitor();
     window.localStorage.setItem(PWA_DISMISSED_KEY, String(Date.now() - REASK_AFTER_MS + 1000));
     const first = renderHook(() => usePwaInstallPrompt());
@@ -174,6 +196,20 @@ describe('usePwaInstallPrompt', () => {
     expect(second.result.current.variant).toBe('android');
   });
 
+  it('a declined NATIVE dialog is also just a plain no — no suppression recorded', async () => {
+    seedReturningVisitor();
+    const { result } = renderHook(() => usePwaInstallPrompt());
+    fireBeforeInstallPrompt('dismissed');
+    act(() => {
+      jest.advanceTimersByTime(SHOW_DELAY_MS);
+    });
+    await act(async () => {
+      await result.current.install();
+    });
+    expect(result.current.variant).toBe('none');
+    expect(window.localStorage.getItem(PWA_DISMISSED_KEY)).toBeNull();
+  });
+
   it('never re-asks once the app has been installed', () => {
     seedReturningVisitor();
     window.localStorage.setItem(PWA_DISMISSED_KEY, PWA_INSTALLED);
@@ -185,7 +221,7 @@ describe('usePwaInstallPrompt', () => {
     expect(result.current.variant).toBe('none');
   });
 
-  it('remembers a dismissal as a timestamp', () => {
+  it('remember a dismissal as a timestamp ONLY when dont-ask-again is requested', () => {
     seedReturningVisitor();
     const { result } = renderHook(() => usePwaInstallPrompt());
     fireBeforeInstallPrompt();
@@ -194,7 +230,7 @@ describe('usePwaInstallPrompt', () => {
     });
 
     act(() => {
-      result.current.dismiss();
+      result.current.dismiss(true);
     });
     expect(result.current.variant).toBe('none');
     expect(Number(window.localStorage.getItem(PWA_DISMISSED_KEY))).toBeGreaterThan(0);

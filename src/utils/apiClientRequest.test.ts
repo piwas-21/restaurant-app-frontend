@@ -160,6 +160,30 @@ describe('request() never authors a message — so getErrorMessage can return nu
     expect(localStorage.getItem('auth_token')).toBeNull();
   });
 
+  it('a session another tab rotated is retried with the CURRENT token, not cleared', async () => {
+    // The multi-tab race: this request's 401 arrived because ITS bearer was stale, but by the
+    // time the refresh settles another tab has already rotated the pair. Clearing that NEWER
+    // session because this request lost the race is exactly the forced re-login the owner
+    // reported — so request() retries once with the token storage holds NOW.
+    localStorage.setItem('auth_token', 'stale');
+    localStorage.setItem('refresh_token', 'stale-refresh');
+    const responses = [jsonResponse(401, {}), jsonResponse(200, { success: true, data: { ok: true } })];
+    global.fetch = jest.fn().mockImplementation(async () => responses.shift() ?? jsonResponse(500, {}));
+    refreshToken.mockImplementation(async () => {
+      localStorage.setItem('auth_token', 'fresh');
+      localStorage.setItem('refresh_token', 'fresh-refresh');
+      return { success: false, message: 'Session expired' };
+    });
+
+    const data = await apiClient.get<{ success: boolean; data: { ok: boolean } }>('/api/Order');
+
+    expect(data.data?.ok).toBe(true);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const retry = (global.fetch as jest.Mock).mock.calls[1][1] as { headers: Record<string, string> };
+    expect(retry.headers['Authorization']).toBe('Bearer fresh');
+    expect(localStorage.getItem('auth_token')).toBe('fresh');
+  });
+
   /**
    * A browser that blocks site data outright (Chrome "block all cookies", a sandboxed iframe)
    * throws `SecurityError` from `localStorage.getItem` ITSELF. Both reads run at the top of

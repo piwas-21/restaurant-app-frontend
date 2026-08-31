@@ -2926,7 +2926,7 @@
   "pwa_install_dismiss": "暂不",
   "pwa_install_close_aria": "关闭安装提示",
   "pwa_install_ios_title": "添加到主屏幕",
-  "pwa_install_ios_step_share": "点按 Safari 工具栏中的“分享”按钮。",
+  "pwa_install_ios_step_share": "点击浏览器工具栏中的“分享”按钮。",
   "pwa_install_ios_step_add": "选择“添加到主屏幕”。",
   "pwa_install_ios_step_confirm": "点按“添加”确认。",
   "pwa_install_ios_done": "知道了",

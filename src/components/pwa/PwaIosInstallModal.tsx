@@ -12,7 +12,7 @@ interface PwaIosInstallModalProps {
 }
 
 /**
- * iOS Safari has no `beforeinstallprompt` and no programmatic install, so the only honest UI is a
+ * iOS has no `beforeinstallprompt` and no programmatic install, so the only honest UI is a
  * recipe. Opened from the banner's button — never on its own, so nothing full-screen ever appears
  * unasked.
  */

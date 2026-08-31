@@ -2926,7 +2926,7 @@
   "pwa_install_dismiss": "ليس الآن",
   "pwa_install_close_aria": "إغلاق شريط التثبيت",
   "pwa_install_ios_title": "أضف التطبيق إلى الشاشة الرئيسية",
-  "pwa_install_ios_step_share": "اضغط على زر المشاركة في شريط Safari.",
+  "pwa_install_ios_step_share": "اضغط على زر المشاركة في شريط المتصفح.",
   "pwa_install_ios_step_add": "اختر «إضافة إلى الشاشة الرئيسية».",
   "pwa_install_ios_step_confirm": "اضغط «إضافة» للتأكيد.",
   "pwa_install_ios_done": "فهمت",

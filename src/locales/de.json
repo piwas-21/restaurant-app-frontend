@@ -2926,7 +2926,7 @@
   "pwa_install_dismiss": "Jetzt nicht",
   "pwa_install_close_aria": "Installationshinweis schließen",
   "pwa_install_ios_title": "Zum Startbildschirm hinzufügen",
-  "pwa_install_ios_step_share": "Tippen Sie in der Safari-Leiste auf „Teilen“.",
+  "pwa_install_ios_step_share": "Tippen Sie in der Symbolleiste Ihres Browsers auf „Teilen“.",
   "pwa_install_ios_step_add": "Wählen Sie „Zum Home-Bildschirm“.",
   "pwa_install_ios_step_confirm": "Tippen Sie zur Bestätigung auf „Hinzufügen“.",
   "pwa_install_ios_done": "Verstanden",

@@ -1,12 +1,32 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isIosSafari, isMobileViewport, isStandaloneDisplay } from '@/lib/pwa';
+import { isIosInstallable, isMobileViewport, isStandaloneDisplay } from '@/lib/pwa';
 
 /** Chrome's non-standard install event. Not in lib.dom, so it is declared here rather than `any`. */
 export interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+/** The event, parked here when Chrome fires it before React has mounted anything. */
+declare global {
+  interface Window {
+    __pwaDeferredInstall?: BeforeInstallPromptEvent;
+  }
+}
+
+// Registered at MODULE EVALUATION, not inside the hook, because on a repeat visit Chrome's
+// service worker is already active and installability is already decided — the event can fire
+// before React hydrates, and a listener that only exists after mount misses it permanently.
+// A missed event is a lost offer: preventDefault() here also stops Chrome's own infobar from
+// winning the race to be the only prompt on screen. The hook consumes the parked event first
+// (and drops it when the visitor decides), then subscribes for late firings as before.
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    window.__pwaDeferredInstall = event as BeforeInstallPromptEvent;
+  });
 }
 
 /** localStorage key holding the epoch ms of the last dismissal (or `installed`). */
@@ -80,6 +100,8 @@ export function usePwaInstallPrompt() {
   const hide = useCallback(() => {
     setVariant('none');
     deferredRef.current = null;
+    // A decided visitor must not find a stale native event parked for the next mount.
+    delete window.__pwaDeferredInstall;
   }, []);
 
   const dismiss = useCallback(() => {
@@ -120,14 +142,24 @@ export function usePwaInstallPrompt() {
     };
 
     const onBeforeInstallPrompt = (event: Event) => {
-      // Suppresses Chrome's own infobar so ours is the only prompt on screen.
+      // Suppresses Chrome's own infobar so ours is the only prompt on screen. (The module
+      // listener above usually got here first; preventDefault twice is harmless.)
       event.preventDefault();
       deferredRef.current = event as BeforeInstallPromptEvent;
       if (visits >= MIN_VISITS) showLater('android');
     };
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
 
-    if (visits >= MIN_VISITS && isIosSafari()) showLater('ios');
+    // An event parked before mount wins over the iOS instruction sheet: if Chrome already
+    // offered a real install, that is the better UI for THIS visitor regardless of platform.
+    if (window.__pwaDeferredInstall) {
+      deferredRef.current = window.__pwaDeferredInstall;
+      delete window.__pwaDeferredInstall;
+    }
+    if (visits >= MIN_VISITS) {
+      if (deferredRef.current) showLater('android');
+      else if (isIosInstallable()) showLater('ios');
+    }
 
     return () => {
       clearTimeout(timer);

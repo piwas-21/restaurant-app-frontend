@@ -52,6 +52,9 @@ describe('usePwaInstallPrompt', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     window.localStorage.clear();
+    // The module-scope listener (added for the before-mount race) buffers every event this
+    // file fires; drop the parked one so tests start from a clean slate.
+    delete window.__pwaDeferredInstall;
     setUserAgent(ANDROID_CHROME);
     mockMatchMedia({});
   });
@@ -127,14 +130,29 @@ describe('usePwaInstallPrompt', () => {
     expect(result.current.variant).toBe('ios');
   });
 
-  it('shows nothing in Chrome on iOS, which cannot install at all', () => {
+  it('shows the instructions variant in Chrome on iOS too — iOS 16.4+ installs from any browser', () => {
     seedReturningVisitor();
     setUserAgent(IPHONE_SAFARI.replace('Version/17.5', 'CriOS/126.0.0.0'));
     const { result } = renderHook(() => usePwaInstallPrompt());
     act(() => {
       jest.advanceTimersByTime(SHOW_DELAY_MS);
     });
-    expect(result.current.variant).toBe('none');
+    expect(result.current.variant).toBe('ios');
+  });
+
+  it('consumes a beforeinstallprompt that fired BEFORE the component mounted', () => {
+    // The repeat-visitor race: the service worker is already active, so Chrome evaluates
+    // installability and fires the event while the bundle is still parsing — long before
+    // renderHook's effect can subscribe. The module-scope buffer must have caught it.
+    fireBeforeInstallPrompt();
+    expect(window.__pwaDeferredInstall).toBeDefined();
+
+    const { result } = renderHook(() => usePwaInstallPrompt());
+    act(() => {
+      jest.advanceTimersByTime(SHOW_DELAY_MS);
+    });
+    expect(result.current.variant).toBe('android');
+    expect(window.__pwaDeferredInstall).toBeUndefined();
   });
 
   it('stays hidden while a dismissal is inside the re-ask window, and returns after it', () => {

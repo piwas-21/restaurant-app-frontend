@@ -2922,7 +2922,7 @@
   "pwa_install_title": "添加到主屏幕",
   "pwa_install_body": "安装我们的应用，点单更快捷，无需应用商店。",
   "pwa_install_action": "安装",
-  "pwa_install_ios_action": "查看方法",
+  "pwa_install_ios_action": "添加到主屏幕",
   "pwa_install_dismiss": "暂不",
   "pwa_install_close_aria": "关闭安装提示",
   "pwa_install_ios_title": "添加到主屏幕",

@@ -2922,7 +2922,7 @@
   "pwa_install_title": "Ajouter à l'écran d'accueil",
   "pwa_install_body": "Installez notre application pour commander plus vite. Sans passer par un store.",
   "pwa_install_action": "Installer",
-  "pwa_install_ios_action": "Comment faire",
+  "pwa_install_ios_action": "Ajouter à l'écran d'accueil",
   "pwa_install_dismiss": "Plus tard",
   "pwa_install_close_aria": "Fermer la bannière d'installation",
   "pwa_install_ios_title": "Ajouter à l'écran d'accueil",

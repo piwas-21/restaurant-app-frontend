@@ -2922,7 +2922,7 @@
   "pwa_install_title": "أضف التطبيق إلى الشاشة الرئيسية",
   "pwa_install_body": "ثبّت تطبيقنا لطلب أسرع. لا حاجة إلى متجر التطبيقات.",
   "pwa_install_action": "تثبيت",
-  "pwa_install_ios_action": "اعرض لي الطريقة",
+  "pwa_install_ios_action": "إضافة إلى الشاشة الرئيسية",
   "pwa_install_dismiss": "ليس الآن",
   "pwa_install_close_aria": "إغلاق شريط التثبيت",
   "pwa_install_ios_title": "أضف التطبيق إلى الشاشة الرئيسية",

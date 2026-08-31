@@ -10,16 +10,28 @@
   margin: 0;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.option {
-  display: flex;
-  align-items: center;
+.sectionTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.modeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.75rem;
+}
+
+.modeOption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   padding: 0.75rem 1rem;
   background: var(--surface-card);
   border: 2px solid var(--border-default);
@@ -31,33 +43,55 @@
     box-shadow 0.15s ease;
 }
 
-.option:hover {
+.modeOption:hover:not(:disabled) {
   border-color: var(--brand-primary);
 }
 
-.active {
+.modeOption:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.modeActive {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 2px var(--brand-primary);
 }
 
-.swatch {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid var(--border-default);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  background: var(--surface-secondary);
-}
-
-.optionLabel {
+.modeLabel {
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.modeHint {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.input {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.input:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
 }
 
 .actions {
@@ -83,15 +117,4 @@
 .actions button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.errorBanner {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--feedback-error-bg);
-  border: 1px solid var(--feedback-error-border);
-  border-radius: 8px;
-  color: var(--text-primary);
 }

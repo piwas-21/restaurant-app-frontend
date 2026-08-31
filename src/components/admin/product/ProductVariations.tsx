@@ -87,7 +87,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                   canMoveDown={index < variationFields.length - 1}
                   onMove={moveVariation}
                 />
-                <td className={rowStyles.nameCell}>
+                <td className={rowStyles.nameCell} data-label={t('variation_name')}>
                   <input
                     className={rowStyles.nameInput}
                     aria-label={t('variation_name')}
@@ -105,7 +105,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                     message={fieldMessage(errors, `variations.${index}.name`)}
                   />
                 </td>
-                <td className={rowStyles.nameCell}>
+                <td className={rowStyles.nameCell} data-label={t('variation_description')}>
                   <input
                     className={rowStyles.nameInput}
                     aria-label={t('variation_description')}
@@ -124,7 +124,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                     message={fieldMessage(errors, `variations.${index}.description`)}
                   />
                 </td>
-                <td className={rowStyles.centerCell}>
+                <td className={rowStyles.centerCell} data-label={t('price_modifier')}>
                   <span className={rowStyles.priceField}>
                     {/* SIGNED, not `MONEY_INPUT_PROPS`: a *Small* is priced below the base item,
                           so this is legitimately negative and a `min="0"` would have the browser
@@ -142,7 +142,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                     message={fieldMessage(errors, `variations.${index}.priceModifier`)}
                   />
                 </td>
-                <td className={rowStyles.centerCell}>
+                <td className={rowStyles.centerCell} data-label={t('active')}>
                   <Switch
                     className={rowStyles.rowSwitch}
                     label={t('active')}
@@ -151,7 +151,7 @@ export const ProductVariations: React.FC<ProductVariationsProps> = ({
                     {...register(`variations.${index}.isActive`)}
                   />
                 </td>
-                <td className={rowStyles.centerCell}>
+                <td className={rowStyles.centerCell} data-label={t('actions')}>
                   <button
                     type="button"
                     className={rowStyles.removeButton}

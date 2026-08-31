@@ -4,17 +4,11 @@ import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useTranslation } from 'react-i18next';
 import { useRestaurantInfo, invalidateRestaurantInfoCache } from '@/hooks/useRestaurantInfo';
-import {
-  uploadRestaurantLogo,
-  deleteRestaurantLogo,
-  uploadInteriorImage,
-  deleteInteriorImage,
-} from '@/services/restaurantInfoService';
+import { uploadRestaurantLogo, deleteRestaurantLogo } from '@/services/restaurantInfoService';
 import { getErrorMessage } from '@/utils/apiClient';
 import { serverMessage } from '@/utils/apiFormErrors';
 import type { LogoVariant } from '@/types/restaurantInfo';
 import LogoSlot from './LogoSlot';
-import InteriorImageSlot from './InteriorImageSlot';
 import styles from './LogoTab.module.css';
 
 /**
@@ -30,9 +24,7 @@ export default function LogoTab() {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const { info, isLoading, refetch } = useRestaurantInfo();
-  // 'interior' rides the same busy state as the two logo slots: one tab, one in-flight
-  // upload at a time, so the widened union is all this needed.
-  const [busy, setBusy] = useState<LogoVariant | 'interior' | null>(null);
+  const [busy, setBusy] = useState<LogoVariant | null>(null);
 
   if (isLoading && !info) {
     return <p>{t('loading', 'Loading...')}</p>;
@@ -54,13 +46,9 @@ export default function LogoTab() {
     success: t('logo_save_success', 'Logo saved'),
     failure: t('logo_save_failed', 'Failed to save the logo'),
   };
-  const photoCopy = {
-    success: t('interior_photo_save_success', 'Photo saved'),
-    failure: t('interior_photo_save_failed', 'Failed to save the photo'),
-  };
 
   const run = async (
-    variant: LogoVariant | 'interior',
+    variant: LogoVariant,
     action: () => Promise<{ success: boolean; message?: string; errors?: unknown }>,
     copy: { success: string; failure: string },
   ) => {
@@ -132,13 +120,6 @@ export default function LogoTab() {
           isBusy={busy === 'dark'}
           onUpload={(file) => run('dark', () => uploadRestaurantLogo('dark', file), logoCopy)}
           onRemove={() => run('dark', () => deleteRestaurantLogo('dark'), logoCopy)}
-        />
-        <InteriorImageSlot
-          currentUrl={info.interiorImageUrl}
-          restaurantName={info.name}
-          isBusy={busy === 'interior'}
-          onUpload={(file) => run('interior', () => uploadInteriorImage(file), photoCopy)}
-          onRemove={() => run('interior', () => deleteInteriorImage(), photoCopy)}
         />
       </div>
     </div>

@@ -167,7 +167,6 @@
 }
 
 .storySection,
-.interiorSection,
 .openingHoursSection,
 .locationSection {
   padding: 2rem 0;
@@ -176,29 +175,17 @@
 }
 
 .storySection:last-child,
-.interiorSection:last-child,
 .openingHoursSection:last-child,
 .locationSection:last-child {
   border-bottom: none;
 }
 
 .storySection h2,
-.interiorSection h2,
 .openingHoursSection h2,
 .locationSection h2 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
   color: var(--text-color);
-}
-
-/* The photo is content, not decoration, so it keeps its own aspect ratio rather than being
-   cropped to a band. `height: auto` with an explicit next/image width/height is what stops
-   the layout shifting once it loads. */
-.interiorImage {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
 }
 
 .mapContainer {
@@ -255,7 +242,6 @@
     padding: 1.5rem 1rem;
   }
   .storySection h2,
-  .interiorSection h2,
   .openingHoursSection h2,
   .locationSection h2 {
     font-size: 1.5rem;

@@ -39,7 +39,7 @@ export default function RowMoveButtons({ index, canMoveUp, canMoveDown, onMove }
   const { t } = useTranslation();
 
   return (
-    <td className={styles.moveCell}>
+    <td className={styles.moveCell} data-label={t('reorder')}>
       <button
         type="button"
         className={styles.moveButton}

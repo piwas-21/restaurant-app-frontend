@@ -32,6 +32,12 @@
   color: var(--text-primary);
   font-size: 0.875rem;
 }
+.groupInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  background: var(--surface-secondary);
+}
+
 .groupHint {
   font-size: 0.75rem;
   color: var(--text-secondary);

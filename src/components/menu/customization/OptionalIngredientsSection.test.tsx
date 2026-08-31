@@ -148,6 +148,30 @@ describe('OptionalIngredientsSection — exclusion groups', () => {
       ingredientQuantities: {},
     });
 
+  it('explains the replacement before the guest chooses and marks the linked rows', () => {
+    render(<OptionalIngredientsSection {...doneness()} />);
+
+    expect(screen.getByRole('note')).toHaveTextContent('ingredient_choice_guest_explanation');
+    expect(screen.getAllByText('ingredient_choice_badge')).toHaveLength(2);
+  });
+
+  it('does not announce a one-member or blank group that cannot replace anything', () => {
+    render(
+      <OptionalIngredientsSection
+        {...props({
+          ingredients: [
+            ingredient({ id: 'Rare', exclusionGroup: 'doneness' }),
+            ingredient({ id: 'Bacon', exclusionGroup: '' }),
+          ],
+          selectedIngredients: [],
+        })}
+      />,
+    );
+
+    expect(screen.queryByRole('note')).toBeNull();
+    expect(screen.queryByText('ingredient_choice_badge')).toBeNull();
+  });
+
   it('deselects the sibling when the other member of the group is chosen', () => {
     const onSelectionChange = jest.fn();
     const onQuantityChange = jest.fn();

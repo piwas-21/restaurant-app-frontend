@@ -14,6 +14,8 @@ import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { BRANDING_HERO, RESTAURANT_NAME } from '@/lib/config';
 import { firstPaintCopy } from '@/lib/firstPaintCopy';
 import { homePageTitle } from '@/utils/homePageTitle';
+import { landingBackgroundUrl, landingOverridesFor } from '@/lib/landingBackground';
+import { useLandingPage } from '@/hooks/useLandingPage';
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
@@ -25,6 +27,10 @@ export interface WorkingHoursGroup {
 export function useCraftHomeData() {
   const { t, i18n } = useTranslation();
   const { info } = useRestaurantInfo();
+  const { landing } = useLandingPage();
+  // The admin-configured landing copy for the visitor's language; null members (and the null
+  // whole) fall back to the bundled i18n strings below.
+  const overrides = landingOverridesFor(landing, i18n.language);
   const [isClient, setIsClient] = useState(false);
   // Before hydration this resolves against en.json + this image's tenant copy pack; after it,
   // against the visitor's own language. One callsite per string either way — see lib/firstPaintCopy.ts.
@@ -146,7 +152,8 @@ export function useCraftHomeData() {
     info,
     isLoadingHours,
     groupedHours,
-    backgroundImageUrl: BRANDING_HERO,
+    backgroundImageUrl: landingBackgroundUrl(landing, BRANDING_HERO),
+    overrides,
     googleMapsEmbedUrl,
     restaurantName,
     heroSubtitle,

@@ -1,0 +1,36 @@
+/* Neutral guidance for mutually exclusive options. Selecting either choice is valid, so this is
+   information rather than a warning. Logical edges preserve the same shape in RTL locales. */
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-block-end: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-inline-start: 3px solid var(--brand-primary);
+  border-radius: var(--modal-body-option-radius, 10px);
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.note svg {
+  flex: 0 0 auto;
+  margin-block-start: 0.0625rem;
+  color: var(--brand-primary);
+}
+
+.badge {
+  flex: 0 0 auto;
+  padding-block: 0.125rem;
+  padding-inline: 0.4rem;
+  border: 1px solid var(--brand-primary);
+  border-radius: 999px;
+  color: var(--brand-primary-elevated);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

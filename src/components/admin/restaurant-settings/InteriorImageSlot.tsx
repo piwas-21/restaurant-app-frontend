@@ -15,13 +15,12 @@ export interface InteriorImageSlotProps {
 }
 
 /**
- * The restaurant's interior photo — preview, file picker and remove control.
+ * The restaurant's full-width landing background — preview, file picker and remove control.
  *
  * A sibling of {@link LogoSlot} rather than a reuse of it: the two differ in the one thing
  * that matters. An empty logo slot previews the restaurant's NAME, because that is literally
- * what the header will render. An empty photo slot can preview nothing, because the landing
- * page renders NOTHING — so it says so in words instead of showing a placeholder image that
- * appears nowhere on the site.
+ * what the header will render. An empty background slot previews the honest fallback state: the platform artwork remains behind
+ * the welcome text until the restaurant uploads its own image.
  */
 export default function InteriorImageSlot({
   currentUrl,
@@ -44,12 +43,12 @@ export default function InteriorImageSlot({
   return (
     <section className={styles.slot} aria-labelledby={`${inputId}-title`}>
       <h3 id={`${inputId}-title`} className={styles.slotTitle}>
-        {t('interior_photo_title', 'Interior photo')}
+        {t('interior_photo_title', 'Landing background')}
       </h3>
       <p className={styles.slotHint}>
         {t(
           'interior_photo_hint',
-          'A photo of your dining room, counter or shopfront. It appears on your home page; with no photo, that section is hidden.',
+          'Shown full-width behind your welcome text on the home page. Without an upload, the platform background is used.',
         )}
       </p>
 
@@ -57,13 +56,13 @@ export default function InteriorImageSlot({
         {currentUrl ? (
           <Image
             src={currentUrl}
-            alt={t('home_interior_alt', 'Inside {{name}}', { name: restaurantName })}
+            alt={t('home_interior_alt', 'Landing background for {{name}}', { name: restaurantName })}
             width={480}
             height={320}
             className={styles.photoImage}
           />
         ) : (
-          <span className={styles.photoEmpty}>{t('interior_photo_empty', 'No photo yet')}</span>
+          <span className={styles.photoEmpty}>{t('interior_photo_empty', 'Using the default background')}</span>
         )}
       </div>
 

@@ -11,6 +11,7 @@ import TaxConfigurationManager from '@/components/admin/settings/TaxConfiguratio
 import GeneralSettingsTab from '@/components/admin/restaurant-settings/GeneralSettingsTab';
 import AppearanceTab from '@/components/admin/restaurant-settings/AppearanceTab';
 import LogoTab from '@/components/admin/restaurant-settings/LogoTab';
+import LandingTab from '@/components/admin/restaurant-settings/LandingTab';
 import PaymentsTab from '@/components/admin/restaurant-settings/PaymentsTab';
 import { useModules } from '@/contexts/ModulesContext';
 import { isTabAvailable, isTabId, type TabType } from './tabs';
@@ -38,6 +39,7 @@ function RestaurantSettingsContent() {
     { id: 'general' as TabType, label: t('general_settings', 'General Settings'), icon: '⚙️' },
     { id: 'appearance' as TabType, label: t('appearance_settings', 'Appearance'), icon: '🎨' },
     { id: 'logo' as TabType, label: t('logo_settings', 'Logo'), icon: '🖼️' },
+    { id: 'landing' as TabType, label: t('landing_settings', 'Landing Page'), icon: '🏞️' },
     { id: 'payments' as TabType, label: t('payments_settings', 'Card Payments'), icon: '💳' },
   ].filter((tab) => available(tab.id));
 
@@ -77,6 +79,7 @@ function RestaurantSettingsContent() {
         {activeTab === 'general' && <GeneralSettingsTab />}
         {activeTab === 'appearance' && <AppearanceTab />}
         {activeTab === 'logo' && <LogoTab />}
+        {activeTab === 'landing' && <LandingTab />}
         {activeTab === 'payments' && <PaymentsTab />}
       </div>
     </div>

@@ -218,6 +218,17 @@ a:hover {
   color: currentColor; /* Icons inherit the link color */
 }
 
+/* The install entry is a BUTTON wearing .nav-link (it opens a prompt/modal, not a
+   navigation — pwa/InstallAppMenuEntry). Buttons keep UA chrome — grey `buttonface`
+   background and UA font — which painted near-white text on a light button over the dark
+   menu: invisible. Reset to the link treatment so it rows exactly like its neighbours. */
+button.nav-link {
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: start;
+}
+
 .nav-link:hover {
   background-color: var(--nav-link-hover-bg);
   color: var(--nav-link-color); /* Maintain color or change if needed */

@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "Les créneaux d'ouverture se chevauchent le {{day}}",
   "at_least_one_opening_window": "{{day}} est ouvert, il faut donc au moins un créneau",
   "too_many_opening_windows": "Au maximum {{max}} créneaux d'ouverture le {{day}}",
-  "pwa_install_title": "Ajouter à l'écran d'accueil",
-  "pwa_install_body": "Installez notre application pour commander plus vite. Sans passer par un store.",
-  "pwa_install_action": "Installer",
-  "pwa_install_ios_action": "Ajouter à l'écran d'accueil",
-  "pwa_install_dismiss": "Plus tard",
-  "pwa_install_close_aria": "Fermer la bannière d'installation",
   "pwa_install_ios_title": "Ajouter à l'écran d'accueil",
-  "pwa_install_ios_step_share": "Touchez le bouton Partager dans la barre d'outils de votre navigateur.",
+  "pwa_install_ios_step_share": "Ouvrez le menu Partager ou ⋮ de votre navigateur.",
   "pwa_install_ios_step_add": "Choisissez « Sur l'écran d'accueil ».",
   "pwa_install_ios_step_confirm": "Touchez « Ajouter » pour confirmer.",
   "pwa_install_ios_done": "J'ai compris",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Texte de notre histoire",
   "landing_save_success": "Page d'accueil enregistrée",
   "landing_save_failed": "Échec de l'enregistrement de la page d'accueil",
-  "pwa_install_dont_ask": "Ne plus afficher"
+  "nav_install_app": "Installer l'application"
 }

@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "Интервалы работы в {{day}} пересекаются",
   "at_least_one_opening_window": "{{day}} — рабочий день, нужен хотя бы один интервал",
   "too_many_opening_windows": "Не более {{max}} интервалов работы в {{day}}",
-  "pwa_install_title": "Добавьте на главный экран",
-  "pwa_install_body": "Установите наше приложение — заказывать будет быстрее. Магазин приложений не нужен.",
-  "pwa_install_action": "Установить",
-  "pwa_install_ios_action": "Добавить на экран «Домой»",
-  "pwa_install_dismiss": "Не сейчас",
-  "pwa_install_close_aria": "Закрыть баннер установки",
   "pwa_install_ios_title": "Добавьте на главный экран",
-  "pwa_install_ios_step_share": "Нажмите кнопку «Поделиться» на панели вашего браузера.",
+  "pwa_install_ios_step_share": "Откройте меню «Поделиться» или ⋮ в вашем браузере.",
   "pwa_install_ios_step_add": "Выберите «На экран «Домой»».",
   "pwa_install_ios_step_confirm": "Нажмите «Добавить» для подтверждения.",
   "pwa_install_ios_done": "Понятно",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Текст истории",
   "landing_save_success": "Главная страница сохранена",
   "landing_save_failed": "Не удалось сохранить главную страницу",
-  "pwa_install_dont_ask": "Больше не показывать"
+  "nav_install_app": "Установить приложение"
 }

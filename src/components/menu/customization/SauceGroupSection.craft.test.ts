@@ -47,6 +47,10 @@ describe('SauceGroupSection.module.css — craft re-skins it, so it must ask cra
     expect(declaration).toContain(`var(${token},`);
   });
 
+  it('clears the full-width floated legend before it lays out rows', () => {
+    expect(rule('.panel')).toContain('clear: both');
+  });
+
   it('uses only hooks craft actually declares — a typo would take the fallback forever', () => {
     const used = new Set(Array.from(CSS.matchAll(/var\((--modal-body-[\w-]+)/g), (match) => match[1]));
 

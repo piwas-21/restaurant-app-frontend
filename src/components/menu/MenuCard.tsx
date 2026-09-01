@@ -199,7 +199,7 @@ export default function MenuCard({
 
         <div className={footStyles.footRow}>
           <span className={footStyles.footPrice} aria-label={`${t('checkout_total_label')} ${priceText}`}>
-            {priceText}
+            <span className={footStyles.priceValue}>{priceText}</span>
             {/* `setPriceEditing` is passed bare, not wrapped: `onEditingChange` fires from an
                 effect keyed on that boolean, and a useState setter is the referentially stable
                 identity the contract needs. An inline arrow would re-fire it on every render. */}

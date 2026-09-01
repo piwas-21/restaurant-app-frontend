@@ -66,6 +66,9 @@
 }
 
 .panel {
+  /* The full-width floated legend otherwise makes this panel flow beside it, squeezing rows into
+     a narrow column and forcing sauce names to wrap one character at a time. */
+  clear: both;
   display: flex;
   flex-direction: column;
 }

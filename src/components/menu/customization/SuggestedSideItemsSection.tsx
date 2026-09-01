@@ -1,12 +1,8 @@
 'use client';
 
-import { formatPlainCurrency } from '@/utils/currency';
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Plus, Minus } from 'lucide-react';
-import type { SuggestedSideItem } from '@/types/menu';
+import SuggestedSideItemGroup from './SuggestedSideItemGroup';
 import { groupSuggestedSideItems } from '@/utils/suggestedSideItems';
-import styles from './SuggestedSideItemsSection.module.css';
+import type { SuggestedSideItem } from '@/types/menu';
 
 interface SuggestedSideItemsSectionProps {
   sideItems: SuggestedSideItem[];
@@ -15,114 +11,39 @@ interface SuggestedSideItemsSectionProps {
   currentLanguage: string;
 }
 
+/** Optional drinks, desserts and accompaniments, partitioned without changing their basket payload. */
 export default function SuggestedSideItemsSection({
   sideItems,
   selectedSideItems,
   onSelectionChange,
-}: SuggestedSideItemsSectionProps) {
-  const { t } = useTranslation();
-
-  if (!sideItems || sideItems.length === 0) {
-    return null;
-  }
+}: Readonly<SuggestedSideItemsSectionProps>) {
+  if (!sideItems.length) return null;
 
   const handleAdd = (sideItemId: string) => {
     const existing = selectedSideItems.find((item) => item.id === sideItemId);
-    if (existing) {
-      // Increase quantity
-      onSelectionChange(
-        selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity + 1 } : item)),
-      );
-    } else {
-      // Add new item
-      onSelectionChange([...selectedSideItems, { id: sideItemId, quantity: 1 }]);
-    }
+    onSelectionChange(
+      existing
+        ? selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity + 1 } : item))
+        : [...selectedSideItems, { id: sideItemId, quantity: 1 }],
+    );
   };
-
   const handleRemove = (sideItemId: string) => {
     const existing = selectedSideItems.find((item) => item.id === sideItemId);
-    if (existing) {
-      if (existing.quantity > 1) {
-        // Decrease quantity
-        onSelectionChange(
-          selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity - 1 } : item)),
-        );
-      } else {
-        // Remove item
-        onSelectionChange(selectedSideItems.filter((item) => item.id !== sideItemId));
-      }
-    }
+    if (!existing) return;
+    onSelectionChange(
+      existing.quantity > 1
+        ? selectedSideItems.map((item) => (item.id === sideItemId ? { ...item, quantity: item.quantity - 1 } : item))
+        : selectedSideItems.filter((item) => item.id !== sideItemId),
+    );
   };
 
-  const getQuantity = (sideItemId: string) => {
-    const item = selectedSideItems.find((item) => item.id === sideItemId);
-    return item?.quantity || 0;
-  };
-
-  return (
-    <>
-      {groupSuggestedSideItems(sideItems).map((group) => (
-        <div key={group.id} className={styles.section}>
-          <h3 className={styles.sectionTitle}>{t(group.translationKey)}</h3>
-          <p className={styles.sectionDescription}>{t('select_options')}</p>
-
-          <div className={styles.sideItemsList}>
-            {group.items.map((sideItem) => {
-              const quantity = getQuantity(sideItem.id);
-              const isSelected = quantity > 0;
-
-              return (
-                <div key={sideItem.id} className={styles.sideItem}>
-                  <div className={styles.sideItemInfo}>
-                    <h4 className={styles.sideItemName}>
-                      <span dir="auto">{sideItem.name}</span>
-                      {sideItem.isRequired && (
-                        <span className={styles.requiredMarker} aria-label={t('required')}>
-                          *
-                        </span>
-                      )}
-                    </h4>
-                    {sideItem.description && (
-                      <p dir="auto" className={styles.sideItemDescription}>
-                        {sideItem.description}
-                      </p>
-                    )}
-                    <span className={styles.sideItemPrice}>{formatPlainCurrency(sideItem.price)}</span>
-                  </div>
-
-                  <div className={styles.sideItemActions}>
-                    {isSelected ? (
-                      <div className={styles.quantityControl}>
-                        <button
-                          onClick={() => handleRemove(sideItem.id)}
-                          className={styles.quantityButton}
-                          aria-label={t('decrease_quantity')}
-                          type="button"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className={styles.quantity}>{quantity}</span>
-                        <button
-                          onClick={() => handleAdd(sideItem.id)}
-                          className={styles.quantityButton}
-                          aria-label={t('increase_quantity')}
-                          type="button"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button onClick={() => handleAdd(sideItem.id)} className={styles.addButton} type="button">
-                        {t('add_ingredient')}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </>
-  );
+  return groupSuggestedSideItems(sideItems).map((group) => (
+    <SuggestedSideItemGroup
+      key={group.id}
+      group={group}
+      selectedSideItems={selectedSideItems}
+      onAdd={handleAdd}
+      onRemove={handleRemove}
+    />
+  ));
 }

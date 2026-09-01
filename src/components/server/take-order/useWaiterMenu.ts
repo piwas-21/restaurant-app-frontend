@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getCategories, type Category, type Product } from '@/services/serverService';
-import { getProductById, getProducts } from '@/services/menuService';
-import { toBundleItemFromDetail } from '@/utils/catalogItem';
+import { getProducts } from '@/services/menuService';
+import { getMenuBundleById } from '@/services/menuBundleService';
 import { mapMenuProducts } from './menuProductMapper';
-import type { DetailedProductResponse, MenuBundleItem } from '@/types/menu';
+import type { MenuBundleItem } from '@/types/menu';
 
 /** The waiter grid: ordinary products plus menu parents, never option-only components. */
 export function useWaiterMenu() {
@@ -63,8 +63,15 @@ export function useWaiterMenu() {
 
     try {
       setError(null);
-      const response = (await getProductById(product.id)) as DetailedProductResponse;
-      const bundle = response.success && response.data ? toBundleItemFromDetail(response.data) : null;
+      // The public bundle contract (`GET /api/Menus/{id}`), NOT `GET /api/Products/{id}`. The product
+      // read projects a menu's option rows down to id/name/price — no `detailedIngredients`, no sauce
+      // rule (`MenuSectionItemDto` vs `MenuBundleSectionItemDto`, backend #468) — so a fixed Plat
+      // opened from it had nothing to customize, and the waiter's child row reached the server
+      // without the recipe the guest's carries. Same contract the guest grid reads, so the two sheets
+      // agree. No `requestedOrderType` is sent, so option availability resolves against "no channel
+      // chosen" — permissive, which is what a till ringing in a dine-in order wants.
+      const response = (await getMenuBundleById(product.id)) as { success?: boolean; data?: MenuBundleItem | null };
+      const bundle = response.success && response.data ? response.data : null;
       if (!bundle) throw new Error('Menu definition was unavailable');
       setSelectedBundleForCustomization(bundle);
     } catch (err) {

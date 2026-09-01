@@ -122,6 +122,13 @@ export interface ProductCustomizationDetail {
    * than visible: no production product has an allowance yet.
    */
   sauceIncludedFree?: number;
+  /**
+   * The most distinct sauce rows the product allows (P4). `null`/absent is "no cap", `0` is a real
+   * cap. Carried for the same boundary reason as `sauceIncludedFree`: the server refuses a fourth
+   * sauce with `SauceMaximumExceeded`, and the sheet must refuse it FIRST rather than let a waiter
+   * discover the rule from a failed order.
+   */
+  sauceMax?: number | null;
   variations?: ProductVariation[];
   detailedIngredients?: DetailedIngredient[];
   suggestedSideItems?: SuggestedSideItem[];

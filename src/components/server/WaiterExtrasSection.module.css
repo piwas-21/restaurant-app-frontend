@@ -80,6 +80,13 @@
   color: var(--feedback-success-text);
 }
 
+/* A sauce chip past the product's cap (P4): still focusable, announced disabled, and the hook
+   refuses the toggle — the same shape as the stepper's plus at its maximum below. */
+.ingredientButton[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .addIcon {
   font-weight: bold;
 }

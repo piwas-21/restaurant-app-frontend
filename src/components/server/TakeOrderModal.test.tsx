@@ -2,7 +2,8 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import TakeOrderModal from './TakeOrderModal';
 import { getCategories, createServerOrder } from '@/services/serverService';
-import { getProductById, getProducts } from '@/services/menuService';
+import { getProducts } from '@/services/menuService';
+import { getMenuBundleById } from '@/services/menuBundleService';
 import type { CustomizationResult } from './ProductCustomization';
 import { ApiError } from '@/utils/apiClient';
 
@@ -18,7 +19,12 @@ jest.mock('react-i18next', () => ({
 // calls but keep the pure point-math helpers real (requireActual).
 jest.mock('@/services/menuService', () => ({
   getProducts: jest.fn(),
-  getProductById: jest.fn(),
+}));
+
+// A menu parent opens from the BUNDLE contract (`GET /api/Menus/{id}`), which carries each option's
+// recipe and sauce rule; the product read projects those away (see `useWaiterMenu`).
+jest.mock('@/services/menuBundleService', () => ({
+  getMenuBundleById: jest.fn(),
 }));
 
 jest.mock('@/services/serverService', () => {
@@ -117,7 +123,7 @@ jest.mock('./WaiterBundleCustomization', () => ({
 const mockGetCategories = getCategories as jest.MockedFunction<typeof getCategories>;
 const mockCreateServerOrder = createServerOrder as jest.MockedFunction<typeof createServerOrder>;
 const mockGetProducts = getProducts as jest.MockedFunction<typeof getProducts>;
-const mockGetProductById = getProductById as jest.MockedFunction<typeof getProductById>;
+const mockGetMenuBundleById = getMenuBundleById as jest.MockedFunction<typeof getMenuBundleById>;
 
 const categories = [
   { id: 'c1', name: 'Pizzas', description: '', displayOrder: 0, isActive: true },
@@ -223,7 +229,9 @@ describe('TakeOrderModal', () => {
     jest.clearAllMocks();
     mockGetCategories.mockResolvedValue(categories);
     mockGetProducts.mockResolvedValue(productsResponse as unknown as Awaited<ReturnType<typeof getProducts>>);
-    mockGetProductById.mockResolvedValue(bundleDetailResponse as unknown as Awaited<ReturnType<typeof getProductById>>);
+    mockGetMenuBundleById.mockResolvedValue(
+      bundleDetailResponse as unknown as Awaited<ReturnType<typeof getMenuBundleById>>,
+    );
     mockCreateServerOrder.mockResolvedValue({} as unknown as Awaited<ReturnType<typeof createServerOrder>>);
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -266,7 +274,7 @@ describe('TakeOrderModal', () => {
     setup();
     fireEvent.click(await screen.findByRole('button', { name: /Menu Sandwich Kebab/ }));
     expect(await screen.findByTestId('bundle-customization')).toBeInTheDocument();
-    expect(mockGetProductById).toHaveBeenCalledWith('m1');
+    expect(mockGetMenuBundleById).toHaveBeenCalledWith('m1');
 
     fireEvent.click(screen.getByRole('button', { name: 'confirm-bundle-customization' }));
     fireEvent.click(screen.getByRole('button', { name: 'Place Order' }));

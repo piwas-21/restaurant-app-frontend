@@ -3,6 +3,8 @@
 import { formatPlainCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 import { maxIngredientQuantity } from '@/utils/priceableIngredient';
+import { isSauce } from '@/utils/sauceGroup';
+import StatusBadge from '@/components/design-system/StatusBadge';
 import type { DetailedIngredient } from './productCustomizationTypes';
 import styles from './WaiterExtrasSection.module.css';
 
@@ -25,6 +27,10 @@ interface WaiterExtrasSectionProps {
   onToggle: (ingredient: DetailedIngredient) => void;
   onStep: (ingredient: DetailedIngredient, change: number) => void;
   nameOf: (ingredient: DetailedIngredient) => string;
+  /** The product's sauce cap (P4); `null` is unbounded. Read for the "Maximum N" sentence. */
+  sauceMax: number | null;
+  /** Cap spent: unchosen sauce chips are announced disabled, and the hook refuses their toggle. */
+  isSauceGroupFull: boolean;
 }
 
 /**
@@ -49,14 +55,24 @@ export default function WaiterExtrasSection({
   onToggle,
   onStep,
   nameOf,
+  sauceMax,
+  isSauceGroupFull,
 }: Readonly<WaiterExtrasSectionProps>) {
   const { t } = useTranslation();
 
   if (ingredients.length === 0) return null;
 
+  // A spent cap above 1 greys the rest and says why — the guest's checkbox group. A cap of 1 is the
+  // guest's RADIO: the chips stay live because a tap swaps, so nothing is disabled and nothing is
+  // announced. And a cap with no sauce rows to apply to (`sauceMax: 0` on a product that lists none)
+  // has nothing to explain, so the badge stays off the way the guest's group returns null.
+  const capBlocksChips = isSauceGroupFull && sauceMax !== null && sauceMax > 1 && ingredients.some(isSauce);
+
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>{t('server.extras', 'Extras')}</h3>
+      {/* The guest sheet's sentence, on the guest sheet's badge: the same key, the same number. */}
+      {capBlocksChips && <StatusBadge tone="danger">{t('sauce_max_reached', { max: sauceMax })}</StatusBadge>}
       <div className={styles.ingredientList}>
         {ingredients.map((ingredient) => {
           const isSelected = selectedIngredients.has(ingredient.id);
@@ -66,12 +82,16 @@ export default function WaiterExtrasSection({
           const currentQuantity = ingredientQuantities[ingredient.id] ?? 1;
           const showStepper = isSelected && max > 1;
           const state = chipState(isSelected, isIncluded);
+          // aria-disabled, not disabled, for the same reason as the stepper below: the chip keeps
+          // its place in the tab order and a screen reader can say the maximum has been reached.
+          const isCappedSauce = capBlocksChips && !isSelected && isSauce(ingredient);
 
           return (
             <div key={ingredient.id} className={styles.ingredientItem}>
               <button
                 type="button"
                 aria-pressed={isSelected}
+                aria-disabled={isCappedSauce || undefined}
                 className={`${styles.ingredientButton} ${state}`}
                 onClick={() => onToggle(ingredient)}
               >

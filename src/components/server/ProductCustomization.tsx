@@ -173,6 +173,8 @@ export default function ProductCustomization({ product, isOpen, onClose, onConfi
             onToggle={sheet.toggleIngredient}
             onStep={sheet.stepIngredient}
             nameOf={sheet.getLocalizedName}
+            sauceMax={sheet.sauceMax}
+            isSauceGroupFull={sheet.isSauceGroupFull}
           />
 
           {/* Side items keep their established selections and payload; P2 only partitions their presentation. */}

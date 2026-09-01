@@ -85,7 +85,7 @@ describe('MenuCard — one card for both catalog kinds', () => {
     // and a separate `.mobilePrice` below it — with only CSS deciding which was showing. The price
     // lives on the action row at every viewport now, and carries the accessible label the
     // desktop-only node used to own.
-    expect(screen.getByText('CHF 12.50')).toHaveAttribute('aria-label', 'checkout_total_label CHF 12.50');
+    expect(screen.getByLabelText('checkout_total_label CHF 12.50')).toHaveTextContent('CHF 12.50');
     // The description IS rendered now (it is the card's details affordance). Ingredients are not:
     // that block in MenuItemDetails is still commented out, and this card does not second-guess it.
     expect(screen.getByText('Classic pizza')).toBeInTheDocument();
@@ -314,6 +314,15 @@ describe('MenuCard — admin quick-edit', () => {
 
     expect(container.querySelector('li')).not.toHaveClass('hostEditing');
     expect(screen.queryByTestId('admin-edit-price')).not.toBeInTheDocument();
+  });
+
+  it('keeps Add visible beside a bundle’s locked price reason', () => {
+    (useOptionalAuth as jest.Mock).mockReturnValue({ user: { role: 'Admin' }, isLoading: false });
+
+    render(<MenuCard item={bundle} onOpen={jest.fn()} onFeedbackSuccess={jest.fn()} />);
+
+    expect(screen.getByTestId('admin-edit-price-locked')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'add_item_to_order(Lunch Combo)' })).toBeEnabled();
   });
 
   it('swaps the price editor for a reason when the price is derived (e.g. has variations)', () => {

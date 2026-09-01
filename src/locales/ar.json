@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "فترات العمل يوم {{day}} متداخلة",
   "at_least_one_opening_window": "{{day}} يوم عمل، لذا يلزم فترة واحدة على الأقل",
   "too_many_opening_windows": "بحد أقصى {{max}} فترات عمل يوم {{day}}",
-  "pwa_install_title": "أضف التطبيق إلى الشاشة الرئيسية",
-  "pwa_install_body": "ثبّت تطبيقنا لطلب أسرع. لا حاجة إلى متجر التطبيقات.",
-  "pwa_install_action": "تثبيت",
-  "pwa_install_ios_action": "إضافة إلى الشاشة الرئيسية",
-  "pwa_install_dismiss": "ليس الآن",
-  "pwa_install_close_aria": "إغلاق شريط التثبيت",
   "pwa_install_ios_title": "أضف التطبيق إلى الشاشة الرئيسية",
-  "pwa_install_ios_step_share": "اضغط على زر المشاركة في شريط المتصفح.",
+  "pwa_install_ios_step_share": "افتح قائمة المشاركة أو ⋮ في متصفحك.",
   "pwa_install_ios_step_add": "اختر «إضافة إلى الشاشة الرئيسية».",
   "pwa_install_ios_step_confirm": "اضغط «إضافة» للتأكيد.",
   "pwa_install_ios_done": "فهمت",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "نص قصتنا",
   "landing_save_success": "تم حفظ الصفحة الرئيسية",
   "landing_save_failed": "فشل حفظ الصفحة الرئيسية",
-  "pwa_install_dont_ask": "لا تظهر مرة أخرى"
+  "nav_install_app": "تثبيت التطبيق"
 }

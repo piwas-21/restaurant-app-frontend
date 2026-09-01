@@ -20,6 +20,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import UserMenu from '@/components/UserMenu';
 import RoleNavLinks from '@/components/RoleNavLinks';
+import InstallAppMenuEntry from '@/components/pwa/InstallAppMenuEntry';
 import { useAuth } from '@/components/AuthContext';
 import { useRestaurantInfo } from '@/hooks/useRestaurantInfo';
 import { useTheme } from '@/components/ThemeContext';
@@ -79,6 +80,7 @@ export default function CraftHeader() {
         />
         <nav className={`${styles.nav} ${mobileMenuOpen ? styles.navOpen : ''}`}>
           <RoleNavLinks onNavigate={closeMobileMenu} />
+          <InstallAppMenuEntry onActivate={closeMobileMenu} />
           {isClient && !isLoading && (
             <>
               {user ? (

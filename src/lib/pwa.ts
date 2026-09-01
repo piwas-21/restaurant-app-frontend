@@ -7,9 +7,6 @@
  * influence the server-rendered HTML, or it would hydrate differently per device.
  */
 
-/** Widest viewport we consider "a phone". Desktop admins are never nagged (task A requirement). */
-export const MOBILE_MAX_WIDTH_PX = 820;
-
 /** Already installed? Then there is nothing to offer. */
 export function isStandaloneDisplay(): boolean {
   if (typeof window === 'undefined') return false;
@@ -20,12 +17,6 @@ export function isStandaloneDisplay(): boolean {
   // instead, so BOTH have to be consulted (task A requirement).
   const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
   return displayMode || iosStandalone;
-}
-
-/** Phone-sized viewport. `matchMedia` rather than innerWidth so an orientation change re-evaluates. */
-export function isMobileViewport(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`).matches;
 }
 
 /**

@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import TakeOrderModal from './TakeOrderModal';
 import { getCategories, createServerOrder } from '@/services/serverService';
-import { getProducts } from '@/services/menuService';
+import { getProductById, getProducts } from '@/services/menuService';
 import type { CustomizationResult } from './ProductCustomization';
 import { ApiError } from '@/utils/apiClient';
 
@@ -78,9 +78,46 @@ jest.mock('./ProductCustomization', () => ({
   },
 }));
 
+jest.mock('./WaiterBundleCustomization', () => ({
+  __esModule: true,
+  default: function MockWaiterBundleCustomization({
+    bundle,
+    isOpen,
+    onConfirm,
+  }: {
+    bundle: { menuDefinition: { sections: Array<{ id: string; items: Array<{ productId: string }> }> } };
+    isOpen: boolean;
+    onConfirm: (result: {
+      selectedOptions: Array<{ sectionId: string; itemId: string; quantity: number }>;
+      quantity: number;
+      unitPrice: number;
+    }) => void;
+  }) {
+    if (!isOpen) return null;
+    const section = bundle.menuDefinition.sections[0];
+    return (
+      <div data-testid="bundle-customization">
+        <button
+          type="button"
+          onClick={() =>
+            onConfirm({
+              selectedOptions: [{ sectionId: section.id, itemId: section.items[0].productId, quantity: 1 }],
+              quantity: 1,
+              unitPrice: 14,
+            })
+          }
+        >
+          confirm-bundle-customization
+        </button>
+      </div>
+    );
+  },
+}));
+
 const mockGetCategories = getCategories as jest.MockedFunction<typeof getCategories>;
 const mockCreateServerOrder = createServerOrder as jest.MockedFunction<typeof createServerOrder>;
 const mockGetProducts = getProducts as jest.MockedFunction<typeof getProducts>;
+const mockGetProductById = getProductById as jest.MockedFunction<typeof getProductById>;
 
 const categories = [
   { id: 'c1', name: 'Pizzas', description: '', displayOrder: 0, isActive: true },
@@ -98,6 +135,15 @@ const menuProducts = [
     type: 'Food',
   },
   { id: 'p2', name: 'Cola', description: 'Fizzy', basePrice: 3, isActive: true, isAvailable: true, type: 'Drink' },
+  {
+    id: 'm1',
+    name: 'Menu Sandwich Kebab',
+    description: 'Menu',
+    basePrice: 12,
+    isActive: true,
+    isAvailable: true,
+    type: 'menu',
+  },
 ];
 
 const productsResponse = {
@@ -105,6 +151,58 @@ const productsResponse = {
   message: '',
   data: { items: menuProducts, totalCount: menuProducts.length, page: 1, pageSize: 100, totalPages: 1 },
   errors: null,
+};
+
+const bundleDetailResponse = {
+  success: true,
+  data: {
+    id: 'm1',
+    name: 'Menu Sandwich Kebab',
+    basePrice: 12,
+    isActive: true,
+    isAvailable: true,
+    isSpecial: false,
+    type: 'menu',
+    ingredients: [],
+    allergens: [],
+    displayOrder: 0,
+    content: {},
+    images: [],
+    categories: [],
+    variations: [],
+    suggestedSideItems: [],
+    menuDefinition: {
+      id: 'definition',
+      isAlwaysAvailable: true,
+      availableMonday: true,
+      availableTuesday: true,
+      availableWednesday: true,
+      availableThursday: true,
+      availableFriday: true,
+      availableSaturday: true,
+      availableSunday: true,
+      sections: [
+        {
+          id: 'plat',
+          name: 'Plat',
+          displayOrder: 0,
+          isRequired: true,
+          minSelection: 1,
+          maxSelection: 1,
+          items: [
+            {
+              id: 'sandwich-row',
+              productId: 'sandwich-kebab',
+              productName: 'Sandwich Kebab',
+              additionalPrice: 2,
+              displayOrder: 0,
+              isDefault: false,
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 function setup() {
@@ -125,6 +223,7 @@ describe('TakeOrderModal', () => {
     jest.clearAllMocks();
     mockGetCategories.mockResolvedValue(categories);
     mockGetProducts.mockResolvedValue(productsResponse as unknown as Awaited<ReturnType<typeof getProducts>>);
+    mockGetProductById.mockResolvedValue(bundleDetailResponse as unknown as Awaited<ReturnType<typeof getProductById>>);
     mockCreateServerOrder.mockResolvedValue({} as unknown as Awaited<ReturnType<typeof createServerOrder>>);
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -147,7 +246,7 @@ describe('TakeOrderModal', () => {
     // Active category is shown; the inactive one (Drinks) is filtered out.
     expect(screen.getByRole('button', { name: 'Pizzas' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Drinks' })).not.toBeInTheDocument();
-    expect(mockGetProducts).toHaveBeenCalledWith(1, 100, undefined);
+    expect(mockGetProducts).toHaveBeenCalledWith(1, 100, undefined, { includeMenus: true });
   });
 
   it('disables the submit button while the order is empty', async () => {
@@ -161,6 +260,25 @@ describe('TakeOrderModal', () => {
     setup();
     fireEvent.click(await screen.findByRole('button', { name: /Margherita/ }));
     expect(screen.getByTestId('product-customization')).toBeInTheDocument();
+  });
+
+  it('loads the menu definition and opens the bundle customization for a menu parent', async () => {
+    setup();
+    fireEvent.click(await screen.findByRole('button', { name: /Menu Sandwich Kebab/ }));
+    expect(await screen.findByTestId('bundle-customization')).toBeInTheDocument();
+    expect(mockGetProductById).toHaveBeenCalledWith('m1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'confirm-bundle-customization' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Place Order' }));
+
+    await waitFor(() => expect(mockCreateServerOrder).toHaveBeenCalled());
+    expect(mockCreateServerOrder.mock.calls[0][1]).toEqual([
+      expect.objectContaining({
+        productId: 'm1',
+        unitPrice: 14,
+        childItems: [expect.objectContaining({ productId: 'sandwich-kebab', unitPrice: 2, kind: 'BundleChild' })],
+      }),
+    ]);
   });
 
   it('adds an item to the summary when a customization is confirmed', async () => {

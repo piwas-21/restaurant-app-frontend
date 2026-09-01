@@ -1,4 +1,5 @@
 import ProductCustomization from './ProductCustomization';
+import WaiterBundleCustomization from './WaiterBundleCustomization';
 import { useTranslation } from 'react-i18next';
 import { useTakeOrder } from './take-order/useTakeOrder';
 import TakeOrderMenuPanel from './take-order/TakeOrderMenuPanel';
@@ -74,6 +75,14 @@ export default function TakeOrderModal({ tableNumber, onClose, onOrderCreated }:
           isOpen={!!order.selectedProductForCustomization}
           onClose={() => order.setSelectedProductForCustomization(null)}
           onConfirm={order.handleCustomizationConfirm}
+        />
+      )}
+      {order.selectedBundleForCustomization && (
+        <WaiterBundleCustomization
+          bundle={order.selectedBundleForCustomization}
+          isOpen={!!order.selectedBundleForCustomization}
+          onClose={() => order.setSelectedBundleForCustomization(null)}
+          onConfirm={order.handleBundleCustomizationConfirm}
         />
       )}
     </>

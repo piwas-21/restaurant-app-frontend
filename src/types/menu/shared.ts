@@ -91,6 +91,7 @@ export interface SuggestedSideItem {
   isRequired: boolean;
   displayOrder: number;
   images?: MenuItemImage[];
+  type?: ProductType; // Additive P1 field; missing values stay compatible during rollout.
 }
 
 /**

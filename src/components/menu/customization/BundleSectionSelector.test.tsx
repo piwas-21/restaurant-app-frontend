@@ -199,4 +199,32 @@ describe('BundleSectionSelector', () => {
     expect(onCustomizationChange).toHaveBeenCalledWith('main', 'burger', { selectedIngredients: [] });
     expect(onCustomizationChange).toHaveBeenCalledWith('main', 'burger', { ingredientQuantities: { cheese: 0 } });
   });
+
+  it('flattens the fixed one-item Plat and exposes its child customization without a picker', () => {
+    const fixedPlat: MenuSection = { ...section, name: 'Plat', items: [section.items[0]] };
+    const selectedOptions = [
+      {
+        sectionId: 'main',
+        itemId: 'burger',
+        quantity: 1,
+        selectedIngredients: ['cheese'],
+        ingredientQuantities: { cheese: 1 },
+      },
+    ];
+
+    render(<BundleSectionSelector {...props({ section: fixedPlat, selectedOptions })} />);
+
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'customize' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Cheese/ })).toBeChecked();
+  });
+
+  it('keeps a genuinely multi-choice Plat as a picker (P3 negative control)', () => {
+    const multiChoicePlat: MenuSection = { ...section, name: 'Plat' };
+
+    render(<BundleSectionSelector {...props({ section: multiChoicePlat })} />);
+
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    expect(screen.queryByRole('checkbox', { name: /Cheese/ })).not.toBeInTheDocument();
+  });
 });

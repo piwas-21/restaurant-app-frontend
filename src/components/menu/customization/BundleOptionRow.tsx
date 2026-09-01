@@ -24,6 +24,9 @@ interface BundleOptionRowProps {
   onToggle: () => void;
   onToggleExpanded: () => void;
   onCustomizationChange: (patch: Partial<SelectedMenuOption>) => void;
+  /** A required one-option `Plat` stays in the payload but needs no radio or disclosure. */
+  hideSelectionControl?: boolean;
+  showCustomizationInline?: boolean;
 }
 
 /**
@@ -43,11 +46,14 @@ export default function BundleOptionRow({
   onToggle,
   onToggleExpanded,
   onCustomizationChange,
+  hideSelectionControl = false,
+  showCustomizationInline = false,
 }: Readonly<BundleOptionRowProps>) {
   const { t } = useTranslation();
 
   const ingredients = item.detailedIngredients ?? [];
   const canCustomize = isSelected && ingredients.length > 0;
+  const customizationIsVisible = canCustomize && (showCustomizationInline || isExpanded);
   const panelId = `bundle-option-panel-${sectionId}-${item.productId}`;
 
   const ingredientSummary = ingredients.length
@@ -56,32 +62,47 @@ export default function BundleOptionRow({
 
   return (
     <div className={styles.option}>
-      <label className={`${styles.row} ${isSelected ? styles.selected : ''} ${isDisabled ? styles.disabled : ''}`}>
-        <input
-          type={inputType}
-          name={`bundle-section-${sectionId}`}
-          checked={isSelected}
-          onChange={onToggle}
-          disabled={isDisabled}
-          className={styles.input}
-        />
-        <div className={styles.details}>
-          <div className={styles.header}>
-            <span className={styles.name}>{item.productName}</span>
-            {item.additionalPrice > 0 && (
-              <span className={styles.price}>+{formatPlainCurrency(item.additionalPrice)}</span>
+      {hideSelectionControl ? (
+        <div className={`${styles.row} ${styles.selected}`}>
+          <div className={styles.details}>
+            <div className={styles.header}>
+              <span className={styles.name}>{item.productName}</span>
+              {item.additionalPrice > 0 && (
+                <span className={styles.price}>+{formatPlainCurrency(item.additionalPrice)}</span>
+              )}
+            </div>
+            {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
+            {item.allergens && item.allergens.length > 0 && (
+              <AllergenDisplay allergens={item.allergens} variant="compact" maxVisible={5} showLabel={false} />
             )}
           </div>
-
-          {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
-
-          {item.allergens && item.allergens.length > 0 && (
-            <AllergenDisplay allergens={item.allergens} variant="compact" maxVisible={5} showLabel={false} />
-          )}
         </div>
-      </label>
+      ) : (
+        <label className={`${styles.row} ${isSelected ? styles.selected : ''} ${isDisabled ? styles.disabled : ''}`}>
+          <input
+            type={inputType}
+            name={`bundle-section-${sectionId}`}
+            checked={isSelected}
+            onChange={onToggle}
+            disabled={isDisabled}
+            className={styles.input}
+          />
+          <div className={styles.details}>
+            <div className={styles.header}>
+              <span className={styles.name}>{item.productName}</span>
+              {item.additionalPrice > 0 && (
+                <span className={styles.price}>+{formatPlainCurrency(item.additionalPrice)}</span>
+              )}
+            </div>
+            {ingredientSummary && <div className={styles.ingredients}>{ingredientSummary}</div>}
+            {item.allergens && item.allergens.length > 0 && (
+              <AllergenDisplay allergens={item.allergens} variant="compact" maxVisible={5} showLabel={false} />
+            )}
+          </div>
+        </label>
+      )}
 
-      {canCustomize && (
+      {canCustomize && !showCustomizationInline && (
         <button
           type="button"
           className={styles.customizeButton}
@@ -93,7 +114,7 @@ export default function BundleOptionRow({
         </button>
       )}
 
-      {canCustomize && isExpanded && (
+      {customizationIsVisible && (
         <div className={styles.panel} id={panelId}>
           <OptionalIngredientsSection
             ingredients={ingredients}

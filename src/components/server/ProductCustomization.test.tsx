@@ -152,3 +152,37 @@ describe('ProductCustomization — a sheet that could not load says why', () => 
     expect(getProductById).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('ProductCustomization — typed side groups', () => {
+  it('uses the same named beverage, dessert, and accompaniment partitions as the guest sheet', async () => {
+    (getProductById as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      data: {
+        id: 'p1',
+        name: 'Plate',
+        basePrice: 8,
+        variations: [],
+        detailedIngredients: [],
+        suggestedSideItems: [
+          { id: 'cola', name: 'Cola', price: 2, type: 'beverage', isRequired: false, displayOrder: 1 },
+          { id: 'baklava', name: 'Baklava', price: 3, type: 'dessert', isRequired: false, displayOrder: 2 },
+          { id: 'fries', name: 'Fries', price: 2, type: 'sideItem', isRequired: false, displayOrder: 3 },
+        ],
+        allergens: [],
+      },
+    });
+
+    render(
+      <ProductCustomization
+        product={{ id: 'p1', name: 'Plate', basePrice: 8 } as never}
+        isOpen
+        onClose={jest.fn()}
+        onConfirm={jest.fn()}
+      />,
+    );
+
+    expect(await screen.findByText('suggested_side_group_beverages')).toBeInTheDocument();
+    expect(screen.getByText('suggested_side_group_desserts')).toBeInTheDocument();
+    expect(screen.getByText('suggested_side_group_accompaniments')).toBeInTheDocument();
+  });
+});

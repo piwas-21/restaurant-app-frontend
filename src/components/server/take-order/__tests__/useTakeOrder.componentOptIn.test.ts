@@ -26,12 +26,13 @@ beforeEach(() => {
   mockGetProducts.mockResolvedValue({ success: true, data: { items: [] } });
 });
 
-describe('useTakeOrder never asks for option-only items', () => {
-  it('sends no product-type query, so the server keeps components out of the waiter list', async () => {
+describe('useTakeOrder asks for menu parents but never option-only components', () => {
+  it('asks for menu parents without exposing components as standalone dishes', async () => {
     renderHook(() => useTakeOrder({ tableNumber: '12', onClose: jest.fn(), onOrderCreated: jest.fn() }));
 
     await waitFor(() => expect(mockGetProducts).toHaveBeenCalled());
-    expect(mockGetProducts.mock.calls[0][3]).toBeUndefined();
+    expect(mockGetProducts.mock.calls[0][3]).toEqual({ includeMenus: true });
+    expect(mockGetProducts.mock.calls[0][3]).not.toHaveProperty('includeComponents');
   });
 
   it('still sends none after a category is chosen', async () => {
@@ -45,6 +46,7 @@ describe('useTakeOrder never asks for option-only items', () => {
     await waitFor(() => expect(mockGetProducts.mock.calls.length).toBeGreaterThan(1));
     const last = mockGetProducts.mock.calls.length - 1;
     expect(mockGetProducts.mock.calls[last][2]).toBe('cat-1');
-    expect(mockGetProducts.mock.calls[last][3]).toBeUndefined();
+    expect(mockGetProducts.mock.calls[last][3]).toEqual({ includeMenus: true });
+    expect(mockGetProducts.mock.calls[last][3]).not.toHaveProperty('includeComponents');
   });
 });

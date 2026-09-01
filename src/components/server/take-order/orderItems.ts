@@ -9,6 +9,9 @@
  */
 import { Product } from '@/services/serverService';
 import { CreateOrderItemDto } from '@/types/order';
+import type { BundleOrderSelection } from './bundleOrderItems';
+import { buildBundleChildItems } from './bundleOrderItems';
+export { mapMenuProducts } from './menuProductMapper';
 import { CustomizationResult } from '../ProductCustomization';
 
 export interface OrderItem {
@@ -27,44 +30,9 @@ export interface OrderItem {
   selectedIngredientIds?: string[];
   ingredientQuantities?: Record<string, number>;
   sideItems?: Array<{ id: string; name: string; quantity: number; price: number }>;
+  /** A menu parent is still a ProductId on the staff endpoint; its selections become child rows. */
+  bundle?: BundleOrderSelection;
   unitPrice: number;
-}
-
-/**
- * The `/api/Products` payload carries the server-flow fields (type, categories,
- * primaryCategoryId, variations) that the admin menu-management `Product` type
- * used by `getProducts` omits, which is why the original code reached for `any`.
- * Describe just the fields this flow reads and cast once here.
- */
-interface RawMenuProduct {
-  id: string;
-  name: string;
-  description?: string;
-  basePrice: number;
-  isActive: boolean;
-  isAvailable: boolean;
-  type: string;
-  categories?: NonNullable<Product['categories']>;
-  primaryCategoryId?: string;
-  imageUrl?: string;
-  variations?: NonNullable<Product['variations']>;
-}
-
-/** Project the raw paginated `/api/Products` items onto the server `Product` type. */
-export function mapMenuProducts(items: readonly unknown[]): Product[] {
-  return (items as RawMenuProduct[]).map((p) => ({
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    basePrice: p.basePrice,
-    isActive: p.isActive,
-    isAvailable: p.isAvailable,
-    type: p.type,
-    categories: p.categories,
-    primaryCategoryId: p.primaryCategoryId,
-    imageUrl: p.imageUrl,
-    variations: p.variations,
-  }));
 }
 
 /**
@@ -187,22 +155,37 @@ export function addCustomizedItem(prev: OrderItem[], product: Product, result: C
  * `linePrice.ts` port of the server's own rule, not from a second POS arithmetic.
  */
 export function buildOrderItems(items: readonly OrderItem[]): CreateOrderItemDto[] {
-  return items.map((item) => ({
-    productId: item.product.id,
-    productVariationId: item.variationId,
-    quantity: item.quantity,
-    unitPrice: item.unitPrice,
-    specialInstructions: item.notes,
-    selectedIngredientIds: item.selectedIngredientIds ?? [],
-    ingredientQuantities: item.ingredientQuantities,
-    // Omitted, not sent as `[]`, so a line with no sides posts exactly the body it always did.
-    childItems: item.sideItems?.length
-      ? item.sideItems.map((side) => ({
-          productId: side.id,
-          quantity: side.quantity,
-          unitPrice: side.price,
-          kind: 'SideItem' as const,
-        }))
-      : undefined,
-  }));
+  return items.map((item) => {
+    const children = item.bundle ? buildBundleChildItems(item.bundle, item.quantity) : undefined;
+    if (children) {
+      // Do not put an ingredient selection on the bundle parent: its declared price is the shared
+      // bundle roll-up, while child selections create the frozen kitchen snapshots.
+      return {
+        productId: item.product.id,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        specialInstructions: item.notes,
+        childItems: children,
+      };
+    }
+
+    return {
+      productId: item.product.id,
+      productVariationId: item.variationId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      specialInstructions: item.notes,
+      selectedIngredientIds: item.selectedIngredientIds ?? [],
+      ingredientQuantities: item.ingredientQuantities,
+      // Omitted, not sent as `[]`, so a line with no sides posts exactly the body it always did.
+      childItems: item.sideItems?.length
+        ? item.sideItems.map((side) => ({
+            productId: side.id,
+            quantity: side.quantity,
+            unitPrice: side.price,
+            kind: 'SideItem' as const,
+          }))
+        : undefined,
+    };
+  });
 }

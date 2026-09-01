@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "Opening windows overlap on {{day}}",
   "at_least_one_opening_window": "{{day}} is open, so it needs at least one window",
   "too_many_opening_windows": "At most {{max}} opening windows on {{day}}",
-  "pwa_install_title": "Add to your home screen",
-  "pwa_install_body": "Install our app for faster ordering. No app store needed.",
-  "pwa_install_action": "Install",
-  "pwa_install_ios_action": "Add to Home Screen",
-  "pwa_install_dismiss": "Not now",
-  "pwa_install_close_aria": "Dismiss the install banner",
   "pwa_install_ios_title": "Add to your home screen",
-  "pwa_install_ios_step_share": "Tap the Share button in your browser's toolbar.",
+  "pwa_install_ios_step_share": "Open the Share or ⋮ menu in your browser.",
   "pwa_install_ios_step_add": "Choose “Add to Home Screen”.",
   "pwa_install_ios_step_confirm": "Tap “Add” to confirm.",
   "pwa_install_ios_done": "Got it",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Our-story text",
   "landing_save_success": "Landing page saved",
   "landing_save_failed": "Failed to save the landing page",
-  "pwa_install_dont_ask": "Don't show again"
+  "nav_install_app": "Install app"
 }

@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Share, Plus, Check } from 'lucide-react';
 import BaseModal from '@/components/design-system/BaseModal';
-import styles from './PwaInstallPrompt.module.css';
+import styles from './PwaIosInstallModal.module.css';
 
 interface PwaIosInstallModalProps {
   isOpen: boolean;

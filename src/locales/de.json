@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "Die Öffnungsfenster am {{day}} überschneiden sich",
   "at_least_one_opening_window": "{{day}} ist geöffnet und braucht daher mindestens ein Zeitfenster",
   "too_many_opening_windows": "Höchstens {{max}} Öffnungsfenster am {{day}}",
-  "pwa_install_title": "Zum Startbildschirm hinzufügen",
-  "pwa_install_body": "Installieren Sie unsere App für schnelleres Bestellen. Ohne App Store.",
-  "pwa_install_action": "Installieren",
-  "pwa_install_ios_action": "Zum Home-Bildschirm",
-  "pwa_install_dismiss": "Jetzt nicht",
-  "pwa_install_close_aria": "Installationshinweis schließen",
   "pwa_install_ios_title": "Zum Startbildschirm hinzufügen",
-  "pwa_install_ios_step_share": "Tippen Sie in der Symbolleiste Ihres Browsers auf „Teilen“.",
+  "pwa_install_ios_step_share": "Öffnen Sie das Teilen- oder ⋮-Menü in Ihrem Browser.",
   "pwa_install_ios_step_add": "Wählen Sie „Zum Home-Bildschirm“.",
   "pwa_install_ios_step_confirm": "Tippen Sie zur Bestätigung auf „Hinzufügen“.",
   "pwa_install_ios_done": "Verstanden",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Geschichtentext",
   "landing_save_success": "Startseite gespeichert",
   "landing_save_failed": "Startseite konnte nicht gespeichert werden",
-  "pwa_install_dont_ask": "Nicht wieder anzeigen"
+  "nav_install_app": "App installieren"
 }

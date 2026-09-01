@@ -1,0 +1,50 @@
+/* The iOS instruction sheet's own stylesheet. It used to share the retired install
+   banner's module (PwaInstallPrompt.module.css, deleted with the banner); the classes
+   below carry over exactly the rules the sheet actually used from it. */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.stepIcon {
+  flex: 0 0 auto;
+  color: var(--brand-primary);
+}
+
+.button {
+  padding-block: 0.6rem;
+  padding-inline: 1.2rem;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button.primary {
+  border: none;
+  background: var(--brand-primary);
+  color: var(--text-on-primary);
+}
+
+.button.primary:hover:not(:disabled) {
+  background: var(--brand-primary-hover);
+}
+
+.blockButton {
+  width: 100%;
+}

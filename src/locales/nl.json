@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "De openingstijdvakken op {{day}} overlappen elkaar",
   "at_least_one_opening_window": "{{day}} is open en heeft dus minstens één tijdvak nodig",
   "too_many_opening_windows": "Hoogstens {{max}} openingstijdvakken op {{day}}",
-  "pwa_install_title": "Toevoegen aan beginscherm",
-  "pwa_install_body": "Installeer onze app om sneller te bestellen. Geen appstore nodig.",
-  "pwa_install_action": "Installeren",
-  "pwa_install_ios_action": "Toevoegen aan beginscherm",
-  "pwa_install_dismiss": "Niet nu",
-  "pwa_install_close_aria": "Installatiebanner sluiten",
   "pwa_install_ios_title": "Toevoegen aan beginscherm",
-  "pwa_install_ios_step_share": "Tik op de deelknop in de werkbalk van je browser.",
+  "pwa_install_ios_step_share": "Open het deel- of ⋮-menu van je browser.",
   "pwa_install_ios_step_add": "Kies ‘Zet op beginscherm’.",
   "pwa_install_ios_step_confirm": "Tik op ‘Voeg toe’ om te bevestigen.",
   "pwa_install_ios_done": "Begrepen",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Tekst van ons verhaal",
   "landing_save_success": "Startpagina opgeslagen",
   "landing_save_failed": "Opslaan van de startpagina is mislukt",
-  "pwa_install_dont_ask": "Niet meer tonen"
+  "nav_install_app": "App installeren"
 }

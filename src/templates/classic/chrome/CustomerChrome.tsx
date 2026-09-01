@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { useTheme } from '@/components/ThemeContext';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { usePathname } from 'next/navigation';
+import InstallAppMenuEntry from '@/components/pwa/InstallAppMenuEntry';
 import navStyles from '@/app/styles/Header.module.css';
 import CookieConsentBanner from '@/components/CookieConsentBanner';
 import CookieSettingsModal from '@/components/CookieSettingsModal';
@@ -134,6 +135,7 @@ export default function CustomerChrome({ children }: Readonly<{ children: React.
               />
               <nav className={`${navStyles.navLinksContainer} ${mobileMenuOpen ? navStyles.mobileMenuOpen : ''}`}>
                 <RoleNavLinks onNavigate={closeMobileMenu} />
+                <InstallAppMenuEntry onActivate={closeMobileMenu} />
                 {isClient && !isLoading && (
                   <>
                     {user ? (

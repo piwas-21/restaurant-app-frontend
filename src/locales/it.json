@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "Le fasce di apertura di {{day}} si sovrappongono",
   "at_least_one_opening_window": "{{day}} è aperto, quindi serve almeno una fascia",
   "too_many_opening_windows": "Al massimo {{max}} fasce di apertura di {{day}}",
-  "pwa_install_title": "Aggiungi alla schermata Home",
-  "pwa_install_body": "Installa la nostra app per ordinare più in fretta. Nessuno store richiesto.",
-  "pwa_install_action": "Installa",
-  "pwa_install_ios_action": "Aggiungi alla schermata Home",
-  "pwa_install_dismiss": "Non ora",
-  "pwa_install_close_aria": "Chiudi il banner di installazione",
   "pwa_install_ios_title": "Aggiungi alla schermata Home",
-  "pwa_install_ios_step_share": "Tocca il pulsante Condividi nella barra del tuo browser.",
+  "pwa_install_ios_step_share": "Apri il menu Condividi o ⋮ del tuo browser.",
   "pwa_install_ios_step_add": "Scegli «Aggiungi a Home».",
   "pwa_install_ios_step_confirm": "Tocca «Aggiungi» per confermare.",
   "pwa_install_ios_done": "Ho capito",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Testo della nostra storia",
   "landing_save_success": "Pagina iniziale salvata",
   "landing_save_failed": "Salvataggio della pagina iniziale non riuscito",
-  "pwa_install_dont_ask": "Non mostrare più"
+  "nav_install_app": "Installa app"
 }

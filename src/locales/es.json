@@ -2922,14 +2922,8 @@
   "opening_windows_overlap": "Las franjas de apertura del {{day}} se solapan",
   "at_least_one_opening_window": "{{day}} está abierto, así que necesita al menos una franja",
   "too_many_opening_windows": "Como máximo {{max}} franjas de apertura el {{day}}",
-  "pwa_install_title": "Añadir a la pantalla de inicio",
-  "pwa_install_body": "Instala nuestra app para pedir más rápido. Sin tienda de aplicaciones.",
-  "pwa_install_action": "Instalar",
-  "pwa_install_ios_action": "Añadir a la pantalla de inicio",
-  "pwa_install_dismiss": "Ahora no",
-  "pwa_install_close_aria": "Cerrar el aviso de instalación",
   "pwa_install_ios_title": "Añadir a la pantalla de inicio",
-  "pwa_install_ios_step_share": "Toca el botón Compartir en la barra de tu navegador.",
+  "pwa_install_ios_step_share": "Abre el menú Compartir o ⋮ de tu navegador.",
   "pwa_install_ios_step_add": "Elige «Añadir a inicio».",
   "pwa_install_ios_step_confirm": "Toca «Añadir» para confirmar.",
   "pwa_install_ios_done": "Entendido",
@@ -2952,5 +2946,5 @@
   "landing_story_body": "Texto de nuestra historia",
   "landing_save_success": "Página de inicio guardada",
   "landing_save_failed": "No se pudo guardar la página de inicio",
-  "pwa_install_dont_ask": "No mostrar de nuevo"
+  "nav_install_app": "Instalar aplicación"
 }

@@ -400,9 +400,11 @@ describe('menu card call sites', () => {
     //   · price beside the button in the foot (here)    ⇒ the BUTTON gives again
     // The invariant across all three is the only thing that was ever really fixed: a truncated
     // price is a WRONG price, so the price never shrinks and never wraps.
-    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('flex-shrink: 0');
-    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('white-space: nowrap');
-    expect(block('MenuCardFoot.module.css', '.footAction')).toContain('min-width: 0');
+    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('flex: 1 1 auto');
+    expect(block('MenuCardFoot.module.css', '.footPrice')).toContain('min-inline-size: 0');
+    expect(block('MenuCardFoot.module.css', '.priceValue')).toContain('flex-shrink: 0');
+    expect(block('MenuCardFoot.module.css', '.priceValue')).toContain('white-space: nowrap');
+    expect(block('MenuCardFoot.module.css', '.footAction')).toContain('flex: 0 0 auto');
   });
 
   it('outlines the add button in the brand, and lifts only the DARK label off it', () => {

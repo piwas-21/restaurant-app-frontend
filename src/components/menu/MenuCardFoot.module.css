@@ -35,20 +35,26 @@
 }
 
 /* `font-price-tag text-price-tag` — Public Sans 1rem/1/600, tabular so a column of prices aligns
-   down the grid. `min-width: 0` and the price still never shrinks: it is the ACTION that yields,
-   because a truncated price is a wrong price. */
+   down the grid. Only the numeric price is non-shrinking; an admin-only explanation yields or
+   wraps so it cannot push the customer Add action outside the card. */
 .footPrice {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1 1 auto;
+  min-inline-size: 0;
   font-family: var(--font-family-sans);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+}
+
+/* The price must remain whole, while an admin-only explanation may yield to the Add action. */
+.priceValue {
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* The action end of the row. Holds the Add button on an orderable card and, on a blocked one, the
@@ -66,7 +72,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  /* Yields to the price. */
+  /* Reserving its intrinsic size keeps Add inside the card when an admin-only explanation is long. */
+  flex: 0 0 auto;
   min-width: 0;
 }
 

@@ -80,7 +80,7 @@ export function useProductCustomizationSheet({
 
   // Seed the selections from whatever just arrived (and clear them when nothing did).
   useEffect(() => {
-    seedFromBaseRecipe(allIngredients);
+    seedFromBaseRecipe(allIngredients, detail?.sauceMax);
     setSpecialInstructions('');
     setQuantity(1);
     // Required side items are pre-ticked: the guest is getting them either way.
@@ -181,6 +181,8 @@ export function useProductCustomizationSheet({
     ingredientQuantities: ingredientSelection.ingredientQuantities,
     toggleIngredient: ingredientSelection.toggleIngredient,
     stepIngredient: ingredientSelection.stepIngredient,
+    sauceMax: detail?.sauceMax ?? null,
+    isSauceGroupFull: ingredientSelection.isSauceGroupFull,
     selectedSideItems,
     toggleSideItem,
     specialInstructions,

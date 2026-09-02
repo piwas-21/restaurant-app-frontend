@@ -2946,5 +2946,21 @@
   "landing_story_body": "نص قصتنا",
   "landing_save_success": "تم حفظ الصفحة الرئيسية",
   "landing_save_failed": "فشل حفظ الصفحة الرئيسية",
-  "nav_install_app": "تثبيت التطبيق"
+  "nav_install_app": "تثبيت التطبيق",
+  "step_review": "راجع اختياراتك",
+  "step_drinks": "أضف مشروبًا",
+  "step_back": "الخطوة السابقة",
+  "step_progress": "خطوات التخصيص",
+  "step_n_of_m": "الخطوة {{current}} من {{total}}: {{title}}",
+  "step_done": "مكتملة",
+  "step_continue": "متابعة",
+  "step_skip": "تخطي",
+  "step_nothing_selected": "لا شيء",
+  "step_change": "تغيير",
+  "step_change_named": "تغيير {{title}}",
+  "step_blocked_variation": "الرجاء اختيار خيار للمتابعة.",
+  "step_blocked_sauces": "الرجاء اختيار الصلصات المطلوبة للمتابعة.",
+  "step_blocked_section": "الرجاء إجراء الاختيار المطلوب للمتابعة.",
+  "step_sides": "الأطباق الجانبية والمشروبات",
+  "step_drinks_hint": "يُضاف كعنصر مستقل في سلتك."
 }

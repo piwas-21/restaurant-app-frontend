@@ -2946,5 +2946,21 @@
   "landing_story_body": "Текст истории",
   "landing_save_success": "Главная страница сохранена",
   "landing_save_failed": "Не удалось сохранить главную страницу",
-  "nav_install_app": "Установить приложение"
+  "nav_install_app": "Установить приложение",
+  "step_review": "Проверьте выбор",
+  "step_drinks": "Добавить напиток",
+  "step_back": "Предыдущий шаг",
+  "step_progress": "Шаги настройки",
+  "step_n_of_m": "Шаг {{current}} из {{total}}: {{title}}",
+  "step_done": "готово",
+  "step_continue": "Продолжить",
+  "step_skip": "Пропустить",
+  "step_nothing_selected": "Нет",
+  "step_change": "Изменить",
+  "step_change_named": "Изменить: {{title}}",
+  "step_blocked_variation": "Выберите вариант, чтобы продолжить.",
+  "step_blocked_sauces": "Выберите необходимые соусы, чтобы продолжить.",
+  "step_blocked_section": "Сделайте обязательный выбор, чтобы продолжить.",
+  "step_sides": "Гарниры и напитки",
+  "step_drinks_hint": "Добавляется в корзину отдельной позицией."
 }

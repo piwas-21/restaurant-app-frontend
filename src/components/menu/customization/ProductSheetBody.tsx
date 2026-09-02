@@ -1,24 +1,34 @@
 'use client';
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import AllergenDisplay from '@/components/common/AllergenDisplay';
 import VariationsSection from './VariationsSection';
 import OptionalIngredientsSection from './OptionalIngredientsSection';
+import SauceGroupSection from './SauceGroupSection';
 import SuggestedSideItemsSection from './SuggestedSideItemsSection';
-import SpecialRequestSection from './SpecialRequestSection';
+import { toSauceGroupRule } from '@/utils/sauceGroup';
+import type { CustomizationStep } from '@/utils/customizationSteps';
 import type { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
-import styles from './ProductSheetBody.module.css';
 
 export type ProductSheetController = ReturnType<typeof useItemCustomizationSheet>;
 
+interface ProductSheetBodyProps {
+  controller: ProductSheetController;
+  /** The step on screen. The body renders exactly one — the flow decides which. */
+  step: CustomizationStep;
+  /** Announces that a single-choice step has been answered, so the flow may advance itself. */
+  onChoice: () => void;
+}
+
 /**
- * The single-product body of `ItemCustomizationSheet` — variations, ingredients, suggested sides and
- * a special request. Extracted verbatim from the sheet when the bundle body joined it (menu-bundles
- * redesign #175, slice 6).
+ * The single-product body of `ItemCustomizationSheet`, as one step at a time
+ * (MENU-CUSTOMIZATION-FLOW-PLAN §3).
+ *
+ * The sections themselves are untouched — same components, same handlers, same payload. What
+ * changed is that they no longer share a viewport, which is what removes the trade the old layout
+ * was stuck with: it collapsed sauces and every side group by default to keep "Add" above the fold,
+ * and paid for it in choices the guest never saw existed.
  */
-export default function ProductSheetBody({ controller }: Readonly<{ controller: ProductSheetController }>) {
-  const { t } = useTranslation();
+export default function ProductSheetBody({ controller, step, onChoice }: Readonly<ProductSheetBodyProps>) {
   const {
     product,
     title,
@@ -31,63 +41,85 @@ export default function ProductSheetBody({ controller }: Readonly<{ controller: 
     setIngredientQuantities,
     selectedSideItems,
     setSelectedSideItems,
-    specialInstructions,
-    setSpecialInstructions,
   } = controller;
 
   if (!product) return null;
 
-  return (
-    <>
-      {product.allergens && product.allergens.length > 0 && (
-        <AllergenDisplay allergens={product.allergens} variant="compact" maxVisible={8} />
-      )}
+  const onQuantityChange = (ingredientId: string, quantity: number) =>
+    setIngredientQuantities((previous) => ({ ...previous, [ingredientId]: quantity }));
 
-      {/* The last thing the retired `ProductDetailsModal` showed that the sheet did not. Everything
-          else it listed read-only — ingredients, allergens, variations with their prices, suggested
-          sides — the sections below render interactively. */}
-      {(product.preparationTimeMinutes ?? 0) > 0 && (
-        <p className={styles.preparationTime}>
-          {t('preparation_time')}: {product.preparationTimeMinutes} {t('minutes')}
-        </p>
-      )}
+  if (step.kind === 'variations') {
+    return (
+      <VariationsSection
+        variations={product.variations ?? []}
+        selectedVariationId={selectedVariationId}
+        onVariationChange={(variationId) => {
+          setSelectedVariationId(variationId);
+          onChoice();
+        }}
+        basePrice={product.basePrice}
+        currentLanguage={currentLanguage}
+        productName={title}
+        hideBaseProduct={product.hideBaseProduct}
+        headless
+      />
+    );
+  }
 
-      {product.variations && product.variations.length > 0 && (
-        <VariationsSection
-          variations={product.variations}
-          selectedVariationId={selectedVariationId}
-          onVariationChange={setSelectedVariationId}
-          basePrice={product.basePrice}
-          currentLanguage={currentLanguage}
-          productName={title}
-          hideBaseProduct={product.hideBaseProduct}
-        />
-      )}
+  if (step.kind === 'ingredients') {
+    return (
+      <OptionalIngredientsSection
+        ingredients={product.detailedIngredients ?? []}
+        selectedIngredients={selectedIngredients}
+        ingredientQuantities={ingredientQuantities}
+        onSelectionChange={setSelectedIngredients}
+        onQuantityChange={onQuantityChange}
+        currentLanguage={currentLanguage}
+        sauceGroup={product}
+        headless
+        // Sauces are their own step here. Left on, the group would render in BOTH steps at once and
+        // each copy could undo the other's selection.
+        includeSauces={false}
+      />
+    );
+  }
 
-      {product.detailedIngredients && product.detailedIngredients.length > 0 && (
-        <OptionalIngredientsSection
-          ingredients={product.detailedIngredients}
-          selectedIngredients={selectedIngredients}
-          ingredientQuantities={ingredientQuantities}
-          onSelectionChange={setSelectedIngredients}
-          onQuantityChange={(ingredientId, qty) =>
-            setIngredientQuantities((prev) => ({ ...prev, [ingredientId]: qty }))
-          }
-          currentLanguage={currentLanguage}
-          sauceGroup={product}
-        />
-      )}
+  if (step.kind === 'sauces') {
+    return (
+      <SauceGroupSection
+        ingredients={product.detailedIngredients ?? []}
+        rule={toSauceGroupRule(product)}
+        selectedIngredients={selectedIngredients}
+        ingredientQuantities={ingredientQuantities}
+        onSelectionChange={(selected) => {
+          setSelectedIngredients(selected);
+          // Not when a chosen sauce still has a quantity to set: its stepper renders only while the
+          // row is selected, so advancing would carry the guest past a control that just appeared.
+          if (!selected.some((id) => hasQuantityStepper(product.detailedIngredients ?? [], id))) onChoice();
+        }}
+        onQuantityChange={onQuantityChange}
+        currentLanguage={currentLanguage}
+        variant="plain"
+      />
+    );
+  }
 
-      {product.suggestedSideItems && product.suggestedSideItems.length > 0 && (
-        <SuggestedSideItemsSection
-          sideItems={product.suggestedSideItems}
-          selectedSideItems={selectedSideItems}
-          onSelectionChange={setSelectedSideItems}
-          currentLanguage={currentLanguage}
-        />
-      )}
+  if (step.kind === 'sides') {
+    return (
+      <SuggestedSideItemsSection
+        sideItems={product.suggestedSideItems ?? []}
+        selectedSideItems={selectedSideItems}
+        onSelectionChange={setSelectedSideItems}
+        currentLanguage={currentLanguage}
+        variant="plain"
+      />
+    );
+  }
 
-      <SpecialRequestSection specialInstructions={specialInstructions} onInstructionsChange={setSpecialInstructions} />
-    </>
-  );
+  return null;
+}
+
+/** A selected row shows a stepper only above `maxQuantity` 1 — and only while it is selected. */
+function hasQuantityStepper(ingredients: readonly { id: string; maxQuantity?: number }[], id: string): boolean {
+  return (ingredients.find((ingredient) => ingredient.id === id)?.maxQuantity ?? 1) > 1;
 }

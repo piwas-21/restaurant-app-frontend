@@ -2,25 +2,23 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Minus } from 'lucide-react';
-import { formatPlainCurrency } from '@/utils/currency';
 import BaseModal from '@/components/design-system/BaseModal';
-import ProductSheetBody, { type ProductSheetController } from '@/components/menu/customization/ProductSheetBody';
-import BundleSheetBody, { type BundleSheetController } from '@/components/menu/customization/BundleSheetBody';
-import MenuCardAvailability from '@/components/menu/MenuCardAvailability';
+import SheetIntro from '@/components/menu/customization/SheetIntro';
+import SheetStepProgress from '@/components/menu/customization/SheetStepProgress';
+import SheetStepPanel from '@/components/menu/customization/SheetStepPanel';
+import SheetStepContent from '@/components/menu/customization/SheetStepContent';
+import SheetFooter from '@/components/menu/customization/SheetFooter';
+import SheetBlockedFooter from '@/components/menu/customization/SheetBlockedFooter';
+import SpecialRequestSection from '@/components/menu/customization/SpecialRequestSection';
 import { useItemAvailabilityNotice } from '@/hooks/menu/useItemAvailabilityNotice';
+import { useSheetFlow, type SheetController } from '@/hooks/menu/useSheetFlow';
+import type { DrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
+import { stepLabel } from '@/components/menu/customization/stepLabel';
 import type { OrderType } from '@/types/order';
 import styles from './ItemCustomizationSheet.module.css';
 
-export type SheetController = ProductSheetController | BundleSheetController;
+export type { SheetController };
 
-/**
- * The single customer customization surface (menu-bundles redesign #175, slice 6) — a `BaseModal`
- * sheet that replaces `CustomizationModal`, `ProductDetailsModal` and `MenuCustomizationModal`.
- * One chrome (title, description, sticky quantity + live-priced "Add • CHF X" footer) over a body
- * that varies by `controller.kind`; both controllers price through the same backend-faithful
- * `useLinePrice`, so a product line and a bundle line can never drift apart again.
- */
 interface ItemCustomizationSheetProps {
   controller: SheetController;
   /**
@@ -28,21 +26,41 @@ interface ItemCustomizationSheetProps {
    * page's `useOrderTypeFollowUp().pickType`, so the follow-up modal actually opens.
    */
   onSwitchOrderType?: (type: OrderType) => void;
+  /**
+   * The page's shared drinks upsell (§3.4). Passed as a prop rather than carried on the controller:
+   * it never enters `useLinePrice`, and it produces its own basket lines rather than customizing
+   * this one — so it is the sheet's chrome, not the line's state.
+   */
+  drinks?: DrinkUpsell;
 }
 
+/**
+ * The single customer customization surface — a `BaseModal` holding the guided flow
+ * (MENU-CUSTOMIZATION-FLOW-PLAN). One chrome (title, item context, progress bar, live-priced
+ * footer) over a body that varies by `controller.kind`; both controllers price through the same
+ * backend-faithful `useLinePrice`, so a product line and a bundle line can never drift apart.
+ *
+ * **The flow is conditional.** An item with one decision renders that decision and an Add button —
+ * no progress bar, no Continue, no review — because a wizard around a single size picker is pure
+ * friction. Everything below keys off `flow.steps.length`, which is what makes that true.
+ */
 export default function ItemCustomizationSheet({
   controller,
   onSwitchOrderType,
+  drinks,
 }: Readonly<ItemCustomizationSheetProps>) {
   const { t } = useTranslation();
-  const { isOpen, title, description, quantity, setQuantity, linePrice, isSubmitting, addToCart, close } = controller;
+  const { isOpen, title, description, quantity, setQuantity, isSubmitting, addToCart, close } = controller;
+  const flow = useSheetFlow(controller, drinks);
+
+  // Narrowed once — the product branch's fields are read four times below.
+  const detail = controller.kind === 'product' ? controller.product : null;
 
   // The verdict the browse card resolved, handed over on open (§9.10). A product carries it in via
   // `OpenSheetOptions`; a combo carries its own, because the bundle the sheet opens on IS the browse
   // row (no re-fetch, so no second resolution that could disagree). Since §9.2 both are real
   // verdicts — before it, a blocked combo reached this footer with nothing to say and offered Add.
-  const availability =
-    controller.kind === 'product' ? controller.product?.availability : controller.bundle?.availability;
+  const availability = controller.kind === 'product' ? detail?.availability : controller.bundle?.availability;
   const notice = useItemAvailabilityNotice(availability);
 
   // The SERVER's verdict is the gate, not our ability to render a nice reason for it. The notice is
@@ -66,54 +84,31 @@ export default function ItemCustomizationSheet({
 
   if (!isOpen) return null;
 
-  // Blocked ⇒ the quantity stepper and "Add" are replaced outright by the reason and the way out.
-  // Not disabled: a disabled Add is a control that explains nothing (#208), and a stepper for a
+  const { step } = flow;
+  const isGuided = flow.steps.length > 1;
+
+  // Blocked ⇒ the whole action bar is replaced by the reason and the way out, on every step. Not
+  // disabled: a disabled Add is a control that explains nothing (#208), and a stepper for a
   // quantity that cannot be ordered is noise.
   const footer = isBlocked ? (
-    // `notice` can be absent here — blocked-with-nothing-to-say, the load window above. An empty
-    // footer for that instant beats an Add the server will refuse.
-    <div className={styles.footer}>
-      {notice && (
-        <MenuCardAvailability
-          notice={notice}
-          reasonId="sheet-availability-reason"
-          onSwitchOrderType={switchOrderTypeAndClose}
-          styles={styles}
-        />
-      )}
-    </div>
+    <SheetBlockedFooter
+      notice={notice}
+      onSwitchOrderType={switchOrderTypeAndClose}
+      styles={styles}
+      onContinue={flow.isLast ? undefined : flow.goNext}
+    />
   ) : (
-    <div className={styles.footer}>
-      <div className={styles.quantityStepper} aria-label={t('quantity')}>
-        <button
-          type="button"
-          className={styles.stepperButton}
-          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-          disabled={quantity <= 1}
-          aria-label={t('decrease_quantity', 'Decrease quantity')}
-        >
-          <Minus size={16} />
-        </button>
-        <span className={styles.quantityValue}>{quantity}</span>
-        <button
-          type="button"
-          className={styles.stepperButton}
-          onClick={() => setQuantity(quantity + 1)}
-          aria-label={t('increase_quantity', 'Increase quantity')}
-        >
-          <Plus size={16} />
-        </button>
-      </div>
-      <button type="button" className={styles.addButton} onClick={addToCart} disabled={isSubmitting}>
-        {/* The running total is ANNOUNCED (S6): ticking a paid sauce used to change this number in
-            silence, which is the one piece of the customization a screen-reader guest cannot see
-            coming. `aria-atomic` so the amount is read with its label, not as a bare number. */}
-        {t('add_to_order')} •{' '}
-        <span aria-live="polite" aria-atomic="true">
-          {formatPlainCurrency(linePrice.total)}
-        </span>
-      </button>
-    </div>
+    <SheetFooter
+      total={flow.total}
+      isLast={flow.isLast}
+      isSubmitting={isSubmitting}
+      quantity={quantity}
+      setQuantity={setQuantity}
+      onAdd={() => flow.addOrJumpToBlocker(addToCart)}
+      onContinue={flow.goNext}
+      isSkip={flow.isSkip}
+      blockedMessage={flow.showBlocker ? t(`step_blocked_${flow.blocker}`) : undefined}
+    />
   );
 
   return (
@@ -123,16 +118,50 @@ export default function ItemCustomizationSheet({
             `item_details_*` screens that show one are CRAFT designs, not classic, so they do not
             govern this surface; the lightbox already owns the photo from the card; and a hero would
             push the variations and the Add button below the fold at 390px. Settled — do not re-open. */}
-        {/* product-authored text: dir="auto" so an English name inside an Arabic page keeps its own punctuation (DESIGN-SYSTEM.md §8.2) */}
-        {description && (
-          <p dir="auto" className={styles.description}>
-            {description}
-          </p>
+        <SheetIntro
+          description={description}
+          allergens={detail?.allergens}
+          preparationTimeMinutes={detail?.preparationTimeMinutes}
+        />
+
+        {isGuided && (
+          <SheetStepProgress
+            steps={flow.steps}
+            index={flow.index}
+            furthest={flow.furthest}
+            onJump={flow.goTo}
+            onBack={flow.goBack}
+          />
         )}
-        {controller.kind === 'bundle' ? (
-          <BundleSheetBody controller={controller} />
-        ) : (
-          <ProductSheetBody controller={controller} />
+
+        {step && (
+          <SheetStepPanel
+            stepId={step.id}
+            direction={flow.direction}
+            title={stepLabel(step, t)}
+            isRequired={step.isRequired}
+            requiredLabel={t('required')}
+            steady={isGuided}
+          >
+            <SheetStepContent
+              controller={controller}
+              step={step}
+              reviewRows={flow.reviewRows}
+              onJump={flow.jumpToStep}
+              onChoice={flow.advanceAfterChoice}
+              drinks={drinks}
+            />
+          </SheetStepPanel>
+        )}
+
+        {/* Without a guided flow there is no review step to host it, and the note must not vanish
+            for the simple items that are most of the catalogue. With one, it lives on the review
+            step — asking for "no onions" before the guest has chosen anything is the wrong order. */}
+        {!isGuided && (
+          <SpecialRequestSection
+            specialInstructions={controller.specialInstructions}
+            onInstructionsChange={controller.setSpecialInstructions}
+          />
         )}
       </div>
     </BaseModal>

@@ -19,6 +19,21 @@ jest.mock('./useBundleCustomizationSheet', () => ({
   useBundleCustomizationSheet: () => ({ kind: 'bundle', openForBundle: mockOpenForBundle }),
 }));
 
+// The drinks upsell reaches the cart and the order-type contexts, neither of which this
+// provider-less suite mounts. It is exercised by its own tests; here it only has to exist.
+jest.mock('./useDrinkUpsell', () => ({
+  useDrinkUpsell: () => ({
+    drinks: [],
+    selected: {},
+    subtotal: 0,
+    add: jest.fn(),
+    remove: jest.fn(),
+    reset: jest.fn(),
+    addSelected: jest.fn().mockResolvedValue(undefined),
+    summary: () => [],
+  }),
+}));
+
 const BLOCKED: ItemAvailability = {
   canOrder: false,
   reason: 'WrongOrderType',

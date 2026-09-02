@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useItemCustomizationSheet } from '@/hooks/menu/useItemCustomizationSheet';
 import type { OpenSheetOptions } from '@/hooks/menu/sheetOptions';
 import { useBundleCustomizationSheet } from '@/hooks/menu/useBundleCustomizationSheet';
+import { useDrinkUpsell } from '@/hooks/menu/useDrinkUpsell';
 import type { CatalogItem, MenuBundleItem } from '@/types/menu';
 
 interface UseCatalogSheetArgs {
@@ -22,8 +23,17 @@ interface UseCatalogSheetArgs {
  * Only one sheet is ever open, so rendering both is safe — each returns null while closed.
  */
 export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {}) {
-  const bundle = useBundleCustomizationSheet({ onAdded });
-  const product = useItemCustomizationSheet({ onBundleDetected: bundle.openForBundle, onAdded });
+  // ONE upsell for both bodies (MENU-CUSTOMIZATION-FLOW-PLAN §3.4). It lives here rather than in
+  // either controller so the drinks list is fetched once for the page, and so neither controller
+  // learns about a second basket line: `onLineAdded` fires only after its own add was accepted, so
+  // a rejected line can never leave a lone drink behind.
+  const drinks = useDrinkUpsell();
+  const bundle = useBundleCustomizationSheet({ onAdded, onLineAdded: drinks.addSelected });
+  const product = useItemCustomizationSheet({
+    onBundleDetected: bundle.openForBundle,
+    onAdded,
+    onLineAdded: drinks.addSelected,
+  });
 
   // Depend on the individual openers, not the controller objects: each hook returns a fresh object
   // every render, so `[product]` would rebuild these callbacks every render and the memo would
@@ -84,5 +94,5 @@ export function useCatalogSheet({ findBundle, onAdded }: UseCatalogSheetArgs = {
     [openForBundle, findBundle, openForProductId],
   );
 
-  return { product, bundle, openForCatalogItem, openForProductId };
+  return { product, bundle, drinks, openForCatalogItem, openForProductId };
 }

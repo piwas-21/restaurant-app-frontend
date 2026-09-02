@@ -1,0 +1,117 @@
+/* The sheet's action bar. Every control here carries the same `--modal-body-*` craft hook with the
+   classic literal as its fallback that `ItemCustomizationSheet.module.css` established, so a skin
+   cannot end up with one un-skinned button in an otherwise skinned footer. */
+
+.footer {
+  position: relative; /* anchors the visually-hidden live region */
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.totalLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.blocked {
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--feedback-error-border);
+  border-radius: var(--modal-body-btn-radius, 10px);
+  background-color: var(--feedback-error-bg);
+  color: var(--feedback-error-text);
+  font-size: 0.85rem;
+}
+
+.quantityStepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: var(--modal-body-option-border, 1px solid var(--border-default));
+  border-radius: var(--modal-body-option-radius, 10px);
+  padding: 0.25rem 0.5rem;
+}
+
+.stepperButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.stepperButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quantityValue {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.primary {
+  flex: 1;
+  margin-inline-start: auto;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: var(--modal-body-btn-radius, 10px);
+  background: var(--brand-primary);
+  /* `--brand-on-primary` was never defined anywhere — the chain this replaces only worked by
+     fallback coincidence, so the classic value is spelled out. */
+  color: var(--modal-body-confirm-fg, var(--surface-primary));
+  font-family: var(--modal-body-btn-font, inherit);
+  font-weight: 700;
+  font-size: var(--modal-body-cta-size, 1rem);
+  box-shadow: var(--modal-body-btn-shadow, none);
+  cursor: pointer;
+}
+
+.primary:hover {
+  filter: brightness(0.96);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

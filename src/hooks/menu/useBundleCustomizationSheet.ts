@@ -18,6 +18,8 @@ import type { MenuBundleItem, MenuSection, SelectedMenuOption } from '@/types/me
 interface UseBundleCustomizationSheetArgs {
   /** Fired after a successful add — the menu page uses it to animate the cart button. */
   onAdded?: () => void;
+  /** Commits the drinks step's own basket lines, AFTER this line was accepted (§3.4). */
+  onLineAdded?: () => Promise<void>;
 }
 
 /**
@@ -29,7 +31,7 @@ interface UseBundleCustomizationSheetArgs {
  * No fetch on open: the bundle list payload already carries the full `menuDefinition` (sections →
  * items → per-option `DetailedIngredients`) the drill-in needs.
  */
-export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationSheetArgs = {}) {
+export function useBundleCustomizationSheet({ onAdded, onLineAdded }: UseBundleCustomizationSheetArgs = {}) {
   const { addItem } = useCart();
   const { i18n } = useTranslation();
   const { notifyItemAdded, notifyAddFailed } = useCartFeedback();
@@ -128,6 +130,8 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
         specialInstructions: specialInstructions || undefined,
         selectedMenuOptions: selectedOptions,
       });
+      // Strictly after: a rejected line must not leave a lone drink behind in the basket.
+      await onLineAdded?.();
       close();
       notifyItemAdded(title);
       onAdded?.();
@@ -144,6 +148,7 @@ export function useBundleCustomizationSheet({ onAdded }: UseBundleCustomizationS
     notifyAddFailed,
     notifyItemAdded,
     onAdded,
+    onLineAdded,
     quantity,
     selectedOptions,
     selectionErrors,

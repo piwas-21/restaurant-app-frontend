@@ -1,0 +1,139 @@
+/* The guided flow's orientation bar. Craft hooks follow this folder's convention: a
+   `--modal-body-*` custom property with the exact classic literal as its fallback, so the classic
+   build is byte-identical to a stylesheet that never mentioned the skin. */
+
+.bar {
+  position: relative; /* anchors the visually-hidden live region below */
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  /* Two token choices, both load-bearing. NOT `--modal-rule`: that is the modal SHELL's token and
+     `modalChrome.test.ts` pins BaseModal as its only consumer, so the shell's blast radius stays
+     "every modal". And NOT `--border-light`: only `--border-default` is redefined in the dark block
+     (#dddddd → #444444), so a hairline drawn from `--border-light` comes back as a bright white
+     rule on a near-black dialog. */
+  border-bottom: 1px solid var(--border-default);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--modal-body-btn-radius, 10px);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.back:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* One glyph for both writing directions — mirrored by the inline-axis sign token, never swapped for
+   a second icon, so "back" can never end up pointing the same way as "forward" in one of the two.
+   `scaleX(var(--dir))` is the shape DESIGN-SYSTEM.md §8.1 prescribes (Header.module.css sets the
+   precedent) and is byte-identical to no transform at all under ltr. */
+.back svg {
+  transform: scaleX(var(--dir, 1));
+}
+
+.track {
+  flex: 1;
+  min-width: 0;
+}
+
+.segments {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segmentItem {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The button is the TOUCH TARGET and paints nothing; `.rail` inside it is the hairline.
+   Separating them is load-bearing, not tidiness: globals.css forces `min-height: 44px` AND
+   `min-width: 44px` on every button under 768px, so a segment that was itself the rail inflated
+   into a 44px circle on the one viewport this redesign exists for. */
+.segment {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 1.5rem;
+  /* Overrides the same globals.css mobile rule DOWN to the WCAG 2.5.8 (AA) minimum of 24×24. Left
+     at 44px the segments cannot shrink, and a seven-step flow overflows the bar sideways at 390px —
+     44 × 7 plus gaps is wider than the dialog. */
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.segment:disabled {
+  cursor: default;
+}
+
+.rail {
+  display: block;
+  width: 100%;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: var(--border-default);
+  transition: background-color 0.25s ease;
+}
+
+.segment.done .rail,
+.segment.current .rail {
+  background: var(--brand-primary);
+}
+
+/* The one on screen is thicker, so "where am I" survives a monochrome or low-vision rendering
+   where the brand red and the hairline grey are hard to tell apart. */
+.segment.current .rail {
+  height: 0.45rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.counter {
+  flex: none;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.counterTotal {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail {
+    transition: none;
+  }
+}

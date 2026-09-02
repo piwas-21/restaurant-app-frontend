@@ -2946,5 +2946,21 @@
   "landing_story_body": "Geschichtentext",
   "landing_save_success": "Startseite gespeichert",
   "landing_save_failed": "Startseite konnte nicht gespeichert werden",
-  "nav_install_app": "App installieren"
+  "nav_install_app": "App installieren",
+  "step_review": "Auswahl prüfen",
+  "step_drinks": "Getränk hinzufügen",
+  "step_back": "Vorheriger Schritt",
+  "step_progress": "Schritte der Anpassung",
+  "step_n_of_m": "Schritt {{current}} von {{total}}: {{title}}",
+  "step_done": "erledigt",
+  "step_continue": "Weiter",
+  "step_skip": "Überspringen",
+  "step_nothing_selected": "Keine",
+  "step_change": "Ändern",
+  "step_change_named": "{{title}} ändern",
+  "step_blocked_variation": "Bitte wählen Sie eine Option, um fortzufahren.",
+  "step_blocked_sauces": "Bitte wählen Sie die erforderlichen Saucen, um fortzufahren.",
+  "step_blocked_section": "Bitte treffen Sie die erforderliche Auswahl, um fortzufahren.",
+  "step_sides": "Beilagen & Getränke",
+  "step_drinks_hint": "Wird als eigener Artikel in den Warenkorb gelegt."
 }

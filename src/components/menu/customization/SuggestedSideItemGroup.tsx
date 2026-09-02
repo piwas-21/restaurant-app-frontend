@@ -14,6 +14,12 @@ interface SuggestedSideItemGroupProps {
   selectedSideItems: Array<{ id: string; quantity: number }>;
   onAdd: (sideItemId: string) => void;
   onRemove: (sideItemId: string) => void;
+  /**
+   * `disclosure` (default) is the collapsed group the scrolling sheet needs. `plain` is the guided
+   * flow's own step: the group is already the only thing on screen and the step panel carries its
+   * heading, so a header to press and a collapsed state would both be noise.
+   */
+  variant?: 'disclosure' | 'plain';
 }
 
 /**
@@ -25,6 +31,7 @@ export default function SuggestedSideItemGroup({
   selectedSideItems,
   onAdd,
   onRemove,
+  variant = 'disclosure',
 }: Readonly<SuggestedSideItemGroupProps>) {
   const { t } = useTranslation();
   const hasPreselectedItem = group.items.some((sideItem) =>
@@ -32,27 +39,33 @@ export default function SuggestedSideItemGroup({
   );
   // Required sides are seeded by the sheet state. Keep their name, price and required marker visible
   // on first render instead of hiding a paid selection behind a collapsed disclosure.
-  const [isExpanded, setIsExpanded] = useState(hasPreselectedItem);
+  const isPlain = variant === 'plain';
+  const [isOpen, setIsOpen] = useState(hasPreselectedItem);
+  const isExpanded = isPlain || isOpen;
   const panelId = useId();
   const quantityFor = (sideItemId: string) => selectedSideItems.find((item) => item.id === sideItemId)?.quantity ?? 0;
 
   return (
     <section className={styles.section}>
-      <h3 className={styles.sectionTitle}>
-        <button
-          type="button"
-          className={disclosureStyles.header}
-          onClick={() => setIsExpanded((open) => !open)}
-          aria-expanded={isExpanded}
-          aria-controls={panelId}
-        >
-          <span className={disclosureStyles.headerText}>
-            <span>{t(group.translationKey)}</span>
-            <span className={disclosureStyles.summary}>{t('select_options')}</span>
-          </span>
-          {isExpanded ? <ChevronUp size={20} aria-hidden="true" /> : <ChevronDown size={20} aria-hidden="true" />}
-        </button>
-      </h3>
+      {isPlain ? (
+        <h3 className={styles.sectionTitle}>{t(group.translationKey)}</h3>
+      ) : (
+        <h3 className={styles.sectionTitle}>
+          <button
+            type="button"
+            className={disclosureStyles.header}
+            onClick={() => setIsOpen((open) => !open)}
+            aria-expanded={isExpanded}
+            aria-controls={panelId}
+          >
+            <span className={disclosureStyles.headerText}>
+              <span>{t(group.translationKey)}</span>
+              <span className={disclosureStyles.summary}>{t('select_options')}</span>
+            </span>
+            {isExpanded ? <ChevronUp size={20} aria-hidden="true" /> : <ChevronDown size={20} aria-hidden="true" />}
+          </button>
+        </h3>
+      )}
 
       {isExpanded && (
         <div id={panelId} className={styles.sideItemsList}>

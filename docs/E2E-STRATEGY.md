@@ -7,8 +7,7 @@
 > Authoritative for **browser E2E** (Playwright) in `frontend/`. The backend
 > has its own integration-test layer (`backend/RestaurantSystem.IntegrationTests`)
 > against a real Postgres via Testcontainers — that is the boundary *below*
-> the browser tests described here. Phase plan + cumulative test count live in
-> [TEST-COVERAGE-PLAN.md](TEST-COVERAGE-PLAN.md) §Phase 6.
+> the browser tests described here.
 
 ## Scope: what E2E is for (and isn't)
 

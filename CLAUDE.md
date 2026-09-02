@@ -1,7 +1,8 @@
 # RUMI Frontend — Agent Rules
 
 > Auto-loaded by Claude Code on every session in this repository. These rules apply to ALL code changes in `frontend/`.
-> First read on a cold session: this file → [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) (refactor track) + the issue/sprint task you're picking up.
+> First read on a cold session: this file + the GitHub issue you're picking up. Cross-repo state lives in the
+> workspace [ROADMAP.md](../ROADMAP.md).
 
 ---
 
@@ -24,13 +25,12 @@
 | When                                                                                                    | Read                                                                                                                                             |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Any task                                                                                                | This file                                                                                                                                        |
-| Refactoring sprint task                                                                                 | [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) — find the task ID, read its acceptance criteria                                                      |
 | Design / component patterns                                                                             | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md)                                                                                                   |
 | Tenant UI template work (`src/templates/`, `@active-template`)                                          | [docs/TEMPLATES.md](docs/TEMPLATES.md) + [ADR-006](docs/adr/ADR-006-tenant-ui-templates.md)                                                      |
 | Adding or changing home-page / SEO copy, or any string a tenant might want to differ on                 | [docs/TENANT-COPY.md](docs/TENANT-COPY.md) — the platform bundle is tenant-NEUTRAL; a tenant's own words are a copy pack                         |
-| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md) (the _why_ lives in the workspace [FLOOR-PLAN-REVAMP-PLAN.md](../docs/plans/FLOOR-PLAN-REVAMP-PLAN.md)) |
+| Floor plan — guest map or admin editor (`lib/floorPlan/`, `components/floor-plan/`, `hooks/floorPlan/`) | [docs/FLOOR-PLAN.md](docs/FLOOR-PLAN.md) |
 | Coding conventions                                                                                      | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md)                                                                                 |
-| Test work                                                                                               | [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md)                                                                                         |
+| Test work                                                                                               | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) §Testing + [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md)                        |
 | Adding/changing a Playwright E2E                                                                        | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) — scope, HIGH/MED/LOW tiers, selector + auth + reliability rules                                    |
 | Quality / security gate work                                                                            | §7 below (live gate list + what is planned-but-unbuilt) + workspace [DEV-PHASES-PLAN.md](../docs/plans/DEV-PHASES-PLAN.md) §2                    |
 | Security review / threat model                                                                          | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md)                                                                                                 |
@@ -343,10 +343,9 @@ Bare `.env` is gitignored — credentials live in `.env.local` (per-developer, g
 ### Starting
 
 1. Read this file (auto-loaded).
-2. Read [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) if picking up a refactor task.
-3. Read the relevant ADR if working on a load-bearing pattern (state mgmt, styling, i18n, forms, design system).
-4. Run `npm run lint && npm run build` — confirm baseline green.
-5. Check `git status` — start from a clean tree on `main`.
+2. Read the relevant ADR if working on a load-bearing pattern (state mgmt, styling, i18n, forms, design system).
+3. Run `npm run lint && npm run build` — confirm baseline green.
+4. Check `git status` — start from a clean tree on `develop`.
 
 ### During implementation
 

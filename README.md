@@ -127,10 +127,8 @@ Required sections: summary, sprint-task link, acceptance-criteria coverage, back
 | File | Purpose |
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | Agent rules — auto-loaded |
-| [docs/SPRINT-PLAN.md](docs/SPRINT-PLAN.md) | 8-sprint refactoring plan |
 | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Design system patterns |
 | [docs/DEVELOPMENT-GUIDELINES.md](docs/DEVELOPMENT-GUIDELINES.md) | Coding conventions |
 | [docs/SECURITY-AUDIT.md](docs/SECURITY-AUDIT.md) | Security findings + status |
-| [docs/TEST-COVERAGE-PLAN.md](docs/TEST-COVERAGE-PLAN.md) | Test strategy (Jest + Playwright phases, coverage targets) |
 | [docs/E2E-STRATEGY.md](docs/E2E-STRATEGY.md) | Playwright E2E rules — scope, tiers, selectors, auth, reliability |
 | [docs/adr/](docs/adr/) | Architecture Decision Records |
